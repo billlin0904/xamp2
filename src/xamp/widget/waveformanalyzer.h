@@ -74,6 +74,7 @@ private:
 };
 
 class WaveformAnalyzer {
-	
+public:
+    class WaveformRenderer;
 };
 

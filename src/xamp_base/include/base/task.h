@@ -9,7 +9,7 @@
 
 namespace xamp::base {
 
-template <typename T>
-using Task = std::shared_future<T>;
+template <typename T = void>
+using Task = std::future<T>;
 
 }

@@ -1,4 +1,31 @@
+#include <QGLContext>
+#include <QOpenGLFunctions_2_1>
+
 #include <widget/waveformanalyzer.h>
+
+class WaveformAnalyzer::WaveformRenderer : protected QOpenGLFunctions_2_1 {
+public:
+    explicit WaveformRenderer(std::shared_ptr<Waveform> waveform)
+	    : waveform_(waveform) {
+    }
+
+    void initializeGL() {
+        initializeOpenGLFunctions();
+    }
+
+private:
+    void maybeInitializeGL() {
+        if (QGLContext::currentContext() != context_) {
+            initializeGL();
+            context_ = QGLContext::currentContext();
+        }
+    }
+
+    double visual_sample_per_pixel_;
+    double audio_sample_per_pixel_;
+    const QGLContext* context_;
+    std::shared_ptr<Waveform> waveform_;
+};
 
 static int32_t computeTextureStride(int32_t size) {
     int32_t stride = 256;

@@ -45,7 +45,7 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, shift_size, buffer_size);
 	stft_ = MakeAlign<STFT>(frame_size, shift_size);
 	stft_->SetWindowType(AppSettings::getAsEnum<WindowType>(kAppSettingWindowType));
-	//enable_spectrum_ = AppSettings::getValueAsBool(kAppSettingEnableSpectrum);
+	enable_spectrum_ = AppSettings::getValueAsBool(kAppSettingEnableSpectrum);
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {

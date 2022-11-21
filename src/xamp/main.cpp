@@ -196,6 +196,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingWindowState, false);
     AppSettings::setDefaultValue(kAppSettingScreenNumber, 1);
 
+    AppSettings::setDefaultValue(kAppSettingEnableSpectrum, false);
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }

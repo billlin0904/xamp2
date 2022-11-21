@@ -55,9 +55,9 @@ IMPL_APP_SETTING_NAME(FlacEncodingLevel, "AppSettings/flacEncodingLevel");
 IMPL_APP_SETTING_NAME(EnableBitPerfect, "AppSettings/enableBitPerfect");
 IMPL_APP_SETTING_NAME(EnableBlurCover, "AppSettings/enableBlurCover");
 
-IMPL_APP_SETTING_NAME(AppSettingEnableSpectrum, "AppSettings/Spectrum/enable");;
-IMPL_APP_SETTING_NAME(AppSettingSpectrumStyles, "AppSettings/Spectrum/spectrumStyles");
-IMPL_APP_SETTING_NAME(AppSettingWindowType, "AppSettings/Spectrum/windowType");
+IMPL_APP_SETTING_NAME(AppSettingEnableSpectrum, "AppSettings/spectrum/enable");;
+IMPL_APP_SETTING_NAME(AppSettingSpectrumStyles, "AppSettings/spectrum/spectrumStyles");
+IMPL_APP_SETTING_NAME(AppSettingWindowType, "AppSettings/spectrum/windowType");
 
 
 IMPL_APP_SETTING_NAME(Soxr, "Soxr");

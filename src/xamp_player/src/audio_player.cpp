@@ -452,7 +452,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
 #else
         stream_task_.get();
 #endif
-        stream_task_ = std::shared_future<void>();
+        stream_task_ = Task<void>();
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 

@@ -109,7 +109,7 @@ void LrcPage::initial() {
 	cover_label_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
-	if (AppSettings::getValueAsBool(kEnableBlurCover)) {
+	if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(15, 15);
 		effect->setColor(qTheme.coverShadownColor());

@@ -74,7 +74,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
         (*t)(thread_index);
     });
 
-    return future.share();
+    return future;
 }
 
 XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(

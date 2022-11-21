@@ -20,8 +20,8 @@
 #include <widget/widget_shared.h>
 #include <widget/backgroundworker.h>
 
-struct PlayListRGResult {
-    PlayListRGResult(PlayListEntity item, std::optional<Ebur128Reader> scanner)
+struct ReplayGainWorkerEntity {
+    ReplayGainWorkerEntity(PlayListEntity item, std::optional<Ebur128Reader> scanner)
         : item(std::move(item))
         , scanner(std::move(scanner)) {
     }
@@ -137,18 +137,15 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
 void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
-    Vector<Task<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
+    Vector<Task<ReplayGainWorkerEntity>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     replay_gain_tasks.reserve(items.size());
 
-    Stopwatch wait_time_sw;
-    double process_time = 0;
-
     for (const auto &item : items) {
-        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, &process_time, this](auto ) ->AlignPtr<PlayListRGResult> {
+        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, this](auto ) ->ReplayGainWorkerEntity {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -168,10 +165,8 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
                 scanner.value().Process(samples, sample_size);
             };
 
-            Stopwatch sw;
             read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
-            process_time = sw.ElapsedSeconds();
-            return MakeAlign<PlayListRGResult>(item, std::move(scanner));
+            return {item, std::move(scanner)};
         }));
     }
 
@@ -180,17 +175,10 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
 
     for (auto & task : replay_gain_tasks) {
         try {
-            auto& result = task.get();
-            if (!result) {
-                continue;
-            }
-            XAMP_LOG_DEBUG("Process replaygain process:{:.2f} secs wait :{:.2f} secs",
-                process_time,
-                wait_time_sw.ElapsedSeconds());
-            wait_time_sw.Reset();
-            replay_gain.music_id.push_back(result->item);
-            if (result->scanner.has_value()) {
-                scanners.push_back(std::move(result->scanner.value()));
+            auto result = task.get();
+            replay_gain.music_id.push_back(result.item);
+            if (result.scanner.has_value()) {
+                scanners.push_back(std::move(result.scanner.value()));
             }
         }
         catch (std::exception const& e) {
