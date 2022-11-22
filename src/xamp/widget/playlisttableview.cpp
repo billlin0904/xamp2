@@ -120,17 +120,16 @@ public:
         case PLAYLIST_TRACK_PK:
         case PLAYLIST_TRACK_RG:
             opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;      
-            opt.text = QString::number(value.toFloat(), 'f', 2);
-            /*switch (index.column()) {
+            switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
-                opt.text += Q_TEXT(" dBTP");
+                opt.text = Q_STR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
-                opt.text += Q_TEXT(" LUFS");
+                opt.text = Q_STR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
-            }*/
+            }
             break;
         case PLAYLIST_SAMPLE_RATE:
             opt.text = samplerate2String(value.toInt());
@@ -600,13 +599,11 @@ void PlayListTableView::initial() {
 void PlayListTableView::pauseItem(const QModelIndex& index) {
     const auto entity = item(index);
     qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
-    //reload();
     update();
 }
 
 PlayListEntity PlayListTableView::item(const QModelIndex& index) {
-    const auto src_index = proxy_model_->mapToSource(index);
-    return getEntity(index, src_index);
+    return getEntity(index, proxy_model_->mapToSource(index));
 }
 
 void PlayListTableView::playItem(const QModelIndex& index) {
@@ -620,7 +617,8 @@ bool PlayListTableView::isPodcastMode() const {
 }
 
 ConstLatin1String PlayListTableView::columnAppSettingName() const {
-	const auto setting_name = isPodcastMode() ? kAppSettingPodcastPlaylistColumnName : kAppSettingPlaylistColumnName;
+	const auto setting_name = isPodcastMode()
+	? kAppSettingPodcastPlaylistColumnName : kAppSettingPlaylistColumnName;
     return setting_name;
 }
 
@@ -677,7 +675,6 @@ void PlayListTableView::setPodcastMode(bool enable) {
 }
 
 void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color) {
-    //setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void PlayListTableView::updateReplayGain(int music_id,

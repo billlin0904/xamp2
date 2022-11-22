@@ -129,12 +129,30 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
+static uint64_t truncatedHash(const QByteArray& hash) {
+    const int32_t significant_byte_count = (std::min)(
+        hash.size(),
+        static_cast<int>(sizeof(int64_t)));
+    uint64_t key = 0;
+    for (int i = 0; i < significant_byte_count; ++i) {
+        const int32_t next_byte =
+            static_cast<uint8_t>(hash.at(i));
+        key <<= 8;
+        key |= next_byte;
+    }
+    if (!key) {
+        key = ~key;
+    }
+    return key;
+}
+
 class ExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
     static constexpr std::wstring_view kCueFileExt{ L".cue" };
 
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
-        : adapter_(adapter) {
+        : reader_(MakeMetadataReader())
+		, adapter_(adapter) {
         GetSupportFileExtensions();
     }
 
@@ -142,9 +160,6 @@ public:
         if (!path.has_extension()) {
             return false;
         }
-        /*if (path.extension() == kCueFileExt) {
-            return true;
-        }*/
         using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
         const auto & support_file_set = GetSupportFileExtensions();
@@ -157,33 +172,32 @@ public:
         qApp->processEvents();
     }
 
-    void OnWalk(const Path&, TrackInfo metadata) override {
-        /*if (metadata.file_ext == kCueFileExt) {
-            std::wifstream file(metadata.file_path, std::ios::binary);
-            ImbueFileFromBom(file);
-            if (file.is_open()) {
-                auto sheet = std::make_shared<CueSheet>();
-                sheet->Parse(file.rdbuf());
-            }
-        }*/
-        metadatas_.push_front(std::move(metadata));
+    void OnWalk(const Path& path) override {
+        auto metadata = reader_->Extract(path);
+        album_groups_[metadata.album].push_front(std::move(metadata));
         qApp->processEvents();
     }
 
     void OnWalkEnd(DirectoryEntry const& dir_entry) override {
-        if (metadatas_.empty()) {
+        if (album_groups_.empty()) {
             return;
         }
-        metadatas_.sort([](const auto& first, const auto& last) {            
-            return first.track < last.track;
+        
+        std::for_each(album_groups_.begin(), album_groups_.end(), [&](auto& tracks) {
+            tracks.second.sort([](const auto& first, const auto& last) {
+                return first.track < last.track;
+                });
+        });
+        std::for_each(album_groups_.begin(), album_groups_.end(), [&](auto& tracks) {
+            emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), tracks.second);
             });
-        emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), metadatas_);
-        metadatas_.clear();        
+        album_groups_.clear();
     }
 	
 private:
+    AlignPtr<IMetadataReader> reader_;
     QSharedPointer<::MetadataExtractAdapter> adapter_;
-    ForwardList<TrackInfo> metadatas_;
+    HashMap<std::wstring, ForwardList<TrackInfo>> album_groups_;
 };
 
 ::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -203,25 +217,35 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dialog->setMinimumDuration(1000);
     dialog->setWindowModality(Qt::ApplicationModal);
 
-    HashSet<Path> dirs;
+    std::unordered_set<Path> dirs;
     dirs.reserve(100);
 
-    const auto is_accept = [&dirs](auto path) {
-        return Fs::is_directory(path) && dirs.find(path) == dirs.end();
-    };
-    const auto walk = [&dirs](auto path) {
+    std::function<bool(const Path&)> is_accept;
+    std::function<void(const Path&)> walk;
+    std::function<void(const Path&, bool)> walk_end;
+
+    if (file_path.back() != L'.') {
+        dirs.insert(file_path.toStdWString() + L"/.");
+
+        is_accept = [&dirs](auto path) {
+            return Fs::is_directory(path) && dirs.find(path) == dirs.end();
+        };
+    } else {
+        is_accept = [&dirs](auto path) {
+            return !Fs::is_directory(path) && dirs.find(path) == dirs.end();
+        };
+    }
+
+    walk = [&dirs](auto path) {
         dirs.emplace(path);
     };
-    const auto walk_end = [&dirs](auto path, bool is_new) {
-        dirs.emplace(path);
+    walk_end = [&dirs](auto path, bool is_new) {
     };
 
     ScanFolder(file_path.toStdWString(), is_accept, walk, walk_end, false);
     dialog->setMaximum(dirs.size());
 
     ExtractAdapterProxy proxy(adapter);
-
-    const auto reader = MakeMetadataReader();
     auto progress = 0;
 
     if (dirs.empty()) {
@@ -236,7 +260,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         dialog->setLabelText(QString::fromStdWString(file_dir_or_path.wstring()));
         
         try {
-            ScanFolder(file_dir_or_path, &proxy, reader.get(), is_recursive);
+            ScanFolder(file_dir_or_path, &proxy, is_recursive);
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());

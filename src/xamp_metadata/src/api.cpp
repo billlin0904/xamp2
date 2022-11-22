@@ -33,15 +33,13 @@ static void ScanFolderImpl(Path const& path,
 
             auto parent_path = root_path.parent_path();
             auto cur_path = current_path.parent_path();
-            if (parent_path != cur_path) {
+            if (parent_path != cur_path && is_accept(parent_path)) {
                 end_walk(DirectoryEntry(parent_path), true);
                 root_path = current_path;
             }
 
-            if (!Fs::is_directory(current_path)) {
-                if (is_accept(current_path)) {
-                    walk(current_path);
-                }
+            if (is_accept(current_path)) {
+                walk(current_path);
             }
         }
 
@@ -55,13 +53,13 @@ static void ScanFolderImpl(Path const& path,
     }
 }
 
-void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader, bool is_recursive) {
+void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, bool is_recursive) {
     const auto is_accept = [adapter](auto path) {
         return adapter->IsAccept(path);
     };
 
-    const auto walk = [adapter, reader](auto path) {
-        adapter->OnWalk(path, reader->Extract(path));
+    const auto walk = [adapter](auto path) {
+        adapter->OnWalk(path);
     };
 
     const auto walk_end = [adapter](auto path, bool is_new) {

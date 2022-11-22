@@ -14,7 +14,7 @@ class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataExtractAdapter {
 public:
     XAMP_BASE_CLASS(IMetadataExtractAdapter)
 
-    virtual void OnWalk(Path const &path, TrackInfo metadata) = 0;
+    virtual void OnWalk(Path const &path) = 0;
 
     virtual void OnWalkEnd(DirectoryEntry const& dir_entry) = 0;
 

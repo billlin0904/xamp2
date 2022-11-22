@@ -8,7 +8,7 @@
 #include <unordered_set>
 
 #include <base/scopeguard.h>
-#include <base/metadata.h>
+#include <base/trackinfo.h>
 #include <base/lifoqueue.h>
 #include <base/audiobuffer.h>
 #include <base/threadpoolexecutor.h>
@@ -48,6 +48,10 @@ static void BM_LeastLoadThreadPool(benchmark::State& state) {
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY);
+
+    LoggerManager::GetInstance().GetLogger("BM_LeastLoadThreadPool")
+        ->SetLevel(LOG_LEVEL_OFF);
+
     const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -66,6 +70,10 @@ static void BM_RoundRubinThreadPool(benchmark::State& state) {
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
+
+    LoggerManager::GetInstance().GetLogger("BM_RoundRubinThreadPool")
+        ->SetLevel(LOG_LEVEL_OFF);
+
     const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -85,6 +93,10 @@ static void BM_ChildStealPolicyRandomThreadPool(benchmark::State& state) {
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::RANDOM_POLICY,
         TaskStealPolicy::CHILD_STEALING_POLICY);
+
+    LoggerManager::GetInstance().GetLogger("BM_ChildStealPolicyRandomThreadPool")
+        ->SetLevel(LOG_LEVEL_OFF);
+
     const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -104,6 +116,10 @@ static void BM_ContinuationStealPolicyRandomThreadPool(benchmark::State& state) 
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+
+    LoggerManager::GetInstance().GetLogger("BM_ContinuationStealPolicyRandomThreadPool")
+        ->SetLevel(LOG_LEVEL_OFF);
+
     const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -465,10 +481,10 @@ static void BM_unordered_set(benchmark::State& state) {
 
 static void BM_FowardListSort(benchmark::State& state) {
     auto length = state.range(0);
-    ForwardList<Metadata> list;
+    ForwardList<TrackInfo> list;
 
     for (auto i = 0; i < length; ++i) {
-        Metadata metadata;
+        TrackInfo metadata;
         metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
         list.push_front(metadata);
     }
@@ -482,10 +498,10 @@ static void BM_FowardListSort(benchmark::State& state) {
 
 static void BM_VectorSort(benchmark::State& state) {
     auto length = state.range(0);
-    std::vector<Metadata> list;
+    std::vector<TrackInfo> list;
 
     for (auto i = 0; i < length; ++i) {
-        Metadata metadata;
+        TrackInfo metadata;
         metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
         list.push_back(metadata);
     }
@@ -696,9 +712,9 @@ BENCHMARK(BM_ChaCha20Random);
 #ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
-//BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
     LoggerManager::GetInstance()
@@ -710,21 +726,9 @@ int main(int argc, char** argv) {
     XAMP_LOG_DEBUG("Logger init success.");
 
     LoggerManager::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)
-        ->SetLevel(LOG_LEVEL_DEBUG);
+        ->SetLevel(LOG_LEVEL_OFF);
     LoggerManager::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
-        ->SetLevel(LOG_LEVEL_DEBUG);
-
-    LoggerManager::GetInstance().GetLogger("BM_LeastLoadThreadPool")
-        ->SetLevel(LOG_LEVEL_DEBUG);
-    LoggerManager::GetInstance().GetLogger("BM_RoundRubinThreadPool")
-        ->SetLevel(LOG_LEVEL_DEBUG);
-    LoggerManager::GetInstance().GetLogger("BM_RandomThreadPool")
-        ->SetLevel(LOG_LEVEL_DEBUG);
-
-    LoggerManager::GetInstance().GetLogger("BM_ChildStealPolicyRandomThreadPool")
-        ->SetLevel(LOG_LEVEL_DEBUG);
-    LoggerManager::GetInstance().GetLogger("BM_ContinuationStealPolicyRandomThreadPool")
-        ->SetLevel(LOG_LEVEL_DEBUG);
+        ->SetLevel(LOG_LEVEL_OFF);
 
     XampIniter initer;
     initer.Init();
