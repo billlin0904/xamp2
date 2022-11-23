@@ -2,17 +2,16 @@
 #include <utility>
 #include <execution>
 #include <forward_list>
-#include <fstream>
+
 #include <QMap>
-#include <QDirIterator>
 #include <QProgressDialog>
 #include <unordered_set>
 
 #include <base/base.h>
 #include <base/str_utilts.h>
 #include <base/threadpoolexecutor.h>
-#include <base/bom.h>
 #include <base/logger_impl.h>
+#include <base/siphash.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
@@ -22,7 +21,7 @@
 
 #include "thememanager.h"
 
-#include <widget/cuesheet.h>
+#include <widget/widget_shared.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/http.h>
@@ -33,29 +32,15 @@
 #include <widget/pixmapcache.h>
 #include <widget/metadataextractadapter.h>
 
-class DatabaseIdCache final {
-public:
-    DatabaseIdCache()
-        : cover_reader_(MakeMetadataReader()) {
-    }
+DatabaseIdCache::DatabaseIdCache()
+    : cover_reader_(MakeMetadataReader()) {
+}
 
-    QPixmap getEmbeddedCover(const TrackInfo& metadata) const;
-
-    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
-        const QString& album,
-        const QString& artist,
-        bool is_podcast,
-        const QString& disc_id) const;
-
-    QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const;
-
-private:
-    mutable LruCache<int32_t, QString> cover_id_cache_;
-    // Key: Album + Artist
-    mutable LruCache<QString, int32_t> album_id_cache_;
-    mutable LruCache<QString, int32_t> artist_id_cache_;
-    AlignPtr<IMetadataReader> cover_reader_;
-};
+void DatabaseIdCache::clear() {
+    cover_id_cache_.Clear();
+    album_id_cache_.Clear();
+    artist_id_cache_.Clear();
+}
 
 QPixmap DatabaseIdCache::getEmbeddedCover(const TrackInfo& metadata) const {
     QPixmap pixmap;
@@ -65,6 +50,10 @@ QPixmap DatabaseIdCache::getEmbeddedCover(const TrackInfo& metadata) const {
             static_cast<uint32_t>(buffer.size()));
     }
     return pixmap;
+}
+
+size_t DatabaseIdCache::getParentPathHash(const QString& parent_path) const {
+    return qDatabase.getParentPathHash(parent_path);
 }
 
 QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const {
@@ -129,34 +118,18 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
-static uint64_t truncatedHash(const QByteArray& hash) {
-    const int32_t significant_byte_count = (std::min)(
-        hash.size(),
-        static_cast<int>(sizeof(int64_t)));
-    uint64_t key = 0;
-    for (int i = 0; i < significant_byte_count; ++i) {
-        const int32_t next_byte =
-            static_cast<uint8_t>(hash.at(i));
-        key <<= 8;
-        key |= next_byte;
-    }
-    if (!key) {
-        key = ~key;
-    }
-    return key;
-}
-
-class ExtractAdapterProxy final : public IMetadataExtractAdapter {
+class TrackInfoExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
-    static constexpr std::wstring_view kCueFileExt{ L".cue" };
-
-    explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
+    explicit TrackInfoExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : reader_(MakeMetadataReader())
 		, adapter_(adapter) {
         GetSupportFileExtensions();
     }
 
     [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
+        if (Fs::is_directory(path)) {
+            return true;
+        }
         if (!path.has_extension()) {
             return false;
         }
@@ -166,24 +139,43 @@ public:
         return support_file_set.find(file_ext) != support_file_set.end();
     }
 
-    XAMP_DISABLE_COPY(ExtractAdapterProxy)
+    XAMP_DISABLE_COPY(TrackInfoExtractAdapterProxy)
 
     void OnWalkNew() override {
         qApp->processEvents();
     }
 
     void OnWalk(const Path& path) override {
-        auto metadata = reader_->Extract(path);
-        album_groups_[metadata.album].push_front(std::move(metadata));
         qApp->processEvents();
+        if (Fs::is_directory(path)) {
+            return;
+        }
+
+        hasher_.Update(path.native());
+        paths_.push_front(path);
     }
 
     void OnWalkEnd(DirectoryEntry const& dir_entry) override {
-        if (album_groups_.empty()) {
+        qApp->processEvents();
+        const auto path_hash = hasher_.GetHash();
+        hasher_.Clear();
+        
+        const auto db_hash = qDatabaseIdCache.getParentPathHash(QString::fromStdWString(Path(dir_entry).native()));
+        if (db_hash == path_hash) {
+            album_groups_.clear();
+            paths_.clear();
             return;
         }
-        
+
+        std::for_each(paths_.begin(), paths_.end(), [&](auto& path) {
+            auto metadata = reader_->Extract(path);
+			album_groups_[metadata.album].push_front(std::move(metadata));
+            });
         std::for_each(album_groups_.begin(), album_groups_.end(), [&](auto& tracks) {
+            std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
+                track.parent_path_hash = path_hash;
+                });
+
             tracks.second.sort([](const auto& first, const auto& last) {
                 return first.track < last.track;
                 });
@@ -192,12 +184,15 @@ public:
             emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), tracks.second);
             });
         album_groups_.clear();
+        paths_.clear();
     }
 	
 private:
     AlignPtr<IMetadataReader> reader_;
     QSharedPointer<::MetadataExtractAdapter> adapter_;
-    HashMap<std::wstring, ForwardList<TrackInfo>> album_groups_;
+    ForwardList<Path> paths_;
+    std::unordered_map<std::wstring, ForwardList<TrackInfo>> album_groups_;
+    SipHash hasher_;
 };
 
 ::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -217,39 +212,46 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dialog->setMinimumDuration(1000);
     dialog->setWindowModality(Qt::ApplicationModal);
 
-    std::unordered_set<Path> dirs;
-    dirs.reserve(100);
+    ForwardList<Path> dirs;
 
     std::function<bool(const Path&)> is_accept;
-    std::function<void(const Path&)> walk;
-    std::function<void(const Path&, bool)> walk_end;
 
-    if (file_path.back() != L'.') {
-        dirs.insert(file_path.toStdWString() + L"/.");
+	auto native_path = fromQStringPath(file_path).toStdWString();
 
+    if (native_path.back() != L'.') {
         is_accept = [&dirs](auto path) {
-            return Fs::is_directory(path) && dirs.find(path) == dirs.end();
+            return Fs::is_directory(path);
         };
+        dirs.push_front(native_path);
     } else {
         is_accept = [&dirs](auto path) {
-            return !Fs::is_directory(path) && dirs.find(path) == dirs.end();
+            return !Fs::is_directory(path);
         };
     }
 
-    walk = [&dirs](auto path) {
-        dirs.emplace(path);
+    const auto walk = [&dirs](auto path) {
+        dirs.push_front(path);
     };
-    walk_end = [&dirs](auto path, bool is_new) {
+    const auto walk_end = [&dirs](auto path, bool is_new) {
     };
 
-    ScanFolder(file_path.toStdWString(), is_accept, walk, walk_end, false);
-    dialog->setMaximum(dirs.size());
+    ScanFolder(native_path, is_accept, walk, walk_end, false);
 
-    ExtractAdapterProxy proxy(adapter);
+    TrackInfoExtractAdapterProxy proxy(adapter);
     auto progress = 0;
 
-    if (dirs.empty()) {
-        dirs.insert(file_path.toStdWString());
+    dialog->setMaximum(std::distance(dirs.begin(), dirs.end()));
+
+    if (native_path.back() == L'.') {
+        for (const auto& file_dir_or_path : dirs) {
+            if (proxy.IsAccept(file_dir_or_path)) {
+                proxy.OnWalk(file_dir_or_path);
+            }
+            dialog->setValue(progress++);
+        }
+        String::Remove(native_path, L"\\.");
+        proxy.OnWalkEnd(DirectoryEntry(native_path));
+        return;
     }
 
     for (const auto& file_dir_or_path : dirs) {
@@ -263,7 +265,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
             ScanFolder(file_dir_or_path, &proxy, is_recursive);
         }
         catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
+            XAMP_LOG_DEBUG("ScanFolder has exception: {}", e.what());
         }
         dialog->setValue(progress++);
     }
@@ -274,8 +276,6 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 	if (playlist != nullptr) {
 		playlist_id = playlist->playlistId();
 	}
-
-	const DatabaseIdCache cache;
 
 	for (const auto& metadata : result) {
 		qApp->processEvents();
@@ -289,7 +289,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 			album = tr("Unknown album");
 			is_unknown_album = true;
 			// todo: 如果有內建圖片就把當作一張專輯.
-			auto cover = cache.getEmbeddedCover(metadata);
+			auto cover = qDatabaseIdCache.getEmbeddedCover(metadata);
 			if (!cover.isNull()) {
 				album = QString::fromStdWString(metadata.file_name_no_ext);
 			}
@@ -301,7 +301,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 		const auto music_id = qDatabase.addOrUpdateMusic(metadata);
 
 		auto [album_id, artist_id, cover_id] = 
-            cache.addOrGetAlbumAndArtistId(dir_last_write_time,
+            qDatabaseIdCache.addOrGetAlbumAndArtistId(dir_last_write_time,
 		             album, 
 		             artist,
 		             is_podcast, 
@@ -319,7 +319,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 
 			// Database not exist find others.
 			if (cover_id.isEmpty()) {
-				cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
+				cover_id = qDatabaseIdCache.addCoverCache(album_id, album, metadata, is_unknown_album);
 			}
 		} else {
 			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));

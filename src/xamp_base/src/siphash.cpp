@@ -12,21 +12,25 @@ namespace xamp::base {
         v2_ += v1_; v1_ = Rotl64(v1_, 17); v1_ ^= v2_; v2_ = Rotl64(v2_, 32); \
     } while(0)
 
-#if 0 // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#if defined(XAMP_IS_BIG_ENDIAN)
 #define CURRENT_BYTES_IDX(i) (7 - i)
 #else
 #define CURRENT_BYTES_IDX(i) (i)
 #endif
 
 SipHash::SipHash(uint64_t k0, uint64_t k1) {
-     v0_ = 0x736f6d6570736575ULL ^ k0;
-     v1_ = 0x646f72616e646f6dULL ^ k1;
-     v2_ = 0x6c7967656e657261ULL ^ k0;
-     v3_ = 0x7465646279746573ULL ^ k1;
-
-     count_ = 0;
-     current_word = 0;
+    Clear(k0, k1);
  }
+
+void SipHash::Clear(uint64_t k0, uint64_t k1) {
+    v0_ = 0x736f6d6570736575ULL ^ k0;
+    v1_ = 0x646f72616e646f6dULL ^ k1;
+    v2_ = 0x6c7967656e657261ULL ^ k0;
+    v3_ = 0x7465646279746573ULL ^ k1;
+
+    count_ = 0;
+    current_word = 0;
+}
 
  uint64_t SipHash::GetHash(uint64_t k0, uint64_t k1, const std::string& x) {
     SipHash hasher(k0, k1);
@@ -34,7 +38,7 @@ SipHash::SipHash(uint64_t k0, uint64_t k1) {
     return hasher.GetHash();
  }
 
- void SipHash::Update(const char* data, uint64_t size) {
+ void SipHash::Update(const char* data, size_t size) {
      const char* end = data + size;
 
      /// We'll finish to process the remainder of the previous update, if any.
@@ -87,7 +91,7 @@ void SipHash::Update(const std::string& x) {
     Update(x.c_str(), x.length());
 }
 
-uint64_t SipHash::GetHash() const {
+size_t SipHash::GetHash() const {
     Finalize();
     return v0_ ^ v1_ ^ v2_ ^ v3_;
 }

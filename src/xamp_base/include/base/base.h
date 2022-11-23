@@ -47,6 +47,10 @@
 #define XAMP_COMBIN_NAME(x, y) XAMP_COMBIN(x, y)
 #define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __COUNTER__)
 
+// XAMP_IS_LITTLE_ENDIAN
+// XAMP_IS_BIG_ENDIAN
+#define XAMP_IS_LITTLE_ENDIAN 1
+
 // Rule of five
 // See more: http://en.cppreference.com/w/cpp/language/rule_of_three
 #define XAMP_BASE_CLASS(Class) \

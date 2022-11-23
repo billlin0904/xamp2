@@ -401,6 +401,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         removeAlbum();
         styled_delegate_->clearImageCache();
+        qDatabaseIdCache.clear();
         });
     remove_all_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
 

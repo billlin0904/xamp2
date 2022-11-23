@@ -114,6 +114,7 @@ void Database::createTableIfNotExist() {
 					   comment TEXT,
 					   year integer,
 					   fileSize integer,
+					   parentPathHash integer,
                        UNIQUE(path, offset)
 					   )
                        )"));
@@ -713,34 +714,67 @@ QString Database::getAlbumCoverId(const QString& album) const {
 	return Qt::EmptyString;
 }
 
-int32_t Database::addOrUpdateMusic(const TrackInfo& trackinfo) {
+size_t Database::getParentPathHash(const QString & parent_path) const {
+	QSqlQuery query;
+	query.prepare(Q_TEXT(R"(
+	SELECT
+		parentPathHash 
+	FROM
+		musics 
+	WHERE
+		parentPath = :parentPath
+	ORDER BY
+		ROWID ASC 
+	LIMIT 1
+    )")
+	);
+
+	query.bindValue(Q_TEXT(":parentPath"), parent_path);
+	IfFailureThrow1(query);
+
+	const auto index = query.record().indexOf(Q_TEXT("parentPathHash"));
+	if (query.next()) {
+		auto blob_size_t = query.value(index).toByteArray();
+		size_t result = 0;
+		memcpy(&result, blob_size_t.data(), blob_size_t.length());
+		return result;
+	}
+	return 0;
+}
+
+int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year, fileSize)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year, :fileSize)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year, fileSize, parentPathHash)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year, :fileSize, :parentPathHash)
     )")
 	);
 
-	query.bindValue(Q_TEXT(":title"), QString::fromStdWString(trackinfo.title));
-	query.bindValue(Q_TEXT(":track"), trackinfo.track);
-	query.bindValue(Q_TEXT(":path"), QString::fromStdWString(trackinfo.file_path));
-	query.bindValue(Q_TEXT(":fileExt"), QString::fromStdWString(trackinfo.file_ext));
-	query.bindValue(Q_TEXT(":fileName"), QString::fromStdWString(trackinfo.file_name));
-	query.bindValue(Q_TEXT(":parentPath"), QString::fromStdWString(trackinfo.parent_path));
-	query.bindValue(Q_TEXT(":duration"), trackinfo.duration);
-	query.bindValue(Q_TEXT(":durationStr"), streamTimeToString(trackinfo.duration));
-	query.bindValue(Q_TEXT(":bitrate"), trackinfo.bitrate);
-	query.bindValue(Q_TEXT(":samplerate"), trackinfo.samplerate);
-	query.bindValue(Q_TEXT(":offset"), trackinfo.offset);
-	query.bindValue(Q_TEXT(":fileSize"), trackinfo.file_size);
+	query.bindValue(Q_TEXT(":title"), QString::fromStdWString(track_info.title));
+	query.bindValue(Q_TEXT(":track"), track_info.track);
+	query.bindValue(Q_TEXT(":path"), QString::fromStdWString(track_info.file_path));
+	query.bindValue(Q_TEXT(":fileExt"), QString::fromStdWString(track_info.file_ext));
+	query.bindValue(Q_TEXT(":fileName"), QString::fromStdWString(track_info.file_name));
+	query.bindValue(Q_TEXT(":parentPath"), QString::fromStdWString(track_info.parent_path));
+	query.bindValue(Q_TEXT(":duration"), track_info.duration);
+	query.bindValue(Q_TEXT(":durationStr"), streamTimeToString(track_info.duration));
+	query.bindValue(Q_TEXT(":bitrate"), track_info.bitrate);
+	query.bindValue(Q_TEXT(":samplerate"), track_info.samplerate);
+	query.bindValue(Q_TEXT(":offset"), track_info.offset);
+	query.bindValue(Q_TEXT(":fileSize"), track_info.file_size);
 
-	if (trackinfo.replay_gain) {
-		query.bindValue(Q_TEXT(":album_replay_gain"), trackinfo.replay_gain.value().album_gain);
-		query.bindValue(Q_TEXT(":track_replay_gain"), trackinfo.replay_gain.value().track_gain);
-		query.bindValue(Q_TEXT(":album_peak"), trackinfo.replay_gain.value().album_peak);
-		query.bindValue(Q_TEXT(":track_peak"), trackinfo.replay_gain.value().track_peak);
+	QByteArray blob_size_t;
+	blob_size_t.resize(sizeof(size_t));
+	memcpy(blob_size_t.data(), &track_info.parent_path_hash, sizeof(size_t));
+	query.bindValue(Q_TEXT(":parentPathHash"), blob_size_t);
+
+	if (track_info.replay_gain) {
+		query.bindValue(Q_TEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);
+		query.bindValue(Q_TEXT(":track_replay_gain"), track_info.replay_gain.value().track_gain);
+		query.bindValue(Q_TEXT(":album_peak"), track_info.replay_gain.value().album_peak);
+		query.bindValue(Q_TEXT(":track_peak"), track_info.replay_gain.value().track_peak);
 	}
 	else {
 		query.bindValue(Q_TEXT(":album_replay_gain"), 0);
@@ -749,16 +783,16 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& trackinfo) {
 		query.bindValue(Q_TEXT(":track_peak"), 0);
 	}
 
-	if (trackinfo.last_write_time == 0) {
+	if (track_info.last_write_time == 0) {
 		query.bindValue(Q_TEXT(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	}
 	else {
-		query.bindValue(Q_TEXT(":dateTime"), trackinfo.last_write_time);
+		query.bindValue(Q_TEXT(":dateTime"), track_info.last_write_time);
 	}
 
-	query.bindValue(Q_TEXT(":genre"), QString::fromStdWString(trackinfo.genre));
-	query.bindValue(Q_TEXT(":comment"), QString::fromStdWString(trackinfo.comment));
-	query.bindValue(Q_TEXT(":year"), trackinfo.year);
+	query.bindValue(Q_TEXT(":genre"), QString::fromStdWString(track_info.genre));
+	query.bindValue(Q_TEXT(":comment"), QString::fromStdWString(track_info.comment));
+	query.bindValue(Q_TEXT(":year"), track_info.year);
 
 	if (!query.exec()) {
 		XAMP_LOG_D(logger_, "{}", query.lastError().text().toStdString());

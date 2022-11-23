@@ -9,6 +9,7 @@ TrackInfo::TrackInfo() noexcept
 	, year(0)
 	, last_write_time(0)
 	, file_size(0)
+	, parent_path_hash(0)
 	, offset(0)
 	, duration(0) {
 }

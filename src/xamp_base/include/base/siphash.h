@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <string>
 #include <base/base.h>
 #include <base/math.h>
 
@@ -14,13 +15,20 @@ class XAMP_BASE_API SipHash final {
 public:
 	explicit SipHash(uint64_t k0 = 0, uint64_t k1 = 0);
 
+	void Clear(uint64_t k0 = 0, uint64_t k1 = 0);
+
     void Update(const std::string& x);
 
-    void Update(const char* data, uint64_t size);
+    void Update(const char* data, size_t size);
+
+	template <typename CharT>
+	void Update(const std::basic_string< CharT> &str) {
+		Update(reinterpret_cast<const char*>(str.data()), str.size() * sizeof(CharT));
+	}
 
     void Finalize() const;
 
-    uint64_t GetHash() const;
+    size_t GetHash() const;
 
 	static uint64_t GetHash(uint64_t k0, uint64_t k1, const std::string& x);
 

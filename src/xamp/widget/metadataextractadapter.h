@@ -12,6 +12,34 @@ class PlayListTableView;
 
 TrackInfo getMetadata(QString const& file_path);
 
+class DatabaseIdCache final {
+public:
+    DatabaseIdCache();
+
+    QPixmap getEmbeddedCover(const TrackInfo& metadata) const;
+
+    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
+        const QString& album,
+        const QString& artist,
+        bool is_podcast,
+        const QString& disc_id) const;
+
+    size_t getParentPathHash(const QString& parent_path) const;
+
+    QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const;
+
+    void clear();
+
+private:
+    mutable LruCache<int32_t, QString> cover_id_cache_;
+    // Key: Album + Artist
+    mutable LruCache<QString, int32_t> album_id_cache_;
+    mutable LruCache<QString, int32_t> artist_id_cache_;
+    AlignPtr<IMetadataReader> cover_reader_;
+};
+
+#define qDatabaseIdCache SharedSingleton<DatabaseIdCache>::GetInstance()
+
 class MetadataExtractAdapter final
 	: public QObject {
 	Q_OBJECT

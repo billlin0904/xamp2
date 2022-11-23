@@ -33,7 +33,7 @@ static void ScanFolderImpl(Path const& path,
 
             auto parent_path = root_path.parent_path();
             auto cur_path = current_path.parent_path();
-            if (parent_path != cur_path && is_accept(parent_path)) {
+            if (parent_path != cur_path) {
                 end_walk(DirectoryEntry(parent_path), true);
                 root_path = current_path;
             }
@@ -43,12 +43,12 @@ static void ScanFolderImpl(Path const& path,
             }
         }
 
-        end_walk(DirectoryEntry(path), false);
+        end_walk(DirectoryEntry(root_path.parent_path()), false);
     }
     else {
         if (is_accept(path)) {
             walk(path);
-            end_walk(DirectoryEntry(path), false);
+            end_walk(DirectoryEntry(path.parent_path()), false);
         }
     }
 }
