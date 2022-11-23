@@ -734,6 +734,7 @@ size_t Database::getParentPathHash(const QString & parent_path) const {
 
 	const auto index = query.record().indexOf(Q_TEXT("parentPathHash"));
 	if (query.next()) {
+		// SQLite不支援uint64_t格式但可以使用QByteArray保存.
 		auto blob_size_t = query.value(index).toByteArray();
 		size_t result = 0;
 		memcpy(&result, blob_size_t.data(), blob_size_t.length());
@@ -765,6 +766,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 	query.bindValue(Q_TEXT(":offset"), track_info.offset);
 	query.bindValue(Q_TEXT(":fileSize"), track_info.file_size);
 
+	// SQLite不支援uint64_t格式但可以使用QByteArray保存.
 	QByteArray blob_size_t;
 	blob_size_t.resize(sizeof(size_t));
 	memcpy(blob_size_t.data(), &track_info.parent_path_hash, sizeof(size_t));
