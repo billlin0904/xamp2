@@ -191,7 +191,7 @@ private:
     AlignPtr<IMetadataReader> reader_;
     QSharedPointer<::MetadataExtractAdapter> adapter_;
     ForwardList<Path> paths_;
-    std::unordered_map<std::wstring, ForwardList<TrackInfo>> album_groups_;
+    HashMap<std::wstring, ForwardList<TrackInfo>> album_groups_;
     SipHash hasher_;
 };
 
