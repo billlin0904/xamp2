@@ -35,7 +35,7 @@ inline constexpr int32_t kBufferStreamCount = 3;
 inline constexpr int32_t kBufferStreamCount = 2;
 #endif
 
-inline constexpr int32_t kTotalBufferStreamCount = 64;
+inline constexpr int32_t kTotalBufferStreamCount = 16;
 
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;

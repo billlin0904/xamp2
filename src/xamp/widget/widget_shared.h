@@ -22,6 +22,7 @@
 #include <base/str_utilts.h>
 #include <base/align_ptr.h>
 #include <base/lrucache.h>
+#include <base/rcu_ptr.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>

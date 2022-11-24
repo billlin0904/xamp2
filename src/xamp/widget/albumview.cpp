@@ -27,6 +27,8 @@
 #include <widget/ui_utilts.h>
 #include <widget/albumview.h>
 
+#include "appsettingnames.h"
+
 enum {
     INDEX_ALBUM = 0,
     INDEX_COVER,
@@ -238,7 +240,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     hbox_layout->addSpacerItem(button_spacer);
 
     page_ = new PlaylistPage(this);
-    page_->playlist()->setPlaylistId(kDefaultAlbumPlaylistId);
+    page_->playlist()->setPlaylistId(kDefaultAlbumPlaylistId, kAppSettingAlbumPlaylistColumnName);
 
     default_layout->addLayout(hbox_layout);
     default_layout->addWidget(page_);

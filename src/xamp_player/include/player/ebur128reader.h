@@ -28,7 +28,7 @@ public:
 
 	static double GetEbur128Gain(double loudness, double targetdb);
 
-    static double GetMultipleLoudness(Vector<Ebur128Reader>& scanners);
+    static double GetMultipleLoudness(const Vector<Ebur128Reader>& scanners);
 
 	static void LoadEbur128Lib();
 private:

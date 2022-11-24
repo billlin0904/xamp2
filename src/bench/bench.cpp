@@ -25,6 +25,7 @@
 #include <base/logger_impl.h>
 #include <base/ppl.h>
 #include <base/chachaengine.h>
+#include <base/rcu_ptr.h>
 
 #include <stream/api.h>
 #include <stream/fft.h>
@@ -40,6 +41,40 @@
 using namespace xamp::player;
 using namespace xamp::base;
 using namespace xamp::stream;
+
+static void BM_RcuPtr(benchmark::State& state) {
+    const auto thread_pool = MakeThreadPoolExecutor("BM_RcuPtr");
+    LoggerManager::GetInstance().GetLogger("BM_RcuPtr")
+        ->SetLevel(LOG_LEVEL_OFF);
+
+    const auto length = state.range(0);
+    RcuPtr<int> total(std::make_shared<int>());
+
+    for (auto _ : state) {
+        ParallelFor(*thread_pool, 0, length, [&total](auto item) {
+			total.copy_update([item](auto cp) {
+				*cp += item;
+				});
+        });
+    }
+}
+
+static void BM_RcuPtrMutex(benchmark::State& state) {
+    const auto thread_pool = MakeThreadPoolExecutor("BM_RcuPtr");
+    LoggerManager::GetInstance().GetLogger("BM_RcuPtr")
+        ->SetLevel(LOG_LEVEL_OFF);
+
+    const auto length = state.range(0);
+    int total = 0;
+    FastMutex mutex;
+
+    for (auto _ : state) {
+        ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
+            std::lock_guard<FastMutex> guard{ mutex };
+			total += item;
+            });
+    }
+}
 
 static void BM_LeastLoadThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
@@ -57,7 +92,7 @@ static void BM_LeastLoadThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+        ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
             });
     }
@@ -672,10 +707,10 @@ static void BM_Rotl(benchmark::State& state) {
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
-BENCHMARK(BM_Xoshiro256StarStarRandom);
-BENCHMARK(BM_Xoshiro256PlusRandom);
-BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-BENCHMARK(BM_ChaCha20Random);
+//BENCHMARK(BM_Xoshiro256StarStarRandom);
+//BENCHMARK(BM_Xoshiro256PlusRandom);
+//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+//BENCHMARK(BM_ChaCha20Random);
 //BENCHMARK(BM_default_random_engine);
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
@@ -712,9 +747,11 @@ BENCHMARK(BM_ChaCha20Random);
 #ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
-BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RcuPtr)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RcuPtrMutex)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
     LoggerManager::GetInstance()

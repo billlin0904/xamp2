@@ -20,6 +20,9 @@ IMPL_APP_SETTING_NAME(AppSettingShowLeftList, "AppSettings/showLeftList");
 IMPL_APP_SETTING_NAME(AppSettingDiscordNotify, "AppSettings/discordNotify");
 IMPL_APP_SETTING_NAME(AppSettingPlaylistColumnName, "AppSettings/columnName");
 IMPL_APP_SETTING_NAME(AppSettingPodcastPlaylistColumnName, "AppSettings/podcastColumnName");
+IMPL_APP_SETTING_NAME(AppSettingAlbumPlaylistColumnName, "AppSettings/albumColumnName");
+IMPL_APP_SETTING_NAME(AppSettingFileSystemPlaylistColumnName, "AppSettings/fileSystemColumnName");
+IMPL_APP_SETTING_NAME(AppSettingCdPlaylistColumnName, "AppSettings/cdColumnName");
 IMPL_APP_SETTING_NAME(AppSettingIsMuted,"AppSettings/isMuted");
 IMPL_APP_SETTING_NAME(AppSettingMyMusicFolderPath, "AppSettings/myMusicFolderPath");
 

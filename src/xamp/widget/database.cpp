@@ -25,6 +25,23 @@
     }\
     } while (false)
 
+// SQLite不支援uint64_t格式但可以使用QByteArray保存.
+static uint64_t getUlonglongValue(const QSqlQuery & q, const int32_t index) {
+	auto blob_size_t = q.value(index).toByteArray();
+	XAMP_ASSERT(blob_size_t.size() == sizeof(uint64_t));
+	uint64_t result = 0;
+	MemoryCopy(&result, blob_size_t.data(), blob_size_t.length());
+	return result;
+}
+
+// SQLite不支援uint64_t格式但可以使用QByteArray保存.
+static void bindUlonglongValue(QSqlQuery & q, const ConstLatin1String placeholder, const uint64_t v) {
+	QByteArray blob_size_t;
+	blob_size_t.resize(sizeof(uint64_t));
+	MemoryCopy(blob_size_t.data(), &v, sizeof(uint64_t));
+	q.bindValue(placeholder, blob_size_t);
+}
+
 SqlException::SqlException(QSqlError error)
 	: Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
 		error.text().toStdString()) {
@@ -714,6 +731,70 @@ QString Database::getAlbumCoverId(const QString& album) const {
 	return Qt::EmptyString;
 }
 
+ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_hash) const {
+	ForwardList<PlayListEntity> track_infos;
+
+	QByteArray blob_size_t;
+	blob_size_t.resize(sizeof(uint64_t));
+	MemoryCopy(blob_size_t.data(), &path_hash, sizeof(uint64_t));
+
+	auto q = Q_STR(R"(
+	SELECT
+		albumMusic.albumId,
+		albumMusic.artistId,
+		albums.album,
+		albums.coverId,
+		artists.artist,
+		musics.*
+	FROM
+		albumMusic
+		LEFT JOIN albums ON albums.albumId = albumMusic.albumId
+		LEFT JOIN artists ON artists.artistId = albumMusic.artistId
+		LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+	WHERE
+		hex(musics.parentPathHash) = '%1'
+	ORDER BY 
+		musics.track;
+	)").arg(Q_TEXT(blob_size_t.toHex().toUpper()));
+
+	QSqlQuery query(q);
+	IfFailureThrow1(query);
+
+	while (query.next()) {
+		PlayListEntity entity;
+		entity.album_id = query.value(Q_TEXT("albumId")).toInt();
+		entity.artist_id = query.value(Q_TEXT("artistId")).toInt();
+		entity.music_id = query.value(Q_TEXT("musicId")).toInt();
+		entity.file_path = query.value(Q_TEXT("path")).toString();
+		entity.track = query.value(Q_TEXT("track")).toUInt();
+		entity.title = query.value(Q_TEXT("title")).toString();
+		entity.file_name = query.value(Q_TEXT("fileName")).toString();
+		entity.album = query.value(Q_TEXT("album")).toString();
+		entity.artist = query.value(Q_TEXT("artist")).toString();
+		entity.file_ext = query.value(Q_TEXT("fileExt")).toString();
+		entity.parent_path = query.value(Q_TEXT("parentPath")).toString();
+		entity.duration = query.value(Q_TEXT("duration")).toDouble();
+		entity.bitrate = query.value(Q_TEXT("bitrate")).toUInt();
+		entity.samplerate = query.value(Q_TEXT("samplerate")).toUInt();
+		entity.cover_id = query.value(Q_TEXT("coverId")).toString();
+		entity.rating = query.value(Q_TEXT("rating")).toUInt();
+		entity.album_replay_gain = query.value(Q_TEXT("album_replay_gain")).toDouble();
+		entity.album_peak = query.value(Q_TEXT("album_peak")).toDouble();
+		entity.track_replay_gain = query.value(Q_TEXT("track_replay_gain")).toDouble();
+		entity.track_peak = query.value(Q_TEXT("track_peak")).toDouble();
+
+		entity.genre = query.value(Q_TEXT("genre")).toString();
+		entity.comment = query.value(Q_TEXT("comment")).toString();
+		entity.year = query.value(Q_TEXT("year")).toUInt();
+		entity.file_size = query.value(Q_TEXT("fileSize")).toULongLong();
+		track_infos.push_front(entity);
+	}
+	track_infos.sort([](const auto& first, const auto& last) {
+		return first.track < last.track;
+		});
+	return track_infos;
+}
+
 size_t Database::getParentPathHash(const QString & parent_path) const {
 	QSqlQuery query;
 	query.prepare(Q_TEXT(R"(
@@ -734,11 +815,7 @@ size_t Database::getParentPathHash(const QString & parent_path) const {
 
 	const auto index = query.record().indexOf(Q_TEXT("parentPathHash"));
 	if (query.next()) {
-		// SQLite不支援uint64_t格式但可以使用QByteArray保存.
-		auto blob_size_t = query.value(index).toByteArray();
-		size_t result = 0;
-		memcpy(&result, blob_size_t.data(), blob_size_t.length());
-		return result;
+		return getUlonglongValue(query, index);
 	}
 	return 0;
 }
@@ -766,11 +843,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 	query.bindValue(Q_TEXT(":offset"), track_info.offset);
 	query.bindValue(Q_TEXT(":fileSize"), track_info.file_size);
 
-	// SQLite不支援uint64_t格式但可以使用QByteArray保存.
-	QByteArray blob_size_t;
-	blob_size_t.resize(sizeof(size_t));
-	memcpy(blob_size_t.data(), &track_info.parent_path_hash, sizeof(size_t));
-	query.bindValue(Q_TEXT(":parentPathHash"), blob_size_t);
+	bindUlonglongValue(query, Q_TEXT(":parentPathHash"), track_info.parent_path_hash);
 
 	if (track_info.replay_gain) {
 		query.bindValue(Q_TEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);

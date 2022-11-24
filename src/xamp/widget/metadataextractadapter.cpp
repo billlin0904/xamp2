@@ -52,10 +52,6 @@ QPixmap DatabaseIdCache::getEmbeddedCover(const TrackInfo& metadata) const {
     return pixmap;
 }
 
-size_t DatabaseIdCache::getParentPathHash(const QString& parent_path) const {
-    return qDatabase.getParentPathHash(parent_path);
-}
-
 QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const {
     auto cover_id = qDatabase.getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
@@ -160,10 +156,11 @@ public:
         const auto path_hash = hasher_.GetHash();
         hasher_.Clear();
         
-        const auto db_hash = qDatabaseIdCache.getParentPathHash(QString::fromStdWString(Path(dir_entry).native()));
+        const auto db_hash = qDatabase.getParentPathHash(QString::fromStdWString(Path(dir_entry).native()));
         if (db_hash == path_hash) {
             album_groups_.clear();
             paths_.clear();
+            emit adapter_->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
             return;
         }
 
@@ -212,57 +209,30 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dialog->setMinimumDuration(1000);
     dialog->setWindowModality(Qt::ApplicationModal);
 
-    ForwardList<Path> dirs;
-
-    std::function<bool(const Path&)> is_accept;
-
 	auto native_path = fromQStringPath(file_path).toStdWString();
 
-    if (native_path.back() != L'.') {
-        is_accept = [&dirs](auto path) {
-            return Fs::is_directory(path);
-        };
-        dirs.push_front(native_path);
-    } else {
-        is_accept = [&dirs](auto path) {
-            return !Fs::is_directory(path);
-        };
+    QList<QString> dirs;
+    QDirIterator itr(file_path, QDir::Dirs | QDir::NoDotAndDotDot);
+    while (itr.hasNext()) {
+        dirs.append(itr.next());
+        qApp->processEvents();
     }
-
-    const auto walk = [&dirs](auto path) {
-        dirs.push_front(path);
-    };
-    const auto walk_end = [&dirs](auto path, bool is_new) {
-    };
-
-    ScanFolder(native_path, is_accept, walk, walk_end, false);
+    dirs.push_back(file_path);
 
     TrackInfoExtractAdapterProxy proxy(adapter);
     auto progress = 0;
 
-    dialog->setMaximum(std::distance(dirs.begin(), dirs.end()));
+    dialog->setMaximum(dirs.size());
 
-    if (native_path.back() == L'.') {
-        for (const auto& file_dir_or_path : dirs) {
-            if (proxy.IsAccept(file_dir_or_path)) {
-                proxy.OnWalk(file_dir_or_path);
-            }
-            dialog->setValue(progress++);
-        }
-        String::Remove(native_path, L"\\.");
-        proxy.OnWalkEnd(DirectoryEntry(native_path));
-        return;
-    }
-
-    for (const auto& file_dir_or_path : dirs) {
+	for (const auto& file_dir_or_path : dirs) {
         if (dialog->wasCanceled()) {
             return;
         }
 
-        dialog->setLabelText(QString::fromStdWString(file_dir_or_path.wstring()));
-        
+        dialog->setLabelText(file_dir_or_path);
+
         try {
-            ScanFolder(file_dir_or_path, &proxy, is_recursive);
+            ScanFolder(file_dir_or_path.toStdWString(), &proxy, is_recursive);
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("ScanFolder has exception: {}", e.what());

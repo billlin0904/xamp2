@@ -30,7 +30,7 @@ public:
 
 	void excuteQuery();
 
-	void setPlaylistId(int32_t playlist_id);
+	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
 	void setPodcastMode(bool enable = true);
 
@@ -89,6 +89,8 @@ signals:
 	void addPlaylistItemFinished();
 
 public slots:
+	void processDatabase(const ForwardList<PlayListEntity>& entities);
+
 	void processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata);
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
@@ -120,8 +122,6 @@ private:
 	void initial();
 
 protected:
-	ConstLatin1String columnAppSettingName() const;
-
 	bool podcast_mode_;
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
@@ -132,6 +132,7 @@ protected:
 	PlayListTableFilterProxyModel* proxy_model_;
     QSet<QString> notshow_column_names_;
 	PRNG rng_;
+	QString column_setting_name_;
 };
 
 

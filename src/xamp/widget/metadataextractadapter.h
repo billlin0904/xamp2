@@ -6,6 +6,8 @@
 #pragma once
 
 #include <QObject>
+
+#include <widget/playlistentity.h>
 #include <widget/widget_shared.h>
 
 class PlayListTableView;
@@ -23,8 +25,6 @@ public:
         const QString& artist,
         bool is_podcast,
         const QString& disc_id) const;
-
-    size_t getParentPathHash(const QString& parent_path) const;
 
     QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const;
 
@@ -49,6 +49,8 @@ public:
     static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true, bool is_recursive = true);
 
 signals:
+    void fromDatabase(const ForwardList<PlayListEntity>& entity);
+
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
 
 public:

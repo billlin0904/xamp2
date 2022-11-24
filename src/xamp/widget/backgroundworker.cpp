@@ -60,10 +60,9 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
         return;
     }
 
-    ForwardList<TrackInfo> metadatas;
-
     try {
-        auto cd = OpenCD(drive.driver_letter);
+	    ForwardList<TrackInfo> track_infos;
+	    auto cd = OpenCD(drive.driver_letter);
         cd->SetMaxSpeed();
         const auto tracks = cd->GetTotalTracks();
 
@@ -74,14 +73,14 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
             metadata.duration = cd->GetDuration(track_id++);
             metadata.samplerate = 44100;
             metadata.disc_id = disc_id;
-            metadatas.push_front(metadata);
+            track_infos.push_front(metadata);
         }
 
-        metadatas.sort([](const auto& first, const auto& last) {
+        track_infos.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
             });
 
-        emit updateCdMetadata(QString::fromStdString(disc_id), metadatas);
+        emit updateCdMetadata(QString::fromStdString(disc_id), track_infos);
     }
     catch (Exception const& e) {
         XAMP_LOG_DEBUG(e.GetErrorMessage());
@@ -95,8 +94,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
         auto [image_url, mb_disc_id_info] = parseMbDiscIdXML(content);
 
         mb_disc_id_info.disc_id = disc_id;
-        std::sort(mb_disc_id_info.tracks.begin(), mb_disc_id_info.tracks.end(),
-            [](const auto& first, const auto& last) {
+        mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
             });
 
@@ -137,15 +135,17 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
 void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
-    Vector<Task<ReplayGainWorkerEntity>> replay_gain_tasks;
+    Vector<Task<>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     replay_gain_tasks.reserve(items.size());
+    RcuPtr<Vector<std::shared_ptr<ReplayGainWorkerEntity>>> replay_gain_result(
+        std::make_shared<Vector<std::shared_ptr<ReplayGainWorkerEntity>>>());
 
     for (const auto &item : items) {
-        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, this](auto ) ->ReplayGainWorkerEntity {
+        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, this, &replay_gain_result](auto ) {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -166,19 +166,25 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
             };
 
             read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
-            return {item, std::move(scanner)};
+            replay_gain_result.copy_update([&](auto* result) {
+                result->emplace_back(std::make_shared<ReplayGainWorkerEntity>(item, std::move(scanner)));
+                });
         }));
     }
 
     Vector<Ebur128Reader> scanners;
     ReplayGainResult replay_gain;
 
-    for (auto & task : replay_gain_tasks) {
+    for (auto& task : replay_gain_tasks) {
+        task.get();
+    }
+
+    auto copy_result = *replay_gain_result.read();
+    for (auto& result : copy_result) {
         try {
-            auto result = task.get();
-            replay_gain.music_id.push_back(result.item);
-            if (result.scanner.has_value()) {
-                scanners.push_back(std::move(result.scanner.value()));
+            replay_gain.music_id.push_back((*result).item);
+            if ((*result).scanner.has_value()) {
+                scanners.push_back(std::move((*result).scanner.value()));
             }
         }
         catch (std::exception const& e) {

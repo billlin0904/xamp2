@@ -67,17 +67,17 @@ std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& sr
     }
     size_t i = 1;
     for (auto* item = channel->first_node("item"); item; item = item->next_sibling("item")) {
-        TrackInfo metadata;
+        TrackInfo track_info;
         for (auto* node = item->first_node(); node; node = node->next_sibling()) {
             std::string name(node->name(), node->name_size());
             std::string value(node->value(), node->value_size());
             if (name == "title") {
-                metadata.title = parseCDATA(node);
-                metadata.track = i++;
+                track_info.title = parseCDATA(node);
+                track_info.track = i++;
             }
             else if (name == "dc:creator") {
-                metadata.artist = parseCDATA(node);
-                metadata.album = parseCDATA(node);
+                track_info.artist = parseCDATA(node);
+                track_info.album = parseCDATA(node);
             }
             else if (name == "enclosure") {
                 auto* url = node->first_attribute("url");
@@ -85,15 +85,15 @@ std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& sr
                     continue;
                 }
                 std::string path(url->value(), url->value_size());
-                metadata.file_path = String::ToString(path);
+                track_info.file_path = String::ToString(path);
             }
             else if (name == "pubDate") {
                 auto datetime = QDateTime::fromString(QString::fromStdString(value), Qt::RFC2822Date);
-                metadata.last_write_time = datetime.toTime_t();
+                track_info.last_write_time = datetime.toTime_t();
             }
         }
 
-        metadatas.push_front(metadata);
+        metadatas.push_front(track_info);
     }
 
     return std::make_pair(image_url, metadatas);
@@ -188,7 +188,7 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXML(QString const& src) {
                     std::string recording_value(node->value(), node->value_size());
                     if (recording_name == "title") {
                         mb_disc_id_track.title = String::ToStdWString(recording_value);
-                        mb_disc_id_info.tracks.push_back(mb_disc_id_track);
+                        mb_disc_id_info.tracks.push_front(mb_disc_id_track);
                     }
                 }
             }

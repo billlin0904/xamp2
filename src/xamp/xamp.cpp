@@ -897,7 +897,7 @@ void Xamp::getNextPage() {
     ui_.currentView->setCurrentIndex(idx + 1);
 }
 
-void Xamp::setTablePlaylistView(int table_id) {
+void Xamp::setTablePlaylistView(int table_id, ConstLatin1String column_setting_name) {
 	const auto playlist_id = qDatabase.findTablePlaylistId(table_id);
 
     auto found = false;
@@ -912,8 +912,7 @@ void Xamp::setTablePlaylistView(int table_id) {
     }
 
     if (!found) {
-        auto* playlist_page = newPlaylistPage(playlist_id);
-        playlist_page->playlist()->setPlaylistId(playlist_id);
+        auto* playlist_page = newPlaylistPage(playlist_id, column_setting_name);
         pushWidget(playlist_page);
     }
 }
@@ -1353,7 +1352,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 
     if (!mb_disc_id_info.tracks.empty()) {
         qDatabase.forEachAlbumMusic(album_id, [&mb_disc_id_info](const auto& entity) {
-            qDatabase.updateMusicTitle(entity.music_id, QString::fromStdWString(mb_disc_id_info.tracks[entity.track - 1].title));
+            qDatabase.updateMusicTitle(entity.music_id, QString::fromStdWString(mb_disc_id_info.tracks.front().title));
             });
     }    
 
@@ -1559,13 +1558,13 @@ void Xamp::initialPlaylist() {
             ui_.sliderBar->addTab(name, table_id, qTheme.playlistIcon());
 
             if (!playlist_page_) {
-                playlist_page_ = newPlaylistPage(playlist_id);
-                playlist_page_->playlist()->setPlaylistId(playlist_id);
+                playlist_page_ = newPlaylistPage(playlist_id, Qt::EmptyString);
+                playlist_page_->playlist()->setPlaylistId(playlist_id, name);
             }
 
             if (playlist_page_->playlist()->playlistId() != playlist_id) {
-                playlist_page_ = newPlaylistPage(playlist_id);
-                playlist_page_->playlist()->setPlaylistId(playlist_id);
+                playlist_page_ = newPlaylistPage(playlist_id, Qt::EmptyString);
+                playlist_page_->playlist()->setPlaylistId(playlist_id, name);
             }
         });
 
@@ -1574,8 +1573,7 @@ void Xamp::initialPlaylist() {
         if (!qDatabase.isPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 0);
         }
-        playlist_page_ = newPlaylistPage(kDefaultPlaylistId);
-        playlist_page_->playlist()->setPlaylistId(kDefaultPlaylistId);
+        playlist_page_ = newPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
     }
 
     if (!podcast_page_) {
@@ -1583,8 +1581,7 @@ void Xamp::initialPlaylist() {
         if (!qDatabase.isPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 1);
         }
-        podcast_page_ = newPlaylistPage(playlist_id);
-        podcast_page_->playlist()->setPlaylistId(playlist_id);
+        podcast_page_ = newPlaylistPage(playlist_id, kAppSettingPodcastPlaylistColumnName);
     }
 
     if (!file_system_view_page_) {
@@ -1594,7 +1591,7 @@ void Xamp::initialPlaylist() {
             playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 2);
         }
         connectSignal(file_system_view_page_->playlistPage());
-        file_system_view_page_->playlistPage()->playlist()->setPlaylistId(playlist_id);
+        file_system_view_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
         setCover(Qt::EmptyString, file_system_view_page_->playlistPage());
     }
 
@@ -1605,13 +1602,10 @@ void Xamp::initialPlaylist() {
         }
         cd_page_ = new CdPage(this);
         connectSignal(cd_page_->playlistPage());
-        cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id);
+        cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
         setCover(Qt::EmptyString, cd_page_->playlistPage());
     }
 
-    playlist_page_->playlist()->setPodcastMode(false);
-    podcast_page_->playlist()->setPodcastMode(true);
-    cd_page_->playlistPage()->playlist()->setPodcastMode(false);
     current_playlist_page_ = playlist_page_;
 
     (void)QObject::connect(this,
@@ -1966,13 +1960,13 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
         &PlaylistPage::OnThemeColorChanged);
 }
 
-PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
+PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
 	auto* playlist_page = new PlaylistPage(this);
 
     ui_.currentView->addWidget(playlist_page);    
 
     connectSignal(playlist_page);
-    playlist_page->playlist()->setPlaylistId(playlist_id);    
+    playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
 
     return playlist_page;
 }

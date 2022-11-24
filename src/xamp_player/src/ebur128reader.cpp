@@ -1,5 +1,4 @@
 #include <memory>
-#include <sstream>
 #include <utility>
 
 #include <ebur128/ebur128.h>
@@ -8,8 +7,8 @@
 #include <base/math.h>
 #include <base/audioformat.h>
 #include <base/dll.h>
-#include <player/ebur128reader.h>
 #include <base/trackinfo.h>
+#include <player/ebur128reader.h>
 
 namespace xamp::player {
 
@@ -105,7 +104,7 @@ public:
         return state_.get();
     }
 
-    static double GetMultipleLoudness(Vector<Ebur128Reader> &scanners) {
+    static double GetMultipleLoudness(const Vector<Ebur128Reader> &scanners) {
 		Vector<ebur128_state*> handles;
         handles.reserve(scanners.size());
         for (auto const &scanner : scanners) {
@@ -155,7 +154,7 @@ void* Ebur128Reader::GetNativeHandle() const {
     return impl_->GetNativeHandle();
 }
 
-double Ebur128Reader::GetMultipleLoudness(Vector<Ebur128Reader> &scanners) {
+double Ebur128Reader::GetMultipleLoudness(const Vector<Ebur128Reader> &scanners) {
     return Ebur128ReaderImpl::GetMultipleLoudness(scanners);
 }
 

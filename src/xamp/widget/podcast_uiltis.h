@@ -24,7 +24,7 @@ struct MbDiscIdInfo {
 	std::wstring album;
 	std::wstring artist;
 	
-	Vector<MbDiscIdTrack> tracks;
+	ForwardList<MbDiscIdTrack> tracks;
 };
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)

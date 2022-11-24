@@ -144,11 +144,11 @@ private:
 
 	void playNextItem(int32_t forward);
 
-    void setTablePlaylistView(int table_id);
+    void setTablePlaylistView(int table_id, ConstLatin1String column_setting_name);
 
 	void setPlayerOrder();
 
-	PlaylistPage* newPlaylistPage(int32_t playlist_id);
+	PlaylistPage* newPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 
 	void pushWidget(QWidget* widget);
 

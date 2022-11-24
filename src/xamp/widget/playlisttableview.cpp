@@ -250,8 +250,9 @@ void PlayListTableView::reload() {
     model_->query().exec();
 }
 
-void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
+void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &column_setting_name) {
     playlist_id_ = playlist_id;
+    column_setting_name_ = column_setting_name;
 
     qDatabase.clearNowPlaying(playlist_id_);
 
@@ -278,38 +279,12 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
 
-    hideColumn(PLAYLIST_PLAYING);
-    hideColumn(PLAYLIST_MUSIC_ID);
-    hideColumn(PLAYLIST_FILE_PATH);
-    hideColumn(PLAYLIST_FILE_NAME);
-    hideColumn(PLAYLIST_FILE_SIZE);
-    hideColumn(PLAYLIST_ALBUM_ID);
-    hideColumn(PLAYLIST_ARTIST_ID);
-    hideColumn(PLAYLIST_COVER_ID);
-    hideColumn(PLAYLIST_FILE_EXT);
-    hideColumn(PLAYLIST_FILE_PARENT_PATH);
-    hideColumn(PLAYLIST_BIT_RATE);
-    hideColumn(PLAYLIST_ALBUM);
-    hideColumn(PLAYLIST_LAST_UPDATE_TIME);
-    hideColumn(PLAYLIST_RATING);
-    hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
-    hideColumn(PLAYLIST_ALBUM_RG);
-    hideColumn(PLAYLIST_ALBUM_PK);
-    hideColumn(PLAYLIST_TRACK_RG);
-    hideColumn(PLAYLIST_TRACK_PK);
-    hideColumn(PLAYLIST_GENRE);
-    hideColumn(PLAYLIST_YEAR);
-
-    if (isPodcastMode()) {
-        return;
-    }
-
-    auto column_list = AppSettings::getList(columnAppSettingName());
+    auto column_list = AppSettings::getList(column_setting_name);
 
     if (column_list.empty()) {
         for (auto column = 0; column < horizontalHeader()->count(); ++column) {
             if (!isColumnHidden(column)) {
-                AppSettings::addList(columnAppSettingName(), QString::number(column));
+                AppSettings::addList(column_setting_name_, QString::number(column));
             } else {
                 setColumnHidden(column, true);
             }
@@ -377,7 +352,6 @@ void PlayListTableView::initial() {
 
     start_delegate_ = new StarDelegate(this);
     setItemDelegateForColumn(PLAYLIST_RATING, start_delegate_);
-    //setItemDelegateForColumn(PLAYLIST_TRACK, new AlignCenterStyledItemDelegate(this));
 
     (void)QObject::connect(start_delegate_, &StarDelegate::commitData, [this](auto editor) {
         auto start_editor = qobject_cast<StarEditor*>(editor);
@@ -413,6 +387,38 @@ void PlayListTableView::initial() {
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         playItem(index);
     });
+
+    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
+        ActionMap<PlayListTableView> action_map(this);
+
+        auto* header_view = horizontalHeader();
+
+        auto last_referred_logical_column = header_view->logicalIndexAt(pt);
+        auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
+            setColumnHidden(last_referred_logical_column, true);
+        AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
+            });
+        hide_this_column_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Hide));
+
+        auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
+            ActionMap<PlayListTableView> action_map(this);
+        for (auto column = 0; column < header_view->count(); ++column) {
+            auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+            if (notshow_column_names_.contains(header_name)) {
+                continue;
+            }
+            action_map.addAction(header_name, [this, column]() {
+                setColumnHidden(column, false);
+            AppSettings::addList(column_setting_name_, QString::number(column));
+                }, false, !isColumnHidden(column));
+        }
+        action_map.exec(pt);
+            });
+        select_column_show_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Show));
+
+        action_map.exec(pt);
+        });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
@@ -616,62 +622,8 @@ bool PlayListTableView::isPodcastMode() const {
     return podcast_mode_;
 }
 
-ConstLatin1String PlayListTableView::columnAppSettingName() const {
-	const auto setting_name = isPodcastMode()
-	? kAppSettingPodcastPlaylistColumnName : kAppSettingPlaylistColumnName;
-    return setting_name;
-}
-
 void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
-
-	if (podcast_mode_) {
-        hideColumn(PLAYLIST_FILE_SIZE);
-        hideColumn(PLAYLIST_TRACK_RG);
-        hideColumn(PLAYLIST_TRACK_PK);
-        hideColumn(PLAYLIST_ARTIST);
-        hideColumn(PLAYLIST_ALBUM_RG);
-        hideColumn(PLAYLIST_ALBUM_PK);
-        hideColumn(PLAYLIST_DURATION);
-        hideColumn(PLAYLIST_SAMPLE_RATE);
-        hideColumn(PLAYLIST_GENRE);
-        hideColumn(PLAYLIST_YEAR);
-        hideColumn(PLAYLIST_BIT_RATE);
-        hideColumn(PLAYLIST_LAST_UPDATE_TIME);
-    }
-
-    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
-        
-        ActionMap<PlayListTableView> action_map(this);
-
-        auto* header_view = horizontalHeader();
-
-        auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-        auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
-            setColumnHidden(last_referred_logical_column, true);
-            AppSettings::removeList(columnAppSettingName(), QString::number(last_referred_logical_column));
-            });
-        hide_this_column_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Hide));
-
-        auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
-            ActionMap<PlayListTableView> action_map(this);
-            for (auto column = 0; column < header_view->count(); ++column) {
-                auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-                if (notshow_column_names_.contains(header_name)) {
-                    continue;
-                }
-                action_map.addAction(header_name, [this, column]() {
-                    setColumnHidden(column, false);
-                    AppSettings::addList(columnAppSettingName(), QString::number(column));
-                    }, false, !isColumnHidden(column));
-            }
-            action_map.exec(pt);
-            });
-        select_column_show_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Show));
-
-        action_map.exec(pt);
-        });
 }
 
 void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color) {
@@ -733,7 +685,26 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
                             this,
                             &PlayListTableView::processMeatadata);
 
+    (void)QObject::connect(adapter.get(),
+        &::MetadataExtractAdapter::readCompleted,
+        this,
+        &PlayListTableView::processMeatadata);
+
+    (void)QObject::connect(adapter.get(),
+        &::MetadataExtractAdapter::fromDatabase,
+        this,
+        &PlayListTableView::processDatabase);
+
    ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog, is_recursive);
+}
+
+void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entities) {
+    for (const auto& entity : entities) {
+        qDatabase.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
+    }
+    resizeColumn();
+    excuteQuery();
+    emit addPlaylistItemFinished();
 }
 
 void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) {

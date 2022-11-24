@@ -95,10 +95,14 @@ Uuid AppSettings::getValueAsID(const QString& key) {
 }
 
 QList<QString> AppSettings::getList(QString const& key) {
+    auto setting_str = AppSettings::getValueAsString(key);
+    if (setting_str.isEmpty()) {
+        return {};
+    }
 #if QT_VERSION > QT_VERSION_CHECK(5, 14, 1)
-    return AppSettings::getValueAsString(key).split(Q_TEXT(","), Qt::SkipEmptyParts);
+    return setting_str.split(Q_TEXT(","), Qt::SkipEmptyParts);
 #else
-    return AppSettings::getValueAsString(key).split(Q_UTF8(","), QString::SkipEmptyParts);
+    return setting_str.split(Q_UTF8(","), QString::SkipEmptyParts);
 #endif
 }
 

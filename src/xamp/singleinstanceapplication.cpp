@@ -13,8 +13,7 @@
 #include <widget/str_utilts.h>
 #include <singleinstanceapplication.h>
 
-SingleInstanceApplication::SingleInstanceApplication() {
-}
+SingleInstanceApplication::SingleInstanceApplication() = default;
 
 SingleInstanceApplication::~SingleInstanceApplication() {
 #ifdef XAMP_OS_WIN
