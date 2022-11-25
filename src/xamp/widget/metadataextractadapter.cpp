@@ -201,27 +201,42 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         makeProgressDialog(tr("Read file metadata"),
 	    tr("Read progress dialog"), 
 	    tr("Cancel"));
-
-    if (show_progress_dialog) {
-        dialog->show();
-    }
-
-    dialog->setMinimumDuration(1000);
-    dialog->setWindowModality(Qt::ApplicationModal);
-
-	auto native_path = fromQStringPath(file_path).toStdWString();
+    TrackInfoExtractAdapterProxy proxy(adapter);
 
     QList<QString> dirs;
-    QDirIterator itr(file_path, QDir::Dirs | QDir::NoDotAndDotDot);
-    while (itr.hasNext()) {
-        dirs.append(itr.next());
-        qApp->processEvents();
+	QFlags<QDir::Filter> filter = QDir::NoDotDot | QDir::AllDirs;
+
+    if (file_path.back() == L'.') {
+        auto temp = file_path;
+        filter = QDir::Files;       
+        temp = temp.remove(L'.');
+        try {
+            ScanFolder(temp.toStdWString(), &proxy, false);
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("ScanFolder has exception: {}", e.what());
+        }
+        return;
+    } else {
+        if (show_progress_dialog) {
+            dialog->show();
+        }
+
+        dialog->setMinimumDuration(1000);
+        dialog->setWindowModality(Qt::ApplicationModal);
+
+        QDirIterator itr(file_path, filter);
+        while (itr.hasNext()) {
+            dirs.append(itr.next());
+            qApp->processEvents();
+        }
+
+        if (dirs.isEmpty()) {
+            dirs.append(file_path);
+        }
     }
-    dirs.push_back(file_path);
 
-    TrackInfoExtractAdapterProxy proxy(adapter);
     auto progress = 0;
-
     dialog->setMaximum(dirs.size());
 
 	for (const auto& file_dir_or_path : dirs) {

@@ -909,11 +909,14 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     return DataCallbackResult::CONTINUE;
 }
 
-void AudioPlayer::PrepareToPlay(uint32_t device_sample_rate, DsdModes output_mode) {
+void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_rate, DsdModes output_mode) {
     if (device_sample_rate != 0) {
         target_sample_rate_ = device_sample_rate;
     }
     SetDeviceFormat();
+    if (byte_format != ByteFormat::INVALID_FORMAT) {
+        output_format_.SetByteFormat(byte_format);
+    }
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0, output_mode);
     CreateBuffer();

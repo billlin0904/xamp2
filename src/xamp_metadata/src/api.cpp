@@ -62,8 +62,8 @@ void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, bool is_recu
         adapter->OnWalk(path);
     };
 
-    const auto walk_end = [adapter](auto path, bool is_new) {
-        adapter->OnWalkEnd(DirectoryEntry(path));
+    const auto walk_end = [adapter](auto walk_path, bool is_new) {
+        adapter->OnWalkEnd(DirectoryEntry(walk_path));
         if (is_new) {
             adapter->OnWalkNew();
         }

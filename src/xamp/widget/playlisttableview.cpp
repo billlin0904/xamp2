@@ -680,15 +680,10 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 void PlayListTableView::append(const QString& file_name, bool show_progress_dialog, bool is_recursive) {
 	const auto adapter = QSharedPointer<::MetadataExtractAdapter>(new ::MetadataExtractAdapter());
 
-    (void) QObject::connect(adapter.get(),
+    (void)QObject::connect(adapter.get(),
                             &::MetadataExtractAdapter::readCompleted,
                             this,
                             &PlayListTableView::processMeatadata);
-
-    (void)QObject::connect(adapter.get(),
-        &::MetadataExtractAdapter::readCompleted,
-        this,
-        &PlayListTableView::processMeatadata);
 
     (void)QObject::connect(adapter.get(),
         &::MetadataExtractAdapter::fromDatabase,

@@ -60,7 +60,7 @@ public:
 
     void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) override;
 
-    void PrepareToPlay(uint32_t device_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+    void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
 
     void Play() override;
 

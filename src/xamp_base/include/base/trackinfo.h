@@ -57,6 +57,7 @@ static constexpr std::string_view kITunesReplaygainAlbumGain{ "----:com.apple.iT
 static constexpr std::string_view kITunesReplaygainTrackGain{ "----:com.apple.iTunes:replaygain_track_gain" };
 static constexpr std::string_view kITunesReplaygainAlbumPeak{ "----:com.apple.iTunes:replaygain_album_peak" };
 static constexpr std::string_view kITunesReplaygainTrackPeak{ "----:com.apple.iTunes:replaygain_track_peak" };
+static constexpr std::string_view kITunesReplaygainReferenceLoudness{ "----:com.apple.iTunes:replaygain_reference_loudness" };
 
 static constexpr double kReferenceLoudness = 84.0;
 

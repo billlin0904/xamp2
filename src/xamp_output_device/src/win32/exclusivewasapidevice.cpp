@@ -177,9 +177,6 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     auto valid_output_format = output_format;
 
-    // Note: 由於轉換出來就是float格式, 所以固定採用24/32格式進行撥放!
-	valid_output_format.SetByteFormat(ByteFormat::SINT32);
-
 	if (!client_) {
 		XAMP_LOG_D(log_, "Active device format: {}.", valid_output_format);
 
@@ -196,16 +193,21 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HrIfFailledThrow(client_->GetMixFormat(&mix_format_));
 
 		HRESULT hr = S_OK;
-		hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
-		// note: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32.
-		// 不管是24/32或是32/32 format資料都是24/32.
-		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-			InitialDeviceFormat(valid_output_format, 32);
-			XAMP_LOG_D(log_, "Fallback use valid output format: 32.");
+		if (valid_output_format.GetByteFormat() == ByteFormat::SINT32) {
+			hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
+			// note: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32.
+			// 不管是24/32或是32/32 format資料都是24/32.
+			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
+				InitialDeviceFormat(valid_output_format, 32);
+				XAMP_LOG_D(log_, "Fallback use valid output format: 32.");
+			}
+			else {
+				constexpr uint32_t kValidBitPerSamples = 24;
+				InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
+				XAMP_LOG_D(log_, "Use valid output format: {}.", kValidBitPerSamples);
+			}
 		} else {
-			constexpr uint32_t kValidBitPerSamples = 24;
-			InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
-			XAMP_LOG_D(log_, "Use valid output format: {}.", kValidBitPerSamples);
+			InitialDeviceFormat(valid_output_format, 16);
 		}
     }
 
@@ -297,10 +299,19 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
 			result = false;
 		}
-		DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
-			reinterpret_cast<int32_t*>(data),
-			buffer_.Get(),
-			data_convert_);
+
+		if (mix_format_->wBitsPerSample != 16) {
+			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
+				reinterpret_cast<int32_t*>(data),
+				buffer_.Get(),
+				data_convert_);
+		} else {
+			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+				reinterpret_cast<int16_t*>(data),
+				buffer_.Get(),
+				data_convert_);
+		}
+		
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 		return result;
 	}

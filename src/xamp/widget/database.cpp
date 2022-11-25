@@ -754,7 +754,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 	WHERE
 		hex(musics.parentPathHash) = '%1'
 	ORDER BY 
-		musics.track;
+		musics.track DESC;
 	)").arg(Q_TEXT(blob_size_t.toHex().toUpper()));
 
 	QSqlQuery query(q);
@@ -789,9 +789,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 		entity.file_size = query.value(Q_TEXT("fileSize")).toULongLong();
 		track_infos.push_front(entity);
 	}
-	track_infos.sort([](const auto& first, const auto& last) {
-		return first.track < last.track;
-		});
+
 	return track_infos;
 }
 

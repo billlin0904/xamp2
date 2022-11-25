@@ -151,7 +151,7 @@ public:
 						TagLib::StringList(std::to_string(replay_gain.album_gain)));
 					mp4_tag->setItem(String::AsStdString(kITunesReplaygainAlbumPeak),
 						TagLib::StringList(std::to_string(replay_gain.album_peak)));
-					mp4_tag->setItem(String::AsStdString(kReplaygainReferenceLoudness),
+					mp4_tag->setItem(String::AsStdString(kITunesReplaygainReferenceLoudness),
 						TagLib::StringList(std::to_string(replay_gain.ref_loudness)));
 				}
 				});

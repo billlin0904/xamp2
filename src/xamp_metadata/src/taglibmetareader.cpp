@@ -143,20 +143,29 @@ static std::optional<ReplayGain> GetMp4ReplayGain(File* file) {
     if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
         if (const auto* tag = mp4_file->tag()) {
             auto const& dict = tag->itemMap();
-            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
-                replay_gain.track_gain = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+            const auto track_gain = String::AsStdString(kITunesReplaygainTrackGain);
+            if (dict.contains(track_gain)) {
+                replay_gain.track_gain = ParseStringList(dict[track_gain].toStringList()[0].to8Bit(), false);
                 found = true;
             }
-            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
-                replay_gain.track_peak = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+            const auto track_peak = String::AsStdString(kITunesReplaygainTrackPeak);
+            if (dict.contains(track_peak)) {
+                replay_gain.track_peak = ParseStringList(dict[track_peak].toStringList()[0].to8Bit(), false);
                 found = true;
             }
-            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
-                replay_gain.album_gain = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+            const auto album_gain = String::AsStdString(kITunesReplaygainAlbumGain);
+            if (dict.contains(album_gain)) {
+                replay_gain.album_gain = ParseStringList(dict[album_gain].toStringList()[0].to8Bit(), false);
                 found = true;
             }
-            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
-                replay_gain.album_peak = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+            const auto album_peak = String::AsStdString(kITunesReplaygainAlbumPeak);
+            if (dict.contains(String::AsStdString(album_peak))) {
+                replay_gain.album_peak = ParseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
+                found = true;
+            }
+            const auto reference_loudness = String::AsStdString(kITunesReplaygainReferenceLoudness);
+            if (dict.contains(reference_loudness)) {
+                replay_gain.album_peak = ParseStringList(dict[reference_loudness].toStringList()[0].to8Bit(), false);
                 found = true;
             }
         }

@@ -1208,6 +1208,12 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             player_->GetDSPManager()->RemoveEq();
         }
 
+        auto byte_format = ByteFormat::SINT32;
+
+        if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
+            byte_format = ByteFormat::SINT16;
+        }
+
         auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
         auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
@@ -1243,7 +1249,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
             player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
 
-            player_->PrepareToPlay(device_sample_rate, dsd_modes);
+            player_->PrepareToPlay(byte_format, device_sample_rate, dsd_modes);
             player_->SetReadSampleSize(writer->GetDataSize() * 2);
 
             resampler_type = Qt::EmptyString;
@@ -1254,7 +1260,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             playback_format.output_format.SetSampleRate(device_sample_rate);
         } else {
             player_->GetDSPManager()->SetSampleWriter();
-            player_->PrepareToPlay(device_sample_rate, dsd_modes);
+            player_->PrepareToPlay(byte_format, device_sample_rate, dsd_modes);
             playback_format = playbackFormat(player_.get());
         }
 
