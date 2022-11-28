@@ -774,7 +774,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()](auto /*thread_index*/) noexcept {
+    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()](){
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };

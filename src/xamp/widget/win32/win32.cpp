@@ -18,6 +18,8 @@
 #include <propvarutil.h>
 #endif
 
+#include <QOperatingSystemVersion>
+
 #include "xampplayer.h"
 #include "thememanager.h"
 #include <widget/xwindow.h>
@@ -354,11 +356,11 @@ static uint32_t gradientColor(QColor const & color) {
 WinTaskbar::WinTaskbar(XWindow* window, IXPlayerFrame* player_frame) {
 	window_ = window;
 
-	play_icon = qTheme.iconFromFont(IconCode::ICON_Play);
-	pause_icon = qTheme.iconFromFont(IconCode::ICON_Pause);
-	stop_play_icon = qTheme.iconFromFont(IconCode::ICON_StopPlay);
-	seek_forward_icon = qTheme.iconFromFont(IconCode::ICON_PlayNext);
-	seek_backward_icon = qTheme.iconFromFont(IconCode::ICON_PlayPrev);
+	play_icon = qTheme.iconFromFont(Glyphs::ICON_PLAY);
+	pause_icon = qTheme.iconFromFont(Glyphs::ICON_PAUSE);
+	stop_play_icon = qTheme.iconFromFont(Glyphs::ICON_STOP_PLAY);
+	seek_forward_icon = qTheme.iconFromFont(Glyphs::ICON_PLAY_FORWARD);
+	seek_backward_icon = qTheme.iconFromFont(Glyphs::ICON_PLAY_BACKWARD);
 
 	thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
 	thumbnail_tool_bar_->setWindow(window->windowHandle());

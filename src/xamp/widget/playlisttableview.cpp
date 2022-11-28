@@ -89,13 +89,13 @@ public:
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
                     opt.decorationSize = QSize(12, 12);
-                    opt.icon = qTheme.iconFromFont(IconCode::ICON_Play);
+                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PLAY);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
                     opt.decorationSize = QSize(12, 12);
-                    opt.icon = qTheme.iconFromFont(IconCode::ICON_Pause);
+                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PAUSE);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
@@ -399,7 +399,7 @@ void PlayListTableView::initial() {
             setColumnHidden(last_referred_logical_column, true);
         AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
             });
-        hide_this_column_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Hide));
+        hide_this_column_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_HIDE));
 
         auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
             ActionMap<PlayListTableView> action_map(this);
@@ -415,7 +415,7 @@ void PlayListTableView::initial() {
         }
         action_map.exec(pt);
             });
-        select_column_show_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Show));
+        select_column_show_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_SHOW));
 
         action_map.exec(pt);
         });
@@ -445,7 +445,7 @@ void PlayListTableView::initial() {
                 }
                 append(file_name);
                 });
-            load_file_act->setIcon(qTheme.iconFromFont(IconCode::ICON_LoadFile));
+            load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
 
             auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
                 const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -456,34 +456,34 @@ void PlayListTableView::initial() {
                 }
                 append(dir_name);
                 });
-            load_dir_act->setIcon(qTheme.iconFromFont(IconCode::ICON_LoadDir));
+            load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
 
             action_map.addSeparator();
         }
 
         if (podcast_mode_) {
             auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
-            import_podcast_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Download));
+            import_podcast_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_DOWNLOAD));
             action_map.setCallback(import_podcast_act, [this]() {
                 importPodcast();
                 });
         }
 
         auto* reload_metadata_act = action_map.addAction(tr("Reload metadata"));
-        reload_metadata_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Reload));
+        reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
 
         auto* remove_all_act = action_map.addAction(tr("Remove all"));
-        remove_all_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
+        remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
         auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
-        open_local_file_path_act->setIcon(qTheme.iconFromFont(IconCode::ICON_OpenFilePath));
+        open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
 
         auto* read_select_item_replaygain_act = action_map.addAction(tr("Read replay gain"));
-        read_select_item_replaygain_act->setIcon(qTheme.iconFromFont(IconCode::ICON_ReadReplayGain));
+        read_select_item_replaygain_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_READ_REPLAY_GAIN));
 
         action_map.addSeparator();
         auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
-        export_flac_file_act->setIcon(qTheme.iconFromFont(IconCode::ICON_ExportFile));
+        export_flac_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_EXPORT_FILE));
 
         const auto select_row = selectionModel()->selectedRows();
         if (!select_row.isEmpty()) {
@@ -515,7 +515,7 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
-        copy_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Copy));
+        copy_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_COPY));
 
         auto * copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
@@ -697,14 +697,12 @@ void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entit
     for (const auto& entity : entities) {
         qDatabase.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
     }
-    resizeColumn();
     excuteQuery();
     emit addPlaylistItemFinished();
 }
 
 void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) {
     ::MetadataExtractAdapter::processMetadata(medata, this, dir_last_write_time);
-    resizeColumn();
     excuteQuery();
     emit addPlaylistItemFinished();
 }

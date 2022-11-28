@@ -1,4 +1,5 @@
 #include <base/rng.h>
+#include <base/platform.h>
 #include <base/itaskschedulerpolicy.h>
 
 namespace xamp::base {
@@ -16,24 +17,7 @@ AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy polic
 }
 
 AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
-	switch (policy) {
-	case TaskStealPolicy::CHILD_STEALING_POLICY:
-		return MakeAlign<ITaskStealPolicy, ChildStealPolicy>();
-	case TaskStealPolicy::CONTINUATION_STEALING_POLICY:
-		return MakeAlign<ITaskStealPolicy, ContinuationStealPolicy>();
-	default:
-		return MakeAlign<ITaskStealPolicy, ContinuationStealPolicy>();
-	}
-}
-
-void ChildStealPolicy::SubmitJob(MoveableFunction&& task,
-    size_t /*max_thread*/,
-    SharedTaskQueue* /*task_pool*/,
-	ITaskSchedulerPolicy* policy, 
-	const Vector<WorkStealingTaskQueuePtr>& task_work_queues) {
-	auto index = policy->ScheduleNext(0, task_work_queues);
-	auto& queue = task_work_queues.at(index);
-	queue->Enqueue(task);
+	return MakeAlign<ITaskStealPolicy, ContinuationStealPolicy>();
 }
 
 void ContinuationStealPolicy::SubmitJob(MoveableFunction&& task,
@@ -45,8 +29,7 @@ void ContinuationStealPolicy::SubmitJob(MoveableFunction&& task,
 
 	for (size_t n = 0; n < max_thread * K; ++n) {
 		auto current = n % max_thread;
-		auto index = policy->ScheduleNext(current, task_work_queues);
-		auto& queue = task_work_queues.at(index);
+		auto& queue = task_work_queues.at(current);
 		if (queue->TryEnqueue(task)) {
 			return;
 		}
@@ -54,9 +37,10 @@ void ContinuationStealPolicy::SubmitJob(MoveableFunction&& task,
 	task_pool->Enqueue(task);
 }
 
-size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const Vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
-	static std::atomic<int32_t> index{ -1 };
-	return (index.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
+size_t RoundRobinSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index,
+	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
+	static std::atomic<int32_t> id{ -1 };
+	return (id.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
 }
 
 void RoundRobinSchedulerPolicy::SetMaxThread(size_t max_thread) {
@@ -65,25 +49,29 @@ void RoundRobinSchedulerPolicy::SetMaxThread(size_t max_thread) {
 
 void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 	prngs_.resize(max_thread);
+
+	for (size_t i = 0; i < max_thread; ++i) {
+		prngs_[i].seed(GenRandomSeed());
+		for (size_t jump = 0; jump < i; ++jump) {
+			prngs_[i].Jump();
+		}
+	}
 }
 
-size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const Vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
-	size_t random_index = cur_index;
-
-	auto& prng = prngs_[cur_index];
-	const auto max_size = prngs_.size() - 1;
-
-	while (random_index == cur_index) {
-		random_index = prng.Next(max_size);
+size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
+	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
+	auto& prng = prngs_[index];
+	const auto random_index = prng() % prngs_.size();
+	if (random_index == index) {
+		return (std::numeric_limits<size_t>::max)();
 	}
-
 	return random_index;
 }
 
-void LeastLoadSchedulerPolicy::SetMaxThread(size_t /*max_thread*/) {
+void LeastLoadSchedulerPolicy::SetMaxThread([[maybe_unused]] size_t max_thread) {
 }
 
-size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const Vector<WorkStealingTaskQueuePtr>& work_queues) {
+size_t LeastLoadSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index, const Vector<WorkStealingTaskQueuePtr>& work_queues) {
 	size_t min_wq_size_index = 0;
 	size_t min_wq_size = 0;
 	size_t i = 0;

@@ -27,7 +27,7 @@ void ParallelFor(IThreadPoolExecutor& executor, C& items, Func&& f, size_t batch
     for (size_t i = 0; i < size; ++i) {
         Vector<Task<void>> futures((std::min)(size - i,batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [f, begin, i](size_t) -> void {
+            ff = Executor::Spawn(executor, [f, begin, i]() -> void {
                 f(*(begin + i));
             });
             ++i;
@@ -44,7 +44,7 @@ void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func &
     for (size_t i = 0; i < size; ++i) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [f, i](size_t) -> void {
+            ff = Executor::Spawn(executor, [f, i]() -> void {
                 f(i);
             });
             ++i;

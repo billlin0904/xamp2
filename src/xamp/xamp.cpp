@@ -476,13 +476,13 @@ void Xamp::initialDeviceList() {
         switch (connect_type) {
         case DeviceConnectType::UKNOWN:
         case DeviceConnectType::BUILT_IN:
-            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(IconCode::ICON_BuildInSpeaker));
+            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_BUILD_IN_SPEAKER));
             break;
         case DeviceConnectType::USB:
-            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(IconCode::ICON_USB));
+            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_USB));
             break;
         case DeviceConnectType::BLUE_TOOTH:
-            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(IconCode::ICON_BlueTooth));
+            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_BLUE_TOOTH));
             break;
         }
     };
@@ -1189,6 +1189,8 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         player_->EnableFadeOut(false);
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
 
+        auto byte_format = ByteFormat::SINT32;
+
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
                 if (initial_resampler == nullptr || player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
@@ -1206,9 +1208,10 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             player_->GetDSPManager()->EnableVolumeLimiter(false);
             player_->GetDSPManager()->RemoveReplayGain();
             player_->GetDSPManager()->RemoveEq();
+            if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
+                byte_format = ByteFormat::SINT16;
+            }
         }
-
-        auto byte_format = ByteFormat::SINT32;
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
             byte_format = ByteFormat::SINT16;

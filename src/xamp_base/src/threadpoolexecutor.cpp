@@ -37,7 +37,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
-            AddThread(i, affinity, priority);
+            AddThread(i, priority);
 		}
 	}
 	catch (...) {
@@ -166,7 +166,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::AddThread(size_t i, CpuAffinity affinity, ThreadPriority priority) {
+void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
     threads_.emplace_back([i, this, priority](StopToken stop_token) mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto L1_padding_buffer =
@@ -193,8 +193,9 @@ void TaskScheduler::AddThread(size_t i, CpuAffinity affinity, ThreadPriority pri
 
 			if (!task) {
 				const auto steal_index = policy->ScheduleNext(i, task_work_queues_);
-
-				task = TrySteal(stop_token, steal_index);
+				if (steal_index != (std::numeric_limits<size_t>::max)()) {
+					task = TrySteal(stop_token, steal_index);
+				}
 
 				if (!task) {
 					++steal_failure_count;
@@ -213,7 +214,7 @@ void TaskScheduler::AddThread(size_t i, CpuAffinity affinity, ThreadPriority pri
 
 			auto running_thread = ++running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{}", i, thread_id, running_thread);
-			(*task)(i);
+			(*task)();
 			--running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished.", i, thread_id);
 		}

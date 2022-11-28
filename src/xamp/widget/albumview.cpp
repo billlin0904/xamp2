@@ -229,7 +229,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
                                          )"));
     close_button->setFixedSize(QSize(24, 24));
     close_button->setIconSize(QSize(13, 13));
-    close_button->setIcon(qTheme.closeWindowIcon());
+    close_button->setIcon(qTheme.iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -386,7 +386,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(file_name);
         });
-    load_file_act->setIcon(qTheme.iconFromFont(IconCode::ICON_LoadFile));
+    load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
 
     auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
         const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -398,14 +398,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(dir_name);
         });
-    load_dir_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Folder));
+    load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_FOLDER));
     action_map.addSeparator();
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         removeAlbum();
         styled_delegate_->clearImageCache();
         qDatabaseIdCache.clear();
         });
-    remove_all_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
+    remove_all_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
     action_map.exec(pt);
 }
@@ -433,12 +433,12 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
             });
         emit addPlaylist(add_playlist_music_ids, entities);
         });
-    add_album_to_playlist_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Playlist));
+    add_album_to_playlist_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_PLAYLIST));
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
         });
-    copy_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Copy));
+    copy_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_COPY));
 
     action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
@@ -450,7 +450,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
         qDatabase.removeAlbum(album_id);
         refreshOnece();
         });
-    remove_select_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
+    remove_select_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
     action_map.exec(pt);
 }

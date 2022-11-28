@@ -57,7 +57,7 @@ private:
 
     std::optional<MoveableFunction> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
 
-    void AddThread(size_t i, CpuAffinity affinity, ThreadPriority priority);
+    void AddThread(size_t i, ThreadPriority priority);
 
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;

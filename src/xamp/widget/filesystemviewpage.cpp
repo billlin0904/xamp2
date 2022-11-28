@@ -12,7 +12,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
     dir_model_ = new FileSystemModel(this);
-    dir_model_->setFilter(QDir::NoDotDot | QDir::AllDirs);
+    dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
     dir_model_->setRootPath(AppSettings::getMyMusicFolderPath());
     ui.dirTree->setModel(dir_model_);
     ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
@@ -22,6 +22,13 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui.dirTree->hideColumn(1);
     ui.dirTree->hideColumn(2);
     ui.dirTree->hideColumn(3);
+
+    QStringList filter;
+    for (auto& file_ext : GetSupportFileExtensions()) {
+        filter << Q_STR("*%1").arg(QString::fromStdString(file_ext));
+    }
+    dir_model_->setNameFilters(filter);
+    dir_model_->setNameFilterDisables(false);
 
     ui.dirTree->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(ui.dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
@@ -33,9 +40,9 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                 return;
             }
             auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
-            addDirToPlyalist(path);
+            ui.playlistPage->playlist()->append(path, false, false);
             });
-        add_file_to_playlist_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Playlist));
+        add_file_to_playlist_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
             const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -47,16 +54,16 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             AppSettings::setValue(kAppSettingMyMusicFolderPath, dir_name);
             ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
             });
-        load_dir_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Folder));
+        load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_FOLDER));
 
         action_map.exec(pt, pt);
         });
 
-    (void) QObject::connect(ui.dirTree, &QTreeView::clicked, [this](const auto &index) {
+    /*(void) QObject::connect(ui.dirTree, &QTreeView::clicked, [this](const auto &index) {
         auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
         ui.playlistPage->playlist()->removeAll();
         ui.playlistPage->playlist()->append(path, false, false);
-        });
+        });*/
 
     setStyleSheet(Q_TEXT("background-color: transparent"));
 }

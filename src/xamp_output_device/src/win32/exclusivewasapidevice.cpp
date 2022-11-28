@@ -397,7 +397,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(GetWASAPIThreadPool(), [this, wait_timeout](auto idx) noexcept {
+	render_task_ = Executor::Spawn(GetWASAPIThreadPool(), [this, wait_timeout]() {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;

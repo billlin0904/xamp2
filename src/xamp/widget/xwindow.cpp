@@ -609,7 +609,7 @@ void XWindow::addSystemMenu(QWidget* widget) {
         action_map.setCallback(close_act, [this]() {
             close();
             });
-        close_act->setIcon(qTheme.closeWindowIcon());
+        close_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
 
         action_map.exec(pt);
         });

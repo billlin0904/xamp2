@@ -31,9 +31,6 @@ struct ReplayGainWorkerEntity {
 
 BackgroundWorker::BackgroundWorker()
 	: blur_img_cache_(8) {
-    pool_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName, 
-        TaskSchedulerPolicy::LEAST_LOAD_POLICY,
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
     writer_ = MakeMetadataWriter();
 }
 
@@ -44,6 +41,15 @@ void BackgroundWorker::stopThreadPool() {
     if (pool_ != nullptr) {
         pool_->Stop();
     }
+}
+
+void BackgroundWorker::lazyInit() {
+    if (pool_ != nullptr) {
+        return;
+    }
+    pool_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
+        TaskSchedulerPolicy::LEAST_LOAD_POLICY,
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 }
 
 void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
@@ -116,6 +122,8 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 }
 
 void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image) {
+    lazyInit();
+
     if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
         XAMP_LOG_DEBUG("Found blur image in cache!");
         emit updateBlurImage(cache_image->copy());
@@ -133,6 +141,8 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
 }
 
 void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& items) {
+    lazyInit();
+
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
     Vector<Task<>> replay_gain_tasks;
@@ -145,7 +155,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
         std::make_shared<Vector<std::shared_ptr<ReplayGainWorkerEntity>>>());
 
     for (const auto &item : items) {
-        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, this, &replay_gain_result](auto ) {
+        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, this, &replay_gain_result]() {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;

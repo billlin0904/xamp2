@@ -2,10 +2,12 @@
 #include <utility>
 #include <execution>
 #include <forward_list>
+#include <unordered_set>
 
+#include <QFile>
+#include <QDirIterator>
 #include <QMap>
 #include <QProgressDialog>
-#include <unordered_set>
 
 #include <base/base.h>
 #include <base/str_utilts.h>

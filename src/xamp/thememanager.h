@@ -26,56 +26,6 @@ enum class ThemeColor {
     LIGHT_THEME,
 };
 
-enum IconCode {
-    ICON_VolumeUp = 0xE995,
-    ICON_VolumeOff = 0xE74F,
-    ICON_Speaker = 0xE7F5,
-    ICON_Folder = 0xF12B,
-    ICON_LoadFile = 0xE8E5,
-    ICON_LoadDir = 0xE838,
-    ICON_Reload = 0xE895,
-    ICON_RemoveAll = 0xE894,
-    ICON_OpenFilePath = 0xE8DA,
-    ICON_ReadReplayGain = 0xF270,
-    ICON_ExportFile = 0xE78C,
-    ICON_Copy = 0xE8C8,
-    ICON_Download = 0xE896,
-    ICON_Playlist = 0xE90B,
-    ICON_Equalizer = 0xe9e9,
-    ICON_Podcast = 0xEFA9,
-    ICON_Album = 0xE93C,
-    ICON_CD = 0xE958,
-    ICON_LeftArrow = 0xEC52,
-    ICON_Artist = 0xE716,
-    ICON_Subtitle = 0xED1E,
-    ICON_Preference = 0xE713,
-    ICON_About = 0xF167,
-    ICON_DarkMode = 0xEC46,
-    ICON_LightMode = 0xF08C,
-    ICON_Search = 0xF78B,
-    ICON_Theme = 0xE771,
-    ICON_Desktop = 0xEC4E,
-    ICON_ShufflePlayOrder = 0xE8B1,
-    ICON_RepeatOnePlayOrder = 0xE8ED,
-    ICON_RepeatOncePlayOrder = 0xE8EE,
-    ICON_MinimizeWindow = 0xE921,
-    ICON_MaximumWindow = 0xE922,
-    ICON_CloseWindow = 0xE8BB,
-    ICON_RestoreWindow = 0xE923,
-    ICON_SliderBar = 0xE700,
-    ICON_Play = 0xF5B0,
-    ICON_Pause = 0xF8AE,
-    ICON_StopPlay = 0xE978,
-    ICON_PlayNext = 0xF8AD,
-    ICON_PlayPrev = 0xF8AC,
-    ICON_More = 0xE712,
-    ICON_Hide = 0xED1A,
-    ICON_Show = 0xE7B3,
-    ICON_USB = 0xE88E,
-    ICON_BuildInSpeaker = 0xE7F5,
-    ICON_BlueTooth = 0xE702,
-};
-
 class ThemeManager {
 public:
     friend class SharedSingleton<ThemeManager>;
@@ -154,11 +104,7 @@ public:
 
     QIcon maximumWindowIcon() const;
 
-    QIcon closeWindowIcon() const;
-
     QIcon restoreWindowIcon() const;
-
-    QIcon sliderBarIcon() const;
 
     QPixmap githubIcon() const;
 

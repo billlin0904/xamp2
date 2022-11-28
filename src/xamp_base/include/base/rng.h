@@ -30,7 +30,7 @@ public:
         return std::uniform_int_distribution<T>(min, max)(engine_);
     }
 
-    size_t Next(size_t max) noexcept {
+    size_t Next(size_t max = (std::numeric_limits<size_t>::max)()) noexcept {
         return (*this)(size_t{0}, max);
     }
 
@@ -74,6 +74,10 @@ public:
 	}
 
     void SetSeed();
+
+    Xoshiro256StarStarEngine& engine() {
+        return engine_;
+    }
 private:
     Xoshiro256StarStarEngine engine_;
 };

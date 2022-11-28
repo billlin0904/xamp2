@@ -55,6 +55,7 @@ QFont ThemeManager::loadFonts() {
     QList<QString> ui_fonts;
 
     qFontIcon.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
+    //qFontIcon.addFont(fontNamePath(Q_TEXT("FontAwesome_v6.2.0_Free_Solid900.ttf")));
 
     installFileFont(Q_TEXT("Roboto-Regular.ttf"), mono_fonts);
     installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font);
@@ -173,11 +174,11 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 }
 
 QIcon ThemeManager::volumeUp() const {
-    return iconFromFont(IconCode::ICON_VolumeUp);
+    return iconFromFont(Glyphs::ICON_VOLUME_UP);
 }
 
 QIcon ThemeManager::volumeOff() const {
-    return iconFromFont(IconCode::ICON_VolumeOff);
+    return iconFromFont(Glyphs::ICON_VOLUME_OFF);
 }
 
 QIcon ThemeManager::iconFromFont(const QChar& code, QVariantMap options) const {
@@ -185,67 +186,67 @@ QIcon ThemeManager::iconFromFont(const QChar& code, QVariantMap options) const {
 }
 
 QIcon ThemeManager::folderIcon() const {
-    return iconFromFont(IconCode::ICON_Folder);
+    return iconFromFont(Glyphs::ICON_FOLDER);
 }
 
 QIcon ThemeManager::speakerIcon() const {
-    return iconFromFont(IconCode::ICON_Speaker);
+    return iconFromFont(Glyphs::ICON_SPEAKER);
 }
 
 QIcon ThemeManager::playlistIcon() const {
-    return iconFromFont(IconCode::ICON_Playlist);
+    return iconFromFont(Glyphs::ICON_PLAYLIST);
 }
 
 QIcon ThemeManager::equalizerIcon() const {
-    return iconFromFont(IconCode::ICON_Equalizer);
+    return iconFromFont(Glyphs::ICON_EQUALIZER);
 }
 
 QIcon ThemeManager::podcastIcon() const {
-    return iconFromFont(IconCode::ICON_Podcast);
+    return iconFromFont(Glyphs::ICON_PODCAST);
 }
 
 QIcon ThemeManager::albumsIcon() const {
-    return iconFromFont(IconCode::ICON_Album);
+    return iconFromFont(Glyphs::ICON_ALBUM);
 }
 
 QIcon ThemeManager::cdIcon() const {
-    return iconFromFont(IconCode::ICON_CD);
+    return iconFromFont(Glyphs::ICON_CD);
 }
 
 QIcon ThemeManager::artistsIcon() const {
-    return iconFromFont(IconCode::ICON_Artist);
+    return iconFromFont(Glyphs::ICON_ARTIST);
 }
 
 QIcon ThemeManager::subtitleIcon() const {
-    return iconFromFont(IconCode::ICON_Subtitle);
+    return iconFromFont(Glyphs::ICON_SUBTITLE);
 }
 
 QIcon ThemeManager::preferenceIcon() const  {
-    return iconFromFont(IconCode::ICON_Preference);
+    return iconFromFont(Glyphs::ICON_PREFERENCE);
 }
 
 QIcon ThemeManager::aboutIcon() const {
-    return iconFromFont(IconCode::ICON_About);
+    return iconFromFont(Glyphs::ICON_ABOUT);
 }
 
 QIcon ThemeManager::darkModeIcon() const {
-    return iconFromFont(IconCode::ICON_DarkMode);
+    return iconFromFont(Glyphs::ICON_DARK_MODE);
 }
 
 QIcon ThemeManager::lightModeIcon() const {
-    return iconFromFont(IconCode::ICON_LightMode);
+    return iconFromFont(Glyphs::ICON_LIGHT_MODE);
 }
 
 QIcon ThemeManager::seachIcon() const {
-    return iconFromFont(IconCode::ICON_Search);
+    return iconFromFont(Glyphs::ICON_SEARCH);
 }
 
 QIcon ThemeManager::themeIcon() const {
-    return iconFromFont(IconCode::ICON_Theme);
+    return iconFromFont(Glyphs::ICON_THEME);
 }
 
 QIcon ThemeManager::desktopIcon() const {
-    return iconFromFont(IconCode::ICON_Desktop);
+    return iconFromFont(Glyphs::ICON_DESKTOP);
 }
 
 QIcon ThemeManager::appIcon() const {
@@ -257,39 +258,31 @@ QIcon ThemeManager::playCircleIcon() const {
 }
 
 QIcon ThemeManager::moreIcon() const {
-    return iconFromFont(IconCode::ICON_More);
+    return iconFromFont(Glyphs::ICON_MORE);
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(iconFromFont(IconCode::ICON_ShufflePlayOrder));
+    ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
 }
 
 void ThemeManager::setRepeatOnePlayOrder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(iconFromFont(IconCode::ICON_RepeatOnePlayOrder));
+    ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
 }
 
 void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(iconFromFont(IconCode::ICON_RepeatOncePlayOrder));
+    ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
 }
 
 QIcon ThemeManager::minimizeWindowIcon() const {
-    return iconFromFont(IconCode::ICON_MinimizeWindow);
+    return iconFromFont(Glyphs::ICON_MINIMIZE_WINDOW);
 }
 
 QIcon ThemeManager::maximumWindowIcon() const {
-    return iconFromFont(IconCode::ICON_MaximumWindow);
-}
-
-QIcon ThemeManager::closeWindowIcon() const {
-    return iconFromFont(IconCode::ICON_CloseWindow);
+    return iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW);
 }
 
 QIcon ThemeManager::restoreWindowIcon() const {
-    return iconFromFont(IconCode::ICON_RestoreWindow);
-}
-
-QIcon ThemeManager::sliderBarIcon() const {
-    return iconFromFont(IconCode::ICON_SliderBar);
+    return iconFromFont(Glyphs::ICON_RESTORE_WINDOW);
 }
 
 QPixmap ThemeManager::githubIcon() const {
@@ -349,10 +342,10 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
-        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Pause));
+        ui.playButton->setIcon(iconFromFont(Glyphs::ICON_PAUSE));
     }
     else {
-        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Play));
+        ui.playButton->setIcon(iconFromFont(Glyphs::ICON_PLAY));
     }
 }
 
@@ -452,7 +445,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
                                          }
                                          )").arg(colorToString(hover_color)));
     close_button->setIconSize(QSize(font_size, font_size));
-    close_button->setIcon(closeWindowIcon());
+    close_button->setIcon(iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
 
     min_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
@@ -514,7 +507,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             image: none;
                                             }
                                             )").arg(colorToString(hover_color)));
-    ui.sliderBarButton->setIcon(sliderBarIcon());
+    ui.sliderBarButton->setIcon(iconFromFont(Glyphs::ICON_SLIDER_BAR));
 
     ui.stopButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#stopButton {
@@ -522,7 +515,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.stopButton->setIcon(iconFromFont(ICON_StopPlay));
+    ui.stopButton->setIcon(iconFromFont(ICON_STOP_PLAY));
 
     ui.nextButton->setStyleSheet(Q_TEXT(R"(
                                         QToolButton#nextButton {
@@ -530,7 +523,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.nextButton->setIcon(iconFromFont(IconCode::ICON_PlayNext));
+    ui.nextButton->setIcon(iconFromFont(Glyphs::ICON_PLAY_FORWARD));
 
     ui.prevButton->setStyleSheet(Q_TEXT(R"(
                                         QToolButton#prevButton {
@@ -538,7 +531,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.prevButton->setIcon(iconFromFont(IconCode::ICON_PlayPrev));
+    ui.prevButton->setIcon(iconFromFont(Glyphs::ICON_PLAY_BACKWARD));
 
     ui.selectDeviceButton->setStyleSheet(Q_TEXT(R"(
                                                 QToolButton#selectDeviceButton {                                                

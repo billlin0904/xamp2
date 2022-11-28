@@ -55,7 +55,7 @@ static void BM_RcuPtr(benchmark::State& state) {
 			total.copy_update([item](auto cp) {
 				*cp += item;
 				});
-        });
+        }, 16);
     }
 }
 
@@ -72,19 +72,19 @@ static void BM_RcuPtrMutex(benchmark::State& state) {
         ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
             std::lock_guard<FastMutex> guard{ mutex };
 			total += item;
-            });
+            }, 16);
     }
 }
 
-static void BM_LeastLoadThreadPool(benchmark::State& state) {
+static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_LeastLoadThreadPool",
+        "BM_LeastLoadPolicyThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY);
 
-    LoggerManager::GetInstance().GetLogger("BM_LeastLoadThreadPool")
+    LoggerManager::GetInstance().GetLogger("BM_LeastLoadPolicyThreadPool")
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -94,19 +94,19 @@ static void BM_LeastLoadThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
-            });
+            }, 16);
     }
 }
 
-static void BM_RoundRubinThreadPool(benchmark::State& state) {
-	const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_RoundRubinThreadPool",
+static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
+    const auto thread_pool = MakeThreadPoolExecutor(
+        "BM_RobinStealPolicyThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
-    LoggerManager::GetInstance().GetLogger("BM_RoundRubinThreadPool")
+    LoggerManager::GetInstance().GetLogger("BM_RobinStealPolicyThreadPool")
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -116,20 +116,19 @@ static void BM_RoundRubinThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
-            });
+            }, 16);
     }
 }
 
-static void BM_ChildStealPolicyRandomThreadPool(benchmark::State& state) {
+static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_ChildStealPolicyRandomThreadPool",
+        "BM_RandomPolicyThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
-        TaskSchedulerPolicy::RANDOM_POLICY,
-        TaskStealPolicy::CHILD_STEALING_POLICY);
+        TaskSchedulerPolicy::RANDOM_POLICY);
 
-    LoggerManager::GetInstance().GetLogger("BM_ChildStealPolicyRandomThreadPool")
+    LoggerManager::GetInstance().GetLogger("BM_RandomPolicyThreadPool")
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -139,30 +138,7 @@ static void BM_ChildStealPolicyRandomThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
-        });
-    }
-}
-
-static void BM_ContinuationStealPolicyRandomThreadPool(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_ContinuationStealPolicyRandomThreadPool",
-        ThreadPriority::NORMAL,
-        std::thread::hardware_concurrency(),
-        kDefaultAffinityCpuCore,
-        TaskSchedulerPolicy::ROUND_ROBIN_POLICY,
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
-
-    LoggerManager::GetInstance().GetLogger("BM_ContinuationStealPolicyRandomThreadPool")
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    const auto length = state.range(0);
-    std::vector<int> n(length);
-    std::iota(n.begin(), n.end(), 1);
-    std::atomic<int64_t> total;
-    for (auto _ : state) {
-        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
-            total += item;
-            });
+            }, 16);
     }
 }
 
@@ -204,7 +180,7 @@ static void BM_std_for_each_par(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        std::for_each(std::execution::par_unseq,
+        std::for_each(std::execution::par,
             n.begin(),
             n.end(),
             [&total](auto&& item)
@@ -743,13 +719,15 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
 #ifdef XAMP_OS_WIN
-//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
-//BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+
 BENCHMARK(BM_RcuPtr)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_RcuPtrMutex)->RangeMultiplier(2)->Range(8, 8 << 8);
 

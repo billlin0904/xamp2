@@ -52,6 +52,8 @@ public Q_SLOT:
     void onFetchCdInfo(const DriveInfo &drive);
 
 private:
+    void lazyInit();
+
     bool is_stop_{false};
     mutable LruCache<QString, QImage> blur_img_cache_;
     AlignPtr<IThreadPoolExecutor> pool_;

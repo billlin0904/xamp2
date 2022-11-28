@@ -56,11 +56,11 @@ protected:
 
 template <typename F, typename ... Args>
 decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
-    using ReturnType = std::invoke_result_t<F, size_t, Args...>;
+    using ReturnType = std::invoke_result_t<F, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
     // https://github.com/microsoft/STL/issues/321
-    using PackagedTaskType = std::packaged_task<ReturnType(size_t)>;
+    using PackagedTaskType = std::packaged_task<ReturnType()>;
 
     auto task = MakeAlignedShared<PackagedTaskType>(bind_front(
         std::forward<F>(f),
@@ -70,8 +70,8 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
     auto future = task->get_future();
 
     // note: unique_ptr會在SubmitJob離開lambda解構, 但是shared_ptr會確保lambda在解構的時候task才會解構.
-    scheduler_->SubmitJob([t = std::move(task)](size_t thread_index) {
-        (*t)(thread_index);
+    scheduler_->SubmitJob([t = std::move(task)]() {
+        (*t)();
     });
 
     return future;

@@ -6,37 +6,58 @@
 #pragma once
 
 #include <QObject>
-#include <QPainter>
-#include <QIconEngine>
-#include <QApplication>
-#include <QtCore>
-#include <QPalette>
-
+#include <QMap>
 #include <widget/widget_shared.h>
 
-class FontIconEngine : public QIconEngine {
-public:
-    explicit FontIconEngine(QVariantMap opt);
-
-    void paint(QPainter* painter, const QRect& rect, QIcon::Mode mode, QIcon::State state) override;
-
-    QPixmap pixmap(const QSize& size, QIcon::Mode mode, QIcon::State state) override;
-
-    QIconEngine* clone() const override;
-
-    void setFontFamily(const QString& family);
-
-    void setLetter(const QChar& letter);
-
-    void setBaseColor(const QColor& base_color);
-
-    void setSelectedState(bool enable);
-private:
-    bool selected_state_;
-    QString font_family_;
-    QChar letter_;
-    QColor base_color_;
-    QVariantMap options_;
+enum Glyphs {
+    ICON_VOLUME_UP,
+    ICON_VOLUME_OFF,
+    ICON_SPEAKER,
+    ICON_FOLDER,
+    ICON_AUDIO,
+    ICON_LOAD_FILE,
+    ICON_LOAD_DIR,
+    ICON_RELOAD,
+    ICON_REMOVE_ALL,
+    ICON_OPEN_FILE_PATH,
+    ICON_READ_REPLAY_GAIN,
+    ICON_EXPORT_FILE,
+    ICON_COPY,
+    ICON_DOWNLOAD,
+    ICON_PLAYLIST,
+    ICON_EQUALIZER,
+    ICON_PODCAST,
+    ICON_ALBUM,
+    ICON_CD,
+    ICON_LEFT_ARROW,
+    ICON_ARTIST,
+    ICON_SUBTITLE,
+    ICON_PREFERENCE,
+    ICON_ABOUT,
+    ICON_DARK_MODE,
+    ICON_LIGHT_MODE,
+    ICON_SEARCH,
+    ICON_THEME,
+    ICON_DESKTOP,
+    ICON_SHUFFLE_PLAY_ORDER,
+    ICON_REPEAT_ONE_PLAY_ORDER,
+    ICON_REPEAT_ONCE_PLAY_ORDER,
+    ICON_MINIMIZE_WINDOW,
+    ICON_MAXIMUM_WINDOW,
+    ICON_CLOSE_WINDOW,
+    ICON_RESTORE_WINDOW,
+    ICON_SLIDER_BAR,
+    ICON_PLAY,
+    ICON_PAUSE,
+    ICON_STOP_PLAY,
+    ICON_PLAY_FORWARD,
+    ICON_PLAY_BACKWARD,
+    ICON_MORE,
+    ICON_HIDE,
+    ICON_SHOW,
+    ICON_USB,
+    ICON_BUILD_IN_SPEAKER,
+    ICON_BLUE_TOOTH,
 };
 
 class FontIcon : public QObject {
@@ -62,6 +83,7 @@ protected:
 
     QColor base_color_;
     QStringList families_;
+    static const QMap<QChar, uint32_t> glyphs_;
 };
 
 #define qFontIcon SharedSingleton<FontIcon>::GetInstance()

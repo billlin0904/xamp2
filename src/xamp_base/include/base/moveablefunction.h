@@ -19,8 +19,8 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 
-    XAMP_ALWAYS_INLINE void operator()(const size_t thread_index) const {
-	    impl_->Invoke(thread_index);
+    XAMP_ALWAYS_INLINE void operator()() const {
+	    impl_->Invoke();
     }
 
     MoveableFunction() = default;
@@ -39,7 +39,7 @@ public:
 private:
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
-        virtual void Invoke(size_t thread_index) = 0;
+        virtual void Invoke() = 0;
     };
 
     AlignPtr<ImplBase> impl_;
@@ -50,8 +50,8 @@ private:
             : f_(std::forward<Func>(f)) {
         }
 
-        XAMP_ALWAYS_INLINE void Invoke(size_t thread_index) override {
-            f_(thread_index);
+        XAMP_ALWAYS_INLINE void Invoke() override {
+            f_();
         }
         Func f_;
     };
