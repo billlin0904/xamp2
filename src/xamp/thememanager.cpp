@@ -123,10 +123,10 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
 
     switch (theme_color) {
     case ThemeColor::LIGHT_THEME:
-        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(0, 28, 64)));
+        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(240, 241, 243)));        
         break;
     case ThemeColor::DARK_THEME:
-        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(240, 241, 243)));
+        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(0, 28, 64)));
         break;
     }
 }
@@ -177,6 +177,18 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 }
 
 QIcon ThemeManager::iconFromFont(const char32_t code) const {
+    switch (code) {
+    case Glyphs::ICON_MINIMIZE_WINDOW:
+    case Glyphs::ICON_MAXIMUM_WINDOW:
+    case Glyphs::ICON_CLOSE_WINDOW:
+    case Glyphs::ICON_RESTORE_WINDOW:
+    {
+        auto temp = font_icon_opts_;
+        temp.insert(FontIconColorOption::scaleFactorAttr, QVariant::fromValue(1.3));
+        return qFontIcon.icon(code, temp);
+    }
+        break;
+    }
     return qFontIcon.icon(code, font_icon_opts_);
 }
 

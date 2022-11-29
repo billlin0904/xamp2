@@ -29,6 +29,17 @@ private:
     QVariantMap options_;
 };
 
+const QString FontIconColorOption::animationAttr(qTEXT("animation"));
+const QString FontIconColorOption::rectAttr(qTEXT("rect"));
+const QString FontIconColorOption::scaleFactorAttr(qTEXT("scaleFactor"));
+const QString FontIconColorOption::fontStyleAttr(qTEXT("fontStyle"));
+const QString FontIconColorOption::colorAttr(qTEXT("color"));
+const QString FontIconColorOption::onColorAttr(qTEXT("onColor"));
+const QString FontIconColorOption::activeColorAttr(qTEXT("activeColor"));
+const QString FontIconColorOption::activeOnColorAttr(qTEXT("activeOnColor"));
+const QString FontIconColorOption::disabledColorAttr(qTEXT("disabledColor"));
+const QString FontIconColorOption::selectedColorAttr(qTEXT("selectedColor"));
+
 QColor FontIconColorOption::color = QApplication::palette("QWidget").color(QPalette::Normal, QPalette::ButtonText);
 QColor FontIconColorOption::disabledColor = QApplication::palette("QWidget").color(QPalette::Disabled, QPalette::ButtonText);
 QColor FontIconColorOption::selectedColor = QApplication::palette("QWidget").color(QPalette::Active, QPalette::ButtonText);
@@ -37,8 +48,8 @@ QColor FontIconColorOption::activeColor;
 QColor FontIconColorOption::activeOnColor;
 
 template <typename T>
-T getOrDefault(QVariantMap const & opt, ConstLatin1String s, T defaultValue) {
-	const auto var = opt.value(qTEXT("color"));
+static T getOrDefault(QVariantMap const & opt, const QString & s, T defaultValue) {
+	const auto var = opt.value(s);
     if (!var.isValid()) {
         return defaultValue;
     }
@@ -60,53 +71,53 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     QFont font(font_family_);
     font.setStyleStrategy(QFont::PreferAntialias);
 
-    auto var = options_.value(qTEXT("animation"));
+    auto var = options_.value(FontIconColorOption::animationAttr);
     if (auto* animation = var.value<FontIconAnimation*>()) {
         animation->setup(*painter, rect);
     }
 
-    var = options_.value(qTEXT("rect"));
+    var = options_.value(FontIconColorOption::rectAttr);
     if (var.isValid()) {
         paint_rect = var.value<QRect>();
     }
 
-    var = options_.value(qTEXT("scaleFactor"));
+    var = options_.value(FontIconColorOption::scaleFactorAttr);
     int draw_size = qRound(paint_rect.height() * 0.9);
     if (var.isValid()) {
         draw_size = qRound(paint_rect.height() * var.value<qreal>());
     }
 
-    var = options_.value(qTEXT("fontStyle"));
+    var = options_.value(FontIconColorOption::fontStyleAttr);
     if (var.isValid()) {
         font.setStyleName(var.value<QString>());
     }
 
     font.setPixelSize(draw_size);
 
-    auto pen_color = getOrDefault<QColor>(options_, qTEXT("color"), FontIconColorOption::color);
+    auto pen_color = getOrDefault<QColor>(options_, FontIconColorOption::colorAttr, FontIconColorOption::color);
 
     switch (mode) {
     case QIcon::Normal:
-        pen_color = getOrDefault<QColor>(options_, qTEXT("onColor"), FontIconColorOption::onColor);
+        pen_color = getOrDefault<QColor>(options_, FontIconColorOption::onColorAttr, FontIconColorOption::onColor);
         break;
     case QIcon::Active:
         switch (state) {
 		case QIcon::Off:
-            pen_color = getOrDefault<QColor>(options_, qTEXT("activeColor"), FontIconColorOption::activeColor);
+            pen_color = getOrDefault<QColor>(options_, FontIconColorOption::activeColorAttr, FontIconColorOption::activeColor);
 			break;
 		case QIcon::On:
-            pen_color = getOrDefault<QColor>(options_, qTEXT("activeOnColor"), FontIconColorOption::activeColor);
+            pen_color = getOrDefault<QColor>(options_, FontIconColorOption::activeOnColorAttr, FontIconColorOption::activeColor);
             if (!pen_color.isValid()) {
-                pen_color = getOrDefault<QColor>(options_, qTEXT("onColor"), FontIconColorOption::onColor);
+                pen_color = getOrDefault<QColor>(options_, FontIconColorOption::onColorAttr, FontIconColorOption::onColor);
             }
             break;
         }
         break;
     case QIcon::Disabled:
-        pen_color = getOrDefault<QColor>(options_, qTEXT("disabledColor"), FontIconColorOption::disabledColor);
+        pen_color = getOrDefault<QColor>(options_, FontIconColorOption::disabledColorAttr, FontIconColorOption::disabledColor);
         break;
     case QIcon::Selected:
-        pen_color = getOrDefault<QColor>(options_, qTEXT("selectedColor"), FontIconColorOption::selectedColor);
+        pen_color = getOrDefault<QColor>(options_, FontIconColorOption::selectedColorAttr, FontIconColorOption::selectedColor);
         break;
     }
 

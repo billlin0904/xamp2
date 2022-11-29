@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <widget/str_utilts.h>
 #include <widget/widget_shared.h>
 
 enum Glyphs {
@@ -61,6 +62,17 @@ enum Glyphs {
 };
 
 struct FontIconColorOption {
+    const static QString animationAttr;
+    const static QString rectAttr;
+    const static QString scaleFactorAttr;
+    const static QString fontStyleAttr;
+    const static QString colorAttr;
+    const static QString onColorAttr;
+    const static QString activeColorAttr;
+    const static QString activeOnColorAttr;
+    const static QString disabledColorAttr;
+    const static QString selectedColorAttr;
+
     static QColor color;
     static QColor onColor;
     static QColor activeColor;
@@ -68,16 +80,6 @@ struct FontIconColorOption {
     static QColor disabledColor;
     static QColor selectedColor;
 };
-
-// rect
-// scaleFactor
-// fontStyle
-// color
-// onColor
-// activeColor
-// activeOnColor
-// disabledColor
-// selectedColor
 
 class FontIcon : public QObject {
 public:
