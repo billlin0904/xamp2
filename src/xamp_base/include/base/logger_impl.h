@@ -36,6 +36,8 @@ enum LogLevel {
     LOG_LEVEL_OFF,
 };
 
+using LoggerMutex = std::recursive_mutex;
+
 #define DECLARE_LOG_ARG_API(Name, Level) \
     template <typename Args>\
     void Log##Name(Args &&args) {\
@@ -107,8 +109,6 @@ public:
 
     void Shutdown();
 private:
-    using LoggerMutex = std::recursive_mutex;
-
     LoggerManager() noexcept;
 
     ~LoggerManager();

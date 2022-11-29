@@ -145,10 +145,11 @@ public:
 
     void OnWalk(const Path& path) override {
         qApp->processEvents();
-        if (Fs::is_directory(path)) {
+        /*if (Fs::is_directory(path)) {
             return;
-        }
+        }*/
 
+        XAMP_LOG_DEBUG("OnWalk Path: {}", String::ToString(path.native()));
         hasher_.Update(path.native());
         paths_.push_front(path);
     }
@@ -166,7 +167,7 @@ public:
             return;
         }
 
-        XAMP_LOG_DEBUG("Cache miss! Hash:{}", path_hash);
+        XAMP_LOG_DEBUG("Cache miss! Hash:{} Path: {}", path_hash, String::ToString(Path(dir_entry).native()));
 
         std::for_each(paths_.begin(), paths_.end(), [&](auto& path) {
             auto metadata = reader_->Extract(path);
@@ -229,10 +230,25 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         dialog->setMinimumDuration(1000);
         dialog->setWindowModality(Qt::ApplicationModal);
 
+        filter |= QDir::NoDotAndDotDot | QDir::Files;
+        SipHash hasher;
+
         QDirIterator itr(file_path, filter);
         while (itr.hasNext()) {
-            dirs.append(itr.next());
+            auto path = fromQStringPath(itr.next());
+            if (proxy.IsAccept(path.toStdWString())) {
+                hasher.Update(path.toStdWString());
+                dirs.append(path);
+            }            
             qApp->processEvents();
+        }
+
+        const auto path_hash = hasher.GetHash();
+        const auto db_hash = qDatabase.getParentPathHash(file_path);
+        if (db_hash == path_hash) {
+            XAMP_LOG_DEBUG("Cache Hash:{} Path: {}", db_hash, String::ToString(file_path.toStdWString()));
+            emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+            return;
         }
 
         if (dirs.isEmpty()) {

@@ -18,6 +18,23 @@
 
 namespace xamp::base {
 
+#ifdef XAMP_OS_WIN
+class DebugOutputSink : public spdlog::sinks::base_sink<LoggerMutex> {
+public:
+	DebugOutputSink() = default;
+
+private:
+	void sink_it_(const spdlog::details::log_msg& msg) override {
+		spdlog::memory_buf_t formatted;
+		formatter_->format(msg, formatted);
+		::OutputDebugStringW(String::ToStdWString(fmt::to_string(formatted)).c_str());
+	}
+
+	void flush_() override {
+	}
+};
+#endif
+
 AutoRegisterLoggerName::AutoRegisterLoggerName(std::string_view s)
 	: index(Singleton<Vector<std::string_view>>::GetInstance().size()) {
 	Singleton<Vector<std::string_view>>::GetInstance().push_back(s);
@@ -115,7 +132,7 @@ LoggerManager& LoggerManager::AddDebugOutput() {
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
 	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
 	if (IsDebuging()) {
-		sinks_.push_back(std::make_shared<spdlog::sinks::msvc_sink<LoggerMutex>>());
+		sinks_.push_back(std::make_shared<DebugOutputSink>());
 	}
 #endif
 	return *this;
