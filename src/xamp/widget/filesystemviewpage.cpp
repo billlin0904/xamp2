@@ -16,7 +16,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_model_->setRootPath(AppSettings::getMyMusicFolderPath());
     ui.dirTree->setModel(dir_model_);
     ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
-    ui.dirTree->setStyleSheet(Q_TEXT("background-color: transparent"));
+    ui.dirTree->setStyleSheet(qTEXT("background-color: transparent"));
 
     ui.dirTree->header()->hide();
     ui.dirTree->hideColumn(1);
@@ -25,7 +25,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
     QStringList filter;
     for (auto& file_ext : GetSupportFileExtensions()) {
-        filter << Q_STR("*%1").arg(QString::fromStdString(file_ext));
+        filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
     }
     dir_model_->setNameFilters(filter);
     dir_model_->setNameFilterDisables(false);
@@ -65,7 +65,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         ui.playlistPage->playlist()->append(path, false, false);
         });*/
 
-    setStyleSheet(Q_TEXT("background-color: transparent"));
+    setStyleSheet(qTEXT("background-color: transparent"));
 }
 
 PlaylistPage* FileSystemViewPage::playlistPage() {

@@ -43,8 +43,8 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     , text_color_(Qt::black)
 	, more_album_opt_button_(new QPushButton())
 	, play_button_(new QPushButton()) {
-    more_album_opt_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
-    play_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
+    more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
+    play_button_->setStyleSheet(qTEXT("background-color: transparent"));
     mask_image_ = Pixmap::roundDarkImage(qTheme.albumCoverSize());
 }
 
@@ -179,7 +179,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     QStyleOptionButton button;
     button.initFrom(more_album_opt_button_.get());
     button.rect = more_button_rect;
-    button.icon = qTheme.moreIcon();
+    button.icon = qTheme.iconFromFont(Glyphs::ICON_MORE);
     button.state |= QStyle::State_Enabled;
     if (more_button_rect.contains(mouse_point_)) {
         button.state |= QStyle::State_Sunken;
@@ -208,7 +208,7 @@ QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, cons
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
     : QFrame(parent) {
-    setObjectName(Q_TEXT("albumViewPage"));
+    setObjectName(qTEXT("albumViewPage"));
     setFrameStyle(QFrame::NoFrame);
 
     auto* default_layout = new QVBoxLayout(this);
@@ -216,8 +216,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setContentsMargins(0, 5, 0, 0);
 
     auto* close_button = new QPushButton(this);
-    close_button->setObjectName(Q_TEXT("albumViewPageCloseButton"));
-    close_button->setStyleSheet(Q_TEXT(R"(
+    close_button->setObjectName(qTEXT("albumViewPageCloseButton"));
+    close_button->setStyleSheet(qTEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
                                          border: none;
                                          background-color: transparent;
@@ -251,7 +251,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
         hide();
         emit leaveAlbumView();
         });
-    setStyleSheet(Q_TEXT("QFrame#albumViewPage { background-color: transparent; }"));
+    setStyleSheet(qTEXT("QFrame#albumViewPage { background-color: transparent; }"));
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
@@ -346,8 +346,8 @@ AlbumView::AlbumView(QWidget* parent)
         showAlbumViewMenu(pt);
     });
 
-    setStyleSheet(Q_TEXT("background-color: transparent"));
-    verticalScrollBar()->setStyleSheet(Q_TEXT(
+    setStyleSheet(qTEXT("background-color: transparent"));
+    verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));
 
@@ -465,7 +465,7 @@ void AlbumView::onThemeChanged(QColor backgroundColor, QColor color) {
 }
 
 void AlbumView::setFilterByArtistId(int32_t artist_id) {
-    model_.setQuery(Q_STR(R"(
+    model_.setQuery(qSTR(R"(
     SELECT
         album,
         albums.coverId,
@@ -485,7 +485,7 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
 }
 
 void AlbumView::update() {
-    model_.setQuery(Q_TEXT(R"(
+    model_.setQuery(qTEXT(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -507,7 +507,7 @@ void AlbumView::refreshOnece() {
 }
 
 void AlbumView::onSearchTextChanged(const QString& text) {
-    QString query(Q_TEXT(R"(
+    QString query(qTEXT(R"(
 SELECT
     albums.album,
     albums.coverId,

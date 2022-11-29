@@ -26,9 +26,9 @@ Vector<TrackInfo> parseJson(QString const& json) {
         metadatas.reserve(result.size());
         for (const auto entry : result) {
             auto object = entry.toVariant().toMap();
-            auto url = object.value(Q_TEXT("url")).toString();
-            auto title = object.value(Q_TEXT("title")).toString();
-            auto performer = object.value(Q_TEXT("performer")).toString();
+            auto url = object.value(qTEXT("url")).toString();
+            auto title = object.value(qTEXT("title")).toString();
+            auto performer = object.value(qTEXT("performer")).toString();
             TrackInfo metadata;
             metadata.file_path = url.toStdWString();
             metadata.title = title.toStdWString();
@@ -203,12 +203,12 @@ QString parseCoverUrl(QString const& json) {
     if (error.error != QJsonParseError::NoError) {
         return Qt::EmptyString;
     }
-    auto result = doc[Q_TEXT("images")].toArray();
+    auto result = doc[qTEXT("images")].toArray();
     for (const auto entry : result) {
         auto object = entry.toVariant().toMap();
-        const auto front = object.value(Q_TEXT("front")).toBool();
+        const auto front = object.value(qTEXT("front")).toBool();
         if (front) {
-            return object.value(Q_TEXT("image")).toString();
+            return object.value(qTEXT("image")).toString();
         }
     }
     return Qt::EmptyString;

@@ -8,7 +8,7 @@ FileSystemModel::FileSystemModel(QObject* parent)
 QVariant FileSystemModel::data(const QModelIndex& index, int role) const {
 	if (role == Qt::DecorationRole) {
 		if (isDir(index)) {
-			return qTheme.folderIcon();
+			return qTheme.iconFromFont(Glyphs::ICON_FOLDER);
 		}
 		return qTheme.iconFromFont(Glyphs::ICON_AUDIO);
 	} else if (role == Qt::ToolTipRole) {

@@ -19,10 +19,10 @@
 
 inline constexpr size_t kDefaultCacheSize = 32;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
-inline constexpr auto kPixmapCacheFileExt = Q_TEXT(".jpg");
+inline constexpr auto kPixmapCacheFileExt = qTEXT(".jpg");
 
 QStringList PixmapCache::cover_ext_ =
-    QStringList() << Q_TEXT("*.jpeg") << Q_TEXT("*.jpg") << Q_TEXT("*.png") << Q_TEXT("*.bmp");
+    QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png") << qTEXT("*.bmp");
 
 QStringList PixmapCache::cache_ext_ =
     QStringList() << kPixmapCacheFileExt;
@@ -32,8 +32,8 @@ PixmapCache::PixmapCache()
     , logger_(LoggerManager::GetInstance().GetLogger("PixmapCache")) {
 	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
-			AppSettings::defaultCachePath() + Q_TEXT("/caches/"),
-            QDir::currentPath() + Q_TEXT("/caches/")
+			AppSettings::defaultCachePath() + qTEXT("/caches/"),
+            QDir::currentPath() + qTEXT("/caches/")
 		};
 
 		Q_FOREACH(auto path, paths) {

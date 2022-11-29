@@ -79,17 +79,17 @@ static void logRequest(const ConstLatin1String& verb,
 ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
     switch (operation) {
     case QNetworkAccessManager::HeadOperation:
-        return Q_TEXT("HEAD");
+        return qTEXT("HEAD");
     case QNetworkAccessManager::GetOperation:
-        return Q_TEXT("GET");
+        return qTEXT("GET");
     case QNetworkAccessManager::PutOperation:
-        return Q_TEXT("PUT");
+        return qTEXT("PUT");
     case QNetworkAccessManager::PostOperation:
-        return Q_TEXT("POST");
+        return qTEXT("POST");
     case QNetworkAccessManager::DeleteOperation:
-        return Q_TEXT("DELETE");
+        return qTEXT("DELETE");
     case QNetworkAccessManager::CustomOperation:
-        return Q_TEXT(request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray());
+        return qTEXT(request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray());
     case QNetworkAccessManager::UnknownOperation:
         break;
     }
@@ -279,17 +279,17 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
 	const auto with_json = !get &&  d->use_json_;
 
     if (get && !d->params.isEmpty()) {
-        d->url_ += Q_TEXT("?") + d->params.toString(QUrl::FullyEncoded);
+        d->url_ += qTEXT("?") + d->params.toString(QUrl::FullyEncoded);
     }
 
     if (with_form) {
-        d->headers_[Q_TEXT("Content-Type")] = Q_TEXT("application/x-www-form-urlencoded");
+        d->headers_[qTEXT("Content-Type")] = qTEXT("application/x-www-form-urlencoded");
     } else if (with_json) {
-        d->headers_[Q_TEXT("Content-Type")] = Q_TEXT("application/json; charset=utf-8");
+        d->headers_[qTEXT("Content-Type")] = qTEXT("application/json; charset=utf-8");
     }
 
     if (d->user_agent_.isEmpty()) {
-        d->headers_[Q_TEXT("User-Agent")] = kDefaultUserAgent;
+        d->headers_[qTEXT("User-Agent")] = kDefaultUserAgent;
     }
 
     XAMP_LOG_DEBUG("Request url: {}", QUrl(d->url_).toEncoded().toStdString());
@@ -299,7 +299,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
     }
 
-    if (request.url().scheme() == Q_TEXT("https")) {
+    if (request.url().scheme() == qTEXT("https")) {
         static const bool http2_enabled_env = qEnvironmentVariableIntValue("OWNCLOUD_HTTP2_ENABLED") == 1;
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, http2_enabled_env);
     }

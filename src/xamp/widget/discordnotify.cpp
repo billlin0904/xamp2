@@ -40,7 +40,7 @@ void DicordNotify::OnStateChanged(PlayerState play_state) {
 }
 
 void DicordNotify::OnNowPlaying(QString const& artist, QString const& title) {
-	auto format = (artist + Q_TEXT(" - ") + title).toStdString();
+	auto format = (artist + qTEXT(" - ") + title).toStdString();
 	auto details_length = (std::min)(format.length(), details_.size() - 1);
 	details_.fill(0);
     format = format.substr(0, details_length);

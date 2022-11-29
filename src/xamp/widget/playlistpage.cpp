@@ -61,7 +61,7 @@ void PlaylistPage::initial() {
 	title_->setMaximumSize(QSize(16777215, 40));
 
 	format_ = new QLabel(this);
-	QFont format_font(Q_TEXT("FormatFont"));
+	QFont format_font(qTEXT("FormatFont"));
 	format_->setFont(format_font);
 
 	album_title_layout->addWidget(title_);
@@ -107,7 +107,7 @@ void PlaylistPage::initial() {
 
 	default_layout->setStretch(2, 1);
 
-	setStyleSheet(Q_TEXT("background-color: transparent;"));
+	setStyleSheet(qTEXT("background-color: transparent;"));
 
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
@@ -116,8 +116,8 @@ void PlaylistPage::initial() {
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
-	title_->setStyleSheet(Q_TEXT("QLabel { color: ") + colorToString(color) + Q_TEXT("; background-color: transparent; }"));
-	format_->setStyleSheet(Q_TEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + Q_TEXT("; background-color: transparent; }"));
+	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT("; background-color: transparent; }"));
+	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + qTEXT("; background-color: transparent; }"));
 }
 
 QLabel* PlaylistPage::format() {

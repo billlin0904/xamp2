@@ -33,7 +33,7 @@ namespace Qt {
     inline constexpr ConstLatin1String EmptyString{ "" };
 }
 
-constexpr ConstLatin1String Q_TEXT(const char str[]) noexcept {
+constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return ConstLatin1String{ str };
 }
 
@@ -41,7 +41,7 @@ constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcep
     return ConstLatin1String{ s.data() };
 }
 
-inline QString Q_STR(char const* const str) noexcept {
+inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }
 

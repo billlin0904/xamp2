@@ -24,7 +24,7 @@ QMap<QString, QVariant> JsonSettings::default_settings_;
 
 void JsonSettings::loadJsonFile(const QString& file_name) {
 	const auto json_format =
-		QSettings::registerFormat(Q_TEXT("json"), readJsonFile, writeJsonFile);
+		QSettings::registerFormat(qTEXT("json"), readJsonFile, writeJsonFile);
 	settings_.reset(new QSettings(file_name, json_format));
 }
 

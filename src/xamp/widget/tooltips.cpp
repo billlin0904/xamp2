@@ -18,8 +18,8 @@ ToolTips::ToolTips(const QString& text, QWidget* parent)
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Tool);
     setAttribute(Qt::WA_TranslucentBackground, true);
     
-    setObjectName(Q_TEXT("ToolTips"));
-    setStyleSheet(Q_TEXT("QFrame#ToolTips { background-color: transparent }"));
+    setObjectName(qTEXT("ToolTips"));
+    setStyleSheet(qTEXT("QFrame#ToolTips { background-color: transparent }"));
 #ifdef XAMP_OS_WIN
     win32::addDwmMenuShadow(winId());
 #endif
@@ -36,7 +36,7 @@ ToolTips::ToolTips(const QString& text, QWidget* parent)
     interlayout->setSpacing(5);
 
     text_label_ = new QLabel(text);
-    text_label_->setObjectName(Q_TEXT("TipText"));
+    text_label_->setObjectName(qTEXT("TipText"));
     text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     text_label_->setWordWrap(false);
     interlayout->addWidget(text_label_, 0, Qt::AlignVCenter);

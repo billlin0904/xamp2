@@ -98,12 +98,12 @@ static void loadPcm2DsdSetting() {
 
 static LogLevel parseLogLevel(const QString &str) {
     const static QMap<QString, LogLevel> logs{
-    	{ Q_TEXT("info"), LogLevel::LOG_LEVEL_INFO},
-        { Q_TEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},
-        { Q_TEXT("trace"), LogLevel::LOG_LEVEL_TRACE},
-        { Q_TEXT("warn"), LogLevel::LOG_LEVEL_WARN},
-        { Q_TEXT("err"), LogLevel::LOG_LEVEL_ERROR},
-        { Q_TEXT("critical"), LogLevel::LOG_LEVEL_CRITICAL},
+    	{ qTEXT("info"), LogLevel::LOG_LEVEL_INFO},
+        { qTEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},
+        { qTEXT("trace"), LogLevel::LOG_LEVEL_TRACE},
+        { qTEXT("warn"), LogLevel::LOG_LEVEL_WARN},
+        { qTEXT("err"), LogLevel::LOG_LEVEL_ERROR},
+        { qTEXT("critical"), LogLevel::LOG_LEVEL_CRITICAL},
     };
     if (!logs.contains(str)) {
         return LogLevel::LOG_LEVEL_INFO;
@@ -122,12 +122,12 @@ static void loadLogConfig() {
 
     for (const auto& logger_name : XAMP_DEFAULT_LOG().GetWellKnownName()) {
         if (logger_name != kXampLoggerName) {
-            well_known_log_name[fromStdStringView(logger_name)] = Q_TEXT("info");
+            well_known_log_name[fromStdStringView(logger_name)] = qTEXT("info");
         }
     }
 
     if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
-        min_level[kLogDefault] = Q_TEXT("debug");
+        min_level[kLogDefault] = qTEXT("debug");
 
         XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(min_level[kLogDefault].toString()));
 
@@ -171,7 +171,7 @@ static void loadLogConfig() {
 static void loadSettings() {
     XAMP_LOG_DEBUG("loadSettings.");
 
-    AppSettings::loadIniFile(Q_TEXT("xamp.ini"));
+    AppSettings::loadIniFile(qTEXT("xamp.ini"));
 
 	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
@@ -204,7 +204,7 @@ static void loadSettings() {
 static void loadLogAndResamplerConfig() {
     XAMP_LOG_DEBUG("loadLogAndResamplerConfig.");
 
-    JsonSettings::loadJsonFile(Q_TEXT("config.json"));
+    JsonSettings::loadJsonFile(qTEXT("config.json"));
     loadLogConfig();
     loadSoxrSetting();
     loadR8BrainSetting();
@@ -318,10 +318,10 @@ static int excute(int argc, char* argv[]) {
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QApplication::setApplicationName(Q_TEXT("XAMP2"));
+    QApplication::setApplicationName(qTEXT("XAMP2"));
     QApplication::setApplicationVersion(kXAMPVersion);
-    QApplication::setOrganizationName(Q_TEXT("XAMP2 Project"));
-    QApplication::setOrganizationDomain(Q_TEXT("XAMP2 Project"));
+    QApplication::setOrganizationName(qTEXT("XAMP2 Project"));
+    QApplication::setOrganizationDomain(qTEXT("XAMP2 Project"));
 
     QApplication app(argc, argv);
 
@@ -334,7 +334,7 @@ static int excute(int argc, char* argv[]) {
 #else
 #ifdef XAMP_OS_WIN
     qInstallMessageHandler(logMessageHandler);
-    QLoggingCategory::setFilterRules(Q_TEXT("*.info=false"));
+    QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
 #endif
     XAMP_LOG_DEBUG("attach app success.");
@@ -342,7 +342,7 @@ static int excute(int argc, char* argv[]) {
     loadLang();
 
     try {
-        qDatabase.open(Q_TEXT("xamp.db"));
+        qDatabase.open(qTEXT("xamp.db"));
     }
     catch (const std::exception& e) {
         XAMP_LOG_ERROR("Init database failure. {}", e.what());
@@ -365,7 +365,7 @@ static int excute(int argc, char* argv[]) {
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
-            Q_TEXT("Initialize failure."),
+            qTEXT("Initialize failure."),
             QString::fromStdString(e.GetErrorMessage()));
         XAMP_LOG_DEBUG(e.GetStackTrace());
         return -1;
@@ -393,15 +393,15 @@ int main(int argc, char *argv[]) {
         .Startup();
 
 #ifdef Q_OS_WIN32
-    XAMP_LOG_DEBUG(Q_STR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
+    XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
         .arg(kXAMPVersion)
         .arg(visualStudioVersion())
         .arg((_MSC_FULL_VER / 100000) % 100)
         .arg(_MSC_FULL_VER % 100000)
-        .arg(Q_TEXT(__DATE__))
-        .arg(Q_TEXT(__TIME__)).toStdString());
+        .arg(qTEXT(__DATE__))
+        .arg(qTEXT(__TIME__)).toStdString());
 #else
-    XAMP_LOG_DEBUG(Q_STR("Build Clang %1.%2.%3")
+    XAMP_LOG_DEBUG(qSTR("Build Clang %1.%2.%3")
         .arg(__clang_major__)
         .arg(__clang_minor__)
         .arg(__clang_patchlevel__).toStdString());
@@ -423,8 +423,8 @@ int main(int argc, char *argv[]) {
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver < QOperatingSystemVersion::Windows10) {
         QMessageBox::information(nullptr,
-            Q_TEXT("Warning"),
-            QString(Q_TEXT("You are running an unsupported version of Windows: %1.")).arg(os_ver.name()));
+            qTEXT("Warning"),
+            QString(qTEXT("You are running an unsupported version of Windows: %1.")).arg(os_ver.name()));
     }
 
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
@@ -456,7 +456,7 @@ int main(int argc, char *argv[]) {
     try {
         exist_code = excute(argc, argv);
         if (exist_code == kRestartExistCode) {
-            QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
+            QProcess::startDetached(qSTR(argv[0]), qApp->arguments());
         }
     }
     catch (Exception const& e) {

@@ -75,7 +75,7 @@ public:
         case PLAYLIST_TRACK_RG:
         case PLAYLIST_LAST_UPDATE_TIME:
         case PLAYLIST_YEAR:
-            opt.font.setFamily(Q_TEXT("MonoFont"));
+            opt.font.setFamily(qTEXT("MonoFont"));
             break;
         }
 
@@ -99,7 +99,7 @@ public:
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
-                    opt.font.setFamily(Q_TEXT("MonoFont"));
+                    opt.font.setFamily(qTEXT("MonoFont"));
                     opt.text = value.toString();
                 }                
 	        }
@@ -123,11 +123,11 @@ public:
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
-                opt.text = Q_STR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
-                opt.text = Q_STR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             }
             break;
@@ -138,7 +138,7 @@ public:
             opt.text = streamTimeToString(value.toDouble());
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
-            opt.text = QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_TEXT("yyyy-MM-dd HH:mm:ss"));
+            opt.text = QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
             break;
 		default:
             use_default_style = true;            
@@ -186,7 +186,7 @@ static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src
 
 void PlayListTableView::excuteQuery() {
     // 呼叫此函數就會更新index, 會導致playing index失效
-    const QString s = Q_TEXT(R"(
+    const QString s = qTEXT(R"(
     SELECT
     musics.musicId,
     playlistMusics.playing,
@@ -282,6 +282,36 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     auto column_list = AppSettings::getList(column_setting_name);
 
     if (column_list.empty()) {
+        const QList<int> hideColumns{
+            PLAYLIST_MUSIC_ID,
+            PLAYLIST_PLAYING,
+            PLAYLIST_FILE_PATH,
+            PLAYLIST_FILE_NAME,
+            PLAYLIST_FILE_SIZE,
+            PLAYLIST_ALBUM,
+            PLAYLIST_ARTIST,
+            PLAYLIST_BIT_RATE,
+            PLAYLIST_SAMPLE_RATE,
+            PLAYLIST_RATING,
+            PLAYLIST_ALBUM_RG,
+            PLAYLIST_ALBUM_PK,
+            PLAYLIST_LAST_UPDATE_TIME,
+            PLAYLIST_TRACK_RG,
+            PLAYLIST_TRACK_PK,
+            PLAYLIST_GENRE,
+            PLAYLIST_YEAR,
+            PLAYLIST_ALBUM_ID,
+            PLAYLIST_ARTIST_ID,
+            PLAYLIST_COVER_ID,
+            PLAYLIST_FILE_EXT,
+            PLAYLIST_FILE_PARENT_PATH,
+            PLAYLIST_PLAYLIST_MUSIC_ID
+        };
+
+        for (auto column : qAsConst(hideColumns)) {
+            hideColumn(column);
+        }
+
         for (auto column = 0; column < horizontalHeader()->count(); ++column) {
             if (!isColumnHidden(column)) {
                 AppSettings::addList(column_setting_name_, QString::number(column));
@@ -300,14 +330,14 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 }
 
 void PlayListTableView::initial() {
-    setStyleSheet(Q_TEXT("border : none;"));
+    setStyleSheet(qTEXT("border : none;"));
 
-    notshow_column_names_.insert(Q_TEXT("albumId"));
-    notshow_column_names_.insert(Q_TEXT("artistId"));
-    notshow_column_names_.insert(Q_TEXT("coverId"));
-    notshow_column_names_.insert(Q_TEXT("fileExt"));
-    notshow_column_names_.insert(Q_TEXT("parentPath"));
-    notshow_column_names_.insert(Q_TEXT("playlistMusicsId"));
+    notshow_column_names_.insert(qTEXT("albumId"));
+    notshow_column_names_.insert(qTEXT("artistId"));
+    notshow_column_names_.insert(qTEXT("coverId"));
+    notshow_column_names_.insert(qTEXT("fileExt"));
+    notshow_column_names_.insert(qTEXT("parentPath"));
+    notshow_column_names_.insert(qTEXT("playlistMusicsId"));
 
     proxy_model_->setSourceModel(model_);
     proxy_model_->setFilterByColumn(PLAYLIST_RATING);
@@ -429,12 +459,12 @@ void PlayListTableView::initial() {
         if (!podcast_mode_) {
             auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
                 auto reader = MakeMetadataReader();
-                QString exts(Q_TEXT("("));
+                QString exts(qTEXT("("));
                 for (const auto& file_ext : reader->GetSupportFileExtensions()) {
-                    exts += Q_TEXT("*") + QString::fromStdString(file_ext);
-                    exts += Q_TEXT(" ");
+                    exts += qTEXT("*") + QString::fromStdString(file_ext);
+                    exts += qTEXT(" ");
                 }
-                exts += Q_TEXT(")");
+                exts += qTEXT(")");
                 const auto file_name = QFileDialog::getOpenFileName(this,
                     tr("Open file"),
                     AppSettings::getMyMusicFolderPath(),
@@ -490,7 +520,7 @@ void PlayListTableView::initial() {
             auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
 
             for (const auto& profile : DspComponentFactory::GetAvailableEncodingProfile()) {
-                auto profile_desc = Q_STR("%0 bit, %1, %2")
+                auto profile_desc = qSTR("%0 bit, %1, %2")
                     .arg(profile.bit_per_sample).rightJustified(2)
                     .arg(samplerate2String(profile.sample_rate))
                     .arg(bitRate2String(profile.bitrate));
@@ -597,7 +627,7 @@ void PlayListTableView::initial() {
 
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    verticalScrollBar()->setStyleSheet(Q_TEXT(
+    verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));
 }
@@ -740,7 +770,7 @@ void PlayListTableView::importPodcast() {
 
     indicator->startAnimation();
 
-    http::HttpClient(Q_TEXT("https://suisei.moe/podcast.xml"))
+    http::HttpClient(qTEXT("https://suisei.moe/podcast.xml"))
 	.error([indicator](const QString& msg) {
         XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
 	})

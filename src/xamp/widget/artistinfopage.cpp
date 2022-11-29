@@ -51,10 +51,10 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	f.setBold(true);
 	artist_ = new QLabel(this);
 	artist_->setFont(f);
-	artist_->setStyleSheet(Q_TEXT("background-color: transparent"));
+	artist_->setStyleSheet(qTEXT("background-color: transparent"));
 
 	auto* title = new QLabel();
-	title->setStyleSheet(Q_TEXT("background-color: transparent"));
+	title->setStyleSheet(qTEXT("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Artists"));
 	f.setPointSize(35);
@@ -68,20 +68,20 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	albums_->setFixedSize(QSize(16777215, 64));
 	albums_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	albums_->setFont(f);
-	albums_->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	albums_->setStyleSheet(qTEXT("background-color: transparent;"));
 
 	tracks_ = new QLabel(this);
 	tracks_->setFixedSize(QSize(16777215, 64));
 	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	tracks_->setFont(f);
-	tracks_->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	tracks_->setStyleSheet(qTEXT("background-color: transparent;"));
 
 	durations_ = new QLabel(this);
 	durations_->setFixedSize(QSize(16777215, 64));
 	durations_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-	f.setFamily(Q_TEXT("MonoFont"));
+	f.setFamily(qTEXT("MonoFont"));
 	durations_->setFont(f);
-	durations_->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	durations_->setStyleSheet(qTEXT("background-color: transparent;"));
 
 	auto* artist_layout = new QHBoxLayout();
 	artist_layout->setSpacing(0);
@@ -110,7 +110,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	album_view_->hideWidget();
 	setArtistId(Qt::EmptyString, Qt::EmptyString, -1);
 
-	setStyleSheet(Q_TEXT("background-color: transparent"));
+	setStyleSheet(qTEXT("background-color: transparent"));
 
 	setAlbumCount(0);
 	setTracks(0);
@@ -144,7 +144,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 }
 
 void ArtistInfoPage::onThemeChanged(QColor backgroundColor, QColor color) {
-    artist_->setStyleSheet(Q_TEXT("QLabel { color: ") + colorToString(color) + Q_TEXT(";}"));
+    artist_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT(";}"));
 	album_view_->onThemeChanged(backgroundColor, color);
 }
 

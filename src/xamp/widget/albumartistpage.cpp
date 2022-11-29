@@ -19,7 +19,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 
 	auto* title = new QLabel();
-	title->setStyleSheet(Q_TEXT("background-color: transparent"));
+	title->setStyleSheet(qTEXT("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Albums"));
 	title->setFont(f);
@@ -41,7 +41,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::loadCompleted,
 		this, &AlbumArtistPage::refreshOnece);
 
-	setStyleSheet(Q_TEXT("background-color: transparent"));
+	setStyleSheet(qTEXT("background-color: transparent"));
 }
 
 void AlbumArtistPage::refreshOnece() {

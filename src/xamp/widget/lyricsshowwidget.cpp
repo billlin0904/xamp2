@@ -58,7 +58,7 @@ void LyricsShowWidget::initial() {
 				AppSettings::setValue(kLyricsTextColor, color);
 				AppSettings::setValue(kLyricsHighLightTextColor, color);
 				});
-			dlg.setStyleSheet(Q_STR("background-color: %1;").arg(qTheme.backgroundColorString()));
+			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
 			dlg.exec();
 			});
 
@@ -195,9 +195,9 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QFileInfo file_info(file_path);
 
 	const auto lrc_path = file_info.path()
-		+ Q_TEXT("/")
+		+ qTEXT("/")
 		+ file_info.completeBaseName()
-		+ Q_TEXT(".lrc");
+		+ qTEXT(".lrc");
 
 	stop();
 	if (!lyric_.ParseFile(lrc_path.toStdWString())) {
@@ -210,7 +210,7 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 
 void LyricsShowWidget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
     auto i = 0;
-	const auto lyrics = lrc.split(Q_TEXT("\n"));
+	const auto lyrics = lrc.split(qTEXT("\n"));
 	const auto min_duration = duration / lyrics.count();
 
 	for (const auto &ly : lyrics) {

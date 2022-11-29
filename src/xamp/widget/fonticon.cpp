@@ -22,22 +22,33 @@ public:
 
     void setFontFamily(const QString& family);
 
-    void setLetter(const QChar& letter);
-
-    void setBaseColor(const QColor& base_color);
-
-    void setSelectedState(bool enable);
+    void setLetter(const char32_t letter);
 private:
-    bool selected_state_;
+    char32_t letter_;
     QString font_family_;
-    QChar letter_;
-    QColor base_color_;
     QVariantMap options_;
 };
 
+QColor FontIconColorOption::color = QApplication::palette("QWidget").color(QPalette::Normal, QPalette::ButtonText);
+QColor FontIconColorOption::disabledColor = QApplication::palette("QWidget").color(QPalette::Disabled, QPalette::ButtonText);
+QColor FontIconColorOption::selectedColor = QApplication::palette("QWidget").color(QPalette::Active, QPalette::ButtonText);
+QColor FontIconColorOption::onColor;
+QColor FontIconColorOption::activeColor;
+QColor FontIconColorOption::activeOnColor;
+
+template <typename T>
+T getOrDefault(QVariantMap const & opt, ConstLatin1String s, T defaultValue) {
+	const auto var = opt.value(qTEXT("color"));
+    if (!var.isValid()) {
+        return defaultValue;
+    }
+    else {
+        return var.value<QColor>();
+    }
+}
+
 FontIconEngine::FontIconEngine(QVariantMap opt)
     : QIconEngine()
-	, selected_state_(false)
 	, options_(std::move(opt)){
 }
 
@@ -49,63 +60,79 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     QFont font(font_family_);
     font.setStyleStrategy(QFont::PreferAntialias);
 
-    auto var = options_.value(Q_TEXT("animation"));
+    auto var = options_.value(qTEXT("animation"));
     if (auto* animation = var.value<FontIconAnimation*>()) {
         animation->setup(*painter, rect);
     }
 
-    var = options_.value(Q_TEXT("rect"));
+    var = options_.value(qTEXT("rect"));
     if (var.isValid()) {
         paint_rect = var.value<QRect>();
     }
 
-    var = options_.value(Q_TEXT("scaleFactor"));
+    var = options_.value(qTEXT("scaleFactor"));
     int draw_size = qRound(paint_rect.height() * 0.9);
     if (var.isValid()) {
         draw_size = qRound(paint_rect.height() * var.value<qreal>());
     }
 
+    var = options_.value(qTEXT("fontStyle"));
+    if (var.isValid()) {
+        font.setStyleName(var.value<QString>());
+    }
+
     font.setPixelSize(draw_size);
-   
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    QColor pen_color;
-    if (!base_color_.isValid()) {
-        pen_color = QApplication::palette("QWidget").color(QPalette::Normal, QPalette::ButtonText);
-    } else {
-        pen_color = base_color_;
-    }
+    auto pen_color = getOrDefault<QColor>(options_, qTEXT("color"), FontIconColorOption::color);
 
-    if (mode == QIcon::Disabled) {
-        pen_color = QApplication::palette("QWidget").color(QPalette::Disabled, QPalette::ButtonText);
-    }
-    if (selected_state_) {
-        if (mode == QIcon::Selected) {
-            pen_color = QApplication::palette("QWidget").color(QPalette::Active, QPalette::ButtonText);
+    switch (mode) {
+    case QIcon::Normal:
+        pen_color = getOrDefault<QColor>(options_, qTEXT("onColor"), FontIconColorOption::onColor);
+        break;
+    case QIcon::Active:
+        switch (state) {
+		case QIcon::Off:
+            pen_color = getOrDefault<QColor>(options_, qTEXT("activeColor"), FontIconColorOption::activeColor);
+			break;
+		case QIcon::On:
+            pen_color = getOrDefault<QColor>(options_, qTEXT("activeOnColor"), FontIconColorOption::activeColor);
+            if (!pen_color.isValid()) {
+                pen_color = getOrDefault<QColor>(options_, qTEXT("onColor"), FontIconColorOption::onColor);
+            }
+            break;
         }
+        break;
+    case QIcon::Disabled:
+        pen_color = getOrDefault<QColor>(options_, qTEXT("disabledColor"), FontIconColorOption::disabledColor);
+        break;
+    case QIcon::Selected:
+        pen_color = getOrDefault<QColor>(options_, qTEXT("selectedColor"), FontIconColorOption::selectedColor);
+        break;
     }
 
     painter->save();
+
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     painter->translate(rect.center() + QPoint(1, 1));
 
-    var = options_.value(Q_TEXT("rotateAngle"));
+    var = options_.value(qTEXT("rotateAngle"));
     if (var.isValid()) {
         painter->rotate(var.value<qreal>());
     }
 
-    var = options_.value(Q_TEXT("flipLeftRight"));
+    var = options_.value(qTEXT("flipLeftRight"));
     if (var.isValid()) {
         painter->scale(-1.0, 1.0);
     }
 
-    var = options_.value(Q_TEXT("flipTopBottom"));
+    var = options_.value(qTEXT("flipTopBottom"));
     if (var.isValid()) {
         painter->scale(1.0, -1.0);
     }
     painter->translate(-rect.center() - QPoint(1, 1));
     painter->setPen(QPen(pen_color));
     painter->setFont(font);
-    painter->drawText(paint_rect, Qt::AlignHCenter | Qt::AlignVCenter, letter_);
+    painter->drawText(paint_rect, Qt::AlignCenter, QChar(letter_));
     painter->restore();
 }
 
@@ -122,30 +149,20 @@ void FontIconEngine::setFontFamily(const QString& family) {
     font_family_ = family;
 }
 
-void FontIconEngine::setLetter(const QChar& letter) {
+void FontIconEngine::setLetter(const char32_t letter) {
     letter_ = letter;
-}
-
-void FontIconEngine::setBaseColor(const QColor& base_color) {
-    base_color_ = base_color;
-}
-
-void FontIconEngine::setSelectedState(bool enable) {
-    selected_state_ = enable;
 }
 
 QIconEngine* FontIconEngine::clone() const {
     auto* engine = new FontIconEngine(options_);
     engine->setFontFamily(font_family_);
-    engine->setBaseColor(base_color_);
-    engine->setSelectedState(selected_state_);
     return engine;
 }
 
-#define US_SEGOE_FLUENT_ICON_FONT
+//#define USE_SEGOE_FLUENT_ICON_FONT
 
-const QMap<QChar, uint32_t> FontIcon::glyphs_ = {
-#ifdef US_SEGOE_FLUENT_ICON_FONT
+HashMap<char32_t, uint32_t> FontIcon::glyphs_ = {
+#ifdef USE_SEGOE_FLUENT_ICON_FONT
     { ICON_VOLUME_UP ,                0xE995},
     { ICON_VOLUME_OFF,                0xE74F},
     { ICON_SPEAKER,                   0xE7F5},
@@ -161,7 +178,7 @@ const QMap<QChar, uint32_t> FontIcon::glyphs_ = {
     { ICON_COPY,                      0xE8C8},
     { ICON_DOWNLOAD,                  0xE896},
     { ICON_PLAYLIST,                  0xE90B},
-    { ICON_EQUALIZER,                 0xe9e9},
+    { ICON_EQUALIZER,                 0xE9E9},
     { ICON_PODCAST,                   0xEFA9},
     { ICON_ALBUM,                     0xE93C},
     { ICON_CD,                        0xE958},
@@ -195,51 +212,51 @@ const QMap<QChar, uint32_t> FontIcon::glyphs_ = {
     { ICON_BUILD_IN_SPEAKER,          0xE7F5},
     { ICON_BLUE_TOOTH,                0xE702},
 #else
-    { ICON_VOLUME_UP ,                0xF028},
+    { ICON_VOLUME_UP ,                0xF6A8},
     { ICON_VOLUME_OFF,                0xF6A9},
     { ICON_SPEAKER,                   0xF8DF},
     { ICON_FOLDER,                    0xF07B},
     { ICON_AUDIO,                     0xF001},
-    { ICON_LOAD_FILE,                 0xE8E5},
-    { ICON_LOAD_DIR,                  0xE838},
-    { ICON_RELOAD,                    0xE895},
-    { ICON_REMOVE_ALL,                0xE894},
-    { ICON_OPEN_FILE_PATH,            0xE8DA},
-    { ICON_READ_REPLAY_GAIN,          0xF270},
-    { ICON_EXPORT_FILE,               0xE78C},
-    { ICON_COPY,                      0xE8C8},
-    { ICON_DOWNLOAD,                  0xE896},
-    { ICON_PLAYLIST,                  0xE90B},
-    { ICON_EQUALIZER,                 0xe9e9},
-    { ICON_PODCAST,                   0xEFA9},
-    { ICON_ALBUM,                     0xE93C},
-    { ICON_CD,                        0xE958},
-    { ICON_LEFT_ARROW,                0xEC52},
-    { ICON_ARTIST,                    0xE716},
-    { ICON_SUBTITLE,                  0xED1E},
-    { ICON_PREFERENCE,                0xE713},
-    { ICON_ABOUT,                     0xF167},
-    { ICON_DARK_MODE,                 0xEC46},
-    { ICON_LIGHT_MODE,                0xF08C},
-    { ICON_SEARCH,                    0xF78B},
-    { ICON_THEME,                     0xE771},
-    { ICON_DESKTOP,                   0xEC4E},
-    { ICON_SHUFFLE_PLAY_ORDER,        0xE8B1},
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xE8ED},
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xE8EE},
+    { ICON_LOAD_FILE,                 0xF15B},
+    { ICON_LOAD_DIR,                  0xF07C},
+    { ICON_RELOAD,                    0xF2F9},
+    { ICON_REMOVE_ALL,                0xE2AE},
+    { ICON_OPEN_FILE_PATH,            0xF07C},
+    { ICON_READ_REPLAY_GAIN,          0xF5F0},
+    { ICON_EXPORT_FILE,               0xF56E},
+    { ICON_COPY,                      0xF0C5},
+    { ICON_DOWNLOAD,                  0xF0ED},
+    { ICON_PLAYLIST,                  0xF8C9},
+    { ICON_EQUALIZER,                 0xF3F2},
+    { ICON_PODCAST,                   0xF2CE},
+    { ICON_ALBUM,                     0xF89F},
+    { ICON_CD,                        0xF51F},
+    { ICON_LEFT_ARROW,                0xF177},
+    { ICON_ARTIST,                    0xF500},
+    { ICON_SUBTITLE,                  0xE1DE},
+    { ICON_PREFERENCE,                0xF013},
+    { ICON_ABOUT,                     0xF05A},
+    { ICON_DARK_MODE,                 0xF186},
+    { ICON_LIGHT_MODE,                0xF185},
+    { ICON_SEARCH,                    0xF002},
+    { ICON_THEME,                     0xF042},
+    { ICON_DESKTOP,                   0xF390},
+    { ICON_SHUFFLE_PLAY_ORDER,        0xF074},
+    { ICON_REPEAT_ONE_PLAY_ORDER,     0xF363},
+    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xF365},
     { ICON_MINIMIZE_WINDOW,           0xF2D1},
     { ICON_MAXIMUM_WINDOW,            0xF2D0},
     { ICON_CLOSE_WINDOW,              0xF00D},
     { ICON_RESTORE_WINDOW,            0xE923},
-    { ICON_SLIDER_BAR,                0xE700},
+    { ICON_SLIDER_BAR,                0xF0C9},
     { ICON_PLAY,                      0xF04B},
     { ICON_PAUSE,                     0xF04C},
     { ICON_STOP_PLAY,                 0xF04D},
     { ICON_PLAY_FORWARD,              0xF04E},
     { ICON_PLAY_BACKWARD,             0xF04A},
     { ICON_MORE,                      0xF142},
-    { ICON_HIDE,                      0xED1A},
-    { ICON_SHOW,                      0xE7B3},
+    { ICON_HIDE,                      0xF070},
+    { ICON_SHOW,                      0xF06E},
     { ICON_USB,                       0xF8E9},
     { ICON_BUILD_IN_SPEAKER,          0xF8DF},
     { ICON_BLUE_TOOTH,                0xF293},
@@ -261,13 +278,13 @@ bool FontIcon::addFont(const QString& filename) {
     return true;
 }
 
-QIcon FontIcon::animationIcon(const QChar& code, QWidget* parent, const QColor* color, const QString& family) const {
+QIcon FontIcon::animationIcon(const char32_t& code, QWidget* parent, const QString& family) const {
     QVariantMap options;
-    options.insert(Q_TEXT("animation"), QVariant::fromValue(new FontIconAnimation(parent)));
-    return icon(code, options, color, family);
+    options.insert(qTEXT("animation"), QVariant::fromValue(new FontIconAnimation(parent)));
+    return icon(code, options, family);
 }
 
-QIcon FontIcon::icon(const QChar& code, QVariantMap options, const QColor* color, const QString& family) const {
+QIcon FontIcon::icon(const char32_t& code, QVariantMap options, const QString& family) const {
     if (families().isEmpty()) {
         return {};
     }
@@ -280,11 +297,6 @@ QIcon FontIcon::icon(const QChar& code, QVariantMap options, const QColor* color
     auto* engine = new FontIconEngine(std::move(options));
     engine->setFontFamily(use_family);
     engine->setLetter(glyphs_[code]);
-    if (!color) {
-        engine->setBaseColor(base_color_);
-    } else {
-        engine->setBaseColor(*color);
-    }
     return QIcon(engine);
 }
 
@@ -294,8 +306,4 @@ const QStringList& FontIcon::families() const {
 
 void FontIcon::addFamily(const QString& family) {
     families_.append(family);
-}
-
-void FontIcon::setBaseColor(const QColor& base_color) {
-    base_color_ = base_color;
 }

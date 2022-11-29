@@ -5,7 +5,7 @@
 ClickableLabel::ClickableLabel(QWidget* parent)
 	: QLabel(parent) {
 	setMouseTracking(true);
-	setStyleSheet(Q_TEXT("background: transparent; border: none;"));
+	setStyleSheet(qTEXT("background: transparent; border: none;"));
 }
 
 void ClickableLabel::mousePressEvent(QMouseEvent*) {

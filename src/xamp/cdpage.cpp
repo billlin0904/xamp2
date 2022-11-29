@@ -9,7 +9,7 @@ CdPage::CdPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
 
-    ui.pcButton->setStyleSheet(Q_TEXT(R"(
+    ui.pcButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#pcButton {
                                         border: none;
                                         background-color: transparent;
@@ -18,7 +18,7 @@ CdPage::CdPage(QWidget* parent)
     ui.pcButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_DESKTOP));
     ui.pcButton->setIconSize(QSize(64, 64));
 
-    ui.cdButton->setStyleSheet(Q_TEXT(R"(
+    ui.cdButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#cdButton {
                                         border: none;                                        
                                         background-color: transparent;
@@ -27,7 +27,7 @@ CdPage::CdPage(QWidget* parent)
     ui.cdButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_CD));
     ui.cdButton->setIconSize(QSize(64, 64));
 
-    ui.arrowButton->setStyleSheet(Q_TEXT(R"(
+    ui.arrowButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#arrowButton {
                                         border: none;
                                         background-color: transparent;
@@ -39,8 +39,8 @@ CdPage::CdPage(QWidget* parent)
     ui.playlistPage->playlist()->setPodcastMode(false);
     ui.playlistPage->hide();
 
-    ui.tipFrame->setStyleSheet(Q_TEXT("background-color: transparent;"));
-    setStyleSheet(Q_TEXT("QFrame#CDPage { background-color: transparent; }"));
+    ui.tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));
+    setStyleSheet(qTEXT("QFrame#CDPage { background-color: transparent; }"));
 }
 
 void CdPage::showPlaylistPage(bool show) {

@@ -9,7 +9,7 @@
 
 XFrame::XFrame(QWidget* parent)
     : QFrame(parent) {
-    setObjectName(Q_TEXT("XFrame"));
+    setObjectName(qTEXT("XFrame"));
 }
 
 void XFrame::setTitle(const QString& title) const {
@@ -49,7 +49,7 @@ void XFrame::setContentWidget(QWidget* content) {
     title_frame_label->setFont(f);
     title_frame_label->setSizePolicy(size_policy3);
     title_frame_label->setAlignment(Qt::AlignCenter);
-    title_frame_label->setStyleSheet(Q_STR(R"(
+    title_frame_label->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;

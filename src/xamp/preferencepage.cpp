@@ -20,7 +20,7 @@ public:
 	ActiveListWidget(PreferencePage* page, const QString& name, QStandardItemModel* model, QModelIndex index) {
 		auto* layout = new QHBoxLayout(this);
 		auto* namelbl = new QLabel(name);
-		delete_button = new QPushButton(Q_TEXT("X"));
+		delete_button = new QPushButton(qTEXT("X"));
 		delete_button->setMaximumSize(QSize(16, 16));
 		layout->addWidget(namelbl, Qt::AlignLeft);
 		layout->addWidget(delete_button, Qt::AlignRight);
@@ -38,7 +38,7 @@ void PreferencePage::updateSoxrConfigUI(const QVariantMap& soxr_settings) {
 	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kResampleSampleRate].toInt()));
 	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
 	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
-	ui_.soxrPassbandValue->setText(QString(Q_TEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
+	ui_.soxrPassbandValue->setText(QString(qTEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
     ui_.soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
 	setPhasePercentText(ui_.soxrPhaseSlider->value());
     ui_.rollOffLevelComboBox->setCurrentIndex(soxr_settings[kSoxrRollOffLevel].toInt());
@@ -189,7 +189,7 @@ void PreferencePage::initLang() {
 	auto current_index = 0;
 	auto index = 0;
     Q_FOREACH (auto lang, LocaleLanguageManager::languageNames()) {
-		auto file_name = Q_STR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode().toUpper());
+		auto file_name = qSTR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode().toUpper());
         QIcon ico(file_name);
 		ui_.langCombo->addItem(ico, lang.nativeNameLang());
 		if (current_lang.getIsoCode() == lang.getIsoCode()) {
@@ -207,7 +207,7 @@ void PreferencePage::initLang() {
 }
 
 void PreferencePage::setPhasePercentText(int32_t value) {
-	auto str = QString(Q_TEXT("%0%")).arg(value);
+	auto str = QString(qTEXT("%0%")).arg(value);
 	if (value == 0) {
 		str += tr(" (minimum)");
 	}
@@ -353,7 +353,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto) {
-        ui_.soxrPassbandValue->setText(QString(Q_TEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
+        ui_.soxrPassbandValue->setText(QString(qTEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_.soxrSettingCombo->currentText());
         saveAll();
     });
@@ -376,23 +376,23 @@ PreferencePage::PreferencePage(QWidget *parent)
         AppSettings::setValue(kAppSettingAlbumImageCacheSize, value);
     });
 		
-	setStyleSheet(Q_TEXT(R"(
+	setStyleSheet(qTEXT(R"(
 			QFrame#PreferenceDialog { 
 				background-color: transparent;
 			}
             )"));
 
-	ui_.stackedWidget->setStyleSheet(Q_TEXT(R"(
+	ui_.stackedWidget->setStyleSheet(qTEXT(R"(
 			QStackedWidget#stackedWidget {
 				background-color: transparent;
             }
             )"));
-	ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
-	ui_.playbackPage->setStyleSheet(Q_TEXT("background: transparent;"));
-	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background: transparent;"));
-	ui_.r8brainResamplerPage->setStyleSheet(Q_TEXT("background: transparent;"));
-	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background: transparent;"));
-	ui_.pcm2dsdPage->setStyleSheet(Q_TEXT("background: transparent;"));
+	ui_.preferenceTreeWidget->setStyleSheet(qTEXT("QTreeView { background: transparent; }"));
+	ui_.playbackPage->setStyleSheet(qTEXT("background: transparent;"));
+	ui_.soxrResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
+	ui_.r8brainResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
+	ui_.dspManagerPage->setStyleSheet(qTEXT("background: transparent;"));
+	ui_.pcm2dsdPage->setStyleSheet(qTEXT("background: transparent;"));
 
 	const QList<QWidget*> widgets {
 		ui_.darkRadioButton,
@@ -426,7 +426,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbR8BrainHz,
 	};
 
-	QFont f(Q_TEXT("DisplayFont"));
+	QFont f(qTEXT("DisplayFont"));
 	f.setWeight(QFont::DemiBold);
 	f.setPointSize(14);
 
@@ -434,19 +434,19 @@ PreferencePage::PreferencePage(QWidget *parent)
 		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
 			w->setFont(f);
 		}
-		w->setStyleSheet(Q_TEXT("background: transparent;"));
+		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
 	Q_FOREACH(auto* w, pcm2dsd_widgets) {
-		w->setStyleSheet(Q_TEXT("background: transparent;"));
+		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
 	Q_FOREACH(auto* w, soxr_resampler_widgets) {
-		w->setStyleSheet(Q_TEXT("background: transparent;"));
+		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
 	Q_FOREACH(auto* w, r8brain_resampler_widgets) {
-		w->setStyleSheet(Q_TEXT("background: transparent;"));
+		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 }
 

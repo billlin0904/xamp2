@@ -60,32 +60,42 @@ enum Glyphs {
     ICON_BLUE_TOOTH,
 };
 
+struct FontIconColorOption {
+    static QColor color;
+    static QColor onColor;
+    static QColor activeColor;
+    static QColor activeOnColor;
+    static QColor disabledColor;
+    static QColor selectedColor;
+};
+
+// rect
+// scaleFactor
+// fontStyle
+// color
+// onColor
+// activeColor
+// activeOnColor
+// disabledColor
+// selectedColor
+
 class FontIcon : public QObject {
 public:
     explicit FontIcon(QObject* parent = nullptr);
 
     bool addFont(const QString& filename);
 
-    QIcon animationIcon(const QChar& code, QWidget *parent, const QColor* color = nullptr, const QString& family = QString()) const;
+    QIcon animationIcon(const char32_t& code, QWidget *parent, const QString& family = QString()) const;
 
-    QIcon icon(const QChar& code, QVariantMap options = QVariantMap(), const QColor *color = nullptr, const QString& family = QString()) const;
+    QIcon icon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
 
     const QStringList& families() const;
-
-    void setBaseColor(const QColor& base_color);
-
-    QColor baseColor() const {
-        return base_color_;
-    }
-
 protected:
     void addFamily(const QString& family);
 
-    QColor base_color_;
     QStringList families_;
-    static const QMap<QChar, uint32_t> glyphs_;
+    static HashMap<char32_t, uint32_t> glyphs_;
 };
 
 #define qFontIcon SharedSingleton<FontIcon>::GetInstance()
-#define Q_FONT_ICON_CODE_COLOR(code, color) qFontIcon.icon(code, color)
 #define Q_FONT_ICON(code) qFontIcon.icon(code)

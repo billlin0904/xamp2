@@ -150,8 +150,6 @@ void LoadBassLib() {
     for (const auto& info : BASS.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} ver: {}", info.first, info.second);
     }
-
-    DspComponentFactory::GetAvailableEncodingProfile();
 }
 
 std::map<std::string, std::string> GetBassDLLVersion() {

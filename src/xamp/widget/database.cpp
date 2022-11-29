@@ -54,7 +54,7 @@ const char* SqlException::what() const noexcept {
 
 Database::Database() {
 	logger_ = LoggerManager::GetInstance().GetLogger("Database");
-	db_ = QSqlDatabase::addDatabase(Q_TEXT("QSQLITE"));
+	db_ = QSqlDatabase::addDatabase(qTEXT("QSQLITE"));
 }
 
 Database::~Database() {
@@ -69,13 +69,13 @@ void Database::open(const QString& file_name) {
 	}
 
 	dbname_ = file_name;
-	(void)db_.exec(Q_TEXT("PRAGMA synchronous = OFF"));
-	(void)db_.exec(Q_TEXT("PRAGMA auto_vacuum = OFF"));
-	(void)db_.exec(Q_TEXT("PRAGMA foreign_keys = ON"));
-	(void)db_.exec(Q_TEXT("PRAGMA journal_mode = MEMORY"));
-	(void)db_.exec(Q_TEXT("PRAGMA cache_size = 40960"));
-	(void)db_.exec(Q_TEXT("PRAGMA temp_store = MEMORY"));
-	(void)db_.exec(Q_TEXT("PRAGMA mmap_size = 40960"));
+	(void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));
+	(void)db_.exec(qTEXT("PRAGMA auto_vacuum = OFF"));
+	(void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
+	(void)db_.exec(qTEXT("PRAGMA journal_mode = MEMORY"));
+	(void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
+	(void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
+	(void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
 
 	XAMP_LOG_I(logger_, "SQlite version: {}", getVersion().toStdString());
 
@@ -96,9 +96,9 @@ void Database::rollback() {
 
 QString Database::getVersion() const {
 	QSqlQuery query;
-	query.exec(Q_TEXT("SELECT sqlite_version() AS version;"));
+	query.exec(qTEXT("SELECT sqlite_version() AS version;"));
 	if (query.next()) {
-		return query.value(Q_TEXT("version")).toString();
+		return query.value(qTEXT("version")).toString();
 	}
 	throw SqlException(query.lastError());
 }
@@ -107,7 +107,7 @@ void Database::createTableIfNotExist() {
 	std::vector<QLatin1String> create_table_sql;
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS musics (
                        musicId integer PRIMARY KEY AUTOINCREMENT,
                        track integer,
@@ -137,12 +137,12 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                       CREATE UNIQUE INDEX IF NOT EXISTS path_index ON musics (path, offset);
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS playlist (
                        playlistId integer PRIMARY KEY AUTOINCREMENT,
                        playlistIndex integer,
@@ -151,7 +151,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS tables (
                        tableId integer PRIMARY KEY AUTOINCREMENT,
                        tableIndex integer,
@@ -161,7 +161,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS tablePlaylist (
                        playlistId integer,
                        tableId integer,
@@ -171,7 +171,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albums (
                        albumId integer primary key autoincrement,
                        artistId integer,
@@ -187,7 +187,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS artists (
                        artistId integer primary key autoincrement,
                        artist TEXT NOT NULL DEFAULT '',
@@ -198,7 +198,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albumArtist (
                        albumArtistId integer primary key autoincrement,
                        artistId integer,
@@ -209,7 +209,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albumMusic (
                        albumMusicId integer primary key autoincrement,
                        musicId integer,
@@ -222,7 +222,7 @@ void Database::createTableIfNotExist() {
                        )"));
 
 	create_table_sql.push_back(
-		Q_TEXT(R"(
+		qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS playlistMusics (
 					   playlistMusicsId integer primary key autoincrement,
                        playlistId integer,
@@ -243,27 +243,27 @@ void Database::createTableIfNotExist() {
 
 void Database::clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"));
-	query.bindValue(Q_TEXT(":playing"), PlayingState::PLAY_CLEAR);
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
-	query.bindValue(Q_TEXT(":skipPlaylistMusicsId"), skip_playlist_music_id);
+	query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"));
+	query.bindValue(qTEXT(":playing"), PlayingState::PLAY_CLEAR);
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
+	query.bindValue(qTEXT(":skipPlaylistMusicsId"), skip_playlist_music_id);
 	IfFailureThrow1(query);
 }
 
 void Database::clearNowPlaying(int32_t playlist_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = :playing"));
-	query.bindValue(Q_TEXT(":playing"), PlayingState::PLAY_CLEAR);
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing"));
+	query.bindValue(qTEXT(":playing"), PlayingState::PLAY_CLEAR);
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
 	IfFailureThrow1(query);
 }
 
 void Database::setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
-	query.bindValue(Q_TEXT(":playing"), playing);
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
-	query.bindValue(Q_TEXT(":playlistMusicsId"), playlist_music_id);
+	query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
+	query.bindValue(qTEXT(":playing"), playing);
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
+	query.bindValue(qTEXT(":playlistMusicsId"), playlist_music_id);
 	IfFailureThrow1(query);
 }
 
@@ -277,42 +277,42 @@ void Database::setNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
 
 void Database::removePlaylistMusics(int32_t music_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM playlistMusics WHERE musicId=:musicId"));
-	query.bindValue(Q_TEXT(":musicId"), music_id);
+	query.prepare(qTEXT("DELETE FROM playlistMusics WHERE musicId=:musicId"));
+	query.bindValue(qTEXT(":musicId"), music_id);
 	IfFailureThrow1(query);
 }
 
 void Database::removeAlbumMusicId(int32_t music_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM albumMusic WHERE musicId=:musicId"));
-	query.bindValue(Q_TEXT(":musicId"), music_id);
+	query.prepare(qTEXT("DELETE FROM albumMusic WHERE musicId=:musicId"));
+	query.bindValue(qTEXT(":musicId"), music_id);
 	IfFailureThrow1(query);
 }
 
 void Database::removeAlbumArtistId(int32_t artist_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM albumArtist WHERE artistId=:artistId"));
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
+	query.prepare(qTEXT("DELETE FROM albumArtist WHERE artistId=:artistId"));
+	query.bindValue(qTEXT(":artistId"), artist_id);
 	IfFailureThrow1(query);
 }
 
 void Database::removeMusic(int32_t music_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM musics WHERE musicId=:musicId"));
-	query.bindValue(Q_TEXT(":musicId"), music_id);
+	query.prepare(qTEXT("DELETE FROM musics WHERE musicId=:musicId"));
+	query.bindValue(qTEXT(":musicId"), music_id);
 	IfFailureThrow1(query);
 }
 
 void Database::removeMusic(QString const& file_path) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT musicId FROM musics WHERE path = (:path)"));
-	query.bindValue(Q_TEXT(":path"), file_path);
+	query.prepare(qTEXT("SELECT musicId FROM musics WHERE path = (:path)"));
+	query.bindValue(qTEXT(":path"), file_path);
 
 	query.exec();
 
 	while (query.next()) {
-		auto music_id = query.value(Q_TEXT("musicId")).toInt();
+		auto music_id = query.value(qTEXT("musicId")).toInt();
 		removePlaylistMusic(1, QVector<int32_t>{ music_id });
 		removeAlbumMusicId(music_id);
 		removeAlbumArtistId(music_id);
@@ -323,44 +323,44 @@ void Database::removeMusic(QString const& file_path) {
 
 void Database::removeAlbumArtist(int32_t album_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM albumArtist WHERE albumId=:albumId"));
-	query.bindValue(Q_TEXT(":albumId"), album_id);
+	query.prepare(qTEXT("DELETE FROM albumArtist WHERE albumId=:albumId"));
+	query.bindValue(qTEXT(":albumId"), album_id);
 	IfFailureThrow1(query);
 }
 
 void Database::forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun) {
     QSqlTableModel model(nullptr, db_);
 
-    model.setTable(Q_TEXT("playlist"));
+    model.setTable(qTEXT("playlist"));
     model.setSort(1, Qt::AscendingOrder);
     model.select();
 
     for (auto i = 0; i < model.rowCount(); ++i) {
         auto record = model.record(i);
-        fun(record.value(Q_TEXT("playlistId")).toInt(),
-            record.value(Q_TEXT("playlistIndex")).toInt(),
-            record.value(Q_TEXT("name")).toString());
+        fun(record.value(qTEXT("playlistId")).toInt(),
+            record.value(qTEXT("playlistIndex")).toInt(),
+            record.value(qTEXT("name")).toString());
     }
 }
 
 void Database::forEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun) {
 	QSqlTableModel model(nullptr, db_);
 
-	model.setTable(Q_TEXT("tables"));
+	model.setTable(qTEXT("tables"));
 	model.setSort(1, Qt::AscendingOrder);
 	model.select();
 
 	for (auto i = 0; i < model.rowCount(); ++i) {
 		auto record = model.record(i);
-		fun(record.value(Q_TEXT("tableId")).toInt(),
-			record.value(Q_TEXT("tableIndex")).toInt(),
-			record.value(Q_TEXT("playlistId")).toInt(),
-			record.value(Q_TEXT("name")).toString());
+		fun(record.value(qTEXT("tableId")).toInt(),
+			record.value(qTEXT("tableIndex")).toInt(),
+			record.value(qTEXT("playlistId")).toInt(),
+			record.value(qTEXT("name")).toString());
 	}
 }
 
 void Database::forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std::function<void(PlayListEntity const&)>&& fun) {
-	QSqlQuery query(Q_TEXT(R"(
+	QSqlQuery query(qTEXT(R"(
 SELECT
     albumMusic.albumId,
     albumMusic.artistId,
@@ -385,37 +385,37 @@ ORDER BY musics.path;)"));
 
 	while (query.next()) {
 		PlayListEntity entity;
-		entity.album_id = query.value(Q_TEXT("albumId")).toInt();
-		entity.artist_id = query.value(Q_TEXT("artistId")).toInt();
-		entity.music_id = query.value(Q_TEXT("musicId")).toInt();
-		entity.file_path = query.value(Q_TEXT("path")).toString();
-		entity.track = query.value(Q_TEXT("track")).toUInt();
-		entity.title = query.value(Q_TEXT("title")).toString();
-		entity.file_name = query.value(Q_TEXT("fileName")).toString();
-		entity.album = query.value(Q_TEXT("album")).toString();
-		entity.artist = query.value(Q_TEXT("artist")).toString();
-		entity.file_ext = query.value(Q_TEXT("fileExt")).toString();
-		entity.parent_path = query.value(Q_TEXT("parentPath")).toString();
-		entity.duration = query.value(Q_TEXT("duration")).toDouble();
-		entity.bitrate = query.value(Q_TEXT("bitrate")).toUInt();
-		entity.samplerate = query.value(Q_TEXT("samplerate")).toUInt();
-		entity.cover_id = query.value(Q_TEXT("coverId")).toString();
-		entity.rating = query.value(Q_TEXT("rating")).toUInt();
-		entity.album_replay_gain = query.value(Q_TEXT("album_replay_gain")).toDouble();
-		entity.album_peak = query.value(Q_TEXT("album_peak")).toDouble();
-		entity.track_replay_gain = query.value(Q_TEXT("track_replay_gain")).toDouble();
-		entity.track_peak = query.value(Q_TEXT("track_peak")).toDouble();
+		entity.album_id = query.value(qTEXT("albumId")).toInt();
+		entity.artist_id = query.value(qTEXT("artistId")).toInt();
+		entity.music_id = query.value(qTEXT("musicId")).toInt();
+		entity.file_path = query.value(qTEXT("path")).toString();
+		entity.track = query.value(qTEXT("track")).toUInt();
+		entity.title = query.value(qTEXT("title")).toString();
+		entity.file_name = query.value(qTEXT("fileName")).toString();
+		entity.album = query.value(qTEXT("album")).toString();
+		entity.artist = query.value(qTEXT("artist")).toString();
+		entity.file_ext = query.value(qTEXT("fileExt")).toString();
+		entity.parent_path = query.value(qTEXT("parentPath")).toString();
+		entity.duration = query.value(qTEXT("duration")).toDouble();
+		entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
+		entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
+		entity.cover_id = query.value(qTEXT("coverId")).toString();
+		entity.rating = query.value(qTEXT("rating")).toUInt();
+		entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
+		entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
+		entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
+		entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
 
-		entity.genre = query.value(Q_TEXT("genre")).toString();
-		entity.comment = query.value(Q_TEXT("comment")).toString();
-		entity.year = query.value(Q_TEXT("year")).toUInt();
-		entity.file_size = query.value(Q_TEXT("fileSize")).toULongLong();
+		entity.genre = query.value(qTEXT("genre")).toString();
+		entity.comment = query.value(qTEXT("comment")).toString();
+		entity.year = query.value(qTEXT("year")).toUInt();
+		entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
 		fun(entity);
 	}
 }
 
 void Database::forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const&)>&& fun) {
-	QSqlQuery query(Q_TEXT(R"(
+	QSqlQuery query(qTEXT(R"(
 SELECT
     albumMusic.albumId,
     albumMusic.artistId,
@@ -440,54 +440,54 @@ ORDER BY musics.track, musics.path, musics.fileName;)"));
 
 	while (query.next()) {
 		PlayListEntity entity;
-		entity.album_id = query.value(Q_TEXT("albumId")).toInt();
-		entity.artist_id = query.value(Q_TEXT("artistId")).toInt();
-		entity.music_id = query.value(Q_TEXT("musicId")).toInt();
-		entity.file_path = query.value(Q_TEXT("path")).toString();
-		entity.track = query.value(Q_TEXT("track")).toUInt();
-		entity.title = query.value(Q_TEXT("title")).toString();
-		entity.file_name = query.value(Q_TEXT("fileName")).toString();
-		entity.album = query.value(Q_TEXT("album")).toString();
-		entity.artist = query.value(Q_TEXT("artist")).toString();
-		entity.file_ext = query.value(Q_TEXT("fileExt")).toString();
-		entity.parent_path = query.value(Q_TEXT("parentPath")).toString();
-		entity.duration = query.value(Q_TEXT("duration")).toDouble();
-		entity.bitrate = query.value(Q_TEXT("bitrate")).toUInt();
-		entity.samplerate = query.value(Q_TEXT("samplerate")).toUInt();
-		entity.cover_id = query.value(Q_TEXT("coverId")).toString();
-		entity.rating = query.value(Q_TEXT("rating")).toUInt();
-		entity.album_replay_gain = query.value(Q_TEXT("album_replay_gain")).toDouble();
-		entity.album_peak = query.value(Q_TEXT("album_peak")).toDouble();
-		entity.track_replay_gain = query.value(Q_TEXT("track_replay_gain")).toDouble();
-		entity.track_peak = query.value(Q_TEXT("track_peak")).toDouble();
-		entity.disc_id = query.value(Q_TEXT("discId")).toString();
-		entity.genre = query.value(Q_TEXT("genre")).toString();
-		entity.comment = query.value(Q_TEXT("comment")).toString();
-		entity.year = query.value(Q_TEXT("year")).toUInt();
+		entity.album_id = query.value(qTEXT("albumId")).toInt();
+		entity.artist_id = query.value(qTEXT("artistId")).toInt();
+		entity.music_id = query.value(qTEXT("musicId")).toInt();
+		entity.file_path = query.value(qTEXT("path")).toString();
+		entity.track = query.value(qTEXT("track")).toUInt();
+		entity.title = query.value(qTEXT("title")).toString();
+		entity.file_name = query.value(qTEXT("fileName")).toString();
+		entity.album = query.value(qTEXT("album")).toString();
+		entity.artist = query.value(qTEXT("artist")).toString();
+		entity.file_ext = query.value(qTEXT("fileExt")).toString();
+		entity.parent_path = query.value(qTEXT("parentPath")).toString();
+		entity.duration = query.value(qTEXT("duration")).toDouble();
+		entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
+		entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
+		entity.cover_id = query.value(qTEXT("coverId")).toString();
+		entity.rating = query.value(qTEXT("rating")).toUInt();
+		entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
+		entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
+		entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
+		entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
+		entity.disc_id = query.value(qTEXT("discId")).toString();
+		entity.genre = query.value(qTEXT("genre")).toString();
+		entity.comment = query.value(qTEXT("comment")).toString();
+		entity.year = query.value(qTEXT("year")).toUInt();
 		fun(entity);
 	}
 }
 
 void Database::removeAllArtist() {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM artists"));
+	query.prepare(qTEXT("DELETE FROM artists"));
 	IfFailureThrow1(query);
 }
 
 void Database::removeArtistId(int32_t artist_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM artists WHERE artistId=:artistId"));
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
+	query.prepare(qTEXT("DELETE FROM artists WHERE artistId=:artistId"));
+	query.bindValue(qTEXT(":artistId"), artist_id);
 	IfFailureThrow1(query);
 }
 
 void Database::forEachAlbum(std::function<void(int32_t)>&& fun) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT albumId FROM albums"));
+	query.prepare(qTEXT("SELECT albumId FROM albums"));
 	IfFailureThrow1(query);
 	while (query.next()) {
-		fun(query.value(Q_TEXT("albumId")).toInt());
+		fun(query.value(qTEXT("albumId")).toInt());
 	}
 }
 
@@ -503,8 +503,8 @@ void Database::removeAlbum(int32_t album_id) {
 	removeAlbumArtist(album_id);
 
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM albums WHERE albumId=:albumId"));
-	query.bindValue(Q_TEXT(":albumId"), album_id);
+	query.prepare(qTEXT("DELETE FROM albums WHERE albumId=:albumId"));
+	query.bindValue(qTEXT(":albumId"), album_id);
 	IfFailureThrow1(query);
 }
 
@@ -512,7 +512,7 @@ int32_t Database::addTable(const QString& name, int32_t table_index, int32_t pla
 	QSqlTableModel model(nullptr, db_);
 
 	model.setEditStrategy(QSqlTableModel::OnManualSubmit);
-	model.setTable(Q_TEXT("tables"));
+	model.setTable(qTEXT("tables"));
 	model.select();
 
 	if (!model.insertRows(0, 1)) {
@@ -536,7 +536,7 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
 	QSqlTableModel model(nullptr, db_);
 
 	model.setEditStrategy(QSqlTableModel::OnManualSubmit);
-	model.setTable(Q_TEXT("playlist"));
+	model.setTable(qTEXT("playlist"));
 	model.select();
 
 	if (!model.insertRows(0, 1)) {
@@ -558,20 +558,20 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
 void Database::setTableName(int32_t table_id, const QString& name) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE tables SET name = :name WHERE (tableId = :tableId)"));
+	query.prepare(qTEXT("UPDATE tables SET name = :name WHERE (tableId = :tableId)"));
 
-	query.bindValue(Q_TEXT(":tableId"), table_id);
-	query.bindValue(Q_TEXT(":name"), name);
+	query.bindValue(qTEXT(":tableId"), table_id);
+	query.bindValue(qTEXT(":name"), name);
 	IfFailureThrow1(query);
 }
 
 void Database::setAlbumCover(int32_t album_id, const QString& cover_id) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId)"));
+	query.prepare(qTEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId)"));
 
-	query.bindValue(Q_TEXT(":albumId"), album_id);
-	query.bindValue(Q_TEXT(":coverId"), cover_id);
+	query.bindValue(qTEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":coverId"), cover_id);
 
 	IfFailureThrow1(query);
 	XAMP_LOG_D(logger_, "setAlbumCover albumId: {} coverId: {}", album_id, cover_id.toStdString());
@@ -580,11 +580,11 @@ void Database::setAlbumCover(int32_t album_id, const QString& cover_id) {
 void Database::setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) AND (album = :album)"));
+	query.prepare(qTEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) AND (album = :album)"));
 
-	query.bindValue(Q_TEXT(":albumId"), album_id);
-	query.bindValue(Q_TEXT(":album"), album);
-	query.bindValue(Q_TEXT(":coverId"), cover_id);
+	query.bindValue(qTEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":album"), album);
+	query.bindValue(qTEXT(":coverId"), cover_id);
 
 	IfFailureThrow1(query);
 	XAMP_LOG_D(logger_, "setAlbumCover albumId: {} coverId: {}", album_id, cover_id.toStdString());
@@ -593,7 +593,7 @@ void Database::setAlbumCover(int32_t album_id, const QString& album, const QStri
 std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     SELECT
         SUM(musics.duration) AS durations,
         (SELECT COUNT( * ) AS albums FROM albums WHERE albums.artistId = :artistId) AS albums,
@@ -605,15 +605,15 @@ std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
     WHERE
 	    albums.artistId = :artistId;)"));
 
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
+	query.bindValue(qTEXT(":artistId"), artist_id);
 
 	IfFailureThrow1(query);
 
 	while (query.next()) {
 		ArtistStats stats;
-		stats.albums = query.value(Q_TEXT("albums")).toInt();
-		stats.tracks = query.value(Q_TEXT("tracks")).toInt();
-		stats.durations = query.value(Q_TEXT("durations")).toDouble();
+		stats.albums = query.value(qTEXT("albums")).toInt();
+		stats.tracks = query.value(qTEXT("tracks")).toInt();
+		stats.durations = query.value(qTEXT("durations")).toDouble();
 		return stats;
 	}
 
@@ -623,7 +623,7 @@ std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
 std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     SELECT
         SUM(musics.duration) AS durations,
 		MAX(year) AS year,
@@ -635,15 +635,15 @@ std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
     WHERE
 	    albums.albumId = :albumId;)"));
 
-	query.bindValue(Q_TEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":albumId"), album_id);
 
 	IfFailureThrow1(query);
 
 	while (query.next()) {
 		AlbumStats stats;
-		stats.tracks = query.value(Q_TEXT("tracks")).toInt();
-		stats.year = query.value(Q_TEXT("year")).toInt();
-		stats.durations = query.value(Q_TEXT("durations")).toDouble();
+		stats.tracks = query.value(qTEXT("tracks")).toInt();
+		stats.year = query.value(qTEXT("year")).toInt();
+		stats.durations = query.value(qTEXT("durations")).toDouble();
 		return stats;
 	}
 
@@ -653,8 +653,8 @@ std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
 bool Database::isPlaylistExist(int32_t playlist_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT playlistId FROM playlist WHERE playlistId = (:playlistId)"));
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.prepare(qTEXT("SELECT playlistId FROM playlist WHERE playlistId = (:playlistId)"));
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
 
 	IfFailureThrow1(query);
 	return query.next();
@@ -663,12 +663,12 @@ bool Database::isPlaylistExist(int32_t playlist_id) const {
 int32_t Database::findTablePlaylistId(int32_t table_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT playlistId FROM tablePlaylist WHERE tableId = (:tableId)"));
-	query.bindValue(Q_TEXT(":tableId"), table_id);
+	query.prepare(qTEXT("SELECT playlistId FROM tablePlaylist WHERE tableId = (:tableId)"));
+	query.bindValue(qTEXT(":tableId"), table_id);
 
 	IfFailureThrow1(query);
 	while (query.next()) {
-		return query.value(Q_TEXT("playlistId")).toInt();
+		return query.value(qTEXT("playlistId")).toInt();
 	}
 	return kInvalidId;
 }
@@ -676,12 +676,12 @@ int32_t Database::findTablePlaylistId(int32_t table_id) const {
 void Database::addTablePlaylist(int32_t table_id, int32_t playlist_id) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     INSERT INTO tablePlaylist (playlistId, tableId) VALUES (:playlistId, :tableId)
     )"));
 
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
-	query.bindValue(Q_TEXT(":tableId"), table_id);
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
+	query.bindValue(qTEXT(":tableId"), table_id);
 
 	IfFailureThrow1(query);
 }
@@ -689,12 +689,12 @@ void Database::addTablePlaylist(int32_t table_id, int32_t playlist_id) {
 QString Database::getArtistCoverId(int32_t artist_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT coverId FROM artists WHERE artistId = (:artistId)"));
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
+	query.prepare(qTEXT("SELECT coverId FROM artists WHERE artistId = (:artistId)"));
+	query.bindValue(qTEXT(":artistId"), artist_id);
 
 	IfFailureThrow1(query);
 
-	const auto index = query.record().indexOf(Q_TEXT("coverId"));
+	const auto index = query.record().indexOf(qTEXT("coverId"));
 	if (query.next()) {
 		return query.value(index).toString();
 	}
@@ -704,12 +704,12 @@ QString Database::getArtistCoverId(int32_t artist_id) const {
 QString Database::getAlbumCoverId(int32_t album_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT coverId FROM albums WHERE albumId = (:albumId)"));
-	query.bindValue(Q_TEXT(":albumId"), album_id);
+	query.prepare(qTEXT("SELECT coverId FROM albums WHERE albumId = (:albumId)"));
+	query.bindValue(qTEXT(":albumId"), album_id);
 
 	IfFailureThrow1(query);
 
-	const auto index = query.record().indexOf(Q_TEXT("coverId"));
+	const auto index = query.record().indexOf(qTEXT("coverId"));
 	if (query.next()) {
 		return query.value(index).toString();
 	}
@@ -719,12 +719,12 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 QString Database::getAlbumCoverId(const QString& album) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("SELECT coverId FROM albums WHERE album = (:album)"));
-	query.bindValue(Q_TEXT(":album"), album);
+	query.prepare(qTEXT("SELECT coverId FROM albums WHERE album = (:album)"));
+	query.bindValue(qTEXT(":album"), album);
 
 	IfFailureThrow1(query);
 
-	const auto index = query.record().indexOf(Q_TEXT("coverId"));
+	const auto index = query.record().indexOf(qTEXT("coverId"));
 	if (query.next()) {
 		return query.value(index).toString();
 	}
@@ -738,7 +738,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 	blob_size_t.resize(sizeof(uint64_t));
 	MemoryCopy(blob_size_t.data(), &path_hash, sizeof(uint64_t));
 
-	auto q = Q_STR(R"(
+	auto q = qSTR(R"(
 	SELECT
 		albumMusic.albumId,
 		albumMusic.artistId,
@@ -755,38 +755,38 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 		hex(musics.parentPathHash) = '%1'
 	ORDER BY 
 		musics.track DESC;
-	)").arg(Q_TEXT(blob_size_t.toHex().toUpper()));
+	)").arg(qTEXT(blob_size_t.toHex().toUpper()));
 
 	QSqlQuery query(q);
 	IfFailureThrow1(query);
 
 	while (query.next()) {
 		PlayListEntity entity;
-		entity.album_id = query.value(Q_TEXT("albumId")).toInt();
-		entity.artist_id = query.value(Q_TEXT("artistId")).toInt();
-		entity.music_id = query.value(Q_TEXT("musicId")).toInt();
-		entity.file_path = query.value(Q_TEXT("path")).toString();
-		entity.track = query.value(Q_TEXT("track")).toUInt();
-		entity.title = query.value(Q_TEXT("title")).toString();
-		entity.file_name = query.value(Q_TEXT("fileName")).toString();
-		entity.album = query.value(Q_TEXT("album")).toString();
-		entity.artist = query.value(Q_TEXT("artist")).toString();
-		entity.file_ext = query.value(Q_TEXT("fileExt")).toString();
-		entity.parent_path = query.value(Q_TEXT("parentPath")).toString();
-		entity.duration = query.value(Q_TEXT("duration")).toDouble();
-		entity.bitrate = query.value(Q_TEXT("bitrate")).toUInt();
-		entity.samplerate = query.value(Q_TEXT("samplerate")).toUInt();
-		entity.cover_id = query.value(Q_TEXT("coverId")).toString();
-		entity.rating = query.value(Q_TEXT("rating")).toUInt();
-		entity.album_replay_gain = query.value(Q_TEXT("album_replay_gain")).toDouble();
-		entity.album_peak = query.value(Q_TEXT("album_peak")).toDouble();
-		entity.track_replay_gain = query.value(Q_TEXT("track_replay_gain")).toDouble();
-		entity.track_peak = query.value(Q_TEXT("track_peak")).toDouble();
+		entity.album_id = query.value(qTEXT("albumId")).toInt();
+		entity.artist_id = query.value(qTEXT("artistId")).toInt();
+		entity.music_id = query.value(qTEXT("musicId")).toInt();
+		entity.file_path = query.value(qTEXT("path")).toString();
+		entity.track = query.value(qTEXT("track")).toUInt();
+		entity.title = query.value(qTEXT("title")).toString();
+		entity.file_name = query.value(qTEXT("fileName")).toString();
+		entity.album = query.value(qTEXT("album")).toString();
+		entity.artist = query.value(qTEXT("artist")).toString();
+		entity.file_ext = query.value(qTEXT("fileExt")).toString();
+		entity.parent_path = query.value(qTEXT("parentPath")).toString();
+		entity.duration = query.value(qTEXT("duration")).toDouble();
+		entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
+		entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
+		entity.cover_id = query.value(qTEXT("coverId")).toString();
+		entity.rating = query.value(qTEXT("rating")).toUInt();
+		entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
+		entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
+		entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
+		entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
 
-		entity.genre = query.value(Q_TEXT("genre")).toString();
-		entity.comment = query.value(Q_TEXT("comment")).toString();
-		entity.year = query.value(Q_TEXT("year")).toUInt();
-		entity.file_size = query.value(Q_TEXT("fileSize")).toULongLong();
+		entity.genre = query.value(qTEXT("genre")).toString();
+		entity.comment = query.value(qTEXT("comment")).toString();
+		entity.year = query.value(qTEXT("year")).toUInt();
+		entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
 		track_infos.push_front(entity);
 	}
 
@@ -795,7 +795,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 
 size_t Database::getParentPathHash(const QString & parent_path) const {
 	QSqlQuery query;
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
 	SELECT
 		parentPathHash 
 	FROM
@@ -808,10 +808,10 @@ size_t Database::getParentPathHash(const QString & parent_path) const {
     )")
 	);
 
-	query.bindValue(Q_TEXT(":parentPath"), parent_path);
+	query.bindValue(qTEXT(":parentPath"), parent_path);
 	IfFailureThrow1(query);
 
-	const auto index = query.record().indexOf(Q_TEXT("parentPathHash"));
+	const auto index = query.record().indexOf(qTEXT("parentPathHash"));
 	if (query.next()) {
 		return getUlonglongValue(query, index);
 	}
@@ -821,51 +821,51 @@ size_t Database::getParentPathHash(const QString & parent_path) const {
 int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
     (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year, fileSize, parentPathHash)
     VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year, :fileSize, :parentPathHash)
     )")
 	);
 
-	query.bindValue(Q_TEXT(":title"), QString::fromStdWString(track_info.title));
-	query.bindValue(Q_TEXT(":track"), track_info.track);
-	query.bindValue(Q_TEXT(":path"), QString::fromStdWString(track_info.file_path));
-	query.bindValue(Q_TEXT(":fileExt"), QString::fromStdWString(track_info.file_ext));
-	query.bindValue(Q_TEXT(":fileName"), QString::fromStdWString(track_info.file_name));
-	query.bindValue(Q_TEXT(":parentPath"), QString::fromStdWString(track_info.parent_path));
-	query.bindValue(Q_TEXT(":duration"), track_info.duration);
-	query.bindValue(Q_TEXT(":durationStr"), streamTimeToString(track_info.duration));
-	query.bindValue(Q_TEXT(":bitrate"), track_info.bitrate);
-	query.bindValue(Q_TEXT(":samplerate"), track_info.samplerate);
-	query.bindValue(Q_TEXT(":offset"), track_info.offset);
-	query.bindValue(Q_TEXT(":fileSize"), track_info.file_size);
+	query.bindValue(qTEXT(":title"), QString::fromStdWString(track_info.title));
+	query.bindValue(qTEXT(":track"), track_info.track);
+	query.bindValue(qTEXT(":path"), QString::fromStdWString(track_info.file_path));
+	query.bindValue(qTEXT(":fileExt"), QString::fromStdWString(track_info.file_ext));
+	query.bindValue(qTEXT(":fileName"), QString::fromStdWString(track_info.file_name));
+	query.bindValue(qTEXT(":parentPath"), QString::fromStdWString(track_info.parent_path));
+	query.bindValue(qTEXT(":duration"), track_info.duration);
+	query.bindValue(qTEXT(":durationStr"), streamTimeToString(track_info.duration));
+	query.bindValue(qTEXT(":bitrate"), track_info.bitrate);
+	query.bindValue(qTEXT(":samplerate"), track_info.samplerate);
+	query.bindValue(qTEXT(":offset"), track_info.offset);
+	query.bindValue(qTEXT(":fileSize"), track_info.file_size);
 
-	bindUlonglongValue(query, Q_TEXT(":parentPathHash"), track_info.parent_path_hash);
+	bindUlonglongValue(query, qTEXT(":parentPathHash"), track_info.parent_path_hash);
 
 	if (track_info.replay_gain) {
-		query.bindValue(Q_TEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);
-		query.bindValue(Q_TEXT(":track_replay_gain"), track_info.replay_gain.value().track_gain);
-		query.bindValue(Q_TEXT(":album_peak"), track_info.replay_gain.value().album_peak);
-		query.bindValue(Q_TEXT(":track_peak"), track_info.replay_gain.value().track_peak);
+		query.bindValue(qTEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);
+		query.bindValue(qTEXT(":track_replay_gain"), track_info.replay_gain.value().track_gain);
+		query.bindValue(qTEXT(":album_peak"), track_info.replay_gain.value().album_peak);
+		query.bindValue(qTEXT(":track_peak"), track_info.replay_gain.value().track_peak);
 	}
 	else {
-		query.bindValue(Q_TEXT(":album_replay_gain"), 0);
-		query.bindValue(Q_TEXT(":track_replay_gain"), 0);
-		query.bindValue(Q_TEXT(":album_peak"), 0);
-		query.bindValue(Q_TEXT(":track_peak"), 0);
+		query.bindValue(qTEXT(":album_replay_gain"), 0);
+		query.bindValue(qTEXT(":track_replay_gain"), 0);
+		query.bindValue(qTEXT(":album_peak"), 0);
+		query.bindValue(qTEXT(":track_peak"), 0);
 	}
 
 	if (track_info.last_write_time == 0) {
-		query.bindValue(Q_TEXT(":dateTime"), QDateTime::currentSecsSinceEpoch());
+		query.bindValue(qTEXT(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	}
 	else {
-		query.bindValue(Q_TEXT(":dateTime"), track_info.last_write_time);
+		query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);
 	}
 
-	query.bindValue(Q_TEXT(":genre"), QString::fromStdWString(track_info.genre));
-	query.bindValue(Q_TEXT(":comment"), QString::fromStdWString(track_info.comment));
-	query.bindValue(Q_TEXT(":year"), track_info.year);
+	query.bindValue(qTEXT(":genre"), QString::fromStdWString(track_info.genre));
+	query.bindValue(qTEXT(":comment"), QString::fromStdWString(track_info.comment));
+	query.bindValue(qTEXT(":year"), track_info.year);
 
 	if (!query.exec()) {
 		XAMP_LOG_D(logger_, "{}", query.lastError().text().toStdString());
@@ -882,10 +882,10 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 void Database::updateMusicFilePath(int32_t music_id, const QString& file_path) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE musics SET path = :path WHERE (musicId = :musicId)"));
+	query.prepare(qTEXT("UPDATE musics SET path = :path WHERE (musicId = :musicId)"));
 
-	query.bindValue(Q_TEXT(":musicId"), music_id);
-	query.bindValue(Q_TEXT(":path"), file_path);
+	query.bindValue(qTEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":path"), file_path);
 
 	query.exec();
 }
@@ -893,10 +893,10 @@ void Database::updateMusicFilePath(int32_t music_id, const QString& file_path) {
 void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE musics SET rating = :rating WHERE (musicId = :musicId)"));
+	query.prepare(qTEXT("UPDATE musics SET rating = :rating WHERE (musicId = :musicId)"));
 
-	query.bindValue(Q_TEXT(":musicId"), music_id);
-	query.bindValue(Q_TEXT(":rating"), rating);
+	query.bindValue(qTEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":rating"), rating);
 
 	IfFailureThrow1(query);
 }
@@ -904,10 +904,10 @@ void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 void Database::updateMusicTitle(int32_t music_id, const QString& title) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE musics SET title = :title WHERE (musicId = :musicId)"));
+	query.prepare(qTEXT("UPDATE musics SET title = :title WHERE (musicId = :musicId)"));
 
-	query.bindValue(Q_TEXT(":musicId"), music_id);
-	query.bindValue(Q_TEXT(":title"), title);
+	query.bindValue(qTEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":title"), title);
 
 	IfFailureThrow1(query);
 }
@@ -919,13 +919,13 @@ void Database::updateReplayGain(int32_t music_id,
 	double track_peak) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE musics SET album_replay_gain = :album_replay_gain, album_peak = :album_peak, track_replay_gain = :track_replay_gain, track_peak = :track_peak WHERE (musicId = :musicId)"));
+	query.prepare(qTEXT("UPDATE musics SET album_replay_gain = :album_replay_gain, album_peak = :album_peak, track_replay_gain = :track_replay_gain, track_peak = :track_peak WHERE (musicId = :musicId)"));
 
-	query.bindValue(Q_TEXT(":musicId"), music_id);
-	query.bindValue(Q_TEXT(":album_replay_gain"), album_rg_gain);
-	query.bindValue(Q_TEXT(":album_peak"), album_peak);
-	query.bindValue(Q_TEXT(":track_replay_gain"), track_rg_gain);
-	query.bindValue(Q_TEXT(":track_peak"), track_peak);
+	query.bindValue(qTEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":album_replay_gain"), album_rg_gain);
+	query.bindValue(qTEXT(":album_peak"), album_peak);
+	query.bindValue(qTEXT(":track_replay_gain"), track_rg_gain);
+	query.bindValue(qTEXT(":track_peak"), track_peak);
 
 	IfFailureThrow1(query);
 }
@@ -933,7 +933,7 @@ void Database::updateReplayGain(int32_t music_id,
 void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const {
 	QSqlQuery query;
 
-	const auto querystr = Q_STR("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
+	const auto querystr = qSTR("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
 		.arg(playlist_id)
 		.arg(music_id)
 		.arg(album_id);
@@ -950,11 +950,11 @@ void Database::addMusicToPlaylist(const Vector<int32_t>& music_id, int32_t playl
 	strings.reserve(music_id.size());
 
 	for (const auto id : music_id) {
-		strings << Q_TEXT("(") + Q_TEXT("NULL, ") + QString::number(playlist_id) + Q_TEXT(", ") + QString::number(id) + Q_TEXT(")");
+		strings << qTEXT("(") + qTEXT("NULL, ") + QString::number(playlist_id) + qTEXT(", ") + QString::number(id) + qTEXT(")");
 	}
 
-	const auto querystr = Q_TEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ")
-	+ strings.join(Q_TEXT(","));
+	const auto querystr = qTEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ")
+	+ strings.join(qTEXT(","));
 	query.prepare(querystr);
 	IfFailureThrow1(query);
 }
@@ -962,10 +962,10 @@ void Database::addMusicToPlaylist(const Vector<int32_t>& music_id, int32_t playl
 void Database::updateArtistCoverId(int32_t artist_id, const QString& cover_id) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE artists SET coverId = :coverId WHERE (artistId = :artistId)"));
+	query.prepare(qTEXT("UPDATE artists SET coverId = :coverId WHERE (artistId = :artistId)"));
 
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
-	query.bindValue(Q_TEXT(":coverId"), cover_id);
+	query.bindValue(qTEXT(":artistId"), artist_id);
+	query.bindValue(qTEXT(":coverId"), cover_id);
 
 	IfFailureThrow1(query);
 }
@@ -975,14 +975,14 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO artists (artistId, artist, firstChar)
     VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist, :firstChar)
     )"));
 
 	auto firstChar = artist.left(1);
-	query.bindValue(Q_TEXT(":artist"), artist);
-	query.bindValue(Q_TEXT(":firstChar"), firstChar.toUpper());
+	query.bindValue(qTEXT(":artist"), artist);
+	query.bindValue(qTEXT(":firstChar"), firstChar.toUpper());
 
 	IfFailureThrow1(query);
 
@@ -995,7 +995,7 @@ void Database::updateArtistByDiscId(const QString& disc_id, const QString& artis
 
 	QSqlQuery query;
 	
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     SELECT
 		albumMusic.artistId
 	FROM
@@ -1006,26 +1006,26 @@ void Database::updateArtistByDiscId(const QString& disc_id, const QString& artis
 	LIMIT 1	
     )"));
 
-	query.bindValue(Q_TEXT(":discId"), disc_id);
+	query.bindValue(qTEXT(":discId"), disc_id);
 	IfFailureThrow1(query);
 
-	const auto index = query.record().indexOf(Q_TEXT("artistId"));
+	const auto index = query.record().indexOf(qTEXT("artistId"));
 	if (query.next()) {
 		auto artist_id = query.value(index).toInt();
-		query.prepare(Q_TEXT("UPDATE artists SET artist = :artist WHERE (artistId = :artistId)"));
-		query.bindValue(Q_TEXT(":artistId"), artist_id);
-		query.bindValue(Q_TEXT(":artist"), artist);
+		query.prepare(qTEXT("UPDATE artists SET artist = :artist WHERE (artistId = :artistId)"));
+		query.bindValue(qTEXT(":artistId"), artist_id);
+		query.bindValue(qTEXT(":artist"), artist);
 		IfFailureThrow1(query);
 	}
 }
 
 int32_t Database::getAlbumIdByDiscId(const QString& disc_id) const {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("SELECT albumId FROM albums WHERE discId = (:discId)"));
-	query.bindValue(Q_TEXT(":discId"), disc_id);
+	query.prepare(qTEXT("SELECT albumId FROM albums WHERE discId = (:discId)"));
+	query.bindValue(qTEXT(":discId"), disc_id);
 	IfFailureThrow1(query);
 
-	const auto index = query.record().indexOf(Q_TEXT("albumId"));
+	const auto index = query.record().indexOf(qTEXT("albumId"));
 	if (query.next()) {
 		return query.value(index).toInt();
 	}
@@ -1035,10 +1035,10 @@ int32_t Database::getAlbumIdByDiscId(const QString& disc_id) const {
 void Database::updateAlbumByDiscId(const QString& disc_id, const QString& album) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT("UPDATE albums SET album = :album WHERE (discId = :discId)"));
+	query.prepare(qTEXT("UPDATE albums SET album = :album WHERE (discId = :discId)"));
 
-	query.bindValue(Q_TEXT(":album"), album);
-	query.bindValue(Q_TEXT(":discId"), disc_id);
+	query.bindValue(qTEXT(":album"), album);
+	query.bindValue(qTEXT(":discId"), disc_id);
 
 	IfFailureThrow1(query);
 }
@@ -1046,20 +1046,20 @@ void Database::updateAlbumByDiscId(const QString& disc_id, const QString& album)
 int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id) {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId, isPodcast, dateTime, discId)
     VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId, :isPodcast, :dateTime, :discId)
     )"));
 
 	const auto first_char = album.left(1);
 
-	query.bindValue(Q_TEXT(":album"), album);
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
-	query.bindValue(Q_TEXT(":firstChar"), first_char.toUpper());
-	query.bindValue(Q_TEXT(":coverId"), getAlbumCoverId(album));
-	query.bindValue(Q_TEXT(":isPodcast"), is_podcast ? 1 : 0);
-	query.bindValue(Q_TEXT(":dateTime"), album_time);
-	query.bindValue(Q_TEXT(":discId"), disc_id);
+	query.bindValue(qTEXT(":album"), album);
+	query.bindValue(qTEXT(":artistId"), artist_id);
+	query.bindValue(qTEXT(":firstChar"), first_char.toUpper());
+	query.bindValue(qTEXT(":coverId"), getAlbumCoverId(album));
+	query.bindValue(qTEXT(":isPodcast"), is_podcast ? 1 : 0);
+	query.bindValue(qTEXT(":dateTime"), album_time);
+	query.bindValue(qTEXT(":discId"), disc_id);
 
 	IfFailureThrow1(query);
 
@@ -1073,13 +1073,13 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int6
 void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO albumArtist (albumArtistId, albumId, artistId)
     VALUES ((SELECT albumArtistId from albumArtist where albumId = :albumId AND artistId = :artistId), :albumId, :artistId)
     )"));
 
-	query.bindValue(Q_TEXT(":albumId"), album_id);
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
+	query.bindValue(qTEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":artistId"), artist_id);
 
 	IfFailureThrow1(query);
 
@@ -1089,14 +1089,14 @@ void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
 	QSqlQuery query;
 
-	query.prepare(Q_TEXT(R"(
+	query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
     VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
     )"));
 
-	query.bindValue(Q_TEXT(":albumId"), album_id);
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
-	query.bindValue(Q_TEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":artistId"), artist_id);
+	query.bindValue(qTEXT(":musicId"), music_id);
 
 	IfFailureThrow1(query);
 
@@ -1105,8 +1105,8 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
 
 void Database::removePlaylistAllMusic(int32_t playlist_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.prepare(qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
 	IfFailureThrow1(query);
 	XAMP_LOG_D(logger_, "removePlaylistAllMusic playlist_id:{}", playlist_id);
 }
@@ -1114,33 +1114,33 @@ void Database::removePlaylistAllMusic(int32_t playlist_id) {
 void Database::removeMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
 	QSqlQuery query;
 
-	QString str = Q_TEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)");
+	QString str = qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)");
 
 	QStringList list;
 	for (auto id : select_music_ids) {
 		list << QString::number(id);
 	}
 
-	auto q = str.arg(list.join(Q_TEXT(",")));
+	auto q = str.arg(list.join(qTEXT(",")));
 	query.prepare(q);
 
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
 	IfFailureThrow1(query);
 }
 
 void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
 	QSqlQuery query;
 
-	QString str = Q_TEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND playlistMusicsId in (%0)");
+	QString str = qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND playlistMusicsId in (%0)");
 
 	QStringList list;
 	for (auto id : select_music_ids) {
 		list << QString::number(id);
 	}
 
-	auto q = str.arg(list.join(Q_TEXT(",")));
+	auto q = str.arg(list.join(qTEXT(",")));
 	query.prepare(q);
 
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.bindValue(qTEXT(":playlistId"), playlist_id);
 	IfFailureThrow1(query);
 }

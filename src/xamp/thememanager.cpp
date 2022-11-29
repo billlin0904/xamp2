@@ -31,7 +31,7 @@ bool ThemeManager::useNativeWindow() const {
 
 QString ThemeManager::fontNamePath(const QString& file_name) {
 	return
-		Q_STR("%1/fonts/%2")
+		qSTR("%1/fonts/%2")
 		.arg(QCoreApplication::applicationDirPath())
 		.arg(file_name);
 }
@@ -54,18 +54,19 @@ QFont ThemeManager::loadFonts() {
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
 
-    qFontIcon.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
-    //qFontIcon.addFont(fontNamePath(Q_TEXT("FontAwesome_v6.2.0_Free_Solid900.ttf")));
+    //qFontIcon.addFont(fontNamePath(qTEXT("SegoeFluentIcons.ttf")));
+    //qFontIcon.addFont(fontNamePath(qTEXT("Font Awesome 6 Pro Regular.ttf")));
+    qFontIcon.addFont(fontNamePath(qTEXT("Font Awesome 6 Pro Solid.ttf")));
 
-    installFileFont(Q_TEXT("Roboto-Regular.ttf"), mono_fonts);
-    installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font);
+    installFileFont(qTEXT("Roboto-Regular.ttf"), mono_fonts);
+    installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
-    installFileFont(Q_TEXT("MiSans-Bold.ttf"), ui_fonts);
-	installFileFont(Q_TEXT("MiSans-Demibold.ttf"), ui_fonts);
-	installFileFont(Q_TEXT("MiSans-Semibold.ttf"), ui_fonts);
-	installFileFont(Q_TEXT("MiSans-Medium.ttf"), ui_fonts);
-	installFileFont(Q_TEXT("MiSans-Normal.ttf"), ui_fonts);
-	installFileFont(Q_TEXT("MiSans-Regular.ttf"), ui_fonts);
+    installFileFont(qTEXT("MiSans-Bold.ttf"), ui_fonts);
+	installFileFont(qTEXT("MiSans-Demibold.ttf"), ui_fonts);
+	installFileFont(qTEXT("MiSans-Semibold.ttf"), ui_fonts);
+	installFileFont(qTEXT("MiSans-Medium.ttf"), ui_fonts);
+	installFileFont(qTEXT("MiSans-Normal.ttf"), ui_fonts);
+	installFileFont(qTEXT("MiSans-Regular.ttf"), ui_fonts);
 
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
@@ -74,12 +75,12 @@ QFont ThemeManager::loadFonts() {
         mono_fonts = ui_fonts;
     }
 
-    QFont::insertSubstitutions(Q_TEXT("DisplayFont"), display_fonts);
-    QFont::insertSubstitutions(Q_TEXT("FormatFont"), format_font);
-    QFont::insertSubstitutions(Q_TEXT("MonoFont"), mono_fonts);
-    QFont::insertSubstitutions(Q_TEXT("UIFont"), ui_fonts);
+    QFont::insertSubstitutions(qTEXT("DisplayFont"), display_fonts);
+    QFont::insertSubstitutions(qTEXT("FormatFont"), format_font);
+    QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
+    QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
 
-    QFont ui_font(Q_TEXT("UIFont"));
+    QFont ui_font(qTEXT("UIFont"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }
@@ -110,29 +111,31 @@ ThemeManager::ThemeManager() {
 #else
     ui_font_.setPointSize(12);
 #endif
-    unknown_cover_ = QPixmap(Q_TEXT(":/xamp/Resource/White/unknown_album.png"));
+    unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
 	default_size_unknown_cover_ = QPixmap(Pixmap::scaledImage(unknown_cover_, cover_size_));
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
+
     setPalette();
     AppSettings::setEnumValue(kAppSettingTheme, theme_color_);
-    switch (themeColor()) {
-    case ThemeColor::DARK_THEME:
-        qFontIcon.setBaseColor(Qt::white);
-        break;
+
+    switch (theme_color) {
     case ThemeColor::LIGHT_THEME:
-        qFontIcon.setBaseColor(Qt::black);
+        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(0, 28, 64)));
+        break;
+    case ThemeColor::DARK_THEME:
+        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(240, 241, 243)));
         break;
     }
 }
 
 QLatin1String ThemeManager::themeColorPath() const {
     if (theme_color_ == ThemeColor::DARK_THEME) {
-        return Q_TEXT("Black");
+        return qTEXT("Black");
     }
-    return Q_TEXT("White");
+    return qTEXT("White");
 }
 
 QColor ThemeManager::themeTextColor() const {
@@ -157,10 +160,10 @@ QString ThemeManager::backgroundColorString() const {
 
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        color = Q_TEXT("#19232D");
+        color = qTEXT("#19232D");
         break;
     case ThemeColor::LIGHT_THEME:
-        color = Q_TEXT("#FAFAFA");
+        color = qTEXT("#FAFAFA");
         break;
     }
     return color;
@@ -173,92 +176,16 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
     menu->setStyle(new IconSizeStyle(12));
 }
 
-QIcon ThemeManager::volumeUp() const {
-    return iconFromFont(Glyphs::ICON_VOLUME_UP);
-}
-
-QIcon ThemeManager::volumeOff() const {
-    return iconFromFont(Glyphs::ICON_VOLUME_OFF);
-}
-
-QIcon ThemeManager::iconFromFont(const QChar& code, QVariantMap options) const {
-    return qFontIcon.icon(code, std::move(options));
-}
-
-QIcon ThemeManager::folderIcon() const {
-    return iconFromFont(Glyphs::ICON_FOLDER);
-}
-
-QIcon ThemeManager::speakerIcon() const {
-    return iconFromFont(Glyphs::ICON_SPEAKER);
-}
-
-QIcon ThemeManager::playlistIcon() const {
-    return iconFromFont(Glyphs::ICON_PLAYLIST);
-}
-
-QIcon ThemeManager::equalizerIcon() const {
-    return iconFromFont(Glyphs::ICON_EQUALIZER);
-}
-
-QIcon ThemeManager::podcastIcon() const {
-    return iconFromFont(Glyphs::ICON_PODCAST);
-}
-
-QIcon ThemeManager::albumsIcon() const {
-    return iconFromFont(Glyphs::ICON_ALBUM);
-}
-
-QIcon ThemeManager::cdIcon() const {
-    return iconFromFont(Glyphs::ICON_CD);
-}
-
-QIcon ThemeManager::artistsIcon() const {
-    return iconFromFont(Glyphs::ICON_ARTIST);
-}
-
-QIcon ThemeManager::subtitleIcon() const {
-    return iconFromFont(Glyphs::ICON_SUBTITLE);
-}
-
-QIcon ThemeManager::preferenceIcon() const  {
-    return iconFromFont(Glyphs::ICON_PREFERENCE);
-}
-
-QIcon ThemeManager::aboutIcon() const {
-    return iconFromFont(Glyphs::ICON_ABOUT);
-}
-
-QIcon ThemeManager::darkModeIcon() const {
-    return iconFromFont(Glyphs::ICON_DARK_MODE);
-}
-
-QIcon ThemeManager::lightModeIcon() const {
-    return iconFromFont(Glyphs::ICON_LIGHT_MODE);
-}
-
-QIcon ThemeManager::seachIcon() const {
-    return iconFromFont(Glyphs::ICON_SEARCH);
-}
-
-QIcon ThemeManager::themeIcon() const {
-    return iconFromFont(Glyphs::ICON_THEME);
-}
-
-QIcon ThemeManager::desktopIcon() const {
-    return iconFromFont(Glyphs::ICON_DESKTOP);
+QIcon ThemeManager::iconFromFont(const char32_t code) const {
+    return qFontIcon.icon(code, font_icon_opts_);
 }
 
 QIcon ThemeManager::appIcon() const {
-    return QIcon(Q_TEXT(":/xamp/xamp.ico"));
+    return QIcon(qTEXT(":/xamp/xamp.ico"));
 }
 
 QIcon ThemeManager::playCircleIcon() const {
-    return QIcon(Q_TEXT(":/xamp/Resource/Black/play_circle.png"));
-}
-
-QIcon ThemeManager::moreIcon() const {
-    return iconFromFont(Glyphs::ICON_MORE);
+    return QIcon(qTEXT(":/xamp/Resource/Black/play_circle.png"));
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {
@@ -273,23 +200,11 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
     ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
 }
 
-QIcon ThemeManager::minimizeWindowIcon() const {
-    return iconFromFont(Glyphs::ICON_MINIMIZE_WINDOW);
-}
-
-QIcon ThemeManager::maximumWindowIcon() const {
-    return iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW);
-}
-
-QIcon ThemeManager::restoreWindowIcon() const {
-    return iconFromFont(Glyphs::ICON_RESTORE_WINDOW);
-}
-
 QPixmap ThemeManager::githubIcon() const {
 	if (themeColor() == ThemeColor::DARK_THEME) {
-        return QPixmap(Q_TEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
+        return QPixmap(qTEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
 	} else {
-        return QPixmap(Q_TEXT(":/xamp/Resource/White/GitHub-Mark.png"));
+        return QPixmap(qTEXT(":/xamp/Resource/White/GitHub-Mark.png"));
 	}
 }
 
@@ -303,17 +218,17 @@ const QPixmap& ThemeManager::defaultSizeUnknownCover() const noexcept {
 
 void ThemeManager::updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const {
     if (is_maximum) {
-        ui.maxWinButton->setIcon(restoreWindowIcon());
+        ui.maxWinButton->setIcon(iconFromFont(Glyphs::ICON_RESTORE_WINDOW));
     } else {
-        ui.maxWinButton->setIcon(maximumWindowIcon());
+        ui.maxWinButton->setIcon(iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW));
     }
 }
 
 void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
-    ui.bitPerfectButton->setText(Q_STR("Bit-Perfect"));
+    ui.bitPerfectButton->setText(qSTR("Bit-Perfect"));
 
     if (enable) {        
-        ui.bitPerfectButton->setStyleSheet(Q_STR(
+        ui.bitPerfectButton->setStyleSheet(qSTR(
             R"(
                 QToolButton#bitPerfectButton {
 					font-family: "FormatFont";
@@ -326,7 +241,7 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
         ));
     }
     else {        
-        ui.bitPerfectButton->setStyleSheet(Q_STR(
+        ui.bitPerfectButton->setStyleSheet(qSTR(
             R"(
                 QToolButton#bitPerfectButton {
 					font-family: "FormatFont";
@@ -376,9 +291,9 @@ void ThemeManager::applyTheme() {
     QString filename;
 
     if (themeColor() == ThemeColor::LIGHT_THEME) {
-        filename = Q_TEXT(":/xamp/Resource/Theme/light/style.qss");
+        filename = qTEXT(":/xamp/Resource/Theme/light/style.qss");
     } else {
-        filename = Q_TEXT(":/xamp/Resource/Theme/dark/style.qss");
+        filename = qTEXT(":/xamp/Resource/Theme/dark/style.qss");
     }
 
     QFile f(filename);
@@ -403,7 +318,7 @@ QColor ThemeManager::coverShadownColor() const {
         return Qt::black;
     case ThemeColor::LIGHT_THEME:
     default:
-        return QColor(Q_TEXT("#DCDCDC"));
+        return QColor(qTEXT("#DCDCDC"));
     }
 }
 
@@ -421,10 +336,10 @@ void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
 QColor ThemeManager::hoverColor() const {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        return QColor(Q_TEXT("#455364"));
+        return QColor(qTEXT("#455364"));
     case ThemeColor::LIGHT_THEME:
     default:
-        return QColor(Q_TEXT("#C9CDD0"));
+        return QColor(qTEXT("#C9CDD0"));
     }
 }
 
@@ -432,7 +347,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
     const QColor hover_color = hoverColor();
     auto font_size = 10;
 
-    close_button->setStyleSheet(Q_STR(R"(
+    close_button->setStyleSheet(qSTR(R"(
                                          QToolButton#closeButton {
                                          border: none;
                                          background-color: transparent;
@@ -447,7 +362,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
     close_button->setIconSize(QSize(font_size, font_size));
     close_button->setIcon(iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
 
-    min_win_button->setStyleSheet(Q_STR(R"(
+    min_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#minWinButton {
                                           border: none;
                                           background-color: transparent;
@@ -459,9 +374,9 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
                                           }
                                           )").arg(colorToString(hover_color)));
     min_win_button->setIconSize(QSize(font_size, font_size));
-    min_win_button->setIcon(minimizeWindowIcon());
+    min_win_button->setIcon(iconFromFont(Glyphs::ICON_MINIMIZE_WINDOW));
 
-    max_win_button->setStyleSheet(Q_STR(R"(
+    max_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
                                           background-color: transparent;
@@ -473,7 +388,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
                                           }
                                           )").arg(colorToString(hover_color)));
     max_win_button->setIconSize(QSize(font_size, font_size));
-    max_win_button->setIcon(maximumWindowIcon());
+    max_win_button->setIcon(iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW));
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
@@ -484,7 +399,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
     if (useNativeWindow()) {
         ui.logoButton->hide();
     } else {
-        ui.logoButton->setStyleSheet(Q_STR(R"(
+        ui.logoButton->setStyleSheet(qSTR(R"(
                                          QToolButton#logoButton {
                                          border: none;
                                          image: url(":/xamp/xamp.ico");
@@ -493,7 +408,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 										)"));
     }
 
-    ui.sliderBarButton->setStyleSheet(Q_STR(R"(
+    ui.sliderBarButton->setStyleSheet(qSTR(R"(
                                             QToolButton#sliderBarButton {
                                             border: none;
                                             background-color: transparent;
@@ -509,7 +424,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             )").arg(colorToString(hover_color)));
     ui.sliderBarButton->setIcon(iconFromFont(Glyphs::ICON_SLIDER_BAR));
 
-    ui.stopButton->setStyleSheet(Q_STR(R"(
+    ui.stopButton->setStyleSheet(qSTR(R"(
                                          QToolButton#stopButton {
                                          border: none;
                                          background-color: transparent;
@@ -517,7 +432,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          )"));
     ui.stopButton->setIcon(iconFromFont(ICON_STOP_PLAY));
 
-    ui.nextButton->setStyleSheet(Q_TEXT(R"(
+    ui.nextButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#nextButton {
                                         border: none;
                                         background-color: transparent;
@@ -525,7 +440,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         )"));
     ui.nextButton->setIcon(iconFromFont(Glyphs::ICON_PLAY_FORWARD));
 
-    ui.prevButton->setStyleSheet(Q_TEXT(R"(
+    ui.prevButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#prevButton {
                                         border: none;
                                         background-color: transparent;
@@ -533,16 +448,16 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         )"));
     ui.prevButton->setIcon(iconFromFont(Glyphs::ICON_PLAY_BACKWARD));
 
-    ui.selectDeviceButton->setStyleSheet(Q_TEXT(R"(
+    ui.selectDeviceButton->setStyleSheet(qTEXT(R"(
                                                 QToolButton#selectDeviceButton {                                                
                                                 border: none;
                                                 background-color: transparent;                                                
                                                 }
                                                 QToolButton#selectDeviceButton::menu-indicator { image: none; }
                                                 )"));
-    ui.selectDeviceButton->setIcon(speakerIcon());
+    ui.selectDeviceButton->setIcon(iconFromFont(Glyphs::ICON_SPEAKER));
 
-    ui.mutedButton->setStyleSheet(Q_STR(R"(
+    ui.mutedButton->setStyleSheet(qSTR(R"(
                                          QToolButton#mutedButton {
                                          image: url(:/xamp/Resource/%1/volume_up.png);
                                          border: none;
@@ -550,22 +465,22 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          }
                                          )").arg(themeColorPath()));
 
-    ui.eqButton->setStyleSheet(Q_TEXT(R"(
+    ui.eqButton->setStyleSheet(qTEXT(R"(
                                          QToolButton#eqButton {
                                          border: none;
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.eqButton->setIcon(equalizerIcon());
+    ui.eqButton->setIcon(iconFromFont(Glyphs::ICON_EQUALIZER));
 }
 
 void ThemeManager::setTextSeparator(QFrame *frame) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        frame->setStyleSheet(Q_TEXT("background-color: #37414F;"));
+        frame->setStyleSheet(qTEXT("background-color: #37414F;"));
         break;
     case ThemeColor::LIGHT_THEME:
-        frame->setStyleSheet(Q_TEXT("background-color: #CED1D4;"));
+        frame->setStyleSheet(qTEXT("background-color: #CED1D4;"));
         break;
     }
 }
@@ -594,53 +509,53 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     QString slider_bar_left_color;
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        slider_bar_left_color = Q_TEXT("42, 130, 218");
+        slider_bar_left_color = qTEXT("42, 130, 218");
         break;
     case ThemeColor::LIGHT_THEME:
-        slider_bar_left_color = Q_TEXT("42, 130, 218");
+        slider_bar_left_color = qTEXT("42, 130, 218");
         break;
     }
 
-    ui.playButton->setStyleSheet(Q_TEXT(R"(
+    ui.playButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#playButton {
                                             border: none;
                                             background-color: transparent;
                                             }
                                             )"));
 
-    ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
+    ui.searchLineEdit->setStyleSheet(qTEXT(""));
 
-    ui.searchFrame->setStyleSheet(Q_TEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
+    ui.searchFrame->setStyleSheet(qTEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
 
-    ui.volumeSlider->setStyleSheet(Q_TEXT(R"(
+    ui.volumeSlider->setStyleSheet(qTEXT(R"(
                                           QSlider#volumeSlider {
                                           border: none;
                                           background-color: transparent;
                                           }
                                           )"));
 
-    ui.startPosLabel->setStyleSheet(Q_TEXT(R"(
+    ui.startPosLabel->setStyleSheet(qTEXT(R"(
                                            QLabel#startPosLabel {
                                            color: gray;
                                            background-color: transparent;
                                            }
                                            )"));
 
-    ui.endPosLabel->setStyleSheet(Q_TEXT(R"(
+    ui.endPosLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#endPosLabel {
                                          color: gray;
                                          background-color: transparent;
                                          }
                                          )"));
 
-   ui.seekSlider->setStyleSheet(Q_TEXT(R"(
+   ui.seekSlider->setStyleSheet(qTEXT(R"(
                                         QSlider#seekSlider {
                                         border: none;
                                         background-color: transparent;
                                         }
                                         )"));
 
-    ui.sliderBar->setStyleSheet(Q_STR(R"(
+    ui.sliderBar->setStyleSheet(qSTR(R"(
 	QListView#sliderBar {
 		border: none; 
 	}
@@ -659,14 +574,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 	}	
 	)").arg(slider_bar_left_color));
 
-    ui.titleFrameLabel->setStyleSheet(Q_STR(R"(
+    ui.titleFrameLabel->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;
     }
     )"));
 
-    ui.tableLabel->setStyleSheet(Q_STR(R"(
+    ui.tableLabel->setStyleSheet(qSTR(R"(
     QLabel#tableLabel {
     border: none;
     background: transparent;
@@ -676,14 +591,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 
     ui.searchLineEdit->setClearButtonEnabled(true);
     if (theme_color_ == ThemeColor::DARK_THEME) {
-        ui.titleLabel->setStyleSheet(Q_TEXT(R"(
+        ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
                                          color: white;
                                          background-color: transparent;
                                          }
                                          )"));
 
-        ui.searchLineEdit->setStyleSheet(Q_STR(R"(
+        ui.searchLineEdit->setStyleSheet(qSTR(R"(
                                             QLineEdit#searchLineEdit {
                                             background-color: %1;
                                             border: gray;
@@ -692,7 +607,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             }
                                             )").arg(colorToString(Qt::black)));
 
-        ui.currentView->setStyleSheet(Q_STR(R"(
+        ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
 				background-color: #121920;
 				border: 1px solid black;
@@ -701,7 +616,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
             )"));
 
         ui.bottomFrame->setStyleSheet(
-            Q_TEXT(R"(
+            qTEXT(R"(
             QFrame#bottomFrame{
                 border-top: 1px solid black;
                 border-radius: 0px;
@@ -712,14 +627,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
             )"));
     }
     else {
-        ui.titleLabel->setStyleSheet(Q_TEXT(R"(
+        ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
                                          color: black;
                                          background-color: transparent;
                                          }
                                          )"));
 
-        ui.searchLineEdit->setStyleSheet(Q_STR(R"(
+        ui.searchLineEdit->setStyleSheet(qSTR(R"(
                                             QLineEdit#searchLineEdit {
                                             background-color: %1;
                                             border: gray;
@@ -728,7 +643,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             }
                                             )").arg(colorToString(Qt::white)));
 
-        ui.currentView->setStyleSheet(Q_TEXT(R"(
+        ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
 				border: 1px solid #eaeaea;
@@ -737,7 +652,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
             )"));
 
         ui.bottomFrame->setStyleSheet(
-            Q_TEXT(R"(
+            qTEXT(R"(
             QFrame#bottomFrame {
                 border-top: 1px solid #eaeaea;
                 border-radius: 0px;
@@ -748,14 +663,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
             )"));
     }
 
-    ui.artistLabel->setStyleSheet(Q_TEXT(R"(
+    ui.artistLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#artistLabel {
                                          color: rgb(250, 88, 106);
                                          background-color: transparent;
                                          }
                                          )"));
 
-    ui.repeatButton->setStyleSheet(Q_TEXT(R"(
+    ui.repeatButton->setStyleSheet(qTEXT(R"(
     QToolButton#repeatButton {
     border: none;
     background: transparent;
@@ -765,6 +680,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());
-    ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));    
-    ui.currentViewFrame->setStyleSheet(Q_TEXT("border: none;"));
+    ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));    
+    ui.currentViewFrame->setStyleSheet(qTEXT("border: none;"));
 }

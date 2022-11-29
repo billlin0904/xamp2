@@ -90,7 +90,7 @@ XWindow::XWindow()
     , current_screen_(nullptr)
 #endif
 	, player_frame_(nullptr) {
-    setObjectName(Q_TEXT("framelessWindow"));
+    setObjectName(qTEXT("framelessWindow"));
 }
 
 void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
@@ -302,7 +302,7 @@ void XWindow::readDriveInfo() {
             return;
         }
 
-        auto display_name = storage.displayName() + Q_TEXT("(") + storage.rootPath() + Q_TEXT(")");
+        auto display_name = storage.displayName() + qTEXT("(") + storage.rootPath() + qTEXT(")");
         const auto driver_letter = storage.rootPath().left(1).toStdString()[0];
         const auto file_system_type = storage.fileSystemType();
         if (kCDFileSystemType.contains(file_system_type.toUpper())) {
@@ -315,7 +315,7 @@ void XWindow::readDriveInfo() {
                 DriveInfo info{
                    driver_letter ,
                    display_name,
-                    QString(Q_TEXT("%1:\\")).arg(driver_letter)
+                    QString(qTEXT("%1:\\")).arg(driver_letter)
                 };
                 exist_drives_[display_name] = info;
                 drives.push_back(info);
@@ -581,7 +581,7 @@ void XWindow::addSystemMenu(QWidget* widget) {
         action_map.setCallback(restore_act, [this]() {
             showNormal();
             });
-        restore_act->setIcon(qTheme.restoreWindowIcon());
+        restore_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RESTORE_WINDOW));
         restore_act->setEnabled(isMaximized());
 
         auto* move_act = action_map.addAction(tr("Move(M)"));
@@ -594,7 +594,7 @@ void XWindow::addSystemMenu(QWidget* widget) {
         action_map.setCallback(mini_act, [this]() {
             showMinimized();
             });
-        mini_act->setIcon(qTheme.minimizeWindowIcon());
+        mini_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_MINIMIZE_WINDOW));
         mini_act->setEnabled(true);
 
         auto* max_act = action_map.addAction(tr("Maximum(M)"));
@@ -602,7 +602,7 @@ void XWindow::addSystemMenu(QWidget* widget) {
             showMaximized();
             });
         max_act->setEnabled(!isMaximized());
-        max_act->setIcon(qTheme.maximumWindowIcon());
+        max_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW));
         action_map.addSeparator();
 
         auto* close_act = action_map.addAction(tr("Close(X)"));

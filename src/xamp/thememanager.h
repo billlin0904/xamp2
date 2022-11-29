@@ -43,44 +43,8 @@ public:
     const QPixmap& unknownCover() const noexcept;
 
 	const QPixmap& defaultSizeUnknownCover() const noexcept;
-
-    QIcon desktopIcon() const;
-
-    QIcon folderIcon() const;
-
+    
     QIcon appIcon() const;
-
-    QIcon volumeUp() const;
-
-    QIcon volumeOff() const;
-
-    QIcon playlistIcon() const;
-
-    QIcon podcastIcon() const;
-
-    QIcon equalizerIcon() const;
-
-    QIcon albumsIcon() const;
-
-    QIcon artistsIcon() const;
-
-    QIcon subtitleIcon() const;
-
-    QIcon preferenceIcon() const;
-
-    QIcon aboutIcon() const;
-
-    QIcon darkModeIcon() const;
-
-    QIcon lightModeIcon() const;
-
-    QIcon seachIcon() const;
-
-    QIcon themeIcon() const;
-
-    QIcon cdIcon() const;
-
-    QIcon moreIcon() const;
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
@@ -97,14 +61,6 @@ public:
     QSize saveCoverArtSize() const noexcept;
 
     QIcon playCircleIcon() const;
-
-    QIcon speakerIcon() const;
-
-    QIcon minimizeWindowIcon() const;
-
-    QIcon maximumWindowIcon() const;
-
-    QIcon restoreWindowIcon() const;
 
     QPixmap githubIcon() const;
 
@@ -152,7 +108,7 @@ public:
 
     void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon iconFromFont(const QChar& code, QVariantMap options = QVariantMap()) const;
+    QIcon iconFromFont(const char32_t code) const;
 
     void setTextSeparator(QFrame* frame);
 
@@ -171,6 +127,7 @@ private:
     
     bool use_native_window_;
     ThemeColor theme_color_;
+    QVariantMap font_icon_opts_;
     QSize album_cover_size_;
     QSize cover_size_;
     QSize save_cover_art_size_;

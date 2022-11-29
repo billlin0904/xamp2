@@ -13,12 +13,12 @@ SwitchButton::SwitchButton(QWidget *parent)
 
     is_darktheme_ = qTheme.themeColor() == ThemeColor::DARK_THEME;
     if (is_darktheme_) {
-        handle_color = Q_TEXT("black");
+        handle_color = qTEXT("black");
     } else {
-        handle_color = Q_TEXT("white");
+        handle_color = qTEXT("white");
     }
 
-    setStyleSheet(Q_STR(R"(
+    setStyleSheet(qSTR(R"(
     SwitchButton {		
         background: #CCCCCC;
         border: 1px solid darkgray;
@@ -102,16 +102,16 @@ void SwitchButton::paintEvent(QPaintEvent *) {
         QString handle_color;
 
         if (is_darktheme_) {
-            handle_color = Q_TEXT("black");
+            handle_color = qTEXT("black");
         }
         else {
-            handle_color = Q_TEXT("white");
+            handle_color = qTEXT("white");
         }
 
         QRect text_rect(0, 0, width() - text_y, height());
         painter.drawText(text_rect, Qt::AlignCenter, tr("ON"));
 
-        setStyleSheet(Q_STR(R"(
+        setStyleSheet(qSTR(R"(
         SwitchButton {		
         background: #CCCCCC;
         border: 1px solid darkgray;
@@ -136,7 +136,7 @@ void SwitchButton::paintEvent(QPaintEvent *) {
         QRect text_rect(0, 0, width() + text_y, height());
         painter.drawText(text_rect, Qt::AlignCenter, tr("OFF"));
 
-        setStyleSheet(Q_STR(R"(
+        setStyleSheet(qSTR(R"(
         SwitchButton {		
         background: #CCCCCC;
         border: 1px solid darkgray;
@@ -156,7 +156,7 @@ void SwitchButton::paintEvent(QPaintEvent *) {
         SwitchButton:on {
             background: rgb(42, 130, 218);
         }
-        )").arg(Q_TEXT("gray")));
+        )").arg(qTEXT("gray")));
     }
 
     QStyleOptionSlider slider_opt;

@@ -3,7 +3,7 @@
 #include <widget/str_utilts.h>
 
 QString colorToString(QColor color) {
-    return QString(Q_TEXT("rgba(%1,%2,%3,%4)"))
+    return QString(qTEXT("rgba(%1,%2,%3,%4)"))
         .arg(color.red())
         .arg(color.green())
         .arg(color.blue())
@@ -11,14 +11,14 @@ QString colorToString(QColor color) {
 }
 
 QString backgroundColorToString(QColor color) {
-    return Q_TEXT("background-color: ") + colorToString(color) + Q_TEXT(";");
+    return qTEXT("background-color: ") + colorToString(color) + qTEXT(";");
 }
 
 QString bitRate2String(uint32_t bitRate) {
     if (bitRate > 10000) {
-        return QString::number(bitRate / 1000.0, 'f', 2).rightJustified(5) + Q_TEXT(" Mbps");
+        return QString::number(bitRate / 1000.0, 'f', 2).rightJustified(5) + qTEXT(" Mbps");
     }
-    return QString::number(bitRate).rightJustified(5) + Q_TEXT(" kbps");
+    return QString::number(bitRate).rightJustified(5) + qTEXT(" kbps");
 }
 
 QString samplerate2String(uint32_t samplerate) {
@@ -33,15 +33,15 @@ QString samplerate2String(uint32_t samplerate) {
     }
 
     if (is_mhz_samplerate) {
-        return QString::number(samplerate / 1000000.0, 'f', 2).rightJustified(6) + Q_TEXT(" MHz");
+        return QString::number(samplerate / 1000000.0, 'f', 2).rightJustified(6) + qTEXT(" MHz");
     } else {
-        return QString::number(samplerate / 1000.0, 'f', precision).rightJustified(3) + Q_TEXT(" kHz");
+        return QString::number(samplerate / 1000.0, 'f', precision).rightJustified(3) + qTEXT(" kHz");
     }
 }
 
 QString dsdSampleRate2String(uint32_t dsd_speed) {
     const auto sample_rate = (dsd_speed / 64) * 2.82;
-    return QString::number(sample_rate, 'f', 2) + Q_TEXT("kHz");
+    return QString::number(sample_rate, 'f', 2) + qTEXT("kHz");
 }
 
 QString streamTimeToString(const double stream_time, bool full_text) {
@@ -52,9 +52,9 @@ QString streamTimeToString(const double stream_time, bool full_text) {
     const auto s = (secs % 3600) % 60;
     QTime t(h, m, s, ms);
     if (h > 0 || full_text) {
-        return t.toString(Q_TEXT("hh:mm:ss"));
+        return t.toString(qTEXT("hh:mm:ss"));
     }
-    return t.toString(Q_TEXT("mm:ss"));
+    return t.toString(qTEXT("mm:ss"));
 }
 
 bool isMoreThan1Hours(const double stream_time) {
