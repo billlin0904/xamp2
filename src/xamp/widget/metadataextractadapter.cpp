@@ -166,6 +166,8 @@ public:
             return;
         }
 
+        XAMP_LOG_DEBUG("Cache miss! Hash:{}", path_hash);
+
         std::for_each(paths_.begin(), paths_.end(), [&](auto& path) {
             auto metadata = reader_->Extract(path);
 			album_groups_[metadata.album].push_front(std::move(metadata));
@@ -254,6 +256,8 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("ScanFolder has exception: {}", e.what());
         }
+
+        qApp->processEvents();
         dialog->setValue(progress++);
     }
 }

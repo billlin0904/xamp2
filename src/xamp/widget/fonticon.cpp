@@ -39,6 +39,9 @@ const QString FontIconColorOption::activeColorAttr(qTEXT("activeColor"));
 const QString FontIconColorOption::activeOnColorAttr(qTEXT("activeOnColor"));
 const QString FontIconColorOption::disabledColorAttr(qTEXT("disabledColor"));
 const QString FontIconColorOption::selectedColorAttr(qTEXT("selectedColor"));
+const QString FontIconColorOption::flipLeftRightAttr(qTEXT("flipLeftRight"));
+const QString FontIconColorOption::rotateAngleAttr(qTEXT("rotateAngle"));
+const QString FontIconColorOption::flipTopBottomAttr(qTEXT("flipTopBottom"));
 
 QColor FontIconColorOption::color = QApplication::palette("QWidget").color(QPalette::Normal, QPalette::ButtonText);
 QColor FontIconColorOption::disabledColor = QApplication::palette("QWidget").color(QPalette::Disabled, QPalette::ButtonText);
@@ -54,7 +57,7 @@ static T getOrDefault(QVariantMap const & opt, const QString & s, T defaultValue
         return defaultValue;
     }
     else {
-        return var.value<QColor>();
+        return var.value<T>();
     }
 }
 
@@ -94,11 +97,15 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 
     font.setPixelSize(draw_size);
 
-    auto pen_color = getOrDefault<QColor>(options_, FontIconColorOption::colorAttr, FontIconColorOption::color);
+    QColor pen_color;
 
     switch (mode) {
     case QIcon::Normal:
-        pen_color = getOrDefault<QColor>(options_, FontIconColorOption::onColorAttr, FontIconColorOption::onColor);
+        switch (state) {
+        case QIcon::On:
+            pen_color = getOrDefault<QColor>(options_, FontIconColorOption::onColorAttr, FontIconColorOption::onColor);
+            break;
+        }
         break;
     case QIcon::Active:
         switch (state) {
@@ -121,22 +128,26 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
         break;
     }
 
+    if (!pen_color.isValid()) {
+        pen_color = getOrDefault<QColor>(options_, FontIconColorOption::colorAttr, FontIconColorOption::color);
+    }
+
     painter->save();
 
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     painter->translate(rect.center() + QPoint(1, 1));
 
-    var = options_.value(qTEXT("rotateAngle"));
+    var = options_.value(FontIconColorOption::rotateAngleAttr);
     if (var.isValid()) {
         painter->rotate(var.value<qreal>());
     }
 
-    var = options_.value(qTEXT("flipLeftRight"));
+    var = options_.value(FontIconColorOption::flipLeftRightAttr);
     if (var.isValid()) {
         painter->scale(-1.0, 1.0);
     }
 
-    var = options_.value(qTEXT("flipTopBottom"));
+    var = options_.value(FontIconColorOption::flipTopBottomAttr);
     if (var.isValid()) {
         painter->scale(1.0, -1.0);
     }

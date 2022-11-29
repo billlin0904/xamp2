@@ -122,11 +122,11 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
     AppSettings::setEnumValue(kAppSettingTheme, theme_color_);
 
     switch (theme_color) {
-    case ThemeColor::LIGHT_THEME:
-        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(240, 241, 243)));        
-        break;
     case ThemeColor::DARK_THEME:
-        font_icon_opts_.insert(qTEXT("color"), QVariant::fromValue(QColor(0, 28, 64)));
+        font_icon_opts_.insert(FontIconColorOption::colorAttr, QVariant(QColor(240, 241, 243)));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        font_icon_opts_.insert(FontIconColorOption::colorAttr, QVariant(QColor(0, 28, 64)));
         break;
     }
 }

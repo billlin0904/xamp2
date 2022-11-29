@@ -72,6 +72,9 @@ struct FontIconColorOption {
     const static QString activeOnColorAttr;
     const static QString disabledColorAttr;
     const static QString selectedColorAttr;
+    const static QString flipLeftRightAttr;
+    const static QString rotateAngleAttr;
+    const static QString flipTopBottomAttr;
 
     static QColor color;
     static QColor onColor;
