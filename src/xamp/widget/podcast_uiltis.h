@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <base/stl.h>
-#include <base/TrackInfo.h>
+#include <base/trackinfo.h>
 
 #include <widget/str_utilts.h>
 

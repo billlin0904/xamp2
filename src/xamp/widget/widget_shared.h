@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/TrackInfo.h>
+#include <base/trackinfo.h>
 #include <base/rng.h>
 #include <base/shared_singleton.h>
 #include <base/logger.h>

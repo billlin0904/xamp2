@@ -82,10 +82,12 @@ void Remove(std::basic_string<CharType>& s, const CharType* target) {
 
 XAMP_BASE_API std::string FormatBytes(size_t bytes) noexcept;
 
+#if 0
 XAMP_ALWAYS_INLINE std::errc ParseDouble(std::string const& s, double &d) {
     auto [p, ec] = std::from_chars(s.data(), s.data() + s.size(), d);
     return ec;
 }
+#endif
 
 template <typename T>
 XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) noexcept {

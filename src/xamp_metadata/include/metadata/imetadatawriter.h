@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/fs.h>
-#include <base/TrackInfo.h>
+#include <base/trackinfo.h>
 #include <metadata/metadata.h>
 
 namespace xamp::metadata {

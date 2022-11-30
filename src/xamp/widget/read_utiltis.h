@@ -11,7 +11,7 @@
 #include <utility>
 
 #include <base/align_ptr.h>
-#include <base/TrackInfo.h>
+#include <base/trackinfo.h>
 #include <base/audioformat.h>
 #include <stream/ifileencoder.h>
 

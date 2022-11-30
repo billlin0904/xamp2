@@ -499,15 +499,11 @@ void ThemeManager::setTextSeparator(QFrame *frame) {
 }
 
 int32_t ThemeManager::fontSize() const {
-#ifdef Q_OS_WIN
-	const auto dpi = qApp->desktop()->logicalDpiX();
+    const auto dpi = qApp->desktop()->logicalDpiX();
     if (dpi > 96) {
         return 11;
     }
-    return 10;
-#else
-    return 8;
-#endif
+    return 12;
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {

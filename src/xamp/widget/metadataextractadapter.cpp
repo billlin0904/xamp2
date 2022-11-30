@@ -145,11 +145,10 @@ public:
 
     void OnWalk(const Path& path) override {
         qApp->processEvents();
-        /*if (Fs::is_directory(path)) {
+        if (Fs::is_directory(path)) {
             return;
-        }*/
-
-        XAMP_LOG_DEBUG("OnWalk Path: {}", String::ToString(path.native()));
+        }
+        XAMP_LOG_DEBUG("OnWalk Path: {}", String::ToString(path.wstring()));
         hasher_.Update(path.native());
         paths_.push_front(path);
     }
@@ -159,7 +158,7 @@ public:
         const auto path_hash = hasher_.GetHash();
         hasher_.Clear();
         
-        const auto db_hash = qDatabase.getParentPathHash(QString::fromStdWString(Path(dir_entry).native()));
+        const auto db_hash = qDatabase.getParentPathHash(QString::fromStdWString(Path(dir_entry).wstring()));
         if (db_hash == path_hash) {
             album_groups_.clear();
             paths_.clear();
@@ -167,7 +166,7 @@ public:
             return;
         }
 
-        XAMP_LOG_DEBUG("Cache miss! Hash:{} Path: {}", path_hash, String::ToString(Path(dir_entry).native()));
+        XAMP_LOG_DEBUG("Cache miss! Hash:{} Path: {}", path_hash, String::ToString(Path(dir_entry).wstring()));
 
         std::for_each(paths_.begin(), paths_.end(), [&](auto& path) {
             auto metadata = reader_->Extract(path);
@@ -233,13 +232,16 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         filter |= QDir::NoDotAndDotDot | QDir::Files;
         SipHash hasher;
 
-        QDirIterator itr(file_path, filter);
+        QStringList name_filter;
+        for (auto& file_ext : GetSupportFileExtensions()) {
+            name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
+        }
+
+        QDirIterator itr(file_path, name_filter, filter);
         while (itr.hasNext()) {
             auto path = fromQStringPath(itr.next());
-            if (proxy.IsAccept(path.toStdWString())) {
-                hasher.Update(path.toStdWString());
-                dirs.append(path);
-            }            
+            hasher.Update(path.toStdWString());
+            dirs.append(path);
             qApp->processEvents();
         }
 
