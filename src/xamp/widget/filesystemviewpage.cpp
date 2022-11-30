@@ -59,13 +59,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         action_map.exec(pt, pt);
         });
 
-    /*(void) QObject::connect(ui.dirTree, &QTreeView::clicked, [this](const auto &index) {
-        auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
-        ui.playlistPage->playlist()->removeAll();
-        ui.playlistPage->playlist()->append(path, false, false);
-        });*/
-
     setStyleSheet(qTEXT("background-color: transparent"));
+    ui.playlistPage->playlist()->setFocusPolicy(Qt::StrongFocus);
 }
 
 PlaylistPage* FileSystemViewPage::playlistPage() {

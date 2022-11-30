@@ -123,11 +123,11 @@ public:
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
-                opt.text = qSTR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1 dBTP").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
-                opt.text = qSTR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1 dB").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             }
             break;
@@ -808,7 +808,7 @@ void PlayListTableView::importPodcast() {
 }
 
 void PlayListTableView::resizeColumn() {
-    constexpr auto kMaxStretchedSize = 900;
+    constexpr auto kMaxStretchedSize = 500;
 	auto* header = horizontalHeader();
     auto not_hide_column = 0;
 

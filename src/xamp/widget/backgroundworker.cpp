@@ -186,7 +186,10 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
     ReplayGainResult replay_gain;
 
     for (auto& task : replay_gain_tasks) {
-        task.get();
+        try {
+            task.get();
+        } catch (Exception const &) {
+        }
     }
 
     auto copy_result = *replay_gain_result.read();

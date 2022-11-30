@@ -1,30 +1,30 @@
 {
     "Log": {
-        "MinimumLevel": {
-            "Default": "debug",
-            "Override": {
-                "AsioDevice": "debug",
-                "AudioPlayer": "info",
-                "BackgroundThreadPool": "debug",
-                "Compressor": "debug",
-                "CoreAudio": "info",
-                "DSPThreadPool": "info",
-                "Database": "info",
-                "DspManager": "debug",
-                "ExclusiveWasapiDevice": "debug",
-                "ExclusiveWasapiDeviceType": "debug",
-                "FileStream": "debug",
-                "FoobarDSPAdapter": "debug",
-                "Pcm2DsdConverter": "info",
-                "PixmapCache": "info",
-                "PlaybackThreadPool": "info",
-                "SharedWasapiDevice": "debug",
-                "Soxr": "info",
-                "VirtualMemory": "info",
-                "Volume": "debug",
-                "WASAPIThreadPool": "debug"
-            }
+      "MinimumLevel": {
+        "Default": "info",
+        "Override": {
+          "AsioDevice": "info",
+          "AudioPlayer": "info",
+          "BackgroundThreadPool": "info",
+          "Compressor": "info",
+          "CoreAudio": "info",
+          "DSPThreadPool": "info",
+          "Database": "info",
+          "DspManager": "info",
+          "ExclusiveWasapiDevice": "info",
+          "ExclusiveWasapiDeviceType": "debug",
+          "FileStream": "info",
+          "FoobarDSPAdapter": "info",
+          "Pcm2DsdConverter": "info",
+          "PixmapCache": "info",
+          "PlaybackThreadPool": "info",
+          "SharedWasapiDevice": "info",
+          "Soxr": "info",
+          "VirtualMemory": "info",
+          "Volume": "debug",
+          "WASAPIThreadPool": "info"
         }
+      }
     },
     "Pcm2Dsd": {
         "Pcm2DsdTimes": 6

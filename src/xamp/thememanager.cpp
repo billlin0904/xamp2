@@ -123,10 +123,11 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
 
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
-        font_icon_opts_.insert(FontIconColorOption::colorAttr, QVariant(QColor(240, 241, 243)));
+        font_icon_opts_.insert(FontIconOption::colorAttr, QVariant(QColor(240, 241, 243)));
+        font_icon_opts_.insert(FontIconOption::selectedColorAttr, QVariant(QColor(240, 241, 243)));
         break;
     case ThemeColor::LIGHT_THEME:
-        font_icon_opts_.insert(FontIconColorOption::colorAttr, QVariant(QColor(0, 28, 64)));
+        font_icon_opts_.insert(FontIconOption::colorAttr, QVariant(QColor(0, 28, 64)));
         break;
     }
 }
@@ -184,7 +185,7 @@ QIcon ThemeManager::iconFromFont(const char32_t code) const {
     case Glyphs::ICON_RESTORE_WINDOW:
     {
         auto temp = font_icon_opts_;
-        temp.insert(FontIconColorOption::scaleFactorAttr, QVariant::fromValue(1.3));
+        temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.2));
         return qFontIcon.icon(code, temp);
     }
         break;

@@ -55,7 +55,7 @@ void AppSettings::loadEQPreset() {
                     swscanf(&str[pos], L"Gain %f dB Q %f",
                         &settings.bands[i].gain, &settings.bands[i].Q);
                     ++i;
-                    XAMP_LOG_DEBUG("Pase {}", line.toStdString());
+                    XAMP_LOG_TRACE("Parse {}", line.toStdString());
                 }
             }
             eq_settings_[file_info.baseName()] = settings;

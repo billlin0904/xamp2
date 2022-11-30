@@ -113,8 +113,8 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		info.max_volume = max_volume;
 		info.volume_increment = volume_increment;
 
-		XAMP_LOG_D(log_, "{} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
-			info.device_id,
+		XAMP_LOG_D(log_, "{:30} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
+			String::ToUtf8String(info.name),
 			info.min_volume,
 			info.max_volume,
 			info.volume_increment,

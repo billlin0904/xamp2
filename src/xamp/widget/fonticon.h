@@ -61,7 +61,7 @@ enum Glyphs {
     ICON_BLUE_TOOTH,
 };
 
-struct FontIconColorOption {
+struct FontIconOption {
     const static QString animationAttr;
     const static QString rectAttr;
     const static QString scaleFactorAttr;
