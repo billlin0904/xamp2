@@ -118,6 +118,8 @@ public:
 
     void EnableFadeOut(bool enable) override;
 
+    DspConfig& GetDspConfig() override;
+
 private:
     void DoSeek(double stream_time);        
     	
@@ -201,6 +203,7 @@ private:
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
+    DspConfig config_;
     std::shared_ptr<Logger> logger_;
 };
 

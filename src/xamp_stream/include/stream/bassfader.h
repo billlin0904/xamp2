@@ -19,9 +19,11 @@ public:
 
     XAMP_PIMPL(BassFader)
 
-    void Start(uint32_t output_sample_rate) override;
+    void Start(const DspConfig& config) override;
 
-    void Init(float current, float target, float fdade_time);
+    void Init(const DspConfig& config) override;
+
+    void SetTime(float current, float target, float fdade_time);
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) override;
 

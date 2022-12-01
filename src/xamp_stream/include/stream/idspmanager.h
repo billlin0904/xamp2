@@ -5,8 +5,12 @@
 
 #pragma once
 
+#include <any>
+#include <map>
+
 #include <base/base.h>
 #include <stream/stream.h>
+#include <stream/iaudioprocessor.h>
 
 #include <base/audiobuffer.h>
 #include <base/audioformat.h>
@@ -19,7 +23,7 @@ class XAMP_STREAM_API XAMP_NO_VTABLE IDSPManager {
 public:
     XAMP_BASE_CLASS(IDSPManager)
 
-    virtual void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) = 0;
+	virtual void Init(const DspConfig& config) = 0;
 
     // note: return true (fetch more data).
     virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
@@ -32,17 +36,17 @@ public:
 
     virtual void RemovePostDSP(Uuid const& id) = 0;
 
-    virtual void SetEq(EQSettings const& settings) = 0;
+    virtual IDSPManager& AddEqualizer() = 0;
 
-    virtual void EnableVolumeLimiter(bool enable) = 0;
+    virtual IDSPManager& AddCompressor() = 0;
 
-    virtual void RemoveEq() = 0;
+    virtual IDSPManager& AddVolume() = 0;
 
-    virtual void SetPreamp(float preamp) = 0;
+    virtual IDSPManager& RemoveEqualizer() = 0;
 
-    virtual void SetReplayGain(double volume) = 0;
+    virtual IDSPManager& RemoveVolume() = 0;
 
-    virtual void RemoveReplayGain() = 0;
+    virtual IDSPManager& RemoveResampler() = 0;
 
     virtual void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) = 0;
 

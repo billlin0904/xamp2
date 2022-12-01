@@ -22,7 +22,7 @@ public:
         MemorySet(&volume_param_, 0, sizeof(volume_param_));
     }
 
-    void Init(float current, float target, float fdade_time) {
+    void SetTime(float current, float target, float fdade_time) {
         ::BASS_FX_VOLUME_PARAM volume_param{0};
         volume_param.fCurrent = current;
         volume_param.fTarget = target;
@@ -55,14 +55,18 @@ BassFader::BassFader()
     : impl_(MakeAlign<BassFaderImpl>()) {
 }
 
-void BassFader::Start(uint32_t output_sample_rate) {
-    impl_->Start(output_sample_rate);
+void BassFader::Start(const DspConfig& config) {
+    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    impl_->Start(output_format.GetSampleRate());
 }
 
 XAMP_PIMPL_IMPL(BassFader)
 
-void BassFader::Init(float current, float target, float fdade_time) {
-    impl_->Init(current, target, fdade_time);
+void BassFader::Init(const DspConfig& config) {
+}
+
+void BassFader::SetTime(float current, float target, float fdade_time) {
+    impl_->SetTime(current, target, fdade_time);
 }
 
 bool BassFader::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {

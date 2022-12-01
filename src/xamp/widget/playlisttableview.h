@@ -98,6 +98,7 @@ public slots:
 	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
 	void updateReplayGain(int music_id,
+		double track_loudness,
 		double album_rg_gain,
 		double album_peak,
 		double track_rg_gain,

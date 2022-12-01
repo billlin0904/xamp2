@@ -14,6 +14,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/uuid.h>
 
+#include <stream/iaudioprocessor.h>
 #include <player/playstate.h>
 #include <player/player.h>
 
@@ -85,6 +86,7 @@ public:
 
     virtual AlignPtr<IDSPManager>& GetDSPManager() = 0;
 
+    virtual DspConfig& GetDspConfig() = 0;
 protected:
 	IAudioPlayer() = default;
 };

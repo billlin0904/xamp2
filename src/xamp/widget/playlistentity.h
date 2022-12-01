@@ -24,7 +24,8 @@ struct PlayListEntity final {
     double album_replay_gain{0};
     double album_peak{0};
     double track_replay_gain{0};
-    double track_peak{ 0 };
+    double track_peak{0};
+    double track_loudness{0};
     uint64_t timestamp{0};
     QString disc_id;
     QString file_path;

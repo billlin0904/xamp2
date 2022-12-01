@@ -239,12 +239,14 @@ SoxrSampleRateConverter::SoxrSampleRateConverter()
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)
 
-void SoxrSampleRateConverter::Start(uint32_t output_sample_rate) {
-	impl_->Start(output_sample_rate);
+void SoxrSampleRateConverter::Start(const DspConfig& config) {
+	const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+	impl_->Start(output_format.GetSampleRate());
 }
 
-void SoxrSampleRateConverter::Init(uint32_t input_sample_rate) {
-    impl_->Init(input_sample_rate);
+void SoxrSampleRateConverter::Init(const DspConfig& config) {
+	const auto input_format = std::any_cast<AudioFormat>(config.at(DspOptions::kInputFormat));
+    impl_->Init(input_format.GetSampleRate());
 }
 
 void SoxrSampleRateConverter::SetSteepFilter(bool enable) {

@@ -59,13 +59,15 @@ BassCompressor::BassCompressor()
     : impl_(MakeAlign<BassCompressorImpl>()) {
 }
 
-void BassCompressor::Start(uint32_t output_sample_rate) {
-    impl_->Start(output_sample_rate);
+void BassCompressor::Start(const DspConfig& config) {
+    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    impl_->Start(output_format.GetSampleRate());
 }
 
 XAMP_PIMPL_IMPL(BassCompressor)
 
-void BassCompressor::Init(CompressorParameters const &parameters) {
+void BassCompressor::Init(const DspConfig& config) {
+	const auto parameters = std::any_cast<CompressorParameters>(config.at(DspOptions::kCompressorParameters));
     impl_->Init(parameters);
 }
 

@@ -280,6 +280,14 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
+#define IgnoreSqlException(expr) \
+    do {\
+		try {\
+			expr;\
+		}\
+		catch (...) {}\
+    } while (false)
+
 void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast) {
 	auto playlist_id = -1;
 	if (playlist != nullptr) {
@@ -334,9 +342,9 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
 		}
 
-		qDatabase.addOrUpdateAlbumMusic(album_id,
+        IgnoreSqlException(qDatabase.addOrUpdateAlbumMusic(album_id,
 		                                artist_id,
-		                                music_id);
+		                                music_id));
 	}
 
 	if (playlist != nullptr) {

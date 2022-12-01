@@ -12,12 +12,15 @@
 #include <widget/podcast_uiltis.h>
 
 struct ReplayGainResult final {
+    double album_loudness{0};
     double album_peak{0};
-    double album_replay_gain{0};
-    Vector<PlayListEntity> music_id;
-    Vector<double> lufs;
+    double album_gain{0};
+    double album_peak_gain{0};
+    Vector<double> track_loudness;
     Vector<double> track_peak;
-    Vector<double> track_replay_gain;
+    Vector<double> track_gain;
+    Vector<double> track_peak_gain;
+    Vector<PlayListEntity> music_id;
 };
 
 class BackgroundWorker : public QObject {
@@ -31,10 +34,11 @@ public:
 
 signals:
     void updateReplayGain(int32_t music_id,
-                    double album_rg_gain,
-                    double album_peak,
-                    double track_rg_gain,
-                    double track_peak);
+        double track_loudness,
+        double album_rg_gain,
+        double album_peak,
+        double track_rg_gain,
+        double track_peak);
 
     void updateBlurImage(const QImage& image);
 

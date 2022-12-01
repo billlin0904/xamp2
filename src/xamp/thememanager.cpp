@@ -503,7 +503,7 @@ int32_t ThemeManager::fontSize() const {
     if (dpi > 96) {
         return 11;
     }
-    return 12;
+    return 9;
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {

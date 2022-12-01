@@ -9,27 +9,31 @@
 #include <base/audiobuffer.h>
 #include <base/align_ptr.h>
 #include <stream/stream.h>
-#include <stream/iequalizer.h>
+#include <stream/iaudioprocessor.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassEqualizer final : public IEqualizer {
+class XAMP_STREAM_API BassEqualizer final : public IAudioProcessor {
 public:
+    constexpr static auto Id = std::string_view("FCC73B23-6806-44CD-882D-EA21A3482F51");
+
     BassEqualizer();
 
     XAMP_PIMPL(BassEqualizer)
 
-    void Start(uint32_t sample_rate) override;
+    void Start(const DspConfig& config) override;
 
-    void SetEQ(uint32_t band, float gain, float Q) override;
+    void Init(const DspConfig& config) override;
 
-    void SetEQ(EQSettings const &settingss) override;
+    void SetEQ(uint32_t band, float gain, float Q);
+
+    void SetEQ(EQSettings const &settingss);
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
 
     Uuid GetTypeId() const override;
 
-    void SetPreamp(float preamp) override;
+    void SetPreamp(float preamp);
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 

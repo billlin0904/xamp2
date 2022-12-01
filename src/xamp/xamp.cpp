@@ -651,12 +651,12 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
+        QToolTip::showText(QCursor::pos(), tr("kVolume : ") + QString::number(volume) + qTEXT("%"));
         setVolume(volume);
     });
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
+        QToolTip::showText(QCursor::pos(), tr("kVolume : ") + QString::number(volume) + qTEXT("%"));
     });
 
     (void)QObject::connect(state_adapter_.get(),
@@ -941,7 +941,7 @@ void Xamp::setVolume(uint32_t volume) {
 
         auto level = (device_info_.max_volume - device_info_.min_volume) / device_info_.volume_increment;
         auto volume_dbfs = (level * (static_cast<double>(volume) / 100.0)) * device_info_.volume_increment;
-        auto volume_dbfs_str = tr("Volume : ") + QString::number(volume) + qTEXT("%");
+        auto volume_dbfs_str = tr("kVolume : ") + QString::number(volume) + qTEXT("%");
     	QToolTip::showText(QCursor::pos(),
             volume_dbfs_str +
             qTEXT("(") + QString::number(volume_dbfs, 'f', 2).rightJustified(2) + qTEXT("dbFS)")
@@ -1095,24 +1095,26 @@ void Xamp::setupDSP(const AlbumEntity& item) {
     if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
-            player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
+            player_->GetDSPManager()->AddVolume();
+            player_->GetDspConfig().insert_or_assign(DspOptions::kVolume, item.album_replay_gain);
         } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
-            player_->GetDSPManager()->SetReplayGain(item.track_replay_gain);
+            player_->GetDSPManager()->AddVolume();
+            player_->GetDspConfig().insert_or_assign(DspOptions::kVolume, item.track_replay_gain);
         } else {
-            player_->GetDSPManager()->SetReplayGain(0.0);
+            player_->GetDSPManager()->RemoveVolume();
         }
     } else {
-        player_->GetDSPManager()->RemoveReplayGain();
+        player_->GetDSPManager()->RemoveVolume();
     }
 
     if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
         if (AppSettings::contains(kAppSettingEQName)) {
             const auto [name, settings] = 
                 AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
-            player_->GetDSPManager()->SetEq(settings);
+            player_->GetDspConfig().insert_or_assign(DspOptions::kVolume, settings);
         }
     } else {
-        player_->GetDSPManager()->RemoveEq();
+        player_->GetDSPManager()->RemoveEqualizer();
     }
 
     if (preference_page_->adapter->IsActive()) {
@@ -1122,7 +1124,7 @@ void Xamp::setupDSP(const AlbumEntity& item) {
         player_->GetDSPManager()->AddPostDSP(std::move(adapter));
     }
 
-    player_->GetDSPManager()->EnableVolumeLimiter(true);
+    player_->GetDSPManager()->AddCompressor();
 }
 
 QString Xamp::translateErrorCode(const Errors error) {
@@ -1163,23 +1165,22 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+                player_->GetDSPManager()->RemoveResampler();
                 if (resampler_type == kSoxr || resampler_type.isEmpty()) {
                     const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
                     soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
                     target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
 
-                    initial_resampler = [=]() {
+                    initial_resampler = [&]() {
                         player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
-                        player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
                     };
                 }
                 else if (resampler_type == kR8Brain) {
                     auto config = JsonSettings::getValueAsMap(kR8Brain);
                     target_sample_rate = config[kResampleSampleRate].toUInt();
 
-                    initial_resampler = [=]() {
+                    initial_resampler = [&]() {
                         player_->GetDSPManager()->AddPreDSP(MakeAlign<IAudioProcessor, R8brainSampleRateConverter>());
-                        player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
                     };
                 }
             }
@@ -1193,8 +1194,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
                 if (initial_resampler == nullptr || player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
-                    player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
-                    player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+                    player_->GetDSPManager()->RemoveResampler();
                 }
                 else {
                     initial_resampler();
@@ -1202,23 +1202,23 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             }
             setupDSP(item);
         } else {
-            player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
-            player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
-            player_->GetDSPManager()->EnableVolumeLimiter(false);
-            player_->GetDSPManager()->RemoveReplayGain();
-            player_->GetDSPManager()->RemoveEq();
+            player_->GetDSPManager()->RemoveResampler();
+            player_->GetDSPManager()->RemoveVolume();
+            player_->GetDSPManager()->RemoveEqualizer();
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
                 byte_format = ByteFormat::SINT16;
             }
         }
 
+        player_->GetDSPManager()->AddCompressor();
+
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
             byte_format = ByteFormat::SINT16;
         }
 
-        auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
+	    const auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
-        auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
+	    const auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
         uint32_t device_sample_rate = 0;
 
         // note: PCM2DSD function have some issue.
@@ -1237,8 +1237,6 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             CpuAffinity affinity;
 			affinity.Set(2);
 			affinity.Set(3);
-			//affinity.Set(4);
-			//affinity.Set(5);
             writer->Init(input_sample_rate, affinity, convert_mode);
 
             if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {

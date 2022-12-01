@@ -5,7 +5,7 @@
 
 #include <stream/api.h>
 #include <stream/pcm2dsdsamplewriter.h>
-#include <stream/iequalizer.h>
+#include <stream/bassequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
@@ -18,9 +18,7 @@ namespace xamp::stream {
 
 static constexpr int32_t kDefaultBufSize = 1024 * 1024;
 
-DSPManager::DSPManager()
-	: replay_gain_{0.0}
-	, dsd_modes_{DsdModes::DSD_MODE_PCM} {
+DSPManager::DSPManager() {
     logger_ = LoggerManager::GetInstance().GetLogger(kDspManagerLoggerName);
     pre_dsp_buffer_.resize(kDefaultBufSize);
     post_dsp_buffer_.resize(kDefaultBufSize);
@@ -44,26 +42,19 @@ void DSPManager::RemovePreDSP(Uuid const& id) {
     Remove(id, pre_dsp_);
 }
 
-void DSPManager::SetEq(EQSettings const& settings) {
-    eq_settings_ = settings;
+IDSPManager& DSPManager::AddEqualizer() {
     AddPostDSP(DspComponentFactory::MakeEqualizer());
+    return *this;
 }
 
-void DSPManager::EnableVolumeLimiter(bool enable) {
-    if (enable) {
-        AddPostDSP(DspComponentFactory::MakeCompressor());
-    } else {
-        RemovePostDSP(BassCompressor::Id);
-    }
+IDSPManager& DSPManager::AddCompressor() {
+    AddPostDSP(DspComponentFactory::MakeCompressor());
+    return *this;
 }
 
-void DSPManager::SetPreamp(float preamp) {
-    eq_settings_.preamp = preamp;
-}
-
-void DSPManager::SetReplayGain(double volume) {
-    replay_gain_ = volume;
+IDSPManager& DSPManager::AddVolume() {
     AddPostDSP(DspComponentFactory::MakeVolume());
+    return *this;
 }
 
 void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
@@ -74,18 +65,27 @@ void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
     sample_writer_ = std::move(writer);
 }
 
-void DSPManager::RemoveEq() {
-    RemovePostDSP(IEqualizer::Id);
+IDSPManager& DSPManager::RemoveEqualizer() {
+    RemovePostDSP(BassEqualizer::Id);
+    return *this;
 }
 
-void DSPManager::RemoveReplayGain() {
+IDSPManager& DSPManager::RemoveVolume() {
     RemovePostDSP(BassVolume::Id);
-    replay_gain_ = 0.0;
+    return *this;
+}
+
+IDSPManager& DSPManager::RemoveResampler() {
+    RemovePreDSP(R8brainSampleRateConverter::Id);
+    RemovePreDSP(SoxrSampleRateConverter::Id);
+    return *this;
 }
 
 bool DSPManager::CanProcessFile() const noexcept {
-    if (dsd_modes_ == DsdModes::DSD_MODE_PCM 
-        || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM
+    auto dsd_mode = std::any_cast<DsdModes>(config_.at(DspOptions::kDsdMode));
+
+    if (dsd_mode == DsdModes::DSD_MODE_PCM
+        || dsd_mode == DsdModes::DSD_MODE_DSD2PCM
         || IsEnablePcm2DsdConverter()) {
 	    if (!pre_dsp_.empty() || !post_dsp_.empty()) {
             return true;
@@ -185,12 +185,15 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
     return false; 
 }
 
-void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
+void DSPManager::Init(const DspConfig& config) {
+    config_ = config;
+
+    auto sample_size = std::any_cast<uint8_t>(config_.at(DspOptions::kSampleSize));
+    auto dsd_mode = std::any_cast<DsdModes>(config_.at(DspOptions::kDsdMode));
+
     if (!sample_writer_) {
         sample_writer_ = MakeAlign<ISampleWriter, SampleWriter>(dsd_mode, sample_size);
     }
-
-    dsd_modes_ = dsd_mode;
 
     if (!CanProcessFile()) {
         XAMP_LOG_D(logger_, "Can't not process file.");
@@ -198,47 +201,13 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
     }
 
     for (const auto& dsp : pre_dsp_) {
-        dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Start pre-dsp {} output: {}.", dsp->GetDescription(), output_format);
+        dsp->Start(config_);
+        dsp->Init(config_);
     }
 
     for (const auto& dsp : post_dsp_) {
-        dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Start post-dsp {} output: {}.", dsp->GetDescription(), output_format);
-    }
-
-    if (const auto converter = GetPreDSP<SoxrSampleRateConverter>()) {
-        converter.value()->Init(input_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init {} format: {}.", converter.value()->GetDescription(), input_format);
-    }
-
-    if (const auto converter = GetPreDSP<R8brainSampleRateConverter>()) {
-        converter.value()->Init(input_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init {} format: {}.", converter.value()->GetDescription(), input_format);
-    }
-
-    if (const auto volume = GetPostDSP<BassVolume>()) {
-        volume.value()->Init(replay_gain_);
-        XAMP_LOG_D(logger_, "Init {} gain: {} db.", volume.value()->GetDescription(), replay_gain_);
-    }
-
-    if (const auto compressor = GetPostDSP<BassCompressor>()) {
-        compressor.value()->Init();
-        XAMP_LOG_D(logger_, "Init {}.", compressor.value()->GetDescription());
-    }
-
-    if (const auto foobar_adapter = GetPostDSP<FoobarDspAdapter>()) {
-        foobar_adapter.value()->Init(input_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init {}.", foobar_adapter.value()->GetDescription());
-    }
-
-    if (const auto eq = GetPostDSP<IEqualizer>()) {
-        eq.value()->SetEQ(eq_settings_);
-        int i = 0;
-        for (auto [gain, Q] : eq_settings_.bands) {
-            XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}.", i++, gain, Q);
-        }
-        XAMP_LOG_D(logger_, "Set preamp: {}.", eq_settings_.preamp);
+        dsp->Start(config_);
+        dsp->Init(config_);
     }
 }
 

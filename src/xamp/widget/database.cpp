@@ -126,7 +126,7 @@ void Database::createTableIfNotExist() {
                        album_replay_gain DOUBLE,
                        album_peak DOUBLE,
                        track_replay_gain DOUBLE,
-                       track_peak DOUBLE,
+                       track_peak DOUBLE,					   
 					   genre TEXT,
 					   comment TEXT,
 					   year integer,
@@ -215,9 +215,11 @@ void Database::createTableIfNotExist() {
                        musicId integer,
                        artistId integer,
                        albumId integer,
+					   track_loudness DOUBLE,
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId)
+                       FOREIGN KEY(albumId) REFERENCES albums(albumId),
+					   UNIQUE(musicId)
                        )
                        )"));
 
@@ -231,7 +233,8 @@ void Database::createTableIfNotExist() {
                        playing integer,
                        FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
-					   FOREIGN KEY(albumId) REFERENCES albums(albumId)
+					   FOREIGN KEY(albumId) REFERENCES albums(albumId),
+					   UNIQUE(musicId)
                        )
                        )"));
 
@@ -364,6 +367,7 @@ void Database::forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std:
 SELECT
     albumMusic.albumId,
     albumMusic.artistId,
+	albumMusic.track_loudness,
     albums.album,
     albums.coverId,
     artists.artist,
@@ -384,33 +388,7 @@ ORDER BY musics.path;)"));
 	}
 
 	while (query.next()) {
-		PlayListEntity entity;
-		entity.album_id = query.value(qTEXT("albumId")).toInt();
-		entity.artist_id = query.value(qTEXT("artistId")).toInt();
-		entity.music_id = query.value(qTEXT("musicId")).toInt();
-		entity.file_path = query.value(qTEXT("path")).toString();
-		entity.track = query.value(qTEXT("track")).toUInt();
-		entity.title = query.value(qTEXT("title")).toString();
-		entity.file_name = query.value(qTEXT("fileName")).toString();
-		entity.album = query.value(qTEXT("album")).toString();
-		entity.artist = query.value(qTEXT("artist")).toString();
-		entity.file_ext = query.value(qTEXT("fileExt")).toString();
-		entity.parent_path = query.value(qTEXT("parentPath")).toString();
-		entity.duration = query.value(qTEXT("duration")).toDouble();
-		entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
-		entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
-		entity.cover_id = query.value(qTEXT("coverId")).toString();
-		entity.rating = query.value(qTEXT("rating")).toUInt();
-		entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
-		entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
-		entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
-		entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
-
-		entity.genre = query.value(qTEXT("genre")).toString();
-		entity.comment = query.value(qTEXT("comment")).toString();
-		entity.year = query.value(qTEXT("year")).toUInt();
-		entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
-		fun(entity);
+		fun(queryToPlayListEntity(query));
 	}
 }
 
@@ -419,6 +397,7 @@ void Database::forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEn
 SELECT
     albumMusic.albumId,
     albumMusic.artistId,
+	albumMusic.track_loudness,
     albums.album,
     albums.coverId,
     artists.artist,
@@ -439,32 +418,7 @@ ORDER BY musics.track, musics.path, musics.fileName;)"));
 	}
 
 	while (query.next()) {
-		PlayListEntity entity;
-		entity.album_id = query.value(qTEXT("albumId")).toInt();
-		entity.artist_id = query.value(qTEXT("artistId")).toInt();
-		entity.music_id = query.value(qTEXT("musicId")).toInt();
-		entity.file_path = query.value(qTEXT("path")).toString();
-		entity.track = query.value(qTEXT("track")).toUInt();
-		entity.title = query.value(qTEXT("title")).toString();
-		entity.file_name = query.value(qTEXT("fileName")).toString();
-		entity.album = query.value(qTEXT("album")).toString();
-		entity.artist = query.value(qTEXT("artist")).toString();
-		entity.file_ext = query.value(qTEXT("fileExt")).toString();
-		entity.parent_path = query.value(qTEXT("parentPath")).toString();
-		entity.duration = query.value(qTEXT("duration")).toDouble();
-		entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
-		entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
-		entity.cover_id = query.value(qTEXT("coverId")).toString();
-		entity.rating = query.value(qTEXT("rating")).toUInt();
-		entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
-		entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
-		entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
-		entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
-		entity.disc_id = query.value(qTEXT("discId")).toString();
-		entity.genre = query.value(qTEXT("genre")).toString();
-		entity.comment = query.value(qTEXT("comment")).toString();
-		entity.year = query.value(qTEXT("year")).toUInt();
-		fun(entity);
+		fun(queryToPlayListEntity(query));
 	}
 }
 
@@ -731,6 +685,37 @@ QString Database::getAlbumCoverId(const QString& album) const {
 	return Qt::EmptyString;
 }
 
+PlayListEntity Database::queryToPlayListEntity(const QSqlQuery& query) {
+	PlayListEntity entity;
+	entity.album_id = query.value(qTEXT("albumId")).toInt();
+	entity.artist_id = query.value(qTEXT("artistId")).toInt();
+	entity.music_id = query.value(qTEXT("musicId")).toInt();
+	entity.file_path = query.value(qTEXT("path")).toString();
+	entity.track = query.value(qTEXT("track")).toUInt();
+	entity.title = query.value(qTEXT("title")).toString();
+	entity.file_name = query.value(qTEXT("fileName")).toString();
+	entity.album = query.value(qTEXT("album")).toString();
+	entity.artist = query.value(qTEXT("artist")).toString();
+	entity.file_ext = query.value(qTEXT("fileExt")).toString();
+	entity.parent_path = query.value(qTEXT("parentPath")).toString();
+	entity.duration = query.value(qTEXT("duration")).toDouble();
+	entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
+	entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
+	entity.cover_id = query.value(qTEXT("coverId")).toString();
+	entity.rating = query.value(qTEXT("rating")).toUInt();
+	entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
+	entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
+	entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
+	entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
+	entity.track_loudness = query.value(qTEXT("track_loudness")).toDouble();
+
+	entity.genre = query.value(qTEXT("genre")).toString();
+	entity.comment = query.value(qTEXT("comment")).toString();
+	entity.year = query.value(qTEXT("year")).toUInt();
+	entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
+	return entity;
+}
+
 ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_hash) const {
 	ForwardList<PlayListEntity> track_infos;
 
@@ -742,6 +727,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 	SELECT
 		albumMusic.albumId,
 		albumMusic.artistId,
+		albumMusic.track_loudness,
 		albums.album,
 		albums.coverId,
 		artists.artist,
@@ -761,33 +747,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 	IfFailureThrow1(query);
 
 	while (query.next()) {
-		PlayListEntity entity;
-		entity.album_id = query.value(qTEXT("albumId")).toInt();
-		entity.artist_id = query.value(qTEXT("artistId")).toInt();
-		entity.music_id = query.value(qTEXT("musicId")).toInt();
-		entity.file_path = query.value(qTEXT("path")).toString();
-		entity.track = query.value(qTEXT("track")).toUInt();
-		entity.title = query.value(qTEXT("title")).toString();
-		entity.file_name = query.value(qTEXT("fileName")).toString();
-		entity.album = query.value(qTEXT("album")).toString();
-		entity.artist = query.value(qTEXT("artist")).toString();
-		entity.file_ext = query.value(qTEXT("fileExt")).toString();
-		entity.parent_path = query.value(qTEXT("parentPath")).toString();
-		entity.duration = query.value(qTEXT("duration")).toDouble();
-		entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
-		entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
-		entity.cover_id = query.value(qTEXT("coverId")).toString();
-		entity.rating = query.value(qTEXT("rating")).toUInt();
-		entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
-		entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
-		entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
-		entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
-
-		entity.genre = query.value(qTEXT("genre")).toString();
-		entity.comment = query.value(qTEXT("comment")).toString();
-		entity.year = query.value(qTEXT("year")).toUInt();
-		entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
-		track_infos.push_front(entity);
+		track_infos.push_front(queryToPlayListEntity(query));
 	}
 
 	return track_infos;
@@ -908,6 +868,17 @@ void Database::updateMusicTitle(int32_t music_id, const QString& title) {
 
 	query.bindValue(qTEXT(":musicId"), music_id);
 	query.bindValue(qTEXT(":title"), title);
+
+	IfFailureThrow1(query);
+}
+
+void Database::updateTrackLoudness(int32_t music_id, double track_loudness) {
+	QSqlQuery query;
+
+	query.prepare(qTEXT("UPDATE albumMusic SET track_loudness = :track_loudness WHERE (musicId = :musicId)"));
+
+	query.bindValue(qTEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":track_loudness"), track_loudness);
 
 	IfFailureThrow1(query);
 }
@@ -1074,8 +1045,8 @@ void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 	QSqlQuery query;
 
 	query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albumArtist (albumArtistId, albumId, artistId)
-    VALUES ((SELECT albumArtistId from albumArtist where albumId = :albumId AND artistId = :artistId), :albumId, :artistId)
+    INSERT INTO albumArtist (albumArtistId, albumId, artistId)
+    VALUES (NULL, :albumId, :artistId)
     )"));
 
 	query.bindValue(qTEXT(":albumId"), album_id);
@@ -1090,8 +1061,8 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
 	QSqlQuery query;
 
 	query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
-    VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
+    INSERT INTO albumMusic (albumMusicId, albumId, artistId, musicId)
+    VALUES (NULL, :albumId, :artistId, :musicId)
     )"));
 
 	query.bindValue(qTEXT(":albumId"), album_id);

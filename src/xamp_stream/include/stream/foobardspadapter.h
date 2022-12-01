@@ -20,9 +20,9 @@ public:
 
 	XAMP_PIMPL(FoobarDspAdapter)
 
-	void Init(uint32_t input_sample_rate);
+	void Start(const DspConfig& config) override;
 
-	void Start(uint32_t output_sample_rate) override;
+	void Init(const DspConfig& config) override;
 
 	std::vector<std::string> GetAvailableDSPs() const;
 

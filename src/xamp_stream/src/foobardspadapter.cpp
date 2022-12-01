@@ -372,7 +372,7 @@ FoobarDspAdapter::FoobarDspAdapter() {
 
 XAMP_PIMPL_IMPL(FoobarDspAdapter)
 
-void FoobarDspAdapter::Init(uint32_t input_sample_rate) {
+void FoobarDspAdapter::Init(const DspConfig& config) {
 	
 }
 
@@ -384,7 +384,7 @@ void FoobarDspAdapter::ConfigPopup(const std::string& name, uint64_t hwnd) {
 	
 }
 
-void FoobarDspAdapter::Start(uint32_t output_sample_rate) {
+void FoobarDspAdapter::Start(const DspConfig& config) {
 
 }
 

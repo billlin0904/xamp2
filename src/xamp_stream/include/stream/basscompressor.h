@@ -20,9 +20,9 @@ public:
 
     XAMP_PIMPL(BassCompressor)
 
-    void Start(uint32_t output_sample_rate) override;
+    void Start(const DspConfig& config) override;
 
-    void Init(CompressorParameters const &parameters = CompressorParameters());
+    void Init(const DspConfig& config) override;
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) override;
 

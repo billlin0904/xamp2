@@ -147,7 +147,8 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
 
     Vector<Task<>> replay_gain_tasks;
 
-    const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
+    //const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
+    const auto target_loudness = -23;
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     replay_gain_tasks.reserve(items.size());
@@ -211,37 +212,44 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
     }
 
     replay_gain.track_peak.reserve(items.size());
-    replay_gain.lufs.reserve(items.size());
-    replay_gain.track_replay_gain.reserve(items.size());
+    replay_gain.track_loudness.reserve(items.size());
+    replay_gain.track_gain.reserve(items.size());
 
-    replay_gain.album_replay_gain = Ebur128Reader::GetEbur128Gain(
-        Ebur128Reader::GetMultipleLoudness(scanners),
-        target_gain);
-    
-    replay_gain.album_peak = 100.0;
-    for (auto const &scanner : scanners) {
-        const auto track_peak = scanner.GetSamplePeak();
-        replay_gain.album_peak = (std::min)(track_peak, replay_gain.album_peak);
+    replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(scanners);
+
+    for (size_t i = 0; i < items.size(); ++i) {
+        auto track_loudness = scanners[i].GetLoudness();
+        auto track_peak = scanners[i].GetTruePeek();
         replay_gain.track_peak.push_back(track_peak);
-        const auto track_lufs = scanner.GetLoudness();
-        replay_gain.lufs.push_back(track_lufs);
-        replay_gain.track_replay_gain.push_back(
-            Ebur128Reader::GetEbur128Gain(track_lufs, target_gain));
+        replay_gain.track_peak_gain.push_back(20.0 * log10(track_peak));
+        replay_gain.track_loudness.push_back(track_loudness);
+        replay_gain.track_gain.push_back(target_loudness - track_loudness);
     }
 
-    for (size_t i = 0; i < replay_gain_tasks.size(); ++i) {
-	    ReplayGain rg;
-        rg.album_gain = replay_gain.album_replay_gain;
-        rg.track_gain = replay_gain.track_replay_gain[i];
+    replay_gain.album_peak = *std::max_element(
+        replay_gain.track_peak.begin(),
+        replay_gain.track_peak.end(),
+        [](auto& a, auto& b) {return a < b; }
+    );
+
+    replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
+    replay_gain.album_peak_gain = 20.0 * log10(replay_gain.album_peak);
+
+    for (size_t i = 0; i < items.size(); ++i) {
+        ReplayGain rg;
+        rg.album_gain = replay_gain.album_gain;
+        rg.track_gain = replay_gain.track_gain[i];
         rg.album_peak = replay_gain.album_peak;
         rg.track_peak = replay_gain.track_peak[i];
-        rg.ref_loudness = target_gain;
+        rg.ref_loudness = target_loudness;
+
         writer_->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
         emit updateReplayGain(replay_gain.music_id[i].music_id,
-                        replay_gain.album_replay_gain,
-                        replay_gain.album_peak,
-                        replay_gain.track_replay_gain[i],
-                        replay_gain.track_peak[i]
-                        );
+            replay_gain.track_loudness[i],
+            replay_gain.album_gain,
+            replay_gain.album_peak,
+            replay_gain.track_gain[i],
+            replay_gain.track_peak[i]
+        );
     }
 }

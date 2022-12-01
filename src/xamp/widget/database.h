@@ -95,11 +95,13 @@ public:
 
     void updateMusicTitle(int32_t music_id, const QString& title);
 
+    void updateTrackLoudness(int32_t music_id, double track_loudness);
+
     void updateReplayGain(int32_t music_id,
-                    double album_rg_gain,
-                    double album_peak,
-                    double track_rg_gain,
-                    double track_peak);
+        double album_rg_gain,
+        double album_peak,
+        double track_rg_gain,
+        double track_peak);
 
     ForwardList<PlayListEntity> getPlayListEntityFromPathHash(size_t path_hash) const;
 
@@ -169,6 +171,8 @@ public:
 
     void setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
 private:
+    static PlayListEntity queryToPlayListEntity(const QSqlQuery& query);
+
     void removeAlbumArtist(int32_t album_id);
 
     void removeAlbumMusicId(int32_t music_id);

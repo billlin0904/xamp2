@@ -27,7 +27,7 @@ public:
 
     XAMP_DISABLE_COPY(DSPManager)
 
-    void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) override;
+	void Init(const DspConfig& config) override;
 
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 
@@ -39,19 +39,19 @@ public:
 
     void RemovePostDSP(Uuid const& id) override;
 
-    void SetEq(EQSettings const& settings) override;
+    IDSPManager& AddEqualizer() override;
 
-    void EnableVolumeLimiter(bool enable) override;
+    IDSPManager& AddCompressor() override;
 
-    void RemoveEq() override;
+    IDSPManager& AddVolume() override;
 
-    void SetPreamp(float preamp) override;
+    IDSPManager& RemoveEqualizer() override;
 
-    void SetReplayGain(double volume) override;
+    IDSPManager& RemoveVolume() override;
+
+    IDSPManager& RemoveResampler() override;
 
     void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
-
-    void RemoveReplayGain() override;
 
     bool IsEnableSampleRateConverter() const override;
 
@@ -94,15 +94,13 @@ private:
         return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 
-    double replay_gain_;
-    DsdModes dsd_modes_;
-    EQSettings eq_settings_;
     Vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     Vector<AlignPtr<IAudioProcessor>> post_dsp_;
     AlignPtr<ISampleWriter> sample_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
     std::shared_ptr<Logger> logger_;
+    DspConfig config_;
 };
 
 }

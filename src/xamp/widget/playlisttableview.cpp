@@ -119,15 +119,19 @@ public:
         case PLAYLIST_ALBUM_RG:
         case PLAYLIST_TRACK_PK:
         case PLAYLIST_TRACK_RG:
+        case PLAYLIST_TRACK_LOUDNESS:
             opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;      
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
-                opt.text = qSTR("%1 dBTP").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
                 opt.text = qSTR("%1 dB").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                break;
+            case PLAYLIST_TRACK_LOUDNESS:
+                opt.text = qSTR("%1 LUFS").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             }
             break;
@@ -179,6 +183,7 @@ static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src
     model.album_peak        = getIndexValue(index, src, PLAYLIST_ALBUM_PK).toDouble();
     model.track_replay_gain = getIndexValue(index, src, PLAYLIST_TRACK_RG).toDouble();
     model.track_peak        = getIndexValue(index, src, PLAYLIST_TRACK_PK).toDouble();
+    model.track_loudness    = getIndexValue(index, src, PLAYLIST_TRACK_LOUDNESS).toDouble();
     model.genre             = getIndexValue(index, src, PLAYLIST_GENRE).toString();
     model.year              = getIndexValue(index, src, PLAYLIST_YEAR).toInt();
     return model;
@@ -212,6 +217,7 @@ void PlayListTableView::excuteQuery() {
     musics.album_peak,	
     musics.track_replay_gain,
 	musics.track_peak,
+	albumMusic.track_loudness,
 	musics.genre,
 	musics.year
     FROM
@@ -248,6 +254,7 @@ PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::reload() {
     model_->query().exec();
+    update();
 }
 
 void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &column_setting_name) {
@@ -276,6 +283,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST UPDATE TIME"));
     model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
     model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
+    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("TRACK.LOUDNESS"));
     model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
 
@@ -298,6 +306,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_LAST_UPDATE_TIME,
             PLAYLIST_TRACK_RG,
             PLAYLIST_TRACK_PK,
+            PLAYLIST_TRACK_LOUDNESS,
             PLAYLIST_GENRE,
             PLAYLIST_YEAR,
             PLAYLIST_ALBUM_ID,
@@ -331,13 +340,6 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
 void PlayListTableView::initial() {
     setStyleSheet(qTEXT("border : none;"));
-
-    notshow_column_names_.insert(qTEXT("albumId"));
-    notshow_column_names_.insert(qTEXT("artistId"));
-    notshow_column_names_.insert(qTEXT("coverId"));
-    notshow_column_names_.insert(qTEXT("fileExt"));
-    notshow_column_names_.insert(qTEXT("parentPath"));
-    notshow_column_names_.insert(qTEXT("playlistMusicsId"));
 
     proxy_model_->setSourceModel(model_);
     proxy_model_->setFilterByColumn(PLAYLIST_RATING);
@@ -435,9 +437,6 @@ void PlayListTableView::initial() {
             ActionMap<PlayListTableView> action_map(this);
         for (auto column = 0; column < header_view->count(); ++column) {
             auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-            if (notshow_column_names_.contains(header_name)) {
-                continue;
-            }
             action_map.addAction(header_name, [this, column]() {
                 setColumnHidden(column, false);
             AppSettings::addList(column_setting_name_, QString::number(column));
@@ -508,7 +507,7 @@ void PlayListTableView::initial() {
         auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
 
-        auto* read_select_item_replaygain_act = action_map.addAction(tr("Read replay gain"));
+        auto* read_select_item_replaygain_act = action_map.addAction(tr("Read file ReplayGain 2.0"));
         read_select_item_replaygain_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_READ_REPLAY_GAIN));
 
         action_map.addSeparator();
@@ -656,18 +655,29 @@ void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
 }
 
-void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color) {
+void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
 }
 
 void PlayListTableView::updateReplayGain(int music_id,
+    double track_loudness,
     double album_rg_gain,
     double album_peak,
     double track_rg_gain,
     double track_peak) {
     qDatabase.updateReplayGain(
-        music_id, album_rg_gain, album_peak, track_rg_gain, track_peak);
-    XAMP_LOG_DEBUG("Update DB music id : {}, album_rg_gain: {:.2f} album_peak: {:.2f} track_rg_gain: {:.2f} track_peak: {:.2f}",
-        music_id, album_rg_gain, album_peak, track_rg_gain, track_peak);
+        music_id,
+        album_rg_gain,
+        album_peak, 
+        track_rg_gain,
+        track_peak);
+    qDatabase.updateTrackLoudness(music_id, track_loudness);
+    XAMP_LOG_DEBUG("Update DB music id : {}, track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
+        music_id,
+        track_loudness,
+        album_rg_gain,
+        album_peak, 
+        track_rg_gain,
+        track_peak);
     reload();
 }
 
@@ -830,6 +840,7 @@ void PlayListTableView::resizeColumn() {
         case PLAYLIST_ALBUM_PK:
         case PLAYLIST_TRACK_RG:
         case PLAYLIST_TRACK_PK:
+        case PLAYLIST_TRACK_LOUDNESS:
         case PLAYLIST_DURATION:
         case PLAYLIST_BIT_RATE:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
@@ -894,7 +905,6 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
     qDatabase.clearNowPlaying(playlist_id_);
     qDatabase.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
     reload();
-    update();
 }
 
 void PlayListTableView::setNowPlayState(PlayingState playing_state) {
@@ -904,7 +914,6 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
     const auto entity = item(play_index_);
     qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
     reload();
-    update();
 }
 
 void PlayListTableView::scrollToIndex(const QModelIndex& index) {

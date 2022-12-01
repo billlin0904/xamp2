@@ -85,12 +85,14 @@ bool R8brainSampleRateConverter::Process(float const* samples, uint32_t num_samp
 	return impl_->Process(samples, num_samples, output);
 }
 
-void R8brainSampleRateConverter::Init(uint32_t input_sample_rate) {
-	impl_->Init(input_sample_rate);
+void R8brainSampleRateConverter::Start(const DspConfig& config) {
+	const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+	impl_->Start(output_format.GetSampleRate());
 }
 
-void R8brainSampleRateConverter::Start(uint32_t output_sample_rate) {
-	impl_->Start(output_sample_rate);
+void R8brainSampleRateConverter::Init(const DspConfig& config) {
+	const auto input_format = std::any_cast<AudioFormat>(config.at(DspOptions::kInputFormat));
+	impl_->Init(input_format.GetSampleRate());
 }
 
 Uuid R8brainSampleRateConverter::GetTypeId() const {

@@ -103,8 +103,14 @@ BassEqualizer::BassEqualizer()
 
 XAMP_PIMPL_IMPL(BassEqualizer)
 
-void BassEqualizer::Start(uint32_t sample_rate) {
-    impl_->Start(sample_rate);
+void BassEqualizer::Start(const DspConfig& config) {
+    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    impl_->Start(output_format.GetSampleRate());
+}
+
+void BassEqualizer::Init(const DspConfig& config) {
+	const auto settings = std::any_cast<EQSettings>(config.at(DspOptions::kEQSettings));
+    SetEQ(settings);
 }
 
 void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {

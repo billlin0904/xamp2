@@ -29,7 +29,6 @@
 #include <metadata/imetadatareader.h>
 
 #include <stream/api.h>
-#include <stream/iequalizer.h>
 
 #include <output_device/deviceinfo.h>
 #include <output_device/api.h>

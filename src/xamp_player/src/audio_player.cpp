@@ -21,6 +21,7 @@
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
 #include <stream/bassfader.h>
+#include <stream/compressorparameters.h>
 #include <stream/iaudioprocessor.h>
 
 #include <player/iplaybackstateadapter.h>
@@ -296,7 +297,7 @@ void AudioPlayer::FadeOut() {
 
     Buffer<float> buffer(sample_count);
     size_t num_filled_count = 0;
-    dynamic_cast<BassFader*>(fader_.get())->Init(1, 0, fdade_time);
+    dynamic_cast<BassFader*>(fader_.get())->SetTime(1.0f, 0.0f, fdade_time);
 
     if (!fifo_.TryRead(reinterpret_cast<int8_t*>(buffer.data()), buffer.GetByteSize(), num_filled_count)) {
         return;
@@ -920,11 +921,22 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0, output_mode);
     CreateBuffer();
-    dsp_manager_->Init(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
+
+    config_.insert_or_assign(DspOptions::kInputFormat, std::any(input_format_));
+    config_.insert_or_assign(DspOptions::kOutputFormat, std::any(output_format_));
+    config_.insert_or_assign(DspOptions::kDsdMode, std::any(dsd_mode_));
+    config_.insert_or_assign(DspOptions::kSampleSize, std::any(stream_->GetSampleSize()));
+    config_.insert_or_assign(DspOptions::kCompressorParameters, std::any(CompressorParameters()));
+
+    dsp_manager_->Init(config_);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
     fader_ = DspComponentFactory::MakeFader();
-    fader_->Start(output_format_.GetSampleRate());
+    fader_->Start(config_);
+}
+
+DspConfig& AudioPlayer::GetDspConfig() {
+    return config_;
 }
 
 }
