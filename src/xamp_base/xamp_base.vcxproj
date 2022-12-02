@@ -204,6 +204,7 @@
     <ClInclude Include="include\base\moveablefunction.h" />
     <ClInclude Include="include\base\task.h" />
     <ClInclude Include="include\base\threadpoolexecutor.h" />
+    <ClInclude Include="include\base\uuidof.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />
     <ClInclude Include="include\base\uuid.h" />

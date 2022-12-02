@@ -13,6 +13,7 @@
 #include <base/base.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
+#include <base/uuidof.h>
 
 #include <output_device/deviceinfo.h>
 #include <output_device/ioutputdevice.h>

@@ -11,13 +11,14 @@
 #include <base/base.h>
 #include <base/uuid.h>
 #include <base/buffer.h>
+#include <base/UuidOf.h>
+
 #include <stream/stream.h>
 
 namespace xamp::stream {
 
- using DspConfig = std::map<std::string_view, std::any>;
-
- struct DspOptions {
+class XAMP_STREAM_API DspConfig {
+public:
     constexpr static auto kInputFormat = std::string_view("kInputFormat");
     constexpr static auto kDsdMode = std::string_view("kDsdMode");
     constexpr static auto kOutputFormat = std::string_view("kOutputFormat");
@@ -26,7 +27,19 @@ namespace xamp::stream {
     constexpr static auto kEQSettings = std::string_view("kEQSettings");
     constexpr static auto kCompressorParameters = std::string_view("kCompressorParameters");
     constexpr static auto kVolume = std::string_view("kVolume");
- };
+
+    template <typename T>
+    void AddOrReplace(const std::string_view &name, T&& value) {
+        configs_.insert_or_assign(name, std::forward<T>(value));
+    }
+
+    template <typename T>
+    T Get(const std::string_view& name) const {
+        return std::any_cast<T>(configs_.at(name));
+    }
+private:
+    std::map<std::string_view, std::any> configs_;
+};
 
 class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor {
 public:

@@ -378,7 +378,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
-        if (device_type_->GetTypeId() == win32::ASIODeviceType::Id) {
+        if (device_type_->GetTypeId() == UuidOf<win32::ASIODeviceType>::Id()) {
             return is_muted_;
         }
 #else
@@ -922,11 +922,11 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     OpenDevice(0, output_mode);
     CreateBuffer();
 
-    config_.insert_or_assign(DspOptions::kInputFormat, std::any(input_format_));
-    config_.insert_or_assign(DspOptions::kOutputFormat, std::any(output_format_));
-    config_.insert_or_assign(DspOptions::kDsdMode, std::any(dsd_mode_));
-    config_.insert_or_assign(DspOptions::kSampleSize, std::any(stream_->GetSampleSize()));
-    config_.insert_or_assign(DspOptions::kCompressorParameters, std::any(CompressorParameters()));
+    config_.AddOrReplace(DspConfig::kInputFormat, std::any(input_format_));
+    config_.AddOrReplace(DspConfig::kOutputFormat, std::any(output_format_));
+    config_.AddOrReplace(DspConfig::kDsdMode, std::any(dsd_mode_));
+    config_.AddOrReplace(DspConfig::kSampleSize, std::any(stream_->GetSampleSize()));
+    config_.AddOrReplace(DspConfig::kCompressorParameters, std::any(CompressorParameters()));
 
     dsp_manager_->Init(config_);
 	sample_end_time_ = stream_->GetDuration();

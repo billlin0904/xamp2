@@ -104,12 +104,12 @@ BassEqualizer::BassEqualizer()
 XAMP_PIMPL_IMPL(BassEqualizer)
 
 void BassEqualizer::Start(const DspConfig& config) {
-    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 }
 
 void BassEqualizer::Init(const DspConfig& config) {
-	const auto settings = std::any_cast<EQSettings>(config.at(DspOptions::kEQSettings));
+	const auto settings = config.Get<EQSettings>(DspConfig::kEQSettings);
     SetEQ(settings);
 }
 
@@ -130,7 +130,7 @@ bool BassEqualizer::Process(float const* samples, uint32_t num_samples, BufferRe
 }
 
 Uuid BassEqualizer::GetTypeId() const {
-    return Id;
+    return UuidOf<BassEqualizer>::Id();
 }
 
 std::string_view BassEqualizer::GetDescription() const noexcept {

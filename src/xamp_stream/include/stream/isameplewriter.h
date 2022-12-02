@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include <string_view>
-
-#include <base/align_ptr.h>
 #include <base/audiobuffer.h>
 #include <stream/stream.h>
 
@@ -21,7 +18,7 @@ public:
 
     [[nodiscard]] virtual bool Process(BufferRef<float> const &input, AudioBuffer<int8_t>& buffer) = 0;
 	
-    virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+    [[nodiscard]] virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
 protected:
     ISampleWriter() = default;

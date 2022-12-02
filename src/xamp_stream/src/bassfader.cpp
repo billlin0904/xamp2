@@ -56,7 +56,7 @@ BassFader::BassFader()
 }
 
 void BassFader::Start(const DspConfig& config) {
-    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 }
 
@@ -74,7 +74,7 @@ bool BassFader::Process(float const * samples, uint32_t num_samples, BufferRef<f
 }
 
 Uuid BassFader::GetTypeId() const {
-    return Id;
+    return UuidOf<BassFader>::Id();
 }
 
 std::string_view BassFader::GetDescription() const noexcept {

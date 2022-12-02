@@ -57,9 +57,10 @@ private:
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
-    RegisterDevice(DeviceTypeClass::Id, []() {\
+    RegisterDevice(UuidOf<DeviceTypeClass>::Id(), []() {\
 		return MakeAlign<IDeviceType, DeviceTypeClass>();\
 	})
+
 AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
@@ -94,7 +95,7 @@ void AudioDeviceManager::Clear() {
 
 AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
-    return Create(win32::SharedWasapiDeviceType::Id);
+    return Create(UuidOf<win32::SharedWasapiDeviceType>::Id());
 #else
     return Create(osx::CoreAudioDeviceType::Id);
 #endif
@@ -110,7 +111,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::Create(Uuid const& id) const {
 
 bool AudioDeviceManager::IsSupportASIO() const noexcept {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
-    return IsDeviceTypeExist(win32::ASIODeviceType::Id);
+    return IsDeviceTypeExist(UuidOf<win32::ASIODeviceType>::Id());
 #else
     return false;
 #endif

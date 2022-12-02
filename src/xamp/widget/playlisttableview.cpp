@@ -217,13 +217,14 @@ void PlayListTableView::excuteQuery() {
     musics.album_peak,	
     musics.track_replay_gain,
 	musics.track_peak,
-	albumMusic.track_loudness,
+	musicLoudness.track_loudness,
 	musics.genre,
 	musics.year
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
     JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
     JOIN musics ON playlistMusics.musicId = musics.musicId
     JOIN albums ON albumMusic.albumId = albums.albumId
     JOIN artists ON albumMusic.artistId = artists.artistId
@@ -658,21 +659,24 @@ void PlayListTableView::setPodcastMode(bool enable) {
 void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
 }
 
-void PlayListTableView::updateReplayGain(int music_id,
+void PlayListTableView::updateReplayGain(const PlayListEntity& entity,
     double track_loudness,
     double album_rg_gain,
     double album_peak,
     double track_rg_gain,
     double track_peak) {
     qDatabase.updateReplayGain(
-        music_id,
+        entity.music_id,
         album_rg_gain,
         album_peak, 
         track_rg_gain,
         track_peak);
-    qDatabase.updateTrackLoudness(music_id, track_loudness);
+    qDatabase.addOrUpdateTrackLoudness(entity.album_id,
+        entity.artist_id,
+        entity.music_id,
+        track_loudness);
     XAMP_LOG_DEBUG("Update DB music id : {}, track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
-        music_id,
+        entity.music_id,
         track_loudness,
         album_rg_gain,
         album_peak, 

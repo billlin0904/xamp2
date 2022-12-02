@@ -11,13 +11,8 @@
 #include <base/uuid.h>
 #include <base/buffer.h>
 #include <base/audiobuffer.h>
-#include <base/logger.h>
-#include <base/audioformat.h>
-#include <base/dsdsampleformat.h>
 
-#include <stream/stream.h>
 #include <stream/idspmanager.h>
-#include <stream/eqsettings.h>
 
 namespace xamp::stream {
 
@@ -35,10 +30,6 @@ public:
 
     void AddPostDSP(AlignPtr<IAudioProcessor> processor) override;
 
-    void RemovePreDSP(Uuid const& id) override;
-
-    void RemovePostDSP(Uuid const& id) override;
-
     IDSPManager& AddEqualizer() override;
 
     IDSPManager& AddCompressor() override;
@@ -49,7 +40,7 @@ public:
 
     IDSPManager& RemoveVolume() override;
 
-    IDSPManager& RemoveResampler() override;
+    IDSPManager& RemoveSampleRateConverter() override;
 
     void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
 
@@ -64,24 +55,56 @@ public:
 private:
     void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 
-    void Remove(Uuid const& id, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
+    bool Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
-    bool ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
+    bool DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
-    using DspIterator = Vector<AlignPtr<IAudioProcessor>>::const_iterator;
+    using DspIterator = Vector<AlignPtr<IAudioProcessor>>::iterator;
+    using ConstDspIterator = Vector<AlignPtr<IAudioProcessor>>::const_iterator;
+
+    template <typename TDSP>
+    DspIterator Find(DspIterator begin,
+        DspIterator end) {
+        auto itr = std::find_if(begin, end, [](auto const& processor) {
+            return processor->GetTypeId() == UuidOf<TDSP>::Id();
+            });
+        return itr;
+    }
+
+    template <typename Func>
+    ConstDspIterator FindIf(ConstDspIterator begin, ConstDspIterator end, Func func) const {
+        auto itr = std::find_if(begin, end, [&](auto const& processor) {
+            return func(processor->GetTypeId());
+            });
+        return itr;
+    }
 
     template <typename TDSP>
     std::optional<TDSP*> GetDSP(
         DspIterator begin,
         DspIterator end
     ) const {
-        auto itr = std::find_if(begin, end, [](auto const& processor) {
-            return processor->GetTypeId() == TDSP::Id;
-            });
+        auto itr = Find<TDSP>(begin, end);
         if (itr == end) {
             return std::nullopt;
         }
         return dynamic_cast<TDSP*>((*itr).get());
+    }
+
+    template <typename TDSP>
+    void RemovePreDSP() {
+        auto itr = Find<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
+        if (itr != pre_dsp_.end()) {
+            pre_dsp_.erase(itr);
+        }
+    }
+
+    template <typename TDSP>
+    void RemovePostDSP() {
+        auto itr = Find<TDSP>(post_dsp_.begin(), post_dsp_.end());
+        if (itr != post_dsp_.end()) {
+            post_dsp_.erase(itr);
+        }
     }
 
     template <typename TDSP>
@@ -101,6 +124,7 @@ private:
     Buffer<float> post_dsp_buffer_;
     std::shared_ptr<Logger> logger_;
     DspConfig config_;
+    std::function<bool(float const*, size_t, AudioBuffer<int8_t>&)> dispatch_;
 };
 
 }

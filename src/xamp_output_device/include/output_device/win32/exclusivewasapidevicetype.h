@@ -18,7 +18,6 @@ namespace xamp::output_device::win32 {
 
 class ExclusiveWasapiDeviceType final : public IDeviceType {
 public:
-	constexpr static auto Id = std::string_view("089F8446-C980-495B-AC80-5A437A4E73F6");
 	constexpr static auto Description = std::string_view("WASAPI (Exclusive Mode)");
 
 	ExclusiveWasapiDeviceType() noexcept;
@@ -50,6 +49,7 @@ private:
 	Vector<DeviceInfo> device_list_;
 	std::shared_ptr<Logger> log_;
 };
+XAMP_MAKE_CLASS_UUID(ExclusiveWasapiDeviceType, "089F8446-C980-495B-AC80-5A437A4E73F6")
 
 }
 

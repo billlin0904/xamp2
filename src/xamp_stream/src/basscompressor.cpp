@@ -60,14 +60,14 @@ BassCompressor::BassCompressor()
 }
 
 void BassCompressor::Start(const DspConfig& config) {
-    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 }
 
 XAMP_PIMPL_IMPL(BassCompressor)
 
 void BassCompressor::Init(const DspConfig& config) {
-	const auto parameters = std::any_cast<CompressorParameters>(config.at(DspOptions::kCompressorParameters));
+	const auto parameters = config.Get<CompressorParameters>(DspConfig::kCompressorParameters);
     impl_->Init(parameters);
 }
 
@@ -76,7 +76,7 @@ bool BassCompressor::Process(float const * samples, uint32_t num_samples, Buffer
 }
 
 Uuid BassCompressor::GetTypeId() const {
-    return Id;
+    return UuidOf<BassCompressor>::Id();
 }
 
 std::string_view BassCompressor::GetDescription() const noexcept {

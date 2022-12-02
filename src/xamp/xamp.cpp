@@ -1096,10 +1096,10 @@ void Xamp::setupDSP(const AlbumEntity& item) {
         const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
             player_->GetDSPManager()->AddVolume();
-            player_->GetDspConfig().insert_or_assign(DspOptions::kVolume, item.album_replay_gain);
+            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain);
         } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
             player_->GetDSPManager()->AddVolume();
-            player_->GetDspConfig().insert_or_assign(DspOptions::kVolume, item.track_replay_gain);
+            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.track_replay_gain);
         } else {
             player_->GetDSPManager()->RemoveVolume();
         }
@@ -1111,7 +1111,7 @@ void Xamp::setupDSP(const AlbumEntity& item) {
         if (AppSettings::contains(kAppSettingEQName)) {
             const auto [name, settings] = 
                 AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
-            player_->GetDspConfig().insert_or_assign(DspOptions::kVolume, settings);
+            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, settings);
         }
     } else {
         player_->GetDSPManager()->RemoveEqualizer();
@@ -1165,7 +1165,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-                player_->GetDSPManager()->RemoveResampler();
+                player_->GetDSPManager()->RemoveSampleRateConverter();
                 if (resampler_type == kSoxr || resampler_type.isEmpty()) {
                     const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
                     soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
@@ -1194,7 +1194,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
                 if (initial_resampler == nullptr || player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
-                    player_->GetDSPManager()->RemoveResampler();
+                    player_->GetDSPManager()->RemoveSampleRateConverter();
                 }
                 else {
                     initial_resampler();
@@ -1202,7 +1202,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             }
             setupDSP(item);
         } else {
-            player_->GetDSPManager()->RemoveResampler();
+            player_->GetDSPManager()->RemoveSampleRateConverter();
             player_->GetDSPManager()->RemoveVolume();
             player_->GetDSPManager()->RemoveEqualizer();
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {

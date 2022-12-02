@@ -95,7 +95,10 @@ public:
 
     void updateMusicTitle(int32_t music_id, const QString& title);
 
-    void updateTrackLoudness(int32_t music_id, double track_loudness);
+    void addOrUpdateTrackLoudness(int32_t album_id,
+        int32_t artist_id,
+        int32_t music_id, 
+        double track_loudness);
 
     void updateReplayGain(int32_t music_id,
         double album_rg_gain,
@@ -133,8 +136,6 @@ public:
 
     void forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 
-    void forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std::function<void(PlayListEntity const&)>&& fun);
-
     void forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const &)> &&fun);
 
     void forEachAlbum(std::function<void(int32_t)>&& fun);
@@ -144,6 +145,8 @@ public:
     void removeArtistId(int32_t artist_id);
 
     void removeMusic(int32_t music_id);
+
+    void removeTrackLoudnessMusicId(int32_t music_id);
 
     void removeMusic(QString const& file_path);
 

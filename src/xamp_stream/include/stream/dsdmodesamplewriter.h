@@ -11,9 +11,9 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API SampleWriter final : public ISampleWriter {
+class XAMP_STREAM_API DsdModeSampleWriter final : public ISampleWriter {
 public:
-    explicit SampleWriter(DsdModes dsd_mode, uint8_t sample_size);
+    explicit DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size);
 
     bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
 

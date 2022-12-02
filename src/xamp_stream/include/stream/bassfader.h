@@ -13,8 +13,6 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API BassFader final : public IAudioProcessor {
 public:
-    constexpr static auto Id = std::string_view("6981FB2E-E133-4B33-9378-F23628EEE4FE");    
-	
     BassFader();
 
     XAMP_PIMPL(BassFader)
@@ -36,6 +34,7 @@ private:
     class BassFaderImpl;
     AlignPtr<BassFaderImpl> impl_;
 };
+XAMP_MAKE_CLASS_UUID(BassFader, "6981FB2E-E133-4B33-9378-F23628EEE4FE")
 
 }
 

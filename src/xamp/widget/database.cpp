@@ -215,6 +215,20 @@ void Database::createTableIfNotExist() {
                        musicId integer,
                        artistId integer,
                        albumId integer,
+                       FOREIGN KEY(musicId) REFERENCES musics(musicId),
+                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
+                       FOREIGN KEY(albumId) REFERENCES albums(albumId),
+					   UNIQUE(musicId)
+                       )
+                       )"));
+
+	create_table_sql.push_back(
+		qTEXT(R"(
+                       CREATE TABLE IF NOT EXISTS musicLoudness (
+                       musicLoudnessId integer primary key autoincrement,
+                       musicId integer,
+                       artistId integer,
+                       albumId integer,
 					   track_loudness DOUBLE,
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
@@ -233,8 +247,7 @@ void Database::createTableIfNotExist() {
                        playing integer,
                        FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
-					   FOREIGN KEY(albumId) REFERENCES albums(albumId),
-					   UNIQUE(musicId)
+					   FOREIGN KEY(albumId) REFERENCES albums(albumId)
                        )
                        )"));
 
@@ -292,6 +305,13 @@ void Database::removeAlbumMusicId(int32_t music_id) {
 	IfFailureThrow1(query);
 }
 
+void Database::removeTrackLoudnessMusicId(int32_t music_id) {
+	QSqlQuery query;
+	query.prepare(qTEXT("DELETE FROM musicLoudness WHERE musicId=:musicId"));
+	query.bindValue(qTEXT(":musicId"), music_id);
+	IfFailureThrow1(query);
+}
+
 void Database::removeAlbumArtistId(int32_t artist_id) {
 	QSqlQuery query;
 	query.prepare(qTEXT("DELETE FROM albumArtist WHERE artistId=:artistId"));
@@ -318,6 +338,7 @@ void Database::removeMusic(QString const& file_path) {
 		auto music_id = query.value(qTEXT("musicId")).toInt();
 		removePlaylistMusic(1, QVector<int32_t>{ music_id });
 		removeAlbumMusicId(music_id);
+		removeTrackLoudnessMusicId(music_id);
 		removeAlbumArtistId(music_id);
 		removeMusic(music_id);
 		return;
@@ -362,55 +383,30 @@ void Database::forEachTable(std::function<void(int32_t, int32_t, int32_t, QStrin
 	}
 }
 
-void Database::forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std::function<void(PlayListEntity const&)>&& fun) {
-	QSqlQuery query(qTEXT(R"(
-SELECT
-    albumMusic.albumId,
-    albumMusic.artistId,
-	albumMusic.track_loudness,
-    albums.album,
-    albums.coverId,
-    artists.artist,
-    musics.*
-FROM
-    albumMusic
-    LEFT JOIN albums ON albums.albumId = albumMusic.albumId
-    LEFT JOIN artists ON artists.artistId = albumMusic.artistId
-    LEFT JOIN musics ON musics.musicId = albumMusic.musicId
-WHERE
-    albums.albumId = ? AND albumMusic.artistId = ?
-ORDER BY musics.path;)"));
-	query.addBindValue(album_id);
-	query.addBindValue(artist_id);
-
-	if (!query.exec()) {
-		XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
-	}
-
-	while (query.next()) {
-		fun(queryToPlayListEntity(query));
-	}
-}
-
 void Database::forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const&)>&& fun) {
 	QSqlQuery query(qTEXT(R"(
 SELECT
-    albumMusic.albumId,
-    albumMusic.artistId,
-	albumMusic.track_loudness,
-    albums.album,
-    albums.coverId,
-    artists.artist,
-    musics.*,
-	albums.discId
+	albumMusic.albumId,
+	albumMusic.artistId,
+	musicLoudness.track_loudness,
+	albums.album,
+	albums.coverId,
+	artists.artist,
+	musics.*,
+	albums.discId 
 FROM
-    albumMusic
-    LEFT JOIN albums ON albums.albumId = albumMusic.albumId
-    LEFT JOIN artists ON artists.artistId = albumMusic.artistId
-    LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+	albumMusic
+	LEFT JOIN albums ON albums.albumId = albumMusic.albumId
+	LEFT JOIN artists ON artists.artistId = albumMusic.artistId
+	LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON musicLoudness.musicId = albumMusic.musicId 
 WHERE
-    albums.albumId = ?
-ORDER BY musics.track, musics.path, musics.fileName;)"));
+	albums.albumId = ?
+ORDER BY
+	musics.track,
+	musics.path,
+	musics.fileName;
+)"));
 	query.addBindValue(album_id);
 
 	if (!query.exec()) {
@@ -451,6 +447,7 @@ void Database::removeAlbum(int32_t album_id) {
 			removeMusic(playlistId, QVector<int32_t>{ entity.music_id });
         });
 		removeAlbumMusicId(entity.music_id);
+		removeTrackLoudnessMusicId(entity.music_id);
 		removeMusic(entity.music_id);
 		});
 
@@ -727,7 +724,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 	SELECT
 		albumMusic.albumId,
 		albumMusic.artistId,
-		albumMusic.track_loudness,
+		musicLoudness.track_loudness,
 		albums.album,
 		albums.coverId,
 		artists.artist,
@@ -737,6 +734,7 @@ ForwardList<PlayListEntity> Database::getPlayListEntityFromPathHash(size_t path_
 		LEFT JOIN albums ON albums.albumId = albumMusic.albumId
 		LEFT JOIN artists ON artists.artistId = albumMusic.artistId
 		LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+		LEFT JOIN musicLoudness ON musicLoudness.musicId = albumMusic.musicId
 	WHERE
 		hex(musics.parentPathHash) = '%1'
 	ORDER BY 
@@ -872,11 +870,23 @@ void Database::updateMusicTitle(int32_t music_id, const QString& title) {
 	IfFailureThrow1(query);
 }
 
-void Database::updateTrackLoudness(int32_t music_id, double track_loudness) {
+void Database::addOrUpdateTrackLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness) {
 	QSqlQuery query;
 
-	query.prepare(qTEXT("UPDATE albumMusic SET track_loudness = :track_loudness WHERE (musicId = :musicId)"));
+	query.prepare(qTEXT(R"(
+    INSERT OR REPLACE INTO musicLoudness (musicLoudnessId, albumId, artistId, musicId, track_loudness)
+	VALUES
+	(
+	(SELECT musicLoudnessId FROM musicLoudness WHERE albumId = :albumId AND artistId = :artistId AND musicId = :musicId AND track_loudness = :track_loudness),
+	:albumId,
+	:artistId,
+	:musicId,
+	:track_loudness 
+	)
+    )"));
 
+	query.bindValue(qTEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":artistId"), artist_id);
 	query.bindValue(qTEXT(":musicId"), music_id);
 	query.bindValue(qTEXT(":track_loudness"), track_loudness);
 
@@ -1061,8 +1071,8 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
 	QSqlQuery query;
 
 	query.prepare(qTEXT(R"(
-    INSERT INTO albumMusic (albumMusicId, albumId, artistId, musicId)
-    VALUES (NULL, :albumId, :artistId, :musicId)
+    INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
+    VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
     )"));
 
 	query.bindValue(qTEXT(":albumId"), album_id);

@@ -15,8 +15,6 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API BassEqualizer final : public IAudioProcessor {
 public:
-    constexpr static auto Id = std::string_view("FCC73B23-6806-44CD-882D-EA21A3482F51");
-
     BassEqualizer();
 
     XAMP_PIMPL(BassEqualizer)
@@ -42,5 +40,6 @@ private:
     class BassEqualizerImpl;
     AlignPtr<BassEqualizerImpl> impl_;
 };
+XAMP_MAKE_CLASS_UUID(BassEqualizer, "FCC73B23-6806-44CD-882D-EA21A3482F51")
 
 }

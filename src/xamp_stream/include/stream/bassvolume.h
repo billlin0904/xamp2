@@ -13,8 +13,6 @@ namespace xamp::stream {
 
 class BassVolume final : public IAudioProcessor {
 public:
-    constexpr static auto Id = std::string_view("83d25234-5484-45a3-bda8-baf35541f9d2");    
-	
     BassVolume();
 
     XAMP_PIMPL(BassVolume)
@@ -35,5 +33,6 @@ private:
     class BassVolumeImpl;
     AlignPtr<BassVolumeImpl> impl_;
 };
+XAMP_MAKE_CLASS_UUID(BassVolume, "83d25234-5484-45a3-bda8-baf35541f9d2")
 
 }

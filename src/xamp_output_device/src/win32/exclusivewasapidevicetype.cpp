@@ -33,7 +33,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return helper::GetDeviceInfo(default_output_device, Id);
+	return helper::GetDeviceInfo(default_output_device, UuidOf<ExclusiveWasapiDeviceType>::Id());
 }
 
 Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
@@ -55,7 +55,7 @@ std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
 }
 
 Uuid ExclusiveWasapiDeviceType::GetTypeId() const {
-	return Id;
+	return UuidOf<ExclusiveWasapiDeviceType>::Id();
 }
 
 size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
@@ -92,7 +92,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		CComPtr<IMMDevice> device;
 
 		HrIfFailledThrow(devices->Item(i, &device));
-		auto info = helper::GetDeviceInfo(device, Id);
+		auto info = helper::GetDeviceInfo(device, UuidOf<ExclusiveWasapiDeviceType>::Id());
 
 		if (default_device_name == info.name) {
 			info.is_default_device = true;

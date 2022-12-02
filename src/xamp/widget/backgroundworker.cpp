@@ -244,7 +244,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
         rg.ref_loudness = target_loudness;
 
         writer_->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
-        emit updateReplayGain(replay_gain.music_id[i].music_id,
+        emit updateReplayGain(replay_gain.music_id[i],
             replay_gain.track_loudness[i],
             replay_gain.album_gain,
             replay_gain.album_peak,

@@ -16,7 +16,6 @@ static constexpr int32_t kR8brainBufferSize = 64 * 1024;
 
 class XAMP_STREAM_API R8brainSampleRateConverter final : public IAudioProcessor {
 public:
-    constexpr static auto Id = std::string_view("786D706E-20F0-4F30-9B98-8B489DC5C739");
     static const std::string_view VERSION;
 
     XAMP_PIMPL(R8brainSampleRateConverter)
@@ -39,6 +38,7 @@ private:
     class R8brainSampleRateConverterImpl;
     AlignPtr<R8brainSampleRateConverterImpl> impl_;
 };
+XAMP_MAKE_CLASS_UUID(R8brainSampleRateConverter, "786D706E-20F0-4F30-9B98-8B489DC5C739")
 
 }
 

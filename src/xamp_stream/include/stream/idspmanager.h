@@ -5,16 +5,11 @@
 
 #pragma once
 
-#include <any>
-#include <map>
-
 #include <base/base.h>
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
 
 #include <base/audiobuffer.h>
-#include <base/audioformat.h>
-#include <base/dsdsampleformat.h>
 #include <base/uuid.h>
 
 namespace xamp::stream {
@@ -26,15 +21,11 @@ public:
 	virtual void Init(const DspConfig& config) = 0;
 
     // note: return true (fetch more data).
-    virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
+    [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
 
     virtual void AddPreDSP(AlignPtr<IAudioProcessor> processor) = 0;
 
     virtual void AddPostDSP(AlignPtr<IAudioProcessor> processor) = 0;
-
-    virtual void RemovePreDSP(Uuid const& id) = 0;
-
-    virtual void RemovePostDSP(Uuid const& id) = 0;
 
     virtual IDSPManager& AddEqualizer() = 0;
 
@@ -46,15 +37,15 @@ public:
 
     virtual IDSPManager& RemoveVolume() = 0;
 
-    virtual IDSPManager& RemoveResampler() = 0;
+    virtual IDSPManager& RemoveSampleRateConverter() = 0;
 
     virtual void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) = 0;
 
-    virtual bool IsEnableSampleRateConverter() const = 0;
+    [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 
-    virtual bool IsEnablePcm2DsdConverter() const = 0;
+    [[nodiscard]] virtual bool IsEnablePcm2DsdConverter() const = 0;
 
-    virtual bool CanProcessFile() const noexcept = 0;
+    [[nodiscard]] virtual bool CanProcessFile() const noexcept = 0;
 
     virtual void Flush() = 0;
 protected:

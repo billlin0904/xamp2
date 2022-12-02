@@ -49,14 +49,14 @@ BassVolume::BassVolume()
 }
 
 void BassVolume::Start(const DspConfig& config) {
-    const auto output_format = std::any_cast<AudioFormat>(config.at(DspOptions::kOutputFormat));
+    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 }
 
 XAMP_PIMPL_IMPL(BassVolume)
 
 void BassVolume::Init(const DspConfig& config) {
-    const auto volume = std::any_cast<double>(config.at(DspOptions::kVolume));
+    const auto volume = config.Get<double>(DspConfig::kVolume);
     impl_->Init(volume);
 }
 
@@ -65,11 +65,11 @@ bool BassVolume::Process(float const * samples, uint32_t num_samples, BufferRef<
 }
 
 Uuid BassVolume::GetTypeId() const {
-    return Id;
+    return UuidOf<BassVolume>::Id();
 }
 
 std::string_view BassVolume::GetDescription() const noexcept {
-    return "kVolume";
+    return "Volume";
 }
 
 void BassVolume::Flush() {

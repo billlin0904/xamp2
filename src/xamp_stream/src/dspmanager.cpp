@@ -1,4 +1,3 @@
-#include <base/assert.h>
 #include <base/audioformat.h>
 #include <base/exception.h>
 #include <base/logger_impl.h>
@@ -9,8 +8,7 @@
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
-#include <stream/basscompressor.h>
-#include <stream/samplewriter.h>
+#include <stream/dsdmodesamplewriter.h>
 #include <stream/foobardspadapter.h>
 #include <stream/dspmanager.h>
 
@@ -32,14 +30,6 @@ void DSPManager::AddPostDSP(AlignPtr<IAudioProcessor> processor) {
 void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
     XAMP_LOG_D(logger_, "Add pre dsp:{} success.", processor->GetDescription());
     AddOrReplace(std::move(processor), pre_dsp_);
-}
-
-void DSPManager::RemovePostDSP(Uuid const& id) {
-    Remove(id, post_dsp_);
-}
-
-void DSPManager::RemovePreDSP(Uuid const& id) {
-    Remove(id, pre_dsp_);
 }
 
 IDSPManager& DSPManager::AddEqualizer() {
@@ -66,23 +56,23 @@ void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
 }
 
 IDSPManager& DSPManager::RemoveEqualizer() {
-    RemovePostDSP(BassEqualizer::Id);
+    RemovePreDSP<BassEqualizer>();
     return *this;
 }
 
 IDSPManager& DSPManager::RemoveVolume() {
-    RemovePostDSP(BassVolume::Id);
+    RemovePreDSP<BassVolume>();
     return *this;
 }
 
-IDSPManager& DSPManager::RemoveResampler() {
-    RemovePreDSP(R8brainSampleRateConverter::Id);
-    RemovePreDSP(SoxrSampleRateConverter::Id);
+IDSPManager& DSPManager::RemoveSampleRateConverter() {
+    RemovePreDSP<R8brainSampleRateConverter>();
+    RemovePreDSP<SoxrSampleRateConverter>();
     return *this;
 }
 
 bool DSPManager::CanProcessFile() const noexcept {
-    auto dsd_mode = std::any_cast<DsdModes>(config_.at(DspOptions::kDsdMode));
+	const auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
 
     if (dsd_mode == DsdModes::DSD_MODE_PCM
         || dsd_mode == DsdModes::DSD_MODE_DSD2PCM
@@ -109,22 +99,15 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignP
     }
 }
 
-void DSPManager::Remove(Uuid const& id, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
-    auto itr = std::find_if(dsp_chain.begin(),
-        dsp_chain.end(),
-        [id](auto const& processor) {
-            return processor->GetTypeId() == id;
-        });
-    if (itr != dsp_chain.end()) {
-        XAMP_LOG_D(logger_, "Remove post dsp:{} success.", (*itr)->GetDescription());
-        dsp_chain.erase(itr);
-    }
-}
-
 bool DSPManager::IsEnableSampleRateConverter() const {
-    return
-	(GetPreDSP<SoxrSampleRateConverter>() != std::nullopt || GetPostDSP<SoxrSampleRateConverter>() != std::nullopt)
-	|| (GetPreDSP<R8brainSampleRateConverter>() != std::nullopt || GetPostDSP<R8brainSampleRateConverter>() != std::nullopt);
+    const auto equal_id = [](const auto& id) {
+        return UuidOf<SoxrSampleRateConverter>::Id() == id || UuidOf<R8brainSampleRateConverter>::Id() == id;
+    };
+
+    if (FindIf(pre_dsp_.begin(), pre_dsp_.end(), equal_id) == pre_dsp_.end()) {
+        return FindIf(post_dsp_.begin(), post_dsp_.end(), equal_id) != post_dsp_.end();
+    }
+    return false;
 }
 
 bool DSPManager::IsEnablePcm2DsdConverter() const {
@@ -148,19 +131,19 @@ void DSPManager::Flush() {
 }
 
 bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
-    if (CanProcessFile()) {
-        return ApplyDSP(samples, num_samples, fifo);
-    }
+    return dispatch_(samples, num_samples, fifo);
+}
 
+bool DSPManager::DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
     BufferOverFlowThrow(sample_writer_->Process(samples, num_samples, fifo));
     return false;
 }
 
-bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
+bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
     BufferRef<float> pre_dsp_buffer(pre_dsp_buffer_);
     BufferRef<float> post_dsp_buffer(post_dsp_buffer_);
 
-    if (!pre_dsp_.empty()) {        
+    if (!pre_dsp_.empty()) {
         for (const auto& pre_dsp : pre_dsp_) {
             if (!pre_dsp->Process(samples, num_samples, pre_dsp_buffer)) {
                 return true;
@@ -168,10 +151,11 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
         }
         for (const auto& post_dsp : post_dsp_) {
             post_dsp->Process(pre_dsp_buffer.data(),
-                pre_dsp_buffer.size(), 
+                pre_dsp_buffer.size(),
                 post_dsp_buffer);
         }
-    } else {
+    }
+    else {
         for (const auto& post_dsp : post_dsp_) {
             post_dsp->Process(samples, num_samples, post_dsp_buffer);
         }
@@ -179,25 +163,29 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
 
     if (post_dsp_.empty()) {
         BufferOverFlowThrow(sample_writer_->Process(pre_dsp_buffer, fifo));
-    } else {
+    }
+    else {
         BufferOverFlowThrow(sample_writer_->Process(post_dsp_buffer, fifo));
     }
-    return false; 
+    return false;
 }
 
 void DSPManager::Init(const DspConfig& config) {
     config_ = config;
 
-    auto sample_size = std::any_cast<uint8_t>(config_.at(DspOptions::kSampleSize));
-    auto dsd_mode = std::any_cast<DsdModes>(config_.at(DspOptions::kDsdMode));
+    auto sample_size = config_.Get<uint8_t>(DspConfig::kSampleSize);
+    auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
 
     if (!sample_writer_) {
-        sample_writer_ = MakeAlign<ISampleWriter, SampleWriter>(dsd_mode, sample_size);
+        sample_writer_ = MakeAlign<ISampleWriter, DsdModeSampleWriter>(dsd_mode, sample_size);
     }
 
     if (!CanProcessFile()) {
-        XAMP_LOG_D(logger_, "Can't not process file.");
+        dispatch_ = bind_front(&DSPManager::DefaultProcess, this);
         return;
+    }
+    else {        
+        dispatch_ = bind_front(&DSPManager::Process, this);
     }
 
     for (const auto& dsp : pre_dsp_) {
