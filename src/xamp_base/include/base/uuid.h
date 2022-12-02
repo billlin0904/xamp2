@@ -16,16 +16,16 @@
 namespace xamp::base {
 	
 inline constexpr size_t kIdSize = 16;
-inline constexpr size_t kMaxIdStrLen = 36;
+inline constexpr size_t kMaxUuidHexStringLength = 36;
 using UuidBuffer = std::array<uint8_t, kIdSize>;
 
 class XAMP_BASE_API Uuid final {
 public:
     static Uuid const kNullUuid;
 
-    static Uuid FromString(std::string const & str);
+    static Uuid FromString(std::string const & hex_string);
 
-    static bool TryParseString(std::string const& str, Uuid &uuid);
+    static bool TryParseString(std::string const& hex_string, Uuid &uuid);
 
     template <typename ForwardIterator>
     explicit Uuid(ForwardIterator first, ForwardIterator last) {
@@ -38,11 +38,11 @@ public:
 
     Uuid() noexcept;
 
-    explicit Uuid(UuidBuffer const &bytes) noexcept;
+    explicit Uuid(UuidBuffer const &buffer) noexcept;
 
-    Uuid(std::string_view const &from_string);
+    Uuid(std::string_view const &hex_string);
 
-    explicit Uuid(const uint8_t(&arr)[kIdSize]) noexcept;
+    explicit Uuid(const uint8_t(&byte_array)[kIdSize]) noexcept;
 
 	[[nodiscard]] bool IsValid() const noexcept;
 

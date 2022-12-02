@@ -16,21 +16,21 @@ static bool TryParseHex(const char a, const char b, uint8_t &data) noexcept {
     return true;
 }
 
-static bool TryParseUuid(std::string_view const & from_string, UuidBuffer &result) noexcept {
-    if (from_string.length() != kMaxIdStrLen) {
+static bool TryParseUuid(std::string_view const & hex_string, UuidBuffer &result) noexcept {
+    if (hex_string.length() != kMaxUuidHexStringLength) {
         return false;
     }
 
-    if (   from_string[8]  != '-'
-        || from_string[13] != '-'
-        || from_string[18] != '-'
-        || from_string[23] != '-') {
+    if (   hex_string[8]  != '-'
+        || hex_string[13] != '-'
+        || hex_string[18] != '-'
+        || hex_string[23] != '-') {
         return false;
     }
 
     UuidBuffer uuid{};
 
-    for (size_t i = 0, j = 0; i < from_string.length(); ++i) {
+    for (size_t i = 0, j = 0; i < hex_string.length(); ++i) {
         switch (i) {
         case 8:
         case 13:
@@ -38,7 +38,7 @@ static bool TryParseUuid(std::string_view const & from_string, UuidBuffer &resul
         case 23:
             continue;
         default: 
-            if (!TryParseHex(from_string[i], from_string[i + 1], uuid[j])) {
+            if (!TryParseHex(hex_string[i], hex_string[i + 1], uuid[j])) {
                 return false;
 			}
             ++j;
@@ -102,14 +102,14 @@ Uuid& Uuid::operator=(Uuid&& other) noexcept {
     return *this;
 }
 
-Uuid::Uuid(const uint8_t(&arr)[kIdSize]) noexcept {
-    std::copy(std::cbegin(arr),
-        std::cend(arr),
+Uuid::Uuid(const uint8_t(&byte_array)[kIdSize]) noexcept {
+    std::copy(std::cbegin(byte_array),
+        std::cend(byte_array),
         std::begin(bytes_));
 }
 
-Uuid::Uuid(UuidBuffer const& bytes) noexcept
-    : bytes_(bytes) {
+Uuid::Uuid(UuidBuffer const& buffer) noexcept
+    : bytes_(buffer) {
 }
 
 Uuid::Uuid(std::string_view const &str) {
@@ -122,13 +122,13 @@ Uuid::operator std::string() const {
     return ostr.str();
 }
 
-Uuid Uuid::FromString(std::string const & str) {
-    return { str };
+Uuid Uuid::FromString(std::string const & hex_string) {
+    return { hex_string };
 }
 
-bool Uuid::TryParseString(std::string const& str, Uuid& uuid) {
+bool Uuid::TryParseString(std::string const& hex_string, Uuid& uuid) {
     UuidBuffer buffer;
-    if (!TryParseUuid(str, buffer)) {
+    if (!TryParseUuid(hex_string, buffer)) {
         return false;
     }
 	const Uuid result(buffer);

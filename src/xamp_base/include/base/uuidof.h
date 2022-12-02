@@ -21,7 +21,7 @@ struct UuidOf<className> {                  \
 	static inline							\
 	const xamp::base::Uuid& Id() {			\
 		static const xamp::base::Uuid id(	\
-		std::string_view(classUuid));		\
+		classUuid);							\
 		return id;							\
 	}										\
 };
