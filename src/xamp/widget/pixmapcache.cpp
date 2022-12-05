@@ -21,6 +21,8 @@ inline constexpr size_t kDefaultCacheSize = 32;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
 inline constexpr auto kPixmapCacheFileExt = qTEXT(".jpg");
 
+XAMP_DECLARE_LOG_NAME(PixmapCache);
+
 QStringList PixmapCache::cover_ext_ =
     QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png") << qTEXT("*.bmp");
 
@@ -29,7 +31,7 @@ QStringList PixmapCache::cache_ext_ =
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
-    , logger_(LoggerManager::GetInstance().GetLogger("PixmapCache")) {
+    , logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName)) {
 	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
 			AppSettings::defaultCachePath() + qTEXT("/caches/"),

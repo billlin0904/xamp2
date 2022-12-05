@@ -269,7 +269,7 @@ HashMap<char32_t, uint32_t> FontIcon::glyphs_ = {
     { ICON_MINIMIZE_WINDOW,           0xF2D1},
     { ICON_MAXIMUM_WINDOW,            0xF2D0},
     { ICON_CLOSE_WINDOW,              0xF00D},
-    { ICON_RESTORE_WINDOW,            0xE923},
+    { ICON_RESTORE_WINDOW,            0xF2D2},
     { ICON_SLIDER_BAR,                0xF0C9},
     { ICON_PLAY,                      0xF04B},
     { ICON_PAUSE,                     0xF04C},
