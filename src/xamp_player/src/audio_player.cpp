@@ -30,6 +30,8 @@
 
 namespace xamp::player {
 
+XAMP_DECLARE_LOG_NAME(AudioPlayer);
+
 #ifdef _DEBUG
 inline constexpr int32_t kBufferStreamCount = 3;
 #else

@@ -42,6 +42,7 @@ private:
 };
 
 #define XAMP_DECLARE_DLL(Export_C_Func) DllFunction<decltype(Export_C_Func)>
+#define XAMP_DECLARE_DLL_NAME(Export_C_Func) DllFunction<decltype(Export_C_Func)> Export_C_Func
 #define XAMP_LOAD_DLL_API(DLLFunc) DLLFunc(module_, #DLLFunc)
 #define XAMP_LOAD_DLL_API_EX(MemberName, DLLFunc) MemberName(module_, #DLLFunc)
 

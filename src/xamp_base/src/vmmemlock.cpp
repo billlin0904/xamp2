@@ -9,6 +9,8 @@
 
 namespace xamp::base {
 
+XAMP_DECLARE_LOG_NAME(VirtualMemory);
+
 VmMemLock::VmMemLock() noexcept {
 	logger_ = LoggerManager::GetInstance().GetLogger(kVirtualMemoryLoggerName);
 }

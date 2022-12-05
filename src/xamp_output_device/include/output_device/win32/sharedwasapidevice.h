@@ -18,6 +18,8 @@
 
 namespace xamp::output_device::win32 {
 
+XAMP_DECLARE_LOG_NAME(SharedWasapiDevice);
+
 class SharedWasapiDevice final : public IOutputDevice {
 public:
 	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);

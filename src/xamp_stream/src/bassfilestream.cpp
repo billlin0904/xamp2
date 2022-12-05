@@ -11,6 +11,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(FileStream);
+
 static bool IsFilePath(std::wstring const& file_path) noexcept {
     auto lowcase_file_path = String::ToLower(file_path);
     return lowcase_file_path.find(L"https") == std::string::npos
@@ -393,10 +395,6 @@ AudioFormat BassFileStream::GetFormat() const {
 
 void BassFileStream::Seek(double stream_time) const {
     stream_->Seek(stream_time);
-}
-
-double BassFileStream::GetPosition() const {
-    return stream_->GetPosition();
 }
 
 uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {

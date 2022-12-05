@@ -21,13 +21,13 @@ private:
     ModuleHandle module_;
 
 public:
-    XAMP_DECLARE_DLL(soxr_quality_spec) soxr_quality_spec;
-    XAMP_DECLARE_DLL(soxr_create) soxr_create;
-    XAMP_DECLARE_DLL(soxr_process) soxr_process;
-    XAMP_DECLARE_DLL(soxr_delete) soxr_delete;
-    XAMP_DECLARE_DLL(soxr_io_spec) soxr_io_spec;
-    XAMP_DECLARE_DLL(soxr_runtime_spec) soxr_runtime_spec;
-    XAMP_DECLARE_DLL(soxr_clear) soxr_clear;
+    XAMP_DECLARE_DLL_NAME(soxr_quality_spec);
+    XAMP_DECLARE_DLL_NAME(soxr_create);
+    XAMP_DECLARE_DLL_NAME(soxr_process);
+    XAMP_DECLARE_DLL_NAME(soxr_delete);
+    XAMP_DECLARE_DLL_NAME(soxr_io_spec);
+    XAMP_DECLARE_DLL_NAME(soxr_runtime_spec);
+    XAMP_DECLARE_DLL_NAME(soxr_clear);
 };
 
 }

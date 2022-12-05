@@ -35,15 +35,6 @@ private:
 };
 #endif
 
-AutoRegisterLoggerName::AutoRegisterLoggerName(std::string_view s)
-	: index(Singleton<Vector<std::string_view>>::GetInstance().size()) {
-	Singleton<Vector<std::string_view>>::GetInstance().push_back(s);
-}
-
-std::string_view AutoRegisterLoggerName::GetLoggerName() const {
-    return Singleton<Vector<std::string_view>>::GetInstance()[index];
-}
-
 static bool CreateLogsDir() {
 	const Path log_path("logs");	
 	if (!Fs::exists(log_path)) {
@@ -55,10 +46,6 @@ static bool CreateLogsDir() {
 LoggerManager::LoggerManager() noexcept = default;
 
 LoggerManager::~LoggerManager() {
-}
-
-const Vector<std::string_view> & LoggerManager::GetWellKnownName() {
-    return Singleton<Vector<std::string_view>>::GetInstance();
 }
 
 void LoggerManager::SetLevel(LogLevel level) {
@@ -98,6 +85,21 @@ void Logger::SetLevel(LogLevel level) {
 
 const std::string& Logger::GetName() const {
 	return logger_->name();
+}
+
+Vector<std::shared_ptr<Logger>> LoggerManager::GetAllLogger() {
+	Vector<std::shared_ptr<Logger>> loggers;
+	spdlog::details::registry::instance().apply_all([&loggers](auto x) {
+		if (x->name().empty()) {
+			return;
+		}
+		loggers.push_back(std::make_shared<Logger>(x));
+		});
+	return loggers;
+}
+
+std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string_view& name) {
+	return GetLogger(std::string(name));
 }
 
 std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {

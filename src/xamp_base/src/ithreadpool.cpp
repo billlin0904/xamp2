@@ -33,6 +33,9 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& poo
         steal_policy);
 }
 
+XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
+XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
+
 IThreadPoolExecutor& GetPlaybackThreadPool() {
     static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,

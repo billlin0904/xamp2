@@ -20,6 +20,8 @@
 #include <widget/widget_shared.h>
 #include <widget/backgroundworker.h>
 
+XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
+
 struct ReplayGainWorkerEntity {
     ReplayGainWorkerEntity(PlayListEntity item, std::optional<Ebur128Reader> scanner)
         : item(std::move(item))

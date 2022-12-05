@@ -10,6 +10,8 @@
 
 namespace xamp::output_device::win32 {
 
+XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);
+
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept {
 	log_ = LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);
 	ScanNewDevice();

@@ -7,6 +7,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(Compressor);
+
 class BassCompressor::BassCompressorImpl {
 public:
     BassCompressorImpl() {

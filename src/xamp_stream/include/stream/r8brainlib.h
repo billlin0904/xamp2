@@ -24,10 +24,10 @@ private:
 	ModuleHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(r8b_create) r8b_create;
-	XAMP_DECLARE_DLL(r8b_delete) r8b_delete;
-	XAMP_DECLARE_DLL(r8b_clear) r8b_clear;
-	XAMP_DECLARE_DLL(r8b_process) r8b_process;
+	XAMP_DECLARE_DLL_NAME(r8b_create);
+	XAMP_DECLARE_DLL_NAME(r8b_delete);
+	XAMP_DECLARE_DLL_NAME(r8b_clear);
+	XAMP_DECLARE_DLL_NAME(r8b_process);
 };
 
 }

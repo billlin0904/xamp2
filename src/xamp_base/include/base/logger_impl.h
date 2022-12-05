@@ -67,13 +67,12 @@ public:
 
     const std::string & GetName() const;
 
-private:
     template <typename... Args>
-    void Log(LogLevel level, const char *filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
+    void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
         auto message = fmt::format(s, args...);
         LogMsg(level, filename, line, func, message);
     }
-
+private:
     void LogMsg(LogLevel level, const char* filename, int32_t line, const char* func, const std::string &msg) const;
 
     std::shared_ptr<spdlog::logger> logger_;
@@ -101,9 +100,11 @@ public:
         return default_logger_.get();
     }
 
+    std::shared_ptr<Logger> GetLogger(const std::string_view& name);
+
     std::shared_ptr<Logger> GetLogger(const std::string& name);
 
-    const Vector<std::string_view>& GetWellKnownName();
+    Vector<std::shared_ptr<Logger>> GetAllLogger();
 
     void SetLevel(LogLevel level);
 

@@ -5,20 +5,16 @@
 
 #pragma once
 
-#include <base/stl.h>
-
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
+#include <base/uuidof.h>
 
-#include <stream/stream.h>
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
 
 namespace xamp::stream {
 
-class BassFileStream final
-	: public FileStream
-	, public IDsdStream {
+class BassFileStream final : public FileStream, public IDsdStream {
 public:
 	BassFileStream();
 
@@ -35,8 +31,6 @@ public:
     uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
 	void Seek(double stream_time) const override;
-
-	double GetPosition() const override;
 
 	std::string_view GetDescription() const noexcept override;
 
@@ -71,6 +65,7 @@ private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
 };
+XAMP_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
 
 }
 

@@ -111,8 +111,37 @@ static LogLevel parseLogLevel(const QString &str) {
     return logs[str];
 }
 
-static void loadLogConfig() {
-    XAMP_LOG_DEBUG("loadLogConfig.");
+static void saveLogConfig() {
+    QMap<QString, QVariant> log;
+    QMap<QString, QVariant> min_level;
+    QMap<QString, QVariant> well_known_log_name;
+    QMap<QString, QVariant> override_map;
+
+    for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
+        if (logger->GetName() != std::string(kXampLoggerName)) {
+            well_known_log_name[fromStdStringView(logger->GetName())] = qTEXT("info");
+        }
+    }
+
+    min_level[kLogDefault] = qTEXT("debug");
+
+    XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(min_level[kLogDefault].toString()));
+
+    for (auto itr = well_known_log_name.begin()
+        ; itr != well_known_log_name.end(); ++itr) {
+        override_map[itr.key()] = itr.value();
+        XAMP_DEFAULT_LOG().GetLogger(itr.key().toStdString())
+            ->SetLevel(parseLogLevel(itr.value().toString()));
+    }
+
+    min_level[kLogOverride] = override_map;
+    log[kLogMinimumLevel] = min_level;
+    JsonSettings::setValue(kLog, QVariant::fromValue(log));
+    JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
+}
+
+static void loadOrSaveLogConfig() {
+    XAMP_LOG_DEBUG("loadOrSaveLogConfig.");
 
     QMap<QString, QVariant> log;
     QMap<QString, QVariant> min_level;
@@ -120,9 +149,9 @@ static void loadLogConfig() {
 
     QMap<QString, QVariant> well_known_log_name;
 
-    for (const auto& logger_name : XAMP_DEFAULT_LOG().GetWellKnownName()) {
-        if (logger_name != kXampLoggerName) {
-            well_known_log_name[fromStdStringView(logger_name)] = qTEXT("info");
+    for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
+        if (logger->GetName() != std::string(kXampLoggerName)) {
+            well_known_log_name[fromStdStringView(logger->GetName())] = qTEXT("info");
         }
     }
 
@@ -205,7 +234,7 @@ static void loadLogAndResamplerConfig() {
     XAMP_LOG_DEBUG("loadLogAndResamplerConfig.");
 
     JsonSettings::loadJsonFile(qTEXT("config.json"));
-    loadLogConfig();
+    loadOrSaveLogConfig();
     loadSoxrSetting();
     loadR8BrainSetting();
     loadPcm2DsdSetting();
@@ -281,6 +310,8 @@ static void registerMetaType() {
 }
 
 #ifdef _DEBUG
+XAMP_DECLARE_LOG_NAME(Qt);
+
 static void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
     QString str;
     QTextStream stream(&str);
@@ -289,7 +320,7 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
     stream << context.file << ":" << context.line << ":"
         << context.function << ": " << msg;
 
-    auto logger = LoggerManager::GetInstance().GetLogger("Qt");
+    auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
 
     switch (type) {
     case QtDebugMsg:
@@ -410,14 +441,6 @@ int main(int argc, char *argv[]) {
 #ifdef XAMP_OS_WIN
     const auto prefetch_dll = prefetchDLL();
     XAMP_LOG_DEBUG("Prefetch dll success.");
-
-    try {
-        XampIniter::LoadLib();
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_DEBUG(e.GetStackTrace());
-        return -1;
-    }   
 #endif
 
     const auto os_ver = QOperatingSystemVersion::current();
@@ -464,6 +487,8 @@ int main(int argc, char *argv[]) {
         XAMP_LOG_ERROR("{}", e.what());
         XAMP_LOG_ERROR("{}", e.GetStackTrace());
     }
+
+    saveLogConfig();
     return exist_code;
 }
 

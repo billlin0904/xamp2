@@ -18,6 +18,8 @@
 
 namespace xamp::output_device::win32 {
 
+XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDevice);
+
 using namespace helper;
 
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) noexcept {

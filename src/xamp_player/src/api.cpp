@@ -62,6 +62,9 @@ void XampIniter::LoadLib() {
 
     MBDiscId::LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
+
+    LoadAvLib();
+    XAMP_LOG_DEBUG("Load av lib success.");
 #endif
 
     Ebur128Reader::LoadEbur128Lib();

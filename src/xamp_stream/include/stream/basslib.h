@@ -82,9 +82,9 @@ private:
     ModuleHandle module_;
 
 public:
-    XAMP_DECLARE_DLL(BASS_Mixer_StreamCreate) BASS_Mixer_StreamCreate;
-    XAMP_DECLARE_DLL(BASS_Mixer_StreamAddChannel) BASS_Mixer_StreamAddChannel;
-    XAMP_DECLARE_DLL(BASS_Mixer_GetVersion) BASS_Mixer_GetVersion;
+    XAMP_DECLARE_DLL_NAME(BASS_Mixer_StreamCreate);
+    XAMP_DECLARE_DLL_NAME(BASS_Mixer_StreamAddChannel);
+    XAMP_DECLARE_DLL_NAME(BASS_Mixer_GetVersion);
 };
 
 class BassFxLib final {
@@ -99,9 +99,9 @@ private:
     ModuleHandle module_;
 
 public:
-    XAMP_DECLARE_DLL(BASS_FX_TempoGetSource) BASS_FX_TempoGetSource;
-    XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
-    XAMP_DECLARE_DLL(BASS_FX_GetVersion) BASS_FX_GetVersion;
+    XAMP_DECLARE_DLL_NAME(BASS_FX_TempoGetSource);
+    XAMP_DECLARE_DLL_NAME(BASS_FX_TempoCreate);
+    XAMP_DECLARE_DLL_NAME(BASS_FX_GetVersion);
 };
 
 #ifdef XAMP_OS_WIN
@@ -118,20 +118,20 @@ private:
 
 public:
     // CD Driver
-    XAMP_DECLARE_DLL(BASS_CD_GetInfo) BASS_CD_GetInfo;
-    XAMP_DECLARE_DLL(BASS_CD_GetSpeed) BASS_CD_GetSpeed;
-    XAMP_DECLARE_DLL(BASS_CD_Door) BASS_CD_Door;
-    XAMP_DECLARE_DLL(BASS_CD_DoorIsLocked) BASS_CD_DoorIsLocked;
-    XAMP_DECLARE_DLL(BASS_CD_DoorIsOpen) BASS_CD_DoorIsOpen;
-    XAMP_DECLARE_DLL(BASS_CD_SetInterface) BASS_CD_SetInterface;
-    XAMP_DECLARE_DLL(BASS_CD_SetOffset) BASS_CD_SetOffset;
-    XAMP_DECLARE_DLL(BASS_CD_SetSpeed) BASS_CD_SetSpeed;
-    XAMP_DECLARE_DLL(BASS_CD_Release) BASS_CD_Release;
+    XAMP_DECLARE_DLL_NAME(BASS_CD_GetInfo);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_GetSpeed);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_Door);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_DoorIsLocked);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_DoorIsOpen);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_SetInterface);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_SetOffset);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_SetSpeed);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_Release);
     // CD
-    XAMP_DECLARE_DLL(BASS_CD_IsReady) BASS_CD_IsReady;
-    XAMP_DECLARE_DLL(BASS_CD_GetID) BASS_CD_GetID;
-    XAMP_DECLARE_DLL(BASS_CD_GetTracks) BASS_CD_GetTracks;
-    XAMP_DECLARE_DLL(BASS_CD_GetTrackLength) BASS_CD_GetTrackLength;
+    XAMP_DECLARE_DLL_NAME(BASS_CD_IsReady);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_GetID);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_GetTracks);
+    XAMP_DECLARE_DLL_NAME(BASS_CD_GetTrackLength);
 };
 #endif
 
@@ -152,7 +152,7 @@ public:
 #else
     XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_FLAC_StartFile;
 #endif
-    XAMP_DECLARE_DLL(BASS_Encode_FLAC_GetVersion) BASS_Encode_FLAC_GetVersion;
+    XAMP_DECLARE_DLL_NAME(BASS_Encode_FLAC_GetVersion);
 };
 
 #ifdef XAMP_OS_WIN
@@ -184,7 +184,7 @@ private:
     ModuleHandle module_;
 
 public:
-    XAMP_DECLARE_DLL(BASS_Encode_StartCAFile) BASS_Encode_StartCAFile;
+    XAMP_DECLARE_DLL_NAME(BASS_Encode_StartCAFile);
 };
 #endif
 
@@ -201,7 +201,7 @@ private:
 
 public:
     DllFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
-    XAMP_DECLARE_DLL(BASS_Encode_GetVersion) BASS_Encode_GetVersion;
+    XAMP_DECLARE_DLL_NAME(BASS_Encode_GetVersion);
 	DllFunction<DWORD (DWORD, void*, DWORD, const char*, DWORD)> BASS_Encode_GetACMFormat;
 };
 
@@ -250,39 +250,39 @@ private:
     ModuleHandle module_;
 
 public:
-    XAMP_DECLARE_DLL(BASS_Init) BASS_Init;
-    XAMP_DECLARE_DLL(BASS_GetVersion) BASS_GetVersion;
-    XAMP_DECLARE_DLL(BASS_SetConfig) BASS_SetConfig;
+    XAMP_DECLARE_DLL_NAME(BASS_Init);
+    XAMP_DECLARE_DLL_NAME(BASS_GetVersion);
+    XAMP_DECLARE_DLL_NAME(BASS_SetConfig);
     DllFunction<BOOL(DWORD option, const wchar_t *)> BASS_SetConfigPtr;
     DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
-    XAMP_DECLARE_DLL(BASS_PluginGetInfo) BASS_PluginGetInfo;
-    XAMP_DECLARE_DLL(BASS_Free) BASS_Free;
+    XAMP_DECLARE_DLL_NAME(BASS_PluginGetInfo);
+    XAMP_DECLARE_DLL_NAME(BASS_Free);
     DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
-    XAMP_DECLARE_DLL(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
-    XAMP_DECLARE_DLL(BASS_StreamFree) BASS_StreamFree;
-    XAMP_DECLARE_DLL(BASS_PluginFree) BASS_PluginFree;
-    XAMP_DECLARE_DLL(BASS_ChannelGetData) BASS_ChannelGetData;
-    XAMP_DECLARE_DLL(BASS_ChannelGetLength) BASS_ChannelGetLength;
-    XAMP_DECLARE_DLL(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
-    XAMP_DECLARE_DLL(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
-    XAMP_DECLARE_DLL(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
-    XAMP_DECLARE_DLL(BASS_ChannelGetPosition) BASS_ChannelGetPosition;
-    XAMP_DECLARE_DLL(BASS_ErrorGetCode) BASS_ErrorGetCode;
-    XAMP_DECLARE_DLL(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
-    XAMP_DECLARE_DLL(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
-    XAMP_DECLARE_DLL(BASS_StreamCreate) BASS_StreamCreate;
-    XAMP_DECLARE_DLL(BASS_StreamPutData) BASS_StreamPutData;    
-    XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
-    XAMP_DECLARE_DLL(BASS_ChannelRemoveFX) BASS_ChannelRemoveFX;
-    XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
-    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelGetInfo);
+    XAMP_DECLARE_DLL_NAME(BASS_StreamFree);
+    XAMP_DECLARE_DLL_NAME(BASS_PluginFree);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelGetData);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelGetLength);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelBytes2Seconds);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelSeconds2Bytes);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelSetPosition);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelGetPosition);
+    XAMP_DECLARE_DLL_NAME(BASS_ErrorGetCode);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelGetAttribute);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelSetAttribute);
+    XAMP_DECLARE_DLL_NAME(BASS_StreamCreate);
+    XAMP_DECLARE_DLL_NAME(BASS_StreamPutData);    
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelSetFX);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelRemoveFX);
+    XAMP_DECLARE_DLL_NAME(BASS_FXSetParameters);
+    XAMP_DECLARE_DLL_NAME(BASS_FXGetParameters);
 #ifdef XAMP_OS_MAC
     DllFunction<HSTREAM(const char*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 #else
     DllFunction<HSTREAM(wchar_t*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 #endif
-    XAMP_DECLARE_DLL(BASS_StreamGetFilePosition) BASS_StreamGetFilePosition;
-    XAMP_DECLARE_DLL(BASS_ChannelIsActive) BASS_ChannelIsActive;
+    XAMP_DECLARE_DLL_NAME(BASS_StreamGetFilePosition);
+    XAMP_DECLARE_DLL_NAME(BASS_ChannelIsActive);
 private:
     void LoadPlugin(std::string const & file_name);
 };

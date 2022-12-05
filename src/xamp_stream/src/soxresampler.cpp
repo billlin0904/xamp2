@@ -11,6 +11,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(Soxr);
+
 #define SoxrDLL Singleton<SoxrLib>::GetInstance()
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {

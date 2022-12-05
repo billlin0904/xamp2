@@ -50,6 +50,8 @@ static std::ostream& operator<<(std::ostream& os, REFGUID guid) {
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(FoobarDSPAdapter);
+
 struct FoobarDspContext {
 	std::string name;
 	GUID guid{ 0 };

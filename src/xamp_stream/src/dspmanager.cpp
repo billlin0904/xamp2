@@ -14,6 +14,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(DspManager);
+
 static constexpr int32_t kDefaultBufSize = 1024 * 1024;
 
 DSPManager::DSPManager() {

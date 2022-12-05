@@ -20,6 +20,9 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(Pcm2DsdConverter);
+XAMP_DECLARE_LOG_NAME(DSPThreadPool);
+
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 
 class Double2DArray {

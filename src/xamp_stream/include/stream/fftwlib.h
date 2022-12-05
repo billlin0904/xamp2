@@ -92,12 +92,12 @@ private:
 	ModuleHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(fftw_destroy_plan) fftw_destroy_plan;
-	XAMP_DECLARE_DLL(fftw_malloc) fftw_malloc;
-	XAMP_DECLARE_DLL(fftw_free) fftw_free;
-	XAMP_DECLARE_DLL(fftw_execute) fftw_execute;
-	XAMP_DECLARE_DLL(fftw_plan_dft_r2c_1d) fftw_plan_dft_r2c_1d;
-	XAMP_DECLARE_DLL(fftw_plan_dft_c2r_1d) fftw_plan_dft_c2r_1d;
+	XAMP_DECLARE_DLL_NAME(fftw_destroy_plan);
+	XAMP_DECLARE_DLL_NAME(fftw_malloc);
+	XAMP_DECLARE_DLL_NAME(fftw_free);
+	XAMP_DECLARE_DLL_NAME(fftw_execute);
+	XAMP_DECLARE_DLL_NAME(fftw_plan_dft_r2c_1d);
+	XAMP_DECLARE_DLL_NAME(fftw_plan_dft_c2r_1d);
 };
 #endif
 
@@ -111,13 +111,13 @@ private:
 	ModuleHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(fftwf_destroy_plan) fftwf_destroy_plan;
-	XAMP_DECLARE_DLL(fftwf_malloc) fftwf_malloc;
-	XAMP_DECLARE_DLL(fftwf_free) fftwf_free;
-	XAMP_DECLARE_DLL(fftwf_plan_guru_split_dft_c2r) fftwf_plan_guru_split_dft_c2r;
-	XAMP_DECLARE_DLL(fftwf_plan_guru_split_dft_r2c) fftwf_plan_guru_split_dft_r2c;
-	XAMP_DECLARE_DLL(fftwf_execute_split_dft_r2c) fftwf_execute_split_dft_r2c;
-	XAMP_DECLARE_DLL(fftwf_execute_split_dft_c2r) fftwf_execute_split_dft_c2r;
+	XAMP_DECLARE_DLL_NAME(fftwf_destroy_plan);
+	XAMP_DECLARE_DLL_NAME(fftwf_malloc);
+	XAMP_DECLARE_DLL_NAME(fftwf_free);
+	XAMP_DECLARE_DLL_NAME(fftwf_plan_guru_split_dft_c2r);
+	XAMP_DECLARE_DLL_NAME(fftwf_plan_guru_split_dft_r2c);
+	XAMP_DECLARE_DLL_NAME(fftwf_execute_split_dft_r2c);
+	XAMP_DECLARE_DLL_NAME(fftwf_execute_split_dft_c2r);
 };
 
 #define FFTW_LIB Singleton<FFTWLib>::GetInstance()

@@ -52,8 +52,10 @@ const char* SqlException::what() const noexcept {
 	return message_.c_str();
 }
 
+XAMP_DECLARE_LOG_NAME(Database);
+
 Database::Database() {
-	logger_ = LoggerManager::GetInstance().GetLogger("Database");
+	logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseLoggerName);
 	db_ = QSqlDatabase::addDatabase(qTEXT("QSQLITE"));
 }
 

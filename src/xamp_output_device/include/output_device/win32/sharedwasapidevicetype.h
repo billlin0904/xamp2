@@ -16,6 +16,8 @@
 
 namespace xamp::output_device::win32 {
 
+
+
 class SharedWasapiDeviceType final : public IDeviceType {
 public:
 	constexpr static auto Description = std::string_view("WASAPI (Shared Mode)");

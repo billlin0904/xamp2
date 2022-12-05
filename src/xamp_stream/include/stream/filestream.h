@@ -22,8 +22,6 @@ public:
 
     [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
 
-    [[nodiscard]] virtual double GetPosition() const = 0;
-
 protected:
     FileStream() = default;
 };

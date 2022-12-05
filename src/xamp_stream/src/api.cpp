@@ -2,10 +2,12 @@
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 
 #include <stream/basslib.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
+#include <stream/avfilestream.h>
 #include <stream/ifileencoder.h>
 #include <stream/basswavfileencoder.h>
 #include <stream/bassflacfileencoder.h>
@@ -20,7 +22,7 @@
 #include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
-#include <base/logger_impl.h>
+#include <stream/avlib.h>
 #include <stream/api.h>
 
 namespace xamp::stream {
@@ -55,7 +57,8 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
 }
 
 AlignPtr<IAudioStream> DspComponentFactory::MakeAudioStream() {
-    return MakeAlign<IAudioStream, BassFileStream>();
+    //return MakeAlign<IAudioStream, BassFileStream>();
+    return MakeAlign<IAudioStream, AvFileStream>();
 }
 
 AlignPtr<IFileEncoder> DspComponentFactory::MakeFlacEncoder() {
@@ -164,6 +167,9 @@ void LoadFFTLib() {
 #ifdef XAMP_OS_WIN
 void LoadR8brainLib() {
     Singleton<R8brainLib>::GetInstance();
+}
+void LoadAvLib() {
+    Singleton<AvLib>::GetInstance();
 }
 #endif
 

@@ -10,6 +10,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(Volume);
+
 class BassVolume::BassVolumeImpl {
 public:
     BassVolumeImpl() {
