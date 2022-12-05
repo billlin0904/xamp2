@@ -57,8 +57,11 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
 }
 
 AlignPtr<IAudioStream> DspComponentFactory::MakeAudioStream() {
-    //return MakeAlign<IAudioStream, BassFileStream>();
+#ifdef XAMP_OS_WIN
     return MakeAlign<IAudioStream, AvFileStream>();
+#else
+    return MakeAlign<IAudioStream, BassFileStream>();
+#endif
 }
 
 AlignPtr<IFileEncoder> DspComponentFactory::MakeFlacEncoder() {

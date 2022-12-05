@@ -143,6 +143,7 @@ public:
 
         packet_.reset(LIBAV_LIB.CodecLib->av_packet_alloc());
         LIBAV_LIB.CodecLib->av_init_packet(packet_.get());
+        is_eof_ = false;
     }
 
     uint32_t GetSamples(float* buffer, uint32_t length) noexcept {
@@ -150,7 +151,14 @@ public:
         uint32_t num_read_sample = 0;
 
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
-            while (LIBAV_LIB.FormatLib->av_read_frame(format_context_.get(), packet_.get()) >= 0) {
+            int ret = 0;
+            while (ret >= 0) {
+                ret = LIBAV_LIB.FormatLib->av_read_frame(format_context_.get(), packet_.get());
+                if (ret == AVERROR_EOF) {
+                    is_eof_ = true;
+                    return 0;
+                }
+
                 XAMP_ON_SCOPE_EXIT(LIBAV_LIB.CodecLib->av_packet_unref(packet_.get()));
 
                 if (packet_->stream_index != audio_stream_id_) {
@@ -217,7 +225,7 @@ public:
         return 24;
     }
 
-    void Seek(double stream_time) const {
+    void Seek(double stream_time) {
         if (codec_context_ == nullptr) {
             return;
         }
@@ -230,8 +238,12 @@ public:
 
         AvIfFailedThrow(LIBAV_LIB.FormatLib->av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
         LIBAV_LIB.CodecLib->avcodec_flush_buffers(codec_context_.get());
+        is_eof_ = false;
     }
 
+    bool IsActive() const {
+        return !is_eof_;
+    }
 private:
     [[nodiscard]] bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
@@ -253,6 +265,7 @@ private:
         return frame_size;
     }
 
+    bool is_eof_{ false };
     int32_t audio_stream_id_;
     double duration_;
     AudioFormat audio_format_;
@@ -295,7 +308,7 @@ void AvFileStream::Seek(double stream_time) const {
 }
 
 std::string_view AvFileStream::GetDescription() const noexcept {
-    return "LibAv";
+    return "AvFileStream";
 }
 
 uint8_t AvFileStream::GetSampleSize() const noexcept {
@@ -303,7 +316,7 @@ uint8_t AvFileStream::GetSampleSize() const noexcept {
 }
 
 bool AvFileStream::IsActive() const noexcept {
-    return true;
+    return impl_->IsActive();
 }
 
 uint32_t AvFileStream::GetBitDepth() const {
