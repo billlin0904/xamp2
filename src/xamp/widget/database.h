@@ -116,6 +116,8 @@ public:
 
     void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
+    void addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness = 0) const;
+
     int32_t getAlbumIdByDiscId(const QString& disc_id) const;
 
     void updateAlbumByDiscId(const QString& disc_id, const QString& album);

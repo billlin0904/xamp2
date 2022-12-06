@@ -14,6 +14,7 @@
 #include <QApplication>
 
 class QProgressDialog;
+class ProcessIndicator;
 
 struct PlaybackFormat {
     bool is_dsd_file{ false };
@@ -28,6 +29,8 @@ struct PlaybackFormat {
 QString sampleRate2String(const AudioFormat& format);
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
+
+QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget);
 
 QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
 

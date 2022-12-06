@@ -38,6 +38,7 @@ IMPL_APP_SETTING_NAME(AppSettingAlbumImageCacheSize, "AppSettings/albumImageCach
 IMPL_APP_SETTING_NAME(AppSettingEnableReplayGain, "AppSettings/enableReplayGain");
 IMPL_APP_SETTING_NAME(AppSettingReplayGainMode, "AppSettings/replayGainMode");
 IMPL_APP_SETTING_NAME(AppSettingReplayGainTargetGain, "AppSettings/replayGainTargetGain");
+IMPL_APP_SETTING_NAME(AppSettingReplayGainTargetLoudnes, "AppSettings/replayGainTargetLoudnes");
 IMPL_APP_SETTING_NAME(AppSettingReplayGainScanMode, "AppSettings/replayGainScanMode");
 
 IMPL_APP_SETTING_NAME(AppSettingResamplerEnable, "AppSettings/enable");

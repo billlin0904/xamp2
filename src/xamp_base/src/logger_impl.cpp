@@ -18,6 +18,18 @@
 
 namespace xamp::base {
 
+class LogFlagFormater final : public spdlog::custom_flag_formatter {
+public:
+	void format(const spdlog::details::log_msg& message, const std::tm&, spdlog::memory_buf_t& dest) override {
+		const auto upper_logger_level = String::ToUpper(std::string(to_string_view(message.level).data()));
+		dest.append(upper_logger_level.data(), upper_logger_level.data() + upper_logger_level.size());
+	}
+
+	std::unique_ptr<custom_flag_formatter> clone() const override {
+		return spdlog::details::make_unique<LogFlagFormater>();
+	}
+};
+
 #ifdef XAMP_OS_WIN
 class DebugOutputSink : public spdlog::sinks::base_sink<LoggerMutex> {
 public:
@@ -45,8 +57,7 @@ static bool CreateLogsDir() {
 
 LoggerManager::LoggerManager() noexcept = default;
 
-LoggerManager::~LoggerManager() {
-}
+LoggerManager::~LoggerManager() = default;
 
 void LoggerManager::SetLevel(LogLevel level) {
 	default_logger_->SetLevel(level);
@@ -113,11 +124,15 @@ std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
 		std::end(sinks_));
 
     logger->set_level(spdlog::level::debug);
+
+	auto formatter = std::make_unique<spdlog::pattern_formatter>();
 #ifdef XAMP_OS_WIN
-    logger->set_pattern("[%H:%M:%S.%e][%l][%n][%t] %^%v%$");
+	formatter->add_flag<LogFlagFormater>('*').set_pattern("[%H:%M:%S.%e][%*][%n][%t] %^%v%$");
 #else
-    logger->set_pattern("[%l][%n][%t] %^%v%$");
+	formatter->add_flag<LogFlagFormater>('*').set_pattern("[%*][%n][%t] %^%v%$");
 #endif
+	logger->set_formatter(std::move(formatter));
+
 	logger->flush_on(spdlog::level::debug);
 
     if (kXampLoggerName == name) {

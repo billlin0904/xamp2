@@ -149,8 +149,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
 
     Vector<Task<>> replay_gain_tasks;
 
-    //const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
-    const auto target_loudness = -23;
+    const auto target_loudness = AppSettings::getValue(kAppSettingReplayGainTargetLoudnes).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     replay_gain_tasks.reserve(items.size());

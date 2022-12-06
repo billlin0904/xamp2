@@ -209,7 +209,7 @@ QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, cons
 AlbumViewPage::AlbumViewPage(QWidget* parent)
     : QFrame(parent) {
     setObjectName(qTEXT("albumViewPage"));
-    setFrameStyle(QFrame::NoFrame);
+    setFrameStyle(QFrame::StyledPanel);
 
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
@@ -269,7 +269,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
 
     qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
 
-    page_->playlist()->excuteQuery();
+    page_->playlist()->executeQuery();
     page_->title()->setText(album);
     page_->setCoverById(cover_id);
 
@@ -296,7 +296,7 @@ AlbumView::AlbumView(QWidget* parent)
     setFlow(QListView::LeftToRight);
     setViewMode(QListView::IconMode);
     setResizeMode(QListView::Adjust);
-    setFrameStyle(QFrame::NoFrame);
+    setFrameStyle(QFrame::StyledPanel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(styled_delegate_);
@@ -426,7 +426,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
         Vector<int32_t> add_playlist_music_ids;
         qDatabase.forEachAlbumMusic(album_id,
             [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                if (entity.album_replay_gain == 0.0) {
+                if (entity.track_loudness == 0.0) {
                     entities.push_back(entity);
                 }
                 add_playlist_music_ids.push_back(entity.music_id);

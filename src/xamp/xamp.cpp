@@ -938,13 +938,8 @@ void Xamp::setVolume(uint32_t volume) {
         }
 
         player_->SetVolume(volume);
-
-        auto level = (device_info_.max_volume - device_info_.min_volume) / device_info_.volume_increment;
-        auto volume_dbfs = (level * (static_cast<double>(volume) / 100.0)) * device_info_.volume_increment;
-        auto volume_dbfs_str = tr("kVolume : ") + QString::number(volume) + qTEXT("%");
     	QToolTip::showText(QCursor::pos(),
-            volume_dbfs_str +
-            qTEXT("(") + QString::number(volume_dbfs, 'f', 2).rightJustified(2) + qTEXT("dbFS)")
+            tr("Volume : ") + QString::number(volume) + qTEXT("%")
             );
     }
     catch (const Exception& e) {
@@ -974,7 +969,7 @@ void Xamp::stopPlayedClicked() {
     setSeekPosValue(0);
     lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
-    playlist_page_->playlist()->removePlaying();
+    playlist_page_->playlist()->setNowPlayState(PLAY_CLEAR);
     qTheme.setPlayOrPauseButton(ui_, false);
 }
 
@@ -1271,8 +1266,6 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         }
 
         player_->BufferStream();
-        player_->Play();
-
         open_done = true;
     }
     catch (const Exception & e) {
@@ -1302,6 +1295,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             } else {
                 setVolume(0);
             }
+            player_->SetVolumeLevel(current_entity_.track_replay_gain);
             ui_.volumeSlider->setDisabled(false);
         }
         else {
@@ -1319,7 +1313,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         updateButtonState();
         emit nowPlaying(item.artist, item.title);
     } else {
-        cur_page->playlist()->excuteQuery();
+        cur_page->playlist()->executeQuery();
     }
 
     setCover(item.cover_id, cur_page);
@@ -1340,6 +1334,8 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             qTheme.appIcon(),
             1000);
     }
+
+    player_->Play();
 }
 
 void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -1364,7 +1360,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 
     if (!album.isEmpty()) {
         cd_page_->playlistPage()->title()->setText(album);
-        cd_page_->playlistPage()->playlist()->excuteQuery();
+        cd_page_->playlistPage()->playlist()->executeQuery();
     }
 
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
@@ -1392,13 +1388,13 @@ void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInf
 
 void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->excuteQuery();
+    cd_page_->playlistPage()->playlist()->executeQuery();
     emit fetchCdInfo(drive_infos.first());
 }
 
 void Xamp::drivesRemoved(const DriveInfo& /*drive_info*/) {
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->excuteQuery();
+    cd_page_->playlistPage()->playlist()->executeQuery();
     cd_page_->showPlaylistPage(false);
 }
 
@@ -1436,8 +1432,8 @@ PlaylistPage* Xamp::currentPlyalistPage() {
 void Xamp::playPlayListEntity(const PlayListEntity& item) {
     current_playlist_page_ = qobject_cast<PlaylistPage*>(sender());
     top_window_->setTaskbarPlayerPlaying();
-    playAlbumEntity(toAlbumEntity(item));
     current_entity_ = item;
+    playAlbumEntity(toAlbumEntity(item));
     update();
 }
 
@@ -1492,7 +1488,7 @@ void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayLi
     auto playlist_view = playlist_page_->playlist();
     qDatabase.addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit playlist_view->addPlaylistReplayGain(false, entities);
-    playlist_view->excuteQuery();
+    playlist_view->executeQuery();
 }
 
 void Xamp::onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id) {

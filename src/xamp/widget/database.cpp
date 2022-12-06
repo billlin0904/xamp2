@@ -1069,6 +1069,22 @@ void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 	XAMP_LOG_D(logger_, "addOrUpdateAlbumArtist albumId:{} artistId:{}", album_id, artist_id);
 }
 
+void Database::addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness) const {
+	QSqlQuery query;
+
+	query.prepare(qTEXT(R"(
+    INSERT OR REPLACE INTO musicLoudness (albumMusicId, albumId, artistId, musicId, track_loudness)
+    VALUES ((SELECT albumMusicId from musicLoudness where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId, :track_loudness)
+    )"));
+
+	query.bindValue(qTEXT(":albumId"), album_id);
+	query.bindValue(qTEXT(":artistId"), artist_id);
+	query.bindValue(qTEXT(":musicId"), music_id);
+	query.bindValue(qTEXT(":track_loudness"), music_id);
+
+	IfFailureThrow1(query);
+}
+
 void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
 	QSqlQuery query;
 

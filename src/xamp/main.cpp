@@ -219,7 +219,8 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
-    AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceLoudness);
+    AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
+    AppSettings::setDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::setDefaultValue(kAppSettingWindowState, false);

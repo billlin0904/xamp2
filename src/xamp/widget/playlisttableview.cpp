@@ -8,12 +8,15 @@
 #include <QTimeEdit>
 #include <QLineEdit>
 #include <QSqlQuery>
+#include <QTimer>
+
+#include <base/logger_impl.h>
 
 #include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>
 #include <widget/appsettingnames.h>
+#include <widget/processindicator.h>
 #include <widget/widget_shared.h>
-#include <base/logger_impl.h>
 
 #include <rapidxml.hpp>
 
@@ -30,7 +33,7 @@
 #include <widget/stareditor.h>
 #include <widget/albumentity.h>
 #include <widget/podcast_uiltis.h>
-#include <widget/processindicator.h>
+#include <widget/ui_utilts.h>
 #include <widget/fonticon.h>
 #include <widget/playlisttableview.h>
 
@@ -189,7 +192,7 @@ static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src
     return model;
 }
 
-void PlayListTableView::excuteQuery() {
+void PlayListTableView::executeQuery() {
     // 呼叫此函數就會更新index, 會導致playing index失效
     const QString s = qTEXT(R"(
     SELECT
@@ -224,7 +227,7 @@ void PlayListTableView::excuteQuery() {
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
     JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+	JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
     JOIN musics ON playlistMusics.musicId = musics.musicId
     JOIN albums ON albumMusic.albumId = albums.albumId
     JOIN artists ON albumMusic.artistId = artists.artistId
@@ -255,6 +258,7 @@ PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::reload() {
     model_->query().exec();
+    proxy_model_->dataChanged(QModelIndex(), QModelIndex());
     update();
 }
 
@@ -264,15 +268,15 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
     qDatabase.clearNowPlaying(playlist_id_);
 
-    excuteQuery();
+    executeQuery();
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
     model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IS.PLAYING"));
     model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("TRACK#"));
-    model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FILE PATH"));
+    model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FILE.PATH"));
     model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
-    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE NAME"));
-    model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, tr("FILE SIZE"));
+    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE.NAME"));
+    model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, tr("FILE.SIZE"));
     model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("ALBUM"));
     model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("ARTIST"));
     model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("DURATION"));
@@ -287,6 +291,12 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("TRACK.LOUDNESS"));
     model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
+    model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, tr("ALBUM.ID"));
+    model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PLAYLIST.ID"));
+    model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FILE.EXT"));
+    model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("PARENT.PATH"));
+    model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr("COVER.ID"));
+    model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ARTIST.ID"));
 
     auto column_list = AppSettings::getList(column_setting_name);
 
@@ -488,6 +498,15 @@ void PlayListTableView::initial() {
                 });
             load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
 
+            auto* remove_all_act = action_map.addAction(tr("Remove all"));
+            remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
+
+            action_map.setCallback(remove_all_act, [this]() {
+                qDatabase.removePlaylistAllMusic(playlistId());
+				executeQuery();
+				removePlaying();
+                });
+
             action_map.addSeparator();
         }
 
@@ -495,20 +514,17 @@ void PlayListTableView::initial() {
             auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
             import_podcast_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_DOWNLOAD));
             action_map.setCallback(import_podcast_act, [this]() {
-                importPodcast();
+                downloadPodcast();
                 });
         }
 
         auto* reload_metadata_act = action_map.addAction(tr("Reload metadata"));
         reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
 
-        auto* remove_all_act = action_map.addAction(tr("Remove all"));
-        remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
-
         auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
 
-        auto* read_select_item_replaygain_act = action_map.addAction(tr("Read file ReplayGain 2.0"));
+        auto* read_select_item_replaygain_act = action_map.addAction(tr("Read file ReplayGain"));
         read_select_item_replaygain_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_READ_REPLAY_GAIN));
 
         action_map.addSeparator();
@@ -520,6 +536,9 @@ void PlayListTableView::initial() {
             auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
 
             for (const auto& profile : DspComponentFactory::GetAvailableEncodingProfile()) {
+                if (profile.num_channels != AudioFormat::kMaxChannel) {
+                    continue;
+                }
                 auto profile_desc = qSTR("%0 bit, %1, %2")
                     .arg(profile.bit_per_sample).rightJustified(2)
                     .arg(samplerate2String(profile.sample_rate))
@@ -565,12 +584,6 @@ void PlayListTableView::initial() {
         action_map.setCallback(reload_metadata_act, [this, item]() {
             qDatabase.addOrUpdateMusic(getMetadata(item.file_path));
             reload();
-        });
-
-        action_map.setCallback(remove_all_act, [this]() {
-            qDatabase.removePlaylistAllMusic(playlistId());
-            excuteQuery();
-            removePlaying();
         });
 
         action_map.setCallback(open_local_file_path_act, [item]() {
@@ -682,6 +695,7 @@ void PlayListTableView::updateReplayGain(const PlayListEntity& entity,
         album_peak, 
         track_rg_gain,
         track_peak);
+
     reload();
 }
 
@@ -741,13 +755,13 @@ void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entit
     for (const auto& entity : entities) {
         qDatabase.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
     }
-    excuteQuery();
+    executeQuery();
     emit addPlaylistItemFinished();
 }
 
 void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) {
     ::MetadataExtractAdapter::processMetadata(medata, this, dir_last_write_time);
-    excuteQuery();
+    executeQuery();
     emit addPlaylistItemFinished();
 }
 
@@ -778,8 +792,8 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
     }
 }
 
-void PlayListTableView::importPodcast() {
-    QSharedPointer<ProcessIndicator> indicator(new ProcessIndicator(this), &QObject::deleteLater);
+void PlayListTableView::downloadPodcast() {
+    auto indicator = makeProcessIndicator(this);
     XAMP_LOG_DEBUG("Start download podcast.xml");
 
     indicator->startAnimation();
@@ -956,12 +970,12 @@ void PlayListTableView::play(const QModelIndex& index) {
 
 void PlayListTableView::removePlaying() {
     qDatabase.clearNowPlaying(playlist_id_);
-    excuteQuery();
+    executeQuery();
 }
 
 void PlayListTableView::removeAll() {
     qDatabase.removePlaylistAllMusic(playlistId());
-    update();
+    reload();
 }
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
@@ -985,5 +999,5 @@ void PlayListTableView::removeSelectItems() {
 	}
 
     qDatabase.removePlaylistMusic(playlist_id_, remove_music_ids);
-    excuteQuery();
+    executeQuery();
 }

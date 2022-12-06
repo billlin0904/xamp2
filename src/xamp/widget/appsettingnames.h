@@ -42,6 +42,7 @@ DECLARE_APP_SETTING_NAME(AppSettingAlbumImageCacheSize);
 DECLARE_APP_SETTING_NAME(AppSettingEnableReplayGain);
 DECLARE_APP_SETTING_NAME(AppSettingReplayGainMode);
 DECLARE_APP_SETTING_NAME(AppSettingReplayGainTargetGain);
+DECLARE_APP_SETTING_NAME(AppSettingReplayGainTargetLoudnes);
 DECLARE_APP_SETTING_NAME(AppSettingReplayGainScanMode);
 DECLARE_APP_SETTING_NAME(AppSettingResamplerEnable);
 DECLARE_APP_SETTING_NAME(AppSettingResamplerType);

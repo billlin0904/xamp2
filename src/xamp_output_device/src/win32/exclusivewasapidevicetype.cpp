@@ -122,6 +122,11 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 			info.volume_increment,
 			(info.max_volume - info.min_volume) / info.volume_increment);
 
+		uint32_t step = 0;
+		uint32_t step_count = 0;
+		HrIfFailledThrow(endpoint_volume->GetVolumeStepInfo(&step, &step_count));
+		XAMP_LOG_D(log_, "Step:{} Step Count:{}", step, step_count);
+
 		DWORD volume_support_mask = 0;
 		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
 

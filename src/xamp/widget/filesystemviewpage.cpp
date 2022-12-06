@@ -11,6 +11,8 @@
 FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
+
+    setFrameStyle(QFrame::StyledPanel);
     dir_model_ = new FileSystemModel(this);
     dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
     dir_model_->setRootPath(AppSettings::getMyMusicFolderPath());

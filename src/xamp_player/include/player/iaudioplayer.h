@@ -50,6 +50,8 @@ public:
 
     virtual void SetVolume(uint32_t volume) = 0;
 
+    virtual void SetVolumeLevel(float volume_db) = 0;
+
     [[nodiscard]] virtual uint32_t GetVolume() const = 0;
 
     [[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;

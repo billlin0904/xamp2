@@ -17,6 +17,8 @@ PlaylistPage::PlaylistPage(QWidget* parent)
 }
 
 void PlaylistPage::initial() {
+	setFrameStyle(QFrame::StyledPanel);
+
 	auto* default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));

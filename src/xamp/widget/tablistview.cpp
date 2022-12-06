@@ -7,7 +7,7 @@ TabListView::TabListView(QWidget *parent)
     : QListView(parent)
     , model_(this) {
     setModel(&model_);
-    setFrameStyle(QFrame::NoFrame);
+    setFrameStyle(QFrame::StyledPanel);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSpacing(2);

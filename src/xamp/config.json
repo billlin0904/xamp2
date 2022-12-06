@@ -2,22 +2,23 @@
     "Log": {
         "MinimumLevel": {
             "Default": "debug",
-            "Override": {
-                "AudioPlayer": "info",
-                "BackgroundThreadPool": "info",
-                "Compressor": "info",
-                "Database": "info",
-                "DspManager": "info",
-                "ExclusiveWasapiDevice": "info",
-                "ExclusiveWasapiDeviceType": "info",
-                "LibAv": "info",
-                "PixmapCache": "info",
-                "PlaybackThreadPool": "info",
-                "Qt": "info",
-                "SharedWasapiDevice": "info",
-                "VirtualMemory": "info",
-                "WASAPIThreadPool": "info"
-            }
+          "Override": {
+            "AudioPlayer": "info",
+            "BackgroundThreadPool": "info",
+            "Compressor": "info",
+            "Database": "info",
+            "DspManager": "info",
+            "ExclusiveWasapiDevice": "debug",
+            "ExclusiveWasapiDeviceType": "debug",
+            "LibAv": "info",
+            "PixmapCache": "info",
+            "PlaybackThreadPool": "info",
+            "Qt": "info",
+            "SharedWasapiDevice": "info",
+            "VirtualMemory": "info",
+            "Volume": "info",
+            "WASAPIThreadPool": "info"
+          }
         }
     },
     "Pcm2Dsd": {

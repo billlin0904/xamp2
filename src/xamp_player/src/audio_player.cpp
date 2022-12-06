@@ -15,6 +15,7 @@
 #include <output_device/win32/asiodevicetype.h>
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
+#include <output_device/ivolumelevel.h>
 
 #include <stream/dspmanager.h>
 #include <stream/iaudiostream.h>
@@ -361,6 +362,16 @@ void AudioPlayer::SetVolume(uint32_t volume) {
         return;
     }
     device_->SetVolume(volume);
+}
+
+void AudioPlayer::SetVolumeLevel(float volume_db) {
+    if (!device_ || !device_->IsStreamOpen()) {
+        return;
+    }
+    auto* volume_level = dynamic_cast<IVolumeLevel*>(device_.get());
+    if (volume_level != nullptr) {
+        volume_level->SetVolumeLevel(volume_db);
+    }
 }
 
 uint32_t AudioPlayer::GetVolume() const {
@@ -762,11 +773,11 @@ void AudioPlayer::Play() {
     is_playing_ = true;
     if (device_->IsStreamOpen()) {
         if (!device_->IsStreamRunning()) {
-            if (device_->IsHardwareControlVolume()) {
+            /*if (device_->IsHardwareControlVolume()) {
                 device_->SetVolume(volume_);
                 device_->SetMute(is_muted_);
             }
-
+            */
             XAMP_LOG_D(logger_, "Play vol:{} muted:{}.", volume_, is_muted_);
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);

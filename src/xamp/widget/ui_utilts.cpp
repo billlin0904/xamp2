@@ -5,6 +5,7 @@
 
 #include <version.h>
 #include <widget/xdialog.h>
+#include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 
@@ -75,6 +76,10 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
     result += qTEXT(" |") + bitRate2String(playback_format.bitrate);
     return result;
+}
+
+QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
+    return QSharedPointer<ProcessIndicator>(new ProcessIndicator(widget), &QObject::deleteLater);
 }
 
 QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {

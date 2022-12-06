@@ -76,6 +76,8 @@ public:
 
     void SetVolume(uint32_t volume) override;
 
+    void SetVolumeLevel(float volume_db) override;
+
     uint32_t GetVolume() const override;
 
     bool IsHardwareControlVolume() const override;

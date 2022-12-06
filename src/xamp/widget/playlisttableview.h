@@ -6,10 +6,11 @@
 #pragma once
 
 #include <optional>
-
 #include <QTableView>
+
 #include <base/rng.h>
 #include <base/encodingprofile.h>
+
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 #include <widget/database.h>
@@ -28,7 +29,7 @@ public:
 
 	virtual void reload();
 
-	void excuteQuery();
+	void executeQuery();
 
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
@@ -118,7 +119,7 @@ private:
 
 	void mouseMoveEvent(QMouseEvent* event) override;
 
-	void importPodcast();
+	void downloadPodcast();
 
 	void initial();
 

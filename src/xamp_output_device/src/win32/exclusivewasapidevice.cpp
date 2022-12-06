@@ -1,4 +1,5 @@
 #include <base/base.h>
+#include <base/math.h>
 
 #include <base/ppl.h>
 
@@ -471,11 +472,21 @@ double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
 
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
 	// todo: GetVolume回傳level, CoreAudio, ASIO均無法讀取設備的dBFS
-	//float volume_level = 0.0;
-	//HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&volume_level));
 	auto volume_scalar = 0.0F;
 	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
 	return static_cast<uint32_t>(volume_scalar * 100.0F);
+}
+
+void ExclusiveWasapiDevice::SetVolumeLevel(float volume_db) {
+	if (IsMuted()) {
+		SetMute(false);
+	}
+	float current_volume_db = 0.0;
+	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&current_volume_db));
+	XAMP_LOG_D(log_, "Current master volume level:{} dB", Round(current_volume_db));
+	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevel(volume_db, &GUID_NULL));
+	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&current_volume_db));
+	XAMP_LOG_D(log_, "Current master volume level:{} dB", Round(current_volume_db));
 }
 
 void ExclusiveWasapiDevice::SetVolume(const uint32_t volume) const {
@@ -494,6 +505,10 @@ void ExclusiveWasapiDevice::SetVolume(const uint32_t volume) const {
 	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevelScalar(volume_scalar, &GUID_NULL));
 
 	XAMP_LOG_D(log_, "Current volume: {}.", GetVolume());
+
+	float current_volume_db = 0.0;
+	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&current_volume_db));
+	XAMP_LOG_D(log_, "Current master volume level:{} dB", Round(current_volume_db));
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {
