@@ -90,7 +90,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
-    , dsp_manager_(DspComponentFactory::MakeDSPManager()) {
+    , dsp_manager_(StreamFactory::MakeDSPManager()) {
     logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
@@ -944,7 +944,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     dsp_manager_->Init(config_);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
-    fader_ = DspComponentFactory::MakeFader();
+    fader_ = StreamFactory::MakeFader();
     fader_->Start(config_);
 }
 

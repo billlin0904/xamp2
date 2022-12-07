@@ -111,7 +111,7 @@ void LrcPage::initial() {
 
 	if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
-		effect->setOffset(15, 15);
+		effect->setOffset(10, 20);
 		effect->setColor(qTheme.coverShadownColor());
 		effect->setBlurRadius(50);
 		cover_label_->setGraphicsEffect(effect);

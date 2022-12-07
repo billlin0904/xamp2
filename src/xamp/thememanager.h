@@ -123,6 +123,12 @@ private:
 
     void setPalette();
 
+    void setSegoeFluentIcons();
+
+    void setFontAwesomeIcons();
+
+    void setMaterialIcons();
+
     ThemeManager();
     
     bool use_native_window_;

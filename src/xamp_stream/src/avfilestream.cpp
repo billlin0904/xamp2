@@ -8,6 +8,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(AvFileStream);
+
 class XAMP_STREAM_API AvException final : public Exception {
 public:
     explicit AvException(int32_t error);
@@ -37,6 +39,7 @@ public:
     AvFileStreamImpl()
         : audio_stream_id_(-1)
         , duration_(0.0) {
+        logger_ = LoggerManager::GetInstance().GetLogger(kAvFileStreamLoggerName);
     }
 
     ~AvFileStreamImpl() noexcept {
@@ -107,18 +110,21 @@ public:
         switch (codec_context_->sample_fmt) {
         case AV_SAMPLE_FMT_S16:
         case AV_SAMPLE_FMT_S32:
-            XAMP_LOG_DEBUG("Stream format => INTERLEAVED");
+            XAMP_LOG_D(logger_, "Stream format = > INTERLEAVED");
             break;
         case AV_SAMPLE_FMT_S16P:
         case AV_SAMPLE_FMT_FLTP:
-            XAMP_LOG_DEBUG("Stream format => DEINTERLEAVED");
+            XAMP_LOG_D(logger_, "Stream format => DEINTERLEAVED");
             break;
         default:
             throw NotSupportFormatException();
         }
 
         if (format_context_->iformat != nullptr) {
-            XAMP_LOG_DEBUG("Stream input format => {}", format_context_->iformat->name);
+            XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{}",
+                format_context_->iformat->name,
+                GetBitDepth(),
+                GetBitRate());
         }
 
         auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
@@ -139,7 +145,7 @@ public:
         audio_format_.SetSampleRate(static_cast<uint32_t>(codec_context_->sample_rate));
         audio_format_.SetBitPerSample(static_cast<uint32_t>(LIBAV_LIB.UtilLib->av_get_bytes_per_sample(codec_context_->sample_fmt) * 8));
         audio_format_.SetPackedFormat(PackedFormat::INTERLEAVED);
-        XAMP_LOG_DEBUG("Stream format: {}", audio_format_);
+        XAMP_LOG_D(logger_, "Stream format: {}", audio_format_);
 
         packet_.reset(LIBAV_LIB.CodecLib->av_packet_alloc());
         LIBAV_LIB.CodecLib->av_init_packet(packet_.get());
@@ -216,13 +222,12 @@ public:
         return sizeof(float);
     }
 
+    int64_t GetBitRate() const noexcept {
+        return format_context_->streams[audio_stream_id_]->codecpar->bit_rate;
+    }
+
     uint32_t GetBitDepth() const noexcept {
-        switch (codec_context_->sample_fmt) {
-        case AV_SAMPLE_FMT_S16P:
-        case AV_SAMPLE_FMT_S16:
-            return 16;
-        }
-        return 24;
+        return (std::max)(format_context_->streams[audio_stream_id_]->codecpar->bits_per_coded_sample, 16);
     }
 
     void Seek(double stream_time) {
@@ -274,6 +279,7 @@ private:
     AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVFormatContext> format_context_;
     AvPtr<AVPacket> packet_;
+    std::shared_ptr<Logger> logger_;
 };
 
 

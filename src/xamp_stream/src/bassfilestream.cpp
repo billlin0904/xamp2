@@ -11,7 +11,7 @@
 
 namespace xamp::stream {
 
-XAMP_DECLARE_LOG_NAME(FileStream);
+XAMP_DECLARE_LOG_NAME(BassFileStream);
 
 static bool IsFilePath(std::wstring const& file_path) noexcept {
     auto lowcase_file_path = String::ToLower(file_path);
@@ -28,7 +28,7 @@ public:
     BassFileStreamImpl() noexcept
         : mode_(DsdModes::DSD_MODE_PCM)
 		, download_size_(0) {
-        logger_ = LoggerManager::GetInstance().GetLogger(kFileStreamLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kBassFileStreamLoggerName);
         Close();
     }
 

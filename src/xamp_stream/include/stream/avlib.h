@@ -56,6 +56,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_send_packet);
     XAMP_DECLARE_DLL_NAME(avcodec_receive_frame);
     XAMP_DECLARE_DLL_NAME(avcodec_flush_buffers);
+    XAMP_DECLARE_DLL_NAME(av_get_bits_per_sample);
 };
 
 class AvUtilLib final {

@@ -204,11 +204,11 @@ static void loadSettings() {
 
 	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FULL);
+    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
 
-    AppSettings::setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
-    AppSettings::setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
+    AppSettings::setDefaultValue(kAppSettingDeviceType, qEmptyString);
+    AppSettings::setDefaultValue(kAppSettingDeviceId, qEmptyString);
     AppSettings::setDefaultValue(kAppSettingVolume, 50);    
     AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
     AppSettings::setDefaultValue(kAppSettingUseFramelessWindow, true);
@@ -220,7 +220,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
     AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
-    AppSettings::setDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
+    AppSettings::setDefaultValue(kAppSettingReplayGainTargetLoudnes, -40);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::setDefaultValue(kAppSettingWindowState, false);

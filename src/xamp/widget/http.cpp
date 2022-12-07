@@ -20,7 +20,7 @@ static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) 
     const auto* mo = &QNetworkReply::staticMetaObject;
     const int index = mo->indexOfEnumerator("NetworkError");
     if (index == -1)
-        return Qt::EmptyString;
+        return qEmptyString;
     const auto qme = mo->enumerator(index);
     return { qme.valueToKey(code) };
 }

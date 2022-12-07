@@ -36,7 +36,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 		action_map.addAction(tr("Change artist image"), [=]() {
 			const auto file_name = QFileDialog::getOpenFileName(this,
 			                                                    tr("Open file"),
-			                                                    Qt::EmptyString,
+			                                                    qEmptyString,
 			                                                    tr("Music Files *.jpg *.jpeg *.png"),
                 nullptr);
 			cover_id_ = qPixmapCache.savePixamp(QPixmap(file_name));
@@ -108,7 +108,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	default_layout->addWidget(album_view_);	
 
 	album_view_->hideWidget();
-	setArtistId(Qt::EmptyString, Qt::EmptyString, -1);
+	setArtistId(qEmptyString, qEmptyString, -1);
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 

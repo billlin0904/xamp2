@@ -66,7 +66,7 @@ double readAll(Path const& file_path,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
     uint64_t max_duration) {
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path.wstring());
-	const auto file_stream = DspComponentFactory::MakeAudioStream();
+	const auto file_stream = StreamFactory::MakeAudioStream(file_path);
 
 	if (auto* stream = AsDsdStream(file_stream)) {
 		if (is_dsd_file) {

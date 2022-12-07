@@ -651,7 +651,7 @@ QString Database::getArtistCoverId(int32_t artist_id) const {
 	if (query.next()) {
 		return query.value(index).toString();
 	}
-	return Qt::EmptyString;
+	return qEmptyString;
 }
 
 QString Database::getAlbumCoverId(int32_t album_id) const {
@@ -666,7 +666,7 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 	if (query.next()) {
 		return query.value(index).toString();
 	}
-	return Qt::EmptyString;
+	return qEmptyString;
 }
 
 QString Database::getAlbumCoverId(const QString& album) const {
@@ -681,7 +681,7 @@ QString Database::getAlbumCoverId(const QString& album) const {
 	if (query.next()) {
 		return query.value(index).toString();
 	}
-	return Qt::EmptyString;
+	return qEmptyString;
 }
 
 PlayListEntity Database::queryToPlayListEntity(const QSqlQuery& query) {

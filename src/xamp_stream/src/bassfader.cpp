@@ -7,12 +7,12 @@
 
 namespace xamp::stream {
 
-XAMP_DECLARE_LOG_NAME(Compressor);
+XAMP_DECLARE_LOG_NAME(BassFader);
 
 class BassFader::BassFaderImpl {
 public:
     BassFaderImpl() {
-        logger_ = LoggerManager::GetInstance().GetLogger(kCompressorLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kBassFaderLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {

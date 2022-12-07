@@ -5,17 +5,14 @@
 
 #pragma once
 
-#include <cmath>
-#include <algorithm>
-
 #include <base/base.h>
 
 namespace xamp::base {
 
-XAMP_BASE_API float VolumeToDb(int32_t volume) noexcept;
+XAMP_BASE_API float VolumeToDb(int32_t volume_level) noexcept;
 
-XAMP_BASE_API float LinearToLog(int32_t volume) noexcept;
+XAMP_BASE_API float LinearToLog(int32_t volume_level) noexcept;
 
-XAMP_BASE_API int32_t LogToLineaer(float volume) noexcept;
+XAMP_BASE_API int32_t LogToLineaer(float volume_db) noexcept;
 
 }

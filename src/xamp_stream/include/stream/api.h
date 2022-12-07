@@ -7,17 +7,18 @@
 
 #include <map>
 #include <base/stl.h>
+#include <base/fs.h>
 #include <base/align_ptr.h>
 #include <base/encodingprofile.h>
 #include <stream/stream.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API DspComponentFactory {
+class XAMP_STREAM_API StreamFactory {
 public:
-	DspComponentFactory() = delete;
+	StreamFactory() = delete;
 
-	static AlignPtr<IAudioStream> MakeAudioStream();
+	static AlignPtr<IAudioStream> MakeAudioStream(Path const& path);
 
 	static AlignPtr<IFileEncoder> MakeFlacEncoder();
 

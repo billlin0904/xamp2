@@ -7,12 +7,12 @@
 
 namespace xamp::stream {
 
-XAMP_DECLARE_LOG_NAME(Compressor);
+XAMP_DECLARE_LOG_NAME(BassCompressor);
 
 class BassCompressor::BassCompressorImpl {
 public:
     BassCompressorImpl() {
-        logger_ = LoggerManager::GetInstance().GetLogger(kCompressorLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kBassCompressorLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {
@@ -82,7 +82,7 @@ Uuid BassCompressor::GetTypeId() const {
 }
 
 std::string_view BassCompressor::GetDescription() const noexcept {
-    return "Compressor";
+    return "BassCompressor";
 }
 
 void BassCompressor::Flush() {

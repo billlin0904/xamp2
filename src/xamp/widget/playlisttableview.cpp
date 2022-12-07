@@ -497,17 +497,6 @@ void PlayListTableView::initial() {
                 append(dir_name);
                 });
             load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
-
-            auto* remove_all_act = action_map.addAction(tr("Remove all"));
-            remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
-
-            action_map.setCallback(remove_all_act, [this]() {
-                qDatabase.removePlaylistAllMusic(playlistId());
-				executeQuery();
-				removePlaying();
-                });
-
-            action_map.addSeparator();
         }
 
         if (podcast_mode_) {
@@ -517,6 +506,18 @@ void PlayListTableView::initial() {
                 downloadPodcast();
                 });
         }
+
+        auto* remove_all_act = action_map.addAction(tr("Remove all"));
+        remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
+
+        action_map.setCallback(remove_all_act, [this]() {
+            qDatabase.removePlaylistAllMusic(playlistId());
+        executeQuery();
+        removePlaying();
+            });
+
+        action_map.addSeparator();
+
 
         auto* reload_metadata_act = action_map.addAction(tr("Reload metadata"));
         reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
@@ -535,7 +536,7 @@ void PlayListTableView::initial() {
         if (!select_row.isEmpty()) {
             auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
 
-            for (const auto& profile : DspComponentFactory::GetAvailableEncodingProfile()) {
+            for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
                 if (profile.num_channels != AudioFormat::kMaxChannel) {
                     continue;
                 }

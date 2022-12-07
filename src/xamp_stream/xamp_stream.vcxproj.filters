@@ -56,7 +56,7 @@
     <ClCompile Include="src\pcm2dsdsamplewriter.cpp">
       <Filter>samplewriter</Filter>
     </ClCompile>
-    <ClCompile Include="src\samplewriter.cpp">
+    <ClCompile Include="src\dsdmodesamplewriter.cpp">
       <Filter>samplewriter</Filter>
     </ClCompile>
     <ClCompile Include="src\basswavfileencoder.cpp">
@@ -70,6 +70,12 @@
     </ClCompile>
     <ClCompile Include="src\mfaacencoder.cpp">
       <Filter>encoder</Filter>
+    </ClCompile>
+    <ClCompile Include="src\avfilestream.cpp">
+      <Filter>ffmpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\avlib.cpp">
+      <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -148,7 +154,7 @@
     <ClInclude Include="include\stream\pcm2dsdsamplewriter.h">
       <Filter>samplewriter</Filter>
     </ClInclude>
-    <ClInclude Include="include\stream\samplewriter.h">
+    <ClInclude Include="include\stream\dsdmodesamplewriter.h">
       <Filter>samplewriter</Filter>
     </ClInclude>
     <ClInclude Include="include\stream\basswavfileencoder.h">
@@ -162,6 +168,12 @@
     </ClInclude>
     <ClInclude Include="include\stream\mfaacencoder.h">
       <Filter>encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\avfilestream.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\avlib.h">
+      <Filter>lib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +197,9 @@
     </Filter>
     <Filter Include="encoder">
       <UniqueIdentifier>{797b102a-ee07-4449-8394-42af4dfcd2ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ffmpeg">
+      <UniqueIdentifier>{63fa24f4-9fd4-435f-a18d-e25b5573d4dc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

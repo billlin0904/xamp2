@@ -223,6 +223,8 @@ public:
 
     XAMP_DISABLE_COPY(BassLib)
 
+    std::shared_ptr<Logger> logger;
+
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;
     AlignPtr<BassFxLib> FxLib;
@@ -239,7 +241,6 @@ public:
     void LoadVersionInfo();
     std::map<std::string, std::string> GetPluginVersion() const;
     std::map<std::string, std::string> GetVersions() const;
-
 private:
     BassLib();
 

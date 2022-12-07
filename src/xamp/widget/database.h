@@ -110,7 +110,7 @@ public:
 
     size_t getParentPathHash(const QString& parent_path) const;
 
-    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id = Qt::EmptyString);
+    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id = qEmptyString);
 
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 

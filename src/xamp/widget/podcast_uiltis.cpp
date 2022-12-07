@@ -201,7 +201,7 @@ QString parseCoverUrl(QString const& json) {
     QJsonParseError error;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error != QJsonParseError::NoError) {
-        return Qt::EmptyString;
+        return qEmptyString;
     }
     auto result = doc[qTEXT("images")].toArray();
     for (const auto entry : result) {
@@ -211,5 +211,5 @@ QString parseCoverUrl(QString const& json) {
             return object.value(qTEXT("image")).toString();
         }
     }
-    return Qt::EmptyString;
+    return qEmptyString;
 }

@@ -3,19 +3,19 @@
 #include <base/logger_impl.h>
 #include <base/memory.h>
 #include <base/buffer.h>
+#include <base/math.h>
 #include <stream/bass_utiltis.h>
-#include <base/volume.h>
 
 #include <stream/bassvolume.h>
 
 namespace xamp::stream {
 
-XAMP_DECLARE_LOG_NAME(Volume);
+XAMP_DECLARE_LOG_NAME(BassVolume);
 
 class BassVolume::BassVolumeImpl {
 public:
     BassVolumeImpl() {
-        logger_ = LoggerManager::GetInstance().GetLogger(kVolumeLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kBassVolumeLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {
@@ -24,15 +24,15 @@ public:
             BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
             STREAMPROC_DUMMY,
             nullptr));
-        MemorySet(&volume_, 0, sizeof(volume_));
         volume_handle_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
     }
 
-    void Init(double volume) {
-        volume_.lChannel = -1;
-        volume_.fVolume = static_cast<float>(std::pow(10, (volume / 20)));
-        XAMP_LOG_D(logger_, "Volume level: {}", static_cast<int32_t>(volume_.fVolume * 100));
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(volume_handle_, &volume_));
+    void Init(double volume_db) {
+        BASS_BFX_VOLUME volume{ 0 };
+        volume.lChannel = -1;
+        volume.fVolume = static_cast<float>(std::pow(10, (volume_db / 20)));
+        XAMP_LOG_D(logger_, "Set volume:{} dB level:{}", Round(volume_db, 2), static_cast<int32_t>(volume.fVolume * 100));
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(volume_handle_, &volume));
     }
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
@@ -42,7 +42,6 @@ public:
 private:
     BassStreamHandle stream_;
     HFX volume_handle_;
-    ::BASS_BFX_VOLUME volume_{0};
     std::shared_ptr<Logger> logger_;
 };
 
@@ -71,7 +70,7 @@ Uuid BassVolume::GetTypeId() const {
 }
 
 std::string_view BassVolume::GetDescription() const noexcept {
-    return "Volume";
+    return "BassVolume";
 }
 
 void BassVolume::Flush() {

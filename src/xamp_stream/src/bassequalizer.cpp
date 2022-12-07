@@ -1,4 +1,5 @@
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <stream/basslib.h>
 #include <stream/bass_utiltis.h>
 #include <stream/eqsettings.h>
@@ -6,11 +7,14 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(BassEqualizer);
+
 class BassEqualizer::BassEqualizerImpl {
 public:
     BassEqualizerImpl()
 		: preamp_(0) {
         fx_handles_.fill(0);
+        logger_ = LoggerManager::GetInstance().GetLogger(kBassEqualizerLoggerName);
     }
 
     void Start(uint32_t sample_rate) {
@@ -95,6 +99,7 @@ private:
     HFX preamp_;
     BassStreamHandle stream_;
     std::array<HFX, kMaxBand> fx_handles_;
+    std::shared_ptr<Logger> logger_;
 };
 
 BassEqualizer::BassEqualizer()
@@ -134,7 +139,7 @@ Uuid BassEqualizer::GetTypeId() const {
 }
 
 std::string_view BassEqualizer::GetDescription() const noexcept {
-    return "Equalizer";
+    return "BassEqualizer";
 }
 
 void BassEqualizer::Flush() {

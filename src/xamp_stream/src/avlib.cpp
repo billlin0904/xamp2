@@ -30,7 +30,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(av_packet_unref)
 	, XAMP_LOAD_DLL_API(avcodec_send_packet)
 	, XAMP_LOAD_DLL_API(avcodec_receive_frame)
-	, XAMP_LOAD_DLL_API(avcodec_flush_buffers) {
+	, XAMP_LOAD_DLL_API(avcodec_flush_buffers)
+	, XAMP_LOAD_DLL_API(av_get_bits_per_sample) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -101,7 +102,7 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 		return;
 	}
 
-	static auto logger = xamp::base::LoggerManager::GetInstance().GetLogger(kLibAvLoggerName);
+	static auto logger = LoggerManager::GetInstance().GetLogger(kLibAvLoggerName);
 	XAMP_LOG_LEVEL(logger, log_level, "{}", message);
 }
 

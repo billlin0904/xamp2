@@ -29,9 +29,7 @@ namespace std {
 	};
 }
 
-namespace Qt {
-    inline constexpr ConstLatin1String EmptyString{ "" };
-}
+inline constexpr ConstLatin1String qEmptyString{ "" };
 
 constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return ConstLatin1String{ str };

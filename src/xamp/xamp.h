@@ -198,6 +198,8 @@ private:
 
 	QString translateErrorCode(const Errors error);
 
+	void setupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	LrcPage* lrc_page_;

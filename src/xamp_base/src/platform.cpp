@@ -595,7 +595,9 @@ void CpuRelax() noexcept {
 void Assert(const char* message, const char* file, uint32_t line) {
     XAMP_LOG_DEBUG("ASSERT failure: {} file: {}:{}", message, file, line);
 #ifdef XAMP_OS_WIN
-    assert(message, file, line);
+    const auto utf16_message = String::ToStdWString(message);
+    const auto utf16_file_name = String::ToStdWString(file);
+    _wassert(utf16_message.c_str(), utf16_file_name.c_str(), line);
 #endif
 }
 

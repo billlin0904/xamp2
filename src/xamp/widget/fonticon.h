@@ -95,6 +95,8 @@ public:
     QIcon icon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
 
     const QStringList& families() const;
+
+    static void setGlyphs(const HashMap<char32_t, uint32_t> &glyphs);
 protected:
     void addFamily(const QString& family);
 

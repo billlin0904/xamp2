@@ -27,7 +27,7 @@ TabListView::TabListView(QWidget *parent)
 
 QString TabListView::getTabName(int table_id) const {
 	if (!names_.contains(table_id)) {
-        return Qt::EmptyString;
+        return qEmptyString;
 	}
     return names_[table_id];
 }

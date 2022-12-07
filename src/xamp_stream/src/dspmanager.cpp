@@ -35,17 +35,17 @@ void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
 }
 
 IDSPManager& DSPManager::AddEqualizer() {
-    AddPostDSP(DspComponentFactory::MakeEqualizer());
+    AddPostDSP(StreamFactory::MakeEqualizer());
     return *this;
 }
 
 IDSPManager& DSPManager::AddCompressor() {
-    AddPostDSP(DspComponentFactory::MakeCompressor());
+    AddPostDSP(StreamFactory::MakeCompressor());
     return *this;
 }
 
 IDSPManager& DSPManager::AddVolume() {
-    AddPostDSP(DspComponentFactory::MakeVolume());
+    AddPostDSP(StreamFactory::MakeVolume());
     return *this;
 }
 
