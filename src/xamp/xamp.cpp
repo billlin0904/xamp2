@@ -13,6 +13,7 @@
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 #include <base/logger_impl.h>
+#include <base/volume.h>
 
 #ifdef XAMP_OS_WIN
 #include <stream/mfaacencoder.h>
@@ -941,7 +942,23 @@ void Xamp::setVolume(uint32_t volume) {
             AppSettings::setValue(kAppSettingIsMuted, true);
         }
 
-        player_->SetVolume(volume);
+        if (player_->IsHardwareControlVolume()) {
+            if (!player_->IsMute()) {
+                player_->SetVolume(volume);
+            }
+            else {
+                setVolume(0);
+            }
+        }
+        else {
+            /*auto volume_db = VolumeToDb(ui_.volumeSlider->value());
+            player_->SetSoftwareVolumeDb(volume_db);*/
+            ui_.volumeSlider->setDisabled(true);
+        }
+
+        /*auto volume_db = VolumeToDb(ui_.volumeSlider->value());
+        player_->SetSoftwareVolumeDb(volume_db);*/
+        
     	QToolTip::showText(QCursor::pos(),
             tr("Volume : ") + QString::number(volume) + qTEXT("%")
             );
@@ -1122,8 +1139,6 @@ void Xamp::setupDSP(const AlbumEntity& item) {
         foo_dsp->CloneDSPChainConfig(*preference_page_->adapter);
         player_->GetDSPManager()->AddPostDSP(std::move(adapter));
     }
-
-    player_->GetDSPManager()->AddCompressor();
 }
 
 QString Xamp::translateErrorCode(const Errors error) {
@@ -1190,6 +1205,35 @@ void Xamp::setupSampleWriter(PlaybackFormat& playback_format, QString& samplerat
 	}
 }
 
+void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
+    uint32_t &target_sample_rate,
+    QString& sample_rate_converter_type) {
+    sample_rate_converter_type = AppSettings::getValueAsString(kAppSettingResamplerType);
+
+    if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
+		if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+			if (sample_rate_converter_type == kSoxr || sample_rate_converter_type.isEmpty()) {
+				QMap<QString, QVariant> soxr_settings;
+				const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
+				soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
+				target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
+
+				initial_sample_rate_converter = [=]() {
+					player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+				};
+			}
+			else if (sample_rate_converter_type == kR8Brain) {
+				auto config = JsonSettings::getValueAsMap(kR8Brain);
+				target_sample_rate = config[kResampleSampleRate].toUInt();
+
+				initial_sample_rate_converter = [=]() {
+					player_->GetDSPManager()->AddPreDSP(makeR8BrainSampleRateConverter());
+				};
+			}
+		}
+	}
+}
+
 void Xamp::playAlbumEntity(const AlbumEntity& item) {
     auto open_done = false;
 
@@ -1204,45 +1248,24 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         player_->Stop(false, true);
         );
 
+    QString sample_rate_converter_type;
     PlaybackFormat playback_format;
-    
+    uint32_t target_sample_rate = 0;
+    auto byte_format = ByteFormat::SINT32;
+
+    std::function<void()> sample_rate_converter_factory;
+    setupSampleRateConverter(sample_rate_converter_factory, target_sample_rate, sample_rate_converter_type);
+
+    player_->EnableFadeOut(false);
+
     try {
-	    uint32_t target_sample_rate = 0;
-        QMap<QString, QVariant> soxr_settings;
-        auto samplerate_converter_type = AppSettings::getValueAsString(kAppSettingResamplerType);
-
-        std::function<void()> initial_samplerate_converter;
-
-        if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
-            if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-                if (samplerate_converter_type == kSoxr || samplerate_converter_type.isEmpty()) {
-                    const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
-                    soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
-                    target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
-
-                    initial_samplerate_converter = [&]() {
-                        player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
-                    };
-                }
-                else if (samplerate_converter_type == kR8Brain) {
-                    auto config = JsonSettings::getValueAsMap(kR8Brain);
-                    target_sample_rate = config[kResampleSampleRate].toUInt();
-
-                    initial_samplerate_converter = [&]() {
-                        player_->GetDSPManager()->AddPreDSP(makeR8BrainSampleRateConverter());
-                    };
-                }
-            }
-        }
-
-        player_->EnableFadeOut(false);
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
 
-        auto byte_format = ByteFormat::SINT32;
-        if (!initial_samplerate_converter) {
+        if (!sample_rate_converter_factory) {
             player_->GetDSPManager()->RemoveSampleRateConverter();
             player_->GetDSPManager()->RemoveVolume();
             player_->GetDSPManager()->RemoveEqualizer();
+
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
                 byte_format = ByteFormat::SINT16;
             }
@@ -1251,7 +1274,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
                 player_->GetDSPManager()->RemoveSampleRateConverter();
             }
             else {
-                initial_samplerate_converter();
+                sample_rate_converter_factory();
             }
             setupDSP(item);
         }
@@ -1262,10 +1285,10 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             byte_format = ByteFormat::SINT16;
         }
 
-        setupSampleWriter(playback_format, samplerate_converter_type, byte_format);
+        setupSampleWriter(playback_format, sample_rate_converter_type, byte_format);
 
         playback_format.bitrate = item.bitrate;
-        if (samplerate_converter_type == kR8Brain) {
+        if (sample_rate_converter_type == kR8Brain) {
             player_->SetReadSampleSize(kR8brainBufferSize);
         }
 
@@ -1284,8 +1307,6 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
     }
 
     updateUI(item, playback_format, open_done);
-
-    podcast_page_->format()->setText(qEmptyString);
 }
 
 void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done) {
@@ -1304,7 +1325,9 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(false);
         }
         else {
-            ui_.volumeSlider->setDisabled(true);
+            //ui_.volumeSlider->setDisabled(true);
+            auto volume_db = VolumeToDb(ui_.volumeSlider->value());
+            player_->SetSoftwareVolumeDb(volume_db);
         }
 
         ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
@@ -1343,6 +1366,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     if (open_done) {
         player_->Play();
     }
+    podcast_page_->format()->setText(qEmptyString);
 }
 
 void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {

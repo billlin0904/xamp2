@@ -45,6 +45,10 @@ LibrarySpecException::LibrarySpecException(const std::string & message, std::str
     : Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, message, what) {
 }
 
+Exception::Exception(std::string const& message, std::string_view what)
+	: Exception(Errors::XAMP_ERROR_UNKNOWN, message, what) {
+}
+
 Exception::Exception(Errors error, const std::string& message, std::string_view what)
 	: error_(error)
     , what_(what)

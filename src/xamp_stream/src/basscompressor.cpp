@@ -21,7 +21,6 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
-        MemorySet(&compressord_, 0, sizeof(compressord_));
     }
 
     void Init(CompressorParameters const& parameters) {
@@ -38,7 +37,6 @@ public:
             0);
         BassIfFailedThrow(compressor_fx);
         BassIfFailedThrow(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
-        compressord_ = compressord;
         XAMP_LOG_D(logger_, "Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
             compressord.fGain,
             compressord.fThreshold,
@@ -53,7 +51,6 @@ public:
 
 private:
     BassStreamHandle stream_;
-    ::BASS_BFX_COMPRESSOR2 compressord_{0};
     std::shared_ptr<Logger> logger_;
 };
 

@@ -255,6 +255,14 @@ void AudioPlayer::ProcessPlayerAction() {
                     DoSeek(stream_time);
                 }
                 break;
+                case PlayerActionId::PLAYER_SOFTWARE_VOLUME:
+	                {
+						auto volume_db = std::any_cast<double>(msg->content);
+						XAMP_LOG_D(logger_, "Receive change volume {:.2f} dB.", volume_db);
+                        config_.AddOrReplace(DspConfig::kVolume, volume_db);
+                        dsp_manager_->Init(config_);
+	                }
+                    break;
                 }
             } catch (std::exception const &e) {
                 XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg->id), e.what());
@@ -364,13 +372,17 @@ void AudioPlayer::SetVolume(uint32_t volume) {
     device_->SetVolume(volume);
 }
 
-void AudioPlayer::SetVolumeLevel(float volume_db) {
-    if (!device_ || !device_->IsStreamOpen()) {
+void AudioPlayer::SetSoftwareVolumeDb(double volume_db) {
+    if (!device_) {
         return;
     }
-    auto* volume_level = dynamic_cast<IVolumeLevel*>(device_.get());
-    if (volume_level != nullptr) {
-        volume_level->SetVolumeLevel(volume_db);
+
+    if (device_->IsStreamOpen()) {
+        read_finish_and_wait_seek_signal_cond_.notify_one();
+        action_queue_.TryPush(PlayerAction{
+            PlayerActionId::PLAYER_SOFTWARE_VOLUME,
+            volume_db
+            });
     }
 }
 
@@ -773,12 +785,7 @@ void AudioPlayer::Play() {
     is_playing_ = true;
     if (device_->IsStreamOpen()) {
         if (!device_->IsStreamRunning()) {
-            /*if (device_->IsHardwareControlVolume()) {
-                device_->SetVolume(volume_);
-                device_->SetMute(is_muted_);
-            }
-            */
-            XAMP_LOG_D(logger_, "Play vol:{} muted:{}.", volume_, is_muted_);
+            XAMP_LOG_D(logger_, "Play volume:{} muted:{}.", volume_, is_muted_);
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
@@ -817,7 +824,7 @@ void AudioPlayer::Play() {
 
                 if (p->fifo_.GetAvailableWrite() < num_sample_write) {
                     wait_timer.Wait();
-                    XAMP_LOG_D(p->logger_, "FIFO buffer: {} num_sample_write: {}",
+                    XAMP_LOG_T(p->logger_, "FIFO buffer: {} num_sample_write: {}",
                                p->fifo_.GetAvailableWrite(),
                                num_sample_write
                                );

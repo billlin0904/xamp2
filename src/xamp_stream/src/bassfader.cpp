@@ -21,7 +21,6 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
-        MemorySet(&volume_param_, 0, sizeof(volume_param_));
     }
 
     void SetTime(float current, float target, float fdade_time) {
@@ -30,13 +29,12 @@ public:
         volume_param.fTarget = target;
         volume_param.fTime = fdade_time;
         volume_param.lCurve = 0;
-        volume_param_ = volume_param;
         const auto fade_fx = BASS.BASS_ChannelSetFX(
             stream_.get(),
             BASS_FX_VOLUME,
             0);
         BassIfFailedThrow(fade_fx);
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(fade_fx, &volume_param_));        
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(fade_fx, &volume_param));
         XAMP_LOG_D(logger_, "Fade current:{:.2f} target:{:.2f} time:{:.2f}",
             current,
             target,
@@ -49,7 +47,6 @@ public:
 
 private:
     BassStreamHandle stream_;
-    ::BASS_FX_VOLUME_PARAM volume_param_{0};
     std::shared_ptr<Logger> logger_;
 };
 

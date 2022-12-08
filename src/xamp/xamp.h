@@ -200,6 +200,10 @@ private:
 
 	void setupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format);
 
+	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
+		uint32_t& target_sample_rate,
+		QString& sample_rate_converter_type);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	LrcPage* lrc_page_;

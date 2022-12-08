@@ -2,26 +2,27 @@
     "Log": {
         "MinimumLevel": {
             "Default": "debug",
-            "Override": {
-                "AudioPlayer": "info",
-                "AvFileStream": "info",
-                "BASS": "info",
-                "BackgroundThreadPool": "info",
-                "BassCompressor": "info",
-                "BassFader": "info",
-                "BassVolume": "info",
-                "Database": "info",
-                "DspManager": "info",
-                "ExclusiveWasapiDevice": "info",
-                "ExclusiveWasapiDeviceType": "info",
-                "LibAv": "info",
-                "PixmapCache": "info",
-                "PlaybackThreadPool": "info",
-                "Qt": "info",
-                "SharedWasapiDevice": "info",
-                "VirtualMemory": "info",
-                "WASAPIThreadPool": "info"
-            }
+          "Override": {
+            "AudioPlayer": "debug",
+            "AvFileStream": "info",
+            "BASS": "info",
+            "BackgroundThreadPool": "info",
+            "BassCompressor": "info",
+            "BassFader": "info",
+            "BassVolume": "debug",
+            "Database": "info",
+            "DspManager": "info",
+            "ExclusiveWasapiDevice": "info",
+            "ExclusiveWasapiDeviceType": "info",
+            "LibAv": "info",
+            "PixmapCache": "info",
+            "PlaybackThreadPool": "info",
+            "Qt": "info",
+            "SharedWasapiDevice": "info",
+            "Soxr": "info",
+            "VirtualMemory": "info",
+            "WASAPIThreadPool": "info"
+          }
         }
     },
     "Pcm2Dsd": {
@@ -35,9 +36,9 @@
             "enableSteepFilter": false,
             "passBand": 96,
             "phase": 46,
-            "quality": 4,
+            "quality": 0,
             "resampleSampleRate": 44100,
-            "rolloffLevel": 2,
+            "rolloffLevel": 0,
             "stopBand": 100
         }
     }

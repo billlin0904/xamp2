@@ -15,13 +15,13 @@ struct UuidOf {
 	}
 };
 
-#define XAMP_MAKE_CLASS_UUID(className, classUuid)\
+#define XAMP_MAKE_CLASS_UUID(ClassName, UuidString)\
 template <>                                 \
-struct UuidOf<className> {                  \
+struct UuidOf<ClassName> {                  \
 	static inline							\
 	const xamp::base::Uuid& Id() {			\
 		static const xamp::base::Uuid id(	\
-		classUuid);							\
+		UuidString);						\
 		return id;							\
 	}										\
 };

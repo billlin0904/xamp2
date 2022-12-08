@@ -74,14 +74,18 @@ IDSPManager& DSPManager::RemoveSampleRateConverter() {
 }
 
 bool DSPManager::CanProcessFile() const noexcept {
-	const auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
+    if (!pre_dsp_.empty() || !post_dsp_.empty()) {
+        return true;
+    }
 
+	const auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
     if (dsd_mode == DsdModes::DSD_MODE_PCM
-        || dsd_mode == DsdModes::DSD_MODE_DSD2PCM
-        || IsEnablePcm2DsdConverter()) {
-	    if (!pre_dsp_.empty() || !post_dsp_.empty()) {
-            return true;
-	    }
+        || dsd_mode == DsdModes::DSD_MODE_DSD2PCM) {
+        return true;
+    }
+
+    if (IsEnablePcm2DsdConverter()) {
+        return true;
     }
     return false;
 }
@@ -105,11 +109,7 @@ bool DSPManager::IsEnableSampleRateConverter() const {
     const auto equal_id = [](const auto& id) {
         return UuidOf<SoxrSampleRateConverter>::Id() == id || UuidOf<R8brainSampleRateConverter>::Id() == id;
     };
-
-    if (FindIf(pre_dsp_.begin(), pre_dsp_.end(), equal_id) == pre_dsp_.end()) {
-        return FindIf(post_dsp_.begin(), post_dsp_.end(), equal_id) != post_dsp_.end();
-    }
-    return false;
+    return Contains(equal_id);
 }
 
 bool DSPManager::IsEnablePcm2DsdConverter() const {
@@ -175,10 +175,9 @@ bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer
 void DSPManager::Init(const DspConfig& config) {
     config_ = config;
 
-    auto sample_size = config_.Get<uint8_t>(DspConfig::kSampleSize);
-    auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
-
     if (!sample_writer_) {
+        auto sample_size = config_.Get<uint8_t>(DspConfig::kSampleSize);
+        auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
         sample_writer_ = MakeAlign<ISampleWriter, DsdModeSampleWriter>(dsd_mode, sample_size);
     }
 

@@ -32,7 +32,8 @@ XAMP_MAKE_ENUM(Errors,
                XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE,
                XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
                XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE,
-               XAMP_ERROR_NOT_BUFFER_OVERFLOW)
+               XAMP_ERROR_NOT_BUFFER_OVERFLOW,
+               XAMP_ERROR_UNKNOWN)
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
@@ -40,7 +41,9 @@ XAMP_BASE_API std::string GetLastErrorMessage();
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
-    explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
+    Exception(std::string const& message, std::string_view what = "");
+
+	explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
                        std::string const & message = "",
                        std::string_view what = "");
     

@@ -19,14 +19,13 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API DspConfig {
 public:
-    constexpr static auto kInputFormat = std::string_view("kInputFormat");
-    constexpr static auto kDsdMode = std::string_view("kDsdMode");
-    constexpr static auto kOutputFormat = std::string_view("kOutputFormat");
-    constexpr static auto kSampleSize = std::string_view("kSampleSize");
-    constexpr static auto kReplayGain = std::string_view("kReplayGain");
-    constexpr static auto kEQSettings = std::string_view("kEQSettings");
-    constexpr static auto kCompressorParameters = std::string_view("kCompressorParameters");
-    constexpr static auto kVolume = std::string_view("kVolume");
+    constexpr static auto kInputFormat = std::string_view("InputFormat");
+    constexpr static auto kDsdMode = std::string_view("DsdMode");
+    constexpr static auto kOutputFormat = std::string_view("OutputFormat");
+    constexpr static auto kSampleSize = std::string_view("SampleSize");
+    constexpr static auto kEQSettings = std::string_view("EQSettings");
+    constexpr static auto kCompressorParameters = std::string_view("CompressorParameters");
+    constexpr static auto kVolume = std::string_view("Volume");
 
     template <typename T>
     void AddOrReplace(const std::string_view &name, T&& value) {
