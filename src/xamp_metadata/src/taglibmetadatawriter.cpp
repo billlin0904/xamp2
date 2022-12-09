@@ -6,13 +6,16 @@
 #include <metadata/taglib.h>
 #include <metadata/taglibmetawriter.h>
 
+XAMP_DECLARE_LOG_NAME(TagLib);
+
 class DefaultListener : public TagLib::DebugListener {
 public:
 	void printMessage(const TagLib::String& msg) override {
 		using namespace xamp::base;
 		std::string temp(msg.toCString());
 		String::Remove(temp, "\n");
-		XAMP_LOG_DEBUG("{}", temp);
+		static auto logger = LoggerManager::GetInstance().GetLogger(kTagLibLoggerName);
+		XAMP_LOG_D(logger, temp);
 	}
 };
 

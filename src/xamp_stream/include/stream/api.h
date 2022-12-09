@@ -18,7 +18,7 @@ class XAMP_STREAM_API StreamFactory {
 public:
 	StreamFactory() = delete;
 
-	static AlignPtr<IAudioStream> MakeAudioStream(Path const& path);
+	static AlignPtr<FileStream> MakeFileStream();
 
 	static AlignPtr<IFileEncoder> MakeFlacEncoder();
 
@@ -45,13 +45,13 @@ public:
 
 XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(IAudioStream* stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) noexcept;
 
 XAMP_STREAM_API const HashSet<std::string>& GetSupportFileExtensions();
 
 XAMP_STREAM_API std::map<std::string, std::string> GetBassDLLVersion();
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const & stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
 
 XAMP_STREAM_API FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept;
 

@@ -324,7 +324,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 		             is_podcast, 
 		             disc_id);
 
-		if (playlist_id != -1) {            
+		if (playlist_id != -1) {
 			qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 

@@ -56,11 +56,11 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-AlignPtr<IAudioStream> StreamFactory::MakeAudioStream(Path const& path) {
+AlignPtr<FileStream> StreamFactory::MakeFileStream() {
 #ifdef XAMP_OS_WIN
-    return MakeAlign<IAudioStream, AvFileStream>();
+    return MakeAlign<FileStream, AvFileStream>();
 #else
-    return MakeAlign<IAudioStream, BassFileStream>();
+    return MakeAlign<FileStream, BassFileStream>();
 #endif
 }
 
@@ -117,7 +117,7 @@ Vector<EncodingProfile> StreamFactory::GetAvailableEncodingProfile() {
     return AACFileEncoder::GetAvailableEncodingProfile();
 }
 
-IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const& stream) noexcept {
+IDsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
 
@@ -125,7 +125,7 @@ FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept {
     return dynamic_cast<FileStream*>(stream.get());
 }
 
-IDsdStream* AsDsdStream(IAudioStream* stream) noexcept {
+IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 

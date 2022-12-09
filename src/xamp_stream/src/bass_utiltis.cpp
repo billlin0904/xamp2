@@ -6,6 +6,10 @@
 
 namespace xamp::stream::BassUtiltis {
 
+uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, uint32_t num_samples) {
+    return 0;
+}
+
 bool Process(BassStreamHandle& stream, float const * samples, uint32_t num_samples, BufferRef<float>& out) {
     if (out.size() != num_samples) {
         out.maybe_resize(num_samples);

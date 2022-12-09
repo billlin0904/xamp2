@@ -39,6 +39,10 @@ public:
         return BassUtiltis::Process(stream_, samples, num_samples, out);
     }
 
+    uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
+        return BassUtiltis::Process(stream_, samples, out, num_samples);
+    }
+
 private:
     BassStreamHandle stream_;
     HFX volume_handle_;
@@ -63,6 +67,10 @@ void BassVolume::Init(const DspConfig& config) {
 
 bool BassVolume::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
+}
+
+uint32_t BassVolume::Process(float const* samples, float* out, uint32_t num_samples) {
+    return impl_->Process(samples, out, num_samples);
 }
 
 Uuid BassVolume::GetTypeId() const {

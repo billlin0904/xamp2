@@ -307,6 +307,10 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
     const auto request_id = generateUUID();
 
     request.setRawHeader("X-Request-ID", request_id);
+
+    // todo: Add GZIP support.
+	//request.setRawHeader("Accept-Encoding", "gzip,deflate");
+
     request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     return request;

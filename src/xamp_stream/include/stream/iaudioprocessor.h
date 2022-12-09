@@ -50,6 +50,8 @@ public:
 
     virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
 
+    virtual uint32_t Process(float const* samples, float* out, uint32_t num_samples) = 0;
+
     [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;

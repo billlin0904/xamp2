@@ -13,6 +13,7 @@ namespace xamp::stream {
 
 XAMP_DECLARE_LOG_NAME(Soxr);
 
+const std::string_view VERSION = "Soxr " SOXR_THIS_VERSION_STR;
 #define SoxrDLL Singleton<SoxrLib>::GetInstance()
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
@@ -170,31 +171,33 @@ public:
 		SoxrDLL.soxr_clear(handle_.get());
 	}
 
-	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
-		XAMP_ASSERT(num_channels_ != 0);
+	uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
+		return 0;
+	}
 
+	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
 		auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
 		MaybeResizeBuffer(output, required_size);
 
-		size_t samples_done = 0;
+		size_t num_read_samples = 0;
 		SoxrDLL.soxr_process(handle_.get(),
 			samples,
 			num_samples / num_channels_,
 			nullptr,
 			output.data(),
 			output.size() / num_channels_,
-			&samples_done);
+			&num_read_samples);
 
-		if (!samples_done) {
+		if (!num_read_samples) {
 			return false;
 		}
 
-		if (samples_done * num_channels_ != output.size()) {
-			output.maybe_resize(samples_done * num_channels_);
+		if (num_read_samples * num_channels_ != output.size()) {
+			output.maybe_resize(num_read_samples * num_channels_);
 		}
 
-		MemoryCopy(output.data(), output.data(), samples_done * num_channels_ * sizeof(float));
-		required_size = samples_done * num_channels_;
+		MemoryCopy(output.data(), output.data(), num_read_samples * num_channels_ * sizeof(float));
+		required_size = num_read_samples * num_channels_;
 		MaybeResizeBuffer(output, required_size);
 		return true;
 	}
@@ -232,8 +235,6 @@ public:
 	SoxrHandle handle_;
 	std::shared_ptr<Logger> logger_;
 };
-
-const std::string_view SoxrSampleRateConverter::VERSION = "Soxr " SOXR_THIS_VERSION_STR;
 
 SoxrSampleRateConverter::SoxrSampleRateConverter()
     : impl_(MakeAlign<SoxrSampleRateConverterImpl>()) {
@@ -281,6 +282,10 @@ void SoxrSampleRateConverter::SetDither(bool enable) {
 
 bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
+}
+
+uint32_t SoxrSampleRateConverter::Process(float const* samples, float* out, uint32_t num_samples) {
+	return impl_->Process(samples, out, num_samples);
 }
 
 Uuid SoxrSampleRateConverter::GetTypeId() const {

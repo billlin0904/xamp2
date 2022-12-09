@@ -29,7 +29,7 @@ struct MbDiscIdInfo {
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)
 
-Vector<TrackInfo> parseJson(QString const& json);
+ForwardList<TrackInfo> parseJson(QString const& json);
 
 std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& src);
 

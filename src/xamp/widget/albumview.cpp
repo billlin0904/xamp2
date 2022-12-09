@@ -258,13 +258,11 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->show();
 
     page_->playlist()->removeAll();
-    Vector<int32_t> add_playlist_music_ids;
-
-    add_playlist_music_ids.reserve(20);
+    ForwardList<int32_t> add_playlist_music_ids;
 
     qDatabase.forEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
-            add_playlist_music_ids.push_back(entity.music_id);
+            add_playlist_music_ids.push_front(entity.music_id);
         });
 
     qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
@@ -422,14 +420,14 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
     auto artist_cover_id = getIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
     auto* add_album_to_playlist_act = action_map.addAction(tr("Add album to playlist"), [=]() {
-        Vector<PlayListEntity> entities;
-        Vector<int32_t> add_playlist_music_ids;
+        ForwardList<PlayListEntity> entities;
+		ForwardList<int32_t> add_playlist_music_ids;
         qDatabase.forEachAlbumMusic(album_id,
             [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                 if (entity.track_loudness == 0.0) {
-                    entities.push_back(entity);
+                    entities.push_front(entity);
                 }
-                add_playlist_music_ids.push_back(entity.music_id);
+                add_playlist_music_ids.push_front(entity.music_id);
             });
         emit addPlaylist(add_playlist_music_ids, entities);
         });

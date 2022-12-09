@@ -45,6 +45,9 @@ public:
         return BassUtiltis::Process(stream_, samples, num_samples, out);
     }
 
+    uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
+        return BassUtiltis::Process(stream_, samples, out, num_samples);
+    }
 private:
     BassStreamHandle stream_;
     std::shared_ptr<Logger> logger_;
@@ -70,6 +73,10 @@ void BassFader::SetTime(float current, float target, float fdade_time) {
 
 bool BassFader::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
+}
+
+uint32_t BassFader::Process(float const* samples, float* out, uint32_t num_samples) {
+    return impl_->Process(samples, out, num_samples);
 }
 
 Uuid BassFader::GetTypeId() const {

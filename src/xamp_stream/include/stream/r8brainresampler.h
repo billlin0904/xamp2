@@ -16,8 +16,6 @@ static constexpr int32_t kR8brainBufferSize = 64 * 1024;
 
 class XAMP_STREAM_API R8brainSampleRateConverter final : public IAudioProcessor {
 public:
-    static const std::string_view VERSION;
-
     XAMP_PIMPL(R8brainSampleRateConverter)
 
 	R8brainSampleRateConverter();
@@ -27,6 +25,8 @@ public:
     void Init(const DspConfig& config) override;
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
+
+    uint32_t Process(float const* samples, float* out, uint32_t num_samples) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

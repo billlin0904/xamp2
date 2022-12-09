@@ -23,6 +23,8 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(MFEncoder);
+
 #define HrIfFailledThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
@@ -283,6 +285,7 @@ public:
 
     static Vector<EncodingProfile> GetAvailableEncodingProfile() {
         constexpr auto get_encoding_profile = []() {
+            static auto logger = LoggerManager::GetInstance().GetLogger(kMFEncoderLoggerName);
             Vector<EncodingProfile> profiles;
 
             CComPtr<IMFCollection> available_types;
@@ -336,7 +339,7 @@ public:
                 if (profile_level != AACProfileLevel::AAC_PROFILE_L2) {
                     continue;
                 }
-                XAMP_LOG_DEBUG("{}bit, {}ch, {:.2f}kHz, {}kbps, {}kbps {} {}",
+                XAMP_LOG_D(logger, "{}bit, {}ch, {:.2f}kHz, {}kbps, {}kbps {} {}",
                     bit_per_sample,
                     num_channels,
                     sample_rate / 1000.,

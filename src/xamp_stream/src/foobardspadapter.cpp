@@ -394,6 +394,10 @@ bool FoobarDspAdapter::Process(float const* samples, uint32_t num_samples, Buffe
 	return true;
 }
 
+uint32_t FoobarDspAdapter::Process(float const* samples, float* out, uint32_t num_samples) {
+	return 0;
+}
+
 Uuid FoobarDspAdapter::GetTypeId() const {
 	return Id;
 }

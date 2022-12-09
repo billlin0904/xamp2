@@ -30,9 +30,9 @@ inline constexpr float kFloat32Scale = 2147483647.f;
 inline constexpr float kMaxFloatSample = 1.0F;
 inline constexpr float kMinFloatSample = -1.0F;
 
-inline constexpr int32_t kSimdLanes = 32;
+inline constexpr int32_t kSimdLanes = sizeof(m256i);
 // note: int/float = 4 Byte
-inline constexpr int32_t kAlignedSize = kSimdLanes / sizeof(float);
+inline constexpr int32_t kSimdAlignedSize = kSimdLanes / sizeof(float);
 
 class SIMD {
 public:
@@ -50,7 +50,7 @@ public:
         return (reg[1] & (1 << 5)) != 0;
     }
 
-    static XAMP_ALWAYS_INLINE bool IsAligned(const void* pointer) {
+    static XAMP_ALWAYS_INLINE bool IsAligned(const void* XAMP_RESTRICT pointer) noexcept {
         return reinterpret_cast<uintptr_t>(pointer) % kSimdLanes == 0;
     }
 
@@ -81,7 +81,11 @@ public:
 
     template <size_t N = 0>
     static XAMP_ALWAYS_INLINE void F32ToS32(void* dst, m256 src) {
-        Store(dst, ShiftLeftBits<N>(Round(src)));
+        if constexpr (N > 0) {
+            Store(dst, ShiftLeftBits<N>(Round(src)));
+        } else {
+            Store(dst, Round(src));
+        }
     }
 
     static XAMP_ALWAYS_INLINE m256 LoadPs(float const* ptr) {
@@ -239,16 +243,16 @@ struct InterleaveToPlanar<int8_t, int8_t> {
         int8_t* XAMP_RESTRICT b,
         size_t len,
         float mul = 1.0) {
-        constexpr auto offset = kAlignedSize * 2;
+        constexpr auto offset = kSimdAlignedSize * 2;
         XAMP_ASSERT(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;
-            auto lo = in + kAlignedSize;
+            auto lo = in + kSimdAlignedSize;
             Convert(in, lo, a, b, mul);
             in += offset;
-            a += kAlignedSize;
-            b += kAlignedSize;
+            a += kSimdAlignedSize;
+            b += kSimdAlignedSize;
             i += offset;
         }
     }
@@ -280,16 +284,16 @@ struct InterleaveToPlanar<float, int32_t> {
         int32_t * XAMP_RESTRICT b,
         size_t len,
         float mul = 1.0) {
-        constexpr auto offset = kAlignedSize * 2;
+        constexpr auto offset = kSimdAlignedSize * 2;
         XAMP_ASSERT(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;
-            auto lo = in + kAlignedSize;
+            auto lo = in + kSimdAlignedSize;
             Convert(in, lo, a, b, mul);
             in += offset;
-            a += kAlignedSize;
-            b += kAlignedSize;
+            a += kSimdAlignedSize;
+            b += kSimdAlignedSize;
             i += offset;
         }
     }

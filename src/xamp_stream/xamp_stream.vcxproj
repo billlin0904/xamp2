@@ -160,6 +160,7 @@
     <ClInclude Include="include\stream\avlib.h" />
     <ClInclude Include="include\stream\bassaacfileencoder.h" />
     <ClInclude Include="include\stream\basscompressor.h" />
+    <ClInclude Include="include\stream\bassequalizer.h" />
     <ClInclude Include="include\stream\bassfader.h" />
     <ClInclude Include="include\stream\basslib.h" />
     <ClInclude Include="include\stream\bassvolume.h" />

@@ -83,7 +83,7 @@ signals:
 
 	void encodeWavFile(const PlayListEntity& item);
 
-    void addPlaylistReplayGain(bool force, const Vector<PlayListEntity> &entities);
+    void addPlaylistReplayGain(bool force, const ForwardList<PlayListEntity> &entities);
 
 	void updateAlbumCover(const QString &cover_id);
 

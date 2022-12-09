@@ -87,7 +87,7 @@ public:
 	void enablePage(bool enable);
 
 signals:
-    void addPlaylist(const Vector<int32_t> &music_ids, const Vector<PlayListEntity> &entities);
+    void addPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 

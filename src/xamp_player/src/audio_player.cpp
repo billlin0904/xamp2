@@ -174,7 +174,7 @@ bool AudioPlayer::IsDSDFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream) {
+void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
     if (dsd_mode == DsdModes::DSD_MODE_PCM) {
         stream_ = std::move(stream);
         dsd_mode_ = dsd_mode;
@@ -240,7 +240,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
     XAMP_LOG_D(logger_, "Set state: {}.", EnumToString(state_));
 }
 
-void AudioPlayer::ProcessPlayerAction() {
+void AudioPlayer::ReadPlayerAction() {
     while (!action_queue_.empty()) {
         if (const auto* msg = action_queue_.Front()) {
             try {
@@ -303,12 +303,12 @@ void AudioPlayer::Resume() {
 }
 
 void AudioPlayer::FadeOut() {
-    float fdade_time = 1.0;
-    const auto sample_count = output_format_.GetSecondsSize(fdade_time) / sizeof(float);
+	const float fade_time_seconds = 1.0;
+    const auto sample_count = output_format_.GetSecondsSize(fade_time_seconds) / sizeof(float);
 
     Buffer<float> buffer(sample_count);
     size_t num_filled_count = 0;
-    dynamic_cast<BassFader*>(fader_.get())->SetTime(1.0f, 0.0f, fdade_time);
+    dynamic_cast<BassFader*>(fader_.get())->SetTime(1.0f, 0.0f, fade_time_seconds);
 
     if (!fifo_.TryRead(reinterpret_cast<int8_t*>(buffer.data()), buffer.GetByteSize(), num_filled_count)) {
         return;
@@ -445,8 +445,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
 
 AudioFormat AudioPlayer::GetInputFormat() const noexcept {
     auto file_format = input_format_;
-    const auto* fs = AsFileStream(stream_);
-    file_format.SetBitPerSample(fs->GetBitDepth());
+    file_format.SetBitPerSample(stream_->GetBitDepth());
     return file_format;
 }
 
@@ -709,7 +708,7 @@ bool AudioPlayer::CanConverter() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
-void AudioPlayer::BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count) {
     auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {
@@ -795,7 +794,9 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()](){
+    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()]() {
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
+
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };
@@ -817,10 +818,10 @@ void AudioPlayer::Play() {
             while (p->is_playing_) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
-                    p->ProcessPlayerAction();
+                    p->ReadPlayerAction();
                 }
 
-                p->ProcessPlayerAction();
+                p->ReadPlayerAction();
 
                 if (p->fifo_.GetAvailableWrite() < num_sample_write) {
                     wait_timer.Wait();

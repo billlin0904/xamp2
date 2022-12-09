@@ -67,7 +67,7 @@ public slots:
 
 	void playPlayListEntity(const PlayListEntity& item);
 
-    void addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayListEntity>& entities);
+    void addPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity>& entities);
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 

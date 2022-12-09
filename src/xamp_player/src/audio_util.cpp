@@ -39,16 +39,15 @@ static DsdModes SetStreamDsdMode(FileStream *stream, bool is_dsd_file, const Dev
     return dsd_mode;
 }
 
-std::pair<DsdModes, AlignPtr<IAudioStream>> MakeFileStream(Path const& path,
+std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path,
     DeviceInfo const& device_info,
     bool enable_sample_converter) {
     auto const file_path = path.wstring();
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
-    auto test_dsd_mode_stream = StreamFactory::MakeAudioStream(path);
-    auto* fs = dynamic_cast<FileStream*>(test_dsd_mode_stream.get());
-    auto dsd_mode = SetStreamDsdMode(fs, is_dsd_file, device_info, enable_sample_converter);
-    fs->OpenFile(file_path);
-    return std::make_pair(dsd_mode, std::move(test_dsd_mode_stream));
+    auto file_stream = StreamFactory::MakeFileStream();
+    auto dsd_mode = SetStreamDsdMode(file_stream.get(), is_dsd_file, device_info, enable_sample_converter);
+    file_stream->OpenFile(file_path);
+    return std::make_pair(dsd_mode, std::move(file_stream));
 }
 
 }

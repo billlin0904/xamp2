@@ -2,9 +2,11 @@
 #include <QJsonDocument>
 #include <rapidxml.hpp>
 
-#include <widget/str_utilts.h>
 #include <base/str_utilts.h>
+#include <stream/api.h>
+#include <stream/filestream.h>
 
+#include <widget/str_utilts.h>
 #include <widget/podcast_uiltis.h>
 
 using namespace rapidxml;
@@ -16,27 +18,29 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-Vector<TrackInfo> parseJson(QString const& json) {
+ForwardList<TrackInfo> parseJson(QString const& json) {
     QJsonParseError error;
-    Vector<TrackInfo> metadatas;
+    ForwardList<TrackInfo> track_infos;
 
+    auto track = 1;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error == QJsonParseError::NoError) {
         auto result = doc.array();
-        metadatas.reserve(result.size());
         for (const auto entry : result) {
             auto object = entry.toVariant().toMap();
             auto url = object.value(qTEXT("url")).toString();
+            auto artist = object.value(qTEXT("artist")).toString().toStdWString();
             auto title = object.value(qTEXT("title")).toString();
             auto performer = object.value(qTEXT("performer")).toString();
-            TrackInfo metadata;
-            metadata.file_path = url.toStdWString();
-            metadata.title = title.toStdWString();
-            metadata.artist = performer.toStdWString();
-            metadatas.push_back(metadata);
+            TrackInfo track_info;
+            track_info.file_path = url.toStdWString();
+            track_info.title = title.toStdWString() + L" (Ori. " + artist + L")";
+            track_info.artist = performer.toStdWString();
+            track_info.track = track++;
+            track_infos.push_front(track_info);
         }
     }
-    return metadatas;
+    return track_infos;
 }
 
 std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& src) {
@@ -92,7 +96,6 @@ std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& sr
                 track_info.last_write_time = datetime.toTime_t();
             }
         }
-
         metadatas.push_front(track_info);
     }
 

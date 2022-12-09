@@ -152,7 +152,7 @@ private:
 
     void CopySamples(void * samples, size_t num_buffer_frames) const;
 
-    void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
+    void BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count = 1);
 
     void UpdateProgress(int32_t sample_size = 0) noexcept;
 
@@ -160,9 +160,9 @@ private:
 
     void AllocateFifo();
 
-    void ProcessPlayerAction();
+    void ReadPlayerAction();
 
-    void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream);
+    void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
 
     void ProcessFadeOut();
 
@@ -195,7 +195,7 @@ private:
     AudioFormat input_format_;
     AudioFormat output_format_;
     AlignPtr<IAudioDeviceManager> device_manager_;
-    AlignPtr<IAudioStream> stream_;
+    AlignPtr<FileStream> stream_;
     AlignPtr<IDeviceType> device_type_;
     AlignPtr<IOutputDevice> device_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;

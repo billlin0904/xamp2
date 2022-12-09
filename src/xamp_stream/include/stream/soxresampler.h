@@ -26,8 +26,6 @@ XAMP_MAKE_ENUM(SoxrRollOff,
 
 class XAMP_STREAM_API SoxrSampleRateConverter final : public IAudioProcessor {
 public:
-    static const std::string_view VERSION;
-
     XAMP_PIMPL(SoxrSampleRateConverter)
 
     SoxrSampleRateConverter();    
@@ -51,6 +49,8 @@ public:
     void Init(const DspConfig& config) override;
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
+
+    uint32_t Process(float const* samples, float* out, uint32_t num_samples) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

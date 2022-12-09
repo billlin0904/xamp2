@@ -16,7 +16,7 @@ namespace xamp::base {
 template 
 <
 	typename T,
-	typename U = std::enable_if_t<std::is_trivially_copyable<T>::value>
+	typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>
 >
 class XAMP_BASE_API_ONLY_EXPORT AudioBuffer final {
 public:

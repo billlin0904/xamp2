@@ -87,7 +87,7 @@ public:
         switch (index.column()) {
         case PLAYLIST_TRACK:
 	        {
-        		opt.rect.setX(8);
+        		//opt.rect.setX(8);
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
@@ -102,6 +102,7 @@ public:
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
+                    opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.font.setFamily(qTEXT("MonoFont"));
                     opt.text = value.toString();
                 }                
@@ -137,6 +138,10 @@ public:
                 opt.text = qSTR("%1 LUFS").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             }
+            break;
+        case PLAYLIST_ARTIST:
+            opt.decorationAlignment = Qt::AlignRight;
+            opt.text = value.toString();
             break;
         case PLAYLIST_SAMPLE_RATE:
             opt.text = samplerate2String(value.toInt());
@@ -604,9 +609,9 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(read_select_item_replaygain_act, [this]() {
             const auto rows = selectItemIndex();
-            Vector<PlayListEntity> items;
+			ForwardList<PlayListEntity> items;
             for (const auto& row : rows) {
-                items.push_back(this->item(row.second));
+                items.push_front(this->item(row.second));
             }
             emit addPlaylistReplayGain(true, items);
         });
@@ -799,20 +804,20 @@ void PlayListTableView::downloadPodcast() {
 
     indicator->startAnimation();
 
-    http::HttpClient(qTEXT("https://suisei.moe/podcast.xml"))
+    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
 	.error([indicator](const QString& msg) {
         XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
 	})
 	.success([indicator, this](const QString& json) {
-        XAMP_LOG_DEBUG("Download podcast.xml success!");
+        XAMP_LOG_DEBUG("Download meta.json ({}) success!", String::FormatBytes(json.size()));
 
 		Stopwatch sw;
-        auto const podcast_info = parsePodcastXML(json);
-        XAMP_LOG_DEBUG("Parse podcast.xml success! {}sec", sw.ElapsedSeconds());
+        std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
+        auto const podcast_info = std::make_pair(image_url, parseJson(json));
+        XAMP_LOG_DEBUG("Parse meta.json success! {}sec", sw.ElapsedSeconds());
 
         sw.Reset();
-        ::MetadataExtractAdapter::processMetadata(
-            podcast_info.second,
+        ::MetadataExtractAdapter::processMetadata(podcast_info.second,
             this,
             podcast_mode_);
         XAMP_LOG_DEBUG("Insert database! {}sec", sw.ElapsedSeconds());
@@ -820,13 +825,13 @@ void PlayListTableView::downloadPodcast() {
         XAMP_LOG_DEBUG("Start download podcast image file");        
         http::HttpClient(QString::fromStdString(podcast_info.first))
 		.error([indicator](const QString& msg) {
-            XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
+            XAMP_LOG_DEBUG("Download podcast image error! {}", msg.toStdString());
         })
     	.download([indicator, this](const QByteArray& data) {
             if (!model()->rowCount()) {
                 return;
             }
-            XAMP_LOG_DEBUG("Download podcast image file success!");
+            XAMP_LOG_DEBUG("Download podcast image file ({}) success!", String::FormatBytes(data.size()));
             const auto cover_id = qPixmapCache.addOrUpdate(data);
             const auto index = this->model()->index(0, 0);
             const auto play_item = item(index);

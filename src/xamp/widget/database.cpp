@@ -926,11 +926,10 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t
 }
 
 
-void Database::addMusicToPlaylist(const Vector<int32_t>& music_id, int32_t playlist_id) const {
+void Database::addMusicToPlaylist(const ForwardList<int32_t>& music_id, int32_t playlist_id) const {
 	QSqlQuery query;
 
 	QStringList strings;
-	strings.reserve(music_id.size());
 
 	for (const auto id : music_id) {
 		strings << qTEXT("(") + qTEXT("NULL, ") + QString::number(playlist_id) + qTEXT(", ") + QString::number(id) + qTEXT(")");

@@ -49,6 +49,10 @@ public:
         return BassUtiltis::Process(stream_, samples, num_samples, out);
     }
 
+    uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
+        return BassUtiltis::Process(stream_, samples, out, num_samples);
+    }
+
     void SetEQ(EQSettings const &settings) {
         uint32_t i = 0;
         for (const auto &band_setting : settings.bands) {
@@ -122,7 +126,7 @@ void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {
     impl_->SetEQ(band, gain, Q);
 }
 
-void BassEqualizer::SetEQ(EQSettings const &settings) {
+void BassEqualizer::SetEQ(EQSettings const & settings) {
     impl_->SetEQ(settings);
 }
 
@@ -132,6 +136,10 @@ void BassEqualizer::SetPreamp(float preamp) {
 
 bool BassEqualizer::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out)  {
     return impl_->Process(samples, num_samples, out);
+}
+
+uint32_t BassEqualizer::Process(float const* samples, float* out, uint32_t num_samples) {
+    return impl_->Process(samples, out, num_samples);
 }
 
 Uuid BassEqualizer::GetTypeId() const {

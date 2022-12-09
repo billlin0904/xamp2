@@ -951,12 +951,10 @@ void Xamp::setVolume(uint32_t volume) {
             }
         }
         else {
-            /*auto volume_db = VolumeToDb(ui_.volumeSlider->value());
-            player_->SetSoftwareVolumeDb(volume_db);*/
             ui_.volumeSlider->setDisabled(true);
         }
 
-        /*auto volume_db = VolumeToDb(ui_.volumeSlider->value());
+        /*const auto volume_db = VolumeToDb(ui_.volumeSlider->value());
         player_->SetSoftwareVolumeDb(volume_db);*/
         
     	QToolTip::showText(QCursor::pos(),
@@ -1325,12 +1323,12 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(false);
         }
         else {
-            //ui_.volumeSlider->setDisabled(true);
-            auto volume_db = VolumeToDb(ui_.volumeSlider->value());
-            player_->SetSoftwareVolumeDb(volume_db);
+            ui_.volumeSlider->setDisabled(true);
         }
 
         ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
+        ui_.seekSlider->setValue(0);
+        ui_.startPosLabel->setText(streamTimeToString(0));
         ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));
 
@@ -1515,7 +1513,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
     ui_.currentView->setCurrentWidget(artist_info_page_);
 }
 
-void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayListEntity> & entities) {
+void Xamp::addPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
     qDatabase.addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit playlist_view->addPlaylistReplayGain(false, entities);

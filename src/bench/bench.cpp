@@ -22,6 +22,7 @@
 #include <base/uuid.h>
 #include <base/shared_singleton.h>
 #include <base/singleton.h>
+#include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/ppl.h>
 #include <base/chachaengine.h>
@@ -42,9 +43,14 @@ using namespace xamp::player;
 using namespace xamp::base;
 using namespace xamp::stream;
 
+XAMP_DECLARE_LOG_NAME(BM_RcuPtr);
+XAMP_DECLARE_LOG_NAME(BM_LeastLoadPolicyThreadPool);
+XAMP_DECLARE_LOG_NAME(BM_RobinStealPolicyThreadPool);
+XAMP_DECLARE_LOG_NAME(BM_RandomPolicyThreadPool);
+
 static void BM_RcuPtr(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPoolExecutor("BM_RcuPtr");
-    LoggerManager::GetInstance().GetLogger("BM_RcuPtr")
+    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
+    LoggerManager::GetInstance().GetLogger(kBM_RcuPtrLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -60,8 +66,8 @@ static void BM_RcuPtr(benchmark::State& state) {
 }
 
 static void BM_RcuPtrMutex(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPoolExecutor("BM_RcuPtr");
-    LoggerManager::GetInstance().GetLogger("BM_RcuPtr")
+    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
+    LoggerManager::GetInstance().GetLogger(kBM_RcuPtrLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -78,13 +84,13 @@ static void BM_RcuPtrMutex(benchmark::State& state) {
 
 static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_LeastLoadPolicyThreadPool",
+        kBM_LeastLoadPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY);
 
-    LoggerManager::GetInstance().GetLogger("BM_LeastLoadPolicyThreadPool")
+    LoggerManager::GetInstance().GetLogger(kBM_LeastLoadPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -100,13 +106,13 @@ static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
 
 static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_RobinStealPolicyThreadPool",
+        kBM_RobinStealPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
-    LoggerManager::GetInstance().GetLogger("BM_RobinStealPolicyThreadPool")
+    LoggerManager::GetInstance().GetLogger(kBM_RobinStealPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -122,13 +128,13 @@ static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
 
 static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        "BM_RandomPolicyThreadPool",
+        kBM_RandomPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
         TaskSchedulerPolicy::RANDOM_POLICY);
 
-    LoggerManager::GetInstance().GetLogger("BM_RandomPolicyThreadPool")
+    LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -264,10 +270,54 @@ static void BM_PRNG_SharedGetInstance(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
+static void BM_ConvertToIntAvx(benchmark::State& state) {
+    auto length = state.range(0);
+
+    auto output = Vector<int32_t>(length);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
+            Convert(output.data(), input.data(), ctx);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+}
+
+static void BM_ConvertToShortAvx(benchmark::State& state) {
+    auto length = state.range(0);
+
+    auto output = Vector<int16_t>(length);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
+            Convert(output.data(), input.data(), ctx);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+}
+
 static void BM_ConvertToInt2432Avx(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto output = Vector<int>(length);
+    auto output = Vector<int32_t>(length);
     auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
 
     AudioFormat input_format;
@@ -290,7 +340,7 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
     auto length = state.range(0);
 
     auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
-    auto output = Vector<int>(length);
+    auto output = Vector<int32_t>(length);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -303,6 +353,50 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
     for (auto _ : state) {
         DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
             ConvertToInt2432Bench(output.data(), input.data(), ctx);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+}
+
+static void BM_ConvertToInt(benchmark::State& state) {
+    auto length = state.range(0);
+
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
+    auto output = Vector<int32_t>(length);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
+            ConvertInt32Bench(output.data(), input.data(), ctx);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+}
+
+static void BM_ConvertToShort(benchmark::State& state) {
+    auto length = state.range(0);
+
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
+    auto output = Vector<int16_t>(length);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
+            ConvertInt16Bench(output.data(), input.data(), ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -709,27 +803,31 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 //BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
-#ifdef XAMP_OS_WIN
-BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
-#endif
+//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//#ifdef XAMP_OS_WIN
+//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
+//#endif
 
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
-BENCHMARK(BM_RcuPtr)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_RcuPtrMutex)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RcuPtr)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RcuPtrMutex)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
     LoggerManager::GetInstance()
@@ -739,14 +837,6 @@ int main(int argc, char** argv) {
 
     // For debug use!
     XAMP_LOG_DEBUG("Logger init success.");
-
-    LoggerManager::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-    LoggerManager::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    XampIniter initer;
-    initer.Init();
 
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {

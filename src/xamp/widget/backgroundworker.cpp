@@ -40,16 +40,16 @@ BackgroundWorker::~BackgroundWorker() = default;
 
 void BackgroundWorker::stopThreadPool() {
     is_stop_ = true;
-    if (pool_ != nullptr) {
-        pool_->Stop();
+    if (executor_ != nullptr) {
+        executor_->Stop();
     }
 }
 
 void BackgroundWorker::lazyInit() {
-    if (pool_ != nullptr) {
+    if (executor_ != nullptr) {
         return;
     }
-    pool_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
+    executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 }
@@ -137,27 +137,32 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
         return;
     }
     auto temp = image.copy();
-    Stackblur blur(*pool_, temp, 50);
+    Stackblur blur(*executor_, temp, 50);
     emit updateBlurImage(temp.copy());
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
 }
 
-void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& items) {
+void BackgroundWorker::onReadDuration(const ForwardList<PlayListEntity>& entities) {
+	
+}
+
+void BackgroundWorker::onReadReplayGain(bool, const ForwardList<PlayListEntity>& entities) {
     lazyInit();
 
-    XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
+    auto entities_size = std::distance(entities.begin(), entities.end());
+    XAMP_LOG_DEBUG("Start read replay gain count:{}", entities_size);
 
     Vector<Task<>> replay_gain_tasks;
 
     const auto target_loudness = AppSettings::getValue(kAppSettingReplayGainTargetLoudnes).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
-    replay_gain_tasks.reserve(items.size());
+    replay_gain_tasks.reserve(entities_size);
     RcuPtr<Vector<std::shared_ptr<ReplayGainWorkerEntity>>> replay_gain_result(
         std::make_shared<Vector<std::shared_ptr<ReplayGainWorkerEntity>>>());
 
-    for (const auto &item : items) {
-        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, this, &replay_gain_result]() {
+    for (const auto &item : entities) {
+        replay_gain_tasks.push_back(Executor::Spawn(*executor_, [scan_mode, item, this, &replay_gain_result]() {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -212,13 +217,13 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
         return;
     }
 
-    replay_gain.track_peak.reserve(items.size());
-    replay_gain.track_loudness.reserve(items.size());
-    replay_gain.track_gain.reserve(items.size());
+    replay_gain.track_peak.reserve(entities_size);
+    replay_gain.track_loudness.reserve(entities_size);
+    replay_gain.track_gain.reserve(entities_size);
 
     replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(scanners);
 
-    for (size_t i = 0; i < items.size(); ++i) {
+    for (size_t i = 0; i < entities_size; ++i) {
         auto track_loudness = scanners[i].GetLoudness();
         auto track_peak = scanners[i].GetTruePeek();
         replay_gain.track_peak.push_back(track_peak);
@@ -236,7 +241,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
     replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
     replay_gain.album_peak_gain = 20.0 * log10(replay_gain.album_peak);
 
-    for (size_t i = 0; i < items.size(); ++i) {
+    for (size_t i = 0; i < entities_size; ++i) {
         ReplayGain rg;
         rg.album_gain = replay_gain.album_gain;
         rg.track_gain = replay_gain.track_gain[i];

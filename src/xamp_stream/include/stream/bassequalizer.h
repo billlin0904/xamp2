@@ -25,9 +25,11 @@ public:
 
     void SetEQ(uint32_t band, float gain, float Q);
 
-    void SetEQ(EQSettings const &settingss);
+    void SetEQ(EQSettings const &settings);
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
+
+    uint32_t Process(float const* samples, float* out, uint32_t num_samples) override;
 
     Uuid GetTypeId() const override;
 

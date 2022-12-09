@@ -2,27 +2,29 @@
     "Log": {
         "MinimumLevel": {
             "Default": "debug",
-          "Override": {
-            "AudioPlayer": "debug",
-            "AvFileStream": "info",
-            "BASS": "info",
-            "BackgroundThreadPool": "info",
-            "BassCompressor": "info",
-            "BassFader": "info",
-            "BassVolume": "debug",
-            "Database": "info",
-            "DspManager": "info",
-            "ExclusiveWasapiDevice": "info",
-            "ExclusiveWasapiDeviceType": "info",
-            "LibAv": "info",
-            "PixmapCache": "info",
-            "PlaybackThreadPool": "info",
-            "Qt": "info",
-            "SharedWasapiDevice": "info",
-            "Soxr": "info",
-            "VirtualMemory": "info",
-            "WASAPIThreadPool": "info"
-          }
+            "Override": {
+                "AudioPlayer": "info",
+                "AvFileStream": "info",
+                "BASS": "info",
+                "BackgroundThreadPool": "info",
+                "BassCompressor": "info",
+                "BassFader": "info",
+                "BassVolume": "info",
+                "Database": "info",
+                "DspManager": "info",
+                "ExclusiveWasapiDevice": "info",
+                "ExclusiveWasapiDeviceType": "info",
+                "LibAv": "info",
+                "MFEncoder": "info",
+                "PixmapCache": "info",
+                "PlaybackThreadPool": "info",
+                "Qt": "info",
+                "SharedWasapiDevice": "info",
+                "Soxr": "info",
+                "TagLib": "info",
+                "VirtualMemory": "info",
+                "WASAPIThreadPool": "info"
+            }
         }
     },
     "Pcm2Dsd": {
@@ -36,9 +38,9 @@
             "enableSteepFilter": false,
             "passBand": 96,
             "phase": 46,
-            "quality": 0,
+            "quality": 4,
             "resampleSampleRate": 44100,
-            "rolloffLevel": 0,
+            "rolloffLevel": 2,
             "stopBand": 100
         }
     }

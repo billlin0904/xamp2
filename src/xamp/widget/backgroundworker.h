@@ -48,8 +48,12 @@ signals:
 
     void updateDiscCover(const QString& disc_id, const QString& cover_id);
 
+    void readDuration(const ForwardList<PlayListEntity> &play_list_entities);
+
 public Q_SLOT:
-    void onReadReplayGain(bool force, const Vector<PlayListEntity>& items);
+	void onReadDuration(const ForwardList<PlayListEntity>& entities);
+
+    void onReadReplayGain(bool force, const ForwardList<PlayListEntity>& entities);
 
     void onBlurImage(const QString &cover_id, const QImage& image);
 
@@ -60,6 +64,6 @@ private:
 
     bool is_stop_{false};
     mutable LruCache<QString, QImage> blur_img_cache_;
-    AlignPtr<IThreadPoolExecutor> pool_;
+    AlignPtr<IThreadPoolExecutor> executor_;
     AlignPtr<IMetadataWriter> writer_;
 };

@@ -7,7 +7,7 @@ namespace xamp::stream {
 
 #define R8brainDLL Singleton<R8brainLib>::GetInstance()
 
-const std::string_view R8brainSampleRateConverter::VERSION = "R8brain 5.6";
+const std::string_view VERSION = "R8brain 5.6";
 
 class R8brainSampleRateConverter::R8brainSampleRateConverterImpl {
 public:
@@ -29,6 +29,10 @@ public:
 			ER8BResamplerRes::r8brr24));
 	}
 
+	uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
+		return 0;
+	}
+
 	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
 		XAMP_ASSERT(num_samples <= kR8brainBufferSize);
 		input_data_.resize(num_samples);
@@ -38,16 +42,16 @@ public:
 		}
 
 		double* outbuff = nullptr;
-		auto read_count = R8brainDLL.r8b_process(handle_.get(),
-			input_data_.data(),
-			input_data_.size(),
-			outbuff);
+		const auto read_samples = R8brainDLL.r8b_process(handle_.get(),
+		                                               input_data_.data(),
+		                                               input_data_.size(),
+		                                               outbuff);
 
 		XAMP_ASSERT(outbuff != nullptr);
 
-		output.maybe_resize(read_count);
+		output.maybe_resize(read_samples);
 
-		for (auto i = 0; i < read_count; ++i) {
+		for (auto i = 0; i < read_samples; ++i) {
 			output.data()[i] = static_cast<float>(outbuff[i]);
 		}
 
@@ -83,6 +87,10 @@ XAMP_PIMPL_IMPL(R8brainSampleRateConverter)
 
 bool R8brainSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
+}
+
+uint32_t R8brainSampleRateConverter::Process(float const* samples, float* out, uint32_t num_samples) {
+	return impl_->Process(samples, out, num_samples);
 }
 
 void R8brainSampleRateConverter::Start(const DspConfig& config) {
