@@ -223,8 +223,9 @@ static void loadAppSettings() {
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::setDefaultValue(kAppSettingWindowState, false);
     AppSettings::setDefaultValue(kAppSettingScreenNumber, 1);
-
     AppSettings::setDefaultValue(kAppSettingEnableSpectrum, false);
+    AppSettings::setDefaultValue(kAppSettingEnableShortcut, true);
+
     AppSettings::save();
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
@@ -383,14 +384,15 @@ static int excute(int argc, char* argv[]) {
 
     XWindow top_win;
 
-    top_win.setShortcut(QKeySequence(Qt::Key_MediaPlay));
-    top_win.setShortcut(QKeySequence(Qt::Key_MediaStop));
-    top_win.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
-    top_win.setShortcut(QKeySequence(Qt::Key_MediaNext));
-
-    top_win.setShortcut(QKeySequence(Qt::Key_VolumeUp));
-    top_win.setShortcut(QKeySequence(Qt::Key_VolumeDown));
-    top_win.setShortcut(QKeySequence(Qt::Key_VolumeMute));
+    if (AppSettings::getValueAsBool(kAppSettingEnableShortcut)) {
+        top_win.setShortcut(QKeySequence(Qt::Key_MediaPlay));
+        top_win.setShortcut(QKeySequence(Qt::Key_MediaStop));
+        top_win.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
+        top_win.setShortcut(QKeySequence(Qt::Key_MediaNext));
+        top_win.setShortcut(QKeySequence(Qt::Key_VolumeUp));
+        top_win.setShortcut(QKeySequence(Qt::Key_VolumeDown));
+        top_win.setShortcut(QKeySequence(Qt::Key_VolumeMute));
+    }
 
     Xamp win(MakeAudioPlayer());
 
