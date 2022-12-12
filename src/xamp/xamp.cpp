@@ -143,7 +143,7 @@ static PlaybackFormat playbackFormat(IAudioPlayer* player) {
     return format;
 }
 
-Xamp::Xamp()
+Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
     : is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , lrc_page_(nullptr)
@@ -160,7 +160,7 @@ Xamp::Xamp()
 	, top_window_(nullptr)
 	, background_worker_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
-	, player_(MakeAudioPlayer(state_adapter_)) {
+	, player_(player) {
     ui_.setupUi(this);
 }
 
@@ -173,7 +173,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     background_worker_ = new BackgroundWorker();
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start();
-    player_->Startup();
+    player_->Startup(state_adapter_);
     initialUI();
     initialController();
     initialPlaylist();
@@ -406,18 +406,7 @@ void Xamp::initialUI() {
 }
 
 void Xamp::onVolumeChanged(float volume) {
-    try {
-        if (volume > 0) {
-            player_->SetMute(false);
-            ui_.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_UP));
-        }
-        else {
-            player_->SetMute(true);
-            ui_.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_OFF));
-        }
-    } catch (Exception const &) {	    
-    }    
-    ui_.volumeSlider->setValue(static_cast<int32_t>(volume * 100.0f));
+    setVolume(static_cast<int32_t>(volume * 100.0f));
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state) {
@@ -595,12 +584,10 @@ void Xamp::initialController() {
         }
         if (player_->IsMute()) {
             player_->SetMute(false);            
-            ui_.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_UP));
-            AppSettings::setValue(kAppSettingIsMuted, false);
+            qTheme.setMuted(ui_, false);
         } else {
             player_->SetMute(true);
-            ui_.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_OFF));
-            AppSettings::setValue(kAppSettingIsMuted, true);
+            qTheme.setMuted(ui_, true);
         }
     });
 
@@ -656,12 +643,12 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("kVolume : ") + QString::number(volume) + qTEXT("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
         setVolume(volume);
     });
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("kVolume : ") + QString::number(volume) + qTEXT("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
     });
 
     (void)QObject::connect(state_adapter_.get(),
@@ -697,11 +684,11 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.nextButton, &QToolButton::pressed, [this]() {
-        playNextClicked();
+        playNext();
     });
 
     (void)QObject::connect(ui_.prevButton, &QToolButton::pressed, [this]() {
-        playPreviousClicked();
+        playPrevious();
     });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
@@ -728,11 +715,11 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.playButton, &QToolButton::pressed, [this]() {
-        play();
+        playOrPause();
     });
 
     (void)QObject::connect(ui_.stopButton, &QToolButton::pressed, [this]() {
-        stopPlayedClicked();
+        stop();
     });
 
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
@@ -893,6 +880,39 @@ void Xamp::applyTheme(QColor backgroundColor, QColor color) {
     updateButtonState();
 }
 
+void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
+    XAMP_LOG_DEBUG("shortcutsPressed: {}", shortcut.toString().toStdString());
+
+	const QMap<QKeySequence, std::function<void()>> shortcut_map {
+        { QKeySequence(Qt::Key_MediaPlay), [this]() {
+            playOrPause();
+            }},
+         { QKeySequence(Qt::Key_MediaStop), [this]() {
+            stop();
+            }},
+        { QKeySequence(Qt::Key_MediaPrevious), [this]() {
+            playPrevious();
+            }},
+        { QKeySequence(Qt::Key_MediaNext), [this]() {
+            playNext();
+            }},
+        { QKeySequence(Qt::Key_VolumeUp), [this]() {
+            setVolume(player_->GetVolume() + 1); 
+            }},
+        { QKeySequence(Qt::Key_VolumeDown), [this]() {
+            setVolume(player_->GetVolume() - 1);
+            }},
+        { QKeySequence(Qt::Key_VolumeMute), [this]() {
+            setVolume(0);
+            }},
+    };
+
+    auto key = shortcut_map.value(shortcut);
+    if (key != nullptr) {
+        key();
+    }
+}
+
 void Xamp::getNextPage() {
     if (stack_page_id_.isEmpty()) {
         return;
@@ -930,24 +950,25 @@ void Xamp::goBackPage() {
 }
 
 void Xamp::setVolume(uint32_t volume) {
+    if (volume > 100) {
+        return;
+    }
+
     try {
         if (volume > 0) {
             player_->SetMute(false);
-            ui_.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_UP));
-            AppSettings::setValue(kAppSettingIsMuted, false);
         }
         else {
             player_->SetMute(true);
-            ui_.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_OFF));
-            AppSettings::setValue(kAppSettingIsMuted, true);
         }
 
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
+                qTheme.setVolume(ui_, volume);
             }
             else {
-                setVolume(0);
+                qTheme.setVolume(ui_, 0);
             }
         }
         else {
@@ -956,10 +977,6 @@ void Xamp::setVolume(uint32_t volume) {
 
         /*const auto volume_db = VolumeToDb(ui_.volumeSlider->value());
         player_->SetSoftwareVolumeDb(volume_db);*/
-        
-    	QToolTip::showText(QCursor::pos(),
-            tr("Volume : ") + QString::number(volume) + qTEXT("%")
-            );
     }
     catch (const Exception& e) {
         player_->Stop(false);
@@ -970,7 +987,7 @@ void Xamp::setVolume(uint32_t volume) {
 void Xamp::initialShortcut() {
     const auto* space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
-        play();
+        playOrPause();
     });
 
     const auto* play_key = new QShortcut(QKeySequence(Qt::Key_F4), this);
@@ -983,7 +1000,7 @@ bool Xamp::hitTitleBar(const QPoint& ps) const {
     return ui_.titleFrame->rect().contains(ps);
 }
 
-void Xamp::stopPlayedClicked() {
+void Xamp::stop() {
     player_->Stop(true, true);
     setSeekPosValue(0);
     lrc_page_->spectrum()->reset();
@@ -992,11 +1009,11 @@ void Xamp::stopPlayedClicked() {
     qTheme.setPlayOrPauseButton(ui_, false);
 }
 
-void Xamp::playNextClicked() {
+void Xamp::playNext() {
     playNextItem(1);
 }
 
-void Xamp::playPreviousClicked() {
+void Xamp::playPrevious() {
     playNextItem(-1);
 }
 
@@ -1060,7 +1077,7 @@ void Xamp::playLocalFile(const PlayListEntity& item) {
     playPlayListEntity(item);
 }
 
-void Xamp::play() {
+void Xamp::playOrPause() {
     XAMP_LOG_DEBUG("Player state:{}", player_->GetState());
 
     if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
@@ -1474,7 +1491,7 @@ void Xamp::playNextItem(int32_t forward) {
     auto* playlist_view = current_playlist_page_->playlist();
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
-        stopPlayedClicked();
+        stop();
         return;
     }
 

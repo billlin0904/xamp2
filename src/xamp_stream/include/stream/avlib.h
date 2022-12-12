@@ -37,6 +37,8 @@ public:
    XAMP_DECLARE_DLL_NAME(avformat_find_stream_info);
    XAMP_DECLARE_DLL_NAME(av_seek_frame);
    XAMP_DECLARE_DLL_NAME(av_read_frame);
+   XAMP_DECLARE_DLL_NAME(avformat_network_init);
+   XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
 };
 
 class AvCodecLib final {
@@ -77,6 +79,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_log_set_callback);
     XAMP_DECLARE_DLL_NAME(av_log_format_line);
     XAMP_DECLARE_DLL_NAME(av_log_set_level);
+    XAMP_DECLARE_DLL_NAME(av_dict_set);
 };
 
 class AvSwLib final {
@@ -98,10 +101,14 @@ class AvLib {
 public:
     AvLib();
 
+    ~AvLib();
+
     AlignPtr<AvFormatLib> FormatLib;
     AlignPtr<AvCodecLib> CodecLib;
     AlignPtr<AvSwLib> SwrLib;
     AlignPtr<AvUtilLib> UtilLib;
+
+    std::shared_ptr<Logger> logger;
 };
 
 #define LIBAV_LIB Singleton<AvLib>::GetInstance()

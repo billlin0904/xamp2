@@ -22,7 +22,9 @@ public:
 
 	virtual ~XWindow() override;
 
-    void setContentWidget(IXPlayerFrame *content_widget);
+    void setShortcut(const QKeySequence& shortcut) override;
+
+    void setContentWidget(IXPlayerControlFrame *content_widget);
 
     void setTaskbarProgress(int32_t percent) override;
 
@@ -43,6 +45,7 @@ public:
     void initMaximumState() override;
 
     void updateMaximumState() override;
+
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -94,5 +97,6 @@ private:
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QMap<QString, DriveInfo> exist_drives_;
 #endif
-    IXPlayerFrame *player_frame_;
+    QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
+    IXPlayerControlFrame *player_control_frame_;
 };

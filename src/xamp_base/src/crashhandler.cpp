@@ -14,6 +14,7 @@
 #include <new.h>
 #include <dbghelp.h>
 #include <minidumpapiset.h>
+#include <eh_details.h>
 #else
 #include <signal.h>
 #include <execinfo.h>
@@ -66,49 +67,39 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
 class CrashHandler::CrashHandlerImpl {
 public:
 #ifdef XAMP_OS_WIN
-    void CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
-        FileHandle crashdump_file(::CreateFileW(
-            L"crashdump.dmp",
-            GENERIC_WRITE,
-            0,
-            nullptr,
-            CREATE_ALWAYS,
-            FILE_ATTRIBUTE_NORMAL,
-            nullptr));
-        MINIDUMP_EXCEPTION_INFORMATION mei;
-        MINIDUMP_CALLBACK_INFORMATION mci;
+    static void DumpMsvcException(const EXCEPTION_POINTERS * pointers) {
+        const auto& ehe_exception_record = *reinterpret_cast<stdx::detail::EHExceptionRecord*>(pointers->ExceptionRecord);
+        const auto* throw_information = ehe_exception_record.params.pThrowInfo;
+        if (!throw_information) {
+            // No ThrowInfo exists. If this was a C++ exception, something must have corrupted it.
+            abort();
+        }
 
-        // Write minidump to the file
-        mei.ThreadId = GetCurrentThreadId();
-        mei.ExceptionPointers = exception_pointers;
-        mei.ClientPointers = FALSE;
-        mci.CallbackRoutine = nullptr;
-        mci.CallbackParam = nullptr;
+        if (!ehe_exception_record.params.pExceptionObject) {
+            return;
+        }
 
-        WinHandle process(::GetCurrentProcess());
-
-        ::MiniDumpWriteDump(
-            process.get(),
-            ::GetCurrentProcessId(),
-            crashdump_file.get(),
-            MiniDumpNormal,
-            &mei,
-            nullptr,
-            &mci);
+        const auto image_base = reinterpret_cast<uintptr_t>(ehe_exception_record.params.pThrowImageBase);
+        const auto* catchable_type_array = reinterpret_cast<const stdx::detail::CatchableTypeArray*>(
+            static_cast<uintptr_t>(throw_information->pCatchableTypeArray) + image_base);
+        const auto* catchable_type = reinterpret_cast<stdx::detail::CatchableType*>(
+            static_cast<uintptr_t>(catchable_type_array->arrayOfCatchableTypes[0]) + image_base);
     }
 
     static void Dump(void* info) {
         std::lock_guard<FastMutex> guard{ mutex_ };
 
+        StackTrace stack_trace;
         const auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
 
         auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Ignore exception code: {}({:#014X}){}", (*itr).second, (*itr).first, StackTrace{}.CaptureStack());
+            if ((*itr).first == EXCEPTION_MSVC_CPP) {
+                DumpMsvcException(exception_pointers);
+            }
+            XAMP_LOG_DEBUG("Ignore exception code: {}({:#014X}){}", (*itr).second, (*itr).first, stack_trace.CaptureStack());
             return;
         }
-
-        //CreateMiniDump(exception_pointers);
 
         const auto code = exception_pointers->ExceptionRecord->ExceptionCode;
         if (code == EXCEPTION_STACK_OVERFLOW) {
@@ -117,15 +108,11 @@ public:
 
         auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr2).second, StackTrace{}.CaptureStack());
+            XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_DEBUG("Uncaught exception: {:#014X}{}\r\n", code, StackTrace{}.CaptureStack());
+            XAMP_LOG_DEBUG("Uncaught exception: {:#014X}{}\r\n", code, stack_trace.CaptureStack());
         }
-
-        //LoggerManager::GetInstance().Shutdown();
-        //WinHandle process(::GetCurrentProcess());
-        //::TerminateProcess(process.get(), 1);
     }
 
     static void StackDump() {
@@ -185,29 +172,6 @@ public:
 #ifdef XAMP_OS_WIN
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
         ::AddVectoredExceptionHandler(0, VectoredHandler);
-#if 0
-        // Vectored Exception Handling (VEH) is an extension to structured exception handling.
-        ::AddVectoredExceptionHandler(0, VectoredHandler);
-
-        // Install top-level SEH handler
-        ::SetUnhandledExceptionFilter(SehHandler);
-
-        // Catch pure virtual function calls.
-        // Because there is one _purecall_handler for the whole process, 
-        // calling this function immediately impacts all threads. The last 
-        // caller on any thread sets the handler. 
-        // http://msdn.microsoft.com/en-us/library/t296ys27.aspx
-        ::_set_purecall_handler(PureCallHandler);
-
-        // Catch new operator memory allocation exceptions
-        ::_set_new_handler(NewHandler);
-
-        // Catch invalid parameter exceptions.
-        ::_set_invalid_parameter_handler(InvalidParameterHandler);
-
-        // Set up C++ signal handlers
-        ::_set_abort_behavior(_CALL_REPORTFAULT, _CALL_REPORTFAULT);
-#endif
 #else
         InstallSignalHandler();
 #endif

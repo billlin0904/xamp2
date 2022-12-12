@@ -51,11 +51,9 @@ public:
 
     virtual ~AudioPlayer() override;
 
-    explicit AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter);
-
     XAMP_DISABLE_COPY(AudioPlayer)
 
-	void Startup() override;
+	void Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
 
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
 

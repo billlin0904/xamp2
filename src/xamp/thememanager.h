@@ -114,6 +114,10 @@ public:
 
     int32_t fontSize() const;
 
+    void setVolume(Ui::XampWindow& ui, uint32_t volume);
+
+    void setMuted(Ui::XampWindow& ui, bool is_muted);
+
 private:
     static QString fontNamePath(const QString& file_name);
 

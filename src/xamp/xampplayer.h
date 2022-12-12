@@ -16,6 +16,8 @@ class IXWindow : public QFrame {
 public:
     virtual ~IXWindow() override = default;
 
+    virtual void setShortcut(const QKeySequence& shortcut) = 0;
+
     virtual void setTaskbarProgress(int32_t percent) = 0;
 
     virtual void resetTaskbarProgress() = 0;
@@ -39,21 +41,21 @@ protected:
     IXWindow() = default;
 };
 
-class IXPlayerFrame : public QFrame {
+class IXPlayerControlFrame : public QFrame {
 public:
-    virtual ~IXPlayerFrame() override = default;
+    virtual ~IXPlayerControlFrame() override = default;
 
     virtual void addDropFileItem(const QUrl& url) = 0;
 
     virtual void deleteKeyPress() = 0;
 
-    virtual void playPreviousClicked() = 0;
+    virtual void playPrevious() = 0;
 
-    virtual void playNextClicked() = 0;
+    virtual void playNext() = 0;
 
-    virtual void stopPlayedClicked() = 0;
+    virtual void stop() = 0;
 
-    virtual void play() = 0;
+    virtual void playOrPause() = 0;
 
     virtual bool hitTitleBar(const QPoint &ps) const = 0;
 
@@ -68,7 +70,9 @@ public:
     virtual void focusOut() = 0;
 
     virtual void systemThemeChanged(ThemeColor theme_color) = 0;
+
+    virtual void shortcutsPressed(const QKeySequence& shortcut) = 0;
 protected:
-    IXPlayerFrame() = default;
+    IXPlayerControlFrame() = default;
 };
 

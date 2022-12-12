@@ -12,22 +12,7 @@
 
 namespace xamp::player {
 
-class XAMP_PLAYER_API XampIniter {
-public:
-	XampIniter();
-
-	~XampIniter();
-
-	void Init();
-
-	static void LoadLib();
-
-	XAMP_DISABLE_COPY(XampIniter)
-private:
-	bool success{false};
-};	
-
-XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter);
+XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer();
 
 #ifdef XAMP_OS_WIN
 XAMP_PLAYER_API AlignPtr<ICDDevice> OpenCD(int32_t driver_letter);

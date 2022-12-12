@@ -14,6 +14,7 @@
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
+                "Http": "info",
                 "LibAv": "info",
                 "MFEncoder": "info",
                 "PixmapCache": "info",

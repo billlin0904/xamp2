@@ -175,6 +175,9 @@
     <ClInclude Include="include\stream\avlib.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClInclude Include="include\stream\bassequalizer.h">
+      <Filter>bass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="interface">

@@ -25,6 +25,8 @@
 #include <stream/compressorparameters.h>
 #include <stream/iaudioprocessor.h>
 
+#include <player/ebur128reader.h>
+#include <player/mbdiscid.h>
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_util.h>
 #include <player/audio_player.h>
@@ -66,10 +68,6 @@ IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
 #endif
 
 AudioPlayer::AudioPlayer()
-    : AudioPlayer(std::weak_ptr<IPlaybackStateAdapter>()) {
-}
-
-AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     : is_muted_(false)
 	, is_dsd_file_(false)
     , enable_fadeout_(true)
@@ -87,7 +85,6 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , sample_end_time_(0)
     , stream_duration_(0)
     , device_manager_(MakeAudioDeviceManager())
-    , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
     , dsp_manager_(StreamFactory::MakeDSPManager()) {
@@ -109,6 +106,86 @@ void AudioPlayer::Destroy() {
 #ifdef ENABLE_ASIO
     ResetASIODriver();
 #endif
+
+    GetPlaybackThreadPool().Stop();
+#ifdef XAMP_OS_WIN
+    GetWASAPIThreadPool().Stop();
+#endif
+    PreventSleep(false);
+}
+
+void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
+    // Initial thread pool.
+
+    GetPlaybackThreadPool();
+    XAMP_LOG_DEBUG("Start Playback thread pool success.");
+
+#ifdef XAMP_OS_WIN
+    GetWASAPIThreadPool();
+    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
+#endif
+
+    // Load stream library dll.
+
+    LoadBassLib();
+    XAMP_LOG_DEBUG("Load BASS lib success.");
+
+    LoadSoxrLib();
+    XAMP_LOG_DEBUG("Load Soxr lib success.");
+
+    LoadFFTLib();
+    XAMP_LOG_DEBUG("Load FFT lib success.");
+#ifdef XAMP_OS_WIN
+    LoadR8brainLib();
+    XAMP_LOG_DEBUG("Load r8brain lib success.");
+
+    LoadAvLib();
+    XAMP_LOG_DEBUG("Load avlib success.");
+#endif
+
+    // Load player library dll.
+
+#ifdef XAMP_OS_WIN
+    MBDiscId::LoadMBDiscIdLib();
+    XAMP_LOG_DEBUG("Load mbdiscid lib success.");
+#endif
+
+    Ebur128Reader::LoadEbur128Lib();
+    XAMP_LOG_DEBUG("Load ebur128 lib success.");
+
+    PreventSleep(true);
+
+    state_adapter_ = adapter;
+    device_manager_->RegisterDeviceListener(shared_from_this());
+
+    std::weak_ptr<AudioPlayer> player = shared_from_this();
+    timer_.Start(kUpdateSampleInterval, [player]() {
+        auto p = player.lock();
+        if (!p) {
+            return;
+        }
+
+        const auto adapter = p->state_adapter_.lock();
+        if (!adapter) {
+            return;
+        }
+
+        if (p->is_paused_) {
+            return;
+        }
+        if (!p->is_playing_) {
+            return;
+        }
+
+        const auto playback_event = p->playback_event_.load();
+        if (playback_event > 0) {
+            adapter->OnSampleTime(p->device_->GetStreamTime());
+        }
+        else if (p->is_playing_ && playback_event == -1) {
+            p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+            p->is_playing_ = false;
+        }
+    });
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
@@ -844,43 +921,6 @@ void AudioPlayer::Play() {
         XAMP_LOG_D(p->logger_, "Stream thread done!");
         p->stream_.reset();
     });
-}
-
-void AudioPlayer::Startup() {
-    if (timer_.IsStarted()) {
-        return;
-    }
-
-    device_manager_->RegisterDeviceListener(shared_from_this());
-
-    std::weak_ptr<AudioPlayer> player = shared_from_this();
-    timer_.Start(kUpdateSampleInterval, [player]() {
-        auto p = player.lock();
-        if (!p) {
-            return;
-        }
-
-        const auto adapter = p->state_adapter_.lock();
-        if (!adapter) {
-            return;
-        }
-
-        if (p->is_paused_) {
-            return;
-        }
-        if (!p->is_playing_) {
-            return;
-        }
-
-        const auto playback_event = p->playback_event_.load();
-        if (playback_event > 0) {
-            adapter->OnSampleTime(p->device_->GetStreamTime());
-        }
-        else if (p->is_playing_ && playback_event == -1) {
-            p->SetState(PlayerState::PLAYER_STATE_STOPPED);
-            p->is_playing_ = false;
-        }
-        });
 }
 
 void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {

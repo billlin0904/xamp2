@@ -671,6 +671,30 @@ int32_t ThemeManager::fontSize() const {
     return 9;
 }
 
+void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {
+    if (!is_muted) {
+        ui.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_UP));
+        AppSettings::setValue(kAppSettingIsMuted, false);
+    }
+    else {
+        ui.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_OFF));
+        AppSettings::setValue(kAppSettingIsMuted, true);
+    }
+}
+
+void ThemeManager::setVolume(Ui::XampWindow& ui, uint32_t volume) {
+    if (!ui.volumeSlider->isEnabled()) {
+        return;
+    }
+    if (volume == 0) {
+        setMuted(ui, true);
+    }
+    else {
+        setMuted(ui, false);
+    }
+    ui.volumeSlider->setValue(volume);
+}
+
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.playButton->setIconSize(QSize(32, 32));
     ui.selectDeviceButton->setIconSize(QSize(32, 32));

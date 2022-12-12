@@ -7,14 +7,47 @@
 #include <QMetaEnum>
 
 #include <memory>
+
+#include <zlib.h>
+
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/str_utilts.h>
+#include <base/dll.h>
+#include <base/scopeguard.h>
+
 #include <version.h>
 #include <widget/str_utilts.h>
 #include <widget/http.h>
 
 namespace http {
+
+XAMP_DECLARE_LOG_NAME(Http);
+
+static constexpr size_t kHttpBufferSize = 512 * 1024;
+static constexpr int32_t kHttpDefaultTimeout = 3000;
+
+class ZLibLib final {
+public:
+    ZLibLib();
+
+private:
+    ModuleHandle module_;
+
+public:
+    XAMP_DECLARE_DLL_NAME(inflateInit2_);
+    XAMP_DECLARE_DLL_NAME(inflate);
+    XAMP_DECLARE_DLL_NAME(inflateEnd);
+};
+
+ZLibLib::ZLibLib()
+	: module_(LoadModule("libz.dll"))
+    , XAMP_LOAD_DLL_API(inflateInit2_)
+    , XAMP_LOAD_DLL_API(inflate)
+    , XAMP_LOAD_DLL_API(inflateEnd) {
+}
+
+#define ZLIB_DLL Singleton<ZLibLib>::GetInstance()
 
 static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) {
     const auto* mo = &QNetworkReply::staticMetaObject;
@@ -25,7 +58,71 @@ static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) 
     return { qme.valueToKey(code) };
 }
 
-static void logRequest(const ConstLatin1String& verb,
+static bool isLoadZib() {
+	try {
+        Singleton<ZLibLib>::GetInstance();
+        return true;
+	} catch (...) {
+        return false;
+	}
+}
+
+static bool isZipEncoding(QNetworkReply const *reply) {
+    bool is_gzipped = false;
+    Q_FOREACH (const auto &header_pair, reply->rawHeaderPairs()) {
+        if ((header_pair.first == "Content-Encoding") && (header_pair.second == "gzip")) {
+            is_gzipped = true;
+        }
+    }
+    return is_gzipped;
+}
+
+static QByteArray gzipUncompress(const QByteArray& data) {
+#define XAMP_inflateInit2(strm, windowBits) \
+          ZLIB_DLL.inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
+                        (int)sizeof(z_stream))
+    QByteArray result;
+    z_stream zlib_stream;
+
+    zlib_stream.zalloc = nullptr;
+    zlib_stream.zfree = nullptr;
+    zlib_stream.opaque = nullptr;
+    zlib_stream.avail_in = data.size();
+    zlib_stream.next_in = (Bytef*)data.data();
+
+    auto ret = XAMP_inflateInit2(&zlib_stream, 15 + 32); // gzip decoding
+    if (ret != Z_OK) {
+        return result;
+    }
+
+    XAMP_ON_SCOPE_EXIT(
+        ZLIB_DLL.inflateEnd(&zlib_stream);
+    );
+
+    do {
+        char output[kHttpBufferSize]{ };
+        zlib_stream.avail_out = kHttpBufferSize;
+        zlib_stream.next_out = reinterpret_cast<Bytef*>(output);
+
+        ret = ZLIB_DLL.inflate(&zlib_stream, Z_NO_FLUSH);
+        Q_ASSERT(ret != Z_STREAM_ERROR);  // state not clobbered
+
+        switch (ret) {
+        case Z_NEED_DICT:
+            ret = Z_DATA_ERROR;     // and fall through
+        case Z_DATA_ERROR:
+        case Z_MEM_ERROR:
+            return result;
+        }
+
+        result.append(output, kHttpBufferSize - zlib_stream.avail_out);
+    } while (zlib_stream.avail_out == 0);
+
+    return result;
+}
+
+static void logHttpRequest(const std::shared_ptr<Logger> &logger,
+    const ConstLatin1String& verb,
     const QString& url,
     const QNetworkRequest& request,
     const QNetworkReply *reply) {
@@ -73,7 +170,7 @@ static void logRequest(const ConstLatin1String& verb,
         stream << QString::fromStdString(String::FormatBytes(content_length)) << " of " << content_type << " data";
     }
     stream << "]";
-    XAMP_LOG_DEBUG(msg.toStdString());
+    XAMP_LOG_D(logger, msg.toStdString());
 }
 
 ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
@@ -96,8 +193,11 @@ ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const 
     Q_UNREACHABLE();
 }
 
-static void logHttpRequest(const ConstLatin1String& verb, const QNetworkRequest& request, const QNetworkReply* reply = nullptr) {
-    logRequest(verb, request.url().toString(), request, reply);
+static void logHttpRequest(const std::shared_ptr<Logger>& logger,
+    const ConstLatin1String& verb,
+    const QNetworkRequest& request,
+    const QNetworkReply* reply = nullptr) {
+    logHttpRequest(logger, verb, request.url().toString(), request, reply);
 }
 
 struct HttpContext {
@@ -107,12 +207,11 @@ struct HttpContext {
     QNetworkAccessManager* manager{nullptr};
     std::function<void (const QString &)> success_handler;
     std::function<void(const QString&)> error_handler;
+    std::shared_ptr<Logger> logger;
 };
 
 class HttpClient::HttpClientImpl {
 public:
-    static constexpr int32_t kDefaultTimeout = 3000;
-
     HttpClientImpl(const QString &url, QNetworkAccessManager* manager);
 
     HttpContext createContext() const;
@@ -142,15 +241,17 @@ public:
     std::function<void (const QString &)> success_handler_;
     std::function<void(const QString&)> error_handler_;
     std::function<void (const QByteArray &)> download_handler_;
+    std::shared_ptr<Logger> logger_;
 };
 
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)
     : use_json_(false)
     , use_internal_(manager == nullptr)
-    , timeout_(kDefaultTimeout)
+    , timeout_(kHttpDefaultTimeout)
     , url_(url)
     , charset_(kDefaultCharset)
     , manager_(manager == nullptr ? new QNetworkAccessManager() : manager) {
+    logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
 }
 
 HttpContext HttpClient::HttpClientImpl::createContext() const {
@@ -161,6 +262,7 @@ HttpContext HttpClient::HttpClientImpl::createContext() const {
     context.charset = charset_;
     context.user_agent = user_agent_;
     context.use_internal = use_internal_;
+    context.logger = logger_;
     return context;
 }
 
@@ -203,10 +305,10 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
         break;
     }
 
-    logHttpRequest(requestVerb(operation, request), request);
+    logHttpRequest(context.logger, requestVerb(operation, request), request);
 
     (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
-        logHttpRequest(requestVerb(operation, request), request, reply);
+        logHttpRequest(context.logger, requestVerb(operation, request), request, reply);
 	    const auto success_message = readReply(reply, context.charset);
 	    handleFinish(context, reply, success_message);
     });
@@ -223,7 +325,7 @@ void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void 
     });
 
     (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
-        logHttpRequest(requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
+        logHttpRequest(context.logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
         handleFinish(context, reply, QString());
     });
 }
@@ -235,7 +337,7 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
             context.success_handler(success_message);
         }
     } else {
-        XAMP_LOG_DEBUG("{}", networkErrorToString(error).data());
+        XAMP_LOG_D(context.logger, "{}", networkErrorToString(error).data());
 
         if (context.error_handler != nullptr) {
             context.error_handler(networkErrorToString(error));
@@ -254,20 +356,27 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
 }
 
 QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QString &charset) {
-    QTextStream in(reply);
+    QScopedPointer<QTextStream> in;
+
+    if (isZipEncoding(reply)) {
+        in.reset(new QTextStream(gzipUncompress(reply->readAll())));
+    }
+    else {
+        in.reset(new QTextStream(reply));
+    }
 
     const auto content_length_var = reply->header(QNetworkRequest::ContentLengthHeader);
-    auto content_length = 1024 * 1024;
+    auto content_length = kHttpBufferSize;
     if (content_length_var.isValid()) {
         content_length = content_length_var.toInt();
     }
 
     QString result;
     result.reserve(content_length);
-    in.setCodec(charset.toUtf8());
+    in->setCodec(charset.toUtf8());
 
-    while (!in.atEnd()) {
-        result.append(in.readLine());
+    while (!in->atEnd()) {
+        result.append(in->readLine());
     }
 
     return result;
@@ -292,7 +401,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
         d->headers_[qTEXT("User-Agent")] = kDefaultUserAgent;
     }
 
-    XAMP_LOG_DEBUG("Request url: {}", QUrl(d->url_).toEncoded().toStdString());
+    XAMP_LOG_D(d->logger_, "Request url: {}", QUrl(d->url_).toEncoded().toStdString());
 
     QNetworkRequest request(QUrl(d->url_));
     for (auto i = d->headers_.cbegin(); i != d->headers_.cend(); ++i) {
@@ -309,7 +418,9 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
     request.setRawHeader("X-Request-ID", request_id);
 
     // todo: Add GZIP support.
-	//request.setRawHeader("Accept-Encoding", "gzip,deflate");
+    if (isLoadZib()) {
+        request.setRawHeader("Accept-Encoding", "gzip,deflate");
+    }
 
     request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);

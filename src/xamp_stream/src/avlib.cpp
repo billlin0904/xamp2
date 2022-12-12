@@ -14,7 +14,9 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avformat_close_input)
 	, XAMP_LOAD_DLL_API(avformat_find_stream_info)
 	, XAMP_LOAD_DLL_API(av_seek_frame)
-	, XAMP_LOAD_DLL_API(av_read_frame) {
+	, XAMP_LOAD_DLL_API(av_read_frame)
+	, XAMP_LOAD_DLL_API(avformat_network_init)
+	, XAMP_LOAD_DLL_API(avformat_network_deinit) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -48,7 +50,8 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_samples_get_buffer_size)
 	, XAMP_LOAD_DLL_API(av_log_set_callback)
 	, XAMP_LOAD_DLL_API(av_log_format_line)
-	, XAMP_LOAD_DLL_API(av_log_set_level) {
+	, XAMP_LOAD_DLL_API(av_log_set_level)
+	, XAMP_LOAD_DLL_API(av_dict_set) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -102,12 +105,17 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 		return;
 	}
 
-	static auto logger = LoggerManager::GetInstance().GetLogger(kLibAvLoggerName);
-	XAMP_LOG_LEVEL(logger, log_level, "{}", message);
+	XAMP_LOG_LEVEL(LIBAV_LIB.logger, log_level, "{}", message);
+}
+
+AvLib::~AvLib() {
+	FormatLib->avformat_network_deinit();
+	XAMP_LOG_D(logger, "Network deinit.");
 }
 
 AvLib::AvLib() {
-	XAMP_LOG_DEBUG("Load {} success.", LIBAVCODEC_IDENT);
+	logger = LoggerManager::GetInstance().GetLogger(kLibAvLoggerName);
+	XAMP_LOG_D(logger, "Load {} success.", LIBAVCODEC_IDENT);
 
 	FormatLib = MakeAlign<AvFormatLib>();
 	CodecLib = MakeAlign<AvCodecLib>();
@@ -116,6 +124,9 @@ AvLib::AvLib() {
 
 	UtilLib->av_log_set_callback(LogPrintf);
 	UtilLib->av_log_set_level(AV_LOG_FATAL);
+
+	FormatLib->avformat_network_init();
+	XAMP_LOG_D(logger, "Network init.");
 }
 
 }

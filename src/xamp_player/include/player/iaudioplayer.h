@@ -24,7 +24,7 @@ class XAMP_PLAYER_API XAMP_NO_VTABLE IAudioPlayer {
 public:
     XAMP_BASE_CLASS(IAudioPlayer)
 
-	virtual void Startup() = 0;
+	virtual void Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) = 0;
 
 	virtual void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) = 0;
 

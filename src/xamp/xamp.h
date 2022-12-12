@@ -40,17 +40,19 @@ class BackgroundWorker;
 class CdPage;
 class XMenu;
 
-class Xamp final : public IXPlayerFrame {
+class Xamp final : public IXPlayerControlFrame {
 	Q_OBJECT
 
 public:
-    Xamp();
+    explicit Xamp(const std::shared_ptr<IAudioPlayer> &player);
 
     virtual ~Xamp() override;
 
     void setXWindow(IXWindow* top_window);
 
     void applyTheme(QColor backgroundColor, QColor color);
+
+	void shortcutsPressed(const QKeySequence& shortcut) override;
 signals:
 	void payNextMusic();
 
@@ -94,13 +96,13 @@ private:
 
 	bool hitTitleBar(const QPoint& ps) const override;
 
-    void stopPlayedClicked() override;
+    void stop() override;
 
-    void playNextClicked() override;
+    void playNext() override;
 
-    void playPreviousClicked() override;
+    void playPrevious() override;
 
-    void play() override;
+    void playOrPause() override;
 
     void deleteKeyPress() override;
 

@@ -154,7 +154,7 @@ void LoadBassLib() {
     BASS.FLACEncLib = MakeAlign<BassFLACEncLib>();
     BASS.LoadVersionInfo();
     for (const auto& info : BASS.GetVersions()) {
-        XAMP_LOG_DEBUG("DLL {} ver: {}", info.first, info.second);
+        XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
 }
 

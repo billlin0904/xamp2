@@ -2,6 +2,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
+#include <base/math.h>
 
 #include <stream/avlib.h>
 #include <stream/avfilestream.h>
@@ -59,8 +60,12 @@ public:
     void LoadFromFile(std::wstring const& file_path) {
         AVFormatContext* format_ctx = nullptr;
 
+        // todo: Http request timeout in microseconds. 
+        AVDictionary* options = nullptr;
+        LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
+
         const auto file_path_ut8 = String::ToString(file_path);
-        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
+        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, &options);
         if (err != 0) {
             if (err == AVERROR_INVALIDDATA) {
                 throw NotSupportFormatException();
@@ -121,10 +126,10 @@ public:
         }
 
         if (format_context_->iformat != nullptr) {
-            XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{}",
+            XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{} Kbps",
                 format_context_->iformat->name,
                 GetBitDepth(),
-                GetBitRate());
+                Round(GetBitRate() / 1024.0));
         }
 
         auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;

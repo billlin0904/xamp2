@@ -197,10 +197,8 @@ static void loadOrSaveLogConfig() {
     }
 }
 
-static void loadSettings() {
-    XAMP_LOG_DEBUG("loadSettings.");
-
-    AppSettings::loadIniFile(qTEXT("xamp.ini"));
+static void loadAppSettings() {
+    XAMP_LOG_DEBUG("loadAppSettings.");
 
 	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
@@ -228,14 +226,11 @@ static void loadSettings() {
 
     AppSettings::setDefaultValue(kAppSettingEnableSpectrum, false);
     AppSettings::save();
-    XAMP_LOG_DEBUG("loadSettings success.");
+    XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
-static void loadLogAndResamplerConfig() {
-    XAMP_LOG_DEBUG("loadLogAndResamplerConfig.");
-
-    JsonSettings::loadJsonFile(qTEXT("config.json"));
-    loadOrSaveLogConfig();
+static void loadSampleRateConverterConfig() {
+    XAMP_LOG_DEBUG("loadSampleRateConverterConfig.");
     loadSoxrSetting();
     loadR8BrainSetting();
     loadPcm2DsdSetting();
@@ -301,7 +296,7 @@ static void registerMetaType() {
     qRegisterMetaType<PlayListEntity>("PlayListEntity");
     qRegisterMetaType<Errors>("Errors");
     qRegisterMetaType<Vector<float>>("Vector<float>");
-    qRegisterMetaType<Vector<PlayListEntity>>("Vector<PlayListEntity>");
+    qRegisterMetaType<ForwardList<PlayListEntity>>("ForwardList<PlayListEntity>");
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<ComplexValarray>("ComplexValarray");
@@ -343,9 +338,9 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
 #endif
 
 static int excute(int argc, char* argv[]) {
-    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-    QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+    registerMetaType();
 
+    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication::setDesktopSettingsAware(false);
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
@@ -387,13 +382,20 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
 
     XWindow top_win;
-    Xamp win;
 
-    XampIniter initer;
+    top_win.setShortcut(QKeySequence(Qt::Key_MediaPlay));
+    top_win.setShortcut(QKeySequence(Qt::Key_MediaStop));
+    top_win.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
+    top_win.setShortcut(QKeySequence(Qt::Key_MediaNext));
+
+    top_win.setShortcut(QKeySequence(Qt::Key_VolumeUp));
+    top_win.setShortcut(QKeySequence(Qt::Key_VolumeDown));
+    top_win.setShortcut(QKeySequence(Qt::Key_VolumeMute));
+
+    Xamp win(MakeAudioPlayer());
 
     try {
-        initer.Init();
-        initer.LoadLib();
+        win.setXWindow(&top_win);
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
@@ -403,7 +405,6 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }
 
-    win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
     //top_win.setContentWidget(nullptr);
 
@@ -423,6 +424,11 @@ int main(int argc, char *argv[]) {
 #endif
         .AddLogFile("xamp.log")
         .Startup();
+
+    AppSettings::loadIniFile(qTEXT("xamp.ini"));
+    JsonSettings::loadJsonFile(qTEXT("config.json"));
+
+    loadOrSaveLogConfig();
 
 #ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
@@ -445,22 +451,14 @@ int main(int argc, char *argv[]) {
 #endif
 
     const auto os_ver = QOperatingSystemVersion::current();
-    if (os_ver < QOperatingSystemVersion::Windows10) {
-        QMessageBox::information(nullptr,
-            qTEXT("Warning"),
-            QString(qTEXT("You are running an unsupported version of Windows: %1.")).arg(os_ver.name()));
-    }
-
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
         os_ver.name().toStdString(),
         os_ver.majorVersion(),
         os_ver.minorVersion(),
         os_ver.microVersion());
 
-    registerMetaType();
-    loadSettings();
-    loadLogAndResamplerConfig();
-
+    loadAppSettings();
+    loadSampleRateConverterConfig();
     PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
 
     CrashHandler crash_handler;
@@ -472,6 +470,7 @@ int main(int argc, char *argv[]) {
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
         AppSettings::save();
+        saveLogConfig();
         LoggerManager::GetInstance().Shutdown();
     );
 
@@ -485,11 +484,8 @@ int main(int argc, char *argv[]) {
     }
     catch (Exception const& e) {
         exist_code = -1;
-        XAMP_LOG_ERROR("{}", e.what());
-        XAMP_LOG_ERROR("{}", e.GetStackTrace());
+        XAMP_LOG_ERROR("message:{} {}", e.what(), e.GetStackTrace());
     }
-
-    saveLogConfig();
     return exist_code;
 }
 

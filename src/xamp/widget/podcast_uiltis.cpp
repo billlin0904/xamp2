@@ -32,10 +32,12 @@ ForwardList<TrackInfo> parseJson(QString const& json) {
             auto artist = object.value(qTEXT("artist")).toString().toStdWString();
             auto title = object.value(qTEXT("title")).toString();
             auto performer = object.value(qTEXT("performer")).toString();
+            auto dateTime = object.value(qTEXT("datetime")).toDateTime();
             TrackInfo track_info;
             track_info.file_path = url.toStdWString();
             track_info.title = title.toStdWString() + L" (Ori. " + artist + L")";
             track_info.artist = performer.toStdWString();
+            track_info.last_write_time = dateTime.toTime_t();
             track_info.track = track++;
             track_infos.push_front(track_info);
         }

@@ -34,6 +34,161 @@
 #include <widget/xwindow.h>
 
 #if defined(Q_OS_WIN)
+static quint32 nativeKeycode(Qt::Key key) {
+    // Here is list of keys that presumably work on most keyboard layouts.
+    // Default branch is for keys that can change with keyboard layout.
+    switch (key) {
+    case Qt::Key_Escape:
+        return VK_ESCAPE;
+    case Qt::Key_Tab:
+    case Qt::Key_Backtab:
+        return VK_TAB;
+    case Qt::Key_Backspace:
+        return VK_BACK;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+        return VK_RETURN;
+    case Qt::Key_Insert:
+        return VK_INSERT;
+    case Qt::Key_Delete:
+        return VK_DELETE;
+    case Qt::Key_Pause:
+        return VK_PAUSE;
+    case Qt::Key_Print:
+        return VK_PRINT;
+    case Qt::Key_Clear:
+        return VK_CLEAR;
+    case Qt::Key_Home:
+        return VK_HOME;
+    case Qt::Key_End:
+        return VK_END;
+    case Qt::Key_Left:
+        return VK_LEFT;
+    case Qt::Key_Up:
+        return VK_UP;
+    case Qt::Key_Right:
+        return VK_RIGHT;
+    case Qt::Key_Down:
+        return VK_DOWN;
+    case Qt::Key_PageUp:
+        return VK_PRIOR;
+    case Qt::Key_PageDown:
+        return VK_NEXT;
+    case Qt::Key_F1:
+        return VK_F1;
+    case Qt::Key_F2:
+        return VK_F2;
+    case Qt::Key_F3:
+        return VK_F3;
+    case Qt::Key_F4:
+        return VK_F4;
+    case Qt::Key_F5:
+        return VK_F5;
+    case Qt::Key_F6:
+        return VK_F6;
+    case Qt::Key_F7:
+        return VK_F7;
+    case Qt::Key_F8:
+        return VK_F8;
+    case Qt::Key_F9:
+        return VK_F9;
+    case Qt::Key_F10:
+        return VK_F10;
+    case Qt::Key_F11:
+        return VK_F11;
+    case Qt::Key_F12:
+        return VK_F12;
+    case Qt::Key_F13:
+        return VK_F13;
+    case Qt::Key_F14:
+        return VK_F14;
+    case Qt::Key_F15:
+        return VK_F15;
+    case Qt::Key_F16:
+        return VK_F16;
+    case Qt::Key_F17:
+        return VK_F17;
+    case Qt::Key_F18:
+        return VK_F18;
+    case Qt::Key_F19:
+        return VK_F19;
+    case Qt::Key_F20:
+        return VK_F20;
+    case Qt::Key_F21:
+        return VK_F21;
+    case Qt::Key_F22:
+        return VK_F22;
+    case Qt::Key_F23:
+        return VK_F23;
+    case Qt::Key_F24:
+        return VK_F24;
+    case Qt::Key_Space:
+        return VK_SPACE;
+    case Qt::Key_Asterisk:
+        return VK_MULTIPLY;
+    case Qt::Key_Plus:
+        return VK_ADD;
+    case Qt::Key_Minus:
+        return VK_SUBTRACT;
+    case Qt::Key_Slash:
+        return VK_DIVIDE;
+    case Qt::Key_MediaNext:
+        return VK_MEDIA_NEXT_TRACK;
+    case Qt::Key_MediaPrevious:
+        return VK_MEDIA_PREV_TRACK;
+    case Qt::Key_MediaPlay:
+        return VK_MEDIA_PLAY_PAUSE;
+    case Qt::Key_MediaStop:
+        return VK_MEDIA_STOP;
+        // couldn't find those in VK_*
+        //case Qt::Key_MediaLast:
+        //case Qt::Key_MediaRecord:
+    case Qt::Key_VolumeDown:
+        return VK_VOLUME_DOWN;
+    case Qt::Key_VolumeUp:
+        return VK_VOLUME_UP;
+    case Qt::Key_VolumeMute:
+        return VK_VOLUME_MUTE;
+
+    default:
+        // Try to get virtual key from current keyboard layout or US.
+        const HKL layout = GetKeyboardLayout(0);
+        int vk = VkKeyScanEx(key, layout);
+        if (vk == -1) {
+            const HKL layoutUs = GetKeyboardLayout(0x409);
+            vk = VkKeyScanEx(key, layoutUs);
+        }
+        return vk == -1 ? 0 : vk;
+    }
+}
+
+static quint32 nativeModifiers(Qt::KeyboardModifiers modifiers) {
+    // MOD_ALT, MOD_CONTROL, (MOD_KEYUP), MOD_SHIFT, MOD_WIN
+    quint32 native = 0;
+    if (modifiers & Qt::ShiftModifier)
+        native |= MOD_SHIFT;
+    if (modifiers & Qt::ControlModifier)
+        native |= MOD_CONTROL;
+    if (modifiers & Qt::AltModifier)
+        native |= MOD_ALT;
+    if (modifiers & Qt::MetaModifier)
+        native |= MOD_WIN;
+    // TODO: resolve these?
+    //if (modifiers & Qt::KeypadModifier)
+    //if (modifiers & Qt::GroupSwitchModifier)
+    return native;
+}
+
+static bool registerShortcut(const WId window_id, quint32 nativeKey, quint32 nativeMods) {
+    auto hwnd = reinterpret_cast<HWND>(window_id);
+    return ::RegisterHotKey(hwnd, nativeMods ^ nativeKey, nativeMods, nativeKey);
+}
+
+static bool unregisterShortcut(const WId window_id, quint32 nativeKey, quint32 nativeMods) {
+    auto hwnd = reinterpret_cast<HWND>(window_id);
+    return ::UnregisterHotKey(hwnd, nativeMods ^ nativeKey);
+}
+
 // Ref : https://github.com/melak47/BorderlessWindow
 static XAMP_ALWAYS_INLINE LRESULT hitTest(const WId window_id, MSG const* msg) noexcept {
     auto hwnd = reinterpret_cast<HWND>(window_id);
@@ -89,15 +244,33 @@ XWindow::XWindow()
 	, screen_number_(1)
     , current_screen_(nullptr)
 #endif
-	, player_frame_(nullptr) {
+	, player_control_frame_(nullptr) {
     setObjectName(qTEXT("framelessWindow"));
 }
 
-void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
-    player_frame_ = content_widget;
-    if (player_frame_ != nullptr) {
+void XWindow::setShortcut(const QKeySequence& shortcut) {
+    const auto allMods =
+        Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier;
+    const auto xkeyCode = static_cast<uint>(shortcut.isEmpty() ? 0 : shortcut[0]);
+
+    const uint keyCode = QChar::toLower(xkeyCode & ~allMods);
+
+    auto key = Qt::Key(keyCode);
+    auto mods = Qt::KeyboardModifiers(xkeyCode & allMods);
+
+	auto nativeKey = nativeKeycode(key);
+    auto nativeMods = nativeModifiers(mods);
+
+    if (registerShortcut(winId(), nativeKey, nativeMods)) {
+        shortcuts_.insert(qMakePair(nativeKey, nativeMods), shortcut);
+    }
+}
+
+void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
+    player_control_frame_ = content_widget;
+    if (player_control_frame_ != nullptr) {
         auto* default_layout = new QVBoxLayout(this);
-        default_layout->addWidget(player_frame_);
+        default_layout->addWidget(player_control_frame_);
         default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
     }
@@ -111,7 +284,7 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         win32::setFramelessWindowStyle(winId());
         win32::addDwmShadow(winId());
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-            player_frame_->setAttribute(Qt::WA_TranslucentBackground, true);
+            player_control_frame_->setAttribute(Qt::WA_TranslucentBackground, true);
         }
     } else {
         win32::setWindowedWindowStyle(winId());
@@ -120,12 +293,12 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         }
         win32::addDwmShadow(winId());
     }
-    taskbar_.reset(new win32::WinTaskbar(this, player_frame_));
+    taskbar_.reset(new win32::WinTaskbar(this, player_control_frame_));
     last_rect_ = win32::windowRect(winId());
 #else
     if (!qTheme.useNativeWindow()) {
-        if (player_frame_ != nullptr) {
-            osx::hideTitleBar(player_frame_);
+        if (player_control_frame_ != nullptr) {
+            osx::hideTitleBar(player_control_frame_);
         }
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
             setAttribute(Qt::WA_TranslucentBackground, true);
@@ -156,8 +329,8 @@ void XWindow::saveGeometry() {
 }
 
 void XWindow::systemThemeChanged(ThemeColor theme_color) {
-	if (player_frame_ != nullptr) {
-        player_frame_->systemThemeChanged(theme_color);
+	if (player_control_frame_ != nullptr) {
+        player_control_frame_->systemThemeChanged(theme_color);
 	}
 }
 
@@ -238,7 +411,7 @@ bool XWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto* key_event = dynamic_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            player_frame_->deleteKeyPress();
+            player_control_frame_->deleteKeyPress();
         }
     } else {
         if (event->type() == QEvent::FocusIn) {
@@ -251,17 +424,17 @@ bool XWindow::eventFilter(QObject * object, QEvent * event) {
 }
 
 void XWindow::focusInEvent(QFocusEvent* event) {
-    if (!player_frame_) {
+    if (!player_control_frame_) {
         return;
     }
-    player_frame_->focusIn();
+    player_control_frame_->focusIn();
 }
 
 void XWindow::focusOutEvent(QFocusEvent* event) {
-    if (!player_frame_) {
+    if (!player_control_frame_) {
         return;
     }
-    player_frame_->focusOut();
+    player_control_frame_->focusOut();
 }
 
 void XWindow::dragEnterEvent(QDragEnterEvent* event) {
@@ -281,7 +454,7 @@ void XWindow::dropEvent(QDropEvent* event) {
 
     if (mime_data->hasUrls()) {
         for (auto const& url : mime_data->urls()) {
-            player_frame_->addDropFileItem(url);
+            player_control_frame_->addDropFileItem(url);
         }
         event->acceptProposedAction();
     }
@@ -325,8 +498,8 @@ void XWindow::readDriveInfo() {
     if (drives.empty()) {
         return;
     }
-    if (player_frame_ != nullptr) {
-        player_frame_->drivesChanges(drives);
+    if (player_control_frame_ != nullptr) {
+        player_control_frame_->drivesChanges(drives);
     }
 #endif
 }
@@ -400,7 +573,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
                         return drive.driver_letter == driver_letter;
                         });
                     if (itr != exist_drives_.end()) {
-                        player_frame_->drivesRemoved(*itr);
+                        player_control_frame_->drivesRemoved(*itr);
                         exist_drives_.erase(itr);
                     }
                 }
@@ -476,6 +649,16 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
             systemThemeChanged(win32::isDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
         }
         break;
+    case WM_HOTKEY:
+	    {
+			auto nativeKey = HIWORD(msg->lParam);
+            auto nativeMods = LOWORD(msg->lParam);
+            auto shortcut = shortcuts_.value(qMakePair(nativeKey, nativeMods));
+            if (!shortcut.isEmpty()) {
+                player_control_frame_->shortcutsPressed(shortcut);
+            }
+	    }
+        break;
     default:
         break;
     }
@@ -487,16 +670,16 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
 
 void XWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!qTheme.useNativeWindow() && player_frame_ != nullptr) {
-        osx::hideTitleBar(player_frame_);
+    if (!qTheme.useNativeWindow() && player_control_frame_ != nullptr) {
+        osx::hideTitleBar(player_control_frame_);
 	}
 #endif
 	QFrame::changeEvent(event);
 }
 
 void XWindow::closeEvent(QCloseEvent* event) {
-    if (player_frame_ != nullptr) {
-        player_frame_->close();
+    if (player_control_frame_ != nullptr) {
+        player_control_frame_->close();
     }
     QWidget::closeEvent(event);
 }
@@ -507,7 +690,7 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
         return;
 	}
 
-    if (!player_frame_->hitTitleBar(event->pos())) {
+    if (!player_control_frame_->hitTitleBar(event->pos())) {
         return;
     }
 
@@ -544,17 +727,17 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void XWindow::initMaximumState() {
-    player_frame_->updateMaximumState(isMaximized());
+    player_control_frame_->updateMaximumState(isMaximized());
 }
 
 void XWindow::updateMaximumState() {
     if (isMaximized()) {
         showNormal();
-        player_frame_->updateMaximumState(false);
+        player_control_frame_->updateMaximumState(false);
     }
     else {
         showMaximized();
-        player_frame_->updateMaximumState(true);
+        player_control_frame_->updateMaximumState(true);
     }
 }
 
@@ -564,7 +747,7 @@ void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
         return;
     }
 
-    if (!player_frame_->hitTitleBar(event->pos())) {
+    if (!player_control_frame_->hitTitleBar(event->pos())) {
         return;
     }
 
@@ -635,15 +818,15 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
 
     last_rect_ = win32::windowRect(winId());
 
-    if (!player_frame_) {
+    if (!player_control_frame_) {
         return;
     }
 
     if (current_screen_ == nullptr) {
-        current_screen_ = player_frame_->window()->windowHandle()->screen();
+        current_screen_ = player_control_frame_->window()->windowHandle()->screen();
     }
-    else if (current_screen_ != player_frame_->window()->windowHandle()->screen()) {
-        current_screen_ = player_frame_->window()->windowHandle()->screen();
+    else if (current_screen_ != player_control_frame_->window()->windowHandle()->screen()) {
+        current_screen_ = player_control_frame_->window()->windowHandle()->screen();
 
         ::SetWindowPos(reinterpret_cast<HWND>(winId()), nullptr, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |

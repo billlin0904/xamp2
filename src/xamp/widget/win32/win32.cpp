@@ -353,7 +353,7 @@ static uint32_t gradientColor(QColor const & color) {
 		| color.alpha() << 24;
 }
 
-WinTaskbar::WinTaskbar(XWindow* window, IXPlayerFrame* player_frame) {
+WinTaskbar::WinTaskbar(XWindow* window, IXPlayerControlFrame* player_frame) {
 	window_ = window;
 
 	play_icon = qTheme.iconFromFont(Glyphs::ICON_PLAY);
@@ -375,21 +375,21 @@ WinTaskbar::WinTaskbar(XWindow* window, IXPlayerFrame* player_frame) {
 	(void)QObject::connect(play_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		player_frame,
-		&IXPlayerFrame::play);
+		&IXPlayerControlFrame::playOrPause);
 
 	auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	forward_tool_button->setIcon(seek_forward_icon);
 	(void)QObject::connect(forward_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		player_frame,
-		&IXPlayerFrame::playNextClicked);
+		&IXPlayerControlFrame::playNext);
 
 	auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	backward_tool_button->setIcon(seek_backward_icon);
 	(void)QObject::connect(backward_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		player_frame,
-		&IXPlayerFrame::playPreviousClicked);
+		&IXPlayerControlFrame::playPrevious);
 
 	thumbnail_tool_bar_->addButton(backward_tool_button);
 	thumbnail_tool_bar_->addButton(play_tool_button);
