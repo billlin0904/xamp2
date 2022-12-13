@@ -290,10 +290,10 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
     model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
     model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
-    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST UPDATE TIME"));
+    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST.UPDATE.TIME"));
     model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
     model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
-    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("TRACK.LOUDNESS"));
+    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("LOUDNESS"));
     model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
     model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, tr("ALBUM.ID"));

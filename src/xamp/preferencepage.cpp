@@ -224,14 +224,15 @@ PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
-	qTheme.setMenuStyle(ui_.langCombo->view()->window());
+	// todo: setMenuStyle會導致menu背景為透明.
+	/*qTheme.setMenuStyle(ui_.langCombo->view()->window());
 	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
 	qTheme.setMenuStyle(ui_.selectResamplerComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.soxrSettingCombo->view()->window());
 	qTheme.setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());
+	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());*/
 
 	update();
 
@@ -268,8 +269,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM-DSD Covert"));
 	settings_item->addChild(pcm2dsd_item);
 
-	auto* foobar2000_dsp_item = new QTreeWidgetItem(QStringList() << tr("Foobar2000 DSP"));
-	settings_item->addChild(foobar2000_dsp_item);
+	// todo: 先不實作FoobarDSP相關UI
+	/*auto* foobar2000_dsp_item = new QTreeWidgetItem(QStringList() << tr("Foobar2000 DSP"));
+	settings_item->addChild(foobar2000_dsp_item);*/
 
     ui_.preferenceTreeWidget->addTopLevelItem(settings_item);
     ui_.preferenceTreeWidget->expandAll();

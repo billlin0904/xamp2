@@ -405,9 +405,7 @@ FROM
 WHERE
 	albums.albumId = ?
 ORDER BY
-	musics.track,
-	musics.path,
-	musics.fileName;
+	musics.track DESC;
 )"));
 	query.addBindValue(album_id);
 

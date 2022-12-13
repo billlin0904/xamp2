@@ -106,7 +106,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     QRect album_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 15,
-        option.rect.width() - 55,
+        option.rect.width() - 40,
         15);
     QRect artist_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 35,
