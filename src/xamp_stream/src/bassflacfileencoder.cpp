@@ -1,10 +1,11 @@
-#include <base/buffer.h>
-#include <base/str_utilts.h>
+#include <stream/bassflacfileencoder.h>
+
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 #include <stream/api.h>
 #include <stream/bass_utiltis.h>
-#include <stream/bassflacfileencoder.h>
+
+#include <base/buffer.h>
 
 namespace xamp::stream {
 

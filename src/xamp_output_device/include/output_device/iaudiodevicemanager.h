@@ -5,11 +5,13 @@
 
 #pragma once
 
-#include <map>
-#include <base/stl.h>
 #include <output_device/output_device.h>
 #include <output_device/idevicetype.h>
 #include <output_device/idevicestatelistener.h>
+
+#include <base/stl.h>
+
+#include <map>
 
 namespace xamp::output_device {
 

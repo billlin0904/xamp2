@@ -1,6 +1,9 @@
-#include <sstream>
-#include <filesystem>
-#include <vector>
+#include <base/logger_impl.h>
+
+#include <base/platform.h>
+#include <base/fs.h>
+#include <base/str_utilts.h>
+#include <base/logger.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -10,15 +13,13 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/msvc_sink.h>
 
-#include <base/platform.h>
-#include <base/fs.h>
-#include <base/str_utilts.h>
-#include <base/logger.h>
-#include <base/logger_impl.h>
+#include <sstream>
+#include <filesystem>
+#include <vector>
 
 namespace xamp::base {
 
-class LogFlagFormater final : public spdlog::custom_flag_formatter {
+class LogFlagFormatrer final : public spdlog::custom_flag_formatter {
 public:
 	void format(const spdlog::details::log_msg& message, const std::tm&, spdlog::memory_buf_t& dest) override {
 		const auto upper_logger_level = String::ToUpper(std::string(to_string_view(message.level).data()));
@@ -26,7 +27,7 @@ public:
 	}
 
 	std::unique_ptr<custom_flag_formatter> clone() const override {
-		return spdlog::details::make_unique<LogFlagFormater>();
+		return spdlog::details::make_unique<LogFlagFormatrer>();
 	}
 };
 
@@ -98,8 +99,8 @@ const std::string& Logger::GetName() const {
 	return logger_->name();
 }
 
-Vector<std::shared_ptr<Logger>> LoggerManager::GetAllLogger() {
-	Vector<std::shared_ptr<Logger>> loggers;
+Vector<LoggerPtr> LoggerManager::GetAllLogger() {
+	Vector<LoggerPtr> loggers;
 	spdlog::details::registry::instance().apply_all([&loggers](auto x) {
 		if (x->name().empty()) {
 			return;
@@ -109,11 +110,11 @@ Vector<std::shared_ptr<Logger>> LoggerManager::GetAllLogger() {
 	return loggers;
 }
 
-std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string_view& name) {
+LoggerPtr LoggerManager::GetLogger(const std::string_view& name) {
 	return GetLogger(std::string(name));
 }
 
-std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
+LoggerPtr LoggerManager::GetLogger(const std::string &name) {
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
 		return std::make_shared<Logger>(logger);
@@ -127,9 +128,9 @@ std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
 
 	auto formatter = std::make_unique<spdlog::pattern_formatter>();
 #ifdef XAMP_OS_WIN
-	formatter->add_flag<LogFlagFormater>('*').set_pattern("[%H:%M:%S.%e][%*][%n][%t] %^%v%$");
+	formatter->add_flag<LogFlagFormatrer>('*').set_pattern("[%H:%M:%S.%e][%*][%n][%t] %^%v%$");
 #else
-	formatter->add_flag<LogFlagFormater>('*').set_pattern("[%*][%n][%t] %^%v%$");
+	formatter->add_flag<LogFlagFormatrer>('*').set_pattern("[%*][%n][%t] %^%v%$");
 #endif
 	logger->set_formatter(std::move(formatter));
 

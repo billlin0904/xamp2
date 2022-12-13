@@ -5,10 +5,11 @@
 
 #pragma once
 
+#include <stream/ifileencoder.h>
+
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/encodingprofile.h>
-#include <stream/ifileencoder.h>
 
 #ifdef XAMP_OS_MAC
 
@@ -27,8 +28,9 @@ namespace xamp::stream {
      ENCODING_AAC_ELD = 39,
  };
 
-class BassAACFileEncoder final
-	: public IFileEncoder {
+class BassAACFileEncoder final : public IFileEncoder {
+    DECLARE_XAMP_MAKE_CLASS_UUID(BassAACFileEncoder, "2D7F4DC9-7AE4-426E-90B1-309CBFE61863")
+
 public:
 	BassAACFileEncoder();
 

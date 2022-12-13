@@ -303,7 +303,7 @@ private:
 	dsp_chain_config_impl dsp_chain_config_;
 	std::map<std::string, std::shared_ptr<FoobarDspContext>> foobar_dsp_;
 	Vector<double> input_data_;
-	std::shared_ptr<Logger> logger_;
+	LoggerPtr logger_;
 };
 
 FoobarDspAdapter::FoobarDspAdapter()

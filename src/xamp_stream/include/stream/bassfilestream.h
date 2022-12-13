@@ -5,22 +5,24 @@
 
 #pragma once
 
+#include <stream/idsdstream.h>
+#include <stream/filestream.h>
+
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
 #include <base/uuidof.h>
 
-#include <stream/idsdstream.h>
-#include <stream/filestream.h>
-
 namespace xamp::stream {
 
 class BassFileStream final : public FileStream, public IDsdStream {
+	DECLARE_XAMP_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
+
 public:
 	BassFileStream();
 
 	XAMP_PIMPL(BassFileStream)
 
-    void OpenFile(std::wstring const & file_path) override;
+    void OpenFile(Path const& file_path) override;
 
 	void Close() noexcept override;
 
@@ -65,7 +67,6 @@ private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
 };
-XAMP_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
 
 }
 

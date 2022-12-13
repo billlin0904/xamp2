@@ -5,15 +5,17 @@
 
 #pragma once
 
-#include <array>
-#include <base/audiobuffer.h>
-#include <base/align_ptr.h>
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
 
+#include <base/uuidof.h>
+#include <base/align_ptr.h>
+
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassEqualizer final : public IAudioProcessor {
+class BassEqualizer final : public IAudioProcessor {
+    DECLARE_XAMP_MAKE_CLASS_UUID(BassEqualizer, "FCC73B23-6806-44CD-882D-EA21A3482F51")
+
 public:
     BassEqualizer();
 
@@ -42,6 +44,5 @@ private:
     class BassEqualizerImpl;
     AlignPtr<BassEqualizerImpl> impl_;
 };
-XAMP_MAKE_CLASS_UUID(BassEqualizer, "FCC73B23-6806-44CD-882D-EA21A3482F51")
 
 }

@@ -1,7 +1,8 @@
+#include <stream/soxrlib.h>
+
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
-#include <stream/soxrlib.h>
 
 namespace xamp::stream {
 

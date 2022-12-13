@@ -1,7 +1,8 @@
+#include <stream/fftwlib.h>
+
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
-#include <stream/fftwlib.h>
 
 #if (USE_INTEL_MKL_LIB)
 #ifndef MKL_FFTW_MALLOC_ALIGNMENT

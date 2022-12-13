@@ -1,11 +1,14 @@
-#include <thread>
+#include <base/waitabletimer.h>
+
 #include <base/exception.h>
 #include <base/logger.h>
 #include <base/platfrom_handle.h>
+
 #ifdef XAMP_OS_WIN
 #include <timeapi.h>
 #endif
-#include <base/waitabletimer.h>
+
+#include <thread>
 
 namespace xamp::base {
 

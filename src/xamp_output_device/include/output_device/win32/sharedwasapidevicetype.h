@@ -9,16 +9,18 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <base/align_ptr.h>
-#include <base/logger.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/idevicetype.h>
 
+#include <base/uuidof.h>
+#include <base/align_ptr.h>
+#include <base/logger.h>
+
 namespace xamp::output_device::win32 {
 
-
-
 class SharedWasapiDeviceType final : public IDeviceType {
+	DECLARE_XAMP_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
+
 public:
 	constexpr static auto Description = std::string_view("WASAPI (Shared Mode)");
 
@@ -47,11 +49,10 @@ private:
 
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	std::shared_ptr<Logger> log_;
+	LoggerPtr log_;
 	Vector<DeviceInfo> device_list_;
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 };
-XAMP_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
 
 }
 

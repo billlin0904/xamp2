@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include <exception>
-#include <ostream>
-#include <string>
-
 #include <base/base.h>
 #include <base/enum.h>
 #include <base/audioformat.h>
+
+#include <exception>
+#include <ostream>
+#include <string>
 
 namespace xamp::base {
 

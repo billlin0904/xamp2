@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include <optional>
+#include <player/playstate.h>
+#include <player/player.h>
 
 #include <base/base.h>
 #include <base/fs.h>
@@ -15,8 +16,8 @@
 #include <base/uuid.h>
 
 #include <stream/iaudioprocessor.h>
-#include <player/playstate.h>
-#include <player/player.h>
+
+#include <optional>
 
 namespace xamp::player {
 

@@ -1,5 +1,6 @@
-#include <base/math.h>
 #include <base/siphash.h>
+
+#include <base/math.h>
 
 namespace xamp::base {
 

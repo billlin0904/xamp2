@@ -5,23 +5,25 @@
 
 #pragma once
 
+#include <stream/stream.h>
+#include <stream/filestream.h>
+
 #include <base/audioformat.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
 #include <base/uuidof.h>
 
-#include <stream/stream.h>
-#include <stream/filestream.h>
-
 namespace xamp::stream {
 
-class XAMP_STREAM_API AvFileStream final : public FileStream {
+class AvFileStream final : public FileStream {
+	DECLARE_XAMP_MAKE_CLASS_UUID(AvFileStream, "D59756C0-19CE-4E4B-BC83-6616BBB2930B")
+
 public:
 	AvFileStream();
 
 	XAMP_PIMPL(AvFileStream)
 
-	void OpenFile(const std::wstring& file_path) override;
+	void OpenFile(Path const& file_path) override;
 
 	void Close() noexcept override;
 
@@ -45,7 +47,6 @@ private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;
 };
-XAMP_MAKE_CLASS_UUID(AvFileStream, "D59756C0-19CE-4E4B-BC83-6616BBB2930B")
 
 }
 

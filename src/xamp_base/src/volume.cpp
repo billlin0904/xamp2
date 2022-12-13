@@ -1,8 +1,8 @@
+#include <base/volume.h>
+
 #include <cstdint>
 #include <cmath>
 #include <algorithm>
-
-#include <base/volume.h>
 
 namespace xamp::base {
 

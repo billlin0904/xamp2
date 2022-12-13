@@ -43,6 +43,8 @@ public:
     const QPixmap& unknownCover() const noexcept;
 
 	const QPixmap& defaultSizeUnknownCover() const noexcept;
+
+    QString flagNamePath(const QString& countryIsoCode);
     
     QIcon appIcon() const;
 

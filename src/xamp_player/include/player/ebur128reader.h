@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <base/stl.h>
 #include <player/player.h>
+#include <base/stl.h>
 
 namespace xamp::player {
 

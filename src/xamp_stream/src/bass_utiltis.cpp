@@ -1,8 +1,9 @@
 #include <stream/bass_utiltis.h>
 
-#include <base/buffer.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
+
+#include <base/buffer.h>
 
 namespace xamp::stream::BassUtiltis {
 

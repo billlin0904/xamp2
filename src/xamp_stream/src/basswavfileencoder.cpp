@@ -1,13 +1,13 @@
-#include <fstream>
-#include <base/buffer.h>
-#include <base/str_utilts.h>
-#include <base/exception.h>
-#include <base/logger_impl.h>
+#include <stream/basswavfileencoder.h>
+
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 #include <stream/api.h>
 #include <stream/bass_utiltis.h>
-#include <stream/basswavfileencoder.h>
+
+#include <base/logger_impl.h>
+
+#include <fstream>
 
 namespace xamp::stream {
 
@@ -29,17 +29,6 @@ public:
             flags |= BASS_ENCODE_FP_16BIT;
             break;
         }
-
-        /*const auto acm_form_len = BASS.EncLib->BASS_Encode_GetACMFormat(0, nullptr, 0, nullptr, 0);
-        std::vector<uint8_t> buffer(acm_form_len);
-        BASS.EncLib->BASS_Encode_GetACMFormat(stream_.GetHStream(), buffer.data(), acm_form_len, nullptr, BASS_ACM_DEFAULT);
-
-        std::ostringstream ostr;
-        for (auto ch : buffer) {
-            ostr << "0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(ch) << ",";
-        }
-
-        XAMP_LOG_DEBUG("Format: {}", ostr.str());*/
 
         // 2ch,44100Khz,PCM format.
         constexpr std::array<uint8_t, 50> buffer{

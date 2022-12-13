@@ -1,11 +1,13 @@
 #if ENABLE_ASIO
-#include <asiodrivers.h>
+
+#include <output_device/win32/asiodevicetype.h>
+
+#include <output_device/win32/asiodevice.h>
 
 #include <base/align_ptr.h>
 #include <base/str_utilts.h>
 
-#include <output_device/win32/asiodevice.h>
-#include <output_device/win32/asiodevicetype.h>
+#include <asiodrivers.h>
 
 namespace xamp::output_device::win32 {
 
@@ -18,7 +20,7 @@ std::string_view ASIODeviceType::GetDescription() const {
 }
 
 Uuid ASIODeviceType::GetTypeId() const {
-	return UuidOf<ASIODeviceType>::Id();
+	return UuidOf(ASIODeviceType);
 }
 
 size_t ASIODeviceType::GetDeviceCount() const {
@@ -73,7 +75,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 	DeviceInfo info;
 	info.name = name;
 	info.device_id = device_id;
-	info.device_type_id = UuidOf<ASIODeviceType>::Id();
+	info.device_type_id = UuidOf(ASIODeviceType);
 	/*try {
 		const auto device = MakeAlign<IOutputDevice, AsioDevice>(device_id);
 		auto* asio_device = dynamic_cast<AsioDevice*>(device.get());

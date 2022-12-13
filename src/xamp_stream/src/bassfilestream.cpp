@@ -1,13 +1,16 @@
+#include <stream/bassfilestream.h>
+
+#include <stream/dsd_utils.h>
+#include <stream/podcastcache.h>
+#include <stream/bassexception.h>
+
 #include <stream/basslib.h>
 #include <base/str_utilts.h>
 #include <base/singleton.h>
 #include <base/stopwatch.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
-#include <stream/dsd_utils.h>
-#include <stream/podcastcache.h>
-#include <stream/bassexception.h>
-#include <stream/bassfilestream.h>
+#include <bass/bassdsd.h>
 
 namespace xamp::stream {
 
@@ -138,7 +141,7 @@ public:
         }
     }
 
-    void LoadFromFile(std::wstring const & file_path) {
+    void LoadFromFile(Path const& file_path) {
         DWORD flags = 0;
 
         switch (mode_) {
@@ -159,11 +162,11 @@ public:
 
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
-        const auto is_file_path = IsFilePath(file_path);
+        const auto is_file_path = IsFilePath(file_path.wstring());
         file_cache_.reset();
 
         if (!is_file_path) {
-            file_cache_ = GetPodcastFileCache(file_path);
+            file_cache_ = GetPodcastFileCache(file_path.wstring());
         }
 
         XAMP_LOG_D(logger_, "Start open file");
@@ -368,7 +371,7 @@ private:
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     std::shared_ptr<PodcastFileCache> file_cache_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 BassFileStream::BassFileStream()
@@ -377,7 +380,7 @@ BassFileStream::BassFileStream()
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
-void BassFileStream::OpenFile(std::wstring const & file_path)  {
+void BassFileStream::OpenFile(Path const& file_path)  {
     stream_->LoadFromFile(file_path);
 }
 

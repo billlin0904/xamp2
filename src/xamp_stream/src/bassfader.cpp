@@ -50,7 +50,7 @@ public:
     }
 private:
     BassStreamHandle stream_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 BassFader::BassFader()
@@ -80,7 +80,7 @@ uint32_t BassFader::Process(float const* samples, float* out, uint32_t num_sampl
 }
 
 Uuid BassFader::GetTypeId() const {
-    return UuidOf<BassFader>::Id();
+    return UuidOf(BassFader);
 }
 
 std::string_view BassFader::GetDescription() const noexcept {

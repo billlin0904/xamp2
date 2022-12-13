@@ -1,14 +1,16 @@
-#include <functional>
+#include <metadata/taglib.h>
+#include <metadata/taglibmetawriter.h>
+
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/platfrom_handle.h>
 #include <base/str_utilts.h>
-#include <metadata/taglib.h>
-#include <metadata/taglibmetawriter.h>
+
+#include <functional>
 
 XAMP_DECLARE_LOG_NAME(TagLib);
 
-class DefaultListener : public TagLib::DebugListener {
+class DebugListener : public TagLib::DebugListener {
 public:
 	void printMessage(const TagLib::String& msg) override {
 		using namespace xamp::base;
@@ -19,10 +21,10 @@ public:
 	}
 };
 
-DefaultListener defaultListener;
+static DebugListener debug_listener;
 
 namespace TagLib {
-	DebugListener* debugListener = &defaultListener;
+	DebugListener* debugListener = &debug_listener;
 
 	DebugListener::DebugListener() = default;
 
@@ -32,7 +34,7 @@ namespace TagLib {
 		if (listener)
 			debugListener = listener;
 		else
-			debugListener = &defaultListener;
+			debugListener = &debug_listener;
 	}
 }
 

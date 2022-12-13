@@ -1,7 +1,8 @@
+#include <base/uuid.h>
+
 #include <iomanip>
 #include <sstream>
 #include <charconv>
-#include <base/uuid.h>
 
 namespace xamp::base {
 
@@ -102,14 +103,10 @@ Uuid& Uuid::operator=(Uuid&& other) noexcept {
     return *this;
 }
 
-Uuid::Uuid(const uint8_t(&byte_array)[kIdSize]) noexcept {
+Uuid::Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept {
     std::copy(std::cbegin(byte_array),
         std::cend(byte_array),
         std::begin(bytes_));
-}
-
-Uuid::Uuid(UuidBuffer const& buffer) noexcept
-    : bytes_(buffer) {
 }
 
 Uuid::Uuid(std::string_view const &str) {

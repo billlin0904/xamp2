@@ -46,7 +46,7 @@ public:
 private:
     BassStreamHandle stream_;
     HFX volume_handle_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 BassVolume::BassVolume()
@@ -74,7 +74,7 @@ uint32_t BassVolume::Process(float const* samples, float* out, uint32_t num_samp
 }
 
 Uuid BassVolume::GetTypeId() const {
-    return UuidOf<BassVolume>::Id();
+    return UuidOf(BassVolume);
 }
 
 std::string_view BassVolume::GetDescription() const noexcept {

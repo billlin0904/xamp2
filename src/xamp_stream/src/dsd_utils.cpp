@@ -1,6 +1,6 @@
-#include <base/str_utilts.h>
-#include <stream/bassexception.h>
 #include <stream/dsd_utils.h>
+#include <stream/bassexception.h>
+#include <base/str_utilts.h>
 
 namespace xamp::stream {
 

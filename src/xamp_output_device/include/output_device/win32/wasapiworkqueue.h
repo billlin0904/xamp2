@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <base/assert.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/unknownimpl.h>
+
+#include <base/assert.h>
 
 namespace xamp::output_device::win32 {
 

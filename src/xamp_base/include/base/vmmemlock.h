@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <memory>
 #include <base/base.h>
 #include <base/logger.h>
 
@@ -26,7 +27,7 @@ public:
 private:
 	void* address_{ nullptr };
 	size_t size_{ 0 };
-	std::shared_ptr<Logger> logger_;
+	LoggerPtr logger_;
 };
 
 }

@@ -1,11 +1,11 @@
+#include <stream/avfilestream.h>
+#include <stream/avlib.h>
+
 #include <base/exception.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
 #include <base/math.h>
-
-#include <stream/avlib.h>
-#include <stream/avfilestream.h>
 
 namespace xamp::stream {
 
@@ -57,15 +57,15 @@ public:
         format_context_.reset();
     }
 
-    void LoadFromFile(std::wstring const& file_path) {
-        AVFormatContext* format_ctx = nullptr;
+    void LoadFromFile(Path const& file_path) {
+        AVFormatContext* format_context = nullptr;
 
         // todo: Http request timeout in microseconds. 
         AVDictionary* options = nullptr;
         LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
 
-        const auto file_path_ut8 = String::ToString(file_path);
-        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, &options);
+        const auto file_path_ut8 = String::ToString(file_path.wstring());
+        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
         if (err != 0) {
             if (err == AVERROR_INVALIDDATA) {
                 throw NotSupportFormatException();
@@ -73,8 +73,8 @@ public:
             throw AvException(err);
         }
 
-        if (format_ctx != nullptr) {
-            format_context_.reset(format_ctx);
+        if (format_context != nullptr) {
+            format_context_.reset(format_context);
         }
         else {
             throw NotSupportFormatException();
@@ -104,12 +104,23 @@ public:
     void OpenAudioStream() {
         codec_context_.reset(format_context_->streams[audio_stream_id_]->codec);
 
-        const auto codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
+        AVCodec* codec = nullptr;
+        if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
+            codec = LIBAV_LIB.CodecLib->avcodec_find_decoder_by_name("libfdk_aac");
+            if (!codec) {
+                XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
+            }
+        }
+
         if (!codec) {
-            throw NotSupportFormatException();
+            codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
+            if (!codec) {
+                throw NotSupportFormatException();
+            }
         }
 
         AvIfFailedThrow(LIBAV_LIB.CodecLib->avcodec_open2(codec_context_.get(), codec, nullptr));
+        
         audio_frame_.reset(LIBAV_LIB.UtilLib->av_frame_alloc());
 
         switch (codec_context_->sample_fmt) {
@@ -129,7 +140,7 @@ public:
             XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{} Kbps",
                 format_context_->iformat->name,
                 GetBitDepth(),
-                Round(GetBitRate() / 1024.0));
+                Round(GetBitRate() / 1024.0, 2));
         }
 
         auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
@@ -284,7 +295,7 @@ private:
     AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVFormatContext> format_context_;
     AvPtr<AVPacket> packet_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 
@@ -294,7 +305,7 @@ AvFileStream::AvFileStream()
 
 XAMP_PIMPL_IMPL(AvFileStream)
 
-void AvFileStream::OpenFile(const std::wstring& file_path) {
+void AvFileStream::OpenFile(Path const& file_path) {
     return impl_->LoadFromFile(file_path);
 }
 

@@ -1,11 +1,11 @@
+#include <metadata/api.h>
+
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadatawriter.h>
 
 #include <metadata/imetadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
-
-#include <metadata/api.h>
 
 namespace xamp::metadata {
 

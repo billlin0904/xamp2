@@ -1,6 +1,4 @@
-#include <base/audioformat.h>
-#include <base/exception.h>
-#include <base/logger_impl.h>
+#include <stream/dspmanager.h>
 
 #include <stream/api.h>
 #include <stream/pcm2dsdsamplewriter.h>
@@ -10,7 +8,10 @@
 #include <stream/bassvolume.h>
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/foobardspadapter.h>
-#include <stream/dspmanager.h>
+
+#include <base/audioformat.h>
+#include <base/exception.h>
+#include <base/logger_impl.h>
 
 namespace xamp::stream {
 
@@ -107,7 +108,7 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignP
 
 bool DSPManager::IsEnableSampleRateConverter() const {
     const auto equal_id = [](const auto& id) {
-        return UuidOf<SoxrSampleRateConverter>::Id() == id || UuidOf<R8brainSampleRateConverter>::Id() == id;
+        return UuidOf(SoxrSampleRateConverter) == id || UuidOf(R8brainSampleRateConverter) == id;
     };
     return Contains(equal_id);
 }

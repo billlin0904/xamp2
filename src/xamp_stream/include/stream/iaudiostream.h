@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <base/audioformat.h>
 #include <stream/stream.h>
+#include <base/audioformat.h>
 
 namespace xamp::stream {
 

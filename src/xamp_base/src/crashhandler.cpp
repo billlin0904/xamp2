@@ -1,5 +1,3 @@
-#include <mutex>
-
 #include <base/crashhandler.h>
 #include <base/dll.h>
 #include <base/memory.h>
@@ -19,6 +17,8 @@
 #include <signal.h>
 #include <execinfo.h>
 #endif
+
+#include <mutex>
 
 namespace xamp::base {
 

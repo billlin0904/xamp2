@@ -1,14 +1,8 @@
-#include <cstdio>
-#include <csignal>
-#include <vector>
-#include <optional>
-#include <sstream>
-#include <filesystem>
+#include <base/stacktrace.h>
 
 #include <base/fs.h>
 #include <base/stl.h>
 #include <base/singleton.h>
-#include <base/stacktrace.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
 
@@ -19,6 +13,13 @@
 #include <cxxabi.h>
 #include <execinfo.h>
 #endif
+
+#include <cstdio>
+#include <csignal>
+#include <vector>
+#include <optional>
+#include <sstream>
+#include <filesystem>
 
 namespace xamp::base {
 
@@ -53,7 +54,7 @@ public:
         
         ::SymSetOptions(SYMOPT_DEFERRED_LOADS |
             SYMOPT_UNDNAME |
-            SYMOPT_LOAD_LINES /*| SYMOPT_DEBUG*/);
+            SYMOPT_LOAD_LINES);
 
         init_state_ = ::SymInitialize(process_.get(),
             nullptr, 
@@ -62,8 +63,8 @@ public:
         if (init_state_) {
             wchar_t path[MAX_PATH] = { 0 };
             ::GetModuleFileNameW(nullptr, path, MAX_PATH);
-            Path excute_file_path(path);
-            auto parent_path = excute_file_path.parent_path();
+            const Path execute_file_path(path);
+            const auto parent_path = execute_file_path.parent_path();
             ::SymSetSearchPathW(process_.get(), parent_path.c_str());
         }
     }

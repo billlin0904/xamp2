@@ -1,19 +1,20 @@
-#include <base/base.h>
+#include <output_device/win32/exclusivewasapidevicetype.h>
 
 #ifdef XAMP_OS_WIN
+#include <output_device/win32/hrexception.h>
+#include <output_device/win32/exclusivewasapidevice.h>
+
+#include <base/base.h>
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 #include <base/logger_impl.h>
-#include <output_device/win32/hrexception.h>
-#include <output_device/win32/exclusivewasapidevice.h>
-#include <output_device/win32/exclusivewasapidevicetype.h>
 
 namespace xamp::output_device::win32 {
 
 XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept {
-	log_ = LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);
+	logger_ = LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);
 	ScanNewDevice();
 }
 
@@ -35,7 +36,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return helper::GetDeviceInfo(default_output_device, UuidOf<ExclusiveWasapiDeviceType>::Id());
+	return helper::GetDeviceInfo(default_output_device, UuidOf(ExclusiveWasapiDeviceType));
 }
 
 Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
@@ -57,7 +58,7 @@ std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
 }
 
 Uuid ExclusiveWasapiDeviceType::GetTypeId() const {
-	return UuidOf<ExclusiveWasapiDeviceType>::Id();
+	return UuidOf(ExclusiveWasapiDeviceType);
 }
 
 size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
@@ -88,13 +89,13 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		default_device_name = default_device_info.value().name;
 	}
 
-	XAMP_LOG_D(log_, "Load all devices");
+	XAMP_LOG_D(logger_, "Load all devices");
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
 		HrIfFailledThrow(devices->Item(i, &device));
-		auto info = helper::GetDeviceInfo(device, UuidOf<ExclusiveWasapiDeviceType>::Id());
+		auto info = helper::GetDeviceInfo(device, UuidOf(ExclusiveWasapiDeviceType));
 
 		if (default_device_name == info.name) {
 			info.is_default_device = true;
@@ -115,7 +116,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		info.max_volume = max_volume;
 		info.volume_increment = volume_increment;
 
-		XAMP_LOG_D(log_, "{:30} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
+		XAMP_LOG_D(logger_, "{:30} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
 			String::ToUtf8String(info.name),
 			info.min_volume,
 			info.max_volume,
@@ -125,7 +126,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		uint32_t step = 0;
 		uint32_t step_count = 0;
 		HrIfFailledThrow(endpoint_volume->GetVolumeStepInfo(&step, &step_count));
-		XAMP_LOG_D(log_, "Step:{} Step Count:{}", step, step_count);
+		XAMP_LOG_D(logger_, "Step:{} Step Count:{}", step, step_count);
 
 		DWORD volume_support_mask = 0;
 		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));

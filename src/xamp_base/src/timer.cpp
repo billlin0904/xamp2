@@ -1,9 +1,8 @@
-#include <thread>
+#include <base/timer.h>
+
 #include <base/platfrom_handle.h>
 #include <base/exception.h>
-#include <base/platform.h>
 #include <base/waitabletimer.h>
-#include <base/timer.h>
 
 #if defined(XAMP_OS_MAC)
 #include <dispatch/dispatch.h>

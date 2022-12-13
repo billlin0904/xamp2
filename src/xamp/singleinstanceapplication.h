@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <widget/widget_shared.h>
 #include <base/platfrom_handle.h>
 
 class SingleInstanceApplication {

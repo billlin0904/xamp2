@@ -16,6 +16,7 @@ extern "C" {
 }
 
 #include <base/base.h>
+#include <base/logger.h>
 #include <base/align_ptr.h>
 #include <base/dll.h>
 #include <base/singleton.h>
@@ -59,6 +60,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_receive_frame);
     XAMP_DECLARE_DLL_NAME(avcodec_flush_buffers);
     XAMP_DECLARE_DLL_NAME(av_get_bits_per_sample);
+    XAMP_DECLARE_DLL_NAME(avcodec_find_decoder_by_name);
 };
 
 class AvUtilLib final {
@@ -108,7 +110,7 @@ public:
     AlignPtr<AvSwLib> SwrLib;
     AlignPtr<AvUtilLib> UtilLib;
 
-    std::shared_ptr<Logger> logger;
+    LoggerPtr logger;
 };
 
 #define LIBAV_LIB Singleton<AvLib>::GetInstance()

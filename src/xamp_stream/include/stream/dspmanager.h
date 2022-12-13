@@ -5,14 +5,13 @@
 
 #pragma once
 
-#include <vector>
+#include <stream/idspmanager.h>
 
 #include <base/align_ptr.h>
-#include <base/uuid.h>
 #include <base/buffer.h>
+#include <base/uuidof.h>
+#include <base/stl.h>
 #include <base/audiobuffer.h>
-
-#include <stream/idspmanager.h>
 
 namespace xamp::stream {
 
@@ -66,7 +65,7 @@ private:
     DspIterator Find(DspIterator begin,
         DspIterator end) {
         auto itr = std::find_if(begin, end, [](auto const& processor) {
-            return processor->GetTypeId() == UuidOf<TDSP>::Id();
+            return processor->GetTypeId() == UuidOf(TDSP);
             });
         return itr;
     }
@@ -130,7 +129,7 @@ private:
     AlignPtr<ISampleWriter> sample_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
     DspConfig config_;
     std::function<bool(float const*, size_t, AudioBuffer<int8_t>&)> dispatch_;
 };

@@ -1,7 +1,8 @@
+#include <player/api.h>
+
 #include <stream/api.h>
 #include <stream/icddevice.h>
 #include <player/audio_player.h>
-#include <player/api.h>
 
 namespace xamp::player {
 

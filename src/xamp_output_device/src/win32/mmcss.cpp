@@ -1,14 +1,14 @@
-#include <base/base.h>
+#include <output_device/win32/mmcss.h>
 
 #ifdef XAMP_OS_WIN
 
 #include <base/dll.h>
-#include <avrt.h>
-
+#include <base/base.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
-#include <output_device/win32/mmcss.h>
+
+#include <avrt.h>
 
 namespace xamp::output_device::win32 {
 

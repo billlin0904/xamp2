@@ -8,9 +8,10 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-#include <base/align_ptr.h>
+
 #include <output_device/output_device.h>
 #include <output_device/win32/mmcss_types.h>
+#include <base/align_ptr.h>
 
 namespace xamp::output_device::win32 {
 

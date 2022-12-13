@@ -5,19 +5,18 @@
 
 #pragma once
 
-#include <string>
-#include <memory>
-#include <vector>
-#include <optional>
+#include <output_device/deviceinfo.h>
+#include <output_device/ioutputdevice.h>
+#include <output_device/output_device.h>
 
 #include <base/base.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
-#include <base/uuidof.h>
 
-#include <output_device/deviceinfo.h>
-#include <output_device/ioutputdevice.h>
-#include <output_device/output_device.h>
+#include <string>
+#include <memory>
+#include <vector>
+#include <optional>
 
 namespace xamp::output_device {
 

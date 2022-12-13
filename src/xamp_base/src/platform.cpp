@@ -1,17 +1,14 @@
-#include <thread>
-#include <set>
+#include <base/platform.h>
 
 #include <base/dll.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/rng.h>
-#include <base/platform.h>
 #include <base/assert.h>
 #include <base/waitabletimer.h>
 #include <base/exception.h>
 #include <base/memory.h>
-
 #include <base/platfrom_handle.h>
 
 #ifdef XAMP_OS_WIN
@@ -25,6 +22,9 @@
 #include <mach/thread_policy.h>
 #include <sys/mman.h>
 #endif
+
+#include <thread>
+#include <set>
 
 #ifdef XAMP_OS_MAC
 extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,

@@ -1,13 +1,12 @@
-#include <sstream>
-#include <algorithm>
+#include <base/exception.h>
 
 #include <base/base.h>
-
 #include <base/platfrom_handle.h>
-
 #include <base/stacktrace.h>
 #include <base/stl.h>
-#include <base/exception.h>
+
+#include <sstream>
+#include <algorithm>
 
 namespace xamp::base {
 

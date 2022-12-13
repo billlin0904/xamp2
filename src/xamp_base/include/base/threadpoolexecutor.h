@@ -70,7 +70,7 @@ private:
     Vector<WorkStealingTaskQueuePtr> task_work_queues_;
     Latch work_done_;
     Latch start_clean_up_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 class ThreadPoolExecutor final : public IThreadPoolExecutor {

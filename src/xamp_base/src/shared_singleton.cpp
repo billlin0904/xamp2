@@ -1,7 +1,9 @@
-#include <mutex>
+#include <base/shared_singleton.h>
+
 #include <base/fastmutex.h>
 #include <base/stl.h>
-#include <base/shared_singleton.h>
+
+#include <mutex>
 
 namespace xamp::base {
 

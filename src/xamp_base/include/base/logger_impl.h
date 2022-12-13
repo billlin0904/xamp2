@@ -5,14 +5,16 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-
+#include <base/base.h>
 #include <base/singleton.h>
 #include <base/stl.h>
-#include <base/base.h>
+#include <base/logger.h>
+
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
+
+#include <memory>
+#include <string>
 
 namespace spdlog {
     class logger;
@@ -100,11 +102,11 @@ public:
         return default_logger_.get();
     }
 
-    std::shared_ptr<Logger> GetLogger(const std::string_view& name);
+    LoggerPtr GetLogger(const std::string_view& name);
 
-    std::shared_ptr<Logger> GetLogger(const std::string& name);
+    LoggerPtr GetLogger(const std::string& name);
 
-    Vector<std::shared_ptr<Logger>> GetAllLogger();
+    Vector<LoggerPtr> GetAllLogger();
 
     void SetLevel(LogLevel level);
 
@@ -115,7 +117,7 @@ private:
     ~LoggerManager();
 
     Vector<spdlog::sink_ptr> sinks_;
-    std::shared_ptr<Logger> default_logger_;
+    LoggerPtr default_logger_;
 };
 
 }

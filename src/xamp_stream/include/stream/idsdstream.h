@@ -5,10 +5,10 @@
 
 #pragma once
 
+#include <stream/stream.h>
+
 #include <base/base.h>
 #include <base/dsdsampleformat.h>
-
-#include <stream/stream.h>
 
 namespace xamp::stream {
 

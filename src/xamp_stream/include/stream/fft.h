@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include <stream/stream.h>
+
 #include <base/align_ptr.h>
 #include <base/enum.h>
-#include <stream/stream.h>
 
 namespace xamp::stream {
 

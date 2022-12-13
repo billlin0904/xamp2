@@ -9,12 +9,13 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <atomic>
+#include <output_device/ioutputdevice.h>
+#include <output_device/win32/wasapiworkqueue.h>
 
 #include <base/logger.h>
 #include <base/platfrom_handle.h>
-#include <output_device/ioutputdevice.h>
-#include <output_device/win32/wasapiworkqueue.h>
+
+#include <atomic>
 
 namespace xamp::output_device::win32 {
 
@@ -97,7 +98,7 @@ private:
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
 	CComPtr<WASAPIWorkQueue<SharedWasapiDevice>> rt_work_queue_;
-	std::shared_ptr<Logger> log_;
+	LoggerPtr log_;
 };
 
 }

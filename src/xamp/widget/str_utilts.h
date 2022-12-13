@@ -9,8 +9,6 @@
 #include <QUuid>
 #include <QColor>
 
-#include <widget/widget_shared.h>
-
 struct ConstLatin1String final : public QLatin1String {
     constexpr ConstLatin1String(char const* const s) noexcept
         : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {

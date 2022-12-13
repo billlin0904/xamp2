@@ -21,9 +21,7 @@
 
 namespace xamp::output_device::win32 {
 
-class AsioDevice final
-	: public IOutputDevice
-	, public IDsdDevice {
+class AsioDevice final : public IOutputDevice, public IDsdDevice {
 public:
 	explicit AsioDevice(std::string const & device_id);
 
@@ -124,7 +122,7 @@ private:
 	IAudioCallback* callback_;
 	win32::Mmcss mmcss_;
 	ProcessDispatch process_;
-	std::shared_ptr<Logger> log_;
+	LoggerPtr logger_;
 };
 
 }

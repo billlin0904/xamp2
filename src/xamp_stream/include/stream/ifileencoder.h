@@ -5,9 +5,11 @@
 
 #pragma once
 
-#include <functional>
-#include <base/fs.h>
 #include <stream/stream.h>
+
+#include <base/fs.h>
+
+#include <functional>
 
 namespace xamp::stream {
 

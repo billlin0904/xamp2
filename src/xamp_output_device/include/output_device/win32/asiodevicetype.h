@@ -9,15 +9,18 @@
 
 #if ENABLE_ASIO
 
-#include <base/align_ptr.h>
-#include <base/stl.h>
-
 #include <output_device/output_device.h>
 #include <output_device/idevicetype.h>
+
+#include <base/align_ptr.h>
+#include <base/stl.h>
+#include <base/uuidof.h>
 
 namespace xamp::output_device::win32 {
 
 class ASIODeviceType final : public IDeviceType {
+	DECLARE_XAMP_MAKE_CLASS_UUID(ASIODeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
+
 public:
 	constexpr static auto Description = std::string_view("ASIO 2.0");
 
@@ -43,7 +46,6 @@ private:
 
 	static HashMap<std::string, DeviceInfo> device_info_cache_;
 };
-XAMP_MAKE_CLASS_UUID(ASIODeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
 
 }
 #endif

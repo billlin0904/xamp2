@@ -5,9 +5,8 @@
 
 #pragma once
 
-#include <future>
-#include <optional>
-#include <any>
+#include <player/playstate.h>
+#include <player/iaudioplayer.h>
 
 #include <base/base.h>
 #include <base/audiobuffer.h>
@@ -27,8 +26,10 @@
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>
 #include <output_device/deviceinfo.h>
-#include <player/playstate.h>
-#include <player/iaudioplayer.h>
+
+#include <future>
+#include <optional>
+#include <any>
 
 namespace xamp::player {
 
@@ -179,7 +180,7 @@ private:
     std::atomic<bool> is_fade_out_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
-    std::atomic<int32_t> playback_event_;
+    std::atomic<int32_t> playback_progress_;
     std::atomic<PlayerState> state_;
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
@@ -205,7 +206,7 @@ private:
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
     DspConfig config_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 }

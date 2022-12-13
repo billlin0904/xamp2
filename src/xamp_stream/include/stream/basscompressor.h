@@ -5,14 +5,16 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
-#include <stream/stream.h>
-#include <stream/compressorparameters.h>
 #include <stream/iaudioprocessor.h>
+
+#include <base/uuidof.h>
+#include <base/align_ptr.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassCompressor final : public IAudioProcessor {
+class BassCompressor final : public IAudioProcessor {
+    DECLARE_XAMP_MAKE_CLASS_UUID(BassCompressor, "263079D0-FDD4-46DF-9BB3-71821AF95EDB")
+
 public:
     BassCompressor();
 
@@ -35,6 +37,5 @@ private:
     class BassCompressorImpl;
     AlignPtr<BassCompressorImpl> impl_;
 };
-XAMP_MAKE_CLASS_UUID(BassCompressor, "263079D0-FDD4-46DF-9BB3-71821AF95EDB")
 
 }

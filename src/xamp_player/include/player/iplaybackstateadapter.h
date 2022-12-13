@@ -5,11 +5,13 @@
 
 #pragma once
 
+#include <player/player.h>
+#include <player/playstate.h>
+
+#include <output_device/idevicestatelistener.h>
+
 #include <base/base.h>
 #include <base/exception.h>
-#include <player/player.h>
-#include <output_device/idevicestatelistener.h>
-#include <player/playstate.h>
 
 namespace xamp::player {
 

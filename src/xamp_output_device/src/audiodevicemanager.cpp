@@ -1,7 +1,5 @@
-#include <base/base.h>
-#include <base/logger.h>
-#include <base/logger_impl.h>
-#include <base/exception.h>
+#include <output_device/audiodevicemanager.h>
+#include <output_device/api.h>
 
 #ifdef XAMP_OS_WIN
 #include <mfapi.h>
@@ -24,8 +22,10 @@
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
-#include <output_device/api.h>
-#include <output_device/audiodevicemanager.h>
+#include <base/base.h>
+#include <base/logger.h>
+#include <base/logger_impl.h>
+#include <base/exception.h>
 
 namespace xamp::output_device {
 
@@ -57,7 +57,7 @@ private:
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
-    RegisterDevice(UuidOf<DeviceTypeClass>::Id(), []() {\
+    RegisterDevice(UuidOf(DeviceTypeClass), []() {\
 		return MakeAlign<IDeviceType, DeviceTypeClass>();\
 	})
 
@@ -95,7 +95,7 @@ void AudioDeviceManager::Clear() {
 
 AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
-    return Create(UuidOf<win32::SharedWasapiDeviceType>::Id());
+    return Create(UuidOf(win32::SharedWasapiDeviceType));
 #else
     return Create(osx::CoreAudioDeviceType::Id);
 #endif
@@ -111,7 +111,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::Create(Uuid const& id) const {
 
 bool AudioDeviceManager::IsSupportASIO() const noexcept {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
-    return IsDeviceTypeExist(UuidOf<win32::ASIODeviceType>::Id());
+    return IsDeviceTypeExist(UuidOf(win32::ASIODeviceType));
 #else
     return false;
 #endif

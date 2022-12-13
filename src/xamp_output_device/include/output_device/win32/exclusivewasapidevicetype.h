@@ -9,14 +9,18 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <base/align_ptr.h>
-#include <base/logger.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/idevicetype.h>
+
+#include <base/uuidof.h>
+#include <base/align_ptr.h>
+#include <base/logger.h>
 
 namespace xamp::output_device::win32 {
 
 class ExclusiveWasapiDeviceType final : public IDeviceType {
+	DECLARE_XAMP_MAKE_CLASS_UUID(ExclusiveWasapiDeviceType, "089F8446-C980-495B-AC80-5A437A4E73F6")
+
 public:
 	constexpr static auto Description = std::string_view("WASAPI (Exclusive Mode)");
 
@@ -47,9 +51,8 @@ private:
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 	Vector<DeviceInfo> device_list_;
-	std::shared_ptr<Logger> log_;
+	LoggerPtr logger_;
 };
-XAMP_MAKE_CLASS_UUID(ExclusiveWasapiDeviceType, "089F8446-C980-495B-AC80-5A437A4E73F6")
 
 }
 

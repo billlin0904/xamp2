@@ -1,4 +1,6 @@
-﻿#include <QNetworkReply>
+﻿#include <widget/http.h>
+
+#include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QUrlQuery>
 #include <QUrl>
@@ -18,7 +20,8 @@
 
 #include <version.h>
 #include <widget/str_utilts.h>
-#include <widget/http.h>
+#include <widget/widget_shared.h>
+
 
 namespace http {
 
@@ -121,7 +124,7 @@ static QByteArray gzipUncompress(const QByteArray& data) {
     return result;
 }
 
-static void logHttpRequest(const std::shared_ptr<Logger> &logger,
+static void logHttpRequest(const LoggerPtr &logger,
     const ConstLatin1String& verb,
     const QString& url,
     const QNetworkRequest& request,
@@ -193,7 +196,7 @@ ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const 
     Q_UNREACHABLE();
 }
 
-static void logHttpRequest(const std::shared_ptr<Logger>& logger,
+static void logHttpRequest(const LoggerPtr& logger,
     const ConstLatin1String& verb,
     const QNetworkRequest& request,
     const QNetworkReply* reply = nullptr) {
@@ -207,7 +210,7 @@ struct HttpContext {
     QNetworkAccessManager* manager{nullptr};
     std::function<void (const QString &)> success_handler;
     std::function<void(const QString&)> error_handler;
-    std::shared_ptr<Logger> logger;
+    LoggerPtr logger;
 };
 
 class HttpClient::HttpClientImpl {
@@ -241,7 +244,7 @@ public:
     std::function<void (const QString &)> success_handler_;
     std::function<void(const QString&)> error_handler_;
     std::function<void (const QByteArray &)> download_handler_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)

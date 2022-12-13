@@ -1,17 +1,17 @@
-#include <base/base.h>
-#include <base/assert.h>
+#include <output_device/win32/sharedwasapidevice.h>
 
 #ifdef XAMP_OS_WIN
-#include <base/logger.h>
-#include <base/logger_impl.h>
-#include <base/waitabletimer.h>
-
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/unknownimpl.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/mmcss.h>
-#include <output_device/win32/sharedwasapidevice.h>
+
+#include <base/base.h>
+#include <base/assert.h>
+#include <base/logger.h>
+#include <base/logger_impl.h>
+#include <base/waitabletimer.h>
 
 namespace xamp::output_device::win32 {
 

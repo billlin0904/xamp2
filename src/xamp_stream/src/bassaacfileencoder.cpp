@@ -1,20 +1,22 @@
-#include <fstream>
-#include <set>
-#include <base/assert.h>
-#include <base/stl.h>
-#include <base/buffer.h>
-#include <base/str_utilts.h>
-#include <base/exception.h>
+#include <stream/bassaacfileencoder.h>
+
+#ifdef XAMP_OS_MAC
+
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 #include <stream/api.h>
 #include <stream/bass_utiltis.h>
 
-#ifdef XAMP_OS_MAC
+#include <base/assert.h>
+#include <base/stl.h>
+#include <base/buffer.h>
+#include <base/str_utilts.h>
+#include <base/exception.h>
 
 #include <AudioToolbox/AudioToolbox.h>
 
-#include <stream/bassaacfileencoder.h>
+#include <fstream>
+#include <set>
 
 namespace xamp::stream {
 

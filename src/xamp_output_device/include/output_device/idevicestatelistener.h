@@ -5,11 +5,12 @@
 
 #pragma once
 
-#include <string>
-
-#include <base/base.h>
 #include <output_device/devicestate.h>
 #include <output_device/output_device.h>
+
+#include <base/base.h>
+
+#include <string>
 
 namespace xamp::output_device {
 

@@ -1,4 +1,3 @@
-#include <fstream>
 #include <base/fs.h>
 #include <base/rng.h>
 #include <base/exception.h>
@@ -9,6 +8,8 @@
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #endif
+
+#include <fstream>
 
 namespace xamp::base {
 

@@ -1,4 +1,6 @@
-#include <soxr.h>
+#include <stream/soxresampler.h>
+
+#include <stream/soxrlib.h>
 
 #include <base/assert.h>
 #include <base/singleton.h>
@@ -6,8 +8,8 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/buffer.h>
-#include <stream/soxrlib.h>
-#include <stream/soxresampler.h>
+
+#include <soxr.h>
 
 namespace xamp::stream {
 
@@ -233,7 +235,7 @@ public:
 	double pass_band_;
 	double stop_band_;
 	SoxrHandle handle_;
-	std::shared_ptr<Logger> logger_;
+	LoggerPtr logger_;
 };
 
 SoxrSampleRateConverter::SoxrSampleRateConverter()
@@ -289,7 +291,7 @@ uint32_t SoxrSampleRateConverter::Process(float const* samples, float* out, uint
 }
 
 Uuid SoxrSampleRateConverter::GetTypeId() const {
-	return UuidOf<SoxrSampleRateConverter>::Id();
+	return UuidOf(SoxrSampleRateConverter);
 }
 
 void SoxrSampleRateConverter::Flush() {

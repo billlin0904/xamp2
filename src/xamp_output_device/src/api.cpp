@@ -1,9 +1,11 @@
-#include <base/uuid.h>
+#include <output_device/api.h>
+
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/asiodevice.h>
 #include <output_device/win32/asiodevicetype.h>
 #include <output_device/audiodevicemanager.h>
-#include <output_device/api.h>
+
+#include <base/uuid.h>
 
 #ifdef XAMP_OS_MAC
 #include <IOKit/pwr_mgt/IOPMLib.h>
@@ -59,9 +61,9 @@ AlignPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
 bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 #ifdef XAMP_OS_WIN
     Uuid const device_type_id(info.device_type_id);
-    return device_type_id == UuidOf<win32::ExclusiveWasapiDeviceType>::Id()
+    return device_type_id == UuidOf(win32::ExclusiveWasapiDeviceType)
 #if ENABLE_ASIO
-        || device_type_id == UuidOf<win32::ASIODeviceType>::Id()
+        || device_type_id == UuidOf(win32::ASIODeviceType)
 #endif
         ;
 #else
@@ -72,7 +74,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 
 bool IsASIODevice(Uuid const& id) noexcept {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    return id == UuidOf<win32::ASIODeviceType>::Id();
+    return id == UuidOf(win32::ASIODeviceType);
 #else
     (void)id;
     return false;

@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include <output_device/output_device.h>
+
 #include <base/exception.h>
 #include <base/enum.h>
-#include <output_device/output_device.h>
 
 namespace xamp::output_device {
 

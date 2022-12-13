@@ -1,14 +1,4 @@
-#include <vector>
-
-#include <QPainter>
-#include <QScrollBar>
-#include <QVBoxLayout>
-#include <QSpacerItem>
-#include <QClipboard>
-#include <QStandardPaths>
-#include <QFileDialog>
-#include <QSqlQuery>
-#include <QPainterPath>
+#include <widget/albumview.h>
 
 #include <widget/widget_shared.h>
 #include <widget/scrolllabel.h>
@@ -19,15 +9,24 @@
 #include <widget/playlistpage.h>
 
 #include "thememanager.h"
+
+#include <widget/appsettingnames.h>
 #include <widget/toast.h>
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/ui_utilts.h>
-#include <widget/albumview.h>
 
-#include "appsettingnames.h"
+#include <QPainter>
+#include <QScrollBar>
+#include <QVBoxLayout>
+#include <QSpacerItem>
+#include <QClipboard>
+#include <QStandardPaths>
+#include <QFileDialog>
+#include <QSqlQuery>
+#include <QPainterPath>
 
 enum {
     INDEX_ALBUM = 0,

@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <base/base.h>
+
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
 
+#include <base/base.h>
 #include <base/audiobuffer.h>
-#include <base/uuid.h>
 
 namespace xamp::stream {
 

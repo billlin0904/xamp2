@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include <stream/stream.h>
+
 #include <base/base.h>
 #include <base/dll.h>
-#include <stream/stream.h>
 
 #include <soxr.h>
 

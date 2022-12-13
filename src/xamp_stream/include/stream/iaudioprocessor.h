@@ -5,15 +5,14 @@
 
 #pragma once
 
-#include <any>
-#include <map>
+#include <stream/stream.h>
 
 #include <base/base.h>
 #include <base/uuid.h>
 #include <base/buffer.h>
-#include <base/UuidOf.h>
 
-#include <stream/stream.h>
+#include <any>
+#include <map>
 
 namespace xamp::stream {
 

@@ -29,6 +29,13 @@ bool ThemeManager::useNativeWindow() const {
     return use_native_window_;
 }
 
+QString ThemeManager::flagNamePath(const QString& countryIsoCode) {
+    return
+        qSTR("%1/flags/%2.png")
+        .arg(QCoreApplication::applicationDirPath())
+        .arg(countryIsoCode);
+}
+
 QString ThemeManager::fontNamePath(const QString& file_name) {
 	return
 		qSTR("%1/fonts/%2")

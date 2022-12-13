@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include <filesystem>
-#include <fstream>
+#include <stream/wavefilewriter.h>
 
 #include <base/singleton.h>
 #include <base/lrucache.h>
-#include <stream/wavefilewriter.h>
+
+#include <filesystem>
+#include <fstream>
 
 namespace xamp::stream {
 

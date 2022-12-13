@@ -15,9 +15,10 @@
 
 namespace xamp::base {
 	
-inline constexpr size_t kIdSize = 16;
+inline constexpr size_t kMaxUuidSize = 16;
 inline constexpr size_t kMaxUuidHexStringLength = 36;
-using UuidBuffer = std::array<uint8_t, kIdSize>;
+
+using UuidBuffer = std::array<uint8_t, kMaxUuidSize>;
 
 class XAMP_BASE_API Uuid final {
 public:
@@ -28,8 +29,8 @@ public:
     static bool TryParseString(std::string const& hex_string, Uuid &uuid);
 
     template <typename ForwardIterator>
-    explicit Uuid(ForwardIterator first, ForwardIterator last) {
-	    if (std::distance(first, last) == kIdSize) {
+    constexpr Uuid(ForwardIterator first, ForwardIterator last) {
+	    if (std::distance(first, last) == kMaxUuidSize) {
 		    std::copy(first, last, std::begin(bytes_));
 	    } else {
             throw std::invalid_argument("Invalid Uuid.");
@@ -38,11 +39,13 @@ public:
 
     Uuid() noexcept;
 
-    explicit Uuid(UuidBuffer const &buffer) noexcept;
+    constexpr Uuid(UuidBuffer const& buffer)
+        : bytes_(buffer) {
+    }
 
     Uuid(std::string_view const &hex_string);
 
-    explicit Uuid(const uint8_t(&byte_array)[kIdSize]) noexcept;
+    explicit Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept;
 
 	[[nodiscard]] bool IsValid() const noexcept;
 
@@ -62,7 +65,6 @@ public:
         return bytes_;
     }
 
-private:
     XAMP_BASE_API friend std::ostream &operator<<(std::ostream &s, Uuid const &id);
 
     XAMP_BASE_API friend bool operator==(std::string const &str, Uuid const &id);
@@ -71,6 +73,7 @@ private:
 
     XAMP_BASE_API friend bool operator!=(Uuid const & other1, Uuid const & other2) noexcept;
 
+private:
     UuidBuffer bytes_{0};
 };
 
@@ -106,8 +109,11 @@ XAMP_ALWAYS_INLINE bool operator==(std::string const &str, Uuid const &id) {
 }
 
 XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const noexcept {
-    const std::string s = *this;
-    return std::hash<std::string>{}(s);
+    size_t seed = 0;
+    for (const auto data : bytes_) {
+        seed ^= static_cast<size_t>(data) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
 }
 
 }

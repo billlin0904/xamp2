@@ -1,8 +1,9 @@
-#include <base/str_utilts.h>
-#include <stream/basslib.h>
 #include <stream/basscddevice.h>
 
 #ifdef XAMP_OS_WIN
+
+#include <stream/basslib.h>
+#include <base/str_utilts.h>
 
 namespace xamp::stream {
 

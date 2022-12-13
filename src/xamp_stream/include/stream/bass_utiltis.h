@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <functional>
-#include <base/buffer.h>
 #include <stream/basslib.h>
+
+#include <base/buffer.h>
+#include <functional>
 
 namespace xamp {
 namespace stream {

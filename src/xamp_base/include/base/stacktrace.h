@@ -5,7 +5,10 @@
 
 #pragma once
 
+#include <base/base.h>
+
 #include <array>
+#include <string>
 
 namespace xamp::base {
 

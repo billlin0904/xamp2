@@ -9,11 +9,11 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <output_device/win32/unknownimpl.h>
+#include <base/assert.h>
+
 #include <windows.h>
 #include <mfidl.h>
-
-#include <base/assert.h>
-#include <output_device/win32/unknownimpl.h>
 
 namespace xamp::output_device::win32 {
 

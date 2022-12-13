@@ -8,7 +8,11 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-#include <chrono>
+#include <output_device/deviceinfo.h>
+#include <output_device/win32/mmcss_types.h>
+
+#include <base/stl.h>
+#include <base/uuid.h>
 
 #include <atlcomcli.h>
 #include <mmdeviceapi.h>
@@ -22,14 +26,10 @@
 #include <endpointvolume.h>
 #include <functiondiscoverykeys_devpkey.h>
 
-#include <base/stl.h>
-#include <base/uuid.h>
-
 #include <avrt.h>
 #include <Mferror.h>
 
-#include <output_device/deviceinfo.h>
-#include <output_device/win32/mmcss_types.h>
+#include <chrono>
 
 struct IMMDevice;
 struct IMFAsyncResult;

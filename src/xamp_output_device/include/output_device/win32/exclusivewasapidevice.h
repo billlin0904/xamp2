@@ -5,26 +5,26 @@
 
 #pragma once
 
+#include <base/base.h>
+
 #ifdef XAMP_OS_WIN
 
-#include <atomic>
+#include <output_device/win32/wasapi.h>
+#include <output_device/idsddevice.h>
+#include <output_device/ioutputdevice.h>
+#include <output_device/ivolumelevel.h>
 
 #include <base/logger.h>
 #include <base/dataconverter.h>
 #include <base/buffer.h>
 #include <base/task.h>
 #include <base/platfrom_handle.h>
-#include <output_device/win32/wasapi.h>
-#include <output_device/idsddevice.h>
-#include <output_device/ioutputdevice.h>
-#include <output_device/ivolumelevel.h>
+
+#include <atomic>
 
 namespace xamp::output_device::win32 {
 
-class ExclusiveWasapiDevice final
-	: public IOutputDevice
-	, public IDsdDevice
-	, public IVolumeLevel {
+class ExclusiveWasapiDevice final : public IOutputDevice, public IDsdDevice, public IVolumeLevel {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -104,7 +104,7 @@ private:
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
-	std::shared_ptr<Logger> log_;
+	LoggerPtr logger_;
 	Task<void> render_task_;
 };
 

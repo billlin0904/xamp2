@@ -1,9 +1,11 @@
+#include <stream/basscompressor.h>
+
+#include <stream/compressorparameters.h>
+#include <stream/bass_utiltis.h>
 #include <stream/basslib.h>
-#include <base/memory.h>
+
 #include <base/buffer.h>
 #include <base/logger_impl.h>
-#include <stream/bass_utiltis.h>
-#include <stream/basscompressor.h>
 
 namespace xamp::stream {
 
@@ -55,7 +57,7 @@ public:
 
 private:
     BassStreamHandle stream_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 BassCompressor::BassCompressor()
@@ -83,7 +85,7 @@ uint32_t BassCompressor::Process(float const* samples, float* out, uint32_t num_
 }
 
 Uuid BassCompressor::GetTypeId() const {
-    return UuidOf<BassCompressor>::Id();
+    return UuidOf(BassCompressor);
 }
 
 std::string_view BassCompressor::GetDescription() const noexcept {

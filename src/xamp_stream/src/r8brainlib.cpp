@@ -1,7 +1,8 @@
+#include <stream/r8brainlib.h>
+
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
-#include <stream/r8brainlib.h>
 
 namespace xamp::stream {
 

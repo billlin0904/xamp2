@@ -1,6 +1,7 @@
-#include <sstream>
 #include <base/stl.h>
 #include <base/audioformat.h>
+
+#include <sstream>
 
 namespace xamp::base {
 

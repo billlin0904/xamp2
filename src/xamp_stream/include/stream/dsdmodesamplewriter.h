@@ -5,13 +5,18 @@
 
 #pragma once
 
-#include <functional>
-#include <base/dsdsampleformat.h>
 #include <stream/isameplewriter.h>
+
+#include <base/dsdsampleformat.h>
+#include <base/uuidof.h>
+
+#include <functional>
 
 namespace xamp::stream {
 
 class XAMP_STREAM_API DsdModeSampleWriter final : public ISampleWriter {
+    DECLARE_XAMP_MAKE_CLASS_UUID(DsdModeSampleWriter, "490A3F39-6829-49B7-822C-DD7D72D7E57F")
+
 public:
     explicit DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size);
 

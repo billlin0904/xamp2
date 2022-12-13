@@ -103,7 +103,7 @@ private:
     HFX preamp_;
     BassStreamHandle stream_;
     std::array<HFX, kMaxBand> fx_handles_;
-    std::shared_ptr<Logger> logger_;
+    LoggerPtr logger_;
 };
 
 BassEqualizer::BassEqualizer()
@@ -143,7 +143,7 @@ uint32_t BassEqualizer::Process(float const* samples, float* out, uint32_t num_s
 }
 
 Uuid BassEqualizer::GetTypeId() const {
-    return UuidOf<BassEqualizer>::Id();
+    return UuidOf(BassEqualizer);
 }
 
 std::string_view BassEqualizer::GetDescription() const noexcept {

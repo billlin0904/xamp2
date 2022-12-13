@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <base/audioformat.h>
 #include <output_device/output_device.h>
+
+#include <base/audioformat.h>
 
 namespace xamp::output_device {
 

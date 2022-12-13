@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <base/buffer.h>
 #include <stream/stream.h>
 #include <stream/fft.h>
+
+#include <base/buffer.h>
 
 namespace xamp::stream {
 

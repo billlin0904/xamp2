@@ -5,13 +5,16 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
 #include <stream/ifileencoder.h>
+
+#include <base/align_ptr.h>
+#include <base/uuidof.h>
 
 namespace xamp::stream {
 
-class BassFlacFileEncoder final
-	: public IFileEncoder {
+class BassFlacFileEncoder final : public IFileEncoder {
+	DECLARE_XAMP_MAKE_CLASS_UUID(BassFlacFileEncoder, "C4E07DD2-9296-49B2-99B7-7EEEED3A2046")
+
 public:
 	BassFlacFileEncoder();
 

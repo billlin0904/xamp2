@@ -1,12 +1,13 @@
-#include <base/base.h>
+#include <output_device/win32/hrexception.h>
 
 #ifdef XAMP_OS_WIN
+#include <output_device/win32/wasapi.h>
+
+#include <base/platfrom_handle.h>
+#include <base/base.h>
 
 #include <comutil.h>
 #include <comdef.h>
-#include <output_device/win32/wasapi.h>
-#include <base/platfrom_handle.h>
-#include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {
 

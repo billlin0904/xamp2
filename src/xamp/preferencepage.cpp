@@ -188,9 +188,9 @@ void PreferencePage::initLang() {
 
 	auto current_index = 0;
 	auto index = 0;
+
     Q_FOREACH (auto lang, LocaleLanguageManager::languageNames()) {
-		auto file_name = qSTR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode().toUpper());
-        QIcon ico(file_name);
+        QIcon ico(qTheme.flagNamePath(lang.countryIsoCode().toUpper()));
 		ui_.langCombo->addItem(ico, lang.nativeNameLang());
 		if (current_lang.getIsoCode() == lang.getIsoCode()) {
 			current_index = index;

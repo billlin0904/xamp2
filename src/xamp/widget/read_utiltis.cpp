@@ -1,12 +1,8 @@
-#include <functional>
-#include <optional>
-#include <utility>
-#include <tuple>
+#include <widget/read_utiltis.h>
+#include <widget/widget_shared.h>
 
 #include <base/align_ptr.h>
 #include <base/buffer.h>
-#include <base/str_utilts.h>
-#include <base/platform.h>
 #include <base/memory.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
@@ -20,7 +16,11 @@
 #include <metadata/imetadatawriter.h>
 
 #include <player/ebur128reader.h>
-#include <widget/read_utiltis.h>
+
+#include <functional>
+#include <optional>
+#include <utility>
+#include <tuple>
 
 using namespace xamp::base;
 using namespace xamp::stream;

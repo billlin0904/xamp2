@@ -5,11 +5,13 @@
 
 #pragma once
 
-#include <base/platform.h>
-#include <base/dsdsampleformat.h>
 #include <stream/stream.h>
 #include <stream/dsd_times.h>
 #include <stream/isameplewriter.h>
+
+#include <base/platform.h>
+#include <base/uuidof.h>
+#include <base/dsdsampleformat.h>
 
 namespace xamp::stream {
 
@@ -18,6 +20,8 @@ XAMP_MAKE_ENUM(Pcm2DsdConvertModes,
 	PCM2DSD_DSD_NATIVE)
 
 class XAMP_STREAM_API Pcm2DsdSampleWriter final : public ISampleWriter {
+	DECLARE_XAMP_MAKE_CLASS_UUID(Pcm2DsdSampleWriter, "1CDC7F5F-BF93-4CA3-ACAC-3FC2B04157D5")
+
 public:
 	explicit Pcm2DsdSampleWriter(DsdTimes dsd_times);
 

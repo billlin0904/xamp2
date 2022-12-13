@@ -5,16 +5,19 @@
 
 #pragma once
 
-#include <base/enum.h>
+#include <stream/iaudioprocessor.h>
+
+#include <base/uuidof.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <stream/iaudioprocessor.h>
 
 namespace xamp::stream {
 
-static constexpr int32_t kR8brainBufferSize = 64 * 1024;
+inline constexpr int32_t kR8brainBufferSize = 64 * 1024;
 
 class XAMP_STREAM_API R8brainSampleRateConverter final : public IAudioProcessor {
+    DECLARE_XAMP_MAKE_CLASS_UUID(R8brainSampleRateConverter, "786D706E-20F0-4F30-9B98-8B489DC5C739")
+
 public:
     XAMP_PIMPL(R8brainSampleRateConverter)
 
@@ -38,7 +41,6 @@ private:
     class R8brainSampleRateConverterImpl;
     AlignPtr<R8brainSampleRateConverterImpl> impl_;
 };
-XAMP_MAKE_CLASS_UUID(R8brainSampleRateConverter, "786D706E-20F0-4F30-9B98-8B489DC5C739")
 
 }
 

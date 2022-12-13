@@ -5,13 +5,17 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
+
+#include <base/uuidof.h>
+#include <base/align_ptr.h>
 
 namespace xamp::stream {
 
 class BassVolume final : public IAudioProcessor {
+    DECLARE_XAMP_MAKE_CLASS_UUID(BassVolume, "83d25234-5484-45a3-bda8-baf35541f9d2")
+
 public:
     BassVolume();
 
@@ -35,6 +39,5 @@ private:
     class BassVolumeImpl;
     AlignPtr<BassVolumeImpl> impl_;
 };
-XAMP_MAKE_CLASS_UUID(BassVolume, "83d25234-5484-45a3-bda8-baf35541f9d2")
 
 }

@@ -1,8 +1,8 @@
+#include <stream/avlib.h>
+
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
-
-#include <stream/avlib.h>
 
 namespace xamp::stream {
 
@@ -33,7 +33,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_send_packet)
 	, XAMP_LOAD_DLL_API(avcodec_receive_frame)
 	, XAMP_LOAD_DLL_API(avcodec_flush_buffers)
-	, XAMP_LOAD_DLL_API(av_get_bits_per_sample) {
+	, XAMP_LOAD_DLL_API(av_get_bits_per_sample)
+	, XAMP_LOAD_DLL_API(avcodec_find_decoder_by_name) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

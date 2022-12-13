@@ -5,11 +5,12 @@
 
 #pragma once
 
-#include <fstream>
-#include <base/fs.h>
-
-#include <base/audioformat.h>
 #include <stream/stream.h>
+
+#include <base/fs.h>
+#include <base/audioformat.h>
+
+#include <fstream>
 
 namespace xamp::stream {
 

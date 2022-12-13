@@ -1,28 +1,11 @@
 <RCC>
     <qresource prefix="/xamp">
         <file>xamp.ico</file>
-        <file>Resource/Flags/TW.png</file>
-        <file>Resource/Flags/JP.png</file>
         <file>Resource/Theme/dark/style.qss</file>
         <file>Resource/Theme/light/style.qss</file>
-        <file>Resource/Black/maximize_normal.png</file>
-        <file>Resource/Black/minimize_hover.png</file>
-        <file>Resource/Black/minimize_normal.png</file>
-        <file>Resource/White/close_hover.png</file>
-        <file>Resource/White/close_normal.png</file>
-        <file>Resource/White/maximize_hover.png</file>
-        <file>Resource/White/maximize_normal.png</file>
-        <file>Resource/White/minimize_hover.png</file>
-        <file>Resource/White/minimize_normal.png</file>
-        <file>Resource/White/unknown_album.png</file>
-        <file>Resource/Black/close_hover.png</file>
-        <file>Resource/Black/close_normal.png</file>
-        <file>Resource/Black/play_arrow.png</file>
-        <file>Resource/White/play_arrow.png</file>
-        <file>Resource/Flags/US.png</file>
         <file>Resource/White/GitHub-Mark.png</file>
         <file>Resource/Black/GitHub-Mark.png</file>
         <file>Resource/Black/play_circle.png</file>
-        <file>Resource/Black/slider_handle.png</file>
+        <file>Resource/White/unknown_album.png</file>
     </qresource>
 </RCC>

@@ -1,5 +1,7 @@
-#include <fstream>
-#include <vector>
+#include <stream/pcm2dsdsamplewriter.h>
+
+#include <stream/fftwlib.h>
+#include <stream/dsd_utils.h>
 
 #include <base/exception.h>
 #include <base/memory.h>
@@ -14,9 +16,8 @@
 #include <base/stl.h>
 #include <base/stopwatch.h>
 
-#include <stream/fftwlib.h>
-#include <stream/dsd_utils.h>
-#include <stream/pcm2dsdsamplewriter.h>
+#include <fstream>
+#include <vector>
 
 namespace xamp::stream {
 
@@ -136,7 +137,7 @@ struct FFTWContext {
 		uint32_t times,
 		uint32_t fft_size,
 		uint32_t section_1,
-		std::shared_ptr<Logger> logger) {
+		LoggerPtr logger) {
 		nowfft_size.resize(log_times);
 		zero_size.resize(log_times);
 		pudding_size.resize(log_times);
@@ -618,7 +619,7 @@ public:
 	std::fstream rch_out_;
 	Vector<double> lch_src_;
 	Vector<double> rch_src_;
-	std::shared_ptr<Logger> logger_;
+	LoggerPtr logger_;
 	AlignPtr<IThreadPoolExecutor> tp_;
 };
 

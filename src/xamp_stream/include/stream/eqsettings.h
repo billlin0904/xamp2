@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <array>
 #include <stream/stream.h>
+#include <array>
 
 namespace xamp::stream {
 

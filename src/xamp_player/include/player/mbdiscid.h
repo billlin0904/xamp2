@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include <player/player.h>
+
 #include <base/base.h>
 #include <base/align_ptr.h>
-#include <player/player.h>
 
 #ifdef XAMP_OS_WIN
 

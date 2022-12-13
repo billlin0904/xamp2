@@ -9,9 +9,10 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <output_device/output_device.h>
+
 #include <base/exception.h>
 #include <base/fs.h>
-#include <output_device/output_device.h>
 
 namespace xamp::output_device::win32 {
 

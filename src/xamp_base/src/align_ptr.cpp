@@ -1,10 +1,11 @@
 #include <base/base.h>
 
+#include <base/assert.h>
+#include <base/align_ptr.h>
+
 #ifdef XAMP_OS_WIN
 #include <malloc.h>
 #endif
-#include <base/assert.h>
-#include <base/align_ptr.h>
 
 namespace xamp::base {
 

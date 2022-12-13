@@ -1,7 +1,8 @@
+#include <stream/r8brainresampler.h>
+
+#include <stream/r8brainlib.h>
 #include <base/assert.h>
 #include <base/logger_impl.h>
-#include <stream/r8brainlib.h>
-#include <stream/r8brainresampler.h>
 
 namespace xamp::stream {
 
@@ -104,7 +105,7 @@ void R8brainSampleRateConverter::Init(const DspConfig& config) {
 }
 
 Uuid R8brainSampleRateConverter::GetTypeId() const {
-	return UuidOf<R8brainSampleRateConverter>::Id();
+	return UuidOf(R8brainSampleRateConverter);
 }
 
 void R8brainSampleRateConverter::Flush() {

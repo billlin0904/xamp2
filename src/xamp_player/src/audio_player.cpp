@@ -80,7 +80,7 @@ AudioPlayer::AudioPlayer()
     , is_fade_out_(false)
     , is_playing_(false)
     , is_paused_(false)
-    , playback_event_{-1}
+    , playback_progress_{-1}
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_end_time_(0)
     , stream_duration_(0)
@@ -177,7 +177,7 @@ void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
             return;
         }
 
-        const auto playback_event = p->playback_event_.load();
+        const auto playback_event = p->playback_progress_.load();
         if (playback_event > 0) {
             adapter->OnSampleTime(p->device_->GetStreamTime());
         }
@@ -480,7 +480,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
-        if (device_type_->GetTypeId() == UuidOf<win32::ASIODeviceType>::Id()) {
+        if (device_type_->GetTypeId() == UuidOf(win32::ASIODeviceType)) {
             return is_muted_;
         }
 #else
@@ -738,7 +738,7 @@ void AudioPlayer::EnableFadeOut(bool enable) {
 }
 
 void AudioPlayer::UpdateProgress(int32_t sample_size) noexcept {
-    playback_event_.exchange(sample_size);
+    playback_progress_.exchange(sample_size);
 }
 
 void AudioPlayer::Seek(double stream_time) {

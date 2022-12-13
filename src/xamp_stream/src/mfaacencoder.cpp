@@ -1,6 +1,18 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
+#include <stream/mfaacencoder.h>
+
+#include <stream/bassfilestream.h>
+#include <stream/basslib.h>
+#include <stream/bass_utiltis.h>
+
+#include <base/enum.h>
+#include <base/platfrom_handle.h>
+#include <base/audioformat.h>
+#include <base/logger_impl.h>
+#include <base/str_utilts.h>
+
 #include <atlbase.h>
 
 #include <initguid.h>
@@ -10,16 +22,6 @@
 #include <mfidl.h>
 #include <Mfreadwrite.h>
 #include <mferror.h>
-
-#include <base/enum.h>
-#include <base/platfrom_handle.h>
-#include <base/audioformat.h>
-#include <base/logger_impl.h>
-#include <base/str_utilts.h>
-#include <stream/bassfilestream.h>
-#include <stream/basslib.h>
-#include <stream/bass_utiltis.h>
-#include <stream/mfaacencoder.h>
 
 namespace xamp::stream {
 

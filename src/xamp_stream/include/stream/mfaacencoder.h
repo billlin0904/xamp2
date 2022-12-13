@@ -5,13 +5,15 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
-#include <base/audioformat.h>
-#include <base/stl.h>
-#include <base/encodingprofile.h>
 #include <stream/ifileencoder.h>
 
 #ifdef XAMP_OS_WIN
+#include <base/align_ptr.h>
+#include <base/audioformat.h>
+#include <base/uuidof.h>
+#include <base/stl.h>
+#include <base/encodingprofile.h>
+
 namespace xamp::stream {
 
 enum AACProfileLevel {
@@ -34,6 +36,8 @@ XAMP_MAKE_ENUM(AACPayloadType,
 	PAYLOAD_AAC_LOAS_AND_LATM)
 
 class XAMP_STREAM_API MFAACFileEncoder final : public IFileEncoder {
+	DECLARE_XAMP_MAKE_CLASS_UUID(MFAACFileEncoder, "1817BCF4-F2CF-48CB-AFF4-A3D5B8989FDA")
+
 public:
 	MFAACFileEncoder();
 

@@ -5,32 +5,29 @@
 
 #pragma once
 
-#include <cstdint>
-#include <set>
-#include <map>
-
 #include <bass/bass.h>
-#include <bass/bassdsd.h>
+
+#ifdef XAMP_OS_WIN
+#endif
+
+#include <stream/bassexception.h>
+
 #include <bass/bass_fx.h>
 #include <bass/bassmix.h>
 #include <bass/basscd.h>
 #include <bass/bassenc.h>
 #include <bass/bassenc_flac.h>
-
-#ifdef XAMP_OS_WIN
-#include <bass/bassenc_aac.h>
-#endif
-
 #include <base/singleton.h>
 #include <base/dll.h>
 #include <base/stl.h>
-#include <base/exception.h>
 #include <base/unique_handle.h>
 #include <base/memory.h>
 #include <base/memory_mapped_file.h>
 #include <base/logger.h>
 
-#include <stream/bassexception.h>
+#include <cstdint>
+#include <set>
+#include <map>
 
 namespace xamp::stream {
 
@@ -223,7 +220,7 @@ public:
 
     XAMP_DISABLE_COPY(BassLib)
 
-    std::shared_ptr<Logger> logger;
+	LoggerPtr logger;
 
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;

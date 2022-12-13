@@ -1,6 +1,6 @@
-#include <vector>
-#include <sstream>
-#include <functional>
+#include <metadata/taglibmetareader.h>
+
+#include <metadata/taglib.h>
 
 #include <base/stl.h>
 #include <base/str_utilts.h>
@@ -9,8 +9,9 @@
 #include <base/logger_impl.h>
 #include <base/singleton.h>
 
-#include <metadata/taglib.h>
-#include <metadata/taglibmetareader.h>
+#include <vector>
+#include <sstream>
+#include <functional>
 
 namespace xamp::metadata {
 

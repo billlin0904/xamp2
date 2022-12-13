@@ -1,5 +1,6 @@
-#include <base/platform.h>
 #include <base/rng.h>
+
+#include <base/platform.h>
 
 namespace xamp::base {
 

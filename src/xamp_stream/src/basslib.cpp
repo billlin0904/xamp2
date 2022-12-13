@@ -1,7 +1,10 @@
+#include <stream/basslib.h>
+
 #include <base/singleton.h>
 #include <base/logger_impl.h>
 #include <base/str_utilts.h>
-#include <stream/basslib.h>
+
+#include <bass/bassdsd.h>
 
 namespace xamp::stream {
 

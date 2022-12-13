@@ -8,6 +8,8 @@
 #include <stream/stream.h>
 #include <stream/iaudiostream.h>
 
+#include <base/fs.h>
+
 namespace xamp::stream {
 
 class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
@@ -18,7 +20,7 @@ public:
 		return true;
 	}
 
-    virtual void OpenFile(std::wstring const & file_path) = 0;
+    virtual void OpenFile(Path const & file_path) = 0;
 
     [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
 

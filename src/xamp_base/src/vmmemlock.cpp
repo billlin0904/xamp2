@@ -1,3 +1,5 @@
+#include <base/vmmemlock.h>
+
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <base/stacktrace.h>
@@ -5,7 +7,6 @@
 #include <base/logger_impl.h>
 #include <base/memory.h>
 #include <base/platform.h>
-#include <base/vmmemlock.h>
 
 namespace xamp::base {
 

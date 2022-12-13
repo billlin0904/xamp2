@@ -5,13 +5,17 @@
 
 #pragma once
 
+#include <base/base.h>
+
+#include <memory>
 #include <string_view>
 #include <string>
-#include <base/base.h>
 
 namespace xamp::base {
 
 class Logger;
+
+using LoggerPtr = std::shared_ptr<Logger>;
 
 #define XAMP_DECLARE_LOG_NAME(LogName) inline const std::string_view k##LogName##LoggerName(#LogName)
 

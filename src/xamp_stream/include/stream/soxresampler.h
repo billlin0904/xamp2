@@ -5,10 +5,12 @@
 
 #pragma once
 
+#include <stream/iaudioprocessor.h>
+
+#include <base/uuidof.h>
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <stream/iaudioprocessor.h>
 
 namespace xamp::stream {
 
@@ -25,6 +27,8 @@ XAMP_MAKE_ENUM(SoxrRollOff,
           ROLLOFF_NONE)
 
 class XAMP_STREAM_API SoxrSampleRateConverter final : public IAudioProcessor {
+    DECLARE_XAMP_MAKE_CLASS_UUID(SoxrSampleRateConverter, "F986498A-9678-456F-96A7-2F6C2E5D13CB")
+
 public:
     XAMP_PIMPL(SoxrSampleRateConverter)
 
@@ -62,7 +66,6 @@ private:
     class SoxrSampleRateConverterImpl;
     AlignPtr<SoxrSampleRateConverterImpl> impl_;
 };
-XAMP_MAKE_CLASS_UUID(SoxrSampleRateConverter, "F986498A-9678-456F-96A7-2F6C2E5D13CB")
 
 }
 
