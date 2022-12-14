@@ -23,6 +23,8 @@ public:
     // note: return true (fetch more data).
     [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
 
+    [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, float* out) = 0;
+
     virtual void AddPreDSP(AlignPtr<IAudioProcessor> processor) = 0;
 
     virtual void AddPostDSP(AlignPtr<IAudioProcessor> processor) = 0;
@@ -45,7 +47,7 @@ public:
 
     [[nodiscard]] virtual bool IsEnablePcm2DsdConverter() const = 0;
 
-    [[nodiscard]] virtual bool CanProcessFile() const noexcept = 0;
+    [[nodiscard]] virtual bool CanProcess() const noexcept = 0;
 
     virtual void Flush() = 0;
 protected:

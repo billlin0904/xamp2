@@ -72,7 +72,8 @@ public:
         const auto* throw_information = ehe_exception_record.params.pThrowInfo;
         if (!throw_information) {
             // No ThrowInfo exists. If this was a C++ exception, something must have corrupted it.
-            abort();
+            //abort();
+            return;
         }
 
         if (!ehe_exception_record.params.pExceptionObject) {

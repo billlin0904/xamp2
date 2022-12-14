@@ -74,7 +74,7 @@ IDSPManager& DSPManager::RemoveSampleRateConverter() {
     return *this;
 }
 
-bool DSPManager::CanProcessFile() const noexcept {
+bool DSPManager::CanProcess() const noexcept {
     if (!pre_dsp_.empty() || !post_dsp_.empty()) {
         return true;
     }
@@ -133,6 +133,10 @@ void DSPManager::Flush() {
     }
 }
 
+bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, float* out) {
+    return false;
+}
+
 bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
     return dispatch_(samples, num_samples, fifo);
 }
@@ -182,7 +186,7 @@ void DSPManager::Init(const DspConfig& config) {
         sample_writer_ = MakeAlign<ISampleWriter, DsdModeSampleWriter>(dsd_mode, sample_size);
     }
 
-    if (!CanProcessFile()) {
+    if (!CanProcess()) {
         dispatch_ = bind_front(&DSPManager::DefaultProcess, this);
         return;
     }

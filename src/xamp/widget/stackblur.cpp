@@ -1,7 +1,7 @@
 #include <array>
 #include <thread>
 #include <base/buffer.h>
-#include <base/ppl.h>
+#include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
 #include <widget/stackblur.h>
 
@@ -326,7 +326,7 @@ void Stackblur::blur(IThreadPoolExecutor& tp,
 	}
 	else {
 		const auto blur_job = [div, &stack, src, width, height, radius, thread_branch, &tp](int step) {
-            ParallelFor(tp,
+            Executor::ParallelFor(tp,
 				0, 
 				thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t i) {
 					auto* buffer = stack.get() + div * 4 * i;

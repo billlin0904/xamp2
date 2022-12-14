@@ -34,7 +34,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_receive_frame)
 	, XAMP_LOAD_DLL_API(avcodec_flush_buffers)
 	, XAMP_LOAD_DLL_API(av_get_bits_per_sample)
-	, XAMP_LOAD_DLL_API(avcodec_find_decoder_by_name) {
+	, XAMP_LOAD_DLL_API(avcodec_find_decoder_by_name)
+	, XAMP_LOAD_DLL_API(avcodec_configuration) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -127,6 +128,12 @@ AvLib::AvLib() {
 	UtilLib->av_log_set_level(AV_LOG_FATAL);
 
 	FormatLib->avformat_network_init();
+
+	const auto level = logger->GetLevel();
+	logger->SetLevel(LOG_LEVEL_DEBUG);
+	XAMP_LOG_D(logger, CodecLib->avcodec_configuration());
+	logger->SetLevel(level);
+
 	XAMP_LOG_D(logger, "Network init.");
 }
 

@@ -1,8 +1,14 @@
-#include <base/rng.h>
+#include <base/pcg32.h>
 #include <base/platform.h>
 #include <base/itaskschedulerpolicy.h>
 
 namespace xamp::base {
+
+#ifdef XAMP_OS_WIN
+#define XAMP_NO_TLS_GUARDS [[msvc::no_tls_guard]]
+#else
+#define XAMP_NO_TLS_GUARDS
+#endif
 
 AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy) {
 	switch (policy) {
@@ -10,6 +16,8 @@ AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy polic
 		return MakeAlign<ITaskSchedulerPolicy, LeastLoadSchedulerPolicy>();
 	case TaskSchedulerPolicy::ROUND_ROBIN_POLICY:
 		return MakeAlign<ITaskSchedulerPolicy, RoundRobinSchedulerPolicy>();
+	case TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY:
+		return MakeAlign<ITaskSchedulerPolicy, ThreadLocalRandomSchedulerPolicy>();
 	case TaskSchedulerPolicy::RANDOM_POLICY:
 	default:
 		return MakeAlign<ITaskSchedulerPolicy, RandomSchedulerPolicy>();
@@ -45,6 +53,20 @@ size_t RoundRobinSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index,
 
 void RoundRobinSchedulerPolicy::SetMaxThread(size_t max_thread) {
 	max_thread_ = max_thread;
+}
+
+void ThreadLocalRandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
+	max_thread_ = max_thread;
+}
+
+size_t ThreadLocalRandomSchedulerPolicy::ScheduleNext(size_t index,
+	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
+	XAMP_NO_TLS_GUARDS static thread_local auto prng = PCG32Engine();
+	const auto random_index = prng() % static_cast<uint32_t>(max_thread_);
+	if (random_index == index) {
+		return (std::numeric_limits<size_t>::max)();
+	}
+	return random_index;
 }
 
 void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {

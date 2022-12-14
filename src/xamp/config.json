@@ -9,6 +9,7 @@
                 "BackgroundThreadPool": "info",
                 "BassCompressor": "info",
                 "BassFader": "info",
+                "BassFileStream": "info",
                 "BassVolume": "info",
                 "Database": "info",
                 "DspManager": "info",

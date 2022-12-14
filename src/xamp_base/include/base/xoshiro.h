@@ -5,12 +5,11 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <cstdint>
-#include <array>
-
 #include <base/base.h>
 #include <base/math.h>
+
+#include <cstdint>
+#include <array>
 
 namespace xamp::base {
 
@@ -326,6 +325,13 @@ public:
 
     explicit Xoshiro128StarStarEngine(uint64_t seed = kXoshiroDefaultSeed)
         : state_(Splitmix64<2>(seed)) {
+    }
+
+    Xoshiro128StarStarEngine(uint64_t seed, size_t jump_count)
+        : state_(Splitmix64<2>(seed)) {
+        for (size_t jump = 0; jump < jump_count; ++jump) {
+            Jump();
+        }
     }
 
     /*constexpr*/ result_type operator()() noexcept {

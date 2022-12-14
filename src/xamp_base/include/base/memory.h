@@ -18,7 +18,7 @@ namespace xamp::base {
 #else
 
 template <size_t AlignedBytes, typename T>
-XAMP_ALWAYS_INLINE [[nodiscard]] constexpr T* AssumeAligned(T *ptr) {
+XAMP_ALWAYS_INLINE constexpr T* AssumeAligned(T *ptr) {
 #ifdef XAMP_OS_MAC
 	return reinterpret_cast<T*>(__builtin_assume_aligned(ptr, AlignedBytes));
 #else

@@ -127,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/msvc/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -172,12 +172,13 @@
     <ClInclude Include="include\base\jthread.h" />
     <ClInclude Include="include\base\latch.h" />
     <ClInclude Include="include\base\logger_impl.h" />
+    <ClInclude Include="include\base\pcg32.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
     <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpoolexecutor.h" />
     <ClInclude Include="include\base\lifoqueue.h" />
     <ClInclude Include="include\base\math.h" />
-    <ClInclude Include="include\base\ppl.h" />
+    <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\rcu_ptr.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\simd.h" />

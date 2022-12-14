@@ -67,6 +67,8 @@ public:
 
     void SetLevel(LogLevel level);
 
+    LogLevel GetLevel() const;
+
     const std::string & GetName() const;
 
     template <typename... Args>

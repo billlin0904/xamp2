@@ -33,7 +33,7 @@ struct XAMP_BASE_API AudioConvertContext {
 XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const& out_format, size_t convert_size) noexcept;
 
 template <typename T>
-void ConvertBench(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+void XAMP_VECTOR_CALL ConvertBench(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
 	XAMP_ASSERT(output != nullptr);
 	XAMP_ASSERT(input != nullptr);
 
@@ -131,7 +131,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		ConvertBench<int32_t>(output, input, kFloat32Scale, context);
     }
 
-	static void Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+	static void XAMP_VECTOR_CALL Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		XAMP_ASSERT(output != nullptr);
 		XAMP_ASSERT(input != nullptr);
 
@@ -158,7 +158,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 	}
 
-    static void Convert(int32_t* XAMP_RESTRICT output,
+    static void XAMP_VECTOR_CALL Convert(int32_t* XAMP_RESTRICT output,
                         float const* XAMP_RESTRICT input,
                         AudioConvertContext const& context) noexcept {
 		XAMP_ASSERT(output != nullptr);
@@ -187,7 +187,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 	}
 
-    static void ConvertToInt2432(int32_t* XAMP_RESTRICT output,
+    static void XAMP_VECTOR_CALL ConvertToInt2432(int32_t* XAMP_RESTRICT output,
                                  float const* XAMP_RESTRICT input,
                                  AudioConvertContext const& context) noexcept {
 		XAMP_ASSERT(output != nullptr);

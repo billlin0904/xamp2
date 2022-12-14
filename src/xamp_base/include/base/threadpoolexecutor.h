@@ -26,14 +26,14 @@ namespace xamp::base {
 class TaskScheduler final : public ITaskScheduler {
 public:
     TaskScheduler(const std::string_view & pool_name,
-        uint32_t max_thread, 
+        size_t max_thread,
         CpuAffinity affinity,
         ThreadPriority priority);
 
     TaskScheduler(TaskSchedulerPolicy policy,
         TaskStealPolicy steal_policy,
         const std::string_view& pool_name,
-        uint32_t max_thread, 
+        size_t max_thread,
         CpuAffinity affinity,
         ThreadPriority priority);
 	
@@ -41,7 +41,7 @@ public:
 
     ~TaskScheduler() override;
 
-    uint32_t GetThreadSize() const override;
+    size_t GetThreadSize() const override;
 
     void SubmitJob(MoveableFunction&& task) override;
 
@@ -61,7 +61,7 @@ private:
 
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
-    uint32_t max_thread_;
+    size_t max_thread_;
     std::string pool_name_;
     Vector<JThread> threads_;
     SharedTaskQueuePtr task_pool_;
@@ -93,7 +93,7 @@ public:
 
     void Stop() override;
 
-    uint32_t GetThreadSize() const override;
+    size_t GetThreadSize() const override;
 };
 
 }

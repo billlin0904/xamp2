@@ -5,17 +5,15 @@
 
 #pragma once
 
-#include <future>
-#include <vector>
-#include <type_traits>
-#include <memory>
-
 #include <base/base.h>
 #include <base/moveablefunction.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
-#include <base/task.h>
 #include <base/platform.h>
+
+#include <future>
+#include <type_traits>
+#include <memory>
 
 namespace xamp::base {
 
@@ -27,7 +25,7 @@ public:
 
 	virtual void SubmitJob(MoveableFunction&& task) = 0;
 
-    virtual uint32_t GetThreadSize() const = 0;
+    virtual size_t GetThreadSize() const = 0;
 
     virtual void Destroy() noexcept = 0;
 protected:
@@ -39,7 +37,7 @@ class XAMP_BASE_API XAMP_NO_VTABLE IThreadPoolExecutor {
 public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExecutor)
 
-    virtual uint32_t GetThreadSize() const = 0;
+    virtual size_t GetThreadSize() const = 0;
 
     virtual void Stop() = 0;
 

@@ -61,6 +61,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_flush_buffers);
     XAMP_DECLARE_DLL_NAME(av_get_bits_per_sample);
     XAMP_DECLARE_DLL_NAME(avcodec_find_decoder_by_name);
+    XAMP_DECLARE_DLL_NAME(avcodec_configuration);
 };
 
 class AvUtilLib final {

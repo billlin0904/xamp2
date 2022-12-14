@@ -17,11 +17,11 @@ inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxStealFailureSize = 500;
 inline constexpr auto kMaxWorkQueueSize = 65536;
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: TaskScheduler(TaskSchedulerPolicy::RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
 }
 
-TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(max_thread)
@@ -74,7 +74,7 @@ TaskScheduler::~TaskScheduler() {
 	Destroy();
 }
 
-uint32_t TaskScheduler::GetThreadSize() const {
+size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
 }
 
@@ -154,6 +154,7 @@ std::optional<MoveableFunction> TaskScheduler::TrySteal(StopToken const& stop_to
 		}
 
 		const auto index = (i + n) % max_thread_;
+
 		if (task_work_queues_.at(index)->TryDequeue(func)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
 			return std::move(func);
@@ -237,7 +238,7 @@ ThreadPoolExecutor::~ThreadPoolExecutor() {
 	Stop();
 }
 
-uint32_t ThreadPoolExecutor::GetThreadSize() const {
+size_t ThreadPoolExecutor::GetThreadSize() const {
 	return scheduler_->GetThreadSize();
 }
 

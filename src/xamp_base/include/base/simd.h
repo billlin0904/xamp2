@@ -21,6 +21,12 @@
 #define m128 __m128
 #define m128i __m128i
 
+#ifdef XAMP_OS_WIN
+#define XAMP_VECTOR_CALL __vectorcall
+#else
+#define XAMP_VECTOR_CALL __attribute__((vectorcall))
+#endif
+
 namespace xamp::base {
 
 inline constexpr int32_t kFloat16Scale = 32767;

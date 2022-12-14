@@ -95,6 +95,10 @@ void Logger::SetLevel(LogLevel level) {
 	logger_->set_level(static_cast<spdlog::level::level_enum>(level));
 }
 
+LogLevel Logger::GetLevel() const {
+	return static_cast<LogLevel>(logger_->level());
+}
+
 const std::string& Logger::GetName() const {
 	return logger_->name();
 }

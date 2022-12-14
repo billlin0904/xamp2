@@ -25,6 +25,8 @@ public:
 
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 
+    bool ProcessDSP(const float* samples, uint32_t num_samples, float* out) override;
+
     void AddPreDSP(AlignPtr<IAudioProcessor> processor) override;
 
     void AddPostDSP(AlignPtr<IAudioProcessor> processor) override;
@@ -47,7 +49,7 @@ public:
 
     bool IsEnablePcm2DsdConverter() const override;
 
-    bool CanProcessFile() const noexcept override;
+    bool CanProcess() const noexcept override;
 
     void Flush() override;
 

@@ -1,12 +1,5 @@
 #include <benchmark/benchmark.h>
 
-#include <iostream>
-#include <numeric>
-#include <vector>
-#include <unordered_map>
-#include <execution>
-#include <unordered_set>
-
 #include <base/scopeguard.h>
 #include <base/trackinfo.h>
 #include <base/lifoqueue.h>
@@ -24,9 +17,11 @@
 #include <base/singleton.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
-#include <base/ppl.h>
+#include <base/executor.h>
 #include <base/chachaengine.h>
 #include <base/rcu_ptr.h>
+#include <base/uuidof.h>
+#include <base/pcg32.h>
 
 #include <stream/api.h>
 #include <stream/fft.h>
@@ -38,6 +33,13 @@
 #else
 #include <uuid/uuid.h>
 #endif
+
+#include <iostream>
+#include <numeric>
+#include <vector>
+#include <unordered_map>
+#include <execution>
+#include <unordered_set>
 
 using namespace xamp::player;
 using namespace xamp::base;
@@ -57,7 +59,7 @@ static void BM_RcuPtr(benchmark::State& state) {
     RcuPtr<int> total(std::make_shared<int>());
 
     for (auto _ : state) {
-        ParallelFor(*thread_pool, 0, length, [&total](auto item) {
+	    Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
 			total.copy_update([item](auto cp) {
 				*cp += item;
 				});
@@ -75,7 +77,7 @@ static void BM_RcuPtrMutex(benchmark::State& state) {
     FastMutex mutex;
 
     for (auto _ : state) {
-        ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
+	    Executor::ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
             std::lock_guard<FastMutex> guard{ mutex };
 			total += item;
             }, 16);
@@ -98,7 +100,7 @@ static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(*thread_pool, n, [&total](auto item) {
+	    Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
             }, 16);
     }
@@ -120,7 +122,29 @@ static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+	    Executor::ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+            total += item;
+            }, 16);
+    }
+}
+
+static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
+    const auto thread_pool = MakeThreadPoolExecutor(
+        kBM_RandomPolicyThreadPoolLoggerName,
+        ThreadPriority::NORMAL,
+        std::thread::hardware_concurrency(),
+        kDefaultAffinityCpuCore,
+        TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY);
+
+    LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
+        ->SetLevel(LOG_LEVEL_OFF);
+
+    const auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int64_t> total;
+    for (auto _ : state) {
+	    Executor::ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
             }, 16);
     }
@@ -142,7 +166,7 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+        Executor::ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
             }, 16);
     }
@@ -238,6 +262,15 @@ static void BM_ChaCha20Random(benchmark::State& state) {
 static void BM_default_random_engine(benchmark::State& state) {
     std::random_device rd;
     std::default_random_engine engine(rd());
+    for (auto _ : state) {
+        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
+        benchmark::DoNotOptimize(n);
+    }
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+}
+
+static void BM_PCG32Random(benchmark::State& state) {
+    PCG32Engine engine;
     for (auto _ : state) {
         size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
@@ -690,6 +723,15 @@ static void BM_UuidParse(benchmark::State& state) {
     }
 }
 
+static void BM_UuidCompilerTime(benchmark::State& state) {
+    using namespace UuidLiterals;
+
+    for (auto _ : state) {
+        auto result = "4293818B-D5E9-4FBE-BA14-B15A68F1DEEA"_uuid;
+        benchmark::DoNotOptimize(result);
+    }
+}
+
 FastMutex m;
 
 static void BM_FastMutex(benchmark::State& state) {
@@ -777,11 +819,15 @@ static void BM_Rotl(benchmark::State& state) {
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
+//BENCHMARK(BM_UuidCompilerTime);
+
 //BENCHMARK(BM_Xoshiro256StarStarRandom);
 //BENCHMARK(BM_Xoshiro256PlusRandom);
 //BENCHMARK(BM_Xoshiro256PlusPlusRandom);
 //BENCHMARK(BM_ChaCha20Random);
+//BENCHMARK(BM_PCG32Random);
 //BENCHMARK(BM_default_random_engine);
+
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
 //BENCHMARK(BM_PRNG_SharedGetInstance);
@@ -803,14 +849,15 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
+
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 //BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
@@ -822,7 +869,9 @@ BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096,
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#endif
 
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+
 //BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
@@ -832,7 +881,6 @@ BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096,
 int main(int argc, char** argv) {
     LoggerManager::GetInstance()
         .AddDebugOutput()
-        .AddLogFile("xamp.log")
         .Startup();
 
     // For debug use!

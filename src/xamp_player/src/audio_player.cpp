@@ -9,7 +9,7 @@
 #include <base/timer.h>
 #include <base/scopeguard.h>
 #include <base/waitabletimer.h>
-#include <base/ppl.h>
+#include <base/executor.h>
 
 #include <output_device/api.h>
 #include <output_device/win32/asiodevicetype.h>
@@ -872,8 +872,6 @@ void AudioPlayer::Play() {
     }
 
     stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()]() {
-        //std::this_thread::sleep_for(std::chrono::seconds(1));
-
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };

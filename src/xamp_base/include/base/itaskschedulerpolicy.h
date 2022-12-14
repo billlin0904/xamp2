@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include <base/base.h>
 #include <base/align_ptr.h>
 #include <base/rng.h>
@@ -53,6 +51,15 @@ XAMP_BASE_API AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedul
 XAMP_BASE_API AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy);
 
 class RoundRobinSchedulerPolicy final : public ITaskSchedulerPolicy {
+public:
+    void SetMaxThread(size_t max_thread) override;
+
+    size_t ScheduleNext(size_t index, const Vector<WorkStealingTaskQueuePtr>& work_queues) override;
+private:
+    size_t max_thread_{ 0 };
+};
+
+class ThreadLocalRandomSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     void SetMaxThread(size_t max_thread) override;
 

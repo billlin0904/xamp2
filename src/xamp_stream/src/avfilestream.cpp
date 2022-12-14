@@ -109,6 +109,8 @@ public:
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder_by_name("libfdk_aac");
             if (!codec) {
                 XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
+            } else {
+                XAMP_LOG_D(logger_, "Use codec 'libfdk_aac'.");
             }
         }
 
@@ -243,7 +245,7 @@ public:
     }
 
     uint32_t GetBitDepth() const noexcept {
-        return (std::max)(format_context_->streams[audio_stream_id_]->codecpar->bits_per_coded_sample, 16);
+        return (std::max)(format_context_->streams[audio_stream_id_]->codecpar->bits_per_raw_sample, 16);
     }
 
     void Seek(double stream_time) {
