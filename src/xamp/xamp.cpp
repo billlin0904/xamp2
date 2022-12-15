@@ -186,6 +186,8 @@ void Xamp::setXWindow(IXWindow* top_window) {
     setPlaylistPageCover(nullptr, podcast_page_);  
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
     setPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
+    file_system_view_page_->playlistPage()->hidePlaybackInformation(false);
+    album_page_->album()->albumViewPage()->playlistPage()->hidePlaybackInformation(false);
     
     avoidRedrawOnResize();
 
@@ -1545,7 +1547,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::addPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
     qDatabase.addMusicToPlaylist(music_ids, playlist_view->playlistId());
-    emit playlist_view->addPlaylistReplayGain(false, entities);
+    emit playlist_view->readReplayGain(false, entities);
     playlist_view->executeQuery();
 }
 
@@ -2014,7 +2016,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     }
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::addPlaylistReplayGain,
+        &PlayListTableView::readReplayGain,
         background_worker_,
         &BackgroundWorker::onReadReplayGain);
 

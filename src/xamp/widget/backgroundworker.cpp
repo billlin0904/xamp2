@@ -178,7 +178,7 @@ void BackgroundWorker::onDownloadPodcast() {
             }).get();
 }
 
-void BackgroundWorker::onReadReplayGain(bool, const ForwardList<PlayListEntity>& entities) {
+void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
     lazyInit();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
@@ -282,7 +282,8 @@ void BackgroundWorker::onReadReplayGain(bool, const ForwardList<PlayListEntity>&
         rg.ref_loudness = target_loudness;
 
         writer_->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
-        emit updateReplayGain(replay_gain.music_id[i],
+        emit updateReplayGain(playlistId,
+            replay_gain.music_id[i],
             replay_gain.track_loudness[i],
             replay_gain.album_gain,
             replay_gain.album_peak,

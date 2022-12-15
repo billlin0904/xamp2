@@ -606,7 +606,7 @@ void PlayListTableView::initial() {
             for (const auto& row : rows) {
                 items.push_front(this->item(row.second));
             }
-            emit addPlaylistReplayGain(true, items);
+            emit readReplayGain(playlistId(), items);
         });
 
         action_map.setCallback(export_flac_file_act, [this]() {
@@ -671,12 +671,17 @@ void PlayListTableView::setPodcastMode(bool enable) {
 void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
 }
 
-void PlayListTableView::updateReplayGain(const PlayListEntity& entity,
+void PlayListTableView::updateReplayGain(int32_t playlistId,
+    const PlayListEntity& entity,
     double track_loudness,
     double album_rg_gain,
     double album_peak,
     double track_rg_gain,
     double track_peak) {
+    if (playlistId != playlist_id_) {
+        return;
+    }
+
     qDatabase.updateReplayGain(
         entity.music_id,
         album_rg_gain,

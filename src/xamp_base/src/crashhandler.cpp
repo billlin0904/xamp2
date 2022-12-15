@@ -119,11 +119,11 @@ public:
 
         auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            if ((*itr).first == EXCEPTION_MSVC_CPP) {
+            /*if ((*itr).first == EXCEPTION_MSVC_CPP) {
                 if (DumpMsvcException(exception_pointers)) {
                     return;
                 }
-            }
+            }*/
             XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X}){}",
                 (*itr).second, (*itr).first, stack_trace.CaptureStack());
             return;

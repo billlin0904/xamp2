@@ -84,7 +84,7 @@ signals:
 
 	void encodeWavFile(const PlayListEntity& item);
 
-    void addPlaylistReplayGain(bool force, const ForwardList<PlayListEntity> &entities);
+    void readReplayGain(int32_t playlist_id, const ForwardList<PlayListEntity> &entities);
 
 	void updateAlbumCover(const QString &cover_id);
 
@@ -101,7 +101,8 @@ public slots:
 
 	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
-	void updateReplayGain(const PlayListEntity& entity,
+	void updateReplayGain(int32_t playlistId, 
+		const PlayListEntity& entity,
 		double track_loudness,
 		double album_rg_gain,
 		double album_peak,

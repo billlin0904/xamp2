@@ -33,7 +33,8 @@ public:
     virtual ~BackgroundWorker();
 
 signals:
-    void updateReplayGain(const PlayListEntity &entity,
+    void updateReplayGain(int32_t playlistId,
+        const PlayListEntity &entity,
         double track_loudness,
         double album_rg_gain,
         double album_peak,
@@ -51,7 +52,7 @@ signals:
     void downloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
 public Q_SLOT:
-    void onReadReplayGain(bool force, const ForwardList<PlayListEntity>& entities);
+    void onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
     void onBlurImage(const QString &cover_id, const QImage& image);
 
