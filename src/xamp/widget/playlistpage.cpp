@@ -12,7 +12,8 @@
 #include <widget/playlistpage.h>
 
 PlaylistPage::PlaylistPage(QWidget* parent)
-	: QFrame(parent) {
+	: QFrame(parent)
+	, hide_playback_information_(true) {
 	initial();
 }
 
@@ -115,6 +116,15 @@ void PlaylistPage::initial() {
 		&PlayListTableView::updateAlbumCover,
 		this,
 		&PlaylistPage::setCoverById);
+
+	if (hide_playback_information_) {
+		format_->hide();
+		title_->hide();
+		cover_->hide();		
+		middle_spacer->changeSize(0, 0);
+		right_spacer->changeSize(0, 0);
+		default_spacer->changeSize(0, 0);
+	}
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
@@ -132,6 +142,10 @@ ScrollLabel* PlaylistPage::title() {
 
 QLabel* PlaylistPage::cover() {
 	return cover_;
+}
+
+void PlaylistPage::hidePlaybackInformation(bool hide) {
+	hide_playback_information_ = hide;
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {

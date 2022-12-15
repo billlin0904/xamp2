@@ -29,6 +29,8 @@ public:
 
 	void setCover(const QPixmap* cover);
 
+	void hidePlaybackInformation(bool hide);
+
 signals:
 	void playMusic(const PlayListEntity& item);
 
@@ -40,6 +42,7 @@ public slots:
 private:
 	void initial();
 
+	bool hide_playback_information_;
 	PlayListTableView* playlist_;
 	QLabel* cover_;
     ScrollLabel* title_;

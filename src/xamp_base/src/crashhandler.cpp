@@ -22,6 +22,8 @@
 
 namespace xamp::base {
 
+XAMP_DECLARE_LOG_NAME(CrashHandler);
+
 #ifdef XAMP_OS_WIN
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
@@ -66,29 +68,51 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
 
 class CrashHandler::CrashHandlerImpl {
 public:
+    CrashHandlerImpl() {
+        logger_ = LoggerManager::GetInstance().GetLogger(kCrashHandlerLoggerName);
+    }
+
 #ifdef XAMP_OS_WIN
-    static void DumpMsvcException(const EXCEPTION_POINTERS * pointers) {
-        const auto& ehe_exception_record = *reinterpret_cast<stdx::detail::EHExceptionRecord*>(pointers->ExceptionRecord);
+    static bool DumpMsvcException(const EXCEPTION_POINTERS * pointers) {
+        using namespace stdx::detail;
+
+        const auto& ehe_exception_record = *reinterpret_cast<EHExceptionRecord*>(pointers->ExceptionRecord);
         const auto* throw_information = ehe_exception_record.params.pThrowInfo;
         if (!throw_information) {
-            // No ThrowInfo exists. If this was a C++ exception, something must have corrupted it.
-            //abort();
-            return;
+            XAMP_LOG_D(logger_, "No ThrowInfo exists. If this was a C++ exception, something must have corrupted it.");
+            return false;
         }
 
         if (!ehe_exception_record.params.pExceptionObject) {
-            return;
+            return false;
         }
 
         const auto image_base = reinterpret_cast<uintptr_t>(ehe_exception_record.params.pThrowImageBase);
-        const auto* catchable_type_array = reinterpret_cast<const stdx::detail::CatchableTypeArray*>(
+        const auto* catchable_type_array = reinterpret_cast<const CatchableTypeArray*>(
             static_cast<uintptr_t>(throw_information->pCatchableTypeArray) + image_base);
-        const auto* catchable_type = reinterpret_cast<stdx::detail::CatchableType*>(
+        const auto* catchable_type = reinterpret_cast<CatchableType*>(
             static_cast<uintptr_t>(catchable_type_array->arrayOfCatchableTypes[0]) + image_base);
+
+        auto* exception_record = pointers->ExceptionRecord;
+        HMODULE module = (exception_record->NumberParameters >= 4)
+            ? reinterpret_cast<HMODULE>(exception_record->ExceptionInformation[3]) : nullptr;
+
+#define RVA_TO_VA_(type, addr)  ( (type) ((uintptr_t) module + (uintptr_t) (addr)) )
+        auto* type = RVA_TO_VA_(const std::type_info*, catchable_type->pType);
+                
+        auto *exception_object = reinterpret_cast<std::exception*>(
+            adjustThis(catchable_type->thisDisplacement,
+            ehe_exception_record.params.pExceptionObject));
+
+        XAMP_LOG_D(logger_, "Catch MSVC exception class name:{} what:{}",
+            type->name(),
+            exception_object->what());
+
+        return true;
     }
 
     static void Dump(void* info) {
-        std::lock_guard<FastMutex> guard{ mutex_ };
+        std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
         StackTrace stack_trace;
         const auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
@@ -96,9 +120,12 @@ public:
         auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
             if ((*itr).first == EXCEPTION_MSVC_CPP) {
-                DumpMsvcException(exception_pointers);
+                if (DumpMsvcException(exception_pointers)) {
+                    return;
+                }
             }
-            XAMP_LOG_DEBUG("Ignore exception code: {}({:#014X}){}", (*itr).second, (*itr).first, stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X}){}",
+                (*itr).second, (*itr).first, stack_trace.CaptureStack());
             return;
         }
 
@@ -109,10 +136,10 @@ public:
 
         auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr2).second, stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Uncaught exception: {}{}\r\n", (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_DEBUG("Uncaught exception: {:#014X}{}\r\n", code, stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X}{}\r\n", code, stack_trace.CaptureStack());
         }
     }
 
@@ -213,7 +240,7 @@ public:
 
         bool result = (old_action.sa_flags & SA_SIGINFO) != 0;
         if (::sigaction(signum, &old_action, nullptr) == -1) {
-            XAMP_LOG_ERROR("Restore failed in test for SA_SIGINFO: {}", strerror(errno));
+            XAMP_LOG_D(logger_, "Restore failed in test for SA_SIGINFO: {}", strerror(errno));
         }
 
         return result;
@@ -248,10 +275,10 @@ public:
             break;
         }
 
-        XAMP_LOG_ERROR("Fatal signal {} ({}){}{}",
+        XAMP_LOG_E(logger_, "Fatal signal {} ({}){}{}",
             signum, signal_name, info->si_code, info->si_addr);
         StackTrace trace;
-        XAMP_LOG_ERROR(trace.CaptureStack());
+        XAMP_LOG_E(logger_, trace.CaptureStack());
     }
 
     static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
@@ -285,10 +312,12 @@ public:
         ::sigaction(SIGTRAP, &action, nullptr);
     }
 #endif
-    static FastMutex mutex_;
+    static std::recursive_mutex mutex_;
+    static LoggerPtr logger_;
 };
 
-FastMutex CrashHandler::CrashHandlerImpl::mutex_;
+std::recursive_mutex CrashHandler::CrashHandlerImpl::mutex_;
+LoggerPtr CrashHandler::CrashHandlerImpl::logger_;
 
 CrashHandler::CrashHandler()
 	: impl_(MakeAlign<CrashHandlerImpl>()) {

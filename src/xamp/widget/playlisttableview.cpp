@@ -364,7 +364,7 @@ void PlayListTableView::initial() {
     setModel(proxy_model_);
 
     auto f = font();
-    f.setWeight(QFont::Weight::Normal);
+    f.setWeight(QFont::Weight::Medium);
     f.setPointSize(qTheme.fontSize());
     setFont(f);
 
@@ -414,15 +414,6 @@ void PlayListTableView::initial() {
         qDatabase.updateMusicRating(item.music_id, item.rating);
         reload();
     });
-
-    (void)QObject::connect(this, &QTableView::entered, [this](auto index) {
-        if (index.column() == PLAYLIST_TRACK) {
-            setCursor(Qt::PointingHandCursor);
-        }
-        else {
-            setCursor(Qt::ArrowCursor);
-        }
-        });
 
     setEditTriggers(DoubleClicked | SelectedClicked);
     verticalHeader()->setSectionsMovable(false);
@@ -508,7 +499,9 @@ void PlayListTableView::initial() {
             auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
             import_podcast_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_DOWNLOAD));
             action_map.setCallback(import_podcast_act, [this]() {
-                downloadPodcast();
+                indicator_ = makeProcessIndicator(this);
+				indicator_->startAnimation();
+                emit downloadPodcast();
                 });
         }
 
@@ -517,8 +510,8 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(remove_all_act, [this]() {
             qDatabase.removePlaylistAllMusic(playlistId());
-        executeQuery();
-        removePlaying();
+            executeQuery();
+            removePlaying();
             });
 
         action_map.addSeparator();
@@ -798,47 +791,26 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
     }
 }
 
-void PlayListTableView::downloadPodcast() {
-    auto indicator = makeProcessIndicator(this);
-    XAMP_LOG_DEBUG("Start download podcast.xml");
+void PlayListTableView::onDownloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
+    Stopwatch sw;
+    ::MetadataExtractAdapter::processMetadata(track_infos,
+        this,
+        podcast_mode_);
+    XAMP_LOG_DEBUG("Insert database! {}sec", sw.ElapsedSeconds());
+    sw.Reset();
 
-    indicator->startAnimation();
+    if (!model()->rowCount()) {
+        return;
+    }
 
-    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
-	.error([indicator](const QString& msg) {
-        XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
-	})
-	.success([indicator, this](const QString& json) {
-        XAMP_LOG_DEBUG("Download meta.json ({}) success!", String::FormatBytes(json.size()));
+    const auto cover_id = qPixmapCache.addOrUpdate(cover_image_data);
+    const auto index = this->model()->index(0, 0);
+    const auto play_item = item(index);
+    qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
+    emit updateAlbumCover(cover_id);
+    XAMP_LOG_DEBUG("Add album cover cache! {}sec", sw.ElapsedSeconds());
 
-		Stopwatch sw;
-        std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
-        auto const podcast_info = std::make_pair(image_url, parseJson(json));
-        XAMP_LOG_DEBUG("Parse meta.json success! {}sec", sw.ElapsedSeconds());
-
-        sw.Reset();
-        ::MetadataExtractAdapter::processMetadata(podcast_info.second,
-            this,
-            podcast_mode_);
-        XAMP_LOG_DEBUG("Insert database! {}sec", sw.ElapsedSeconds());
-
-        XAMP_LOG_DEBUG("Start download podcast image file");        
-        http::HttpClient(QString::fromStdString(podcast_info.first))
-		.error([indicator](const QString& msg) {
-            XAMP_LOG_DEBUG("Download podcast image error! {}", msg.toStdString());
-        })
-    	.download([indicator, this](const QByteArray& data) {
-            if (!model()->rowCount()) {
-                return;
-            }
-            XAMP_LOG_DEBUG("Download podcast image file ({}) success!", String::FormatBytes(data.size()));
-            const auto cover_id = qPixmapCache.addOrUpdate(data);
-            const auto index = this->model()->index(0, 0);
-            const auto play_item = item(index);
-            qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
-            emit updateAlbumCover(cover_id);
-            });
-        }).get();
+    indicator_.reset();
 }
 
 void PlayListTableView::resizeColumn() {

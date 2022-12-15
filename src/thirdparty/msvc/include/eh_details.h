@@ -40,7 +40,7 @@ typedef struct TypeDescriptor
 	DWORD hash;   // Hash value computed from type's decorated name
 #endif
 	void * _EH_PTR64   spare;  // reserved, possible for RTTI
-	char name[];   // The decorated name of the type; 0 terminated.
+	char name[0];   // The decorated name of the type; 0 terminated.
 } TypeDescriptor;
 
 typedef const struct _s_CatchableType {

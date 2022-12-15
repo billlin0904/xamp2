@@ -20,7 +20,7 @@ namespace xamp::stream::BassUtiltis {
 
 uint32_t Process(BassStreamHandle& stream, float const* samples, float * out, uint32_t num_samples);
 bool Process(BassStreamHandle& stream, float const* samples, uint32_t num_samples, BufferRef<float>& out);
-void Encode(BassFileStream &stream, std::function<bool(uint32_t) > const& progress);
+void Encode(FileStream& stream, std::function<bool(uint32_t) > const& progress);
 
 }
 

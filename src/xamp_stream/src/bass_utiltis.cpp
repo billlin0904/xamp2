@@ -37,7 +37,7 @@ bool Process(BassStreamHandle& stream, float const * samples, uint32_t num_sampl
     return true;
 }
 
-void Encode(BassFileStream& stream, std::function<bool(uint32_t) > const& progress) {
+void Encode(FileStream& stream, std::function<bool(uint32_t) > const& progress) {
     constexpr uint32_t kReadSampleSize = 8192 * 4;
 
     auto buffer = MakeBuffer<float>(kReadSampleSize * AudioFormat::kMaxChannel);

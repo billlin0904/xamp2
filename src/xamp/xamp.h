@@ -144,6 +144,8 @@ private:
 
 	void initialShortcut();
 
+	void initialSpectrum();
+
 	void playNextItem(int32_t forward);
 
     void setTablePlaylistView(int table_id, ConstLatin1String column_setting_name);
@@ -174,7 +176,7 @@ private:
 
 	void encodeWavFile(const PlayListEntity& item);
 
-	void createTrayIcon();
+	void initialTrayIcon();
 
     void updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
@@ -190,7 +192,7 @@ private:
 
 	void avoidRedrawOnResize();
 
-	void connectSignal(PlaylistPage* playlist_page);
+	void connectPlaylistPageSignal(PlaylistPage* playlist_page);
 
 	void setTipHint(QWidget* widget, const QString& hint_text);
 

@@ -165,73 +165,32 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
 }
 
 Xamp::~Xamp() {
-    cleanup();
+    cleanup();  
 }
 
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
-    background_worker_ = new BackgroundWorker();
+    background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start();
     player_->Startup(state_adapter_);
+
     initialUI();
     initialController();
     initialPlaylist();
     initialShortcut();
-    createTrayIcon();
+    initialTrayIcon();
+    initialSpectrum();
+
     setPlaylistPageCover(nullptr, playlist_page_);
-    setPlaylistPageCover(nullptr, podcast_page_);
-    QTimer::singleShot(300, [this]() {
-        initialDeviceList();
-        });
+    setPlaylistPageCover(nullptr, podcast_page_);  
+    setPlaylistPageCover(nullptr, cd_page_->playlistPage());
+    setPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
+    
     avoidRedrawOnResize();
-    applyTheme(qTheme.palette().color(QPalette::WindowText),
-               qTheme.themeTextColor());
-    qTheme.setPlayOrPauseButton(ui_, false);
 
-    (void)QObject::connect(state_adapter_.get(),
-        &UIPlayerStateAdapter::fftResultChanged,
-        lrc_page_->spectrum(),
-        &SpectrumWidget::onFFTResultChanged,
-        Qt::QueuedConnection);
-
-    lrc_page_->spectrum()->setStyle(AppSettings::getAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
-
-    lrc_page_->spectrum()->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(lrc_page_->spectrum(), &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
-        ActionMap<SpectrumWidget> action_map(lrc_page_->spectrum());
-
-        (void)action_map.addAction(tr("Bar style"), [this]() {
-            lrc_page_->spectrum()->setStyle(SpectrumStyles::BAR_STYLE);
-            AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
-            });
-
-        (void)action_map.addAction(tr("Wave style"), [this]() {
-            lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_STYLE);
-            AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
-            });
-
-        (void)action_map.addAction(tr("Wave line style"), [this]() {
-            lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_LINE_STYLE);
-            AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
-            });
-
-        action_map.addSeparator();
-
-        (void)action_map.addAction(tr("No Window"), []() {
-            AppSettings::setEnumValue(kAppSettingWindowType, WindowType::NO_WINDOW);
-            });
-
-        (void)action_map.addAction(tr("Hamming Window"), []() {
-            AppSettings::setEnumValue(kAppSettingWindowType, WindowType::HAMMING);
-            });
-
-        (void)action_map.addAction(tr("Blackman harris Window"), []() {
-            AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
-            });
-
-        action_map.exec(pt);
-        });
+    applyTheme(qTheme.palette().color(QPalette::WindowText), qTheme.themeTextColor());
+    qTheme.setPlayOrPauseButton(ui_, false);       
 
     const auto tab_name = AppSettings::getValueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.sliderBar->getTabId(tab_name);
@@ -239,6 +198,10 @@ void Xamp::setXWindow(IXWindow* top_window) {
         ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
         setCurrentTab(tab_id);
     }
+
+    QTimer::singleShot(300, [this]() {
+        initialDeviceList();
+        });
 }
 
 void Xamp::avoidRedrawOnResize() {
@@ -263,7 +226,56 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void Xamp::createTrayIcon() {
+void Xamp::initialSpectrum() {
+    if (!AppSettings::getValueAsBool(kAppSettingEnableSpectrum)) {
+        return;
+    }
+
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::fftResultChanged,
+        lrc_page_->spectrum(),
+        &SpectrumWidget::onFFTResultChanged,
+        Qt::QueuedConnection);
+
+    lrc_page_->spectrum()->setStyle(AppSettings::getAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
+    lrc_page_->spectrum()->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(lrc_page_->spectrum(), &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
+        ActionMap<SpectrumWidget> action_map(lrc_page_->spectrum());
+
+    (void)action_map.addAction(tr("Bar style"), [this]() {
+        lrc_page_->spectrum()->setStyle(SpectrumStyles::BAR_STYLE);
+    AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
+        });
+
+    (void)action_map.addAction(tr("Wave style"), [this]() {
+        lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_STYLE);
+    AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
+        });
+
+    (void)action_map.addAction(tr("Wave line style"), [this]() {
+        lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_LINE_STYLE);
+    AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
+        });
+
+    action_map.addSeparator();
+
+    (void)action_map.addAction(tr("No Window"), []() {
+        AppSettings::setEnumValue(kAppSettingWindowType, WindowType::NO_WINDOW);
+        });
+
+    (void)action_map.addAction(tr("Hamming Window"), []() {
+        AppSettings::setEnumValue(kAppSettingWindowType, WindowType::HAMMING);
+        });
+
+    (void)action_map.addAction(tr("Blackman harris Window"), []() {
+        AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
+        });
+
+    action_map.exec(pt);
+        });
+}
+
+void Xamp::initialTrayIcon() {
     if (!AppSettings::getValueAsBool(kAppSettingMinimizeToTray)) {
         return;
     }
@@ -1622,6 +1634,7 @@ void Xamp::initialPlaylist() {
             playlist_id = qDatabase.addPlaylist(qEmptyString, 0);
         }
         playlist_page_ = newPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
+        connectPlaylistPageSignal(playlist_page_);
     }
 
     if (!podcast_page_) {
@@ -1631,6 +1644,7 @@ void Xamp::initialPlaylist() {
         }
         podcast_page_ = newPlaylistPage(playlist_id, kAppSettingPodcastPlaylistColumnName);
         podcast_page_->playlist()->setPodcastMode();
+        connectPlaylistPageSignal(podcast_page_);
     }
 
     if (!file_system_view_page_) {
@@ -1639,9 +1653,9 @@ void Xamp::initialPlaylist() {
         if (!qDatabase.isPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.addPlaylist(qEmptyString, 2);
         }
-        connectSignal(file_system_view_page_->playlistPage());
         file_system_view_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
         setCover(qEmptyString, file_system_view_page_->playlistPage());
+        connectPlaylistPageSignal(file_system_view_page_->playlistPage());
     }
 
     if (!cd_page_) {
@@ -1650,9 +1664,9 @@ void Xamp::initialPlaylist() {
             playlist_id = qDatabase.addPlaylist(qEmptyString, 4);
         }
         cd_page_ = new CdPage(this);
-        connectSignal(cd_page_->playlistPage());
         cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
         setCover(qEmptyString, cd_page_->playlistPage());
+        connectPlaylistPageSignal(cd_page_->playlistPage());
     }
 
     current_playlist_page_ = playlist_page_;
@@ -1685,12 +1699,6 @@ void Xamp::initialPlaylist() {
         &Xamp::onUpdateDiscCover,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_,
-        &BackgroundWorker::updateReplayGain,
-        playlist_page_->playlist(),
-        &PlayListTableView::updateReplayGain,
-        Qt::QueuedConnection);
-
     (void)QObject::connect(file_system_view_page_,
         &FileSystemViewPage::addDirToPlyalist,
         this,
@@ -1704,7 +1712,7 @@ void Xamp::initialPlaylist() {
     if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.addPlaylist(qEmptyString, 1);
     }
-    connectSignal(album_page_->album()->albumViewPage()->playlistPage());
+    connectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
 
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
@@ -1962,7 +1970,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     }
 }
 
-void Xamp::connectSignal(PlaylistPage* playlist_page) {
+void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistItemFinished,
         album_page_,
@@ -1993,10 +2001,28 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
         this,
         &Xamp::encodeWavFile);
 
+    if (playlist_page->playlist()->isPodcastMode()) {
+        (void)QObject::connect(playlist_page->playlist(),
+            &PlayListTableView::downloadPodcast,
+            background_worker_,
+            &BackgroundWorker::onDownloadPodcast);
+
+        (void)QObject::connect(background_worker_,
+            &BackgroundWorker::downloadPodcastCompleted,
+            playlist_page->playlist(),
+            &PlayListTableView::onDownloadPodcastCompleted);
+    }
+
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistReplayGain,
         background_worker_,
         &BackgroundWorker::onReadReplayGain);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::updateReplayGain,
+        playlist_page->playlist(),
+        &PlayListTableView::updateReplayGain,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,
@@ -2011,12 +2037,8 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
 
 PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
 	auto* playlist_page = new PlaylistPage(this);
-
     ui_.currentView->addWidget(playlist_page);    
-
-    connectSignal(playlist_page);
     playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
-
     return playlist_page;
 }
 

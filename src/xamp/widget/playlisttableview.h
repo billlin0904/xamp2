@@ -5,18 +5,19 @@
 
 #pragma once
 
-#include <optional>
 #include <QTableView>
 
-#include <base/rng.h>
-#include <base/encodingprofile.h>
+#include <optional>
 
-#include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 #include <widget/database.h>
 #include <widget/metadataextractadapter.h>
 
+#include <base/rng.h>
+#include <base/encodingprofile.h>
+
 class StarDelegate;
+class ProcessIndicator;
 class PlayListSqlQueryTableModel;
 class PlayListTableFilterProxyModel;
 
@@ -89,6 +90,8 @@ signals:
 
 	void addPlaylistItemFinished();
 
+	void downloadPodcast();
+
 public slots:
 	void processDatabase(const ForwardList<PlayListEntity>& entities);
 
@@ -104,6 +107,8 @@ public slots:
 		double album_peak,
 		double track_rg_gain,
 		double track_peak);
+
+	void onDownloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 private:
 	PlayListEntity item(const QModelIndex& index);
 
@@ -119,8 +124,6 @@ private:
 
 	void mouseMoveEvent(QMouseEvent* event) override;
 
-	void downloadPodcast();
-
 	void initial();
 
 protected:
@@ -135,6 +138,7 @@ protected:
     QSet<QString> notshow_column_names_;
 	PRNG rng_;
 	QString column_setting_name_;
+	QSharedPointer<ProcessIndicator> indicator_;
 };
 
 

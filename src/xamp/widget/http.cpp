@@ -44,7 +44,7 @@ public:
 };
 
 ZLibLib::ZLibLib()
-	: module_(LoadModule("libz.dll"))
+	: module_(LoadModule("zlib1.dll"))
     , XAMP_LOAD_DLL_API(inflateInit2_)
     , XAMP_LOAD_DLL_API(inflate)
     , XAMP_LOAD_DLL_API(inflateEnd) {
@@ -217,11 +217,11 @@ class HttpClient::HttpClientImpl {
 public:
     HttpClientImpl(const QString &url, QNetworkAccessManager* manager);
 
-    HttpContext createContext() const;
+    HttpContext createHttpContext() const;
 
     void setTimeout(int timeout);
 
-    static QNetworkRequest createRequest(HttpClientImpl *d, HttpMethod method);
+    static QNetworkRequest createHttpRequest(HttpClientImpl *d, HttpMethod method);
 
     static void executeQuery(HttpClientImpl *d, HttpMethod method);
 
@@ -257,7 +257,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessMan
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
 }
 
-HttpContext HttpClient::HttpClientImpl::createContext() const {
+HttpContext HttpClient::HttpClientImpl::createHttpContext() const {
     HttpContext context;
     context.success_handler = success_handler_;
     context.error_handler = error_handler_;
@@ -274,11 +274,11 @@ void HttpClient::HttpClientImpl::setTimeout(int timeout) {
 }
 
 void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod method) {
-	auto context = d->createContext();
+	auto context = d->createHttpContext();
 
     context.manager->setProxy(QNetworkProxy::NoProxy);
 
-    const auto request = createRequest(d, method);
+    const auto request = createHttpRequest(d, method);
     QNetworkReply *reply = nullptr;
 
     auto operation = QNetworkAccessManager::UnknownOperation;
@@ -318,9 +318,9 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
 }
 
 void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void (const QByteArray &)> ready_read) {
-    auto context = d->createContext();
+    auto context = d->createHttpContext();
 
-    auto request = createRequest(d, HttpMethod::HTTP_GET);
+    auto request = createHttpRequest(d, HttpMethod::HTTP_GET);
     auto* reply = context.manager->get(request);
 
     (void) QObject::connect(reply, &QNetworkReply::readyRead, [=] {
@@ -385,7 +385,7 @@ QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QStrin
     return result;
 }
 
-QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, HttpMethod method) {
+QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(HttpClientImpl *d, HttpMethod method) {
 	const auto get = method == HttpMethod::HTTP_GET;
 	const auto with_form = !get && !d->use_json_;
 	const auto with_json = !get &&  d->use_json_;
@@ -422,7 +422,8 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
 
     // todo: Add GZIP support.
     if (isLoadZib()) {
-        request.setRawHeader("Accept-Encoding", "gzip,deflate");
+        request.setRawHeader("Accept-Encoding", "gzip");
+        XAMP_LOG_D(d->logger_, "Use gzip compression.");
     }
 
     request.setTransferTimeout(d->timeout_);

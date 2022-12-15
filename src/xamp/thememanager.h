@@ -127,6 +127,8 @@ private:
 
     void installFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
 
+    void installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts);
+
     void setPalette();
 
     void setSegoeFluentIcons();

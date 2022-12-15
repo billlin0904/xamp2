@@ -1,6 +1,8 @@
 #include "ui_xamp.h"
 
 #include <widget/image_utiltis.h>
+
+#include <QDirIterator>
 #include <QDesktopWidget>
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
@@ -41,6 +43,18 @@ QString ThemeManager::fontNamePath(const QString& file_name) {
 		qSTR("%1/fonts/%2")
 		.arg(QCoreApplication::applicationDirPath())
 		.arg(file_name);
+}
+
+void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts) {    
+    auto font_path = qSTR("%1/fonts/").arg(QCoreApplication::applicationDirPath());
+
+    QDirIterator itr(font_path, QDir::Files | QDir::NoDotAndDotDot);
+    while (itr.hasNext()) {
+        auto file_path = itr.next();
+        if (file_path.contains(font_name_prefix)) {
+            installFileFont(itr.fileName(), ui_fallback_fonts);
+        }
+    }
 }
 
 void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
@@ -233,12 +247,8 @@ QFont ThemeManager::loadFonts() {
     installFileFont(qTEXT("Roboto-Regular.ttf"), mono_fonts);
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
-    installFileFont(qTEXT("MiSans-Bold.ttf"), ui_fonts);
-	installFileFont(qTEXT("MiSans-Demibold.ttf"), ui_fonts);
-	installFileFont(qTEXT("MiSans-Semibold.ttf"), ui_fonts);
-	installFileFont(qTEXT("MiSans-Medium.ttf"), ui_fonts);
-	installFileFont(qTEXT("MiSans-Normal.ttf"), ui_fonts);
-	installFileFont(qTEXT("MiSans-Regular.ttf"), ui_fonts);
+    installFileFonts(qTEXT("MiSans"), ui_fonts);
+    //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
@@ -254,6 +264,9 @@ QFont ThemeManager::loadFonts() {
 
     QFont ui_font(qTEXT("UIFont"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
+    ui_font.setWeight(QFont::Weight::Medium);
+    ui_font.setKerning(false);
+
     return ui_font;
 }
 
@@ -675,7 +688,7 @@ int32_t ThemeManager::fontSize() const {
     if (dpi > 96) {
         return 11;
     }
-    return 9;
+    return 10;
 }
 
 void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {

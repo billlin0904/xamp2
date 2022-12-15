@@ -21,6 +21,7 @@
 #include <widget/backgroundworker.h>
 
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
+XAMP_DECLARE_LOG_NAME(BackgroundWorker);
 
 struct ReplayGainWorkerEntity {
     ReplayGainWorkerEntity(PlayListEntity item, std::optional<Ebur128Reader> scanner)
@@ -34,6 +35,7 @@ struct ReplayGainWorkerEntity {
 BackgroundWorker::BackgroundWorker()
 	: blur_img_cache_(8) {
     writer_ = MakeMetadataWriter();
+    logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
 
 BackgroundWorker::~BackgroundWorker() = default;
@@ -95,7 +97,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
         return;
     }
 
-    XAMP_LOG_DEBUG("Start fetch cd information form musicbrainz.");
+    XAMP_LOG_D(logger_, "Start fetch cd information form musicbrainz.");
 
     http::HttpClient(QString::fromStdString(url))
         .success([this, disc_id](const QString& content) {
@@ -108,14 +110,14 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
         emit updateMbDiscInfo(mb_disc_id_info);
 
-        XAMP_LOG_DEBUG("Start fetch cd cover image.");
+        XAMP_LOG_D(logger_, "Start fetch cd cover image.");
 
         http::HttpClient(QString::fromStdString(image_url))
             .success([this, disc_id](const QString& content) {
 	            const auto cover_url = parseCoverUrl(content);
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
                     auto cover_id = qPixmapCache.addOrUpdate(content);
-                    XAMP_LOG_DEBUG("Download cover image completed.");
+					XAMP_LOG_D(logger_, "Download cover image completed.");
                     emit updateDiscCover(QString::fromStdString(disc_id), cover_id);
                     });				
                 }).get();
@@ -127,7 +129,7 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
     lazyInit();
 
     if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
-        XAMP_LOG_DEBUG("Found blur image in cache!");
+        XAMP_LOG_D(logger_, "Found blur image in cache!");
         emit updateBlurImage(cache_image->copy());
         return;
     }
@@ -142,15 +144,45 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
 }
 
-void BackgroundWorker::onReadDuration(const ForwardList<PlayListEntity>& entities) {
-	
+void BackgroundWorker::onDownloadPodcast() {
+    XAMP_LOG_D(logger_, "Start download podcast.xml");
+
+    auto download_json_file_error = [this](const QString& msg) {
+        XAMP_LOG_D(logger_, "Download podcast error! {}", msg.toStdString());
+        emit downloadPodcastCompleted({}, {});
+    };
+
+    auto download_cover_image_error = [this](const QString& msg) {
+        XAMP_LOG_D(logger_, "Download podcast image error! {}", msg.toStdString());
+        emit downloadPodcastCompleted({}, {});
+    };
+
+    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
+        .error(download_json_file_error)
+        .success([this, download_cover_image_error](const QString& json) {
+			XAMP_LOG_D(logger_, "Download meta.json ({}) success!", String::FormatBytes(json.size()));
+
+            Stopwatch sw;
+            std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
+            auto const podcast_info = std::make_pair(image_url, parseJson(json));
+            XAMP_LOG_D(logger_, "Parse meta.json success! {}sec", sw.ElapsedSeconds());
+            sw.Reset();
+
+            XAMP_LOG_D(logger_, "Start download podcast image file");
+            http::HttpClient(QString::fromStdString(podcast_info.first))
+                .error(download_cover_image_error)
+                .download([this, podcast_info](const QByteArray& data) {
+					XAMP_LOG_D(logger_, "Download podcast image file ({}) success!", String::FormatBytes(data.size()));
+					emit downloadPodcastCompleted(podcast_info.second, data);
+                    });
+            }).get();
 }
 
 void BackgroundWorker::onReadReplayGain(bool, const ForwardList<PlayListEntity>& entities) {
     lazyInit();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
-    XAMP_LOG_DEBUG("Start read replay gain count:{}", entities_size);
+    XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
     Vector<Task<>> replay_gain_tasks;
 
@@ -208,12 +240,12 @@ void BackgroundWorker::onReadReplayGain(bool, const ForwardList<PlayListEntity>&
             }
         }
         catch (std::exception const& e) {
-            XAMP_LOG_DEBUG("ReplayGain got exception! {}", e.what());
+            XAMP_LOG_D(logger_, "ReplayGain got exception! {}", e.what());
         }
     }
 
     if (scanners.empty() || replay_gain_tasks.size() != scanners.size()) {
-        XAMP_LOG_DEBUG("ReplayGain no more work item!");
+        XAMP_LOG_D(logger_, "ReplayGain no more work item!");
         return;
     }
 

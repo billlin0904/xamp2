@@ -42,22 +42,22 @@ signals:
 
     void updateBlurImage(const QImage& image);
 
-    void updateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& metadatas);
+    void updateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
     void updateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
     void updateDiscCover(const QString& disc_id, const QString& cover_id);
 
-    void readDuration(const ForwardList<PlayListEntity> &play_list_entities);
+    void downloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
 public Q_SLOT:
-	void onReadDuration(const ForwardList<PlayListEntity>& entities);
-
     void onReadReplayGain(bool force, const ForwardList<PlayListEntity>& entities);
 
     void onBlurImage(const QString &cover_id, const QImage& image);
 
     void onFetchCdInfo(const DriveInfo &drive);
+
+    void onDownloadPodcast();
 
 private:
     void lazyInit();
@@ -66,4 +66,5 @@ private:
     mutable LruCache<QString, QImage> blur_img_cache_;
     AlignPtr<IThreadPoolExecutor> executor_;
     AlignPtr<IMetadataWriter> writer_;
+    LoggerPtr logger_;
 };

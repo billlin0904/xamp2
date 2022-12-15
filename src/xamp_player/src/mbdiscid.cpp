@@ -66,6 +66,7 @@ class DiscIdException : public Exception {
 public:
 	explicit DiscIdException(const DiscIdHandle &disc) {
 		message_ = DiscIdDLL.discid_get_error_msg(disc.get());
+		what_ = message_;
 	}
 };
 

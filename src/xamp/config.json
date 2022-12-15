@@ -3,14 +3,17 @@
         "MinimumLevel": {
             "Default": "debug",
             "Override": {
+                "AsioDevice": "info",
                 "AudioPlayer": "info",
                 "AvFileStream": "info",
                 "BASS": "info",
                 "BackgroundThreadPool": "info",
+                "BackgroundWorker": "info",
                 "BassCompressor": "info",
                 "BassFader": "info",
                 "BassFileStream": "info",
                 "BassVolume": "info",
+                "CrashHandler": "info",
                 "Database": "info",
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
