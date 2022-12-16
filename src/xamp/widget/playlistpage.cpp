@@ -12,8 +12,7 @@
 #include <widget/playlistpage.h>
 
 PlaylistPage::PlaylistPage(QWidget* parent)
-	: QFrame(parent)
-	, hide_playback_information_(true) {
+	: QFrame(parent) {
 	initial();
 }
 
@@ -32,9 +31,9 @@ void PlaylistPage::initial() {
 	auto* left_space_layout = new QVBoxLayout();
 	left_space_layout->setSpacing(0);
 	left_space_layout->setObjectName(QString::fromUtf8("verticalLayout_3"));
-	auto* vertical_spacer = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	vertical_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-	left_space_layout->addItem(vertical_spacer);
+	left_space_layout->addItem(vertical_spacer_);
 
 	cover_ = new QLabel();
 	cover_->setObjectName(QString::fromUtf8("label"));
@@ -46,9 +45,9 @@ void PlaylistPage::initial() {
 
 	child_layout->addLayout(left_space_layout);
 
-	auto* horizontal_spacer = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+	horizontal_spacer_ = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-	child_layout->addItem(horizontal_spacer);
+	child_layout->addItem(horizontal_spacer_);
 
 	auto* album_title_layout = new QVBoxLayout();
 	album_title_layout->setSpacing(0);
@@ -69,13 +68,13 @@ void PlaylistPage::initial() {
 
 	album_title_layout->addWidget(title_);
 
-	auto* middle_spacer = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
-	album_title_layout->addItem(middle_spacer);
+	middle_spacer_ = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	album_title_layout->addItem(middle_spacer_);
 
 	album_title_layout->addWidget(format_);
 
-	auto* right_spacer = new QSpacerItem(20, 108, QSizePolicy::Minimum, QSizePolicy::Expanding);
-	album_title_layout->addItem(right_spacer);
+	right_spacer_ = new QSpacerItem(20, 108, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	album_title_layout->addItem(right_spacer_);
 
 
 	child_layout->addLayout(album_title_layout);
@@ -84,25 +83,25 @@ void PlaylistPage::initial() {
 
 	default_layout->addLayout(child_layout);
 
-	auto* default_spacer = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	default_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-	default_layout->addItem(default_spacer);
+	default_layout->addItem(default_spacer_);
 
 	auto* horizontalLayout_8 = new QHBoxLayout();
 	horizontalLayout_8->setSpacing(0);
 	horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
-	auto* horizontalSpacer_4 = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+	horizontalSpacer_4_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-	horizontalLayout_8->addItem(horizontalSpacer_4);
+	horizontalLayout_8->addItem(horizontalSpacer_4_);
 
 	playlist_ = new PlayListTableView(this);
 	playlist_->setObjectName(QString::fromUtf8("tableView"));
 
 	horizontalLayout_8->addWidget(playlist_);
 
-	auto* horizontalSpacer_5 = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+	horizontalSpacer_5_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-	horizontalLayout_8->addItem(horizontalSpacer_5);
+	horizontalLayout_8->addItem(horizontalSpacer_5_);
 
 	horizontalLayout_8->setStretch(1, 1);
 
@@ -115,16 +114,7 @@ void PlaylistPage::initial() {
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
 		this,
-		&PlaylistPage::setCoverById);
-
-	if (hide_playback_information_) {
-		format_->hide();
-		title_->hide();
-		cover_->hide();		
-		middle_spacer->changeSize(0, 0);
-		right_spacer->changeSize(0, 0);
-		default_spacer->changeSize(0, 0);
-	}
+		&PlaylistPage::setCoverById);	
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
@@ -145,7 +135,18 @@ QLabel* PlaylistPage::cover() {
 }
 
 void PlaylistPage::hidePlaybackInformation(bool hide) {
-	hide_playback_information_ = hide;
+	if (hide) {
+		format_->hide();
+		title_->hide();
+		cover_->hide();
+		vertical_spacer_->changeSize(0, 0);
+		horizontal_spacer_->changeSize(0, 0);
+		middle_spacer_->changeSize(0, 0);
+		right_spacer_->changeSize(0, 0);
+		default_spacer_->changeSize(0, 0);
+		horizontalSpacer_4_->changeSize(0, 0);
+		horizontalSpacer_5_->changeSize(0, 0);
+	}
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {

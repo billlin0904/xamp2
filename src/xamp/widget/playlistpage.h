@@ -10,6 +10,7 @@
 
 #include <widget/playlistentity.h>
 
+class QSpacerItem;
 class QLabel;
 class ScrollLabel;
 class PlayListTableView;
@@ -41,10 +42,16 @@ public slots:
 
 private:
 	void initial();
-
-	bool hide_playback_information_;
+	
 	PlayListTableView* playlist_;
 	QLabel* cover_;
     ScrollLabel* title_;
 	QLabel* format_;
+	QSpacerItem* vertical_spacer_;
+	QSpacerItem* horizontal_spacer_;
+	QSpacerItem* horizontalSpacer_4_;
+	QSpacerItem* horizontalSpacer_5_;
+	QSpacerItem* middle_spacer_;
+	QSpacerItem* right_spacer_;
+	QSpacerItem* default_spacer_;
 };

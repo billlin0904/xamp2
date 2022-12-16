@@ -27,7 +27,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/http.h>
-#include <widget/toast.h>
+#include <widget/xmessagebox.h>
 #include <widget/database.h>
 #include <widget/appsettings.h>
 #include <widget/playlisttableview.h>

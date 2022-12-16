@@ -11,7 +11,7 @@
 #include "thememanager.h"
 
 #include <widget/appsettingnames.h>
-#include <widget/toast.h>
+#include <widget/xmessagebox.h>
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>

@@ -5,6 +5,7 @@
 
 #include <version.h>
 #include <widget/xdialog.h>
+#include <widget/xmessagebox.h>
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
@@ -97,27 +98,27 @@ QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
 }
 
 std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin) {
-    bool is_show_agin = true;
+    bool is_show_again = true;
 
     if (show_agin) {
         auto cb = new QCheckBox(qApp->tr("Don't show this again"));
-        QMessageBox msgbox;
-        msgbox.setWindowTitle(kAppTitle);
+        XMessageBox msgbox;
+        msgbox.setTitle(kAppTitle);
         msgbox.setText(qApp->tr("Hide XAMP to system tray?"));
-        msgbox.setIcon(QMessageBox::Icon::Question);
-        msgbox.addButton(QMessageBox::Ok);
+        msgbox.setIcon(qTheme.iconFromFont(0x003F));
         msgbox.addButton(QMessageBox::Cancel);
         msgbox.setDefaultButton(QMessageBox::Cancel);
-        msgbox.setCheckBox(cb);
+        msgbox.addWidget(cb);
 
-        (void)QObject::connect(cb, &QCheckBox::stateChanged, [&is_show_agin](int state) {
+        (void)QObject::connect(cb, &QCheckBox::stateChanged, [&is_show_again](int state) {
             if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
-                is_show_agin = false;
+                is_show_again = false;
             }
             });
-        return { is_show_agin, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
+        return { is_show_again, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
+        
     }
-    return { is_show_agin, QMessageBox::Yes };
+    return { is_show_again, QMessageBox::Yes };
 }
 
 void centerParent(QWidget* widget) {

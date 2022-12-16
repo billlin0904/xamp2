@@ -237,7 +237,7 @@
     <ClCompile Include="widget\str_utilts.cpp" />
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
-    <ClCompile Include="widget\toast.cpp" />
+    <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\ui_utilts.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
@@ -252,7 +252,6 @@
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
     <QtUic Include="widget\equalizerdialog.ui" />
-    <QtUic Include="widget\toast.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -285,7 +284,6 @@
     <QtMoc Include="widget\tooltips.h" />
     <QtMoc Include="widget\tooltipsfilter.h" />
     <ClInclude Include="widget\waveformanalyzer.h" />
-    <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
@@ -350,8 +348,7 @@
     <ClInclude Include="widget\playlisttablemodel.h" />
     <QtMoc Include="widget\playlisttableview.h">
     </QtMoc>
-    <QtMoc Include="widget\toast.h">
-    </QtMoc>
+    <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\wheelablewidget.h">
     </QtMoc>
   </ItemGroup>

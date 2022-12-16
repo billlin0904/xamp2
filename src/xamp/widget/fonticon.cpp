@@ -216,7 +216,12 @@ QIcon FontIcon::icon(const char32_t& code, QVariantMap options, const QString& f
 
     auto* engine = new FontIconEngine(std::move(options));
     engine->setFontFamily(use_family);
-    engine->setLetter(glyphs_[code]);
+    if (!glyphs_.contains(code)) {
+        engine->setLetter(code);
+    }
+    else {
+        engine->setLetter(glyphs_[code]);
+    }
     return QIcon(engine);
 }
 

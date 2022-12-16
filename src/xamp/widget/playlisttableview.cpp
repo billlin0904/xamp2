@@ -17,13 +17,12 @@
 #include <widget/appsettingnames.h>
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
-
-#include <rapidxml.hpp>
+#include <version.h>
 
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/http.h>
-#include <widget/toast.h>
+#include <widget/xmessagebox.h>
 #include <widget/appsettings.h>
 #include <widget/pixmapcache.h>
 #include <widget/stardelegate.h>
@@ -66,21 +65,6 @@ public:
 
         const auto value  = index.model()->data(index.model()->index(index.row(), index.column()));
         auto use_default_style = false;
-
-        switch (index.column()) {
-        case PLAYLIST_DURATION:
-        case PLAYLIST_FILE_SIZE:
-        case PLAYLIST_BIT_RATE:
-        case PLAYLIST_SAMPLE_RATE:
-        case PLAYLIST_ALBUM_PK:
-        case PLAYLIST_ALBUM_RG:
-        case PLAYLIST_TRACK_PK:
-        case PLAYLIST_TRACK_RG:
-        case PLAYLIST_LAST_UPDATE_TIME:
-        case PLAYLIST_YEAR:
-            opt.font.setFamily(qTEXT("MonoFont"));
-            break;
-        }
 
         opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
 
@@ -373,7 +357,7 @@ void PlayListTableView::initial() {
     setDragEnabled(true);
     setShowGrid(false);
     setMouseTracking(true);
-    setAlternatingRowColors(true);
+    //setAlternatingRowColors(true);
 
     setDragDropMode(InternalMove);
     setFrameShape(NoFrame);
@@ -573,7 +557,7 @@ void PlayListTableView::initial() {
                 action_map.exec(pt);
             }
             catch (std::exception const& e) {
-                Toast::showTip(QString::fromStdString(e.what()), this);
+                XMessageBox::showInformation(QString::fromStdString(e.what()), kAppTitle, this);
             }
             return;
         }
@@ -628,7 +612,7 @@ void PlayListTableView::initial() {
         try {
             action_map.exec(pt);
         } catch (std::exception const &e){
-            Toast::showTip(QString::fromStdString(e.what()), this);
+            XMessageBox::showInformation(QString::fromStdString(e.what()), kAppTitle, this);
         }
     });
 
@@ -835,7 +819,7 @@ void PlayListTableView::resizeColumn() {
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 35);
+            header->resizeSection(column, 65);
             break;
         case PLAYLIST_ALBUM_RG:
         case PLAYLIST_ALBUM_PK:

@@ -45,9 +45,10 @@ QString ThemeManager::fontNamePath(const QString& file_name) {
 		.arg(file_name);
 }
 
-void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts) {    
-    auto font_path = qSTR("%1/fonts/").arg(QCoreApplication::applicationDirPath());
+void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts) {
+	const auto font_path = qSTR("%1/fonts/").arg(QCoreApplication::applicationDirPath());
 
+    QMap<int32_t, QString> font_weight_map;
     QDirIterator itr(font_path, QDir::Files | QDir::NoDotAndDotDot);
     while (itr.hasNext()) {
         auto file_path = itr.next();
@@ -59,7 +60,7 @@ void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QStri
 
 void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
 	const auto font_path = fontNamePath(file_name);
-    QFileInfo info(font_path);
+	const QFileInfo info(font_path);
     if (!info.exists()) {
         XAMP_LOG_ERROR("Not found font file name: {}", file_name.toStdString());
         return;
@@ -240,15 +241,67 @@ QFont ThemeManager::loadFonts() {
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
 
-    //setSegoeFluentIcons();
     setFontAwesomeIcons();
+    //setSegoeFluentIcons();
     //setMaterialIcons();
 
-    installFileFont(qTEXT("Roboto-Regular.ttf"), mono_fonts);
+    // https://stackoverflow.com/questions/63012818/how-to-load-multiple-font-of-same-familiy
+
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
+    installFileFonts(qTEXT("Lato"), ui_fonts);
     installFileFonts(qTEXT("MiSans"), ui_fonts);
     //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
+
+    std::sort(ui_fonts.begin(), ui_fonts.end(),
+        [](const auto& left_font_name, const auto& right_font_name) {
+            auto getFontWeight = [](auto name) {
+            if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
+                return 100;
+            }
+            if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
+                return 100;
+            }
+            if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
+                return 200;
+            }
+            if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
+                return 300;
+            }
+            if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
+                return 400;
+            }
+            if (name.contains(qTEXT("Regular"), Qt::CaseInsensitive)) {
+                return 400;
+            }
+            if (name.contains(qTEXT("Medium"), Qt::CaseInsensitive)) {
+                return 500;
+            }
+            if (name.contains(qTEXT("SemiBold"), Qt::CaseInsensitive)) {
+                return 600;
+            }
+            if (name.contains(qTEXT("DemiBold"), Qt::CaseInsensitive)) {
+                return 600;
+            }
+            if (name.contains(qTEXT("Bold"), Qt::CaseInsensitive)) {
+                return 700;
+            }
+            if (name.contains(qTEXT("ExtraBold"), Qt::CaseInsensitive)) {
+                return 800;
+            }
+            if (name.contains(qTEXT("UltraBold"), Qt::CaseInsensitive)) {
+                return 800;
+            }
+            if (name.contains(qTEXT("Black"), Qt::CaseInsensitive)) {
+                return 900;
+            }
+            if (name.contains(qTEXT("Heavy"), Qt::CaseInsensitive)) {
+                return 900;
+            }
+            return 100;
+        };
+		return getFontWeight(left_font_name) < getFontWeight(right_font_name);
+        });
 
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;

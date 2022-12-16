@@ -33,8 +33,6 @@
 #include <player/api.h>
 
 #include <widget/xdialog.h>
-#include <widget/xmessagebox.h>
-
 #include <widget/appsettings.h>
 #include <widget/albumview.h>
 #include <widget/lyricsshowwidget.h>
@@ -43,7 +41,7 @@
 #include <widget/lrcpage.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistpage.h>
-#include <widget/toast.h>
+#include <widget/xmessagebox.h>
 #include <widget/image_utiltis.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
@@ -72,32 +70,6 @@
 #include "thememanager.h"
 #include "version.h"
 #include "xamp.h"
-
-class MaskWidget : public QWidget {
-public:
-    explicit MaskWidget(QWidget* parent)
-        : QWidget(parent) {
-        setWindowFlag(Qt::FramelessWindowHint);
-        setAttribute(Qt::WA_StyledBackground);
-        // 255 * 0.4 = 102
-        setStyleSheet(qTEXT("background-color: rgba(0, 0, 0, 102);"));
-        auto *animation = new QPropertyAnimation(this, "windowOpacity");
-        animation->setDuration(2000);
-        animation->setEasingCurve(QEasingCurve::OutBack);
-        animation->setStartValue(0.0);
-        animation->setEndValue(1.0);
-        animation->start(QAbstractAnimation::DeleteWhenStopped);
-        show();
-    }
-
-    void showEvent(QShowEvent* event) override {
-        if (!parent()) {
-            return;
-        }
-        const auto parent_rect = static_cast<QWidget*>(parent())->geometry();
-        setGeometry(0, 0, parent_rect.width(), parent_rect.height());
-    }
-};
 
 static PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
     auto next = static_cast<int32_t>(cur) + 1;
@@ -186,6 +158,10 @@ void Xamp::setXWindow(IXWindow* top_window) {
     setPlaylistPageCover(nullptr, podcast_page_);  
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
     setPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
+
+    playlist_page_->hidePlaybackInformation(true);
+    podcast_page_->hidePlaybackInformation(true);
+    cd_page_->playlistPage()->hidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->hidePlaybackInformation(false);
     album_page_->album()->albumViewPage()->playlistPage()->hidePlaybackInformation(false);
     
@@ -246,17 +222,17 @@ void Xamp::initialSpectrum() {
 
     (void)action_map.addAction(tr("Bar style"), [this]() {
         lrc_page_->spectrum()->setStyle(SpectrumStyles::BAR_STYLE);
-    AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
+		AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
         });
 
     (void)action_map.addAction(tr("Wave style"), [this]() {
         lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_STYLE);
-    AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
+		AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
         });
 
     (void)action_map.addAction(tr("Wave line style"), [this]() {
         lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_LINE_STYLE);
-    AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
+		AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
         });
 
     action_map.addSeparator();
@@ -273,7 +249,7 @@ void Xamp::initialSpectrum() {
         AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
         });
 
-    action_map.exec(pt);
+		action_map.exec(pt);
         });
 }
 
@@ -348,11 +324,6 @@ void Xamp::closeEvent(QCloseEvent* event) {
                 return;
             }
         }
-    }    
-
-    try {
-        AppSettings::setValue(kAppSettingVolume, player_->GetVolume());
-    } catch (...) {
     }
 
     AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
@@ -625,7 +596,7 @@ void Xamp::initialController() {
         }
         catch (const Exception & e) {
             player_->Stop(false);
-            Toast::showTip(qTEXT(e.GetErrorMessage()), this);
+            XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kAppTitle, this);
         }
     });
 
@@ -994,7 +965,7 @@ void Xamp::setVolume(uint32_t volume) {
     }
     catch (const Exception& e) {
         player_->Stop(false);
-        Toast::showTip(qTEXT(e.GetErrorMessage()), this);
+        XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kAppTitle, this);
     }
 }
 
@@ -1045,19 +1016,19 @@ void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         if (order_ != order) {
-            Toast::showTip(tr("Repeat once"), this);
+            XMessageBox::showInformation(tr("Repeat once"), kAppTitle, this);
         }
         qTheme.setRepeatOncePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         if (order_ != order) {
-            Toast::showTip(tr("Repeat one"), this);
+            XMessageBox::showInformation(tr("Repeat one"), kAppTitle, this);
         }
         qTheme.setRepeatOnePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         if (order_ != order) {
-            Toast::showTip(tr("Shuffle all"), this);
+            XMessageBox::showInformation(tr("Shuffle all"), kAppTitle, this);
         }
         qTheme.setShufflePlayorder(ui_);
         break;
@@ -1117,7 +1088,7 @@ void Xamp::playOrPause() {
         play_index_ = playlist_page_->playlist()->model()->index(
             play_index_.row(), PLAYLIST_PLAYING);
         if (play_index_.row() == -1) {
-            Toast::showTip(tr("Not found any playing item."), this);
+            XMessageBox::showInformation(tr("Not found any playing item."), kAppTitle, this);
             return;
         }
         playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
@@ -1174,6 +1145,7 @@ QString Xamp::translateErrorCode(const Errors error) {
     static const QMap<Errors, QString> et_lut{
         { Errors::XAMP_ERROR_DEVICE_IN_USE, tr("Device in use.") },
         { Errors::XAMP_ERROR_FILE_NOT_FOUND, tr("File not found.") },
+        { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, tr("Device not found.") },
         { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, tr("Device unsupported format.") },
         { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE, tr("Not support samplate rate.") },
     };
@@ -1311,6 +1283,18 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         player_->GetDSPManager()->AddCompressor();
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
+            if (player_->GetInputFormat().GetBitsPerSample() != 16) {
+                const auto message = qSTR("Playing blue-tooth device need set %1bit to 16bit depth.")
+                    .arg(player_->GetInputFormat().GetBitsPerSample());
+                /*XMessageBox::showInformation(
+                    message,
+                    kAppTitle, this);*/
+                XMessageBox::showCheckBoxQuestion(
+                    message,
+                    tr("I see, Don't show again."),
+                    kAppTitle, 
+                    this);
+            }
             byte_format = ByteFormat::SINT16;
         }
 
@@ -1324,15 +1308,14 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         player_->BufferStream();
         open_done = true;
     }
-    catch (const Exception & e) {
-        XAMP_LOG_DEBUG("Exception: {} {} {}", e.GetErrorMessage(), e.GetExpression(), e.GetStackTrace());
-        Toast::showTip(translateErrorCode(e.GetError()), this);
+    catch (const Exception & e) {        
+        XMessageBox::showInformation(translateErrorCode(e.GetError()), kAppTitle, this);
     }
     catch (const std::exception & e) {
-        Toast::showTip(qTEXT(e.what()), this);
+        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
     }
-    catch (...) {
-        Toast::showTip(tr("unknown error"), this);
+    catch (...) {        
+        XMessageBox::showInformation(tr("Unknown error"), kAppTitle, this);
     }
 
     updateUI(item, playback_format, open_done);
@@ -1528,7 +1511,7 @@ void Xamp::playNextItem(int32_t forward) {
         }
 
         if (!play_index_.isValid()) {
-            Toast::showTip(tr("Not found any playlist item."), this);
+            XMessageBox::showInformation(tr("Not found any playlist item."), kAppTitle, this);
             return;
         }
     } else {
@@ -1779,7 +1762,7 @@ void Xamp::appendToPlaylist(const QString& file_name) {
         album_page_->refreshOnece();
     }
     catch (const Exception& e) {
-        Toast::showTip(qTEXT(e.GetErrorMessage()), this);
+        XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kAppTitle, this);
     }
 }
 
@@ -1871,7 +1854,7 @@ void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& prof
             }, metadata);
     }
     catch (Exception const& e) {
-        Toast::showTip(qTEXT(e.what()), this);
+        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
     }
 }
 
@@ -1919,7 +1902,7 @@ void Xamp::encodeWavFile(const PlayListEntity& item) {
             }, metadata);
     }
     catch (Exception const& e) {
-        Toast::showTip(qTEXT(e.what()), this);
+        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
     }
 }
 
@@ -1968,7 +1951,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
             }, metadata);
     }
     catch (Exception const& e) {
-        Toast::showTip(qTEXT(e.what()), this);
+        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
     }
 }
 
