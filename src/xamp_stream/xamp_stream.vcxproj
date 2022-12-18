@@ -156,6 +156,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\stream\avfileencoder.h" />
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
     <ClInclude Include="include\stream\bassaacfileencoder.h" />
@@ -199,6 +200,7 @@
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\stream\avfileencoder.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />

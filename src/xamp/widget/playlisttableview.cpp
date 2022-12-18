@@ -557,7 +557,7 @@ void PlayListTableView::initial() {
                 action_map.exec(pt);
             }
             catch (std::exception const& e) {
-                XMessageBox::showInformation(QString::fromStdString(e.what()), kAppTitle, this);
+                XMessageBox::showInformation(QString::fromStdString(e.what()), kApplicationTitle, this);
             }
             return;
         }
@@ -612,7 +612,7 @@ void PlayListTableView::initial() {
         try {
             action_map.exec(pt);
         } catch (std::exception const &e){
-            XMessageBox::showInformation(QString::fromStdString(e.what()), kAppTitle, this);
+            XMessageBox::showInformation(QString::fromStdString(e.what()), kApplicationTitle, this);
         }
     });
 

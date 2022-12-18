@@ -16,7 +16,9 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(av_seek_frame)
 	, XAMP_LOAD_DLL_API(av_read_frame)
 	, XAMP_LOAD_DLL_API(avformat_network_init)
-	, XAMP_LOAD_DLL_API(avformat_network_deinit) {
+	, XAMP_LOAD_DLL_API(avformat_network_deinit)
+	, XAMP_LOAD_DLL_API(avformat_alloc_context)
+	, XAMP_LOAD_DLL_API(avformat_new_stream) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -26,6 +28,7 @@ AvCodecLib::AvCodecLib() try
 	: module_(LoadModule("avcodec-58.dll"))
 	, XAMP_LOAD_DLL_API(avcodec_close)
 	, XAMP_LOAD_DLL_API(avcodec_open2)
+	, XAMP_LOAD_DLL_API(avcodec_alloc_context3)
 	, XAMP_LOAD_DLL_API(avcodec_find_decoder)
 	, XAMP_LOAD_DLL_API(av_packet_alloc)
 	, XAMP_LOAD_DLL_API(av_init_packet)
@@ -35,7 +38,9 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_flush_buffers)
 	, XAMP_LOAD_DLL_API(av_get_bits_per_sample)
 	, XAMP_LOAD_DLL_API(avcodec_find_decoder_by_name)
-	, XAMP_LOAD_DLL_API(avcodec_configuration) {
+	, XAMP_LOAD_DLL_API(avcodec_find_encoder)
+	, XAMP_LOAD_DLL_API(avcodec_configuration)
+	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -45,6 +50,7 @@ AvUtilLib::AvUtilLib() try
 	: module_(LoadModule("avutil-56.dll"))
 	, XAMP_LOAD_DLL_API(av_free)
 	, XAMP_LOAD_DLL_API(av_frame_unref)
+	, XAMP_LOAD_DLL_API(av_frame_get_buffer)
 	, XAMP_LOAD_DLL_API(av_get_bytes_per_sample)
 	, XAMP_LOAD_DLL_API(av_strerror)
 	, XAMP_LOAD_DLL_API(av_frame_alloc)
@@ -53,7 +59,12 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_log_set_callback)
 	, XAMP_LOAD_DLL_API(av_log_format_line)
 	, XAMP_LOAD_DLL_API(av_log_set_level)
-	, XAMP_LOAD_DLL_API(av_dict_set) {
+	, XAMP_LOAD_DLL_API(av_dict_set)
+	, XAMP_LOAD_DLL_API(av_get_channel_layout_nb_channels)
+	, XAMP_LOAD_DLL_API(av_audio_fifo_alloc) 
+	, XAMP_LOAD_DLL_API(av_audio_fifo_realloc)
+	, XAMP_LOAD_DLL_API(av_audio_fifo_write) 
+	, XAMP_LOAD_DLL_API(av_audio_fifo_free) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

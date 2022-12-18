@@ -10,6 +10,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
 #include <libavutil/file.h>
+#include <libavutil/audio_fifo.h>
 #include <libswresample/swresample.h>
 #include <libavutil/rational.h>
 #include <libavutil/opt.h>
@@ -40,6 +41,8 @@ public:
    XAMP_DECLARE_DLL_NAME(av_read_frame);
    XAMP_DECLARE_DLL_NAME(avformat_network_init);
    XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
+   XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
+   XAMP_DECLARE_DLL_NAME(avformat_new_stream);
 };
 
 class AvCodecLib final {
@@ -52,6 +55,7 @@ private:
 public:
     XAMP_DECLARE_DLL_NAME(avcodec_close);
     XAMP_DECLARE_DLL_NAME(avcodec_open2);
+    XAMP_DECLARE_DLL_NAME(avcodec_alloc_context3);
     XAMP_DECLARE_DLL_NAME(avcodec_find_decoder);
     XAMP_DECLARE_DLL_NAME(av_packet_alloc);
     XAMP_DECLARE_DLL_NAME(av_init_packet);
@@ -61,7 +65,9 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_flush_buffers);
     XAMP_DECLARE_DLL_NAME(av_get_bits_per_sample);
     XAMP_DECLARE_DLL_NAME(avcodec_find_decoder_by_name);
+    XAMP_DECLARE_DLL_NAME(avcodec_find_encoder);
     XAMP_DECLARE_DLL_NAME(avcodec_configuration);
+    XAMP_DECLARE_DLL_NAME(avcodec_parameters_from_context);
 };
 
 class AvUtilLib final {
@@ -74,6 +80,7 @@ private:
 public:
     XAMP_DECLARE_DLL_NAME(av_free);
     XAMP_DECLARE_DLL_NAME(av_frame_unref);
+    XAMP_DECLARE_DLL_NAME(av_frame_get_buffer);
     XAMP_DECLARE_DLL_NAME(av_get_bytes_per_sample);
     XAMP_DECLARE_DLL_NAME(av_strerror);
     XAMP_DECLARE_DLL_NAME(av_frame_alloc);
@@ -83,6 +90,11 @@ public:
     XAMP_DECLARE_DLL_NAME(av_log_format_line);
     XAMP_DECLARE_DLL_NAME(av_log_set_level);
     XAMP_DECLARE_DLL_NAME(av_dict_set);
+    XAMP_DECLARE_DLL_NAME(av_get_channel_layout_nb_channels);
+    XAMP_DECLARE_DLL_NAME(av_audio_fifo_alloc);
+    XAMP_DECLARE_DLL_NAME(av_audio_fifo_realloc);
+    XAMP_DECLARE_DLL_NAME(av_audio_fifo_write);
+    XAMP_DECLARE_DLL_NAME(av_audio_fifo_free);
 };
 
 class AvSwLib final {
@@ -153,6 +165,14 @@ struct AvResourceDeleter<AVFrame> {
     void operator()(AVFrame* p) const {
         XAMP_ASSERT(p != nullptr);
         LIBAV_LIB.UtilLib->av_free(p);
+    }
+};
+
+template <>
+struct AvResourceDeleter<AVAudioFifo> {
+    void operator()(AVAudioFifo* p) const {
+        XAMP_ASSERT(p != nullptr);
+        LIBAV_LIB.UtilLib->av_audio_fifo_free(p);
     }
 };
 

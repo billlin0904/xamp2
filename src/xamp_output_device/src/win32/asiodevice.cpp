@@ -36,6 +36,12 @@ struct AsioDriver {
 	std::array<ASIOBufferInfo, AudioFormat::kMaxChannel> buffer_infos{};
 	std::array<ASIOChannelInfo, AudioFormat::kMaxChannel> channel_infos{};
 
+	std::string GetDriverName() const {
+		char driver_name[MAX_PATH]{};
+		drivers->getCurrentDriverName(driver_name);
+		return driver_name;
+	}
+
 	void SetPostOutput() {
 		post_output = ::ASIOOutputReady() == ASE_OK;
 	}
@@ -171,7 +177,7 @@ void AsioDevice::ReOpen() {
 	}	
 	ASIODriver.drivers->removeCurrentDriver();
 	if (!ASIODriver.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
-		throw DeviceNotFoundException();
+		throw DeviceNotFoundException(ASIODriver.GetDriverName());
 	}
 	is_removed_driver_ = false;
 }
@@ -520,8 +526,9 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 
 	auto result = ::ASIOInit(&asio_driver_info);
 	if (result == ASE_NotPresent) {
+		auto driver_name = ASIODriver.GetDriverName();
 		ASIODriver.drivers.reset();
-		throw ASIOException(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
+		throw DeviceNotFoundException(driver_name);
 	}
 	else if (result != ASE_OK) {
 		throw ASIOException(result);

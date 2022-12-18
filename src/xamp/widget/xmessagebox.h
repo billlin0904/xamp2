@@ -49,18 +49,23 @@ public:
     void addWidget(QWidget* widget);
 
     static QMessageBox::StandardButton showInformation(const QString& text,
-        const QString& title = kAppTitle,
+        const QString& title = kApplicationTitle,
+        QWidget* parent = nullptr,
+        QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
+
+    static QMessageBox::StandardButton showWarning(const QString& text,
+        const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
         QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
 
     static QMessageBox::StandardButton showError(const QString& text,
-        const QString& title = kAppTitle,
+        const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
         QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
 
     static QMessageBox::StandardButton showCheckBoxQuestion(const QString& text,
         const QString& check_box_text = qEmptyString,
-        const QString& title = kAppTitle,
+        const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
         QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok,
         QMessageBox::StandardButton default_button = QMessageBox::StandardButton::Ok);

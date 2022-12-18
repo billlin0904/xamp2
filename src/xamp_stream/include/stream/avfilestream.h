@@ -43,6 +43,8 @@ public:
 
 	uint32_t GetBitDepth() const override;
 
+	void* GetCodecContext();
+
 private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;

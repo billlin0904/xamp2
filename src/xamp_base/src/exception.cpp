@@ -135,6 +135,18 @@ NotFoundDllExportFuncException::NotFoundDllExportFuncException(std::string_view 
     message_ = ostr.str();
 }
 
+DeviceNotFoundException::DeviceNotFoundException()
+    : Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND) {
+}
+
+DeviceNotFoundException::DeviceNotFoundException(std::string_view device_name)
+    : Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
+    , device_name_(device_name) {
+    std::ostringstream ostr;
+    ostr << "Device " << device_name << " not found.";
+    message_ = ostr.str();
+}
+
 PlatformSpecException::PlatformSpecException()
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GET_ERROR_MESSAGE()) {
 }
@@ -153,7 +165,6 @@ PlatformSpecException::PlatformSpecException(std::string_view what, int32_t err)
 
 IMP_EXCEPTION_CLASS(DeviceCreateFailureException, Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE)
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
-IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
 IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)

@@ -60,21 +60,12 @@ static std::string GetHRErrorMessage(HRESULT hr) {
 }
 
 void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr, const Path& file_path, int32_t line_number) {
-	switch (hresult) {
-	case AUDCLNT_E_DEVICE_IN_USE:
-	case AUDCLNT_E_ENGINE_PERIODICITY_LOCKED:
-	case AUDCLNT_E_ENGINE_FORMAT_LOCKED:
-		throw DeviceInUseException();
-	case AUDCLNT_E_ENDPOINT_CREATE_FAILED:
-        throw DeviceCreateFailureException();
-	default:
-		throw HRException(hresult, expr, file_path, line_number);
-	}
+    throw HRException(hresult, expr, file_path, line_number);
 }
 
 std::string MakeErrorMessage(HRESULT hr) {
     std::ostringstream ostr;
-    ostr << "Hr code: 0x" << std::hex << hr << "(" << GetHRErrorMessage(hr) << ")";
+    ostr << "Hr code: 0x" << std::uppercase << std::setfill('0') << std::setw(8) << std::hex << hr << " (" << GetHRErrorMessage(hr) << ")";
     return ostr.str();
 }
 

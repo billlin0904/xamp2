@@ -125,9 +125,20 @@ private:
     std::string_view func_name_;
 };
 
+class XAMP_BASE_API DeviceNotFoundException final : public Exception {
+public:
+    DeviceNotFoundException();
+
+    explicit DeviceNotFoundException(std::string_view device_name);
+
+    ~DeviceNotFoundException() override = default;
+
+private:
+    std::string_view device_name_;
+};
+
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceCreateFailureException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceInUseException)
-XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotFoundException)
 XAMP_DECLARE_EXCEPTION_CLASS(FileNotFoundException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportFormatException)

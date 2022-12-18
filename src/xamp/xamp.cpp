@@ -281,7 +281,7 @@ void Xamp::initialTrayIcon() {
 
     tray_icon_ = new QSystemTrayIcon(qTheme.appIcon(), this);
     tray_icon_->setContextMenu(tray_icon_menu_);
-    tray_icon_->setToolTip(kAppTitle);
+    tray_icon_->setToolTip(kApplicationTitle);
     tray_icon_->show();
 
     (void)QObject::connect(tray_icon_,
@@ -596,7 +596,7 @@ void Xamp::initialController() {
         }
         catch (const Exception & e) {
             player_->Stop(false);
-            XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kAppTitle, this);
+            XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kApplicationTitle, this);
         }
     });
 
@@ -965,7 +965,7 @@ void Xamp::setVolume(uint32_t volume) {
     }
     catch (const Exception& e) {
         player_->Stop(false);
-        XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kAppTitle, this);
+        XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kApplicationTitle, this);
     }
 }
 
@@ -1016,19 +1016,19 @@ void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         if (order_ != order) {
-            XMessageBox::showInformation(tr("Repeat once"), kAppTitle, this);
+            XMessageBox::showInformation(tr("Repeat once"), kApplicationTitle, this);
         }
         qTheme.setRepeatOncePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         if (order_ != order) {
-            XMessageBox::showInformation(tr("Repeat one"), kAppTitle, this);
+            XMessageBox::showInformation(tr("Repeat one"), kApplicationTitle, this);
         }
         qTheme.setRepeatOnePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         if (order_ != order) {
-            XMessageBox::showInformation(tr("Shuffle all"), kAppTitle, this);
+            XMessageBox::showInformation(tr("Shuffle all"), kApplicationTitle, this);
         }
         qTheme.setShufflePlayorder(ui_);
         break;
@@ -1088,7 +1088,7 @@ void Xamp::playOrPause() {
         play_index_ = playlist_page_->playlist()->model()->index(
             play_index_.row(), PLAYLIST_PLAYING);
         if (play_index_.row() == -1) {
-            XMessageBox::showInformation(tr("Not found any playing item."), kAppTitle, this);
+            XMessageBox::showInformation(tr("Not found any playing item."), kApplicationTitle, this);
             return;
         }
         playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
@@ -1286,13 +1286,10 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             if (player_->GetInputFormat().GetBitsPerSample() != 16) {
                 const auto message = qSTR("Playing blue-tooth device need set %1bit to 16bit depth.")
                     .arg(player_->GetInputFormat().GetBitsPerSample());
-                /*XMessageBox::showInformation(
-                    message,
-                    kAppTitle, this);*/
                 XMessageBox::showCheckBoxQuestion(
                     message,
                     tr("I see, Don't show again."),
-                    kAppTitle, 
+                    kApplicationTitle, 
                     this);
             }
             byte_format = ByteFormat::SINT16;
@@ -1309,13 +1306,14 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         open_done = true;
     }
     catch (const Exception & e) {        
-        XMessageBox::showInformation(translateErrorCode(e.GetError()), kAppTitle, this);
+        XMessageBox::showError(qTEXT(e.GetErrorMessage()), kApplicationTitle, this);
+        XAMP_LOG_DEBUG(e.GetStackTrace());
     }
     catch (const std::exception & e) {
-        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
+        XMessageBox::showInformation(qTEXT(e.what()), kApplicationTitle, this);
     }
     catch (...) {        
-        XMessageBox::showInformation(tr("Unknown error"), kAppTitle, this);
+        XMessageBox::showInformation(tr("Unknown error"), kApplicationTitle, this);
     }
 
     updateUI(item, playback_format, open_done);
@@ -1511,7 +1509,7 @@ void Xamp::playNextItem(int32_t forward) {
         }
 
         if (!play_index_.isValid()) {
-            XMessageBox::showInformation(tr("Not found any playlist item."), kAppTitle, this);
+            XMessageBox::showInformation(tr("Not found any playlist item."), kApplicationTitle, this);
             return;
         }
     } else {
@@ -1762,7 +1760,7 @@ void Xamp::appendToPlaylist(const QString& file_name) {
         album_page_->refreshOnece();
     }
     catch (const Exception& e) {
-        XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kAppTitle, this);
+        XMessageBox::showInformation(qTEXT(e.GetErrorMessage()), kApplicationTitle, this);
     }
 }
 
@@ -1854,7 +1852,7 @@ void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& prof
             }, metadata);
     }
     catch (Exception const& e) {
-        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
+        XMessageBox::showInformation(qTEXT(e.what()), kApplicationTitle, this);
     }
 }
 
@@ -1902,7 +1900,7 @@ void Xamp::encodeWavFile(const PlayListEntity& item) {
             }, metadata);
     }
     catch (Exception const& e) {
-        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
+        XMessageBox::showInformation(qTEXT(e.what()), kApplicationTitle, this);
     }
 }
 
@@ -1951,7 +1949,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
             }, metadata);
     }
     catch (Exception const& e) {
-        XMessageBox::showInformation(qTEXT(e.what()), kAppTitle, this);
+        XMessageBox::showInformation(qTEXT(e.what()), kApplicationTitle, this);
     }
 }
 

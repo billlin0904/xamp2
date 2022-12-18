@@ -103,7 +103,7 @@ std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_
     if (show_agin) {
         auto cb = new QCheckBox(qApp->tr("Don't show this again"));
         XMessageBox msgbox;
-        msgbox.setTitle(kAppTitle);
+        msgbox.setTitle(kApplicationTitle);
         msgbox.setText(qApp->tr("Hide XAMP to system tray?"));
         msgbox.setIcon(qTheme.iconFromFont(0x003F));
         msgbox.addButton(QMessageBox::Cancel);

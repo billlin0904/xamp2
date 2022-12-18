@@ -26,6 +26,8 @@ std::string_view ASIOException::ErrorMessage(ASIOError error) noexcept {
 
 static Errors ToErrors(ASIOError error) {
 	switch (error) {
+	case ASE_NotPresent:
+		return Errors::XAMP_ERROR_DEVICE_NOT_FOUND;
 	default:
 		return Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR;
 	}

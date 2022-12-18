@@ -277,7 +277,7 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
 
 #if defined(Q_OS_WIN)
     if (!qTheme.useNativeWindow()) {
-        setWindowTitle(kAppTitle);
+        setWindowTitle(kApplicationTitle);
         setAttribute(Qt::WA_TranslucentBackground, true);
         setAttribute(Qt::WA_StyledBackground, true);
         setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);

@@ -53,7 +53,7 @@ XMessageBox::XMessageBox(const QString& title,
 	messageTextLabel_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 	messageTextLabel_->setObjectName(qTEXT("messageTextLabel"));
 	messageTextLabel_->setOpenExternalLinks(true);
-	messageTextLabel_->setFixedHeight(80);
+	//messageTextLabel_->setFixedHeight(80);
 	messageTextLabel_->setText(text);
 	messageTextLabel_->setStyleSheet(qTEXT("background: transparent;"));
 
@@ -120,7 +120,6 @@ QMessageBox::StandardButton XMessageBox::standardButton(QAbstractButton* button)
 }
 
 void XMessageBox::addWidget(QWidget* widget) {
-	//messageTextLabel_->hide();
 	gridLayout_->addWidget(widget, 0, 1, 2, 1);
 }
 
@@ -152,7 +151,14 @@ QMessageBox::StandardButton XMessageBox::showError(const QString& text,
 	const QString& title,
 	QWidget* parent,
 	QMessageBox::StandardButton buttons) {
-	return showButton(text, title, qTheme.iconFromFont(0xF188), parent, buttons);
+	return showButton(text, title, qTheme.iconFromFont(0xF05E), parent, buttons);
+}
+
+QMessageBox::StandardButton XMessageBox::showWarning(const QString& text,
+	const QString& title,
+	QWidget* parent,
+	QMessageBox::StandardButton buttons) {
+	return showButton(text, title, qTheme.iconFromFont(0xF071), parent, buttons);
 }
 
 QMessageBox::StandardButton XMessageBox::showCheckBoxQuestion(const QString& text,
@@ -163,7 +169,7 @@ QMessageBox::StandardButton XMessageBox::showCheckBoxQuestion(const QString& tex
 	QMessageBox::StandardButton default_button) {
 	QScopedPointer<MaskWidget> mask_widget(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons);
-	box.setIcon(qTheme.iconFromFont(0xF05A));
+	box.setIcon(qTheme.iconFromFont(0xF059));
 	auto* check_box = new QCheckBox(&box);
 	check_box->setStyleSheet(qTEXT("background: transparent;"));
 	check_box->setText(check_box_text);

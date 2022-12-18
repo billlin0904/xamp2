@@ -347,7 +347,7 @@ static int excute(int argc, char* argv[]) {
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication::setApplicationName(qTEXT("XAMP2"));
-    QApplication::setApplicationVersion(kXAMPVersion);
+    QApplication::setApplicationVersion(kApplicationVersion);
     QApplication::setOrganizationName(qTEXT("XAMP2 Project"));
     QApplication::setOrganizationDomain(qTEXT("XAMP2 Project"));
 
@@ -434,7 +434,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
-        .arg(kXAMPVersion)
+        .arg(kApplicationVersion)
         .arg(visualStudioVersion())
         .arg((_MSC_FULL_VER / 100000) % 100)
         .arg(_MSC_FULL_VER % 100000)
