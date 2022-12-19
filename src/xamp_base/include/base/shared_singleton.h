@@ -23,7 +23,7 @@ class XAMP_BASE_API_ONLY_EXPORT SharedSingleton {
 public:
 	static T& GetInstance() {
 		static void* instance = nullptr;
-		if (instance == nullptr) {
+		XAMP_UNLIKELY(instance) {
 			GetSharedInstance(typeid(T), &GetStaticInstance, instance);
 		}
 		return *static_cast<T*>(instance);

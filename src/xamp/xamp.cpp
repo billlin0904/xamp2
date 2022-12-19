@@ -1127,7 +1127,8 @@ void Xamp::setupDSP(const AlbumEntity& item) {
         if (AppSettings::contains(kAppSettingEQName)) {
             const auto [name, settings] = 
                 AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
-            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, settings);
+            player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
+            player_->GetDSPManager()->AddEqualizer();
         }
     } else {
         player_->GetDSPManager()->RemoveEqualizer();

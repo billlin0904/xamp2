@@ -119,7 +119,9 @@ public:
                 opt.text = qSTR("%1 dB").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_TRACK_LOUDNESS:
-                opt.text = qSTR("%1 LUFS").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1 LUFS")
+                    .arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'))
+                    .rightJustified(8);
                 break;
             }
             break;
@@ -493,9 +495,20 @@ void PlayListTableView::initial() {
         remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
         action_map.setCallback(remove_all_act, [this]() {
-            qDatabase.removePlaylistAllMusic(playlistId());
-            executeQuery();
-            removePlaying();
+            if (!model_->rowCount()) {
+                return;
+            }
+
+	        const auto button = XMessageBox::showWarning(tr("Are you sure remove all?"),
+	                                                     kApplicationTitle,
+													qApp->activeWindow(),
+	                                                     QDialogButtonBox::No | QDialogButtonBox::Yes,
+	                                                     QDialogButtonBox::No);
+			if (button == QDialogButtonBox::Yes) {
+                qDatabase.removePlaylistAllMusic(playlistId());
+                executeQuery();
+                removePlaying();
+			}            
             });
 
         action_map.addSeparator();

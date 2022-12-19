@@ -17,7 +17,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui.lblProjectTitle->setText(qTEXT("XAMP2"));
     ui.lblProjectTitle->setStyleSheet(qTEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
-    ui.lblDescription->setText(qTEXT("Cross-platform native DSD and low latency playback music player."));
+    ui.lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player. \u1F609"));
 
     QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
     ui.lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));

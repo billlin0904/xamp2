@@ -29,6 +29,10 @@ public:
 	void setTextColor(QColor color);
 
 	void clearImageCache();
+
+	void setPlayingAlbumId(int32_t album_id) {
+		playing_album_id_ = album_id;
+	}
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
@@ -36,10 +40,12 @@ signals:
 
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
+
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 private:
+	int32_t playing_album_id_{ -1 };
 	QColor text_color_;
 	QPoint mouse_point_;
 	QPixmap mask_image_;

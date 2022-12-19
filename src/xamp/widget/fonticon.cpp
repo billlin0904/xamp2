@@ -42,6 +42,7 @@ const QString FontIconOption::selectedColorAttr(qTEXT("selectedColor"));
 const QString FontIconOption::flipLeftRightAttr(qTEXT("flipLeftRight"));
 const QString FontIconOption::rotateAngleAttr(qTEXT("rotateAngle"));
 const QString FontIconOption::flipTopBottomAttr(qTEXT("flipTopBottom"));
+const QString FontIconOption::opacityAttr(qTEXT("opacity"));
 
 QColor FontIconOption::color = QApplication::palette().color(QPalette::Normal, QPalette::ButtonText);
 QColor FontIconOption::disabledColor = QApplication::palette().color(QPalette::Disabled, QPalette::ButtonText);
@@ -49,6 +50,7 @@ QColor FontIconOption::selectedColor = QApplication::palette().color(QPalette::A
 QColor FontIconOption::onColor;
 QColor FontIconOption::activeColor;
 QColor FontIconOption::activeOnColor;
+double FontIconOption::opacity = 1.0;
 
 template <typename T>
 static T getOrDefault(QVariantMap const & opt, const QString & s, T defaultValue) {
@@ -85,9 +87,14 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     }
 
     var = options_.value(FontIconOption::scaleFactorAttr);
-    int draw_size = qRound(paint_rect.height() * 0.9);
+
+    // A 16 pixel-high icon yields a font size of 14, which is pixel perfect
+    // for font-awesome. 16 * 0.875 = 14
+    // The reason why the glyph size is smaller than the icon size is to
+	// account for font bearing.
+    int draw_size = qRound(paint_rect.height() * 0.875);
     if (var.isValid()) {
-        draw_size = qRound(paint_rect.height() * var.value<qreal>());
+        draw_size = qRound(paint_rect.height() * 0.875 * var.value<qreal>());
     }
 
     var = options_.value(FontIconOption::fontStyleAttr);
@@ -136,6 +143,13 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     painter->translate(rect.center() + QPoint(1, 1));
+
+    var = options_.value(FontIconOption::opacityAttr);
+    if (var.isValid()) {
+        painter->setOpacity(var.value<qreal>());
+    } else {
+        painter->setOpacity(FontIconOption::opacity);
+    }
 
     var = options_.value(FontIconOption::rotateAngleAttr);
     if (var.isValid()) {
@@ -188,7 +202,14 @@ FontIcon::FontIcon(QObject* parent)
 }
 
 bool FontIcon::addFont(const QString& filename) {
-	const auto id = QFontDatabase::addApplicationFont(filename);
+    QFile font_file(filename);
+    if (!font_file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+
+    const QByteArray font_data(font_file.readAll());
+    font_file.close();
+    const auto id = QFontDatabase::addApplicationFontFromData(font_data);
     if (id == -1) {
         return false;
     }

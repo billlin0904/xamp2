@@ -10,6 +10,7 @@
                 "BackgroundThreadPool": "info",
                 "BackgroundWorker": "info",
                 "BassCompressor": "info",
+                "BassEqualizer": "info",
                 "BassFader": "info",
                 "BassFileStream": "info",
                 "BassVolume": "info",
@@ -44,7 +45,7 @@
             "passBand": 96,
             "phase": 46,
             "quality": 4,
-            "resampleSampleRate": 176400,
+            "resampleSampleRate": 192000,
             "rolloffLevel": 2,
             "stopBand": 100
         }

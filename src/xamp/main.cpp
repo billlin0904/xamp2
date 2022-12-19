@@ -218,7 +218,7 @@ static void loadAppSettings() {
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
     AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
-    AppSettings::setDefaultValue(kAppSettingReplayGainTargetLoudnes, -40);
+    AppSettings::setDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::setDefaultValue(kAppSettingWindowState, false);

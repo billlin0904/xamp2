@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QFrame>
+#include <QDialogButtonBox>
 #include <QMessageBox>
 
 #include <version.h>
@@ -13,7 +14,6 @@
 
 class QIcon;
 class QAbstractButton;
-class QDialogButtonBox;
 class QGridLayout;
 class QLabel;
 
@@ -29,12 +29,12 @@ public:
 	explicit XMessageBox(const QString& title = qEmptyString,
 	                     const QString& text = qEmptyString,
 	                     QWidget* parent = nullptr,
-	                     QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok,
-	                     QMessageBox::StandardButton default_button = QMessageBox::StandardButton::Ok);
+						 QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+						 QDialogButtonBox::StandardButton default_button = QDialogButtonBox::StandardButton::Ok);
 
     void setDefaultButton(QPushButton* button);
 
-    void setDefaultButton(QMessageBox::StandardButton button);
+    void setDefaultButton(QDialogButtonBox::StandardButton button);
 
     void setIcon(const QIcon &icon);
 
@@ -42,49 +42,53 @@ public:
 
     QAbstractButton* clickedButton() const;
 
-    QMessageBox::StandardButton standardButton(QAbstractButton* button) const;
+    QDialogButtonBox::StandardButton standardButton(QAbstractButton* button) const;
 
-    void addButton(QMessageBox::StandardButton buttons);
+    void addButton(QDialogButtonBox::StandardButton buttons);
 
     void addWidget(QWidget* widget);
 
-    static QMessageBox::StandardButton showInformation(const QString& text,
+    static QDialogButtonBox::StandardButton showInformation(const QString& text,
         const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
-        QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
 
-    static QMessageBox::StandardButton showWarning(const QString& text,
+    static QDialogButtonBox::StandardButton showWarning(const QString& text,
         const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
-        QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
 
-    static QMessageBox::StandardButton showError(const QString& text,
+    static QDialogButtonBox::StandardButton showError(const QString& text,
         const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
-        QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
 
-    static QMessageBox::StandardButton showCheckBoxQuestion(const QString& text,
+    static QDialogButtonBox::StandardButton showCheckBoxQuestion(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
         QWidget* parent = nullptr,
-        QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok,
-        QMessageBox::StandardButton default_button = QMessageBox::StandardButton::Ok);
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
 
 private:
-    static QMessageBox::StandardButton showButton(const QString& text,
+    static QDialogButtonBox::StandardButton showButton(const QString& text,
         const QString& title,
         const QIcon& icon,
         QWidget* parent = nullptr,
-        QMessageBox::StandardButton buttons = QMessageBox::StandardButton::Ok);
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
 
     void onButtonClicked(QAbstractButton* button);
 
     int execReturnCode(QAbstractButton* button);
 
-    QLabel* iconLabel_;
-    QLabel* messageTextLabel_;
-    QGridLayout* gridLayout_;
-    QDialogButtonBox* buttonBox_;
-    QAbstractButton* clickedButton_;
-    QAbstractButton* defaultButton_;
+    QLabel* icon_label_;
+    QLabel* message_text_label_;
+    QGridLayout* grid_layout_;
+    QDialogButtonBox* button_box_;
+    QAbstractButton* clicked_button_;
+    QAbstractButton* default_button_;
 };

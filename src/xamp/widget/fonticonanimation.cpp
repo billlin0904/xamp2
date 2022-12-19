@@ -17,8 +17,8 @@ void FontIconAnimation::setup(QPainter& painter, const QRect& rect) {
         QObject::connect(timer_, SIGNAL(timeout()), this, SLOT(update()));
         timer_->start(interval_);
     } else {
-        float x_center = rect.width() * 0.5f;
-        float y_center = rect.height() * 0.5f;
+	    const float x_center = rect.width() * 0.5f;
+        const float y_center = rect.height() * 0.5f;
         painter.translate(x_center, y_center);
         painter.rotate(angle_);
         painter.translate(-x_center, -y_center);
@@ -28,5 +28,7 @@ void FontIconAnimation::setup(QPainter& painter, const QRect& rect) {
 void FontIconAnimation::update() {
     angle_ += step_;
     angle_ = std::fmod(angle_, 360);
-    parent_->update();
+    if (parent_ != nullptr) {
+        parent_->update();
+    }
 }

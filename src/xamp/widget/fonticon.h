@@ -62,26 +62,28 @@ enum Glyphs {
 };
 
 struct FontIconOption {
-    const static QString animationAttr;
-    const static QString rectAttr;
-    const static QString scaleFactorAttr;
-    const static QString fontStyleAttr;
-    const static QString colorAttr;
-    const static QString onColorAttr;
-    const static QString activeColorAttr;
-    const static QString activeOnColorAttr;
-    const static QString disabledColorAttr;
-    const static QString selectedColorAttr;
-    const static QString flipLeftRightAttr;
-    const static QString rotateAngleAttr;
-    const static QString flipTopBottomAttr;
+    static const QString animationAttr;
+    static const QString rectAttr;
+    static const QString scaleFactorAttr;
+    static const QString fontStyleAttr;
+    static const QString colorAttr;
+    static const QString onColorAttr;
+    static const QString activeColorAttr;
+    static const QString activeOnColorAttr;
+    static const QString disabledColorAttr;
+    static const QString selectedColorAttr;
+    static const QString flipLeftRightAttr;
+    static const QString rotateAngleAttr;
+    static const QString flipTopBottomAttr;
+    static const QString opacityAttr;
 
-    static QColor color;
+	static QColor color;
     static QColor onColor;
     static QColor activeColor;
     static QColor activeOnColor;
     static QColor disabledColor;
     static QColor selectedColor;
+    static double opacity;
 };
 
 class FontIcon : public QObject {

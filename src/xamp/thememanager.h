@@ -135,8 +135,6 @@ private:
 
     void setFontAwesomeIcons();
 
-    void setMaterialIcons();
-
     ThemeManager();
     
     bool use_native_window_;

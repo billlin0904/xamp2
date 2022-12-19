@@ -106,8 +106,8 @@ std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_
         msgbox.setTitle(kApplicationTitle);
         msgbox.setText(qApp->tr("Hide XAMP to system tray?"));
         msgbox.setIcon(qTheme.iconFromFont(0x003F));
-        msgbox.addButton(QMessageBox::Cancel);
-        msgbox.setDefaultButton(QMessageBox::Cancel);
+        msgbox.addButton(QDialogButtonBox::Cancel);
+        msgbox.setDefaultButton(QDialogButtonBox::Cancel);
         msgbox.addWidget(cb);
 
         (void)QObject::connect(cb, &QCheckBox::stateChanged, [&is_show_again](int state) {

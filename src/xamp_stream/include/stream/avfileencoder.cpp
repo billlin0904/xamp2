@@ -3,6 +3,8 @@
 
 #include <stream/avlib.h>
 
+#include <fstream>
+
 namespace xamp::stream {
 
 static void Encode(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt) {
@@ -27,12 +29,12 @@ static int32_t SelectHighestSampleRate(const AVCodec* codec) noexcept {
         return 44100;
     }
 
-    auto best_samplerate = 0;
+    auto best_sample_rate = 0;
     const auto *sample_rate = codec->supported_samplerates;
     while (*sample_rate) {
-        best_samplerate = (std::max)(*sample_rate, best_samplerate);
+        best_sample_rate = (std::max)(*sample_rate, best_sample_rate);
     }
-    return best_samplerate;
+    return best_sample_rate;
 }
 
 static bool CheckSampleFmt(const AVCodec* codec, enum AVSampleFormat sample_fmt) noexcept {
@@ -48,7 +50,8 @@ static bool CheckSampleFmt(const AVCodec* codec, enum AVSampleFormat sample_fmt)
 class AvFileEncoder::AvFileEncoderImpl {
 public:
     void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const&) {
-        intput_stream_.OpenFile(input_file_path);
+        intput_file_.OpenFile(input_file_path);
+        output_file_.open(input_file_path, std::ios::binary);
 
         codec_ = LIBAV_LIB.CodecLib->avcodec_find_encoder(AV_CODEC_ID_MP2);
         if (!codec_) {
@@ -66,22 +69,19 @@ public:
         codec_context_->channel_layout = SelectHighestChannelLayout(codec_);
         codec_context_->channels = LIBAV_LIB.UtilLib->av_get_channel_layout_nb_channels(codec_context_->channel_layout);
 
-        if (LIBAV_LIB.CodecLib->avcodec_open2(codec_context_.get(), codec_, nullptr) < 0) {
-            return;
-        }
+        AvIfFailedThrow(LIBAV_LIB.CodecLib->avcodec_open2(codec_context_.get(), codec_, nullptr));
 
         format_context_.reset(LIBAV_LIB.FormatLib->avformat_alloc_context());
-        /*stream_.reset(LIBAV_LIB.FormatLib->avformat_new_stream(format_context_.get(), nullptr));
+        stream_ = LIBAV_LIB.FormatLib->avformat_new_stream(format_context_.get(), nullptr);
 
-        stream_->time_base.den = intput_stream_.GetFormat().GetSampleRate();
+        stream_->time_base.den = intput_file_.GetFormat().GetSampleRate();
         stream_->time_base.num = 1;
 
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER) {
             codec_context_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
         }
 
-        if (LIBAV_LIB.CodecLib->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()) < 0) {
-        }*/
+        AvIfFailedThrow(LIBAV_LIB.CodecLib->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()));
     }
 
     void Encode(std::function<bool(uint32_t) > const& progress) {
@@ -89,7 +89,8 @@ public:
     }
 
 private:
-    AvFileStream intput_stream_;
+    std::ofstream output_file_;
+    AvFileStream intput_file_;
     AVCodec* codec_;
     AVStream* stream_;
     AvPtr<AVFormatContext> format_context_;

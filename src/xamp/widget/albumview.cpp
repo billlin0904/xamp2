@@ -91,12 +91,16 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
+    constexpr auto kMoreIconSize = 20;
+    QStyle* style = option.widget ? option.widget->style() : QApplication::style();
+
     painter->setRenderHints(QPainter::Antialiasing, true);
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
 
     auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
+    auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
 
     const auto default_cover_size = qTheme.defaultCoverSize();
     const QRect cover_rect(option.rect.left() + 10,
@@ -106,11 +110,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     QRect album_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 15,
-        option.rect.width() - 40,
+        option.rect.width() - 20,
         15);
     QRect artist_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 35,
-        option.rect.width() - 50, 
+        option.rect.width() - 20, 
         15);
 
     painter->setPen(QPen(text_color_));
@@ -121,13 +125,17 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 #endif
     f.setBold(true);
     painter->setFont(f);
-    painter->drawText(album_text_rect, Qt::AlignVCenter, album);
+
+    QFontMetrics album_metrics(painter->font());
+    painter->drawText(album_text_rect, Qt::AlignVCenter,
+        album_metrics.elidedText(album, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     painter->setPen(QPen(Qt::gray));
-
     f.setBold(false);
     painter->setFont(f);
-    painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
+    QFontMetrics artist_metrics(painter->font());
+    painter->drawText(artist_text_rect, Qt::AlignVCenter,
+        artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     auto* album_cover = &qTheme.defaultSizeUnknownCover();
 
@@ -161,7 +169,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         button.icon = qTheme.playCircleIcon();
         button.state |= QStyle::State_Enabled;
         button.iconSize = QSize(icon_size, icon_size);
-        QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
+        style->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
 
         if (button_rect.contains(mouse_point_)) {
             QApplication::setOverrideCursor(Qt::PointingHandCursor);
@@ -169,11 +177,22 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         }
     }
 
-    constexpr auto icon_size = 18;
+    if (playing_album_id_ > 0 && playing_album_id_ == album_id) {
+        const QRect playing_state_icon_rect(
+            option.rect.left() + default_cover_size.width() - 10,
+            option.rect.top() + default_cover_size.height() + 15,
+            kMoreIconSize, kMoreIconSize);
+
+        QVariantMap font_options;
+        font_options.insert(FontIconOption::colorAttr, QColor(252, 215, 75));
+        auto playing_state_icon = qFontIcon.icon(0xF8F2, font_options);
+        painter->drawPixmap(playing_state_icon_rect, playing_state_icon.pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+    }
+    
     const QRect more_button_rect(
         option.rect.left() + default_cover_size.width() - 10,
-        option.rect.top() + default_cover_size.height() + 30,
-        icon_size, icon_size);
+        option.rect.top() + default_cover_size.height() + 35,
+        kMoreIconSize, kMoreIconSize);
     
     QStyleOptionButton button;
     button.initFrom(more_album_opt_button_.get());
@@ -190,8 +209,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (more_album_opt_button_->isDefault()) {
         button.features = QStyleOptionButton::DefaultButton;
     }
-    button.iconSize = QSize(icon_size, icon_size);
-    QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, more_album_opt_button_.get());
+    button.iconSize = QSize(kMoreIconSize, kMoreIconSize);
+    style->drawControl(QStyle::CE_PushButton, &button, painter, more_album_opt_button_.get());
     if (!hit_play_button) {
         QApplication::restoreOverrideCursor();
     }
@@ -309,6 +328,13 @@ AlbumView::AlbumView(QWidget* parent)
                             this,
                             &AlbumView::clickedArtist);
 
+    (void)QObject::connect(page_->playlistPage()->playlist(),
+        &PlayListTableView::playMusic,
+        this,
+        [this](auto item) {
+            styled_delegate_->setPlayingAlbumId(item.album_id);
+        });
+
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumOpertationMenu, [this](auto index, auto pt) {
         showOperationMenu(pt);
         });
@@ -344,6 +370,7 @@ AlbumView::AlbumView(QWidget* parent)
     });
 
     setStyleSheet(qTEXT("background-color: transparent"));
+
     verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));
@@ -357,18 +384,29 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     ActionMap<AlbumView> action_map(this);
 
     auto removeAlbum = [=]() {
-	    const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
-        indicator->startAnimation();
-        try {
-            qDatabase.forEachAlbum([](auto album_id) {
-                qDatabase.removeAlbum(album_id);
-                });
-            qDatabase.removeAllArtist();
-            update();
-            emit removeAll();
-            qPixmapCache.clear();
+        if (!model_.rowCount()) {
+            return;
         }
-        catch (...) {
+
+        const auto button = XMessageBox::showWarning(tr("Are you sure remove all album?"),
+                                                     kApplicationTitle,
+                                                     qApp->activeWindow(),
+                                                     QDialogButtonBox::No | QDialogButtonBox::Yes,
+                                                     QDialogButtonBox::No);
+        if (button == QDialogButtonBox::Yes) {
+            const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
+            indicator->startAnimation();
+            try {
+                qDatabase.forEachAlbum([](auto album_id) {
+                    qDatabase.removeAlbum(album_id);
+                    });
+                qDatabase.removeAllArtist();
+                update();
+                emit removeAll();
+                qPixmapCache.clear();
+            }
+            catch (...) {
+            }
         }
     };
 

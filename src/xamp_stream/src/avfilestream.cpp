@@ -11,30 +11,6 @@ namespace xamp::stream {
 
 XAMP_DECLARE_LOG_NAME(AvFileStream);
 
-class XAMP_STREAM_API AvException final : public Exception {
-public:
-    explicit AvException(int32_t error);
-
-    ~AvException() override;
-};
-
-AvException::AvException(int32_t error)
-    : Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) {
-    char buf[256]{};
-    LIBAV_LIB.UtilLib->av_strerror(error, buf, sizeof(buf) - 1);
-    message_.assign(buf);
-}
-
-AvException::~AvException() = default;
-
-#define AvIfFailedThrow(expr) \
-	do { \
-		auto error = (expr); \
-		if (error != 0) { \
-			throw AvException(error); \
-		} \
-	} while (false)
-
 class AvFileStream::AvFileStreamImpl {
 public:
     AvFileStreamImpl()

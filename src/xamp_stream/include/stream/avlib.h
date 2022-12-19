@@ -17,6 +17,7 @@ extern "C" {
 }
 
 #include <base/base.h>
+#include <base/exception.h>
 #include <base/logger.h>
 #include <base/align_ptr.h>
 #include <base/dll.h>
@@ -25,6 +26,21 @@ extern "C" {
 #include <stream/stream.h>
 
 namespace xamp::stream {
+
+class XAMP_STREAM_API AvException final : public Exception {
+public:
+    explicit AvException(int32_t error);
+
+    ~AvException() override;
+};
+
+#define AvIfFailedThrow(expr) \
+	do { \
+		auto error = (expr); \
+		if (error != 0) { \
+			throw AvException(error); \
+		} \
+	} while (false)
 
 class AvFormatLib final {
 public:

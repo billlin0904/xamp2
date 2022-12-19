@@ -4,15 +4,7 @@
 
 #include <QDirIterator>
 #include <QDesktopWidget>
-#include <QGraphicsDropShadowEffect>
-#include <QScreen>
-#include <QResource>
-#include <QPushButton>
-#include <QApplication>
-#include <QFontDatabase>
-#include <QTextStream>
-#include <QFileInfo>
-#include <utility>
+#include "thememanager.h"
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -25,7 +17,70 @@
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
-#include "thememanager.h"
+
+#include <QGraphicsDropShadowEffect>
+#include <QScreen>
+#include <QResource>
+#include <QPushButton>
+#include <QApplication>
+#include <QFontDatabase>
+#include <QTextStream>
+#include <QFileInfo>
+
+#include "widget/fonticonanimation.h"
+
+template <typename Iterator>
+static void sortFontWeight(Iterator begin, Iterator end) {
+    std::sort(begin, end,
+        [](const auto& left_font_name, const auto& right_font_name) {
+            auto getFontWeight = [](auto name) {
+            if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
+                return 100;
+            }
+            if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
+                return 100;
+            }
+            if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
+                return 200;
+            }
+            if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
+                return 300;
+            }
+            if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
+                return 400;
+            }
+            if (name.contains(qTEXT("Regular"), Qt::CaseInsensitive)) {
+                return 400;
+            }
+            if (name.contains(qTEXT("Medium"), Qt::CaseInsensitive)) {
+                return 500;
+            }
+            if (name.contains(qTEXT("SemiBold"), Qt::CaseInsensitive)) {
+                return 600;
+            }
+            if (name.contains(qTEXT("DemiBold"), Qt::CaseInsensitive)) {
+                return 600;
+            }
+            if (name.contains(qTEXT("Bold"), Qt::CaseInsensitive)) {
+                return 700;
+            }
+            if (name.contains(qTEXT("ExtraBold"), Qt::CaseInsensitive)) {
+                return 800;
+            }
+            if (name.contains(qTEXT("UltraBold"), Qt::CaseInsensitive)) {
+                return 800;
+            }
+            if (name.contains(qTEXT("Black"), Qt::CaseInsensitive)) {
+                return 900;
+            }
+            if (name.contains(qTEXT("Heavy"), Qt::CaseInsensitive)) {
+                return 900;
+            }
+            return 100;
+        };
+		return getFontWeight(left_font_name) < getFontWeight(right_font_name);
+    });
+}
 
 bool ThemeManager::useNativeWindow() const {
     return use_native_window_;
@@ -176,62 +231,8 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_BUILD_IN_SPEAKER,          0xF8DF},
     { ICON_BLUE_TOOTH,                0xF293},
     };
-    qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
-    qFontIcon.setGlyphs(glyphs);
-}
-
-void ThemeManager::setMaterialIcons() {
-    const HashMap<char32_t, uint32_t> glyphs{
-    { ICON_VOLUME_UP ,                0xF057E},
-    { ICON_VOLUME_OFF,                0xF075F},
-    { ICON_SPEAKER,                   0xF04C3},
-    { ICON_FOLDER,                    0xF024B},
-    { ICON_AUDIO,                     0xF0387},
-    { ICON_LOAD_FILE,                 0xE89C},
-    { ICON_LOAD_DIR,                  0xE2C8},
-    { ICON_RELOAD,                    0xE5D5},
-    { ICON_REMOVE_ALL,                0xE872},
-    { ICON_OPEN_FILE_PATH,            0xF07C},
-    { ICON_READ_REPLAY_GAIN,          0xE023},
-    { ICON_EXPORT_FILE,               0xF56E},
-    { ICON_COPY,                      0xE173},
-    { ICON_DOWNLOAD,                  0xF090},
-    { ICON_PLAYLIST,                  0xE03D},
-    { ICON_EQUALIZER,                 0xE01D},
-    { ICON_PODCAST,                   0xF048},
-    { ICON_ALBUM,                     0xE030},
-    { ICON_CD,                        0xE019},
-    { ICON_LEFT_ARROW,                0xE5C4},
-    { ICON_ARTIST,                    0xE7EF},
-    { ICON_SUBTITLE,                  0xE048},
-    { ICON_PREFERENCE,                0xF013},
-    { ICON_ABOUT,                     0xF05A},
-    { ICON_DARK_MODE,                 0xF186},
-    { ICON_LIGHT_MODE,                0xF185},
-    { ICON_SEARCH,                    0xF002},
-    { ICON_THEME,                     0xF042},
-    { ICON_DESKTOP,                   0xE30C},
-    { ICON_SHUFFLE_PLAY_ORDER,        0xF074},
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xF363},
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xF365},
-    { ICON_MINIMIZE_WINDOW,           0xF05B0},
-    { ICON_MAXIMUM_WINDOW,            0xF05AF},
-    { ICON_CLOSE_WINDOW,              0xF05AD},
-    { ICON_RESTORE_WINDOW,            0xF05B2},
-    { ICON_SLIDER_BAR,                0xE896},
-    { ICON_PLAY,                      0xE037},
-    { ICON_PAUSE,                     0xE034},
-    { ICON_STOP_PLAY,                 0xE047},
-    { ICON_PLAY_FORWARD,              0xE045},
-    { ICON_PLAY_BACKWARD,             0xE044},
-    { ICON_MORE,                      0xE5D4},
-    { ICON_HIDE,                      0xE8F5},
-    { ICON_SHOW,                      0xE8F4},
-    { ICON_USB,                       0xE1E0},
-    { ICON_BUILD_IN_SPEAKER,          0xE32D},
-    { ICON_BLUE_TOOTH,                0xE1A7},
-    };
-    qFontIcon.addFont(fontNamePath(qTEXT("MaterialDesignIconsDesktop.ttf")));
+    //qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
+    qFontIcon.addFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
     qFontIcon.setGlyphs(glyphs);
 }
 
@@ -243,65 +244,16 @@ QFont ThemeManager::loadFonts() {
 
     setFontAwesomeIcons();
     //setSegoeFluentIcons();
-    //setMaterialIcons();
 
     // https://stackoverflow.com/questions/63012818/how-to-load-multiple-font-of-same-familiy
 
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
     installFileFonts(qTEXT("Lato"), ui_fonts);
-    installFileFonts(qTEXT("MiSans"), ui_fonts);
-    //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
+    //installFileFonts(qTEXT("MiSans"), ui_fonts);
+    installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
-    std::sort(ui_fonts.begin(), ui_fonts.end(),
-        [](const auto& left_font_name, const auto& right_font_name) {
-            auto getFontWeight = [](auto name) {
-            if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
-                return 100;
-            }
-            if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
-                return 100;
-            }
-            if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
-                return 200;
-            }
-            if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
-                return 300;
-            }
-            if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
-                return 400;
-            }
-            if (name.contains(qTEXT("Regular"), Qt::CaseInsensitive)) {
-                return 400;
-            }
-            if (name.contains(qTEXT("Medium"), Qt::CaseInsensitive)) {
-                return 500;
-            }
-            if (name.contains(qTEXT("SemiBold"), Qt::CaseInsensitive)) {
-                return 600;
-            }
-            if (name.contains(qTEXT("DemiBold"), Qt::CaseInsensitive)) {
-                return 600;
-            }
-            if (name.contains(qTEXT("Bold"), Qt::CaseInsensitive)) {
-                return 700;
-            }
-            if (name.contains(qTEXT("ExtraBold"), Qt::CaseInsensitive)) {
-                return 800;
-            }
-            if (name.contains(qTEXT("UltraBold"), Qt::CaseInsensitive)) {
-                return 800;
-            }
-            if (name.contains(qTEXT("Black"), Qt::CaseInsensitive)) {
-                return 900;
-            }
-            if (name.contains(qTEXT("Heavy"), Qt::CaseInsensitive)) {
-                return 900;
-            }
-            return 100;
-        };
-		return getFontWeight(left_font_name) < getFontWeight(right_font_name);
-        });
+    sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;

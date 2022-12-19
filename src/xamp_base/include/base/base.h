@@ -20,8 +20,8 @@
 		#define XAMP_BASE_API_ONLY_EXPORT
 	#endif
 #if __cplusplus >= XAMP_CPP20_LANG_VER // Only for C++20
-	#define XAMP_LIKELY(x) if(x) [[likely]]
-	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]	
+	#define XAMP_LIKELY(x) if((x)) [[likely]]
+	#define XAMP_UNLIKELY(x) if (!(x)) [[unlikely]]	
 #else
 	#define XAMP_LIKELY(x) if(x)
 	#define XAMP_UNLIKELY(x) if (!x)
