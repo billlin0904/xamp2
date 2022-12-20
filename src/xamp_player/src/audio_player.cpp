@@ -995,7 +995,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     fader_->Start(config_);
 }
 
-DspConfig& AudioPlayer::GetDspConfig() {
+AnyMap& AudioPlayer::GetDspConfig() {
     return config_;
 }
 

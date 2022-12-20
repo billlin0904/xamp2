@@ -30,6 +30,14 @@ public:
 
 	virtual void reload();
 
+	void disableDelete(bool enable = false) {
+		enable_delete_ = enable;
+	}
+
+	void disableLoadFile(bool enable = false) {
+		enable_load_file_ = enable;
+	}
+
 	void executeQuery();
 
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
@@ -129,6 +137,8 @@ private:
 
 protected:
 	bool podcast_mode_;
+	bool enable_delete_{true};
+	bool enable_load_file_{ true };
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
 	int32_t playlist_id_;

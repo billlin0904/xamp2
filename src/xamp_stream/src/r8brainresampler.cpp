@@ -94,12 +94,12 @@ uint32_t R8brainSampleRateConverter::Process(float const* samples, float* out, u
 	return impl_->Process(samples, out, num_samples);
 }
 
-void R8brainSampleRateConverter::Start(const DspConfig& config) {
+void R8brainSampleRateConverter::Start(const AnyMap& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->Start(output_format.GetSampleRate());
 }
 
-void R8brainSampleRateConverter::Init(const DspConfig& config) {
+void R8brainSampleRateConverter::Init(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
 	impl_->Init(input_format.GetSampleRate());
 }

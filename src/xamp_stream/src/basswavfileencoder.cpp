@@ -13,7 +13,10 @@ namespace xamp::stream {
 
 class BassWavFileEncoder::BassWavFileEncoderImpl {
 public:
-    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const&) {
+    void Start(const AnyMap& config) {
+        const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
+        const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
         if (TestDsdFileFormatStd(input_file_path.wstring())) {
@@ -61,8 +64,8 @@ BassWavFileEncoder::BassWavFileEncoder()
 
 XAMP_PIMPL_IMPL(BassWavFileEncoder)
 
-void BassWavFileEncoder::Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
-    impl_->Start(input_file_path, output_file_path, command);
+void BassWavFileEncoder::Start(const AnyMap& config) {
+    impl_->Start(config);
 }
 
 void BassWavFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {

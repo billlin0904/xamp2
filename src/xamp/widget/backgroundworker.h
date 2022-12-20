@@ -20,7 +20,7 @@ struct ReplayGainResult final {
     Vector<double> track_peak;
     Vector<double> track_gain;
     Vector<double> track_peak_gain;
-    Vector<PlayListEntity> music_id;
+    Vector<PlayListEntity> play_list_entities;
 };
 
 class BackgroundWorker : public QObject {

@@ -1207,6 +1207,18 @@ void Xamp::setupSampleWriter(PlaybackFormat& playback_format, QString& samplerat
 	}
 }
 
+void Xamp::showMeMessage(const QString& message) {
+    if (AppSettings::showMeAgain(message)) {
+        if (XMessageBox::showCheckBoxInformation(
+            message,
+            tr("Ok, and don't show again."),
+            kApplicationTitle,
+            this) == QDialogButtonBox::Yes) {
+            AppSettings::addDontShowMeAgain(message);
+        }
+    }
+}
+
 void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
     uint32_t &target_sample_rate,
     QString& sample_rate_converter_type) {
@@ -1287,11 +1299,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             if (player_->GetInputFormat().GetBitsPerSample() != 16) {
                 const auto message = qSTR("Playing blue-tooth device need set %1bit to 16bit depth.")
                     .arg(player_->GetInputFormat().GetBitsPerSample());
-                XMessageBox::showCheckBoxQuestion(
-                    message,
-                    tr("I see, Don't show again."),
-                    kApplicationTitle, 
-                    this);
+                showMeMessage(message);
             }
             byte_format = ByteFormat::SINT16;
         }

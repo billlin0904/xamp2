@@ -21,7 +21,7 @@ public:
 
     XAMP_DISABLE_COPY(DSPManager)
 
-	void Init(const DspConfig& config) override;
+	void Init(const AnyMap& config) override;
 
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 
@@ -132,7 +132,7 @@ private:
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
     LoggerPtr logger_;
-    DspConfig config_;
+    AnyMap config_;
     std::function<bool(float const*, size_t, AudioBuffer<int8_t>&)> dispatch_;
 };
 

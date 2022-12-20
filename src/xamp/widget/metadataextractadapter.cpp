@@ -345,10 +345,6 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
         IgnoreSqlException(qDatabase.addOrUpdateAlbumMusic(album_id,
 		                                artist_id,
 		                                music_id));
-        IgnoreSqlException(qDatabase.addOrUpdateTrackLoudness(album_id,
-            artist_id,
-            music_id,
-            0));
 	}
 
 	if (playlist != nullptr) {

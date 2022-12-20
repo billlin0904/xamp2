@@ -89,7 +89,7 @@ public:
 
     virtual AlignPtr<IDSPManager>& GetDSPManager() = 0;
 
-    virtual DspConfig& GetDspConfig() = 0;
+    virtual AnyMap& GetDspConfig() = 0;
 protected:
 	IAudioPlayer() = default;
 };

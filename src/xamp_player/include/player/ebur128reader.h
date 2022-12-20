@@ -12,9 +12,11 @@ namespace xamp::player {
 
 class XAMP_PLAYER_API Ebur128Reader final {
 public:
-	explicit Ebur128Reader(uint32_t sample_rate);
+	Ebur128Reader();
 
 	XAMP_PIMPL(Ebur128Reader)
+
+	void SetSampleRate(uint32_t sample_rate);
 
 	void Process(float const * samples, size_t num_sample);
 

@@ -88,6 +88,14 @@ XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy);
 
+
+XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
+    const std::string_view& pool_name,
+    ThreadPriority priority,
+    TaskSchedulerPolicy policy,
+    TaskStealPolicy steal_policy);
+
+
 XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();
 
 XAMP_BASE_API IThreadPoolExecutor& GetWASAPIThreadPool();

@@ -4,6 +4,7 @@
 	const ConstLatin1String k##Name { Path }
 
 IMPL_APP_SETTING_NAME(AppSettingAutoCheckForUpdate, "AppSettings/autoCheckForUpdate" );
+IMPL_APP_SETTING_NAME(AppSettingDontShowMeAgainList, "AppSettings/dontShowMeAgain");
 IMPL_APP_SETTING_NAME(AppSettingLastTabName, "AppSettings/lastTabName");
 IMPL_APP_SETTING_NAME(AppSettingLang, "AppSettings/lang");
 IMPL_APP_SETTING_NAME(DefaultDir, "AppSettings/defaultDir");
@@ -41,7 +42,7 @@ IMPL_APP_SETTING_NAME(AppSettingReplayGainTargetGain, "AppSettings/replayGainTar
 IMPL_APP_SETTING_NAME(AppSettingReplayGainTargetLoudnes, "AppSettings/replayGainTargetLoudnes");
 IMPL_APP_SETTING_NAME(AppSettingReplayGainScanMode, "AppSettings/replayGainScanMode");
 
-IMPL_APP_SETTING_NAME(AppSettingResamplerEnable, "AppSettings/enable");
+IMPL_APP_SETTING_NAME(AppSettingResamplerEnable, "AppSettings/enableResampler");
 IMPL_APP_SETTING_NAME(AppSettingResamplerType, "AppSettings/resamplerType");
 IMPL_APP_SETTING_NAME(ResampleSampleRate, "resampleSampleRate");
 

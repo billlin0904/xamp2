@@ -88,11 +88,11 @@ public:
         settings_->setValue(key, value);
     }
 
-    static void setValue(QString const & key, std::string value) {
+    static void setValue(QString const & key, const std::string value) {
         settings_->setValue(key, QString::fromStdString(value));
     }
 
-    static void setValue(QString const & key, std::wstring value) {
+    static void setValue(QString const & key, const std::wstring value) {
         settings_->setValue(key, QString::fromStdWString(value));
     }
 
@@ -165,6 +165,10 @@ public:
     static const QMap<QString, EQSettings>& getEQPreset();
 
     static AppEQSettings getEQSettings();
+
+    static void addDontShowMeAgain(const QString &text);
+
+    static bool showMeAgain(const QString& text);
 
 protected:
     AppSettings() = default;

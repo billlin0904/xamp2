@@ -6,18 +6,15 @@
 #pragma once
 
 #include <stream/stream.h>
+#include <stream/anymap.h>
 
 #include <base/base.h>
 #include <base/uuid.h>
 #include <base/buffer.h>
 
-#include <any>
-#include <map>
-
 namespace xamp::stream {
 
-class XAMP_STREAM_API DspConfig {
-public:
+struct XAMP_STREAM_API DspConfig {
     constexpr static auto kInputFormat = std::string_view("InputFormat");
     constexpr static auto kDsdMode = std::string_view("DsdMode");
     constexpr static auto kOutputFormat = std::string_view("OutputFormat");
@@ -25,27 +22,15 @@ public:
     constexpr static auto kEQSettings = std::string_view("EQSettings");
     constexpr static auto kCompressorParameters = std::string_view("CompressorParameters");
     constexpr static auto kVolume = std::string_view("Volume");
-
-    template <typename T>
-    void AddOrReplace(const std::string_view &name, T&& value) {
-        configs_.insert_or_assign(name, std::forward<T>(value));
-    }
-
-    template <typename T>
-    T Get(const std::string_view& name) const {
-        return std::any_cast<T>(configs_.at(name));
-    }
-private:
-    std::map<std::string_view, std::any> configs_;
 };
 
 class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor {
 public:
 	XAMP_BASE_CLASS(IAudioProcessor)
 
-    virtual void Start(const DspConfig& config) = 0;
+    virtual void Start(const AnyMap& config) = 0;
 
-    virtual void Init(const DspConfig& config) = 0;
+    virtual void Init(const AnyMap& config) = 0;
 
     virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
 

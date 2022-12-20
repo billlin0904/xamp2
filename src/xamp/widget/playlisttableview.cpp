@@ -67,8 +67,17 @@ public:
         auto use_default_style = false;
 
         opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
+        opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 
         switch (index.column()) {
+        case PLAYLIST_TITLE:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
+            opt.text = value.toString();
+            break;
+        case PLAYLIST_ARTIST:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
+            opt.text = value.toString();
+            break;
         case PLAYLIST_TRACK:
 	        {
         		//opt.rect.setX(8);
@@ -86,21 +95,21 @@ public:
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
-                    opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.font.setFamily(qTEXT("MonoFont"));
                     opt.text = value.toString();
-                }                
+                }
 	        }
             break;
         case PLAYLIST_YEAR:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = QString::number(value.toInt()).rightJustified(8);
             break;
         case PLAYLIST_FILE_SIZE:
-            opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = QString::fromStdString(String::FormatBytes(value.toULongLong()));
             break;
         case PLAYLIST_BIT_RATE:
-            opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = bitRate2String(value.toInt());
             break;
         case PLAYLIST_ALBUM_PK:
@@ -108,7 +117,7 @@ public:
         case PLAYLIST_TRACK_PK:
         case PLAYLIST_TRACK_RG:
         case PLAYLIST_TRACK_LOUDNESS:
-            opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;      
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
@@ -125,17 +134,16 @@ public:
                 break;
             }
             break;
-        case PLAYLIST_ARTIST:
-            opt.decorationAlignment = Qt::AlignRight;
-            opt.text = value.toString();
-            break;
         case PLAYLIST_SAMPLE_RATE:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = samplerate2String(value.toInt());
             break;
         case PLAYLIST_DURATION:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = streamTimeToString(value.toDouble());
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
             break;
 		default:
@@ -218,7 +226,7 @@ void PlayListTableView::executeQuery() {
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
     JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
     JOIN musics ON playlistMusics.musicId = musics.musicId
     JOIN albums ON albumMusic.albumId = albums.albumId
     JOIN artists ON albumMusic.artistId = artists.artistId
@@ -449,8 +457,9 @@ void PlayListTableView::initial() {
         ActionMap<PlayListTableView> action_map(this);
 
         if (!podcast_mode_) {
-            auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-                auto reader = MakeMetadataReader();
+            if (enable_load_file_) {
+                auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
+                    auto reader = MakeMetadataReader();
                 QString exts(qTEXT("("));
                 for (const auto& file_ext : reader->GetSupportFileExtensions()) {
                     exts += qTEXT("*") + QString::fromStdString(file_ext);
@@ -466,19 +475,20 @@ void PlayListTableView::initial() {
                     return;
                 }
                 append(file_name);
-                });
-            load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
+                    });
+                load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
 
-            auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
-                const auto dir_name = QFileDialog::getExistingDirectory(this,
+                auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
+                    const auto dir_name = QFileDialog::getExistingDirectory(this,
                     tr("Select a Directory"),
                     AppSettings::getMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
                 if (dir_name.isEmpty()) {
                     return;
                 }
                 append(dir_name);
-                });
-            load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
+                    });
+                load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
+            }
         }
 
         if (podcast_mode_) {
@@ -491,25 +501,27 @@ void PlayListTableView::initial() {
                 });
         }
 
-        auto* remove_all_act = action_map.addAction(tr("Remove all"));
-        remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
+        if (enable_delete_) {
+            auto* remove_all_act = action_map.addAction(tr("Remove all"));
+            remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
-        action_map.setCallback(remove_all_act, [this]() {
-            if (!model_->rowCount()) {
-                return;
-            }
+            action_map.setCallback(remove_all_act, [this]() {
+                if (!model_->rowCount()) {
+                    return;
+                }
 
-	        const auto button = XMessageBox::showWarning(tr("Are you sure remove all?"),
-	                                                     kApplicationTitle,
-													qApp->activeWindow(),
-	                                                     QDialogButtonBox::No | QDialogButtonBox::Yes,
-	                                                     QDialogButtonBox::No);
-			if (button == QDialogButtonBox::Yes) {
+            const auto button = XMessageBox::showWarning(tr("Are you sure remove all?"),
+                kApplicationTitle,
+                qApp->activeWindow(),
+                QDialogButtonBox::No | QDialogButtonBox::Yes,
+                QDialogButtonBox::No);
+            if (button == QDialogButtonBox::Yes) {
                 qDatabase.removePlaylistAllMusic(playlistId());
                 executeQuery();
                 removePlaying();
-			}            
+            }
             });
+        }       
 
         action_map.addSeparator();
 
@@ -685,12 +697,16 @@ void PlayListTableView::updateReplayGain(int32_t playlistId,
         album_peak, 
         track_rg_gain,
         track_peak);
+
     qDatabase.addOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
         track_loudness);
-    XAMP_LOG_DEBUG("Update DB music id : {}, track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
+
+    XAMP_LOG_DEBUG("Update DB music id: {} artist id: {} album id id: {}, track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
         entity.music_id,
+        entity.artist_id,
+        entity.album_id,
         track_loudness,
         album_rg_gain,
         album_peak, 

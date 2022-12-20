@@ -22,9 +22,9 @@ public:
 
 	XAMP_PIMPL(FoobarDspAdapter)
 
-	void Start(const DspConfig& config) override;
+	void Start(const AnyMap& config) override;
 
-	void Init(const DspConfig& config) override;
+	void Init(const AnyMap& config) override;
 
 	std::vector<std::string> GetAvailableDSPs() const;
 

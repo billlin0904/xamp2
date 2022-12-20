@@ -24,12 +24,8 @@ XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
 
 struct ReplayGainWorkerEntity {
-    ReplayGainWorkerEntity(PlayListEntity item, std::optional<Ebur128Reader> scanner)
-        : item(std::move(item))
-        , scanner(std::move(scanner)) {
-    }
-    PlayListEntity item;
-    std::optional<Ebur128Reader> scanner;
+    Vector<PlayListEntity> play_list_entities;
+    Vector<Ebur128Reader> scanner;
 };
 
 BackgroundWorker::BackgroundWorker()
@@ -52,6 +48,7 @@ void BackgroundWorker::lazyInit() {
         return;
     }
     executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
+        ThreadPriority::BACKGROUND,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 }
@@ -184,17 +181,17 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
-    Vector<Task<>> replay_gain_tasks;
-
     const auto target_loudness = AppSettings::getValue(kAppSettingReplayGainTargetLoudnes).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
+    Vector<Task<>> replay_gain_tasks;
     replay_gain_tasks.reserve(entities_size);
-    RcuPtr<Vector<std::shared_ptr<ReplayGainWorkerEntity>>> replay_gain_result(
-        std::make_shared<Vector<std::shared_ptr<ReplayGainWorkerEntity>>>());
+
+    ReplayGainWorkerEntity replay_gain_result;
+    FastMutex mutex;
 
     for (const auto &item : entities) {
-        replay_gain_tasks.push_back(Executor::Spawn(*executor_, [scan_mode, item, this, &replay_gain_result]() {
+        replay_gain_tasks.push_back(Executor::Spawn(*executor_, [scan_mode, item, this, &replay_gain_result, &mutex]() {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -202,27 +199,24 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
                 return true;
             };
 
-            std::optional<Ebur128Reader> scanner;
+			Ebur128Reader scanner;
             auto prepare = [&scanner](auto const& input_format) mutable {
-                scanner = Ebur128Reader(input_format.GetSampleRate());
+                scanner.SetSampleRate(input_format.GetSampleRate());
             };
 
             auto dps_process = [&scanner, this](auto const* samples, auto sample_size) {
                 if (is_stop_) {
                     return;
                 }
-                scanner.value().Process(samples, sample_size);
+                scanner.Process(samples, sample_size);
             };
 
             read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
-            replay_gain_result.copy_update([&](auto* result) {
-                result->emplace_back(std::make_shared<ReplayGainWorkerEntity>(item, std::move(scanner)));
-                });
+            std::lock_guard<FastMutex> guard{ mutex };
+            replay_gain_result.play_list_entities.push_back(item);
+            replay_gain_result.scanner.push_back(std::move(scanner));
         }));
     }
-
-    Vector<Ebur128Reader> scanners;
-    ReplayGainResult replay_gain;
 
     for (auto& task : replay_gain_tasks) {
         try {
@@ -231,33 +225,21 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
         }
     }
 
-    auto copy_result = *replay_gain_result.read();
-    for (auto& result : copy_result) {
-        try {
-            replay_gain.music_id.push_back((*result).item);
-            if ((*result).scanner.has_value()) {
-                scanners.push_back(std::move((*result).scanner.value()));
-            }
-        }
-        catch (std::exception const& e) {
-            XAMP_LOG_D(logger_, "ReplayGain got exception! {}", e.what());
-        }
-    }
-
-    if (scanners.empty() || replay_gain_tasks.size() != scanners.size()) {
+    if (replay_gain_result.scanner.empty() || replay_gain_tasks.size() != replay_gain_result.play_list_entities.size()) {
         XAMP_LOG_D(logger_, "ReplayGain no more work item!");
         return;
     }
 
+    ReplayGainResult replay_gain;
     replay_gain.track_peak.reserve(entities_size);
     replay_gain.track_loudness.reserve(entities_size);
     replay_gain.track_gain.reserve(entities_size);
-
-    replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(scanners);
+    replay_gain.track_peak_gain.reserve(entities_size);
+    replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(replay_gain_result.scanner);
 
     for (size_t i = 0; i < entities_size; ++i) {
-        auto track_loudness = scanners[i].GetLoudness();
-        auto track_peak = scanners[i].GetTruePeek();
+        auto track_loudness = replay_gain_result.scanner[i].GetLoudness();
+        auto track_peak = replay_gain_result.scanner[i].GetTruePeek();
         replay_gain.track_peak.push_back(track_peak);
         replay_gain.track_peak_gain.push_back(20.0 * log10(track_peak));
         replay_gain.track_loudness.push_back(track_loudness);
@@ -272,6 +254,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
 
     replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
     replay_gain.album_peak_gain = 20.0 * log10(replay_gain.album_peak);
+    replay_gain.play_list_entities = replay_gain_result.play_list_entities;
 
     for (size_t i = 0; i < entities_size; ++i) {
         ReplayGain rg;
@@ -281,9 +264,9 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
         rg.track_peak = replay_gain.track_peak[i];
         rg.ref_loudness = target_loudness;
 
-        writer_->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
+        writer_->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
         emit updateReplayGain(playlistId,
-            replay_gain.music_id[i],
+            replay_gain.play_list_entities[i],
             replay_gain.track_loudness[i],
             replay_gain.album_gain,
             replay_gain.album_peak,

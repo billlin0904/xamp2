@@ -33,6 +33,19 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& poo
         steal_policy);
 }
 
+AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
+    const std::string_view& pool_name,
+    ThreadPriority priority,
+    TaskSchedulerPolicy policy,
+    TaskStealPolicy steal_policy) {
+    return MakeThreadPoolExecutor(pool_name,
+        priority,
+        std::thread::hardware_concurrency(),
+        kDefaultAffinityCpuCore,
+        policy,
+        steal_policy);
+}
+
 XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
 

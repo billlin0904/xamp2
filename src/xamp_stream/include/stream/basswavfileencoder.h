@@ -20,7 +20,7 @@ public:
 
 	XAMP_PIMPL(BassWavFileEncoder)
 
-	void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) override;
+	void Start(const AnyMap& config) override;
 
 	void Encode(std::function<bool(uint32_t)> const& progress) override;
 

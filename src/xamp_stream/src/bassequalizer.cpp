@@ -112,12 +112,12 @@ BassEqualizer::BassEqualizer()
 
 XAMP_PIMPL_IMPL(BassEqualizer)
 
-void BassEqualizer::Start(const DspConfig& config) {
+void BassEqualizer::Start(const AnyMap& config) {
     const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 }
 
-void BassEqualizer::Init(const DspConfig& config) {
+void BassEqualizer::Init(const AnyMap& config) {
 	const auto settings = config.Get<EQSettings>(DspConfig::kEQSettings);
     SetEQ(settings);
 }

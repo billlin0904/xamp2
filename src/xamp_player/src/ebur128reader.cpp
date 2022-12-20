@@ -66,9 +66,11 @@ Ebur128Lib::Ebur128Lib()
 
 class Ebur128Reader::Ebur128ReaderImpl {
 public:
-	explicit Ebur128ReaderImpl(uint32_t sample_rate) {
+	Ebur128ReaderImpl() = default;
+
+	void SetSampleRate(uint32_t sample_rate) {
 		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel, sample_rate,
-		                                      EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
+			EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
 		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
 		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT));
 	}
@@ -128,8 +130,12 @@ private:
 	UniqueHandle<ebur128_state*, Ebur128Deleter> state_;
 };
 
-Ebur128Reader::Ebur128Reader(uint32_t sample_rate)
-    : impl_(MakeAlign<Ebur128ReaderImpl>(sample_rate)) {
+Ebur128Reader::Ebur128Reader()
+    : impl_(MakeAlign<Ebur128ReaderImpl>()) {
+}
+
+void Ebur128Reader::SetSampleRate(uint32_t sample_rate) {
+	impl_->SetSampleRate(sample_rate);
 }
 
 XAMP_PIMPL_IMPL(Ebur128Reader)

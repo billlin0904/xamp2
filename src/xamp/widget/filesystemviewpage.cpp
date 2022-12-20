@@ -63,6 +63,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
     setStyleSheet(qTEXT("background-color: transparent"));
     ui.playlistPage->playlist()->setFocusPolicy(Qt::StrongFocus);
+    playlistPage()->playlist()->disableDelete();
+    playlistPage()->playlist()->disableLoadFile();
 }
 
 PlaylistPage* FileSystemViewPage::playlistPage() {

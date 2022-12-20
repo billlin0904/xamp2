@@ -374,8 +374,12 @@ FoobarDspAdapter::FoobarDspAdapter() {
 
 XAMP_PIMPL_IMPL(FoobarDspAdapter)
 
-void FoobarDspAdapter::Init(const DspConfig& config) {
+void FoobarDspAdapter::Init(const AnyMap& config) {
 	
+}
+
+void FoobarDspAdapter::Start(const AnyMap& config) {
+
 }
 
 std::vector<std::string> FoobarDspAdapter::GetAvailableDSPs() const {
@@ -384,10 +388,6 @@ std::vector<std::string> FoobarDspAdapter::GetAvailableDSPs() const {
 
 void FoobarDspAdapter::ConfigPopup(const std::string& name, uint64_t hwnd) {
 	
-}
-
-void FoobarDspAdapter::Start(const DspConfig& config) {
-
 }
 
 bool FoobarDspAdapter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {

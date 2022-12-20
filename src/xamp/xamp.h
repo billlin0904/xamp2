@@ -208,6 +208,8 @@ private:
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
 
+	void showMeMessage(const QString &message);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	LrcPage* lrc_page_;

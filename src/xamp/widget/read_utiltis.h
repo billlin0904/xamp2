@@ -20,6 +20,7 @@ using xamp::base::TrackInfo;
 using xamp::base::AudioFormat;
 using xamp::base::Path;
 using xamp::stream::IFileEncoder;
+using xamp::stream::AnyMap;
 
 namespace read_utiltis {
 
@@ -33,11 +34,16 @@ std::tuple<double, double> readFileLUFS(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
 
+void encodeFile(AnyMap const &config,
+    AlignPtr<IFileEncoder>& encoder,
+    std::function<bool(uint32_t)> const& progress,
+    TrackInfo const& track_info);
+
 void encodeFile(Path const& file_path,
     Path const& output_file_path,
     AlignPtr<IFileEncoder>& encoder,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
-    TrackInfo const& metadata);
+    TrackInfo const& track_info);
 
 }

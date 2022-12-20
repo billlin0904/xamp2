@@ -8,6 +8,7 @@
 #include <stream/ifileencoder.h>
 
 #ifdef XAMP_OS_WIN
+
 #include <base/align_ptr.h>
 #include <base/audioformat.h>
 #include <base/uuidof.h>
@@ -43,7 +44,7 @@ public:
 
 	XAMP_PIMPL(MFAACFileEncoder)
 
-	void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) override;
+	void Start(const AnyMap& config) override;
 
 	void Encode(std::function<bool(uint32_t)> const& progress) override;
 

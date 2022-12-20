@@ -53,9 +53,9 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	// 所以都改由此方式初始化affinity.
 	JThread([this, priority, affinity] {
 		for (size_t i = 0; i < max_thread_; ++i) {
+#ifndef XAMP_OS_WIN
 			SetThreadPriority(threads_.at(i), priority);
-			XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
-
+#endif
 			if (affinity != kDefaultAffinityCpuCore) {
 				SetThreadAffinity(threads_.at(i), affinity);
 				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, affinity);
@@ -178,6 +178,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		SetWorkerThreadName(i);
 
+		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
+
 		auto* local_queue = task_work_queues_[i].get();
 		auto* policy = task_scheduler_policy_.get();
 		auto steal_failure_count = 0;
@@ -187,6 +189,11 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		work_done_.count_down();
 
 		start_clean_up_.wait();
+
+#ifdef XAMP_OS_WIN
+		SetThreadPriority(threads_.at(i), priority);
+#endif
+
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);

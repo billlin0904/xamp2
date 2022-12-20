@@ -270,6 +270,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
         emit leaveAlbumView();
         });
     setStyleSheet(qTEXT("QFrame#albumViewPage { background-color: transparent; }"));
+    page_->playlist()->disableDelete();
+    page_->playlist()->disableLoadFile();
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {

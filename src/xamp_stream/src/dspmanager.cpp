@@ -9,7 +9,6 @@
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/foobardspadapter.h>
 
-#include <base/audioformat.h>
 #include <base/exception.h>
 #include <base/logger_impl.h>
 
@@ -177,7 +176,7 @@ bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer
     return false;
 }
 
-void DSPManager::Init(const DspConfig& config) {
+void DSPManager::Init(const AnyMap& config) {
     config_ = config;
 
     if (!sample_writer_) {

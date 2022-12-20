@@ -35,6 +35,7 @@
 #include "singleinstanceapplication.h"
 #include "version.h"
 #include "xamp.h"
+#include "widget/xmessagebox.h"
 
 #ifdef Q_OS_WIN32
 static ConstLatin1String visualStudioVersion() {
@@ -225,8 +226,6 @@ static void loadAppSettings() {
     AppSettings::setDefaultValue(kAppSettingScreenNumber, 1);
     AppSettings::setDefaultValue(kAppSettingEnableSpectrum, false);
     AppSettings::setDefaultValue(kAppSettingEnableShortcut, true);
-
-    AppSettings::save();
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
@@ -289,7 +288,9 @@ static std::vector<ModuleHandle> prefetchDLL() {
 static void registerMetaType() {
     XAMP_LOG_DEBUG("registerMetaType.");
 
+    // For QSetting
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
+
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DeviceState>("DeviceState");
@@ -398,11 +399,12 @@ static int excute(int argc, char* argv[]) {
 
     try {
         win.setXWindow(&top_win);
+        //throw DeviceNotFoundException();
     }
     catch (const Exception& e) {
-        QMessageBox::critical(nullptr,
-            qTEXT("Initialize failure."),
-            QString::fromStdString(e.GetErrorMessage()));
+        XMessageBox::showError(QString::fromStdString(e.GetErrorMessage()),
+            kApplicationTitle,
+            qApp->activeWindow());
         XAMP_LOG_DEBUG(e.GetStackTrace());
         return -1;
     }

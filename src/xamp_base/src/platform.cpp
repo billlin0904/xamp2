@@ -317,11 +317,11 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
                 XAMP_LOG_DEBUG("Already in background mode");
                 return;
             }
-            XAMP_LOG_DEBUG("Failed to enter background mode! error: {}.", GetLastErrorMessage());
+            XAMP_LOG_DEBUG("Failed to set begin background mode! error: {}.", GetLastErrorMessage());
             return;
         }        
         if (!::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_END)) {
-            XAMP_LOG_DEBUG("Failed to enter background mode! error: {}.", GetLastErrorMessage());
+            XAMP_LOG_DEBUG("Failed to set end background mode! error: {}.", GetLastErrorMessage());
         }
         break;
     case ThreadPriority::NORMAL:

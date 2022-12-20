@@ -11,6 +11,7 @@
 	extern const ConstLatin1String k##Name
 
 DECLARE_APP_SETTING_NAME(EnablePcm2Dsd);
+DECLARE_APP_SETTING_NAME(AppSettingDontShowMeAgainList);
 DECLARE_APP_SETTING_NAME(AppSettingAutoCheckForUpdate);
 DECLARE_APP_SETTING_NAME(AppSettingLastTabName);
 DECLARE_APP_SETTING_NAME(AppSettingLang);

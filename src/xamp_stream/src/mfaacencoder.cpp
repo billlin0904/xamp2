@@ -270,11 +270,17 @@ private:
 
 class MFAACFileEncoder::MFAACFileEncoderImpl {
 public:
-    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
+    void Start(const AnyMap& config) {
+	    const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
+        const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+        const auto encoding_profile = config.Get<EncodingProfile>(FileEncoderConfig::kEncodingProfile);
+
         encoder_.Open(input_file_path);
         encoder_.SetAudioFormat(MFAudioFormat_AAC);
         encoder_.SetContainer(MFTranscodeContainerType_MPEG4);
         encoder_.SetOutputFile(output_file_path);
+        
+        SetEncodingProfile(encoding_profile);
     }
 
     void Encode(std::function<bool(uint32_t) > const& progress) {
@@ -373,8 +379,8 @@ MFAACFileEncoder::MFAACFileEncoder()
 
 XAMP_PIMPL_IMPL(MFAACFileEncoder)
 
-void MFAACFileEncoder::Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
-    impl_->Start(input_file_path, output_file_path, command);
+void MFAACFileEncoder::Start(const AnyMap& config) {
+    impl_->Start(config);
 }
 
 void MFAACFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {

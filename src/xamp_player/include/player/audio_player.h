@@ -120,7 +120,7 @@ public:
 
     void EnableFadeOut(bool enable) override;
 
-    DspConfig& GetDspConfig() override;
+    AnyMap& GetDspConfig() override;
 
 private:
     void DoSeek(double stream_time);        
@@ -205,7 +205,7 @@ private:
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
-    DspConfig config_;
+    AnyMap config_;
     LoggerPtr logger_;
 };
 

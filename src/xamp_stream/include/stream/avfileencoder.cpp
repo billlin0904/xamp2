@@ -2,6 +2,7 @@
 #include <stream/avfilestream.h>
 
 #include <stream/avlib.h>
+#include <stream/dsd_utils.h>
 
 #include <fstream>
 
@@ -26,7 +27,7 @@ static int SelectHighestChannelLayout(const AVCodec* codec) {
 
 static int32_t SelectHighestSampleRate(const AVCodec* codec) noexcept {
     if (!codec->supported_samplerates) {
-        return 44100;
+        return kPcmSampleRate441;
     }
 
     auto best_sample_rate = 0;
@@ -49,7 +50,10 @@ static bool CheckSampleFmt(const AVCodec* codec, enum AVSampleFormat sample_fmt)
 
 class AvFileEncoder::AvFileEncoderImpl {
 public:
-    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const&) {
+    void Start(const AnyMap& config) {
+        const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
+        const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+
         intput_file_.OpenFile(input_file_path);
         output_file_.open(input_file_path, std::ios::binary);
 
@@ -103,8 +107,8 @@ AvFileEncoder::AvFileEncoder()
 
 XAMP_PIMPL_IMPL(AvFileEncoder)
 
-void AvFileEncoder::Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
-    impl_->Start(input_file_path, output_file_path, command);
+void AvFileEncoder::Start(const AnyMap& config) {
+    impl_->Start(config);
 }
 
 void AvFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {

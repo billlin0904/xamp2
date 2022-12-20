@@ -26,6 +26,20 @@ AppEQSettings AppSettings::getEQSettings() {
     return QVariant::fromValue(getValue(kAppSettingEQName)).value<AppEQSettings>();
 }
 
+bool AppSettings::showMeAgain(const QString& text) {
+    const auto string_hash = QString::number(qHash(text));
+    auto dont_show_me_again_list = getList(kAppSettingDontShowMeAgainList);
+    return !dont_show_me_again_list.contains(string_hash);
+}
+
+void AppSettings::addDontShowMeAgain(const QString& text) {
+	const auto string_hash = QString::number(qHash(text));
+    auto dont_show_me_again_list = getList(kAppSettingDontShowMeAgainList);
+    if (!dont_show_me_again_list.contains(string_hash)) {
+        addList(kAppSettingDontShowMeAgainList, string_hash);
+    }
+}
+
 void AppSettings::loadEQPreset() {
     auto path = QDir::currentPath() + qTEXT("/eqpresets/");
     auto file_ext = QStringList() << qTEXT("*.*");
@@ -134,7 +148,7 @@ void AppSettings::addList(QString const& key, QString const & value) {
     Q_FOREACH(auto id, values) {
         all << id;
     }
-    AppSettings::setValue(key, all.join(qTEXT(",")));
+    setValue(key, all.join(qTEXT(",")));
 }
 
 QSize AppSettings::getSizeValue(const QString& width_key,

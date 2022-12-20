@@ -110,19 +110,37 @@ double readAll(Path const& file_path,
 std::tuple<double, double> readFileLUFS(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration) {
-	std::optional<Ebur128Reader> scanner;
+	Ebur128Reader scanner;
 
     readAll(file_path, progress,
 		[&scanner](AudioFormat const& input_format)
 		{
-			scanner = Ebur128Reader(input_format.GetSampleRate());
+			scanner.SetSampleRate(input_format.GetSampleRate());
 		}, [&scanner](auto const* samples, auto sample_size)
 		{
-			scanner.value().Process(samples, sample_size);
+			scanner.Process(samples, sample_size);
         }, max_duration);
 
-    return std::make_tuple(scanner->GetLoudness(),
-                           scanner->GetTruePeek());
+    return std::make_tuple(scanner.GetLoudness(),
+                           scanner.GetTruePeek());
+}
+
+void encodeFile(AnyMap const& config,
+	AlignPtr<IFileEncoder>& encoder,
+	std::function<bool(uint32_t)> const& progress,
+	TrackInfo const& track_info) {
+	const auto file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
+	const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+	const auto command = config.AsPath(FileEncoderConfig::kCommand);
+	ExceptedFile excepted(output_file_path);
+	if (excepted.Try([&](auto const& dest_file_path) {
+		encoder->Start(config);
+		encoder->Encode(progress);
+		encoder.reset();
+		})) {
+		const auto writer = MakeMetadataWriter();
+		writer->Write(output_file_path, track_info);
+	}
 }
 
 void encodeFile(Path const& file_path,
@@ -130,16 +148,13 @@ void encodeFile(Path const& file_path,
 	AlignPtr<IFileEncoder>& encoder,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
-    TrackInfo const& metadata) {
+    TrackInfo const& track_info) {
     ExceptedFile excepted(output_file_path);
-    if (excepted.Try([&](auto const& dest_file_path) {
-        encoder->Start(file_path, dest_file_path, command);
-        encoder->Encode(progress);
-		encoder.reset();
-    })) {
-	    const auto writer = MakeMetadataWriter();
-		writer->Write(output_file_path, metadata);
-    }
+	AnyMap config;
+	config.AddOrReplace(FileEncoderConfig::kInputFilePath, file_path);
+	config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_file_path);
+	config.AddOrReplace(FileEncoderConfig::kCommand, command);
+	encodeFile(config, encoder, progress, track_info);
 }
 
 }

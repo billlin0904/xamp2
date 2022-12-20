@@ -245,8 +245,6 @@ QFont ThemeManager::loadFonts() {
     setFontAwesomeIcons();
     //setSegoeFluentIcons();
 
-    // https://stackoverflow.com/questions/63012818/how-to-load-multiple-font-of-same-familiy
-
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
     installFileFonts(qTEXT("Lato"), ui_fonts);

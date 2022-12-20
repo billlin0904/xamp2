@@ -23,9 +23,9 @@ public:
 
 	R8brainSampleRateConverter();
 
-    void Start(const DspConfig& config) override;
+    void Start(const AnyMap& config) override;
 
-    void Init(const DspConfig& config) override;
+    void Init(const AnyMap& config) override;
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
 

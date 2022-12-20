@@ -73,7 +73,22 @@ public:
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
 
+    static QDialogButtonBox::StandardButton showCheckBoxInformation(const QString& text,
+        const QString& check_box_text = qEmptyString,
+        const QString& title = kApplicationTitle,
+        QWidget* parent = nullptr,
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+
 private:
+    static QDialogButtonBox::StandardButton showCheckBox(const QString& text,
+        const QString& check_box_text,
+        const QString& title,
+        const QIcon& icon,
+        QWidget* parent,
+        QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+
     static QDialogButtonBox::StandardButton showButton(const QString& text,
         const QString& title,
         const QIcon& icon,

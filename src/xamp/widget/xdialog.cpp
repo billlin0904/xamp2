@@ -30,6 +30,11 @@ void XDialog::setContentWidget(QWidget* content) {
     if (!qTheme.useNativeWindow()) {
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
         setAttribute(Qt::WA_TranslucentBackground, true);
+        auto* drop_shadow_effect = new QGraphicsDropShadowEffect(this);
+        drop_shadow_effect->setBlurRadius(12);
+        drop_shadow_effect->setOffset(10, 10);
+        drop_shadow_effect->setColor(Qt::gray);
+        setGraphicsEffect(drop_shadow_effect);
     } else {
         setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 #ifdef Q_OS_WIN
