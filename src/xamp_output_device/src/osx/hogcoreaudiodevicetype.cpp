@@ -22,7 +22,7 @@ AlignPtr<IOutputDevice> HogCoreAudioDeviceType::MakeDevice(const std::string &de
 }
 
 Uuid HogCoreAudioDeviceType::GetTypeId() const {
-    return Id;
+    return UuidOf(HogCoreAudioDeviceType);
 }
 
 }

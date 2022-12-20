@@ -62,7 +62,6 @@ SOURCES += \
     widget/playlisttableview.cpp \
     widget/switchbutton.cpp \
     widget/tablistview.cpp \
-    widget/toast.cpp \
     widget/uiplayerstateadapter.cpp \
     widget/wheelablewidget.cpp \
     widget/artistinfopage.cpp \
@@ -85,6 +84,7 @@ SOURCES += \
     widget/filesystemmodel.cpp \
     widget/fonticon.cpp \
     widget/fonticonanimation.cpp \
+    widget/xmessagebox.cpp \
     singleinstanceapplication.cpp \
     version.cpp \
     cdpage.cpp \
@@ -128,7 +128,6 @@ HEADERS += \
     widget/qdebugsink.h \
     widget/switchbutton.h \
     widget/tablistview.h \
-    widget/toast.h \
     widget/uiplayerstateadapter.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
@@ -151,6 +150,7 @@ HEADERS += \
     widget/fonticon.h \
     widget/iconsizestyle.h \
     widget/fonticonanimation.h \
+    widget/xmessagebox.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \
@@ -164,7 +164,6 @@ ICON = xamp2.icns \
 
 FORMS += \
     widget/equalizerdialog.ui \
-    widget/toast.ui \
     filesystemviewpage.ui \
     aboutdialog.ui \
     preferencedialog.ui \
@@ -185,7 +184,7 @@ TRANSLATIONS += \
 
 # Additionally include Cocoa for OS X code
 
-LIBS += -framework Foundation -framework Cocoa
+LIBS += -framework Foundation -framework Cocoa -framework Carbon
 INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
 INCLUDEPATH += "../thirdparty/discord-rpc/include"
 INCLUDEPATH += "../thirdparty/QSimpleUpdater/include"

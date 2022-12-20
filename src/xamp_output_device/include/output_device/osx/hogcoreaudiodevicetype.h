@@ -21,8 +21,8 @@ namespace xamp::output_device::osx {
 using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API HogCoreAudioDeviceType : public CoreAudioDeviceType {
+    DECLARE_XAMP_MAKE_CLASS_UUID(HogCoreAudioDeviceType, "44ED0EC0-069E-431F-8BF2-AB1369E3421F");
 public:
-    constexpr static auto Id = std::string_view("44ED0EC0-069E-431F-8BF2-AB1369E3421F");
     constexpr static auto Description = std::string_view("CoreAudio (Hog Mode)");
 
     HogCoreAudioDeviceType();

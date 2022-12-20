@@ -33,7 +33,7 @@ public:
         }
 
 #ifdef XAMP_OS_MAC
-        auto utf8_command = String::ToString(command);
+        auto utf8_command = String::ToString(command.wstring());
         auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
         encoder_.reset(BASS.FLACEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
                                                       utf8_command.c_str(),

@@ -32,6 +32,8 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::skip_permission_denied
 };
 
+XAMP_BASE_API std::string GetSharedLibraryName(const std::string_view &name);
+
 XAMP_BASE_API std::string MakeTempFileName();
 
 XAMP_BASE_API Path GetTempFilePath();

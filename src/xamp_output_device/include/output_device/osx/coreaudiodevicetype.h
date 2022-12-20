@@ -9,6 +9,7 @@
 
 #ifdef XAMP_OS_MAC
 
+#include <base/uuidof.h>
 #include <output_device/idevicetype.h>
 
 #include <CoreAudio/CoreAudio.h>
@@ -18,8 +19,8 @@
 namespace xamp::output_device::osx {
 
 class XAMP_OUTPUT_DEVICE_API CoreAudioDeviceType : public IDeviceType {
+    DECLARE_XAMP_MAKE_CLASS_UUID(CoreAudioDeviceType, "E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
 public:
-    constexpr static auto Id = std::string_view("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
     constexpr static auto Description = std::string_view("CoreAudio");
 
     CoreAudioDeviceType();

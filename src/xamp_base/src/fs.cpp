@@ -32,6 +32,15 @@ std::string MakeTempFileName() {
 	return MakeUuidString();
 }
 
+std::string GetSharedLibraryName(const std::string_view &name) {
+    std::string library_name(name);
+#ifdef XAMP_OS_WIN
+    return library_name + ".dll";
+#else
+    return "lib" + library_name + ".dylib";
+#endif
+}
+
 int64_t GetLastWriteTime(const Path& path) {
 #ifdef XAMP_OS_WIN
 	const auto file_path = path.wstring();

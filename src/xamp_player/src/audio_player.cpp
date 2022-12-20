@@ -135,13 +135,14 @@ void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
 
     LoadFFTLib();
     XAMP_LOG_DEBUG("Load FFT lib success.");
+
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();
     XAMP_LOG_DEBUG("Load r8brain lib success.");
+#endif
 
     LoadAvLib();
     XAMP_LOG_DEBUG("Load avlib success.");
-#endif
 
     // Load player library dll.
 

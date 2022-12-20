@@ -57,11 +57,7 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
 }
 
 AlignPtr<FileStream> StreamFactory::MakeFileStream() {
-#ifdef XAMP_OS_WIN
     return MakeAlign<FileStream, AvFileStream>();
-#else
-    return MakeAlign<FileStream, BassFileStream>();
-#endif
 }
 
 AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
@@ -171,10 +167,11 @@ void LoadFFTLib() {
 void LoadR8brainLib() {
     Singleton<R8brainLib>::GetInstance();
 }
+#endif
+
 void LoadAvLib() {
     Singleton<AvLib>::GetInstance();
 }
-#endif
 
 void LoadSoxrLib() {
     Singleton<SoxrLib>::GetInstance();

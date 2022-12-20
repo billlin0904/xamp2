@@ -40,6 +40,10 @@ Path GetModulePath(const ModuleHandle& module) {
     return "";
 }
 
+ModuleHandle OpenSharedLibrary(const std::string_view& file_name) {
+    return LoadModule(GetSharedLibraryName(file_name));
+}
+
 ModuleHandle LoadModule(const std::string_view& name) {
     auto module = ::dlopen(name.data(), RTLD_NOW);
     if (!module) {

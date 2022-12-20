@@ -97,7 +97,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
     return Create(UuidOf(win32::SharedWasapiDeviceType));
 #else
-    return Create(osx::CoreAudioDeviceType::Id);
+    return Create(UuidOf(osx::CoreAudioDeviceType));
 #endif
 }
 

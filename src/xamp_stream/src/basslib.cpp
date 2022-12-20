@@ -212,7 +212,7 @@ BassLib::BassLib() try
 #ifdef XAMP_OS_WIN
     , module_(LoadModule("bass.dll"))
 #else
-    : module_(LoadModule("libbass.dylib"))
+    , module_(LoadModule("libbass.dylib"))
 #endif
     , XAMP_LOAD_DLL_API(BASS_Init)
     , XAMP_LOAD_DLL_API(BASS_GetVersion)

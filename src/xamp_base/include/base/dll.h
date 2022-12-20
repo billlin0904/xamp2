@@ -15,6 +15,8 @@ namespace xamp::base {
 
 XAMP_BASE_API ModuleHandle LoadModule(const std::string_view& file_name);
 
+XAMP_BASE_API ModuleHandle OpenSharedLibrary(const std::string_view& file_name);
+
 XAMP_BASE_API Path GetModulePath(const ModuleHandle &module);
 
 XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view & name);

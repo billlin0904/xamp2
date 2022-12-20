@@ -9,6 +9,7 @@
 
 #include <base/align_ptr.h>
 #include <base/stl.h>
+#include <base/uuidof.h>
 #include <base/encodingprofile.h>
 
 #ifdef XAMP_OS_MAC
@@ -29,14 +30,14 @@ namespace xamp::stream {
  };
 
 class BassAACFileEncoder final : public IFileEncoder {
-    DECLARE_XAMP_MAKE_CLASS_UUID(BassAACFileEncoder, "2D7F4DC9-7AE4-426E-90B1-309CBFE61863")
+    DECLARE_XAMP_MAKE_CLASS_UUID(BassAACFileEncoder, "2D7F4DC9-7AE4-426E-90B1-309CBFE61863");
 
 public:
 	BassAACFileEncoder();
 
 	XAMP_PIMPL(BassAACFileEncoder)
 
-	void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) override;
+    void Start(const AnyMap& config) override;
 
 	void Encode(std::function<bool(uint32_t)> const& progress) override;
 

@@ -175,8 +175,8 @@ public:
         sw.Reset();
         if (file_cache_ != nullptr && file_cache_->IsCompleted()) {
             LoadFileOrURL(file_cache_->GetFilePath().wstring(), true, mode_, flags);
-        } else {            
-            LoadFileOrURL(file_path, is_file_path, mode_, flags);
+        } else {
+            LoadFileOrURL(file_path.wstring(), is_file_path, mode_, flags);
         }
 
         XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());

@@ -34,6 +34,7 @@ include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/robin_hood/")
 include_directories("../thirdparty/r8brain-free-src/DLL/")
 include_directories("../thirdparty/intel_mkl/include/")
+include_directories("../thirdparty/ffmpeg/include")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 
@@ -49,4 +50,4 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES})
 find_library(ACCELERATE_LIB Accelerate)
 find_library(AUDIOTOOL_BOX_LIB AudioToolbox)
 
-target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${ACCELERATE_LIB} ${AUDIOTOOL_BOX_LIB})
+target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${ACCELERATE_LIB} ${AUDIOTOOL_BOX_LIB} ${FFMPEG_LIBRARIES})

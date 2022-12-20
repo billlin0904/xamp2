@@ -231,8 +231,8 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_BUILD_IN_SPEAKER,          0xF8DF},
     { ICON_BLUE_TOOTH,                0xF293},
     };
-    //qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
-    qFontIcon.addFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
+    qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
+    //qFontIcon.addFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
     qFontIcon.setGlyphs(glyphs);
 }
 
@@ -248,8 +248,8 @@ QFont ThemeManager::loadFonts() {
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
     installFileFonts(qTEXT("Lato"), ui_fonts);
-    //installFileFonts(qTEXT("MiSans"), ui_fonts);
-    installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
+    installFileFonts(qTEXT("MiSans"), ui_fonts);
+    //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
@@ -267,7 +267,9 @@ QFont ThemeManager::loadFonts() {
 
     QFont ui_font(qTEXT("UIFont"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
+#ifdef Q_OS_WIN
     ui_font.setWeight(QFont::Weight::Medium);
+#endif
     ui_font.setKerning(false);
 
     return ui_font;
@@ -294,11 +296,7 @@ ThemeManager::ThemeManager() {
     setThemeColor(theme);
     ui_font_ = loadFonts();
     use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
-#if defined(Q_OS_WIN)
     ui_font_.setPointSize(fontSize());
-#else
-    ui_font_.setPointSize(12);
-#endif
     unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
 	default_size_unknown_cover_ = QPixmap(Pixmap::scaledImage(unknown_cover_, cover_size_));
 }
@@ -691,7 +689,7 @@ int32_t ThemeManager::fontSize() const {
     if (dpi > 96) {
         return 11;
     }
-    return 10;
+    return 14;
 }
 
 void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {

@@ -18,7 +18,7 @@ AvException::~AvException() = default;
 XAMP_DECLARE_LOG_NAME(LibAv);
 
 AvFormatLib::AvFormatLib() try
-	: module_(LoadModule("avformat-58.dll"))
+    : module_(OpenSharedLibrary("avformat-58"))
 	, XAMP_LOAD_DLL_API(avformat_open_input)
 	, XAMP_LOAD_DLL_API(avformat_close_input)
 	, XAMP_LOAD_DLL_API(avformat_find_stream_info)
@@ -34,7 +34,7 @@ catch (const Exception& e) {
 }
 
 AvCodecLib::AvCodecLib() try
-	: module_(LoadModule("avcodec-58.dll"))
+    : module_(OpenSharedLibrary("avcodec-58"))
 	, XAMP_LOAD_DLL_API(avcodec_close)
 	, XAMP_LOAD_DLL_API(avcodec_open2)
 	, XAMP_LOAD_DLL_API(avcodec_alloc_context3)
@@ -56,7 +56,7 @@ catch (const Exception& e) {
 }
 
 AvUtilLib::AvUtilLib() try
-	: module_(LoadModule("avutil-56.dll"))
+    : module_(OpenSharedLibrary("avutil-56"))
 	, XAMP_LOAD_DLL_API(av_free)
 	, XAMP_LOAD_DLL_API(av_frame_unref)
 	, XAMP_LOAD_DLL_API(av_frame_get_buffer)
@@ -80,7 +80,7 @@ catch (const Exception& e) {
 }
 
 AvSwLib::AvSwLib() try
-	: module_(LoadModule("swresample-3.dll"))
+    : module_(OpenSharedLibrary("swresample-3"))
 	, XAMP_LOAD_DLL_API(swr_free)
 	, XAMP_LOAD_DLL_API(swr_alloc_set_opts)
 	, XAMP_LOAD_DLL_API(swr_convert)
