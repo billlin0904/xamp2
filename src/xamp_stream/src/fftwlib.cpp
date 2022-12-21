@@ -56,14 +56,9 @@ static void ExecuteBackward(fftw_mkl_plan p) {
 }
 
 MKLLib::MKLLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("mkl_rt.2.dll"))
-#else
-    : module_(LoadModule("libmkl_rt.2.dylib"))
-#endif
+    : module_(OpenSharedLibrary("mkl_rt.2"))
 	, XAMP_LOAD_DLL_API(MKL_malloc)
 	, XAMP_LOAD_DLL_API(MKL_free) {
-	PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -82,7 +77,6 @@ FFTWLib::FFTWLib() try
 	, XAMP_LOAD_DLL_API(DftiSetValue)
 	, XAMP_LOAD_DLL_API(DftiCommitDescriptor)
 	, XAMP_LOAD_DLL_API(DftiComputeBackward) {
-	PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

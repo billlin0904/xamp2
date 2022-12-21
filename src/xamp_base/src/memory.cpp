@@ -9,11 +9,6 @@
 
 namespace xamp::base {
 
-template <typename T>
-static bool IsAligned(const T * XAMP_RESTRICT p) noexcept {
-	return (reinterpret_cast<uintptr_t>(p) & ((2 * kMallocAlignSize) - 1)) == 0;
-}
-
 #ifdef XAMP_OS_WIN
 size_t GetPageSize() noexcept {
 	SYSTEM_INFO system_info;

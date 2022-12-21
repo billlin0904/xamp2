@@ -306,6 +306,7 @@ void SetThreadAffinity(JThread& thread, CpuAffinity affinity) noexcept {
 #endif
 }
 
+#ifdef XAMP_OS_WIN
 bool EnablePowerThrottling(JThread& thread, bool enable) {
     THREAD_POWER_THROTTLING_STATE throttling_state{ 0 };
 
@@ -317,6 +318,7 @@ bool EnablePowerThrottling(JThread& thread, bool enable) {
         &throttling_state,
         sizeof(throttling_state));
 }
+#endif
 
 void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
 #ifdef XAMP_OS_WIN

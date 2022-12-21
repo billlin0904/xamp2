@@ -32,7 +32,7 @@ public:
 	Ebur128Lib();
 
 private:
-	ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL(ebur128_init) ebur128_init;

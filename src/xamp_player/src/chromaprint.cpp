@@ -23,11 +23,7 @@ public:
 
 private:
 	ChromaprintLib() try
-#ifdef XAMP_OS_WIN
-		: module_(LoadModule("chromaprint.dll"))
-#else
-		: module_(LoadModule("libchromaprint.dylib"))
-#endif
+        : module_(OpenSharedLibrary("chromaprint"))
 		, chromaprint_new(module_, "chromaprint_new")
 		, chromaprint_free(module_, "chromaprint_free")
 		, chromaprint_start(module_, "chromaprint_start")
@@ -41,7 +37,7 @@ private:
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 	}
 
-	ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL(chromaprint_new) chromaprint_new;

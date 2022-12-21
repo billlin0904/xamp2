@@ -57,7 +57,7 @@ DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
 }
 
 Uuid CoreAudioDeviceType::GetTypeId() const {
-    return UuidOf(CoreAudioDeviceType);
+    return XAMP_UUID_OF(CoreAudioDeviceType);
 }
 
 Vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {

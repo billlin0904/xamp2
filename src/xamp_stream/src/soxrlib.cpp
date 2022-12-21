@@ -7,7 +7,7 @@
 namespace xamp::stream {
 
 SoxrLib::SoxrLib() try
-    : module_(OpenSharedLibrary("libsoxr"))
+    : module_(OpenSharedLibrary("soxr"))
     , XAMP_LOAD_DLL_API(soxr_quality_spec)
     , XAMP_LOAD_DLL_API(soxr_create)
     , XAMP_LOAD_DLL_API(soxr_process)

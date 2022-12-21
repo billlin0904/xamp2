@@ -8,6 +8,8 @@
 #else
 #include <Carbon/Carbon.h>
 #include <widget/osx/osx.h>
+#include <QMap>
+#include <QHash>
 #endif
 
 XAMP_PIMPL_IMPL(GlobalShortcut)
@@ -501,10 +503,14 @@ private:
         return noErr;
     }
 private:
-    static auto hotKeySerial = 0;
+    static int32_t hotKeySerial;
     static QMap<quint32, EventHotKeyRef> keyRefs;
     static QHash<Identifier, quint32> keyIDs;
 };
+
+int32_t GlobalShortcut::GlobalShortcutImpl::hotKeySerial = 0;
+QMap<quint32, EventHotKeyRef> GlobalShortcut::GlobalShortcutImpl::keyRefs;
+QHash<Identifier, quint32> GlobalShortcut::GlobalShortcutImpl::keyIDs;
 #endif
 
 GlobalShortcut::GlobalShortcut()

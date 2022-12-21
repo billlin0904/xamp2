@@ -51,7 +51,7 @@ struct TimerFdTraits final {
     }
 };
 
-using ModuleHandle = UniqueHandle<void*, ModuleHandleTraits>;
+using SharedLibraryHandle = UniqueHandle<void*, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<int, FileHandleTraits>;
 using TimerFdHandle = UniqueHandle<int, TimerFdTraits>;
 #endif

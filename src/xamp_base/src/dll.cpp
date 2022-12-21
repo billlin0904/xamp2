@@ -31,12 +31,8 @@ void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_
     return func;
 }
 #else
-Path GetModulePath(const SharedLibraryHandle& module) {
+Path GetSharedLibraryPath(const SharedLibraryHandle& module) {
     return "";
-}
-
-SharedLibraryHandle OpenSharedLibrary(const std::string_view& file_name) {
-    return LoadModule(GetSharedLibraryName(file_name));
 }
 
 SharedLibraryHandle LoadSharedLibrary(const std::string_view& name) {

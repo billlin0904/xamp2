@@ -85,6 +85,7 @@ SOURCES += \
     widget/fonticon.cpp \
     widget/fonticonanimation.cpp \
     widget/xmessagebox.cpp \
+    widget/globalshortcut.cpp \
     singleinstanceapplication.cpp \
     version.cpp \
     cdpage.cpp \
@@ -151,6 +152,7 @@ HEADERS += \
     widget/iconsizestyle.h \
     widget/fonticonanimation.h \
     widget/xmessagebox.h \
+    widget/globalshortcut.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \
