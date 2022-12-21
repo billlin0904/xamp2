@@ -267,7 +267,7 @@ namespace win32 {
 class NtDllLib {
 public:
 	NtDllLib()
-		: module_(LoadModule("ntdll.dll"))
+		: module_(OpenSharedLibrary("ntdll"))
 		, NtQuerySystemInformation(module_, "NtQuerySystemInformation")
 		, NtQueryObject(module_, "NtQueryObject")
 		, NtDuplicateObject(module_, "NtDuplicateObject") {
@@ -276,7 +276,7 @@ public:
 	XAMP_DISABLE_COPY(NtDllLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL(NtQuerySystemInformation) NtQuerySystemInformation;
@@ -287,14 +287,14 @@ public:
 class User32Lib {
 public:
 	User32Lib() 
-		: module_(LoadModule("user32.dll"))
+		: module_(OpenSharedLibrary("user32"))
 		, SetWindowCompositionAttribute(module_, "SetWindowCompositionAttribute") {
 	}
 
 	XAMP_DISABLE_COPY(User32Lib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL(SetWindowCompositionAttribute) SetWindowCompositionAttribute;
@@ -303,7 +303,7 @@ public:
 class DwmapiLib {
 public:
 	DwmapiLib()
-		: module_(LoadModule("dwmapi.dll"))
+		: module_(OpenSharedLibrary("dwmapi"))
 		, DwmIsCompositionEnabled(module_, "DwmIsCompositionEnabled")
 		, DwmSetWindowAttribute(module_, "DwmSetWindowAttribute")
 		, DwmExtendFrameIntoClientArea(module_, "DwmExtendFrameIntoClientArea")
@@ -314,7 +314,7 @@ public:
 	XAMP_DISABLE_COPY(DwmapiLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL(DwmIsCompositionEnabled) DwmIsCompositionEnabled;

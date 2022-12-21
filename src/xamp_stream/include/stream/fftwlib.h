@@ -37,7 +37,7 @@ public:
 	XAMP_DISABLE_COPY(FFTWLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	static void delete_plan(fftw_mkl_plan p);
@@ -89,7 +89,7 @@ public:
 	XAMP_DISABLE_COPY(FFTWLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL_NAME(fftw_destroy_plan);
@@ -108,7 +108,7 @@ public:
 	XAMP_DISABLE_COPY(FFTWFLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL_NAME(fftwf_destroy_plan);

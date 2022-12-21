@@ -291,7 +291,7 @@ uint32_t SoxrSampleRateConverter::Process(float const* samples, float* out, uint
 }
 
 Uuid SoxrSampleRateConverter::GetTypeId() const {
-	return UuidOf(SoxrSampleRateConverter);
+	return XAMP_UUID_OF(SoxrSampleRateConverter);
 }
 
 void SoxrSampleRateConverter::Flush() {

@@ -38,6 +38,7 @@ ForwardList<TrackInfo> parseJson(QString const& json) {
             track_info.title = title.toStdWString() + L" (" + dateTime.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") " + L" (Ori. " + artist + L")";
             track_info.artist = performer.toStdWString();
             track_info.last_write_time = dateTime.toTime_t();
+            track_info.album = L"Podcast";
             track_info.track = track++;
             track_infos.push_front(track_info);
         }

@@ -47,7 +47,7 @@ public:
     AvFormatLib();
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
    XAMP_DECLARE_DLL_NAME(avformat_open_input);
@@ -66,7 +66,7 @@ public:
     AvCodecLib();
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(avcodec_close);
@@ -91,7 +91,7 @@ public:
     AvUtilLib();
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(av_free);
@@ -118,7 +118,7 @@ public:
     AvSwLib();
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(swr_free);

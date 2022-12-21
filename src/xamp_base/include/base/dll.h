@@ -5,32 +5,39 @@
 
 #pragma once
 
-#include <type_traits>
-#include <string_view>
 #include <base/base.h>
 #include <base/fs.h>
+#include <base/assert.h>
 #include <base/platfrom_handle.h>
+
+#include <type_traits>
+#include <string_view>
 
 namespace xamp::base {
 
-XAMP_BASE_API ModuleHandle LoadModule(const std::string_view& file_name);
+XAMP_BASE_API SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name);
 
-XAMP_BASE_API ModuleHandle OpenSharedLibrary(const std::string_view& file_name);
+XAMP_BASE_API SharedLibraryHandle OpenSharedLibrary(const std::string_view& file_name);
 
-XAMP_BASE_API Path GetModulePath(const ModuleHandle &module);
+XAMP_BASE_API Path GetSharedLibraryPath(const SharedLibraryHandle &module);
 
-XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view & name);
+XAMP_BASE_API void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view & name);
 
-XAMP_BASE_API bool PrefetchModule(ModuleHandle const& module);
+XAMP_BASE_API bool PrefetchSharedLibrary(SharedLibraryHandle const& module);
 
-template <typename T, typename U = std::enable_if_t<std::is_function_v<T>>>
-class XAMP_BASE_API_ONLY_EXPORT DllFunction final {
+template
+<
+    typename T,
+	typename U = std::enable_if_t<std::is_function_v<T>>
+>
+class XAMP_BASE_API_ONLY_EXPORT SharedLibraryFunction final {
 public:
-    DllFunction(ModuleHandle const& dll, const std::string_view name) {
-        *reinterpret_cast<void**>(&func_) = LoadModuleSymbol(dll, name);
+    SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
+        *reinterpret_cast<void**>(&func_) = LoadSharedLibrarySymbol(dll, name);
     }
 
     XAMP_ALWAYS_INLINE operator T* () const noexcept {
+        XAMP_ASSERT(func_ != nullptr);
         return func_;
     }
 
@@ -38,14 +45,14 @@ public:
         return func_ != nullptr;
     }
 
-    XAMP_DISABLE_COPY(DllFunction)
+    XAMP_DISABLE_COPY(SharedLibraryFunction)
 private:
     T *func_{nullptr};
 };
 
-#define XAMP_DECLARE_DLL(Export_C_Func) DllFunction<decltype(Export_C_Func)>
-#define XAMP_DECLARE_DLL_NAME(Export_C_Func) DllFunction<decltype(Export_C_Func)> Export_C_Func
-#define XAMP_LOAD_DLL_API(DLLFunc) DLLFunc(module_, #DLLFunc)
-#define XAMP_LOAD_DLL_API_EX(MemberName, DLLFunc) MemberName(module_, #DLLFunc)
+#define XAMP_DECLARE_DLL(Func) SharedLibraryFunction<decltype(Func)>
+#define XAMP_DECLARE_DLL_NAME(Func) SharedLibraryFunction<decltype(Func)> Func
+#define XAMP_LOAD_DLL_API(Func) Func(module_, #Func)
+#define XAMP_LOAD_DLL_API_EX(MemberName, Func) MemberName(module_, #Func)
 
 }

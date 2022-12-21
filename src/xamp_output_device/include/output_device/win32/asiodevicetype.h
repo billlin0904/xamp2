@@ -19,7 +19,7 @@
 namespace xamp::output_device::win32 {
 
 class ASIODeviceType final : public IDeviceType {
-	DECLARE_XAMP_MAKE_CLASS_UUID(ASIODeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
+	XAMP_DECLARE_MAKE_CLASS_UUID(ASIODeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
 
 public:
 	constexpr static auto Description = std::string_view("ASIO 2.0");

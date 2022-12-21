@@ -44,57 +44,57 @@ public:
 
     QDialogButtonBox::StandardButton standardButton(QAbstractButton* button) const;
 
-    void addButton(QDialogButtonBox::StandardButton buttons);
+    QPushButton* addButton(QDialogButtonBox::StandardButton buttons);
 
     void addWidget(QWidget* widget);
 
     static QDialogButtonBox::StandardButton showInformation(const QString& text,
         const QString& title = kApplicationTitle,
-        QWidget* parent = nullptr,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showWarning(const QString& text,
         const QString& title = kApplicationTitle,
-        QWidget* parent = nullptr,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showError(const QString& text,
         const QString& title = kApplicationTitle,
-        QWidget* parent = nullptr,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showCheckBoxQuestion(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
-        QWidget* parent = nullptr,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showCheckBoxInformation(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
-        QWidget* parent = nullptr,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
 private:
     static QDialogButtonBox::StandardButton showCheckBox(const QString& text,
         const QString& check_box_text,
         const QString& title,
         const QIcon& icon,
-        QWidget* parent,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showButton(const QString& text,
         const QString& title,
         const QIcon& icon,
-        QWidget* parent = nullptr,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok);
+        QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
+        QWidget* parent = nullptr);
 
     void onButtonClicked(QAbstractButton* button);
 

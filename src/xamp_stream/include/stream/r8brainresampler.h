@@ -16,7 +16,7 @@ namespace xamp::stream {
 inline constexpr int32_t kR8brainBufferSize = 64 * 1024;
 
 class XAMP_STREAM_API R8brainSampleRateConverter final : public IAudioProcessor {
-    DECLARE_XAMP_MAKE_CLASS_UUID(R8brainSampleRateConverter, "786D706E-20F0-4F30-9B98-8B489DC5C739")
+    XAMP_DECLARE_MAKE_CLASS_UUID(R8brainSampleRateConverter, "786D706E-20F0-4F30-9B98-8B489DC5C739")
 
 public:
     XAMP_PIMPL(R8brainSampleRateConverter)

@@ -16,7 +16,7 @@
 namespace xamp::stream {
 
 class AvFileStream final : public FileStream {
-	DECLARE_XAMP_MAKE_CLASS_UUID(AvFileStream, "D59756C0-19CE-4E4B-BC83-6616BBB2930B")
+	XAMP_DECLARE_MAKE_CLASS_UUID(AvFileStream, "D59756C0-19CE-4E4B-BC83-6616BBB2930B")
 
 public:
 	AvFileStream();

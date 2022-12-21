@@ -19,7 +19,7 @@ public:
 	XAMP_DISABLE_COPY(DiscIdLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL(discid_new) discid_new;
@@ -33,7 +33,7 @@ public:
 };
 
 DiscIdLib::DiscIdLib() try
-	: module_(LoadModule("discid.dll"))
+	: module_(OpenSharedLibrary("discid"))
 	, XAMP_LOAD_DLL_API(discid_new)
 	, XAMP_LOAD_DLL_API(discid_free)
 	, XAMP_LOAD_DLL_API(discid_read)
@@ -42,7 +42,6 @@ DiscIdLib::DiscIdLib() try
 	, XAMP_LOAD_DLL_API(discid_get_submission_url)
 	, XAMP_LOAD_DLL_API(discid_get_default_device)
 	, XAMP_LOAD_DLL_API(discid_get_error_msg) {
-	PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

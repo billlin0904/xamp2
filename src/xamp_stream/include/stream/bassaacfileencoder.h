@@ -30,7 +30,7 @@ namespace xamp::stream {
  };
 
 class BassAACFileEncoder final : public IFileEncoder {
-    DECLARE_XAMP_MAKE_CLASS_UUID(BassAACFileEncoder, "2D7F4DC9-7AE4-426E-90B1-309CBFE61863");
+    XAMP_DECLARE_MAKE_CLASS_UUID(BassAACFileEncoder, "2D7F4DC9-7AE4-426E-90B1-309CBFE61863");
 
 public:
 	BassAACFileEncoder();

@@ -80,7 +80,7 @@ uint32_t BassFader::Process(float const* samples, float* out, uint32_t num_sampl
 }
 
 Uuid BassFader::GetTypeId() const {
-    return UuidOf(BassFader);
+    return XAMP_UUID_OF(BassFader);
 }
 
 std::string_view BassFader::GetDescription() const noexcept {

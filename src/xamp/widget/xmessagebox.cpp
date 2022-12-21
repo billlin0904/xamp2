@@ -124,17 +124,20 @@ void XMessageBox::addWidget(QWidget* widget) {
 	grid_layout_->addWidget(widget, 0, 1, 2, 1);
 }
 
-void XMessageBox::addButton(QDialogButtonBox::StandardButton buttons) {
-	button_box_->addButton(buttons);
+QPushButton* XMessageBox::addButton(QDialogButtonBox::StandardButton buttons) {
+	return button_box_->addButton(buttons);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	const QString& title,
 	const QIcon& icon,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
 	QScopedPointer<MaskWidget> mask_widget;
+	if (!parent) {
+		parent = qApp->activeWindow();
+	}
 	if (parent != nullptr) {
 		mask_widget.reset(new MaskWidget(parent));
 	}
@@ -147,53 +150,53 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 
 QDialogButtonBox::StandardButton XMessageBox::showInformation(const QString& text,
 	const QString& title,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
-	return showButton(text, title, qTheme.iconFromFont(0xF05A), parent, buttons);
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
+	return showButton(text, title, qTheme.iconFromFont(0xF05A), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showError(const QString& text,
 	const QString& title,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
-	return showButton(text, title, qTheme.iconFromFont(0xF05E), parent, buttons);
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
+	return showButton(text, title, qTheme.iconFromFont(0xF05E), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showWarning(const QString& text,
 	const QString& title,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
-	return showButton(text, title, qTheme.iconFromFont(0xF071), parent, buttons, default_button);
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
+	return showButton(text, title, qTheme.iconFromFont(0xF071), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showCheckBoxQuestion(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
-	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(0xF059), parent, buttons, default_button);
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
+	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(0xF059), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showCheckBoxInformation(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
-	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(0xF05A), parent, buttons, default_button);
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
+	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(0xF05A), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showCheckBox(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	const QIcon& icon,
-	QWidget* parent,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
-	QDialogButtonBox::StandardButton default_button) {
+	QDialogButtonBox::StandardButton default_button,
+	QWidget* parent) {
 	QScopedPointer<MaskWidget> mask_widget(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons);
 	box.setIcon(icon);

@@ -14,7 +14,7 @@
 namespace xamp::stream {
 
 class BassVolume final : public IAudioProcessor {
-    DECLARE_XAMP_MAKE_CLASS_UUID(BassVolume, "83d25234-5484-45a3-bda8-baf35541f9d2")
+    XAMP_DECLARE_MAKE_CLASS_UUID(BassVolume, "83d25234-5484-45a3-bda8-baf35541f9d2")
 
 public:
     BassVolume();

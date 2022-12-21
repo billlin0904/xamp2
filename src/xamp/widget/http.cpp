@@ -35,7 +35,7 @@ public:
     ZLibLib();
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(inflateInit2_);
@@ -44,7 +44,7 @@ public:
 };
 
 ZLibLib::ZLibLib()
-	: module_(LoadModule("zlib1.dll"))
+	: module_(OpenSharedLibrary("zlib1"))
     , XAMP_LOAD_DLL_API(inflateInit2_)
     , XAMP_LOAD_DLL_API(inflate)
     , XAMP_LOAD_DLL_API(inflateEnd) {

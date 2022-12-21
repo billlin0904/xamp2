@@ -19,7 +19,7 @@ public:
     SoxrLib();
 
 private:  
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(soxr_quality_spec);

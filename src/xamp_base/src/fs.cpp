@@ -4,6 +4,7 @@
 #include <base/platform.h>
 #include <base/exception.h>
 #include <base/stl.h>
+#include <base/str_utilts.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
@@ -12,6 +13,12 @@
 #include <fstream>
 
 namespace xamp::base {
+
+bool IsFilePath(std::wstring const& file_path) noexcept {
+	const auto lowcase_file_path = String::ToLower(file_path);
+	return lowcase_file_path.find(L"https") == std::string::npos
+		|| lowcase_file_path.find(L"http") == std::string::npos;
+}
 
  Path GetTempFilePath() {
  	constexpr auto kMaxRetryCreateTempFile = 100;

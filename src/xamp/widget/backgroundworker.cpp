@@ -23,7 +23,7 @@
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
 
-struct ReplayGainWorkerEntity {
+struct ReplayGainJob {
     Vector<PlayListEntity> play_list_entities;
     Vector<Ebur128Reader> scanner;
 };
@@ -184,94 +184,88 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
     const auto target_loudness = AppSettings::getValue(kAppSettingReplayGainTargetLoudnes).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
-    Vector<Task<>> replay_gain_tasks;
-    replay_gain_tasks.reserve(entities_size);
+    QMap<int32_t, Vector<PlayListEntity>> album_group_map;
+    for (const auto& entity : entities) {
+        album_group_map[entity.album_id].push_back(entity);
+    }
 
-    ReplayGainWorkerEntity replay_gain_result;
-    FastMutex mutex;
+    for (const auto& album : album_group_map) {
+        FastMutex mutex;
+        ReplayGainJob jobs;
 
-    for (const auto &item : entities) {
-        replay_gain_tasks.push_back(Executor::Spawn(*executor_, [scan_mode, item, this, &replay_gain_result, &mutex]() {
-            auto progress = [scan_mode](auto p) {
-                if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
+        Executor::ParallelFor(*executor_, album, [this, scan_mode, &mutex, &jobs](auto const &entity) {
+            auto progress = [scan_mode](auto percent) {
+                if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && percent > 50) {
                     return false;
                 }
                 return true;
             };
-
 			Ebur128Reader scanner;
             auto prepare = [&scanner](auto const& input_format) mutable {
                 scanner.SetSampleRate(input_format.GetSampleRate());
             };
-
             auto dps_process = [&scanner, this](auto const* samples, auto sample_size) {
                 if (is_stop_) {
                     return;
                 }
                 scanner.Process(samples, sample_size);
             };
-
-            read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
+            read_utiltis::readAll(entity.file_path.toStdWString(), progress, prepare, dps_process);
             std::lock_guard<FastMutex> guard{ mutex };
-            replay_gain_result.play_list_entities.push_back(item);
-            replay_gain_result.scanner.push_back(std::move(scanner));
-        }));
-    }
+            jobs.play_list_entities.push_back(entity);
+            jobs.scanner.push_back(std::move(scanner));
+            });
 
-    for (auto& task : replay_gain_tasks) {
-        try {
-            task.get();
-        } catch (Exception const &) {
+        if (album.size() != jobs.play_list_entities.size()) {
+            XAMP_LOG_DEBUG("Abnormal completed completed tacks:{} all tracks:{}",
+                jobs.play_list_entities.size(),
+                album.size());
+            continue;
         }
-    }
 
-    if (replay_gain_result.scanner.empty() || replay_gain_tasks.size() != replay_gain_result.play_list_entities.size()) {
-        XAMP_LOG_D(logger_, "ReplayGain no more work item!");
-        return;
-    }
+        ReplayGainResult replay_gain;
+        replay_gain.track_peak.reserve(album.size());
+        replay_gain.track_loudness.reserve(album.size());
+        replay_gain.track_gain.reserve(album.size());
+        replay_gain.track_peak_gain.reserve(album.size());
+        replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(jobs.scanner);
 
-    ReplayGainResult replay_gain;
-    replay_gain.track_peak.reserve(entities_size);
-    replay_gain.track_loudness.reserve(entities_size);
-    replay_gain.track_gain.reserve(entities_size);
-    replay_gain.track_peak_gain.reserve(entities_size);
-    replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(replay_gain_result.scanner);
+        for (size_t i = 0; i < album.size(); ++i) {
+            auto track_loudness = jobs.scanner[i].GetLoudness();
+            auto track_peak = jobs.scanner[i].GetTruePeek();
+            replay_gain.track_peak.push_back(track_peak);
+            replay_gain.track_peak_gain.push_back(20.0 * log10(track_peak));
+            replay_gain.track_loudness.push_back(track_loudness);
+            replay_gain.track_gain.push_back(target_loudness - track_loudness);
+        }
 
-    for (size_t i = 0; i < entities_size; ++i) {
-        auto track_loudness = replay_gain_result.scanner[i].GetLoudness();
-        auto track_peak = replay_gain_result.scanner[i].GetTruePeek();
-        replay_gain.track_peak.push_back(track_peak);
-        replay_gain.track_peak_gain.push_back(20.0 * log10(track_peak));
-        replay_gain.track_loudness.push_back(track_loudness);
-        replay_gain.track_gain.push_back(target_loudness - track_loudness);
-    }
-
-    replay_gain.album_peak = *std::max_element(
-        replay_gain.track_peak.begin(),
-        replay_gain.track_peak.end(),
-        [](auto& a, auto& b) {return a < b; }
-    );
-
-    replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
-    replay_gain.album_peak_gain = 20.0 * log10(replay_gain.album_peak);
-    replay_gain.play_list_entities = replay_gain_result.play_list_entities;
-
-    for (size_t i = 0; i < entities_size; ++i) {
-        ReplayGain rg;
-        rg.album_gain = replay_gain.album_gain;
-        rg.track_gain = replay_gain.track_gain[i];
-        rg.album_peak = replay_gain.album_peak;
-        rg.track_peak = replay_gain.track_peak[i];
-        rg.ref_loudness = target_loudness;
-
-        writer_->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
-        emit updateReplayGain(playlistId,
-            replay_gain.play_list_entities[i],
-            replay_gain.track_loudness[i],
-            replay_gain.album_gain,
-            replay_gain.album_peak,
-            replay_gain.track_gain[i],
-            replay_gain.track_peak[i]
+        replay_gain.album_peak = *std::max_element(
+            replay_gain.track_peak.begin(),
+            replay_gain.track_peak.end(),
+            [](auto& a, auto& b) {return a < b; }
         );
+
+        replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
+        replay_gain.album_peak_gain = 20.0 * log10(replay_gain.album_peak);
+        replay_gain.play_list_entities = jobs.play_list_entities;
+
+        for (size_t i = 0; i < album.size(); ++i) {
+            ReplayGain rg;
+            rg.album_gain = replay_gain.album_gain;
+            rg.track_gain = replay_gain.track_gain[i];
+            rg.album_peak = replay_gain.album_peak;
+            rg.track_peak = replay_gain.track_peak[i];
+            rg.ref_loudness = target_loudness;
+
+            writer_->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
+            emit updateReplayGain(playlistId,
+                replay_gain.play_list_entities[i],
+                replay_gain.track_loudness[i],
+                replay_gain.album_gain,
+                replay_gain.album_peak,
+                replay_gain.track_gain[i],
+                replay_gain.track_peak[i]
+            );
+        }
     }
 }

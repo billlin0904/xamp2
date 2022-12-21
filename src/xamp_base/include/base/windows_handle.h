@@ -70,7 +70,7 @@ struct XAMP_BASE_API RegTraits final {
 };
 
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;
-using ModuleHandle = UniqueHandle<HMODULE, ModuleHandleTraits>;
+using SharedLibraryHandle = UniqueHandle<HMODULE, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<HANDLE, FileHandleTraits>;
 using MappingFileHandle = UniqueHandle<HANDLE, MappingFileHandleTraits>;
 using MappingAddressHandle = UniqueHandle<void*, MappingMemoryAddressTraits>;

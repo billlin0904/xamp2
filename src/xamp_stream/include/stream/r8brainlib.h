@@ -21,7 +21,7 @@ public:
 	XAMP_DISABLE_COPY(R8brainLib)
 
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL_NAME(r8b_create);

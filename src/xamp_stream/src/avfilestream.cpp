@@ -35,10 +35,14 @@ public:
 
     void LoadFromFile(Path const& file_path) {
         AVFormatContext* format_context = nullptr;
-
-        // todo: Http request timeout in microseconds. 
         AVDictionary* options = nullptr;
-        LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
+        
+        if (IsFilePath(file_path.wstring())) {
+            PrefetchFile(file_path.wstring());
+        } else {
+            // note: Http request timeout in microseconds. 
+            LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
+        }
 
         const auto file_path_ut8 = String::ToString(file_path.wstring());
         const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);

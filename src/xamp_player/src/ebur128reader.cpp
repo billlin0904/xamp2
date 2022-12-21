@@ -46,11 +46,7 @@ public:
 };
 
 Ebur128Lib::Ebur128Lib()
-#ifdef XAMP_OS_WIN
-	: module_(LoadModule("ebur128.dll"))
-#else
-	: module_(LoadModule("libebur128.dylib"))
-#endif
+	: module_(OpenSharedLibrary("ebur128"))
 	, XAMP_LOAD_DLL_API(ebur128_init)
 	, XAMP_LOAD_DLL_API(ebur128_destroy)
 	, XAMP_LOAD_DLL_API(ebur128_set_channel)
@@ -59,7 +55,6 @@ Ebur128Lib::Ebur128Lib()
 	, XAMP_LOAD_DLL_API(ebur128_sample_peak)
 	, XAMP_LOAD_DLL_API(ebur128_loudness_global)
 	, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple) {
-	PrefetchModule(module_);
 }
 
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()

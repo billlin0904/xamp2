@@ -46,11 +46,7 @@ std::string GetBassVersion(uint32_t version) {
 }
 
 BassDSDLib::BassDSDLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("bassdsd.dll"))
-#else
-    : module_(LoadModule("libbassdsd.dylib"))
-#endif
+    : module_(OpenSharedLibrary("bassdsd"))
     , XAMP_LOAD_DLL_API(BASS_DSD_StreamCreateFile) {
 }
 catch (const Exception& e) {
@@ -58,11 +54,7 @@ catch (const Exception& e) {
 }
 
 BassMixLib::BassMixLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("bassmix.dll"))
-#else
-    : module_(LoadModule("libbassmix.dylib"))
-#endif
+    : module_(OpenSharedLibrary("bassmix"))
     , XAMP_LOAD_DLL_API(BASS_Mixer_StreamCreate)
     , XAMP_LOAD_DLL_API(BASS_Mixer_StreamAddChannel)
     , XAMP_LOAD_DLL_API(BASS_Mixer_GetVersion) {
@@ -72,19 +64,11 @@ catch (const Exception& e) {
 }
 
 std::string BassMixLib::GetName() const {
-#ifdef XAMP_OS_WIN
-    return "bassmix.dll";
-#else
-    return "libbassmix.dylib";
-#endif
+    return GetSharedLibraryName("bassmix");
 }
 
 BassFxLib::BassFxLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("bass_fx.dll"))
-#else
-    : module_(LoadModule("libbass_fx.dylib"))
-#endif
+    : module_(OpenSharedLibrary("bass_fx"))
     , XAMP_LOAD_DLL_API(BASS_FX_TempoGetSource)
     , XAMP_LOAD_DLL_API(BASS_FX_TempoCreate)
     , XAMP_LOAD_DLL_API(BASS_FX_GetVersion) {
@@ -94,20 +78,12 @@ catch (const Exception& e) {
 }
 
 std::string BassFxLib::GetName() const {
-#ifdef XAMP_OS_WIN
-    return "bass_fx.dll";
-#else
-    return "libbass_fx.dylib";
-#endif
+    return GetSharedLibraryName("bass_fx");
 }
 
 #ifdef XAMP_OS_WIN
 BassCDLib::BassCDLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("basscd.dll"))
-#else
-    : module_(LoadModule("libbasscd.dylib"))
-#endif
+    : module_(OpenSharedLibrary("basscd"))
     , XAMP_LOAD_DLL_API(BASS_CD_GetInfo)
     , XAMP_LOAD_DLL_API(BASS_CD_GetSpeed)
     , XAMP_LOAD_DLL_API(BASS_CD_Door)
@@ -129,20 +105,12 @@ catch (const Exception& e) {
 
 #ifdef XAMP_OS_WIN
 std::string BassCDLib::GetName() const {
-#ifdef XAMP_OS_WIN
-    return "basscd.dll";
-#else
-    return "libbasscd.dylib";
-#endif
+    return GetSharedLibraryName("basscd");
 }
 #endif
 
 BassEncLib::BassEncLib()  try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("bassenc.dll"))
-#else
-    : module_(LoadModule("libbassenc.dylib"))
-#endif
+    : module_(OpenSharedLibrary("bassenc"))
     , XAMP_LOAD_DLL_API(BASS_Encode_StartACMFile)
 	, XAMP_LOAD_DLL_API(BASS_Encode_GetVersion)
 	, XAMP_LOAD_DLL_API(BASS_Encode_GetACMFormat) {
@@ -152,16 +120,12 @@ catch (const Exception& e) {
 }
 
 std::string BassEncLib::GetName() const {
-#ifdef XAMP_OS_WIN
-    return "bassenc.dll";
-#else
-    return "libbassenc.dylib";
-#endif
+    return GetSharedLibraryName("bassenc");
 }
 
 #ifdef XAMP_OS_WIN
 BassAACEncLib::BassAACEncLib() try
-    : module_(LoadModule("bassenc_aac.dll"))
+    : module_(OpenSharedLibrary("bassenc_aac"))
     , XAMP_LOAD_DLL_API(BASS_Encode_AAC_StartFile)
     , XAMP_LOAD_DLL_API(BASS_Encode_AAC_GetVersion) {
 }
@@ -170,11 +134,11 @@ catch (const Exception& e) {
 }
 
 std::string BassAACEncLib::GetName() const {
-    return "bass_aac.dll";
+    return GetSharedLibraryName("bass_aac");
 }
 #else
 BassCAEncLib::BassCAEncLib() try
-    : module_(LoadModule("libbassenc.dylib"))
+    : module_(OpenSharedLibrary("bassenc"))
     , XAMP_LOAD_DLL_API(BASS_Encode_StartCAFile) {
 }
 catch (const Exception& e) {
@@ -182,16 +146,12 @@ catch (const Exception& e) {
 }
 
 std::string BassCAEncLib::GetName() const {
-    return "bass_aac.dll";
+    return GetSharedLibraryName("bassenc");
 }
 #endif
 
 BassFLACEncLib::BassFLACEncLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("bassenc_flac.dll"))
-#else
-    : module_(LoadModule("libbassenc_flac.dylib"))
-#endif
+    : module_(OpenSharedLibrary("bassenc_flac"))
     , XAMP_LOAD_DLL_API(BASS_Encode_FLAC_StartFile)
 	, XAMP_LOAD_DLL_API(BASS_Encode_FLAC_GetVersion) {
 }
@@ -200,20 +160,12 @@ catch (const Exception& e) {
 }
 
 std::string BassFLACEncLib::GetName() const {
-#ifdef XAMP_OS_WIN
-    return "bassenc_flac.dll";
-#else
-    return "libbassenc_flac.dylib";
-#endif
+    return GetSharedLibraryName("bassenc_flac");
 }
 
 BassLib::BassLib() try
     : logger(LoggerManager::GetInstance().GetLogger(kBASSLoggerName))
-#ifdef XAMP_OS_WIN
-    , module_(LoadModule("bass.dll"))
-#else
-    , module_(LoadModule("libbass.dylib"))
-#endif
+    , module_(OpenSharedLibrary("bass"))
     , XAMP_LOAD_DLL_API(BASS_Init)
     , XAMP_LOAD_DLL_API(BASS_GetVersion)
     , XAMP_LOAD_DLL_API(BASS_SetConfig)
@@ -256,11 +208,7 @@ BassLib::~BassLib() {
 }
 
 std::string BassLib::GetName() const {
-#ifdef XAMP_OS_WIN
-    return "bass.dll";
-#else
-    return "libbass.dylib";
-#endif
+    return GetSharedLibraryName("bass");
 }
 
 HPLUGIN BassPluginLoadDeleter::invalid() noexcept {

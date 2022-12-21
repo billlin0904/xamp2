@@ -74,7 +74,7 @@ uint32_t BassVolume::Process(float const* samples, float* out, uint32_t num_samp
 }
 
 Uuid BassVolume::GetTypeId() const {
-    return UuidOf(BassVolume);
+    return XAMP_UUID_OF(BassVolume);
 }
 
 std::string_view BassVolume::GetDescription() const noexcept {

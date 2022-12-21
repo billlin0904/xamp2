@@ -296,7 +296,7 @@ public:
 private:
 	uint32_t input_sample_rate_{ 0 };
 	uint32_t output_sample_rate_{ 0 };
-	ModuleHandle dll_;
+	SharedLibraryHandle dll_;
 	foobar2000_client* foobar_client_{ nullptr };
 	Foobar2000Runtime foobar_runtime_;
 	dsp_manager dsp_manager_;

@@ -85,7 +85,7 @@ uint32_t BassCompressor::Process(float const* samples, float* out, uint32_t num_
 }
 
 Uuid BassCompressor::GetTypeId() const {
-    return UuidOf(BassCompressor);
+    return XAMP_UUID_OF(BassCompressor);
 }
 
 std::string_view BassCompressor::GetDescription() const noexcept {

@@ -64,6 +64,8 @@ public:
 
     QIcon playCircleIcon() const;
 
+    QIcon hiResIcon() const;
+
     QPixmap githubIcon() const;
 
     void updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;

@@ -19,7 +19,7 @@
 namespace xamp::output_device::win32 {
 
 class ExclusiveWasapiDeviceType final : public IDeviceType {
-	DECLARE_XAMP_MAKE_CLASS_UUID(ExclusiveWasapiDeviceType, "089F8446-C980-495B-AC80-5A437A4E73F6")
+	XAMP_DECLARE_MAKE_CLASS_UUID(ExclusiveWasapiDeviceType, "089F8446-C980-495B-AC80-5A437A4E73F6")
 
 public:
 	constexpr static auto Description = std::string_view("WASAPI (Exclusive Mode)");

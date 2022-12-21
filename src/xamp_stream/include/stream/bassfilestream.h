@@ -15,7 +15,7 @@
 namespace xamp::stream {
 
 class BassFileStream final : public FileStream, public IDsdStream {
-	DECLARE_XAMP_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
+	XAMP_DECLARE_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
 
 public:
 	BassFileStream();

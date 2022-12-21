@@ -197,6 +197,7 @@
     <ClCompile Include="widget\filesystemviewpage.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\fonticonanimation.cpp" />
+    <ClCompile Include="widget\globalshortcut.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="widget\fonticon.h" />
     <QtMoc Include="widget\iconsizestyle.h" />
     <QtMoc Include="widget\fonticonanimation.h" />
+    <ClInclude Include="widget\globalshortcut.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\stackblur.h" />
     <QtMoc Include="widget\tooltips.h" />

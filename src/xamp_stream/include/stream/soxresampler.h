@@ -27,7 +27,7 @@ XAMP_MAKE_ENUM(SoxrRollOff,
           ROLLOFF_NONE)
 
 class XAMP_STREAM_API SoxrSampleRateConverter final : public IAudioProcessor {
-    DECLARE_XAMP_MAKE_CLASS_UUID(SoxrSampleRateConverter, "F986498A-9678-456F-96A7-2F6C2E5D13CB")
+    XAMP_DECLARE_MAKE_CLASS_UUID(SoxrSampleRateConverter, "F986498A-9678-456F-96A7-2F6C2E5D13CB")
 
 public:
     XAMP_PIMPL(SoxrSampleRateConverter)

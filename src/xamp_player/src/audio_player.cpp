@@ -481,7 +481,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
-        if (device_type_->GetTypeId() == UuidOf(win32::ASIODeviceType)) {
+        if (device_type_->GetTypeId() == XAMP_UUID_OF(win32::ASIODeviceType)) {
             return is_muted_;
         }
 #else

@@ -12,7 +12,7 @@
 #if defined(_DEBUG) || !defined(NDEBUG)
 #define XAMP_ASSERT(expr) (void)(                              \
             (!!(expr)) ||                                      \
-            (Assert(#expr, __FILE__, (unsigned)(__LINE__)), 0) \
+            (xamp::base::Assert(#expr, __FILE__, (unsigned)(__LINE__)), 0) \
         )
 #else
 #define XAMP_ASSERT(expr) ((void)0)

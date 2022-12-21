@@ -45,6 +45,10 @@ public:
     }
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+        if (!index.isValid()) {
+            return;
+        }
+
         painter->setRenderHints(QPainter::Antialiasing, true);
         painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
 
@@ -71,6 +75,7 @@ public:
 
         switch (index.column()) {
         case PLAYLIST_TITLE:
+        case PLAYLIST_ALBUM:
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
             opt.text = value.toString();
             break;
@@ -80,7 +85,6 @@ public:
             break;
         case PLAYLIST_TRACK:
 	        {
-        		//opt.rect.setX(8);
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
@@ -88,12 +92,14 @@ public:
                     opt.icon = qTheme.iconFromFont(Glyphs::ICON_PLAY);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                    opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
                     opt.decorationSize = QSize(12, 12);
                     opt.icon = qTheme.iconFromFont(Glyphs::ICON_PAUSE);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                    opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
                     opt.font.setFamily(qTEXT("MonoFont"));
                     opt.text = value.toString();
@@ -354,6 +360,8 @@ void PlayListTableView::initial() {
     proxy_model_->setSourceModel(model_);
     proxy_model_->setFilterByColumn(PLAYLIST_RATING);
     proxy_model_->setFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->setFilterByColumn(PLAYLIST_DURATION);
+    proxy_model_->setFilterByColumn(PLAYLIST_ALBUM);
     proxy_model_->setDynamicSortFilter(true);
     setModel(proxy_model_);
 
@@ -512,7 +520,6 @@ void PlayListTableView::initial() {
 
             const auto button = XMessageBox::showWarning(tr("Are you sure remove all?"),
                 kApplicationTitle,
-                qApp->activeWindow(),
                 QDialogButtonBox::No | QDialogButtonBox::Yes,
                 QDialogButtonBox::No);
             if (button == QDialogButtonBox::Yes) {
@@ -525,9 +532,11 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
 
-
-        auto* reload_metadata_act = action_map.addAction(tr("Reload metadata"));
-        reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
+        QAction* reload_metadata_act = nullptr;
+        if (!podcast_mode_) {
+            reload_metadata_act = action_map.addAction(tr("Reload metadata"));
+            reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
+        }
 
         auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
@@ -582,17 +591,26 @@ void PlayListTableView::initial() {
                 action_map.exec(pt);
             }
             catch (std::exception const& e) {
-                XMessageBox::showInformation(QString::fromStdString(e.what()), kApplicationTitle, this);
+                XMessageBox::showError(QString::fromStdString(e.what()));
             }
             return;
         }
 
         auto item = getEntity(index, proxy_model_->mapToSource(index));
 
-        action_map.setCallback(reload_metadata_act, [this, item]() {
-            qDatabase.addOrUpdateMusic(getMetadata(item.file_path));
-            reload();
-        });
+        if (reload_metadata_act != nullptr) {
+            action_map.setCallback(reload_metadata_act, [this, item]() {
+                try {
+                qDatabase.addOrUpdateMusic(getMetadata(item.file_path));
+                reload();
+            }
+            catch (std::filesystem::filesystem_error& e) {
+                XAMP_LOG_DEBUG("Reload metadata error: {}", String::LocaleStringToUTF8(e.what()));
+            }
+            catch (...) {
+            }
+            });
+        }        
 
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
@@ -637,7 +655,7 @@ void PlayListTableView::initial() {
         try {
             action_map.exec(pt);
         } catch (std::exception const &e){
-            XMessageBox::showInformation(QString::fromStdString(e.what()), kApplicationTitle, this);
+            XMessageBox::showError(QString::fromStdString(e.what()));
         }
     });
 

@@ -33,7 +33,7 @@ void ParallelFor(IThreadPoolExecutor& executor, C& items, Func&& f, size_t batch
     auto begin = std::begin(items);
     auto size = std::distance(begin, std::end(items));
 
-    for (size_t i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = Executor::Spawn(executor, [f, begin, i]() -> void {
@@ -50,7 +50,7 @@ void ParallelFor(IThreadPoolExecutor& executor, C& items, Func&& f, size_t batch
 template <typename Func>
 void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&& f, size_t batches = kDefaultParallelBatchSize) {
     auto size = end - begin;
-    for (size_t i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = Executor::Spawn(executor, [f, i]() -> void {

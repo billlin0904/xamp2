@@ -62,10 +62,10 @@ public:
     XAMP_DISABLE_COPY(BassDSDLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
-    DllFunction<HSTREAM(BOOL, void const *, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
+    SharedLibraryFunction<HSTREAM(BOOL, void const *, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
 };
 
 class BassMixLib final {
@@ -76,7 +76,7 @@ public:
 
 	std::string GetName() const;
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(BASS_Mixer_StreamCreate);
@@ -93,7 +93,7 @@ public:
     XAMP_DISABLE_COPY(BassFxLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(BASS_FX_TempoGetSource);
@@ -111,7 +111,7 @@ public:
     XAMP_DISABLE_COPY(BassCDLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     // CD Driver
@@ -141,11 +141,11 @@ public:
     XAMP_DISABLE_COPY(BassFLACEncLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
 #ifdef XAMP_OS_WIN
-    DllFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_FLAC_StartFile;
+    SharedLibraryFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_FLAC_StartFile;
 #else
     XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_FLAC_StartFile;
 #endif
@@ -162,11 +162,11 @@ public:
     XAMP_DISABLE_COPY(BassAACEncLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
-    DllFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_AAC_StartFile;
-    DllFunction<DWORD()> BASS_Encode_AAC_GetVersion;
+    SharedLibraryFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_AAC_StartFile;
+    SharedLibraryFunction<DWORD()> BASS_Encode_AAC_GetVersion;
 };
 #else
 class BassCAEncLib final {
@@ -178,7 +178,7 @@ public:
     XAMP_DISABLE_COPY(BassCAEncLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(BASS_Encode_StartCAFile);
@@ -194,12 +194,12 @@ public:
     XAMP_DISABLE_COPY(BassEncLib)
 
 private:
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
-    DllFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
+    SharedLibraryFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
     XAMP_DECLARE_DLL_NAME(BASS_Encode_GetVersion);
-	DllFunction<DWORD (DWORD, void*, DWORD, const char*, DWORD)> BASS_Encode_GetACMFormat;
+    SharedLibraryFunction<DWORD (DWORD, void*, DWORD, const char*, DWORD)> BASS_Encode_GetACMFormat;
 };
 
 class BassLib final {
@@ -245,17 +245,17 @@ private:
     
     HashMap<std::string, BassPluginHandle> plugins_;
     std::map<std::string, std::string> dll_versions_;
-    ModuleHandle module_;
+    SharedLibraryHandle module_;
 
 public:
     XAMP_DECLARE_DLL_NAME(BASS_Init);
     XAMP_DECLARE_DLL_NAME(BASS_GetVersion);
     XAMP_DECLARE_DLL_NAME(BASS_SetConfig);
-    DllFunction<BOOL(DWORD option, const wchar_t *)> BASS_SetConfigPtr;
-    DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
+    SharedLibraryFunction<BOOL(DWORD option, const wchar_t *)> BASS_SetConfigPtr;
+    SharedLibraryFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
     XAMP_DECLARE_DLL_NAME(BASS_PluginGetInfo);
     XAMP_DECLARE_DLL_NAME(BASS_Free);
-    DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
+    SharedLibraryFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
     XAMP_DECLARE_DLL_NAME(BASS_ChannelGetInfo);
     XAMP_DECLARE_DLL_NAME(BASS_StreamFree);
     XAMP_DECLARE_DLL_NAME(BASS_PluginFree);
@@ -275,9 +275,9 @@ public:
     XAMP_DECLARE_DLL_NAME(BASS_FXSetParameters);
     XAMP_DECLARE_DLL_NAME(BASS_FXGetParameters);
 #ifdef XAMP_OS_MAC
-    DllFunction<HSTREAM(const char*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
+    SharedLibraryFunction<HSTREAM(const char*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 #else
-    DllFunction<HSTREAM(wchar_t*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
+    SharedLibraryFunction<HSTREAM(wchar_t*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 #endif
     XAMP_DECLARE_DLL_NAME(BASS_StreamGetFilePosition);
     XAMP_DECLARE_DLL_NAME(BASS_ChannelIsActive);

@@ -13,7 +13,7 @@
 namespace xamp::stream {
 
 class BassCompressor final : public IAudioProcessor {
-    DECLARE_XAMP_MAKE_CLASS_UUID(BassCompressor, "263079D0-FDD4-46DF-9BB3-71821AF95EDB")
+    XAMP_DECLARE_MAKE_CLASS_UUID(BassCompressor, "263079D0-FDD4-46DF-9BB3-71821AF95EDB")
 
 public:
     BassCompressor();

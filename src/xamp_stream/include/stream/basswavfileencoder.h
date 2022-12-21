@@ -13,7 +13,7 @@
 namespace xamp::stream {
 
 class BassWavFileEncoder final 	: public IFileEncoder {
-	DECLARE_XAMP_MAKE_CLASS_UUID(BassWavFileEncoder, "41592357-F396-4222-965C-E5A465E128C1")
+	XAMP_DECLARE_MAKE_CLASS_UUID(BassWavFileEncoder, "41592357-F396-4222-965C-E5A465E128C1")
 
 public:
 	BassWavFileEncoder();

@@ -67,7 +67,7 @@ private:
     DspIterator Find(DspIterator begin,
         DspIterator end) {
         auto itr = std::find_if(begin, end, [](auto const& processor) {
-            return processor->GetTypeId() == UuidOf(TDSP);
+            return processor->GetTypeId() == XAMP_UUID_OF(TDSP);
             });
         return itr;
     }

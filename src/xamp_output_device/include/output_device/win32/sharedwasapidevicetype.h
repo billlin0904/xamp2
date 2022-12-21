@@ -19,7 +19,7 @@
 namespace xamp::output_device::win32 {
 
 class SharedWasapiDeviceType final : public IDeviceType {
-	DECLARE_XAMP_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
+	XAMP_DECLARE_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
 
 public:
 	constexpr static auto Description = std::string_view("WASAPI (Shared Mode)");

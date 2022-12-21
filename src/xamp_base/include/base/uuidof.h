@@ -63,7 +63,7 @@ namespace UuidLiterals {
 	}
 }
 
-#define DECLARE_XAMP_MAKE_CLASS_UUID(ClassName, UuidString) \
+#define XAMP_DECLARE_MAKE_CLASS_UUID(ClassName, UuidString) \
 public:\
 	static const xamp::base::Uuid & uuidof() {\
 		using namespace UuidLiterals;\
@@ -74,4 +74,4 @@ public:\
 private:\
 	static inline constexpr std::string_view ClassName##_ID = UuidString;\
 
-#define UuidOf(T) T::uuidof()
+#define XAMP_UUID_OF(T) T::uuidof()

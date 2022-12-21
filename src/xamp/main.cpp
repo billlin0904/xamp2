@@ -255,7 +255,7 @@ static void loadLang() {
 }
 
 #ifdef XAMP_OS_WIN
-static std::vector<ModuleHandle> prefetchDLL() {
+static std::vector<SharedLibraryHandle> prefetchDLL() {
     const std::vector<std::string_view> dll_file_names{
         "mimalloc-override.dll",
         "psapi.dll",
@@ -268,11 +268,11 @@ static std::vector<ModuleHandle> prefetchDLL() {
         "Qt5WinExtras.dll"
 	#endif
     };
-    std::vector<ModuleHandle> preload_module;
+    std::vector<SharedLibraryHandle> preload_module;
     for (const auto& file_name : dll_file_names) {
         try {
-            auto module = LoadModule(file_name);
-            if (PrefetchModule(module)) {
+            auto module = LoadSharedLibrary(file_name);
+            if (PrefetchSharedLibrary(module)) {
                 preload_module.push_back(std::move(module));
                 XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
             }
@@ -403,8 +403,7 @@ static int excute(int argc, char* argv[]) {
     }
     catch (const Exception& e) {
         XMessageBox::showError(QString::fromStdString(e.GetErrorMessage()),
-            kApplicationTitle,
-            qApp->activeWindow());
+            kApplicationTitle);
         XAMP_LOG_DEBUG(e.GetStackTrace());
         return -1;
     }

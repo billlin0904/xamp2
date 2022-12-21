@@ -47,7 +47,7 @@ DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 }
 
 Uuid SharedWasapiDeviceType::GetTypeId() const {
-	return UuidOf(SharedWasapiDeviceType);
+	return XAMP_UUID_OF(SharedWasapiDeviceType);
 }
 
 std::string_view SharedWasapiDeviceType::GetDescription() const {
@@ -69,7 +69,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return helper::GetDeviceInfo(default_output_device, UuidOf(SharedWasapiDeviceType));
+	return helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType));
 }
 
 Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
@@ -94,7 +94,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 
 		HrIfFailledThrow(devices->Item(i, &device));
 
-		auto info = helper::GetDeviceInfo(device, UuidOf(SharedWasapiDeviceType));
+		auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType));
 #ifdef _DEBUG
 		XAMP_LOG_TRACE("Get {} device {} property.", GetDescription(), String::ToUtf8String(info.name));
 		for (const auto& property : helper::GetDeviceProperty(device)) {

@@ -107,7 +107,7 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignP
 
 bool DSPManager::IsEnableSampleRateConverter() const {
     const auto equal_id = [](const auto& id) {
-        return UuidOf(SoxrSampleRateConverter) == id || UuidOf(R8brainSampleRateConverter) == id;
+        return XAMP_UUID_OF(SoxrSampleRateConverter) == id || XAMP_UUID_OF(R8brainSampleRateConverter) == id;
     };
     return Contains(equal_id);
 }

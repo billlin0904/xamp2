@@ -16,12 +16,6 @@ namespace xamp::stream {
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
 
-static bool IsFilePath(std::wstring const& file_path) noexcept {
-    auto lowcase_file_path = String::ToLower(file_path);
-    return lowcase_file_path.find(L"https") == std::string::npos
-        || lowcase_file_path.find(L"http") == std::string::npos;
-}
-
 static bool IsCDAFile(Path const &path) {
     return path.extension() == ".cda";
 }

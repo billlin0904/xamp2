@@ -30,7 +30,7 @@ public:
 
 	XAMP_DISABLE_COPY(MKLLib)
 private:
-	ModuleHandle module_;
+	SharedLibraryHandle module_;
 
 public:
 	XAMP_DECLARE_DLL(MKL_malloc) MKL_malloc;
@@ -70,11 +70,7 @@ catch (const Exception& e) {
 }
 
 FFTWLib::FFTWLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("mkl_rt.2.dll"))
-#else
-    : module_(LoadModule("libmkl_rt.2.dylib"))
-#endif
+    : module_(OpenSharedLibrary("mkl_rt.2"))
 	, XAMP_LOAD_DLL_API(DftiErrorClass)
 	, XAMP_LOAD_DLL_API(DftiFreeDescriptor)
 	, XAMP_LOAD_DLL_API(DftiCreateDescriptor_s_1d)
@@ -479,7 +475,7 @@ fftw_plan FFTWLib::fftw_plan_dft_r2c(int rank, const int* n, double* in, fftw_co
 }
 #else
 FFTWLib::FFTWLib() try
-	: module_(LoadModule("libfftw3-3.dll"))
+	: module_(OpenSharedLibrary("libfftw3-3"))
 	, XAMP_LOAD_DLL_API(fftw_destroy_plan)
 	, XAMP_LOAD_DLL_API(fftw_malloc)
 	, XAMP_LOAD_DLL_API(fftw_free)
@@ -493,7 +489,7 @@ catch (const Exception& e) {
 #endif
 
 FFTWFLib::FFTWFLib() try
-	: module_(LoadModule("libfftw3f-3.dll"))
+	: module_(OpenSharedLibrary("libfftw3f-3"))
 	, XAMP_LOAD_DLL_API(fftwf_destroy_plan)
 	, XAMP_LOAD_DLL_API(fftwf_malloc)
 	, XAMP_LOAD_DLL_API(fftwf_free)

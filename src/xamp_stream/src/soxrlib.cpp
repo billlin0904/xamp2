@@ -7,11 +7,7 @@
 namespace xamp::stream {
 
 SoxrLib::SoxrLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("libsoxr.dll"))
-#else
-    : module_(LoadModule("libsoxr.dylib"))
-#endif
+    : module_(OpenSharedLibrary("libsoxr"))
     , XAMP_LOAD_DLL_API(soxr_quality_spec)
     , XAMP_LOAD_DLL_API(soxr_create)
     , XAMP_LOAD_DLL_API(soxr_process)

@@ -392,7 +392,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         const auto button = XMessageBox::showWarning(tr("Are you sure remove all album?"),
                                                      kApplicationTitle,
-                                                     qApp->activeWindow(),
                                                      QDialogButtonBox::No | QDialogButtonBox::Yes,
                                                      QDialogButtonBox::No);
         if (button == QDialogButtonBox::Yes) {

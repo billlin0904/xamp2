@@ -158,8 +158,8 @@ void SetThreadName(std::wstring const& name) noexcept {
     try {
         // At Windows 10 1607 Supported.
         // The SetThreadDescription API works even if no debugger is attached.
-        const DllFunction<HRESULT(HANDLE, PCWSTR)>
-            SetThreadDescription(LoadModule("Kernel32.dll"), "SetThreadDescription");
+        const SharedLibraryFunction<HRESULT(HANDLE, PCWSTR)>
+            SetThreadDescription(OpenSharedLibrary("Kernel32"), "SetThreadDescription");
 
         if (SetThreadDescription) {
             SetThreadDescription(thread.get(), name.c_str());
@@ -306,11 +306,27 @@ void SetThreadAffinity(JThread& thread, CpuAffinity affinity) noexcept {
 #endif
 }
 
+bool EnablePowerThrottling(JThread& thread, bool enable) {
+    THREAD_POWER_THROTTLING_STATE throttling_state{ 0 };
+
+    throttling_state.Version = THREAD_POWER_THROTTLING_CURRENT_VERSION;
+    throttling_state.ControlMask = THREAD_POWER_THROTTLING_EXECUTION_SPEED;
+    throttling_state.StateMask = enable ? THREAD_POWER_THROTTLING_EXECUTION_SPEED : 0;
+
+    return ::SetThreadInformation(thread.native_handle(), ThreadPowerThrottling,
+        &throttling_state,
+        sizeof(throttling_state));
+}
+
 void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
     switch (priority) {
     case ThreadPriority::BACKGROUND:
+        if (::GetThreadPriority(thread.native_handle()) >= THREAD_PRIORITY_BELOW_NORMAL) {
+            ::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_END);
+        }
+
         // reduce CPU, page and IO priority for the current thread
         if (!::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_BEGIN)) {
             if (ERROR_THREAD_MODE_ALREADY_BACKGROUND == ::GetLastError()) {
@@ -319,10 +335,13 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
             }
             XAMP_LOG_DEBUG("Failed to set begin background mode! error: {}.", GetLastErrorMessage());
             return;
-        }        
-        if (!::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_END)) {
-            XAMP_LOG_DEBUG("Failed to set end background mode! error: {}.", GetLastErrorMessage());
         }
+
+        if (::GetThreadPriority(thread.native_handle()) >= THREAD_PRIORITY_BELOW_NORMAL) {
+            if (!::SetThreadPriority(thread.native_handle(), THREAD_PRIORITY_LOWEST)) {
+                XAMP_LOG_DEBUG("Failed to set background mode! error: {}.", GetLastErrorMessage());
+            }
+		}
         break;
     case ThreadPriority::NORMAL:
         thread_priority = THREAD_PRIORITY_NORMAL;
@@ -334,7 +353,7 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
 
     if (priority != ThreadPriority::BACKGROUND) {
         if (!::SetThreadPriority(thread.native_handle(), thread_priority)) {
-            XAMP_LOG_DEBUG("Failed to enter background mode! error:{}.", GetLastErrorMessage());
+            XAMP_LOG_DEBUG("Failed to set thread priority! error:{}.", GetLastErrorMessage());
         }
         return;
     }

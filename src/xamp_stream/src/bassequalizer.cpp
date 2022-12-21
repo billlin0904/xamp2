@@ -143,7 +143,7 @@ uint32_t BassEqualizer::Process(float const* samples, float* out, uint32_t num_s
 }
 
 Uuid BassEqualizer::GetTypeId() const {
-    return UuidOf(BassEqualizer);
+    return XAMP_UUID_OF(BassEqualizer);
 }
 
 std::string_view BassEqualizer::GetDescription() const noexcept {

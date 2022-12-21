@@ -105,7 +105,7 @@ void R8brainSampleRateConverter::Init(const AnyMap& config) {
 }
 
 Uuid R8brainSampleRateConverter::GetTypeId() const {
-	return UuidOf(R8brainSampleRateConverter);
+	return XAMP_UUID_OF(R8brainSampleRateConverter);
 }
 
 void R8brainSampleRateConverter::Flush() {

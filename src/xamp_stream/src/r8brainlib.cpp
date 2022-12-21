@@ -7,11 +7,7 @@
 namespace xamp::stream {
 
 R8brainLib::R8brainLib() try
-#ifdef XAMP_OS_WIN
-    : module_(LoadModule("r8bsrc.dll"))
-#else
-    : module_(LoadModule("libr8bsrc.dylib"))
-#endif
+    : module_(OpenSharedLibrary("r8bsrc"))
 	, XAMP_LOAD_DLL_API(r8b_create)
 	, XAMP_LOAD_DLL_API(r8b_delete)
 	, XAMP_LOAD_DLL_API(r8b_clear)

@@ -1,23 +1,22 @@
-#include "ui_xamp.h"
-
-#include <widget/image_utiltis.h>
-
-#include <QDirIterator>
-#include <QDesktopWidget>
 #include "thememanager.h"
 
+#include <widget/image_utiltis.h>
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
 #else
 #include <widget/osx/osx.h>
 #endif
-
+#include <widget/fonticonanimation.h>
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
 
+#include "ui_xamp.h"
+
+#include <QDirIterator>
+#include <QDesktopWidget>
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
 #include <QResource>
@@ -26,8 +25,6 @@
 #include <QFontDatabase>
 #include <QTextStream>
 #include <QFileInfo>
-
-#include "widget/fonticonanimation.h"
 
 template <typename Iterator>
 static void sortFontWeight(Iterator begin, Iterator end) {
@@ -120,6 +117,7 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
         XAMP_LOG_ERROR("Not found font file name: {}", file_name.toStdString());
         return;
     }
+    PrefetchFile(font_path.toStdWString());
     const auto loaded_font_id = QFontDatabase::addApplicationFont(font_path);
     const auto font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
     ui_fallback_fonts.push_back(font_families[0]);
@@ -385,6 +383,13 @@ QIcon ThemeManager::appIcon() const {
 
 QIcon ThemeManager::playCircleIcon() const {
     return QIcon(qTEXT(":/xamp/Resource/Black/play_circle.png"));
+}
+
+QIcon ThemeManager::hiResIcon() const {
+    QVariantMap options;
+    options.insert(FontIconOption::colorAttr, QColor(250, 197, 24));
+    options.insert(FontIconOption::scaleFactorAttr, 0.8);
+    return QIcon(qFontIcon.icon(0xE1AE, options));
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {
@@ -686,8 +691,8 @@ void ThemeManager::setTextSeparator(QFrame *frame) {
 
 int32_t ThemeManager::fontSize() const {
     const auto dpi = qApp->desktop()->logicalDpiX();
-    if (dpi > 96) {
-        return 11;
+    if (dpi >= 96) {
+        return 10;
     }
     return 14;
 }
