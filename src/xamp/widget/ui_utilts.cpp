@@ -29,7 +29,7 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
     }
 
-    auto bits = format.GetBitsPerSample();
+    auto bits = (std::max)(format.GetBitsPerSample(), 16U);
 
     QString dsd_speed_format;
     if (playback_format.is_dsd_file
@@ -74,8 +74,9 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     if (!dsd_mode.isEmpty()) {
         result += qTEXT(" | ") + dsd_mode;
     }
-
-    result += qTEXT(" |") + bitRate2String(playback_format.bitrate);
+    if (playback_format.bitrate > 0) {
+        result += qTEXT(" |") + bitRate2String(playback_format.bitrate);
+    }
     return result;
 }
 

@@ -717,7 +717,7 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,0">
              <item>
               <widget class="ClickableLabel" name="artistLabel">
                <property name="sizePolicy">
@@ -765,6 +765,13 @@
                  <height>20</height>
                 </size>
                </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="formatLabel">
                <property name="text">
                 <string/>
                </property>

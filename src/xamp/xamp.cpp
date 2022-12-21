@@ -361,6 +361,7 @@ void Xamp::initialUI() {
     ui_.artistLabel->setFont(f);
 
     QToolTip::setFont(QFont(qTEXT("FormatFont")));
+    ui_.formatLabel->setFont(QFont(qTEXT("FormatFont")));
 
     if (qTheme.useNativeWindow()) {
         ui_.closeButton->hide();
@@ -1328,6 +1329,11 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
 void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done) {
     auto* cur_page = current_playlist_page_;
+
+    QString ext = item.file_ext;
+    if (item.file_ext.isEmpty()) {
+        ext = qTEXT(".m4a");
+    }
 	
     qTheme.setPlayOrPauseButton(ui_, open_done);
     lrc_page_->spectrum()->reset();
@@ -1349,7 +1355,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(streamTimeToString(0));
         ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration()));
-        cur_page->format()->setText(format2String(playback_format, item.file_ext));
+        cur_page->format()->setText(format2String(playback_format, ext));
 
         artist_info_page_->setArtistId(item.artist,
             qDatabase.getArtistCoverId(item.artist_id),
@@ -1381,6 +1387,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     }
 
     if (open_done) {
+        ui_.formatLabel->setText(format2String(playback_format, ext));
         if (playback_format.file_format.GetSampleRate() > kPcmSampleRate441) {            
             ui_.hiResLabel->setPixmap(qTheme.hiResIcon().pixmap(ui_.hiResLabel->size()));
         } else {
