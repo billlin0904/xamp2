@@ -8,6 +8,8 @@
 #include <QWidget>
 #include <QIcon>
 
+#include "thememanager.h"
+
 class IXPlayerControlFrame;
 class XWindow;
 class QWinThumbnailToolBar;
@@ -52,7 +54,7 @@ private:
 void setAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0) noexcept;
 void setFramelessWindowStyle(const WId window_id) noexcept;
 void setWindowedWindowStyle(const WId window_id) noexcept;
-void setTitleBarColor(const WId window_id, QColor color) noexcept;
+void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept;
 void addDwmShadow(const WId window_id) noexcept;
 void addDwmMenuShadow(const WId window_id) noexcept;
 bool isWindowMaximized(const WId window_id) noexcept;

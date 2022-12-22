@@ -7,8 +7,27 @@
 namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
+bool AddSharedLibrarySearchDirectory(const Path& path) {
+    ::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+
+	const auto utf16_string = path.wstring();
+
+    wchar_t buffer[MAX_PATH];
+    wchar_t** part = nullptr;
+    ::GetFullPathNameW(utf16_string.c_str(), MAX_PATH, buffer, part);
+
+    if (!::AddDllDirectory(buffer)) {
+        if (::GetLastError() != ERROR_FILE_NOT_FOUND) {
+            return false;
+        }
+    }
+    return true;
+}
+
 SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name) {
-	auto module = ::LoadLibraryA(file_name.data());
+    auto module = ::LoadLibraryExA(file_name.data(),
+        nullptr,
+        LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 	if (!module) {
 		throw LoadDllFailureException(file_name);
 	}

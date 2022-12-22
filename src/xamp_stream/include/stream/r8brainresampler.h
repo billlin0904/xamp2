@@ -10,6 +10,7 @@
 #include <base/uuidof.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
+#include <base/pimplptr.h>
 
 namespace xamp::stream {
 
@@ -39,7 +40,7 @@ public:
 
 private:
     class R8brainSampleRateConverterImpl;
-    AlignPtr<R8brainSampleRateConverterImpl> impl_;
+    PimplPtr<R8brainSampleRateConverterImpl> impl_;
 };
 
 }

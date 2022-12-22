@@ -5,8 +5,10 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
 #include <metadata/imetadatawriter.h>
+
+#include <base/pimplptr.h>
+#include <base/align_ptr.h>
 
 namespace xamp::metadata {
 
@@ -33,7 +35,7 @@ public:
     void WriteEmbeddedCover(Path const & path, std::vector<uint8_t> const &image) const override;
 private:
     class TaglibMetadataWriterImpl;
-	AlignPtr<TaglibMetadataWriterImpl> writer_;
+    PimplPtr<TaglibMetadataWriterImpl> writer_;
 };
 
 }

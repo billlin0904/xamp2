@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1145</width>
-    <height>637</height>
+    <height>658</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -652,13 +652,13 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>70</height>
+          <height>75</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>70</height>
+          <height>75</height>
          </size>
         </property>
         <property name="frameShape">
@@ -667,7 +667,22 @@
         <property name="frameShadow">
          <enum>QFrame::Plain</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1,0,0,0,0,0,0,0,0,0">
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
           <widget class="ClickableLabel" name="coverLabel">
            <property name="minimumSize">
@@ -688,36 +703,42 @@
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout">
+          <layout class="QVBoxLayout" name="verticalLayout_7" stretch="0,0">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <item>
-            <widget class="ScrollLabel" name="titleLabel">
-             <property name="minimumSize">
-              <size>
-               <width>300</width>
-               <height>0</height>
-              </size>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <property name="spacing">
+              <number>0</number>
              </property>
-             <property name="maximumSize">
-              <size>
-               <width>300</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,0">
+             <item>
+              <widget class="ScrollLabel" name="titleLabel">
+               <property name="minimumSize">
+                <size>
+                 <width>300</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+              </widget>
+             </item>
              <item>
               <widget class="ClickableLabel" name="artistLabel">
                <property name="sizePolicy">
@@ -734,8 +755,8 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>280</width>
-                 <height>16777215</height>
+                 <width>250</width>
+                 <height>25</height>
                 </size>
                </property>
                <property name="font">
@@ -749,8 +770,18 @@
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="spacing">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QLabel" name="hiResLabel">
                <property name="minimumSize">
@@ -772,6 +803,12 @@
              </item>
              <item>
               <widget class="QLabel" name="formatLabel">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>20</height>
+                </size>
+               </property>
                <property name="text">
                 <string/>
                </property>

@@ -150,7 +150,7 @@ public:
         is_eof_ = false;
     }
 
-    uint32_t GetSamples(float* buffer, uint32_t length) noexcept {
+    uint32_t GetSamples(float* buffer, uint32_t length) const noexcept {
         const auto channel_read_bytes = length / sizeof(float);
         uint32_t num_read_sample = 0;
 
@@ -228,7 +228,7 @@ public:
         return (std::max)(format_context_->streams[audio_stream_id_]->codecpar->bits_per_raw_sample, 16);
     }
 
-    void Seek(double stream_time) {
+    void Seek(double stream_time) const {
         if (codec_context_ == nullptr) {
             return;
         }
@@ -272,7 +272,7 @@ private:
         return frame_size;
     }
 
-    bool is_eof_{ false };
+    mutable bool is_eof_{ false };
     int32_t audio_stream_id_;
     double duration_;
     AudioFormat audio_format_;
@@ -286,7 +286,7 @@ private:
 
 
 AvFileStream::AvFileStream()
-    : impl_(MakeAlign<AvFileStreamImpl>()) {
+    : impl_(MakePimpl<AvFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(AvFileStream)

@@ -10,6 +10,7 @@
 
 #include <base/uuidof.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 
 namespace xamp::stream {
 
@@ -42,7 +43,7 @@ public:
     void Flush() override;
 private:
     class BassEqualizerImpl;
-    AlignPtr<BassEqualizerImpl> impl_;
+    PimplPtr<BassEqualizerImpl> impl_;
 };
 
 }

@@ -359,6 +359,7 @@ static int excute(int argc, char* argv[]) {
         XAMP_LOG_DEBUG("Attach app failure!");
         return -1;
     }
+
 #ifndef _DEBUG    
 #else
 #ifdef XAMP_OS_WIN
@@ -366,6 +367,7 @@ static int excute(int argc, char* argv[]) {
     QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
 #endif
+
     XAMP_LOG_DEBUG("attach app success.");
 
     loadLang();
@@ -431,7 +433,17 @@ int main(int argc, char *argv[]) {
     AppSettings::loadIniFile(qTEXT("xamp.ini"));
     JsonSettings::loadJsonFile(qTEXT("config.json"));
 
-    loadOrSaveLogConfig();
+	loadOrSaveLogConfig();
+
+#ifdef XAMP_OS_WIN
+    SetProcessMitigation();
+
+    const auto components_path = GetComponentsFilePath();
+    if (!AddSharedLibrarySearchDirectory(components_path)) {
+        XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory failure:{}", GetLastErrorMessage());
+        return -1;
+    }
+#endif
 
 #ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
@@ -448,7 +460,7 @@ int main(int argc, char *argv[]) {
         .arg(__clang_patchlevel__).toStdString());
 #endif
 
-#ifdef XAMP_OS_WIN
+#ifdef XAMP_OS_WIN    
     const auto prefetch_dll = prefetchDLL();
     XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
@@ -467,6 +479,7 @@ int main(int argc, char *argv[]) {
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();    
     XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
+
     crash_handler.SetThreadExceptionHandlers();
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 

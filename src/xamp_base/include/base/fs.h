@@ -40,6 +40,10 @@ XAMP_BASE_API std::string MakeTempFileName();
 
 XAMP_BASE_API Path GetTempFilePath();
 
+XAMP_BASE_API Path GetApplicationFilePath();
+
+XAMP_BASE_API Path GetComponentsFilePath();
+
 XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
 }

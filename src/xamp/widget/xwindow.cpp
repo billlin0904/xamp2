@@ -133,9 +133,7 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
         }
     } else {
         win32::setWindowedWindowStyle(winId());
-        if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
-            win32::setTitleBarColor(winId(), qTheme.backgroundColor());
-        }
+        win32::setTitleBarColor(winId(), qTheme.themeColor());
         win32::addDwmShadow(winId());
     }
     taskbar_.reset(new win32::WinTaskbar(this, player_control_frame_));

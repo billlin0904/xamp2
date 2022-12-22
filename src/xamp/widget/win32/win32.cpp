@@ -506,47 +506,72 @@ void setFramelessWindowStyle(const WId window_id) noexcept {
 	setBorderlessWindowStyle(window_id, new_style);
 }
 
-void setTitleBarColor(const WId window_id, QColor color) noexcept {
+void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 	// https://stackoverflow.com/questions/39261826/change-the-color-of-the-title-bar-caption-of-a-win32-application
 	// Undocumented in Windows 10 SDK
 	// (can be used by setting value as dwAttribute as 20),
 	// value was 19 pre Windows 10 20H1 Update).
 
 	constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-	constexpr DWORD DWMWA_BORDER_COLOR = 34;
-	constexpr DWORD DWMWA_CAPTION_COLOR = 19;
-	constexpr DWORD DWMWA_MICA_EFFECT = 1029;
-
 	constexpr int kWindows11MajorVersion = 10;
 	constexpr int kWindows11MicroVersion = 22000;
+	constexpr DWORD DWMWA_MICA_EFFECT = 1029;
 
 	auto hwnd = reinterpret_cast<HWND>(window_id);
+	auto color = qTheme.backgroundColor();
 
-	const auto os_ver = QOperatingSystemVersion::current();
-	if (os_ver.majorVersion() == kWindows11MajorVersion && os_ver.microVersion() < kWindows11MicroVersion) {
-		BOOL value = TRUE;
+	switch (theme_color) {
+	case ThemeColor::DARK_THEME:
+		const auto os_ver = QOperatingSystemVersion::current();
+		if (os_ver.majorVersion() == kWindows11MajorVersion && os_ver.microVersion() < kWindows11MicroVersion) {
+			BOOL value = TRUE;
 
-		DWMDLL.DwmSetWindowAttribute(hwnd,
-			DWMWA_USE_IMMERSIVE_DARK_MODE,
-			&value,
-			sizeof(value));
+			DWMDLL.DwmSetWindowAttribute(hwnd,
+				DWMWA_USE_IMMERSIVE_DARK_MODE,
+				&value,
+				sizeof(value));
+		} else {
+			int use_mica = 1;
+			DWMDLL.DwmSetWindowAttribute(hwnd,
+				DWMWA_MICA_EFFECT,
+				&use_mica,
+				sizeof(use_mica));
+
+			int r, g, b;
+			color.getRgb(&r, &g, &b);
+			COLORREF colorref = RGB(r, g, b);
+			DWMDLL.DwmSetWindowAttribute(hwnd,
+				DWMWA_CAPTION_COLOR,
+				&colorref,
+				sizeof(COLORREF));
+		}
+		break;
+	case ThemeColor::LIGHT_THEME:
+		if (os_ver.majorVersion() == kWindows11MajorVersion && os_ver.microVersion() < kWindows11MicroVersion) {
+			BOOL value = TRUE;
+
+			DWMDLL.DwmSetWindowAttribute(hwnd,
+				0,
+				&value,
+				sizeof(value));
+		}
+		else {
+			int use_mica = 1;
+			DWMDLL.DwmSetWindowAttribute(hwnd,
+				DWMWA_MICA_EFFECT,
+				&use_mica,
+				sizeof(use_mica));
+
+			int r, g, b;
+			color.getRgb(&r, &g, &b);
+			COLORREF colorref = RGB(r, g, b);
+			DWMDLL.DwmSetWindowAttribute(hwnd,
+				DWMWA_CAPTION_COLOR,
+				&colorref,
+				sizeof(COLORREF));
+		}
+		break;
 	}
-	else {
-		int use_mica = 1;
-		DWMDLL.DwmSetWindowAttribute(hwnd,
-			DWMWA_MICA_EFFECT, 
-			&use_mica,
-			sizeof(use_mica));
-
-		int r, g, b;
-		color.getRgb(&r, &g, &b);
-		COLORREF colorref = RGB(r, g, b);
-		DWMDLL.DwmSetWindowAttribute(hwnd,
-			DWMWA_CAPTION_COLOR,
-			&colorref,
-			sizeof(COLORREF));
-	}
-	
 }
 
 bool isWindowMaximized(const WId window_id) noexcept {

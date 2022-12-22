@@ -27,7 +27,9 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avformat_network_init)
 	, XAMP_LOAD_DLL_API(avformat_network_deinit)
 	, XAMP_LOAD_DLL_API(avformat_alloc_context)
-	, XAMP_LOAD_DLL_API(avformat_new_stream) {
+	, XAMP_LOAD_DLL_API(avformat_new_stream)
+	, XAMP_LOAD_DLL_API(avformat_query_codec)
+	, XAMP_LOAD_DLL_API(av_oformat_next) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -49,7 +51,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_find_decoder_by_name)
 	, XAMP_LOAD_DLL_API(avcodec_find_encoder)
 	, XAMP_LOAD_DLL_API(avcodec_configuration)
-	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context) {
+	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context)
+	, XAMP_LOAD_DLL_API(av_codec_next) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -155,6 +158,49 @@ AvLib::AvLib() {
 	logger->SetLevel(level);
 
 	XAMP_LOG_D(logger, "Network init.");
+}
+
+HashSet<std::string> AvLib::GetSupportFileExtensions() const {
+	HashSet<std::string> result;
+	HashSet<const AVCodec*> audio_codecs;
+
+	const auto level = logger->GetLevel();
+	logger->SetLevel(LOG_LEVEL_DEBUG);
+
+	const auto* codec = CodecLib->av_codec_next(nullptr);
+	while (codec != nullptr) {
+		if (!codec->decode) {
+			if (codec->type == AVMEDIA_TYPE_AUDIO) {
+				audio_codecs.insert(codec);
+			}
+		}
+		codec = codec->next;
+	}
+
+	auto output_format = FormatLib->av_oformat_next(nullptr);
+	while (output_format != nullptr) {
+		for (auto* audio_codec : audio_codecs) {
+			if (FormatLib->avformat_query_codec(output_format, audio_codec->id, FF_COMPLIANCE_STRICT) == 1) {
+				if (!output_format->extensions)
+					continue;
+				for (const auto& extension : String::Split(output_format->extensions, ",")) {
+					const auto file_extensions = std::string(".") + std::string(extension);
+					if (!result.contains(file_extensions)) {
+						XAMP_LOG_D(logger, "Load Libav name:{} extensions: {}", output_format->name, file_extensions);
+						result.insert(file_extensions);
+					}
+				}				
+			}
+		}
+		output_format = output_format->next;
+	}
+
+	// Workaround!
+	result.insert(".wav");
+	result.insert(".mp3");
+
+	logger->SetLevel(level);
+	return result;
 }
 
 }

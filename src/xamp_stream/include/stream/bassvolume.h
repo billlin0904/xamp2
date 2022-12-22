@@ -10,6 +10,7 @@
 
 #include <base/uuidof.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 
 namespace xamp::stream {
 
@@ -37,7 +38,7 @@ public:
 
 private:
     class BassVolumeImpl;
-    AlignPtr<BassVolumeImpl> impl_;
+    PimplPtr<BassVolumeImpl> impl_;
 };
 
 }

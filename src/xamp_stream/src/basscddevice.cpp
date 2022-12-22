@@ -127,7 +127,7 @@ private:
 };
 
 BassCDDevice::BassCDDevice(char driver_letter)
-	: impl_(MakeAlign<BassCDDeviceImpl>(driver_letter)) {
+	: impl_(MakePimpl<BassCDDeviceImpl>(driver_letter)) {
 }
 
 XAMP_PIMPL_IMPL(BassCDDevice)

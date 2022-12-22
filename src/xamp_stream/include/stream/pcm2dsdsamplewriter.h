@@ -12,6 +12,7 @@
 #include <base/platform.h>
 #include <base/uuidof.h>
 #include <base/dsdsampleformat.h>
+#include <base/pimplptr.h>
 
 namespace xamp::stream {
 

@@ -54,7 +54,7 @@ private:
 };
 
 BassFader::BassFader()
-    : impl_(MakeAlign<BassFaderImpl>()) {
+    : impl_(MakePimpl<BassFaderImpl>()) {
 }
 
 void BassFader::Start(const AnyMap& config) {

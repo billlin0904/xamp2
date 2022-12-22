@@ -126,7 +126,7 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
 }
 
 const HashSet<std::string> & GetSupportFileExtensions() {
-    static const auto file_ext_lut = BASS.GetSupportFileExtensions();
+    static const auto file_ext_lut = LIBAV_LIB.GetSupportFileExtensions();
     return file_ext_lut;
 }
 

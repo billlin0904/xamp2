@@ -5,9 +5,11 @@
 
 #pragma once
 
+#include <metadata/imetadatareader.h>
+
 #include <base/stl.h>
 #include <base/align_ptr.h>
-#include <metadata/imetadatareader.h>
+#include <base/pimplptr.h>
 
 namespace xamp::metadata {
 
@@ -28,7 +30,7 @@ public:
     [[nodiscard]] bool IsSupported(Path const & path) const override;
 private:
     class TaglibMetadataReaderImpl;
-	AlignPtr<TaglibMetadataReaderImpl> reader_;
+    PimplPtr<TaglibMetadataReaderImpl> reader_;
 };
 
 }

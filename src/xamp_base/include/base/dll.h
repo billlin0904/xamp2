@@ -25,6 +25,8 @@ XAMP_BASE_API void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, cons
 
 XAMP_BASE_API bool PrefetchSharedLibrary(SharedLibraryHandle const& module);
 
+XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
+
 template
 <
     typename T,

@@ -38,9 +38,7 @@ void XDialog::setContentWidget(QWidget* content) {
     } else {
         setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 #ifdef Q_OS_WIN
-        if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
-            win32::setTitleBarColor(winId(), qTheme.backgroundColor());
-        }
+        win32::setTitleBarColor(winId(), qTheme.themeColor());
         win32::addDwmShadow(winId());
 #endif
     }

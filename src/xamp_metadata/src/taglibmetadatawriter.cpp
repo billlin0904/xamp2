@@ -239,7 +239,7 @@ private:
 XAMP_PIMPL_IMPL(TaglibMetadataWriter)
 
 TaglibMetadataWriter::TaglibMetadataWriter()
-    : writer_(MakeAlign<TaglibMetadataWriterImpl>()) {
+    : writer_(MakePimpl<TaglibMetadataWriterImpl>()) {
 }
 
 void TaglibMetadataWriter::WriteReplayGain(Path const& path, const ReplayGain& replay_gain) {

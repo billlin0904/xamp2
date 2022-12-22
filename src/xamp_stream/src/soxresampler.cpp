@@ -239,7 +239,7 @@ public:
 };
 
 SoxrSampleRateConverter::SoxrSampleRateConverter()
-    : impl_(MakeAlign<SoxrSampleRateConverterImpl>()) {
+    : impl_(MakePimpl<SoxrSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)

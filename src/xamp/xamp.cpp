@@ -363,6 +363,9 @@ void Xamp::initialUI() {
     QToolTip::setFont(QFont(qTEXT("FormatFont")));
     ui_.formatLabel->setFont(QFont(qTEXT("FormatFont")));
 
+    ui_.formatLabel->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.hiResLabel->setStyleSheet(qTEXT("background-color: transparent"));
+
     if (qTheme.useNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
@@ -1388,10 +1391,11 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
 
     if (open_done) {
         ui_.formatLabel->setText(format2String(playback_format, ext));
-        if (playback_format.file_format.GetSampleRate() > kPcmSampleRate441) {            
+        if (playback_format.file_format.GetSampleRate() > kPcmSampleRate441) {
+            ui_.hiResLabel->show();
             ui_.hiResLabel->setPixmap(qTheme.hiResIcon().pixmap(ui_.hiResLabel->size()));
         } else {
-            ui_.hiResLabel->setPixmap(QPixmap());
+            ui_.hiResLabel->hide();
         }        
         player_->Play();
     }

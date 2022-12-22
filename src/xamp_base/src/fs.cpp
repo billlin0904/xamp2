@@ -39,6 +39,17 @@ std::string MakeTempFileName() {
 	return MakeUuidString();
 }
 
+Path GetApplicationFilePath() {
+	// https://stackoverflow.com/questions/1528298/get-path-of-executable
+#ifdef XAMP_OS_WIN
+	wchar_t buffer[MAX_PATH]{};
+	::GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+	return Path(buffer).parent_path();
+#else
+	return L"";
+#endif
+}
+
 std::string GetSharedLibraryName(const std::string_view &name) {
     std::string library_name(name);
 #ifdef XAMP_OS_WIN
@@ -89,6 +100,10 @@ int64_t GetLastWriteTime(const Path& path) {
 #else
 	return GetTime_t();
 #endif
+}
+
+Path GetComponentsFilePath() {
+	return GetApplicationFilePath() / Path("components");
 }
 
 }

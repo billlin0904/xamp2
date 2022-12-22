@@ -14,6 +14,7 @@
 #include <base/uuidof.h>
 #include <base/stl.h>
 #include <base/encodingprofile.h>
+#include <base/pimplptr.h>
 
 namespace xamp::stream {
 
@@ -53,7 +54,7 @@ public:
 	static Vector<EncodingProfile> GetAvailableEncodingProfile();
 private:
 	class MFAACFileEncoderImpl;
-	AlignPtr<MFAACFileEncoderImpl> impl_;
+	PimplPtr<MFAACFileEncoderImpl> impl_;
 };
 
 }

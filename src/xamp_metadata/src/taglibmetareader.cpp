@@ -451,7 +451,7 @@ private:
 XAMP_PIMPL_IMPL(TaglibMetadataReader)
 
 TaglibMetadataReader::TaglibMetadataReader()
-    : reader_(MakeAlign<TaglibMetadataReaderImpl>()) {
+    : reader_(MakePimpl<TaglibMetadataReaderImpl>()) {
 }
 
 TrackInfo TaglibMetadataReader::Extract(const Path& path) {

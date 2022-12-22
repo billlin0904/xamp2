@@ -173,6 +173,7 @@
     <ClInclude Include="include\base\latch.h" />
     <ClInclude Include="include\base\logger_impl.h" />
     <ClInclude Include="include\base\pcg32.h" />
+    <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
     <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpoolexecutor.h" />

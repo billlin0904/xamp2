@@ -22,7 +22,6 @@
 #include <base/stl.h>
 #include <base/unique_handle.h>
 #include <base/memory.h>
-#include <base/memory_mapped_file.h>
 #include <base/logger.h>
 
 #include <cstdint>

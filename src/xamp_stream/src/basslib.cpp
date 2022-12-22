@@ -279,7 +279,8 @@ void BassLib::Free() {
 }
 
 void BassLib::LoadPlugin(std::string const & file_name) {
-    BassPluginHandle plugin(BASS.BASS_PluginLoad(file_name.c_str(), 0));
+    const auto plugin_fully_path = GetComponentsFilePath() / Path(file_name);
+    BassPluginHandle plugin(BASS.BASS_PluginLoad(plugin_fully_path.string().c_str(), 0));
     if (!plugin) {
         XAMP_LOG_D(logger, "Load {} failure. error:{}",
             file_name,

@@ -12,6 +12,7 @@
 #include <base/memory.h>
 #include <base/align_ptr.h>
 #include <base/uuidof.h>
+#include <base/pimplptr.h>
 
 namespace xamp::stream {
 
@@ -47,7 +48,7 @@ public:
 
 private:
 	class AvFileStreamImpl;
-	AlignPtr<AvFileStreamImpl> impl_;
+	PimplPtr<AvFileStreamImpl> impl_;
 };
 
 }

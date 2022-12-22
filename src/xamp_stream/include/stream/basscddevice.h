@@ -8,6 +8,8 @@
 #include <stream/stream.h>
 #include <stream/icddevice.h>
 
+#include <base/pimplptr.h>
+
 #ifdef XAMP_OS_WIN
 
 namespace xamp::stream {
@@ -41,7 +43,7 @@ public:
 	std::string GetISRC(uint32_t track) const override;
 private:
 	class BassCDDeviceImpl;
-	AlignPtr<BassCDDeviceImpl> impl_;
+	PimplPtr<BassCDDeviceImpl> impl_;
 };
 
 }

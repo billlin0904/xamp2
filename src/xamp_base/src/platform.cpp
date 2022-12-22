@@ -540,6 +540,27 @@ bool SetProcessWorkingSetSize(size_t working_set_size) noexcept {
     XAMP_LOG_DEBUG("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
     return false;
 }
+
+void SetProcessMitigation() {
+    // https://blog.xpnsec.com/protecting-your-malware/
+    // todo: Qt¤£¤ä´©SetProcessMitigationPolicy
+    /*PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY signature_policy{};
+    signature_policy.MicrosoftSignedOnly = true;
+
+    if (!::SetProcessMitigationPolicy(ProcessSignaturePolicy, &signature_policy,
+        sizeof(signature_policy))) {
+        XAMP_LOG_DEBUG("SetProcessMitigationPolicy (MicrosoftSignedOnly) return failure! error:{}.", GetLastErrorMessage());
+    }
+
+    PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dynamic_code_policy{};
+    dynamic_code_policy.ProhibitDynamicCode = true;
+    dynamic_code_policy.AllowThreadOptOut = true;
+
+    if (!::SetProcessMitigationPolicy(ProcessDynamicCodePolicy, &dynamic_code_policy,
+        sizeof(dynamic_code_policy))) {
+        XAMP_LOG_DEBUG("SetProcessMitigationPolicy (DynamicCode) return failure! error:{}.", GetLastErrorMessage());
+    }*/
+}
 #endif
 
 bool VirtualMemoryLock(void* address, size_t size) {

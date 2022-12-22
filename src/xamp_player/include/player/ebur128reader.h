@@ -6,6 +6,8 @@
 #pragma once
 
 #include <player/player.h>
+
+#include <base/pimplptr.h>
 #include <base/stl.h>
 
 namespace xamp::player {
@@ -35,7 +37,7 @@ public:
 	static void LoadEbur128Lib();
 private:
 	class Ebur128ReaderImpl;
-	AlignPtr<Ebur128ReaderImpl> impl_;
+	PimplPtr<Ebur128ReaderImpl> impl_;
 };
 
 }

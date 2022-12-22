@@ -148,7 +148,7 @@ public:
         if (Fs::is_directory(path)) {
             return;
         }
-        //XAMP_LOG_DEBUG("OnWalk Path: {}", String::ToString(path.wstring()));
+        XAMP_LOG_DEBUG("OnWalk Path: {}", String::ToString(path.wstring()));
         hasher_.Update(path.native());
         paths_.push_front(path);
     }
@@ -166,7 +166,7 @@ public:
             return;
         }
 
-        //XAMP_LOG_DEBUG("Cache miss! Hash:{} Path: {}", path_hash, String::ToString(Path(dir_entry).wstring()));
+        XAMP_LOG_DEBUG("Cache miss! Hash:{} Path: {}", path_hash, String::ToString(Path(dir_entry).wstring()));
 
         std::for_each(paths_.begin(), paths_.end(), [&](auto& path) {
             auto metadata = reader_->Extract(path);

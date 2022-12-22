@@ -1,6 +1,7 @@
 #include <base/memory.h>
 
 #include <base/base.h>
+#include <base/simd.h>
 #include <base/align_ptr.h>
 #include <base/platfrom_handle.h>
 #include <base/memory_mapped_file.h>
@@ -51,7 +52,7 @@ bool PrefetchFile(std::wstring const & file_name) {
 void MemorySet(void* dest, int32_t c, size_t size) noexcept {
 	static constexpr size_t kRepStosbThresShold = 2048;
 
-	if (IsAligned(dest) && size >= kRepStosbThresShold) {
+	if (SIMD::IsAligned(dest) && size >= kRepStosbThresShold) {
 		std::memset(dest, c, size);
 	} else {
 		__stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
@@ -63,7 +64,7 @@ void MemorySet(void* dest, int32_t c, size_t size) noexcept {
 void MemoryCopy(void* dest, const void* src, size_t size) noexcept {
 	static constexpr size_t kRepMovsbThresShold = 16384;
 
-	if (IsAligned(dest) && size >= kRepMovsbThresShold) {
+	if (SIMD::IsAligned(dest) && size >= kRepMovsbThresShold) {
 		std::memcpy(dest, src, size);
 	}
 	else {

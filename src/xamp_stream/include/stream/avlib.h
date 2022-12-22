@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <stream/stream.h>
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
@@ -23,7 +25,7 @@ extern "C" {
 #include <base/dll.h>
 #include <base/singleton.h>
 #include <base/assert.h>
-#include <stream/stream.h>
+#include <base/stl.h>
 
 namespace xamp::stream {
 
@@ -59,6 +61,8 @@ public:
    XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
    XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
    XAMP_DECLARE_DLL_NAME(avformat_new_stream);
+   XAMP_DECLARE_DLL_NAME(avformat_query_codec);
+   XAMP_DECLARE_DLL_NAME(av_oformat_next);
 };
 
 class AvCodecLib final {
@@ -84,6 +88,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_find_encoder);
     XAMP_DECLARE_DLL_NAME(avcodec_configuration);
     XAMP_DECLARE_DLL_NAME(avcodec_parameters_from_context);
+    XAMP_DECLARE_DLL_NAME(av_codec_next);
 };
 
 class AvUtilLib final {
@@ -133,6 +138,8 @@ public:
     AvLib();
 
     ~AvLib();
+
+    HashSet<std::string> GetSupportFileExtensions() const;
 
     AlignPtr<AvFormatLib> FormatLib;
     AlignPtr<AvCodecLib> CodecLib;

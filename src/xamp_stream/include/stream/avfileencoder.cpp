@@ -51,10 +51,12 @@ static bool CheckSampleFmt(const AVCodec* codec, enum AVSampleFormat sample_fmt)
 class AvFileEncoder::AvFileEncoderImpl {
 public:
     void Start(const AnyMap& config) {
+        intput_file_ = MakeAlign<AvFileStream>();
+
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
 
-        intput_file_.OpenFile(input_file_path);
+        intput_file_->OpenFile(input_file_path);
         output_file_.open(input_file_path, std::ios::binary);
 
         codec_ = LIBAV_LIB.CodecLib->avcodec_find_encoder(AV_CODEC_ID_MP2);
@@ -78,7 +80,7 @@ public:
         format_context_.reset(LIBAV_LIB.FormatLib->avformat_alloc_context());
         stream_ = LIBAV_LIB.FormatLib->avformat_new_stream(format_context_.get(), nullptr);
 
-        stream_->time_base.den = intput_file_.GetFormat().GetSampleRate();
+        stream_->time_base.den = intput_file_->GetFormat().GetSampleRate();
         stream_->time_base.num = 1;
 
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -94,9 +96,9 @@ public:
 
 private:
     std::ofstream output_file_;
-    AvFileStream intput_file_;
-    AVCodec* codec_;
-    AVStream* stream_;
+    AVCodec* codec_{ nullptr };
+    AVStream* stream_{nullptr};
+    AlignPtr<AvFileStream> intput_file_;
     AvPtr<AVFormatContext> format_context_;
     AvPtr<AVCodecContext> codec_context_;
 };
