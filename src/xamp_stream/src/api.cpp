@@ -56,7 +56,13 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-AlignPtr<FileStream> StreamFactory::MakeFileStream() {
+AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode) {
+    switch (dsd_mode) {
+    case DsdModes::DSD_MODE_NATIVE:
+    case DsdModes::DSD_MODE_DOP:
+    case DsdModes::DSD_MODE_DSD2PCM:
+        return MakeAlign<FileStream, BassFileStream>();
+    }
     return MakeAlign<FileStream, AvFileStream>();
 }
 

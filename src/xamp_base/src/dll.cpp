@@ -4,6 +4,8 @@
 #include <base/memory_mapped_file.h>
 #include <base/dll.h>
 
+#include <stdlib.h>
+
 namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
@@ -50,8 +52,16 @@ void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_
     return func;
 }
 #else
+
+bool AddSharedLibrarySearchDirectory(const Path& path) {
+    auto value = String::Format("DYLD_LIBRARY_PATH={}", path.native());
+    return ::putenv(const_cast<char*>(value.c_str())) == 0;
+}
+
 Path GetSharedLibraryPath(const SharedLibraryHandle& module) {
-    return "";
+    Dl_info info{};
+    ::dladdr(module.get(), &info);
+    return info.dli_fname;
 }
 
 SharedLibraryHandle LoadSharedLibrary(const std::string_view& name) {

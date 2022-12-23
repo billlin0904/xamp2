@@ -435,15 +435,14 @@ int main(int argc, char *argv[]) {
 
 	loadOrSaveLogConfig();
 
-#ifdef XAMP_OS_WIN
+#ifdef Q_OS_WIN32
     SetProcessMitigation();
-
+#endif
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
         XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory failure:{}", GetLastErrorMessage());
         return -1;
     }
-#endif
 
 #ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")

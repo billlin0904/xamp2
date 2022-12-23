@@ -8,6 +8,11 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
+#else
+#include <libgen.h>
+#include <limits.h>
+#include <mach-o/dyld.h>
+#include <unistd.h>
 #endif
 
 #include <fstream>
@@ -46,7 +51,13 @@ Path GetApplicationFilePath() {
 	::GetModuleFileNameW(nullptr, buffer, MAX_PATH);
 	return Path(buffer).parent_path();
 #else
-	return L"";
+    char raw_path_name[PATH_MAX]{};
+    char real_path_name[PATH_MAX]{};
+    uint32_t raw_path_size = (uint32_t)sizeof(raw_path_name);
+    if(!::_NSGetExecutablePath(raw_path_name, &raw_path_size)) {
+        ::realpath(raw_path_name, real_path_name);
+    }
+    return Path(real_path_name).parent_path();
 #endif
 }
 

@@ -198,6 +198,8 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	// Workaround!
 	result.insert(".wav");
 	result.insert(".mp3");
+    result.insert(".dsf");
+    result.insert(".dff");
 
 	logger->SetLevel(level);
 	return result;

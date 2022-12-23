@@ -10,6 +10,8 @@
 #include <base/fs.h>
 #include <base/align_ptr.h>
 #include <base/encodingprofile.h>
+
+#include <base/dsdsampleformat.h>
 #include <stream/stream.h>
 
 namespace xamp::stream {
@@ -18,7 +20,7 @@ class XAMP_STREAM_API StreamFactory {
 public:
 	StreamFactory() = delete;
 
-	static AlignPtr<FileStream> MakeFileStream();
+    static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode);
 
 	static AlignPtr<IFileEncoder> MakeFlacEncoder();
 

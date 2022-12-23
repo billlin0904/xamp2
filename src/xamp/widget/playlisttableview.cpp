@@ -539,11 +539,11 @@ void PlayListTableView::initial() {
             action_map.setCallback(import_podcast_act, [this]() {
                 indicator_ = makeProcessIndicator(this);
 				indicator_->startAnimation();
-                emit downloadPodcast();
+                downloadPodcast();
                 });
         }
 
-        if (enable_delete_) {
+        if (enable_delete_ && model()->rowCount() > 0) {
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
@@ -862,6 +862,8 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void PlayListTableView::onDownloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
+    indicator_.reset();
+
     Stopwatch sw;
     ::MetadataExtractAdapter::processMetadata(track_infos,
         this,
@@ -879,8 +881,6 @@ void PlayListTableView::onDownloadPodcastCompleted(const ForwardList<TrackInfo>&
     qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
     emit updateAlbumCover(cover_id);
     XAMP_LOG_DEBUG("Add album cover cache! {}sec", sw.ElapsedSeconds());
-
-    indicator_.reset();
 }
 
 void PlayListTableView::resizeColumn() {
