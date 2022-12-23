@@ -98,8 +98,6 @@ signals:
 
 	void addPlaylistItemFinished();
 
-	void downloadPodcast();
-
 public slots:
 	void processDatabase(const ForwardList<PlayListEntity>& entities);
 
@@ -136,6 +134,8 @@ private:
 	void initial();
 
 protected:
+    void downloadPodcast();
+
 	bool podcast_mode_;
 	bool enable_delete_{true};
 	bool enable_load_file_{ true };

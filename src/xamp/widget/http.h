@@ -18,11 +18,12 @@ enum class HttpMethod {
     HTTP_DELETE
 };
 
+// note: This class must be running in main thread object.
 class HttpClient {
 public:
-    HttpClient(const QUrl& url, QNetworkAccessManager* manager = nullptr);
+    HttpClient(const QUrl& url, QObject *parent = nullptr, QNetworkAccessManager* manager = nullptr);
 	
-    HttpClient(const QString &url, QNetworkAccessManager* manager = nullptr);
+    HttpClient(const QString &url, QObject *parent = nullptr, QNetworkAccessManager* manager = nullptr);
 
     ~HttpClient();
 
@@ -54,7 +55,7 @@ public:
 
 private:
     class HttpClientImpl;
-    QScopedPointer<HttpClientImpl> impl_;
+    QSharedPointer<HttpClientImpl> impl_;
 };
 
 }

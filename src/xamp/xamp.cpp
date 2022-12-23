@@ -360,6 +360,8 @@ void Xamp::initialUI() {
     f.setPointSize(qTheme.fontSize());
     ui_.artistLabel->setFont(f);
 
+    ui_.bitPerfectButton->setFont(f);
+
     QToolTip::setFont(QFont(qTEXT("FormatFont")));
     ui_.formatLabel->setFont(QFont(qTEXT("FormatFont")));
 
@@ -2006,18 +2008,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlayListTableView::encodeWavFile,
         this,
         &Xamp::encodeWavFile);
-
-    if (playlist_page->playlist()->isPodcastMode()) {
-        (void)QObject::connect(playlist_page->playlist(),
-            &PlayListTableView::downloadPodcast,
-            background_worker_,
-            &BackgroundWorker::onDownloadPodcast);
-
-        (void)QObject::connect(background_worker_,
-            &BackgroundWorker::downloadPodcastCompleted,
-            playlist_page->playlist(),
-            &PlayListTableView::onDownloadPodcastCompleted);
-    }
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::readReplayGain,

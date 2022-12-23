@@ -261,6 +261,40 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 
 PlayListTableView::~PlayListTableView() = default;
 
+void PlayListTableView::downloadPodcast() {
+    XAMP_LOG_DEBUG("Start download podcast.xml");
+
+    auto download_json_file_error = [this](const QString& msg) {
+        XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
+        emit onDownloadPodcastCompleted({}, {});
+    };
+
+    auto download_cover_image_error = [this](const QString& msg) {
+        XAMP_LOG_DEBUG("Download podcast image error! {}", msg.toStdString());
+        emit onDownloadPodcastCompleted({}, {});
+    };
+
+    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
+        .error(download_json_file_error)
+        .success([this, download_cover_image_error](const QString& json) {
+            XAMP_LOG_DEBUG("Download meta.json ({}) success!", String::FormatBytes(json.size()));
+
+            Stopwatch sw;
+            std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
+            auto const podcast_info = std::make_pair(image_url, parseJson(json));
+            XAMP_LOG_DEBUG("Parse meta.json success! {}sec", sw.ElapsedSeconds());
+            sw.Reset();
+
+            XAMP_LOG_DEBUG("Start download podcast image file");
+            http::HttpClient(QString::fromStdString(podcast_info.first))
+                .error(download_cover_image_error)
+                .download([this, podcast_info](const QByteArray& data) {
+                    XAMP_LOG_DEBUG("Download podcast image file ({}) success!", String::FormatBytes(data.size()));
+                    emit onDownloadPodcastCompleted(podcast_info.second, data);
+                });
+        }).get();
+}
+
 void PlayListTableView::reload() {
     model_->query().exec();
     proxy_model_->dataChanged(QModelIndex(), QModelIndex());

@@ -141,40 +141,6 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
 }
 
-void BackgroundWorker::onDownloadPodcast() {
-    XAMP_LOG_D(logger_, "Start download podcast.xml");
-
-    auto download_json_file_error = [this](const QString& msg) {
-        XAMP_LOG_D(logger_, "Download podcast error! {}", msg.toStdString());
-        emit downloadPodcastCompleted({}, {});
-    };
-
-    auto download_cover_image_error = [this](const QString& msg) {
-        XAMP_LOG_D(logger_, "Download podcast image error! {}", msg.toStdString());
-        emit downloadPodcastCompleted({}, {});
-    };
-
-    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
-        .error(download_json_file_error)
-        .success([this, download_cover_image_error](const QString& json) {
-			XAMP_LOG_D(logger_, "Download meta.json ({}) success!", String::FormatBytes(json.size()));
-
-            Stopwatch sw;
-            std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
-            auto const podcast_info = std::make_pair(image_url, parseJson(json));
-            XAMP_LOG_D(logger_, "Parse meta.json success! {}sec", sw.ElapsedSeconds());
-            sw.Reset();
-
-            XAMP_LOG_D(logger_, "Start download podcast image file");
-            http::HttpClient(QString::fromStdString(podcast_info.first))
-                .error(download_cover_image_error)
-                .download([this, podcast_info](const QByteArray& data) {
-					XAMP_LOG_D(logger_, "Download podcast image file ({}) success!", String::FormatBytes(data.size()));
-					emit downloadPodcastCompleted(podcast_info.second, data);
-                    });
-            }).get();
-}
-
 void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
     lazyInit();
 

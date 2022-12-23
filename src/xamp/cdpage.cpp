@@ -1,7 +1,7 @@
 #include "cdpage.h"
 #include "thememanager.h"
 #include <widget/playlisttableview.h>
-#include <widget/FontIcon.h>
+#include <widget/fonticon.h>
 #include <widget/playlistpage.h>
 #include <widget/str_utilts.h>
 

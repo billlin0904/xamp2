@@ -129,7 +129,7 @@ static void logHttpRequest(const LoggerPtr &logger,
     const QString& url,
     const QNetworkRequest& request,
     const QNetworkReply *reply) {
-    auto content_length = 0;
+    auto content_length = 0U;
 
     QString msg;
     QTextStream stream(&msg);
@@ -215,17 +215,19 @@ struct HttpContext {
 
 class HttpClient::HttpClientImpl {
 public:
-    HttpClientImpl(const QString &url, QNetworkAccessManager* manager);
+    HttpClientImpl(const QString &url, QObject *parent, QNetworkAccessManager* manager);
+
+    ~HttpClientImpl();
 
     HttpContext createHttpContext() const;
 
     void setTimeout(int timeout);
 
-    static QNetworkRequest createHttpRequest(HttpClientImpl *d, HttpMethod method);
+    static QNetworkRequest createHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
-    static void executeQuery(HttpClientImpl *d, HttpMethod method);
+    static void executeQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
-    static void download(HttpClientImpl *d, std::function<void (const QByteArray &)> ready_read);
+    static void download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read);
 
     static QString readReply(QNetworkReply *reply, const QString &charset);
 
@@ -247,13 +249,15 @@ public:
     LoggerPtr logger_;
 };
 
-HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)
+HttpClient::HttpClientImpl::~HttpClientImpl() = default;
+
+HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject *parent, QNetworkAccessManager* manager)
     : use_json_(false)
     , use_internal_(manager == nullptr)
     , timeout_(kHttpDefaultTimeout)
     , url_(url)
     , charset_(kDefaultCharset)
-    , manager_(manager == nullptr ? new QNetworkAccessManager() : manager) {
+    , manager_(manager == nullptr ? new QNetworkAccessManager(parent) : manager) {
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
 }
 
@@ -273,7 +277,7 @@ void HttpClient::HttpClientImpl::setTimeout(int timeout) {
     timeout_ = timeout;
 }
 
-void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod method) {
+void HttpClient::HttpClientImpl::executeQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
 	auto context = d->createHttpContext();
 
     context.manager->setProxy(QNetworkProxy::NoProxy);
@@ -310,24 +314,24 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
 
     logHttpRequest(context.logger, requestVerb(operation, request), request);
 
-    (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
+    (void) QObject::connect(reply, &QNetworkReply::finished, [reply, context, request, operation, d] {
         logHttpRequest(context.logger, requestVerb(operation, request), request, reply);
 	    const auto success_message = readReply(reply, context.charset);
 	    handleFinish(context, reply, success_message);
     });
 }
 
-void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void (const QByteArray &)> ready_read) {
+void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read) {
     auto context = d->createHttpContext();
 
     auto request = createHttpRequest(d, HttpMethod::HTTP_GET);
     auto* reply = context.manager->get(request);
 
-    (void) QObject::connect(reply, &QNetworkReply::readyRead, [=] {
+    (void) QObject::connect(reply, &QNetworkReply::readyRead, [reply, d, ready_read] {
         ready_read(reply->readAll());
     });
 
-    (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
+    (void) QObject::connect(reply, &QNetworkReply::finished, [reply, request, context, d] {
         logHttpRequest(context.logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
         handleFinish(context, reply, QString());
     });
@@ -385,7 +389,7 @@ QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QStrin
     return result;
 }
 
-QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(HttpClientImpl *d, HttpMethod method) {
+QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
 	const auto get = method == HttpMethod::HTTP_GET;
 	const auto with_form = !get && !d->use_json_;
 	const auto with_json = !get &&  d->use_json_;
@@ -431,12 +435,12 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(HttpClientImpl *d,
     return request;
 }
 
-HttpClient::HttpClient(const QUrl& url, QNetworkAccessManager* manager)
-    : HttpClient(url.toString(), manager) {
+HttpClient::HttpClient(const QUrl& url, QObject *parent, QNetworkAccessManager* manager)
+    : HttpClient(url.toString(), parent, manager) {
 }
 
-HttpClient::HttpClient(const QString &url, QNetworkAccessManager* manager)
-    : impl_(new HttpClientImpl(url, manager)) {
+HttpClient::HttpClient(const QString &url, QObject *parent, QNetworkAccessManager* manager)
+    : impl_(new HttpClientImpl(url, parent, manager)) {
 }
 
 HttpClient::~HttpClient() = default;
@@ -486,11 +490,11 @@ HttpClient& HttpClient::error(std::function<void(const QString&)> error_handler)
 }
 
 void HttpClient::get() {
-    HttpClientImpl::executeQuery(impl_.get(), HttpMethod::HTTP_GET);
+    HttpClientImpl::executeQuery(impl_, HttpMethod::HTTP_GET);
 }
 
 void HttpClient::post() {
-    HttpClientImpl::executeQuery(impl_.get(), HttpMethod::HTTP_POST);
+    HttpClientImpl::executeQuery(impl_, HttpMethod::HTTP_POST);
 }
 
 void HttpClient::downloadFile(const QString& file_name, std::function<void(const QString&)> download_handler, std::function<void(const QString&)> error_handler) {
@@ -508,7 +512,7 @@ void HttpClient::downloadFile(const QString& file_name, std::function<void(const
 
     error(std::move(error_handler));
 
-    HttpClientImpl::download(impl_.get(), [tempfile](auto buffer) {
+    HttpClientImpl::download(impl_, [tempfile](auto buffer) {
         tempfile->write(buffer);
         });
 }
@@ -522,7 +526,7 @@ void HttpClient::download(std::function<void (const QByteArray &)> download_hand
 
     error(std::move(error_handler));
 
-    HttpClientImpl::download(impl_.get(), [data](auto buffer) {
+    HttpClientImpl::download(impl_, [data](auto buffer) {
         data->append(buffer);
     });
 }

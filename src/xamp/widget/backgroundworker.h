@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QObject>
+
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
@@ -30,7 +31,7 @@ public:
 
     void stopThreadPool();
 
-    virtual ~BackgroundWorker();
+    virtual ~BackgroundWorker() override;
 
 signals:
     void updateReplayGain(int32_t playlistId,
@@ -49,16 +50,12 @@ signals:
 
     void updateDiscCover(const QString& disc_id, const QString& cover_id);
 
-    void downloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
-
 public Q_SLOT:
     void onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
     void onBlurImage(const QString &cover_id, const QImage& image);
 
     void onFetchCdInfo(const DriveInfo &drive);
-
-    void onDownloadPodcast();
 
 private:
     void lazyInit();
