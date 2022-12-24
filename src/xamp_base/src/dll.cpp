@@ -53,11 +53,6 @@ void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_
 }
 #else
 
-bool AddSharedLibrarySearchDirectory(const Path& path) {
-    auto value = String::Format("DYLD_LIBRARY_PATH={}", path.native());
-    return ::putenv(const_cast<char*>(value.c_str())) == 0;
-}
-
 Path GetSharedLibraryPath(const SharedLibraryHandle& module) {
     Dl_info info{};
     ::dladdr(module.get(), &info);
@@ -65,7 +60,9 @@ Path GetSharedLibraryPath(const SharedLibraryHandle& module) {
 }
 
 SharedLibraryHandle LoadSharedLibrary(const std::string_view& name) {
-    auto module = ::dlopen(name.data(), RTLD_NOW);
+    auto path = GetComponentsFilePath() / name;
+    auto path_string = path.native();
+    auto module = ::dlopen(path_string.c_str(), RTLD_NOW);
     if (!module) {
         throw LoadDllFailureException(name);
     }

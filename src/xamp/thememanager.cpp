@@ -120,7 +120,9 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
     PrefetchFile(font_path.toStdWString());
     const auto loaded_font_id = QFontDatabase::addApplicationFont(font_path);
     const auto font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
-    ui_fallback_fonts.push_back(font_families[0]);
+    if (!ui_fallback_fonts.contains(font_families[0])) {
+        ui_fallback_fonts.push_back(font_families[0]);
+    }
 }
 
 void ThemeManager::setSegoeFluentIcons() {
