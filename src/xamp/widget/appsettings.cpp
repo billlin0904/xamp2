@@ -23,7 +23,11 @@ const QMap<QString, EQSettings>& AppSettings::getEQPreset() {
 }
 
 AppEQSettings AppSettings::getEQSettings() {
-    return QVariant::fromValue(getValue(kAppSettingEQName)).value<AppEQSettings>();
+    return getValue(kAppSettingEQName).value<AppEQSettings>();
+}
+
+void AppSettings::setEQSettings(AppEQSettings const& eq_settings) {
+    setValue(kAppSettingEQName, QVariant::fromValue(eq_settings));
 }
 
 bool AppSettings::showMeAgain(const QString& text) {

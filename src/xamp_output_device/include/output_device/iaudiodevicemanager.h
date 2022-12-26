@@ -15,7 +15,7 @@
 
 namespace xamp::output_device {
 
-using DeviceTypeFactoryMap = std::map<Uuid, std::function<AlignPtr<IDeviceType>()>>;
+using DeviceTypeFactoryMap = OrderedMap<Uuid, std::function<AlignPtr<IDeviceType>()>>;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IAudioDeviceManager {
 public:

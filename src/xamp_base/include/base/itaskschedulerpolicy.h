@@ -74,7 +74,7 @@ public:
 
     size_t ScheduleNext(size_t index, const Vector<WorkStealingTaskQueuePtr>& work_queues) override;
 private:
-    Vector<Xoshiro128StarStarEngine> prngs_;
+    Vector<Sfc64Engine<>> prngs_;
 };
 
 class LeastLoadSchedulerPolicy final : public ITaskSchedulerPolicy {

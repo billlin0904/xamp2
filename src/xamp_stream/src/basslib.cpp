@@ -294,8 +294,8 @@ void BassLib::LoadPlugin(std::string const & file_name) {
     plugins_[file_name] = std::move(plugin);
 }
 
-std::map<std::string, std::string> BassLib::GetPluginVersion() const {
-    std::map<std::string, std::string> vers;
+OrderedMap<std::string, std::string> BassLib::GetPluginVersion() const {
+    OrderedMap<std::string, std::string> vers;
 
     for (const auto& [key, value] : plugins_) {
         const auto* info = BASS.BASS_PluginGetInfo(value.get());
@@ -315,7 +315,7 @@ void BassLib::LoadVersionInfo() {
     dll_versions_[BASS.FLACEncLib->GetName()] = GetBassVersion(BASS.FLACEncLib->BASS_Encode_FLAC_GetVersion());
 }
 
-std::map<std::string, std::string> BassLib::GetVersions() const {
+OrderedMap<std::string, std::string> BassLib::GetVersions() const {
     return dll_versions_;
 }
 

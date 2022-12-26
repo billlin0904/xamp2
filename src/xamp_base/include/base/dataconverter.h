@@ -100,6 +100,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 
 template <>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
+#ifdef XAMP_USE_BENCHMAKR
     static void ConvertInt16Bench(int16_t* XAMP_RESTRICT output,
                                   float const* XAMP_RESTRICT input,
                                   AudioConvertContext const& context) noexcept {
@@ -130,6 +131,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 		ConvertBench<int32_t>(output, input, kFloat32Scale, context);
     }
+#endif
 
 	static void XAMP_VECTOR_CALL Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		XAMP_ASSERT(output != nullptr);

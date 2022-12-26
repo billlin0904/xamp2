@@ -9,6 +9,15 @@
 namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
+
+void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
+    auto func = ::GetProcAddress(dll.get(), MAKEINTRESOURCEA(flags));
+    if (!func) {
+        throw NotFoundDllExportFuncException(name);
+    }
+    return func;
+}
+
 bool AddSharedLibrarySearchDirectory(const Path& path) {
     ::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
 

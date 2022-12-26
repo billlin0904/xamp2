@@ -66,10 +66,10 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             bandValueChange(band, value, 1.41);
             band_label_[band]->setText(QString(qTEXT("%1")).arg(value));
 
-            auto settings = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
+            auto settings = AppSettings::getEQSettings();
             settings.settings.bands[band].gain = value;
-            settings.settings.bands[band].Q = 1.41;
-            AppSettings::setValue(kAppSettingEQName, QVariant::fromValue(settings));
+            settings.settings.bands[band].Q = 1.41;            
+            AppSettings::setEQSettings(settings);
         });
         ++band;
     }
@@ -94,7 +94,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         AppEQSettings settings;
         settings.name = index;
         settings.settings = AppSettings::getEQPreset()[index];
-        AppSettings::setValue(kAppSettingEQName, QVariant::fromValue(settings));
+        AppSettings::setEQSettings(settings);
         applySetting(index, settings.settings);
         AppSettings::save();
     });
@@ -112,7 +112,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
 	        band.Q = 1.41;
         }
         applySetting(settings.name, settings.settings);
-        AppSettings::setValue(kAppSettingEQName, QVariant::fromValue(settings));
+        AppSettings::setEQSettings(settings);
         AppSettings::save();
         });
 }

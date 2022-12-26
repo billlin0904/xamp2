@@ -105,7 +105,7 @@ void CueSheet::Parse(std::wstreambuf* src) {
         size_t num_args;
     };
 
-    const std::map<std::wstring, ParseHandler> handlers {
+    const OrderedMap<std::wstring, ParseHandler> handlers {
         { L"FILE", { &CueSheet::ParseFile, 3 }},
         { L"TRACK", { &CueSheet::ParseTrack, 3 }},
         { L"INDEX", { &CueSheet::ParseIndex, 3 }},

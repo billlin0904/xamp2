@@ -38,7 +38,7 @@ public:
 template <typename Type, typename F = std::function<void()>>
 class ActionMap {
 public:
-	using MapType = std::map<QAction*, F>;
+	using MapType = OrderedMap<QAction*, F>;
 
 	class SubMenu {
 	public:

@@ -303,7 +303,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
     (void)QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
-        const std::map<QString, int32_t> stack_page_map{
+        const OrderedMap<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
             { tr("Resampler"), 1 },
 			{ tr("PCM-DSD Covert"), 2 },

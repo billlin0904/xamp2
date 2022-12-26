@@ -1,3 +1,5 @@
+#ifdef XAMP_USE_BENCHMAKR
+
 #include <base/math.h>
 #include <base/chachaengine.h>
 
@@ -89,3 +91,5 @@ void ChaChaEngine::SetCounter(const uint64_t counter_low, const uint64_t counter
 }
 
 }
+
+#endif

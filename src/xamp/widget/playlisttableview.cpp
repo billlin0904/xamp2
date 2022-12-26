@@ -994,8 +994,8 @@ std::optional<QModelIndex> PlayListTableView::selectItem() const {
     return select_row[0];
 }
 
-std::map<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
-    std::map<int32_t, QModelIndex> select_items;
+OrderedMap<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
+    OrderedMap<int32_t, QModelIndex> select_items;
 
     Q_FOREACH(auto index, selectionModel()->selectedRows()) {
         auto const row = index.row();

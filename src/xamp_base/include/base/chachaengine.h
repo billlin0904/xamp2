@@ -5,6 +5,8 @@
 
 #pragma once
 
+#ifdef XAMP_USE_BENCHMAKR
+
 #include <cstdlib>
 #include <cstdint>
 #include <array>
@@ -83,3 +85,4 @@ private:
 
 }
 
+#endif

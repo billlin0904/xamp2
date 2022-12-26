@@ -235,15 +235,15 @@ public:
     AlignPtr<BassCDLib> CDLib;
 #endif
     void LoadVersionInfo();
-    std::map<std::string, std::string> GetPluginVersion() const;
-    std::map<std::string, std::string> GetVersions() const;
+    OrderedMap<std::string, std::string> GetPluginVersion() const;
+    OrderedMap<std::string, std::string> GetVersions() const;
 private:
     BassLib();
 
     ~BassLib();
     
     HashMap<std::string, BassPluginHandle> plugins_;
-    std::map<std::string, std::string> dll_versions_;
+    OrderedMap<std::string, std::string> dll_versions_;
     SharedLibraryHandle module_;
 
 public:

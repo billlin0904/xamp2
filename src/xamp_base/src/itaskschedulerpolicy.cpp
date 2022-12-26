@@ -60,7 +60,7 @@ void ThreadLocalRandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 
 size_t ThreadLocalRandomSchedulerPolicy::ScheduleNext(size_t index,
 	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = Xoshiro256StarStarEngine();
+	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();
 	const auto random_index = prng() % static_cast<uint32_t>(max_thread_);
 	if (random_index == index) {
 		return (std::numeric_limits<size_t>::max)();
@@ -72,10 +72,8 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 	prngs_.resize(max_thread);
 
 	for (size_t i = 0; i < max_thread; ++i) {
-		prngs_[i].seed(GenRandomSeed());
-		for (size_t jump = 0; jump < i; ++jump) {
-			prngs_[i].Jump();
-		}
+		auto seed = GenRandomSeed();
+		prngs_[i].seed(seed, seed, seed);
 	}
 }
 

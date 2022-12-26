@@ -8,10 +8,10 @@
 #include <stream/stream.h>
 
 #include <base/fs.h>
+#include <base/stl.h>
 #include <base/audioformat.h>
 
 #include <any>
-#include <map>
 #include <string_view>
 
 namespace xamp::stream {
@@ -40,7 +40,7 @@ public:
         configs_.erase(name);
     }
 private:
-    std::map<std::string_view, std::any> configs_;
+    OrderedMap<std::string_view, std::any> configs_;
 };
 
 }

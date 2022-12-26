@@ -76,7 +76,7 @@ public:
 
 	void resizeColumn();
 
-	std::map<int32_t, QModelIndex> selectItemIndex() const;
+	OrderedMap<int32_t, QModelIndex> selectItemIndex() const;
 
 	void append(const QString& file_name, bool show_progress_dialog = true, bool is_recursive = true);
 

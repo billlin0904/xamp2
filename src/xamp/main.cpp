@@ -198,7 +198,31 @@ static void loadOrSaveLogConfig() {
     }
 }
 
+static void registerMetaType() {
+    XAMP_LOG_DEBUG("registerMetaType.");
+
+    // For QSetting
+    qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
+
+    qRegisterMetaType<AppEQSettings>("AppEQSettings");
+    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
+    qRegisterMetaType<DeviceState>("DeviceState");
+    qRegisterMetaType<PlayerState>("PlayerState");
+    qRegisterMetaType<PlayListEntity>("PlayListEntity");
+    qRegisterMetaType<Errors>("Errors");
+    qRegisterMetaType<Vector<float>>("Vector<float>");
+    qRegisterMetaType<ForwardList<PlayListEntity>>("ForwardList<PlayListEntity>");
+    qRegisterMetaType<size_t>("size_t");
+    qRegisterMetaType<int32_t>("int32_t");
+    qRegisterMetaType<ComplexValarray>("ComplexValarray");
+    qRegisterMetaType<ForwardList<TrackInfo>>("ForwardList<TrackInfo>");
+    qRegisterMetaType<DriveInfo>("DriveInfo");
+    qRegisterMetaType<EncodingProfile>("EncodingProfile");
+}
+
 static void loadAppSettings() {
+    registerMetaType();
+
     XAMP_LOG_DEBUG("loadAppSettings.");
 
 	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
@@ -285,28 +309,6 @@ static std::vector<SharedLibraryHandle> prefetchDLL() {
 }
 #endif 
 
-static void registerMetaType() {
-    XAMP_LOG_DEBUG("registerMetaType.");
-
-    // For QSetting
-    qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
-
-    qRegisterMetaType<AppEQSettings>("AppEQSettings");
-    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
-    qRegisterMetaType<DeviceState>("DeviceState");
-    qRegisterMetaType<PlayerState>("PlayerState");
-    qRegisterMetaType<PlayListEntity>("PlayListEntity");
-    qRegisterMetaType<Errors>("Errors");
-    qRegisterMetaType<Vector<float>>("Vector<float>");
-    qRegisterMetaType<ForwardList<PlayListEntity>>("ForwardList<PlayListEntity>");
-    qRegisterMetaType<size_t>("size_t");
-    qRegisterMetaType<int32_t>("int32_t");
-    qRegisterMetaType<ComplexValarray>("ComplexValarray");
-    qRegisterMetaType<ForwardList<TrackInfo>>("ForwardList<TrackInfo>");
-    qRegisterMetaType<DriveInfo>("DriveInfo");
-    qRegisterMetaType<EncodingProfile>("EncodingProfile");
-}
-
 #ifdef _DEBUG
 XAMP_DECLARE_LOG_NAME(Qt);
 
@@ -340,8 +342,6 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
 #endif
 
 static int excute(int argc, char* argv[]) {
-    registerMetaType();
-
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication::setDesktopSettingsAware(false);
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -413,11 +413,13 @@ static int excute(int argc, char* argv[]) {
     top_win.setContentWidget(&win);
     //top_win.setContentWidget(nullptr);
 
-    top_win.show();
-    top_win.activateWindow();
     top_win.restoreGeometry();
+    top_win.setWindowState((top_win.windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
     top_win.initMaximumState();
-    
+    top_win.show();
+    top_win.raise(); // for MacOS
+    top_win.activateWindow(); // for Windows
+
     return app.exec();
 }
 
@@ -442,9 +444,7 @@ int main(int argc, char *argv[]) {
         XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory failure:{}", GetLastErrorMessage());
         return -1;
     }
-#endif    
 
-#ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
         .arg(kApplicationVersion)
         .arg(visualStudioVersion())
@@ -452,16 +452,14 @@ int main(int argc, char *argv[]) {
         .arg(_MSC_FULL_VER % 100000)
         .arg(qTEXT(__DATE__))
         .arg(qTEXT(__TIME__)).toStdString());
+
+    const auto prefetch_dll = prefetchDLL();
+    XAMP_LOG_DEBUG("Prefetch dll success.");
 #else
     XAMP_LOG_DEBUG(qSTR("Build Clang %1.%2.%3")
         .arg(__clang_major__)
         .arg(__clang_minor__)
         .arg(__clang_patchlevel__).toStdString());
-#endif
-
-#ifdef XAMP_OS_WIN    
-    const auto prefetch_dll = prefetchDLL();
-    XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
 
     const auto os_ver = QOperatingSystemVersion::current();

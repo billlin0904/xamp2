@@ -29,7 +29,7 @@ namespace xamp::stream {
 
 using namespace xamp::base;
 
-static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
+static bool IsDsdFileChunk(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
         "DSD ", // .dsd file
         "FRM8"  // .dsdiff file
@@ -38,11 +38,11 @@ static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
         != knows_chunks.end();
 }
 
-bool TestDsdFileFormatStd(std::wstring const& file_path) {
+bool IsDsdFile(Path const& path) {
 #ifdef XAMP_OS_WIN
-    std::ifstream file(file_path, std::ios_base::binary);
+    std::ifstream file(path, std::ios_base::binary);
 #else
-    std::ifstream file(String::ToString(file_path), std::ios_base::binary);
+    std::ifstream file(path, std::ios_base::binary);
 #endif
     if (!file.is_open()) {
         return false;
@@ -53,7 +53,7 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
         return false;
     }
     const std::string_view file_chunks{ buffer.data(), 4 };
-    return TestDsdFileFormat(file_chunks);
+    return IsDsdFileChunk(file_chunks);
 }
 
 AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode) {
@@ -62,6 +62,7 @@ AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode) {
     case DsdModes::DSD_MODE_DOP:
     case DsdModes::DSD_MODE_DSD2PCM:
         return MakeAlign<FileStream, BassFileStream>();
+    default: ;
     }
     return MakeAlign<FileStream, AvFileStream>();
 }
@@ -160,7 +161,7 @@ void LoadBassLib() {
     }
 }
 
-std::map<std::string, std::string> GetBassDLLVersion() {
+OrderedMap<std::string, std::string> GetBassDLLVersion() {
     return BASS.GetVersions();
 }
 

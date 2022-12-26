@@ -12,7 +12,7 @@
 
 #include <base/base.h>
 #include <base/stl.h>
-#include <base/xoshiro.h>
+#include <base/sfc64.h>
 
 namespace xamp::base {
 
@@ -75,11 +75,11 @@ public:
 
     void SetSeed();
 
-    Xoshiro256StarStarEngine& engine() {
+    Sfc64Engine<>& engine() {
         return engine_;
     }
 private:
-    Xoshiro256StarStarEngine engine_;
+    Sfc64Engine<> engine_;
 };
 
 }

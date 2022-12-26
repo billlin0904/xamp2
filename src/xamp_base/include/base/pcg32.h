@@ -5,6 +5,8 @@
 
 #pragma once
 
+#ifdef XAMP_USE_BENCHMAKR
+
 #include <base/base.h>
 
 #ifdef XAMP_USE_PCG32_AVX
@@ -196,3 +198,5 @@ private:
 #endif
 
 }
+
+#endif

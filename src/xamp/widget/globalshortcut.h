@@ -10,6 +10,7 @@
 #include <qwindowdefs.h>
 
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 #include <base/base.h>
 
 class GlobalShortcut {
@@ -27,7 +28,7 @@ public:
     quint32 nativeKeycode(Qt::Key key);
 private:
     class GlobalShortcutImpl;
-    AlignPtr<GlobalShortcutImpl> impl_;
+    PimplPtr<GlobalShortcutImpl> impl_;
 };
 
 #define qGlobalShortcut SharedSingleton<GlobalShortcut>::GetInstance()

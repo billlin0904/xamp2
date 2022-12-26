@@ -301,7 +301,7 @@ private:
 	Foobar2000Runtime foobar_runtime_;
 	dsp_manager dsp_manager_;
 	dsp_chain_config_impl dsp_chain_config_;
-	std::map<std::string, std::shared_ptr<FoobarDspContext>> foobar_dsp_;
+	OrderedMap<std::string, std::shared_ptr<FoobarDspContext>> foobar_dsp_;
 	Vector<double> input_data_;
 	LoggerPtr logger_;
 };

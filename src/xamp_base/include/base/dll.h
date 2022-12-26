@@ -27,6 +27,10 @@ XAMP_BASE_API bool PrefetchSharedLibrary(SharedLibraryHandle const& module);
 
 XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
 
+#ifdef XAMP_OS_WIN
+XAMP_BASE_API void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags);
+#endif
+
 template
 <
     typename T,
@@ -37,6 +41,12 @@ public:
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
         *reinterpret_cast<void**>(&func_) = LoadSharedLibrarySymbol(dll, name);
     }
+
+#ifdef XAMP_OS_WIN
+    SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
+        *reinterpret_cast<void**>(&func_) = LoadSharedLibrarySymbolEx(dll, name, flags);
+    }
+#endif
 
     XAMP_ALWAYS_INLINE operator T* () const noexcept {
         XAMP_ASSERT(func_ != nullptr);

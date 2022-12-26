@@ -11,6 +11,7 @@
 #include <iterator>
 #include <forward_list>
 #include <functional>
+#include <map>
 
 #include <base/base.h>
 #include <base/align_ptr.h>
@@ -208,6 +209,9 @@ using HashMap = robin_hood::unordered_map<K, V, H, E>;
 
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
 using HashSet = robin_hood::unordered_set<T, H, E>;
+
+template <typename K, typename V, typename P = std::less<K>>
+using OrderedMap = std::map<K, V, P>;
 
 template <typename ForwardIt, typename T, typename Compare = std::less<>>
 ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const T& value, Compare comp = {}) {

@@ -17,6 +17,7 @@
 #include <output_device/iaudiodevicemanager.h>
 #include <output_device/ivolumelevel.h>
 
+#include <stream/api.h>
 #include <stream/dspmanager.h>
 #include <stream/iaudiostream.h>
 #include <stream/idsdstream.h>
@@ -28,7 +29,6 @@
 #include <player/ebur128reader.h>
 #include <player/mbdiscid.h>
 #include <player/iplaybackstateadapter.h>
-#include <player/audio_util.h>
 #include <player/audio_player.h>
 
 namespace xamp::player {
@@ -60,6 +60,40 @@ inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
+
+static std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path,
+    DeviceInfo const& device_info,
+    const bool enable_sample_converter) {
+    const auto is_dsd_file = IsDsdFile(path);
+    AlignPtr<FileStream> file_stream;
+    auto dsd_mode = DsdModes::DSD_MODE_PCM;
+    if (is_dsd_file) {
+        if (device_info.is_support_dsd && !enable_sample_converter) {
+            if (IsASIODevice(device_info.device_type_id)) {
+                file_stream = StreamFactory::MakeFileStream(DsdModes::DSD_MODE_NATIVE);
+                dsd_mode = DsdModes::DSD_MODE_NATIVE;
+            }
+            else {
+                file_stream = StreamFactory::MakeFileStream(DsdModes::DSD_MODE_DOP);
+                dsd_mode = DsdModes::DSD_MODE_DOP;
+            }
+            if (auto* dsd_stream = AsDsdStream(file_stream)) {
+                dsd_stream->SetDSDMode(dsd_mode);
+            }
+        }
+        else {
+            dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+            file_stream = StreamFactory::MakeFileStream(dsd_mode);
+        }
+    }
+    else {
+        dsd_mode = DsdModes::DSD_MODE_PCM;
+        file_stream = StreamFactory::MakeFileStream(dsd_mode);
+    }
+
+    file_stream->OpenFile(path);
+    return std::make_pair(dsd_mode, std::move(file_stream));
+}
 
 #ifdef ENABLE_ASIO
 IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
@@ -117,42 +151,48 @@ void AudioPlayer::Destroy() {
 void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
     // Initial thread pool.
 
+    JThread([this]() {
+    XAMP_LOG_D(logger_, "Load dll start.");
+
     GetPlaybackThreadPool();
-    XAMP_LOG_DEBUG("Start Playback thread pool success.");
+    XAMP_LOG_D(logger_, "Start Playback thread pool success.");
 
 #ifdef XAMP_OS_WIN
     GetWASAPIThreadPool();
-    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
+    XAMP_LOG_D(logger_, "Start WASAPI thread pool success.");
 #endif
 
     // Load stream library dll.
 
     LoadBassLib();
-    XAMP_LOG_DEBUG("Load BASS lib success.");
+    XAMP_LOG_D(logger_, "Load BASS lib success.");
 
     LoadSoxrLib();
-    XAMP_LOG_DEBUG("Load Soxr lib success.");
+    XAMP_LOG_D(logger_, "Load Soxr lib success.");
 
     LoadFFTLib();
-    XAMP_LOG_DEBUG("Load FFT lib success.");
+    XAMP_LOG_D(logger_, "Load FFT lib success.");
 
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();
-    XAMP_LOG_DEBUG("Load r8brain lib success.");
+    XAMP_LOG_D(logger_, "Load r8brain lib success.");
 #endif
 
     LoadAvLib();
-    XAMP_LOG_DEBUG("Load avlib success.");
+    XAMP_LOG_D(logger_, "Load avlib success.");
 
     // Load player library dll.
 
 #ifdef XAMP_OS_WIN
     MBDiscId::LoadMBDiscIdLib();
-    XAMP_LOG_DEBUG("Load mbdiscid lib success.");
+    XAMP_LOG_D(logger_, "Load mbdiscid lib success.");
 #endif
 
     Ebur128Reader::LoadEbur128Lib();
-    XAMP_LOG_DEBUG("Load ebur128 lib success.");
+    XAMP_LOG_D(logger_, "Load ebur128 lib success.");
+
+    XAMP_LOG_D(logger_, "Load dll end.");
+        }).detach();
 
     PreventSleep(true);
 
@@ -302,7 +342,7 @@ void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stre
 }
 
 void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_info) {
-    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, target_sample_rate_ != 0);
+    auto [dsd_mode, stream] = MakeFileStream(file_path, device_info, target_sample_rate_ != 0);
     SetDSDStreamMode(dsd_mode, stream);
     stream_duration_ = stream_->GetDuration();
     input_format_ = stream_->GetFormat();

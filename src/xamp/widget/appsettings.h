@@ -166,6 +166,8 @@ public:
 
     static AppEQSettings getEQSettings();
 
+    static void setEQSettings(AppEQSettings const &eq_settings);
+
     static void addDontShowMeAgain(const QString &text);
 
     static bool showMeAgain(const QString& text);

@@ -18,10 +18,13 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/executor.h>
-#include <base/chachaengine.h>
 #include <base/rcu_ptr.h>
 #include <base/uuidof.h>
+
+#include <base/chachaengine.h>
+#include <base/xoshiro.h>
 #include <base/pcg32.h>
+#include <base/sfc64.h>
 
 #include <stream/api.h>
 #include <stream/fft.h>
@@ -271,6 +274,15 @@ static void BM_default_random_engine(benchmark::State& state) {
 
 static void BM_PCG32Random(benchmark::State& state) {
     PCG32Engine engine;
+    for (auto _ : state) {
+        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
+        benchmark::DoNotOptimize(n);
+    }
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+}
+
+static void BM_Sfc64Random(benchmark::State& state) {
+    Sfc64Engine engine;
     for (auto _ : state) {
         size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
@@ -821,12 +833,13 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_UuidCompilerTime);
 
-//BENCHMARK(BM_Xoshiro256StarStarRandom);
-//BENCHMARK(BM_Xoshiro256PlusRandom);
-//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+BENCHMARK(BM_Xoshiro256StarStarRandom);
+BENCHMARK(BM_Xoshiro256PlusRandom);
+BENCHMARK(BM_Xoshiro256PlusPlusRandom);
 //BENCHMARK(BM_ChaCha20Random);
 //BENCHMARK(BM_PCG32Random);
-//BENCHMARK(BM_default_random_engine);
+BENCHMARK(BM_Sfc64Random);
+BENCHMARK(BM_default_random_engine);
 
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
@@ -869,8 +882,8 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#endif
 
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);

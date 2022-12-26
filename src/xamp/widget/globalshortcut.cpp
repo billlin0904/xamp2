@@ -514,7 +514,7 @@ QHash<Identifier, quint32> GlobalShortcut::GlobalShortcutImpl::keyIDs;
 #endif
 
 GlobalShortcut::GlobalShortcut()
-    : impl_(MakeAlign<GlobalShortcutImpl>()) {
+    : impl_(MakePimpl<GlobalShortcutImpl>()) {
 }
 
 bool GlobalShortcut::registerShortcut(const WId wid, quint32 native_key, quint32 native_mods) {

@@ -10,14 +10,6 @@
 #include <base/siphash.h>
 #include <base/logger_impl.h>
 
-#if defined(Q_OS_WIN)
-#include <dwmapi.h>
-#include <unknwn.h>
-#include <TlHelp32.h>
-#include <objbase.h>
-#include <propvarutil.h>
-#endif
-
 #include <QOperatingSystemVersion>
 
 #include "xampplayer.h"
@@ -29,6 +21,13 @@
 #include <widget/win32/win32.h>
 
 #if defined(Q_OS_WIN)
+
+#include <dwmapi.h>
+#include <unknwn.h>
+#include <TlHelp32.h>
+#include <objbase.h>
+#include <propvarutil.h>
+#include <uxtheme.h>
 
 #include <Windows.h>
 #include <windowsx.h>
@@ -68,7 +67,8 @@ typedef enum _WINDOWCOMPOSITIONATTRIB
 	WCA_FREEZE_REPRESENTATION = 20,
 	WCA_EVER_UNCLOAKED = 21,
 	WCA_VISUAL_OWNER = 22,
-	WCA_LAST = 23
+	WCA_LAST = 23,
+	WCA_USEDARKMODECOLORS = 26,
 } WINDOWCOMPOSITIONATTRIB;
 
 typedef struct _WINDOWCOMPOSITIONATTRIBDATA
@@ -118,6 +118,52 @@ WINAPI
 SetWindowCompositionAttribute(
 	_In_ HWND hWnd,
 	_Inout_ WINDOWCOMPOSITIONATTRIBDATA* pAttrData);
+
+
+// ordinal 132
+WINUSERAPI
+BOOL
+WINAPI
+ShouldAppsUseDarkMode();
+
+
+// ordinal 138
+WINUSERAPI
+BOOL
+WINAPI
+ShouldSystemUseDarkMode();
+
+// ordinal 133
+WINUSERAPI
+BOOL
+WINAPI
+AllowDarkModeForWindow(HWND hWnd, bool allow);
+
+// ordinal 135, in win10 1809
+WINUSERAPI
+BOOL
+WINAPI
+AllowDarkModeForApp(bool allow);
+
+enum PreferredAppMode {
+	Default,
+	AllowDark,
+	ForceDark,
+	ForceLight,
+	Max
+};
+
+// ordinal 135, in win10 1903
+WINUSERAPI
+BOOL
+WINAPI
+SetPreferredAppMode(PreferredAppMode appMode);
+
+// ordinal 104
+WINUSERAPI
+void
+WINAPI
+RefreshImmersiveColorPolicyState();
 
 typedef struct _LSA_UNICODE_STRING {
 	USHORT Length;
@@ -279,9 +325,9 @@ private:
 	SharedLibraryHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(NtQuerySystemInformation) NtQuerySystemInformation;
-	XAMP_DECLARE_DLL(NtQueryObject) NtQueryObject;
-	XAMP_DECLARE_DLL(NtDuplicateObject) NtDuplicateObject;
+	XAMP_DECLARE_DLL_NAME(NtQuerySystemInformation);
+	XAMP_DECLARE_DLL_NAME(NtQueryObject);
+	XAMP_DECLARE_DLL_NAME(NtDuplicateObject);
 };
 
 class User32Lib {
@@ -317,16 +363,45 @@ private:
 	SharedLibraryHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(DwmIsCompositionEnabled) DwmIsCompositionEnabled;
-	XAMP_DECLARE_DLL(DwmSetWindowAttribute) DwmSetWindowAttribute;
-	XAMP_DECLARE_DLL(DwmExtendFrameIntoClientArea) DwmExtendFrameIntoClientArea;
-	XAMP_DECLARE_DLL(DwmSetPresentParameters) DwmSetPresentParameters;
-	XAMP_DECLARE_DLL(DwmGetColorizationColor) DwmGetColorizationColor;
+	XAMP_DECLARE_DLL_NAME(DwmIsCompositionEnabled);
+	XAMP_DECLARE_DLL_NAME(DwmSetWindowAttribute);
+	XAMP_DECLARE_DLL_NAME(DwmExtendFrameIntoClientArea);
+	XAMP_DECLARE_DLL_NAME(DwmSetPresentParameters);
+	XAMP_DECLARE_DLL_NAME(DwmGetColorizationColor);
+};
+
+class UxThemeLib {
+public:
+	static constexpr int32_t UXTHEME_SHOULDAPPSUSEDARKMODE_ORDINAL = 132;
+
+	UxThemeLib()
+		: module_(OpenSharedLibrary("uxtheme"))
+		, AllowDarkModeForWindow(module_, "AllowDarkModeForWindow ", 133)
+		, SetPreferredAppMode(module_, "SetPreferredAppMode", 135)
+		, ShouldAppsUseDarkMode(module_, "ShouldSystemUseDarkMode", 132)
+		, ShouldSystemUseDarkMode(module_, "ShouldAppsUseDarkMode", 138)
+		, RefreshImmersiveColorPolicyState(module_, "RefreshImmersiveColorPolicyState", 104)
+		, SetWindowTheme(module_, "SetWindowTheme") {
+	}
+
+	XAMP_DISABLE_COPY(UxThemeLib)
+
+private:
+	SharedLibraryHandle module_;
+
+public:
+	XAMP_DECLARE_DLL_NAME(AllowDarkModeForWindow);
+	XAMP_DECLARE_DLL_NAME(SetPreferredAppMode);
+	XAMP_DECLARE_DLL_NAME(ShouldAppsUseDarkMode);
+	XAMP_DECLARE_DLL_NAME(ShouldSystemUseDarkMode);
+	XAMP_DECLARE_DLL_NAME(RefreshImmersiveColorPolicyState);
+	XAMP_DECLARE_DLL_NAME(SetWindowTheme);
 };
 
 #define DWMDLL Singleton<DwmapiLib>::GetInstance()
 #define User32DLL Singleton<User32Lib>::GetInstance()
 #define NTDLL Singleton<NtDllLib>::GetInstance()
+#define UX_THEME_DLL Singleton<UxThemeLib>::GetInstance()
 
 // Ref : https://github.com/melak47/BorderlessWindow
 enum class BorderlessWindowStyle : DWORD {
@@ -513,19 +588,22 @@ void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 	// value was 19 pre Windows 10 20H1 Update).
 
 	constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+	constexpr DWORD DWMWA_MICA_EFFECT = 1029;
+
 	constexpr int kWindows11MajorVersion = 10;
 	constexpr int kWindows11MicroVersion = 22000;
-	constexpr DWORD DWMWA_MICA_EFFECT = 1029;
 
 	auto hwnd = reinterpret_cast<HWND>(window_id);
 	auto color = qTheme.backgroundColor();
 
+	const auto os_ver = QOperatingSystemVersion::current();
+	const auto major_version = os_ver.majorVersion();
+	const auto micro_version = os_ver.microVersion();
+
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		const auto os_ver = QOperatingSystemVersion::current();
-		if (os_ver.majorVersion() == kWindows11MajorVersion && os_ver.microVersion() < kWindows11MicroVersion) {
+		if (major_version == kWindows11MajorVersion && micro_version < kWindows11MicroVersion) {
 			BOOL value = TRUE;
-
 			DWMDLL.DwmSetWindowAttribute(hwnd,
 				DWMWA_USE_IMMERSIVE_DARK_MODE,
 				&value,
@@ -547,13 +625,15 @@ void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 		}
 		break;
 	case ThemeColor::LIGHT_THEME:
-		if (os_ver.majorVersion() == kWindows11MajorVersion && os_ver.microVersion() < kWindows11MicroVersion) {
+		if (major_version == kWindows11MajorVersion && micro_version < kWindows11MicroVersion) {
 			BOOL value = TRUE;
 
-			DWMDLL.DwmSetWindowAttribute(hwnd,
+			if (!DWMDLL.DwmSetWindowAttribute(hwnd,
 				0,
 				&value,
-				sizeof(value));
+				sizeof(value))) {
+				XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure! {}", GetLastErrorMessage());
+			}
 		}
 		else {
 			int use_mica = 1;

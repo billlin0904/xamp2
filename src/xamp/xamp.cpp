@@ -450,7 +450,7 @@ void Xamp::initialDeviceList() {
     auto* device_action_group = new QActionGroup(this);
     device_action_group->setExclusive(true);
 
-    std::map<std::string, QAction*> device_id_action;
+    OrderedMap<std::string, QAction*> device_id_action;
 
     const auto device_type_id = AppSettings::getValueAsID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
@@ -1132,7 +1132,7 @@ void Xamp::setupDSP(const AlbumEntity& item) {
     if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
         if (AppSettings::contains(kAppSettingEQName)) {
             const auto [name, settings] = 
-                AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
+                AppSettings::getEQSettings();
             player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
             player_->GetDSPManager()->AddEqualizer();
         }

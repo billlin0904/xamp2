@@ -68,7 +68,7 @@ public:
 private:
     uint32_t number_;
     std::weak_ptr<CueSheet> cuesheet_;
-    std::map<std::wstring, std::wstring> metadata_;
+    OrderedMap<std::wstring, std::wstring> metadata_;
     std::vector<CueSegment> segments_;
 };
 
@@ -110,5 +110,5 @@ private:
     size_t lineno_;
     std::wstring file_name_;
     std::vector<CueTrack> tracks_;
-    std::map<std::wstring, std::wstring> metadata_;
+    OrderedMap<std::wstring, std::wstring> metadata_;
 };

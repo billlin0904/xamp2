@@ -18,9 +18,6 @@
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadataextractadapter.h>
-
-#include <player/audio_util.h>
-
 #include "thememanager.h"
 
 #include <widget/widget_shared.h>
@@ -131,7 +128,6 @@ public:
         if (!path.has_extension()) {
             return false;
         }
-        using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
         const auto & support_file_set = GetSupportFileExtensions();
         return support_file_set.find(file_ext) != support_file_set.end();

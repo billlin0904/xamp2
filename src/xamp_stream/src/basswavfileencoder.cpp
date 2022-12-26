@@ -19,7 +19,7 @@ public:
 
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
-        if (TestDsdFileFormatStd(input_file_path.wstring())) {
+        if (IsDsdFile(input_file_path.wstring())) {
             stream_.SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
         }
         stream_.OpenFile(input_file_path.wstring());

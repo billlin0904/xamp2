@@ -49,14 +49,23 @@ void LyricsShowWidget::initial() {
 			AppSettings::setValue(kLyricsFontSize, 24);
 			});
 
+		(void)action_map.addAction(tr("Change high light color"), [this]() {
+			auto text_color = AppSettings::getValueAsColor(kLyricsHighLightTextColor);
+			QColorDialog dlg(text_color, this);
+			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
+				setLrcHightLight(color);
+				AppSettings::setValue(kLyricsHighLightTextColor, color);
+			});
+			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
+			dlg.exec();
+			});
+
 		(void)action_map.addAction(tr("Change text color"), [this]() {
 			auto text_color = AppSettings::getValueAsColor(kLyricsTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
 				setLrcColor(color);
-				setLrcHightLight(color);
 				AppSettings::setValue(kLyricsTextColor, color);
-				AppSettings::setValue(kLyricsHighLightTextColor, color);
 				});
 			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
 			dlg.exec();

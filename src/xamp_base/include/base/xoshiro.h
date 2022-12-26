@@ -5,6 +5,8 @@
 
 #pragma once
 
+#ifdef XAMP_USE_BENCHMAKR
+
 #include <base/base.h>
 #include <base/math.h>
 
@@ -405,3 +407,4 @@ private:
 
 }
 
+#endif
