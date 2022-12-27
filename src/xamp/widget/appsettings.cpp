@@ -178,3 +178,7 @@ int32_t AppSettings::getAsInt(const QString& key) {
 void AppSettings::loadLanguage(const QString& lang) {
 	manager_.loadLanguage(lang);
 }
+
+QLocale AppSettings::locale() {
+    return manager_.locale();
+}

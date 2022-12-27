@@ -88,15 +88,13 @@ public:
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
-                    opt.decorationSize = QSize(12, 12);
-                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PLAY);
+                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PLAY).pixmap(14, 14);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
-                    opt.decorationSize = QSize(12, 12);
-                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PAUSE);
+                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PAUSE).pixmap(14, 14);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
@@ -243,9 +241,6 @@ void PlayListTableView::executeQuery() {
     )");
     QSqlQuery query(s.arg(playlist_id_));
     model_->setQuery(query);
-    while (model_->canFetchMore()) {
-        model_->fetchMore();
-    }
     proxy_model_->dataChanged(QModelIndex(), QModelIndex());
 }
 
@@ -265,13 +260,15 @@ void PlayListTableView::downloadPodcast() {
     XAMP_LOG_DEBUG("Start download podcast.xml");
 
     auto download_json_file_error = [this](const QString& msg) {
-        XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
-        emit onDownloadPodcastCompleted({}, {});
+        XAMP_LOG_DEBUG("Download podcast xml file error! {}", msg.toStdString());
+        XMessageBox::showError(qTEXT("Download podcast xml file error!"));
+        onDownloadPodcastCompleted({}, {});
     };
 
     auto download_cover_image_error = [this](const QString& msg) {
         XAMP_LOG_DEBUG("Download podcast image error! {}", msg.toStdString());
-        emit onDownloadPodcastCompleted({}, {});
+        XMessageBox::showError(qTEXT("Download podcast image error!"));
+        onDownloadPodcastCompleted({}, {});
     };
 
     http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
@@ -290,7 +287,7 @@ void PlayListTableView::downloadPodcast() {
                 .error(download_cover_image_error)
                 .download([this, podcast_info](const QByteArray& data) {
                     XAMP_LOG_DEBUG("Download podcast image file ({}) success!", String::FormatBytes(data.size()));
-                    emit onDownloadPodcastCompleted(podcast_info.second, data);
+                    onDownloadPodcastCompleted(podcast_info.second, data);
                 });
         }).get();
 }
@@ -409,7 +406,7 @@ void PlayListTableView::initial() {
     setDragEnabled(true);
     setShowGrid(false);
     setMouseTracking(true);
-    //setAlternatingRowColors(true);
+    setAlternatingRowColors(true);
 
     setDragDropMode(InternalMove);
     setFrameShape(NoFrame);
@@ -424,7 +421,7 @@ void PlayListTableView::initial() {
 
     verticalHeader()->setVisible(false);
     verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    verticalHeader()->setDefaultSectionSize(40);
+    verticalHeader()->setDefaultSectionSize(46);
 
     horizontalScrollBar()->setDisabled(true);
 
@@ -433,6 +430,13 @@ void PlayListTableView::initial() {
     horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     setItemDelegate(new StyledItemDelegate(this));
+
+    (void)QObject::connect(model_, &QAbstractTableModel::modelReset,
+        [this] {
+            while (model_->canFetchMore()) {
+                model_->fetchMore();
+            }
+        });
 
     start_delegate_ = new StarDelegate(this);
     setItemDelegateForColumn(PLAYLIST_RATING, start_delegate_);
@@ -467,17 +471,17 @@ void PlayListTableView::initial() {
     (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlayListTableView> action_map(this);
 
-        auto* header_view = horizontalHeader();
+    auto* header_view = horizontalHeader();
 
-        auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-        auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
-            setColumnHidden(last_referred_logical_column, true);
-        AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
-            });
-        hide_this_column_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_HIDE));
+    auto last_referred_logical_column = header_view->logicalIndexAt(pt);
+    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
+        setColumnHidden(last_referred_logical_column, true);
+		AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
+        });
+    hide_this_column_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_HIDE));
 
-        auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
-            ActionMap<PlayListTableView> action_map(this);
+    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
+        ActionMap<PlayListTableView> action_map(this);
         for (auto column = 0; column < header_view->count(); ++column) {
             auto header_name = model()->headerData(column, Qt::Horizontal).toString();
             action_map.addAction(header_name, [this, column]() {
@@ -486,48 +490,41 @@ void PlayListTableView::initial() {
                 }, false, !isColumnHidden(column));
         }
         action_map.exec(pt);
-            });
-        select_column_show_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_SHOW));
+        });
+    select_column_show_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_SHOW));
 
-        action_map.exec(pt);
+    action_map.exec(pt);
         });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
-
+		
         ActionMap<PlayListTableView> action_map(this);
 
         if (!podcast_mode_) {
             if (enable_load_file_) {
                 auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-                    auto reader = MakeMetadataReader();
-                QString exts(qTEXT("("));
-                for (const auto& file_ext : reader->GetSupportFileExtensions()) {
-                    exts += qTEXT("*") + QString::fromStdString(file_ext);
-                    exts += qTEXT(" ");
-                }
-                exts += qTEXT(")");
-                const auto file_name = QFileDialog::getOpenFileName(this,
-                    tr("Open file"),
-                    AppSettings::getMyMusicFolderPath(),
-                    tr("Music Files ") + exts,
-                    nullptr);
-                if (file_name.isEmpty()) {
-                    return;
-                }
-                append(file_name);
-                    });
+                    const auto file_name = QFileDialog::getOpenFileName(this,
+                        tr("Open file"),
+                        AppSettings::getMyMusicFolderPath(),
+                        tr("Music Files ") + getFileDialogFileExtensions(),
+                        nullptr);
+                    if (file_name.isEmpty()) {
+                        return;
+                    }
+					append(file_name);
+                });
                 load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
 
                 auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
                     const auto dir_name = QFileDialog::getExistingDirectory(this,
                     tr("Select a Directory"),
                     AppSettings::getMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
-                if (dir_name.isEmpty()) {
-                    return;
-                }
-                append(dir_name);
+                    if (dir_name.isEmpty()) {
+                        return;
+                    }
+                    append(dir_name);
                     });
                 load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
             }
@@ -537,6 +534,17 @@ void PlayListTableView::initial() {
             auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
             import_podcast_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_DOWNLOAD));
             action_map.setCallback(import_podcast_act, [this]() {
+                if (model_->rowCount() > 0) {
+                    const auto button = XMessageBox::showYesOrNo(tr("Download latest podcast before must be remove all, Are you sure remove all?"));
+                    if (button == QDialogButtonBox::Yes) {
+                        qDatabase.removePlaylistAllMusic(playlistId());
+                        executeQuery();
+                        removePlaying();
+                    }
+                    else {
+                        return;
+                    }
+                }                
                 indicator_ = makeProcessIndicator(this);
 				indicator_->startAnimation();
                 downloadPodcast();
@@ -552,10 +560,7 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-            const auto button = XMessageBox::showWarning(tr("Are you sure remove all?"),
-                kApplicationTitle,
-                QDialogButtonBox::No | QDialogButtonBox::Yes,
-                QDialogButtonBox::No);
+            const auto button = XMessageBox::showYesOrNo(tr("Are you sure remove all?"));
             if (button == QDialogButtonBox::Yes) {
                 qDatabase.removePlaylistAllMusic(playlistId());
                 executeQuery();
@@ -567,13 +572,6 @@ void PlayListTableView::initial() {
         action_map.addSeparator();
 
         QAction* reload_metadata_act = nullptr;
-        if (!podcast_mode_) {
-            reload_metadata_act = action_map.addAction(tr("Reload metadata"));
-            reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
-        }
-
-        auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
-        open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
 
         auto* read_select_item_replaygain_act = action_map.addAction(tr("Read file ReplayGain"));
         read_select_item_replaygain_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_READ_REPLAY_GAIN));
@@ -624,6 +622,9 @@ void PlayListTableView::initial() {
             try {
                 action_map.exec(pt);
             }
+            catch (Exception const& e) {
+                XMessageBox::showBug(e);
+            }
             catch (std::exception const& e) {
                 XMessageBox::showError(QString::fromStdString(e.what()));
             }
@@ -632,22 +633,25 @@ void PlayListTableView::initial() {
 
         auto item = getEntity(index, proxy_model_->mapToSource(index));
 
-        if (reload_metadata_act != nullptr) {
-            action_map.setCallback(reload_metadata_act, [this, item]() {
-                try {
-                qDatabase.addOrUpdateMusic(getMetadata(item.file_path));
-                reload();
-            }
-            catch (std::filesystem::filesystem_error& e) {
-                XAMP_LOG_DEBUG("Reload metadata error: {}", String::LocaleStringToUTF8(e.what()));
-            }
-            catch (...) {
-            }
-            });
-        }        
+        reload_metadata_act = action_map.addAction(tr("Reload metadata"));
+        reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
 
+        auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
+        open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
+            });
+
+        action_map.setCallback(reload_metadata_act, [this, item]() {
+            try {
+				qDatabase.addOrUpdateMusic(getMetadata(item.file_path));
+				reload();
+			}
+			catch (std::filesystem::filesystem_error& e) {
+				XAMP_LOG_DEBUG("Reload metadata error: {}", String::LocaleStringToUTF8(e.what()));
+			}
+			catch (...) {
+			}
             });
     	
         action_map.addSeparator();
@@ -688,6 +692,9 @@ void PlayListTableView::initial() {
 
         try {
             action_map.exec(pt);
+        }
+        catch (Exception const& e) {
+        	XMessageBox::showBug(e);
         } catch (std::exception const &e){
             XMessageBox::showError(QString::fromStdString(e.what()));
         }
@@ -727,6 +734,9 @@ bool PlayListTableView::isPodcastMode() const {
 
 void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
+    if (podcast_mode_) {
+        horizontalHeader()->setContextMenuPolicy(Qt::NoContextMenu);
+    }
 }
 
 void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
@@ -837,6 +847,9 @@ void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const Forw
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     resizeColumn();
+    if (indicator_ != nullptr) {
+        centerParent(indicator_.get());
+    }
 }
 
 void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {

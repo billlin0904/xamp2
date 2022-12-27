@@ -135,13 +135,3 @@ void centerDesktop(QWidget* widget) {
     QRect rect = desktop->screenGeometry(screen_num);
     widget->move(rect.center() - widget->rect().center());
 }
-
-QString getFileExtensions() {
-    QString exts(qTEXT("("));
-    for (const auto& file_ext : GetSupportFileExtensions()) {
-        exts += qTEXT("*") + QString::fromStdString(file_ext);
-        exts += qTEXT(" ");
-    }
-    exts += qTEXT(")");
-    return exts;
-}

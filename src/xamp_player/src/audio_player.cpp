@@ -149,20 +149,8 @@ void AudioPlayer::Destroy() {
 }
 
 void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
-    // Initial thread pool.
-
-    JThread([this]() {
-    XAMP_LOG_D(logger_, "Load dll start.");
-
     GetPlaybackThreadPool();
     XAMP_LOG_D(logger_, "Start Playback thread pool success.");
-
-#ifdef XAMP_OS_WIN
-    GetWASAPIThreadPool();
-    XAMP_LOG_D(logger_, "Start WASAPI thread pool success.");
-#endif
-
-    // Load stream library dll.
 
     LoadBassLib();
     XAMP_LOG_D(logger_, "Load BASS lib success.");
@@ -173,26 +161,22 @@ void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
     LoadFFTLib();
     XAMP_LOG_D(logger_, "Load FFT lib success.");
 
-#ifdef XAMP_OS_WIN
-    LoadR8brainLib();
-    XAMP_LOG_D(logger_, "Load r8brain lib success.");
-#endif
-
     LoadAvLib();
     XAMP_LOG_D(logger_, "Load avlib success.");
-
-    // Load player library dll.
-
-#ifdef XAMP_OS_WIN
-    MBDiscId::LoadMBDiscIdLib();
-    XAMP_LOG_D(logger_, "Load mbdiscid lib success.");
-#endif
 
     Ebur128Reader::LoadEbur128Lib();
     XAMP_LOG_D(logger_, "Load ebur128 lib success.");
 
-    XAMP_LOG_D(logger_, "Load dll end.");
-        }).detach();
+#ifdef XAMP_OS_WIN
+    GetWASAPIThreadPool();
+    XAMP_LOG_D(logger_, "Start WASAPI thread pool success.");
+
+    LoadR8brainLib();
+    XAMP_LOG_D(logger_, "Load r8brain lib success.");
+
+    MBDiscId::LoadMBDiscIdLib();
+    XAMP_LOG_D(logger_, "Load mbdiscid lib success.");
+#endif
 
     PreventSleep(true);
 

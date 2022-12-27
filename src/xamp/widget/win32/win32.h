@@ -7,6 +7,7 @@
 
 #include <QWidget>
 #include <QIcon>
+#include <QAbstractNativeEventFilter>
 
 #include "thememanager.h"
 

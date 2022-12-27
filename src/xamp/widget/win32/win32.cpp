@@ -1,7 +1,12 @@
-#include <QObject>
+#include <widget/win32/win32.h>
+
 #include <QWidget>
-#include <QMenu>
 #include <QStyle>
+#include <QOperatingSystemVersion>
+#include <QApplication>
+#include <QLayout>
+#include <QObject>
+#include <qevent.h>
 
 #include <base/singleton.h>
 #include <base/platform.h>
@@ -10,28 +15,20 @@
 #include <base/siphash.h>
 #include <base/logger_impl.h>
 
-#include <QOperatingSystemVersion>
-
 #include "xampplayer.h"
 #include "thememanager.h"
 #include <widget/xwindow.h>
 #include <widget/widget_shared.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
-#include <widget/win32/win32.h>
-
-#if defined(Q_OS_WIN)
 
 #include <dwmapi.h>
 #include <unknwn.h>
-#include <TlHelp32.h>
-#include <objbase.h>
 #include <propvarutil.h>
 #include <uxtheme.h>
 
 #include <Windows.h>
 #include <windowsx.h>
-#include <QtWin>
 #include <QtWinExtras/QWinTaskbarButton>
 #include <QtWinExtras/QWinTaskbarProgress>
 #include <QtWinExtras/QWinThumbnailToolBar>
@@ -39,6 +36,7 @@
 
 #include <WinUser.h>
 #include <wingdi.h>
+#include <Dbt.h>
 
 #include <base/dll.h>
 
@@ -587,8 +585,10 @@ void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 	// (can be used by setting value as dwAttribute as 20),
 	// value was 19 pre Windows 10 20H1 Update).
 
-	constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-	constexpr DWORD DWMWA_MICA_EFFECT = 1029;
+	constexpr DWORD kDWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+	constexpr DWORD kDWMWA_CAPTION_COLOR = 35;
+
+	constexpr DWORD kDWMWA_MICA_EFFECT = 1029;
 
 	constexpr int kWindows11MajorVersion = 10;
 	constexpr int kWindows11MicroVersion = 22000;
@@ -605,21 +605,21 @@ void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 		if (major_version == kWindows11MajorVersion && micro_version < kWindows11MicroVersion) {
 			BOOL value = TRUE;
 			DWMDLL.DwmSetWindowAttribute(hwnd,
-				DWMWA_USE_IMMERSIVE_DARK_MODE,
+				kDWMWA_USE_IMMERSIVE_DARK_MODE,
 				&value,
 				sizeof(value));
 		} else {
 			int use_mica = 1;
 			DWMDLL.DwmSetWindowAttribute(hwnd,
-				DWMWA_MICA_EFFECT,
+				kDWMWA_MICA_EFFECT,
 				&use_mica,
 				sizeof(use_mica));
 
-			int r, g, b;
+			int r = 0, g = 0, b = 0;
 			color.getRgb(&r, &g, &b);
 			COLORREF colorref = RGB(r, g, b);
 			DWMDLL.DwmSetWindowAttribute(hwnd,
-				DWMWA_CAPTION_COLOR,
+				kDWMWA_CAPTION_COLOR,
 				&colorref,
 				sizeof(COLORREF));
 		}
@@ -628,25 +628,23 @@ void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 		if (major_version == kWindows11MajorVersion && micro_version < kWindows11MicroVersion) {
 			BOOL value = TRUE;
 
-			if (!DWMDLL.DwmSetWindowAttribute(hwnd,
+			DWMDLL.DwmSetWindowAttribute(hwnd,
 				0,
 				&value,
-				sizeof(value))) {
-				XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure! {}", GetLastErrorMessage());
-			}
+				sizeof(value));
 		}
 		else {
 			int use_mica = 1;
 			DWMDLL.DwmSetWindowAttribute(hwnd,
-				DWMWA_MICA_EFFECT,
+				kDWMWA_MICA_EFFECT,
 				&use_mica,
 				sizeof(use_mica));
 
-			int r, g, b;
+			int r = 0, g = 0, b = 0;
 			color.getRgb(&r, &g, &b);
 			COLORREF colorref = RGB(r, g, b);
 			DWMDLL.DwmSetWindowAttribute(hwnd,
-				DWMWA_CAPTION_COLOR,
+				kDWMWA_CAPTION_COLOR,
 				&colorref,
 				sizeof(COLORREF));
 		}
@@ -856,4 +854,3 @@ bool isRunning(const std::string& mutex_name) {
 
 }
 
-#endif

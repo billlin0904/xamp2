@@ -7,6 +7,7 @@
 
 #include "xampplayer.h"
 #include "thememanager.h"
+
 #include <widget/driveinfo.h>
 
 #if defined(Q_OS_WIN)
@@ -46,6 +47,14 @@ public:
 
     void updateMaximumState() override;
 
+    void readDriveInfo();
+
+    void drivesRemoved(char driver_letter);
+
+    void systemThemeChanged(ThemeColor theme_color);
+
+    void shortcutsPressed(uint16_t native_key, uint16_t native_mods);
+
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -71,18 +80,13 @@ protected:
 
     void saveGeometry() override;
 
-private:
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
-
-    void systemThemeChanged(ThemeColor theme_color);
-
+private:
     void addSystemMenu(QWidget *widget);
 
     void focusInEvent(QFocusEvent* event) override;
 
     void focusOutEvent(QFocusEvent* event) override;
-
-    void readDriveInfo();
 
     void updateScreenNumber();
 

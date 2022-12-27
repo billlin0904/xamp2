@@ -390,10 +390,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        const auto button = XMessageBox::showWarning(tr("Are you sure remove all album?"),
-                                                     kApplicationTitle,
-                                                     QDialogButtonBox::No | QDialogButtonBox::Yes,
-                                                     QDialogButtonBox::No);
+        const auto button = XMessageBox::showYesOrNo(tr("Are you sure remove all album?"));
         if (button == QDialogButtonBox::Yes) {
             const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
             indicator->startAnimation();
@@ -415,7 +412,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         const auto file_name = QFileDialog::getOpenFileName(this,
             tr("Open file"),
             AppSettings::getMyMusicFolderPath(),
-            tr("Music Files ") + getFileExtensions(),
+            tr("Music Files ") + getFileDialogFileExtensions(),
             nullptr);
         if (file_name.isEmpty()) {
             return;
@@ -483,8 +480,11 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [=]() {
-        qDatabase.removeAlbum(album_id);
-        refreshOnece();
+        const auto button = XMessageBox::showYesOrNo(tr("Are you sure remove the album?"));
+		if (button == QDialogButtonBox::Yes) {
+            qDatabase.removeAlbum(album_id);
+            refreshOnece();
+		}
         });
     remove_select_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 

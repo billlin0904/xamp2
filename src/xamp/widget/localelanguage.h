@@ -57,7 +57,10 @@ public:
 	static QList<LocaleLanguage> languageNames();
 
 	void loadLanguage(const QString& lang);
+
+	QLocale locale() const;
 private:
 	QTranslator translator_;
 	QString current_lang_;
+	QLocale locale_;
 };

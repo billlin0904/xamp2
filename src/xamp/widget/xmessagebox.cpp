@@ -67,7 +67,7 @@ XMessageBox::XMessageBox(const QString& title,
 	grid_layout_->addWidget(icon_label_, 0, 0, 2, 1, Qt::AlignTop);
 	grid_layout_->addWidget(message_text_label_, 0, 1, 2, 1);
 	grid_layout_->addWidget(line, grid_layout_->rowCount(), 0, 1, 2);
-	grid_layout_->addWidget(button_box_, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
+	grid_layout_->addWidget(button_box_, grid_layout_->rowCount(), 1, 1, grid_layout_->columnCount());
 	grid_layout_->setSizeConstraint(QLayout::SetNoConstraint);
 	grid_layout_->setHorizontalSpacing(0);
 	grid_layout_->setVerticalSpacing(10);
@@ -79,6 +79,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	setContentWidget(client_widget);
 	setTitle(title);
+	centerParent(this);
 }
 
 void XMessageBox::setText(const QString& text) {
@@ -128,6 +129,27 @@ QPushButton* XMessageBox::addButton(QDialogButtonBox::StandardButton buttons) {
 	return button_box_->addButton(buttons);
 }
 
+void XMessageBox::showBug(const Exception& exception,
+	const QString& title,
+	QWidget* parent) {
+	showButton(QString::fromStdString(exception.GetStackTrace()),
+		title,
+		qTheme.iconFromFont(0xF188),
+		QDialogButtonBox::Ok,
+		QDialogButtonBox::Ok,
+		parent);
+}
+
+QDialogButtonBox::StandardButton XMessageBox::showYesOrNo(const QString& text,
+	const QString& title,
+	QWidget* parent) {
+	return showWarning(text,
+		title,
+		QDialogButtonBox::No | QDialogButtonBox::Yes,
+		QDialogButtonBox::No,
+		parent);
+}
+
 QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	const QString& title,
 	const QIcon& icon,
@@ -138,9 +160,8 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	if (!parent) {
 		parent = qApp->activeWindow();
 	}
-	if (parent != nullptr) {
-		mask_widget.reset(new MaskWidget(parent));
-	}
+	parent->setFocus();
+	mask_widget.reset(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button);
 	box.setIcon(icon);
 	if (box.exec() == -1)

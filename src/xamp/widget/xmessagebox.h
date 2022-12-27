@@ -10,12 +10,16 @@
 #include <QMessageBox>
 
 #include <version.h>
+
+#include <base/exception.h>
 #include <widget/xdialog.h>
 
 class QIcon;
 class QAbstractButton;
 class QGridLayout;
 class QLabel;
+
+using xamp::base::Exception;
 
 class MaskWidget : public QWidget {
 public:
@@ -47,6 +51,14 @@ public:
     QPushButton* addButton(QDialogButtonBox::StandardButton buttons);
 
     void addWidget(QWidget* widget);
+
+    static void showBug(const Exception& exception,
+        const QString& title = kApplicationTitle,
+        QWidget* parent = nullptr);
+
+    static QDialogButtonBox::StandardButton showYesOrNo(const QString& text,
+        const QString& title = kApplicationTitle,
+        QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showInformation(const QString& text,
         const QString& title = kApplicationTitle,

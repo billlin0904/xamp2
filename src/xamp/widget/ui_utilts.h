@@ -40,4 +40,3 @@ void centerDesktop(QWidget* widget);
 
 void centerParent(QWidget* widget);
 
-QString getFileExtensions();

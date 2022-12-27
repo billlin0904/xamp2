@@ -172,6 +172,7 @@ public:
 
     static bool showMeAgain(const QString& text);
 
+    static QLocale locale();
 protected:
     AppSettings() = default;
 

@@ -37,7 +37,7 @@
         "Pcm2DsdTimes": 6
     },
     "R8Brain": {
-        "resampleSampleRate": 44100
+        "resampleSampleRate": 192000
     },
     "Soxr": {
         "default": {

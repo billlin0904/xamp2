@@ -66,8 +66,12 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 void LocaleLanguageManager::loadLanguage(const QString& lang) {
 	if (current_lang_ != lang) {
 		current_lang_ = lang;
-		const auto locale = QLocale(lang);
-		QLocale::setDefault(locale);
+		locale_ = QLocale(lang);
+		QLocale::setDefault(locale_);
 		switchTranslator(translator_, QString(qTEXT("%1.qm")).arg(lang));
 	}
+}
+
+QLocale LocaleLanguageManager::locale() const {
+	return locale_;
 }

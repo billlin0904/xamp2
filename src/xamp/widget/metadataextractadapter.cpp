@@ -228,12 +228,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         filter |= QDir::NoDotAndDotDot | QDir::Files;
         SipHash hasher;
 
-        QStringList name_filter;
-        for (auto& file_ext : GetSupportFileExtensions()) {
-            name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
-        }
-
-        QDirIterator itr(file_path, name_filter, filter);
+        QDirIterator itr(file_path, getFileNameFilter(), filter);
         while (itr.hasNext()) {
             auto path = fromQStringPath(itr.next());
             hasher.Update(path.toStdWString());
@@ -370,4 +365,22 @@ TrackInfo getMetadata(QString const& file_path) {
     const Path path(file_path.toStdWString());
     auto reader = MakeMetadataReader();
     return reader->Extract(path);
+}
+
+QString getFileDialogFileExtensions() {
+    QString exts(qTEXT("("));
+    for (const auto& file_ext : GetSupportFileExtensions()) {
+        exts += qTEXT("*") + QString::fromStdString(file_ext);
+        exts += qTEXT(" ");
+    }
+    exts += qTEXT(")");
+    return exts;
+}
+
+QStringList getFileNameFilter() {
+    QStringList name_filter;
+    for (auto& file_ext : GetSupportFileExtensions()) {
+        name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
+    }
+    return name_filter;
 }

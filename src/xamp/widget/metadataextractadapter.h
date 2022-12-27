@@ -14,6 +14,10 @@ class PlayListTableView;
 
 TrackInfo getMetadata(QString const& file_path);
 
+QString getFileDialogFileExtensions();
+
+QStringList getFileNameFilter();
+
 class DatabaseIdCache final {
 public:
     DatabaseIdCache();

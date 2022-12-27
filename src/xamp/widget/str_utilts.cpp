@@ -1,5 +1,8 @@
 #include <QDir>
+#include <QLocale>
 #include <QTime>
+
+#include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 
 QString colorToString(QColor color) {
@@ -50,11 +53,11 @@ QString streamTimeToString(const double stream_time, bool full_text) {
     const auto h = secs / 3600;
     const auto m = (secs % 3600) / 60;
     const auto s = (secs % 3600) % 60;
-    QTime t(h, m, s, ms);
+    const QTime t(h, m, s, ms);
     if (h > 0 || full_text) {
-        return t.toString(qTEXT("hh:mm:ss"));
+        return QLocale().toString(t, qTEXT("hh:mm:ss"));
     }
-    return t.toString(qTEXT("mm:ss"));
+    return QLocale().toString(t, qTEXT("mm:ss"));
 }
 
 bool isMoreThan1Hours(const double stream_time) {
