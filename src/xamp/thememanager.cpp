@@ -938,6 +938,56 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     )"
     ));
 
+    ui.seekSlider->setStyleSheet(qTEXT(R"(
+	QSlider#seekSlider {
+		background-color: transparent;
+	}
+
+    QSlider::groove:horizontal {
+        border: 1px solid #00B0AE;
+        background: #00B0AE;
+        height: 2px;
+        border-radius: 1px;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    QSlider::sub-page:horizontal {
+		background: #9FCBFF;
+		border: 1px solid #9FCBFF;
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider::add-page:horizontal {
+		background: #EAEAEA;
+		border: 0px solid #EAEAEA;
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider::handle:horizontal {
+        background-color: white;
+		border: 1px solid black;
+        width: 12px;
+		height: 12px;		
+        margin-top: -6px;
+        margin-bottom: -6px;
+        border-radius: 7px;
+    }
+
+    QSlider::handle:horizontal:hover {
+        background-color: white;
+		border: 1px solid black;
+        width: 12px;
+		height: 12px;
+        margin-top: -7px;
+        margin-bottom: -6px;
+        border-radius: 6px;
+    }
+    )"
+    ));
+
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());
     ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));    
