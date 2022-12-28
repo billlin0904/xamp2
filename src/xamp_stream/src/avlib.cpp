@@ -184,12 +184,12 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 				if (!output_format->extensions)
 					continue;
 				for (const auto& extension : String::Split(output_format->extensions, ",")) {
-					const auto file_extensions = std::string(".") + std::string(extension);
+					const auto file_extensions = String::Format(".{}", extension);
 					if (!result.contains(file_extensions)) {
 						XAMP_LOG_D(logger, "Load Libav name:{} extensions: {}", output_format->name, file_extensions);
 						result.insert(file_extensions);
 					}
-				}				
+				}
 			}
 		}
 		output_format = output_format->next;

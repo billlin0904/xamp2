@@ -125,6 +125,8 @@
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
 #endif
 
+#define XAMP_HTTP_USER_AGENT "xamp2/1.0.0"
+
 namespace xamp::base {
 
 /// <summary>

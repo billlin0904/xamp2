@@ -42,6 +42,7 @@ public:
         } else {
             // note: Http request timeout in microseconds. 
             LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
+            LIBAV_LIB.UtilLib->av_dict_set(&options, "user-agent", XAMP_HTTP_USER_AGENT, 0);
         }
 
         const auto file_path_ut8 = String::ToString(file_path.wstring());

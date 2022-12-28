@@ -46,4 +46,6 @@ XAMP_BASE_API Path GetComponentsFilePath();
 
 XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
+XAMP_BASE_API bool IsCDAFile(Path const& path);
+
 }

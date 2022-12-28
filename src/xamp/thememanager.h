@@ -66,7 +66,13 @@ public:
 
     QIcon hiResIcon() const;
 
+    QIcon playingIcon() const;
+
     QPixmap githubIcon() const;
+
+    QIcon playlistPlayingIcon(QSize icon_size) const;
+
+    QIcon playlistPauseIcon(QSize icon_size) const;
 
     void updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;
 

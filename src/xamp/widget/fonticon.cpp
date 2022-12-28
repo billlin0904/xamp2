@@ -47,9 +47,9 @@ const QString FontIconOption::opacityAttr(qTEXT("opacity"));
 QColor FontIconOption::color = QApplication::palette().color(QPalette::Normal, QPalette::ButtonText);
 QColor FontIconOption::disabledColor = QApplication::palette().color(QPalette::Disabled, QPalette::ButtonText);
 QColor FontIconOption::selectedColor = QApplication::palette().color(QPalette::Active, QPalette::ButtonText);
-QColor FontIconOption::onColor;
-QColor FontIconOption::activeColor;
-QColor FontIconOption::activeOnColor;
+QColor FontIconOption::onColor(QColor::Invalid);
+QColor FontIconOption::activeColor(QColor::Invalid);
+QColor FontIconOption::activeOnColor(QColor::Invalid);
 double FontIconOption::opacity = 1.0;
 
 template <typename T>
@@ -105,6 +105,10 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     font.setPixelSize(draw_size);
 
     QColor pen_color;
+
+    if (letter_ == 0xF04B && options_.size() ==  2) {
+        XAMP_LOG_DEBUG("DEBUG mode:{} stae:{}", mode, state);
+    }
 
     switch (mode) {
     case QIcon::Normal:

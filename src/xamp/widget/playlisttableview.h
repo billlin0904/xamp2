@@ -84,6 +84,8 @@ public:
 		return model()->index(hover_row_, hover_column_);
 	}
 signals:
+	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
+
 	void playMusic(const PlayListEntity& item);
 
     void encodeFlacFile(const PlayListEntity& item);

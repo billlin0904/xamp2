@@ -108,13 +108,15 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         default_cover_size.width(), 
         default_cover_size.height());
 
+    auto album_artist_text_width = default_cover_size.width();
+
     QRect album_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 15,
-        option.rect.width() - 20,
+        album_artist_text_width,
         15);
     QRect artist_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 35,
-        option.rect.width() - 20, 
+        default_cover_size.width(),
         15);
 
     painter->setPen(QPen(text_color_));
@@ -126,13 +128,24 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     f.setBold(true);
     painter->setFont(f);
 
+    if (playing_album_id_ > 0 && playing_album_id_ == album_id) {
+        const QRect playing_state_icon_rect(
+            option.rect.left() + default_cover_size.width() - 10,
+            option.rect.top() + default_cover_size.height() + 15,
+            kMoreIconSize, kMoreIconSize);
+
+        album_artist_text_width -= kMoreIconSize;
+        painter->drawPixmap(playing_state_icon_rect, qTheme.playingIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+    }
+
     QFontMetrics album_metrics(painter->font());
     painter->drawText(album_text_rect, Qt::AlignVCenter,
-        album_metrics.elidedText(album, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
+        album_metrics.elidedText(album, Qt::ElideRight, album_artist_text_width));
 
     painter->setPen(QPen(Qt::gray));
     f.setBold(false);
     painter->setFont(f);
+
     QFontMetrics artist_metrics(painter->font());
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
@@ -175,18 +188,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             QApplication::setOverrideCursor(Qt::PointingHandCursor);
             hit_play_button = true;
         }
-    }
-
-    if (playing_album_id_ > 0 && playing_album_id_ == album_id) {
-        const QRect playing_state_icon_rect(
-            option.rect.left() + default_cover_size.width() - 10,
-            option.rect.top() + default_cover_size.height() + 15,
-            kMoreIconSize, kMoreIconSize);
-
-        QVariantMap font_options;
-        font_options.insert(FontIconOption::colorAttr, QColor(252, 215, 75));
-        auto playing_state_icon = qFontIcon.icon(0xF8F2, font_options);
-        painter->drawPixmap(playing_state_icon_rect, playing_state_icon.pixmap(QSize(kMoreIconSize, kMoreIconSize)));
     }
     
     const QRect more_button_rect(
@@ -331,10 +332,10 @@ AlbumView::AlbumView(QWidget* parent)
                             &AlbumView::clickedArtist);
 
     (void)QObject::connect(page_->playlistPage()->playlist(),
-        &PlayListTableView::playMusic,
+        &PlayListTableView::updatePlayingState,
         this,
-        [this](auto item) {
-            styled_delegate_->setPlayingAlbumId(item.album_id);
+        [this](auto entity, auto playing_state) {
+            styled_delegate_->setPlayingAlbumId(playing_state == PlayingState::PLAY_CLEAR ? -1 : entity.album_id);
         });
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumOpertationMenu, [this](auto index, auto pt) {

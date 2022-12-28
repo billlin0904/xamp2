@@ -996,7 +996,8 @@ void Xamp::stop() {
     setSeekPosValue(0);
     lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
-    playlist_page_->playlist()->setNowPlayState(PLAY_CLEAR);
+    playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+    album_page_->album()->albumViewPage()->playlistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
     qTheme.setPlayOrPauseButton(ui_, false);
 }
 

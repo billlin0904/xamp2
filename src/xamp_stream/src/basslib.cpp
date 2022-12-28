@@ -262,7 +262,7 @@ void BassLib::Load() {
     BASS.BASS_SetConfig(BASS_CONFIG_NET_PREBUF, 50);
     BASS.BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD, false);
     BASS.BASS_SetConfig(BASS_CONFIG_UPDATETHREADS, 0);
-    BASS.BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, L"xamp2");
+    BASS.BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, String::ToStdWString(XAMP_HTTP_USER_AGENT).c_str());
 }
 
 void BassLib::Free() {

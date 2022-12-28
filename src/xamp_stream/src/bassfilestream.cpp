@@ -17,10 +17,6 @@ namespace xamp::stream {
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
 
-static bool IsCDAFile(Path const &path) {
-    return path.extension() == ".cda";
-}
-
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept

@@ -66,8 +66,8 @@ XMessageBox::XMessageBox(const QString& title,
 	grid_layout_ = new QGridLayout(client_widget);
 	grid_layout_->addWidget(icon_label_, 0, 0, 2, 1, Qt::AlignTop);
 	grid_layout_->addWidget(message_text_label_, 0, 1, 2, 1);
-	grid_layout_->addWidget(line, grid_layout_->rowCount(), 0, 1, 2);
-	grid_layout_->addWidget(button_box_, grid_layout_->rowCount(), 1, 1, grid_layout_->columnCount());
+	grid_layout_->addWidget(line, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
+	grid_layout_->addWidget(button_box_, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
 	grid_layout_->setSizeConstraint(QLayout::SetNoConstraint);
 	grid_layout_->setHorizontalSpacing(0);
 	grid_layout_->setVerticalSpacing(10);
@@ -79,7 +79,6 @@ XMessageBox::XMessageBox(const QString& title,
 
 	setContentWidget(client_widget);
 	setTitle(title);
-	centerParent(this);
 }
 
 void XMessageBox::setText(const QString& text) {

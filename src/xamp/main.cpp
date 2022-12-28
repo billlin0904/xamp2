@@ -382,6 +382,20 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
 
+    /*for (auto i = 0LL; i < 100000; ++i) {
+        TrackInfo info;
+        auto album = QUuid::createUuid().toString();
+        auto artist = QUuid::createUuid().toString();
+        info.album = album.toStdWString();
+        info.title = QUuid::createUuid().toString().toStdWString();
+        info.artist = artist.toStdWString();
+        info.file_path = QUuid::createUuid().toString().toStdWString();
+        auto artist_id = qDatabase.addOrUpdateArtist(artist);
+        auto album_id = qDatabase.addOrUpdateAlbum(album, artist_id, 0, false);
+        auto music_id = qDatabase.addOrUpdateMusic(info);
+        qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
+    }*/
+
     qTheme.applyTheme();
     XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
 

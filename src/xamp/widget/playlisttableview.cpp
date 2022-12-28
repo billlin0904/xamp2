@@ -71,12 +71,11 @@ public:
         auto use_default_style = false;
 
         opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
-        opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+        opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
 
         switch (index.column()) {
         case PLAYLIST_TITLE:
         case PLAYLIST_ALBUM:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
             opt.text = value.toString();
             break;
         case PLAYLIST_ARTIST:
@@ -85,35 +84,37 @@ public:
             break;
         case PLAYLIST_TRACK:
 	        {
+				constexpr auto kPlayingStateIconSize = 10;
+
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
                 auto playing_state = is_playing.toInt();
+                QSize icon_size(kPlayingStateIconSize, kPlayingStateIconSize);
+
                 if (playing_state == PlayingState::PLAY_PLAYING) {
-                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PLAY).pixmap(14, 14);
+                    opt.icon = qTheme.playlistPlayingIcon(icon_size);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
-                    opt.icon = qTheme.iconFromFont(Glyphs::ICON_PAUSE).pixmap(14, 14);
+                    opt.icon = qTheme.playlistPauseIcon(icon_size);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
+                    opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.font.setFamily(qTEXT("MonoFont"));
                     opt.text = value.toString();
                 }
 	        }
             break;
         case PLAYLIST_YEAR:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = QString::number(value.toInt()).rightJustified(8);
             break;
         case PLAYLIST_FILE_SIZE:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = QString::fromStdString(String::FormatBytes(value.toULongLong()));
             break;
         case PLAYLIST_BIT_RATE:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = bitRate2String(value.toInt());
             break;
         case PLAYLIST_ALBUM_PK:
@@ -121,7 +122,6 @@ public:
         case PLAYLIST_TRACK_PK:
         case PLAYLIST_TRACK_RG:
         case PLAYLIST_TRACK_LOUDNESS:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
@@ -139,15 +139,13 @@ public:
             }
             break;
         case PLAYLIST_SAMPLE_RATE:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = samplerate2String(value.toInt());
             break;
         case PLAYLIST_DURATION:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = streamTimeToString(value.toDouble());
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
             break;
 		default:
@@ -428,7 +426,7 @@ void PlayListTableView::initial() {
     horizontalHeader()->setVisible(true);
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(true);
-    horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     setItemDelegate(new StyledItemDelegate(this));
 
     (void)QObject::connect(model_, &QAbstractTableModel::modelReset,
@@ -724,6 +722,7 @@ PlayListEntity PlayListTableView::item(const QModelIndex& index) {
 
 void PlayListTableView::playItem(const QModelIndex& index) {
     setNowPlaying(index);
+    setNowPlayState(PLAY_PLAYING);
     const auto play_item = item(index);
     emit playMusic(play_item);
 }
@@ -915,16 +914,6 @@ void PlayListTableView::resizeColumn() {
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 65);
             break;
-        case PLAYLIST_ALBUM_RG:
-        case PLAYLIST_ALBUM_PK:
-        case PLAYLIST_TRACK_RG:
-        case PLAYLIST_TRACK_PK:
-        case PLAYLIST_TRACK_LOUDNESS:
-        case PLAYLIST_DURATION:
-        case PLAYLIST_BIT_RATE:
-            header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 80);
-            break;
         case PLAYLIST_TITLE:
             header->resizeSection(column,
                 (std::max)(sizeHintForColumn(column), kMaxStretchedSize));
@@ -934,8 +923,11 @@ void PlayListTableView::resizeColumn() {
             header->resizeSection(column, 300);
             break;
         case PLAYLIST_ALBUM:
-        default:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
+            break;
+        default:
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, 80);
             break;
         }
     }
@@ -993,6 +985,7 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
     const auto entity = item(play_index_);
     qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
     reload();
+    emit updatePlayingState(entity, playing_state);
 }
 
 void PlayListTableView::scrollToIndex(const QModelIndex& index) {

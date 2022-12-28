@@ -12,6 +12,8 @@ public:
     explicit PlayListSqlQueryTableModel(QObject *parent = nullptr);
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
+
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 };
 
 

@@ -117,4 +117,8 @@ Path GetComponentsFilePath() {
 	return GetApplicationFilePath() / Path("components");
 }
 
+bool IsCDAFile(Path const& path) {
+	return path.extension() == ".cda";
+}
+
 }

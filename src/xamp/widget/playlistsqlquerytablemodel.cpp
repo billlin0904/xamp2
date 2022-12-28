@@ -19,3 +19,16 @@ Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const 
     return flags;
 }
 
+QVariant PlayListSqlQueryTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (orientation == Qt::Horizontal) {
+        if (role == Qt::TextAlignmentRole) {
+            if (section == PLAYLIST_ARTIST || section == PLAYLIST_DURATION) {
+                return QVariant(Qt::AlignVCenter | Qt::AlignRight);
+            } else if (section == PLAYLIST_TRACK) {
+                return QVariant(Qt::AlignVCenter | Qt::AlignHCenter);
+            }
+        }
+    }
+    return QSqlQueryModel::headerData(section, orientation, role);
+}
+

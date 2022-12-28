@@ -387,6 +387,40 @@ QIcon ThemeManager::playCircleIcon() const {
     return QIcon(qTEXT(":/xamp/Resource/Black/play_circle.png"));
 }
 
+QIcon ThemeManager::playlistPauseIcon(QSize icon_size) const {
+    QVariantMap font_options;
+    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
+    font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
+    font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
+
+    auto icon = qFontIcon.icon(Glyphs::ICON_PAUSE, font_options);
+    icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
+        QIcon::Selected, QIcon::Off);
+    icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::On),
+        QIcon::Selected, QIcon::On);
+    return icon;
+}
+
+QIcon ThemeManager::playlistPlayingIcon(QSize icon_size) const {
+    QVariantMap font_options;
+    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
+    font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
+    font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
+    auto icon = qFontIcon.icon(Glyphs::ICON_PLAY, font_options);
+
+    icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
+        QIcon::Selected, QIcon::Off);
+    icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::On),
+        QIcon::Selected, QIcon::On);
+    return icon;
+}
+
+QIcon ThemeManager::playingIcon() const {
+    QVariantMap font_options;
+    font_options.insert(FontIconOption::colorAttr, QColor(252, 215, 75));
+    return qFontIcon.icon(0xF8F2, font_options);
+}
+
 QIcon ThemeManager::hiResIcon() const {
     QVariantMap options;
     options.insert(FontIconOption::colorAttr, QColor(250, 197, 24));
