@@ -149,35 +149,6 @@ void AudioPlayer::Destroy() {
 }
 
 void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
-    GetPlaybackThreadPool();
-    XAMP_LOG_D(logger_, "Start Playback thread pool success.");
-
-    LoadBassLib();
-    XAMP_LOG_D(logger_, "Load BASS lib success.");
-
-    LoadSoxrLib();
-    XAMP_LOG_D(logger_, "Load Soxr lib success.");
-
-    LoadFFTLib();
-    XAMP_LOG_D(logger_, "Load FFT lib success.");
-
-    LoadAvLib();
-    XAMP_LOG_D(logger_, "Load avlib success.");
-
-    Ebur128Reader::LoadEbur128Lib();
-    XAMP_LOG_D(logger_, "Load ebur128 lib success.");
-
-#ifdef XAMP_OS_WIN
-    GetWASAPIThreadPool();
-    XAMP_LOG_D(logger_, "Start WASAPI thread pool success.");
-
-    LoadR8brainLib();
-    XAMP_LOG_D(logger_, "Load r8brain lib success.");
-
-    MBDiscId::LoadMBDiscIdLib();
-    XAMP_LOG_D(logger_, "Load mbdiscid lib success.");
-#endif
-
     PreventSleep(true);
 
     state_adapter_ = adapter;

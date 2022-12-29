@@ -127,54 +127,54 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 
 void ThemeManager::setSegoeFluentIcons() {
     const HashMap<char32_t, uint32_t> glyphs{
-    { ICON_VOLUME_UP ,                0xE995},
-    { ICON_VOLUME_OFF,                0xE74F},
-    { ICON_SPEAKER,                   0xE7F5},
-    { ICON_FOLDER,                    0xF12B},
-    { ICON_AUDIO,                     0xE8D6},
-    { ICON_LOAD_FILE,                 0xE8E5},
-    { ICON_LOAD_DIR,                  0xE838},
-    { ICON_RELOAD,                    0xE895},
-    { ICON_REMOVE_ALL,                0xE894},
-    { ICON_OPEN_FILE_PATH,            0xE8DA},
-    { ICON_READ_REPLAY_GAIN,          0xF270},
-    { ICON_EXPORT_FILE,               0xE78C},
-    { ICON_COPY,                      0xE8C8},
-    { ICON_DOWNLOAD,                  0xE896},
-    { ICON_PLAYLIST,                  0xE90B},
-    { ICON_EQUALIZER,                 0xE9E9},
-    { ICON_PODCAST,                   0xEFA9},
-    { ICON_ALBUM,                     0xE93C},
-    { ICON_CD,                        0xE958},
-    { ICON_LEFT_ARROW,                0xEC52},
-    { ICON_ARTIST,                    0xE716},
-    { ICON_SUBTITLE,                  0xED1E},
-    { ICON_PREFERENCE,                0xE713},
-    { ICON_ABOUT,                     0xF167},
-    { ICON_DARK_MODE,                 0xEC46},
-    { ICON_LIGHT_MODE,                0xF08C},
-    { ICON_SEARCH,                    0xF78B},
-    { ICON_THEME,                     0xE771},
-    { ICON_DESKTOP,                   0xEC4E},
-    { ICON_SHUFFLE_PLAY_ORDER,        0xE8B1},
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xE8ED},
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xE8EE},
-    { ICON_MINIMIZE_WINDOW,           0xE921},
-    { ICON_MAXIMUM_WINDOW,            0xE922},
-    { ICON_CLOSE_WINDOW,              0xE8BB},
-    { ICON_RESTORE_WINDOW,            0xE923},
-    { ICON_SLIDER_BAR,                0xE700},
-    { ICON_PLAY,                      0xF5B0},
-    { ICON_PAUSE,                     0xF8AE},
-    { ICON_STOP_PLAY,                 0xE978},
-    { ICON_PLAY_FORWARD,              0xF8AD},
-    { ICON_PLAY_BACKWARD,             0xF8AC},
-    { ICON_MORE,                      0xE712},
-    { ICON_HIDE,                      0xED1A},
-    { ICON_SHOW,                      0xE7B3},
-    { ICON_USB,                       0xE88E},
-    { ICON_BUILD_IN_SPEAKER,          0xE7F5},
-    { ICON_BLUE_TOOTH,                0xE702},
+    { ICON_VOLUME_UP ,                0xE995 },
+    { ICON_VOLUME_OFF,                0xE74F },
+    { ICON_SPEAKER,                   0xE7F5 },
+    { ICON_FOLDER,                    0xF12B },
+    { ICON_AUDIO,                     0xE8D6 },
+    { ICON_LOAD_FILE,                 0xE8E5 },
+    { ICON_LOAD_DIR,                  0xE838 },
+    { ICON_RELOAD,                    0xE895 },
+    { ICON_REMOVE_ALL,                0xE894 },
+    { ICON_OPEN_FILE_PATH,            0xE8DA },
+    { ICON_READ_REPLAY_GAIN,          0xF270 },
+    { ICON_EXPORT_FILE,               0xE78C },
+    { ICON_COPY,                      0xE8C8 },
+    { ICON_DOWNLOAD,                  0xE896 },
+    { ICON_PLAYLIST,                  0xE90B },
+    { ICON_EQUALIZER,                 0xE9E9 },
+    { ICON_PODCAST,                   0xEFA9 },
+    { ICON_ALBUM,                     0xE93C },
+    { ICON_CD,                        0xE958 },
+    { ICON_LEFT_ARROW,                0xEC52 },
+    { ICON_ARTIST,                    0xE716 },
+    { ICON_SUBTITLE,                  0xED1E },
+    { ICON_PREFERENCE,                0xE713 },
+    { ICON_ABOUT,                     0xF167 },
+    { ICON_DARK_MODE,                 0xEC46 },
+    { ICON_LIGHT_MODE,                0xF08C },
+    { ICON_SEARCH,                    0xF78B },
+    { ICON_THEME,                     0xE771 },
+    { ICON_DESKTOP,                   0xEC4E },
+    { ICON_SHUFFLE_PLAY_ORDER,        0xE8B1 },
+    { ICON_REPEAT_ONE_PLAY_ORDER,     0xE8ED },
+    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xE8EE },
+    { ICON_MINIMIZE_WINDOW,           0xE921 },
+    { ICON_MAXIMUM_WINDOW,            0xE922 },
+    { ICON_CLOSE_WINDOW,              0xE8BB },
+    { ICON_RESTORE_WINDOW,            0xE923 },
+    { ICON_SLIDER_BAR,                0xE700 },
+    { ICON_PLAY,                      0xF5B0 },
+    { ICON_PAUSE,                     0xF8AE },
+    { ICON_STOP_PLAY,                 0xE978 },
+    { ICON_PLAY_FORWARD,              0xF8AD },
+    { ICON_PLAY_BACKWARD,             0xF8AC },
+    { ICON_MORE,                      0xE712 },
+    { ICON_HIDE,                      0xED1A },
+    { ICON_SHOW,                      0xE7B3 },
+    { ICON_USB,                       0xE88E },
+    { ICON_BUILD_IN_SPEAKER,          0xE7F5 },
+    { ICON_BLUE_TOOTH,                0xE702 },
     };
     qFontIcon.addFont(fontNamePath(qTEXT("SegoeFluentIcons.ttf")));
     qFontIcon.setGlyphs(glyphs);
@@ -182,57 +182,57 @@ void ThemeManager::setSegoeFluentIcons() {
 
 void ThemeManager::setFontAwesomeIcons() {
     const HashMap<char32_t, uint32_t> glyphs{
-    { ICON_VOLUME_UP ,                0xF6A8},
-    { ICON_VOLUME_OFF,                0xF6A9},
-    { ICON_SPEAKER,                   0xF8DF},
-    { ICON_FOLDER,                    0xF07B},
-    { ICON_AUDIO,                     0xF001},
-    { ICON_LOAD_FILE,                 0xF15B},
-    { ICON_LOAD_DIR,                  0xF07C},
-    { ICON_RELOAD,                    0xF2F9},
-    { ICON_REMOVE_ALL,                0xE2AE},
-    { ICON_OPEN_FILE_PATH,            0xF07C},
-    { ICON_READ_REPLAY_GAIN,          0xF5F0},
-    { ICON_EXPORT_FILE,               0xF56E},
-    { ICON_COPY,                      0xF0C5},
-    { ICON_DOWNLOAD,                  0xF0ED},
-    { ICON_PLAYLIST,                  0xF8C9},
-    { ICON_EQUALIZER,                 0xF3F2},
-    { ICON_PODCAST,                   0xF2CE},
-    { ICON_ALBUM,                     0xF89F},
-    { ICON_CD,                        0xF51F},
-    { ICON_LEFT_ARROW,                0xF177},
-    { ICON_ARTIST,                    0xF500},
-    { ICON_SUBTITLE,                  0xE1DE},
-    { ICON_PREFERENCE,                0xF013},
-    { ICON_ABOUT,                     0xF05A},
-    { ICON_DARK_MODE,                 0xF186},
-    { ICON_LIGHT_MODE,                0xF185},
-    { ICON_SEARCH,                    0xF002},
-    { ICON_THEME,                     0xF042},
-    { ICON_DESKTOP,                   0xF390},
-    { ICON_SHUFFLE_PLAY_ORDER,        0xF074},
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xF363},
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xF365},
-    { ICON_MINIMIZE_WINDOW,           0xF2D1},
-    { ICON_MAXIMUM_WINDOW,            0xF2D0},
-    { ICON_CLOSE_WINDOW,              0xF00D},
-    { ICON_RESTORE_WINDOW,            0xF2D2},
-    { ICON_SLIDER_BAR,                0xF0C9},
-    { ICON_PLAY,                      0xF04B},
-    { ICON_PAUSE,                     0xF04C},
-    { ICON_STOP_PLAY,                 0xF04D},
-    { ICON_PLAY_FORWARD,              0xF04E},
-    { ICON_PLAY_BACKWARD,             0xF04A},
-    { ICON_MORE,                      0xF142},
-    { ICON_HIDE,                      0xF070},
-    { ICON_SHOW,                      0xF06E},
-    { ICON_USB,                       0xF8E9},
-    { ICON_BUILD_IN_SPEAKER,          0xF8DF},
-    { ICON_BLUE_TOOTH,                0xF293},
+    { ICON_VOLUME_UP ,                0xF6A8 },
+    { ICON_VOLUME_OFF,                0xF6A9 },
+    { ICON_SPEAKER,                   0xF8DF },
+    { ICON_FOLDER,                    0xF07B },
+    { ICON_AUDIO,                     0xF001 },
+    { ICON_LOAD_FILE,                 0xF15B },
+    { ICON_LOAD_DIR,                  0xF07C },
+    { ICON_RELOAD,                    0xF2F9 },
+    { ICON_REMOVE_ALL,                0xE2AE },
+    { ICON_OPEN_FILE_PATH,            0xF07C },
+    { ICON_READ_REPLAY_GAIN,          0xF5F0 },
+    { ICON_EXPORT_FILE,               0xF56E },
+    { ICON_COPY,                      0xF0C5 },
+    { ICON_DOWNLOAD,                  0xF0ED },
+    { ICON_PLAYLIST,                  0xF8C9 },
+    { ICON_EQUALIZER,                 0xF3F2 },
+    { ICON_PODCAST,                   0xF2CE },
+    { ICON_ALBUM,                     0xF89F },
+    { ICON_CD,                        0xF51F },
+    { ICON_LEFT_ARROW,                0xF177 },
+    { ICON_ARTIST,                    0xF500 },
+    { ICON_SUBTITLE,                  0xE1DE },
+    { ICON_PREFERENCE,                0xF013 },
+    { ICON_ABOUT,                     0xF05A },
+    { ICON_DARK_MODE,                 0xF186 },
+    { ICON_LIGHT_MODE,                0xF185 },
+    { ICON_SEARCH,                    0xF002 },
+    { ICON_THEME,                     0xF042 },
+    { ICON_DESKTOP,                   0xF390 },
+    { ICON_SHUFFLE_PLAY_ORDER,        0xF074 },
+    { ICON_REPEAT_ONE_PLAY_ORDER,     0xF363 },
+    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xF365 },
+    { ICON_MINIMIZE_WINDOW,           0xF2D1 },
+    { ICON_MAXIMUM_WINDOW,            0xF2D0 },
+    { ICON_CLOSE_WINDOW,              0xF00D },
+    { ICON_RESTORE_WINDOW,            0xF2D2 },
+    { ICON_SLIDER_BAR,                0xF0C9 },
+    { ICON_PLAY,                      0xF04B },
+    { ICON_PAUSE,                     0xF04C },
+    { ICON_STOP_PLAY,                 0xF04D },
+    { ICON_PLAY_FORWARD,              0xF04E },
+    { ICON_PLAY_BACKWARD,             0xF04A },
+    { ICON_MORE,                      0xF142 },
+    { ICON_HIDE,                      0xF070 },
+    { ICON_SHOW,                      0xF06E },
+    { ICON_USB,                       0xF8E9 },
+    { ICON_BUILD_IN_SPEAKER,          0xF8DF },
+    { ICON_BLUE_TOOTH,                0xF293 },
     };
     qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
-    //qFontIcon.addFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
+    //qFontIcon.addFont(fontNamePath(qTEXT("fa-light-300.ttf")));
     qFontIcon.setGlyphs(glyphs);
 }
 
@@ -249,6 +249,7 @@ QFont ThemeManager::loadFonts() {
 
     installFileFonts(qTEXT("Lato"), ui_fonts);
     installFileFonts(qTEXT("MiSans"), ui_fonts);
+    //installFileFonts(qTEXT("MILanPro"), ui_fonts);
     //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
@@ -314,6 +315,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
         break;
     case ThemeColor::LIGHT_THEME:
         font_icon_opts_.insert(FontIconOption::colorAttr, QVariant(QColor(97, 97, 101)));
+        font_icon_opts_.insert(FontIconOption::selectedColorAttr, QVariant(QColor(97, 97, 101)));
         break;
     }
 }
@@ -389,7 +391,7 @@ QIcon ThemeManager::playCircleIcon() const {
 
 QIcon ThemeManager::playlistPauseIcon(QSize icon_size) const {
     QVariantMap font_options;
-    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
+    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
 
@@ -403,7 +405,7 @@ QIcon ThemeManager::playlistPauseIcon(QSize icon_size) const {
 
 QIcon ThemeManager::playlistPlayingIcon(QSize icon_size) const {
     QVariantMap font_options;
-    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
+    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
     auto icon = qFontIcon.icon(Glyphs::ICON_PLAY, font_options);
@@ -580,6 +582,16 @@ QColor ThemeManager::hoverColor() const {
     case ThemeColor::LIGHT_THEME:
     default:
         return QColor(qTEXT("#C9CDD0"));
+    }
+}
+
+QColor ThemeManager::highlightColor() const {
+    switch (themeColor()) {
+    case ThemeColor::LIGHT_THEME:
+        return QColor(qTEXT("#9FCBFF"));
+    case ThemeColor::DARK_THEME:
+    default:
+        return QColor(qTEXT("#346792"));
     }
 }
 
@@ -766,13 +778,17 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.prevButton->setIconSize(QSize(24, 24));
     ui.stopButton->setIconSize(QSize(24, 24));
 
-    QString slider_bar_left_color;
+    QString slider_border_color;
+    QString slider_background_color;
+
     switch (themeColor()) {
-    case ThemeColor::DARK_THEME:
-        slider_bar_left_color = qTEXT("42, 130, 218");
-        break;
     case ThemeColor::LIGHT_THEME:
-        slider_bar_left_color = qTEXT("42, 130, 218");
+        slider_border_color = qTEXT("#C9CDD0");
+        slider_background_color = qTEXT("#9FCBFF");
+        break;
+    case ThemeColor::DARK_THEME:
+        slider_border_color = qTEXT("#455364");
+        slider_background_color = qTEXT("#346792");
         break;
     }
 
@@ -786,13 +802,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.searchLineEdit->setStyleSheet(qTEXT(""));
 
     ui.searchFrame->setStyleSheet(qTEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
-
-    ui.volumeSlider->setStyleSheet(qTEXT(R"(
-                                          QSlider#volumeSlider {
-                                          border: none;
-                                          background-color: transparent;
-                                          }
-                                          )"));
 
     ui.startPosLabel->setStyleSheet(qTEXT(R"(
                                            QLabel#startPosLabel {
@@ -814,25 +823,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                         background-color: transparent;
                                         }
                                         )"));
-
-    ui.sliderBar->setStyleSheet(qSTR(R"(
-	QListView#sliderBar {
-		border: none; 
-	}
-	QListView#sliderBar::item {
-		border: 0px;
-		padding-left: 6px;
-	}
-	QListView#sliderBar::item:hover {
-		border-radius: 2px;
-	}
-	QListView#sliderBar::item:selected {
-		padding-left: 4px;
-		border-left-width: 2px;
-		border-left-style: solid;
-		border-left-color: rgb(%1);
-	}	
-	)").arg(slider_bar_left_color));
 
     ui.titleFrameLabel->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
@@ -938,55 +928,116 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     )"
     ));
 
-    ui.seekSlider->setStyleSheet(qTEXT(R"(
-	QSlider#seekSlider {
-		background-color: transparent;
-	}
+    QString slider_bar_left_color;
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        slider_bar_left_color = qTEXT("42, 130, 218");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        slider_bar_left_color = qTEXT("42, 130, 218");
+        break;
+    }
 
-    QSlider::groove:horizontal {
-        border: 1px solid #00B0AE;
-        background: #00B0AE;
+    ui.sliderBar->setStyleSheet(qSTR(R"(
+	QListView#sliderBar {
+		border: none; 
+	}
+	QListView#sliderBar::item {
+		border: 0px;
+		padding-left: 6px;
+	}
+	QListView#sliderBar::item:hover {
+		border-radius: 2px;
+	}
+	QListView#sliderBar::item:selected {
+		padding-left: 4px;
+		border-left-width: 2px;
+		border-left-style: solid;
+		border-left-color: rgb(%1);
+	}	
+	)").arg(slider_bar_left_color));
+
+    ui.volumeSlider->setStyleSheet(qTEXT(R"(
+    QSlider#volumeSlider {
+		background-color: transparent;
+    }
+
+	QSlider#volumeSlider::groove:horizontal {        
+        background: %1;
+		border: 1px solid %1;
         height: 2px;
         border-radius: 1px;
         padding-left: 0px;
         padding-right: 0px;
     }
 
-    QSlider::sub-page:horizontal {
-		background: #9FCBFF;
-		border: 1px solid #9FCBFF;
+    QSlider#volumeSlider::sub-page:horizontal {
+		background: %1;
+		border: 1px solid %1;		
 		height: 2px;
 		border-radius: 2px;
     }
 
-    QSlider::add-page:horizontal {
-		background: #EAEAEA;
-		border: 0px solid #EAEAEA;
+    QSlider#volumeSlider::add-page:horizontal {
+		background: %2;
+		border: 0px solid %1;
 		height: 2px;
 		border-radius: 2px;
     }
 
-    QSlider::handle:horizontal {
+    QSlider#volumeSlider::handle:horizontal {
         background-color: white;
-		border: 1px solid black;
+		border: 1px solid #C9CDD0;
         width: 12px;
 		height: 12px;		
         margin-top: -6px;
         margin-bottom: -6px;
+		margin-left: -1px;
         border-radius: 7px;
     }
+    )"
+    ).arg(slider_background_color).arg(slider_border_color));
 
-    QSlider::handle:horizontal:hover {
+    ui.seekSlider->setStyleSheet(qSTR(R"(
+	QSlider#seekSlider {
+		background-color: transparent;
+	}
+
+    QSlider#seekSlider::groove:horizontal {        
+        background: %1;
+		border: 1px solid %1;
+        height: 2px;
+        border-radius: 1px;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    QSlider#seekSlider::sub-page:horizontal {
+		background: %1;
+		border: 1px solid %1;		
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider#seekSlider::add-page:horizontal {
+		background: %2;
+		border: 0px solid %1;
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider#seekSlider::handle:horizontal {
         background-color: white;
-		border: 1px solid black;
+		border: 1px solid #C9CDD0;
         width: 12px;
-		height: 12px;
-        margin-top: -7px;
+		height: 12px;		
+        margin-top: -6px;
         margin-bottom: -6px;
-        border-radius: 6px;
+		margin-left: -1px;
+        border-radius: 7px;
     }
     )"
-    ));
+    ).arg(slider_background_color).arg(slider_border_color));
 
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());

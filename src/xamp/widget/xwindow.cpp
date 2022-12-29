@@ -31,6 +31,7 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <QTimer>
 #include <base/logger_impl.h>
 
 XWindow::XWindow()
@@ -103,8 +104,11 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
 #endif
 
     setAcceptDrops(true);
+
 #if defined(Q_OS_WIN)
-    readDriveInfo();
+    QTimer::singleShot(2500, [this]() {
+        readDriveInfo();
+        });
 #endif
 }
 

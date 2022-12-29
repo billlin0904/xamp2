@@ -532,22 +532,22 @@ void Xamp::initialDeviceList() {
 void Xamp::sliderAnimation(bool enable) {
     auto* animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
     const auto slider_geometry = ui_.sliderFrame->geometry();
-    constexpr auto max_width = 200;
-    constexpr auto min_width = 48;
+    constexpr auto kMaxSliderWidth = 200;
+    constexpr auto kMinSliderWidth = 43;
     QSize size;
     if (!enable) {
         ui_.searchFrame->hide();
         ui_.tableLabel->hide();
         animation->setEasingCurve(QEasingCurve::InCubic);
-        animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), max_width, slider_geometry.height()));
-        animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), min_width, slider_geometry.height()));
-        size = QSize(min_width, slider_geometry.height());
+        animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), kMaxSliderWidth, slider_geometry.height()));
+        animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), kMinSliderWidth, slider_geometry.height()));
+        size = QSize(kMinSliderWidth, slider_geometry.height());
     }
     else {
         animation->setEasingCurve(QEasingCurve::InExpo);
-        animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), min_width, slider_geometry.height()));
-        animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), max_width, slider_geometry.height()));
-        size = QSize(max_width, slider_geometry.height());
+        animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), kMinSliderWidth, slider_geometry.height()));
+        animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), kMaxSliderWidth, slider_geometry.height()));
+        size = QSize(kMaxSliderWidth, slider_geometry.height());
     }
 
     (void)QObject::connect(animation, &QPropertyAnimation::finished, [=]() {
@@ -1394,7 +1394,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
 
     if (open_done) {
         ui_.formatLabel->setText(format2String(playback_format, ext));
-        if (playback_format.file_format.GetSampleRate() > kPcmSampleRate441) {
+        if (playback_format.file_format > AudioFormat::k16BitPCM441Khz) {
             ui_.hiResLabel->show();
             ui_.hiResLabel->setPixmap(qTheme.hiResIcon().pixmap(ui_.hiResLabel->size()));
         } else {
@@ -1732,12 +1732,7 @@ void Xamp::initialPlaylist() {
     pushWidget(preference_page_);
     pushWidget(cd_page_);
     pushWidget(about_page_);
-    goBackPage();
-    goBackPage();
-    goBackPage();
-    goBackPage();
-    goBackPage();
-    goBackPage();
+    ui_.currentView->setCurrentIndex(0);
 
     (void)QObject::connect(album_page_->album(),
         &AlbumView::clickedArtist,

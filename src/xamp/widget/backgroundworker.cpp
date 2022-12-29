@@ -136,7 +136,7 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
         return;
     }
     auto temp = image.copy();
-    Stackblur blur(*executor_, temp, 50);
+    Stackblur blur(*executor_, temp, 35);
     emit updateBlurImage(temp.copy());
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
 }

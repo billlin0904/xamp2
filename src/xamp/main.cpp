@@ -356,7 +356,7 @@ static int excute(int argc, char* argv[]) {
 
     SingleInstanceApplication single_app;
     if (!single_app.attach()) {
-        XAMP_LOG_DEBUG("Attach app failure!");
+        XAMP_LOG_DEBUG("Attach application failure!");
         return -1;
     }
 
@@ -368,33 +368,28 @@ static int excute(int argc, char* argv[]) {
 #endif
 #endif
 
-    XAMP_LOG_DEBUG("attach app success.");
+    XAMP_LOG_DEBUG("attach application success.");
+
+    try {
+        LoadComponentSharedLibrary();
+    }
+    catch (const Exception& e) {
+        XMessageBox::showBug(e);
+        return -1;
+    }
+    XAMP_LOG_DEBUG("Load component shared library success.");
 
     loadLang();
 
     try {
         qDatabase.open(qTEXT("xamp.db"));
     }
-    catch (const std::exception& e) {
-        XAMP_LOG_ERROR("Init database failure. {}", e.what());
+    catch (const Exception& e) {
+        XMessageBox::showBug(e);
         return -1;
     }
-
     XAMP_LOG_DEBUG("Database init success.");
 
-    /*for (auto i = 0LL; i < 100000; ++i) {
-        TrackInfo info;
-        auto album = QUuid::createUuid().toString();
-        auto artist = QUuid::createUuid().toString();
-        info.album = album.toStdWString();
-        info.title = QUuid::createUuid().toString().toStdWString();
-        info.artist = artist.toStdWString();
-        info.file_path = QUuid::createUuid().toString().toStdWString();
-        auto artist_id = qDatabase.addOrUpdateArtist(artist);
-        auto album_id = qDatabase.addOrUpdateAlbum(album, artist_id, 0, false);
-        auto music_id = qDatabase.addOrUpdateMusic(info);
-        qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
-    }*/
 
     qTheme.applyTheme();
     XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
@@ -413,17 +408,7 @@ static int excute(int argc, char* argv[]) {
 
     Xamp win(MakeAudioPlayer());
 
-    try {
-        win.setXWindow(&top_win);
-        //throw DeviceNotFoundException();
-    }
-    catch (const Exception& e) {
-        XMessageBox::showError(QString::fromStdString(e.GetErrorMessage()),
-            kApplicationTitle);
-        XAMP_LOG_DEBUG(e.GetStackTrace());
-        return -1;
-    }
-
+    win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
     //top_win.setContentWidget(nullptr);
 

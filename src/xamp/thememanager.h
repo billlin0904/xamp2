@@ -106,6 +106,8 @@ public:
 
     QColor hoverColor() const;
 
+    QColor highlightColor() const;
+
     QColor titleBarColor() const;
 
     QColor coverShadownColor() const;

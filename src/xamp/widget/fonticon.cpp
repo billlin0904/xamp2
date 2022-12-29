@@ -92,9 +92,11 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     // for font-awesome. 16 * 0.875 = 14
     // The reason why the glyph size is smaller than the icon size is to
 	// account for font bearing.
-    int draw_size = qRound(paint_rect.height() * 0.875);
+    //constexpr auto kRatio = 0.875;
+    constexpr auto kRatio = 0.9;
+    int draw_size = qRound(paint_rect.height() * kRatio);
     if (var.isValid()) {
-        draw_size = qRound(paint_rect.height() * 0.875 * var.value<qreal>());
+        draw_size = qRound(paint_rect.height() * kRatio * var.value<qreal>());
     }
 
     var = options_.value(FontIconOption::fontStyleAttr);
@@ -106,9 +108,9 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 
     QColor pen_color;
 
-    if (letter_ == 0xF04B && options_.size() ==  2) {
+    /*if (letter_ == 0xF04B && options_.size() ==  2) {
         XAMP_LOG_DEBUG("DEBUG mode:{} stae:{}", mode, state);
-    }
+    }*/
 
     switch (mode) {
     case QIcon::Normal:

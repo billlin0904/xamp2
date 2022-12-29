@@ -105,7 +105,16 @@ void XMessageBox::setDefaultButton(QPushButton* button) {
 }
 
 void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
-	setDefaultButton(button_box_->button(button));
+	auto* default_button = button_box_->button(button);
+	default_button->setObjectName(qTEXT("XMessageBoxDefaultButton"));
+	default_button->setStyleSheet(qSTR(
+	R"(
+      QPushButton#XMessageBoxDefaultButton {
+          background-color: %1;
+      }
+	)"
+	).arg(colorToString(qTheme.highlightColor())));
+	setDefaultButton(default_button);
 }
 
 void XMessageBox::setIcon(const QIcon& icon) {

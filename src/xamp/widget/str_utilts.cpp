@@ -55,7 +55,7 @@ QString streamTimeToString(const double stream_time, bool full_text) {
     const auto s = (secs % 3600) % 60;
     const QTime t(h, m, s, ms);
     if (h > 0 || full_text) {
-        return QLocale().toString(t, qTEXT("hh:mm:ss"));
+        return QLocale().toString(t, qTEXT("HH:mm:ss"));
     }
     return QLocale().toString(t, qTEXT("mm:ss"));
 }

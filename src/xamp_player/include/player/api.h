@@ -12,6 +12,8 @@
 
 namespace xamp::player {
 
+XAMP_PLAYER_API void LoadComponentSharedLibrary();
+
 XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer();
 
 #ifdef XAMP_OS_WIN

@@ -105,6 +105,8 @@ public:
     size_t GetHash() const;
 
 private:
+    XAMP_BASE_API friend bool operator>(const AudioFormat& format, const AudioFormat& other) noexcept;
+
     XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
 
     XAMP_BASE_API friend bool operator!=(const AudioFormat& format, const AudioFormat& other) noexcept;
@@ -266,6 +268,11 @@ XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat cons
     }
 
     return ostr;
+}
+
+XAMP_ALWAYS_INLINE bool operator>(const AudioFormat& format, const AudioFormat& other) noexcept {
+    return format.GetBitsPerSample() > other.GetBitsPerSample()
+        && format.GetSampleRate() > other.GetSampleRate();
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const & other) noexcept {
