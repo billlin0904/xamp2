@@ -279,10 +279,31 @@ static void loadLang() {
 }
 
 #ifdef XAMP_OS_WIN
+static std::vector<SharedLibraryHandle> pinSystemDLL() {
+    const std::vector<std::string_view> dll_file_names{
+        "psapi.dll",
+        "setupapi.dll",
+        "WinTypes.dll"
+    };
+    std::vector<SharedLibraryHandle> pin_module;
+    for (const auto& file_name : dll_file_names) {
+        try {
+            auto module = PinSystemLibrary(file_name);
+            if (PrefetchSharedLibrary(module)) {
+                pin_module.push_back(std::move(module));
+                XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
+            }
+        }
+        catch (Exception const& e) {
+            XAMP_LOG_DEBUG("Pin {} failure! {}.", file_name, e.GetErrorMessage());
+        }
+    }
+    return pin_module;
+}
+
 static std::vector<SharedLibraryHandle> prefetchDLL() {
     const std::vector<std::string_view> dll_file_names{
         "mimalloc-override.dll",
-        "psapi.dll",
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
@@ -301,8 +322,8 @@ static std::vector<SharedLibraryHandle> prefetchDLL() {
                 XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
             }
         }
-        catch (std::exception const& e) {
-            XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.what());
+        catch (Exception const& e) {
+            XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
         }
     }
     return preload_module;
@@ -454,6 +475,8 @@ int main(int argc, char *argv[]) {
 
     const auto prefetch_dll = prefetchDLL();
     XAMP_LOG_DEBUG("Prefetch dll success.");
+    const auto pin_system_dll = pinSystemDLL();
+    XAMP_LOG_DEBUG("Pin system dll success.");
 #else
     XAMP_LOG_DEBUG(qSTR("Build Clang %1.%2.%3")
         .arg(__clang_major__)

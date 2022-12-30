@@ -8,6 +8,7 @@
 #include <player/mbdiscid.h>
 #endif
 
+#include <QThread>
 #include <widget/metadataextractadapter.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
@@ -29,7 +30,7 @@ struct ReplayGainJob {
 };
 
 BackgroundWorker::BackgroundWorker()
-	: blur_img_cache_(8) {
+	: image_cache_(8) {
     writer_ = MakeMetadataWriter();
     logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
@@ -43,7 +44,7 @@ void BackgroundWorker::stopThreadPool() {
     }
 }
 
-void BackgroundWorker::lazyInit() {
+void BackgroundWorker::lazyInitExecutor() {
     if (executor_ != nullptr) {
         return;
     }
@@ -51,6 +52,32 @@ void BackgroundWorker::lazyInit() {
         ThreadPriority::BACKGROUND,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+}
+
+void BackgroundWorker::onFetchPodcast() {
+    XAMP_LOG_DEBUG("Current thread:{}", QThread::currentThreadId());
+
+    auto download_podcast_error = [this](const QString& msg) {
+        XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
+        emit fetchPodcastError(msg);
+    };
+
+    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"), this)
+		.error(download_podcast_error)
+        .success([this, download_podcast_error](const QString& json) {
+			XAMP_LOG_DEBUG("Thread:{} Download meta.json ({}) success!", 
+            QThread::currentThreadId(), String::FormatBytes(json.size()));
+
+        	std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
+			auto const podcast_info = std::make_pair(image_url, parseJson(json));
+            http::HttpClient(QString::fromStdString(podcast_info.first), this)
+                .error(download_podcast_error)
+                .download([this, podcast_info](const QByteArray& data) {
+					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
+                    QThread::currentThreadId(), String::FormatBytes(data.size()));
+					emit fetchPodcastCompleted(podcast_info.second, data);
+				});
+            }).get();
 }
 
 void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
@@ -123,9 +150,9 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 }
 
 void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image) {
-    lazyInit();
+    lazyInitExecutor();
 
-    if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
+    if (auto *cache_image = image_cache_.Find(cover_id)) {
         XAMP_LOG_D(logger_, "Found blur image in cache!");
         emit updateBlurImage(cache_image->copy());
         return;
@@ -138,11 +165,11 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
     auto temp = image.copy();
     Stackblur blur(*executor_, temp, 35);
     emit updateBlurImage(temp.copy());
-    blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
+    image_cache_.AddOrUpdate(cover_id, std::move(temp));
 }
 
 void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
-    lazyInit();
+    lazyInitExecutor();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);

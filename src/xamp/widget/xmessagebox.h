@@ -8,6 +8,7 @@
 #include <QFrame>
 #include <QDialogButtonBox>
 #include <QMessageBox>
+#include <QTimer>
 
 #include <version.h>
 
@@ -30,6 +31,8 @@ public:
 
 class XMessageBox : public XDialog {
 public:
+    static constexpr int kDefaultTimeoutSecond = 8;
+
 	explicit XMessageBox(const QString& title = qEmptyString,
 	                     const QString& text = qEmptyString,
 	                     QWidget* parent = nullptr,
@@ -46,11 +49,15 @@ public:
 
     QAbstractButton* clickedButton() const;
 
+    QAbstractButton* defaultButton();
+
     QDialogButtonBox::StandardButton standardButton(QAbstractButton* button) const;
 
     QPushButton* addButton(QDialogButtonBox::StandardButton buttons);
 
     void addWidget(QWidget* widget);
+
+    void showEvent(QShowEvent* event) override;
 
     static void showBug(const Exception& exception,
         const QString& title = kApplicationTitle,
@@ -92,6 +99,9 @@ public:
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
 
+public slots:
+    void updateTimeout();
+
 private:
     static QDialogButtonBox::StandardButton showCheckBox(const QString& text,
         const QString& check_box_text,
@@ -112,10 +122,13 @@ private:
 
     int execReturnCode(QAbstractButton* button);
 
+    int timeout_{ kDefaultTimeoutSecond };
+    QString defaultButtonText_;
     QLabel* icon_label_;
     QLabel* message_text_label_;
     QGridLayout* grid_layout_;
     QDialogButtonBox* button_box_;
     QAbstractButton* clicked_button_;
     QAbstractButton* default_button_;
+    QTimer timer_;
 };

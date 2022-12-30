@@ -15,6 +15,19 @@ struct ConstLatin1String final : public QLatin1String {
     }
 };
 
+class ConstString final : public std::string_view {
+public:
+	using std::string_view::string_view;
+
+	QString utf16() const {
+		return QString::fromUtf8(data(), size());
+	}
+
+	QByteArray utf8() const {
+		return QByteArray::fromRawData(data(), size());
+	}
+};
+
 namespace std {
 	template <>
 	struct hash<ConstLatin1String> {

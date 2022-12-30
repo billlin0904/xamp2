@@ -18,12 +18,11 @@ enum class HttpMethod {
     HTTP_DELETE
 };
 
-// note: This class must be running in main thread object.
 class HttpClient {
 public:
-    HttpClient(const QUrl& url, QObject *parent = nullptr, QNetworkAccessManager* manager = nullptr);
+    explicit HttpClient(const QUrl& url, QObject* parent = nullptr);
 	
-    HttpClient(const QString &url, QObject *parent = nullptr, QNetworkAccessManager* manager = nullptr);
+    explicit HttpClient(const QString &url, QObject* parent = nullptr);
 
     ~HttpClient();
 
@@ -42,6 +41,8 @@ public:
     HttpClient& success(std::function<void (const QString &)> successHandler);
 
     HttpClient& error(std::function<void(const QString&)> errorHandler);
+
+    HttpClient& progress(std::function<void(qint64, qint64)> progressHandler);
 
     void download(std::function<void (const QByteArray &)> downloadHandler, std::function<void(const QString&)> errorHandler = nullptr);
 

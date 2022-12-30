@@ -43,6 +43,10 @@ QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	result.fill(Qt::transparent);
 
 	QPainter painter(&result);
+	painter.setRenderHints(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+	painter.setRenderHints(QPainter::TextAntialiasing, true);
+
 	QPainterPath painter_path;
 	painter_path.addRoundedRect(darker_rect, Pixmap::kImageRadius, Pixmap::kImageRadius);
 	painter.setClipPath(painter_path);
@@ -61,8 +65,9 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	const QRect rect(0, 0, size.width(), size.height());
 
 	painter_path.addRoundedRect(rect, radius, radius);
-	painter.setRenderHint(QPainter::Antialiasing);
-	painter.setRenderHint(QPainter::SmoothPixmapTransform);
+	painter.setRenderHints(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+	painter.setRenderHints(QPainter::TextAntialiasing, true);
 	painter.setClipPath(painter_path);
 	painter.setBrush(QBrush(QColor(249, 249, 249)));
 	painter.drawPixmap(rect, scaledImage(pixmap, size, true));

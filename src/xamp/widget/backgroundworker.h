@@ -50,7 +50,12 @@ signals:
 
     void updateDiscCover(const QString& disc_id, const QString& cover_id);
 
+    void fetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+
+    void fetchPodcastError(const QString& msg);
 public Q_SLOT:
+	void onFetchPodcast();
+
     void onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
     void onBlurImage(const QString &cover_id, const QImage& image);
@@ -58,10 +63,10 @@ public Q_SLOT:
     void onFetchCdInfo(const DriveInfo &drive);
 
 private:
-    void lazyInit();
+    void lazyInitExecutor();
 
     bool is_stop_{false};
-    mutable LruCache<QString, QImage> blur_img_cache_;
+    mutable LruCache<QString, QImage> image_cache_;
     AlignPtr<IThreadPoolExecutor> executor_;
     AlignPtr<IMetadataWriter> writer_;
     LoggerPtr logger_;

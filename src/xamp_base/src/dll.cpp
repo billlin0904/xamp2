@@ -10,6 +10,20 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
+SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name) {
+    auto library = LoadSharedLibrary(file_name);
+    const auto library_path = GetSharedLibraryPath(library);
+
+    HMODULE module = nullptr;
+    if (!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN,
+        library_path.native().c_str(),
+        &module)) {
+        throw LoadDllFailureException(file_name);
+    }
+    SharedLibraryHandle temp(module);
+    return library;
+}
+
 void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
     auto func = ::GetProcAddress(dll.get(), MAKEINTRESOURCEA(flags));
     if (!func) {

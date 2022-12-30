@@ -51,6 +51,7 @@ public:
 
         painter->setRenderHints(QPainter::Antialiasing, true);
         painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
+        painter->setRenderHints(QPainter::TextAntialiasing, true);
 
         QStyleOptionViewItem opt(option);
         
@@ -255,18 +256,19 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::downloadPodcast() {
+    /*
     XAMP_LOG_DEBUG("Start download podcast.xml");
 
     auto download_json_file_error = [this](const QString& msg) {
         XAMP_LOG_DEBUG("Download podcast xml file error! {}", msg.toStdString());
         XMessageBox::showError(qTEXT("Download podcast xml file error!"));
-        onDownloadPodcastCompleted({}, {});
+        onFetchPodcastCompleted({}, {});
     };
 
     auto download_cover_image_error = [this](const QString& msg) {
         XAMP_LOG_DEBUG("Download podcast image error! {}", msg.toStdString());
         XMessageBox::showError(qTEXT("Download podcast image error!"));
-        onDownloadPodcastCompleted({}, {});
+        onFetchPodcastCompleted({}, {});
     };
 
     http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"))
@@ -285,9 +287,11 @@ void PlayListTableView::downloadPodcast() {
                 .error(download_cover_image_error)
                 .download([this, podcast_info](const QByteArray& data) {
                     XAMP_LOG_DEBUG("Download podcast image file ({}) success!", String::FormatBytes(data.size()));
-                    onDownloadPodcastCompleted(podcast_info.second, data);
+                    onFetchPodcastCompleted(podcast_info.second, data);
                 });
         }).get();
+    */
+    emit fetchPodcast();
 }
 
 void PlayListTableView::reload() {
@@ -533,7 +537,7 @@ void PlayListTableView::initial() {
             import_podcast_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_DOWNLOAD));
             action_map.setCallback(import_podcast_act, [this]() {
                 if (model_->rowCount() > 0) {
-                    const auto button = XMessageBox::showYesOrNo(tr("Download latest podcast before must be remove all, Are you sure remove all?"));
+                    const auto button = XMessageBox::showYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
                     if (button == QDialogButtonBox::Yes) {
                         qDatabase.removePlaylistAllMusic(playlistId());
                         executeQuery();
@@ -558,7 +562,7 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-            const auto button = XMessageBox::showYesOrNo(tr("Are you sure remove all?"));
+            const auto button = XMessageBox::showYesOrNo(tr("Remove all items?"));
             if (button == QDialogButtonBox::Yes) {
                 qDatabase.removePlaylistAllMusic(playlistId());
                 executeQuery();
@@ -873,7 +877,13 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
     }
 }
 
-void PlayListTableView::onDownloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
+void PlayListTableView::onFetchPodcastError(const QString& msg) {
+    XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
+    XMessageBox::showError(qTEXT("Download podcast error!"));
+    onFetchPodcastCompleted({}, {});
+}
+
+void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
     indicator_.reset();
 
     Stopwatch sw;

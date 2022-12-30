@@ -2010,6 +2010,25 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         background_worker_,
         &BackgroundWorker::onReadReplayGain);
 
+    if (playlist_page->playlist()->isPodcastMode()) {
+        (void)QObject::connect(playlist_page->playlist(),
+            &PlayListTableView::fetchPodcast,
+            background_worker_,
+            &BackgroundWorker::onFetchPodcast);
+
+        (void)QObject::connect(background_worker_,
+            &BackgroundWorker::fetchPodcastCompleted,
+            playlist_page->playlist(),
+            &PlayListTableView::onFetchPodcastCompleted,
+            Qt::QueuedConnection);
+
+        (void)QObject::connect(background_worker_,
+            &BackgroundWorker::fetchPodcastError,
+            playlist_page->playlist(),
+            &PlayListTableView::onFetchPodcastError,
+            Qt::QueuedConnection);
+    }
+    
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::updateReplayGain,
         playlist_page->playlist(),

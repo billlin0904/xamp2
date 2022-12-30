@@ -100,6 +100,7 @@ signals:
 
 	void addPlaylistItemFinished();
 
+	void fetchPodcast();
 public slots:
 	void processDatabase(const ForwardList<PlayListEntity>& entities);
 
@@ -117,7 +118,9 @@ public slots:
 		double track_rg_gain,
 		double track_peak);
 
-	void onDownloadPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+	void onFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+
+	void onFetchPodcastError(const QString& msg);
 private:
 	PlayListEntity item(const QModelIndex& index);
 

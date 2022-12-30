@@ -69,6 +69,9 @@ void LrcPage::setBackground(const QImage& cover) {
 }
 
 void LrcPage::paintEvent(QPaintEvent*) {
+	if (AppSettings::getValueAsBool(kEnableBlurCover)) {
+		cover_label_->setGraphicsEffect(nullptr);
+	}
 	QPainter painter(this);
 	painter.drawImage(rect(), background_image_);
 }

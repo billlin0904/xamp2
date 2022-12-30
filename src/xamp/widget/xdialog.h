@@ -23,6 +23,7 @@ public:
         frame_->setTitle(title);
     }
 
+    void showEvent(QShowEvent* event) override;
 private:
 #if defined(Q_OS_WIN)
     void mousePressEvent(QMouseEvent* event) override;
@@ -35,7 +36,6 @@ private:
     QPoint last_pos_{0, 0};
     QScreen* current_screen_{ nullptr };
 #endif
-    void showEvent(QShowEvent* event) override;
     XFrame* frame_{ nullptr };
 };
 

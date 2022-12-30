@@ -28,7 +28,11 @@ void WheelableWidget::setCurrentIndex(const int32_t index) {
 }
 
 void WheelableWidget::paintEvent(QPaintEvent*) {
-	QPainter painter(this);	
+	QPainter painter(this);
+
+	painter.setRenderHints(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
 	const auto w = width();
 	const auto h = height();

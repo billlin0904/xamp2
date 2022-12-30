@@ -29,6 +29,7 @@ XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
 
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags);
+XAMP_BASE_API SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name);
 #endif
 
 template

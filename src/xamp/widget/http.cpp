@@ -6,6 +6,7 @@
 #include <QUrl>
 #include <QTemporaryFile>
 #include <QNetworkProxy>
+#include <QThread>
 #include <QMetaEnum>
 
 #include <memory>
@@ -210,12 +211,13 @@ struct HttpContext {
     QNetworkAccessManager* manager{nullptr};
     std::function<void (const QString &)> success_handler;
     std::function<void(const QString&)> error_handler;
+    std::function<void(qint64, qint64)> progress_handler;
     LoggerPtr logger;
 };
 
 class HttpClient::HttpClientImpl {
 public:
-    HttpClientImpl(const QString &url, QObject *parent, QNetworkAccessManager* manager);
+	HttpClientImpl(const QString &url, QObject* parent = nullptr);
 
     ~HttpClientImpl();
 
@@ -233,6 +235,8 @@ public:
 
     static void handleFinish(const HttpContext& context, QNetworkReply *reply, const QString &success_message);
 
+    static void handleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total);
+
     bool use_json_;
     bool use_internal_;
     int32_t timeout_;
@@ -246,18 +250,19 @@ public:
     std::function<void (const QString &)> success_handler_;
     std::function<void(const QString&)> error_handler_;
     std::function<void (const QByteArray &)> download_handler_;
+    std::function<void(qint64, qint64)> progress_handler_;
     LoggerPtr logger_;
 };
 
 HttpClient::HttpClientImpl::~HttpClientImpl() = default;
 
-HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject *parent, QNetworkAccessManager* manager)
+HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
     : use_json_(false)
-    , use_internal_(manager == nullptr)
+    , use_internal_(true)
     , timeout_(kHttpDefaultTimeout)
     , url_(url)
     , charset_(kDefaultCharset)
-    , manager_(manager == nullptr ? new QNetworkAccessManager(parent) : manager) {
+    , manager_(new QNetworkAccessManager(parent)) {
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
 }
 
@@ -265,6 +270,7 @@ HttpContext HttpClient::HttpClientImpl::createHttpContext() const {
     HttpContext context;
     context.success_handler = success_handler_;
     context.error_handler = error_handler_;
+    context.progress_handler = progress_handler_;
     context.manager = manager_;
     context.charset = charset_;
     context.user_agent = user_agent_;
@@ -314,11 +320,41 @@ void HttpClient::HttpClientImpl::executeQuery(QSharedPointer<HttpClientImpl> d, 
 
     logHttpRequest(context.logger, requestVerb(operation, request), request);
 
-    (void) QObject::connect(reply, &QNetworkReply::finished, [reply, context, request, operation, d] {
+    QObject::connect(reply,
+        &QNetworkReply::downloadProgress,
+        [reply, context, d](auto ready, auto total) {
+		handleProgress(context, reply, ready, total);
+        });
+
+    (void) QObject::connect(reply,
+        &QNetworkReply::finished,
+        [reply, context, request, operation, d] {
         logHttpRequest(context.logger, requestVerb(operation, request), request, reply);
 	    const auto success_message = readReply(reply, context.charset);
 	    handleFinish(context, reply, success_message);
     });
+}
+
+void HttpClient::HttpClientImpl::handleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total) {
+    const auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    const auto status = statusCode.isValid() ? statusCode.toInt() : 200;
+
+    if (total > 0) {
+        XAMP_LOG_D(context.logger, "Download progress: {}%", Round(ready * 100.0 / total));
+    }
+
+    if (status == 301 || status == 302) {
+        return;
+    }
+
+    if (status != 200 && status != 206 && status != 416) {
+        handleFinish(context, reply, qEmptyString);
+        return;
+    }
+
+    if (context.progress_handler != nullptr) {
+        context.progress_handler(ready, total);
+    }
 }
 
 void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read) {
@@ -327,25 +363,34 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std:
     auto request = createHttpRequest(d, HttpMethod::HTTP_GET);
     auto* reply = context.manager->get(request);
 
-    (void) QObject::connect(reply, &QNetworkReply::readyRead, [reply, d, ready_read] {
+    (void) QObject::connect(reply,
+        &QNetworkReply::readyRead, 
+        [reply, d, ready_read] {
         ready_read(reply->readAll());
     });
 
-    (void) QObject::connect(reply, &QNetworkReply::finished, [reply, request, context, d] {
+    (void) QObject::connect(reply,
+        &QNetworkReply::finished,
+        [reply, request, context, d] {
         logHttpRequest(context.logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
         handleFinish(context, reply, QString());
     });
+
+    QObject::connect(reply,
+        &QNetworkReply::downloadProgress,
+        [reply, context, d](auto ready, auto total) {
+            handleProgress(context, reply, ready, total);
+        });
 }
 
 void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetworkReply *reply, const QString &success_message) {
     const auto error = reply->error();
+
     if (error == QNetworkReply::NoError) {
         if (context.success_handler != nullptr) {
             context.success_handler(success_message);
         }
     } else {
-        XAMP_LOG_D(context.logger, "{}", networkErrorToString(error).data());
-
         if (context.error_handler != nullptr) {
             context.error_handler(networkErrorToString(error));
         }
@@ -360,6 +405,8 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
             context.manager->deleteLater();
         }
     }
+
+    XAMP_LOG_D(context.logger, "Request finished! error: {}", networkErrorToString(error).data());
 }
 
 QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QString &charset) {
@@ -435,12 +482,12 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
     return request;
 }
 
-HttpClient::HttpClient(const QUrl& url, QObject *parent, QNetworkAccessManager* manager)
-    : HttpClient(url.toString(), parent, manager) {
+HttpClient::HttpClient(const QUrl& url, QObject* parent)
+    : HttpClient(url.toString(), parent) {
 }
 
-HttpClient::HttpClient(const QString &url, QObject *parent, QNetworkAccessManager* manager)
-    : impl_(new HttpClientImpl(url, parent, manager)) {
+HttpClient::HttpClient(const QString &url, QObject* parent)
+    : impl_(new HttpClientImpl(url, parent)) {
 }
 
 HttpClient::~HttpClient() = default;
@@ -486,6 +533,11 @@ HttpClient& HttpClient::success(std::function<void (const QString &)> success_ha
 
 HttpClient& HttpClient::error(std::function<void(const QString&)> error_handler) {
     impl_->error_handler_ = std::move(error_handler);
+    return *this;
+}
+
+HttpClient& HttpClient::progress(std::function<void(qint64, qint64)> progressHandler) {
+    impl_->progress_handler_ = std::move(progressHandler);
     return *this;
 }
 

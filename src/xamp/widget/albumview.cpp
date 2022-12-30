@@ -96,6 +96,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     painter->setRenderHints(QPainter::Antialiasing, true);
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
+    painter->setRenderHints(QPainter::TextAntialiasing, true);
 
     auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
@@ -391,7 +392,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        const auto button = XMessageBox::showYesOrNo(tr("Are you sure remove all album?"));
+        const auto button = XMessageBox::showYesOrNo(tr("Remove all album?"));
         if (button == QDialogButtonBox::Yes) {
             const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
             indicator->startAnimation();
@@ -481,7 +482,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [=]() {
-        const auto button = XMessageBox::showYesOrNo(tr("Are you sure remove the album?"));
+        const auto button = XMessageBox::showYesOrNo(tr("Remove the album?"));
 		if (button == QDialogButtonBox::Yes) {
             qDatabase.removeAlbum(album_id);
             refreshOnece();

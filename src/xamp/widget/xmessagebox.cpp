@@ -79,6 +79,10 @@ XMessageBox::XMessageBox(const QString& title,
 
 	setContentWidget(client_widget);
 	setTitle(title);
+
+	connect(&timer_, &QTimer::timeout, this, &XMessageBox::updateTimeout);
+	timer_.setInterval(1000);
+	defaultButtonText_ = defaultButton()->text();
 }
 
 void XMessageBox::setText(const QString& text) {
@@ -107,13 +111,26 @@ void XMessageBox::setDefaultButton(QPushButton* button) {
 void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 	auto* default_button = button_box_->button(button);
 	default_button->setObjectName(qTEXT("XMessageBoxDefaultButton"));
+
+	QColor text_color;
+
+	switch (qTheme.themeColor()) {
+	case ThemeColor::LIGHT_THEME:
+		text_color = Qt::white;
+		break;
+	default:
+		text_color = qTheme.themeTextColor();
+		break;
+	}
+
 	default_button->setStyleSheet(qSTR(
 	R"(
       QPushButton#XMessageBoxDefaultButton {
-          background-color: %1;
+		 background-color: %1;
+		 color: %2;
       }
 	)"
-	).arg(colorToString(qTheme.highlightColor())));
+	).arg(colorToString(qTheme.highlightColor())).arg(colorToString(text_color)));
 	setDefaultButton(default_button);
 }
 
@@ -123,6 +140,10 @@ void XMessageBox::setIcon(const QIcon& icon) {
 
 QAbstractButton* XMessageBox::clickedButton() const {
 	return clicked_button_;
+}
+
+QAbstractButton* XMessageBox::defaultButton() {
+	return default_button_;
 }
 
 QDialogButtonBox::StandardButton XMessageBox::standardButton(QAbstractButton* button) const {
@@ -135,6 +156,21 @@ void XMessageBox::addWidget(QWidget* widget) {
 
 QPushButton* XMessageBox::addButton(QDialogButtonBox::StandardButton buttons) {
 	return button_box_->addButton(buttons);
+}
+
+void XMessageBox::showEvent(QShowEvent* event) {
+	XDialog::showEvent(event);
+	updateTimeout();
+	timer_.start();
+}
+
+void XMessageBox::updateTimeout() {
+	if (--timeout_ >= 0) {
+		defaultButton()->setText(defaultButtonText_ + qSTR(" (%1)").arg(timeout_));
+	} else {
+		timer_.stop();
+		defaultButton()->animateClick();
+	}
 }
 
 void XMessageBox::showBug(const Exception& exception,
