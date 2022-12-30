@@ -151,7 +151,7 @@ QDialogButtonBox::StandardButton XMessageBox::standardButton(QAbstractButton* bu
 }
 
 void XMessageBox::addWidget(QWidget* widget) {
-	grid_layout_->addWidget(widget, 0, 1, 2, 1);
+	grid_layout_->addWidget(widget, 1, 1, 2, 1);
 }
 
 QPushButton* XMessageBox::addButton(QDialogButtonBox::StandardButton buttons) {
@@ -204,7 +204,9 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	if (!parent) {
 		parent = qApp->activeWindow();
 	}
-	parent->setFocus();
+	if (parent != nullptr) {
+		parent->setFocus();
+	}
 	mask_widget.reset(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button);
 	box.setIcon(icon);
@@ -262,6 +264,12 @@ QDialogButtonBox::StandardButton XMessageBox::showCheckBox(const QString& text,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
+	if (!parent) {
+		parent = qApp->activeWindow();
+	}
+	if (parent != nullptr) {
+		parent->setFocus();
+	}
 	QScopedPointer<MaskWidget> mask_widget(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons);
 	box.setIcon(icon);
@@ -269,9 +277,9 @@ QDialogButtonBox::StandardButton XMessageBox::showCheckBox(const QString& text,
 	check_box->setStyleSheet(qTEXT("background: transparent;"));
 	check_box->setText(check_box_text);
 	box.addWidget(check_box);
-	if (box.exec() == -1)
+	if (box.exec() == -1) {
 		return QDialogButtonBox::Cancel;
-
+	}
 	const auto standard_button = box.standardButton(box.clickedButton());
 	if (standard_button == QMessageBox::Ok) {
 		return check_box->isChecked() ? QDialogButtonBox::Yes : QDialogButtonBox::No;
