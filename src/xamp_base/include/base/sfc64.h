@@ -59,8 +59,8 @@ public:
 
 private:
     XAMP_BASE_API friend bool operator ==(const Sfc64Engine& lhs, const Sfc64Engine& rhs) noexcept {
-        return (a_ == rhs.a_) && (b_ == rhs.b_)
-            && (c_ == rhs.c_) && (inc_ == rhs.inc_);
+        return (lhs.a_ == rhs.a_) && (lhs.b_ == rhs.b_)
+            && (lhs.c_ == rhs.c_) && (lhs.inc_ == rhs.inc_);
     }
 
     XAMP_BASE_API friend bool operator !=(const Sfc64Engine& lhs, const Sfc64Engine& rhs) noexcept {

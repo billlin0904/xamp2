@@ -93,6 +93,7 @@ SOURCES += \
     aboutpage.cpp \
     preferencepage.cpp \
     main.cpp \
+    widget/zib_utiltis.cpp \
     xamp.cpp
 
 HEADERS += \
@@ -159,6 +160,7 @@ HEADERS += \
     thememanager.h \
     aboutpage.h \
     preferencepage.h \
+    widget/zib_utiltis.h \
     xamp.h \
     xampplayer.h
 

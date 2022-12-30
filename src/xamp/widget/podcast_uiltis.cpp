@@ -35,7 +35,7 @@ ForwardList<TrackInfo> parseJson(QString const& json) {
             auto dateTime = object.value(qTEXT("datetime")).toDateTime();
             TrackInfo track_info;
             track_info.file_path = url.toStdWString();
-            if (artist == performer) {
+            if (artist == performer.toStdWString()) {
                 track_info.title = title.toStdWString() + L" (" + dateTime.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") ";
             } else {
                 track_info.title = title.toStdWString() + L" (" + dateTime.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") " + L" (Ori. " + artist + L")";

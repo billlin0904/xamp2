@@ -11,8 +11,6 @@
 
 #include <memory>
 
-#include <zlib.h>
-
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/str_utilts.h>
@@ -21,6 +19,7 @@
 
 #include <version.h>
 #include <widget/str_utilts.h>
+#include <widget/zib_utiltis.h>
 #include <widget/widget_shared.h>
 
 
@@ -28,48 +27,8 @@ namespace http {
 
 XAMP_DECLARE_LOG_NAME(Http);
 
-static constexpr size_t kHttpBufferSize = 512 * 1024;
 static constexpr int32_t kHttpDefaultTimeout = 3000;
-
-class ZLibLib final {
-public:
-    ZLibLib();
-
-private:
-    SharedLibraryHandle module_;
-
-public:
-    XAMP_DECLARE_DLL_NAME(inflateInit2_);
-    XAMP_DECLARE_DLL_NAME(inflate);
-    XAMP_DECLARE_DLL_NAME(inflateEnd);
-};
-
-ZLibLib::ZLibLib()
-	: module_(OpenSharedLibrary("zlib1"))
-    , XAMP_LOAD_DLL_API(inflateInit2_)
-    , XAMP_LOAD_DLL_API(inflate)
-    , XAMP_LOAD_DLL_API(inflateEnd) {
-}
-
-#define ZLIB_DLL Singleton<ZLibLib>::GetInstance()
-
-static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) {
-    const auto* mo = &QNetworkReply::staticMetaObject;
-    const int index = mo->indexOfEnumerator("NetworkError");
-    if (index == -1)
-        return qEmptyString;
-    const auto qme = mo->enumerator(index);
-    return { qme.valueToKey(code) };
-}
-
-static bool isLoadZib() {
-	try {
-        Singleton<ZLibLib>::GetInstance();
-        return true;
-	} catch (...) {
-        return false;
-	}
-}
+static constexpr size_t kHttpBufferSize = 512 * 1024;
 
 static bool isZipEncoding(QNetworkReply const *reply) {
     bool is_gzipped = false;
@@ -81,48 +40,13 @@ static bool isZipEncoding(QNetworkReply const *reply) {
     return is_gzipped;
 }
 
-static QByteArray gzipUncompress(const QByteArray& data) {
-#define XAMP_inflateInit2(strm, windowBits) \
-          ZLIB_DLL.inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
-                        (int)sizeof(z_stream))
-    QByteArray result;
-    z_stream zlib_stream;
-
-    zlib_stream.zalloc = nullptr;
-    zlib_stream.zfree = nullptr;
-    zlib_stream.opaque = nullptr;
-    zlib_stream.avail_in = data.size();
-    zlib_stream.next_in = (Bytef*)data.data();
-
-    auto ret = XAMP_inflateInit2(&zlib_stream, 15 + 32); // gzip decoding
-    if (ret != Z_OK) {
-        return result;
-    }
-
-    XAMP_ON_SCOPE_EXIT(
-        ZLIB_DLL.inflateEnd(&zlib_stream);
-    );
-
-    do {
-        char output[kHttpBufferSize]{ };
-        zlib_stream.avail_out = kHttpBufferSize;
-        zlib_stream.next_out = reinterpret_cast<Bytef*>(output);
-
-        ret = ZLIB_DLL.inflate(&zlib_stream, Z_NO_FLUSH);
-        Q_ASSERT(ret != Z_STREAM_ERROR);  // state not clobbered
-
-        switch (ret) {
-        case Z_NEED_DICT:
-            ret = Z_DATA_ERROR;     // and fall through
-        case Z_DATA_ERROR:
-        case Z_MEM_ERROR:
-            return result;
-        }
-
-        result.append(output, kHttpBufferSize - zlib_stream.avail_out);
-    } while (zlib_stream.avail_out == 0);
-
-    return result;
+static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) {
+    const auto* mo = &QNetworkReply::staticMetaObject;
+    const int index = mo->indexOfEnumerator("NetworkError");
+    if (index == -1)
+        return qEmptyString;
+    const auto qme = mo->enumerator(index);
+    return { qme.valueToKey(code) };
 }
 
 static void logHttpRequest(const LoggerPtr &logger,
