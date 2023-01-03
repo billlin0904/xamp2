@@ -115,7 +115,7 @@ DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(AudioFormat c
 	: Exception(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
 	, format_(format) {
 	std::ostringstream ostr;
-	ostr << "Device unsupported file format." << format_;
+	ostr << "Device unsupported file format. (" << format_ << ")";
 	message_ = ostr.str();
 }
 

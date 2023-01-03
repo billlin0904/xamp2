@@ -52,7 +52,7 @@ void AlbumViewStyledDelegate::setTextColor(QColor color) {
 }
 
 void AlbumViewStyledDelegate::clearImageCache() {
-    image_cache_.Clear();
+    rounded_image_cache_.Clear();
 }
 
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
@@ -153,15 +153,15 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     auto* album_cover = &qTheme.defaultSizeUnknownCover();
 
-    if (const auto* round_image = image_cache_.Find(cover_id)) {
-        painter->drawPixmap(cover_rect, *round_image);
+    if (const auto* rounded_image = rounded_image_cache_.Find(cover_id)) {
+        painter->drawPixmap(cover_rect, *rounded_image);
     } else {
-        if (const auto* cache_small_cover = qPixmapCache.find(cover_id)) {
-            album_cover = cache_small_cover;
+        if (const auto* cover_cache = qPixmapCache.find(cover_id)) {
+            album_cover = cover_cache;
         }
         auto album_image = Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius);
         if (!cover_id.isEmpty()) {
-            image_cache_.Add(cover_id, album_image);
+            rounded_image_cache_.Add(cover_id, album_image);
         }
         painter->drawPixmap(cover_rect, album_image);
     }

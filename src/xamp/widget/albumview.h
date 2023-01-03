@@ -51,7 +51,7 @@ private:
 	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
-	mutable LruCache<QString, QPixmap> image_cache_;
+	mutable LruCache<QString, QPixmap> rounded_image_cache_;
 };
 
 class AlbumViewPage final : public QFrame {

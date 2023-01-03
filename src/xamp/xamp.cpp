@@ -1293,8 +1293,9 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
             if (player_->GetInputFormat().GetBitsPerSample() != 16) {
-                const auto message = qSTR("Playing blue-tooth device need set %1bit to 16bit/44.1Khz.")
-                    .arg(player_->GetInputFormat().GetBitsPerSample());
+                const auto message = qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
+                    .arg(player_->GetInputFormat().GetBitsPerSample())
+                    .arg(samplerate2String(player_->GetInputFormat().GetSampleRate()));
                 showMeMessage(message);
             }
             byte_format = ByteFormat::SINT16;
