@@ -89,37 +89,13 @@ QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);
-    dialog->setMinimumSize(QSize(1000, 100));
-    dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    dialog->setFixedSize(QSize(1000, 100));
+    dialog->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     auto* progress_bar = new QProgressBar(dialog);
     progress_bar->setFont(QFont(qTEXT("FormatFont")));
     dialog->setBar(progress_bar);
     return QScopedPointer<QProgressDialog>(dialog);
-}
-
-std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin) {
-    bool is_show_again = true;
-
-    if (show_agin) {
-        auto cb = new QCheckBox(qApp->tr("Don't show this again"));
-        XMessageBox msgbox;
-        msgbox.setTitle(kApplicationTitle);
-        msgbox.setText(qApp->tr("Hide XAMP to system tray?"));
-        msgbox.setIcon(qTheme.iconFromFont(0x003F));
-        msgbox.addButton(QDialogButtonBox::Cancel);
-        msgbox.setDefaultButton(QDialogButtonBox::Cancel);
-        msgbox.addWidget(cb);
-
-        (void)QObject::connect(cb, &QCheckBox::stateChanged, [&is_show_again](int state) {
-            if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
-                is_show_again = false;
-            }
-            });
-        return { is_show_again, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
-        
-    }
-    return { is_show_again, QMessageBox::Yes };
 }
 
 void centerParent(QWidget* widget) {

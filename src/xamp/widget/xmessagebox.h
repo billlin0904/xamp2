@@ -85,14 +85,14 @@ public:
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
 
-    static QDialogButtonBox::StandardButton showCheckBoxQuestion(const QString& text,
+    static std::tuple<QDialogButtonBox::StandardButton, bool> showCheckBoxQuestion(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
 
-    static QDialogButtonBox::StandardButton showCheckBoxInformation(const QString& text,
+    static std::tuple<QDialogButtonBox::StandardButton, bool> showCheckBoxInformation(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
@@ -103,7 +103,7 @@ public slots:
     void updateTimeout();
 
 private:
-    static QDialogButtonBox::StandardButton showCheckBox(const QString& text,
+    static std::tuple<QDialogButtonBox::StandardButton, bool> showCheckBox(const QString& text,
         const QString& check_box_text,
         const QString& title,
         const QIcon& icon,

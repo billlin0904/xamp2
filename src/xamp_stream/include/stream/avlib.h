@@ -139,7 +139,7 @@ public:
 
     ~AvLib();
 
-    HashSet<std::string> GetSupportFileExtensions() const;
+    Vector<std::string> GetSupportFileExtensions() const;
 
     AlignPtr<AvFormatLib> FormatLib;
     AlignPtr<AvCodecLib> CodecLib;

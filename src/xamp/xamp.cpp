@@ -259,16 +259,16 @@ void Xamp::initialTrayIcon() {
     }
 
     auto* minimize_action = new QAction(tr("Mi&nimize"), this);
-    (void)QObject::connect(minimize_action, &QAction::triggered, this, &QWidget::hide);
+    (void)QObject::connect(minimize_action, &QAction::triggered, top_window_, &QWidget::hide);
 
     auto* maximize_action = new QAction(tr("Ma&ximize"), this);
-    (void)QObject::connect(maximize_action, &QAction::triggered, this, &QWidget::showMaximized);
+    (void)QObject::connect(maximize_action, &QAction::triggered, top_window_, &QWidget::showMaximized);
 
     auto* restore_action = new QAction(tr("&Restore"), this);
-    (void)QObject::connect(restore_action, &QAction::triggered, this, &QWidget::showNormal);
+    (void)QObject::connect(restore_action, &QAction::triggered, top_window_, &QWidget::showNormal);
 
     auto* quit_action = new QAction(tr("&Quit"), this);
-    (void)QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
+    (void)QObject::connect(quit_action, &QAction::triggered, top_window_, &QWidget::close);
 
     tray_icon_menu_ = new XMenu(this);
     qTheme.setMenuStyle(tray_icon_menu_);
@@ -305,21 +305,8 @@ void Xamp::focusOut() {
 void Xamp::closeEvent(QCloseEvent* event) {
     if (tray_icon_ != nullptr) {
         if (tray_icon_->isVisible() && !isHidden()) {
-            const auto minimize_to_tray_ask = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
-            QMessageBox::StandardButton reply = QMessageBox::No;
-
-            const auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
-
-            if (!is_min_system_tray && minimize_to_tray_ask) {
-                QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-                auto [show_again_res, reply_res] = showDontShowAgainDialog(minimize_to_tray_ask);
-                AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_again_res);
-                AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
-                reply = reply_res;
-            }
-
-            if (reply == QMessageBox::Ok) {
-                hide();
+            if (showMeMessage(tr("Hide to system tray?"))) {
+                top_window_->hide();
                 event->ignore();
                 return;
             }
@@ -1214,14 +1201,18 @@ void Xamp::setupSampleWriter(PlaybackFormat& playback_format, QString& samplerat
 	}
 }
 
-void Xamp::showMeMessage(const QString& message) {
-    if (AppSettings::showMeAgain(message)) {
-        if (XMessageBox::showCheckBoxInformation(
+bool Xamp::showMeMessage(const QString& message) {
+    if (AppSettings::dontShowMeAgain(message)) {
+        auto [button, checked] = XMessageBox::showCheckBoxInformation(
             message,
-            tr("Ok, and don't show again.")) == QDialogButtonBox::Yes) {
+            tr("Ok, and don't show again."));
+        if (checked) {
             AppSettings::addDontShowMeAgain(message);
+            return true;
         }
+        return button == QDialogButtonBox::Yes;
     }
+    return true;
 }
 
 void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
@@ -1302,7 +1293,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
             if (player_->GetInputFormat().GetBitsPerSample() != 16) {
-                const auto message = qSTR("Playing blue-tooth device need set %1bit to 16bit depth.")
+                const auto message = qSTR("Playing blue-tooth device need set %1bit to 16bit/44.1Khz.")
                     .arg(player_->GetInputFormat().GetBitsPerSample());
                 showMeMessage(message);
             }

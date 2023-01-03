@@ -125,61 +125,6 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
     }
 }
 
-void ThemeManager::setSegoeFluentIcons() {
-    const HashMap<char32_t, uint32_t> glyphs{
-    { ICON_VOLUME_UP ,                0xE995 },
-    { ICON_VOLUME_OFF,                0xE74F },
-    { ICON_SPEAKER,                   0xE7F5 },
-    { ICON_FOLDER,                    0xF12B },
-    { ICON_AUDIO,                     0xE8D6 },
-    { ICON_LOAD_FILE,                 0xE8E5 },
-    { ICON_LOAD_DIR,                  0xE838 },
-    { ICON_RELOAD,                    0xE895 },
-    { ICON_REMOVE_ALL,                0xE894 },
-    { ICON_OPEN_FILE_PATH,            0xE8DA },
-    { ICON_READ_REPLAY_GAIN,          0xF270 },
-    { ICON_EXPORT_FILE,               0xE78C },
-    { ICON_COPY,                      0xE8C8 },
-    { ICON_DOWNLOAD,                  0xE896 },
-    { ICON_PLAYLIST,                  0xE90B },
-    { ICON_EQUALIZER,                 0xE9E9 },
-    { ICON_PODCAST,                   0xEFA9 },
-    { ICON_ALBUM,                     0xE93C },
-    { ICON_CD,                        0xE958 },
-    { ICON_LEFT_ARROW,                0xEC52 },
-    { ICON_ARTIST,                    0xE716 },
-    { ICON_SUBTITLE,                  0xED1E },
-    { ICON_PREFERENCE,                0xE713 },
-    { ICON_ABOUT,                     0xF167 },
-    { ICON_DARK_MODE,                 0xEC46 },
-    { ICON_LIGHT_MODE,                0xF08C },
-    { ICON_SEARCH,                    0xF78B },
-    { ICON_THEME,                     0xE771 },
-    { ICON_DESKTOP,                   0xEC4E },
-    { ICON_SHUFFLE_PLAY_ORDER,        0xE8B1 },
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xE8ED },
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xE8EE },
-    { ICON_MINIMIZE_WINDOW,           0xE921 },
-    { ICON_MAXIMUM_WINDOW,            0xE922 },
-    { ICON_CLOSE_WINDOW,              0xE8BB },
-    { ICON_RESTORE_WINDOW,            0xE923 },
-    { ICON_SLIDER_BAR,                0xE700 },
-    { ICON_PLAY,                      0xF5B0 },
-    { ICON_PAUSE,                     0xF8AE },
-    { ICON_STOP_PLAY,                 0xE978 },
-    { ICON_PLAY_FORWARD,              0xF8AD },
-    { ICON_PLAY_BACKWARD,             0xF8AC },
-    { ICON_MORE,                      0xE712 },
-    { ICON_HIDE,                      0xED1A },
-    { ICON_SHOW,                      0xE7B3 },
-    { ICON_USB,                       0xE88E },
-    { ICON_BUILD_IN_SPEAKER,          0xE7F5 },
-    { ICON_BLUE_TOOTH,                0xE702 },
-    };
-    qFontIcon.addFont(fontNamePath(qTEXT("SegoeFluentIcons.ttf")));
-    qFontIcon.setGlyphs(glyphs);
-}
-
 void ThemeManager::setFontAwesomeIcons() {
     const HashMap<char32_t, uint32_t> glyphs{
     { ICON_VOLUME_UP ,                0xF6A8 },
@@ -230,6 +175,10 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_USB,                       0xF8E9 },
     { ICON_BUILD_IN_SPEAKER,          0xF8DF },
     { ICON_BLUE_TOOTH,                0xF293 },
+	{ ICON_MESSAGE_BOX_WARNING,       0xF071 },
+    { ICON_MESSAGE_BOX_INFORMATION,   0xF05A },
+    { ICON_MESSAGE_BOX_ERROR,         0xF05E },
+	{ ICON_MESSAGE_BOX_QUESTION,      0xF059 },
     };
     qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
     //qFontIcon.addFont(fontNamePath(qTEXT("fa-light-300.ttf")));
@@ -243,12 +192,12 @@ QFont ThemeManager::loadFonts() {
     QList<QString> ui_fonts;
 
     setFontAwesomeIcons();
-    //setSegoeFluentIcons();
 
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-
+    installFileFonts(qTEXT("Roboto-Regular"), mono_fonts);
     installFileFonts(qTEXT("Lato"), ui_fonts);
     installFileFonts(qTEXT("MiSans"), ui_fonts);
+
     //installFileFonts(qTEXT("MILanPro"), ui_fonts);
     //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
@@ -371,12 +320,35 @@ QIcon ThemeManager::iconFromFont(const char32_t code) const {
     case Glyphs::ICON_MAXIMUM_WINDOW:
     case Glyphs::ICON_CLOSE_WINDOW:
     case Glyphs::ICON_RESTORE_WINDOW:
-    {
-        auto temp = font_icon_opts_;
-        temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.2));
-        return qFontIcon.icon(code, temp);
-    }
-        break;
+		{
+			auto temp = font_icon_opts_;
+			temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.2));
+			return qFontIcon.icon(code, temp);
+		}
+    case Glyphs::ICON_MESSAGE_BOX_WARNING:
+	    {
+			auto temp = font_icon_opts_;
+            temp.insert(FontIconOption::colorAttr, QVariant(QColor(255, 164, 6)));
+            return qFontIcon.icon(code, temp);
+	    }
+    case Glyphs::ICON_MESSAGE_BOX_ERROR:
+		{
+			auto temp = font_icon_opts_;
+			temp.insert(FontIconOption::colorAttr, QVariant(QColor(189, 29, 29)));
+			return qFontIcon.icon(code, temp);
+		}
+    case Glyphs::ICON_MESSAGE_BOX_INFORMATION:
+		{
+			auto temp = font_icon_opts_;
+			temp.insert(FontIconOption::colorAttr, QVariant(QColor(43, 128, 234)));
+		    return qFontIcon.icon(code, temp);
+		}
+    case Glyphs::ICON_MESSAGE_BOX_QUESTION:
+		{
+			auto temp = font_icon_opts_;
+			temp.insert(FontIconOption::colorAttr, QVariant(QColor(53, 193, 31)));
+			return qFontIcon.icon(code, temp);
+		}
     }
     return qFontIcon.icon(code, font_icon_opts_);
 }

@@ -14,8 +14,8 @@ MaskWidget::MaskWidget(QWidget* parent)
 	: QWidget(parent) {
 	setWindowFlag(Qt::FramelessWindowHint);
 	setAttribute(Qt::WA_StyledBackground);
-	// 255 * 0.4 = 102
-	setStyleSheet(qTEXT("background-color: rgba(0, 0, 0, 102);"));
+	// 255 * 0.7 = 178.5
+	setStyleSheet(qTEXT("background-color: rgba(0, 0, 0, 179);"));
 	auto* animation = new QPropertyAnimation(this, "windowOpacity");
 	animation->setDuration(2000);
 	animation->setEasingCurve(QEasingCurve::OutBack);
@@ -220,7 +220,7 @@ QDialogButtonBox::StandardButton XMessageBox::showInformation(const QString& tex
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showButton(text, title, qTheme.iconFromFont(0xF05A), buttons, default_button, parent);
+	return showButton(text, title, qTheme.iconFromFont(Glyphs::ICON_MESSAGE_BOX_INFORMATION), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showError(const QString& text,
@@ -228,7 +228,7 @@ QDialogButtonBox::StandardButton XMessageBox::showError(const QString& text,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showButton(text, title, qTheme.iconFromFont(0xF05E), buttons, default_button, parent);
+	return showButton(text, title, qTheme.iconFromFont(Glyphs::ICON_MESSAGE_BOX_ERROR), buttons, default_button, parent);
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showWarning(const QString& text,
@@ -236,28 +236,28 @@ QDialogButtonBox::StandardButton XMessageBox::showWarning(const QString& text,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showButton(text, title, qTheme.iconFromFont(0xF071), buttons, default_button, parent);
+	return showButton(text, title, qTheme.iconFromFont(Glyphs::ICON_MESSAGE_BOX_WARNING), buttons, default_button, parent);
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showCheckBoxQuestion(const QString& text,
+std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxQuestion(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(0xF059), buttons, default_button, parent);
+	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(Glyphs::ICON_MESSAGE_BOX_QUESTION), buttons, default_button, parent);
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showCheckBoxInformation(const QString& text,
+std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxInformation(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(0xF05A), buttons, default_button, parent);
+	return showCheckBox(text, check_box_text, title, qTheme.iconFromFont(Glyphs::ICON_MESSAGE_BOX_INFORMATION), buttons, default_button, parent);
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showCheckBox(const QString& text,
+std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBox(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	const QIcon& icon,
@@ -278,11 +278,11 @@ QDialogButtonBox::StandardButton XMessageBox::showCheckBox(const QString& text,
 	check_box->setText(check_box_text);
 	box.addWidget(check_box);
 	if (box.exec() == -1) {
-		return QDialogButtonBox::Cancel;
+		return { QDialogButtonBox::Cancel, false };
 	}
 	const auto standard_button = box.standardButton(box.clickedButton());
 	if (standard_button == QMessageBox::Ok) {
-		return check_box->isChecked() ? QDialogButtonBox::Yes : QDialogButtonBox::No;
+		return { QDialogButtonBox::Yes, check_box->isChecked() };
 	}
-	return QDialogButtonBox::Cancel;
+	return { QDialogButtonBox::Cancel, check_box->isChecked() };
 }

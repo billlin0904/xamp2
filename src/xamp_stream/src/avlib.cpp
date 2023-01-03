@@ -1,3 +1,4 @@
+#include <set>
 #include <stream/avlib.h>
 
 #include <base/logger.h>
@@ -160,8 +161,8 @@ AvLib::AvLib() {
 	XAMP_LOG_D(logger, "Network init.");
 }
 
-HashSet<std::string> AvLib::GetSupportFileExtensions() const {
-	HashSet<std::string> result;
+Vector<std::string> AvLib::GetSupportFileExtensions() const {
+	Vector<std::string> result;
 	HashSet<const AVCodec*> audio_codecs;
 
 	const auto level = logger->GetLevel();
@@ -178,16 +179,16 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	}
 
 	auto output_format = FormatLib->av_oformat_next(nullptr);
+	std::set<std::string_view> ordered_extension;
+
 	while (output_format != nullptr) {
 		for (auto* audio_codec : audio_codecs) {
 			if (FormatLib->avformat_query_codec(output_format, audio_codec->id, FF_COMPLIANCE_STRICT) == 1) {
 				if (!output_format->extensions)
 					continue;
 				for (const auto& extension : String::Split(output_format->extensions, ",")) {
-					const auto file_extensions = String::Format(".{}", extension);
-					if (!result.contains(file_extensions)) {
-						XAMP_LOG_T(logger, "Load Libav format name:{} extensions: {}", output_format->name, file_extensions);
-						result.insert(file_extensions);
+					if (!ordered_extension.contains(extension)) {
+						ordered_extension.insert(extension);
 					}
 				}
 			}
@@ -196,10 +197,18 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	}
 
 	// Workaround!
-	result.insert(".wav");
-	result.insert(".mp3");
-    result.insert(".dsf");
-    result.insert(".dff");
+	ordered_extension.insert("wav");
+	ordered_extension.insert("mp3");
+	ordered_extension.insert("dsf");
+	ordered_extension.insert("dff");
+
+	result.reserve(ordered_extension.size());
+
+	for(auto extension : ordered_extension) {
+		const auto file_extensions = String::Format(".{}", extension);
+		XAMP_LOG_T(logger, "Load Libav format extensions: {}", file_extensions);
+		result.push_back(file_extensions);
+	}
 
 	logger->SetLevel(level);
 	return result;

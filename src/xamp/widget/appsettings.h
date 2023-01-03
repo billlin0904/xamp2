@@ -170,7 +170,7 @@ public:
 
     static void addDontShowMeAgain(const QString &text);
 
-    static bool showMeAgain(const QString& text);
+    static bool dontShowMeAgain(const QString& text);
 
     static QLocale locale();
 protected:

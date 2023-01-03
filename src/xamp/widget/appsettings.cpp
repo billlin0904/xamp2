@@ -30,7 +30,7 @@ void AppSettings::setEQSettings(AppEQSettings const& eq_settings) {
     setValue(kAppSettingEQName, QVariant::fromValue(eq_settings));
 }
 
-bool AppSettings::showMeAgain(const QString& text) {
+bool AppSettings::dontShowMeAgain(const QString& text) {
     const auto string_hash = QString::number(qHash(text));
     auto dont_show_me_again_list = getList(kAppSettingDontShowMeAgainList);
     return !dont_show_me_again_list.contains(string_hash);

@@ -13,9 +13,14 @@ namespace xamp::base {
 
 class XAMP_BASE_API SipHash final {
 public:
-	explicit SipHash(uint64_t k0 = 0, uint64_t k1 = 0);
+	SipHash();
 
-	void Clear(uint64_t k0 = 0, uint64_t k1 = 0);
+	constexpr SipHash(
+		uint64_t k0,
+		uint64_t k1
+	);
+
+	constexpr void Clear(uint64_t k0 = 0, uint64_t k1 = 0);
 
     void Update(const std::string& x);
 

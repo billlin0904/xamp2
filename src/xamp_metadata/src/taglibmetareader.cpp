@@ -8,6 +8,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/singleton.h>
+#include <base/exception.h>
 
 #include <vector>
 #include <sstream>
@@ -358,8 +359,8 @@ public:
             // https://developercommunity.visualstudio.com/t/reported-memory-leak-when-converting-file-time-typ/1467739
             //metadata.last_write_time = ToTime_t(Fs::last_write_time(path));
         }
-        catch (std::exception const &e) {
-            XAMP_LOG_ERROR(e.what());
+        catch (Exception const &e) {
+            XAMP_LOG_ERROR("Failed to get file: {} last write time error: {}", path.string(), e.GetErrorMessage());
         }
 
 	    const auto fileref = GetFileRef(path);

@@ -132,7 +132,7 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-const HashSet<std::string> & GetSupportFileExtensions() {
+const Vector<std::string> & GetSupportFileExtensions() {
     static const auto file_ext_lut = LIBAV_LIB.GetSupportFileExtensions();
     return file_ext_lut;
 }

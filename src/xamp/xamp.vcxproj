@@ -245,6 +245,7 @@
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xframe.cpp" />
+    <ClCompile Include="widget\zib_utiltis.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>

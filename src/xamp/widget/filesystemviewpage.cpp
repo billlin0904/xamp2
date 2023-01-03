@@ -26,11 +26,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui.dirTree->hideColumn(2);
     ui.dirTree->hideColumn(3);
 
-    QStringList filter;
-    for (auto& file_ext : GetSupportFileExtensions()) {
-        filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
-    }
-    dir_model_->setNameFilters(filter);
+    dir_model_->setNameFilters(getFileNameFilter());
     dir_model_->setNameFilterDisables(false);
 
     ui.dirTree->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -42,7 +38,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             if (!index.isValid()) {
                 return;
             }
-            auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
+            auto path = toNativeSeparators(dir_model_->fileInfo(index).filePath());
             ui.playlistPage->playlist()->append(path, false, false);
             });
         add_file_to_playlist_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_PLAYLIST));

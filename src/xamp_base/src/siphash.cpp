@@ -1,5 +1,5 @@
 #include <base/siphash.h>
-
+#include <base/platform.h>
 #include <base/math.h>
 
 namespace xamp::base {
@@ -19,11 +19,15 @@ namespace xamp::base {
 #define CURRENT_BYTES_IDX(i) (i)
 #endif
 
-SipHash::SipHash(uint64_t k0, uint64_t k1) {
+SipHash::SipHash() {
+    Clear(GenRandomSeed(), GenRandomSeed());
+}
+
+constexpr SipHash::SipHash(uint64_t k0, uint64_t k1) {
     Clear(k0, k1);
  }
 
-void SipHash::Clear(uint64_t k0, uint64_t k1) {
+constexpr void SipHash::Clear(uint64_t k0, uint64_t k1) {
     v0_ = 0x736f6d6570736575ULL ^ k0;
     v1_ = 0x646f72616e646f6dULL ^ k1;
     v2_ = 0x6c7967656e657261ULL ^ k0;

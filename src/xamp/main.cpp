@@ -201,7 +201,7 @@ static void loadOrSaveLogConfig() {
 static void registerMetaType() {
     XAMP_LOG_DEBUG("registerMetaType.");
 
-    // For QSetting
+    // For QSetting read
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
 
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
@@ -236,8 +236,8 @@ static void loadAppSettings() {
     AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
     AppSettings::setDefaultValue(kAppSettingUseFramelessWindow, true);
     AppSettings::setDefaultValue(kLyricsFontSize, 12);
-    AppSettings::setDefaultValue(kAppSettingMinimizeToTrayAsk, false);
-    AppSettings::setDefaultValue(kAppSettingMinimizeToTray, false);
+    //AppSettings::setDefaultValue(kAppSettingMinimizeToTrayAsk, false);
+    AppSettings::setDefaultValue(kAppSettingMinimizeToTray, true);
     AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
     AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);

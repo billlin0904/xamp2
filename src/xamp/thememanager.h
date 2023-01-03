@@ -141,8 +141,6 @@ private:
 
     void setPalette();
 
-    void setSegoeFluentIcons();
-
     void setFontAwesomeIcons();
 
     ThemeManager();

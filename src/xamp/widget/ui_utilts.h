@@ -34,8 +34,6 @@ QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget);
 
 QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
 
-std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin);
-
 void centerDesktop(QWidget* widget);
 
 void centerParent(QWidget* widget);

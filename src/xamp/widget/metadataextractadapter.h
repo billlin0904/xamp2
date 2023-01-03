@@ -48,9 +48,12 @@ class MetadataExtractAdapter final
 	: public QObject {
 	Q_OBJECT
 public:
+    static constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
+    static constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
+
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
-    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true, bool is_recursive = true);
+    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true);
 
 signals:
     void fromDatabase(const ForwardList<PlayListEntity>& entity);
@@ -58,6 +61,8 @@ signals:
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
 
 public:
+    static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, const QString& dir);
+
     static void processMetadata(const ForwardList<TrackInfo>& result, PlayListTableView *playlist = nullptr, int64_t dir_last_write_time = -1);
 
 	static void addMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast);

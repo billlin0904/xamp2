@@ -113,158 +113,114 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
-class TrackInfoExtractAdapterProxy final : public IMetadataExtractAdapter {
-public:
-    explicit TrackInfoExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
-        : reader_(MakeMetadataReader())
-		, adapter_(adapter) {
-        GetSupportFileExtensions();
+void ::MetadataExtractAdapter::ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, const QString &dir) {
+    const auto file_name_filters = getFileNameFilter();
+
+    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+
+    SipHash hasher(kDirHashKey1, kDirHashKey2);
+    ForwardList<Path> paths;
+
+    while (itr.hasNext()) {
+        auto path = toNativeSeparators(itr.next()).toStdWString();
+        paths.push_front(path);
+        hasher.Update(path);
     }
 
-    [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
-        if (Fs::is_directory(path)) {
-            return true;
-        }
-        if (!path.has_extension()) {
-            return false;
-        }
-        const auto file_ext = String::ToLower(path.extension().string());
-        const auto & support_file_set = GetSupportFileExtensions();
-        return support_file_set.find(file_ext) != support_file_set.end();
+    if (paths.empty()) {
+        paths.push_front(dir.toStdWString());
     }
 
-    XAMP_DISABLE_COPY(TrackInfoExtractAdapterProxy)
+    const auto path_hash = hasher.GetHash();
 
-    void OnWalkNew() override {
-        qApp->processEvents();
+    const auto db_hash = qDatabase.getParentPathHash(dir);
+    if (db_hash == path_hash) {
+        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
+        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+        return;
     }
 
-    void OnWalk(const Path& path) override {
-        qApp->processEvents();
-        if (Fs::is_directory(path)) {
-            return;
-        }
-        XAMP_LOG_DEBUG("OnWalk Path: {}", String::ToString(path.wstring()));
-        hasher_.Update(path.native());
-        paths_.push_front(path);
-    }
+    auto reader = MakeMetadataReader();
 
-    void OnWalkEnd(DirectoryEntry const& dir_entry) override {
-        qApp->processEvents();
-        const auto path_hash = hasher_.GetHash();
-        hasher_.Clear();
-        
-        const auto db_hash = qDatabase.getParentPathHash(QString::fromStdWString(Path(dir_entry).wstring()));
-        if (db_hash == path_hash) {
-            album_groups_.clear();
-            paths_.clear();
-            emit adapter_->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
-            return;
-        }
-
-        XAMP_LOG_DEBUG("Cache miss! Hash:{} Path: {}", path_hash, String::ToString(Path(dir_entry).wstring()));
-
-        std::for_each(paths_.begin(), paths_.end(), [&](auto& path) {
-            auto metadata = reader_->Extract(path);
-			album_groups_[metadata.album].push_front(std::move(metadata));
-            });
-        std::for_each(album_groups_.begin(), album_groups_.end(), [&](auto& tracks) {
-            std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
-                track.parent_path_hash = path_hash;
-                });
-
-            tracks.second.sort([](const auto& first, const auto& last) {
-                return first.track < last.track;
-                });
+    HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
+    std::for_each(paths.begin(), paths.end(), [&](auto& path) {
+        auto track_info = reader->Extract(path);
+		album_groups[track_info.album].push_front(std::move(track_info));
         });
-        std::for_each(album_groups_.begin(), album_groups_.end(), [&](auto& tracks) {
-            emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), tracks.second);
-            });
-        album_groups_.clear();
-        paths_.clear();
-    }
-	
-private:
-    AlignPtr<IMetadataReader> reader_;
-    QSharedPointer<::MetadataExtractAdapter> adapter_;
-    ForwardList<Path> paths_;
-    HashMap<std::wstring, ForwardList<TrackInfo>> album_groups_;
-    SipHash hasher_;
-};
+
+    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
+        std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
+            track.parent_path_hash = path_hash;
+        });
+    
+        tracks.second.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;
+        });
+    });
+
+    const DirectoryEntry dir_entry(dir.toStdWString());
+    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
+        emit adapter->readCompleted(ToTime_t(dir_entry.last_write_time()), tracks.second);
+    });
+}
 
 ::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
     : QObject(parent) {    
 }
 
-void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog, bool is_recursive) {
+void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+                                                QString const& file_path,
+                                                bool show_progress_dialog) {
 	const auto dialog = 
         makeProgressDialog(tr("Read file metadata"),
 	    tr("Read progress dialog"), 
 	    tr("Cancel"));
-    TrackInfoExtractAdapterProxy proxy(adapter);
 
-    QList<QString> dirs;
-	QFlags<QDir::Filter> filter = QDir::NoDotDot | QDir::AllDirs;
-
-    if (file_path.back() == L'.') {
-        auto temp = file_path;
-        filter = QDir::Files;       
-        temp = temp.remove(L'.');
-        try {
-            ScanFolder(temp.toStdWString(), &proxy, false);
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("ScanFolder has exception: {}", e.what());
-        }
-        return;
-    } else {
-        if (show_progress_dialog) {
-            dialog->show();
-        }
-
-        dialog->setMinimumDuration(1000);
-        dialog->setWindowModality(Qt::ApplicationModal);
-
-        filter |= QDir::NoDotAndDotDot | QDir::Files;
-        SipHash hasher;
-
-        QDirIterator itr(file_path, getFileNameFilter(), filter);
-        while (itr.hasNext()) {
-            auto path = fromQStringPath(itr.next());
-            hasher.Update(path.toStdWString());
-            dirs.append(path);
-            qApp->processEvents();
-        }
-
-        const auto path_hash = hasher.GetHash();
-        const auto db_hash = qDatabase.getParentPathHash(file_path);
-        if (db_hash == path_hash) {
-            XAMP_LOG_DEBUG("Cache Hash:{} Path: {}", db_hash, String::ToString(file_path.toStdWString()));
-            emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
-            return;
-        }
-
-        if (dirs.isEmpty()) {
-            dirs.append(file_path);
-        }
+    if (show_progress_dialog) {
+        dialog->show();
     }
 
-    auto progress = 0;
-    dialog->setMaximum(dirs.size());
+    dialog->setMinimumDuration(1000);
+    dialog->setWindowModality(Qt::ApplicationModal);
 
-	for (const auto& file_dir_or_path : dirs) {
+	constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
+    
+    QDirIterator itr(file_path, getFileNameFilter(), filter);
+    SipHash hasher(kDirHashKey1, kDirHashKey2);
+
+    ForwardList<QString> dirs;
+
+    while (itr.hasNext()) {
+        auto path = toNativeSeparators(itr.next());
+        hasher.Update(path.toStdWString());
+        dirs.push_front(path);
+        qApp->processEvents();
+    }
+
+    const auto path_hash = hasher.GetHash();
+    const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
+    if (db_hash == path_hash) {
+        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
+        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+        return;
+    }
+
+    if (dirs.empty()) {
+        dirs.push_front(file_path);
+    }
+
+	const int dir_size = std::distance(dirs.begin(), dirs.end());
+
+    auto progress = 0;
+    dialog->setMaximum(dir_size);
+
+    for (const auto& dir : dirs) {
         if (dialog->wasCanceled()) {
             return;
         }
 
-        dialog->setLabelText(file_dir_or_path);
-
-        try {
-            ScanFolder(file_dir_or_path.toStdWString(), &proxy, is_recursive);
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("ScanFolder has exception: {}", e.what());
-        }
+        dialog->setLabelText(dir);
+        ScanDirFiles(adapter, dir);
 
         qApp->processEvents();
         dialog->setValue(progress++);

@@ -67,6 +67,10 @@ bool isMoreThan1Hours(const double stream_time) {
     return h > 0;
 }
 
-QString fromQStringPath(const QString& path) {
+QString toNativeSeparators(const QString& path) {
     return QDir::toNativeSeparators(path);
+}
+
+QByteArray generateUUID() {
+    return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
 }
