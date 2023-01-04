@@ -14,6 +14,7 @@
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
 #include <base/siphash.h>
+#include <base/google_siphash.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
@@ -30,6 +31,8 @@
 #include <widget/playlisttableview.h>
 #include <widget/pixmapcache.h>
 #include <widget/metadataextractadapter.h>
+
+using DirPathHash = GoogleSipHash<>;
 
 DatabaseIdCache::DatabaseIdCache()
     : cover_reader_(MakeMetadataReader()) {
@@ -118,7 +121,7 @@ void ::MetadataExtractAdapter::ScanDirFiles(const QSharedPointer<MetadataExtract
 
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
-    SipHash hasher(kDirHashKey1, kDirHashKey2);
+    DirPathHash hasher(kDirHashKey1, kDirHashKey2);
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
@@ -186,7 +189,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 	constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     
     QDirIterator itr(file_path, getFileNameFilter(), filter);
-    SipHash hasher(kDirHashKey1, kDirHashKey2);
+    DirPathHash hasher(kDirHashKey1, kDirHashKey2);
 
     ForwardList<QString> dirs;
 

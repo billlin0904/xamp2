@@ -37,7 +37,7 @@ constexpr void SipHash::Clear(uint64_t k0, uint64_t k1) {
     current_word = 0;
 }
 
- uint64_t SipHash::GetHash(uint64_t k0, uint64_t k1, const std::string& x) {
+ uint64_t SipHash::GetHash(const std::string& x, uint64_t k0, uint64_t k1) {
     SipHash hasher(k0, k1);
     hasher.Update(x);
     return hasher.GetHash();
@@ -96,12 +96,12 @@ void SipHash::Update(const std::string& x) {
     Update(x.c_str(), x.length());
 }
 
-size_t SipHash::GetHash() const {
+size_t SipHash::GetHash() {
     Finalize();
     return v0_ ^ v1_ ^ v2_ ^ v3_;
 }
 
-void SipHash::Finalize() const {
+void SipHash::Finalize() {
     current_bytes[CURRENT_BYTES_IDX(7)] = static_cast<uint8_t>(count_);
 
     v3_ ^= current_word;

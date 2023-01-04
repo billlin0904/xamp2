@@ -170,19 +170,19 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
 
-        constexpr auto icon_size = 48;
-        constexpr auto offset = (icon_size / 2) - 10;
+        constexpr auto kIconSize = 48;
+        constexpr auto offset = (kIconSize / 2) - 10;
 
         const QRect button_rect(
             option.rect.left() + default_cover_size.width() / 2 - offset,
             option.rect.top() + default_cover_size.height() / 2 - offset,
-            icon_size, icon_size);
+            kIconSize, kIconSize);
 
         QStyleOptionButton button;
         button.rect = button_rect;
         button.icon = qTheme.playCircleIcon();
         button.state |= QStyle::State_Enabled;
-        button.iconSize = QSize(icon_size, icon_size);
+        button.iconSize = QSize(kIconSize, kIconSize);
         style->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
 
         if (button_rect.contains(mouse_point_)) {

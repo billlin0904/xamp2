@@ -20,7 +20,8 @@
 #include <base/executor.h>
 #include <base/rcu_ptr.h>
 #include <base/uuidof.h>
-
+#include <base/siphash.h>
+#include <base/google_siphash.h>
 #include <base/chachaengine.h>
 #include <base/xoshiro.h>
 #include <base/pcg32.h>
@@ -226,32 +227,32 @@ static void BM_std_for_each_par(benchmark::State& state) {
 }
 #endif
 
-static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
-    Xoshiro256StarStarEngine engine;
-    for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int64_t>(INT32_MIN, INT32_MAX)(engine);
-        benchmark::DoNotOptimize(n);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
+//static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
+//    Xoshiro256StarStarEngine engine;
+//    for (auto _ : state) {
+//        size_t n = std::uniform_int_distribution<int64_t>(INT32_MIN, INT32_MAX)(engine);
+//        benchmark::DoNotOptimize(n);
+//    }
+//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+//}
 
-static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
-    Xoshiro256PlusEngine engine;
-    for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
-        benchmark::DoNotOptimize(n);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
+//static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
+//    Xoshiro256PlusEngine engine;
+//    for (auto _ : state) {
+//        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
+//        benchmark::DoNotOptimize(n);
+//    }
+//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+//}
 
-static void BM_Xoshiro256PlusPlusRandom(benchmark::State& state) {
-    Xoshiro256PlusPlusEngine engine;
-    for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
-        benchmark::DoNotOptimize(n);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
+//static void BM_Xoshiro256PlusPlusRandom(benchmark::State& state) {
+//    Xoshiro256PlusPlusEngine engine;
+//    for (auto _ : state) {
+//        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
+//        benchmark::DoNotOptimize(n);
+//    }
+//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+//}
 
 static void BM_ChaCha20Random(benchmark::State& state) {
     ChaChaEngine engine;
@@ -820,6 +821,34 @@ static void BM_Rotl(benchmark::State& state) {
     }
 }
 
+static void BM_SipHash(benchmark::State& state) {
+    auto length = state.range(0);
+    for (auto _ : state) {
+        state.PauseTiming();
+        auto random_string = Singleton<PRNG>::GetInstance().GetRandomString(length);
+        state.ResumeTiming();
+        SipHash hasher;
+        hasher.Update(random_string);
+        auto result = hasher.GetHash();
+        benchmark::DoNotOptimize(result);
+    }
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+}
+
+static void BM_GoogleSipHash(benchmark::State& state) {
+    auto length = state.range(0);
+    for (auto _ : state) {
+        state.PauseTiming();
+        auto random_string = Singleton<PRNG>::GetInstance().GetRandomString(length);
+        state.ResumeTiming();
+        GoogleSipHash hasher;
+        hasher.Update(random_string);
+        auto result = hasher.GetHash();
+        benchmark::DoNotOptimize(result);
+    }
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+}
+
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
@@ -833,13 +862,16 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_UuidCompilerTime);
 
-BENCHMARK(BM_Xoshiro256StarStarRandom);
-BENCHMARK(BM_Xoshiro256PlusRandom);
-BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+//BENCHMARK(BM_Xoshiro256StarStarRandom);
+//BENCHMARK(BM_Xoshiro256PlusRandom);
+//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
 //BENCHMARK(BM_ChaCha20Random);
 //BENCHMARK(BM_PCG32Random);
 BENCHMARK(BM_Sfc64Random);
 BENCHMARK(BM_default_random_engine);
+
+BENCHMARK(BM_SipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
+BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
 
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);

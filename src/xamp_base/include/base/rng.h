@@ -78,6 +78,8 @@ public:
     Sfc64Engine<>& engine() {
         return engine_;
     }
+
+    std::string GetRandomString(size_t size);
 private:
     Sfc64Engine<> engine_;
 };

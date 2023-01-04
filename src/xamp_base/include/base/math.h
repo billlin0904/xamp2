@@ -34,6 +34,13 @@ static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
 	return res;
 }
 
+template <uint32_t TShiftBits>
+uint64_t Rotl64(const uint64_t x) noexcept {
+	const uint64_t left = x << TShiftBits;
+	const uint64_t right = x >> (64 - TShiftBits);
+	return left | right;
+}
+
 static XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
     return (x << shift) | (x >> (64 - shift));
 }

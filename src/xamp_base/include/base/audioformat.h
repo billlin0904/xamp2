@@ -102,6 +102,8 @@ public:
 
     std::string ToString() const;
 
+    std::string ToShortString() const;
+
     size_t GetHash() const;
 
 private:
@@ -258,15 +260,7 @@ XAMP_ALWAYS_INLINE PackedFormat AudioFormat::GetPackedFormat() const noexcept {
 
 XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat const & format) {
     ostr << format.GetByteFormat() << "-" << format.GetPackedFormat() << "-"
-         << format.GetBitsPerSample() << "bits/";
-
-    if (format.GetSampleRate() % 1000 > 0) {
-        ostr << std::fixed << std::setprecision(1) << static_cast<float>(format.GetSampleRate()) / 1000.0f << " Khz";
-    }
-    else {
-        ostr << format.GetSampleRate() / 1000 << "kHZ";
-    }
-
+         << format.ToShortString();
     return ostr;
 }
 

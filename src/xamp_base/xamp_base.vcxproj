@@ -168,6 +168,7 @@
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\fs.h" />
+    <ClInclude Include="include\base\google_siphash.h" />
     <ClInclude Include="include\base\int24.h" />
     <ClInclude Include="include\base\jthread.h" />
     <ClInclude Include="include\base\latch.h" />
@@ -238,6 +239,7 @@
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
     <ClCompile Include="src\fs.cpp" />
+    <ClCompile Include="src\google_siphash.cpp" />
     <ClCompile Include="src\itaskschedulerpolicy.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
@@ -259,6 +261,7 @@
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
     <ClCompile Include="src\windows_handle.cpp" />
+    <ClCompile Include="src\xoshiro.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

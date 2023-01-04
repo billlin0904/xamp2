@@ -31,22 +31,22 @@ public:
 		Update(reinterpret_cast<const char*>(str.data()), str.size() * sizeof(CharT));
 	}
 
-    void Finalize() const;
+    void Finalize();
 
-    size_t GetHash() const;
+    size_t GetHash();
 
-	static uint64_t GetHash(uint64_t k0, uint64_t k1, const std::string& x);
+	static uint64_t GetHash(const std::string& x, uint64_t k0, uint64_t k1);
 
 private:
-	mutable uint64_t v0_;
-	mutable uint64_t v1_;
-	mutable uint64_t v2_;
-	mutable uint64_t v3_;
-	mutable uint64_t count_;
+	uint64_t v0_;
+	uint64_t v1_;
+	uint64_t v2_;
+	uint64_t v3_;
+	uint64_t count_;
 
 	union {
-		mutable uint64_t current_word;
-		mutable uint8_t current_bytes[8]{};
+		uint64_t current_word;
+		uint8_t current_bytes[8]{};
 	};
 };
 

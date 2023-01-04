@@ -47,6 +47,19 @@ std::string AudioFormat::ToString() const {
 	return ostr.str();
 }
 
+std::string AudioFormat::ToShortString() const {
+	std::ostringstream ostr;
+	ostr << GetBitsPerSample() << "bit/";
+
+	if (GetSampleRate() % 1000 > 0) {
+		ostr << std::fixed << std::setprecision(1) << static_cast<float>(GetSampleRate()) / 1000.0f << " Khz";
+	}
+	else {
+		ostr << GetSampleRate() / 1000 << " Khz";
+	}
+	return ostr.str();
+}
+
 size_t AudioFormat::GetHash() const {	
 	return std::hash<std::string>{}(ToString());
 }
