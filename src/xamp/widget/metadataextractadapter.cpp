@@ -149,7 +149,7 @@ void ::MetadataExtractAdapter::ScanDirFiles(const QSharedPointer<MetadataExtract
     std::for_each(paths.begin(), paths.end(), [&](auto& path) {
         auto track_info = reader->Extract(path);
 		album_groups[track_info.album].push_front(std::move(track_info));
-        });
+    });
 
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
         std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
@@ -171,65 +171,6 @@ void ::MetadataExtractAdapter::ScanDirFiles(const QSharedPointer<MetadataExtract
     : QObject(parent) {    
 }
 
-void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
-                                                QString const& file_path,
-                                                bool show_progress_dialog) {
-	const auto dialog = 
-        makeProgressDialog(tr("Read file metadata"),
-	    tr("Read progress dialog"), 
-	    tr("Cancel"));
-
-    if (show_progress_dialog) {
-        dialog->show();
-    }
-
-    dialog->setMinimumDuration(1000);
-    dialog->setWindowModality(Qt::ApplicationModal);
-
-	constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-    
-    QDirIterator itr(file_path, getFileNameFilter(), filter);
-    DirPathHash hasher(kDirHashKey1, kDirHashKey2);
-
-    ForwardList<QString> dirs;
-
-    while (itr.hasNext()) {
-        auto path = toNativeSeparators(itr.next());
-        hasher.Update(path.toStdWString());
-        dirs.push_front(path);
-        qApp->processEvents();
-    }
-
-    const auto path_hash = hasher.GetHash();
-    const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
-    if (db_hash == path_hash) {
-        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
-        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
-        return;
-    }
-
-    if (dirs.empty()) {
-        dirs.push_front(file_path);
-    }
-
-	const int dir_size = std::distance(dirs.begin(), dirs.end());
-
-    auto progress = 0;
-    dialog->setMaximum(dir_size);
-
-    for (const auto& dir : dirs) {
-        if (dialog->wasCanceled()) {
-            return;
-        }
-
-        dialog->setLabelText(dir);
-        ScanDirFiles(adapter, dir);
-
-        qApp->processEvents();
-        dialog->setValue(progress++);
-    }
-}
-
 #define IgnoreSqlException(expr) \
     do {\
 		try {\
@@ -244,28 +185,26 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 		playlist_id = playlist->playlistId();
 	}
 
-	for (const auto& metadata : result) {
-		qApp->processEvents();
-
-		auto album = QString::fromStdWString(metadata.album);
-		auto artist = QString::fromStdWString(metadata.artist);
-		auto disc_id = QString::fromStdString(metadata.disc_id);
+	for (const auto& track_info : result) {
+		auto album = QString::fromStdWString(track_info.album);
+		auto artist = QString::fromStdWString(track_info.artist);
+		auto disc_id = QString::fromStdString(track_info.disc_id);
      
 		auto is_unknown_album = false;
 		if (album.isEmpty()) {
 			album = tr("Unknown album");
 			is_unknown_album = true;
 			// todo: 如果有內建圖片就把當作一張專輯.
-			auto cover = qDatabaseIdCache.getEmbeddedCover(metadata);
+			auto cover = qDatabaseIdCache.getEmbeddedCover(track_info);
 			if (!cover.isNull()) {
-				album = QString::fromStdWString(metadata.file_name_no_ext);
+				album = QString::fromStdWString(track_info.file_name_no_ext);
 			}
 		}
 		if (artist.isEmpty()) {
 			artist = tr("Unknown artist");
 		}
 
-		const auto music_id = qDatabase.addOrUpdateMusic(metadata);
+		const auto music_id = qDatabase.addOrUpdateMusic(track_info);
 
 		auto [album_id, artist_id, cover_id] = 
             qDatabaseIdCache.addOrGetAlbumAndArtistId(dir_last_write_time,
@@ -278,7 +217,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 			qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-		if (metadata.cover_id.empty()) {
+		if (track_info.cover_id.empty()) {
 			// Find cover id from database.
 			if (cover_id.isEmpty()) {
 				cover_id = qDatabase.getAlbumCoverId(album_id);
@@ -286,10 +225,10 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 
 			// Database not exist find others.
 			if (cover_id.isEmpty()) {
-				cover_id = qDatabaseIdCache.addCoverCache(album_id, album, metadata, is_unknown_album);
+				cover_id = qDatabaseIdCache.addCoverCache(album_id, album, track_info, is_unknown_album);
 			}
 		} else {
-			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
+			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(track_info.cover_id));
 		}
 
         IgnoreSqlException(qDatabase.addOrUpdateAlbumMusic(album_id,
@@ -303,6 +242,8 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 }
 
 void ::MetadataExtractAdapter::processMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time) {
+    // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
+
     if (dir_last_write_time == -1) {
         dir_last_write_time = QDateTime::currentSecsSinceEpoch();
     }

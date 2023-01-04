@@ -39,6 +39,7 @@ class QRadioButton;
 class BackgroundWorker;
 class CdPage;
 class XMenu;
+class MetadataExtractAdapter;
 
 class Xamp final : public IXPlayerControlFrame {
 	Q_OBJECT
@@ -64,6 +65,7 @@ signals:
 
 	void fetchCdInfo(const DriveInfo& drive);
 
+	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);
 public slots:
     void playAlbumEntity(const AlbumEntity& item);
 

@@ -27,6 +27,7 @@
 #include <QFileDialog>
 #include <QSqlQuery>
 #include <QPainterPath>
+#include <QProgressDialog>
 
 enum {
     INDEX_ALBUM = 0,
@@ -519,7 +520,7 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
         artists ON artists.artistId = albumArtist.artistId
     WHERE
         (artists.artistId = '%1') AND (albums.isPodcast = 0)
-    )").arg(artist_id));
+    )").arg(artist_id), qDatabase.database());
 }
 
 void AlbumView::update() {
@@ -537,7 +538,7 @@ LEFT
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.isPodcast = 0
-    )"));
+    )"), qDatabase.database());
 }
 
 void AlbumView::refreshOnece() {
@@ -562,21 +563,45 @@ WHERE
     ) AND (albums.isPodcast = 0)
 LIMIT 200
     )"));
-    model_.setQuery(query.arg(text));
+    model_.setQuery(query.arg(text), qDatabase.database());
 }
 
 void AlbumView::append(const QString& file_name) {
-    auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+    read_progress_dialog_ =
+        makeProgressDialog(tr("Read file metadata"),
+            tr("Read progress dialog"),
+            tr("Cancel"));
+    read_progress_dialog_->show();
+
+    const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
     (void) QObject::connect(adapter.get(),
                             &MetadataExtractAdapter::readCompleted,
                             this,
-                            &AlbumView::processMeatadata);    
-    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
+                            &AlbumView::processMeatadata);
+
+    (void)QObject::connect(adapter.get(),
+        &MetadataExtractAdapter::readFileProgress,
+        this, &AlbumView::onReadFileProgress);
+
+    (void)QObject::connect(adapter.get(),
+        &MetadataExtractAdapter::readFileEnd,
+        this, &AlbumView::onReadFileEnd);
+
+    emit readFileMetadata(adapter, file_name);
 }
 
-void AlbumView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata) {
-    MetadataExtractAdapter::processMetadata(medata, nullptr, dir_last_write_time);
+void AlbumView::onReadFileProgress(const QString& dir, int progress) {
+    read_progress_dialog_->setLabelText(dir);
+    read_progress_dialog_->setValue(progress);
+}
+
+void AlbumView::onReadFileEnd() {
+    read_progress_dialog_->reset();
+}
+
+void AlbumView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &track_infos) {
+    MetadataExtractAdapter::processMetadata(track_infos, nullptr, dir_last_write_time);
     emit loadCompleted();
 }
 

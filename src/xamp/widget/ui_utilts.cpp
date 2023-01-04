@@ -84,7 +84,7 @@ QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
     return QSharedPointer<ProcessIndicator>(new ProcessIndicator(widget), &QObject::deleteLater);
 }
 
-QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
+QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
     auto* dialog = new QProgressDialog(text, cancel, 0, 100);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
@@ -95,7 +95,7 @@ QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
     auto* progress_bar = new QProgressBar(dialog);
     progress_bar->setFont(QFont(qTEXT("FormatFont")));
     dialog->setBar(progress_bar);
-    return QScopedPointer<QProgressDialog>(dialog);
+    return QSharedPointer<QProgressDialog>(dialog);
 }
 
 void centerParent(QWidget* widget) {

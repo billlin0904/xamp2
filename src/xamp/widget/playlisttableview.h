@@ -101,6 +101,8 @@ signals:
 	void addPlaylistItemFinished();
 
 	void fetchPodcast();
+
+	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);
 public slots:
 	void processDatabase(const ForwardList<PlayListEntity>& entities);
 

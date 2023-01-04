@@ -12,6 +12,8 @@
 #include <widget/driveinfo.h>
 #include <widget/podcast_uiltis.h>
 
+class MetadataExtractAdapter;
+
 struct ReplayGainResult final {
     double album_loudness{0};
     double album_peak{0};
@@ -53,6 +55,7 @@ signals:
     void fetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
     void fetchPodcastError(const QString& msg);
+
 public Q_SLOT:
 	void onFetchPodcast();
 
@@ -61,6 +64,8 @@ public Q_SLOT:
     void onBlurImage(const QString &cover_id, const QImage& image);
 
     void onFetchCdInfo(const DriveInfo &drive);
+
+    void onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);
 
 private:
     void lazyInitExecutor();

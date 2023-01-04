@@ -1715,6 +1715,16 @@ void Xamp::initialPlaylist() {
     }
     connectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
 
+    (void)QObject::connect(this,
+        &Xamp::readFileMetadata,
+        background_worker_,
+        &BackgroundWorker::onReadFileMetadata);
+
+    (void)QObject::connect(album_page_->album(),
+        &AlbumView::readFileMetadata,
+        background_worker_,
+        &BackgroundWorker::onReadFileMetadata);
+
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
     pushWidget(album_page_);
@@ -2002,6 +2012,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         background_worker_,
         &BackgroundWorker::onReadReplayGain);
 
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::readFileMetadata,
+        background_worker_,
+        &BackgroundWorker::onReadFileMetadata);
+
     if (playlist_page->playlist()->isPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
             &PlayListTableView::fetchPodcast,
@@ -2055,7 +2070,7 @@ void Xamp::extractFile(const QString& file_path) {
         &MetadataExtractAdapter::readCompleted,
         this,
         &Xamp::processMeatadata);
-    MetadataExtractAdapter::readFileMetadata(adapter, file_path, false);
+    emit readFileMetadata(adapter, file_path);
 }
 
 void Xamp::setTipHint(QWidget* widget, const QString& hint_text) {

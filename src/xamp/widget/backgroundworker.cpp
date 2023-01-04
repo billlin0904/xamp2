@@ -3,11 +3,13 @@
 #include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
 #include <base/logger_impl.h>
+#include <base/google_siphash.h>
 
 #if defined(Q_OS_WIN)
 #include <player/mbdiscid.h>
 #endif
 
+#include <QDirIterator>
 #include <QThread>
 #include <widget/metadataextractadapter.h>
 #include <widget/podcast_uiltis.h>
@@ -20,6 +22,8 @@
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/backgroundworker.h>
+
+#include "database.h"
 
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
@@ -52,6 +56,99 @@ void BackgroundWorker::lazyInitExecutor() {
         ThreadPriority::BACKGROUND,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+}
+
+using DirPathHash = GoogleSipHash<>;
+
+static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, const QString& dir) {
+    const auto file_name_filters = getFileNameFilter();
+
+    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+
+    DirPathHash hasher(MetadataExtractAdapter::kDirHashKey1, MetadataExtractAdapter::kDirHashKey2);
+    ForwardList<Path> paths;
+
+    while (itr.hasNext()) {
+        auto path = toNativeSeparators(itr.next()).toStdWString();
+        paths.push_front(path);
+        hasher.Update(path);
+    }
+
+    if (paths.empty()) {
+        paths.push_front(dir.toStdWString());
+    }
+
+    const auto path_hash = hasher.GetHash();
+
+    const auto db_hash = qDatabase.getParentPathHash(dir);
+    if (db_hash == path_hash) {
+        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
+        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+        return;
+    }
+
+    auto reader = MakeMetadataReader();
+
+    HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
+    std::for_each(paths.begin(), paths.end(), [&](auto& path) {
+        auto track_info = reader->Extract(path);
+		album_groups[track_info.album].push_front(std::move(track_info));
+    });
+
+    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
+        std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
+            track.parent_path_hash = path_hash;
+            });
+
+		tracks.second.sort([](const auto& first, const auto& last) {
+			return first.track < last.track;
+        });
+    });
+
+    const DirectoryEntry dir_entry(dir.toStdWString());
+    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
+        emit adapter->readCompleted(ToTime_t(dir_entry.last_write_time()), tracks.second);
+    });
+}
+
+void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path) {
+    lazyInitExecutor();
+
+    constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
+    QDirIterator itr(file_path, getFileNameFilter(), filter);
+    DirPathHash hasher(MetadataExtractAdapter::kDirHashKey1, MetadataExtractAdapter::kDirHashKey2);
+
+    Vector<QString> dirs;
+
+    while (itr.hasNext()) {
+        auto path = toNativeSeparators(itr.next());
+        hasher.Update(path.toStdWString());
+        dirs.push_back(path);
+    }
+
+    const auto path_hash = hasher.GetHash();
+    const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
+    if (db_hash == path_hash) {
+        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
+        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+        return;
+    }
+
+    if (dirs.empty()) {
+        dirs.push_back(file_path);
+    }
+
+    const int dir_size = std::distance(dirs.begin(), dirs.end());
+    emit adapter->readFileStart(dir_size);
+
+    std::atomic<int> progress(0);
+    Executor::ParallelFor(*executor_, dirs, [adapter, &progress](const auto& dir) {
+        emit adapter->readFileProgress(dir, progress.load());
+        ScanDirFiles(adapter, dir);
+        ++progress;
+        });
+
+    emit adapter->readFileEnd();
 }
 
 void BackgroundWorker::onFetchPodcast() {

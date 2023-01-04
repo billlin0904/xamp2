@@ -53,9 +53,13 @@ public:
 
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
-    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true);
-
 signals:
+    void readFileStart(int dir_size);
+
+    void readFileProgress(const QString &dir, int progress);
+
+    void readFileEnd();
+
     void fromDatabase(const ForwardList<PlayListEntity>& entity);
 
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);

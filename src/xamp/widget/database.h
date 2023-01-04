@@ -57,11 +57,15 @@ enum PlayingState {
 
 class Database final {
 public:
+    static Database& getThreadDatabase();
+
     Database();
 
     ~Database();
 
-    void open(const QString& file_name);
+    QSqlDatabase& database();
+
+    void open();
 
     void transaction();
 
@@ -190,9 +194,10 @@ private:
 
     QString getVersion() const;
 
-    QString dbname_;
+    QString connection_name_;
     QSqlDatabase db_;
     LoggerPtr logger_;
 };
 
-#define qDatabase SharedSingleton<Database>::GetInstance()
+//#define qDatabase SharedSingleton<Database>::GetInstance()
+#define qDatabase Database::getThreadDatabase()

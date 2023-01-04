@@ -243,7 +243,7 @@ void PlayListTableView::executeQuery() {
 	ORDER BY
 	playlistMusics.playlistMusicsId, musics.path, albums.album;
     )");
-    QSqlQuery query(s.arg(playlist_id_));
+    QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
     model_->setQuery(query);
     proxy_model_->dataChanged(QModelIndex(), QModelIndex());
 }
@@ -799,8 +799,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
         &::MetadataExtractAdapter::fromDatabase,
         this,
         &PlayListTableView::processDatabase);
-
-   ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog);
+    emit readFileMetadata(adapter, file_name);
 }
 
 void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entities) {

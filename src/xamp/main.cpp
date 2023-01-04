@@ -7,6 +7,7 @@
 #include <base/crashhandler.h>
 #include <base/int24.h>
 #include <base/encodingprofile.h>
+#include <base/stacktrace.h>
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
@@ -21,6 +22,8 @@
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/xwindow.h>
+#include <widget/xmessagebox.h>
+#include <widget/metadataextractadapter.h>
 
 #include <QOperatingSystemVersion>
 #include <QLoggingCategory>
@@ -35,7 +38,6 @@
 #include "singleinstanceapplication.h"
 #include "version.h"
 #include "xamp.h"
-#include "widget/xmessagebox.h"
 
 #ifdef Q_OS_WIN32
 static ConstLatin1String visualStudioVersion() {
@@ -204,6 +206,8 @@ static void registerMetaType() {
     // For QSetting read
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
 
+    qRegisterMetaType<int64_t>("int64_t");
+    qRegisterMetaType<QSharedPointer<MetadataExtractAdapter>>("QSharedPointer<MetadataExtractAdapter>");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DeviceState>("DeviceState");
@@ -339,7 +343,8 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
     stream.setCodec("UTF-8");
 
     stream << context.file << ":" << context.line << ":"
-        << context.function << ": " << msg;
+        << context.function << ": " << msg << "\r\n"
+		<< QString::fromStdString(StackTrace{}.CaptureStack());
 
     auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
 
@@ -403,7 +408,7 @@ static int excute(int argc, char* argv[]) {
     loadLang();
 
     try {
-        qDatabase.open(qTEXT("xamp.db"));
+        qDatabase;
     }
     catch (const Exception& e) {
         XMessageBox::showBug(e);

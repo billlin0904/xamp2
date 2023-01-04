@@ -15,6 +15,8 @@
 #include <widget/albumentity.h>
 #include <widget/playlistentity.h>
 
+class QProgressDialog;
+class MetadataExtractAdapter;
 class QLabel;
 class ClickableLabel;
 class AlbumViewPage;
@@ -103,6 +105,7 @@ signals:
 
 	void loadCompleted();
 
+	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);
 public slots:
 	void refreshOnece();
 
@@ -122,6 +125,9 @@ public slots:
 
 	void showAlbumViewMenu(const QPoint& pt);
 
+	void onReadFileProgress(const QString& dir, int progress);
+
+	void onReadFileEnd();
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
@@ -129,5 +135,6 @@ private:
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
 	QSqlQueryModel model_;
+	QSharedPointer<QProgressDialog> read_progress_dialog_;
 };
 
