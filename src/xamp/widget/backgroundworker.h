@@ -57,7 +57,7 @@ signals:
     void fetchPodcastError(const QString& msg);
 
 public Q_SLOT:
-	void onFetchPodcast();
+	void onFetchPodcast(int32_t playlist_id);
 
     void onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
@@ -65,7 +65,10 @@ public Q_SLOT:
 
     void onFetchCdInfo(const DriveInfo &drive);
 
-    void onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);
+    void onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, 
+        QString const& file_path,
+        int32_t playlist_id,
+        bool is_podcast_mode);
 
 private:
     void lazyInitExecutor();

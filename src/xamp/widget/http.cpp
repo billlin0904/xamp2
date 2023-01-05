@@ -95,7 +95,7 @@ static void logHttpRequest(const LoggerPtr &logger,
     }
     stream << "} Data: [";
     if (content_length > 0) {
-        stream << QString::fromStdString(String::FormatBytes(content_length)) << " of " << content_type << " data";
+        stream << formatBytes(content_length) << " of " << content_type << " data";
     }
     stream << "]";
     XAMP_LOG_D(logger, msg.toStdString());

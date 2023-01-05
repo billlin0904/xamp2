@@ -295,10 +295,12 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->setCoverById(cover_id);
 
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
-        page_->format()->setText(tr("%1 Tracks, %2, %3")
+        page_->format()->setText(tr("%1 Tracks, %2, %3, %4")
             .arg(QString::number(album_stats.value().tracks))
             .arg(streamTimeToString(album_stats.value().durations))
-            .arg(QString::number(album_stats.value().year)));
+            .arg(QString::number(album_stats.value().year))
+            .arg(formatBytes(album_stats.value().file_size))
+        );
     }
 }
 
@@ -439,7 +441,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         removeAlbum();
         styled_delegate_->clearImageCache();
-        qDatabaseIdCache.clear();
         });
     remove_all_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
 
@@ -588,7 +589,7 @@ void AlbumView::append(const QString& file_name) {
         &MetadataExtractAdapter::readFileEnd,
         this, &AlbumView::onReadFileEnd);
 
-    emit readFileMetadata(adapter, file_name);
+    emit readFileMetadata(adapter, file_name, -1, false);
 }
 
 void AlbumView::onReadFileProgress(const QString& dir, int progress) {
@@ -600,8 +601,7 @@ void AlbumView::onReadFileEnd() {
     read_progress_dialog_->reset();
 }
 
-void AlbumView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &track_infos) {
-    MetadataExtractAdapter::processMetadata(track_infos, nullptr, dir_last_write_time);
+void AlbumView::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {
     emit loadCompleted();
 }
 

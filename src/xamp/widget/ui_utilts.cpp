@@ -11,7 +11,7 @@
 #include <widget/ui_utilts.h>
 
 QString sampleRate2String(const AudioFormat& format) {
-    return samplerate2String(format.GetSampleRate());
+    return sampleRate2String(format.GetSampleRate());
 }
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext) {

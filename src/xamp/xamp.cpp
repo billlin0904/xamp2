@@ -1096,9 +1096,9 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(streamTimeToString(0));
 }
 
-void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) const {
-    MetadataExtractAdapter::processMetadata(medata, nullptr, dir_last_write_time);
+void Xamp::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) const {
     album_page_->album()->refreshOnece();
+    playlist_page_->playlist()->executeQuery();
 }
 
 void Xamp::setupDSP(const AlbumEntity& item) {
@@ -1295,7 +1295,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             if (player_->GetInputFormat() != AudioFormat::k16BitPCM441Khz) {
                 const auto message = qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
                     .arg(player_->GetInputFormat().GetBitsPerSample())
-                    .arg(samplerate2String(player_->GetInputFormat().GetSampleRate()));
+                    .arg(sampleRate2String(player_->GetInputFormat().GetSampleRate()));
                 showMeMessage(message);
             }
             byte_format = ByteFormat::SINT16;
@@ -2070,7 +2070,7 @@ void Xamp::extractFile(const QString& file_path) {
         &MetadataExtractAdapter::readCompleted,
         this,
         &Xamp::processMeatadata);
-    emit readFileMetadata(adapter, file_path);
+    emit readFileMetadata(adapter, file_path, playlist_page_->playlist()->playlistId(), false);
 }
 
 void Xamp::setTipHint(QWidget* widget, const QString& hint_text) {

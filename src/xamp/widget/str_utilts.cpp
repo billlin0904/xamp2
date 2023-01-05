@@ -24,21 +24,21 @@ QString bitRate2String(uint32_t bitRate) {
     return QString::number(bitRate).rightJustified(5) + qTEXT(" kbps");
 }
 
-QString samplerate2String(uint32_t samplerate) {
+QString sampleRate2String(const uint32_t sample_rate) {
     auto precision = 1;
-    auto is_mhz_samplerate = false;
+    auto is_mhz_sample_rate = false;
 
-    if (samplerate / 1000 > 1000) {
-        is_mhz_samplerate = true;
+    if (sample_rate / 1000 > 1000) {
+        is_mhz_sample_rate = true;
     }
     else {
-        precision = samplerate % 1000 == 0 ? 0 : 1;
+        precision = sample_rate % 1000 == 0 ? 0 : 1;
     }
 
-    if (is_mhz_samplerate) {
-        return QString::number(samplerate / 1000000.0, 'f', 2).rightJustified(6) + qTEXT(" MHz");
+    if (is_mhz_sample_rate) {
+        return QString::number(sample_rate / 1000000.0, 'f', 2).rightJustified(6) + qTEXT(" MHz");
     } else {
-        return QString::number(samplerate / 1000.0, 'f', precision).rightJustified(3) + qTEXT(" kHz");
+        return QString::number(sample_rate / 1000.0, 'f', precision).rightJustified(3) + qTEXT(" kHz");
     }
 }
 
@@ -73,4 +73,18 @@ QString toNativeSeparators(const QString& path) {
 
 QByteArray generateUUID() {
     return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
+}
+
+QString formatBytes(quint64 bytes) {
+    if (bytes < 1'000)
+        return QObject::tr("%1 B").arg(bytes);
+    if (bytes < 1'000'000)
+        return QObject::tr("%1 kB").arg(bytes / 1'000);
+    if (bytes < 1'000'000'000)
+        return QObject::tr("%1 MB").arg(bytes / 1'000'000);
+    return QObject::tr("%1 GB").arg(bytes / 1'000'000'000);
+}
+
+QString formatTime(quint64 time) {
+    return QDateTime::fromSecsSinceEpoch(time).toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
 }

@@ -65,7 +65,10 @@ signals:
 
 	void fetchCdInfo(const DriveInfo& drive);
 
-	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);
+	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+		QString const& file_path,
+		int32_t playlist_id,
+		bool is_podcast_mode);
 public slots:
     void playAlbumEntity(const AlbumEntity& item);
 

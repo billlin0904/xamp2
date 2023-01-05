@@ -115,10 +115,10 @@ public:
 	        }
             break;
         case PLAYLIST_YEAR:
-            opt.text = QString::number(value.toInt()).rightJustified(8);
+            opt.text = QString::number(value.toInt());
             break;
         case PLAYLIST_FILE_SIZE:
-            opt.text = QString::fromStdString(String::FormatBytes(value.toULongLong()));
+            opt.text = formatBytes(value.toULongLong());
             break;
         case PLAYLIST_BIT_RATE:
             opt.text = bitRate2String(value.toInt());
@@ -145,14 +145,14 @@ public:
             }
             break;
         case PLAYLIST_SAMPLE_RATE:
-            opt.text = samplerate2String(value.toInt());
+            opt.text = sampleRate2String(value.toInt());
             break;
         case PLAYLIST_DURATION:
             opt.text = streamTimeToString(value.toDouble());
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
-            opt.text = QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
+            opt.text = formatTime(value.toULongLong());
             break;
 		default:
             use_default_style = true;            
@@ -261,7 +261,7 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::downloadPodcast() {
-    emit fetchPodcast();
+    emit fetchPodcast(playlistId());
 }
 
 void PlayListTableView::reload() {
@@ -562,7 +562,7 @@ void PlayListTableView::initial() {
                 }
                 auto profile_desc = qSTR("%0 bit, %1, %2")
                     .arg(profile.bit_per_sample).rightJustified(2)
-                    .arg(samplerate2String(profile.sample_rate))
+                    .arg(sampleRate2String(profile.sample_rate))
                     .arg(bitRate2String(profile.bitrate));
 
                 export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
@@ -799,7 +799,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
         &::MetadataExtractAdapter::fromDatabase,
         this,
         &PlayListTableView::processDatabase);
-    emit readFileMetadata(adapter, file_name);
+    emit readFileMetadata(adapter, file_name, playlistId(), isPodcastMode());
 }
 
 void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entities) {
@@ -810,8 +810,7 @@ void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entit
     emit addPlaylistItemFinished();
 }
 
-void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) {
-    ::MetadataExtractAdapter::processMetadata(medata, this, dir_last_write_time);
+void PlayListTableView::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {
     executeQuery();
     emit addPlaylistItemFinished();
 }
@@ -852,15 +851,9 @@ void PlayListTableView::onFetchPodcastError(const QString& msg) {
     onFetchPodcastCompleted({}, {});
 }
 
-void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
+void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& /*track_infos*/, const QByteArray& cover_image_data) {
     indicator_.reset();
-
-    Stopwatch sw;
-    ::MetadataExtractAdapter::processMetadata(track_infos,
-        this,
-        podcast_mode_);
-    XAMP_LOG_DEBUG("Insert database! {}sec", sw.ElapsedSeconds());
-    sw.Reset();
+    executeQuery();
 
     if (!model()->rowCount()) {
         return;
@@ -871,7 +864,6 @@ void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& tr
     const auto play_item = item(index);
     qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
     emit updateAlbumCover(cover_id);
-    XAMP_LOG_DEBUG("Add album cover cache! {}sec", sw.ElapsedSeconds());
 }
 
 void PlayListTableView::resizeColumn() {

@@ -11,6 +11,8 @@
 
 #include <QDirIterator>
 #include <QThread>
+
+#include <widget/database.h>
 #include <widget/metadataextractadapter.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
@@ -22,8 +24,6 @@
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/backgroundworker.h>
-
-#include "database.h"
 
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
@@ -60,7 +60,10 @@ void BackgroundWorker::lazyInitExecutor() {
 
 using DirPathHash = GoogleSipHash<>;
 
-static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, const QString& dir) {
+static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, 
+    const QString& dir,
+    int32_t playlist_id,
+    bool is_podcast_mode) {
     const auto file_name_filters = getFileNameFilter();
 
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
@@ -107,11 +110,19 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, 
 
     const DirectoryEntry dir_entry(dir.toStdWString());
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
-        emit adapter->readCompleted(ToTime_t(dir_entry.last_write_time()), tracks.second);
+        auto last_write_time = ToTime_t(dir_entry.last_write_time());
+        MetadataExtractAdapter::processMetadata(tracks.second, 
+            last_write_time, 
+            playlist_id, 
+            is_podcast_mode);
+        emit adapter->readCompleted(last_write_time, tracks.second);
     });
 }
 
-void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path) {
+void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+    QString const& file_path,
+    int32_t playlist_id,
+    bool is_podcast_mode) {
     lazyInitExecutor();
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
@@ -142,16 +153,16 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     emit adapter->readFileStart(dir_size);
 
     std::atomic<int> progress(0);
-    Executor::ParallelFor(*executor_, dirs, [adapter, &progress](const auto& dir) {
+    Executor::ParallelFor(*executor_, dirs, [adapter, &progress, playlist_id, is_podcast_mode](const auto& dir) {
         emit adapter->readFileProgress(dir, progress.load());
-        ScanDirFiles(adapter, dir);
+        ScanDirFiles(adapter, dir, playlist_id, is_podcast_mode);
         ++progress;
         });
 
     emit adapter->readFileEnd();
 }
 
-void BackgroundWorker::onFetchPodcast() {
+void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
     XAMP_LOG_DEBUG("Current thread:{}", QThread::currentThreadId());
 
     auto download_podcast_error = [this](const QString& msg) {
@@ -161,7 +172,7 @@ void BackgroundWorker::onFetchPodcast() {
 
     http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"), this)
 		.error(download_podcast_error)
-        .success([this, download_podcast_error](const QString& json) {
+        .success([this, download_podcast_error, playlist_id](const QString& json) {
 			XAMP_LOG_DEBUG("Thread:{} Download meta.json ({}) success!", 
             QThread::currentThreadId(), String::FormatBytes(json.size()));
 
@@ -169,9 +180,13 @@ void BackgroundWorker::onFetchPodcast() {
 			auto const podcast_info = std::make_pair(image_url, parseJson(json));
             http::HttpClient(QString::fromStdString(podcast_info.first), this)
                 .error(download_podcast_error)
-                .download([this, podcast_info](const QByteArray& data) {
+                .download([this, podcast_info, playlist_id](const QByteArray& data) {
 					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
                     QThread::currentThreadId(), String::FormatBytes(data.size()));
+					::MetadataExtractAdapter::processMetadata(podcast_info.second,
+                -1,
+                        playlist_id,
+                true);
 					emit fetchPodcastCompleted(podcast_info.second, data);
 				});
             }).get();

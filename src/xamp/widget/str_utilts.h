@@ -54,7 +54,7 @@ inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }
 
-QString samplerate2String(uint32_t samplerate);
+QString sampleRate2String(uint32_t sample_rate);
 
 QString bitRate2String(uint32_t bitRate);
 
@@ -71,3 +71,7 @@ bool isMoreThan1Hours(const double stream_time);
 QString toNativeSeparators(const QString &path);
 
 QByteArray generateUUID();
+
+QString formatBytes(quint64 bytes);
+
+QString formatTime(quint64 time);

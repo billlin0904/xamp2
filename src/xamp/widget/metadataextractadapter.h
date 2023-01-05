@@ -22,23 +22,17 @@ class DatabaseIdCache final {
 public:
     DatabaseIdCache();
 
-    QPixmap getEmbeddedCover(const TrackInfo& metadata) const;
+    QPixmap getEmbeddedCover(const TrackInfo& track_info) const;
 
-    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
-        const QString& album,
-        const QString& artist,
-        bool is_podcast,
-        const QString& disc_id) const;
+    static std::tuple<int32_t, int32_t> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
+                                                                 const QString& album,
+                                                                 const QString& artist,
+                                                                 bool is_podcast,
+                                                                 const QString& disc_id);
 
-    QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const;
-
-    void clear();
+    QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const;
 
 private:
-    mutable LruCache<int32_t, QString> cover_id_cache_;
-    // Key: Album + Artist
-    mutable LruCache<QString, int32_t> album_id_cache_;
-    mutable LruCache<QString, int32_t> artist_id_cache_;
     AlignPtr<IMetadataReader> cover_reader_;
 };
 
@@ -65,10 +59,14 @@ signals:
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
 
 public:
-    static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, const QString& dir);
+    static void processMetadata(const ForwardList<TrackInfo>& result, 
+        int64_t dir_last_write_time, 
+        int32_t playlist_id, 
+        bool is_podcast_mode);
 
-    static void processMetadata(const ForwardList<TrackInfo>& result, PlayListTableView *playlist = nullptr, int64_t dir_last_write_time = -1);
-
-	static void addMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast);
+	static void addMetadata(const ForwardList<TrackInfo>& result,
+        int32_t playlist_id,
+        int64_t dir_last_write_time,
+        bool is_podcast);
 };
 
