@@ -60,12 +60,11 @@ void BackgroundWorker::lazyInitExecutor() {
 
 using DirPathHash = GoogleSipHash<>;
 
-static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter, 
+static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
+    const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
     bool is_podcast_mode) {
-    const auto file_name_filters = getFileNameFilter();
-
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
     DirPathHash hasher(MetadataExtractAdapter::kDirHashKey1, MetadataExtractAdapter::kDirHashKey2);
@@ -110,7 +109,7 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
 
     const DirectoryEntry dir_entry(dir.toStdWString());
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
-        auto last_write_time = ToTime_t(dir_entry.last_write_time());
+	    const auto last_write_time = ToTime_t(dir_entry.last_write_time());
         MetadataExtractAdapter::processMetadata(tracks.second, 
             last_write_time, 
             playlist_id, 
@@ -152,12 +151,14 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     const int dir_size = std::distance(dirs.begin(), dirs.end());
     emit adapter->readFileStart(dir_size);
 
+    const auto file_name_filters = getFileNameFilter();
     std::atomic<int> progress(0);
 
-    Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, playlist_id, is_podcast_mode](const auto& dir) {
+    Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode](
+        const auto& dir) {
         emit adapter->readFileProgress(dir, progress.load());
 		try {
-			ScanDirFiles(adapter, dir, playlist_id, is_podcast_mode);
+			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
 		}
 		catch (Exception const& e) {
 			XAMP_LOG_D(logger_, "Faild to scan dir files! ", e.GetErrorMessage());

@@ -1536,7 +1536,13 @@ void Xamp::playNextItem(int32_t forward) {
         play_index_ = playlist_view->model()->index(0, 0);
     }
 
-    playlist_view->play(play_index_);
+    try {
+        playlist_view->play(play_index_);
+    }
+    catch (Exception const &e) {
+        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+        return;
+    }
     playlist_view->reload();
 }
 

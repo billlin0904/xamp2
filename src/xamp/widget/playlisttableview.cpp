@@ -852,14 +852,14 @@ void PlayListTableView::onFetchPodcastError(const QString& msg) {
 }
 
 void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& /*track_infos*/, const QByteArray& cover_image_data) {
-    XAMP_LOG_DEBUG("Download podcast completed!");
-
     indicator_.reset();
     executeQuery();
 
     if (!model()->rowCount()) {
         return;
     }
+
+    XAMP_LOG_DEBUG("Download podcast completed!");
 
     const auto cover_id = qPixmapCache.addOrUpdate(cover_image_data);
     const auto index = this->model()->index(0, 0);
