@@ -42,7 +42,8 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , text_color_(Qt::black)
 	, more_album_opt_button_(new QPushButton())
-	, play_button_(new QPushButton()) {
+	, play_button_(new QPushButton())
+	, rounded_image_cache_(kMaxAlbumRoundedImageCacheSize) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
     mask_image_ = Pixmap::roundDarkImage(qTheme.albumCoverSize());
@@ -154,6 +155,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     auto* album_cover = &qTheme.defaultSizeUnknownCover();
 
+#if 1
     if (const auto* rounded_image = rounded_image_cache_.Find(cover_id)) {
         painter->drawPixmap(cover_rect, *rounded_image);
     } else {
@@ -166,7 +168,13 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         }
         painter->drawPixmap(cover_rect, album_image);
     }
-
+#else
+    if (const auto* cover_cache = qPixmapCache.find(cover_id)) {
+        album_cover = cover_cache;
+    }
+    auto album_image = Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius);
+    painter->drawPixmap(cover_rect, album_image);
+#endif
     bool hit_play_button = false;
     if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
@@ -573,13 +581,16 @@ void AlbumView::append(const QString& file_name) {
             tr("Read progress dialog"),
             tr("Cancel"));
     read_progress_dialog_->show();
+    readTrackInfo(file_name);
+}
 
+void AlbumView::readTrackInfo(const QString& file_name) {
     const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
-    (void) QObject::connect(adapter.get(),
-                            &MetadataExtractAdapter::readCompleted,
-                            this,
-                            &AlbumView::processMeatadata);
+    (void)QObject::connect(adapter.get(),
+        &MetadataExtractAdapter::readCompleted,
+        this,
+        &AlbumView::processMeatadata);
 
     (void)QObject::connect(adapter.get(),
         &MetadataExtractAdapter::readFileProgress,
@@ -593,11 +604,17 @@ void AlbumView::append(const QString& file_name) {
 }
 
 void AlbumView::onReadFileProgress(const QString& dir, int progress) {
+    if (!read_progress_dialog_) {
+        return;
+    }
     read_progress_dialog_->setLabelText(dir);
     read_progress_dialog_->setValue(progress);
 }
 
 void AlbumView::onReadFileEnd() {
+    if (!read_progress_dialog_) {
+        return;
+    }
     read_progress_dialog_->reset();
 }
 

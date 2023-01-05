@@ -18,3 +18,14 @@
 #define XAMP_ASSERT(expr) ((void)0)
 #endif
 
+namespace xamp::details {
+    inline void terminate() noexcept {
+        std::terminate();
+    }
+}
+
+#define XAMP_CONTRACT_CHECK(type, cond) \
+	((cond) ? static_cast<void>(0) : xamp::details::terminate())
+
+#define XAMP_EXPECTS(cond) XAMP_CONTRACT_CHECK("Precondition", cond)
+#define XAMP_ENSURES(cond) XAMP_CONTRACT_CHECK("Postcondition", cond)

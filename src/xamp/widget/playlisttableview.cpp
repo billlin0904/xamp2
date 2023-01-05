@@ -378,7 +378,7 @@ void PlayListTableView::initial() {
     setDragEnabled(true);
     setShowGrid(false);
     setMouseTracking(true);
-    setAlternatingRowColors(true);
+    setAlternatingRowColors(false);
 
     setDragDropMode(InternalMove);
     setFrameShape(NoFrame);
@@ -852,6 +852,8 @@ void PlayListTableView::onFetchPodcastError(const QString& msg) {
 }
 
 void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& /*track_infos*/, const QByteArray& cover_image_data) {
+    XAMP_LOG_DEBUG("Download podcast completed!");
+
     indicator_.reset();
     executeQuery();
 

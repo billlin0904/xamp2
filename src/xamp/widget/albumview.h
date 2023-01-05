@@ -26,6 +26,8 @@ class PlaylistPage;
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
+	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 10;
+
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
 	void setTextColor(QColor color);
@@ -93,6 +95,8 @@ public:
 	}
 
 	void enablePage(bool enable);
+
+	void readTrackInfo(const QString& file_name);
 
 signals:
     void addPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <memory>
 #include <stream/stream.h>
 
 extern "C" {
@@ -157,6 +158,7 @@ struct AvResourceDeleter;
 template <>
 struct AvResourceDeleter<AVFormatContext> {
     void operator()(AVFormatContext* p) const {
+        XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.FormatLib->avformat_close_input(&p);
     }
 };
@@ -164,6 +166,7 @@ struct AvResourceDeleter<AVFormatContext> {
 template <>
 struct AvResourceDeleter<AVCodecContext> {
     void operator()(AVCodecContext* p) const {
+        XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.CodecLib->avcodec_close(p);
     }
 };
@@ -171,6 +174,7 @@ struct AvResourceDeleter<AVCodecContext> {
 template <>
 struct AvResourceDeleter<SwrContext> {
     void operator()(SwrContext* p) const {
+        XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.SwrLib->swr_free(&p);
     }
 };
@@ -178,7 +182,7 @@ struct AvResourceDeleter<SwrContext> {
 template <>
 struct AvResourceDeleter<AVPacket> {
     void operator()(AVPacket* p) const {
-        XAMP_ASSERT(p != nullptr);
+        XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.UtilLib->av_free(p);
     }
 };
@@ -186,7 +190,7 @@ struct AvResourceDeleter<AVPacket> {
 template <>
 struct AvResourceDeleter<AVFrame> {
     void operator()(AVFrame* p) const {
-        XAMP_ASSERT(p != nullptr);
+        XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.UtilLib->av_free(p);
     }
 };

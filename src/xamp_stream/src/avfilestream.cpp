@@ -1,6 +1,7 @@
 #include <stream/avfilestream.h>
 #include <stream/avlib.h>
 
+#include <base/assert.h>
 #include <base/exception.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -230,6 +231,8 @@ public:
     }
 
     void Seek(double stream_time) const {
+        XAMP_EXPECTS(stream_time >= 0);
+
         if (codec_context_ == nullptr) {
             return;
         }
@@ -250,6 +253,7 @@ public:
     }
 
     void* GetCodecContext() {
+        XAMP_EXPECTS(codec_context_ != nullptr);
         return codec_context_.get();
     }
 private:

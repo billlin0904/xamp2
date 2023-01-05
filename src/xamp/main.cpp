@@ -343,7 +343,7 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
     stream.setCodec("UTF-8");
 
     stream << context.file << ":" << context.line << ":"
-        << context.function << ": " << msg << "\r\n"
+        << context.function << ": " << msg
 		<< QString::fromStdString(StackTrace{}.CaptureStack());
 
     auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);

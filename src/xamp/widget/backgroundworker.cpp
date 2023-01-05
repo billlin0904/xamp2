@@ -140,7 +140,7 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     const auto path_hash = hasher.GetHash();
     const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
     if (db_hash == path_hash) {
-        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
+        XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
         emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
         return;
     }
@@ -153,11 +153,17 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     emit adapter->readFileStart(dir_size);
 
     std::atomic<int> progress(0);
-    Executor::ParallelFor(*executor_, dirs, [adapter, &progress, playlist_id, is_podcast_mode](const auto& dir) {
+
+    Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, playlist_id, is_podcast_mode](const auto& dir) {
         emit adapter->readFileProgress(dir, progress.load());
-        ScanDirFiles(adapter, dir, playlist_id, is_podcast_mode);
-        ++progress;
-        });
+		try {
+			ScanDirFiles(adapter, dir, playlist_id, is_podcast_mode);
+		}
+		catch (Exception const& e) {
+			XAMP_LOG_D(logger_, "Faild to scan dir files! ", e.GetErrorMessage());
+		}
+		++progress;
+    });
 
     emit adapter->readFileEnd();
 }

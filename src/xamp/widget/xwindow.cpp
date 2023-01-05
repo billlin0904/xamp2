@@ -301,6 +301,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* res
         const auto native_key = HIWORD(msg->lParam);
         const auto native_mods = LOWORD(msg->lParam);
         shortcutsPressed(native_key, native_mods);
+        XAMP_LOG_DEBUG("Hot key press native_key:{} native_mods:{}", native_key, native_mods);
     }
     break;
     default:

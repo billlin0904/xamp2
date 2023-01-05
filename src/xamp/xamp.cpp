@@ -144,7 +144,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
     background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
-    background_thread_.start();
+    background_thread_.start(QThread::LowestPriority);
     player_->Startup(state_adapter_);
 
     initialUI();
@@ -180,6 +180,8 @@ void Xamp::setXWindow(IXWindow* top_window) {
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
         });
+
+    album_page_->album()->readTrackInfo(AppSettings::getMyMusicFolderPath());
 }
 
 void Xamp::avoidRedrawOnResize() {
