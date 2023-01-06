@@ -1,43 +1,74 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-#include <base/logger.h>
-#include <base/logger_impl.h>
-#include <base/str_utilts.h>
+
+#include <output_device/win32/wasapi.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/sharedwasapidevice.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 
+#include <base/logger.h>
+#include <base/logger_impl.h>
+#include <base/str_utilts.h>
+
 namespace xamp::output_device::win32 {
 
-SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept {
+class SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl final {
+public:
+	SharedWasapiDeviceTypeImpl() noexcept;
+
+	void ScanNewDevice();
+
+	[[nodiscard]] size_t GetDeviceCount() const;
+
+	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const;
+
+	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+
+	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfo() const;
+
+	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	
+private:
+	void Initial();
+
+	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
+
+	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
+
+	LoggerPtr log_;
+	Vector<DeviceInfo> device_list_;
+	CComPtr<IMMDeviceEnumerator> enumerator_;
+};
+
+SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::SharedWasapiDeviceTypeImpl() noexcept {
 	log_ = LoggerManager::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName);
 	ScanNewDevice();
 }
 
-void SharedWasapiDeviceType::ScanNewDevice() {
+void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ScanNewDevice() {
 	Initial();
 	device_list_ = GetDeviceInfoList();
 }
 
-void SharedWasapiDeviceType::Initial() {
+void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Initial() {
 	if (!enumerator_) {
 		enumerator_ = helper::CreateDeviceEnumerator();
 	}
 }
 
-CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(std::wstring const & device_id) const {
+CComPtr<IMMDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceById(std::wstring const & device_id) const {
 	CComPtr<IMMDevice> device;
 	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
-AlignPtr<IOutputDevice> SharedWasapiDeviceType::MakeDevice(std::string const & device_id) {
+AlignPtr<IOutputDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::MakeDevice(std::string const & device_id) {
 	return MakeAlign<IOutputDevice, SharedWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
-DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
+DeviceInfo SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
 	if (device >= GetDeviceCount()) {
 		throw DeviceNotFoundException();
@@ -46,23 +77,15 @@ DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	return (*itr);
 }
 
-Uuid SharedWasapiDeviceType::GetTypeId() const {
-	return XAMP_UUID_OF(SharedWasapiDeviceType);
-}
-
-std::string_view SharedWasapiDeviceType::GetDescription() const {
-	return Description;
-}
-
-size_t SharedWasapiDeviceType::GetDeviceCount() const {
+size_t SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceCount() const {
 	return device_list_.size();
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
+Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfo() const {
 	return device_list_;
 }
 
-std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
 	HrIfFailledThrow2(hr, ERROR_NOT_FOUND);
@@ -72,7 +95,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	return helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType));
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
+Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
@@ -96,7 +119,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 
 		auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType));
 #ifdef _DEBUG
-		XAMP_LOG_TRACE("Get {} device {} property.", GetDescription(), String::ToUtf8String(info.name));
+		XAMP_LOG_TRACE("Get {} device {} property.", SharedWasapiDeviceType::Description, String::ToUtf8String(info.name));
 		for (const auto& property : helper::GetDeviceProperty(device)) {
 			XAMP_LOG_TRACE("{}: {}", property.first, String::ToUtf8String(property.second));
 		}
@@ -138,6 +161,42 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		});
 
 	return device_list;
+}
+
+SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept
+	: impl_(MakePimpl<SharedWasapiDeviceTypeImpl>()) {
+}
+
+void SharedWasapiDeviceType::ScanNewDevice() {
+	impl_->ScanNewDevice();
+}
+
+std::string_view SharedWasapiDeviceType::GetDescription() const {
+	return Description;
+}
+
+Uuid SharedWasapiDeviceType::GetTypeId() const {
+	return XAMP_UUID_OF(SharedWasapiDeviceType);
+}
+
+size_t SharedWasapiDeviceType::GetDeviceCount() const {
+	return impl_->GetDeviceCount();
+}
+
+DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
+	return impl_->GetDeviceInfo(device);
+}
+
+std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
+	return impl_->GetDefaultDeviceInfo();
+}
+
+Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
+	return impl_->GetDeviceInfo();
+}
+
+AlignPtr<IOutputDevice> SharedWasapiDeviceType::MakeDevice(const std::string& device_id) {
+	return impl_->MakeDevice(device_id);
 }
 
 }

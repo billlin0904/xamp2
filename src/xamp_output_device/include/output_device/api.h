@@ -15,9 +15,9 @@ XAMP_OUTPUT_DEVICE_API AlignPtr<IAudioDeviceManager> MakeAudioDeviceManager();
 
 XAMP_OUTPUT_DEVICE_API bool IsExclusiveDevice(DeviceInfo const& info) noexcept;
 
-XAMP_OUTPUT_DEVICE_API bool IsASIODevice(Uuid const& id) noexcept;
+XAMP_OUTPUT_DEVICE_API bool IsAsioDevice(Uuid const& id) noexcept;
 
-XAMP_OUTPUT_DEVICE_API void ResetASIODriver();
+XAMP_OUTPUT_DEVICE_API void ResetAsioDriver();
 
 XAMP_OUTPUT_DEVICE_API void PreventSleep(bool allow);
 

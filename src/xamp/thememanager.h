@@ -120,7 +120,7 @@ public:
 
     void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon iconFromFont(const char32_t code) const;
+    QIcon fontIcon(const char32_t code) const;
 
     void setTextSeparator(QFrame* frame);
 

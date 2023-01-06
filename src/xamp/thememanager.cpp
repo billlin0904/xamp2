@@ -195,9 +195,10 @@ QFont ThemeManager::loadFonts() {
 
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
     installFileFonts(qTEXT("Roboto-Regular"), mono_fonts);
+
     installFileFonts(qTEXT("Lato"), ui_fonts);
     installFileFonts(qTEXT("MiSans"), ui_fonts);
-
+    
     //installFileFonts(qTEXT("MILanPro"), ui_fonts);
     //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
@@ -314,7 +315,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
     menu->setStyle(new IconSizeStyle(12));
 }
 
-QIcon ThemeManager::iconFromFont(const char32_t code) const {
+QIcon ThemeManager::fontIcon(const char32_t code) const {
     switch (code) {
     case Glyphs::ICON_MINIMIZE_WINDOW:
     case Glyphs::ICON_MAXIMUM_WINDOW:
@@ -403,15 +404,15 @@ QIcon ThemeManager::hiResIcon() const {
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
+    ui.repeatButton->setIcon(fontIcon(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
 }
 
 void ThemeManager::setRepeatOnePlayOrder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
+    ui.repeatButton->setIcon(fontIcon(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
 }
 
 void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(iconFromFont(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
+    ui.repeatButton->setIcon(fontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
 }
 
 QPixmap ThemeManager::githubIcon() const {
@@ -432,9 +433,9 @@ const QPixmap& ThemeManager::defaultSizeUnknownCover() const noexcept {
 
 void ThemeManager::updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const {
     if (is_maximum) {
-        ui.maxWinButton->setIcon(iconFromFont(Glyphs::ICON_RESTORE_WINDOW));
+        ui.maxWinButton->setIcon(fontIcon(Glyphs::ICON_RESTORE_WINDOW));
     } else {
-        ui.maxWinButton->setIcon(iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW));
+        ui.maxWinButton->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
     }
 }
 
@@ -471,10 +472,10 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
-        ui.playButton->setIcon(iconFromFont(Glyphs::ICON_PAUSE));
+        ui.playButton->setIcon(fontIcon(Glyphs::ICON_PAUSE));
     }
     else {
-        ui.playButton->setIcon(iconFromFont(Glyphs::ICON_PLAY));
+        ui.playButton->setIcon(fontIcon(Glyphs::ICON_PLAY));
     }
 }
 
@@ -584,7 +585,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
                                          }
                                          )").arg(colorToString(hover_color)));
     close_button->setIconSize(QSize(font_size, font_size));
-    close_button->setIcon(iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
+    close_button->setIcon(fontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
     min_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#minWinButton {
@@ -598,7 +599,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
                                           }
                                           )").arg(colorToString(hover_color)));
     min_win_button->setIconSize(QSize(font_size, font_size));
-    min_win_button->setIcon(iconFromFont(Glyphs::ICON_MINIMIZE_WINDOW));
+    min_win_button->setIcon(fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
 
     max_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#maxWinButton {
@@ -612,7 +613,7 @@ void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton
                                           }
                                           )").arg(colorToString(hover_color)));
     max_win_button->setIconSize(QSize(font_size, font_size));
-    max_win_button->setIcon(iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW));
+    max_win_button->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
@@ -646,7 +647,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             image: none;
                                             }
                                             )").arg(colorToString(hover_color)));
-    ui.sliderBarButton->setIcon(iconFromFont(Glyphs::ICON_SLIDER_BAR));
+    ui.sliderBarButton->setIcon(fontIcon(Glyphs::ICON_SLIDER_BAR));
 
     ui.stopButton->setStyleSheet(qSTR(R"(
                                          QToolButton#stopButton {
@@ -654,7 +655,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.stopButton->setIcon(iconFromFont(ICON_STOP_PLAY));
+    ui.stopButton->setIcon(fontIcon(ICON_STOP_PLAY));
 
     ui.nextButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#nextButton {
@@ -662,7 +663,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.nextButton->setIcon(iconFromFont(Glyphs::ICON_PLAY_FORWARD));
+    ui.nextButton->setIcon(fontIcon(Glyphs::ICON_PLAY_FORWARD));
 
     ui.prevButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#prevButton {
@@ -670,7 +671,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.prevButton->setIcon(iconFromFont(Glyphs::ICON_PLAY_BACKWARD));
+    ui.prevButton->setIcon(fontIcon(Glyphs::ICON_PLAY_BACKWARD));
 
     ui.selectDeviceButton->setStyleSheet(qTEXT(R"(
                                                 QToolButton#selectDeviceButton {                                                
@@ -679,7 +680,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                                 }
                                                 QToolButton#selectDeviceButton::menu-indicator { image: none; }
                                                 )"));
-    ui.selectDeviceButton->setIcon(iconFromFont(Glyphs::ICON_SPEAKER));
+    ui.selectDeviceButton->setIcon(fontIcon(Glyphs::ICON_SPEAKER));
 
     ui.mutedButton->setStyleSheet(qSTR(R"(
                                          QToolButton#mutedButton {
@@ -695,7 +696,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.eqButton->setIcon(iconFromFont(Glyphs::ICON_EQUALIZER));
+    ui.eqButton->setIcon(fontIcon(Glyphs::ICON_EQUALIZER));
 }
 
 void ThemeManager::setTextSeparator(QFrame *frame) {
@@ -719,11 +720,11 @@ int32_t ThemeManager::fontSize() const {
 
 void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {
     if (!is_muted) {
-        ui.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_UP));
+        ui.mutedButton->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_UP));
         AppSettings::setValue(kAppSettingIsMuted, false);
     }
     else {
-        ui.mutedButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_VOLUME_OFF));
+        ui.mutedButton->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_OFF));
         AppSettings::setValue(kAppSettingIsMuted, true);
     }
 }
@@ -958,14 +959,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
 
     QSlider#volumeSlider::handle:horizontal {
-        background-color: white;
-		border: 1px solid #C9CDD0;
         width: 12px;
-		height: 12px;		
+		height: 12px;
         margin-top: -6px;
         margin-bottom: -6px;
 		margin-left: -1px;
-        border-radius: 7px;
+		background-color: white;
+		border: 1px solid #C9CDD0;
+		border-radius: 7px;
     }
     )"
     ).arg(slider_background_color).arg(slider_border_color));
@@ -999,14 +1000,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
 
     QSlider#seekSlider::handle:horizontal {
-        background-color: white;
-		border: 1px solid #C9CDD0;
         width: 12px;
 		height: 12px;		
         margin-top: -6px;
         margin-bottom: -6px;
 		margin-left: -1px;
-        border-radius: 7px;
+        background-color: white;
+		border: 1px solid #C9CDD0;
+		border-radius: 7px;
     }
     )"
     ).arg(slider_background_color).arg(slider_border_color));

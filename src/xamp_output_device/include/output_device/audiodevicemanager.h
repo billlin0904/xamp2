@@ -9,6 +9,7 @@
 #include <base/stl.h>
 #include <base/uuid.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 
 #include <output_device/iaudiodevicemanager.h>
 #include <output_device/idevicetype.h>
@@ -39,12 +40,12 @@ public:
 
     [[nodiscard]] Vector<Uuid> GetAvailableDeviceType() const override;
 
-    [[nodiscard]] bool IsSupportASIO() const noexcept;
+    [[nodiscard]] bool IsSupportAsio() const noexcept;
 
     [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
 private:
     class DeviceStateNotificationImpl;
-    AlignPtr<DeviceStateNotificationImpl> impl_;    
+    PimplPtr<DeviceStateNotificationImpl> impl_;    
     DeviceTypeFactoryMap factory_;
 };
 

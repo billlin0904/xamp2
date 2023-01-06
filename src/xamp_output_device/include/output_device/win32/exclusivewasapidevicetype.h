@@ -9,11 +9,11 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <output_device/win32/wasapi.h>
 #include <output_device/idevicetype.h>
 
 #include <base/uuidof.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 #include <base/logger.h>
 
 namespace xamp::output_device::win32 {
@@ -43,15 +43,8 @@ public:
 	AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) override;
 
 private:
-	void Initial();
-
-	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(std::wstring const & device_id) const;
-
-	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
-
-	CComPtr<IMMDeviceEnumerator> enumerator_;
-	Vector<DeviceInfo> device_list_;
-	LoggerPtr logger_;
+	class ExclusiveWasapiDeviceTypeImpl;
+	PimplPtr<ExclusiveWasapiDeviceTypeImpl> impl_;
 };
 
 }

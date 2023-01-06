@@ -18,11 +18,11 @@
 
 namespace xamp::output_device::win32 {
 
-class XAMP_OUTPUT_DEVICE_API ASIOException final : public Exception {
+class XAMP_OUTPUT_DEVICE_API AsioException final : public Exception {
 public:
-	explicit ASIOException(Errors error);
+	explicit AsioException(Errors error);
 
-	explicit ASIOException(ASIOError error);
+	explicit AsioException(ASIOError error);
 
 	static std::string_view ErrorMessage(ASIOError error) noexcept;
 };
@@ -31,7 +31,7 @@ public:
 	do { \
 		auto result = expr; \
 		if (result != ASE_OK) { \
-			XAMP_LOG_ERROR(ASIOException::ErrorMessage(result)); \
+			XAMP_LOG_ERROR(AsioException::ErrorMessage(result)); \
 		} \
 	} while (false)
 
@@ -39,7 +39,7 @@ public:
 	do { \
 		auto result = expr; \
 		if (result != ASE_OK) { \
-			throw ASIOException(result); \
+			throw AsioException(result); \
 		} \
 	} while (false)
 
@@ -47,7 +47,7 @@ public:
 	do { \
 		auto result = expr; \
 		if (result != (excepted)) { \
-			throw ASIOException(result); \
+			throw AsioException(result); \
 		} \
 	} while (false)
 

@@ -111,7 +111,7 @@ private:
 };
 
 MBDiscId::MBDiscId()
-	: impl_(MakeAlign<MBDiscIdImpl>()) {
+	: impl_(MakePimpl<MBDiscIdImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MBDiscId)

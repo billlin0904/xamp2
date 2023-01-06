@@ -13,18 +13,19 @@
 #include <output_device/idevicetype.h>
 
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 #include <base/stl.h>
 #include <base/uuidof.h>
 
 namespace xamp::output_device::win32 {
 
-class ASIODeviceType final : public IDeviceType {
-	XAMP_DECLARE_MAKE_CLASS_UUID(ASIODeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
+class AsioDeviceType final : public IDeviceType {
+	XAMP_DECLARE_MAKE_CLASS_UUID(AsioDeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
 
 public:
 	constexpr static auto Description = std::string_view("ASIO 2.0");
 
-    ASIODeviceType();
+	AsioDeviceType();
 
 	std::string_view GetDescription() const override;
 
@@ -42,9 +43,8 @@ public:
 
 	AlignPtr<IOutputDevice> MakeDevice(std::string const &device_id) override;
 private:
-	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
-
-	static HashMap<std::string, DeviceInfo> device_info_cache_;
+	class AsioDeviceTypeImpl;
+	PimplPtr<AsioDeviceTypeImpl> impl_;
 };
 
 }

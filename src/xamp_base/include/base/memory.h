@@ -53,7 +53,7 @@ XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept;
 #endif
 
 #ifdef XAMP_ENABLE_REP_MOVSB
-XAMP_BASE_API void MemoryCopy(void* dest, const void* src, size_t size) noexcept;
+XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept;
 #else
 #define MemoryCopy(dest, src, size) (void) __builtin_memcpy(dest, src, size)
 #endif

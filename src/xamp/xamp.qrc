@@ -7,5 +7,6 @@
         <file>Resource/Black/GitHub-Mark.png</file>
         <file>Resource/Black/play_circle.png</file>
         <file>Resource/White/unknown_album.png</file>
+        <file>Resource/Black/slider_handle.png</file>
     </qresource>
 </RCC>

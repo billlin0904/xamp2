@@ -23,6 +23,7 @@
 #endif
 
 #include <base/base.h>
+#include <base/assert.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
@@ -39,7 +40,9 @@ public:
     using DeviceStateNotificationPtr = AlignPtr<DeviceStateNotification>;
 #endif
 
-    explicit DeviceStateNotificationImpl(std::weak_ptr<IDeviceStateListener> const& callback) {
+    DeviceStateNotificationImpl() = default;
+
+    void SetCallback(std::weak_ptr<IDeviceStateListener> const& callback) {
 #ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
 #else
@@ -61,7 +64,8 @@ private:
 		return MakeAlign<IDeviceType, DeviceTypeClass>();\
 	})
 
-AudioDeviceManager::AudioDeviceManager() {
+AudioDeviceManager::AudioDeviceManager()
+	: impl_(MakePimpl<DeviceStateNotificationImpl>()) {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
@@ -72,7 +76,7 @@ AudioDeviceManager::AudioDeviceManager() {
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #if ENABLE_ASIO
-    XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
 #endif
 #else
     using namespace osx;
@@ -109,9 +113,9 @@ AlignPtr<IDeviceType> AudioDeviceManager::Create(Uuid const& id) const {
     return (*itr).second();
 }
 
-bool AudioDeviceManager::IsSupportASIO() const noexcept {
+bool AudioDeviceManager::IsSupportAsio() const noexcept {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
-    return IsDeviceTypeExist(XAMP_UUID_OF(win32::ASIODeviceType));
+    return IsDeviceTypeExist(XAMP_UUID_OF(win32::AsioDeviceType));
 #else
     return false;
 #endif
@@ -138,7 +142,7 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
 }
 
 void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
-    impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
+    impl_->SetCallback(callback);
     impl_->Run();
 }
 

@@ -32,7 +32,10 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
 QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget);
 
-QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
+QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, 
+    QString const& text, 
+    QString const& cancel,
+    QWidget* parent = nullptr);
 
 void centerDesktop(QWidget* widget);
 

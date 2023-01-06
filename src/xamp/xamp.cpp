@@ -127,8 +127,6 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
     , album_page_(nullptr)
     , artist_info_page_(nullptr)
 	, file_system_view_page_(nullptr)
-	, tray_icon_menu_(nullptr)
-    , tray_icon_(nullptr)
 	, top_window_(nullptr)
 	, background_worker_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
@@ -151,7 +149,6 @@ void Xamp::setXWindow(IXWindow* top_window) {
     initialController();
     initialPlaylist();
     initialShortcut();
-    initialTrayIcon();
     initialSpectrum();
 
     setPlaylistPageCover(nullptr, playlist_page_);
@@ -255,43 +252,6 @@ void Xamp::initialSpectrum() {
         });
 }
 
-void Xamp::initialTrayIcon() {
-    if (!AppSettings::getValueAsBool(kAppSettingMinimizeToTray)) {
-        return;
-    }
-
-    auto* minimize_action = new QAction(tr("Mi&nimize"), this);
-    (void)QObject::connect(minimize_action, &QAction::triggered, top_window_, &QWidget::hide);
-
-    auto* maximize_action = new QAction(tr("Ma&ximize"), this);
-    (void)QObject::connect(maximize_action, &QAction::triggered, top_window_, &QWidget::showMaximized);
-
-    auto* restore_action = new QAction(tr("&Restore"), this);
-    (void)QObject::connect(restore_action, &QAction::triggered, top_window_, &QWidget::showNormal);
-
-    auto* quit_action = new QAction(tr("&Quit"), this);
-    (void)QObject::connect(quit_action, &QAction::triggered, top_window_, &QWidget::close);
-
-    tray_icon_menu_ = new XMenu(this);
-    qTheme.setMenuStyle(tray_icon_menu_);
-
-    tray_icon_menu_->addAction(minimize_action);
-    tray_icon_menu_->addAction(maximize_action);
-    tray_icon_menu_->addAction(restore_action);
-    tray_icon_menu_->addSeparator();
-    tray_icon_menu_->addAction(quit_action);
-
-    tray_icon_ = new QSystemTrayIcon(qTheme.appIcon(), this);
-    tray_icon_->setContextMenu(tray_icon_menu_);
-    tray_icon_->setToolTip(kApplicationTitle);
-    tray_icon_->show();
-
-    (void)QObject::connect(tray_icon_,
-        SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-        this,
-        SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
-}
-
 void Xamp::updateMaximumState(bool is_maximum) {
     qTheme.updateMaximumIcon(ui_, is_maximum);
 }
@@ -305,18 +265,7 @@ void Xamp::focusOut() {
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-    if (tray_icon_ != nullptr) {
-        if (tray_icon_->isVisible() && !isHidden()) {
-            if (showMeMessage(tr("Hide to system tray?"))) {
-                top_window_->hide();
-                event->ignore();
-                return;
-            }
-        }
-    }
-
-    AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
-    
+    AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());    
     cleanup();
     window()->close();
 }
@@ -381,7 +330,7 @@ void Xamp::initialUI() {
     ui_.endPosLabel->setFont(mono_font);
 #endif
 
-    ui_.searchLineEdit->addAction(qTheme.iconFromFont(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+    ui_.searchLineEdit->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
     top_window_->setTitleBarAction(ui_.titleFrame);
 }
 
@@ -449,13 +398,13 @@ void Xamp::initialDeviceList() {
         switch (connect_type) {
         case DeviceConnectType::UKNOWN:
         case DeviceConnectType::BUILT_IN:
-            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_BUILD_IN_SPEAKER));
+            ui_.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_BUILD_IN_SPEAKER));
             break;
         case DeviceConnectType::USB:
-            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_USB));
+            ui_.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_USB));
             break;
         case DeviceConnectType::BLUE_TOOTH:
-            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(Glyphs::ICON_BLUE_TOOTH));
+            ui_.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_BLUE_TOOTH));
             break;
         }
     };
@@ -1207,7 +1156,11 @@ bool Xamp::showMeMessage(const QString& message) {
     if (AppSettings::dontShowMeAgain(message)) {
         auto [button, checked] = XMessageBox::showCheckBoxInformation(
             message,
-            tr("Ok, and don't show again."));
+            tr("Ok, and don't show again."),
+            kApplicationTitle,
+            false,
+            QDialogButtonBox::No | QDialogButtonBox::Yes,
+            QDialogButtonBox::No);
         if (checked) {
             AppSettings::addDontShowMeAgain(message);
             return true;
@@ -1378,13 +1331,6 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
-
-    if (isHidden()) {
-        tray_icon_->showMessage(item.album, 
-            item.title, 
-            qTheme.appIcon(),
-            1000);
-    }
 
     if (open_done) {
         ui_.formatLabel->setText(format2String(playback_format, ext));
@@ -1605,15 +1551,15 @@ void Xamp::initialPlaylist() {
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
 
-    ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.iconFromFont(Glyphs::ICON_PLAYLIST));
-    ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.iconFromFont(Glyphs::ICON_PODCAST));
-    ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.iconFromFont(Glyphs::ICON_DESKTOP));
-    ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, qTheme.iconFromFont(Glyphs::ICON_ALBUM));
-    ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, qTheme.iconFromFont(Glyphs::ICON_ARTIST));
-    ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.iconFromFont(Glyphs::ICON_SUBTITLE));
-    ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.iconFromFont(Glyphs::ICON_PREFERENCE));
-    ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.iconFromFont(Glyphs::ICON_CD));
-    ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.iconFromFont(Glyphs::ICON_ABOUT));
+    ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.fontIcon(Glyphs::ICON_PODCAST));
+    ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+    ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, qTheme.fontIcon(Glyphs::ICON_ALBUM));
+    ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, qTheme.fontIcon(Glyphs::ICON_ARTIST));
+    ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+    ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.fontIcon(Glyphs::ICON_PREFERENCE));
+    ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
+    ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.fontIcon(Glyphs::ICON_ABOUT));
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
     qDatabase.forEachTable([this](auto table_id,
@@ -1624,7 +1570,7 @@ void Xamp::initialPlaylist() {
                 return;
             }
 
-            ui_.sliderBar->addTab(name, table_id, qTheme.iconFromFont(Glyphs::ICON_PLAYLIST));
+            ui_.sliderBar->addTab(name, table_id, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
             if (!playlist_page_) {
                 playlist_page_ = newPlaylistPage(playlist_id, qEmptyString);
@@ -1853,6 +1799,8 @@ void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& prof
         tr("Export progress dialog"),
         tr("Export '") + item.title + tr("' to aac file"),
         tr("Cancel"));
+
+    centerParent(dialog.get());
 
     QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 

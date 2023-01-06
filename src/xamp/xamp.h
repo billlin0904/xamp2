@@ -181,8 +181,6 @@ private:
 
 	void encodeWavFile(const PlayListEntity& item);
 
-	void initialTrayIcon();
-
     void updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
 	void updateButtonState();
@@ -228,8 +226,6 @@ private:
 	PreferencePage* preference_page_;
 	FileSystemViewPage* file_system_view_page_;
 	AboutPage* about_page_;
-	XMenu* tray_icon_menu_;
-    QSystemTrayIcon* tray_icon_;
 	IXWindow* top_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;

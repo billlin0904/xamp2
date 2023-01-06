@@ -9,6 +9,7 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 
 #ifdef XAMP_OS_WIN
 
@@ -31,7 +32,7 @@ public:
 	static void LoadMBDiscIdLib();
 private:
 	class MBDiscIdImpl;
-	AlignPtr<MBDiscIdImpl> impl_;
+	PimplPtr<MBDiscIdImpl> impl_;
 };
 
 }

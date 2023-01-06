@@ -13,6 +13,8 @@
 #include <output_device/osx/coreaudiodevicetype.h>
 #include <output_device/osx/hogcoreaudiodevicetype.h>
 #include <output_device/osx/coreaudiodevicestatenotification.h>
+#else
+#include <base/platfrom_handle.h>
 #endif
 
 namespace xamp::output_device {
@@ -63,7 +65,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
     Uuid const device_type_id(info.device_type_id);
     return device_type_id == XAMP_UUID_OF(win32::ExclusiveWasapiDeviceType)
 #if ENABLE_ASIO
-        || device_type_id == XAMP_UUID_OF(win32::ASIODeviceType)
+        || device_type_id == XAMP_UUID_OF(win32::AsioDeviceType)
 #endif
         ;
 #else
@@ -72,16 +74,16 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 #endif
 }
 
-bool IsASIODevice(Uuid const& id) noexcept {
+bool IsAsioDevice(Uuid const& id) noexcept {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    return id == XAMP_UUID_OF(win32::ASIODeviceType);
+    return id == XAMP_UUID_OF(win32::AsioDeviceType);
 #else
     (void)id;
     return false;
 #endif
 }
 
-void ResetASIODriver() {
+void ResetAsioDriver() {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     win32::AsioDevice::ResetDriver();
 #endif

@@ -208,7 +208,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     QStyleOptionButton button;
     button.initFrom(more_album_opt_button_.get());
     button.rect = more_button_rect;
-    button.icon = qTheme.iconFromFont(Glyphs::ICON_MORE);
+    button.icon = qTheme.fontIcon(Glyphs::ICON_MORE);
     button.state |= QStyle::State_Enabled;
     if (more_button_rect.contains(mouse_point_)) {
         button.state |= QStyle::State_Sunken;
@@ -258,7 +258,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
                                          )"));
     close_button->setFixedSize(QSize(24, 24));
     close_button->setIconSize(QSize(13, 13));
-    close_button->setIcon(qTheme.iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
+    close_button->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -432,7 +432,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(file_name);
         });
-    load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
+    load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
 
     auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
         const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -444,13 +444,13 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(dir_name);
         });
-    load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_FOLDER));
+    load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
     action_map.addSeparator();
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         removeAlbum();
         styled_delegate_->clearImageCache();
         });
-    remove_all_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
+    remove_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
     action_map.exec(pt);
 }
@@ -478,12 +478,12 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
             });
         emit addPlaylist(add_playlist_music_ids, entities);
         });
-    add_album_to_playlist_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_PLAYLIST));
+    add_album_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
         });
-    copy_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_COPY));
+    copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
     action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
@@ -498,7 +498,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
             refreshOnece();
 		}
         });
-    remove_select_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
+    remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
     action_map.exec(pt);
 }

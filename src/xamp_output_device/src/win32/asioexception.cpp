@@ -3,7 +3,7 @@
 
 namespace xamp::output_device::win32 {
 
-std::string_view ASIOException::ErrorMessage(ASIOError error) noexcept {
+std::string_view AsioException::ErrorMessage(ASIOError error) noexcept {
 	switch (error) {
 	case ASE_NotPresent:
 		return "Hardware input or output is not present or available.";
@@ -33,11 +33,11 @@ static Errors ToErrors(ASIOError error) {
 	}
 }
 
-ASIOException::ASIOException(Errors error)
+AsioException::AsioException(Errors error)
 	: Exception(error) {
 }
 
-ASIOException::ASIOException(ASIOError error)
+AsioException::AsioException(ASIOError error)
 	: Exception(ToErrors(error)) {
 	what_ = ErrorMessage(error);
 }

@@ -632,7 +632,7 @@ void XWindow::addSystemMenu(QWidget* widget) {
         action_map.setCallback(restore_act, [this]() {
             showNormal();
             });
-        restore_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RESTORE_WINDOW));
+        restore_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RESTORE_WINDOW));
         restore_act->setEnabled(isMaximized());
 
         auto* move_act = action_map.addAction(tr("Move(M)"));
@@ -645,7 +645,7 @@ void XWindow::addSystemMenu(QWidget* widget) {
         action_map.setCallback(mini_act, [this]() {
             showMinimized();
             });
-        mini_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_MINIMIZE_WINDOW));
+        mini_act->setIcon(qTheme.fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
         mini_act->setEnabled(true);
 
         auto* max_act = action_map.addAction(tr("Maximum(M)"));
@@ -653,14 +653,14 @@ void XWindow::addSystemMenu(QWidget* widget) {
             showMaximized();
             });
         max_act->setEnabled(!isMaximized());
-        max_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_MAXIMUM_WINDOW));
+        max_act->setIcon(qTheme.fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
         action_map.addSeparator();
 
         auto* close_act = action_map.addAction(tr("Close(X)"));
         action_map.setCallback(close_act, [this]() {
             close();
             });
-        close_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_CLOSE_WINDOW));
+        close_act->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
         action_map.exec(pt);
         });

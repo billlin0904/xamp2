@@ -37,7 +37,8 @@ public:
 	                     const QString& text = qEmptyString,
 	                     QWidget* parent = nullptr,
 						 QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
-						 QDialogButtonBox::StandardButton default_button = QDialogButtonBox::StandardButton::Ok);
+						 QDialogButtonBox::StandardButton default_button = QDialogButtonBox::StandardButton::Ok,
+						 bool enable_countdown = false);
 
     void setDefaultButton(QPushButton* button);
 
@@ -61,26 +62,31 @@ public:
 
     static void showBug(const Exception& exception,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = false,
         QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showYesOrNo(const QString& text,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = true,
         QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showInformation(const QString& text,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = true,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showWarning(const QString& text,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = true,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showError(const QString& text,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = false,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
@@ -88,6 +94,7 @@ public:
     static std::tuple<QDialogButtonBox::StandardButton, bool> showCheckBoxQuestion(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = true,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
@@ -95,6 +102,7 @@ public:
     static std::tuple<QDialogButtonBox::StandardButton, bool> showCheckBoxInformation(const QString& text,
         const QString& check_box_text = qEmptyString,
         const QString& title = kApplicationTitle,
+        bool enable_countdown = true,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
         QWidget* parent = nullptr);
@@ -106,6 +114,7 @@ private:
     static std::tuple<QDialogButtonBox::StandardButton, bool> showCheckBox(const QString& text,
         const QString& check_box_text,
         const QString& title,
+        bool enable_countdown,
         const QIcon& icon,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
@@ -113,6 +122,7 @@ private:
 
     static QDialogButtonBox::StandardButton showButton(const QString& text,
         const QString& title,
+        bool enable_countdown,
         const QIcon& icon,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
         QDialogButtonBox::StandardButton default_button = QDialogButtonBox::Ok,
@@ -122,8 +132,9 @@ private:
 
     int execReturnCode(QAbstractButton* button);
 
+    bool enable_countdown_;
     int timeout_{ kDefaultTimeoutSecond };
-    QString defaultButtonText_;
+    QString default_button_text_;
     QLabel* icon_label_;
     QLabel* message_text_label_;
     QGridLayout* grid_layout_;

@@ -69,7 +69,7 @@ static std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path
     auto dsd_mode = DsdModes::DSD_MODE_PCM;
     if (is_dsd_file) {
         if (device_info.is_support_dsd && !enable_sample_converter) {
-            if (IsASIODevice(device_info.device_type_id)) {
+            if (IsAsioDevice(device_info.device_type_id)) {
                 file_stream = StreamFactory::MakeFileStream(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode = DsdModes::DSD_MODE_NATIVE;
             }
@@ -138,7 +138,7 @@ void AudioPlayer::Destroy() {
     stream_.reset();
     read_buffer_.reset();
 #ifdef ENABLE_ASIO
-    ResetASIODriver();
+    ResetAsioDriver();
 #endif
 
     GetPlaybackThreadPool().Stop();
@@ -230,7 +230,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         if (device_type_id_ != device_type_id) {
             // device可能是ASIO解後再移除drvier.
             device_.reset();
-            ResetASIODriver();
+            ResetAsioDriver();
             XAMP_LOG_D(logger_, "ResetASIODriver!");
         }    	
         device_type_ = device_manager_->Create(device_type_id);
@@ -426,9 +426,9 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     if (shutdown_device) {
         XAMP_LOG_D(logger_, "Shutdown device.");
-        if (IsASIODevice(device_type_id_)) {
+        if (IsAsioDevice(device_type_id_)) {
             device_.reset();
-            ResetASIODriver();            
+            ResetAsioDriver();            
         }
         device_id_.clear();
         device_.reset();
@@ -476,7 +476,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
-        if (device_type_->GetTypeId() == XAMP_UUID_OF(win32::ASIODeviceType)) {
+        if (device_type_->GetTypeId() == XAMP_UUID_OF(win32::AsioDeviceType)) {
             return is_muted_;
         }
 #else
@@ -671,8 +671,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
             XAMP_LOG_D(logger_, "Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
                 // TODO: In many system has more ASIO device.
-                if (IsASIODevice(device_type_->GetTypeId())) {
-                    ResetASIODriver();
+                if (IsAsioDevice(device_type_->GetTypeId())) {
+                    ResetAsioDriver();
                 }
                 
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);

@@ -343,7 +343,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTDSDInt8NER8.");
 		break;
 	default:
-		throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
+		throw AsioException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 	}
 
 	XAMP_LOG_D(logger_, "Native DSD support: {}.", IsSupportDsdFormat());
@@ -531,7 +531,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 		throw DeviceNotFoundException(driver_name);
 	}
 	else if (result != ASE_OK) {
-		throw ASIOException(result);
+		throw AsioException(result);
 	}	
 
 	ASIOIoFormat asio_fomrmat{};

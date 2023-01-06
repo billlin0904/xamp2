@@ -4,6 +4,7 @@
 #include <widget/pixmapcache.h>
 #include <base/logger_impl.h>
 #include <base/google_siphash.h>
+#include <base/scopeguard.h>
 
 #if defined(Q_OS_WIN)
 #include <player/mbdiscid.h>
@@ -33,47 +34,26 @@ struct ReplayGainJob {
     Vector<Ebur128Reader> scanner;
 };
 
-BackgroundWorker::BackgroundWorker()
-	: image_cache_(8) {
-    writer_ = MakeMetadataWriter();
-    logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
-}
-
-BackgroundWorker::~BackgroundWorker() = default;
-
-void BackgroundWorker::stopThreadPool() {
-    is_stop_ = true;
-    if (executor_ != nullptr) {
-        executor_->Stop();
-    }
-}
-
-void BackgroundWorker::lazyInitExecutor() {
-    if (executor_ != nullptr) {
-        return;
-    }
-    executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
-        ThreadPriority::BACKGROUND,
-        TaskSchedulerPolicy::LEAST_LOAD_POLICY,
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
-}
-
 using DirPathHash = GoogleSipHash<>;
 
 static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
-    bool is_podcast_mode) {
-    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+    bool is_podcast_mode,
+    int32_t progress) {
+    QDirIterator itr(dir, file_name_filters, 
+        QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
     DirPathHash hasher(MetadataExtractAdapter::kDirHashKey1, MetadataExtractAdapter::kDirHashKey2);
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
-        auto path = toNativeSeparators(itr.next()).toStdWString();
+        auto next_path = toNativeSeparators(itr.next());
+        auto path = next_path.toStdWString();
         paths.push_front(path);
         hasher.Update(path);
+        emit adapter->readFileProgress(next_path, progress);
     }
 
     if (paths.empty()) {
@@ -102,20 +82,45 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
             track.parent_path_hash = path_hash;
             });
 
-		tracks.second.sort([](const auto& first, const auto& last) {
-			return first.track < last.track;
+    tracks.second.sort([](const auto& first, const auto& last) {
+        return first.track < last.track;
         });
     });
 
     const DirectoryEntry dir_entry(dir.toStdWString());
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
-	    const auto last_write_time = ToTime_t(dir_entry.last_write_time());
-        MetadataExtractAdapter::processMetadata(tracks.second, 
-            last_write_time, 
-            playlist_id, 
-            is_podcast_mode);
-        emit adapter->readCompleted(last_write_time, tracks.second);
+        const auto last_write_time = ToTime_t(dir_entry.last_write_time());
+		MetadataExtractAdapter::processMetadata(tracks.second,
+			last_write_time,
+			playlist_id,
+			is_podcast_mode);
+		emit adapter->readCompleted(last_write_time, tracks.second);
     });
+}
+
+BackgroundWorker::BackgroundWorker()
+	: image_cache_(8) {
+    writer_ = MakeMetadataWriter();
+    logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
+}
+
+BackgroundWorker::~BackgroundWorker() = default;
+
+void BackgroundWorker::stopThreadPool() {
+    is_stop_ = true;
+    if (executor_ != nullptr) {
+        executor_->Stop();
+    }
+}
+
+void BackgroundWorker::lazyInitExecutor() {
+    if (executor_ != nullptr) {
+        return;
+    }
+    executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
+        ThreadPriority::BACKGROUND,
+        TaskSchedulerPolicy::LEAST_LOAD_POLICY,
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 }
 
 void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
@@ -136,14 +141,6 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
         dirs.push_back(path);
     }
 
-    const auto path_hash = hasher.GetHash();
-    const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
-    if (db_hash == path_hash) {
-        XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
-        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
-        return;
-    }
-
     if (dirs.empty()) {
         dirs.push_back(file_path);
     }
@@ -151,22 +148,37 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     const int dir_size = std::distance(dirs.begin(), dirs.end());
     emit adapter->readFileStart(dir_size);
 
+    XAMP_ON_SCOPE_EXIT(
+        emit adapter->readFileEnd();
+    );
+
+    const auto path_hash = hasher.GetHash();
+
+    try {
+        const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
+        if (db_hash == path_hash) {
+            XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
+            emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+            return;
+        }
+    } catch (Exception const &e) {
+        XAMP_LOG_E(logger_, "Faild to get parent path. {}", e.GetErrorMessage());
+        return;
+    }    
+
     const auto file_name_filters = getFileNameFilter();
     std::atomic<int> progress(0);
 
     Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode](
         const auto& dir) {
-        emit adapter->readFileProgress(dir, progress.load());
 		try {
-			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
+			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode, progress.load());
 		}
 		catch (Exception const& e) {
 			XAMP_LOG_D(logger_, "Faild to scan dir files! ", e.GetErrorMessage());
 		}
 		++progress;
     });
-
-    emit adapter->readFileEnd();
 }
 
 void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {

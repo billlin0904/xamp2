@@ -450,7 +450,7 @@ void PlayListTableView::initial() {
         setColumnHidden(last_referred_logical_column, true);
 		AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
         });
-    hide_this_column_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_HIDE));
+    hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
     auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
         ActionMap<PlayListTableView> action_map(this);
@@ -463,7 +463,7 @@ void PlayListTableView::initial() {
         }
         action_map.exec(pt);
         });
-    select_column_show_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_SHOW));
+    select_column_show_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SHOW));
 
     action_map.exec(pt);
         });
@@ -487,7 +487,7 @@ void PlayListTableView::initial() {
                     }
 					append(file_name);
                 });
-                load_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_FILE));
+                load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
 
                 auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
                     const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -498,13 +498,13 @@ void PlayListTableView::initial() {
                     }
                     append(dir_name);
                     });
-                load_dir_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_LOAD_DIR));
+                load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_DIR));
             }
         }
 
         if (podcast_mode_) {
             auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
-            import_podcast_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_DOWNLOAD));
+            import_podcast_act->setIcon(qTheme.fontIcon(Glyphs::ICON_DOWNLOAD));
             action_map.setCallback(import_podcast_act, [this]() {
                 if (model_->rowCount() > 0) {
                     const auto button = XMessageBox::showYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
@@ -525,7 +525,7 @@ void PlayListTableView::initial() {
 
         if (enable_delete_ && model()->rowCount() > 0) {
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
-            remove_all_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_REMOVE_ALL));
+            remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
             action_map.setCallback(remove_all_act, [this]() {
                 if (!model_->rowCount()) {
@@ -546,11 +546,11 @@ void PlayListTableView::initial() {
         QAction* reload_metadata_act = nullptr;
 
         auto* read_select_item_replaygain_act = action_map.addAction(tr("Read file ReplayGain"));
-        read_select_item_replaygain_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_READ_REPLAY_GAIN));
+        read_select_item_replaygain_act->setIcon(qTheme.fontIcon(Glyphs::ICON_READ_REPLAY_GAIN));
 
         action_map.addSeparator();
         auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
-        export_flac_file_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_EXPORT_FILE));
+        export_flac_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EXPORT_FILE));
 
         const auto select_row = selectionModel()->selectedRows();
         if (!select_row.isEmpty()) {
@@ -585,7 +585,7 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
-        copy_album_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_COPY));
+        copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
         auto * copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
@@ -606,10 +606,10 @@ void PlayListTableView::initial() {
         auto item = getEntity(index, proxy_model_->mapToSource(index));
 
         reload_metadata_act = action_map.addAction(tr("Reload metadata"));
-        reload_metadata_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_RELOAD));
+        reload_metadata_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RELOAD));
 
         auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
-        open_local_file_path_act->setIcon(qTheme.iconFromFont(Glyphs::ICON_OPEN_FILE_PATH));
+        open_local_file_path_act->setIcon(qTheme.fontIcon(Glyphs::ICON_OPEN_FILE_PATH));
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
             });
