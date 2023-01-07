@@ -1,11 +1,9 @@
 #include <QDesktopWidget>
 #include <QProgressBar>
-#include <QCheckBox>
-#include <QProgressDialog>
+#include <qcoreapplication.h>
+#include <QApplication>
 
-#include <version.h>
-#include <widget/xdialog.h>
-#include <widget/xmessagebox.h>
+#include <widget/xprogressdialog.h>
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
@@ -81,29 +79,28 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 }
 
 QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
-    return QSharedPointer<ProcessIndicator>(new ProcessIndicator(widget), &QObject::deleteLater);
+    return {new ProcessIndicator(widget), &QObject::deleteLater};
 }
 
-QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title,
+QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,
     QWidget* parent) {
-    auto* dialog = new QProgressDialog(text, cancel, 0, 100, parent);
+    if (!parent) {
+        parent = qApp->activeWindow();
+    }
+    if (parent != nullptr) {
+        parent->setFocus();
+    }
+    auto* dialog = new XProgressDialog(text, cancel, 0, 100, parent);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);
-    dialog->setFixedSize(QSize(1000, 100));
-    dialog->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-    dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    auto* progress_bar = new QProgressBar(dialog);
-    progress_bar->setFont(QFont(qTEXT("FormatFont")));
-    dialog->setBar(progress_bar);
-    auto* label = new QLabel(dialog);
-    label->setStyleSheet(qTEXT("background: transparent;"));
-    label->setAlignment(Qt::AlignCenter);
-    dialog->setLabel(label);
-    centerParent(dialog);
-    return QSharedPointer<QProgressDialog>(dialog);
+	dialog->show();
+    if (parent != nullptr) {
+        centerParent(dialog);
+    }
+    return QSharedPointer<XProgressDialog>(dialog);
 }
 
 void centerParent(QWidget* widget) {

@@ -10,10 +10,7 @@
 #include <widget/widget_shared.h>
 #include <thememanager.h>
 
-#include <QMessageBox>
-#include <QApplication>
-
-class QProgressDialog;
+class XProgressDialog;
 class ProcessIndicator;
 
 struct PlaybackFormat {
@@ -32,7 +29,7 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
 QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget);
 
-QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, 
+QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,
     QWidget* parent = nullptr);

@@ -33,7 +33,7 @@ class XMessageBox : public XDialog {
 public:
     static constexpr int kDefaultTimeoutSecond = 8;
 
-	explicit XMessageBox(const QString& title = qEmptyString,
+	explicit XMessageBox(const QString& title= qEmptyString,
 	                     const QString& text = qEmptyString,
 	                     QWidget* parent = nullptr,
 						 QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,

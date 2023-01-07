@@ -2,19 +2,13 @@
 #include <utility>
 #include <execution>
 #include <forward_list>
-#include <unordered_set>
 
 #include <QFile>
 #include <QDirIterator>
-#include <QMap>
-#include <QProgressDialog>
 
 #include <base/base.h>
-#include <base/str_utilts.h>
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
-#include <base/siphash.h>
-#include <base/google_siphash.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>

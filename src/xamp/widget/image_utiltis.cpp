@@ -5,16 +5,18 @@
 
 #include <widget/image_utiltis.h>
 
-namespace Pixmap {
+namespace ImageUtils {
 
 QPixmap scaledImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
-	return source.scaled(size,
-		is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
-		: Qt::IgnoreAspectRatio,
-		Qt::SmoothTransformation);
+	const auto scaled_size = source.size() * 2;
+	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
+		                  : Qt::IgnoreAspectRatio;
+
+	return source.scaled(scaled_size, mode)
+		.scaled(size, mode, Qt::SmoothTransformation);
 }
 
-QByteArray getImageByteArray(const QPixmap& source) {
+QByteArray convert2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
@@ -22,7 +24,7 @@ QByteArray getImageByteArray(const QPixmap& source) {
 	return bytes;
 }
 
-std::vector<uint8_t> getImageData(const QPixmap& source) {
+std::vector<uint8_t> convert2Vector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
@@ -48,7 +50,7 @@ QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
 	QPainterPath painter_path;
-	painter_path.addRoundedRect(darker_rect, Pixmap::kImageRadius, Pixmap::kImageRadius);
+	painter_path.addRoundedRect(darker_rect, kImageRadius, kImageRadius);
 	painter.setClipPath(painter_path);
 	painter.fillPath(painter_path, QBrush(color));
 	return result;
@@ -70,7 +72,11 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	painter.setRenderHints(QPainter::TextAntialiasing, true);
 	painter.setClipPath(painter_path);
 	painter.setBrush(QBrush(QColor(249, 249, 249)));
-	painter.drawPixmap(rect, scaledImage(pixmap, size, true));
+	if (src.size() != size) {
+		painter.drawPixmap(rect, scaledImage(pixmap, size, true));
+	} else {
+		painter.drawPixmap(rect, pixmap);
+	}
 	return result;
 }
 

@@ -150,9 +150,9 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {
-	const auto playlist_cover = Pixmap::roundImage(
-		Pixmap::scaledImage(*cover, QSize(130, 130), false),
-		Pixmap::kPlaylistImageRadius);
+	const auto playlist_cover = ImageUtils::roundImage(
+		ImageUtils::scaledImage(*cover, QSize(130, 130), false),
+		ImageUtils::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
 }
 

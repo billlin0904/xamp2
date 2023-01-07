@@ -34,7 +34,7 @@ SpectrumWidget* LrcPage::spectrum() {
 
 void LrcPage::setCover(const QPixmap& src) {
     auto cover_size = cover_label_->size();
-    cover_label_->setPixmap(Pixmap::roundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
+    cover_label_->setPixmap(ImageUtils::roundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
 }
 
 QSize LrcPage::coverSize() const {

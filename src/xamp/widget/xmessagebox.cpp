@@ -3,6 +3,7 @@
 #include <widget/widget_shared.h>
 #include <widget/ui_utilts.h>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QPropertyAnimation>
 #include <QPushButton>
@@ -220,6 +221,12 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	}
 	mask_widget.reset(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
+	if (parent != nullptr) {
+		centerParent(&box);
+	}
+	else {
+		centerDesktop(&box);
+	}
 	box.setIcon(icon);
 	if (box.exec() == -1)
 		return QDialogButtonBox::Cancel;

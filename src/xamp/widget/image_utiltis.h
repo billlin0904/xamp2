@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include <vector>
 #include <QPixmap>
 
-namespace Pixmap {
+namespace ImageUtils {
 
 inline constexpr int32_t kImageRadius = 4;
 inline constexpr int32_t kSmallImageRadius = 8;
@@ -21,8 +22,8 @@ QPixmap roundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRa
 
 QPixmap scaledImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-std::vector<uint8_t> getImageData(const QPixmap& source);
+std::vector<uint8_t> convert2Vector(const QPixmap& source);
 
-QByteArray getImageByteArray(const QPixmap& source);
+QByteArray convert2ByteArray(const QPixmap& source);
 
 }

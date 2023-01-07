@@ -8,16 +8,14 @@
 #include <QTimeEdit>
 #include <QLineEdit>
 #include <QSqlQuery>
-#include <QTimer>
+#include <QApplication>
 
 #include <base/logger_impl.h>
 
 #include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>
-#include <widget/appsettingnames.h>
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
-#include <version.h>
 
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
@@ -423,7 +421,7 @@ void PlayListTableView::initial() {
         const auto src_index = proxy_model_->mapToSource(index);
         auto item = getEntity(index, src_index);
         item.rating = start_editor->starRating().starCount();
-        qDatabase.updateMusicRating(item.music_id, item.rating);
+        CATCH_DB_EXCEPTION(qDatabase.updateMusicRating(item.music_id, item.rating))
         reload();
     });
 
@@ -605,7 +603,7 @@ void PlayListTableView::initial() {
 
         auto item = getEntity(index, proxy_model_->mapToSource(index));
 
-        reload_metadata_act = action_map.addAction(tr("Reload metadata"));
+        reload_metadata_act = action_map.addAction(tr("Reload track information"));
         reload_metadata_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RELOAD));
 
         auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
@@ -620,7 +618,7 @@ void PlayListTableView::initial() {
 				reload();
 			}
 			catch (std::filesystem::filesystem_error& e) {
-				XAMP_LOG_DEBUG("Reload metadata error: {}", String::LocaleStringToUTF8(e.what()));
+				XAMP_LOG_DEBUG("Reload track information error: {}", String::LocaleStringToUTF8(e.what()));
 			}
 			catch (...) {
 			}
@@ -686,7 +684,7 @@ void PlayListTableView::initial() {
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {
     const auto entity = item(index);
-    qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
+    CATCH_DB_EXCEPTION(qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE))
     update();
 }
 
@@ -726,19 +724,21 @@ void PlayListTableView::updateReplayGain(int32_t playlistId,
         return;
     }
 
-    qDatabase.updateReplayGain(
+    CATCH_DB_EXCEPTION(qDatabase.updateReplayGain(
         entity.music_id,
         album_rg_gain,
         album_peak, 
         track_rg_gain,
-        track_peak);
+        track_peak))
 
-    qDatabase.addOrUpdateTrackLoudness(entity.album_id,
+    CATCH_DB_EXCEPTION(qDatabase.addOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
-        track_loudness);
+        track_loudness))
 
-    XAMP_LOG_DEBUG("Update DB music id: {} artist id: {} album id id: {}, track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
+    XAMP_LOG_DEBUG(
+        "Update DB music id: {} artist id: {} album id id: {},"
+        "track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
         entity.music_id,
         entity.artist_id,
         entity.album_id,
@@ -787,7 +787,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     return QAbstractItemView::eventFilter(obj, ev);
 }
 
-void PlayListTableView::append(const QString& file_name, bool show_progress_dialog, bool is_recursive) {
+void PlayListTableView::append(const QString& file_name) {
 	const auto adapter = QSharedPointer<::MetadataExtractAdapter>(new ::MetadataExtractAdapter());
 
     (void)QObject::connect(adapter.get(),
@@ -804,7 +804,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
 
 void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entities) {
     for (const auto& entity : entities) {
-        qDatabase.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
+        CATCH_DB_EXCEPTION(qDatabase.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id))
     }
     executeQuery();
     emit addPlaylistItemFinished();
@@ -852,19 +852,20 @@ void PlayListTableView::onFetchPodcastError(const QString& msg) {
 }
 
 void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& /*track_infos*/, const QByteArray& cover_image_data) {
+    XAMP_LOG_DEBUG("Download podcast completed!");
+
     indicator_.reset();
     executeQuery();
 
     if (!model()->rowCount()) {
+        XAMP_LOG_DEBUG("Fail to add the playlist!");
         return;
     }
-
-    XAMP_LOG_DEBUG("Download podcast completed!");
 
     const auto cover_id = qPixmapCache.addOrUpdate(cover_image_data);
     const auto index = this->model()->index(0, 0);
     const auto play_item = item(index);
-    qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
+    CATCH_DB_EXCEPTION(qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id))
     emit updateAlbumCover(cover_id);
 }
 
@@ -946,8 +947,8 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = item(play_index_);
-    qDatabase.clearNowPlaying(playlist_id_);
-    qDatabase.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
+    CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_))
+	CATCH_DB_EXCEPTION(qDatabase.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
     reload();
 }
 
@@ -956,7 +957,7 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
         return;
     }
     const auto entity = item(play_index_);
-    qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
+    CATCH_DB_EXCEPTION(qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state))
     reload();
     emit updatePlayingState(entity, playing_state);
 }
@@ -996,12 +997,12 @@ void PlayListTableView::play(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    qDatabase.clearNowPlaying(playlist_id_);
+    CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_))
     executeQuery();
 }
 
 void PlayListTableView::removeAll() {
-    qDatabase.removePlaylistAllMusic(playlistId());
+    CATCH_DB_EXCEPTION(qDatabase.removePlaylistAllMusic(playlistId()))
     reload();
 }
 
@@ -1016,15 +1017,15 @@ void PlayListTableView::removeSelectItems() {
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
         const auto it = item((*itr).second);
-        qDatabase.clearNowPlaying(playlist_id_, it.playlist_music_id);
+        CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_, it.playlist_music_id))
         remove_music_ids.push_back(it.playlist_music_id);
     }
 
     const auto count = proxy_model_->rowCount();
 	if (!count) {
-        qDatabase.clearNowPlaying(playlist_id_);       
+        CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_))
 	}
 
-    qDatabase.removePlaylistMusic(playlist_id_, remove_music_ids);
+    CATCH_DB_EXCEPTION(qDatabase.removePlaylistMusic(playlist_id_, remove_music_ids))
     executeQuery();
 }

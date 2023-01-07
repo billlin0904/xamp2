@@ -59,6 +59,7 @@
 #include <widget/backgroundworker.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
+#include <widget/xprogressdialog.h>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -1519,15 +1520,15 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         page = current_playlist_page_;
 	}
 
-    const auto ui_cover = Pixmap::roundImage(
-        Pixmap::scaledImage(*cover, ui_.coverLabel->size(), false),
-        Pixmap::kPlaylistImageRadius);
+    const auto ui_cover = ImageUtils::roundImage(
+        ImageUtils::scaledImage(*cover, ui_.coverLabel->size(), false),
+        ImageUtils::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
     page->setCover(cover);
 
     if (lrc_page_ != nullptr) {
-        lrc_page_->setCover(Pixmap::scaledImage(*cover, lrc_page_->cover()->size(), true));
+        lrc_page_->setCover(ImageUtils::scaledImage(*cover, lrc_page_->cover()->size(), true));
     }   
 }
 
@@ -1733,7 +1734,7 @@ void Xamp::initialPlaylist() {
 
 void Xamp::appendToPlaylist(const QString& file_name) {
     try {
-        playlist_page_->playlist()->append(file_name, false, false);
+        playlist_page_->playlist()->append(file_name);
         album_page_->refreshOnece();
     }
     catch (const Exception& e) {
@@ -1799,8 +1800,6 @@ void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& prof
         tr("Export progress dialog"),
         tr("Export '") + item.title + tr("' to aac file"),
         tr("Cancel"));
-
-    centerParent(dialog.get());
 
     QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 

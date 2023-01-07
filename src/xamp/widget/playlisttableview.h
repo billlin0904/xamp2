@@ -78,7 +78,7 @@ public:
 
 	OrderedMap<int32_t, QModelIndex> selectItemIndex() const;
 
-	void append(const QString& file_name, bool show_progress_dialog = true, bool is_recursive = true);
+	void append(const QString& file_name);
 
 	QModelIndex hoverIndex() const {
 		return model()->index(hover_row_, hover_column_);

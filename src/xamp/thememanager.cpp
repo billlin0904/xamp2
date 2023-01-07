@@ -249,7 +249,7 @@ ThemeManager::ThemeManager() {
     use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
     ui_font_.setPointSize(fontSize());
     unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
-	default_size_unknown_cover_ = QPixmap(Pixmap::scaledImage(unknown_cover_, cover_size_));
+	default_size_unknown_cover_ = ImageUtils::scaledImage(unknown_cover_, cover_size_);
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {

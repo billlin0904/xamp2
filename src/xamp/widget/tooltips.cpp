@@ -75,6 +75,6 @@ void ToolTips::paintEvent(QPaintEvent*) {
     painter.drawPolygon(triangle);*/
 
     QPainterPath painter_path;
-    painter_path.addRoundedRect(rect, Pixmap::kImageRadius, Pixmap::kImageRadius);
+    painter_path.addRoundedRect(rect, ImageUtils::kImageRadius, ImageUtils::kImageRadius);
     painter.drawPath(painter_path);
 }

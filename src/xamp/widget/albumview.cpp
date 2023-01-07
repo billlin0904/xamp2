@@ -17,6 +17,7 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/ui_utilts.h>
+#include <widget/xprogressdialog.h>
 
 #include <QPainter>
 #include <QScrollBar>
@@ -28,6 +29,7 @@
 #include <QSqlQuery>
 #include <QPainterPath>
 #include <QProgressDialog>
+#include <QApplication>
 
 enum {
     INDEX_ALBUM = 0,
@@ -46,7 +48,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	, rounded_image_cache_(kMaxAlbumRoundedImageCacheSize) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    mask_image_ = Pixmap::roundDarkImage(qTheme.albumCoverSize());
+    mask_image_ = ImageUtils::roundDarkImage(qTheme.albumCoverSize());
 }
 
 void AlbumViewStyledDelegate::setTextColor(QColor color) {
@@ -155,14 +157,14 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     auto* album_cover = &qTheme.defaultSizeUnknownCover();
 
-#if 1
+#if 0
     if (const auto* rounded_image = rounded_image_cache_.Find(cover_id)) {
         painter->drawPixmap(cover_rect, *rounded_image);
     } else {
         if (const auto* cover_cache = qPixmapCache.find(cover_id)) {
             album_cover = cover_cache;
         }
-        auto album_image = Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius);
+        auto album_image = ImageUtils::roundImage(*album_cover, ImageUtils::kSmallImageRadius);
         if (!cover_id.isEmpty()) {
             rounded_image_cache_.Add(cover_id, album_image);
         }
@@ -172,7 +174,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (const auto* cover_cache = qPixmapCache.find(cover_id)) {
         album_cover = cover_cache;
     }
-    auto album_image = Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius);
+    auto album_image = ImageUtils::roundImage(*album_cover, ImageUtils::kSmallImageRadius);
     painter->drawPixmap(cover_rect, album_image);
 #endif
     bool hit_play_button = false;
@@ -577,10 +579,9 @@ LIMIT 200
 
 void AlbumView::append(const QString& file_name) {
     read_progress_dialog_ =
-        makeProgressDialog(tr("Read file metadata"),
-            tr("Read progress dialog"),
+        makeProgressDialog(tr("Read track information"),
+            tr("Read track information"),
             tr("Cancel"));
-    read_progress_dialog_->show();
     readTrackInfo(file_name);
 }
 
@@ -593,6 +594,10 @@ void AlbumView::readTrackInfo(const QString& file_name) {
         &AlbumView::processMeatadata);
 
     (void)QObject::connect(adapter.get(),
+        &MetadataExtractAdapter::readFileStart,
+        this, &AlbumView::onReadFileStart);
+
+    (void)QObject::connect(adapter.get(),
         &MetadataExtractAdapter::readFileProgress,
         this, &AlbumView::onReadFileProgress);
 
@@ -601,6 +606,13 @@ void AlbumView::readTrackInfo(const QString& file_name) {
         this, &AlbumView::onReadFileEnd);
 
     emit readFileMetadata(adapter, file_name, -1, false);
+}
+
+void AlbumView::onReadFileStart(int dir_size) {
+    if (!read_progress_dialog_) {
+        return;
+    }
+    read_progress_dialog_->setRange(0, dir_size);
 }
 
 void AlbumView::onReadFileProgress(const QString& dir, int progress) {
@@ -615,7 +627,7 @@ void AlbumView::onReadFileEnd() {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->reset();
+    read_progress_dialog_.reset();
 }
 
 void AlbumView::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {

@@ -10,6 +10,7 @@
 #include <QString>
 #include <QSqlDatabase>
 
+#include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
@@ -21,12 +22,20 @@ public:
     virtual const char* what() const noexcept override;
 };
 
-#define IgnoreSqlError(expr) \
+#define IGNORE_DB_EXCEPTION(expr) \
     try {\
-    expr;\
+		(expr);\
     }\
     catch (const Exception& e) {\
-    XAMP_LOG_DEBUG(e.what());\
+		XAMP_LOG_DEBUG(e.what());\
+    }
+
+#define CATCH_DB_EXCEPTION(expr) \
+    try {\
+		(expr);\
+    }\
+    catch (SqlException const& e) {\
+		XMessageBox::showBug(e);\
     }
 
 struct AlbumStats {

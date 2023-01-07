@@ -40,8 +40,7 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
-    bool is_podcast_mode,
-    int32_t progress) {
+    bool is_podcast_mode) {
     QDirIterator itr(dir, file_name_filters, 
         QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
@@ -53,7 +52,6 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
         auto path = next_path.toStdWString();
         paths.push_front(path);
         hasher.Update(path);
-        emit adapter->readFileProgress(next_path, progress);
     }
 
     if (paths.empty()) {
@@ -80,10 +78,10 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
         std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
             track.parent_path_hash = path_hash;
-            });
+        });
 
-    tracks.second.sort([](const auto& first, const auto& last) {
-        return first.track < last.track;
+		tracks.second.sort([](const auto& first, const auto& last) {
+			return first.track < last.track;
         });
     });
 
@@ -150,6 +148,7 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
 
     XAMP_ON_SCOPE_EXIT(
         emit adapter->readFileEnd();
+		XAMP_LOG_D(logger_, "Finish to read track info.");
     );
 
     const auto path_hash = hasher.GetHash();
@@ -169,14 +168,15 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     const auto file_name_filters = getFileNameFilter();
     std::atomic<int> progress(0);
 
-    Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode](
+    Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode, dir_size](
         const auto& dir) {
 		try {
-			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode, progress.load());
+			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
 		}
 		catch (Exception const& e) {
 			XAMP_LOG_D(logger_, "Faild to scan dir files! ", e.GetErrorMessage());
 		}
+        emit adapter->readFileProgress(dir, progress);
 		++progress;
     });
 }
