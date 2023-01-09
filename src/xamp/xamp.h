@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -61,7 +61,7 @@ signals:
 
 	void nowPlaying(QString const& artist, QString const& title);
 
-	void addBlurImage(const QString& cover_id, const QImage& image);
+	void addBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
 	void fetchCdInfo(const DriveInfo& drive);
 

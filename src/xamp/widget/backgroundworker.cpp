@@ -1,18 +1,6 @@
-#include <player/ebur128reader.h>
+#include <widget/backgroundworker.h>
 
-#include <widget/widget_shared.h>
-#include <widget/pixmapcache.h>
-#include <base/logger_impl.h>
-#include <base/google_siphash.h>
-#include <base/scopeguard.h>
-
-#if defined(Q_OS_WIN)
-#include <player/mbdiscid.h>
-#endif
-
-#include <QDirIterator>
-#include <QThread>
-
+#include <widget/image_utiltis.h>
 #include <widget/database.h>
 #include <widget/metadataextractadapter.h>
 #include <widget/podcast_uiltis.h>
@@ -24,7 +12,18 @@
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
-#include <widget/backgroundworker.h>
+#include <widget/pixmapcache.h>
+
+#include <player/ebur128reader.h>
+#include <base/logger_impl.h>
+#include <base/google_siphash.h>
+#include <base/scopeguard.h>
+#if defined(Q_OS_WIN)
+#include <player/mbdiscid.h>
+#endif
+
+#include <QDirIterator>
+#include <QThread>
 
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
@@ -96,8 +95,7 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
     });
 }
 
-BackgroundWorker::BackgroundWorker()
-	: image_cache_(8) {
+BackgroundWorker::BackgroundWorker() {
     writer_ = MakeMetadataWriter();
     logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
@@ -196,7 +194,12 @@ void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
             QThread::currentThreadId(), String::FormatBytes(json.size()));
 
         	std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
+
+            Stopwatch watch;
 			auto const podcast_info = std::make_pair(image_url, parseJson(json));
+            XAMP_LOG_DEBUG("Thread:{} Parse meta.json success! {:.2f} sesc",
+                QThread::currentThreadId(), watch.ElapsedSeconds());
+
             http::HttpClient(QString::fromStdString(podcast_info.first), this)
                 .error(download_podcast_error)
                 .download([this, podcast_info, playlist_id](const QByteArray& data) {
@@ -280,23 +283,12 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 #endif
 }
 
-void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image) {
-    lazyInitExecutor();
-
-    if (auto *cache_image = image_cache_.Find(cover_id)) {
-        XAMP_LOG_D(logger_, "Found blur image in cache!");
-        emit updateBlurImage(cache_image->copy());
-        return;
-    }
-
+void BackgroundWorker::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
         emit updateBlurImage(QImage());
         return;
     }
-    auto temp = image.copy();
-    Stackblur blur(*executor_, temp, 35);
-    emit updateBlurImage(temp.copy());
-    image_cache_.AddOrUpdate(cover_id, std::move(temp));
+    emit updateBlurImage(ImageUtils::blurImage(image, size));
 }
 
 void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {

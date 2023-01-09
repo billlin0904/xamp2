@@ -3,7 +3,6 @@
 #include <rapidxml.hpp>
 
 #include <base/str_utilts.h>
-#include <stream/api.h>
 #include <stream/filestream.h>
 
 #include <widget/str_utilts.h>

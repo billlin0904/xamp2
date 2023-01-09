@@ -5,19 +5,24 @@
 
 #pragma once
 
+#include <QDialog>
+
+#include "ui_volumecontroldialog.h"
 #include <widget/widget_shared.h>
-#include <base/platfrom_handle.h>
 
-class SingleInstanceApplication {
+namespace xamp {
+	namespace player {
+		class IAudioPlayer;
+	}
+}
+
+class VolumeControlDialog : public QDialog {
 public:
-    SingleInstanceApplication();
-
-	~SingleInstanceApplication();
-
-    bool attach() const;
+	explicit VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent = nullptr);
 
 private:
-#ifdef XAMP_OS_WIN
-	mutable WinHandle singular_;
-#endif
+	void setVolume(uint32_t volume);
+
+	Ui::VolumeControlDialog ui_;
+	std::shared_ptr<IAudioPlayer> player_;
 };

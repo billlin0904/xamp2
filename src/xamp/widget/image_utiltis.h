@@ -1,12 +1,14 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
 #pragma once
 
 #include <vector>
+
 #include <QPixmap>
+#include <QImage>
 
 namespace ImageUtils {
 
@@ -25,5 +27,9 @@ QPixmap scaledImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 std::vector<uint8_t> convert2Vector(const QPixmap& source);
 
 QByteArray convert2ByteArray(const QPixmap& source);
+
+QImage blurImage(const QPixmap& source, QSize size);
+
+int sampleImageBlur(const QImage &image, int blur_alpha);
 
 }

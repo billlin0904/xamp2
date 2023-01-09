@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -18,7 +18,7 @@ namespace xamp::base {
 #else
 
 template <size_t AlignedBytes, typename T>
-XAMP_ALWAYS_INLINE constexpr T* AssumeAligned(T *ptr) {
+XAMP_ALWAYS_INLINE constexpr T* AssumeAligned(T* ptr) {
 #ifdef XAMP_OS_MAC
 	return reinterpret_cast<T*>(__builtin_assume_aligned(ptr, AlignedBytes));
 #else
@@ -40,22 +40,26 @@ XAMP_BASE_API size_t GetPageSize() noexcept;
 
 XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
 
-XAMP_BASE_API bool PrefetchFile(std::wstring const &file_name);
+XAMP_BASE_API bool PrefetchFile(std::wstring const& file_name);
 
-XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size = kMaxPreReadFileSize);
+XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file, size_t prefech_size = kMaxPreReadFileSize);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
 #ifdef XAMP_ENABLE_REP_MOVSB
 XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept;
 #else
-#define MemorySet(dest, c, size) (void) std::memset(dest, c, size)
+inline XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept {
+	std::memset(dest, c, size);
+}
 #endif
 
 #ifdef XAMP_ENABLE_REP_MOVSB
 XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept;
 #else
-#define MemoryCopy(dest, src, size) (void) __builtin_memcpy(dest, src, size)
+inline XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept {
+		(void)__builtin_memcpy(dest, src, size)
+}
 #endif
 
 }

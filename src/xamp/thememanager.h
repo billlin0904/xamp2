@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -14,8 +14,10 @@
 #include <widget/str_utilts.h>
 #include <widget/fonticon.h>
 
+class QAbstractButton;
 class QPushButton;
 class QToolButton;
+class QSlider;
 
 namespace Ui {
 class XampWindow;
@@ -129,6 +131,12 @@ public:
     void setVolume(Ui::XampWindow& ui, uint32_t volume);
 
     void setMuted(Ui::XampWindow& ui, bool is_muted);
+
+    void setMuted(QAbstractButton* button, bool is_muted);
+
+    void setVolume(QSlider* slider, QAbstractButton* button, uint32_t volume);
+
+    void setSliderTheme(QSlider* slider);
 
 private:
     static QString fontNamePath(const QString& file_name);

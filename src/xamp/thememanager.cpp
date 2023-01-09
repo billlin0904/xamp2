@@ -718,34 +718,97 @@ int32_t ThemeManager::fontSize() const {
     return 14;
 }
 
-void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {
+void ThemeManager::setMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
-        ui.mutedButton->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_UP));
+        button->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_UP));
         AppSettings::setValue(kAppSettingIsMuted, false);
     }
     else {
-        ui.mutedButton->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_OFF));
+        button->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_OFF));
         AppSettings::setValue(kAppSettingIsMuted, true);
     }
 }
 
-void ThemeManager::setVolume(Ui::XampWindow& ui, uint32_t volume) {
-    if (!ui.volumeSlider->isEnabled()) {
+void ThemeManager::setVolume(QSlider *slider, QAbstractButton* button, uint32_t volume) {
+    if (!slider->isEnabled()) {
         return;
     }
     if (volume == 0) {
-        setMuted(ui, true);
+        setMuted(button, true);
     }
     else {
-        setMuted(ui, false);
+        setMuted(button, false);
     }
-    ui.volumeSlider->setValue(volume);
+    slider->setValue(volume);
+}
+
+void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {
+    setMuted(ui.mutedButton, is_muted);
+}
+
+void ThemeManager::setVolume(Ui::XampWindow& ui, uint32_t volume) {
+    setVolume(ui.volumeSlider, ui.mutedButton, volume);
+}
+
+void ThemeManager::setSliderTheme(QSlider* slider) {
+    QString slider_border_color;
+    QString slider_background_color;
+
+    switch (themeColor()) {
+    case ThemeColor::LIGHT_THEME:
+        slider_border_color = qTEXT("#C9CDD0");
+        slider_background_color = qTEXT("#9FCBFF");
+        break;
+    case ThemeColor::DARK_THEME:
+        slider_border_color = qTEXT("#455364");
+        slider_background_color = qTEXT("#346792");
+        break;
+    }
+
+    slider->setStyleSheet(qTEXT(R"(
+    QSlider {
+		background-color: transparent;
+    }
+
+	QSlider:groove:horizontal {        
+        background: %1;
+		border: 1px solid %1;
+        height: 2px;
+        border-radius: 1px;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    QSlider:sub-page:horizontal {
+		background: %1;
+		border: 1px solid %1;		
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider:add-page:horizontal {
+		background: %2;
+		border: 0px solid %1;
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider:handle:horizontal {
+        width: 10px;
+		height: 10px;
+        margin: -5px 0px -5px 0px;
+		border-radius: 5px;
+		background-color: white;
+		border: 1px solid #C9CDD0;
+    }
+    )"
+    ).arg(slider_background_color).arg(slider_border_color));
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.playButton->setIconSize(QSize(32, 32));
     ui.selectDeviceButton->setIconSize(QSize(32, 32));
-    ui.mutedButton->setIconSize(QSize(32, 32));
+    ui.mutedButton->setIconSize(QSize(24, 24));
 
     ui.nextButton->setIconSize(QSize(24, 24));
     ui.prevButton->setIconSize(QSize(24, 24));
@@ -930,7 +993,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 	}	
 	)").arg(slider_bar_left_color));
 
-    ui.volumeSlider->setStyleSheet(qTEXT(R"(
+    /*ui.volumeSlider->setStyleSheet(qTEXT(R"(
     QSlider#volumeSlider {
 		background-color: transparent;
     }
@@ -959,14 +1022,12 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
 
     QSlider#volumeSlider::handle:horizontal {
-        width: 12px;
-		height: 12px;
-        margin-top: -6px;
-        margin-bottom: -6px;
-		margin-left: -1px;
+        width: 10px;
+		height: 10px;
+        margin: -5px 0px -5px 0px;
+		border-radius: 5px;
 		background-color: white;
 		border: 1px solid #C9CDD0;
-		border-radius: 7px;
     }
     )"
     ).arg(slider_background_color).arg(slider_border_color));
@@ -1000,17 +1061,18 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
 
     QSlider#seekSlider::handle:horizontal {
-        width: 12px;
-		height: 12px;		
-        margin-top: -6px;
-        margin-bottom: -6px;
-		margin-left: -1px;
-        background-color: white;
+        width: 10px;
+		height: 10px;
+        margin: -5px 0px -5px 0px;
+		border-radius: 5px;
+		background-color: white;
 		border: 1px solid #C9CDD0;
-		border-radius: 7px;
     }
     )"
-    ).arg(slider_background_color).arg(slider_border_color));
+    ).arg(slider_background_color).arg(slider_border_color));*/
+
+    setSliderTheme(ui.seekSlider);
+    setSliderTheme(ui.volumeSlider);
 
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());

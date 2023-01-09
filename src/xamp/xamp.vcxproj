@@ -205,6 +205,7 @@
     <ClCompile Include="widget\stackblur.cpp" />
     <ClCompile Include="widget\tooltips.cpp" />
     <ClCompile Include="widget\tooltipsfilter.cpp" />
+    <ClCompile Include="widget\volumecontroldialog.cpp" />
     <ClCompile Include="widget\waveformanalyzer.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\xwindow.cpp" />
@@ -254,6 +255,7 @@
     <QtUic Include="cdpage.ui" />
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
+    <QtUic Include="volumecontroldialog.ui" />
     <QtUic Include="widget\equalizerdialog.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
@@ -287,6 +289,7 @@
     <ClInclude Include="widget\stackblur.h" />
     <QtMoc Include="widget\tooltips.h" />
     <QtMoc Include="widget\tooltipsfilter.h" />
+    <ClInclude Include="widget\volumecontroldialog.h" />
     <ClInclude Include="widget\waveformanalyzer.h" />
     <ClInclude Include="widget\xprogressdialog.h" />
     <ClInclude Include="xampplayer.h" />

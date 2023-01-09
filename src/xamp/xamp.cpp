@@ -60,6 +60,7 @@
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
 #include <widget/xprogressdialog.h>
+#include <widget/volumecontroldialog.h>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -509,16 +510,27 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
-        if (!ui_.volumeSlider->isEnabled()) {
+        /*if (!ui_.volumeSlider->isEnabled()) {
             return;
         }
         if (player_->IsMute()) {
-            player_->SetMute(false);            
+            player_->SetMute(false);
             qTheme.setMuted(ui_, false);
         } else {
             player_->SetMute(true);
             qTheme.setMuted(ui_, true);
-        }
+        }*/
+        VolumeControlDialog vc(player_, this);
+        const auto height = vc.height();
+        const auto width = vc.width();
+        auto pos = mapFromGlobal(QCursor::pos());
+        auto x = pos.x();
+        auto y = pos.y();
+        auto pos_x = x + (ui_.mutedButton->width() / 2) - (width / 2);
+        auto pos_y = y - (height + (ui_.mutedButton->height() / 2));
+        vc.setGeometry(QRect(mapToGlobal(QPoint(pos_x, pos_y)), QSize(width, height)));
+        //vc.move(pos_x, pos_y);
+        vc.exec();
     });
 
     (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
@@ -568,7 +580,7 @@ void Xamp::initialController() {
         ui_.volumeSlider->setValue(vol);
     }    
 
-    (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
+    /*(void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         setVolume(volume);
     });
 
@@ -579,7 +591,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
-    });
+    });*/
 
     (void)QObject::connect(state_adapter_.get(),
                             &UIPlayerStateAdapter::stateChanged,
@@ -1414,7 +1426,7 @@ void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
         found_cover = cover != nullptr;
         if (cover != nullptr) {
             setPlaylistPageCover(cover, page);
-            emit addBlurImage(cover_id, cover->toImage());
+            emit addBlurImage(cover_id, cover->copy(), size());
         }
         else if (lrc_page_ != nullptr) {
             lrc_page_->clearBackground();

@@ -867,11 +867,11 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_Xoshiro256PlusPlusRandom);
 //BENCHMARK(BM_ChaCha20Random);
 //BENCHMARK(BM_PCG32Random);
-BENCHMARK(BM_Sfc64Random);
-BENCHMARK(BM_default_random_engine);
+//BENCHMARK(BM_Sfc64Random);
+//BENCHMARK(BM_default_random_engine);
 
-BENCHMARK(BM_SipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
-BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
+//BENCHMARK(BM_SipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
+//BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
 
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
@@ -891,8 +891,8 @@ BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
-//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
-//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);

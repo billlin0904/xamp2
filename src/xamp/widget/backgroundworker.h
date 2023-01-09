@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -61,7 +61,7 @@ public Q_SLOT:
 
     void onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
-    void onBlurImage(const QString &cover_id, const QImage& image);
+    void onBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
 
     void onFetchCdInfo(const DriveInfo &drive);
 
@@ -74,7 +74,6 @@ private:
     void lazyInitExecutor();
 
     bool is_stop_{false};
-    mutable LruCache<QString, QImage> image_cache_;
     AlignPtr<IThreadPoolExecutor> executor_;
     AlignPtr<IMetadataWriter> writer_;
     LoggerPtr logger_;

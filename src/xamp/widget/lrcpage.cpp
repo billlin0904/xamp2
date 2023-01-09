@@ -2,6 +2,8 @@
 #include <QHBoxLayout>
 #include <QGraphicsDropShadowEffect>
 #include <QPainter>
+#include <QPropertyAnimation>
+
 #include "thememanager.h"
 
 #include <widget/spectrumwidget.h>
@@ -63,9 +65,41 @@ void LrcPage::setBackground(const QImage& cover) {
 		background_image_ = QImage();
 	}
 	else {
+		prev_bg_alpha_ = current_bg_alpha_;
+		prev_background_image_ = cover;
         background_image_ = cover;
+		constexpr int kBlurBackgroundAnimationMs = 3000;
+		startBackgroundAnimation(kBlurBackgroundAnimationMs);
 	}
 	update();
+}
+
+void LrcPage::startBackgroundAnimation(const int durationMs) {
+	constexpr auto kBlurAlpha = 128;
+	current_bg_alpha_ = ImageUtils::sampleImageBlur(background_image_, kBlurAlpha);
+
+	auto* fade_in_animation = new QPropertyAnimation(this, "appearBgProg");
+	fade_in_animation->setStartValue(0);
+	fade_in_animation->setEndValue(current_bg_alpha_);
+	fade_in_animation->setDuration(durationMs);
+	fade_in_animation->setEasingCurve(QEasingCurve::OutCubic);
+	QObject::connect(fade_in_animation, &QPropertyAnimation::finished, this, [=] {
+		fade_in_animation->deleteLater();
+		});
+	current_bg_alpha_ = 0;
+	fade_in_animation->start();
+
+	auto* fade_out_animation = new QPropertyAnimation(this, "disappearBgProg");
+	fade_out_animation->setStartValue(prev_bg_alpha_);
+	fade_out_animation->setEndValue(0);
+	fade_out_animation->setDuration(durationMs);
+	fade_out_animation->setEasingCurve(QEasingCurve::OutCubic);
+	QObject::connect(fade_out_animation, &QPropertyAnimation::finished, this, [=] {
+		prev_background_image_ = QImage();
+		fade_out_animation->deleteLater();
+		update();
+		});
+	fade_out_animation->start();
 }
 
 void LrcPage::paintEvent(QPaintEvent*) {
@@ -73,7 +107,32 @@ void LrcPage::paintEvent(QPaintEvent*) {
 		cover_label_->setGraphicsEffect(nullptr);
 	}
 	QPainter painter(this);
-	painter.drawImage(rect(), background_image_);
+	if (!background_image_.isNull()) {
+		painter.setOpacity(current_bg_alpha_ / 255.0);
+		painter.drawImage(rect(), background_image_);
+	}
+	if (!prev_background_image_.isNull() && prev_bg_alpha_) {
+		painter.setOpacity(prev_bg_alpha_ / 255.0);
+		painter.drawImage(rect(), prev_background_image_);
+	}
+}
+
+void LrcPage::setAppearBgProg(int x) {
+	current_bg_alpha_ = x;
+	update();
+}
+
+int LrcPage::getAppearBgProg() const {
+	return current_bg_alpha_;
+}
+
+void LrcPage::setDisappearBgProg(int x) {
+	prev_bg_alpha_ = x;
+	update();
+}
+
+int LrcPage::getDisappearBgProg() const {
+	return prev_bg_alpha_;
 }
 
 void LrcPage::setBackgroundColor(QColor backgroundColor) {

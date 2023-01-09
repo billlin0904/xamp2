@@ -221,12 +221,7 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	}
 	mask_widget.reset(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
-	if (parent != nullptr) {
-		centerParent(&box);
-	}
-	else {
-		centerDesktop(&box);
-	}
+	// Note: Don't call centerParent(), centerDesktop()
 	box.setIcon(icon);
 	if (box.exec() == -1)
 		return QDialogButtonBox::Cancel;

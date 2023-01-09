@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -39,6 +39,7 @@ inline constexpr float kMinFloatSample = -1.0F;
 inline constexpr int32_t kSimdLanes = sizeof(m256i);
 // note: int/float = 4 Byte
 inline constexpr int32_t kSimdAlignedSize = kSimdLanes / sizeof(float);
+inline constexpr size_t kSimdCopyAlignedSize = 128;
 
 class SIMD {
 public:
