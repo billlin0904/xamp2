@@ -770,7 +770,7 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
 		background-color: transparent;
     }
 
-	QSlider:groove:horizontal {        
+	QSlider::groove:horizontal {        
         background: %1;
 		border: 1px solid %1;
         height: 2px;
@@ -779,21 +779,21 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
         padding-right: 0px;
     }
 
-    QSlider:sub-page:horizontal {
+    QSlider::sub-page:horizontal {
 		background: %1;
 		border: 1px solid %1;		
 		height: 2px;
 		border-radius: 2px;
     }
 
-    QSlider:add-page:horizontal {
+    QSlider::add-page:horizontal {
 		background: %2;
 		border: 0px solid %1;
 		height: 2px;
 		border-radius: 2px;
     }
 
-    QSlider:handle:horizontal {
+    QSlider::handle:horizontal {
         width: 10px;
 		height: 10px;
         margin: -5px 0px -5px 0px;
