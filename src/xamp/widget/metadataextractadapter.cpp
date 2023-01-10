@@ -40,7 +40,7 @@ QPixmap DatabaseIdCache::getEmbeddedCover(const TrackInfo& track_info) const {
     return pixmap;
 }
 
-QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const {
+QString DatabaseIdCache::saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const {
     auto cover_id = qDatabase.getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
     	return cover_id;
@@ -79,7 +79,7 @@ std::tuple<int32_t, int32_t> DatabaseIdCache::addOrGetAlbumAndArtistId(int64_t d
     : QObject(parent) {    
 }
 
-#define IgnoreSqlException(expr) \
+#define IGNORE_ANY_EXCEPTION(expr) \
     do {\
 		try {\
 			expr;\
@@ -91,6 +91,8 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     int64_t dir_last_write_time, 
     bool is_podcast) {
+	const DatabaseIdCache database_id_cache;
+
 	for (const auto& track_info : result) {
 		auto album = QString::fromStdWString(track_info.album);
 		auto artist = QString::fromStdWString(track_info.artist);
@@ -101,7 +103,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 			album = tr("Unknown album");
 			is_unknown_album = true;
 			// todo: 如果有內建圖片就把當作一張專輯.
-			auto cover = qDatabaseIdCache.getEmbeddedCover(track_info);
+			auto cover = database_id_cache.getEmbeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = QString::fromStdWString(track_info.file_name_no_ext);
 			}
@@ -113,7 +115,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 		const auto music_id = qDatabase.addOrUpdateMusic(track_info);
 
 		auto [album_id, artist_id] = 
-            qDatabaseIdCache.addOrGetAlbumAndArtistId(dir_last_write_time,
+            database_id_cache.addOrGetAlbumAndArtistId(dir_last_write_time,
 		             album, 
 		             artist,
 		             is_podcast, 
@@ -128,13 +130,13 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
             auto cover_id = qDatabase.getAlbumCoverId(album_id);
 			// Database not exist find others.
 			if (cover_id.isEmpty()) {
-				cover_id = qDatabaseIdCache.addCoverCache(album_id, album, track_info, is_unknown_album);
+				cover_id = database_id_cache.saveCoverCache(album_id, album, track_info, is_unknown_album);
 			}
 		} else {
 			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(track_info.cover_id));
 		}
 
-        IgnoreSqlException(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id));
+        IGNORE_ANY_EXCEPTION(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id));
 	}
 }
 

@@ -2,6 +2,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDirIterator>
+#include <qimagereader.h>
 #include <QPixmapCache>
 #include <QPixmap>
 
@@ -17,7 +18,7 @@
 #include <widget/qetag.h>
 #include <widget/pixmapcache.h>
 
-inline constexpr size_t kDefaultCacheSize = 32;
+inline constexpr size_t kDefaultCacheSize = 128;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
 inline constexpr auto kPixmapCacheFileExt = qTEXT(".jpg");
 
@@ -27,7 +28,7 @@ QStringList PixmapCache::cover_ext_ =
     QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png") << qTEXT("*.bmp");
 
 QStringList PixmapCache::cache_ext_ =
-    QStringList() << kPixmapCacheFileExt;
+    QStringList() << (qTEXT("*") + kPixmapCacheFileExt);
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
@@ -54,6 +55,7 @@ PixmapCache::PixmapCache()
 	else {
 		cache_path_ = AppSettings::getValueAsString(kAppSettingAlbumImageCachePath);
 	}
+	cache_path_ = toNativeSeparators(cache_path_);
 	AppSettings::setValue(kAppSettingAlbumImageCachePath, cache_path_);
     unknown_cover_id_ = savePixamp(qTheme.unknownCover());
 	loadCache();
@@ -69,9 +71,11 @@ QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
 		if (file_info.size() > kMaxCacheImageSize) {
 			continue;
 		}
-		QPixmap read_cover(image_file_path);
-		if (!read_cover.isNull()) {
-			return read_cover;
+
+		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+		QImageReader reader(image_file_path);
+		if (reader.read(&image)) {
+			return QPixmap::fromImage(image);
 		}
 	}
 	return QPixmap();
@@ -102,7 +106,12 @@ void PixmapCache::erase(const QString& tag_id) {
 }
 
 QPixmap PixmapCache::fromFileCache(const QString& tag_id) const {
-	return QPixmap(cache_path_ + tag_id + kPixmapCacheFileExt);
+	QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+	QImageReader reader(cache_path_ + tag_id + kPixmapCacheFileExt);
+	if (reader.read(&image)) {
+		return QPixmap::fromImage(image);
+	}
+	return QPixmap();
 }
 
 QString PixmapCache::savePixamp(const QPixmap &cover) const {
@@ -125,6 +134,7 @@ QString PixmapCache::savePixamp(const QPixmap &cover) const {
 }
 
 void PixmapCache::loadCache() const {
+	Stopwatch sw;
 	size_t i = 0;
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
@@ -134,17 +144,18 @@ void PixmapCache::loadCache() const {
         if (i >= cache_.GetMaxSize()) {
             XAMP_LOG_D(logger_, "Not load image cache: {}", image_file_path.baseName().toStdString());
             continue;
-		}
+		}		
 
-		QPixmap read_cover(path);
-		if (!read_cover.isNull()) {
+		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+		QImageReader reader(path);
+		if (reader.read(&image)) {
 			const auto tag_name = image_file_path.baseName();
-			cache_.AddOrUpdate(tag_name, read_cover);
+			cache_.AddOrUpdate(tag_name, QPixmap::fromImage(image));
 			XAMP_LOG_D(logger_, "PixmapCache add file name:{}", tag_name.toStdString());
 		}
 	}
 
-	XAMP_LOG_D(logger_, "PixmapCache cache count: {}", i);
+	XAMP_LOG_D(logger_, "PixmapCache cache count: {} {}secs", i, sw.ElapsedSeconds());
 }
 
 size_t PixmapCache::missRate() const {

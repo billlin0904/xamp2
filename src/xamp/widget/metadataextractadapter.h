@@ -30,13 +30,11 @@ public:
                                                                  bool is_podcast,
                                                                  const QString& disc_id);
 
-    QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const;
+    QString saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const;
 
 private:
     AlignPtr<IMetadataReader> cover_reader_;
 };
-
-#define qDatabaseIdCache SharedSingleton<DatabaseIdCache>::GetInstance()
 
 class MetadataExtractAdapter final
 	: public QObject {
