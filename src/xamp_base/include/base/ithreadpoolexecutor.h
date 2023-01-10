@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/moveablefunction.h>
+#include <base/moveonly_function.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/platform.h>
@@ -23,7 +23,7 @@ class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)
 
-	virtual void SubmitJob(MoveableFunction&& task) = 0;
+	virtual void SubmitJob(MoveOnlyFunction&& task) = 0;
 
     virtual size_t GetThreadSize() const = 0;
 

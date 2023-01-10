@@ -128,8 +128,6 @@ public:
 
     int32_t fontSize() const;
 
-    void setVolume(Ui::XampWindow& ui, uint32_t volume);
-
     void setMuted(Ui::XampWindow& ui, bool is_muted);
 
     void setMuted(QAbstractButton* button, bool is_muted);

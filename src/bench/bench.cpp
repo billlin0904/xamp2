@@ -2,7 +2,7 @@
 
 #include <base/scopeguard.h>
 #include <base/trackinfo.h>
-#include <base/lifoqueue.h>
+#include <base/spmc_queue.h>
 #include <base/audiobuffer.h>
 #include <base/threadpoolexecutor.h>
 #include <base/spinlock.h>
@@ -22,9 +22,10 @@
 #include <base/uuidof.h>
 #include <base/siphash.h>
 #include <base/google_siphash.h>
+#ifdef XAMP_USE_BENCHMAKR
 #include <base/chachaengine.h>
 #include <base/xoshiro.h>
-#include <base/pcg32.h>
+#endif
 #include <base/sfc64.h>
 
 #include <stream/api.h>
@@ -227,6 +228,7 @@ static void BM_std_for_each_par(benchmark::State& state) {
 }
 #endif
 
+#ifdef XAMP_USE_BENCHMAKR
 //static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
 //    Xoshiro256StarStarEngine engine;
 //    for (auto _ : state) {
@@ -262,19 +264,11 @@ static void BM_ChaCha20Random(benchmark::State& state) {
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
+#endif
 
 static void BM_default_random_engine(benchmark::State& state) {
     std::random_device rd;
     std::default_random_engine engine(rd());
-    for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
-        benchmark::DoNotOptimize(n);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
-
-static void BM_PCG32Random(benchmark::State& state) {
-    PCG32Engine engine;
     for (auto _ : state) {
         size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
@@ -763,42 +757,10 @@ static void BM_Spinlock(benchmark::State& state) {
     }
 }
 
-static void BM_SpinLockFreeStack(benchmark::State& state) {
-    static SpinLockFreeStack<int32_t> ws_queue(64);
-
-    for (auto _ : state) {
-        for (auto i = 0; i < 8; ++i) {
-            ws_queue.TryEnqueue(1);
-            int32_t result;
-            ws_queue.TryDequeue(result);
-        }
-    }
+static void BM_BlockingQueue(benchmark::State& state) {
 }
 
-static void BM_LIFOQueue(benchmark::State& state) {
-    using Queue = BlockingQueue<int32_t, FastMutex, LIFOQueue<int32_t>>;
-    static Queue lifo_queue(64);
-
-    for (auto _ : state) {
-        for (auto i = 0; i < 8; ++i) {
-            lifo_queue.TryEnqueue(1);
-            int32_t result;
-            lifo_queue.TryDequeue(result);
-        }        
-    }
-}
-
-static void BM_CircularBuffer(benchmark::State& state) {
-    using Queue = BlockingQueue<int32_t>;
-    static Queue blocking_queue(64);
-
-    for (auto _ : state) {
-        for (auto i = 0; i < 8; ++i) {
-            blocking_queue.TryEnqueue(1);
-            int32_t result;
-            blocking_queue.TryDequeue(result);
-        }
-    }
+static void BM_SpmcQueue(benchmark::State& state) {
 }
 
 static void BM_Builtin_Rotl(benchmark::State& state) {
@@ -891,8 +853,8 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
@@ -914,8 +876,8 @@ BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#endif
 
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);

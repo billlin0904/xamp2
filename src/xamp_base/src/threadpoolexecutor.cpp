@@ -18,7 +18,7 @@ inline constexpr auto kMaxStealFailureSize = 500;
 inline constexpr auto kMaxWorkQueueSize = 65536;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
-	: TaskScheduler(TaskSchedulerPolicy::RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
+	: TaskScheduler(TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
 }
 
 TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
@@ -78,7 +78,7 @@ size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
 }
 
-void TaskScheduler::SubmitJob(MoveableFunction&& task) {
+void TaskScheduler::SubmitJob(MoveOnlyFunction&& task) {
 	auto* policy = task_scheduler_policy_.get();
 	task_steal_policy_->SubmitJob(std::move(task),
 		max_thread_,
@@ -119,8 +119,8 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destory.");
 }
 
-std::optional<MoveableFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
-	MoveableFunction func;
+std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
+	MoveOnlyFunction func;
 	if (task_pool_->Dequeue(func, timeout)) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
 		return std::move(func);
@@ -128,26 +128,22 @@ std::optional<MoveableFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono
 	return std::nullopt;
 }
 
-std::optional<MoveableFunction> TaskScheduler::TryDequeueSharedQueue() {
-	MoveableFunction func;
-    if (task_pool_->TryDequeue(func)) {
+std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue() {
+    if (auto func = task_pool_->TryDequeue()) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
-		return std::move(func);
 	}
 	return std::nullopt;
 }
 
-std::optional<MoveableFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue* local_queue) const {
-	MoveableFunction func;
-	if (local_queue->TryDequeue(func)) {
+std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue* local_queue) const {
+	if (auto func = local_queue->TryDequeue()) {
 		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
-		return std::move(func);
+		return func;
 	}
 	return std::nullopt;
 }
 
-std::optional<MoveableFunction> TaskScheduler::TrySteal(StopToken const& stop_token, size_t i) {
-	MoveableFunction func;
+std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(StopToken const& stop_token, size_t i) {
 	for (size_t n = 0; n != max_thread_; ++n) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
@@ -155,9 +151,9 @@ std::optional<MoveableFunction> TaskScheduler::TrySteal(StopToken const& stop_to
 
 		const auto index = (i + n) % max_thread_;
 
-		if (task_work_queues_.at(index)->TryDequeue(func)) {
+		if (auto func = task_work_queues_.at(index)->TryDequeue()) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
-			return std::move(func);
+			return func;
 		}
 	}
 	return std::nullopt;

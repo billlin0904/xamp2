@@ -746,10 +746,6 @@ void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {
     setMuted(ui.mutedButton, is_muted);
 }
 
-void ThemeManager::setVolume(Ui::XampWindow& ui, uint32_t volume) {
-    setVolume(ui.volumeSlider, ui.mutedButton, volume);
-}
-
 void ThemeManager::setSliderTheme(QSlider* slider) {
     QString slider_border_color;
     QString slider_background_color;
@@ -770,30 +766,30 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
 		background-color: transparent;
     }
 
-	QSlider::groove:horizontal {        
-        background: %1;
-		border: 1px solid %1;
+	QSlider#%1::groove:horizontal {        
+        background: %2;
+		border: 1px solid %2;
         height: 2px;
         border-radius: 1px;
         padding-left: 0px;
         padding-right: 0px;
     }
 
-    QSlider::sub-page:horizontal {
-		background: %1;
-		border: 1px solid %1;		
-		height: 2px;
-		border-radius: 2px;
-    }
-
-    QSlider::add-page:horizontal {
+    QSlider#%1::sub-page:horizontal {
 		background: %2;
-		border: 0px solid %1;
+		border: 1px solid %2;		
 		height: 2px;
 		border-radius: 2px;
     }
 
-    QSlider::handle:horizontal {
+    QSlider#%1::add-page:horizontal {
+		background: %3;
+		border: 0px solid %2;
+		height: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider#%1::handle:horizontal {
         width: 10px;
 		height: 10px;
         margin: -5px 0px -5px 0px;
@@ -802,7 +798,9 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
 		border: 1px solid #C9CDD0;
     }
     )"
-    ).arg(slider_background_color).arg(slider_border_color));
+    ).arg(slider->objectName())
+        .arg(slider_background_color)
+        .arg(slider_border_color));
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
@@ -895,7 +893,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
-				background-color: #121920;
+				background-color: #121212;
 				border: 1px solid black;
 				border-top-left-radius: 8px;
             }			
@@ -993,86 +991,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 	}	
 	)").arg(slider_bar_left_color));
 
-    /*ui.volumeSlider->setStyleSheet(qTEXT(R"(
-    QSlider#volumeSlider {
-		background-color: transparent;
-    }
-
-	QSlider#volumeSlider::groove:horizontal {        
-        background: %1;
-		border: 1px solid %1;
-        height: 2px;
-        border-radius: 1px;
-        padding-left: 0px;
-        padding-right: 0px;
-    }
-
-    QSlider#volumeSlider::sub-page:horizontal {
-		background: %1;
-		border: 1px solid %1;		
-		height: 2px;
-		border-radius: 2px;
-    }
-
-    QSlider#volumeSlider::add-page:horizontal {
-		background: %2;
-		border: 0px solid %1;
-		height: 2px;
-		border-radius: 2px;
-    }
-
-    QSlider#volumeSlider::handle:horizontal {
-        width: 10px;
-		height: 10px;
-        margin: -5px 0px -5px 0px;
-		border-radius: 5px;
-		background-color: white;
-		border: 1px solid #C9CDD0;
-    }
-    )"
-    ).arg(slider_background_color).arg(slider_border_color));
-
-    ui.seekSlider->setStyleSheet(qSTR(R"(
-	QSlider#seekSlider {
-		background-color: transparent;
-	}
-
-    QSlider#seekSlider::groove:horizontal {        
-        background: %1;
-		border: 1px solid %1;
-        height: 2px;
-        border-radius: 1px;
-        padding-left: 0px;
-        padding-right: 0px;
-    }
-
-    QSlider#seekSlider::sub-page:horizontal {
-		background: %1;
-		border: 1px solid %1;		
-		height: 2px;
-		border-radius: 2px;
-    }
-
-    QSlider#seekSlider::add-page:horizontal {
-		background: %2;
-		border: 0px solid %1;
-		height: 2px;
-		border-radius: 2px;
-    }
-
-    QSlider#seekSlider::handle:horizontal {
-        width: 10px;
-		height: 10px;
-        margin: -5px 0px -5px 0px;
-		border-radius: 5px;
-		background-color: white;
-		border: 1px solid #C9CDD0;
-    }
-    )"
-    ).arg(slider_background_color).arg(slider_border_color));*/
-
     setSliderTheme(ui.seekSlider);
-    setSliderTheme(ui.volumeSlider);
 
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());

@@ -9,14 +9,13 @@
 #include <future>
 #include <base/base.h>
 #include <base/align_ptr.h>
-#include <base/pimplptr.h>
 
 namespace xamp::base {
 
-class MoveableFunction final {
+class MoveOnlyFunction final {
 public:
     template <typename Func>
-    MoveableFunction(Func&& f)
+    MoveOnlyFunction(Func&& f)
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 
@@ -24,18 +23,18 @@ public:
 	    impl_->Invoke();
     }
 
-    MoveableFunction() = default;
+    MoveOnlyFunction() = default;
 	
-    MoveableFunction(MoveableFunction&& other) noexcept
+    MoveOnlyFunction(MoveOnlyFunction&& other) noexcept
 		: impl_(std::move(other.impl_)) {	    
     }
 	
-    MoveableFunction& operator=(MoveableFunction&& other) noexcept {
+    MoveOnlyFunction& operator=(MoveOnlyFunction&& other) noexcept {
         impl_ = std::move(other.impl_);
         return *this;
     }
 	
-    XAMP_DISABLE_COPY(MoveableFunction)
+    XAMP_DISABLE_COPY(MoveOnlyFunction)
 	
 private:
     struct XAMP_NO_VTABLE ImplBase {

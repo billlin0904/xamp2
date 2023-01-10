@@ -267,7 +267,6 @@ void Xamp::focusOut() {
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-    AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());    
     cleanup();
     window()->close();
 }
@@ -510,26 +509,8 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
-        /*if (!ui_.volumeSlider->isEnabled()) {
-            return;
-        }
-        if (player_->IsMute()) {
-            player_->SetMute(false);
-            qTheme.setMuted(ui_, false);
-        } else {
-            player_->SetMute(true);
-            qTheme.setMuted(ui_, true);
-        }*/
         VolumeControlDialog vc(player_, this);
-        const auto height = vc.height();
-        const auto width = vc.width();
-        auto pos = mapFromGlobal(QCursor::pos());
-        auto x = pos.x();
-        auto y = pos.y();
-        auto pos_x = x + (ui_.mutedButton->width() / 2) - (width / 2);
-        auto pos_y = y - (height + (ui_.mutedButton->height() / 2));
-        vc.setGeometry(QRect(mapToGlobal(QPoint(pos_x, pos_y)), QSize(width, height)));
-        //vc.move(pos_x, pos_y);
+        centerTarget(&vc, ui_.mutedButton);
         vc.exec();
     });
 
@@ -570,28 +551,12 @@ void Xamp::initialController() {
     order_ = AppSettings::getAsEnum<PlayerOrder>(kAppSettingOrder);
     setPlayerOrder();
 
-    ui_.volumeSlider->setRange(0, 100);
-
     if (AppSettings::getValueAsBool(kAppSettingIsMuted)) {
-        setVolume(0);
-    } else {
-        const auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
-        setVolume(vol);
-        ui_.volumeSlider->setValue(vol);
-    }    
-
-    /*(void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        setVolume(volume);
-    });
-
-    (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
-        setVolume(volume);
-    });
-
-    (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
-    });*/
+        qTheme.setMuted(ui_.mutedButton, true);
+    }
+    else {
+        qTheme.setMuted(ui_.mutedButton, false);
+    }
 
     (void)QObject::connect(state_adapter_.get(),
                             &UIPlayerStateAdapter::stateChanged,
@@ -892,38 +857,7 @@ void Xamp::goBackPage() {
 }
 
 void Xamp::setVolume(uint32_t volume) {
-    if (volume > 100) {
-        return;
-    }
-
-    try {
-        if (volume > 0) {
-            player_->SetMute(false);
-        }
-        else {
-            player_->SetMute(true);
-        }
-
-        if (player_->IsHardwareControlVolume()) {
-            if (!player_->IsMute()) {
-                player_->SetVolume(volume);
-                qTheme.setVolume(ui_, volume);
-            }
-            else {
-                qTheme.setVolume(ui_, 0);
-            }
-        }
-        else {
-            ui_.volumeSlider->setDisabled(true);
-        }
-
-        /*const auto volume_db = VolumeToDb(ui_.volumeSlider->value());
-        player_->SetSoftwareVolumeDb(volume_db);*/
-    }
-    catch (const Exception& e) {
-        player_->Stop(false);
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
-    }
+    AppSettings::setValue(kAppSettingVolume, volume);
 }
 
 void Xamp::initialShortcut() {
@@ -1305,18 +1239,6 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     lrc_page_->spectrum()->reset();
 	
     if (open_done) {
-        if (player_->IsHardwareControlVolume()) {
-            if (!player_->IsMute()) {
-                setVolume(ui_.volumeSlider->value());
-            } else {
-                setVolume(0);
-            }
-            ui_.volumeSlider->setDisabled(false);
-        }
-        else {
-            ui_.volumeSlider->setDisabled(true);
-        }
-
         ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(streamTimeToString(0));

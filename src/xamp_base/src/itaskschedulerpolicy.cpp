@@ -27,7 +27,7 @@ AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
 	return MakeAlign<ITaskStealPolicy, ContinuationStealPolicy>();
 }
 
-void ContinuationStealPolicy::SubmitJob(MoveableFunction&& task,
+void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 	size_t max_thread,
 	SharedTaskQueue* task_pool,
 	ITaskSchedulerPolicy* policy,

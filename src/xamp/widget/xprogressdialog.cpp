@@ -19,10 +19,12 @@ XProgressDialog::XProgressDialog(const QString& title,
 	line->setFrameShape(QFrame::HLine);
 
 	progress_bar_->setFont(QFont(qTEXT("FormatFont")));
+	progress_bar_->setFixedHeight(15);
 
 	message_text_label_->setAlignment(Qt::AlignCenter);
 	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
 	message_text_label_->setOpenExternalLinks(true);
+	message_text_label_->setFixedHeight(15);
 	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
 
 	default_button_->setText(cancel_text);

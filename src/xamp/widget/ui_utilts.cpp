@@ -95,11 +95,8 @@ QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     auto* dialog = new XProgressDialog(text, cancel, 0, 100, parent);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
-    dialog->setWindowModality(Qt::WindowModal);
+    dialog->setWindowModality(Qt::ApplicationModal);
 	dialog->show();
-    if (parent != nullptr) {
-        centerParent(dialog);
-    }
     return QSharedPointer<XProgressDialog>(dialog);
 }
 
@@ -115,4 +112,14 @@ void centerDesktop(QWidget* widget) {
     auto screen_num = desktop->screenNumber(QCursor::pos());
     QRect rect = desktop->screenGeometry(screen_num);
     widget->move(rect.center() - widget->rect().center());
+}
+
+void centerTarget(QWidget* source_widget, QWidget* target_widget) {
+    auto center_pos = target_widget->mapToGlobal(target_widget->rect().center());
+    const auto sz = source_widget->size();
+    center_pos.setX(center_pos.x() - sz.width() / 2);
+    center_pos.setY(center_pos.y() - 32 - sz.height());
+    center_pos = source_widget->mapFromGlobal(center_pos);
+    center_pos = source_widget->mapToParent(center_pos);
+    source_widget->move(center_pos);
 }

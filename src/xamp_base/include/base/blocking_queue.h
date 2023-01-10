@@ -60,6 +60,22 @@ public:
         notify_.notify_one();
     }
 
+    std::optional<T> TrySteal() {
+        const std::unique_lock lock{ mutex_, std::try_to_lock };
+
+        if (!lock || queue_.empty()) {
+            return std::nullopt;
+        }
+
+        auto task = std::move(queue_.top());
+        queue_.pop();
+        return task;
+	}
+
+    std::optional<T> TryDequeue() {
+        return TrySteal();
+    }
+
     bool TryDequeue(T& task) {
 		const std::unique_lock lock{ mutex_, std::try_to_lock };
 

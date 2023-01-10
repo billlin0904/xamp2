@@ -38,3 +38,4 @@ void centerDesktop(QWidget* widget);
 
 void centerParent(QWidget* widget);
 
+void centerTarget(QWidget* source_widget, QWidget* target_widget);

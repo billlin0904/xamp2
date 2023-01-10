@@ -43,19 +43,19 @@ public:
 
     size_t GetThreadSize() const override;
 
-    void SubmitJob(MoveableFunction&& task) override;
+    void SubmitJob(MoveOnlyFunction&& task) override;
 
     void Destroy() noexcept override;
 private:
     void SetWorkerThreadName(size_t i);
 
-    std::optional<MoveableFunction> TryDequeueSharedQueue();
+    std::optional<MoveOnlyFunction> TryDequeueSharedQueue();
 
-    std::optional<MoveableFunction> TrySteal(StopToken const & stop_token, size_t i);
+    std::optional<MoveOnlyFunction> TrySteal(StopToken const & stop_token, size_t i);
 
-    std::optional<MoveableFunction> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
+    std::optional<MoveOnlyFunction> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
 
-    std::optional<MoveableFunction> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
+    std::optional<MoveOnlyFunction> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
 
     void AddThread(size_t i, ThreadPriority priority);
 

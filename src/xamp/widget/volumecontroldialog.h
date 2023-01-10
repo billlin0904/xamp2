@@ -20,9 +20,11 @@ class VolumeControlDialog : public QDialog {
 public:
 	explicit VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent = nullptr);
 
-private:
+	virtual ~VolumeControlDialog() override;
+
 	void setVolume(uint32_t volume);
 
+private:
 	Ui::VolumeControlDialog ui_;
 	std::shared_ptr<IAudioPlayer> player_;
 };

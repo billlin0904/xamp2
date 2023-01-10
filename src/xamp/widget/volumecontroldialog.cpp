@@ -1,19 +1,23 @@
-#include <QToolTip>
+#include <widget/volumecontroldialog.h>
+
 
 #include "thememanager.h"
-
 #include <widget/str_utilts.h>
-#include <widget/volumecontroldialog.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/xmessagebox.h>
+
+#include <QToolTip>
 
 VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent)
 	: QDialog(parent)
 	, player_(player) {
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    setAttribute(Qt::WA_StyledBackground);
 	setFixedSize(30, 150);
+
+    ui_.volumeButton->hide();
     ui_.volumeButton->setIconSize(QSize(24, 24));
 	ui_.volumeSlider->setRange(0, 100);
 
@@ -37,10 +41,10 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         setVolume(volume);
         });
 
-    /*(void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
+    (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
 		setVolume(volume);
-        });*/
+        });
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
@@ -60,6 +64,10 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         });
 
     qTheme.setSliderTheme(ui_.volumeSlider);
+}
+
+VolumeControlDialog::~VolumeControlDialog() {
+    AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
 }
 
 void VolumeControlDialog::setVolume(uint32_t volume) {
@@ -87,9 +95,6 @@ void VolumeControlDialog::setVolume(uint32_t volume) {
         else {
             ui_.volumeSlider->setDisabled(true);
         }
-
-        /*const auto volume_db = VolumeToDb(ui_.volumeSlider->value());
-        player_->SetSoftwareVolumeDb(volume_db);*/
     }
     catch (const Exception& e) {
         player_->Stop(false);
