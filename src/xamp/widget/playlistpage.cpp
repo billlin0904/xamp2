@@ -109,7 +109,7 @@ void PlaylistPage::initial() {
 
 	default_layout->setStretch(2, 1);
 
-	setStyleSheet(qTEXT("background-color: transparent;"));
+	//setStyleSheet(qTEXT("background-color: transparent;"));
 
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
@@ -151,7 +151,7 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 
 void PlaylistPage::setCover(const QPixmap * cover) {
 	const auto playlist_cover = ImageUtils::roundImage(
-		ImageUtils::scaledImage(*cover, QSize(130, 130), false),
+		ImageUtils::resizeImage(*cover, QSize(130, 130), false),
 		ImageUtils::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
 }

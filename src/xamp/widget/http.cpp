@@ -13,9 +13,7 @@
 
 #include <base/logger.h>
 #include <base/logger_impl.h>
-#include <base/str_utilts.h>
 #include <base/dll.h>
-#include <base/scopeguard.h>
 
 #include <version.h>
 #include <widget/str_utilts.h>

@@ -71,7 +71,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/zlib/;../thirdparty/CImg/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/zlib/;../thirdparty/vips/include/</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -202,6 +202,7 @@
     <ClCompile Include="widget\processindicator.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
+    <ClCompile Include="widget\spotify_utilis.cpp" />
     <ClCompile Include="widget\stackblur.cpp" />
     <ClCompile Include="widget\tooltips.cpp" />
     <ClCompile Include="widget\tooltipsfilter.cpp" />
@@ -286,6 +287,7 @@
     <QtMoc Include="widget\fonticonanimation.h" />
     <ClInclude Include="widget\globalshortcut.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
+    <ClInclude Include="widget\spotify_utilis.h" />
     <ClInclude Include="widget\stackblur.h" />
     <QtMoc Include="widget\tooltips.h" />
     <QtMoc Include="widget\tooltipsfilter.h" />

@@ -7,28 +7,22 @@
 
 #include <QObject>
 
-#include <widget/playlistentity.h>
 #include <widget/widget_shared.h>
+#include <widget/playlistentity.h>
 
 class PlayListTableView;
 
-TrackInfo getMetadata(QString const& file_path);
+TrackInfo getTrackInfo(QString const& file_path);
 
 QString getFileDialogFileExtensions();
 
 QStringList getFileNameFilter();
 
-class DatabaseIdCache final {
+class CoverArtReader final {
 public:
-    DatabaseIdCache();
+    CoverArtReader();
 
     QPixmap getEmbeddedCover(const TrackInfo& track_info) const;
-
-    static std::tuple<int32_t, int32_t> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
-                                                                 const QString& album,
-                                                                 const QString& artist,
-                                                                 bool is_podcast,
-                                                                 const QString& disc_id);
 
     QString saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const;
 
@@ -36,14 +30,13 @@ private:
     AlignPtr<IMetadataReader> cover_reader_;
 };
 
-class MetadataExtractAdapter final
-	: public QObject {
+class DatabaseProxy final : public QObject {
 	Q_OBJECT
 public:
     static constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
     static constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
 
-    explicit MetadataExtractAdapter(QObject* parent = nullptr);
+    explicit DatabaseProxy(QObject* parent = nullptr);
 
 signals:
     void readFileStart(int dir_size);
@@ -57,12 +50,12 @@ signals:
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
 
 public:
-    static void processMetadata(const ForwardList<TrackInfo>& result, 
+    static void processTrackInfo(const ForwardList<TrackInfo>& result, 
         int64_t dir_last_write_time, 
         int32_t playlist_id, 
         bool is_podcast_mode);
 
-	static void addMetadata(const ForwardList<TrackInfo>& result,
+	static void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         int64_t dir_last_write_time,
         bool is_podcast);

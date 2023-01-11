@@ -136,6 +136,8 @@ public:
 
     void setSliderTheme(QSlider* slider);
 
+    void setDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
+
 private:
     static QString fontNamePath(const QString& file_name);
 

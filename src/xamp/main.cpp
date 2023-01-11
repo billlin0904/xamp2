@@ -207,7 +207,7 @@ static void registerMetaType() {
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
 
     qRegisterMetaType<int64_t>("int64_t");
-    qRegisterMetaType<QSharedPointer<MetadataExtractAdapter>>("QSharedPointer<MetadataExtractAdapter>");
+    qRegisterMetaType<QSharedPointer<DatabaseProxy>>("QSharedPointer<DatabaseProxy>");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DeviceState>("DeviceState");

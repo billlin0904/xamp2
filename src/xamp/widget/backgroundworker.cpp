@@ -13,6 +13,7 @@
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
+#include <widget/spotify_utilis.h>
 
 #include <player/ebur128reader.h>
 #include <base/logger_impl.h>
@@ -35,7 +36,7 @@ struct ReplayGainJob {
 
 using DirPathHash = GoogleSipHash<>;
 
-static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
+static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -43,7 +44,7 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
     QDirIterator itr(dir, file_name_filters, 
         QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
-    DirPathHash hasher(MetadataExtractAdapter::kDirHashKey1, MetadataExtractAdapter::kDirHashKey2);
+    DirPathHash hasher(DatabaseProxy::kDirHashKey1, DatabaseProxy::kDirHashKey2);
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
@@ -87,7 +88,7 @@ static void ScanDirFiles(const QSharedPointer<MetadataExtractAdapter>& adapter,
     const DirectoryEntry dir_entry(dir.toStdWString());
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
         const auto last_write_time = ToTime_t(dir_entry.last_write_time());
-		MetadataExtractAdapter::processMetadata(tracks.second,
+		DatabaseProxy::processTrackInfo(tracks.second,
 			last_write_time,
 			playlist_id,
 			is_podcast_mode);
@@ -119,7 +120,7 @@ void BackgroundWorker::lazyInitExecutor() {
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 }
 
-void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
     QString const& file_path,
     int32_t playlist_id,
     bool is_podcast_mode) {
@@ -127,7 +128,7 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, getFileNameFilter(), filter);
-    DirPathHash hasher(MetadataExtractAdapter::kDirHashKey1, MetadataExtractAdapter::kDirHashKey2);
+    DirPathHash hasher(DatabaseProxy::kDirHashKey1, DatabaseProxy::kDirHashKey2);
 
     Vector<QString> dirs;
 
@@ -179,6 +180,26 @@ void BackgroundWorker::onReadFileMetadata(const QSharedPointer<MetadataExtractAd
     });
 }
 
+void BackgroundWorker::onSearchLyrics(const QString& title, const QString& artist) {
+	const auto keywords = QString::fromStdString(
+        String::Format("{} {}", 
+        QUrl::toPercentEncoding(artist),
+        QUrl::toPercentEncoding(title)));
+
+    http::HttpClient(qTEXT("https://music.xianqiao.wang/neteaseapiv2/search"))
+        .param(qTEXT("limit"), qTEXT("10"))
+        .param(qTEXT("type"), qTEXT("1"))
+        .param(qTEXT("keywords"), keywords)
+        .success([this](const QString& response) {
+			if (response.isEmpty()) {
+                return;
+            }
+        	Spotify::SearchLyricsResult result;
+            Spotify::parseJson(response, result);
+		})
+        .get();
+}
+
 void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
     XAMP_LOG_DEBUG("Current thread:{}", QThread::currentThreadId());
 
@@ -205,7 +226,7 @@ void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
                 .download([this, podcast_info, playlist_id](const QByteArray& data) {
 					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
                     QThread::currentThreadId(), String::FormatBytes(data.size()));
-					::MetadataExtractAdapter::processMetadata(podcast_info.second,
+					::DatabaseProxy::processTrackInfo(podcast_info.second,
                 -1,
                         playlist_id,
                 true);
@@ -236,7 +257,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
         auto track_id = 0;
         for (const auto& track : tracks) {
-            auto metadata = getMetadata(QString::fromStdWString(track));
+            auto metadata = getTrackInfo(QString::fromStdWString(track));
             metadata.file_path = tracks[track_id];
             metadata.duration = cd->GetDuration(track_id++);
             metadata.samplerate = 44100;

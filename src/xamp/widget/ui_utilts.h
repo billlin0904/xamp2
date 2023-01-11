@@ -23,7 +23,7 @@ struct PlaybackFormat {
     AudioFormat output_format;
 };
 
-QString sampleRate2String(const AudioFormat& format);
+QString formatSampleRate(const AudioFormat& format);
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
 
@@ -38,4 +38,4 @@ void centerDesktop(QWidget* widget);
 
 void centerParent(QWidget* widget);
 
-void centerTarget(QWidget* source_widget, QWidget* target_widget);
+void centerTarget(QWidget* source_widget, const QWidget* target_widget);

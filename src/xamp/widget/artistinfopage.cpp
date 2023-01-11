@@ -118,7 +118,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 }
 
 QPixmap ArtistInfoPage::getArtistImage(QPixmap const* cover) const {
-	return ImageUtils::roundImage(ImageUtils::scaledImage(*cover, cover_->size()), ImageUtils::kPlaylistImageRadius);
+	return ImageUtils::roundImage(ImageUtils::resizeImage(*cover, cover_->size()), ImageUtils::kPlaylistImageRadius);
 }
 
 void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
@@ -157,5 +157,5 @@ void ArtistInfoPage::setTracks(int32_t tracks) {
 }
 
 void ArtistInfoPage::setTotalDuration(double durations) {
-	durations_->setText(streamTimeToString(durations));
+	durations_->setText(formatDuration(durations));
 }

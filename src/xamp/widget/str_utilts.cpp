@@ -17,14 +17,14 @@ QString backgroundColorToString(QColor color) {
     return qTEXT("background-color: ") + colorToString(color) + qTEXT(";");
 }
 
-QString bitRate2String(uint32_t bitRate) {
+QString formatBitRate(uint32_t bitRate) {
     if (bitRate > 10000) {
         return QString::number(bitRate / 1000.0, 'f', 2).rightJustified(5) + qTEXT(" Mbps");
     }
     return QString::number(bitRate).rightJustified(5) + qTEXT(" kbps");
 }
 
-QString sampleRate2String(const uint32_t sample_rate) {
+QString formatSampleRate(const uint32_t sample_rate) {
     auto precision = 1;
     auto is_mhz_sample_rate = false;
 
@@ -42,12 +42,12 @@ QString sampleRate2String(const uint32_t sample_rate) {
     }
 }
 
-QString dsdSampleRate2String(uint32_t dsd_speed) {
+QString formatDsdSampleRate(uint32_t dsd_speed) {
     const auto sample_rate = (dsd_speed / 64) * 2.82;
     return QString::number(sample_rate, 'f', 2) + qTEXT("kHz");
 }
 
-QString streamTimeToString(const double stream_time, bool full_text) {
+QString formatDuration(const double stream_time, bool full_text) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);
     const auto h = secs / 3600;
@@ -76,13 +76,7 @@ QByteArray generateUUID() {
 }
 
 QString formatBytes(quint64 bytes) {
-    if (bytes < 1'000)
-        return QObject::tr("%1 B").arg(bytes);
-    if (bytes < 1'000'000)
-        return QObject::tr("%1 kB").arg(bytes / 1'000);
-    if (bytes < 1'000'000'000)
-        return QObject::tr("%1 MB").arg(bytes / 1'000'000);
-    return QObject::tr("%1 GB").arg(bytes / 1'000'000'000);
+    return QString::fromStdString(String::FormatBytes(bytes));
 }
 
 QString formatTime(quint64 time) {

@@ -119,7 +119,7 @@ QString PixmapCache::savePixamp(const QPixmap &cover) const {
     QBuffer buffer(&array);
 
     const auto cover_size = qTheme.cacheCoverSize();
-    const auto cache_cover = ImageUtils::scaledImage(cover, cover_size, true);
+    const auto cache_cover = ImageUtils::resizeImage(cover, cover_size, true);
 
     QString tag_name;
     if (cache_cover.save(&buffer, "JPG")) {

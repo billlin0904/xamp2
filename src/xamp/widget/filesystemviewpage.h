@@ -18,9 +18,12 @@ public:
 	PlaylistPage* playlistPage();
 
 signals:
-	void addDirToPlyalist(const QString& url);
+	void addDirToPlaylist(const QString& url);
 
 private:
+	class DirFirstSortFilterProxyModel;
+
 	Ui::FileSystemViewPage ui;
 	FileSystemModel* dir_model_;
+	DirFirstSortFilterProxyModel* dir_first_sort_filter_;
 };

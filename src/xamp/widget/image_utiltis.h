@@ -22,7 +22,7 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius
 
 QPixmap roundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRadius);
 
-QPixmap scaledImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
+QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
 std::vector<uint8_t> convert2Vector(const QPixmap& source);
 

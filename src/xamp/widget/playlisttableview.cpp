@@ -119,7 +119,7 @@ public:
             opt.text = formatBytes(value.toULongLong());
             break;
         case PLAYLIST_BIT_RATE:
-            opt.text = bitRate2String(value.toInt());
+            opt.text = formatBitRate(value.toInt());
             break;
         case PLAYLIST_ALBUM_PK:
         case PLAYLIST_ALBUM_RG:
@@ -143,10 +143,10 @@ public:
             }
             break;
         case PLAYLIST_SAMPLE_RATE:
-            opt.text = sampleRate2String(value.toInt());
+            opt.text = formatSampleRate(value.toInt());
             break;
         case PLAYLIST_DURATION:
-            opt.text = streamTimeToString(value.toDouble());
+            opt.text = formatDuration(value.toDouble());
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
@@ -560,8 +560,8 @@ void PlayListTableView::initial() {
                 }
                 auto profile_desc = qSTR("%0 bit, %1, %2")
                     .arg(profile.bit_per_sample).rightJustified(2)
-                    .arg(sampleRate2String(profile.sample_rate))
-                    .arg(bitRate2String(profile.bitrate));
+                    .arg(formatSampleRate(profile.sample_rate))
+                    .arg(formatBitRate(profile.bitrate));
 
                 export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
                     const auto rows = selectItemIndex();
@@ -614,7 +614,7 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(reload_metadata_act, [this, item]() {
             try {
-				qDatabase.addOrUpdateMusic(getMetadata(item.file_path));
+				qDatabase.addOrUpdateMusic(getTrackInfo(item.file_path));
 				reload();
 			}
 			catch (std::filesystem::filesystem_error& e) {
@@ -788,18 +788,18 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-	const auto adapter = QSharedPointer<::MetadataExtractAdapter>(new ::MetadataExtractAdapter());
+	const auto adapter = QSharedPointer<::DatabaseProxy>(new ::DatabaseProxy());
 
     (void)QObject::connect(adapter.get(),
-                            &::MetadataExtractAdapter::readCompleted,
+                            &::DatabaseProxy::readCompleted,
                             this,
                             &PlayListTableView::processMeatadata);
 
     (void)QObject::connect(adapter.get(),
-        &::MetadataExtractAdapter::fromDatabase,
+        &::DatabaseProxy::fromDatabase,
         this,
         &PlayListTableView::processDatabase);
-    emit readFileMetadata(adapter, file_name, playlistId(), isPodcastMode());
+    emit readTrackInfo(adapter, file_name, playlistId(), isPodcastMode());
 }
 
 void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entities) {

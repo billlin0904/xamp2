@@ -180,7 +180,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
         initialDeviceList();
         });
 
-    album_page_->album()->readTrackInfo(AppSettings::getMyMusicFolderPath());
+    album_page_->album()->readSingleFileTrackInfo(AppSettings::getMyMusicFolderPath());
 }
 
 void Xamp::avoidRedrawOnResize() {
@@ -395,21 +395,6 @@ void Xamp::initialDeviceList() {
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
-    auto set_device_type_icon = [this](auto connect_type) {
-        switch (connect_type) {
-        case DeviceConnectType::UKNOWN:
-        case DeviceConnectType::BUILT_IN:
-            ui_.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_BUILD_IN_SPEAKER));
-            break;
-        case DeviceConnectType::USB:
-            ui_.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_USB));
-            break;
-        case DeviceConnectType::BLUE_TOOTH:
-            ui_.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_BLUE_TOOTH));
-            break;
-        }
-    };
-
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
 	    const auto device_type = (*itr).second();
         device_type->ScanNewDevice();
@@ -430,8 +415,8 @@ void Xamp::initialDeviceList() {
             device_action->setChecked(false);
             device_id_action[device_info.device_id] = device_action;            
 
-            auto trigger_callback = [device_info, set_device_type_icon, this]() {
-                set_device_type_icon(device_info.connect_type);
+            auto trigger_callback = [device_info, this]() {
+                qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
@@ -444,7 +429,7 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
-                set_device_type_icon(device_info.connect_type);
+                qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
             }
         }
 
@@ -460,7 +445,7 @@ void Xamp::initialDeviceList() {
 
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
-        set_device_type_icon(device_info_.connect_type);
+        qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.connect_type);
         device_id_action[device_info_.device_id]->setChecked(true);
         AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
         AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
@@ -524,7 +509,7 @@ void Xamp::initialController() {
 	    const auto enable_or_disable = !AppSettings::getValueAsBool(kEnableBitPerfect);
         AppSettings::setValue(kEnableBitPerfect, enable_or_disable);
         qTheme.setBitPerfectButton(ui_, enable_or_disable);
-        });
+    });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
@@ -718,8 +703,8 @@ void Xamp::initialController() {
 
     auto* about_action = new QAction(tr("About"), this);
     ui_.seekSlider->setEnabled(false);
-    ui_.startPosLabel->setText(streamTimeToString(0));
-    ui_.endPosLabel->setText(streamTimeToString(0));
+    ui_.startPosLabel->setText(formatDuration(0));
+    ui_.endPosLabel->setText(formatDuration(0));
     ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
 }
 
@@ -941,10 +926,10 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 
 void Xamp::setSeekPosValue(double stream_time) {
     const auto full_text = isMoreThan1Hours(player_->GetDuration());
-    ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration() - stream_time, full_text));
+    ui_.endPosLabel->setText(formatDuration(player_->GetDuration() - stream_time, full_text));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
     ui_.seekSlider->setValue(stream_time);
-    ui_.startPosLabel->setText(streamTimeToString(stream_time, full_text));
+    ui_.startPosLabel->setText(formatDuration(stream_time, full_text));
     top_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
     lrc_page_->lyrics()->setLrcTime(stream_time_as_ms);
 }
@@ -991,7 +976,7 @@ void Xamp::playOrPause() {
 
 void Xamp::resetSeekPosValue() {
     ui_.seekSlider->setValue(0);
-    ui_.startPosLabel->setText(streamTimeToString(0));
+    ui_.startPosLabel->setText(formatDuration(0));
 }
 
 void Xamp::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) const {
@@ -1197,7 +1182,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             if (player_->GetInputFormat() != AudioFormat::k16BitPCM441Khz) {
                 const auto message = qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
                     .arg(player_->GetInputFormat().GetBitsPerSample())
-                    .arg(sampleRate2String(player_->GetInputFormat().GetSampleRate()));
+                    .arg(formatSampleRate(player_->GetInputFormat().GetSampleRate()));
                 showMeMessage(message);
             }
             byte_format = ByteFormat::SINT16;
@@ -1241,8 +1226,8 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     if (open_done) {
         ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(streamTimeToString(0));
-        ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration()));
+        ui_.startPosLabel->setText(formatDuration(0));
+        ui_.endPosLabel->setText(formatDuration(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, ext));
 
         artist_info_page_->setArtistId(item.artist,
@@ -1277,7 +1262,10 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         }        
         player_->Play();
     }
+
     podcast_page_->format()->setText(qEmptyString);
+
+    emit searchLyrics(item.title, item.artist);
 }
 
 void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -1308,7 +1296,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
         cd_page_->playlistPage()->format()->setText(tr("%1 Tracks, %2, %3")
             .arg(QString::number(album_stats.value().tracks))
-            .arg(streamTimeToString(album_stats.value().durations))
+            .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year)));
     }
 }
@@ -1455,14 +1443,14 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
 	}
 
     const auto ui_cover = ImageUtils::roundImage(
-        ImageUtils::scaledImage(*cover, ui_.coverLabel->size(), false),
+        ImageUtils::resizeImage(*cover, ui_.coverLabel->size(), false),
         ImageUtils::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
     page->setCover(cover);
 
     if (lrc_page_ != nullptr) {
-        lrc_page_->setCover(ImageUtils::scaledImage(*cover, lrc_page_->cover()->size(), true));
+        lrc_page_->setCover(ImageUtils::resizeImage(*cover, lrc_page_->cover()->size(), true));
     }   
 }
 
@@ -1473,7 +1461,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         top_window_->resetTaskbarProgress();
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(streamTimeToString(0));
+        ui_.startPosLabel->setText(formatDuration(0));
         playNextItem(1);
         payNextMusic();
     }
@@ -1590,7 +1578,7 @@ void Xamp::initialPlaylist() {
         Qt::QueuedConnection);
 
     (void)QObject::connect(file_system_view_page_,
-        &FileSystemViewPage::addDirToPlyalist,
+        &FileSystemViewPage::addDirToPlaylist,
         this,
         &Xamp::appendToPlaylist);    
 
@@ -1605,14 +1593,19 @@ void Xamp::initialPlaylist() {
     connectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
 
     (void)QObject::connect(this,
-        &Xamp::readFileMetadata,
+        &Xamp::searchLyrics,
         background_worker_,
-        &BackgroundWorker::onReadFileMetadata);
+        &BackgroundWorker::onSearchLyrics);
+
+    (void)QObject::connect(this,
+        &Xamp::readTrackInfo,
+        background_worker_,
+        &BackgroundWorker::onReadTrackInfo);
 
     (void)QObject::connect(album_page_->album(),
-        &AlbumView::readFileMetadata,
+        &AlbumView::readTrackInfo,
         background_worker_,
-        &BackgroundWorker::onReadFileMetadata);
+        &BackgroundWorker::onReadTrackInfo);
 
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
@@ -1902,9 +1895,9 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &BackgroundWorker::onReadReplayGain);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::readFileMetadata,
+        &PlayListTableView::readTrackInfo,
         background_worker_,
-        &BackgroundWorker::onReadFileMetadata);
+        &BackgroundWorker::onReadTrackInfo);
 
     if (playlist_page->playlist()->isPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
@@ -1954,12 +1947,12 @@ void Xamp::addDropFileItem(const QUrl& url) {
 }
 
 void Xamp::extractFile(const QString& file_path) {
-    const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+    const auto adapter = QSharedPointer<DatabaseProxy>(new DatabaseProxy());
     (void)QObject::connect(adapter.get(),
-        &MetadataExtractAdapter::readCompleted,
+        &DatabaseProxy::readCompleted,
         this,
         &Xamp::processMeatadata);
-    emit readFileMetadata(adapter, file_path, playlist_page_->playlist()->playlistId(), false);
+    emit readTrackInfo(adapter, file_path, playlist_page_->playlist()->playlistId(), false);
 }
 
 void Xamp::setTipHint(QWidget* widget, const QString& hint_text) {

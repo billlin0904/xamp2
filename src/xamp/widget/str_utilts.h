@@ -54,17 +54,17 @@ inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }
 
-QString sampleRate2String(uint32_t sample_rate);
+QString formatSampleRate(uint32_t sample_rate);
 
-QString bitRate2String(uint32_t bitRate);
+QString formatBitRate(uint32_t bitRate);
 
-QString dsdSampleRate2String(uint32_t dsd_speed);
+QString formatDsdSampleRate(uint32_t dsd_speed);
 
 QString colorToString(QColor color);
 
 QString backgroundColorToString(QColor color);
 
-QString streamTimeToString(const double stream_time, bool full_text = false);
+QString formatDuration(const double stream_time, bool full_text = false);
 
 bool isMoreThan1Hours(const double stream_time);
 

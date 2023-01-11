@@ -1,3 +1,4 @@
+#include <QStyle>
 #include <QToolTip>
 
 #include "str_utilts.h"
@@ -18,15 +19,21 @@ void SeekSlider::setRange(int64_t min, int64_t max) {
 void SeekSlider::mousePressEvent(QMouseEvent* event) {
 	if (event->button() == Qt::LeftButton) {
 		event->accept();
-		auto x = event->pos().x();
-		auto value = (max_ - min_) * x / width() + min_;
+		int64_t value = 0;
+		if (orientation() == Qt::Horizontal) {
+			auto x = event->pos().x();
+			value = ((max_ - min_) * x / width()) + min_;
+		}
+		else {
+			auto y = event->pos().y();
+			value = ((max_ - min_) * (height() - y) / height()) + min_;
+		}
+		setValue(value);
 		emit leftButtonValueChanged(value);
 	}
 	return QSlider::mousePressEvent(event);
 }
 
 void SeekSlider::enterEvent(QEvent* event) {
-	auto x = mapFromGlobal(QCursor::pos()).x();
-	auto value = (max_ - min_) * x / width() + min_;
-	QToolTip::showText(QCursor::pos(), streamTimeToString(value));
+	QToolTip::showText(QCursor::pos(), formatDuration(value()));
 }

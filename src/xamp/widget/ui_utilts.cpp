@@ -8,8 +8,8 @@
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 
-QString sampleRate2String(const AudioFormat& format) {
-    return sampleRate2String(format.GetSampleRate());
+QString formatSampleRate(const AudioFormat& format) {
+    return formatSampleRate(format.GetSampleRate());
 }
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
@@ -43,18 +43,18 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
-        output_format_str = sampleRate2String(playback_format.file_format);
+        output_format_str = formatSampleRate(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += qTEXT("/") + sampleRate2String(playback_format.output_format);
+            output_format_str += qTEXT("/") + formatSampleRate(playback_format.output_format);
         }
         break;
     case DsdModes::DSD_MODE_NATIVE:
         dsd_mode = qTEXT("Native DSD");
-        output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
+        output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
         break;
     case DsdModes::DSD_MODE_DOP:
         dsd_mode = qTEXT("DOP");
-        output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
+        output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
         break;
     default: 
         break;
@@ -73,7 +73,7 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         result += qTEXT(" | ") + dsd_mode;
     }
     if (playback_format.bitrate > 0) {
-        result += qTEXT(" |") + bitRate2String(playback_format.bitrate);
+        result += qTEXT(" |") + formatBitRate(playback_format.bitrate);
     }
     return result;
 }
@@ -108,17 +108,17 @@ void centerParent(QWidget* widget) {
 }
 
 void centerDesktop(QWidget* widget) {
-    auto desktop = QApplication::desktop();
-    auto screen_num = desktop->screenNumber(QCursor::pos());
-    QRect rect = desktop->screenGeometry(screen_num);
+	const auto desktop = QApplication::desktop();
+    const auto screen_num = desktop->screenNumber(QCursor::pos());
+	const auto rect = desktop->screenGeometry(screen_num);
     widget->move(rect.center() - widget->rect().center());
 }
 
-void centerTarget(QWidget* source_widget, QWidget* target_widget) {
+void centerTarget(QWidget* source_widget, const QWidget* target_widget) {
     auto center_pos = target_widget->mapToGlobal(target_widget->rect().center());
     const auto sz = source_widget->size();
     center_pos.setX(center_pos.x() - sz.width() / 2);
-    center_pos.setY(center_pos.y() - 32 - sz.height());
+    center_pos.setY(center_pos.y() - 15 - sz.height());
     center_pos = source_widget->mapFromGlobal(center_pos);
     center_pos = source_widget->mapToParent(center_pos);
     source_widget->move(center_pos);

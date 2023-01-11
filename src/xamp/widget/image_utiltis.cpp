@@ -10,7 +10,7 @@ Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius,
 
 namespace ImageUtils {
 
-QPixmap scaledImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
+QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
 	const auto scaled_size = source.size() * 2;
 	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
 		                  : Qt::IgnoreAspectRatio;
@@ -76,7 +76,7 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	painter.setClipPath(painter_path);
 	painter.setBrush(QBrush(QColor(249, 249, 249)));
 	if (src.size() != size) {
-		painter.drawPixmap(rect, scaledImage(pixmap, size, true));
+		painter.drawPixmap(rect, resizeImage(pixmap, size, true));
 	} else {
 		painter.drawPixmap(rect, pixmap);
 	}
@@ -87,7 +87,7 @@ QImage blurImage(const QPixmap& source, QSize size) {
 	const int radius = qMax(20, qMin(size.width(), size.height()) / 5);
 
 	const QSize scaled_size(size.width() + radius, size.height() + radius);
-	auto pixmap = scaledImage(source, scaled_size);
+	auto pixmap = resizeImage(source, scaled_size);
 	auto img = pixmap.toImage();
 
 	QPainter painter(&pixmap);

@@ -16,7 +16,7 @@
 #include <widget/playlistentity.h>
 
 class XProgressDialog;
-class MetadataExtractAdapter;
+class DatabaseProxy;
 class QLabel;
 class ClickableLabel;
 class AlbumViewPage;
@@ -96,7 +96,7 @@ public:
 
 	void enablePage(bool enable);
 
-	void readTrackInfo(const QString& file_name);
+	void readSingleFileTrackInfo(const QString& file_name);
 
 signals:
     void addPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
@@ -109,7 +109,7 @@ signals:
 
 	void loadCompleted();
 
-	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+	void readTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
 		QString const& file_path, 
 		int32_t playlist_id,
 		bool is_podcast_mode);

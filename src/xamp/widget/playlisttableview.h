@@ -102,7 +102,7 @@ signals:
 
 	void fetchPodcast(int32_t playlist_id);
 
-	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+	void readTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
 		QString const& file_path,
 		int32_t playlist_id,
 		bool is_podcast_mode);

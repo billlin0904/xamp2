@@ -15,12 +15,11 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_StyledBackground);
-	setFixedSize(30, 150);
+	setFixedSize(30, 110);
 
-    ui_.volumeButton->hide();
-    ui_.volumeButton->setIconSize(QSize(24, 24));
+    ui_.volumeButton->setIconSize(QSize(20, 20));
+    ui_.volumeButton->setFixedSize(20, 20);
 	ui_.volumeSlider->setRange(0, 100);
-
     ui_.volumeButton->setStyleSheet(qTEXT(R"(
                                          QPushButton#volumeButton {
                                          border: none;
@@ -63,7 +62,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         }
         });
 
-    qTheme.setSliderTheme(ui_.volumeSlider);
+    setStyleSheet(qTEXT(R"(background-color: #121212;)"));
 }
 
 VolumeControlDialog::~VolumeControlDialog() {

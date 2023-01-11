@@ -249,7 +249,7 @@ ThemeManager::ThemeManager() {
     use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
     ui_font_.setPointSize(fontSize());
     unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
-	default_size_unknown_cover_ = ImageUtils::scaledImage(unknown_cover_, cover_size_);
+	default_size_unknown_cover_ = ImageUtils::resizeImage(unknown_cover_, cover_size_);
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
@@ -746,6 +746,21 @@ void ThemeManager::setMuted(Ui::XampWindow& ui, bool is_muted) {
     setMuted(ui.mutedButton, is_muted);
 }
 
+void ThemeManager::setDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type) {
+    switch (type) {
+    case DeviceConnectType::UKNOWN:
+    case DeviceConnectType::BUILT_IN:
+        button->setIcon(qTheme.fontIcon(Glyphs::ICON_BUILD_IN_SPEAKER));
+        break;
+    case DeviceConnectType::USB:
+        button->setIcon(qTheme.fontIcon(Glyphs::ICON_USB));
+        break;
+    case DeviceConnectType::BLUE_TOOTH:
+        button->setIcon(qTheme.fontIcon(Glyphs::ICON_BLUE_TOOTH));
+        break;
+    }
+}
+
 void ThemeManager::setSliderTheme(QSlider* slider) {
     QString slider_border_color;
     QString slider_background_color;
@@ -794,8 +809,8 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
 		height: 10px;
         margin: -5px 0px -5px 0px;
 		border-radius: 5px;
-		background-color: white;
-		border: 1px solid #C9CDD0;
+		background-color: %2;
+		border: 1px solid %2;
     }
     )"
     ).arg(slider->objectName())

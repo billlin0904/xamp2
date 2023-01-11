@@ -6,11 +6,8 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 #include <string>
-#include <iomanip>
 #include <algorithm>
-#include <charconv>
 #include <vector>
 
 #include <spdlog/fmt/fmt.h>
@@ -33,8 +30,6 @@ XAMP_ALWAYS_INLINE std::string ToString(std::wstring const& utf16) {
 XAMP_ALWAYS_INLINE std::string AsStdString(const std::string_view& s) {
     return { s.data(), s.size() };
 }
-
-XAMP_BASE_API bool IsStringsEqual(std::wstring const& str1, std::wstring const& str2);
 
 XAMP_BASE_API std::string LocaleStringToUTF8(const std::string& str);
 
@@ -80,17 +75,10 @@ void Remove(std::basic_string<CharType>& s, const CharType* target) {
     Remove(s, p);
 }
 
-XAMP_BASE_API std::string FormatBytes(size_t bytes) noexcept;
-
-#if 0
-XAMP_ALWAYS_INLINE std::errc ParseDouble(std::string const& s, double &d) {
-    auto [p, ec] = std::from_chars(s.data(), s.data() + s.size(), d);
-    return ec;
-}
-#endif
+XAMP_BASE_API std::string FormatBytes(size_t bytes);
 
 template <typename T>
-XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) noexcept {
+XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) {
     return FormatBytes(sizeof(T) * bytes);
 }
 

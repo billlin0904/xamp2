@@ -26,37 +26,28 @@
 #include <widget/pixmapcache.h>
 #include <widget/metadataextractadapter.h>
 
-DatabaseIdCache::DatabaseIdCache()
+CoverArtReader::CoverArtReader()
     : cover_reader_(MakeMetadataReader()) {
 }
 
-QPixmap DatabaseIdCache::getEmbeddedCover(const TrackInfo& track_info) const {
-    QPixmap pixmap;
-    const auto& buffer = cover_reader_->GetEmbeddedCover(track_info.file_path);
-    if (!buffer.empty()) {
-        pixmap.loadFromData(buffer.data(),
-            static_cast<uint32_t>(buffer.size()));
-    }
-    return pixmap;
-}
-
-QString DatabaseIdCache::saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const {
-    auto cover_id = qDatabase.getAlbumCoverId(album_id);
-    if (!cover_id.isEmpty()) {
-    	return cover_id;
-    }
-
+QPixmap CoverArtReader::getEmbeddedCover(const TrackInfo& track_info) const {
     QPixmap pixmap;
     const auto& buffer = cover_reader_->GetEmbeddedCover(track_info.file_path);
     if (!buffer.empty()) {
         pixmap.loadFromData(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
-    else {
+    return pixmap;
+}
+
+QString CoverArtReader::saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const {
+    auto pixmap = getEmbeddedCover(track_info);
+    if (pixmap.isNull()) {
     	if (!is_unknown_album) {
             pixmap = PixmapCache::findFileDirCover(QString::fromStdWString(track_info.file_path));
-    	}          
+    	}
     }
 
+    QString cover_id;
     if (!pixmap.isNull()) {
         cover_id = qPixmapCache.savePixamp(pixmap);
         XAMP_ASSERT(!cover_id.isEmpty());
@@ -65,17 +56,7 @@ QString DatabaseIdCache::saveCoverCache(int32_t album_id, const QString& album, 
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t> DatabaseIdCache::addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
-    const QString &album,
-    const QString &artist, 
-    bool is_podcast,
-    const QString& disc_id) {
-    auto artist_id = qDatabase.addOrUpdateArtist(artist);
-    auto album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast, disc_id);
-    return std::make_tuple(album_id, artist_id);
-}
-
-::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
+DatabaseProxy::DatabaseProxy(QObject* parent)
     : QObject(parent) {    
 }
 
@@ -87,11 +68,11 @@ std::tuple<int32_t, int32_t> DatabaseIdCache::addOrGetAlbumAndArtistId(int64_t d
 		catch (...) {}\
     } while (false)
 
-void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
+void DatabaseProxy::addTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     int64_t dir_last_write_time, 
     bool is_podcast) {
-	const DatabaseIdCache database_id_cache;
+	const CoverArtReader reader;
 
 	for (const auto& track_info : result) {
 		auto album = QString::fromStdWString(track_info.album);
@@ -103,7 +84,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 			album = tr("Unknown album");
 			is_unknown_album = true;
 			// todo: 如果有內建圖片就把當作一張專輯.
-			auto cover = database_id_cache.getEmbeddedCover(track_info);
+			auto cover = reader.getEmbeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = QString::fromStdWString(track_info.file_name_no_ext);
 			}
@@ -113,13 +94,12 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 		}
 
 		const auto music_id = qDatabase.addOrUpdateMusic(track_info);
-
-		auto [album_id, artist_id] = 
-            database_id_cache.addOrGetAlbumAndArtistId(dir_last_write_time,
-		             album, 
-		             artist,
-		             is_podcast, 
-		             disc_id);
+		const auto artist_id = qDatabase.addOrUpdateArtist(artist);
+		const auto album_id = qDatabase.addOrUpdateAlbum(album,
+            artist_id,
+            dir_last_write_time, 
+            is_podcast,
+            disc_id);
 
 		if (playlist_id != -1) {
 			qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
@@ -127,10 +107,10 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 
 		if (track_info.cover_id.empty()) {
 			// Find cover id from database.
-            auto cover_id = qDatabase.getAlbumCoverId(album_id);
+			auto cover_id = qDatabase.getAlbumCoverId(album_id);
 			// Database not exist find others.
 			if (cover_id.isEmpty()) {
-				cover_id = database_id_cache.saveCoverCache(album_id, album, track_info, is_unknown_album);
+				cover_id = reader.saveCoverCache(album_id, album, track_info, is_unknown_album);
 			}
 		} else {
 			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(track_info.cover_id));
@@ -140,7 +120,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result,
 	}
 }
 
-void ::MetadataExtractAdapter::processMetadata(const ForwardList<TrackInfo>& result, int64_t dir_last_write_time, int32_t playlist_id,  bool is_podcast_mode) {
+void DatabaseProxy::processTrackInfo(const ForwardList<TrackInfo>& result, int64_t dir_last_write_time, int32_t playlist_id,  bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
 
     if (dir_last_write_time == -1) {
@@ -149,15 +129,15 @@ void ::MetadataExtractAdapter::processMetadata(const ForwardList<TrackInfo>& res
 
     try {
         qDatabase.transaction();
-        addMetadata(result, playlist_id, dir_last_write_time, is_podcast_mode);
+        addTrackInfo(result, playlist_id, dir_last_write_time, is_podcast_mode);
         qDatabase.commit();
     } catch (std::exception const &e) {
         qDatabase.rollback();
-        XAMP_LOG_DEBUG("processMetadata throw exception! {}", e.what());
+        XAMP_LOG_DEBUG("processTrackInfo throw exception! {}", e.what());
     }
 }
 
-TrackInfo getMetadata(QString const& file_path) {
+TrackInfo getTrackInfo(QString const& file_path) {
     const Path path(file_path.toStdWString());
     auto reader = MakeMetadataReader();
     return reader->Extract(path);

@@ -12,7 +12,7 @@
 #include <widget/driveinfo.h>
 #include <widget/podcast_uiltis.h>
 
-class MetadataExtractAdapter;
+class DatabaseProxy;
 
 struct ReplayGainResult final {
     double album_loudness{0};
@@ -65,10 +65,12 @@ public Q_SLOT:
 
     void onFetchCdInfo(const DriveInfo &drive);
 
-    void onReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, 
+    void onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
         QString const& file_path,
         int32_t playlist_id,
         bool is_podcast_mode);
+
+    void onSearchLyrics(const QString &title, const QString &artist);
 
 private:
     void lazyInitExecutor();

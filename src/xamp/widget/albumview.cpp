@@ -307,7 +307,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Tracks, %2, %3, %4")
             .arg(QString::number(album_stats.value().tracks))
-            .arg(streamTimeToString(album_stats.value().durations))
+            .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year))
             .arg(formatBytes(album_stats.value().file_size))
         );
@@ -484,12 +484,12 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
-        });
+    });
     copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
     action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
-        });
+    });
 
     action_map.addSeparator();
 
@@ -499,7 +499,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
             qDatabase.removeAlbum(album_id);
             refreshOnece();
 		}
-        });
+    });
     remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
     action_map.exec(pt);
@@ -582,30 +582,30 @@ void AlbumView::append(const QString& file_name) {
         makeProgressDialog(tr("Read track information"),
             tr("Read track information"),
             tr("Cancel"));
-    readTrackInfo(file_name);
+    readSingleFileTrackInfo(file_name);
 }
 
-void AlbumView::readTrackInfo(const QString& file_name) {
-    const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+void AlbumView::readSingleFileTrackInfo(const QString& file_name) {
+    const auto adapter = QSharedPointer<DatabaseProxy>(new DatabaseProxy());
 
     (void)QObject::connect(adapter.get(),
-        &MetadataExtractAdapter::readCompleted,
+        &DatabaseProxy::readCompleted,
         this,
         &AlbumView::processMeatadata);
 
     (void)QObject::connect(adapter.get(),
-        &MetadataExtractAdapter::readFileStart,
+        &DatabaseProxy::readFileStart,
         this, &AlbumView::onReadFileStart);
 
     (void)QObject::connect(adapter.get(),
-        &MetadataExtractAdapter::readFileProgress,
+        &DatabaseProxy::readFileProgress,
         this, &AlbumView::onReadFileProgress);
 
     (void)QObject::connect(adapter.get(),
-        &MetadataExtractAdapter::readFileEnd,
+        &DatabaseProxy::readFileEnd,
         this, &AlbumView::onReadFileEnd);
 
-    emit readFileMetadata(adapter, file_name, -1, false);
+    emit readTrackInfo(adapter, file_name, -1, false);
 }
 
 void AlbumView::onReadFileStart(int dir_size) {

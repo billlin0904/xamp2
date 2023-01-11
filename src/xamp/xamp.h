@@ -39,7 +39,7 @@ class QRadioButton;
 class BackgroundWorker;
 class CdPage;
 class XMenu;
-class MetadataExtractAdapter;
+class DatabaseProxy;
 
 class Xamp final : public IXPlayerControlFrame {
 	Q_OBJECT
@@ -54,6 +54,7 @@ public:
     void applyTheme(QColor backgroundColor, QColor color);
 
 	void shortcutsPressed(const QKeySequence& shortcut) override;
+
 signals:
 	void payNextMusic();
 
@@ -65,10 +66,12 @@ signals:
 
 	void fetchCdInfo(const DriveInfo& drive);
 
-	void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter,
+	void readTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
 		QString const& file_path,
 		int32_t playlist_id,
 		bool is_podcast_mode);
+
+	void searchLyrics(const QString& title, const QString& artist);
 public slots:
     void playAlbumEntity(const AlbumEntity& item);
 
