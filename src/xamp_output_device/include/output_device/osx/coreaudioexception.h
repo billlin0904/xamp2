@@ -15,9 +15,7 @@
 
 namespace xamp::output_device::osx {
 
-using namespace base;
-
-class CoreAudioException final : public Exception {
+class CoreAudioException final : public base::Exception {
 public:
     explicit CoreAudioException(OSStatus status);
 

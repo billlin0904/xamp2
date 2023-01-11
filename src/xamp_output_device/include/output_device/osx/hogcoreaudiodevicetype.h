@@ -12,13 +12,9 @@
 #include <output_device/idevicetype.h>
 #include <output_device/osx/coreaudiodevicetype.h>
 
-#include <CoreAudio/CoreAudio.h>
-#include <CoreServices/CoreServices.h>
-#include <AudioUnit/AudioUnit.h>
+#if 0
 
 namespace xamp::output_device::osx {
-
-using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API HogCoreAudioDeviceType : public CoreAudioDeviceType {
     XAMP_DECLARE_MAKE_CLASS_UUID(HogCoreAudioDeviceType, "44ED0EC0-069E-431F-8BF2-AB1369E3421F")
@@ -36,6 +32,8 @@ public:
 };
 
 }
+
+#endif
 
 #endif
 

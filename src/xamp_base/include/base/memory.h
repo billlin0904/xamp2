@@ -58,7 +58,7 @@ inline XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept
 XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept;
 #else
 inline XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept {
-		(void)__builtin_memcpy(dest, src, size)
+    (void)__builtin_memcpy(dest, src, size);
 }
 #endif
 

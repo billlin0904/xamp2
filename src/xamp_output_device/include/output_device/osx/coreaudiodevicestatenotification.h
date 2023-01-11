@@ -19,8 +19,6 @@
 
 namespace xamp::output_device::osx {
 
-using namespace base;
-
 class CoreAudioDeviceStateNotification : public IDeviceStateNotification {
 public:
     explicit CoreAudioDeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback);

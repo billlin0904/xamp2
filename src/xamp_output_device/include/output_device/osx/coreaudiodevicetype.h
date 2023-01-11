@@ -11,15 +11,14 @@
 
 #include <base/uuidof.h>
 #include <output_device/idevicetype.h>
-
-#include <CoreAudio/CoreAudio.h>
-#include <CoreServices/CoreServices.h>
-#include <AudioUnit/AudioUnit.h>
+#include <base/pimplptr.h>
+#include <base/align_ptr.h>
 
 namespace xamp::output_device::osx {
 
 class XAMP_OUTPUT_DEVICE_API CoreAudioDeviceType : public IDeviceType {
-    XAMP_DECLARE_MAKE_CLASS_UUID(CoreAudioDeviceType, "E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
+    XAMP_DECLARE_MAKE_CLASS_UUID(CoreAudioDeviceType, "E6BB3BF2-F16A-489B-83EE-4A29755F42E4")
+
 public:
     constexpr static auto Description = std::string_view("CoreAudio");
 
@@ -41,8 +40,9 @@ public:
 
     std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-private:
-    Vector<DeviceInfo> device_list_;
+protected:
+    class CoreAudioDeviceTypeImpl;
+    PimplPtr<CoreAudioDeviceTypeImpl> impl_;
 };
 
 }

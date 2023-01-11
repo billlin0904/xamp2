@@ -89,7 +89,7 @@ private:
     AudioFormat format_;
     FastMutex mutex_;
     FastConditionVariable stop_event_;
-    std::shared_ptr<Logger> log_;
+    std::shared_ptr<Logger> logger_;
 };
 
 }

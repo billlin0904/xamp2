@@ -86,6 +86,8 @@ SOURCES += \
     widget/fonticonanimation.cpp \
     widget/xmessagebox.cpp \
     widget/globalshortcut.cpp \
+    widget/xprogressdialog.cpp \
+    widget/volumecontroldialog.cpp \
     singleinstanceapplication.cpp \
     version.cpp \
     cdpage.cpp \
@@ -161,6 +163,8 @@ HEADERS += \
     aboutpage.h \
     preferencepage.h \
     widget/zib_utiltis.h \
+    widget/xprogressdialog.h \
+    widget/volumecontroldialog.h \
     xamp.h \
     xampplayer.h
 
@@ -168,6 +172,7 @@ ICON = xamp2.icns \
 
 FORMS += \
     widget/equalizerdialog.ui \
+    volumecontroldialog.ui \
     filesystemviewpage.ui \
     aboutdialog.ui \
     preferencedialog.ui \
