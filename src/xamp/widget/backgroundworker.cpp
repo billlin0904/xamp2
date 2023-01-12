@@ -124,7 +124,10 @@ void BackgroundWorker::lazyInitExecutor() {
 void BackgroundWorker::onProcessImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name) {
     lazyInitExecutor();
 
-    executor_->Spawn([temp_file_path, file_path, tag_name]() {
+    executor_->Spawn([temp_file_path, file_path, tag_name, this]() {
+        if (is_stop_) {
+            return;
+        }
         qPixmapCache.optimize(temp_file_path, file_path, tag_name);
         });
 }
@@ -142,6 +145,9 @@ void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adap
     Vector<QString> dirs;
 
     while (itr.hasNext()) {
+        if (is_stop_) {
+            return;
+        }
         auto path = toNativeSeparators(itr.next());
         hasher.Update(path.toStdWString());
         dirs.push_back(path);
@@ -178,6 +184,10 @@ void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adap
 
     Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode, dir_size](
         const auto& dir) {
+    	if (is_stop_) {
+            return;
+        }
+
 		try {
 			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
 		}
