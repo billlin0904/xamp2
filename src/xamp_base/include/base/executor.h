@@ -7,6 +7,7 @@
 
 #include <base/stl.h>
 #include <base/task.h>
+#include <base/logger_impl.h>
 #include <base/ithreadpoolexecutor.h>
 
 namespace xamp::base {

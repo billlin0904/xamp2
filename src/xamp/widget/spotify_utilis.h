@@ -7,7 +7,7 @@
 
 #include <QString>
 #include <QList>
-#include <qmetatype.h>
+#include <QMetaType>
 
 namespace Spotify {
 
@@ -31,7 +31,7 @@ struct SearchLyricsResult {
 	QList<Artist> artists;
 };
 
-Q_DECLARE_METATYPE(SearchLyricsResult)
+//Q_DECLARE_METATYPE(SearchLyricsResult)
 
 void parseJson(QString const& json, SearchLyricsResult &result);
 

@@ -88,6 +88,7 @@ SOURCES += \
     widget/globalshortcut.cpp \
     widget/xprogressdialog.cpp \
     widget/volumecontroldialog.cpp \
+    widget/spotify_utilis.cpp \
     singleinstanceapplication.cpp \
     version.cpp \
     cdpage.cpp \
@@ -156,6 +157,7 @@ HEADERS += \
     widget/fonticonanimation.h \
     widget/xmessagebox.h \
     widget/globalshortcut.h \
+    widget/spotify_utilis.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \
@@ -196,7 +198,7 @@ TRANSLATIONS += \
 LIBS += -framework Foundation -framework Cocoa -framework Carbon
 INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
 INCLUDEPATH += "../thirdparty/discord-rpc/include"
-INCLUDEPATH += "../thirdparty/QSimpleUpdater/include"
+INCLUDEPATH += "../thirdparty/zopfli/src/zopflipng"
 
 CONFIG(debug, debug|release) {
 QMAKE_CXXFLAGS += -mavx2 -D_DEBUG
@@ -205,7 +207,8 @@ LIBS += -L"../xamp_base/debug/" -lxamp_base \
     -L"../xamp_output_device/debug/" -lxamp_output_device \
     -L"../xamp_stream/debug/" -lxamp_stream \
     -L"../xamp_player/debug/" -lxamp_player \
-    -L"../thirdparty/discord-rpc/lib/debug/mac/" -ldiscord-rpc\
+    -L"../thirdparty/zopfli/mac/Debug" -lzopfli\
+    -L"../thirdparty/zopfli/mac/Debug" -lzopflipng\
 } else {
 QMAKE_CXXFLAGS += -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
 LIBS += -L"../xamp_base/release/" -lxamp_base \
@@ -213,7 +216,8 @@ LIBS += -L"../xamp_base/release/" -lxamp_base \
     -L"../xamp_output_device/release/" -lxamp_output_device \
     -L"../xamp_stream/release/" -lxamp_stream \
     -L"../xamp_player/release/" -lxamp_player \
-    -L"../thirdparty/discord-rpc/lib/release/mac/" -ldiscord-rpc\
+    -L"../thirdparty/zopfli/mac/Release" -lzopfli\
+    -L"../thirdparty/zopfli/mac/Release" -lzopflipng\
 }
 
 # Default rules for deployment.

@@ -11,10 +11,8 @@
 #include <base/fs.h>
 #include <base/logger_impl.h>
 
-#ifdef Q_OS_WIN
 #include <zopflipng_lib.h>
 #include <lodepng/lodepng.h>
-#endif
 
 Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius, bool quality,
 	bool alphaOnly, int transposed = 0);
@@ -22,7 +20,6 @@ Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius,
 namespace ImageUtils {
 
 bool optimizePNG(const QString& original_file_path, const QString& result_file_path) {
-#ifdef Q_OS_WIN
 	if (!QFile(original_file_path).exists()) {
 		return false;
 	}
@@ -59,9 +56,9 @@ bool optimizePNG(const QString& original_file_path, const QString& result_file_p
 		file.write(
 			QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
 		}, exception_handler);
-#else
-	return true;
-#endif
+
+    //xamp::base::Fs::rename(original_file_path.toStdWString(), result_file_path.toStdWString());
+    //return true;
 }
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {

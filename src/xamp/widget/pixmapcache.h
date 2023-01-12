@@ -7,6 +7,7 @@
 
 #include <QStringList>
 #include <QBuffer>
+#include <QPixmap>
 
 #include <base/logger.h>
 #include <widget/widget_shared.h>
