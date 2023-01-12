@@ -396,6 +396,9 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("attach application success.");
 
+    qTheme.applyTheme();
+    XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
+
     try {
         LoadComponentSharedLibrary();
     }
@@ -415,10 +418,6 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }
     XAMP_LOG_DEBUG("Database init success.");
-
-
-    qTheme.applyTheme();
-    XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
 
     XWindow top_win;
 

@@ -1,14 +1,5 @@
-#include <QBuffer>
-#include <QFileInfo>
-#include <QDir>
-#include <QDirIterator>
-#include <qimagereader.h>
-#include <QPixmapCache>
-#include <QPixmap>
+#include <widget/pixmapcache.h>
 
-#include <base/logger.h>
-#include <base/scopeguard.h>
-#include <base/logger_impl.h>
 #include "thememanager.h"
 #include "appsettings.h"
 #include "appsettingnames.h"
@@ -16,11 +7,24 @@
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
 #include <widget/qetag.h>
-#include <widget/pixmapcache.h>
+#include <widget/widget_shared.h>
 
-inline constexpr size_t kDefaultCacheSize = 128;
+#include <base/logger.h>
+#include <base/scopeguard.h>
+#include <base/logger_impl.h>
+#include <base/str_utilts.h>
+
+#include <QtConcurrent/QtConcurrent>
+#include <QBuffer>
+#include <QImageWriter>
+#include <QDirIterator>
+#include <QImageReader>
+#include <QPixmap>
+
+inline constexpr size_t kDefaultCacheSize = 16;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
-inline constexpr auto kPixmapCacheFileExt = qTEXT(".jpg");
+inline constexpr auto kCacheFileExt = qTEXT(".png");
+inline constexpr auto kCacheFileFormat = qTEXT("PNG");
 
 XAMP_DECLARE_LOG_NAME(PixmapCache);
 
@@ -28,7 +32,7 @@ QStringList PixmapCache::cover_ext_ =
     QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png") << qTEXT("*.bmp");
 
 QStringList PixmapCache::cache_ext_ =
-    QStringList() << (qTEXT("*") + kPixmapCacheFileExt);
+    QStringList() << (qTEXT("*") + kCacheFileExt);
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
@@ -57,21 +61,17 @@ PixmapCache::PixmapCache()
 	}
 	cache_path_ = toNativeSeparators(cache_path_);
 	AppSettings::setValue(kAppSettingAlbumImageCachePath, cache_path_);
-    unknown_cover_id_ = savePixamp(qTheme.unknownCover());
+	unknown_cover_id_ = qTEXT("unknown_album");
+	cache_.Add(unknown_cover_id_, qTheme.unknownCover());
 	loadCache();
 }
 
-QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
+QPixmap PixmapCache::findCoverInDir(const QString& file_path) {
 	const auto dir = QFileInfo(file_path).path();
 
     for (QDirIterator itr(dir, cover_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto image_file_path = itr.next();
-		QFileInfo file_info(image_file_path);
-		if (file_info.size() > kMaxCacheImageSize) {
-			continue;
-		}
-
 		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
 		QImageReader reader(image_file_path);
 		if (reader.read(&image)) {
@@ -95,26 +95,26 @@ void PixmapCache::clear() {
 	cache_.Clear();
 }
 
-QPixmap PixmapCache::findFileDirCover(const PlayListEntity& item) {
-	return findFileDirCover(item.file_path);
+QPixmap PixmapCache::findCoverInDir(const PlayListEntity& item) {
+	return findCoverInDir(item.file_path);
 }
 
 void PixmapCache::erase(const QString& tag_id) {
-	QFile file(cache_path_ + tag_id + kPixmapCacheFileExt);
+	QFile file(cache_path_ + tag_id + kCacheFileExt);
 	file.remove();
 	cache_.Erase(tag_id);
 }
 
 QPixmap PixmapCache::fromFileCache(const QString& tag_id) const {
 	QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
-	QImageReader reader(cache_path_ + tag_id + kPixmapCacheFileExt);
+	QImageReader reader(cache_path_ + tag_id + kCacheFileExt);
 	if (reader.read(&image)) {
 		return QPixmap::fromImage(image);
 	}
-	return QPixmap();
+	return {};
 }
 
-QString PixmapCache::savePixamp(const QPixmap &cover) const {
+QString PixmapCache::savePixamp(const QPixmap &cover) {
     QByteArray array;
     QBuffer buffer(&array);
 
@@ -122,19 +122,48 @@ QString PixmapCache::savePixamp(const QPixmap &cover) const {
     const auto cache_cover = ImageUtils::resizeImage(cover, cover_size, true);
 
     QString tag_name;
-    if (cache_cover.save(&buffer, "JPG")) {
+    if (cache_cover.save(&buffer, kCacheFileFormat.data())) {
         tag_name = QEtag::getTagId(array);
-        if (!cache_cover.save(cache_path_ + tag_name + kPixmapCacheFileExt, "JPG", 100)) {
-            XAMP_LOG_D(logger_, "PixmapCache add file name:{} save error!", tag_name.toStdString());
-        } else {
-            XAMP_LOG_D(logger_, "PixmapCache add file name:{} save success!", tag_name.toStdString());
-        }
+		const auto file_path = cache_path_ + tag_name + kCacheFileExt;
+		const auto temp_file_path = cache_path_ + tag_name + qTEXT("_temp") + kCacheFileExt;
+        if (!cache_cover.save(temp_file_path, kCacheFileFormat.data(), 100)) {
+            XAMP_LOG_D(logger_, "Save file name:{} save error!", tag_name.toStdString());
+			return tag_name;
+        } 
+		XAMP_LOG_D(logger_, "Save file name:{} save success!", tag_name.toStdString());
+		emit processImage(temp_file_path, file_path, tag_name);
     }
     return tag_name;
 }
 
+void PixmapCache::optimize(const QString& temp_file_path, const QString& file_path, const QString& tag_name) {
+	ImageUtils::optimizePNG(temp_file_path, file_path);
+	cache_.AddOrUpdate(tag_name, fromFileCache(tag_name));
+}
+
+void PixmapCache::optimizeImageInDir(const QString& file_path) {
+	const auto dir = QFileInfo(file_path).path();
+
+	for (QDirIterator itr(dir, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
+		itr.hasNext();) {
+		const auto path = itr.next();
+		const QFileInfo image_file_path(path);
+		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+		QImageReader reader(path);
+		if (reader.read(&image)) {
+			auto temp = QPixmap::fromImage(image);
+			auto temp_file_name = dir + qTEXT("/") + image_file_path.baseName() + qTEXT("_temp") + kCacheFileExt;
+			auto save_file_name = dir + qTEXT("/") + image_file_path.baseName() + kCacheFileExt;
+			temp.save(temp_file_name, kCacheFileFormat.data(), 100);
+			ImageUtils::optimizePNG(temp_file_name, save_file_name);
+			Fs::remove(temp_file_name.toStdWString());
+		}
+	}
+}
+
 void PixmapCache::loadCache() const {
 	Stopwatch sw;
+
 	size_t i = 0;
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
@@ -155,7 +184,10 @@ void PixmapCache::loadCache() const {
 		}
 	}
 
-	XAMP_LOG_D(logger_, "PixmapCache cache count: {} {}secs", i, sw.ElapsedSeconds());
+	XAMP_LOG_D(logger_, "Cache count: {} {}secs total:{}",
+		i,
+		sw.ElapsedSeconds(), 
+		String::FormatBytes(totalCacheSize()));
 }
 
 size_t PixmapCache::missRate() const {
@@ -172,8 +204,9 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
             if (tag_id.isEmpty()) {
                 return nullptr;
             }
-            XAMP_LOG_D(logger_, "PixmapCache load file name:{} from disk, miss: {}",
-                       tag_id.toStdString(), missRate());
+            XAMP_LOG_D(logger_, "Load file name:{} from disk, miss rate: {}%",
+                       tag_id.toStdString(),
+                       missRate());
 			auto read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {
 				return nullptr;
@@ -185,7 +218,7 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	}
 }
 
-QString PixmapCache::addOrUpdate(const QByteArray& data) const {
+QString PixmapCache::addOrUpdate(const QByteArray& data) {
 	QPixmap cover;
 	cover.loadFromData(data);
     return savePixamp(cover);
@@ -202,9 +235,7 @@ bool PixmapCache::isExist(const QString& tag_id) const {
 size_t PixmapCache::totalCacheSize() const {
 	size_t size = 0;
 	for (auto const & [fst, snd] : cache_) {
-		size += snd.size().width()
-			* snd.size().height()
-			* snd.devicePixelRatio();
+		size += ImageUtils::getPixmapSize(snd);
 	}
 	return size;
 }

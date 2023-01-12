@@ -156,6 +156,8 @@ public:
 
     void forEachAlbum(std::function<void(int32_t)>&& fun);
 
+    std::optional<QString> getAlbumFirstMusicFilePath(int32_t album_id);
+
     void removeAllArtist();
 
     void removeArtistId(int32_t artist_id);

@@ -26,19 +26,20 @@ namespace std {
 }
 #endif
 
-class PixmapCache final {
+class PixmapCache final : public QObject {
+	Q_OBJECT
 public:
     friend class SharedSingleton<PixmapCache>;
 
-	static QPixmap findFileDirCover(const QString& file_path);
+	static QPixmap findCoverInDir(const QString& file_path);
 
-	static QPixmap findFileDirCover(const PlayListEntity& item);
+	static QPixmap findCoverInDir(const PlayListEntity& item);
 
     const QPixmap* find(const QString& tag_id) const;
 
     QPixmap fromFileCache(const QString& tag_id) const;
 
-    QString addOrUpdate(const QByteArray& data) const;
+    QString addOrUpdate(const QByteArray& data);
 
 	void erase(const QString& tag_id);
 
@@ -58,7 +59,14 @@ public:
 
     size_t missRate() const;
 
-	QString savePixamp(const QPixmap& cover) const;
+	QString savePixamp(const QPixmap& cover);
+
+	void optimizeImageInDir(const QString& file_path);
+
+	void optimize(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
+
+signals:
+	void processImage(const QString & temp_file_path, const QString& file_path, const QString& tag_name);
 
 protected:
 	PixmapCache();

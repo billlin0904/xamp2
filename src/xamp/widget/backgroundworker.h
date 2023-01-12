@@ -72,6 +72,7 @@ public Q_SLOT:
 
     void onSearchLyrics(const QString &title, const QString &artist);
 
+    void onProcessImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
 private:
     void lazyInitExecutor();
 

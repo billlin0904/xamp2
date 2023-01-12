@@ -32,4 +32,8 @@ QImage blurImage(const QPixmap& source, QSize size);
 
 int sampleImageBlur(const QImage &image, int blur_alpha);
 
+bool optimizePNG(const QString& original_file_path, const QString& result_file_path);
+
+size_t getPixmapSize(const QPixmap &pixmap);
+
 }

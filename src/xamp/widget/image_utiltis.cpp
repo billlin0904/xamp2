@@ -1,14 +1,68 @@
+#include <widget/image_utiltis.h>
+
 #include <QPainter>
 #include <QBuffer>
+#include <QFile>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsBlurEffect>
 
-#include <widget/image_utiltis.h>
+#include <widget/widget_shared.h>
+#include <widget/str_utilts.h>
+#include <base/fs.h>
+#include <base/logger_impl.h>
+
+#ifdef Q_OS_WIN
+#include <zopflipng_lib.h>
+#include <lodepng/lodepng.h>
+#endif
 
 Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius, bool quality,
 	bool alphaOnly, int transposed = 0);
 
 namespace ImageUtils {
+
+bool optimizePNG(const QString& original_file_path, const QString& result_file_path) {
+#ifdef Q_OS_WIN
+	if (!QFile(original_file_path).exists()) {
+		return false;
+	}
+
+	auto exception_handler = [](const auto& ex) {
+		XAMP_LOG_DEBUG(ex.GetErrorMessage());
+	};
+
+	ExceptedFile excepted(result_file_path.toStdWString());
+	return excepted.Try([original_file_path](const auto & dest_file_path) {
+		std::vector<uint8_t> original_png;
+		std::vector<uint8_t> result_png;
+		if (lodepng::load_file(original_png, original_file_path.toLocal8Bit().data())) {
+			throw PlatformSpecException();
+		}
+
+		ZopfliPNGOptions png_options;
+		png_options.use_zopfli = true;
+
+		if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
+			throw PlatformSpecException();
+		}
+
+		XAMP_LOG_DEBUG("optimizePNG {} => {} ({}%)",
+			String::FormatBytes(original_png.size()),
+			String::FormatBytes(result_png.size()),
+			static_cast<uint32_t>((static_cast<double>(result_png.size()) / static_cast<double>(original_png.size())) * 100));
+
+		QFile file(QString::fromStdWString(dest_file_path.wstring()));
+		if (!file.open(QIODevice::WriteOnly)) {
+			throw PlatformSpecException();
+		}
+
+		file.write(
+			QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
+		}, exception_handler);
+#else
+	return true;
+#endif
+}
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
 	const auto scaled_size = source.size() * 2;
@@ -23,7 +77,7 @@ QByteArray convert2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, "JPG");
+	source.save(&buffer, "PNG");
 	return bytes;
 }
 
@@ -31,7 +85,7 @@ std::vector<uint8_t> convert2Vector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, "JPG");
+	source.save(&buffer, "PNG");
 	return { bytes.constData(), bytes.constData() + bytes.size() };
 }
 
@@ -53,7 +107,7 @@ QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
 	QPainterPath painter_path;
-	painter_path.addRoundedRect(darker_rect, kImageRadius, kImageRadius);
+	painter_path.addRoundedRect(darker_rect, radius, radius);
 	painter.setClipPath(painter_path);
 	painter.fillPath(painter_path, QBrush(color));
 	return result;
@@ -122,6 +176,10 @@ int sampleImageBlur(const QImage& image, int blur_alpha) {
 
 	const auto addin = static_cast<int>(rgb_sum * blur_alpha / (255 * 3 * m * m));
 	return qMin(255, blur_alpha + addin);
+}
+
+size_t getPixmapSize(const QPixmap& pixmap) {
+	return static_cast<size_t>(pixmap.width()) * pixmap.height() * pixmap.depth() / (8 * 1024);
 }
 
 }

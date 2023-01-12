@@ -31,35 +31,6 @@ namespace read_utiltis {
 
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
-class ExceptedFile final {
-public:
-    explicit ExceptedFile(std::filesystem::path const& dest_file_path) {
-        dest_file_path_ = dest_file_path;
-        temp_file_path_ = Fs::temp_directory_path()
-                          / Fs::path(MakeTempFileName() + ".tmp");
-    }
-
-    template <typename Func>
-    bool Try(Func&& func) {
-        try {
-            func(temp_file_path_);
-            Fs::rename(temp_file_path_, dest_file_path_);
-			return true;
-        }
-        catch (Exception const &e) {
-            XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
-        }
-        catch (...) {
-        }
-        std::filesystem::remove(temp_file_path_);
-		return false;
-    }
-
-private:
-    Fs::path dest_file_path_;
-    Fs::path temp_file_path_;
-};
-
 double readAll(Path const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,

@@ -141,6 +141,8 @@ Xamp::~Xamp() {
 }
 
 void Xamp::setXWindow(IXWindow* top_window) {
+    //qPixmapCache.optimizeImageInDir(qTEXT("C:\\Users\\rdbill0452\\Documents\\Github\\xamp2\\src\\xamp\\Resource\\Flags\\"));
+
     top_window_ = top_window;
     background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
@@ -179,8 +181,6 @@ void Xamp::setXWindow(IXWindow* top_window) {
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
         });
-
-    album_page_->album()->readSingleFileTrackInfo(AppSettings::getMyMusicFolderPath());
 }
 
 void Xamp::avoidRedrawOnResize() {
@@ -1307,12 +1307,12 @@ void Xamp::onUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
     setCover(cover_id, cd_page_->playlistPage());
 }
 
-void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& metadatas) {
+void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
     const auto album_id = qDatabase.getAlbumIdByDiscId(disc_id);
     qDatabase.removeAlbum(album_id);
 
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
+    cd_page_->playlistPage()->playlist()->processMeatadata(QDateTime::currentSecsSinceEpoch(), track_infos);
     cd_page_->showPlaylistPage(true);
 }
 
@@ -1548,6 +1548,11 @@ void Xamp::initialPlaylist() {
     }
 
     current_playlist_page_ = playlist_page_;
+
+    (void)QObject::connect(&qPixmapCache,
+        &PixmapCache::processImage,
+        background_worker_,
+        &BackgroundWorker::onProcessImage);
 
     (void)QObject::connect(this,
         &Xamp::addBlurImage,

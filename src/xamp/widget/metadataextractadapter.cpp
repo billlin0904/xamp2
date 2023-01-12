@@ -5,6 +5,7 @@
 
 #include <QFile>
 #include <QDirIterator>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
@@ -16,8 +17,6 @@
 #include "thememanager.h"
 
 #include <widget/widget_shared.h>
-#include <widget/ui_utilts.h>
-#include <widget/read_utiltis.h>
 #include <widget/http.h>
 #include <widget/xmessagebox.h>
 #include <widget/database.h>
@@ -25,40 +24,6 @@
 #include <widget/playlisttableview.h>
 #include <widget/pixmapcache.h>
 #include <widget/metadataextractadapter.h>
-
-CoverArtReader::CoverArtReader()
-    : cover_reader_(MakeMetadataReader()) {
-}
-
-QPixmap CoverArtReader::getEmbeddedCover(const TrackInfo& track_info) const {
-    QPixmap pixmap;
-    const auto& buffer = cover_reader_->GetEmbeddedCover(track_info.file_path);
-    if (!buffer.empty()) {
-        pixmap.loadFromData(buffer.data(), static_cast<uint32_t>(buffer.size()));
-    }
-    return pixmap;
-}
-
-QString CoverArtReader::saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const {
-    auto pixmap = getEmbeddedCover(track_info);
-    if (pixmap.isNull()) {
-    	if (!is_unknown_album) {
-            pixmap = PixmapCache::findFileDirCover(QString::fromStdWString(track_info.file_path));
-    	}
-    }
-
-    QString cover_id;
-    if (!pixmap.isNull()) {
-        cover_id = qPixmapCache.savePixamp(pixmap);
-        XAMP_ASSERT(!cover_id.isEmpty());
-        qDatabase.setAlbumCover(album_id, album, cover_id);
-    }
-    return cover_id;
-}
-
-DatabaseProxy::DatabaseProxy(QObject* parent)
-    : QObject(parent) {    
-}
 
 #define IGNORE_ANY_EXCEPTION(expr) \
     do {\
@@ -68,27 +33,72 @@ DatabaseProxy::DatabaseProxy(QObject* parent)
 		catch (...) {}\
     } while (false)
 
+CoverArtReader::CoverArtReader()
+    : cover_reader_(MakeMetadataReader()) {
+}
+
+QPixmap CoverArtReader::getEmbeddedCover(const Path& file_path) const {
+    QPixmap pixmap;
+    const auto& buffer = cover_reader_->GetEmbeddedCover(file_path);
+    if (!buffer.empty()) {
+        pixmap.loadFromData(buffer.data(), static_cast<uint32_t>(buffer.size()));
+    }
+    return pixmap;
+}
+
+QPixmap CoverArtReader::getEmbeddedCover(const TrackInfo& track_info) const {
+    return getEmbeddedCover(track_info.file_path);
+}
+
+DatabaseProxy::DatabaseProxy(QObject* parent)
+    : QObject(parent) {    
+}
+
+void DatabaseProxy::findAlbumCover(int32_t album_id, const std::wstring& album, const std::wstring& file_path, const CoverArtReader& reader) {
+	const auto cover_id = qDatabase.getAlbumCoverId(album_id);
+    if (!cover_id.isEmpty()) {
+        return;
+    }
+
+    std::wstring find_file_path;
+	const auto first_file_path = qDatabase.getAlbumFirstMusicFilePath(album_id);
+    if (!first_file_path) {
+        find_file_path = file_path;
+    } else {
+        find_file_path = (*first_file_path).toStdWString();
+    }
+
+    auto cover = reader.getEmbeddedCover(find_file_path);
+    if (cover.isNull()) {
+        cover = PixmapCache::findCoverInDir(QString::fromStdWString(file_path));
+    }
+
+    if (!cover.isNull()) {
+        qDatabase.setAlbumCover(album_id, QString::fromStdWString(album), qPixmapCache.savePixamp(cover));
+    }
+}
+
 void DatabaseProxy::addTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     int64_t dir_last_write_time, 
     bool is_podcast) {
 	const CoverArtReader reader;
-
+    // note: Parameter 'result' must be same album name.    
 	for (const auto& track_info : result) {
 		auto album = QString::fromStdWString(track_info.album);
 		auto artist = QString::fromStdWString(track_info.artist);
 		auto disc_id = QString::fromStdString(track_info.disc_id);
-     
-		auto is_unknown_album = false;
+
+        QPixmap cover;
 		if (album.isEmpty()) {
 			album = tr("Unknown album");
-			is_unknown_album = true;
 			// todo: 如果有內建圖片就把當作一張專輯.
-			auto cover = reader.getEmbeddedCover(track_info);
+			cover = reader.getEmbeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = QString::fromStdWString(track_info.file_name_no_ext);
 			}
 		}
+
 		if (artist.isEmpty()) {
 			artist = tr("Unknown artist");
 		}
@@ -105,22 +115,17 @@ void DatabaseProxy::addTrackInfo(const ForwardList<TrackInfo>& result,
 			qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-		if (track_info.cover_id.empty()) {
-			// Find cover id from database.
-			auto cover_id = qDatabase.getAlbumCoverId(album_id);
-			// Database not exist find others.
-			if (cover_id.isEmpty()) {
-				cover_id = reader.saveCoverCache(album_id, album, track_info, is_unknown_album);
-			}
-		} else {
-			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(track_info.cover_id));
-		}
-
         IGNORE_ANY_EXCEPTION(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id));
+
+        if (!cover.isNull()) {
+            qDatabase.setAlbumCover(album_id, album, qPixmapCache.savePixamp(cover));
+        } else {
+            findAlbumCover(album_id, track_info.album, track_info.file_path, reader);
+        }
 	}
 }
 
-void DatabaseProxy::processTrackInfo(const ForwardList<TrackInfo>& result, int64_t dir_last_write_time, int32_t playlist_id,  bool is_podcast_mode) {
+void DatabaseProxy::insertTrackInfo(const ForwardList<TrackInfo>& result, int64_t dir_last_write_time, int32_t playlist_id, bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
 
     if (dir_last_write_time == -1) {
@@ -133,7 +138,7 @@ void DatabaseProxy::processTrackInfo(const ForwardList<TrackInfo>& result, int64
         qDatabase.commit();
     } catch (std::exception const &e) {
         qDatabase.rollback();
-        XAMP_LOG_DEBUG("processTrackInfo throw exception! {}", e.what());
+        XAMP_LOG_DEBUG("insertTrackInfo throw exception! {}", e.what());
     }
 }
 

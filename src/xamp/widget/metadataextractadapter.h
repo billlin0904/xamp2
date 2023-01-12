@@ -24,7 +24,7 @@ public:
 
     QPixmap getEmbeddedCover(const TrackInfo& track_info) const;
 
-    QString saveCoverCache(int32_t album_id, const QString& album, const TrackInfo& track_info, bool is_unknown_album) const;
+    QPixmap getEmbeddedCover(const Path& file_path) const;
 
 private:
     AlignPtr<IMetadataReader> cover_reader_;
@@ -50,12 +50,15 @@ signals:
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
 
 public:
-    static void processTrackInfo(const ForwardList<TrackInfo>& result, 
+    static void insertTrackInfo(const ForwardList<TrackInfo>& result, 
         int64_t dir_last_write_time, 
         int32_t playlist_id, 
         bool is_podcast_mode);
 
-	static void addTrackInfo(const ForwardList<TrackInfo>& result,
+    static void findAlbumCover(int32_t album_id, const std::wstring& album, const std::wstring& file_path, const CoverArtReader &reader);
+
+private:
+    static void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         int64_t dir_last_write_time,
         bool is_podcast);

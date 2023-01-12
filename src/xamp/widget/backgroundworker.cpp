@@ -86,13 +86,13 @@ static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
     });
 
     const DirectoryEntry dir_entry(dir.toStdWString());
-    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
+    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
         const auto last_write_time = ToTime_t(dir_entry.last_write_time());
-		DatabaseProxy::processTrackInfo(tracks.second,
+		DatabaseProxy::insertTrackInfo(album_tracks.second,
 			last_write_time,
 			playlist_id,
 			is_podcast_mode);
-		emit adapter->readCompleted(last_write_time, tracks.second);
+		emit adapter->readCompleted(last_write_time, album_tracks.second);
     });
 }
 
@@ -114,10 +114,19 @@ void BackgroundWorker::lazyInitExecutor() {
     if (executor_ != nullptr) {
         return;
     }
+
     executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
         ThreadPriority::BACKGROUND,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+}
+
+void BackgroundWorker::onProcessImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name) {
+    lazyInitExecutor();
+
+    executor_->Spawn([temp_file_path, file_path, tag_name]() {
+        qPixmapCache.optimize(temp_file_path, file_path, tag_name);
+        });
 }
 
 void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
@@ -226,7 +235,7 @@ void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
                 .download([this, podcast_info, playlist_id](const QByteArray& data) {
 					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
                     QThread::currentThreadId(), String::FormatBytes(data.size()));
-					::DatabaseProxy::processTrackInfo(podcast_info.second,
+					::DatabaseProxy::insertTrackInfo(podcast_info.second,
                 -1,
                         playlist_id,
                 true);

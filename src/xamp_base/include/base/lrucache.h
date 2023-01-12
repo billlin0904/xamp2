@@ -5,11 +5,10 @@
 
 #pragma once
 
-#include <list>
-#include <unordered_map>
-
 #include <base/base.h>
 #include <base/stl.h>
+
+#include <shared_mutex>
 
 namespace xamp::base {
 
@@ -19,7 +18,8 @@ template
 <
     typename Key,
 	typename Value,
-	typename KeyList = List<std::pair<Key, Value>>
+	typename KeyList = List<std::pair<Key, Value>>,
+    typename SharedMutex = std::shared_mutex
 >
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
@@ -62,22 +62,26 @@ private:
     mutable size_t miss_count_;
     mutable CacheMap cache_;
     mutable KeyList keys_;
+    mutable SharedMutex mutex_;
 };
 
-template <typename Key, typename Value, typename KeyList>
-LruCache<Key, Value, KeyList>::LruCache(size_t max_size) noexcept
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+LruCache<Key, Value, KeyList, SharedMutex>::LruCache(size_t max_size) noexcept
     : max_size_(max_size)
     , hit_count_(0)
 	, miss_count_(0) {
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::SetMaxSize(size_t max_size) {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList, SharedMutex>::SetMaxSize(size_t max_size) {
+    std::unique_lock<SharedMutex> write_lock(mutex_);
     max_size_ = max_size;
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE bool LruCache<Key, Value, KeyList>::Add(Key const& key, Value value) {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE bool LruCache<Key, Value, KeyList, SharedMutex>::Add(Key const& key, Value value) {
+    std::unique_lock<SharedMutex> write_lock(mutex_);
+
     if (cache_.count(key)) {
         return false;
     }
@@ -89,8 +93,10 @@ XAMP_ALWAYS_INLINE bool LruCache<Key, Value, KeyList>::Add(Key const& key, Value
     return true;
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::AddOrUpdate(Key const& key, Value value) {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList, SharedMutex>::AddOrUpdate(Key const& key, Value value) {
+    std::unique_lock<SharedMutex> write_lock(mutex_);
+
     auto itr = cache_.find(key);
 
     if (itr != cache_.cend()) {
@@ -104,16 +110,18 @@ XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::AddOrUpdate(Key const& ke
     }
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::Evict() {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList, SharedMutex>::Evict() {
     while (keys_.size() > max_size_) {
         cache_.erase(keys_.back().first);
         keys_.pop_back();
     }
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE Value const* LruCache<Key, Value, KeyList>::Find(Key const& key) const {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE Value const* LruCache<Key, Value, KeyList, SharedMutex>::Find(Key const& key) const {
+    std::shared_lock<SharedMutex> read_lock{ mutex_ };
+
     const auto check = cache_.find(key);
     if (check == cache_.end()) {
         ++miss_count_;
@@ -124,18 +132,22 @@ XAMP_ALWAYS_INLINE Value const* LruCache<Key, Value, KeyList>::Find(Key const& k
     return &check->second->second;
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE size_t LruCache<Key, Value, KeyList>::GetMissCount() const noexcept {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE size_t LruCache<Key, Value, KeyList, SharedMutex>::GetMissCount() const noexcept {
+    std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return miss_count_;
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE size_t LruCache<Key, Value, KeyList>::GetHitCount() const noexcept {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE size_t LruCache<Key, Value, KeyList, SharedMutex>::GetHitCount() const noexcept {
+    std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return hit_count_;
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::Erase(Key const& key) {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList, SharedMutex>::Erase(Key const& key) {
+    std::unique_lock<SharedMutex> write_lock(mutex_);
+
     const auto check = cache_.find(key);
     if (check == cache_.end()) {
         return;
@@ -144,15 +156,17 @@ XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::Erase(Key const& key) {
     cache_.erase(check);
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList>::Clear() noexcept {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value, KeyList, SharedMutex>::Clear() noexcept {
+    std::shared_lock<SharedMutex> read_lock{ mutex_ };
     cache_.clear();
     keys_.clear();
     miss_count_ = 0;
 }
 
-template <typename Key, typename Value, typename KeyList>
-XAMP_ALWAYS_INLINE size_t LruCache<Key, Value, KeyList>::GetMaxSize() const noexcept {
+template <typename Key, typename Value, typename KeyList, typename SharedMutex>
+XAMP_ALWAYS_INLINE size_t LruCache<Key, Value, KeyList, SharedMutex>::GetMaxSize() const noexcept {
+    std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return max_size_;
 }
 

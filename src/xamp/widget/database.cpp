@@ -103,6 +103,7 @@ void Database::open() {
 	(void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
 	(void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
 	(void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
+	(void)db_.exec(qTEXT("PRAGMA busy_timeout = 5000"));
 
 	XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.", connection_name_.toStdString(), getVersion().toStdString());
 
@@ -351,6 +352,27 @@ void Database::removeMusic(int32_t music_id) {
 	query.prepare(qTEXT("DELETE FROM musics WHERE musicId=:musicId"));
 	query.bindValue(qTEXT(":musicId"), music_id);
 	IfFailureThrow1(query);
+}
+
+std::optional<QString> Database::getAlbumFirstMusicFilePath(int32_t album_id) {
+	QSqlQuery query(qTEXT(R"(
+SELECT
+	musics.path
+FROM
+	albumMusic
+	LEFT JOIN albums ON albums.albumId = albumMusic.albumId
+	LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+WHERE
+	albums.albumId = ?
+LIMIT 
+	1;
+)"), db_);
+	query.addBindValue(album_id);
+	query.exec();
+	while (query.next()) {
+		return query.value(qTEXT("path")).toString();
+	}
+	return std::nullopt;
 }
 
 void Database::removeMusic(QString const& file_path) {
