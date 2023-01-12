@@ -40,7 +40,7 @@ bool optimizePNG(const QString& original_file_path, const QString& result_file_p
 		}
 
 		ZopfliPNGOptions png_options;
-		png_options.use_zopfli = true;
+		png_options.use_zopfli = false;
 
 		if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
 			throw PlatformSpecException();
