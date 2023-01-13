@@ -3,12 +3,13 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 
 XProgressDialog::XProgressDialog(const QString& title,
-	const QString& cancel_text,
-	int minimum, int maximum,
-	QWidget* parent)
+                                 const QString& cancel_text,
+                                 int minimum, int maximum,
+                                 QWidget* parent)
 	: XDialog(parent) {
 	message_text_label_ = new QLabel(this);
 	progress_bar_ = new QProgressBar(this);
@@ -48,6 +49,9 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	setContentWidget(client_widget);
 	setTitle(title);
+	setMaximumWidth(600);
+	setMinimumWidth(600);
+	size_ = size();
 }
 
 void XProgressDialog::setRange(int minimum, int maximum) {
@@ -55,6 +59,10 @@ void XProgressDialog::setRange(int minimum, int maximum) {
 }
 
 void XProgressDialog::setValue(int value) {
+	if (size_ != size()) {
+		centerParent(this);
+		size_ = size();
+	}
 	progress_bar_->setValue(value);
 }
 

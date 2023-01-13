@@ -32,4 +32,5 @@ private:
 	QProgressBar* progress_bar_;
 	QLabel* message_text_label_;
 	QVBoxLayout* layout_;
+	QSize size_;
 };

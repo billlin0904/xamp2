@@ -20,7 +20,7 @@
 #include <QImageReader>
 #include <QPixmap>
 
-inline constexpr size_t kDefaultCacheSize = 16;
+inline constexpr size_t kDefaultCacheSize = 12;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
 inline constexpr auto kCacheFileExt = qTEXT(".png");
 

@@ -150,5 +150,6 @@ XAMP_BASE_API void RedirectStdOut();
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
 XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size) noexcept;
 XAMP_BASE_API void SetProcessMitigation();
+XAMP_BASE_API bool SetFileLowIoPriority(int32_t handle);
 #endif
 }

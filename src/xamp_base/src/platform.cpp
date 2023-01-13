@@ -541,6 +541,16 @@ bool SetProcessWorkingSetSize(size_t working_set_size) noexcept {
     return false;
 }
 
+bool SetFileLowIoPriority(int32_t handle) {
+    FILE_IO_PRIORITY_HINT_INFO priority_hint;
+    priority_hint.PriorityHint = IoPriorityHintLow;
+    auto file_handle = reinterpret_cast<HANDLE>(handle);
+    return ::SetFileInformationByHandle(file_handle,
+        FileIoPriorityHintInfo, 
+        &priority_hint, 
+        sizeof(priority_hint));
+}
+
 void SetProcessMitigation() {
     // https://blog.xpnsec.com/protecting-your-malware/
     // todo: Qt¤£¤ä´©SetProcessMitigationPolicy

@@ -10,12 +10,14 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/pixmapcache.h>
+
+#include <base/stopwatch.h>
 #include <base/fs.h>
 #include <base/logger_impl.h>
 
 #include "thememanager.h"
 
-//#define USE_OPTIMIZE_PNG
+#define USE_OPTIMIZE_PNG
 
 #ifdef USE_OPTIMIZE_PNG
 #include <zopflipng_lib.h>
@@ -29,22 +31,28 @@ namespace ImageUtils {
 
 #ifdef USE_OPTIMIZE_PNG
 static void optimizePNG(const QString& dest_file_path, const std::vector<uint8_t> &original_png, std::vector<uint8_t> result_png) {
+	Stopwatch sw;
+
 	ZopfliPNGOptions png_options;
-	png_options.use_zopfli = true;
+	png_options.use_zopfli = false;
 
 	if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
 		throw PlatformSpecException();
 	}
 
-	XAMP_LOG_DEBUG("optimize PNG {} => {} ({}%)",
+	XAMP_LOG_DEBUG("optimize PNG {} => {} ({}% {} secs)",
 	               String::FormatBytes(original_png.size()),
 	               String::FormatBytes(result_png.size()),
-	               static_cast<uint32_t>((static_cast<double>(result_png.size()) / static_cast<double>(original_png.size())) * 100));
+	               static_cast<uint32_t>((static_cast<double>(result_png.size()) / static_cast<double>(original_png.size())) * 100),
+	               sw.ElapsedSeconds());
 
 	QFile file(dest_file_path);
 	if (!file.open(QIODevice::WriteOnly)) {
 		throw PlatformSpecException();
 	}
+#ifdef XAMP_OS_WIN
+	SetFileLowIoPriority(file.handle());
+#endif
 	file.write(QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
 }
 #endif
