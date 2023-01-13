@@ -1176,7 +1176,10 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             setupDSP(item);
         }
 
-        player_->GetDSPManager()->AddCompressor();
+        // note: Only PCM dsd modes enable compressor.
+        if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
+            player_->GetDSPManager()->AddCompressor();
+        }
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
             if (player_->GetInputFormat() != AudioFormat::k16BitPCM441Khz) {
