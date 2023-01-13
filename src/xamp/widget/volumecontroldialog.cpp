@@ -64,7 +64,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
-        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: #121212; border: 1px solid #346792; })"));
+        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: #121212; border: 1px solid #a7c8ff; })"));
         break;
     default:
         setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { border: 1px solid gray; })"));

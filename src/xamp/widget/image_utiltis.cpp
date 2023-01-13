@@ -4,23 +4,70 @@
 #include <QBuffer>
 #include <QFile>
 #include <QGraphicsPixmapItem>
+#include <QImageReader>
 #include <QGraphicsBlurEffect>
 
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
+#include <widget/pixmapcache.h>
 #include <base/fs.h>
 #include <base/logger_impl.h>
 
+#include "thememanager.h"
+
+//#define USE_OPTIMIZE_PNG
+
+#ifdef USE_OPTIMIZE_PNG
 #include <zopflipng_lib.h>
 #include <lodepng/lodepng.h>
+#endif
 
 Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius, bool quality,
 	bool alphaOnly, int transposed = 0);
 
 namespace ImageUtils {
 
-bool optimizePNG(const QString& original_file_path, const QString& result_file_path) {
-	if (!QFile(original_file_path).exists()) {
+#ifdef USE_OPTIMIZE_PNG
+static void optimizePNG(const QString& dest_file_path, const std::vector<uint8_t> &original_png, std::vector<uint8_t> result_png) {
+	ZopfliPNGOptions png_options;
+	png_options.use_zopfli = true;
+
+	if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
+		throw PlatformSpecException();
+	}
+
+	XAMP_LOG_DEBUG("optimize PNG {} => {} ({}%)",
+	               String::FormatBytes(original_png.size()),
+	               String::FormatBytes(result_png.size()),
+	               static_cast<uint32_t>((static_cast<double>(result_png.size()) / static_cast<double>(original_png.size())) * 100));
+
+	QFile file(dest_file_path);
+	if (!file.open(QIODevice::WriteOnly)) {
+		throw PlatformSpecException();
+	}
+	file.write(QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
+}
+#endif
+
+bool optimizePNG(const QByteArray& buffer, const QString& dest_file_path) {
+#ifdef USE_OPTIMIZE_PNG
+	const std::vector<uint8_t> original_png(buffer.begin(), buffer.end());
+	std::vector<uint8_t> result_png;
+
+	optimizePNG(dest_file_path, original_png, result_png);
+	return true;
+#else
+	QPixmap pixmap;
+	if (pixmap.loadFromData(buffer)) {
+		return pixmap.save(dest_file_path, PixmapCache::kCacheFileFormat, 100);
+	}
+	return false;
+#endif
+}
+
+bool optimizePNG(const QString& src_file_path, const QString& dest_file_path) {
+#ifdef USE_OPTIMIZE_PNG
+	if (!QFile(src_file_path).exists()) {
 		return false;
 	}
 
@@ -28,37 +75,19 @@ bool optimizePNG(const QString& original_file_path, const QString& result_file_p
 		XAMP_LOG_DEBUG(ex.GetErrorMessage());
 	};
 
-	ExceptedFile excepted(result_file_path.toStdWString());
-	return excepted.Try([original_file_path](const auto & dest_file_path) {
+	ExceptedFile excepted(dest_file_path.toStdWString());
+	return excepted.Try([src_file_path](const auto & dest_file_path) {
 		std::vector<uint8_t> original_png;
 		std::vector<uint8_t> result_png;
-		if (lodepng::load_file(original_png, original_file_path.toLocal8Bit().data())) {
+		if (lodepng::load_file(original_png, src_file_path.toLocal8Bit().data())) {
 			throw PlatformSpecException();
 		}
-
-		ZopfliPNGOptions png_options;
-		png_options.use_zopfli = false;
-
-		if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
-			throw PlatformSpecException();
-		}
-
-		XAMP_LOG_DEBUG("optimizePNG {} => {} ({}%)",
-			String::FormatBytes(original_png.size()),
-			String::FormatBytes(result_png.size()),
-			static_cast<uint32_t>((static_cast<double>(result_png.size()) / static_cast<double>(original_png.size())) * 100));
-
-		QFile file(QString::fromStdWString(dest_file_path.wstring()));
-		if (!file.open(QIODevice::WriteOnly)) {
-			throw PlatformSpecException();
-		}
-
-		file.write(
-			QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
-		}, exception_handler);
-
-    //xamp::base::Fs::rename(original_file_path.toStdWString(), result_file_path.toStdWString());
-    //return true;
+		optimizePNG(QString::fromStdWString(dest_file_path.wstring()), original_png, result_png);
+	}, exception_handler);
+#else
+	Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
+    return true;
+#endif
 }
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
@@ -74,7 +103,7 @@ QByteArray convert2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, "PNG");
+	source.save(&buffer, PixmapCache::kCacheFileFormat);
 	return bytes;
 }
 
@@ -82,7 +111,7 @@ std::vector<uint8_t> convert2Vector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, "PNG");
+	source.save(&buffer, PixmapCache::kCacheFileFormat);
 	return { bytes.constData(), bytes.constData() + bytes.size() };
 }
 

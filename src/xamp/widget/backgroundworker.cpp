@@ -121,15 +121,20 @@ void BackgroundWorker::lazyInitExecutor() {
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 }
 
-void BackgroundWorker::onProcessImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name) {
+void BackgroundWorker::onProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name) {
     lazyInitExecutor();
 
-    executor_->Spawn([temp_file_path, file_path, tag_name, this]() {
+    executor_->Spawn([file_path, tag_name, buffer, this]() {
         if (is_stop_) {
             return;
         }
-        qPixmapCache.optimize(temp_file_path, file_path, tag_name);
-        });
+
+        try {
+            qPixmapCache.optimizeImageFromBuffer(file_path, buffer, tag_name);
+        } catch (std::exception const &e) {
+            XAMP_LOG_E(logger_, "Faild to optimize image. {}", e.what());
+        }
+    });
 }
 
 void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,

@@ -233,7 +233,7 @@ void ThemeManager::setPalette() {
         background_color_ = QColor(250, 250, 250);
     } else {
         palette_.setColor(QPalette::WindowText, QColor(25, 35, 45));
-        background_color_ = QColor(25, 35, 45);
+        background_color_ = QColor(40, 41, 42);
     }
 }
 
@@ -450,7 +450,7 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
 					font-weight: bold;
 					color: white;
                     border: none;
-                    background-color: rgb(24, 151, 255);
+                    background-color: rgb(167, 200, 255);
                 }
             )"
         ));
@@ -463,7 +463,7 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
 					font-weight: bold;
 					color: white;
                     border: none;
-                    background-color: rgba(24, 151, 255, 60);
+                    background-color: rgba(167, 200, 255, 60);
                 }
             )"
         ));
@@ -551,7 +551,7 @@ void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
 QColor ThemeManager::hoverColor() const {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        return QColor(qTEXT("#455364"));
+        return QColor(qTEXT("#43474e"));
     case ThemeColor::LIGHT_THEME:
     default:
         return QColor(qTEXT("#C9CDD0"));
@@ -564,7 +564,7 @@ QColor ThemeManager::highlightColor() const {
         return QColor(qTEXT("#9FCBFF"));
     case ThemeColor::DARK_THEME:
     default:
-        return QColor(qTEXT("#346792"));
+        return QColor(qTEXT("#a7c8ff"));
     }
 }
 
@@ -771,8 +771,8 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
         slider_background_color = qTEXT("#9FCBFF");
         break;
     case ThemeColor::DARK_THEME:
-        slider_border_color = qTEXT("#455364");
-        slider_background_color = qTEXT("#346792");
+        slider_border_color = qTEXT("#43474e");
+        slider_background_color = qTEXT("#a7c8ff");
         break;
     }
 
@@ -785,9 +785,9 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
         background: %2;
 		border: 1px solid %2;
         height: 2px;
-        border-radius: 1px;
-        padding-left: 0px;
-        padding-right: 0px;
+        border-radius: 2px;
+        padding-left: -1px;
+        padding-right: -5px;
     }
 
     QSlider#%1::sub-page:horizontal {
@@ -836,8 +836,8 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
         slider_background_color = qTEXT("#9FCBFF");
         break;
     case ThemeColor::DARK_THEME:
-        slider_border_color = qTEXT("#455364");
-        slider_background_color = qTEXT("#346792");
+        slider_border_color = qTEXT("#43474e");
+        slider_background_color = qTEXT("#a7c8ff");
         break;
     }
 
@@ -865,13 +865,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
-
-   ui.seekSlider->setStyleSheet(qTEXT(R"(
-                                        QSlider#seekSlider {
-                                        border: none;
-                                        background-color: transparent;
-                                        }
-                                        )"));
 
     ui.titleFrameLabel->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
@@ -1011,5 +1004,5 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());
     ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));    
-    ui.currentViewFrame->setStyleSheet(qTEXT("border: none;"));
+    ui.currentViewFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
 }

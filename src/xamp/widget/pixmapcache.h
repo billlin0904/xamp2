@@ -30,6 +30,8 @@ namespace std {
 class PixmapCache final : public QObject {
 	Q_OBJECT
 public:
+	static constexpr char kCacheFileFormat[] = "PNG";
+
     friend class SharedSingleton<PixmapCache>;
 
 	static QPixmap findCoverInDir(const QString& file_path);
@@ -42,11 +44,13 @@ public:
 
     QString addOrUpdate(const QByteArray& data);
 
+	void addCache(const QString& tag_id, const QPixmap &cover);
+
 	void erase(const QString& tag_id);
 
 	bool isExist(const QString& tag_id) const;
 
-	size_t totalCacheSize() const;
+	size_t cacheSize() const;
 
     void setMaxSize(size_t max_size);
 
@@ -64,10 +68,11 @@ public:
 
 	void optimizeImageInDir(const QString& file_path);
 
-	void optimize(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
+	void optimizeImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
 
+	void optimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
 signals:
-	void processImage(const QString & temp_file_path, const QString& file_path, const QString& tag_name);
+	void processImage(const QString & file_path, const QByteArray& buffer, const QString& tag_name);
 
 protected:
 	PixmapCache();
