@@ -558,7 +558,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
+     <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,0">
       <property name="leftMargin">
        <number>4</number>
       </property>
@@ -584,13 +584,13 @@
           <property name="minimumSize">
            <size>
             <width>60</width>
-            <height>14</height>
+            <height>16</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>10</height>
+            <height>16</height>
            </size>
           </property>
           <property name="text">
@@ -612,7 +612,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>14</height>
+            <height>16</height>
            </size>
           </property>
           <property name="orientation">
@@ -625,13 +625,13 @@
           <property name="minimumSize">
            <size>
             <width>60</width>
-            <height>14</height>
+            <height>16</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>10</height>
+            <height>16</height>
            </size>
           </property>
           <property name="text">

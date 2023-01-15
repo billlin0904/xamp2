@@ -80,5 +80,6 @@ QString formatBytes(quint64 bytes) {
 }
 
 QString formatTime(quint64 time) {
-    return QDateTime::fromSecsSinceEpoch(time).toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
+    return QDateTime::fromSecsSinceEpoch(time)
+        .toString(qTEXT("yyyy-MM-dd HH:mm:ss"));
 }

@@ -350,37 +350,26 @@ public:
     }
 
     [[nodiscard]] TrackInfo Extract(const Path& path) const {
-        TrackInfo metadata;
-
-        try {
-            // note: taglib會獨佔file, 所以要讀取LastWriteTime必須要在之前.
-            metadata.last_write_time = GetLastWriteTime(path);
-            // todo: MSVC STL bug memory leak!
-            // https://developercommunity.visualstudio.com/t/reported-memory-leak-when-converting-file-time-typ/1467739
-            //metadata.last_write_time = ToTime_t(Fs::last_write_time(path));
-        }
-        catch (Exception const &e) {
-            XAMP_LOG_ERROR("Failed to get file: {} last write time error: {}", path.string(), e.GetErrorMessage());
-        }
+        TrackInfo track_info;
 
 	    const auto fileref = GetFileRef(path);
         const auto* tag = fileref.tag();
 
         if (tag != nullptr) {
-            ExtractTag(path, tag, fileref.audioProperties(), metadata);
+            ExtractTag(path, tag, fileref.audioProperties(), track_info);
         } else {            
-            SetFileInfo(path, metadata);
-            SetAudioProperties(fileref.audioProperties(), metadata);
+            SetFileInfo(path, track_info);
+            SetAudioProperties(fileref.audioProperties(), track_info);
         }
 
         // Tag not empty but title maybe empty!
-        if (metadata.title.empty()) {
-            ExtractTitleFromFileName(metadata);
+        if (track_info.title.empty()) {
+            ExtractTitleFromFileName(track_info);
         }
 
         const auto ext = String::ToLower(path.extension().string());
-        metadata.replay_gain = GetReplayGain(ext, fileref.file());
-        return metadata;
+        track_info.replay_gain = GetReplayGain(ext, fileref.file());
+        return track_info;
     }
 
     Vector<uint8_t> const & ExtractCover(Path const & path) {

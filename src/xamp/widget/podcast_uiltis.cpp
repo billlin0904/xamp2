@@ -40,7 +40,6 @@ ForwardList<TrackInfo> parseJson(QString const& json) {
                 track_info.title = title.toStdWString() + L" (" + dateTime.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") " + L" (Ori. " + artist + L")";
             }
             track_info.artist = performer.toStdWString();
-            track_info.last_write_time = dateTime.toTime_t();
             track_info.album = L"Podcast";
             track_info.track = track++;
             track_infos.push_front(track_info);
@@ -96,10 +95,6 @@ std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& sr
                 }
                 std::string path(url->value(), url->value_size());
                 track_info.file_path = String::ToString(path);
-            }
-            else if (name == "pubDate") {
-                auto datetime = QDateTime::fromString(QString::fromStdString(value), Qt::RFC2822Date);
-                track_info.last_write_time = datetime.toTime_t();
             }
         }
         metadatas.push_front(track_info);

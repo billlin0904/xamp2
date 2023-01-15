@@ -7,6 +7,7 @@
 #include <widget/playlisttableview.h>
 #include <widget/filesystemmodel.h>
 
+#include <QDateTime>
 #include <QFileDialog>
 #include <QToolTip>
 #include <QSortFilterProxyModel>
@@ -28,7 +29,6 @@ bool FileSystemViewPage::DirFirstSortFilterProxyModel::lessThan(const QModelInde
         const auto left_file_info = fsm->fileInfo(left);
         const auto right_file_info = fsm->fileInfo(right);
 
-
         // If DotAndDot move in the beginning
         if (sourceModel()->data(left).toString() == qTEXT(".."))
             return asc;
@@ -40,6 +40,9 @@ bool FileSystemViewPage::DirFirstSortFilterProxyModel::lessThan(const QModelInde
             return !asc;
         }
         if (left_file_info.isDir() && !right_file_info.isDir()) {
+            return asc;
+        }
+        if (left_file_info.lastModified() > right_file_info.lastModified()) {
             return asc;
         }
     }
@@ -61,10 +64,12 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
     dir_first_sort_filter_ = new DirFirstSortFilterProxyModel(this);
     dir_first_sort_filter_->setSourceModel(dir_model_);
+    dir_first_sort_filter_->setFilterKeyColumn(0);
 
     ui.dirTree->setModel(dir_first_sort_filter_);
     ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::getMyMusicFolderPath())));
     ui.dirTree->setStyleSheet(qTEXT("background-color: transparent"));
+    ui.dirTree->setSortingEnabled(true);
 
     ui.dirTree->header()->hide();
     ui.dirTree->hideColumn(1);

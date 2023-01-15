@@ -109,7 +109,7 @@ int64_t GetLastWriteTime(const Path& path) {
 	tm.tm_isdst = -1;
 	return std::mktime(&tm);
 #else
-	return GetTime_t();
+    return ToTime_t(Fs::last_write_time(path));
 #endif
 }
 

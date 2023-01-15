@@ -863,13 +863,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 		query.bindValue(qTEXT(":track_peak"), 0);
 	}
 
-	if (track_info.last_write_time == 0) {
-		query.bindValue(qTEXT(":dateTime"), QDateTime::currentSecsSinceEpoch());
-	}
-	else {
-		query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);
-	}
-
+    query.bindValue(qTEXT(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	query.bindValue(qTEXT(":genre"), QString::fromStdWString(track_info.genre));
 	query.bindValue(qTEXT(":comment"), QString::fromStdWString(track_info.comment));
 	query.bindValue(qTEXT(":year"), track_info.year);

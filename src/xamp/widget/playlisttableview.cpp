@@ -34,11 +34,11 @@
 #include <widget/fonticon.h>
 #include <widget/playlisttableview.h>
 
-class StyledItemDelegate final : public QStyledItemDelegate {
+class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
-    explicit StyledItemDelegate(QObject* parent = nullptr)
+    explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
     }
 
@@ -46,6 +46,8 @@ public:
         if (!index.isValid()) {
             return;
         }
+
+
 
         painter->setRenderHints(QPainter::Antialiasing, true);
         painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
@@ -70,16 +72,17 @@ public:
         auto use_default_style = false;
 
         opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
-        opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
+        opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
         opt.font.setFamily(qTEXT("MonoFont"));
         opt.font.setWeight(QFont::Weight::Medium);
-        
+
         switch (index.column()) {
         case PLAYLIST_TITLE:
         case PLAYLIST_ALBUM:
             opt.font.setFamily(qTEXT("UIFont"));
             opt.font.setWeight(QFont::Weight::Medium);
             opt.text = value.toString();
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
             break;
         case PLAYLIST_ARTIST:
             opt.font.setFamily(qTEXT("UIFont"));
@@ -119,7 +122,7 @@ public:
             opt.text = formatBytes(value.toULongLong());
             break;
         case PLAYLIST_BIT_RATE:
-            opt.text = formatBitRate(value.toInt());
+            opt.text = formatBitRate(value.toUInt());
             break;
         case PLAYLIST_ALBUM_PK:
         case PLAYLIST_ALBUM_RG:
@@ -129,25 +132,24 @@ public:
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
-                opt.text = qSTR("%1").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1").arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
-                opt.text = qSTR("%1 dB").arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1 dB").arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_TRACK_LOUDNESS:
                 opt.text = qSTR("%1 LUFS")
-                    .arg(value.toFloat(), 4, 'f', 2, QLatin1Char('0'))
+                    .arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'))
                     .rightJustified(8);
                 break;
             }
             break;
         case PLAYLIST_SAMPLE_RATE:
-            opt.text = formatSampleRate(value.toInt());
+            opt.text = formatSampleRate(value.toUInt());
             break;
         case PLAYLIST_DURATION:
-            opt.text = formatDuration(value.toDouble());
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
+            opt.text = formatDuration(value.toDouble());            
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
             opt.text = formatTime(value.toULongLong());
@@ -169,23 +171,23 @@ static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src
     PlayListEntity model;
     model.music_id          = getIndexValue(index, src, PLAYLIST_MUSIC_ID).toInt();
     model.playing           = getIndexValue(index, src, PLAYLIST_PLAYING).toInt();
-    model.track             = getIndexValue(index, src, PLAYLIST_TRACK).toInt();
+    model.track             = getIndexValue(index, src, PLAYLIST_TRACK).toUInt();
     model.file_path         = getIndexValue(index, src, PLAYLIST_FILE_PATH).toString();
-    model.file_size         = getIndexValue(index, src, PLAYLIST_FILE_SIZE).toInt();
+    model.file_size         = getIndexValue(index, src, PLAYLIST_FILE_SIZE).toULongLong();
     model.title             = getIndexValue(index, src, PLAYLIST_TITLE).toString();
     model.file_name         = getIndexValue(index, src, PLAYLIST_FILE_NAME).toString();
     model.artist            = getIndexValue(index, src, PLAYLIST_ARTIST).toString();
     model.album             = getIndexValue(index, src, PLAYLIST_ALBUM).toString();
     model.duration          = getIndexValue(index, src, PLAYLIST_DURATION).toDouble();
-    model.bitrate           = getIndexValue(index, src, PLAYLIST_BIT_RATE).toInt();
-    model.samplerate        = getIndexValue(index, src, PLAYLIST_SAMPLE_RATE).toInt();
-    model.rating            = getIndexValue(index, src, PLAYLIST_RATING).toInt();
+    model.bitrate           = getIndexValue(index, src, PLAYLIST_BIT_RATE).toUInt();
+    model.samplerate        = getIndexValue(index, src, PLAYLIST_SAMPLE_RATE).toUInt();
+    model.rating            = getIndexValue(index, src, PLAYLIST_RATING).toUInt();
     model.album_id          = getIndexValue(index, src, PLAYLIST_ALBUM_ID).toInt();
     model.artist_id         = getIndexValue(index, src, PLAYLIST_ARTIST_ID).toInt();
     model.cover_id          = getIndexValue(index, src, PLAYLIST_COVER_ID).toString();
     model.file_ext          = getIndexValue(index, src, PLAYLIST_FILE_EXT).toString();
     model.parent_path       = getIndexValue(index, src, PLAYLIST_FILE_PARENT_PATH).toString();
-    model.timestamp         = getIndexValue(index, src, PLAYLIST_LAST_UPDATE_TIME).toInt();
+    model.timestamp         = getIndexValue(index, src, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
     model.playlist_music_id = getIndexValue(index, src, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     model.album_replay_gain = getIndexValue(index, src, PLAYLIST_ALBUM_RG).toDouble();
     model.album_peak        = getIndexValue(index, src, PLAYLIST_ALBUM_PK).toDouble();
@@ -193,7 +195,7 @@ static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src
     model.track_peak        = getIndexValue(index, src, PLAYLIST_TRACK_PK).toDouble();
     model.track_loudness    = getIndexValue(index, src, PLAYLIST_TRACK_LOUDNESS).toDouble();
     model.genre             = getIndexValue(index, src, PLAYLIST_GENRE).toString();
-    model.year              = getIndexValue(index, src, PLAYLIST_YEAR).toInt();
+    model.year              = getIndexValue(index, src, PLAYLIST_YEAR).toUInt();
     return model;
 }
 
@@ -399,7 +401,7 @@ void PlayListTableView::initial() {
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    setItemDelegate(new StyledItemDelegate(this));
+    setItemDelegate(new PlayListStyledItemDelegate(this));
 
     (void)QObject::connect(model_, &QAbstractTableModel::modelReset,
         [this] {
@@ -495,7 +497,7 @@ void PlayListTableView::initial() {
                         return;
                     }
                     append(dir_name);
-                    });
+                });
                 load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_DIR));
             }
         }
@@ -518,7 +520,7 @@ void PlayListTableView::initial() {
                 indicator_ = makeProcessIndicator(this);
 				indicator_->startAnimation();
                 downloadPodcast();
-                });
+             });
         }
 
         if (enable_delete_ && model()->rowCount() > 0) {
@@ -530,12 +532,12 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-            const auto button = XMessageBox::showYesOrNo(tr("Remove all items?"));
-            if (button == QDialogButtonBox::Yes) {
-                qDatabase.removePlaylistAllMusic(playlistId());
-                executeQuery();
-                removePlaying();
-            }
+                const auto button = XMessageBox::showYesOrNo(tr("Remove all items?"));
+                if (button == QDialogButtonBox::Yes) {
+                    qDatabase.removePlaylistAllMusic(playlistId());
+                    executeQuery();
+                    removePlaying();
+                }
             });
         }       
 
@@ -558,10 +560,11 @@ void PlayListTableView::initial() {
                 if (profile.num_channels != AudioFormat::kMaxChannel) {
                     continue;
                 }
-                auto profile_desc = qSTR("%0 bit, %1, %2")
-                    .arg(profile.bit_per_sample).rightJustified(2)
-                    .arg(formatSampleRate(profile.sample_rate))
-                    .arg(formatBitRate(profile.bitrate));
+
+                auto profile_desc = qSTR("%0 bit, %1, %2").arg(
+                    QString::number(profile.bit_per_sample),
+                    formatSampleRate(profile.sample_rate),
+                    formatBitRate(profile.bitrate));
 
                 export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
                     const auto rows = selectItemIndex();
@@ -572,7 +575,7 @@ void PlayListTableView::initial() {
                         }
                         emit encodeAACFile(entity, profile);
                     }
-                    });
+                });
             }
         }
         else {
@@ -610,7 +613,7 @@ void PlayListTableView::initial() {
         open_local_file_path_act->setIcon(qTheme.fontIcon(Glyphs::ICON_OPEN_FILE_PATH));
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-            });
+        });
 
         action_map.setCallback(reload_metadata_act, [this, item]() {
             try {
@@ -622,18 +625,18 @@ void PlayListTableView::initial() {
 			}
 			catch (...) {
 			}
-            });
+        });
     	
         action_map.addSeparator();
         action_map.setCallback(copy_album_act, [item]() {
             QApplication::clipboard()->setText(item.album);
-            });
+        });
         action_map.setCallback(copy_artist_act, [item]() {
             QApplication::clipboard()->setText(item.artist);
-            });
+        });
         action_map.setCallback(copy_title_act, [item]() {
             QApplication::clipboard()->setText(item.title);
-            });
+        });
 
         action_map.setCallback(read_select_item_replaygain_act, [this]() {
             const auto rows = selectItemIndex();
@@ -658,7 +661,7 @@ void PlayListTableView::initial() {
                 auto entity = this->item(row.second);
                 emit encodeWavFile(entity);
             }
-            });
+        });
 
         try {
             action_map.exec(pt);

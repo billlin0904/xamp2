@@ -34,7 +34,7 @@ static void optimizePNG(const QString& dest_file_path, const std::vector<uint8_t
 	Stopwatch sw;
 
 	ZopfliPNGOptions png_options;
-	png_options.use_zopfli = false;
+    png_options.use_zopfli = true;
 
 	if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
 		throw PlatformSpecException();
