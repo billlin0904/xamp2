@@ -17,7 +17,7 @@
 
 #include "thememanager.h"
 
-#define USE_OPTIMIZE_PNG
+//#define USE_OPTIMIZE_PNG
 
 #ifdef USE_OPTIMIZE_PNG
 #include <zopflipng_lib.h>

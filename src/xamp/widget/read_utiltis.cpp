@@ -22,11 +22,6 @@
 #include <utility>
 #include <tuple>
 
-using namespace xamp::base;
-using namespace xamp::stream;
-using namespace xamp::player;
-using namespace xamp::metadata;
-
 namespace read_utiltis {
 
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
@@ -104,8 +99,10 @@ void encodeFile(AnyMap const& config,
 	const auto file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
 	const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
 	const auto command = config.AsPath(FileEncoderConfig::kCommand);
+    AnyMap copy_config = config;
 	ExceptedFile excepted(output_file_path);
 	if (excepted.Try([&](auto const& dest_file_path) {
+        copy_config.AddOrReplace(FileEncoderConfig::kOutputFilePath, dest_file_path);
 		encoder->Start(config);
 		encoder->Encode(progress);
 		encoder.reset();
