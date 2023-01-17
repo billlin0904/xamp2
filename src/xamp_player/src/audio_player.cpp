@@ -143,7 +143,7 @@ void AudioPlayer::Destroy() {
 
     GetPlaybackThreadPool().Stop();
 #ifdef XAMP_OS_WIN
-    GetWASAPIThreadPool().Stop();
+    GetWasapiThreadPool().Stop();
 #endif
     PreventSleep(false);
 }

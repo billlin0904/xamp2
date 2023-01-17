@@ -33,7 +33,7 @@ void LoadComponentSharedLibrary() {
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 
 #ifdef XAMP_OS_WIN
-    GetWASAPIThreadPool();
+    GetWasapiThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 
     LoadR8brainLib();

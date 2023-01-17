@@ -7,7 +7,6 @@
 #include <widget/http.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
-#include <widget/stackblur.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
@@ -115,10 +114,12 @@ void BackgroundWorker::lazyInitExecutor() {
         return;
     }
 
+    CpuAffinity affinity;
+    affinity.Set(2);
+    affinity.Set(3);
     executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
-        ThreadPriority::BACKGROUND,
-        TaskSchedulerPolicy::LEAST_LOAD_POLICY,
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+        ThreadPriority::BACKGROUND, 
+        affinity);
 }
 
 void BackgroundWorker::onProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name) {
@@ -284,7 +285,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
             auto metadata = getTrackInfo(QString::fromStdWString(track));
             metadata.file_path = tracks[track_id];
             metadata.duration = cd->GetDuration(track_id++);
-            metadata.samplerate = 44100;
+            metadata.sample_rate = 44100;
             metadata.disc_id = disc_id;
             track_infos.push_front(metadata);
         }

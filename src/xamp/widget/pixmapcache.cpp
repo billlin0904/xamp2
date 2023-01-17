@@ -20,9 +20,9 @@
 #include <QImageReader>
 #include <QPixmap>
 
-inline constexpr size_t kDefaultCacheSize = 12;
+inline constexpr size_t kDefaultCacheSize = 24;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
-inline constexpr auto kCacheFileExt = qTEXT(".jpg");
+inline constexpr auto kCacheFileExt = qTEXT(".png");
 
 XAMP_DECLARE_LOG_NAME(PixmapCache);
 
@@ -33,15 +33,22 @@ QStringList PixmapCache::cache_ext_ =
     QStringList() << (qTEXT("*") + kCacheFileExt);
 
 PixmapCache::PixmapCache()
-	: cache_(kDefaultCacheSize)
-    , logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName)) {
+	: logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName))
+	, cache_(kDefaultCacheSize) {
+	unknown_cover_id_ = qTEXT("unknown_album");
+	cache_.Add(unknown_cover_id_, qTheme.unknownCover());
+	initCachePath();
+	loadCache();
+}
+
+void PixmapCache::initCachePath() {
 	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
 			AppSettings::defaultCachePath() + qTEXT("/caches/"),
-            QDir::currentPath() + qTEXT("/caches/")
+			QDir::currentPath() + qTEXT("/caches/")
 		};
 
-		Q_FOREACH(auto path, paths) {
+		Q_FOREACH(const auto path, paths) {
 			cache_path_ = path;
 			const QDir dir(cache_path_);
 			if (!dir.exists()) {
@@ -59,9 +66,6 @@ PixmapCache::PixmapCache()
 	}
 	cache_path_ = toNativeSeparators(cache_path_);
 	AppSettings::setValue(kAppSettingAlbumImageCachePath, cache_path_);
-	unknown_cover_id_ = qTEXT("unknown_album");
-	cache_.Add(unknown_cover_id_, qTheme.unknownCover());
-	loadCache();
 }
 
 QPixmap PixmapCache::findCoverInDir(const QString& file_path) {
@@ -182,7 +186,7 @@ void PixmapCache::loadCache() const {
 		}
 	}
 
-	XAMP_LOG_D(logger_, "Cache count: {} {}secs total:{}",
+	XAMP_LOG_DEBUG("Cache count: {} {}secs total:{}",
 		i,
 		sw.ElapsedSeconds(), 
 		String::FormatBytes(cacheSize()));
@@ -196,12 +200,13 @@ size_t PixmapCache::missRate() const {
 }
 
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
+	if (tag_id.isEmpty()) {
+		return nullptr;
+	}
+
 	while (true) {
 		const auto* const cache = cache_.Find(tag_id);
 		if (!cache) {
-            if (tag_id.isEmpty()) {
-                return nullptr;
-            }
             XAMP_LOG_D(logger_, "Load file name:{} from disk, miss rate: {}%",
                        tag_id.toStdString(),
                        missRate());

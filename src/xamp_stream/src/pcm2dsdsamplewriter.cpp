@@ -266,11 +266,11 @@ public:
 
 		convert_mode_ = convert_mode;
 
-		constexpr auto kMaxPcm2DsdThread = 4;
+		constexpr auto kMaxPcm2DsdThreadPoolSize = 4;
 		tp_ = MakeThreadPoolExecutor(kDSPThreadPoolLoggerName,
 			ThreadPriority::NORMAL,
-			kMaxPcm2DsdThread,
-			affinity);
+			affinity,
+			kMaxPcm2DsdThreadPoolSize);
 
 		auto dsd_times = pow(2, dsd_times_);
 

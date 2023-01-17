@@ -54,8 +54,6 @@
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 #include <widget/filesystemviewpage.h>
-#include <widget/tooltips.h>
-#include <widget/tooltipsfilter.h>
 #include <widget/backgroundworker.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
@@ -631,19 +629,6 @@ void Xamp::initialController() {
         qDatabase.setTableName(table_id, name);
     });
 
-    tool_tips_filter_ = new ToolTipsFilter(this);
-    setTipHint(ui_.playButton, tr("Play/Pause"));
-    setTipHint(ui_.stopButton, tr("Stop"));
-    setTipHint(ui_.prevButton, tr("Previous"));
-    setTipHint(ui_.nextButton, tr("Next"));
-    setTipHint(ui_.coverLabel, tr("Cover"));
-    setTipHint(ui_.selectDeviceButton, tr("Device list"));
-    setTipHint(ui_.eqButton, tr("Equalizer"));
-
-    setTipHint(ui_.closeButton, tr("Close window"));
-    setTipHint(ui_.maxWinButton, tr("Maximum window"));
-    setTipHint(ui_.minWinButton, tr("Minimum window"));
-
     QTimer::singleShot(500, [this]() {
         sliderAnimation(AppSettings::getValueAsBool(kAppSettingShowLeftList));
         });
@@ -893,19 +878,19 @@ void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         if (order_ != order) {
-            XMessageBox::showInformation(tr("Repeat once"));
+            XMessageBox::showInformation(tr("Repeat once"), kApplicationTitle, false);
         }
         qTheme.setRepeatOncePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         if (order_ != order) {
-            XMessageBox::showInformation(tr("Repeat one"));
+            XMessageBox::showInformation(tr("Repeat one"), kApplicationTitle, false);
         }
         qTheme.setRepeatOnePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         if (order_ != order) {
-            XMessageBox::showInformation(tr("Shuffle all"));
+            XMessageBox::showInformation(tr("Shuffle all"), kApplicationTitle, false);
         }
         qTheme.setShufflePlayorder(ui_);
         break;
@@ -979,7 +964,7 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(formatDuration(0));
 }
 
-void Xamp::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) const {
+void Xamp::processTrackInfo(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) const {
     album_page_->album()->refreshOnece();
     playlist_page_->playlist()->executeQuery();
 }
@@ -1042,7 +1027,7 @@ void Xamp::setupSampleWriter(PlaybackFormat& playback_format, QString& samplerat
 
 	// note: PCM2DSD function have some issue.
 	// 1. Only convert 44.1Khz 88.2Khz 176.4Khz ...
-	// 2. Fixed sample size input (can't use samplerate converter).
+	// 2. Fixed sample size input (can't use sample_rate converter).
 
 	if (AppSettings::getValueAsBool(kEnablePcm2Dsd)
         && !player_->IsDSDFile()
@@ -1236,7 +1221,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         artist_info_page_->setArtistId(item.artist,
             qDatabase.getArtistCoverId(item.artist_id),
             item.artist_id);
-
+        album_page_->album()->setPlayingAlbumId(item.album_id);
         updateButtonState();
         emit nowPlaying(item.artist, item.title);
     } else {
@@ -1315,7 +1300,7 @@ void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInf
     qDatabase.removeAlbum(album_id);
 
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->processMeatadata(QDateTime::currentSecsSinceEpoch(), track_infos);
+    cd_page_->playlistPage()->playlist()->processTrackInfo(QDateTime::currentSecsSinceEpoch(), track_infos);
     cd_page_->showPlaylistPage(true);
 }
 
@@ -1959,16 +1944,6 @@ void Xamp::extractFile(const QString& file_path) {
     (void)QObject::connect(adapter.get(),
         &DatabaseProxy::readCompleted,
         this,
-        &Xamp::processMeatadata);
+        &Xamp::processTrackInfo);
     emit readTrackInfo(adapter, file_path, playlist_page_->playlist()->playlistId(), false);
-}
-
-void Xamp::setTipHint(QWidget* widget, const QString& hint_text) {
-    auto *tooltip = new ToolTips(qEmptyString, parentWidget());
-    tooltip->hide();
-    tooltip->setText(hint_text);
-    tooltip->setFixedHeight(32);
-
-    widget->setProperty("ToolTip", QVariant::fromValue<QWidget*>(tooltip));
-    widget->installEventFilter(tool_tips_filter_);
 }

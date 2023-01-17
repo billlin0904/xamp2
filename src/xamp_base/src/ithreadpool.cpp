@@ -10,8 +10,8 @@ inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 
 AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
     ThreadPriority priority,
-    uint32_t max_thread,
     CpuAffinity affinity,
+    uint32_t max_thread,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy) {
     return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(pool_name,
@@ -27,8 +27,8 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& poo
     TaskStealPolicy steal_policy) {
     return MakeThreadPoolExecutor(pool_name,
         ThreadPriority::NORMAL,
-        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
+        std::thread::hardware_concurrency(),
         policy,
         steal_policy);
 }
@@ -40,8 +40,8 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     TaskStealPolicy steal_policy) {
     return MakeThreadPoolExecutor(pool_name,
         priority,
-        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
+        std::thread::hardware_concurrency(),
         policy,
         steal_policy);
 }
@@ -56,7 +56,7 @@ IThreadPoolExecutor& GetPlaybackThreadPool() {
 	return executor;
 }
 
-IThreadPoolExecutor& GetWASAPIThreadPool() {
+IThreadPoolExecutor& GetWasapiThreadPool() {
     static const CpuAffinity wasapi_cpu_aff{ 1 };
     static ThreadPoolExecutor executor(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,

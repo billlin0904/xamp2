@@ -164,8 +164,10 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_CLOSE_WINDOW,              0xF00D },
     { ICON_RESTORE_WINDOW,            0xF2D2 },
     { ICON_SLIDER_BAR,                0xF0C9 },
-    { ICON_PLAY,                      0xF04B },
-    { ICON_PAUSE,                     0xF04C },
+    { ICON_PLAY_LIST_PLAY,            0xF04B },
+    { ICON_PLAY_LIST_PAUSE,           0xF04C },
+    { ICON_PLAY,                      0xF144 },
+    { ICON_PAUSE,                     0xF28B },
     { ICON_STOP_PLAY,                 0xF04D },
     { ICON_PLAY_FORWARD,              0xF04E },
     { ICON_PLAY_BACKWARD,             0xF04A },
@@ -180,8 +182,15 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_MESSAGE_BOX_ERROR,         0xF05E },
 	{ ICON_MESSAGE_BOX_QUESTION,      0xF059 },
     };
-    qFontIcon.addFont(fontNamePath(qTEXT("FontAwesome6.ttf")));
-    //qFontIcon.addFont(fontNamePath(qTEXT("fa-light-300.ttf")));
+    
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        qFontIcon.addFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        qFontIcon.addFont(fontNamePath(qTEXT("fa-regular-400.ttf")));
+        break;
+    }
     qFontIcon.setGlyphs(glyphs);
 }
 
@@ -195,12 +204,8 @@ QFont ThemeManager::loadFonts() {
 
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
     installFileFonts(qTEXT("Roboto-Regular"), mono_fonts);
-
-    installFileFonts(qTEXT("Lato"), ui_fonts);
+    installFileFonts(qTEXT("Poppins"), ui_fonts);
     installFileFonts(qTEXT("MiSans"), ui_fonts);
-    
-    //installFileFonts(qTEXT("MILanPro"), ui_fonts);
-    //installFileFonts(qTEXT("GenYoGothic"), ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
@@ -323,7 +328,7 @@ QIcon ThemeManager::fontIcon(const char32_t code) const {
     case Glyphs::ICON_RESTORE_WINDOW:
 		{
 			auto temp = font_icon_opts_;
-			temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.2));
+			temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.0));
 			return qFontIcon.icon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
@@ -368,7 +373,7 @@ QIcon ThemeManager::playlistPauseIcon(QSize icon_size) const {
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
 
-    auto icon = qFontIcon.icon(Glyphs::ICON_PAUSE, font_options);
+    auto icon = qFontIcon.icon(Glyphs::ICON_PLAY_LIST_PAUSE, font_options);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
         QIcon::Selected, QIcon::Off);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::On),
@@ -381,7 +386,7 @@ QIcon ThemeManager::playlistPlayingIcon(QSize icon_size) const {
     font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
-    auto icon = qFontIcon.icon(Glyphs::ICON_PLAY, font_options);
+    auto icon = qFontIcon.icon(Glyphs::ICON_PLAY_LIST_PLAY, font_options);
 
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
         QIcon::Selected, QIcon::Off);

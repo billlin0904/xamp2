@@ -147,8 +147,8 @@ void Database::createTableIfNotExist() {
                        durationStr TEXT,
                        fileName TEXT,
                        fileExt TEXT,
-                       bitrate integer,
-                       samplerate integer,
+                       bit_rate integer,
+                       sample_rate integer,
                        rating integer,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        album_replay_gain DOUBLE,
@@ -745,8 +745,8 @@ PlayListEntity Database::queryToPlayListEntity(const QSqlQuery& query) {
     entity.file_ext = query.value(qTEXT("fileExt")).toString();
     entity.parent_path = query.value(qTEXT("parentPath")).toString();
     entity.duration = query.value(qTEXT("duration")).toDouble();
-    entity.bitrate = query.value(qTEXT("bitrate")).toUInt();
-    entity.samplerate = query.value(qTEXT("samplerate")).toUInt();
+    entity.bitrate = query.value(qTEXT("bit_rate")).toUInt();
+    entity.samplerate = query.value(qTEXT("sample_rate")).toUInt();
     entity.cover_id = query.value(qTEXT("coverId")).toString();
     entity.rating = query.value(qTEXT("rating")).toUInt();
     entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
@@ -830,8 +830,8 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year, fileSize, parentPathHash)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year, :fileSize, :parentPathHash)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bit_rate, sample_rate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year, fileSize, parentPathHash)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bit_rate, :sample_rate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year, :fileSize, :parentPathHash)
     )")
     );
 
@@ -843,8 +843,8 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":parentPath"), QString::fromStdWString(track_info.parent_path));
     query.bindValue(qTEXT(":duration"), track_info.duration);
     query.bindValue(qTEXT(":durationStr"), formatDuration(track_info.duration));
-    query.bindValue(qTEXT(":bitrate"), track_info.bitrate);
-    query.bindValue(qTEXT(":samplerate"), track_info.samplerate);
+    query.bindValue(qTEXT(":bit_rate"), track_info.bit_rate);
+    query.bindValue(qTEXT(":sample_rate"), track_info.sample_rate);
     query.bindValue(qTEXT(":offset"), track_info.offset);
     query.bindValue(qTEXT(":fileSize"), track_info.file_size);
 

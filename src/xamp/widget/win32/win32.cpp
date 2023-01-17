@@ -429,8 +429,8 @@ static uint32_t gradientColor(QColor const & color) {
 WinTaskbar::WinTaskbar(XWindow* window, IXPlayerControlFrame* player_frame) {
 	window_ = window;
 
-	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY);
-	pause_icon = qTheme.fontIcon(Glyphs::ICON_PAUSE);
+	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
+	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
 	stop_play_icon = qTheme.fontIcon(Glyphs::ICON_STOP_PLAY);
 	seek_forward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD);
 	seek_backward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD);

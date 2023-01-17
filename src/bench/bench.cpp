@@ -93,8 +93,8 @@ static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_LeastLoadPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
-        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
+        std::thread::hardware_concurrency(),
         TaskSchedulerPolicy::LEAST_LOAD_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_LeastLoadPolicyThreadPoolLoggerName)
@@ -115,8 +115,8 @@ static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RobinStealPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
-        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
+        std::thread::hardware_concurrency(),
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_RobinStealPolicyThreadPoolLoggerName)
@@ -137,8 +137,8 @@ static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
-        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
+        std::thread::hardware_concurrency(),
         TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
@@ -159,8 +159,8 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
-        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
+        std::thread::hardware_concurrency(),
         TaskSchedulerPolicy::RANDOM_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)

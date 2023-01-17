@@ -395,6 +395,10 @@ AlbumView::AlbumView(QWidget* parent)
     update();
 }
 
+void AlbumView::setPlayingAlbumId(int32_t album_id) {
+    styled_delegate_->setPlayingAlbumId(album_id);
+}
+
 void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     auto index = indexAt(pt);
 
@@ -591,7 +595,7 @@ void AlbumView::readSingleFileTrackInfo(const QString& file_name) {
     (void)QObject::connect(adapter.get(),
         &DatabaseProxy::readCompleted,
         this,
-        &AlbumView::processMeatadata);
+        &AlbumView::processTrackInfo);
 
     (void)QObject::connect(adapter.get(),
         &DatabaseProxy::readFileStart,
@@ -630,7 +634,7 @@ void AlbumView::onReadFileEnd() {
     read_progress_dialog_.reset();
 }
 
-void AlbumView::processMeatadata(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {
+void AlbumView::processTrackInfo(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {
     emit loadCompleted();
 }
 

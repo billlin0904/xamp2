@@ -27,6 +27,11 @@ namespace std {
 }
 #endif
 
+struct PixampCacheKey {
+	size_t file_size;
+	QString tag_id;
+};
+
 class PixmapCache final : public QObject {
 	Q_OBJECT
 public:
@@ -80,12 +85,15 @@ protected:
 private:
 	void loadCache() const;
 
+	void initCachePath();
+
+	static QStringList cover_ext_;
+	static QStringList cache_ext_;
+
 	QString unknown_cover_id_;
 	QString cache_path_;
-    static QStringList cover_ext_;
-    static QStringList cache_ext_;
-	mutable LruCache<QString, QPixmap> cache_;
 	LoggerPtr logger_;
+	mutable LruCache<QString, QPixmap> cache_;
 };
 
 #define qPixmapCache SharedSingleton<PixmapCache>::GetInstance()

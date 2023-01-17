@@ -203,9 +203,6 @@
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\spotify_utilis.cpp" />
-    <ClCompile Include="widget\stackblur.cpp" />
-    <ClCompile Include="widget\tooltips.cpp" />
-    <ClCompile Include="widget\tooltipsfilter.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
     <ClCompile Include="widget\waveformanalyzer.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
@@ -288,9 +285,6 @@
     <ClInclude Include="widget\globalshortcut.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
-    <ClInclude Include="widget\stackblur.h" />
-    <QtMoc Include="widget\tooltips.h" />
-    <QtMoc Include="widget\tooltipsfilter.h" />
     <ClInclude Include="widget\volumecontroldialog.h" />
     <ClInclude Include="widget\waveformanalyzer.h" />
     <ClInclude Include="widget\xprogressdialog.h" />

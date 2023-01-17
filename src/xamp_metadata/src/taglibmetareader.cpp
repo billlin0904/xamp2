@@ -269,8 +269,8 @@ static void SetFileInfo(Path const & path, TrackInfo& metadata) {
 static void SetAudioProperties(AudioProperties* audio_properties, TrackInfo& metadata) {
     if (audio_properties != nullptr) {
         metadata.duration = audio_properties->lengthInMilliseconds() / 1000.0;
-        metadata.bitrate = audio_properties->bitrate();
-		metadata.samplerate = audio_properties->sampleRate();
+        metadata.bit_rate = audio_properties->bitrate();
+		metadata.sample_rate = audio_properties->sampleRate();
     }
 }
 

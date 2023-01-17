@@ -2,8 +2,6 @@
 #include <QToolTip>
 
 #include "str_utilts.h"
-#include <widget/tooltips.h>
-#include <widget/tooltipsfilter.h>
 #include <widget/seekslider.h>
 
 SeekSlider::SeekSlider(QWidget* parent)

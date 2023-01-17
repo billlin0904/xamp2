@@ -98,6 +98,8 @@ public:
 
 	void readSingleFileTrackInfo(const QString& file_name);
 
+	void setPlayingAlbumId(int32_t album_id);
+
 signals:
     void addPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
@@ -126,7 +128,7 @@ public slots:
 
     void append(const QString& file_name);
 
-    void processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata);
+    void processTrackInfo(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata);
 
 	void showOperationMenu(const QPoint& pt);
 

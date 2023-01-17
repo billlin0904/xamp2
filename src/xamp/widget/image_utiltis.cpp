@@ -17,7 +17,7 @@
 
 #include "thememanager.h"
 
-//#define USE_OPTIMIZE_PNG
+#define USE_OPTIMIZE_PNG
 
 #ifdef USE_OPTIMIZE_PNG
 #include <zopflipng_lib.h>
@@ -35,6 +35,12 @@ static void optimizePNG(const QString& dest_file_path, const std::vector<uint8_t
 
 	ZopfliPNGOptions png_options;
     png_options.use_zopfli = true;
+	png_options.lossy_8bit = true;
+	png_options.lossy_transparent = true;
+	png_options.num_iterations = 20;
+	png_options.num_iterations_large = 7;
+	png_options.auto_filter_strategy = false;
+	png_options.filter_strategies.push_back(kStrategyEntropy);
 
 	if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
 		throw PlatformSpecException();
@@ -213,7 +219,7 @@ int sampleImageBlur(const QImage& image, int blur_alpha) {
 }
 
 size_t getPixmapSize(const QPixmap& pixmap) {
-	return static_cast<size_t>(pixmap.width()) * pixmap.height() * pixmap.depth() / (8 * 1024);
+	return static_cast<size_t>(pixmap.width()) * pixmap.height() * pixmap.depth() / 8;
 }
 
 }

@@ -24,8 +24,8 @@ struct XAMP_BASE_API ReplayGain {
 struct XAMP_BASE_API TrackInfo final {
     TrackInfo() noexcept;
     uint32_t track;
-    uint32_t bitrate;
-    uint32_t samplerate;
+    uint32_t bit_rate;
+    uint32_t sample_rate;
     uint32_t year;
     uint64_t file_size;
     size_t parent_path_hash;
