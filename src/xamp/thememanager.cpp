@@ -199,6 +199,7 @@ QFont ThemeManager::loadFonts() {
     QList<QString> mono_fonts;
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
+    QList<QString> debug_fonts;
 
     setFontAwesomeIcons();
 
@@ -206,6 +207,7 @@ QFont ThemeManager::loadFonts() {
     installFileFonts(qTEXT("Roboto-Regular"), mono_fonts);
     installFileFonts(qTEXT("Poppins"), ui_fonts);
     installFileFonts(qTEXT("MiSans"), ui_fonts);
+    installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
@@ -216,6 +218,7 @@ QFont ThemeManager::loadFonts() {
         mono_fonts = ui_fonts;
     }
 
+    QFont::insertSubstitutions(qTEXT("DebugFont"), debug_fonts);
     QFont::insertSubstitutions(qTEXT("DisplayFont"), display_fonts);
     QFont::insertSubstitutions(qTEXT("FormatFont"), format_font);
     QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);

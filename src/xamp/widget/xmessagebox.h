@@ -48,6 +48,8 @@ public:
 
     void setText(const QString& text);
 
+    void setTextFont(const QFont& font);
+
     QAbstractButton* clickedButton() const;
 
     QAbstractButton* defaultButton();
@@ -62,7 +64,6 @@ public:
 
     static void showBug(const Exception& exception,
         const QString& title = kApplicationTitle,
-        bool enable_countdown = false,
         QWidget* parent = nullptr);
 
     static QDialogButtonBox::StandardButton showYesOrNo(const QString& text,

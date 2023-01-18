@@ -54,6 +54,8 @@ DatabaseProxy::DatabaseProxy(QObject* parent)
     : QObject(parent) {    
 }
 
+QMutex DatabaseProxy::mutex_;
+
 void DatabaseProxy::findAlbumCover(int32_t album_id, const std::wstring& album, const std::wstring& file_path, const CoverArtReader& reader) {
 	const auto cover_id = qDatabase.getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
@@ -125,16 +127,13 @@ void DatabaseProxy::addTrackInfo(const ForwardList<TrackInfo>& result,
 	}
 }
 
-void DatabaseProxy::insertTrackInfo(const ForwardList<TrackInfo>& result, int64_t dir_last_write_time, int32_t playlist_id, bool is_podcast_mode) {
+void DatabaseProxy::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
+    QMutexLocker locker(&mutex_);
+
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
-
-    if (dir_last_write_time == -1) {
-        dir_last_write_time = QDateTime::currentSecsSinceEpoch();
-    }
-
     try {
         qDatabase.transaction();
-        addTrackInfo(result, playlist_id, dir_last_write_time, is_podcast_mode);
+        addTrackInfo(result, playlist_id, QDateTime::currentSecsSinceEpoch(), is_podcast_mode);
         qDatabase.commit();
     } catch (std::exception const &e) {
         qDatabase.rollback();

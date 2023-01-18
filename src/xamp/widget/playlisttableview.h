@@ -109,7 +109,7 @@ signals:
 public slots:
 	void processDatabase(const ForwardList<PlayListEntity>& entities);
 
-	void processTrackInfo(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata);
+	void processTrackInfo(const ForwardList<TrackInfo>& entities);
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 

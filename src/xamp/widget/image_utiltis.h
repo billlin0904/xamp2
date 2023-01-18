@@ -36,6 +36,4 @@ bool optimizePNG(const QString& src_file_path, const QString& dest_file_path);
 
 bool optimizePNG(const QByteArray& buffer, const QString& dest_file_path);
 
-size_t getPixmapSize(const QPixmap &pixmap);
-
 }

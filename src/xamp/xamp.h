@@ -81,7 +81,7 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void processTrackInfo(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) const;
+	void processTrackInfo(const ForwardList<TrackInfo>&) const;
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 

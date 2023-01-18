@@ -38,6 +38,7 @@
 #include <wingdi.h>
 #include <Dbt.h>
 
+#include <base/google_siphash.h>
 #include <base/dll.h>
 
 typedef enum _WINDOWCOMPOSITIONATTRIB
@@ -701,7 +702,7 @@ std::string getRandomMutexName(const std::string& src_name) {
 	static constexpr auto kGoldenRatio = 0x9e3779b9;
 	s.w[0] = prng.NextInt32() * kGoldenRatio;
 	s.w[1] = prng.NextInt32() * kGoldenRatio;
-	s.q[1] = SipHash::GetHash(src_name, s.w[0], s.w[1]);
+	s.q[1] = GoogleSipHash<>::GetHash(src_name, s.w[0], s.w[1]);
 	return Uuid(s.b, s.b + 16);
 }
 
@@ -840,7 +841,7 @@ bool isRunning(const std::string& mutex_name) {
 		Uuid parsed_uuid;
 		if (Uuid::TryParseString(handle_mutex_uuid, parsed_uuid)) {
 			const auto* r = reinterpret_cast<const W128*>(parsed_uuid.GetBytes().data());
-			const auto hash = SipHash::GetHash(mutex_name, r->w[0], r->w[1]);
+			const auto hash = GoogleSipHash<>::GetHash(mutex_name, r->w[0], r->w[1]);
 			XAMP_LOG_DEBUG("Found GUID => {}, k0:{:#04x}, k1:{:#04x}, q:{:#04x}, hash:{:#04x}",
 				handle_mutex_uuid, static_cast<uint64_t>(r->w[0]), static_cast<uint64_t>(r->w[1]),
 				r->q[1], hash);

@@ -2,13 +2,10 @@
 
 #include <QPainter>
 #include <QBuffer>
-#include <QFile>
 #include <QGraphicsPixmapItem>
-#include <QImageReader>
 #include <QGraphicsBlurEffect>
 
 #include <widget/widget_shared.h>
-#include <widget/str_utilts.h>
 #include <widget/pixmapcache.h>
 
 #include <base/stopwatch.h>
@@ -216,10 +213,6 @@ int sampleImageBlur(const QImage& image, int blur_alpha) {
 
 	const auto addin = static_cast<int>(rgb_sum * blur_alpha / (255 * 3 * m * m));
 	return qMin(255, blur_alpha + addin);
-}
-
-size_t getPixmapSize(const QPixmap& pixmap) {
-	return static_cast<size_t>(pixmap.width()) * pixmap.height() * pixmap.depth() / 8;
 }
 
 }

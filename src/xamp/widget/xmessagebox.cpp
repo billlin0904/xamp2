@@ -89,6 +89,10 @@ XMessageBox::XMessageBox(const QString& title,
 	default_button_text_ = defaultButton()->text();
 }
 
+void XMessageBox::setTextFont(const QFont& font) {
+	message_text_label_->setFont(font);
+}
+
 void XMessageBox::setText(const QString& text) {
 	message_text_label_->setText(text);
 }
@@ -182,15 +186,15 @@ void XMessageBox::updateTimeout() {
 
 void XMessageBox::showBug(const Exception& exception,
 	const QString& title,
-	bool enable_countdown,
 	QWidget* parent) {
-	showButton(QString::fromStdString(exception.GetStackTrace()),
-		title,
-		enable_countdown,
-		qTheme.fontIcon(0xF188),
+	XMessageBox box(title, QString::fromStdString(exception.GetStackTrace()), 
+		parent, 
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,
-		parent);
+		false);
+	box.setIcon(qTheme.fontIcon(0xF188));
+	box.setTextFont(QFont(qTEXT("DebugFont")));
+	box.exec();
 }
 
 QDialogButtonBox::StandardButton XMessageBox::showYesOrNo(const QString& text,

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QObject>
+#include <QMutex>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
@@ -47,11 +48,10 @@ signals:
 
     void fromDatabase(const ForwardList<PlayListEntity>& entity);
 
-	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
+	void readCompleted(const ForwardList<TrackInfo> &entity);
 
 public:
     static void insertTrackInfo(const ForwardList<TrackInfo>& result, 
-        int64_t dir_last_write_time, 
         int32_t playlist_id, 
         bool is_podcast_mode);
 
@@ -62,5 +62,7 @@ private:
         int32_t playlist_id,
         int64_t dir_last_write_time,
         bool is_podcast);
+
+    static QMutex mutex_;
 };
 

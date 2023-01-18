@@ -128,7 +128,7 @@ public slots:
 
     void append(const QString& file_name);
 
-    void processTrackInfo(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata);
+    void processTrackInfo(const ForwardList<TrackInfo> & entities);
 
 	void showOperationMenu(const QPoint& pt);
 

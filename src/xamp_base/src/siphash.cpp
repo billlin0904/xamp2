@@ -1,3 +1,4 @@
+#ifdef XAMP_USE_BENCHMAKR
 #include <base/siphash.h>
 #include <base/platform.h>
 #include <base/math.h>
@@ -117,3 +118,4 @@ void SipHash::Finalize() {
 }
 
 }
+#endif

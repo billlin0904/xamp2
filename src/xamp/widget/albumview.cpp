@@ -155,28 +155,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    auto* album_cover = &qTheme.defaultSizeUnknownCover();
-
-#if 0
-    if (const auto* rounded_image = rounded_image_cache_.Find(cover_id)) {
-        painter->drawPixmap(cover_rect, *rounded_image);
-    } else {
-        if (const auto* cover_cache = qPixmapCache.find(cover_id)) {
-            album_cover = cover_cache;
-        }
-        auto album_image = ImageUtils::roundImage(*album_cover, ImageUtils::kSmallImageRadius);
-        if (!cover_id.isEmpty()) {
-            rounded_image_cache_.Add(cover_id, album_image);
-        }
-        painter->drawPixmap(cover_rect, album_image);
-    }
-#else
-    if (const auto* cover_cache = qPixmapCache.find(cover_id)) {
-        album_cover = cover_cache;
-    }
+    auto* album_cover = qPixmapCache.find(cover_id);
     auto album_image = ImageUtils::roundImage(*album_cover, ImageUtils::kSmallImageRadius);
     painter->drawPixmap(cover_rect, album_image);
-#endif
+
     bool hit_play_button = false;
     if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
@@ -634,7 +616,7 @@ void AlbumView::onReadFileEnd() {
     read_progress_dialog_.reset();
 }
 
-void AlbumView::processTrackInfo(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {
+void AlbumView::processTrackInfo(const ForwardList<TrackInfo>& ) {
     emit loadCompleted();
 }
 

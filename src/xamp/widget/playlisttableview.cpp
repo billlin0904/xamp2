@@ -162,6 +162,14 @@ public:
         case PLAYLIST_LAST_UPDATE_TIME:
             opt.text = formatTime(value.toULongLong());
             break;
+        case PLAYLIST_COVER_ID:
+	        {
+				opt.icon = QIcon(ImageUtils::roundImage(*qPixmapCache.find(value.toString()), QSize(32, 32)));
+				opt.features = QStyleOptionViewItem::HasDecoration;
+				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+				opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+	        }
+            break;
 		default:
             use_default_style = true;            
             break;
@@ -211,6 +219,7 @@ void PlayListTableView::executeQuery() {
     // 呼叫此函數就會更新index, 會導致playing index失效
     const QString s = qTEXT(R"(
     SELECT
+	albums.coverId,
     musics.musicId,
     playlistMusics.playing,
     musics.track,
@@ -225,8 +234,7 @@ void PlayListTableView::executeQuery() {
     musics.sample_rate,
     musics.rating,
     albumMusic.albumId,
-    albumMusic.artistId,
-    albums.coverId,
+    albumMusic.artistId,    
 	musics.fileExt,
     musics.parentPath,
     musics.dateTime,
@@ -311,7 +319,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PLAYLIST.ID"));
     model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FILE.EXT"));
     model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("PARENT.PATH"));
-    model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr("COVER.ID"));
+    model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ARTIST.ID"));
 
     auto column_list = AppSettings::getList(column_setting_name);
@@ -401,7 +409,7 @@ void PlayListTableView::initial() {
 
     verticalHeader()->setVisible(false);
     verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    verticalHeader()->setDefaultSectionSize(46);
+    verticalHeader()->setDefaultSectionSize(42);
 
     horizontalScrollBar()->setDisabled(true);
 
@@ -820,7 +828,7 @@ void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entit
     emit addPlaylistItemFinished();
 }
 
-void PlayListTableView::processTrackInfo(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) {
+void PlayListTableView::processTrackInfo(const ForwardList<TrackInfo>&) {
     executeQuery();
     emit addPlaylistItemFinished();
 }
@@ -908,6 +916,10 @@ void PlayListTableView::resizeColumn() {
             break;
         case PLAYLIST_ALBUM:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
+            break;
+        case PLAYLIST_COVER_ID:
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, 32);
             break;
         default:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

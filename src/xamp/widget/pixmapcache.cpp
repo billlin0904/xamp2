@@ -14,14 +14,15 @@
 #include <base/logger_impl.h>
 #include <base/str_utilts.h>
 
+#include <QStringList>
+#include <QPixmap>
 #include <QBuffer>
 #include <QImageWriter>
 #include <QDirIterator>
 #include <QImageReader>
-#include <QPixmap>
 
 inline constexpr size_t kDefaultCacheSize = 24;
-inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
+inline constexpr qint64 kMaxCacheImageSize = 10 * 1024 * 1024;
 inline constexpr auto kCacheFileExt = qTEXT(".png");
 
 XAMP_DECLARE_LOG_NAME(PixmapCache);
@@ -34,7 +35,7 @@ QStringList PixmapCache::cache_ext_ =
 
 PixmapCache::PixmapCache()
 	: logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName))
-	, cache_(kDefaultCacheSize) {
+	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = qTEXT("unknown_album");
 	cache_.Add(unknown_cover_id_, qTheme.unknownCover());
 	initCachePath();
@@ -80,7 +81,7 @@ QPixmap PixmapCache::findCoverInDir(const QString& file_path) {
 			return QPixmap::fromImage(image);
 		}
 	}
-	return QPixmap();
+	return {};
 }
 
 void PixmapCache::clearCache() {
@@ -114,6 +115,10 @@ QPixmap PixmapCache::fromFileCache(const QString& tag_id) const {
 		return QPixmap::fromImage(image);
 	}
 	return {};
+}
+
+QFileInfo PixmapCache::cacheFileInfo(const QString& tag_id) const {
+	return QFileInfo(cache_path_ + tag_id + kCacheFileExt);
 }
 
 QString PixmapCache::savePixamp(const QPixmap &cover) {
@@ -170,55 +175,36 @@ void PixmapCache::loadCache() const {
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
 		const auto path = itr.next();
-
-		const QFileInfo image_file_path(path);
-        if (i >= cache_.GetMaxSize()) {
-            XAMP_LOG_D(logger_, "Not load image cache: {}", image_file_path.baseName().toStdString());
-            continue;
-		}		
-
 		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
 		QImageReader reader(path);
 		if (reader.read(&image)) {
+			const QFileInfo image_file_path(path);
 			const auto tag_name = image_file_path.baseName();
 			cache_.AddOrUpdate(tag_name, QPixmap::fromImage(image));
-			XAMP_LOG_D(logger_, "PixmapCache add file name:{}", tag_name.toStdString());
+			XAMP_LOG_D(logger_, "Add tag:{} {}", tag_name.toStdString(), cache_);
 		}
 	}
 
-	XAMP_LOG_DEBUG("Cache count: {} {}secs total:{}",
+	XAMP_LOG_D(logger_, "Cache count: {} files, elapsed: {}secs, size: {}",
 		i,
 		sw.ElapsedSeconds(), 
 		String::FormatBytes(cacheSize()));
 }
 
-size_t PixmapCache::missRate() const {
-	if (cache_.GetHitCount() == 0) {
-		return 0;
-	}
-    return cache_.GetMissCount() * 100 / cache_.GetHitCount();
-}
-
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
-	if (tag_id.isEmpty()) {
-		return nullptr;
+	const auto* const cache = cache_.GetOrAdd(tag_id, [tag_id, this]() {
+		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());
+		return fromFileCache(tag_id);
+	});
+
+	if (!tag_id.isEmpty()) {
+		XAMP_LOG_D(logger_, "Find tag:{} {}", tag_id.toStdString(), cache_);
 	}
 
-	while (true) {
-		const auto* const cache = cache_.Find(tag_id);
-		if (!cache) {
-            XAMP_LOG_D(logger_, "Load file name:{} from disk, miss rate: {}%",
-                       tag_id.toStdString(),
-                       missRate());
-			auto read_cover = fromFileCache(tag_id);
-			if (read_cover.isNull()) {
-				return nullptr;
-			}
-			cache_.AddOrUpdate(tag_id, read_cover);
-			continue;
-		}
-		return cache;
+	if (cache->isNull()) {
+		return &qTheme.defaultSizeUnknownCover();
 	}
+	return cache;
 }
 
 QString PixmapCache::addOrUpdate(const QByteArray& data) {
@@ -232,17 +218,13 @@ void PixmapCache::addCache(const QString& tag_id, const QPixmap& cover) {
 }
 
 void PixmapCache::setMaxSize(size_t max_size) {
-    cache_.SetMaxSize(max_size);
-}
-
-bool PixmapCache::isExist(const QString& tag_id) const {
-	return cache_.Find(tag_id) != nullptr;
+    cache_.Resize(max_size);
 }
 
 size_t PixmapCache::cacheSize() const {
 	size_t size = 0;
 	for (auto const & [fst, snd] : cache_) {
-		size += ImageUtils::getPixmapSize(snd);
+		size += cacheFileInfo(fst).size();
 	}
 	return size;
 }

@@ -97,6 +97,13 @@ public:
         return v0_ ^ v1_ ^ v2_ ^ v3_;
     }
 
+
+    static uint64_t GetHash(const std::string& x, uint64_t k0, uint64_t k1) {
+        GoogleSipHash hasher(k0, k1);
+        hasher.Update(x);
+        return hasher.GetHash();
+    }
+
 private:
     XAMP_ALWAYS_INLINE void PaddedUpdate(size_t size, const char* remaining_bytes, const uint64_t remaining_size) noexcept {
         char final_packet[kPacketSize] = { 0 };

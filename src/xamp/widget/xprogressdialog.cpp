@@ -25,7 +25,7 @@ XProgressDialog::XProgressDialog(const QString& title,
 	message_text_label_->setAlignment(Qt::AlignCenter);
 	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
 	message_text_label_->setOpenExternalLinks(true);
-	message_text_label_->setFixedHeight(15);
+	message_text_label_->setFixedHeight(20);
 	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
 
 	default_button_->setText(cancel_text);
@@ -41,7 +41,6 @@ XProgressDialog::XProgressDialog(const QString& title,
 	layout_ = new QVBoxLayout(client_widget);
 	layout_->addWidget(message_text_label_);
 	layout_->addWidget(progress_bar_);
-	layout_->addWidget(line);
 	layout_->addLayout(horizontal_layout);
 	layout_->setSizeConstraint(QLayout::SetNoConstraint);
 	layout_->setSpacing(5);
@@ -49,8 +48,8 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	setContentWidget(client_widget);
 	setTitle(title);
-	setMaximumWidth(600);
-	setMinimumWidth(600);
+	setMaximumWidth(800);
+	setMinimumWidth(800);
 	size_ = size();
 }
 
@@ -67,7 +66,8 @@ void XProgressDialog::setValue(int value) {
 }
 
 void XProgressDialog::setLabelText(const QString& text) {
-	message_text_label_->setText(text);
+	QFontMetrics metrics(font());
+	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, 400));
 }
 
 bool XProgressDialog::wasCanceled() const {

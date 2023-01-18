@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include <QStringList>
-#include <QBuffer>
-#include <QPixmap>
+#include <QFileInfo>
+#include <QObject>
 
 #include <base/logger.h>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
+#include <widget/image_utiltis.h>
 
 #ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
 namespace std {
@@ -27,9 +27,10 @@ namespace std {
 }
 #endif
 
-struct PixampCacheKey {
-	size_t file_size;
-	QString tag_id;
+struct PixampCacheSizeOfPolicy {
+	int32_t operator()(const QString&, const QPixmap& image) {
+		return image.height() * image.width() * 4;
+	}
 };
 
 class PixmapCache final : public QObject {
@@ -53,8 +54,6 @@ public:
 
 	void erase(const QString& tag_id);
 
-	bool isExist(const QString& tag_id) const;
-
 	size_t cacheSize() const;
 
     void setMaxSize(size_t max_size);
@@ -66,8 +65,6 @@ public:
 	void clear();
 
 	void clearCache();
-
-    size_t missRate() const;
 
 	QString savePixamp(const QPixmap& cover);
 
@@ -87,13 +84,15 @@ private:
 
 	void initCachePath();
 
+	QFileInfo cacheFileInfo(const QString& tag_id) const;
+
 	static QStringList cover_ext_;
 	static QStringList cache_ext_;
 
 	QString unknown_cover_id_;
 	QString cache_path_;
 	LoggerPtr logger_;
-	mutable LruCache<QString, QPixmap> cache_;
+	mutable LruCache<QString, QPixmap, PixampCacheSizeOfPolicy> cache_;
 };
 
 #define qPixmapCache SharedSingleton<PixmapCache>::GetInstance()

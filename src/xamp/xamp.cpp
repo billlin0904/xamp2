@@ -964,7 +964,7 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(formatDuration(0));
 }
 
-void Xamp::processTrackInfo(int64_t /*dir_last_write_time*/, const ForwardList<TrackInfo>& /*track_infos*/) const {
+void Xamp::processTrackInfo(const ForwardList<TrackInfo>&) const {
     album_page_->album()->refreshOnece();
     playlist_page_->playlist()->executeQuery();
 }
@@ -1300,7 +1300,7 @@ void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInf
     qDatabase.removeAlbum(album_id);
 
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->processTrackInfo(QDateTime::currentSecsSinceEpoch(), track_infos);
+    cd_page_->playlistPage()->playlist()->processTrackInfo(track_infos);
     cd_page_->showPlaylistPage(true);
 }
 
