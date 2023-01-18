@@ -73,6 +73,7 @@ public:
         opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
         opt.font.setFamily(qTEXT("MonoFont"));
 
+#ifdef Q_OS_WIN
         QFont::Weight weight = QFont::Weight::DemiBold;
         switch (qTheme.themeColor()) {
         case ThemeColor::LIGHT_THEME:
@@ -83,18 +84,22 @@ public:
             break;
         }
         opt.font.setWeight(weight);
-
+#endif
         switch (index.column()) {
         case PLAYLIST_TITLE:
         case PLAYLIST_ALBUM:
             opt.font.setFamily(qTEXT("UIFont"));
+#ifdef Q_OS_WIN
             opt.font.setWeight(QFont::Weight::Medium);
+#endif
             opt.text = value.toString();
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
             break;
         case PLAYLIST_ARTIST:
             opt.font.setFamily(qTEXT("UIFont"));
+#ifdef Q_OS_WIN
             opt.font.setWeight(QFont::Weight::Medium);
+#endif
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = value.toString();
             break;
@@ -164,7 +169,7 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-				opt.icon = QIcon(ImageUtils::roundImage(*qPixmapCache.find(value.toString()), QSize(32, 32)));
+                opt.icon = QIcon(ImageUtils::roundImage(*qPixmapCache.find(value.toString()), QSize(32, 32)));
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 				opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
@@ -385,7 +390,11 @@ void PlayListTableView::initial() {
     setModel(proxy_model_);
 
     auto f = font();
+#ifdef Q_OS_WIN
     f.setWeight(QFont::Weight::Medium);
+#else
+    f.setWeight(QFont::Weight::Normal);
+#endif
     f.setPointSize(qTheme.fontSize());
     setFont(f);
 
@@ -919,7 +928,7 @@ void PlayListTableView::resizeColumn() {
             break;
         case PLAYLIST_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 32);
+            header->resizeSection(column, 42);
             break;
         default:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

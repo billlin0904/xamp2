@@ -228,6 +228,8 @@ QFont ThemeManager::loadFonts() {
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #ifdef Q_OS_WIN
     ui_font.setWeight(QFont::Weight::Medium);
+#else
+    ui_font.setWeight(QFont::Weight::Normal);
 #endif
     ui_font.setKerning(false);
 

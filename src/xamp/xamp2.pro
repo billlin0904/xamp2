@@ -33,8 +33,6 @@ OBJECTIVE_SOURCES += \
     widget/osx/osx.mm
 
 SOURCES += \
-    widget/tooltips.cpp \
-    widget/tooltipsfilter.cpp \
     widget/processindicator.cpp \
     widget/albumentity.cpp \
     widget/discordnotify.cpp \
@@ -78,7 +76,6 @@ SOURCES += \
     widget/str_utilts.cpp \
     widget/ui_utilts.cpp \
     widget/podcast_uiltis.cpp \
-    widget/stackblur.cpp \
     widget/spectrumwidget.cpp \
     widget/filesystemviewpage.cpp \
     widget/filesystemmodel.cpp \
@@ -90,18 +87,16 @@ SOURCES += \
     widget/volumecontroldialog.cpp \
     widget/spotify_utilis.cpp \
     singleinstanceapplication.cpp \
+    widget/zib_utiltis.cpp \
     version.cpp \
     cdpage.cpp \
     thememanager.cpp \
     aboutpage.cpp \
     preferencepage.cpp \
-    main.cpp \
-    widget/zib_utiltis.cpp \
+    main.cpp \    
     xamp.cpp
 
 HEADERS += \
-    widget/tooltips.h \
-    widget/tooltipsfilter.h \
     widget/processindicator.h \
     widget/albumentity.h \
     widget/discordnotify.h \
@@ -158,15 +153,15 @@ HEADERS += \
     widget/xmessagebox.h \
     widget/globalshortcut.h \
     widget/spotify_utilis.h \
+    widget/zib_utiltis.h \
+    widget/xprogressdialog.h \
+    widget/volumecontroldialog.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \
     thememanager.h \
     aboutpage.h \
-    preferencepage.h \
-    widget/zib_utiltis.h \
-    widget/xprogressdialog.h \
-    widget/volumecontroldialog.h \
+    preferencepage.h \    
     xamp.h \
     xampplayer.h
 

@@ -115,7 +115,7 @@ static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
     auto result = ::thread_policy_set(mach_thread,
                                       THREAD_AFFINITY_POLICY,
                                       reinterpret_cast<thread_policy_t>(&policy),
-                                      1);
+                                      THREAD_AFFINITY_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
         XAMP_LOG_DEBUG("thread_policy_set return failure.");
     }
