@@ -1495,6 +1495,7 @@ void Xamp::initialPlaylist() {
         }
         playlist_page_ = newPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         connectPlaylistPageSignal(playlist_page_);
+        playlist_page_->playlist()->headerViewHidden(true);
     }
 
     if (!podcast_page_) {
@@ -1504,6 +1505,7 @@ void Xamp::initialPlaylist() {
         }
         podcast_page_ = newPlaylistPage(playlist_id, kAppSettingPodcastPlaylistColumnName);
         podcast_page_->playlist()->setPodcastMode();
+        podcast_page_->playlist()->headerViewHidden(false);
         connectPlaylistPageSignal(podcast_page_);
     }
 
@@ -1514,6 +1516,7 @@ void Xamp::initialPlaylist() {
             playlist_id = qDatabase.addPlaylist(qEmptyString, 2);
         }
         file_system_view_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
+        file_system_view_page_->playlistPage()->playlist()->headerViewHidden(false);
         setCover(qEmptyString, file_system_view_page_->playlistPage());
         connectPlaylistPageSignal(file_system_view_page_->playlistPage());
     }
@@ -1525,6 +1528,7 @@ void Xamp::initialPlaylist() {
         }
         cd_page_ = new CdPage(this);
         cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
+        cd_page_->playlistPage()->playlist()->headerViewHidden(false);
         setCover(qEmptyString, cd_page_->playlistPage());
         connectPlaylistPageSignal(cd_page_->playlistPage());
     }

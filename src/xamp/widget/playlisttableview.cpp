@@ -378,6 +378,43 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     }
 }
 
+void PlayListTableView::headerViewHidden(bool enable) {
+	if (enable) {
+        horizontalHeader()->hide();
+        horizontalHeader()->setContextMenuPolicy(Qt::NoContextMenu);
+        return;
+	}
+
+    horizontalHeader()->show();
+    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
+        ActionMap<PlayListTableView> action_map(this);
+
+    auto* header_view = horizontalHeader();
+
+    auto last_referred_logical_column = header_view->logicalIndexAt(pt);
+    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
+        setColumnHidden(last_referred_logical_column, true);
+    AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
+        });
+    hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
+
+    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
+        ActionMap<PlayListTableView> action_map(this);
+    for (auto column = 0; column < header_view->count(); ++column) {
+        auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+        action_map.addAction(header_name, [this, column]() {
+            setColumnHidden(column, false);
+        AppSettings::addList(column_setting_name_, QString::number(column));
+            }, false, !isColumnHidden(column));
+    }
+    action_map.exec(pt);
+        });
+    select_column_show_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SHOW));
+    action_map.exec(pt);
+        });
+}
+
 void PlayListTableView::initial() {
     setStyleSheet(qTEXT("border : none;"));
 
@@ -462,34 +499,6 @@ void PlayListTableView::initial() {
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         playItem(index);
-    });
-
-    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
-        ActionMap<PlayListTableView> action_map(this);
-
-    auto* header_view = horizontalHeader();
-
-    auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
-        setColumnHidden(last_referred_logical_column, true);
-		AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
-    });
-    hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
-
-    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
-            ActionMap<PlayListTableView> action_map(this);
-            for (auto column = 0; column < header_view->count(); ++column) {
-                auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-                action_map.addAction(header_name, [this, column]() {
-                    setColumnHidden(column, false);
-					AppSettings::addList(column_setting_name_, QString::number(column));
-                }, false, !isColumnHidden(column));
-            }
-			action_map.exec(pt);
-        });
-		select_column_show_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SHOW));
-		action_map.exec(pt);
     });
 
     setContextMenuPolicy(Qt::CustomContextMenu);

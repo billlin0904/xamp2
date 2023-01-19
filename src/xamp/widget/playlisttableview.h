@@ -83,6 +83,8 @@ public:
 	QModelIndex hoverIndex() const {
 		return model()->index(hover_row_, hover_column_);
 	}
+
+	void headerViewHidden(bool enable);
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
