@@ -1,3 +1,4 @@
+#include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSpacerItem>
@@ -114,7 +115,7 @@ void PlaylistPage::initial() {
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
 		this,
-		&PlaylistPage::setCoverById);	
+		&PlaylistPage::setCoverById);
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
@@ -157,12 +158,8 @@ void PlaylistPage::setCover(const QPixmap * cover) {
 }
 
 void PlaylistPage::setCoverById(const QString& cover_id) {
-	const auto* cover = qPixmapCache.find(cover_id);
-	if (cover != nullptr) {
-		setCover(cover);
-	} else {
-		setCover(&qTheme.unknownCover());
-	}
+	const auto cover = qPixmapCache.find(cover_id);
+	setCover(&cover);
 }
 
 PlayListTableView* PlaylistPage::playlist() {

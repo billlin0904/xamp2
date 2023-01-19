@@ -169,7 +169,7 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-                opt.icon = QIcon(ImageUtils::roundImage(*qPixmapCache.find(value.toString()), QSize(32, 32)));
+                opt.icon = QIcon(ImageUtils::roundImage(qPixmapCache.find(value.toString()), QSize(32, 32)));
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 				opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QListView>
+#include <QPropertyAnimation>
 #include <QSqlQueryModel>
 #include <QStyledItemDelegate>
 #include <QPushButton>
@@ -142,9 +143,15 @@ public slots:
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
-	bool enable_page_{true};
+	void showPageAnimation();
+
+	void hidePageAnimation();
+
+	bool enable_page_{ true };
+	bool hide_page_{ false };
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
+	QPropertyAnimation* animation_;
 	QSqlQueryModel model_;
 	QSharedPointer<XProgressDialog> read_progress_dialog_;
 };

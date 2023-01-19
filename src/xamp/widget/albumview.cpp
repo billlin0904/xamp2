@@ -7,9 +7,6 @@
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
 #include <widget/playlistpage.h>
-
-#include "thememanager.h"
-
 #include <widget/appsettingnames.h>
 #include <widget/xmessagebox.h>
 #include <widget/processindicator.h>
@@ -19,6 +16,9 @@
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 
+#include "thememanager.h"
+
+#include <QGraphicsOpacityEffect>
 #include <QPainter>
 #include <QScrollBar>
 #include <QVBoxLayout>
@@ -26,9 +26,7 @@
 #include <QClipboard>
 #include <QStandardPaths>
 #include <QFileDialog>
-#include <QSqlQuery>
 #include <QPainterPath>
-#include <QProgressDialog>
 #include <QApplication>
 
 enum {
@@ -155,8 +153,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    auto* album_cover = qPixmapCache.find(cover_id);
-    auto album_image = ImageUtils::roundImage(*album_cover, ImageUtils::kSmallImageRadius);
+    auto album_cover = qPixmapCache.find(cover_id);
+    auto album_image = ImageUtils::roundImage(album_cover, ImageUtils::kSmallImageRadius);
     painter->drawPixmap(cover_rect, album_image);
 
     bool hit_play_button = false;
@@ -261,12 +259,15 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setStretch(1, 1);
 
     (void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
-        hide();
         emit leaveAlbumView();
-        });
+    });
+
     setStyleSheet(qTEXT("QFrame#albumViewPage { background-color: transparent; }"));
     page_->playlist()->disableDelete();
     page_->playlist()->disableLoadFile();
+
+    auto * fade_effect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(fade_effect);
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
@@ -352,6 +353,7 @@ AlbumView::AlbumView(QWidget* parent)
         page_->move(QPoint(list_view_rect.x() + 3, 0));
 
         if (enable_page_) {
+            showPageAnimation();
             page_->show();
         }
 
@@ -361,6 +363,7 @@ AlbumView::AlbumView(QWidget* parent)
 
     (void)QObject::connect(page_, &AlbumViewPage::leaveAlbumView, [this]() {
         verticalScrollBar()->show();
+		hidePageAnimation();
         });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -374,7 +377,35 @@ AlbumView::AlbumView(QWidget* parent)
         "QScrollBar:vertical { width: 6px; }"
     ));
 
+    auto * fade_effect = page_->graphicsEffect();
+    animation_ = new QPropertyAnimation(fade_effect, "opacity");
+    QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
+        if (hide_page_) {
+            page_->hide();
+        }
+    });
+
     update();
+}
+
+void AlbumView::hidePageAnimation() {
+    constexpr auto durationMs = 100;
+    animation_->setStartValue(1.0);
+    animation_->setEndValue(0.0);
+    animation_->setDuration(durationMs);
+    animation_->setEasingCurve(QEasingCurve::OutCubic);
+    animation_->start();
+    hide_page_ = true;
+}
+
+void AlbumView::showPageAnimation() {
+    constexpr auto durationMs = 100;
+    animation_->setStartValue(0.01);
+    animation_->setEndValue(1.0);
+    animation_->setDuration(durationMs);
+    animation_->setEasingCurve(QEasingCurve::OutCubic);
+    animation_->start();
+    hide_page_ = false;
 }
 
 void AlbumView::setPlayingAlbumId(int32_t album_id) {

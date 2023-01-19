@@ -46,19 +46,9 @@ public:
 
     void AddOrUpdate(Key const& key, Value value);
 
-    Value const* GetOrAdd(Key const& key, std::function<Value()> &&value_factory);
+    Value GetOrAdd(Key const& key, std::function<Value()> &&value_factory);
 
     bool Add(Key const& key, Value value);
-
-    Value const* Find(Key const& key) const;
-
-    KeyIterator begin() noexcept {
-        return keys_.begin();
-    }
-
-    KeyIterator end() noexcept {
-        return keys_.end();
-    }
 
     int32_t GetMissCount() const noexcept;
 
@@ -72,6 +62,16 @@ public:
 
     int32_t GetMaxSize() const noexcept;
 
+    KeyIterator begin() noexcept {
+        return keys_.begin();
+    }
+
+    KeyIterator end() noexcept {
+        return keys_.end();
+    }
+
+    void Evict(int32_t max_size);
+
 private:
     friend std::ostream& operator<< (std::ostream& ostr, const LruCache& cache) {
         auto hit_count = cache.GetHitCount();
@@ -83,8 +83,6 @@ private:
         ostr << "LruCache[size=" << size << ",hits=" << hit_count << ",miss=" << miss_count << ",hit-rate=" << hit_percent << "%]";
         return ostr;
     }
-
-    void Evict(int32_t max_size);
 
     int32_t size_;
     int32_t max_size_;
@@ -160,32 +158,30 @@ template
     typename KeyList,
     typename SharedMutex
 >
-Value const* LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key const& key, std::function<Value()>&& value_factory) {
+Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key const& key, std::function<Value()>&& value_factory) {
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
         const auto check = cache_.find(key);
         if (check != cache_.end()) {
             ++hit_count_;
             keys_.splice(keys_.begin(), keys_, check->second);
-            return &check->second->second;
+            return check->second->second;
         }
         ++miss_count_;
     }
 
     auto value = value_factory();
-    Value const* result = nullptr;
-
+  
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
         size_ += policy_(key, value);
-        keys_.emplace_front(key, std::move(value));
+        keys_.emplace_front(key, value);
         cache_[key] = keys_.begin();
-        result = &keys_.begin()->second;
     }
 
     Evict(max_size_);
 
-    return result;
+    return value;
 }
 
 template
@@ -212,28 +208,6 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key c
     }
 
     Evict(max_size_);
-}
-
-template
-<
-    typename Key,
-    typename Value,
-    typename SizeOfPolicy,
-    typename KeyList,
-    typename SharedMutex
->
-Value const* LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Find(Key const& key) const {
-    std::unique_lock<SharedMutex> write_lock(mutex_);
-
-    const auto check = cache_.find(key);
-    if (check == cache_.end()) {
-        ++miss_count_;
-        return nullptr;
-    }
-
-    ++hit_count_;
-    keys_.splice(keys_.begin(), keys_, check->second);
-    return &check->second->second;
 }
 
 template

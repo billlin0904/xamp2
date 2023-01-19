@@ -103,7 +103,7 @@ void Database::open() {
     (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
-    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 5000"));
+    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 500"));
 
     XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.", connection_name_.toStdString(), getVersion().toStdString());
 

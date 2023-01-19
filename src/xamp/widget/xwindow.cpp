@@ -718,8 +718,11 @@ void XWindow::updateScreenNumber() {
     XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
 }
 
-#ifdef Q_OS_WIN32
 void XWindow::showEvent(QShowEvent* event) {
+#ifdef Q_OS_WIN32
     taskbar_->showEvent();
-}
 #endif
+    setAttribute(Qt::WA_Mapped);
+    QFrame::showEvent(event);
+}
+

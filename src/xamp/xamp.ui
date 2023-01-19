@@ -851,6 +851,12 @@
            <property name="text">
             <string/>
            </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
           </widget>
          </item>
          <item>
@@ -869,6 +875,12 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -889,6 +901,12 @@
            <property name="text">
             <string/>
            </property>
+           <property name="iconSize">
+            <size>
+             <width>48</width>
+             <height>48</height>
+            </size>
+           </property>
           </widget>
          </item>
          <item>
@@ -907,6 +925,12 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -927,10 +951,22 @@
            <property name="text">
             <string/>
            </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QToolButton" name="repeatButton">
+           <property name="minimumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>24</width>
@@ -939,6 +975,12 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
            </property>
           </widget>
          </item>

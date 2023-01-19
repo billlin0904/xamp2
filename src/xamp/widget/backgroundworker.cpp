@@ -84,7 +84,6 @@ static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
         });
     });
 
-    const DirectoryEntry dir_entry(dir.toStdWString());
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
 		DatabaseProxy::insertTrackInfo(album_tracks.second, playlist_id, is_podcast_mode);
 		emit adapter->readCompleted(album_tracks.second);
@@ -285,7 +284,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
         track_infos.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
-            });
+        });
 
         emit updateCdMetadata(QString::fromStdString(disc_id), track_infos);
     }
@@ -303,7 +302,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
         mb_disc_id_info.disc_id = disc_id;
         mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
-            });
+        });
 
         emit updateMbDiscInfo(mb_disc_id_info);
 

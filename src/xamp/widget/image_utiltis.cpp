@@ -14,7 +14,7 @@
 
 #include "thememanager.h"
 
-#define USE_OPTIMIZE_PNG
+//#define USE_OPTIMIZE_PNG
 
 #ifdef USE_OPTIMIZE_PNG
 #include <zopflipng_lib.h>
@@ -68,11 +68,8 @@ bool optimizePNG(const QByteArray& buffer, const QString& dest_file_path) {
 	optimizePNG(dest_file_path, original_png, result_png);
 	return true;
 #else
-	QPixmap pixmap;
-	if (pixmap.loadFromData(buffer)) {
-		return pixmap.save(dest_file_path, PixmapCache::kCacheFileFormat, 100);
-	}
-	return false;
+	const auto image = QImage::fromData(buffer);
+	return image.save(dest_file_path, PixmapCache::kCacheFileFormat, 100);
 #endif
 }
 

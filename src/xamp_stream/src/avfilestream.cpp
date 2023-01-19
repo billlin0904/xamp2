@@ -62,6 +62,9 @@ public:
             throw NotSupportFormatException();
         }
 
+        format_context->probesize = 50000;
+        format_context->max_analyze_duration = 5 * AV_TIME_BASE;
+
         if (LIBAV_LIB.FormatLib->avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
             throw NotSupportFormatException();
         }

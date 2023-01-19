@@ -15,10 +15,6 @@
 #include <base/logger_impl.h>
 #include <base/volume.h>
 
-#ifdef XAMP_OS_WIN
-#include <stream/mfaacencoder.h>
-#endif
-
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/idspmanager.h>
@@ -62,6 +58,7 @@
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
+#include <stream/mfaacencoder.h>
 #endif
 
 #include "cdpage.h"
@@ -139,8 +136,6 @@ Xamp::~Xamp() {
 }
 
 void Xamp::setXWindow(IXWindow* top_window) {
-    //qPixmapCache.optimizeImageInDir(qTEXT("C:\\Users\\rdbill0452\\Documents\\Github\\xamp2\\src\\xamp\\Resource\\Flags\\"));
-
     top_window_ = top_window;
     background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
@@ -1212,7 +1207,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     lrc_page_->spectrum()->reset();
 	
     if (open_done) {
-        ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
+        ui_.seekSlider->setRange(0, Round(player_->GetDuration()) - 1);
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(formatDuration(0));
         ui_.endPosLabel->setText(formatDuration(player_->GetDuration()));
@@ -1320,13 +1315,12 @@ void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
     auto found_cover = !current_entity_.cover_id.isEmpty();
 
     if (cover_id != qPixmapCache.getUnknownCoverId()) {
-        const auto* cover = qPixmapCache.find(cover_id);
-        found_cover = cover != nullptr;
-        if (cover != nullptr) {
-            setPlaylistPageCover(cover, page);
-            emit addBlurImage(cover_id, cover->copy(), size());
-        }
-        else if (lrc_page_ != nullptr) {
+        const auto cover = qPixmapCache.find(cover_id);
+        found_cover = true;
+        setPlaylistPageCover(&cover, page);
+        emit addBlurImage(cover_id, cover.copy(), size());
+
+    	if (lrc_page_ != nullptr) {
             lrc_page_->clearBackground();
         }
     }

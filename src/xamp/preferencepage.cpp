@@ -234,8 +234,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());*/
 
-	update();
-
 	initSoxResampler();
 	initR8BrainResampler();
 	initPcm2Dsd();

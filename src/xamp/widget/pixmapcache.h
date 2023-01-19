@@ -33,6 +33,8 @@ struct PixampCacheSizeOfPolicy {
 	}
 };
 
+class QTimerEvent;
+
 class PixmapCache final : public QObject {
 	Q_OBJECT
 public:
@@ -44,7 +46,7 @@ public:
 
 	static QPixmap findCoverInDir(const PlayListEntity& item);
 
-    const QPixmap* find(const QString& tag_id) const;
+    QPixmap find(const QString& tag_id) const;
 
     QPixmap fromFileCache(const QString& tag_id) const;
 
@@ -76,10 +78,15 @@ public:
 signals:
 	void processImage(const QString & file_path, const QByteArray& buffer, const QString& tag_name);
 
+public slots:
+	
+
 protected:
 	PixmapCache();
 
 private:
+	void timerEvent(QTimerEvent*) override;
+
 	void loadCache() const;
 
 	void initCachePath();
@@ -89,6 +96,7 @@ private:
 	static QStringList cover_ext_;
 	static QStringList cache_ext_;
 
+	int32_t trim_target_size_;
 	QString unknown_cover_id_;
 	QString cache_path_;
 	LoggerPtr logger_;

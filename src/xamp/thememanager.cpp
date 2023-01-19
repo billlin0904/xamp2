@@ -797,7 +797,7 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
         height: 2px;
         border-radius: 2px;
         padding-left: -1px;
-        padding-right: -5px;
+        padding-right: 1px;
     }
 
     QSlider#%1::sub-page:horizontal {
@@ -829,13 +829,7 @@ void ThemeManager::setSliderTheme(QSlider* slider) {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
-    ui.playButton->setIconSize(QSize(32, 32));
     ui.selectDeviceButton->setIconSize(QSize(32, 32));
-    ui.mutedButton->setIconSize(QSize(24, 24));
-
-    ui.nextButton->setIconSize(QSize(24, 24));
-    ui.prevButton->setIconSize(QSize(24, 24));
-    ui.stopButton->setIconSize(QSize(24, 24));
 
     QString slider_border_color;
     QString slider_background_color;

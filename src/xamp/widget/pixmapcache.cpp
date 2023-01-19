@@ -40,6 +40,8 @@ PixmapCache::PixmapCache()
 	cache_.Add(unknown_cover_id_, qTheme.unknownCover());
 	initCachePath();
 	loadCache();
+	startTimer(10000);
+	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 }
 
 void PixmapCache::initCachePath() {
@@ -191,8 +193,8 @@ void PixmapCache::loadCache() const {
 		String::FormatBytes(cacheSize()));
 }
 
-const QPixmap* PixmapCache::find(const QString& tag_id) const {
-	const auto* const cache = cache_.GetOrAdd(tag_id, [tag_id, this]() {
+QPixmap PixmapCache::find(const QString& tag_id) const {
+	const auto cover = cache_.GetOrAdd(tag_id, [tag_id, this]() {
 		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());
 		return fromFileCache(tag_id);
 	});
@@ -201,10 +203,10 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 		XAMP_LOG_D(logger_, "Find tag:{} {}", tag_id.toStdString(), cache_);
 	}
 
-	if (cache->isNull()) {
-		return &qTheme.defaultSizeUnknownCover();
+	if (cover.isNull()) {
+		return qTheme.defaultSizeUnknownCover();
 	}
-	return cache;
+	return cover;
 }
 
 QString PixmapCache::addOrUpdate(const QByteArray& data) {
@@ -227,4 +229,12 @@ size_t PixmapCache::cacheSize() const {
 		size += cacheFileInfo(fst).size();
 	}
 	return size;
+}
+
+void PixmapCache::timerEvent(QTimerEvent* ) {
+	if (cache_.GetSize() > trim_target_size_) {
+		cache_.Evict(trim_target_size_);
+	}
+	XAMP_LOG_D(logger_, "Trim target-cache-size: {}, {}", 
+		String::FormatBytes(trim_target_size_), cache_);
 }
