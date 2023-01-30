@@ -18,6 +18,7 @@ namespace win32 {
 #endif
 
 class XWindow final : public IXWindow {
+    Q_OBJECT
 public:
     XWindow();
 
@@ -88,6 +89,8 @@ private:
 
     void focusOutEvent(QFocusEvent* event) override;
 
+    void showEvent(QShowEvent* event) override;
+
     void updateScreenNumber();
 
     QPoint last_pos_;
@@ -95,8 +98,6 @@ private:
     uint32_t screen_number_;
 
 #if defined(Q_OS_WIN)
-	void showEvent(QShowEvent* event) override;
-
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QMap<QString, DriveInfo> exist_drives_;

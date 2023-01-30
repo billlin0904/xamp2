@@ -113,7 +113,9 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
 }
 
 // QScopedPointer require default destructor.
-XWindow::~XWindow() = default;
+XWindow::~XWindow() {
+    XAMP_LOG_DEBUG("XWindow destory!");
+}
 
 #if defined(Q_OS_WIN)
 // Ref : https://github.com/melak47/BorderlessWindow

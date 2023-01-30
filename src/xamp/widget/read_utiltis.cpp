@@ -97,8 +97,8 @@ void encodeFile(AnyMap const& config,
 	std::function<bool(uint32_t)> const& progress,
 	TrackInfo const& track_info) {
 	const auto file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
-	const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
-	const auto command = config.AsPath(FileEncoderConfig::kCommand);
+    const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+    const auto command = config.Get<std::wstring>(FileEncoderConfig::kCommand);
     AnyMap copy_config = config;
 	ExceptedFile excepted(output_file_path);
 	if (excepted.Try([&](auto const& dest_file_path) {

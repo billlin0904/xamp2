@@ -99,7 +99,8 @@ void Database::open() {
     (void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));
     (void)db_.exec(qTEXT("PRAGMA auto_vacuum = OFF"));
     (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
-    (void)db_.exec(qTEXT("PRAGMA journal_mode = MEMORY"));
+    //(void)db_.exec(qTEXT("PRAGMA journal_mode = MEMORY"));
+    (void)db_.exec(qTEXT("PRAGMA journal_mode = WAL"));
     (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));

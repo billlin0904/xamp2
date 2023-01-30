@@ -10,6 +10,7 @@
 #include <widget/widget_shared.h>
 #include <thememanager.h>
 
+class XWindow;
 class XProgressDialog;
 class ProcessIndicator;
 
@@ -39,3 +40,5 @@ void centerDesktop(QWidget* widget);
 void centerParent(QWidget* widget);
 
 void centerTarget(QWidget* source_widget, const QWidget* target_widget);
+
+XWindow* getMainWindow();

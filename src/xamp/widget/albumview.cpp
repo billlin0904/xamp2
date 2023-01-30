@@ -389,20 +389,18 @@ AlbumView::AlbumView(QWidget* parent)
 }
 
 void AlbumView::hidePageAnimation() {
-    constexpr auto durationMs = 100;
     animation_->setStartValue(1.0);
     animation_->setEndValue(0.0);
-    animation_->setDuration(durationMs);
+    animation_->setDuration(kPageAnimationDurationMs);
     animation_->setEasingCurve(QEasingCurve::OutCubic);
     animation_->start();
     hide_page_ = true;
 }
 
 void AlbumView::showPageAnimation() {
-    constexpr auto durationMs = 100;
     animation_->setStartValue(0.01);
     animation_->setEndValue(1.0);
-    animation_->setDuration(durationMs);
+    animation_->setDuration(kPageAnimationDurationMs);
     animation_->setEasingCurve(QEasingCurve::OutCubic);
     animation_->start();
     hide_page_ = false;

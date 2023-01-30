@@ -1,6 +1,7 @@
 #include <widget/xmessagebox.h>
 
 #include <widget/widget_shared.h>
+#include <widget/xwindow.h>
 #include <widget/ui_utilts.h>
 
 #include <QApplication>
@@ -217,8 +218,13 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
 	QScopedPointer<MaskWidget> mask_widget;
-	if (!parent) {
-		parent = qApp->activeWindow();
+    if (!parent) {
+        Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
+            parent = qobject_cast<XWindow*>(w);
+            if (parent != nullptr) {
+                break;
+            }
+        }
 	}
 	if (parent != nullptr) {
 		parent->setFocus();
@@ -319,12 +325,17 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBox(con
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	if (!parent) {
-		parent = qApp->activeWindow();
-	}
-	if (parent != nullptr) {
-		parent->setFocus();
-	}
+    if (!parent) {
+        Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
+            parent = qobject_cast<XWindow*>(w);
+            if (parent != nullptr) {
+                break;
+            }
+        }
+    }
+    if (parent != nullptr) {
+        parent->setFocus();
+    }
 	QScopedPointer<MaskWidget> mask_widget(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
 	box.setIcon(icon);

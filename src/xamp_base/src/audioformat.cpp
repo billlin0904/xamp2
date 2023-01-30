@@ -49,7 +49,8 @@ std::string AudioFormat::ToString() const {
 
 std::string AudioFormat::ToShortString() const {
 	std::ostringstream ostr;
-	ostr << GetBitsPerSample() << "bit/";
+
+    ostr << GetChannels() << "Ch/" <<  GetBitsPerSample() << "bit/";
 
 	if (GetSampleRate() % 1000 > 0) {
 		ostr << std::fixed << std::setprecision(1) << static_cast<float>(GetSampleRate()) / 1000.0f << " Khz";

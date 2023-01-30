@@ -14,7 +14,7 @@ public:
     void Start(const AnyMap& config) {
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
-        const auto command = config.AsPath(FileEncoderConfig::kCommand);
+        const auto command = config.Get<std::wstring>(FileEncoderConfig::kCommand);
 
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
@@ -33,7 +33,7 @@ public:
         }
 
 #ifdef XAMP_OS_MAC
-        auto utf8_command = String::ToString(command.wstring());
+        auto utf8_command = String::ToString(command);
         auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
         encoder_.reset(BASS.FLACEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
                                                       utf8_command.c_str(),

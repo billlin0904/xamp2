@@ -49,7 +49,6 @@ SOURCES += \
     widget/clickablelabel.cpp \
     widget/database.cpp \
     widget/qetag.cpp \
-    widget/xwindow.cpp \
     widget/lrcpage.cpp \
     widget/lrcparser.cpp \
     widget/metadataextractadapter.cpp \
@@ -86,6 +85,7 @@ SOURCES += \
     widget/xprogressdialog.cpp \
     widget/volumecontroldialog.cpp \
     widget/spotify_utilis.cpp \
+    widget/xwindow.cpp \
     singleinstanceapplication.cpp \
     widget/zib_utiltis.cpp \
     version.cpp \
@@ -142,7 +142,6 @@ HEADERS += \
     widget/xframe.h \
     widget/read_utiltis.h \
     widget/backgroundworker.h \
-    widget/stackblur.h \
     widget/spectrumwidget.h \
     widget/smoothcurvegenerator2.h \
     widget/filesystemviewpage.h \
@@ -155,6 +154,7 @@ HEADERS += \
     widget/spotify_utilis.h \
     widget/zib_utiltis.h \
     widget/xprogressdialog.h \
+    widget/xwindow.h \
     widget/volumecontroldialog.h \
     version.h \
     singleinstanceapplication.h \

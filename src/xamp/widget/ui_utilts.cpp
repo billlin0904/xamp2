@@ -1,10 +1,13 @@
 #include <QDesktopWidget>
 #include <QProgressBar>
-#include <qcoreapplication.h>
+#include <QCoreApplication>
 #include <QApplication>
+
+#include <base/assert.h>
 
 #include <widget/xprogressdialog.h>
 #include <widget/processindicator.h>
+#include <widget/xwindow.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 
@@ -122,4 +125,16 @@ void centerTarget(QWidget* source_widget, const QWidget* target_widget) {
     center_pos = source_widget->mapFromGlobal(center_pos);
     center_pos = source_widget->mapToParent(center_pos);
     source_widget->move(center_pos);
+}
+
+XWindow* getMainWindow() {
+    XWindow* main_window = nullptr;
+    Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
+        main_window = qobject_cast<XWindow*>(w);
+        if (main_window != nullptr) {
+            break;
+        }
+    }
+    XAMP_ENSURES(main_window != nullptr);
+    return main_window;
 }

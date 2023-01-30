@@ -351,7 +351,6 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_YEAR,
             PLAYLIST_ALBUM_ID,
             PLAYLIST_ARTIST_ID,
-            PLAYLIST_COVER_ID,
             PLAYLIST_FILE_EXT,
             PLAYLIST_FILE_PARENT_PATH,
             PLAYLIST_PLAYLIST_MUSIC_ID
@@ -380,12 +379,14 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
 void PlayListTableView::headerViewHidden(bool enable) {
 	if (enable) {
+        setColumnHidden(PLAYLIST_COVER_ID, false);
         horizontalHeader()->hide();
         horizontalHeader()->setContextMenuPolicy(Qt::NoContextMenu);
         return;
 	}
 
     horizontalHeader()->show();
+    setColumnHidden(PLAYLIST_COVER_ID, true);
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlayListTableView> action_map(this);
@@ -567,7 +568,7 @@ void PlayListTableView::initial() {
 
                 const auto button = XMessageBox::showYesOrNo(tr("Remove all items?"));
                 if (button == QDialogButtonBox::Yes) {
-                    qDatabase.removePlaylistAllMusic(playlistId());
+                    IGNORE_DB_EXCEPTION(qDatabase.removePlaylistAllMusic(playlistId()))
                     executeQuery();
                     removePlaying();
                 }
@@ -590,7 +591,8 @@ void PlayListTableView::initial() {
             auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
 
             for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
-                if (profile.num_channels != AudioFormat::kMaxChannel) {
+                if (profile.num_channels != AudioFormat::kMaxChannel
+                    && profile.bitrate < (128 * 1024)) {
                     continue;
                 }
 
@@ -906,7 +908,6 @@ void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& /*
 }
 
 void PlayListTableView::resizeColumn() {
-    constexpr auto kMaxStretchedSize = 500;
 	auto* header = horizontalHeader();
     auto not_hide_column = 0;
 
@@ -1045,7 +1046,7 @@ void PlayListTableView::removePlaying() {
 }
 
 void PlayListTableView::removeAll() {
-    CATCH_DB_EXCEPTION(qDatabase.removePlaylistAllMusic(playlistId()))
+    IGNORE_DB_EXCEPTION(qDatabase.removePlaylistAllMusic(playlistId()))
     reload();
 }
 

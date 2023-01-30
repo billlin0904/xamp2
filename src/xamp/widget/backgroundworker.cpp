@@ -95,7 +95,9 @@ BackgroundWorker::BackgroundWorker() {
     logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
 
-BackgroundWorker::~BackgroundWorker() = default;
+BackgroundWorker::~BackgroundWorker() {
+    XAMP_LOG_DEBUG("BackgroundWorker destory!");
+}
 
 void BackgroundWorker::stopThreadPool() {
     is_stop_ = true;

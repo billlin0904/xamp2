@@ -13,6 +13,7 @@
 inline constexpr auto kRestartExistCode = -2;
 
 class IXWindow : public QFrame {
+    Q_OBJECT
 public:
     virtual ~IXWindow() override = default;
 

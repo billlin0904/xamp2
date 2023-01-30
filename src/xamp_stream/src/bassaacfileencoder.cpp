@@ -136,6 +136,7 @@ public:
                     profile.bit_per_sample = 16;
                     profile.sample_rate = samplerate;
                     profile.bitrate = bitrate / 1000;
+                    profile.num_channels = 2;
                     profiles_.push_back(profile);
                 }
             }

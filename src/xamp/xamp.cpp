@@ -131,9 +131,7 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
     ui_.setupUi(this);
 }
 
-Xamp::~Xamp() {
-    cleanup();  
-}
+Xamp::~Xamp() = default;
 
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
@@ -259,7 +257,7 @@ void Xamp::focusOut() {
     qTheme.updateTitlebarState(ui_.titleFrame, false);
 }
 
-void Xamp::closeEvent(QCloseEvent* event) {
+void Xamp::closeEvent(QCloseEvent*) {
     cleanup();
     window()->close();
 }
@@ -268,18 +266,24 @@ void Xamp::cleanup() {
     if (player_ != nullptr) {
         player_->Destroy();
         player_.reset();
+        XAMP_LOG_DEBUG("Player destroy!");
     }
 
     if (!background_thread_.isFinished()) {
         if (background_worker_ != nullptr) {
             background_worker_->stopThreadPool();
-        }       
+        }
+        background_thread_.requestInterruption();
         background_thread_.quit();
         background_thread_.wait();
+        XAMP_LOG_DEBUG("background_thread stop!");
     }
+
     if (top_window_ != nullptr) {
         top_window_->saveGeometry();
     }
+
+    XAMP_LOG_DEBUG("Xamp cleanup!");
 }
 
 void Xamp::initialUI() {
@@ -681,7 +685,6 @@ void Xamp::initialController() {
     }    
 #endif
 
-    auto* about_action = new QAction(tr("About"), this);
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(formatDuration(0));
     ui_.endPosLabel->setText(formatDuration(0));
@@ -1495,7 +1498,7 @@ void Xamp::initialPlaylist() {
         }
         playlist_page_ = newPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         connectPlaylistPageSignal(playlist_page_);
-        playlist_page_->playlist()->headerViewHidden(true);
+        playlist_page_->playlist()->headerViewHidden(false);
     }
 
     if (!podcast_page_) {

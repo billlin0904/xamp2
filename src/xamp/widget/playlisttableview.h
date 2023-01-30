@@ -24,6 +24,8 @@ class PlayListTableFilterProxyModel;
 class PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
+    static constexpr auto kMaxStretchedSize = 500;
+
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
 	virtual ~PlayListTableView() override;

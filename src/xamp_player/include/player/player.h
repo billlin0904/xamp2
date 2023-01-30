@@ -26,7 +26,7 @@ namespace xamp::player {
 
 	class IAudioPlayer;	
 	class IPlaybackStateAdapter;
-	class ReplayGainScanner;
+    class Ebur128Reader;
 	class MBDiscId;
 }
 

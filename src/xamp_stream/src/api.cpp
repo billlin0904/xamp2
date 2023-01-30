@@ -65,6 +65,7 @@ AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode) {
     default: ;
     }
     return MakeAlign<FileStream, AvFileStream>();
+    //return MakeAlign<FileStream, BassFileStream>();
 }
 
 AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
@@ -146,14 +147,14 @@ void LoadBassLib() {
     BASS.FxLib = MakeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
-#else
-    BASS.CAEncLib = MakeAlign<BassCAEncLib>();
-#endif
     try {
         BASS.EncLib = MakeAlign<BassEncLib>();
     }  catch (const Exception &e) {
         XAMP_LOG_DEBUG("Load EncLib error: {}", e.what());
     }
+#else
+    BASS.CAEncLib = MakeAlign<BassCAEncLib>();
+#endif
     BASS.FLACEncLib = MakeAlign<BassFLACEncLib>();
     BASS.LoadVersionInfo();
     for (const auto& info : BASS.GetVersions()) {

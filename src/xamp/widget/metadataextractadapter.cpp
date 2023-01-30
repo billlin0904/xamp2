@@ -54,8 +54,6 @@ DatabaseProxy::DatabaseProxy(QObject* parent)
     : QObject(parent) {    
 }
 
-QMutex DatabaseProxy::mutex_;
-
 void DatabaseProxy::findAlbumCover(int32_t album_id, const std::wstring& album, const std::wstring& file_path, const CoverArtReader& reader) {
 	const auto cover_id = qDatabase.getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
@@ -128,8 +126,6 @@ void DatabaseProxy::addTrackInfo(const ForwardList<TrackInfo>& result,
 }
 
 void DatabaseProxy::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
-    QMutexLocker locker(&mutex_);
-
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
     try {
         qDatabase.transaction();

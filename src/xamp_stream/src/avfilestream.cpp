@@ -144,7 +144,12 @@ public:
 
         AvIfFailedThrow(LIBAV_LIB.SwrLib->swr_init(swr_context_.get()));
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
-        audio_format_.SetChannel(static_cast<uint16_t>(codec_context_->channels));
+        if (codec_context_->channels != AudioFormat::kMaxChannel) {
+            XAMP_LOG_D(logger_,"Mix {} to Stereo channel", codec_context_->channels);
+            audio_format_.SetChannel(AudioFormat::kMaxChannel);
+        } else {
+            audio_format_.SetChannel(static_cast<uint16_t>(codec_context_->channels));
+        }
         audio_format_.SetSampleRate(static_cast<uint32_t>(codec_context_->sample_rate));
         audio_format_.SetBitPerSample(static_cast<uint32_t>(LIBAV_LIB.UtilLib->av_get_bytes_per_sample(codec_context_->sample_fmt) * 8));
         audio_format_.SetPackedFormat(PackedFormat::INTERLEAVED);

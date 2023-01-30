@@ -64,10 +64,6 @@ static XAMP_ALWAYS_INLINE int32_t IsPowerOfTwo(int32_t v) noexcept {
 	return v > 0 && !(v & (v - 1));
 }
 
-static XAMP_ALWAYS_INLINE double toMag(const std::complex<float>& r) {
-	return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
-}
-
 template <typename T>
 T Round(T a) {
     static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");

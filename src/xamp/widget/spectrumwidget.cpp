@@ -6,9 +6,40 @@
 #include <widget/appsettings.h>
 #include <widget/spectrumwidget.h>
 
-inline constexpr auto kMaxBands = 256;
+inline constexpr auto kMaxBands = 64;
+inline constexpr auto kFFTSize = 64;
 
-using xamp::base::toMag;
+static double toMag(const std::complex<float>& r) {
+    return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
+}
+
+static double freqToBin(int32_t freq, int32_t fft_size, double rate) {
+    double ratio = (double)(fft_size * freq) / rate;
+    return Round(ratio);
+}
+
+static double binToFreq(int bin, int32_t fft_size, double rate) {
+    return rate * bin / fft_size;
+}
+
+static void linearInterpolation(double rate) {
+    const auto kRoot24 = std::pow(2.0, (1.0 / 24.0));
+    const auto kC0 = std::pow(440 * kRoot24,  -144);
+    std::vector<std::tuple<double, double, double>> scale;
+
+    scale.reserve(11 * 24);
+
+    for (auto octave = 0; octave < 11; octave++) {
+        for (auto note = 0; note < 24; note++) {
+            const auto freq = std::pow(kC0 * kRoot24, (octave * 24 + note));
+            const auto bin = freqToBin(freq, kFFTSize, rate);
+            const auto binFreq  = binToFreq(bin, kFFTSize, rate);
+            const auto nextFreq = binToFreq(bin + 1, kFFTSize, rate);
+            const auto ratio = (freq - binFreq) / (nextFreq - binFreq);
+            scale.push_back({freq, bin, ratio});
+        }
+    }
+}
 
 SpectrumWidget::SpectrumWidget(QWidget* parent)
 	: QFrame(parent) {
