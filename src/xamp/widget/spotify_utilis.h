@@ -5,9 +5,9 @@
 
 #pragma once
 
+#include <QMetaType>
 #include <QString>
 #include <QList>
-#include <QMetaType>
 
 namespace spotify {
 
@@ -31,11 +31,10 @@ struct SearchLyricsResult {
 	QList<Artist> artists;
 };
 
-Q_DECLARE_METATYPE(SearchLyricsResult)
-
 bool ParseSearchLyricsResult(QString const& json, QList<SearchLyricsResult> & results);
 
 QString ParseLyricsResponse(QString const& json);
 
 }
 
+Q_DECLARE_METATYPE(spotify::SearchLyricsResult)

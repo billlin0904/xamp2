@@ -127,7 +127,7 @@ static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-	    Executor::ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+        Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
             }, 16);
     }
@@ -149,7 +149,7 @@ static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-	    Executor::ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+        Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
             }, 16);
     }
@@ -171,7 +171,7 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        Executor::ParallelFor(*thread_pool, n, [&total, &n](auto item) {
+        Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
             }, 16);
     }
@@ -202,7 +202,7 @@ static void BM_async_pool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        StdAsyncParallelFor(n, [&total, &n](auto item) {
+        StdAsyncParallelFor(n, [&total](auto item) {
             total += item;
             });
     }
@@ -376,6 +376,7 @@ static void BM_ConvertToInt2432Avx(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
 
+#ifdef XAMP_USE_BENCHMAKR
 static void BM_ConvertToInt2432(benchmark::State& state) {
     auto length = state.range(0);
 
@@ -441,6 +442,7 @@ static void BM_ConvertToShort(benchmark::State& state) {
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
+#endif
 
 static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
     auto length = state.range(0);
@@ -659,10 +661,10 @@ static void BM_VectorSort(benchmark::State& state) {
     }
 }
 
-static void BM_LruCache_Find(benchmark::State& state) {
+static void BM_LruCache_GetOrAdd(benchmark::State& state) {
     auto length = state.range(0);
 
-    LruCache<int64_t, int64_t> cache;
+    LruCache<int64_t, int64_t> cache(length / 2);
 
     for (auto i = 0; i < length; ++i) {
         cache.Add(
@@ -671,31 +673,40 @@ static void BM_LruCache_Find(benchmark::State& state) {
     }
     
     for (auto _ : state) {
-        cache.Find(SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
+        state.PauseTiming();
+        auto key = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
+        state.ResumeTiming();
+        cache.GetOrAdd(key, []() {
+            return SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
+        });
     }
 }
 
 static void BM_LruCache_Add(benchmark::State& state) {
     auto length = state.range(0);
 
-    LruCache<int64_t, int64_t> cache;
+    LruCache<int64_t, int64_t> cache(length / 2);
 
     for (auto _ : state) {
-        cache.Add(
-            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000), \
-            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
+        state.PauseTiming();
+        auto key = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
+        auto value = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
+        state.ResumeTiming();
+        cache.Add(key, value);
     }
 }
 
 static void BM_LruCache_AddOrUpdate(benchmark::State& state) {
     auto length = state.range(0);
 
-    LruCache<int64_t, int64_t> cache;
+    LruCache<int64_t, int64_t> cache(length / 2);
 
     for (auto _ : state) {
-        cache.AddOrUpdate(
-            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000), \
-            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
+        state.PauseTiming();
+        auto key = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
+        auto value = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
+        state.ResumeTiming();
+        cache.AddOrUpdate(key, value);
     }
 }
 
@@ -783,6 +794,7 @@ static void BM_Rotl(benchmark::State& state) {
     }
 }
 
+#ifdef XAMP_USE_BENCHMAKR
 static void BM_SipHash(benchmark::State& state) {
     auto length = state.range(0);
     for (auto _ : state) {
@@ -796,6 +808,7 @@ static void BM_SipHash(benchmark::State& state) {
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
+#endif
 
 static void BM_GoogleSipHash(benchmark::State& state) {
     auto length = state.range(0);
@@ -803,7 +816,7 @@ static void BM_GoogleSipHash(benchmark::State& state) {
         state.PauseTiming();
         auto random_string = Singleton<PRNG>::GetInstance().GetRandomString(length);
         state.ResumeTiming();
-        GoogleSipHash hasher;
+        GoogleSipHash<> hasher;
         hasher.Update(random_string);
         auto result = hasher.GetHash();
         benchmark::DoNotOptimize(result);
@@ -832,8 +845,8 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_Sfc64Random);
 //BENCHMARK(BM_default_random_engine);
 
-//BENCHMARK(BM_SipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
-//BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);;
+//BENCHMARK(BM_SipHash)->RangeMultiplier(2)->Range(128, 8 << 10);
+BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);
 
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
@@ -847,9 +860,9 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
-//BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_LruCache_GetOrAdd)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
@@ -876,8 +889,8 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#endif
 
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);

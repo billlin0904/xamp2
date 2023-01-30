@@ -51,7 +51,7 @@ SOURCES += \
     widget/qetag.cpp \
     widget/lrcpage.cpp \
     widget/lrcparser.cpp \
-    widget/metadataextractadapter.cpp \
+    widget/databasefacade.cpp \
     widget/pixmapcache.cpp \
     widget/playlistpage.cpp \
     widget/appsettingnames.cpp \
@@ -85,7 +85,7 @@ SOURCES += \
     widget/xprogressdialog.cpp \
     widget/volumecontroldialog.cpp \
     widget/spotify_utilis.cpp \
-    widget/xwindow.cpp \
+    widget/xmainwindow.cpp \
     singleinstanceapplication.cpp \
     widget/zib_utiltis.cpp \
     version.cpp \
@@ -119,7 +119,7 @@ HEADERS += \
     widget/image_utiltis.h \
     widget/lrcpage.h \
     widget/lrcparser.h \
-    widget/metadataextractadapter.h \
+    widget/databasefacade.h \
     widget/pixmapcache.h \
     widget/playlistpage.h \
     widget/playlisttablemodel.h \
@@ -154,7 +154,7 @@ HEADERS += \
     widget/spotify_utilis.h \
     widget/zib_utiltis.h \
     widget/xprogressdialog.h \
-    widget/xwindow.h \
+    widget/xmainwindow.h \
     widget/volumecontroldialog.h \
     version.h \
     singleinstanceapplication.h \
