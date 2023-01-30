@@ -11,8 +11,8 @@
 
 #include "thememanager.h"
 
-class IXPlayerControlFrame;
-class XWindow;
+class IXFrame;
+class XMainWindow;
 class QWinThumbnailToolBar;
 class QWinTaskbarButton;
 class QWinTaskbarProgress;
@@ -21,7 +21,7 @@ namespace win32 {
 
 class WinTaskbar {
 public:
-    WinTaskbar(XWindow* window, IXPlayerControlFrame* player_frame);
+    WinTaskbar(XMainWindow* window, IXFrame* player_frame);
 
     ~WinTaskbar();
 
@@ -46,7 +46,7 @@ public:
     QIcon seek_backward_icon;
 
 private:
-    XWindow* window_;
+    XMainWindow* window_;
     QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
     QScopedPointer<QWinTaskbarButton> taskbar_button_;
     QWinTaskbarProgress* taskbar_progress_;

@@ -17,55 +17,55 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 	, last_lyric_index_(0)
 	, item_precent_(0)
 	, lrc_color_(Qt::darkGray)
-    , lrc_hightlight_color_(Qt::black) {
+    , lrc_highlight_color_(Qt::black) {
     initial();
 }
 
 void LyricsShowWidget::initial() {
     lrc_font_ = font();
-	lrc_font_.setPointSize(AppSettings::getAsInt(kLyricsFontSize));
+	lrc_font_.setPointSize(AppSettings::ValueAsInt(kLyricsFontSize));
 
-	setDefaultLrc();
+	SetDefaultLrc();
 
-	auto text_color = AppSettings::getValueAsColor(kLyricsTextColor);
-	setLrcColor(text_color);
-	setLrcHightLight(text_color);
+	auto text_color = AppSettings::ValueAsColor(kLyricsTextColor);
+	SetLrcColor(text_color);
+	SetLrcHighLight(text_color);
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<LyricsShowWidget> action_map(this);
-		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
-			AppSettings::setValue(kLyricsFontSize, 12);
+		(void)action_map.AddAction(tr("Set font size(small)"), [this]() {
+			AppSettings::SetValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(12);
 			});
 
-		(void)action_map.addAction(tr("Set font size(middle)"), [this]() {
-			AppSettings::setValue(kLyricsFontSize, 16);
+		(void)action_map.AddAction(tr("Set font size(middle)"), [this]() {
+			AppSettings::SetValue(kLyricsFontSize, 16);
 			lrc_font_.setPointSize(16);
 			});
 
-		(void)action_map.addAction(tr("Set font size(big)"), [this]() {
+		(void)action_map.AddAction(tr("Set font size(big)"), [this]() {
 			lrc_font_.setPointSize(24);
-			AppSettings::setValue(kLyricsFontSize, 24);
+			AppSettings::SetValue(kLyricsFontSize, 24);
 			});
 
-		(void)action_map.addAction(tr("Change high light color"), [this]() {
-			auto text_color = AppSettings::getValueAsColor(kLyricsHighLightTextColor);
+		(void)action_map.AddAction(tr("Change high light color"), [this]() {
+			auto text_color = AppSettings::ValueAsColor(kLyricsHighLightTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
-				setLrcHightLight(color);
-				AppSettings::setValue(kLyricsHighLightTextColor, color);
+				SetLrcHighLight(color);
+				AppSettings::SetValue(kLyricsHighLightTextColor, color);
 			});
 			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
 			dlg.exec();
 			});
 
-		(void)action_map.addAction(tr("Change text color"), [this]() {
-			auto text_color = AppSettings::getValueAsColor(kLyricsTextColor);
+		(void)action_map.AddAction(tr("Change text color"), [this]() {
+			auto text_color = AppSettings::ValueAsColor(kLyricsTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
-				setLrcColor(color);
-				AppSettings::setValue(kLyricsTextColor, color);
+				SetLrcColor(color);
+				AppSettings::SetValue(kLyricsTextColor, color);
 				});
 			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
 			dlg.exec();
@@ -77,17 +77,17 @@ void LyricsShowWidget::initial() {
 	setAcceptDrops(true);
 }
 
-void LyricsShowWidget::setBackgroundColor(QColor color) {
+void LyricsShowWidget::SetBackgroundColor(QColor color) {
 	background_color_ = color;
 }
 
-void LyricsShowWidget::setDefaultLrc() {
+void LyricsShowWidget::SetDefaultLrc() {
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
 	lyric_.AddLrc(entry);
 }
 
-void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) {
+void LyricsShowWidget::SetCurrentTime(const int32_t time, const bool is_adding) {
 	auto time2 = time;
 
 	if (!is_adding) {
@@ -99,8 +99,8 @@ void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) 
 	}
 }
 
-void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& rect) {
-	const int32_t ih = itemHeight() * 1.2 / 10;
+void LyricsShowWidget::PaintItem(QPainter* painter, const int32_t index, QRect& rect) {
+	const int32_t ih = ItemHeight() * 1.2 / 10;
 	const int32_t ch = item_offset_ * 1.2 / 10;
 
     painter->setPen(lrc_color_);
@@ -112,7 +112,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& 
             font.setBold(true);
 			font.setPointSize(font.pointSize() + ih);
 			painter->setFont(font);            
-			current_rollrect_ = rect;
+			current_roll_rect_ = rect;
 			current_mask_font_ = painter->font();
 		} else {
 			auto font = lrc_font_;
@@ -139,38 +139,38 @@ void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& 
 		Qt::AlignLeft, text);
 }
 
-void LyricsShowWidget::paintBackground(QPainter* painter) {
+void LyricsShowWidget::PaintBackground(QPainter* painter) {
 	painter->fillRect(rect(), background_color_);
 }
 
-void LyricsShowWidget::paintItemMask(QPainter* painter) {
+void LyricsShowWidget::PaintItemMask(QPainter* painter) {
 	if (item_offset_ == 0) {
 		painter->setFont(current_mask_font_);
-		painter->setPen(lrc_hightlight_color_);
+		painter->setPen(lrc_highlight_color_);
 
 		QFontMetrics metrics(current_mask_font_);
-		painter->drawText((current_rollrect_.width() - metrics.width(real_current_text_)) / 2,
-			current_rollrect_.y() + (current_rollrect_.height() - metrics.height()) / 2,
+		painter->drawText((current_roll_rect_.width() - metrics.width(real_current_text_)) / 2,
+			current_roll_rect_.y() + (current_roll_rect_.height() - metrics.height()) / 2,
 			mask_length_,
-			current_rollrect_.height(),
+			current_roll_rect_.height(),
 			Qt::AlignLeft,
 			real_current_text_);
 	}
 }
 
-int32_t LyricsShowWidget::itemHeight() const {
+int32_t LyricsShowWidget::ItemHeight() const {
     QFontMetrics metrics(lrc_font_);
     return static_cast<int32_t>(metrics.height() * 1.5);
 }
 
-int32_t LyricsShowWidget::itemCount() const {
+int32_t LyricsShowWidget::ItemCount() const {
 	return lyric_.GetSize();
 }
 
 void LyricsShowWidget::stop() {
 	mask_length_ = -1000;
 	last_lyric_index_ = -1;
-	current_rollrect_ = QRect(0, 0, 0, 0);
+	current_roll_rect_ = QRect(0, 0, 0, 0);
 	real_current_text_.clear();
 	lyric_.Clear();
 	update();
@@ -193,14 +193,14 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 
 	if (mime_data->hasUrls()) {
         Q_FOREACH(auto const& url, mime_data->urls()) {
-			loadLrcFile(url.toLocalFile());
+			LoadLrcFile(url.toLocalFile());
 			break;
 		}
 		event->acceptProposedAction();
 	}
 }
 
-bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
+bool LyricsShowWidget::LoadLrcFile(const QString &file_path) {
 	const QFileInfo file_info(file_path);
 
 	const auto lrc_path = file_info.path()
@@ -210,14 +210,14 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 
 	stop();
 	if (!lyric_.ParseFile(lrc_path.toStdWString())) {
-		setDefaultLrc();
+		SetDefaultLrc();
 		return false;
 	}
 	update();
 	return true;
 }
 
-void LyricsShowWidget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
+void LyricsShowWidget::AddFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
     auto i = 0;
 	const auto lyrics = lrc.split(qTEXT("\n"));
 	const auto min_duration = duration / lyrics.count();
@@ -231,7 +231,7 @@ void LyricsShowWidget::addFullLrc(const QString& lrc, std::chrono::milliseconds 
 	}
 }
 
-void LyricsShowWidget::loadLrc(const QString& lrc) {
+void LyricsShowWidget::LoadLrc(const QString& lrc) {
 	std::wistringstream stream{ lrc.toStdWString() };
 	if (!lyric_.Parse(stream)) {
 		return;
@@ -239,13 +239,13 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 	update();
 }
 
-void LyricsShowWidget::setLrc(const QString &lrc) {
+void LyricsShowWidget::SetLrc(const QString &lrc) {
 	lrc_ = lrc;
 	stop();
-	loadLrc(lrc_);
+	LoadLrc(lrc_);
 }
 
-void LyricsShowWidget::setLrcTime(int32_t stream_time) {
+void LyricsShowWidget::SetLrcTime(int32_t stream_time) {
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
@@ -258,10 +258,10 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 
 	if (item_ != ly.index && item_offset_ == 0) {
 		mask_length_ = -1000;
-		current_rollrect_ = QRect(0, 0, 0, 0);
+		current_roll_rect_ = QRect(0, 0, 0, 0);
 		real_current_text_ = QString::fromStdWString(ly.lrc);
 		item_offset_ = -1;
-		scrollTo(ly.index);
+		ScrollTo(ly.index);
 	}
 
 	if (item_offset_ != 0) {
@@ -290,18 +290,18 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 	update();
 }
 
-void LyricsShowWidget::setLrcFont(const QFont & font) {
+void LyricsShowWidget::SetLrcFont(const QFont & font) {
 	lrc_font_ = font;
 	current_mask_font_ = font;
 	update();
 }
 
-void LyricsShowWidget::setLrcHightLight(const QColor & color) {
-	lrc_hightlight_color_ = color;
+void LyricsShowWidget::SetLrcHighLight(const QColor & color) {
+	lrc_highlight_color_ = color;
 	update();
 }
 
-void LyricsShowWidget::setLrcColor(const QColor& color) {
+void LyricsShowWidget::SetLrcColor(const QColor& color) {
 	lrc_color_ = color;
 	update();
 }

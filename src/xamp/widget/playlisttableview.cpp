@@ -169,7 +169,9 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-                opt.icon = QIcon(ImageUtils::roundImage(qPixmapCache.find(value.toString()), QSize(32, 32)));
+				//static constexpr auto kPlaylistCoverSize = QSize(64, 64);
+				static constexpr auto kPlaylistCoverSize = QSize(32, 32);
+                opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.find(value.toString()), kPlaylistCoverSize));
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 				opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
@@ -190,33 +192,33 @@ public:
 
 static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src) {
     PlayListEntity model;
-    model.music_id          = getIndexValue(index, src, PLAYLIST_MUSIC_ID).toInt();
-    model.playing           = getIndexValue(index, src, PLAYLIST_PLAYING).toInt();
-    model.track             = getIndexValue(index, src, PLAYLIST_TRACK).toUInt();
-    model.file_path         = getIndexValue(index, src, PLAYLIST_FILE_PATH).toString();
-    model.file_size         = getIndexValue(index, src, PLAYLIST_FILE_SIZE).toULongLong();
-    model.title             = getIndexValue(index, src, PLAYLIST_TITLE).toString();
-    model.file_name         = getIndexValue(index, src, PLAYLIST_FILE_NAME).toString();
-    model.artist            = getIndexValue(index, src, PLAYLIST_ARTIST).toString();
-    model.album             = getIndexValue(index, src, PLAYLIST_ALBUM).toString();
-    model.duration          = getIndexValue(index, src, PLAYLIST_DURATION).toDouble();
-    model.bitrate           = getIndexValue(index, src, PLAYLIST_BIT_RATE).toUInt();
-    model.samplerate        = getIndexValue(index, src, PLAYLIST_SAMPLE_RATE).toUInt();
-    model.rating            = getIndexValue(index, src, PLAYLIST_RATING).toUInt();
-    model.album_id          = getIndexValue(index, src, PLAYLIST_ALBUM_ID).toInt();
-    model.artist_id         = getIndexValue(index, src, PLAYLIST_ARTIST_ID).toInt();
-    model.cover_id          = getIndexValue(index, src, PLAYLIST_COVER_ID).toString();
-    model.file_ext          = getIndexValue(index, src, PLAYLIST_FILE_EXT).toString();
-    model.parent_path       = getIndexValue(index, src, PLAYLIST_FILE_PARENT_PATH).toString();
-    model.timestamp         = getIndexValue(index, src, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
-    model.playlist_music_id = getIndexValue(index, src, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    model.album_replay_gain = getIndexValue(index, src, PLAYLIST_ALBUM_RG).toDouble();
-    model.album_peak        = getIndexValue(index, src, PLAYLIST_ALBUM_PK).toDouble();
-    model.track_replay_gain = getIndexValue(index, src, PLAYLIST_TRACK_RG).toDouble();
-    model.track_peak        = getIndexValue(index, src, PLAYLIST_TRACK_PK).toDouble();
-    model.track_loudness    = getIndexValue(index, src, PLAYLIST_TRACK_LOUDNESS).toDouble();
-    model.genre             = getIndexValue(index, src, PLAYLIST_GENRE).toString();
-    model.year              = getIndexValue(index, src, PLAYLIST_YEAR).toUInt();
+    model.music_id          = GetIndexValue(index, src, PLAYLIST_MUSIC_ID).toInt();
+    model.playing           = GetIndexValue(index, src, PLAYLIST_PLAYING).toInt();
+    model.track             = GetIndexValue(index, src, PLAYLIST_TRACK).toUInt();
+    model.file_path         = GetIndexValue(index, src, PLAYLIST_FILE_PATH).toString();
+    model.file_size         = GetIndexValue(index, src, PLAYLIST_FILE_SIZE).toULongLong();
+    model.title             = GetIndexValue(index, src, PLAYLIST_TITLE).toString();
+    model.file_name         = GetIndexValue(index, src, PLAYLIST_FILE_NAME).toString();
+    model.artist            = GetIndexValue(index, src, PLAYLIST_ARTIST).toString();
+    model.album             = GetIndexValue(index, src, PLAYLIST_ALBUM).toString();
+    model.duration          = GetIndexValue(index, src, PLAYLIST_DURATION).toDouble();
+    model.bit_rate           = GetIndexValue(index, src, PLAYLIST_BIT_RATE).toUInt();
+    model.sample_rate        = GetIndexValue(index, src, PLAYLIST_SAMPLE_RATE).toUInt();
+    model.rating            = GetIndexValue(index, src, PLAYLIST_RATING).toUInt();
+    model.album_id          = GetIndexValue(index, src, PLAYLIST_ALBUM_ID).toInt();
+    model.artist_id         = GetIndexValue(index, src, PLAYLIST_ARTIST_ID).toInt();
+    model.cover_id          = GetIndexValue(index, src, PLAYLIST_COVER_ID).toString();
+    model.file_ext          = GetIndexValue(index, src, PLAYLIST_FILE_EXT).toString();
+    model.parent_path       = GetIndexValue(index, src, PLAYLIST_FILE_PARENT_PATH).toString();
+    model.timestamp         = GetIndexValue(index, src, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
+    model.playlist_music_id = GetIndexValue(index, src, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
+    model.album_replay_gain = GetIndexValue(index, src, PLAYLIST_ALBUM_RG).toDouble();
+    model.album_peak        = GetIndexValue(index, src, PLAYLIST_ALBUM_PK).toDouble();
+    model.track_replay_gain = GetIndexValue(index, src, PLAYLIST_TRACK_RG).toDouble();
+    model.track_peak        = GetIndexValue(index, src, PLAYLIST_TRACK_PK).toDouble();
+    model.track_loudness    = GetIndexValue(index, src, PLAYLIST_TRACK_LOUDNESS).toDouble();
+    model.genre             = GetIndexValue(index, src, PLAYLIST_GENRE).toString();
+    model.year              = GetIndexValue(index, src, PLAYLIST_YEAR).toUInt();
     return model;
 }
 
@@ -295,13 +297,13 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     playlist_id_ = playlist_id;
     column_setting_name_ = column_setting_name;
 
-    qDatabase.clearNowPlaying(playlist_id_);
+    qDatabase.ClearNowPlaying(playlist_id_);
 
     executeQuery();
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
     model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IS.PLAYING"));
-    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("TRACK#"));
+    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("#"));
     model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FILE.PATH"));
     model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
     model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE.NAME"));
@@ -327,7 +329,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ARTIST.ID"));
 
-    auto column_list = AppSettings::getList(column_setting_name);
+    auto column_list = AppSettings::ValueAsStringList(column_setting_name);
 
     if (column_list.empty()) {
         const QList<int> hideColumns{
@@ -362,7 +364,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
         for (auto column = 0; column < horizontalHeader()->count(); ++column) {
             if (!isColumnHidden(column)) {
-                AppSettings::addList(column_setting_name_, QString::number(column));
+                AppSettings::AddList(column_setting_name_, QString::number(column));
             } else {
                 setColumnHidden(column, true);
             }
@@ -394,19 +396,19 @@ void PlayListTableView::headerViewHidden(bool enable) {
     auto* header_view = horizontalHeader();
 
     auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
+    auto hide_this_column_act = action_map.AddAction(tr("Hide this column"), [last_referred_logical_column, this]() {
         setColumnHidden(last_referred_logical_column, true);
-    AppSettings::removeList(column_setting_name_, QString::number(last_referred_logical_column));
+    AppSettings::RemoveList(column_setting_name_, QString::number(last_referred_logical_column));
         });
     hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
-    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
+    auto select_column_show_act = action_map.AddAction(tr("Select columns to show..."), [pt, header_view, this]() {
         ActionMap<PlayListTableView> action_map(this);
     for (auto column = 0; column < header_view->count(); ++column) {
         auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-        action_map.addAction(header_name, [this, column]() {
+        action_map.AddAction(header_name, [this, column]() {
             setColumnHidden(column, false);
-        AppSettings::addList(column_setting_name_, QString::number(column));
+        AppSettings::AddList(column_setting_name_, QString::number(column));
             }, false, !isColumnHidden(column));
     }
     action_map.exec(pt);
@@ -420,10 +422,10 @@ void PlayListTableView::initial() {
     setStyleSheet(qTEXT("border : none;"));
 
     proxy_model_->setSourceModel(model_);
-    proxy_model_->setFilterByColumn(PLAYLIST_RATING);
-    proxy_model_->setFilterByColumn(PLAYLIST_TITLE);
-    proxy_model_->setFilterByColumn(PLAYLIST_DURATION);
-    proxy_model_->setFilterByColumn(PLAYLIST_ALBUM);
+    proxy_model_->SetFilterByColumn(PLAYLIST_RATING);
+    proxy_model_->SetFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->SetFilterByColumn(PLAYLIST_DURATION);
+    proxy_model_->SetFilterByColumn(PLAYLIST_ALBUM);
     proxy_model_->setDynamicSortFilter(true);
     setModel(proxy_model_);
 
@@ -457,6 +459,7 @@ void PlayListTableView::initial() {
     verticalHeader()->setVisible(false);
     verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     verticalHeader()->setDefaultSectionSize(42);
+    //verticalHeader()->setDefaultSectionSize(64);
 
     horizontalScrollBar()->setDisabled(true);
 
@@ -465,6 +468,12 @@ void PlayListTableView::initial() {
     horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     setItemDelegate(new PlayListStyledItemDelegate(this));
+
+    installEventFilter(this);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    verticalScrollBar()->setStyleSheet(qTEXT(
+        "QScrollBar:vertical { width: 6px; }"
+    ));
 
     (void)QObject::connect(model_, &QAbstractTableModel::modelReset,
     [this] {
@@ -486,7 +495,7 @@ void PlayListTableView::initial() {
         const auto src_index = proxy_model_->mapToSource(index);
         auto item = getEntity(index, src_index);
         item.rating = start_editor->starRating().starCount();
-        CATCH_DB_EXCEPTION(qDatabase.updateMusicRating(item.music_id, item.rating))
+        CATCH_DB_EXCEPTION(qDatabase.UpdateMusicRating(item.music_id, item.rating))
         reload();
     });
 
@@ -510,11 +519,11 @@ void PlayListTableView::initial() {
 
         if (!podcast_mode_) {
             if (enable_load_file_) {
-                auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
+                auto* load_file_act = action_map.AddAction(tr("Load local file"), [this]() {
                     const auto file_name = QFileDialog::getOpenFileName(this,
                         tr("Open file"),
-                        AppSettings::getMyMusicFolderPath(),
-                        tr("Music Files ") + getFileDialogFileExtensions(),
+                        AppSettings::GetMyMusicFolderPath(),
+                        tr("Music Files ") + GetFileDialogFileExtensions(),
                         nullptr);
                     if (file_name.isEmpty()) {
                         return;
@@ -523,10 +532,10 @@ void PlayListTableView::initial() {
                 });
                 load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
 
-                auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
+                auto* load_dir_act = action_map.AddAction(tr("Load file directory"), [this]() {
                     const auto dir_name = QFileDialog::getExistingDirectory(this,
                     tr("Select a Directory"),
-                    AppSettings::getMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
+                    AppSettings::GetMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
                     if (dir_name.isEmpty()) {
                         return;
                     }
@@ -537,13 +546,13 @@ void PlayListTableView::initial() {
         }
 
         if (podcast_mode_) {
-            auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
+            auto* import_podcast_act = action_map.AddAction(tr("Download latest podcast"));
             import_podcast_act->setIcon(qTheme.fontIcon(Glyphs::ICON_DOWNLOAD));
-            action_map.setCallback(import_podcast_act, [this]() {
+            action_map.SetCallback(import_podcast_act, [this]() {
                 if (model_->rowCount() > 0) {
-                    const auto button = XMessageBox::showYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
+                    const auto button = XMessageBox::ShowYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
                     if (button == QDialogButtonBox::Yes) {
-                        qDatabase.removePlaylistAllMusic(playlistId());
+                        qDatabase.RemovePlaylistAllMusic(playlistId());
                         executeQuery();
                         removePlaying();
                     }
@@ -551,44 +560,44 @@ void PlayListTableView::initial() {
                         return;
                     }
                 }                
-                indicator_ = makeProcessIndicator(this);
-				indicator_->startAnimation();
+                indicator_ = MakeProcessIndicator(this);
+				indicator_->StartAnimation();
                 downloadPodcast();
              });
         }
 
         if (enable_delete_ && model()->rowCount() > 0) {
-            auto* remove_all_act = action_map.addAction(tr("Remove all"));
+            auto* remove_all_act = action_map.AddAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
-            action_map.setCallback(remove_all_act, [this]() {
+            action_map.SetCallback(remove_all_act, [this]() {
                 if (!model_->rowCount()) {
                     return;
                 }
 
-                const auto button = XMessageBox::showYesOrNo(tr("Remove all items?"));
+                const auto button = XMessageBox::ShowYesOrNo(tr("Remove all items?"));
                 if (button == QDialogButtonBox::Yes) {
-                    IGNORE_DB_EXCEPTION(qDatabase.removePlaylistAllMusic(playlistId()))
+                    IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(playlistId()))
                     executeQuery();
                     removePlaying();
                 }
             });
         }       
 
-        action_map.addSeparator();
+        action_map.AddSeparator();
 
-        QAction* reload_metadata_act = nullptr;
+        QAction* reload_track_info_act = nullptr;
 
-        auto* read_select_item_replaygain_act = action_map.addAction(tr("Read file ReplayGain"));
+        auto* read_select_item_replaygain_act = action_map.AddAction(tr("Read file ReplayGain"));
         read_select_item_replaygain_act->setIcon(qTheme.fontIcon(Glyphs::ICON_READ_REPLAY_GAIN));
 
-        action_map.addSeparator();
-        auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
+        action_map.AddSeparator();
+        auto* export_flac_file_act = action_map.AddAction(tr("Export FLAC file"));
         export_flac_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EXPORT_FILE));
 
         const auto select_row = selectionModel()->selectedRows();
         if (!select_row.isEmpty()) {
-            auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
+            auto* export_aac_file_submenu = action_map.AddSubMenu(tr("Export AAC file"));
 
             for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
                 if (profile.num_channels != AudioFormat::kMaxChannel
@@ -601,11 +610,11 @@ void PlayListTableView::initial() {
                     formatSampleRate(profile.sample_rate),
                     formatBitRate(profile.bitrate));
 
-                export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
+                export_aac_file_submenu->AddAction(profile_desc, [profile, this]() {
                     const auto rows = selectItemIndex();
                     for (const auto& row : rows) {
                         auto entity = this->item(row.second);
-                        if (entity.samplerate > AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
+                        if (entity.sample_rate > AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
                             continue;
                         }
                         emit encodeAACFile(entity, profile);
@@ -614,45 +623,45 @@ void PlayListTableView::initial() {
             }
         }
         else {
-            action_map.addAction(tr("Export AAC file"));
+            action_map.AddAction(tr("Export AAC file"));
         }       
 
-        auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
+        auto* export_wav_file_act = action_map.AddAction(tr("Export WAV file"));
 
-        action_map.addSeparator();
-        auto * copy_album_act = action_map.addAction(tr("Copy album"));
+        action_map.AddSeparator();
+        auto * copy_album_act = action_map.AddAction(tr("Copy album"));
         copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
-        auto * copy_artist_act = action_map.addAction(tr("Copy artist"));
-        auto * copy_title_act = action_map.addAction(tr("Copy title"));
+        auto * copy_artist_act = action_map.AddAction(tr("Copy artist"));
+        auto * copy_title_act = action_map.AddAction(tr("Copy title"));
 
         if (model_->rowCount() == 0 || !index.isValid()) {
             try {
                 action_map.exec(pt);
             }
             catch (Exception const& e) {
-                XMessageBox::showBug(e);
+                XMessageBox::ShowBug(e);
             }
             catch (std::exception const& e) {
-                XMessageBox::showError(QString::fromStdString(e.what()));
+                XMessageBox::ShowError(QString::fromStdString(e.what()));
             }
             return;
         }
 
         auto item = getEntity(index, proxy_model_->mapToSource(index));
 
-        reload_metadata_act = action_map.addAction(tr("Reload track information"));
-        reload_metadata_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RELOAD));
+        reload_track_info_act = action_map.AddAction(tr("Reload track information"));
+        reload_track_info_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RELOAD));
 
-        auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
+        auto* open_local_file_path_act = action_map.AddAction(tr("Open local file path"));
         open_local_file_path_act->setIcon(qTheme.fontIcon(Glyphs::ICON_OPEN_FILE_PATH));
-        action_map.setCallback(open_local_file_path_act, [item]() {
+        action_map.SetCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
         });
 
-        action_map.setCallback(reload_metadata_act, [this, item]() {
+        action_map.SetCallback(reload_track_info_act, [this, item]() {
             try {
-				qDatabase.addOrUpdateMusic(getTrackInfo(item.file_path));
+				qDatabase.AddOrUpdateMusic(GetTrackInfo(item.file_path));
 				reload();
 			}
 			catch (std::filesystem::filesystem_error& e) {
@@ -662,18 +671,18 @@ void PlayListTableView::initial() {
 			}
         });
     	
-        action_map.addSeparator();
-        action_map.setCallback(copy_album_act, [item]() {
+        action_map.AddSeparator();
+        action_map.SetCallback(copy_album_act, [item]() {
             QApplication::clipboard()->setText(item.album);
         });
-        action_map.setCallback(copy_artist_act, [item]() {
+        action_map.SetCallback(copy_artist_act, [item]() {
             QApplication::clipboard()->setText(item.artist);
         });
-        action_map.setCallback(copy_title_act, [item]() {
+        action_map.SetCallback(copy_title_act, [item]() {
             QApplication::clipboard()->setText(item.title);
         });
 
-        action_map.setCallback(read_select_item_replaygain_act, [this]() {
+        action_map.SetCallback(read_select_item_replaygain_act, [this]() {
             const auto rows = selectItemIndex();
 			ForwardList<PlayListEntity> items;
             for (const auto& row : rows) {
@@ -682,7 +691,7 @@ void PlayListTableView::initial() {
             emit readReplayGain(playlistId(), items);
         });
 
-        action_map.setCallback(export_flac_file_act, [this]() {
+        action_map.SetCallback(export_flac_file_act, [this]() {
             const auto rows = selectItemIndex();
             for (const auto& row : rows) {
                 auto entity = this->item(row.second);
@@ -690,7 +699,7 @@ void PlayListTableView::initial() {
             }
             });
 
-        action_map.setCallback(export_wav_file_act, [this]() {
+        action_map.SetCallback(export_wav_file_act, [this]() {
             const auto rows = selectItemIndex();
             for (const auto& row : rows) {
                 auto entity = this->item(row.second);
@@ -702,9 +711,9 @@ void PlayListTableView::initial() {
             action_map.exec(pt);
         }
         catch (Exception const& e) {
-        	XMessageBox::showBug(e);
+        	XMessageBox::ShowBug(e);
         } catch (std::exception const &e){
-            XMessageBox::showError(QString::fromStdString(e.what()));
+            XMessageBox::ShowError(QString::fromStdString(e.what()));
         }
     });
 
@@ -712,17 +721,11 @@ void PlayListTableView::initial() {
     (void) QObject::connect(control_A_key, &QShortcut::activated, [this]() {
         selectAll();
     });
-
-    installEventFilter(this);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    verticalScrollBar()->setStyleSheet(qTEXT(
-        "QScrollBar:vertical { width: 6px; }"
-    ));
 }
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {
     const auto entity = item(index);
-    CATCH_DB_EXCEPTION(qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE))
+    CATCH_DB_EXCEPTION(qDatabase.SetNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE))
     update();
 }
 
@@ -762,14 +765,14 @@ void PlayListTableView::updateReplayGain(int32_t playlistId,
         return;
     }
 
-    CATCH_DB_EXCEPTION(qDatabase.updateReplayGain(
+    CATCH_DB_EXCEPTION(qDatabase.UpdateReplayGain(
         entity.music_id,
         album_rg_gain,
         album_peak, 
         track_rg_gain,
         track_peak))
 
-    CATCH_DB_EXCEPTION(qDatabase.addOrUpdateTrackLoudness(entity.album_id,
+    CATCH_DB_EXCEPTION(qDatabase.AddOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
         track_loudness))
@@ -826,15 +829,15 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-	const auto adapter = QSharedPointer<::DatabaseProxy>(new ::DatabaseProxy());
+	const auto adapter = QSharedPointer<::DatabaseFacade>(new ::DatabaseFacade());
 
     (void)QObject::connect(adapter.get(),
-                            &::DatabaseProxy::readCompleted,
+                            &::DatabaseFacade::ReadCompleted,
                             this,
                             &PlayListTableView::processTrackInfo);
 
     (void)QObject::connect(adapter.get(),
-        &::DatabaseProxy::fromDatabase,
+        &::DatabaseFacade::FromDatabase,
         this,
         &PlayListTableView::processDatabase);
     emit readTrackInfo(adapter, file_name, playlistId(), isPodcastMode());
@@ -842,7 +845,7 @@ void PlayListTableView::append(const QString& file_name) {
 
 void PlayListTableView::processDatabase(const ForwardList<PlayListEntity>& entities) {
     for (const auto& entity : entities) {
-        CATCH_DB_EXCEPTION(qDatabase.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id))
+        CATCH_DB_EXCEPTION(qDatabase.AddMusicToPlaylist(entity.music_id, playlistId(), entity.album_id))
     }
     executeQuery();
     emit addPlaylistItemFinished();
@@ -857,7 +860,7 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     resizeColumn();
     if (indicator_ != nullptr) {
-        centerParent(indicator_.get());
+        CenterParent(indicator_.get());
     }
 }
 
@@ -885,7 +888,7 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
 
 void PlayListTableView::onFetchPodcastError(const QString& msg) {
     XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
-    XMessageBox::showError(qTEXT("Download podcast error!"));
+    XMessageBox::ShowError(qTEXT("Download podcast error!"));
     onFetchPodcastCompleted({}, {});
 }
 
@@ -900,10 +903,10 @@ void PlayListTableView::onFetchPodcastCompleted(const ForwardList<TrackInfo>& /*
         return;
     }
 
-    const auto cover_id = qPixmapCache.addOrUpdate(cover_image_data);
+    const auto cover_id = qPixmapCache.AddOrUpdate(cover_image_data);
     const auto index = this->model()->index(0, 0);
     const auto play_item = item(index);
-    CATCH_DB_EXCEPTION(qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id))
+    CATCH_DB_EXCEPTION(qDatabase.SetAlbumCover(play_item.album_id, play_item.album, cover_id))
     emit updateAlbumCover(cover_id);
 }
 
@@ -988,8 +991,8 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = item(play_index_);
-    CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_))
-	CATCH_DB_EXCEPTION(qDatabase.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
+    CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_))
+	CATCH_DB_EXCEPTION(qDatabase.SetNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
     reload();
 }
 
@@ -1001,7 +1004,7 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
         return;
     }
     const auto entity = item(play_index_);
-    CATCH_DB_EXCEPTION(qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state))
+    CATCH_DB_EXCEPTION(qDatabase.SetNowPlayingState(playlistId(), entity.playlist_music_id, playing_state))
     reload();
     emit updatePlayingState(entity, playing_state);
 }
@@ -1041,12 +1044,12 @@ void PlayListTableView::play(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_))
+    CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_))
     executeQuery();
 }
 
 void PlayListTableView::removeAll() {
-    IGNORE_DB_EXCEPTION(qDatabase.removePlaylistAllMusic(playlistId()))
+    IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(playlistId()))
     reload();
 }
 
@@ -1061,15 +1064,15 @@ void PlayListTableView::removeSelectItems() {
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
         const auto it = item((*itr).second);
-        CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_, it.playlist_music_id))
+        CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_, it.playlist_music_id))
         remove_music_ids.push_back(it.playlist_music_id);
     }
 
     const auto count = proxy_model_->rowCount();
 	if (!count) {
-        CATCH_DB_EXCEPTION(qDatabase.clearNowPlaying(playlist_id_))
+        CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_))
 	}
 
-    CATCH_DB_EXCEPTION(qDatabase.removePlaylistMusic(playlist_id_, remove_music_ids))
+    CATCH_DB_EXCEPTION(qDatabase.RemovePlaylistMusic(playlist_id_, remove_music_ids))
     executeQuery();
 }

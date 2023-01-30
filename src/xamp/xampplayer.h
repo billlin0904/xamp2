@@ -12,68 +12,67 @@
 
 inline constexpr auto kRestartExistCode = -2;
 
-class IXWindow : public QFrame {
-    Q_OBJECT
+class IXMainWindow : public QFrame {
 public:
-    virtual ~IXWindow() override = default;
+    virtual ~IXMainWindow() override = default;
 
     virtual void setShortcut(const QKeySequence& shortcut) = 0;
 
-    virtual void setTaskbarProgress(int32_t percent) = 0;
+    virtual void SetTaskbarProgress(int32_t percent) = 0;
 
-    virtual void resetTaskbarProgress() = 0;
+    virtual void ResetTaskbarProgress() = 0;
 
-    virtual void setTaskbarPlayingResume() = 0;
+    virtual void SetTaskbarPlayingResume() = 0;
 
-    virtual void setTaskbarPlayerPaused() = 0;
+    virtual void SetTaskbarPlayerPaused() = 0;
 
-    virtual void setTaskbarPlayerPlaying() = 0;
+    virtual void SetTaskbarPlayerPlaying() = 0;
 
-    virtual void setTaskbarPlayerStop() = 0;
+    virtual void SetTaskbarPlayerStop() = 0;
 
-    virtual void setTitleBarAction(QFrame *title_bar) = 0;
+    virtual void SetTitleBarAction(QFrame *title_bar) = 0;
 
-    virtual void initMaximumState() = 0;
+    virtual void InitMaximumState() = 0;
 
-    virtual void updateMaximumState() = 0;
+    virtual void UpdateMaximumState() = 0;
 
-    virtual void saveGeometry() = 0;
+    virtual void SaveGeometry() = 0;
 protected:
-    IXWindow() = default;
+    IXMainWindow() = default;
 };
 
-class IXPlayerControlFrame : public QFrame {
+class IXFrame : public QFrame {
 public:
-    virtual ~IXPlayerControlFrame() override = default;
+    virtual ~IXFrame() override = default;
 
-    virtual void addDropFileItem(const QUrl& url) = 0;
+    virtual void AddDropFileItem(const QUrl& url) = 0;
 
-    virtual void deleteKeyPress() = 0;
+    virtual void DeleteKeyPress() = 0;
 
-    virtual void playPrevious() = 0;
+    virtual void PlayPrevious() = 0;
 
-    virtual void playNext() = 0;
+    virtual void PlayNext() = 0;
 
     virtual void stop() = 0;
 
-    virtual void playOrPause() = 0;
+    virtual void PlayOrPause() = 0;
 
-    virtual bool hitTitleBar(const QPoint &ps) const = 0;
+    virtual bool HitTitleBar(const QPoint &ps) const = 0;
 
-    virtual void drivesChanges(const QList<DriveInfo>& drive_infos) = 0;
+    virtual void DrivesChanges(const QList<DriveInfo>& drive_infos) = 0;
 
-    virtual void drivesRemoved(const DriveInfo& drive_info) = 0;
+    virtual void DrivesRemoved(const DriveInfo& drive_info) = 0;
 
-    virtual void updateMaximumState(bool is_maximum) = 0;
+    virtual void UpdateMaximumState(bool is_maximum) = 0;
 
-    virtual void focusIn() = 0;
+    virtual void FocusIn() = 0;
 
-    virtual void focusOut() = 0;
+    virtual void FocusOut() = 0;
 
-    virtual void systemThemeChanged(ThemeColor theme_color) = 0;
+    virtual void SystemThemeChanged(ThemeColor theme_color) = 0;
 
-    virtual void shortcutsPressed(const QKeySequence& shortcut) = 0;
+    virtual void ShortcutsPressed(const QKeySequence& shortcut) = 0;
 protected:
-    IXPlayerControlFrame() = default;
+    IXFrame() = default;
 };
 

@@ -38,45 +38,45 @@ class QTimerEvent;
 class PixmapCache final : public QObject {
 	Q_OBJECT
 public:
-	static constexpr char kCacheFileFormat[] = "PNG";
+	static constexpr char kImageFileFormat[] = "JPG";
 
     friend class SharedSingleton<PixmapCache>;
 
-	static QPixmap findCoverInDir(const QString& file_path);
+	static QPixmap FindCoverInDir(const QString& file_path);
 
-	static QPixmap findCoverInDir(const PlayListEntity& item);
+	static QPixmap FindCoverInDir(const PlayListEntity& item);
 
     QPixmap find(const QString& tag_id) const;
 
-    QPixmap fromFileCache(const QString& tag_id) const;
+    QPixmap FromFileCache(const QString& tag_id) const;
 
-    QString addOrUpdate(const QByteArray& data);
+    QString AddOrUpdate(const QByteArray& data);
 
-	void addCache(const QString& tag_id, const QPixmap &cover);
+	void AddCache(const QString& tag_id, const QPixmap &cover);
 
 	void erase(const QString& tag_id);
 
-	size_t cacheSize() const;
+	size_t CacheSize() const;
 
-    void setMaxSize(size_t max_size);
+    void SetMaxSize(size_t max_size);
 
-	QString getUnknownCoverId() const {
+	QString GetUnknownCoverId() const {
 		return unknown_cover_id_;
 	}
 
 	void clear();
 
-	void clearCache();
+	void ClearCache();
 
-	QString savePixamp(const QPixmap& cover);
+	QString SavePixamp(const QPixmap& cover);
 
-	void optimizeImageInDir(const QString& file_path);
+	void OptimizeImageInDir(const QString& file_path);
 
-	void optimizeImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
+	void OptimizeImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
 
-	void optimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
+	void OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
 signals:
-	void processImage(const QString & file_path, const QByteArray& buffer, const QString& tag_name);
+	void ProcessImage(const QString & file_path, const QByteArray& buffer, const QString& tag_name);
 
 public slots:
 	
@@ -87,11 +87,11 @@ protected:
 private:
 	void timerEvent(QTimerEvent*) override;
 
-	void loadCache() const;
+	void LoadCache() const;
 
-	void initCachePath();
+	void InitCachePath();
 
-	QFileInfo cacheFileInfo(const QString& tag_id) const;
+	QFileInfo CacheFileInfo(const QString& tag_id) const;
 
 	static QStringList cover_ext_;
 	static QStringList cache_ext_;

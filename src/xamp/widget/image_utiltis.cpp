@@ -24,7 +24,7 @@
 Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius, bool quality,
 	bool alphaOnly, int transposed = 0);
 
-namespace ImageUtils {
+namespace image_utils {
 
 #ifdef USE_OPTIMIZE_PNG
 static void optimizePNG(const QString& dest_file_path, const std::vector<uint8_t> &original_png, std::vector<uint8_t> result_png) {
@@ -60,7 +60,7 @@ static void optimizePNG(const QString& dest_file_path, const std::vector<uint8_t
 }
 #endif
 
-bool optimizePNG(const QByteArray& buffer, const QString& dest_file_path) {
+bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 #ifdef USE_OPTIMIZE_PNG
 	const std::vector<uint8_t> original_png(buffer.begin(), buffer.end());
 	std::vector<uint8_t> result_png;
@@ -69,11 +69,11 @@ bool optimizePNG(const QByteArray& buffer, const QString& dest_file_path) {
 	return true;
 #else
 	const auto image = QImage::fromData(buffer);
-	return image.save(dest_file_path, PixmapCache::kCacheFileFormat, 100);
+	return image.save(dest_file_path, PixmapCache::kImageFileFormat, 100);
 #endif
 }
 
-bool optimizePNG(const QString& src_file_path, const QString& dest_file_path) {
+bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
 #ifdef USE_OPTIMIZE_PNG
 	if (!QFile(src_file_path).exists()) {
 		return false;
@@ -98,7 +98,7 @@ bool optimizePNG(const QString& src_file_path, const QString& dest_file_path) {
 #endif
 }
 
-QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
+QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
 	const auto scaled_size = source.size() * 2;
 	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
 		                  : Qt::IgnoreAspectRatio;
@@ -107,27 +107,27 @@ QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 		.scaled(size, mode, Qt::SmoothTransformation);
 }
 
-QByteArray convert2ByteArray(const QPixmap& source) {
+QByteArray Convert2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, PixmapCache::kCacheFileFormat);
+	source.save(&buffer, PixmapCache::kImageFileFormat);
 	return bytes;
 }
 
-std::vector<uint8_t> convert2Vector(const QPixmap& source) {
+std::vector<uint8_t> Convert2Vector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, PixmapCache::kCacheFileFormat);
+	source.save(&buffer, PixmapCache::kImageFileFormat);
 	return { bytes.constData(), bytes.constData() + bytes.size() };
 }
 
-QPixmap roundImage(const QPixmap& src, int32_t radius) {
-	return roundImage(src, src.size(), radius);
+QPixmap RoundImage(const QPixmap& src, int32_t radius) {
+	return RoundImage(src, src.size(), radius);
 }
 
-QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
+QPixmap RoundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	QColor color = Qt::black;
 	color.setAlpha(alpha);
 	const QRect darker_rect(0, 0, size.width(), size.height());
@@ -147,7 +147,7 @@ QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	return result;
 }
 
-QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
+QPixmap RoundImage(const QPixmap& src, QSize size, int32_t radius) {
 	QPixmap result(size);
 	const QPixmap pixmap(src);
 
@@ -164,18 +164,18 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	painter.setClipPath(painter_path);
 	painter.setBrush(QBrush(QColor(249, 249, 249)));
 	if (src.size() != size) {
-		painter.drawPixmap(rect, resizeImage(pixmap, size, true));
+		painter.drawPixmap(rect, ResizeImage(pixmap, size, true));
 	} else {
 		painter.drawPixmap(rect, pixmap);
 	}
 	return result;
 }
 
-QImage blurImage(const QPixmap& source, QSize size) {
+QImage BlurImage(const QPixmap& source, QSize size) {
 	const int radius = qMax(20, qMin(size.width(), size.height()) / 5);
 
 	const QSize scaled_size(size.width() + radius, size.height() + radius);
-	auto pixmap = resizeImage(source, scaled_size);
+	auto pixmap = ResizeImage(source, scaled_size);
 	auto img = pixmap.toImage();
 
 	QPainter painter(&pixmap);
@@ -194,7 +194,7 @@ QImage blurImage(const QPixmap& source, QSize size) {
 		pixmap.height() - clip_size * 2).toImage();
 }
 
-int sampleImageBlur(const QImage& image, int blur_alpha) {
+int SampleImageBlur(const QImage& image, int blur_alpha) {
 	const auto w = image.width();
 	const auto h = image.height();
 

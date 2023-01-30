@@ -6,7 +6,7 @@ DoubleSlider::DoubleSlider(QWidget *parent)
             this, SLOT(notifyValueChanged(int)));
 }
 
-void DoubleSlider::notifyValueChanged(int value) {
+void DoubleSlider::NotifyValueChanged(int value) {
     double double_value = value / ratio_;
-    emit doubleValueChanged(double_value);
+    emit DoubleValueChanged(double_value);
 }

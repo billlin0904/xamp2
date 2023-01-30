@@ -115,7 +115,7 @@ void PlaylistPage::initial() {
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
 		this,
-		&PlaylistPage::setCoverById);
+		&PlaylistPage::SetCoverById);
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
@@ -135,7 +135,7 @@ QLabel* PlaylistPage::cover() {
 	return cover_;
 }
 
-void PlaylistPage::hidePlaybackInformation(bool hide) {
+void PlaylistPage::HidePlaybackInformation(bool hide) {
 	if (hide) {
 		format_->hide();
 		title_->hide();
@@ -150,16 +150,16 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 	}
 }
 
-void PlaylistPage::setCover(const QPixmap * cover) {
-	const auto playlist_cover = ImageUtils::roundImage(
-		ImageUtils::resizeImage(*cover, QSize(130, 130), false),
-		ImageUtils::kPlaylistImageRadius);
+void PlaylistPage::SetCover(const QPixmap * cover) {
+	const auto playlist_cover = image_utils::RoundImage(
+		image_utils::ResizeImage(*cover, QSize(130, 130), false),
+		image_utils::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
 }
 
-void PlaylistPage::setCoverById(const QString& cover_id) {
+void PlaylistPage::SetCoverById(const QString& cover_id) {
 	const auto cover = qPixmapCache.find(cover_id);
-	setCover(&cover);
+	SetCover(&cover);
 }
 
 PlayListTableView* PlaylistPage::playlist() {

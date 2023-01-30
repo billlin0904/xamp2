@@ -1,49 +1,50 @@
-#include <QCryptographicHash>
-#include <QSharedMemory>
-#include <QDir>
+#include <QFileInfo>
+#include <QLocalServer>
+#include <QLocalSocket>
 
 #include <base/logger_impl.h>
-#include <base/rng.h>
-#include <base/assert.h>
 
-#ifdef XAMP_OS_WIN
-#include <widget/win32/win32.h>
-#endif
+#include <widget/xmainwindow.h>
 
-#include <widget/str_utilts.h>
 #include <singleinstanceapplication.h>
 
-SingleInstanceApplication::SingleInstanceApplication() = default;
+constexpr auto kIpcTimeout = 1000;
 
-SingleInstanceApplication::~SingleInstanceApplication() {
-#ifdef XAMP_OS_WIN
-    if (singular_.is_valid()) {
-        ::ReleaseMutex(singular_.get());
-        singular_.close();
-    }
-#endif
+SingleInstanceApplication::SingleInstanceApplication(int& argc, char* argv[])
+	: QApplication(argc, argv) {
+	QLocalSocket socket;
+	socket.connectToServer(applicationName());
+
+	if (socket.waitForConnected(kIpcTimeout)) {
+		is_running_ = true;
+		return;																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																											
+	}
+
+	server_.reset(new QLocalServer(this));
+	(void)QObject::connect(server_.get(), &QLocalServer::newConnection, [this]() {
+		QScopedPointer<QLocalSocket> socket(server_->nextPendingConnection());
+		if (socket) {
+			socket->waitForReadyRead(2 * kIpcTimeout);
+			socket.reset();
+			if (!window) {
+				return;
+			}
+			window->ShowWindow();
+		}
+	});
+
+	if (!server_->listen(applicationName())) {
+		if (server_->serverError() == QAbstractSocket::AddressInUseError) {
+			QLocalServer::removeServer(applicationName());
+			server_->listen(applicationName());
+		}
+	}
 }
 
-bool SingleInstanceApplication::attach() const {
-#ifdef XAMP_OS_WIN
-    const auto name = "XAMP2_" + win32::getRandomMutexName("XAMP2");
-	/*if (!win32::isRunning("XAMP2")) {
-        singular_.reset(::CreateMutexA(nullptr, TRUE, name.c_str()));
-        if (ERROR_ALREADY_EXISTS == ::GetLastError()) {
-            return false;
-        }
-        XAMP_LOG_DEBUG("My GUID: {} Is running: {}", name, win32::isRunning("XAMP2"));
-        return singular_.is_valid();
-    }
-    return false;*/
-    singular_.reset(::CreateMutexA(nullptr, TRUE, name.c_str()));
-    if (ERROR_ALREADY_EXISTS == ::GetLastError()) {
-        return false;
-    }
-    XAMP_LOG_DEBUG("My GUID: {}", name);
-    return singular_.is_valid();
-#else
-    return true;
-#endif
+SingleInstanceApplication::~SingleInstanceApplication() {
+}
+
+bool SingleInstanceApplication::IsAttach() const {
+    return !is_running_;
 }
 

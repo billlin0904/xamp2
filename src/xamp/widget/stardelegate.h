@@ -22,10 +22,10 @@ public:
 
     void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
 
-    void setBackgroundColor(QColor color);
+    void SetBackgroundColor(QColor color);
 
 private slots:
-    void commitAndCloseEditor();
+    void CommitAndCloseEditor();
 
 private:
     QColor background_color_;

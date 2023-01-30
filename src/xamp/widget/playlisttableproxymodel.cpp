@@ -6,7 +6,7 @@ PlayListTableFilterProxyModel::PlayListTableFilterProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent) {
 }
 
-void PlayListTableFilterProxyModel::setFilterByColumn(int32_t column) {
+void PlayListTableFilterProxyModel::SetFilterByColumn(int32_t column) {
     filters_.insert(column);
 }
 

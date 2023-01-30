@@ -15,14 +15,14 @@ public:
     explicit EqualizerDialog(QWidget *parent = nullptr);
 
 signals:
-   void bandValueChange(int band, float value, float Q);
+   void BandValueChange(int band, float value, float Q);
 
-   void preampValueChange(float value);
+   void PreampValueChange(float value);
 
 private:
-    void parseEqFile();
+    void ParseEqFile();
 
-    void applySetting(QString const &name, EQSettings const &settings);
+    void ApplySetting(QString const &name, EQSettings const &settings);
 
     Ui::EqualizerDialog ui_;
     std::vector<DoubleSlider*> band_sliders_;

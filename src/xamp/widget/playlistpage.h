@@ -28,17 +28,17 @@ public:
 
 	QLabel* format();
 
-	void setCover(const QPixmap* cover);
+	void SetCover(const QPixmap* cover);
 
-	void hidePlaybackInformation(bool hide);
+	void HidePlaybackInformation(bool hide);
 
 signals:
-	void playMusic(const PlayListEntity& item);
+	void PlayMusic(const PlayListEntity& item);
 
 public slots:
     void OnThemeColorChanged(QColor theme_color, QColor color);
 
-	void setCoverById(const QString& cover_id);
+	void SetCoverById(const QString& cover_id);
 
 private:
 	void initial();

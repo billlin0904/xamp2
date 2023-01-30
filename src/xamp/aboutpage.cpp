@@ -49,7 +49,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui.wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
 }
 
-void AboutPage::onCreditsOrLicenceChecked(bool checked) {
+void AboutPage::OnCreditsOrLicenceChecked(bool checked) {
     if (sender()->objectName() == qTEXT("btnLicense")) {
         ui.txtBws->setText(lincense_);
         ui.btnCredits->setChecked(false);

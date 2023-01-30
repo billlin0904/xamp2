@@ -10,7 +10,6 @@
 class PlaylistPage;
 
 class CdPage final : public QFrame {
-    Q_OBJECT
 public:
     explicit CdPage(QWidget* parent = nullptr);
 
@@ -19,8 +18,6 @@ public:
     PlaylistPage* playlistPage() {
         return ui.playlistPage;
     }
-private slots:
-    
 private:
     Ui::CDPage ui;
 };

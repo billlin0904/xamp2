@@ -4,7 +4,7 @@
 #include <QSize>
 #include <base/logger_impl.h>
 #include <widget/appsettingnames.h>
-#include <widget/xwindow.h>
+#include <widget/xmainwindow.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
@@ -15,36 +15,36 @@ QMap<QString, EQSettings> AppSettings::eq_settings_;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
-    loadEQPreset();
+    LoadEqPreset();
 }
 
-const QMap<QString, EQSettings>& AppSettings::getEQPreset() {
+const QMap<QString, EQSettings>& AppSettings::GetEqPreset() {
     return eq_settings_;
 }
 
-AppEQSettings AppSettings::getEQSettings() {
-    return getValue(kAppSettingEQName).value<AppEQSettings>();
+AppEQSettings AppSettings::GetEqSettings() {
+    return GetValue(kAppSettingEQName).value<AppEQSettings>();
 }
 
-void AppSettings::setEQSettings(AppEQSettings const& eq_settings) {
-    setValue(kAppSettingEQName, QVariant::fromValue(eq_settings));
+void AppSettings::SetEqSettings(AppEQSettings const& eq_settings) {
+    SetValue(kAppSettingEQName, QVariant::fromValue(eq_settings));
 }
 
-bool AppSettings::dontShowMeAgain(const QString& text) {
+bool AppSettings::DontShowMeAgain(const QString& text) {
     const auto string_hash = QString::number(qHash(text));
-    auto dont_show_me_again_list = getList(kAppSettingDontShowMeAgainList);
+    auto dont_show_me_again_list = ValueAsStringList(kAppSettingDontShowMeAgainList);
     return !dont_show_me_again_list.contains(string_hash);
 }
 
-void AppSettings::addDontShowMeAgain(const QString& text) {
+void AppSettings::AddDontShowMeAgain(const QString& text) {
 	const auto string_hash = QString::number(qHash(text));
-    auto dont_show_me_again_list = getList(kAppSettingDontShowMeAgainList);
+    auto dont_show_me_again_list = ValueAsStringList(kAppSettingDontShowMeAgainList);
     if (!dont_show_me_again_list.contains(string_hash)) {
-        addList(kAppSettingDontShowMeAgainList, string_hash);
+        AddList(kAppSettingDontShowMeAgainList, string_hash);
     }
 }
 
-void AppSettings::loadEQPreset() {
+void AppSettings::LoadEqPreset() {
     auto path = QDir::currentPath() + qTEXT("/eqpresets/");
     auto file_ext = QStringList() << qTEXT("*.*");
 
@@ -88,12 +88,12 @@ void AppSettings::save() {
     settings_->sync();
 }
 
-QString AppSettings::defaultCachePath() {
+QString AppSettings::DefaultCachePath() {
     auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
     return folder_path[0];
 }
 
-QString AppSettings::getMyMusicFolderPath() {
+QString AppSettings::GetMyMusicFolderPath() {
     if (!contains(kAppSettingMyMusicFolderPath)) {
         auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
         if (folder_path.isEmpty()) {
@@ -101,19 +101,19 @@ QString AppSettings::getMyMusicFolderPath() {
         }
         return folder_path[0];
     }
-    return getValueAsString(kAppSettingMyMusicFolderPath);
+    return ValueAsString(kAppSettingMyMusicFolderPath);
 }
 
-Uuid AppSettings::getValueAsID(const QString& key) {
-	auto str = getValue(key).toString();
+Uuid AppSettings::ValueAsID(const QString& key) {
+	auto str = GetValue(key).toString();
 	if (str.isEmpty()) {
         return Uuid::kNullUuid;
 	}
 	return Uuid::FromString(str.toStdString());
 }
 
-QList<QString> AppSettings::getList(QString const& key) {
-    auto setting_str = AppSettings::getValueAsString(key);
+QList<QString> AppSettings::ValueAsStringList(QString const& key) {
+    auto setting_str = AppSettings::ValueAsString(key);
     if (setting_str.isEmpty()) {
         return {};
     }
@@ -124,8 +124,8 @@ QList<QString> AppSettings::getList(QString const& key) {
 #endif
 }
 
-void AppSettings::removeList(QString const& key, QString const & value) {
-    auto values = getList(key);
+void AppSettings::RemoveList(QString const& key, QString const & value) {
+    auto values = ValueAsStringList(key);
 
     auto itr = std::find(values.begin(), values.end(), value);
     if (itr != values.end()) {
@@ -136,11 +136,11 @@ void AppSettings::removeList(QString const& key, QString const & value) {
     Q_FOREACH(auto id, values) {
         all << id;
     }
-    AppSettings::setValue(key, all.join(qTEXT(",")));
+    AppSettings::SetValue(key, all.join(qTEXT(",")));
 }
 
-void AppSettings::addList(QString const& key, QString const & value) {
-    auto values = getList(key);
+void AppSettings::AddList(QString const& key, QString const & value) {
+    auto values = ValueAsStringList(key);
 
     auto itr = std::find(values.begin(), values.end(), value);
     if (itr != values.end()) {
@@ -152,18 +152,18 @@ void AppSettings::addList(QString const& key, QString const & value) {
     Q_FOREACH(auto id, values) {
         all << id;
     }
-    setValue(key, all.join(qTEXT(",")));
+    SetValue(key, all.join(qTEXT(",")));
 }
 
-QSize AppSettings::getSizeValue(const QString& width_key,
+QSize AppSettings::ValueAsSize(const QString& width_key,
 	const QString& height_key) {
 	return QSize{
-		getAsInt(width_key),
-		getAsInt(height_key),
+		ValueAsInt(width_key),
+		ValueAsInt(height_key),
 	};
 }
 
-QVariant AppSettings::getValue(const QString& key) {
+QVariant AppSettings::GetValue(const QString& key) {
 	if (!settings_->contains(key)) {
 		return default_settings_.value(key);
 	}
@@ -171,12 +171,12 @@ QVariant AppSettings::getValue(const QString& key) {
     return v;
 }
 
-int32_t AppSettings::getAsInt(const QString& key) {
-	return getValue(key).toInt();
+int32_t AppSettings::ValueAsInt(const QString& key) {
+	return GetValue(key).toInt();
 }
 
-void AppSettings::loadLanguage(const QString& lang) {
-	manager_.loadLanguage(lang);
+void AppSettings::LoadLanguage(const QString& lang) {
+	manager_.LoadLanguage(lang);
 }
 
 QLocale AppSettings::locale() {

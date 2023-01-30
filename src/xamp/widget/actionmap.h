@@ -50,7 +50,7 @@ public:
 		}
 
 		template <typename Callable>
-		QAction* addAction(const QString& menu_name,
+		QAction* AddAction(const QString& menu_name,
 			Callable&& callback,
 			bool checked = false,
 			bool add_eparator = false) {
@@ -82,20 +82,20 @@ public:
 		qTheme.setMenuStyle(&menu_);
 	}
 
-	QAction* addAction(const QString& menu_name) {
-		auto action = addAction(menu_name, []() {});
+	QAction* AddAction(const QString& menu_name) {
+		auto action = AddAction(menu_name, []() {});
 		action->setEnabled(false);
 		return action;
 	}
 
 	template <typename Callable>
-	void setCallback(QAction* action, Callable&& callback) {
+	void SetCallback(QAction* action, Callable&& callback) {
 		map_[action] = callback;
 		action->setEnabled(true);
 	}
 
 	template <typename Callable>
-	QAction* addAction(const QString& menu_name,
+	QAction* AddAction(const QString& menu_name,
 		Callable&& callback,
 		bool add_eparator = false,
 		bool checked = false) {
@@ -118,11 +118,11 @@ public:
 		return action;
 	}
 
-	SubMenu* addSubMenu(const QString& menu_name) {
+	SubMenu* AddSubMenu(const QString& menu_name) {
 		return new SubMenu(menu_name, &menu_, map_);
 	}
 
-	void addSeparator() {
+	void AddSeparator() {
 		menu_.addSeparator();
 	}
 

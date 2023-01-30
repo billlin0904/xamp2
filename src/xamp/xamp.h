@@ -39,9 +39,9 @@ class QRadioButton;
 class BackgroundWorker;
 class CdPage;
 class XMenu;
-class DatabaseProxy;
+class DatabaseFacade;
 
-class Xamp final : public IXPlayerControlFrame {
+class Xamp final : public IXFrame {
 	Q_OBJECT
 
 public:
@@ -49,170 +49,171 @@ public:
 
     virtual ~Xamp() override;
 
-    void setXWindow(IXWindow* top_window);
+    void SetXWindow(IXMainWindow* top_window);
 
-    void applyTheme(QColor backgroundColor, QColor color);
+    void ApplyTheme(QColor backgroundColor, QColor color);
 
-	void shortcutsPressed(const QKeySequence& shortcut) override;
+	void ShortcutsPressed(const QKeySequence& shortcut) override;
 
 signals:
-	void payNextMusic();
+	void PayNextMusic();
 
-    void themeChanged(QColor backgroundColor, QColor color);
+    void ThemeChanged(QColor backgroundColor, QColor color);
 
-	void nowPlaying(QString const& artist, QString const& title);
+	void NowPlaying(QString const& artist, QString const& title);
 
-	void addBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
+	void BlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
-	void fetchCdInfo(const DriveInfo& drive);
+	void FetchCdInfo(const DriveInfo& drive);
 
-	void readTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
+	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
 		QString const& file_path,
 		int32_t playlist_id,
 		bool is_podcast_mode);
 
-	void searchLyrics(const QString& title, const QString& artist);
+	void SearchLyrics(const QString& title, const QString& artist);
 public slots:
-    void playAlbumEntity(const AlbumEntity& item);
+    void play(const PlayListEntity& item);
 
-	void playPlayListEntity(const PlayListEntity& item);
+	void PlayPlayListEntity(const PlayListEntity& item);
 
-    void addPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity>& entities);
+    void AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity>& entities);
 
-	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void OnArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void processTrackInfo(const ForwardList<TrackInfo>&) const;
+	void ProcessTrackInfo(const ForwardList<TrackInfo>&) const;
 
-	void onActivated(QSystemTrayIcon::ActivationReason reason);
+	void OnActivated(QSystemTrayIcon::ActivationReason reason);
 
-	void onVolumeChanged(float volume);
+	void OnVolumeChanged(float volume);
 
-	void setCover(const QString& cover_id, PlaylistPage* page);
+	void SetCover(const QString& cover_id, PlaylistPage* page);
 
-	void onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
+	void OnClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
-	void onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+	void OnUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
-	void onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
+	void OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
-	void onUpdateDiscCover(const QString& disc_id, const QString& cover_id);
+	void OnUpdateDiscCover(const QString& disc_id, const QString& cover_id);
 
+	void OnSearchLyricsCompleted(const QString& lyrics);
 private:
-	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
+	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
-	void drivesRemoved(const DriveInfo& drive_info) override;
+	void DrivesRemoved(const DriveInfo& drive_info) override;
 
-	bool hitTitleBar(const QPoint& ps) const override;
+	bool HitTitleBar(const QPoint& ps) const override;
 
     void stop() override;
 
-    void playNext() override;
+    void PlayNext() override;
 
-    void playPrevious() override;
+    void PlayPrevious() override;
 
-    void playOrPause() override;
+    void PlayOrPause() override;
 
-    void deleteKeyPress() override;
+    void DeleteKeyPress() override;
 
-    void addDropFileItem(const QUrl& url) override;
+    void AddDropFileItem(const QUrl& url) override;
 
 	void closeEvent(QCloseEvent* event) override;
 
-	void updateMaximumState(bool is_maximum) override;
+	void UpdateMaximumState(bool is_maximum) override;
 
-	void systemThemeChanged(ThemeColor theme_color) override;
+	void SystemThemeChanged(ThemeColor theme_color) override;
 
-    void focusIn() override;
+    void FocusIn() override;
 
-    void focusOut() override;
+    void FocusOut() override;
 
-	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
+	void SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
-	QWidgetAction* createTextSeparator(const QString& desc);
+	QWidgetAction* CreateTextSeparator(const QString& desc);
 
-	void onSampleTimeChanged(double stream_time);
+	void OnSampleTimeChanged(double stream_time);
 
-	void playLocalFile(const PlayListEntity& item);
+	void PlayLocalFile(const PlayListEntity& item);
 
-	void onPlayerStateChanged(PlayerState play_state);
+	void OnPlayerStateChanged(PlayerState play_state);
 
-	void addItem(const QString& file_name);
+	void AddItem(const QString& file_name);
 
-    void setVolume(uint32_t volume);
+    void SetVolume(uint32_t volume);
 
-	void setCurrentTab(int32_t table_id);
+	void SetCurrentTab(int32_t table_id);
 
-	void initialUI();
+	void InitialUi();
 
-	void initialPlaylist();
+	void InitialPlaylist();
 
-	void initialController();
+	void InitialController();
 
-	void initialDeviceList();
+	void InitialDeviceList();
 
-	void initialShortcut();
+	void InitialShortcut();
 
-	void initialSpectrum();
+	void InitialSpectrum();
 
-	void playNextItem(int32_t forward);
+	void PlayNextItem(int32_t forward);
 
-    void setTablePlaylistView(int table_id, ConstLatin1String column_setting_name);
+    void SetTablePlaylistView(int table_id, ConstLatin1String column_setting_name);
 
-	void setPlayerOrder();
+	void SetPlayerOrder();
 
-	PlaylistPage* newPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
+	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 
-	void pushWidget(QWidget* widget);
+	void PushWidget(QWidget* widget);
 
-	QWidget* popWidget();
+	QWidget* PopWidget();
 
-	QWidget* topWidget();
+	QWidget* TopWidget();
 
-	void goBackPage();
+	void GoBackPage();
 
-	void getNextPage();
+	void GetNextPage();
 
-	void setSeekPosValue(double stream_time_as_ms);
+	void SetSeekPosValue(double stream_time_as_ms);
 
-	void resetSeekPosValue();
+	void ResetSeekPosValue();
 
-    void onDeviceStateChanged(DeviceState state);
+    void OnDeviceStateChanged(DeviceState state);
 
-    void encodeFlacFile(const PlayListEntity& item);
+    void EncodeFlacFile(const PlayListEntity& item);
 
-	void encodeAACFile(const PlayListEntity& item, const EncodingProfile & profile);
+	void EncodeAacFile(const PlayListEntity& item, const EncodingProfile & profile);
 
-	void encodeWavFile(const PlayListEntity& item);
+	void EncodeWavFile(const PlayListEntity& item);
 
-    void updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done);
+    void UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
-	void updateButtonState();
+	void UpdateButtonState();
 
-	void extractFile(const QString &file_path);
+	void ExtractFile(const QString &file_path);
 
-	PlaylistPage* currentPlyalistPage();
+	PlaylistPage* CurrentPlyalistPage();
 
 	void cleanup();
 
-    void setupDSP(const AlbumEntity& item);
+    void SetupDsp(const PlayListEntity& item);
 
-	void avoidRedrawOnResize();
+	void AvoidRedrawOnResize();
 
-	void connectPlaylistPageSignal(PlaylistPage* playlist_page);
+	void ConnectPlaylistPageSignal(PlaylistPage* playlist_page);
 
-	void appendToPlaylist(const QString& file_name);
+	void AppendToPlaylist(const QString& file_name);
 
-	void sliderAnimation(bool enable);
+	void SliderAnimation(bool enable);
 
-	QString translateErrorCode(const Errors error);
+	QString TranslateErrorCode(const Errors error);
 
-	void setupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format);
+	void SetupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format);
 
-	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
+	void SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
 
-	bool showMeMessage(const QString &message);
+	bool ShowMeMessage(const QString &message);
 
 	bool is_seeking_;
 	PlayerOrder order_;
@@ -227,7 +228,7 @@ private:
 	PreferencePage* preference_page_;
 	FileSystemViewPage* file_system_view_page_;
 	AboutPage* about_page_;
-	IXWindow* top_window_;
+	IXMainWindow* main_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;
 	QModelIndex play_index_;

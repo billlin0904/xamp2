@@ -19,7 +19,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 
     ui_.volumeButton->setIconSize(QSize(20, 20));
     ui_.volumeButton->setFixedSize(20, 20);
-	ui_.volumeSlider->setRange(0, 100);
+	ui_.volumeSlider->SetRange(0, 100);
     ui_.volumeButton->setStyleSheet(qTEXT(R"(
                                          QPushButton#volumeButton {
                                          border: none;
@@ -27,22 +27,22 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
                                          }
                                          )"));
 
-    if (AppSettings::getValueAsBool(kAppSettingIsMuted)) {
-        setVolume(0);
+    if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
+        SetVolume(0);
     }
     else {
-        const auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
-        setVolume(vol);
+        const auto vol = AppSettings::GetValue(kAppSettingVolume).toUInt();
+        SetVolume(vol);
         ui_.volumeSlider->setValue(vol);
     }
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        setVolume(volume);
+        SetVolume(volume);
         });
 
-    (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
+    (void)QObject::connect(ui_.volumeSlider, &SeekSlider::LeftButtonValueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
-		setVolume(volume);
+		SetVolume(volume);
         });
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
@@ -73,10 +73,10 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 }
 
 VolumeControlDialog::~VolumeControlDialog() {
-    AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
+    AppSettings::SetValue(kAppSettingVolume, ui_.volumeSlider->value());
 }
 
-void VolumeControlDialog::setVolume(uint32_t volume) {
+void VolumeControlDialog::SetVolume(uint32_t volume) {
     if (volume > 100) {
         return;
     }
@@ -104,6 +104,6 @@ void VolumeControlDialog::setVolume(uint32_t volume) {
     }
     catch (const Exception& e) {
         player_->Stop(false);
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+        XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
     }
 }

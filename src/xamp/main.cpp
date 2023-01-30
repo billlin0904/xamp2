@@ -21,9 +21,9 @@
 #include <widget/str_utilts.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
-#include <widget/xwindow.h>
+#include <widget/xmainwindow.h>
 #include <widget/xmessagebox.h>
-#include <widget/metadataextractadapter.h>
+#include <widget/databasefacade.h>
 
 #include <QOperatingSystemVersion>
 #include <QLoggingCategory>
@@ -40,7 +40,7 @@
 #include "xamp.h"
 
 #ifdef Q_OS_WIN32
-static ConstLatin1String visualStudioVersion() {
+static ConstLatin1String VisualStudioVersion() {
     if constexpr (_MSC_VER >= 1930) {
         return "2022";
     }
@@ -48,8 +48,8 @@ static ConstLatin1String visualStudioVersion() {
 }
 #endif
 
-static void loadSoxrSetting() {
-    XAMP_LOG_DEBUG("loadSoxrSetting.");
+static void LoadSoxrSetting() {
+    XAMP_LOG_DEBUG("LoadSoxrSetting.");
 
     QMap<QString, QVariant> default_setting;
 
@@ -64,42 +64,42 @@ static void loadSoxrSetting() {
     QMap<QString, QVariant> soxr_setting;
     soxr_setting[kSoxrDefaultSettingName] = default_setting;
 
-    JsonSettings::setDefaultValue(kSoxr, QVariant::fromValue(soxr_setting));
+    JsonSettings::SetDefaultValue(kSoxr, QVariant::fromValue(soxr_setting));
 
-    if (JsonSettings::getValueAsMap(kSoxr).isEmpty()) {     
-        JsonSettings::setValue(kSoxr, QVariant::fromValue(soxr_setting));
-        AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
-        AppSettings::setDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+    if (JsonSettings::ValueAsMap(kSoxr).isEmpty()) {     
+        JsonSettings::SetValue(kSoxr, QVariant::fromValue(soxr_setting));
+        AppSettings::SetValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+        AppSettings::SetDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
     }
 }
 
-static void loadR8BrainSetting() {
-    XAMP_LOG_DEBUG("loadR8BrainSetting.");
+static void LoadR8BrainSetting() {
+    XAMP_LOG_DEBUG("LoadR8BrainSetting.");
 
     QMap<QString, QVariant> default_setting;
 
     default_setting[kResampleSampleRate] = 96000;
-    JsonSettings::setDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
-    if (JsonSettings::getValueAsMap(kR8Brain).isEmpty()) {
-        JsonSettings::setValue(kR8Brain, QVariant::fromValue(default_setting));
+    JsonSettings::SetDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
+    if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
+        JsonSettings::SetValue(kR8Brain, QVariant::fromValue(default_setting));
     }
     if (!AppSettings::contains(kAppSettingResamplerType)) {
-        AppSettings::setValue(kAppSettingResamplerType, kR8Brain);
+        AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
     }
 }
 
-static void loadPcm2DsdSetting() {
-    XAMP_LOG_DEBUG("loadPcm2DsdSetting.");
+static void LoadPcm2DsdSetting() {
+    XAMP_LOG_DEBUG("LoadPcm2DsdSetting.");
 
-    if (JsonSettings::getValueAsMap(kR8Brain).isEmpty()) {
+    if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
         QMap<QString, QVariant> default_setting;
         default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
-        JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
-        AppSettings::setValue(kEnablePcm2Dsd, false);
+        JsonSettings::SetDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
+        AppSettings::SetValue(kEnablePcm2Dsd, false);
     }
 }
 
-static LogLevel parseLogLevel(const QString &str) {
+static LogLevel ParseLogLevel(const QString &str) {
     const static QMap<QString, LogLevel> logs{
     	{ qTEXT("info"), LogLevel::LOG_LEVEL_INFO},
         { qTEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},
@@ -114,7 +114,7 @@ static LogLevel parseLogLevel(const QString &str) {
     return logs[str];
 }
 
-static void saveLogConfig() {
+static void SaveLogConfig() {
     QMap<QString, QVariant> log;
     QMap<QString, QVariant> min_level;
     QMap<QString, QVariant> well_known_log_name;
@@ -128,23 +128,23 @@ static void saveLogConfig() {
 
     min_level[kLogDefault] = qTEXT("debug");
 
-    XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(min_level[kLogDefault].toString()));
+    XAMP_DEFAULT_LOG().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
 
     for (auto itr = well_known_log_name.begin()
         ; itr != well_known_log_name.end(); ++itr) {
         override_map[itr.key()] = itr.value();
         XAMP_DEFAULT_LOG().GetLogger(itr.key().toStdString())
-            ->SetLevel(parseLogLevel(itr.value().toString()));
+            ->SetLevel(ParseLogLevel(itr.value().toString()));
     }
 
     min_level[kLogOverride] = override_map;
     log[kLogMinimumLevel] = min_level;
-    JsonSettings::setValue(kLog, QVariant::fromValue(log));
-    JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
+    JsonSettings::SetValue(kLog, QVariant::fromValue(log));
+    JsonSettings::SetDefaultValue(kLog, QVariant::fromValue(log));
 }
 
-static void loadOrSaveLogConfig() {
-    XAMP_LOG_DEBUG("loadOrSaveLogConfig.");
+static void LoadOrSaveLogConfig() {
+    XAMP_LOG_DEBUG("LoadOrSaveLogConfig.");
 
     QMap<QString, QVariant> log;
     QMap<QString, QVariant> min_level;
@@ -158,28 +158,28 @@ static void loadOrSaveLogConfig() {
         }
     }
 
-    if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
+    if (JsonSettings::ValueAsMap(kLog).isEmpty()) {
         min_level[kLogDefault] = qTEXT("debug");
 
-        XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(min_level[kLogDefault].toString()));
+        XAMP_DEFAULT_LOG().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
 
     	for (auto itr = well_known_log_name.begin()
             ; itr != well_known_log_name.end(); ++itr) {
             override_map[itr.key()] = itr.value();
             XAMP_DEFAULT_LOG().GetLogger(itr.key().toStdString())
-                ->SetLevel(parseLogLevel(itr.value().toString()));
+                ->SetLevel(ParseLogLevel(itr.value().toString()));
         }
 
         min_level[kLogOverride] = override_map;
         log[kLogMinimumLevel] = min_level;
-        JsonSettings::setValue(kLog, QVariant::fromValue(log));
-        JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
+        JsonSettings::SetValue(kLog, QVariant::fromValue(log));
+        JsonSettings::SetDefaultValue(kLog, QVariant::fromValue(log));
     } else {
-        log = JsonSettings::getValueAsMap(kLog);
+        log = JsonSettings::ValueAsMap(kLog);
         min_level = log[kLogMinimumLevel].toMap();
 
         const auto default_level = min_level[kLogDefault].toString();
-        XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(default_level));
+        XAMP_DEFAULT_LOG().SetLevel(ParseLogLevel(default_level));
 
         override_map = min_level[kLogOverride].toMap();
 
@@ -195,19 +195,19 @@ static void loadOrSaveLogConfig() {
 	        const auto& log_name = itr.key();
             auto log_level = itr.value().toString();
             XAMP_DEFAULT_LOG().GetLogger(log_name.toStdString())
-        	->SetLevel(parseLogLevel(log_level));
+        	->SetLevel(ParseLogLevel(log_level));
         }       
     }
 }
 
-static void registerMetaType() {
-    XAMP_LOG_DEBUG("registerMetaType.");
+static void RegisterMetaType() {
+    XAMP_LOG_DEBUG("RegisterMetaType.");
 
     // For QSetting read
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
 
     qRegisterMetaType<int64_t>("int64_t");
-    qRegisterMetaType<QSharedPointer<DatabaseProxy>>("QSharedPointer<DatabaseProxy>");
+    qRegisterMetaType<QSharedPointer<DatabaseFacade>>("QSharedPointer<DatabaseFacade>");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DeviceState>("DeviceState");
@@ -224,65 +224,65 @@ static void registerMetaType() {
     qRegisterMetaType<EncodingProfile>("EncodingProfile");
 }
 
-static void loadAppSettings() {
-    registerMetaType();
+static void LoadAppSettings() {
+    RegisterMetaType();
 
-    XAMP_LOG_DEBUG("loadAppSettings.");
+    XAMP_LOG_DEBUG("LoadAppSettings.");
 
-	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
-    AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
-    AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
+	AppSettings::SetDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
+    AppSettings::SetDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
 
-    AppSettings::setDefaultValue(kAppSettingDeviceType, qEmptyString);
-    AppSettings::setDefaultValue(kAppSettingDeviceId, qEmptyString);
-    AppSettings::setDefaultValue(kAppSettingVolume, 50);    
-    AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
-    AppSettings::setDefaultValue(kAppSettingUseFramelessWindow, true);
-    AppSettings::setDefaultValue(kLyricsFontSize, 12);
-    AppSettings::setDefaultValue(kAppSettingMinimizeToTray, true);
-    AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
-    AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
-    AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
-    AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
-    AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
-    AppSettings::setDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
-    AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
-    AppSettings::setDefaultValue(kEnableBitPerfect, true);
-    AppSettings::setDefaultValue(kAppSettingWindowState, false);
-    AppSettings::setDefaultValue(kAppSettingScreenNumber, 1);
-    AppSettings::setDefaultValue(kAppSettingEnableSpectrum, false);
-    AppSettings::setDefaultValue(kAppSettingEnableShortcut, true);
+    AppSettings::SetDefaultValue(kAppSettingDeviceType, qEmptyString);
+    AppSettings::SetDefaultValue(kAppSettingDeviceId, qEmptyString);
+    AppSettings::SetDefaultValue(kAppSettingVolume, 50);    
+    AppSettings::SetDefaultValue(kAppSettingEnableBlur, false);
+    AppSettings::SetDefaultValue(kAppSettingUseFramelessWindow, true);
+    AppSettings::SetDefaultValue(kLyricsFontSize, 12);
+    AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);
+    AppSettings::SetDefaultValue(kAppSettingDiscordNotify, false);
+    AppSettings::SetDefaultValue(kFlacEncodingLevel, 8);
+    AppSettings::SetDefaultValue(kAppSettingAlbumImageCacheSize, 32);
+    AppSettings::SetDefaultValue(kAppSettingShowLeftList, true);
+    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
+    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
+    AppSettings::SetDefaultValue(kAppSettingEnableReplayGain, true);
+    AppSettings::SetDefaultValue(kEnableBitPerfect, true);
+    AppSettings::SetDefaultValue(kAppSettingWindowState, false);
+    AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
+    AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, false);
+    AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
-static void loadSampleRateConverterConfig() {
-    XAMP_LOG_DEBUG("loadSampleRateConverterConfig.");
-    loadSoxrSetting();
-    loadR8BrainSetting();
-    loadPcm2DsdSetting();
+static void LoadSampleRateConverterConfig() {
+    XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
+    LoadSoxrSetting();
+    LoadR8BrainSetting();
+    LoadPcm2DsdSetting();
     JsonSettings::save();
     XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }
 
-static void loadLang() {
-    XAMP_LOG_DEBUG("loadLang.");
+static void LoadLang() {
+    XAMP_LOG_DEBUG("LoadLang.");
 
-    if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
+    if (AppSettings::ValueAsString(kAppSettingLang).isEmpty()) {
         const LocaleLanguage lang;
-        XAMP_LOG_DEBUG("Load locale lang file: {}.", lang.getIsoCode().toStdString());
-        AppSettings::loadLanguage(lang.getIsoCode());
-        AppSettings::setValue(kAppSettingLang, lang.getIsoCode());
+        XAMP_LOG_DEBUG("Load locale Language file: {}.", lang.GetIsoCode().toStdString());
+        AppSettings::LoadLanguage(lang.GetIsoCode());
+        AppSettings::SetValue(kAppSettingLang, lang.GetIsoCode());
     }
     else {
-        AppSettings::loadLanguage(AppSettings::getValueAsString(kAppSettingLang));
-        XAMP_LOG_DEBUG("Load locale lang file: {}.",
-            AppSettings::getValueAsString(kAppSettingLang).toStdString());
+        AppSettings::LoadLanguage(AppSettings::ValueAsString(kAppSettingLang));
+        XAMP_LOG_DEBUG("Load locale Language file: {}.",
+            AppSettings::ValueAsString(kAppSettingLang).toStdString());
     }
 }
 
 #ifdef XAMP_OS_WIN
-static std::vector<SharedLibraryHandle> pinSystemDLL() {
+static std::vector<SharedLibraryHandle> PinSystemDll() {
     const std::vector<std::string_view> dll_file_names{
         "psapi.dll",
         "setupapi.dll",
@@ -304,7 +304,7 @@ static std::vector<SharedLibraryHandle> pinSystemDLL() {
     return pin_module;
 }
 
-static std::vector<SharedLibraryHandle> prefetchDLL() {
+static std::vector<SharedLibraryHandle> PrefetchDll() {
     const std::vector<std::string_view> dll_file_names{
         "mimalloc-override.dll",
     #ifndef _DEBUG
@@ -366,22 +366,20 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
 }
 #endif
 
-static int excute(int argc, char* argv[]) {
+static int Execute(int argc, char* argv[]) {
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication::setDesktopSettingsAware(false);
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QApplication::setApplicationName(qTEXT("XAMP2"));
+    QApplication::setApplicationName(kApplicationName);
     QApplication::setApplicationVersion(kApplicationVersion);
-    QApplication::setOrganizationName(qTEXT("XAMP2 Project"));
-    QApplication::setOrganizationDomain(qTEXT("XAMP2 Project"));
+    QApplication::setOrganizationName(kApplicationName);
+    QApplication::setOrganizationDomain(kApplicationName);
 
-    QApplication app(argc, argv);
-
-    SingleInstanceApplication single_app;
-    if (!single_app.attach()) {
-        XAMP_LOG_DEBUG("Attach application failure!");
+    const SingleInstanceApplication app(argc, argv);
+    if (!app.IsAttach()) {
+        XAMP_LOG_DEBUG("Application already running!");
         return -1;
     }
 
@@ -402,47 +400,44 @@ static int excute(int argc, char* argv[]) {
         LoadComponentSharedLibrary();
     }
     catch (const Exception& e) {
-        XMessageBox::showBug(e);
+        XMessageBox::ShowBug(e);
         return -1;
     }
     XAMP_LOG_DEBUG("Load component shared library success.");
 
-    loadLang();
+    LoadLang();
 
     try {
         qDatabase;
     }
     catch (const Exception& e) {
-        XMessageBox::showBug(e);
+        XMessageBox::ShowBug(e);
         return -1;
     }
     XAMP_LOG_DEBUG("Database init success.");
 
-    XWindow top_win;
+    XMainWindow main_window;
 
-    if (AppSettings::getValueAsBool(kAppSettingEnableShortcut)) {
-        top_win.setShortcut(QKeySequence(Qt::Key_MediaPlay));
-        top_win.setShortcut(QKeySequence(Qt::Key_MediaStop));
-        top_win.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
-        top_win.setShortcut(QKeySequence(Qt::Key_MediaNext));
-        top_win.setShortcut(QKeySequence(Qt::Key_VolumeUp));
-        top_win.setShortcut(QKeySequence(Qt::Key_VolumeDown));
-        top_win.setShortcut(QKeySequence(Qt::Key_VolumeMute));
+    if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
+        main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
+        main_window.setShortcut(QKeySequence(Qt::Key_MediaStop));
+        main_window.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
+        main_window.setShortcut(QKeySequence(Qt::Key_MediaNext));
+        main_window.setShortcut(QKeySequence(Qt::Key_VolumeUp));
+        main_window.setShortcut(QKeySequence(Qt::Key_VolumeDown));
+        main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
     }
 
     Xamp win(MakeAudioPlayer());
 
-    win.setXWindow(&top_win);
-    top_win.setContentWidget(&win);
-    //top_win.setContentWidget(nullptr);
+    win.SetXWindow(&main_window);
+    main_window.SetContentWidget(&win);
+    //top_win.SetContentWidget(nullptr);
 
-    top_win.restoreGeometry();
-    top_win.setWindowState((top_win.windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-    top_win.initMaximumState();
-    top_win.show();
-    top_win.raise(); // for MacOS
-    top_win.activateWindow(); // for Windows
-
+    main_window.RestoreGeometry();
+    main_window.setWindowState((main_window.windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+    main_window.InitMaximumState();
+    main_window.ShowWindow();
     return app.exec();
 }
 
@@ -456,29 +451,30 @@ int main(int argc, char *argv[]) {
         .Startup();
 
     AppSettings::loadIniFile(qTEXT("xamp.ini"));
-    JsonSettings::loadJsonFile(qTEXT("config.json"));
+    JsonSettings::LoadJsonFile(qTEXT("config.json"));
 
-	loadOrSaveLogConfig();
+	LoadOrSaveLogConfig();
 
 #ifdef Q_OS_WIN32
     SetProcessMitigation();
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
-        XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory failure:{}", GetLastErrorMessage());
+        XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
         return -1;
     }
 
     XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
         .arg(kApplicationVersion)
-        .arg(visualStudioVersion())
+        .arg(VisualStudioVersion())
         .arg((_MSC_FULL_VER / 100000) % 100)
         .arg(_MSC_FULL_VER % 100000)
         .arg(qTEXT(__DATE__))
         .arg(qTEXT(__TIME__)).toStdString());
 
-    const auto prefetch_dll = prefetchDLL();
+    const auto prefetch_dll = PrefetchDll();
     XAMP_LOG_DEBUG("Prefetch dll success.");
-    const auto pin_system_dll = pinSystemDLL();
+
+    const auto pin_system_dll = PinSystemDll();
     XAMP_LOG_DEBUG("Pin system dll success.");
 #else
     XAMP_LOG_DEBUG(qSTR("Build Clang %1.%2.%3")
@@ -494,9 +490,9 @@ int main(int argc, char *argv[]) {
         os_ver.minorVersion(),
         os_ver.microVersion());
 
-    loadAppSettings();
-    loadSampleRateConverterConfig();
-    PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
+    LoadAppSettings();
+    LoadSampleRateConverterConfig();
+    PodcastCache.SetTempPath(AppSettings::ValueAsString(kAppSettingPodcastCachePath).toStdWString());
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();    
@@ -508,14 +504,14 @@ int main(int argc, char *argv[]) {
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
         AppSettings::save();
-        saveLogConfig();
+        SaveLogConfig();
         LoggerManager::GetInstance().Shutdown();
     );
 
     auto exist_code = 0;
 
     try {
-        exist_code = excute(argc, argv);
+        exist_code = Execute(argc, argv);
         if (exist_code == kRestartExistCode) {
             QProcess::startDetached(qSTR(argv[0]), qApp->arguments());
         }

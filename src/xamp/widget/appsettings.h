@@ -61,123 +61,123 @@ public:
     static void loadIniFile(QString const & file_name);
 
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-    static void setValue(QString const& key, T value) {
-        setValue(key, std::to_string(value));
+    static void SetValue(QString const& key, T value) {
+        SetValue(key, std::to_string(value));
     }
 
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-    static void setValue(char const *key, T value) {
-        setValue(QLatin1String(key), std::to_string(value));
+    static void SetValue(char const *key, T value) {
+        SetValue(QLatin1String(key), std::to_string(value));
     }
 
     template <typename T>
     static void setEnumValue(const QString& key, T value) {
         static_assert(std::is_enum_v<T>, "T must be enum value");
-        setValue<int32_t>(key, static_cast<int32_t>(value));
+        SetValue<int32_t>(key, static_cast<int32_t>(value));
     }
 
-    static void setValue(QString const& key, QColor value) {
+    static void SetValue(QString const& key, QColor value) {
         settings_->setValue(key, value.name(QColor::HexArgb));
     }
 
-    static void setValue(QString const & key, QByteArray value) {
+    static void SetValue(QString const & key, QByteArray value) {
         settings_->setValue(key, value);
     }
 
-    static void setValue(QString const & key, QVariant value) {
+    static void SetValue(QString const & key, QVariant value) {
         settings_->setValue(key, value);
     }
 
-    static void setValue(QString const & key, const std::string value) {
+    static void SetValue(QString const & key, const std::string value) {
         settings_->setValue(key, QString::fromStdString(value));
     }
 
-    static void setValue(QString const & key, const std::wstring value) {
+    static void SetValue(QString const & key, const std::wstring value) {
         settings_->setValue(key, QString::fromStdWString(value));
     }
 
-    static void setValue(QString const & key, QString const & value) {
+    static void SetValue(QString const & key, QString const & value) {
         settings_->setValue(key, value);
     }
 
-    static void setValue(QLatin1String const & key, QLatin1String const & value) {
+    static void SetValue(QLatin1String const & key, QLatin1String const & value) {
         settings_->setValue(key, value);
     }
 
     template <typename T>
-    static void setDefaultValue(const QString& key, T value) {
+    static void SetDefaultValue(const QString& key, T value) {
         default_settings_[key] = value;
     }
 
     template <typename T>
-    static void setDefaultEnumValue(const QString& key, T value) {
+    static void SetDefaultEnumValue(const QString& key, T value) {
         static_assert(std::is_enum_v<T>, "T must be enum value");
-        setDefaultValue<int32_t>(key, static_cast<int32_t>(value));
+        SetDefaultValue<int32_t>(key, static_cast<int32_t>(value));
     }
 
-    static QColor getValueAsColor(QString const& key, QColor default_color = Qt::white) {
+    static QColor ValueAsColor(QString const& key, QColor default_color = Qt::white) {
         if (!contains(key)) {
             return default_color;
         }
-        return QColor(getValueAsString(key));
+        return QColor(ValueAsString(key));
     }
 
-    static Uuid getValueAsID(QString const & key);
+    static Uuid ValueAsID(QString const & key);
 
-    static QSize getSizeValue(QString const& width_key, QString const& height_key);
+    static QSize ValueAsSize(QString const& width_key, QString const& height_key);
 
-    static QVariant getValue(QString const& key);
+    static QVariant GetValue(QString const& key);
 
-    static int32_t getAsInt(QString const& key);
+    static int32_t ValueAsInt(QString const& key);
 
     template <typename T>
-    static T getAsEnum(QString const& key) {
+    static T ValueAsEnum(QString const& key) {
         static_assert(std::is_enum_v<T>, "T must be enum value");
-        return static_cast<T>(getAsInt(key));
+        return static_cast<T>(ValueAsInt(key));
     }
 
-    static bool getValueAsBool(QString const& key) {
-        return getValue(key).toBool();
+    static bool ValueAsBool(QString const& key) {
+        return GetValue(key).toBool();
     }
 
-    static QString getValueAsString(QString const& key) {
-        return getValue(key).toString();
+    static QString ValueAsString(QString const& key) {
+        return GetValue(key).toString();
     }
 
     static bool contains(QString const& key) {
         return settings_->contains(key);
     }
 
-    static QList<QString> getList(QString const& key);
+    static QList<QString> ValueAsStringList(QString const& key);
 
-    static void removeList(QString const& key, QString const & value);
+    static void RemoveList(QString const& key, QString const & value);
 
-    static void addList(QString const& key, QString const & value);
+    static void AddList(QString const& key, QString const & value);
 
-    static void loadLanguage(QString const& lang);
+    static void LoadLanguage(QString const& lang);
 
-    static QString getMyMusicFolderPath();
+    static QString GetMyMusicFolderPath();
 
-    static QString defaultCachePath();
+    static QString DefaultCachePath();
 
     static void save();
 
-    static const QMap<QString, EQSettings>& getEQPreset();
+    static const QMap<QString, EQSettings>& GetEqPreset();
 
-    static AppEQSettings getEQSettings();
+    static AppEQSettings GetEqSettings();
 
-    static void setEQSettings(AppEQSettings const &eq_settings);
+    static void SetEqSettings(AppEQSettings const &eq_settings);
 
-    static void addDontShowMeAgain(const QString &text);
+    static void AddDontShowMeAgain(const QString &text);
 
-    static bool dontShowMeAgain(const QString& text);
+    static bool DontShowMeAgain(const QString& text);
 
     static QLocale locale();
 protected:
     AppSettings() = default;
 
 private:
-    static void loadEQPreset();
+    static void LoadEqPreset();
 
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;

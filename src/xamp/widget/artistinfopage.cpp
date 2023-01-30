@@ -33,15 +33,15 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			return;
 		}
         ActionMap<ArtistInfoPage> action_map(this);
-		action_map.addAction(tr("Change artist image"), [=]() {
+		action_map.AddAction(tr("Change artist image"), [=]() {
 			const auto file_name = QFileDialog::getOpenFileName(this,
 			                                                    tr("Open file"),
 			                                                    qEmptyString,
 			                                                    tr("Music Files *.jpg *.jpeg *.png"),
                 nullptr);
-			cover_id_ = qPixmapCache.savePixamp(QPixmap(file_name));
-			qDatabase.updateArtistCoverId(artist_id_, cover_id_);
-			setArtistId(artist_->text(), cover_id_, artist_id_);
+			cover_id_ = qPixmapCache.SavePixamp(QPixmap(file_name));
+			qDatabase.UpdateArtistCoverId(artist_id_, cover_id_);
+			SetArtistId(artist_->text(), cover_id_, artist_id_);
 			});		
 		action_map.exec(pt);
 		});
@@ -101,57 +101,57 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	child_layout->addWidget(artist_);
 
 	album_view_ = new AlbumView(this);
-	album_view_->enablePage(false);
+	album_view_->EnablePage(false);
 	
 	default_layout->addLayout(child_layout);
 	default_layout->addLayout(artist_layout);
 	default_layout->addWidget(album_view_);	
 
-	album_view_->hideWidget();
-	setArtistId(qEmptyString, qEmptyString, -1);
+	album_view_->HideWidget();
+	SetArtistId(qEmptyString, qEmptyString, -1);
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 
-	setAlbumCount(0);
-	setTracks(0);
-	setTotalDuration(0);
+	SetAlbumCount(0);
+	SetTracks(0);
+	SetTotalDuration(0);
 }
 
-QPixmap ArtistInfoPage::getArtistImage(QPixmap const* cover) const {
-	return ImageUtils::roundImage(ImageUtils::resizeImage(*cover, cover_->size()), ImageUtils::kPlaylistImageRadius);
+QPixmap ArtistInfoPage::GetArtistImage(QPixmap const* cover) const {
+	return image_utils::RoundImage(image_utils::ResizeImage(*cover, cover_->size()), image_utils::kPlaylistImageRadius);
 }
 
-void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
+void ArtistInfoPage::SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
 	artist_->setText(artist);
-	album_view_->setFilterByArtistId(artist_id);
+	album_view_->SetFilterByArtistId(artist_id);
 
 	const auto cover = qPixmapCache.find(cover_id);
-	const auto small_cover = getArtistImage(&cover);
+	const auto small_cover = GetArtistImage(&cover);
 	cover_->setPixmap(small_cover);
 
 	artist_id_ = artist_id;
 	cover_id_ = cover_id;
 
-	if (auto artist_stats = qDatabase.getArtistStats(artist_id)) {
-		setAlbumCount(artist_stats.value().albums);
-		setTracks(artist_stats.value().tracks);
-		setTotalDuration(artist_stats.value().durations);
+	if (auto artist_stats = qDatabase.GetArtistStats(artist_id)) {
+		SetAlbumCount(artist_stats.value().albums);
+		SetTracks(artist_stats.value().tracks);
+		SetTotalDuration(artist_stats.value().durations);
 	}
 }
 
-void ArtistInfoPage::onThemeChanged(QColor backgroundColor, QColor color) {
+void ArtistInfoPage::OnThemeChanged(QColor backgroundColor, QColor color) {
     artist_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT(";}"));
-	album_view_->onThemeChanged(backgroundColor, color);
+	album_view_->OnThemeChanged(backgroundColor, color);
 }
 
-void ArtistInfoPage::setAlbumCount(int32_t album_count) {
+void ArtistInfoPage::SetAlbumCount(int32_t album_count) {
 	albums_->setText(tr("%1 Albums").arg(album_count));
 }
 
-void ArtistInfoPage::setTracks(int32_t tracks) {
+void ArtistInfoPage::SetTracks(int32_t tracks) {
 	tracks_->setText(tr("%1 Songs").arg(tracks));
 }
 
-void ArtistInfoPage::setTotalDuration(double durations) {
+void ArtistInfoPage::SetTotalDuration(double durations) {
 	durations_->setText(formatDuration(durations));
 }

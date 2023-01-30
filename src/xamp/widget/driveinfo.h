@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include <qmetatype.h>
-#include <widget/str_utilts.h>
+#include <QMetaType>
 
 struct DriveInfo {
 	char driver_letter;

@@ -13,7 +13,7 @@ public:
     explicit AboutPage(QWidget* parent = nullptr);
 
 private slots:
-    void onCreditsOrLicenceChecked(bool checked);
+    void OnCreditsOrLicenceChecked(bool checked);
 
 private:
     Ui::AboutDialog ui;

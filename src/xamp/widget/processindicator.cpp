@@ -11,39 +11,41 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
 	, color_(Qt::black) {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setFocusPolicy(Qt::NoFocus);
-    centerParent(this);
+    CenterParent(this);
+
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
-        setColor(Qt::white);
+        SetColor(Qt::white);
         break;
     case ThemeColor::LIGHT_THEME:
-        setColor(Qt::black);
+        SetColor(Qt::black);
         break;
     }
+
     show();
 }
 
-bool ProcessIndicator::isAnimated() const {
+bool ProcessIndicator::IsAnimated() const {
 	return (timer_id_ != -1);
 }
 
-void ProcessIndicator::setDisplayedWhenStopped(bool state) {
+void ProcessIndicator::SetDisplayedWhenStopped(bool state) {
 	displayed_when_stopped_ = state;
 	update();
 }
 
-bool ProcessIndicator::isDisplayedWhenStopped() const {
+bool ProcessIndicator::IsDisplayedWhenStopped() const {
 	return displayed_when_stopped_;
 }
 
-void ProcessIndicator::startAnimation() {
+void ProcessIndicator::StartAnimation() {
 	angle_ = 0;
 
 	if (timer_id_ == -1)
 		timer_id_ = startTimer(delay_);
 }
 
-void ProcessIndicator::stopAnimation() {
+void ProcessIndicator::StopAnimation() {
     if (timer_id_ != -1)
         killTimer(timer_id_);
 
@@ -51,7 +53,7 @@ void ProcessIndicator::stopAnimation() {
     update();
 }
 
-void ProcessIndicator::setAnimationDelay(int delay) {
+void ProcessIndicator::SetAnimationDelay(int delay) {
     if (timer_id_ != -1)
         killTimer(timer_id_);
 
@@ -60,7 +62,7 @@ void ProcessIndicator::setAnimationDelay(int delay) {
         timer_id_ = startTimer(delay_);
 }
 
-void ProcessIndicator::setColor(const QColor& color) {
+void ProcessIndicator::SetColor(const QColor& color) {
     color_ = color;
     update();
 }
@@ -79,7 +81,7 @@ void ProcessIndicator::timerEvent(QTimerEvent* /*event*/) {
 }
 
 void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {
-    if (!displayed_when_stopped_ && !isAnimated())
+    if (!displayed_when_stopped_ && !IsAnimated())
         return;
 
     const auto width = qMin(this->width(), this->height());
@@ -87,12 +89,12 @@ void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
 
-    auto outer_radius = (width - 1) * 0.5;
-    auto inner_radius = (width - 1) * 0.5 * 0.38;
+    const auto outer_radius = (width - 1) * 0.5;
+    const auto inner_radius = (width - 1) * 0.5 * 0.38;
 
-    auto capsule_height = outer_radius - inner_radius;
-    auto capsule_width = (width > 32) ? capsule_height * .23 : capsule_height * .35;
-    auto capsule_radius = capsule_width / 2;
+    const auto capsule_height = outer_radius - inner_radius;
+    const auto capsule_width = (width > 32) ? capsule_height * .23 : capsule_height * .35;
+    const auto capsule_radius = capsule_width / 2;
 
     for (auto i = 0; i < 12; i++) {
         QColor color = color_;

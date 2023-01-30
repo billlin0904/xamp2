@@ -13,6 +13,7 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/fonticon.h>
+#include <widget/themecolor.h>
 
 class QAbstractButton;
 class QPushButton;
@@ -22,11 +23,6 @@ class QSlider;
 namespace Ui {
 class XampWindow;
 }
-
-enum class ThemeColor {
-    DARK_THEME,
-    LIGHT_THEME,
-};
 
 class ThemeManager {
 public:

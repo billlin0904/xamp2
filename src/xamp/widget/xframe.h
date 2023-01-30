@@ -13,15 +13,15 @@ class XFrame : public QFrame {
 public:
 	explicit XFrame(QWidget* parent = nullptr);
 
-	void setContentWidget(QWidget* content);
+	void SetContentWidget(QWidget* content);
 
-	void setTitle(const QString& title) const;
+	void SetTitle(const QString& title) const;
 
-	QWidget* contentWidget() const {
+	QWidget* ContentWidget() const {
 		return content_;
 	}
 signals:
-	void closeFrame();
+	void CloseFrame();
 
 private:
 	QLabel* title_frame_label{ nullptr };

@@ -18,10 +18,10 @@ public:
     }
 
 signals:
-    void doubleValueChanged(double value);
+    void DoubleValueChanged(double value);
 
 public slots:
-    void notifyValueChanged(int value);
+    void NotifyValueChanged(int value);
 
 private:
     double ratio_{10};

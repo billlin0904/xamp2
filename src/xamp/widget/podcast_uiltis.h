@@ -29,10 +29,10 @@ struct MbDiscIdInfo {
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)
 
-ForwardList<TrackInfo> parseJson(QString const& json);
+ForwardList<TrackInfo> ParseJson(QString const& json);
 
-std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& src);
+std::pair<std::string, ForwardList<TrackInfo>> ParsePodcastXml(QString const& src);
 
-std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXML(QString const& src);
+std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src);
 
-QString parseCoverUrl(QString const& src);
+QString ParseCoverUrl(QString const& src);

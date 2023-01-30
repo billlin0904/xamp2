@@ -18,36 +18,36 @@ public:
 
 	Q_DISABLE_COPY(LyricsShowWidget)
 
-	bool loadLrcFile(const QString &file_path);
+	bool LoadLrcFile(const QString &file_path);
 
-	void setCurrentTime(int32_t time, bool is_adding = true);
+	void SetCurrentTime(int32_t time, bool is_adding = true);
 
-	void paintItem(QPainter* painter, int32_t index, QRect &rect) override;
+	void PaintItem(QPainter* painter, int32_t index, QRect &rect) override;
 
-	void paintItemMask(QPainter* painter) override;
+	void PaintItemMask(QPainter* painter) override;
 
-	void paintBackground(QPainter* painter) override;
+	void PaintBackground(QPainter* painter) override;
 
-	int32_t itemHeight() const override;
+	int32_t ItemHeight() const override;
 
-	int32_t itemCount() const override;
+	int32_t ItemCount() const override;
 
-	void setBackgroundColor(QColor color);
+	void SetBackgroundColor(QColor color);
 
 public slots:
 	void stop();	
 
-	void setLrc(const QString &lrc);
+	void SetLrc(const QString &lrc);
 
-	void setLrcTime(int32_t length);
+	void SetLrcTime(int32_t length);
 
-	void setLrcFont(const QFont &font);
+	void SetLrcFont(const QFont &font);
 
-	void setLrcHightLight(const QColor &color);
+	void SetLrcHighLight(const QColor &color);
 
-	void setLrcColor(const QColor& color);
+	void SetLrcColor(const QColor& color);
 
-	void addFullLrc(const QString& lrc, std::chrono::milliseconds duration);
+	void AddFullLrc(const QString& lrc, std::chrono::milliseconds duration);
 
 private:
 	void dragEnterEvent(QDragEnterEvent* event) override;
@@ -58,11 +58,11 @@ private:
 
 	void dropEvent(QDropEvent* event) override;
 
-	void setDefaultLrc();
+	void SetDefaultLrc();
 
     void initial();
 
-	void loadLrc(const QString& lrc);
+	void LoadLrc(const QString& lrc);
 
 	int32_t pos_;
     int32_t last_lyric_index_;
@@ -70,7 +70,7 @@ private:
 	QFont lrc_font_;
 	QFont current_mask_font_;
 	QColor lrc_color_;
-	QColor lrc_hightlight_color_;
+	QColor lrc_highlight_color_;
 	QColor background_color_;
 	QString lrc_;
 	LrcParser lyric_;	

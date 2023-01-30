@@ -17,14 +17,14 @@ class QPaintEvent;
 
 class LrcPage : public QFrame {
 	Q_OBJECT
-	Q_PROPERTY(int disappearBgProg READ getDisappearBgProg WRITE setDisappearBgProg)
-	Q_PROPERTY(int appearBgProg READ getAppearBgProg WRITE setAppearBgProg)
+	Q_PROPERTY(int disappearBgProg READ GetDisappearBgProg WRITE SetDisappearBgProg)
+	Q_PROPERTY(int appearBgProg READ GetAppearBgProg WRITE SetAppearBgProg)
 public:
 	explicit LrcPage(QWidget* parent = nullptr);
 
 	LyricsShowWidget* lyrics();
 
-	void setCover(const QPixmap& cover);
+	void SetCover(const QPixmap& cover);
 
 	ScrollLabel* album();
 
@@ -34,29 +34,29 @@ public:
 
 	QLabel* cover();
 
-	QSize coverSize() const;
+	QSize CoverSize() const;
 
 	SpectrumWidget* spectrum();
 
-	void setBackgroundColor(QColor backgroundColor);
+	void SetBackgroundColor(QColor backgroundColor);
 
 public slots:
-    void onThemeChanged(QColor backgroundColor, QColor color);
+    void OnThemeChanged(QColor backgroundColor, QColor color);
 
-	void setBackground(const QImage& cover);
+	void SetBackground(const QImage& cover);
 
-	void clearBackground();
+	void ClearBackground();
 
 private:
-	void setAppearBgProg(int x);
+	void SetAppearBgProg(int x);
 
-	int getAppearBgProg() const;
+	int GetAppearBgProg() const;
 
-	void setDisappearBgProg(int x);
+	void SetDisappearBgProg(int x);
 
-	int getDisappearBgProg() const;
+	int GetDisappearBgProg() const;
 
-	void startBackgroundAnimation(int durationMs);
+	void StartBackgroundAnimation(int durationMs);
 
 	void paintEvent(QPaintEvent*) override;
 

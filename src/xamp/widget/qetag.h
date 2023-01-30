@@ -8,9 +8,10 @@
 #include <QString>
 #include <QByteArray>
 
-class QEtag {
-public:
-	static QString getTagId(const QByteArray &buffer) noexcept;
-	static QString getTagId(const QString &file_name) noexcept;
-};
+namespace QEtag {
+
+QString GetTagId(const QByteArray& buffer) noexcept;
+QString GetTagId(const QString& file_name) noexcept;
+
+}
 

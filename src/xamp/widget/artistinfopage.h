@@ -20,18 +20,18 @@ public:
 	}
 
 public slots:
-    void onThemeChanged(QColor backgroundColor, QColor color);
+    void OnThemeChanged(QColor backgroundColor, QColor color);
 
-	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void setAlbumCount(int32_t album_count);
+	void SetAlbumCount(int32_t album_count);
 
-	void setTracks(int32_t tracks);
+	void SetTracks(int32_t tracks);
 
-	void setTotalDuration(double durations);
+	void SetTotalDuration(double durations);
 
 private:
-	QPixmap getArtistImage(QPixmap const* cover) const;
+	QPixmap GetArtistImage(QPixmap const* cover) const;
 
 	int32_t artist_id_{-1};
 	QLabel* cover_;

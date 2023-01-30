@@ -6,12 +6,8 @@
 #pragma once
 
 #include <QObject>
-#include <QModelIndex>
 
-#include <base/spsc_queue.h>
-#include <stream/filestream.h>
-#include <output_device/idevicestatelistener.h>
-#include <player/iplaybackstateadapter.h>
+#include <widget/widget_shared.h>
 
 #include <base/align_ptr.h>
 #include <base/audioformat.h>
@@ -19,23 +15,6 @@
 #include <stream/stft.h>
 
 #include <player/playstate.h>
-
-using xamp::base::Errors;
-using xamp::base::AlignPtr;
-using xamp::base::Exception;
-using xamp::base::SpscQueue;
-using xamp::base::AudioFormat;
-using xamp::base::MakeAlign;
-
-using xamp::player::PlayerState;
-using xamp::player::IPlaybackStateAdapter;
-
-using xamp::output_device::DeviceState;
-using xamp::stream::FileStream;
-using xamp::stream::ComplexValarray;
-using xamp::stream::STFT;
-using xamp::stream::WindowType;
-using xamp::stream::ComplexValarray;
 
 class UIPlayerStateAdapter final
     : public QObject
@@ -73,6 +52,5 @@ signals:
 
 private:
     bool enable_spectrum_;
-    double last_stream_time_;
     AlignPtr<STFT> stft_;
 };

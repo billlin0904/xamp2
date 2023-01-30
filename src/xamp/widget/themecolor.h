@@ -5,10 +5,7 @@
 
 #pragma once
 
-#include <widget/str_utilts.h>
-
-extern const ConstLatin1String kApplicationName;
-extern const ConstLatin1String kApplicationTitle;
-extern const ConstLatin1String kApplicationVersion;
-extern const ConstLatin1String kDefaultCharset;
-extern const ConstLatin1String kDefaultUserAgent;
+enum class ThemeColor {
+    DARK_THEME,
+    LIGHT_THEME,
+};

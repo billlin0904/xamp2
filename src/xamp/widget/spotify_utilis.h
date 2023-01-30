@@ -9,7 +9,7 @@
 #include <QList>
 #include <QMetaType>
 
-namespace Spotify {
+namespace spotify {
 
 struct SearchLyricsResult {
 	struct Artist {
@@ -18,7 +18,7 @@ struct SearchLyricsResult {
 		QString img1v1_url;
 	};
 
-	struct Ablum {
+	struct Album {
 		int32_t id{};
 		int32_t pic_id{};
 		QString name;
@@ -26,14 +26,16 @@ struct SearchLyricsResult {
 	};
 
 	int32_t id{};
-	QString track;
-	Ablum album;
+	QString song;
+	Album album;
 	QList<Artist> artists;
 };
 
-//Q_DECLARE_METATYPE(SearchLyricsResult)
+Q_DECLARE_METATYPE(SearchLyricsResult)
 
-void parseJson(QString const& json, SearchLyricsResult &result);
+bool ParseSearchLyricsResult(QString const& json, QList<SearchLyricsResult> & results);
+
+QString ParseLyricsResponse(QString const& json);
 
 }
 

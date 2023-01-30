@@ -12,7 +12,7 @@
 #include <widget/driveinfo.h>
 #include <widget/podcast_uiltis.h>
 
-class DatabaseProxy;
+class DatabaseFacade;
 
 struct ReplayGainResult final {
     double album_loudness{0};
@@ -36,7 +36,7 @@ public:
     virtual ~BackgroundWorker() override;
 
 signals:
-    void updateReplayGain(int32_t playlistId,
+    void ReadReplayGain(int32_t playlistId,
         const PlayListEntity &entity,
         double track_loudness,
         double album_rg_gain,
@@ -44,37 +44,39 @@ signals:
         double track_rg_gain,
         double track_peak);
 
-    void updateBlurImage(const QImage& image);
+    void BlurImage(const QImage& image);
 
-    void updateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+    void OnReadCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
-    void updateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
+    void OnMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
-    void updateDiscCover(const QString& disc_id, const QString& cover_id);
+    void OnDiscCover(const QString& disc_id, const QString& cover_id);
 
-    void fetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+    void FetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
-    void fetchPodcastError(const QString& msg);
+    void FetchPodcastError(const QString& msg);
+
+    void SearchLyricsCompleted(const QString& lyrics);
 
 public Q_SLOT:
-	void onFetchPodcast(int32_t playlist_id);
+	void OnFetchPodcast(int32_t playlist_id);
 
-    void onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
+    void OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
-    void onBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
+    void OnBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
 
-    void onFetchCdInfo(const DriveInfo &drive);
+    void OnFetchCdInfo(const DriveInfo &drive);
 
-    void onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
+    void OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
         QString const& file_path,
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    void onSearchLyrics(const QString &title, const QString &artist);
+    void OnSearchLyrics(const QString &title, const QString &artist);
 
-    void onProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
+    void OnProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
 private:
-    void lazyInitExecutor();
+    void LazyInitExecutor();
 
     bool is_stop_{false};
     AlignPtr<IThreadPoolExecutor> executor_;

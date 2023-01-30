@@ -22,7 +22,7 @@ static bool writeJsonFile(QIODevice& device, const QSettings::SettingsMap& map) 
 QScopedPointer<QSettings> JsonSettings::settings_;
 QMap<QString, QVariant> JsonSettings::default_settings_;
 
-void JsonSettings::loadJsonFile(const QString& file_name) {
+void JsonSettings::LoadJsonFile(const QString& file_name) {
 	const auto json_format =
 		QSettings::registerFormat(qTEXT("json"), readJsonFile, writeJsonFile);
 	settings_.reset(new QSettings(file_name, json_format));
@@ -43,15 +43,15 @@ void JsonSettings::save() {
 	settings_->sync();
 }
 
-int32_t JsonSettings::getAsInt(const QString& key) {
-	return getValue(key).toInt();
+int32_t JsonSettings::GetAsInt(const QString& key) {
+	return GetValue(key).toInt();
 }
 
-QMap<QString, QVariant> JsonSettings::getValueAsMap(QString const& key) {
-	return QVariant::fromValue(getValue(key)).toMap();
+QMap<QString, QVariant> JsonSettings::ValueAsMap(QString const& key) {
+	return QVariant::fromValue(GetValue(key)).toMap();
 }
 
-QVariant JsonSettings::getValue(const QString& key) {
+QVariant JsonSettings::GetValue(const QString& key) {
 	if (key.isEmpty()) {
 		return{};
 	}

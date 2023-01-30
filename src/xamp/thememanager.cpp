@@ -32,16 +32,16 @@ static void sortFontWeight(Iterator begin, Iterator end) {
         [](const auto& left_font_name, const auto& right_font_name) {
             auto getFontWeight = [](auto name) {
             if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
-                return 100;
+                return 100 * 10;
             }
             if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
-                return 100;
+                return 100 * 10;
             }
             if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
-                return 200;
+                return 200 * 10;
             }
             if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
-                return 300;
+                return 300 * 10;
             }
             if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
                 return 400;
@@ -101,12 +101,21 @@ void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QStri
 	const auto font_path = qSTR("%1/fonts/").arg(QCoreApplication::applicationDirPath());
 
     QMap<int32_t, QString> font_weight_map;
+    QList<QString> file_paths;
+
     QDirIterator itr(font_path, QDir::Files | QDir::NoDotAndDotDot);
+
     while (itr.hasNext()) {
         auto file_path = itr.next();
         if (file_path.contains(font_name_prefix)) {
-            installFileFont(itr.fileName(), ui_fallback_fonts);
+            file_paths.push_back(itr.fileName());
         }
+    }
+
+    sortFontWeight(file_paths.begin(), file_paths.end());
+
+    Q_FOREACH(auto file_path, file_paths) {
+        installFileFont(file_path, ui_fallback_fonts);
     }
 }
 
@@ -253,13 +262,13 @@ ThemeManager::ThemeManager() {
     save_cover_art_size_ = QSize(500, 500);
     //setThemeColor(ThemeColor::DARK_THEME);
     //setThemeColor(ThemeColor::LIGHT_THEME);
-    const auto theme = AppSettings::getAsEnum<ThemeColor>(kAppSettingTheme);
+    const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
     setThemeColor(theme);
     ui_font_ = loadFonts();
-    use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
+    use_native_window_ = !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow);
     ui_font_.setPointSize(fontSize());
     unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
-	default_size_unknown_cover_ = ImageUtils::resizeImage(unknown_cover_, cover_size_);
+	default_size_unknown_cover_ = image_utils::ResizeImage(unknown_cover_, cover_size_);
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
@@ -333,7 +342,7 @@ QIcon ThemeManager::fontIcon(const char32_t code) const {
     case Glyphs::ICON_RESTORE_WINDOW:
 		{
 			auto temp = font_icon_opts_;
-			temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.0));
+			temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.4));
 			return qFontIcon.icon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
@@ -530,7 +539,7 @@ void ThemeManager::applyTheme() {
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     background_color_ = color;
-    AppSettings::setValue(kAppSettingBackgroundColor, color);
+    AppSettings::SetValue(kAppSettingBackgroundColor, color);
 }
 
 QColor ThemeManager::titleBarColor() const {
@@ -731,11 +740,11 @@ int32_t ThemeManager::fontSize() const {
 void ThemeManager::setMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
         button->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_UP));
-        AppSettings::setValue(kAppSettingIsMuted, false);
+        AppSettings::SetValue(kAppSettingIsMuted, false);
     }
     else {
         button->setIcon(qTheme.fontIcon(Glyphs::ICON_VOLUME_OFF));
-        AppSettings::setValue(kAppSettingIsMuted, true);
+        AppSettings::SetValue(kAppSettingIsMuted, true);
     }
 }
 

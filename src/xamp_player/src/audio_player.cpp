@@ -376,12 +376,12 @@ void AudioPlayer::Resume() {
 }
 
 void AudioPlayer::FadeOut() {
-	const float fade_time_seconds = 1.0;
-    const auto sample_count = output_format_.GetSecondsSize(fade_time_seconds) / sizeof(float);
+	const float kFadeTimeSeconds = 1.0;
+    const auto sample_count = output_format_.GetSecondsSize(kFadeTimeSeconds) / sizeof(float);
 
     Buffer<float> buffer(sample_count);
     size_t num_filled_count = 0;
-    dynamic_cast<BassFader*>(fader_.get())->SetTime(1.0f, 0.0f, fade_time_seconds);
+    dynamic_cast<BassFader*>(fader_.get())->SetTime(1.0f, 0.0f, kFadeTimeSeconds);
 
     if (!fifo_.TryRead(reinterpret_cast<int8_t*>(buffer.data()), buffer.GetByteSize(), num_filled_count)) {
         return;

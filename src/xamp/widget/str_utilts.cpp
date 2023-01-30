@@ -1,8 +1,10 @@
+#include <widget/appsettings.h>
+
 #include <QDir>
 #include <QLocale>
 #include <QTime>
+#include <QUuid>
 
-#include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 
 QString colorToString(QColor color) {

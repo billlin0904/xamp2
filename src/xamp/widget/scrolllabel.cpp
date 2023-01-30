@@ -6,21 +6,21 @@ ScrollLabel::ScrollLabel(QWidget* parent)
     static_text_.setTextFormat(Qt::PlainText);
 	timer_.setInterval(16);
 	timer_.setTimerType(Qt::PreciseTimer);
-	(void)QObject::connect(&timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
+	(void)QObject::connect(&timer_, &QTimer::timeout, this, &ScrollLabel::OnTimerTimeout);
     wait_timer_.setInterval(100);
-	(void)QObject::connect(&wait_timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
+	(void)QObject::connect(&wait_timer_, &QTimer::timeout, this, &ScrollLabel::OnTimerTimeout);
 	//left_margin_ = height() / 3;
 	left_margin_ = 2;
 	scroll_pos_ = 0;
 	scroll_enabled_ = false;
 	waiting_ = true;	
-	updateText();
+	UpdateText();
 }
 
-void ScrollLabel::setText(const QString& text) {
+void ScrollLabel::SetText(const QString& text) {
 	text_ = text;
 	scroll_pos_ = 0;
-	updateText();
+	UpdateText();
 	update();
 	updateGeometry();
 }
@@ -29,7 +29,7 @@ QString ScrollLabel::text() const {
 	return text_;
 }
 
-void ScrollLabel::updateText() {
+void ScrollLabel::UpdateText() {
 	timer_.stop();
 
 	single_text_width_ = fontMetrics().width(text_);
@@ -51,7 +51,7 @@ void ScrollLabel::updateText() {
     whole_text_size_ = QSize(fontMetrics().width(static_text_.text()), fontMetrics().height());
 }
 
-void ScrollLabel::onTimerTimeout() {
+void ScrollLabel::OnTimerTimeout() {
 	if (whole_text_size_.width() == 0) {
 		return;
 	}
@@ -136,7 +136,7 @@ void ScrollLabel::resizeEvent(QResizeEvent*) {
 
 	const auto new_scroll_enabled = (single_text_width_ > width() - left_margin_);
 	if (new_scroll_enabled != scroll_enabled_) {
-		updateText();
+		UpdateText();
 	}
 }
 

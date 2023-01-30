@@ -6,13 +6,17 @@
 #pragma once
 
 #include <QString>
-#include <QUuid>
 #include <QColor>
+#include <QHashFunctions>
 
 struct ConstLatin1String final : public QLatin1String {
     constexpr ConstLatin1String(char const* const s) noexcept
         : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
     }
+
+	constexpr ConstLatin1String(char const* const s, int length) noexcept
+		: QLatin1String(s, length) {
+	}
 };
 
 class ConstString final : public std::string_view {
@@ -43,11 +47,11 @@ namespace std {
 inline constexpr ConstLatin1String qEmptyString{ "" };
 
 constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
-    return ConstLatin1String{ str };
+    return { str };
 }
 
 constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
-    return ConstLatin1String{ s.data() };
+	return { s.data(), static_cast<int>(s.length()) };
 }
 
 inline QString qSTR(char const* const str) noexcept {

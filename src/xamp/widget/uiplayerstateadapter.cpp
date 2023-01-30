@@ -4,23 +4,19 @@
 #include <player/audio_player.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
+
 #include <widget/uiplayerstateadapter.h>
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
-	, enable_spectrum_(false)
-	, last_stream_time_(0) {
+	, enable_spectrum_(false) {
 }
 
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
-	if (stream_time - last_stream_time_ > 1.0) {
-		last_stream_time_ = stream_time;
-		emit sampleTimeChanged(stream_time);
-	}
+	emit sampleTimeChanged(stream_time);
 }
 
 void UIPlayerStateAdapter::OnStateChanged(PlayerState play_state) {
-	last_stream_time_ = 0;
     emit stateChanged(play_state);
 }
 
@@ -38,7 +34,7 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
 }
 
 void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
-	enable_spectrum_ = AppSettings::getValueAsBool(kAppSettingEnableSpectrum);
+	enable_spectrum_ = AppSettings::ValueAsBool(kAppSettingEnableSpectrum);
 	if (!enable_spectrum_) {
 		return;
 	}
@@ -48,7 +44,7 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 	frame_size = 8192;
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, shift_size, buffer_size);
 	stft_ = MakeAlign<STFT>(frame_size, shift_size);
-	stft_->SetWindowType(AppSettings::getAsEnum<WindowType>(kAppSettingWindowType));
+	stft_->SetWindowType(AppSettings::ValueAsEnum<WindowType>(kAppSettingWindowType));
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {

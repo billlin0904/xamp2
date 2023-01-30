@@ -58,8 +58,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
     dir_model_ = new FileSystemModel(this);
     dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
-    dir_model_->setRootPath(AppSettings::getMyMusicFolderPath());
-    dir_model_->setNameFilters(getFileNameFilter());
+    dir_model_->setRootPath(AppSettings::GetMyMusicFolderPath());
+    dir_model_->setNameFilters(GetFileNameFilter());
     dir_model_->setNameFilterDisables(false);
 
     dir_first_sort_filter_ = new DirFirstSortFilterProxyModel(this);
@@ -67,7 +67,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_first_sort_filter_->setFilterKeyColumn(0);
 
     ui.dirTree->setModel(dir_first_sort_filter_);
-    ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::getMyMusicFolderPath())));
+    ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::GetMyMusicFolderPath())));
     ui.dirTree->setStyleSheet(qTEXT("background-color: transparent"));
     ui.dirTree->setSortingEnabled(true);
 
@@ -80,7 +80,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     (void)QObject::connect(ui.dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui.dirTree);
 
-        auto add_file_to_playlist_act = action_map.addAction(tr("Add file directory to playlist"), [this](auto pt) {
+        auto add_file_to_playlist_act = action_map.AddAction(tr("Add file directory to playlist"), [this](auto pt) {
             auto index = ui.dirTree->indexAt(pt);
             if (!index.isValid()) {
                 return;
@@ -91,15 +91,15 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         });
         add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
-        auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
+        auto load_dir_act = action_map.AddAction(tr("Load file directory"), [this](auto pt) {
             const auto dir_name = QFileDialog::getExistingDirectory(this,
                 tr("Select a Directory"),
-                AppSettings::getMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
+                AppSettings::GetMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
             if (dir_name.isEmpty()) {
                 return;
             }
-            AppSettings::setValue(kAppSettingMyMusicFolderPath, dir_name);
-            ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::getMyMusicFolderPath())));
+            AppSettings::SetValue(kAppSettingMyMusicFolderPath, dir_name);
+            ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::GetMyMusicFolderPath())));
         });
         load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
 

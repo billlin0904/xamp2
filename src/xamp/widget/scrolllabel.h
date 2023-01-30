@@ -17,12 +17,12 @@ class ScrollLabel : public QLabel {
 public:
 	explicit ScrollLabel(QWidget *parent = nullptr);
 
-	void setText(const QString &text);
+	void SetText(const QString &text);
 
 	QString text() const;
 
 public slots:
-	void onTimerTimeout();
+	void OnTimerTimeout();
 
 private:
 	QSize sizeHint() const override;
@@ -35,7 +35,7 @@ private:
 
 	void resizeEvent(QResizeEvent* event) override;
 
-	void updateText();
+	void UpdateText();
 
     const QLatin1String seperator = QLatin1String("   ");
 

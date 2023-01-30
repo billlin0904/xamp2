@@ -23,9 +23,9 @@ XDialog::XDialog(QWidget* parent)
     : QDialog(parent) {
 }
 
-void XDialog::setContentWidget(QWidget* content) {
+void XDialog::SetContentWidget(QWidget* content) {
     frame_ = new XFrame(this);
-    frame_->setContentWidget(content);
+    frame_->SetContentWidget(content);
 
     if (!qTheme.useNativeWindow()) {
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
@@ -63,7 +63,7 @@ void XDialog::setContentWidget(QWidget* content) {
 #endif
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
     setMouseTracking(true);
-    (void)QObject::connect(frame_, &XFrame::closeFrame, [this]() {
+    (void)QObject::connect(frame_, &XFrame::CloseFrame, [this]() {
         QDialog::close();
         });
 }

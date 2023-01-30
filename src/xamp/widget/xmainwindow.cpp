@@ -1,4 +1,4 @@
-#include <widget/xwindow.h>
+#include <widget/xmainwindow.h>
 
 #include "thememanager.h"
 
@@ -34,8 +34,8 @@
 #include <QTimer>
 #include <base/logger_impl.h>
 
-XWindow::XWindow()
-    : IXWindow()
+XMainWindow::XMainWindow()
+    : IXMainWindow()
 #if defined(Q_OS_WIN)
 	, screen_number_(1)
     , current_screen_(nullptr)
@@ -44,7 +44,7 @@ XWindow::XWindow()
     setObjectName(qTEXT("framelessWindow"));
 }
 
-void XWindow::setShortcut(const QKeySequence& shortcut) {
+void XMainWindow::setShortcut(const QKeySequence& shortcut) {
     constexpr auto all_mods =
         Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier;
     const auto xkey_code = static_cast<uint>(shortcut.isEmpty() ? 0 : shortcut[0]);
@@ -54,15 +54,15 @@ void XWindow::setShortcut(const QKeySequence& shortcut) {
     const auto key = static_cast<Qt::Key>(key_code);
     const auto mods = Qt::KeyboardModifiers(xkey_code & all_mods);
 
-    const auto native_key = qGlobalShortcut.nativeKeycode(key);
-    const auto native_mods = qGlobalShortcut.nativeModifiers(mods);
+    const auto native_key = qGlobalShortcut.NativeKeycode(key);
+    const auto native_mods = qGlobalShortcut.NativeModifiers(mods);
 
-    if (qGlobalShortcut.registerShortcut(winId(), native_key, native_mods)) {
+    if (qGlobalShortcut.RegisterShortcut(winId(), native_key, native_mods)) {
         shortcuts_.insert(qMakePair(native_key, native_mods), shortcut);
     }
 }
 
-void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
+void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     player_control_frame_ = content_widget;
     if (player_control_frame_ != nullptr) {
         auto* default_layout = new QVBoxLayout(this);
@@ -79,7 +79,7 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
         setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
         win32::setFramelessWindowStyle(winId());
         win32::addDwmShadow(winId());
-        if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+        if (AppSettings::ValueAsBool(kAppSettingEnableBlur)) {
             player_control_frame_->setAttribute(Qt::WA_TranslucentBackground, true);
         }
         installEventFilter(this);
@@ -96,7 +96,7 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
         if (player_control_frame_ != nullptr) {
             osx::hideTitleBar(player_control_frame_);
         }
-        if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+        if (AppSettings::ValueAsBool(kAppSettingEnableBlur)) {
             setAttribute(Qt::WA_TranslucentBackground, true);
         }
         setWindowTitle(kApplicationTitle);
@@ -107,14 +107,14 @@ void XWindow::setContentWidget(IXPlayerControlFrame *content_widget) {
 
 #if defined(Q_OS_WIN)
     QTimer::singleShot(2500, [this]() {
-        readDriveInfo();
+        ReadDriveInfo();
         });
 #endif
 }
 
 // QScopedPointer require default destructor.
-XWindow::~XWindow() {
-    XAMP_LOG_DEBUG("XWindow destory!");
+XMainWindow::~XMainWindow() {
+    XAMP_LOG_DEBUG("XMainWindow destory!");
 }
 
 #if defined(Q_OS_WIN)
@@ -166,7 +166,7 @@ static XAMP_ALWAYS_INLINE LRESULT hitTest(const WId window_id, MSG const* msg) n
     }
 }
 
-bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
+bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
 #define WM_NCUAHDRAWCAPTION (0x00AE)
 #define WM_NCUAHDRAWFRAME (0x00AF)
     const auto* msg = static_cast<MSG const*>(message);
@@ -200,7 +200,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* res
             if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
                 auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
                 if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                    readDriveInfo();
+                    ReadDriveInfo();
                 }
             }
         }
@@ -222,7 +222,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* res
                 const auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
                 if (lpdbv->dbcv_flags & DBTF_MEDIA) {
                     const auto driver_letter = firstDriveFromMask(lpdbv->dbcv_unitmask);
-                    drivesRemoved(driver_letter);
+                    DrivesRemoved(driver_letter);
                 }
             }
         }
@@ -295,14 +295,14 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* res
     break;
     case WM_WININICHANGE:
         if (!lstrcmp(reinterpret_cast<LPCTSTR>(msg->lParam), L"ImmersiveColorSet")) {
-            systemThemeChanged(win32::isDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
+            SystemThemeChanged(win32::isDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
         }
         break;
     case WM_HOTKEY:
     {
         const auto native_key = HIWORD(msg->lParam);
         const auto native_mods = LOWORD(msg->lParam);
-        shortcutsPressed(native_key, native_mods);
+        ShortcutsPressed(native_key, native_mods);
         XAMP_LOG_DEBUG("Hot key press native_key:{} native_mods:{}", native_key, native_mods);
     }
     break;
@@ -312,29 +312,29 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* res
     return QWidget::nativeEvent(event_type, message, result);
 }
 #else
-bool XWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
+bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
     return QWidget::nativeEvent(event_type, message, result);
 }
 #endif
 
-void XWindow::saveGeometry() {
+void XMainWindow::SaveGeometry() {
 #if defined(Q_OS_WIN) 
-    AppSettings::setValue(kAppSettingGeometry, win32::windowRect(winId()));
-    AppSettings::setValue(kAppSettingWindowState, isMaximized());
-    AppSettings::setValue(kAppSettingScreenNumber, screen_number_);
+    AppSettings::SetValue(kAppSettingGeometry, win32::windowRect(winId()));
+    AppSettings::SetValue(kAppSettingWindowState, isMaximized());
+    AppSettings::SetValue(kAppSettingScreenNumber, screen_number_);
     XAMP_LOG_INFO("restoreGeometry: ({}, {}, {}, {})", last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
     XAMP_LOG_INFO("Screen number: {}", screen_number_);
 #endif
 }
 
-void XWindow::systemThemeChanged(ThemeColor theme_color) {
+void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
     if (!player_control_frame_) {
         return;
     }
-    player_control_frame_->systemThemeChanged(theme_color);
+    player_control_frame_->SystemThemeChanged(theme_color);
 }
 
-void XWindow::setTaskbarProgress(const int32_t percent) {
+void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarProgress(percent);
 #else
@@ -342,48 +342,48 @@ void XWindow::setTaskbarProgress(const int32_t percent) {
 #endif
 }
 
-void XWindow::resetTaskbarProgress() {
+void XMainWindow::ResetTaskbarProgress() {
 #if defined(Q_OS_WIN)
     taskbar_->resetTaskbarProgress();
 #endif
 }
 
-void XWindow::setTaskbarPlayingResume() {
+void XMainWindow::SetTaskbarPlayingResume() {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarPlayingResume();
 #endif
 }
 
-void XWindow::setTaskbarPlayerPaused() {
+void XMainWindow::SetTaskbarPlayerPaused() {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarPlayerPaused();
 #endif
 }
 
-void XWindow::setTaskbarPlayerPlaying() {
+void XMainWindow::SetTaskbarPlayerPlaying() {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarPlayerPlaying();
 #endif
 }
 
-void XWindow::setTaskbarPlayerStop() {
+void XMainWindow::SetTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarPlayerStop();
 #endif
 }
 
-void XWindow::restoreGeometry() {
+void XMainWindow::RestoreGeometry() {
 #if defined(Q_OS_WIN)
     if (AppSettings::contains(kAppSettingWindowState)) {
-        if (AppSettings::getValue(kAppSettingWindowState).toBool()) {
+        if (AppSettings::GetValue(kAppSettingWindowState).toBool()) {
             showMaximized();
             return;
         }
     }
 
     if (AppSettings::contains(kAppSettingGeometry)) {
-        last_rect_ = AppSettings::getValue(kAppSettingGeometry).toRect();
-        screen_number_ = AppSettings::getValue(kAppSettingScreenNumber).toUInt();
+        last_rect_ = AppSettings::GetValue(kAppSettingGeometry).toRect();
+        screen_number_ = AppSettings::GetValue(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
             if (QGuiApplication::screens().size() <= screen_number_) {
                 const auto screen_index = screen_number_ - 1;
@@ -402,12 +402,12 @@ void XWindow::restoreGeometry() {
         XAMP_LOG_DEBUG("Screen number: {}", screen_number_);
     }
     else {
-        centerDesktop(this);
+        CenterDesktop(this);
     }    
 #endif
 }
 
-bool XWindow::eventFilter(QObject * object, QEvent * event) {
+bool XMainWindow::eventFilter(QObject * object, QEvent * event) {
     if (!player_control_frame_) {
         return QWidget::eventFilter(object, event);
     }
@@ -415,7 +415,7 @@ bool XWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto* key_event = dynamic_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            player_control_frame_->deleteKeyPress();
+            player_control_frame_->DeleteKeyPress();
         }
     } else {
         if (event->type() == QEvent::FocusIn) {
@@ -427,33 +427,33 @@ bool XWindow::eventFilter(QObject * object, QEvent * event) {
     return QWidget::eventFilter(object, event);
 }
 
-void XWindow::focusInEvent(QFocusEvent* event) {
+void XMainWindow::focusInEvent(QFocusEvent* event) {
     if (!player_control_frame_) {
         return;
     }
-    player_control_frame_->focusIn();
+    player_control_frame_->FocusIn();
 }
 
-void XWindow::focusOutEvent(QFocusEvent* event) {
+void XMainWindow::focusOutEvent(QFocusEvent* event) {
     if (!player_control_frame_) {
         return;
     }
-    player_control_frame_->focusOut();
+    player_control_frame_->FocusOut();
 }
 
-void XWindow::dragEnterEvent(QDragEnterEvent* event) {
+void XMainWindow::dragEnterEvent(QDragEnterEvent* event) {
     event->acceptProposedAction();
 }
 
-void XWindow::dragMoveEvent(QDragMoveEvent* event) {
+void XMainWindow::dragMoveEvent(QDragMoveEvent* event) {
     event->acceptProposedAction();
 }
 
-void XWindow::dragLeaveEvent(QDragLeaveEvent* event) {
+void XMainWindow::dragLeaveEvent(QDragLeaveEvent* event) {
     event->accept();
 }
 
-void XWindow::dropEvent(QDropEvent* event) {
+void XMainWindow::dropEvent(QDropEvent* event) {
     if (!player_control_frame_) {
         return;
     }
@@ -462,33 +462,33 @@ void XWindow::dropEvent(QDropEvent* event) {
 
     if (mime_data->hasUrls()) {
         for (auto const& url : mime_data->urls()) {
-            player_control_frame_->addDropFileItem(url);
+            player_control_frame_->AddDropFileItem(url);
         }
         event->acceptProposedAction();
     }
 }
 
-void XWindow::shortcutsPressed(uint16_t native_key, uint16_t native_mods) {
+void XMainWindow::ShortcutsPressed(uint16_t native_key, uint16_t native_mods) {
     const auto shortcut = shortcuts_.value(qMakePair(native_key, native_mods));
     if (!shortcut.isEmpty()) {
-        player_control_frame_->shortcutsPressed(shortcut);
+        player_control_frame_->ShortcutsPressed(shortcut);
     }
 }
 
-void XWindow::drivesRemoved(char driver_letter) {
+void XMainWindow::DrivesRemoved(char driver_letter) {
 #if defined(Q_OS_WIN)
     auto itr = std::find_if(exist_drives_.begin(),
         exist_drives_.end(), [driver_letter](auto drive) {
             return drive.driver_letter == driver_letter;
         });
     if (itr != exist_drives_.end()) {
-        player_control_frame_->drivesRemoved(*itr);
+        player_control_frame_->DrivesRemoved(*itr);
         exist_drives_.erase(itr);
     }
 #endif
 }
 
-void XWindow::readDriveInfo() {
+void XMainWindow::ReadDriveInfo() {
 #if defined(Q_OS_WIN)
     static const QSet<QByteArray> kCDFileSystemType = {
         "CDFS",
@@ -527,12 +527,12 @@ void XWindow::readDriveInfo() {
         return;
     }
     if (player_control_frame_ != nullptr) {
-        player_control_frame_->drivesChanges(drives);
+        player_control_frame_->DrivesChanges(drives);
     }
 #endif
 }
 
-void XWindow::changeEvent(QEvent* event) {
+void XMainWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
     if (!qTheme.useNativeWindow() && player_control_frame_ != nullptr) {
         osx::hideTitleBar(player_control_frame_);
@@ -541,7 +541,7 @@ void XWindow::changeEvent(QEvent* event) {
 	QFrame::changeEvent(event);
 }
 
-void XWindow::closeEvent(QCloseEvent* event) {
+void XMainWindow::closeEvent(QCloseEvent* event) {
     if (!player_control_frame_) {
         QWidget::closeEvent(event);
         return;
@@ -551,13 +551,13 @@ void XWindow::closeEvent(QCloseEvent* event) {
     QWidget::closeEvent(event);
 }
 
-void XWindow::mousePressEvent(QMouseEvent* event) {
+void XMainWindow::mousePressEvent(QMouseEvent* event) {
     if (!player_control_frame_) {
         QWidget::mousePressEvent(event);
         return;
     }
 
-    if (!player_control_frame_->hitTitleBar(event->pos())) {
+    if (!player_control_frame_->HitTitleBar(event->pos())) {
         QWidget::mousePressEvent(event);
         return;
     }
@@ -582,7 +582,7 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
 #endif
 }
 
-void XWindow::mouseReleaseEvent(QMouseEvent* event) {
+void XMainWindow::mouseReleaseEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
     last_pos_ = QPoint();
 #else
@@ -590,76 +590,76 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 #endif
 }
 
-void XWindow::initMaximumState() {
+void XMainWindow::InitMaximumState() {
     if (!player_control_frame_) {
         return;
     }
-    player_control_frame_->updateMaximumState(isMaximized());
+    player_control_frame_->UpdateMaximumState(isMaximized());
 }
 
-void XWindow::updateMaximumState() {
+void XMainWindow::UpdateMaximumState() {
     if (!player_control_frame_) {
         return;
     }
 
     if (isMaximized()) {
         showNormal();
-        player_control_frame_->updateMaximumState(false);
+        player_control_frame_->UpdateMaximumState(false);
     }
     else {
         showMaximized();
-        player_control_frame_->updateMaximumState(true);
+        player_control_frame_->UpdateMaximumState(true);
     }
 }
 
-void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
+void XMainWindow::mouseDoubleClickEvent(QMouseEvent* event) {
     if (!player_control_frame_) {
         return;
     }
 
-    if (!player_control_frame_->hitTitleBar(event->pos())) {
+    if (!player_control_frame_->HitTitleBar(event->pos())) {
         return;
     }
 
-    updateMaximumState();
+    UpdateMaximumState();
 }
 
 #ifdef Q_OS_WIN
-void XWindow::addSystemMenu(QWidget* widget) {
+void XMainWindow::AddSystemMenu(QWidget* widget) {
     widget->setContextMenuPolicy(Qt::CustomContextMenu);
 
     (void)QObject::connect(widget, &QFrame::customContextMenuRequested, [this, widget](auto pt) {
         ActionMap<QWidget> action_map(widget);
-        auto* restore_act = action_map.addAction(tr("Restore(R)"));
-        action_map.setCallback(restore_act, [this]() {
+        auto* restore_act = action_map.AddAction(tr("Restore(R)"));
+        action_map.SetCallback(restore_act, [this]() {
             showNormal();
             });
         restore_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RESTORE_WINDOW));
         restore_act->setEnabled(isMaximized());
 
-        auto* move_act = action_map.addAction(tr("Move(M)"));
+        auto* move_act = action_map.AddAction(tr("Move(M)"));
         move_act->setEnabled(true);
 
-        auto* size_act = action_map.addAction(tr("Size(S)"));
+        auto* size_act = action_map.AddAction(tr("Size(S)"));
         size_act->setEnabled(true);
 
-        auto* mini_act = action_map.addAction(tr("Minimize(N)"));
-        action_map.setCallback(mini_act, [this]() {
+        auto* mini_act = action_map.AddAction(tr("Minimize(N)"));
+        action_map.SetCallback(mini_act, [this]() {
             showMinimized();
             });
         mini_act->setIcon(qTheme.fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
         mini_act->setEnabled(true);
 
-        auto* max_act = action_map.addAction(tr("Maximum(M)"));
-        action_map.setCallback(max_act, [this]() {
+        auto* max_act = action_map.AddAction(tr("Maximum(M)"));
+        action_map.SetCallback(max_act, [this]() {
             showMaximized();
             });
         max_act->setEnabled(!isMaximized());
         max_act->setIcon(qTheme.fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
-        action_map.addSeparator();
+        action_map.AddSeparator();
 
-        auto* close_act = action_map.addAction(tr("Close(X)"));
-        action_map.setCallback(close_act, [this]() {
+        auto* close_act = action_map.AddAction(tr("Close(X)"));
+        action_map.SetCallback(close_act, [this]() {
             close();
             });
         close_act->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW));
@@ -669,13 +669,13 @@ void XWindow::addSystemMenu(QWidget* widget) {
 }
 #endif
 
-void XWindow::setTitleBarAction(QFrame* title_bar) {
+void XMainWindow::SetTitleBarAction(QFrame* title_bar) {
 #ifdef Q_OS_WIN
-    addSystemMenu(title_bar);
+    AddSystemMenu(title_bar);
 #endif
 }
 
-void XWindow::mouseMoveEvent(QMouseEvent* event) {
+void XMainWindow::mouseMoveEvent(QMouseEvent* event) {
     if (!player_control_frame_) {
         QWidget::mouseMoveEvent(event);
         return;
@@ -699,14 +699,14 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
             SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
     }
 
-    updateScreenNumber();
+    UpdateScreenNumber();
 
 #else
     QWidget::mouseMoveEvent(event);
 #endif   
 }
 
-void XWindow::updateScreenNumber() {
+void XMainWindow::UpdateScreenNumber() {
 #ifdef Q_OS_WIN32
     auto i = 1;
     Q_FOREACH(auto screen, QGuiApplication::screens()) {
@@ -720,7 +720,7 @@ void XWindow::updateScreenNumber() {
     XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
 }
 
-void XWindow::showEvent(QShowEvent* event) {
+void XMainWindow::showEvent(QShowEvent* event) {
 #ifdef Q_OS_WIN32
     taskbar_->showEvent();
 #endif
@@ -728,3 +728,8 @@ void XWindow::showEvent(QShowEvent* event) {
     QFrame::showEvent(event);
 }
 
+void XMainWindow::ShowWindow() {
+    show();
+    raise(); // for MacOS
+    activateWindow(); // for Windows
+}

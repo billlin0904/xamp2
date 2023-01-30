@@ -1,7 +1,7 @@
 #include <widget/xmessagebox.h>
 
 #include <widget/widget_shared.h>
-#include <widget/xwindow.h>
+#include <widget/xmainwindow.h>
 #include <widget/ui_utilts.h>
 
 #include <QApplication>
@@ -46,7 +46,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	button_box_ = new QDialogButtonBox(this);
 	button_box_->setStandardButtons(QDialogButtonBox::StandardButtons(buttons));
-	setDefaultButton(default_button);
+	SetDefaultButton(default_button);
 
 	icon_label_ = new QLabel(this);
 	message_text_label_ = new QLabel(this);
@@ -79,36 +79,36 @@ XMessageBox::XMessageBox(const QString& title,
 	grid_layout_->setContentsMargins(10, 10, 10, 10);	
 
 	QObject::connect(button_box_, &QDialogButtonBox::clicked, [this](auto* button) {
-		onButtonClicked(button);
+		OnButtonClicked(button);
 		});
 
-	setContentWidget(client_widget);
-	setTitle(title);
+	SetContentWidget(client_widget);
+	SetTitle(title);
 
-	connect(&timer_, &QTimer::timeout, this, &XMessageBox::updateTimeout);
+	connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
 	timer_.setInterval(1000);
-	default_button_text_ = defaultButton()->text();
+	default_button_text_ = DefaultButton()->text();
 }
 
-void XMessageBox::setTextFont(const QFont& font) {
+void XMessageBox::SetTextFont(const QFont& font) {
 	message_text_label_->setFont(font);
 }
 
-void XMessageBox::setText(const QString& text) {
+void XMessageBox::SetText(const QString& text) {
 	message_text_label_->setText(text);
 }
 
-void XMessageBox::onButtonClicked(QAbstractButton* button) {
+void XMessageBox::OnButtonClicked(QAbstractButton* button) {
 	clicked_button_ = button;
-	done(execReturnCode(button));
+	done(ExecReturnCode(button));
 }
 
-int XMessageBox::execReturnCode(QAbstractButton* button) {
+int XMessageBox::ExecReturnCode(QAbstractButton* button) {
 	int nResult = button_box_->standardButton(button);
 	return nResult;
 }
 
-void XMessageBox::setDefaultButton(QPushButton* button) {
+void XMessageBox::SetDefaultButton(QPushButton* button) {
 	if (!button_box_->buttons().contains(button))
 		return;
 
@@ -117,7 +117,7 @@ void XMessageBox::setDefaultButton(QPushButton* button) {
 	button->setFocus();
 }
 
-void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
+void XMessageBox::SetDefaultButton(QDialogButtonBox::StandardButton button) {
 	auto* default_button = button_box_->button(button);
 	default_button->setObjectName(qTEXT("XMessageBoxDefaultButton"));
 
@@ -140,30 +140,30 @@ void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
       }
 	)"
 	).arg(colorToString(qTheme.highlightColor())).arg(colorToString(text_color)));
-	setDefaultButton(default_button);
+	SetDefaultButton(default_button);
 }
 
-void XMessageBox::setIcon(const QIcon& icon) {
+void XMessageBox::SetIcon(const QIcon& icon) {
 	icon_label_->setPixmap(icon.pixmap(35, 35));
 }
 
-QAbstractButton* XMessageBox::clickedButton() const {
+QAbstractButton* XMessageBox::ClickedButton() const {
 	return clicked_button_;
 }
 
-QAbstractButton* XMessageBox::defaultButton() {
+QAbstractButton* XMessageBox::DefaultButton() {
 	return default_button_;
 }
 
-QDialogButtonBox::StandardButton XMessageBox::standardButton(QAbstractButton* button) const {
+QDialogButtonBox::StandardButton XMessageBox::StandardButton(QAbstractButton* button) const {
 	return button_box_->standardButton(button);
 }
 
-void XMessageBox::addWidget(QWidget* widget) {
+void XMessageBox::AddWidget(QWidget* widget) {
 	grid_layout_->addWidget(widget, 1, 1, 2, 1);
 }
 
-QPushButton* XMessageBox::addButton(QDialogButtonBox::StandardButton buttons) {
+QPushButton* XMessageBox::AddButton(QDialogButtonBox::StandardButton buttons) {
 	return button_box_->addButton(buttons);
 }
 
@@ -172,20 +172,20 @@ void XMessageBox::showEvent(QShowEvent* event) {
 	if (!enable_countdown_) {
 		return;
 	}
-	updateTimeout();
+	UpdateTimeout();
 	timer_.start();
 }
 
-void XMessageBox::updateTimeout() {
+void XMessageBox::UpdateTimeout() {
 	if (--timeout_ >= 0) {
-		defaultButton()->setText(default_button_text_ + qSTR(" (%1)").arg(timeout_));
+		DefaultButton()->setText(default_button_text_ + qSTR(" (%1)").arg(timeout_));
 	} else {
 		timer_.stop();
-		defaultButton()->animateClick();
+		DefaultButton()->animateClick();
 	}
 }
 
-void XMessageBox::showBug(const Exception& exception,
+void XMessageBox::ShowBug(const Exception& exception,
 	const QString& title,
 	QWidget* parent) {
 	XMessageBox box(title, QString::fromStdString(exception.GetStackTrace()), 
@@ -193,16 +193,16 @@ void XMessageBox::showBug(const Exception& exception,
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,
 		false);
-	box.setIcon(qTheme.fontIcon(0xF188));
-	box.setTextFont(QFont(qTEXT("DebugFont")));
+	box.SetIcon(qTheme.fontIcon(0xF188));
+	box.SetTextFont(QFont(qTEXT("DebugFont")));
 	box.exec();
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showYesOrNo(const QString& text,
+QDialogButtonBox::StandardButton XMessageBox::ShowYesOrNo(const QString& text,
 	const QString& title,
 	bool enable_countdown,
 	QWidget* parent) {
-	return showWarning(text,
+	return ShowWarning(text,
 		title,
 		enable_countdown,
 		QDialogButtonBox::No | QDialogButtonBox::Yes,
@@ -210,7 +210,7 @@ QDialogButtonBox::StandardButton XMessageBox::showYesOrNo(const QString& text,
 		parent);
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
+QDialogButtonBox::StandardButton XMessageBox::ShowButton(const QString& text,
 	const QString& title,
 	bool enable_countdown,
 	const QIcon& icon,
@@ -219,12 +219,7 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	QWidget* parent) {
 	QScopedPointer<MaskWidget> mask_widget;
     if (!parent) {
-        Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
-            parent = qobject_cast<XWindow*>(w);
-            if (parent != nullptr) {
-                break;
-            }
-        }
+		parent = GetMainWindow();
 	}
 	if (parent != nullptr) {
 		parent->setFocus();
@@ -232,19 +227,19 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	mask_widget.reset(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
 	// Note: Don't call centerParent(), centerDesktop()
-	box.setIcon(icon);
+	box.SetIcon(icon);
 	if (box.exec() == -1)
 		return QDialogButtonBox::Cancel;
-	return box.standardButton(box.clickedButton());
+	return box.StandardButton(box.ClickedButton());
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showInformation(const QString& text,
+QDialogButtonBox::StandardButton XMessageBox::ShowInformation(const QString& text,
 	const QString& title,
 	bool enable_countdown,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showButton(text, 
+	return ShowButton(text, 
 		title, 
 		enable_countdown,
 		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION),
@@ -253,13 +248,13 @@ QDialogButtonBox::StandardButton XMessageBox::showInformation(const QString& tex
 		parent);
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showError(const QString& text,
+QDialogButtonBox::StandardButton XMessageBox::ShowError(const QString& text,
 	const QString& title,
 	bool enable_countdown,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showButton(text, 
+	return ShowButton(text, 
 		title,
 		enable_countdown, 
 		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_ERROR),
@@ -268,13 +263,13 @@ QDialogButtonBox::StandardButton XMessageBox::showError(const QString& text,
 		parent);
 }
 
-QDialogButtonBox::StandardButton XMessageBox::showWarning(const QString& text,
+QDialogButtonBox::StandardButton XMessageBox::ShowWarning(const QString& text,
 	const QString& title,
 	bool enable_countdown,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showButton(text,
+	return ShowButton(text,
 		title,
 		enable_countdown,
 		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_WARNING),
@@ -283,14 +278,14 @@ QDialogButtonBox::StandardButton XMessageBox::showWarning(const QString& text,
 		parent);
 }
 
-std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxQuestion(const QString& text,
+std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::ShowCheckBoxQuestion(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	bool enable_countdown,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showCheckBox(text,
+	return ShowCheckBox(text,
 		check_box_text,
 		title, 
 		enable_countdown,
@@ -300,14 +295,14 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxQues
 		parent);
 }
 
-std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxInformation(const QString& text,
+std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::ShowCheckBoxInformation(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	bool enable_countdown,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	return showCheckBox(text,
+	return ShowCheckBox(text,
 		check_box_text,
 		title, 
 		enable_countdown,
@@ -317,7 +312,7 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxInfo
 		parent);
 }
 
-std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBox(const QString& text,
+std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::ShowCheckBox(const QString& text,
 	const QString& check_box_text,
 	const QString& title,
 	bool enable_countdown,
@@ -326,27 +321,22 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBox(con
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
     if (!parent) {
-        Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
-            parent = qobject_cast<XWindow*>(w);
-            if (parent != nullptr) {
-                break;
-            }
-        }
+		parent = GetMainWindow();
     }
     if (parent != nullptr) {
         parent->setFocus();
     }
 	QScopedPointer<MaskWidget> mask_widget(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
-	box.setIcon(icon);
+	box.SetIcon(icon);
 	auto* check_box = new QCheckBox(&box);
 	check_box->setStyleSheet(qTEXT("background: transparent;"));
 	check_box->setText(check_box_text);
-	box.addWidget(check_box);
+	box.AddWidget(check_box);
 	if (box.exec() == -1) {
 		return { QDialogButtonBox::Cancel, false };
 	}
-	const auto standard_button = box.standardButton(box.clickedButton());
+	const auto standard_button = box.StandardButton(box.ClickedButton());
 	if (standard_button != default_button) {
 		return { QDialogButtonBox::Yes, check_box->isChecked() };
 	}

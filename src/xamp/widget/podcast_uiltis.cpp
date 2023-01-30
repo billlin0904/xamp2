@@ -17,7 +17,7 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-ForwardList<TrackInfo> parseJson(QString const& json) {
+ForwardList<TrackInfo> ParseJson(QString const& json) {
     QJsonParseError error;
     ForwardList<TrackInfo> track_infos;
 
@@ -48,7 +48,7 @@ ForwardList<TrackInfo> parseJson(QString const& json) {
     return track_infos;
 }
 
-std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& src) {
+std::pair<std::string, ForwardList<TrackInfo>> ParsePodcastXml(QString const& src) {
     auto str = src.toStdString();
 
     ForwardList<TrackInfo> metadatas;
@@ -103,7 +103,7 @@ std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& sr
     return std::make_pair(image_url, metadatas);
 }
 
-std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXML(QString const& src) {
+std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src) {
     auto str = src.toStdString();
 
     MbDiscIdInfo mb_disc_id_info;
@@ -201,7 +201,7 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXML(QString const& src) {
     return std::make_pair(image_url, mb_disc_id_info);
 }
 
-QString parseCoverUrl(QString const& json) {
+QString ParseCoverUrl(QString const& json) {
     QJsonParseError error;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error != QJsonParseError::NoError) {

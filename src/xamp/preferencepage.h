@@ -10,7 +10,6 @@
 #include "ui_preferencedialog.h"
 
 #include <widget/widget_shared.h>
-#include <stream/foobardspadapter.h>
 
 class PreferencePage final : public QFrame {
     Q_OBJECT
@@ -19,31 +18,30 @@ public:
 
     void update();
 
-    AlignPtr<FoobarDspAdapter> adapter;
-
 private:
-    void updateSoxrConfigUI(const QVariantMap& soxr_settings);
+    void UpdateSoxrConfigUi(const QVariantMap& soxr_settings);
 
-    void savePcm2Dsd();
+    void SavePcm2Dsd();
 
-    void saveSoxrResampler(const QString &name) const;
+    void SaveSoxrResampler(const QString &name) const;
 
-    void saveR8BrainResampler();
+    void SaveR8BrainResampler();
 
-    void initR8BrainResampler();
+    void InitR8BrainResampler();
 
-	void initSoxResampler();
+	void InitSoxResampler();
 
-    void initPcm2Dsd();
+    void InitPcm2Dsd();
 
-    void setLang(int index);
+    void SetLang(int index);
 
-    void initLang();
+    void InitLang();
 
-    void saveAll();
+    void SaveAll();
 
-    QMap<QString, QVariant> currentSoxrSettings() const;
+    QMap<QString, QVariant> CurrentSoxrSettings() const;
 
-    void setPhasePercentText(int32_t value);
+    void SetPhasePercentText(int32_t value);
+
     Ui::PreferenceDialog ui_;
 };

@@ -7,15 +7,15 @@
 
 #include <widget/xprogressdialog.h>
 #include <widget/processindicator.h>
-#include <widget/xwindow.h>
+#include <widget/xmainwindow.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 
-QString formatSampleRate(const AudioFormat& format) {
+QString FormatSampleRate(const AudioFormat& format) {
     return formatSampleRate(format.GetSampleRate());
 }
 
-QString format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
+QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
     auto format = playback_format.file_format;
 
     auto ext = file_ext;
@@ -46,9 +46,9 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
-        output_format_str = formatSampleRate(playback_format.file_format);
+        output_format_str = FormatSampleRate(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += qTEXT("/") + formatSampleRate(playback_format.output_format);
+            output_format_str += qTEXT("/") + FormatSampleRate(playback_format.output_format);
         }
         break;
     case DsdModes::DSD_MODE_NATIVE:
@@ -75,17 +75,17 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     if (!dsd_mode.isEmpty()) {
         result += qTEXT(" | ") + dsd_mode;
     }
-    if (playback_format.bitrate > 0) {
-        result += qTEXT(" |") + formatBitRate(playback_format.bitrate);
+    if (playback_format.bit_rate > 0) {
+        result += qTEXT(" |") + formatBitRate(playback_format.bit_rate);
     }
     return result;
 }
 
-QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
+QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget) {
     return {new ProcessIndicator(widget), &QObject::deleteLater};
 }
 
-QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
+QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,
     QWidget* parent) {
@@ -103,21 +103,21 @@ QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     return QSharedPointer<XProgressDialog>(dialog);
 }
 
-void centerParent(QWidget* widget) {
+void CenterParent(QWidget* widget) {
     if (widget->parent() && widget->parent()->isWidgetType()) {
         widget->move((widget->parentWidget()->width() - widget->width()) / 2,
             (widget->parentWidget()->height() - widget->height()) / 2);
     }
 }
 
-void centerDesktop(QWidget* widget) {
+void CenterDesktop(QWidget* widget) {
 	const auto desktop = QApplication::desktop();
     const auto screen_num = desktop->screenNumber(QCursor::pos());
 	const auto rect = desktop->screenGeometry(screen_num);
     widget->move(rect.center() - widget->rect().center());
 }
 
-void centerTarget(QWidget* source_widget, const QWidget* target_widget) {
+void CenterTarget(QWidget* source_widget, const QWidget* target_widget) {
     auto center_pos = target_widget->mapToGlobal(target_widget->rect().center());
     const auto sz = source_widget->size();
     center_pos.setX(center_pos.x() - sz.width() / 2);
@@ -127,10 +127,10 @@ void centerTarget(QWidget* source_widget, const QWidget* target_widget) {
     source_widget->move(center_pos);
 }
 
-XWindow* getMainWindow() {
-    XWindow* main_window = nullptr;
+XMainWindow* GetMainWindow() {
+    XMainWindow* main_window = nullptr;
     Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
-        main_window = qobject_cast<XWindow*>(w);
+        main_window = dynamic_cast<XMainWindow*>(w);
         if (main_window != nullptr) {
             break;
         }

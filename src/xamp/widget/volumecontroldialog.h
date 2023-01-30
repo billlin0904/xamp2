@@ -22,7 +22,7 @@ public:
 
 	virtual ~VolumeControlDialog() override;
 
-	void setVolume(uint32_t volume);
+	void SetVolume(uint32_t volume);
 
 private:
 	Ui::VolumeControlDialog ui_;

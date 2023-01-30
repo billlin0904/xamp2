@@ -34,12 +34,12 @@ SpectrumWidget* LrcPage::spectrum() {
 	return spectrum_;
 }
 
-void LrcPage::setCover(const QPixmap& src) {
+void LrcPage::SetCover(const QPixmap& src) {
     auto cover_size = cover_label_->size();
-    cover_label_->setPixmap(ImageUtils::roundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
+    cover_label_->setPixmap(image_utils::RoundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
 }
 
-QSize LrcPage::coverSize() const {
+QSize LrcPage::CoverSize() const {
 	return cover_label_->size();
 }
 
@@ -55,12 +55,12 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
-void LrcPage::clearBackground() {
+void LrcPage::ClearBackground() {
 	background_image_ = QImage();
 	update();
 }
 
-void LrcPage::setBackground(const QImage& cover) {
+void LrcPage::SetBackground(const QImage& cover) {
 	if (cover.isNull()) {
 		background_image_ = QImage();
 	}
@@ -69,14 +69,14 @@ void LrcPage::setBackground(const QImage& cover) {
 		prev_background_image_ = cover;
         background_image_ = cover;
 		constexpr int kBlurBackgroundAnimationMs = 3000;
-		startBackgroundAnimation(kBlurBackgroundAnimationMs);
+		StartBackgroundAnimation(kBlurBackgroundAnimationMs);
 	}
 	update();
 }
 
-void LrcPage::startBackgroundAnimation(const int durationMs) {
+void LrcPage::StartBackgroundAnimation(const int durationMs) {
 	constexpr auto kBlurAlpha = 128;
-	current_bg_alpha_ = ImageUtils::sampleImageBlur(background_image_, kBlurAlpha);
+	current_bg_alpha_ = image_utils::SampleImageBlur(background_image_, kBlurAlpha);
 
 	auto* fade_in_animation = new QPropertyAnimation(this, "appearBgProg");
 	fade_in_animation->setStartValue(0);
@@ -103,7 +103,7 @@ void LrcPage::startBackgroundAnimation(const int durationMs) {
 }
 
 void LrcPage::paintEvent(QPaintEvent*) {
-	if (AppSettings::getValueAsBool(kEnableBlurCover)) {
+	if (AppSettings::ValueAsBool(kEnableBlurCover)) {
 		cover_label_->setGraphicsEffect(nullptr);
 	}
 	QPainter painter(this);
@@ -117,30 +117,30 @@ void LrcPage::paintEvent(QPaintEvent*) {
 	}
 }
 
-void LrcPage::setAppearBgProg(int x) {
+void LrcPage::SetAppearBgProg(int x) {
 	current_bg_alpha_ = x;
 	update();
 }
 
-int LrcPage::getAppearBgProg() const {
+int LrcPage::GetAppearBgProg() const {
 	return current_bg_alpha_;
 }
 
-void LrcPage::setDisappearBgProg(int x) {
+void LrcPage::SetDisappearBgProg(int x) {
 	prev_bg_alpha_ = x;
 	update();
 }
 
-int LrcPage::getDisappearBgProg() const {
+int LrcPage::GetDisappearBgProg() const {
 	return prev_bg_alpha_;
 }
 
-void LrcPage::setBackgroundColor(QColor backgroundColor) {
+void LrcPage::SetBackgroundColor(QColor backgroundColor) {
     //lyrics_widget_->setBackgroundColor(backgroundColor);
 	//setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
-void LrcPage::onThemeChanged(QColor backgroundColor, QColor color) {
+void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {
     //lyrics_widget_->setLrcColor(color);
     //lyrics_widget_->setLrcHightLight(color);
     //lyrics_widget_->setLrcColor(Qt::white);
@@ -171,7 +171,7 @@ void LrcPage::initial() {
 	cover_label_->setStyleSheet(qTEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
-	if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
+	if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(10, 20);
 		effect->setColor(qTheme.coverShadownColor());
@@ -204,7 +204,7 @@ void LrcPage::initial() {
     title_ = new ScrollLabel(this);
 	title_->setStyleSheet(qTEXT("background-color: transparent"));
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->setText(tr("Title:"));	
+	title_->SetText(tr("Title:"));	
 	title_->setFont(f);
 #ifdef Q_OS_WIN
     title_->setMinimumHeight(40);

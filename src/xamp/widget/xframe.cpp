@@ -12,11 +12,11 @@ XFrame::XFrame(QWidget* parent)
     setObjectName(qTEXT("XFrame"));
 }
 
-void XFrame::setTitle(const QString& title) const {
+void XFrame::SetTitle(const QString& title) const {
     title_frame_label->setText(title);
 }
 
-void XFrame::setContentWidget(QWidget* content) {
+void XFrame::SetContentWidget(QWidget* content) {
     content_ = content;
 
     auto* default_layout = new QVBoxLayout(this);
@@ -106,7 +106,7 @@ void XFrame::setContentWidget(QWidget* content) {
 
     (void)QObject::connect(close_button, &QToolButton::pressed, [this]() {
         QWidget::close();
-        emit closeFrame();
+        emit CloseFrame();
         });
 }
 

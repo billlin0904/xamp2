@@ -5,26 +5,26 @@
 #include <widget/localelanguage.h>
 
 LocaleLanguage::LocaleLanguage() {
-	setDefaultLanguage();
+	SetDefaultLanguage();
 }
 
 LocaleLanguage::LocaleLanguage(const QString& name) {
 	QLocale locale;
 	locale = name;
-	setLanguageByLocale(locale);
+	SetLanguageByLocale(locale);
 }
 
-void LocaleLanguage::setDefaultLanguage() {
+void LocaleLanguage::SetDefaultLanguage() {
 	auto locale = QLocale::system();
-	setLanguageByLocale(locale);
+	SetLanguageByLocale(locale);
 }
 
-void LocaleLanguage::setLanguage(QLocale::Language lang, QLocale::Country country) {
+void LocaleLanguage::SetLanguage(QLocale::Language lang, QLocale::Country country) {
 	const QLocale locale(lang, country);
-	setLanguageByLocale(locale);
+	SetLanguageByLocale(locale);
 }
 
-void LocaleLanguage::setLanguageByLocale(const QLocale& locale) {
+void LocaleLanguage::SetLanguageByLocale(const QLocale& locale) {
 	lang_ = locale.language();
 	country_ = locale.country();
 	native_name_lang_ = locale.nativeLanguageName();
@@ -46,7 +46,7 @@ static void switchTranslator(QTranslator& translator, const QString& filename) {
 
 LocaleLanguageManager::LocaleLanguageManager() = default;
 
-QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
+QList<LocaleLanguage> LocaleLanguageManager::LanguageNames() {
 	QList<LocaleLanguage> languages_list;
 
 	auto path = QApplication::applicationDirPath();
@@ -63,7 +63,7 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	return languages_list;
 }
 
-void LocaleLanguageManager::loadLanguage(const QString& lang) {
+void LocaleLanguageManager::LoadLanguage(const QString& lang) {
 	if (current_lang_ != lang) {
 		current_lang_ = lang;
 		locale_ = QLocale(lang);

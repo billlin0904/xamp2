@@ -46,30 +46,30 @@ XProgressDialog::XProgressDialog(const QString& title,
 	layout_->setSpacing(5);
 	layout_->setContentsMargins(10, 10, 10, 10);
 
-	setContentWidget(client_widget);
-	setTitle(title);
+	SetContentWidget(client_widget);
+	SetTitle(title);
 	setMaximumWidth(800);
 	setMinimumWidth(800);
 	size_ = size();
 }
 
-void XProgressDialog::setRange(int minimum, int maximum) {
+void XProgressDialog::SetRange(int minimum, int maximum) {
 	progress_bar_->setRange(minimum, maximum);
 }
 
-void XProgressDialog::setValue(int value) {
+void XProgressDialog::SetValue(int value) {
 	if (size_ != size()) {
-		centerParent(this);
+		CenterParent(this);
 		size_ = size();
 	}
 	progress_bar_->setValue(value);
 }
 
-void XProgressDialog::setLabelText(const QString& text) {
+void XProgressDialog::SetLabelText(const QString& text) {
 	QFontMetrics metrics(font());
 	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, 400));
 }
 
-bool XProgressDialog::wasCanceled() const {
+bool XProgressDialog::WasCanceled() const {
 	return default_button_->isChecked();
 }

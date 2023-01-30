@@ -20,13 +20,13 @@ public:
 		int maximum = 100,
 		QWidget* parent = nullptr);
 
-	void setRange(int minimum, int maximum);
+	void SetRange(int minimum, int maximum);
 
-	void setValue(int value);
+	void SetValue(int value);
 
-	void setLabelText(const QString& text);
+	void SetLabelText(const QString& text);
 
-	bool wasCanceled() const;
+	bool WasCanceled() const;
 private:
 	QAbstractButton* default_button_;
 	QProgressBar* progress_bar_;

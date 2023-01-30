@@ -2,7 +2,7 @@
 
 #include <widget/image_utiltis.h>
 #include <widget/database.h>
-#include <widget/metadataextractadapter.h>
+#include <widget/databasefacade.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
 #include <widget/str_utilts.h>
@@ -35,7 +35,7 @@ struct ReplayGainJob {
 
 using DirPathHash = GoogleSipHash<>;
 
-static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
+static void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -43,7 +43,7 @@ static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
     QDirIterator itr(dir, file_name_filters, 
         QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
-    DirPathHash hasher(DatabaseProxy::kDirHashKey1, DatabaseProxy::kDirHashKey2);
+    DirPathHash hasher(DatabaseFacade::kDirHashKey1, DatabaseFacade::kDirHashKey2);
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
@@ -59,10 +59,10 @@ static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
 
     const auto path_hash = hasher.GetHash();
 
-    const auto db_hash = qDatabase.getParentPathHash(dir);
+    const auto db_hash = qDatabase.GetParentPathHash(dir);
     if (db_hash == path_hash) {
         XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
-        emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+        emit adapter->FromDatabase(qDatabase.GetPlayListEntityFromPathHash(db_hash));
         return;
     }
 
@@ -85,8 +85,8 @@ static void ScanDirFiles(const QSharedPointer<DatabaseProxy>& adapter,
     });
 
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
-		DatabaseProxy::insertTrackInfo(album_tracks.second, playlist_id, is_podcast_mode);
-		emit adapter->readCompleted(album_tracks.second);
+		DatabaseFacade::InsertTrackInfo(album_tracks.second, playlist_id, is_podcast_mode);
+		emit adapter->ReadCompleted(album_tracks.second);
     });
 }
 
@@ -106,7 +106,7 @@ void BackgroundWorker::stopThreadPool() {
     }
 }
 
-void BackgroundWorker::lazyInitExecutor() {
+void BackgroundWorker::LazyInitExecutor() {
     if (executor_ != nullptr) {
         return;
     }
@@ -119,8 +119,8 @@ void BackgroundWorker::lazyInitExecutor() {
         affinity);
 }
 
-void BackgroundWorker::onProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name) {
-    lazyInitExecutor();
+void BackgroundWorker::OnProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name) {
+    LazyInitExecutor();
 
     executor_->Spawn([file_path, tag_name, buffer, this]() {
         if (is_stop_) {
@@ -128,22 +128,22 @@ void BackgroundWorker::onProcessImage(const QString& file_path, const QByteArray
         }
 
         try {
-            qPixmapCache.optimizeImageFromBuffer(file_path, buffer, tag_name);
+            qPixmapCache.OptimizeImageFromBuffer(file_path, buffer, tag_name);
         } catch (std::exception const &e) {
             XAMP_LOG_E(logger_, "Faild to optimize image. {}", e.what());
         }
     });
 }
 
-void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
+void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
     QString const& file_path,
     int32_t playlist_id,
     bool is_podcast_mode) {
-    lazyInitExecutor();
+    LazyInitExecutor();
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-    QDirIterator itr(file_path, getFileNameFilter(), filter);
-    DirPathHash hasher(DatabaseProxy::kDirHashKey1, DatabaseProxy::kDirHashKey2);
+    QDirIterator itr(file_path, GetFileNameFilter(), filter);
+    DirPathHash hasher(DatabaseFacade::kDirHashKey1, DatabaseFacade::kDirHashKey2);
 
     Vector<QString> dirs;
 
@@ -161,20 +161,20 @@ void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adap
     }
 
     const int dir_size = std::distance(dirs.begin(), dirs.end());
-    emit adapter->readFileStart(dir_size);
+    emit adapter->ReadFileStart(dir_size);
 
     XAMP_ON_SCOPE_EXIT(
-        emit adapter->readFileEnd();
+        emit adapter->ReadFileEnd();
 		XAMP_LOG_D(logger_, "Finish to read track info.");
     );
 
     const auto path_hash = hasher.GetHash();
 
     try {
-        const auto db_hash = qDatabase.getParentPathHash(toNativeSeparators(file_path));
+        const auto db_hash = qDatabase.GetParentPathHash(toNativeSeparators(file_path));
         if (db_hash == path_hash) {
             XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
-            emit adapter->fromDatabase(qDatabase.getPlayListEntityFromPathHash(db_hash));
+            emit adapter->FromDatabase(qDatabase.GetPlayListEntityFromPathHash(db_hash));
             return;
         }
     } catch (Exception const &e) {
@@ -182,7 +182,7 @@ void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adap
         return;
     }    
 
-    const auto file_name_filters = getFileNameFilter();
+    const auto file_name_filters = GetFileNameFilter();
     std::atomic<int> progress(0);
 
     Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode, dir_size](
@@ -197,14 +197,14 @@ void BackgroundWorker::onReadTrackInfo(const QSharedPointer<DatabaseProxy>& adap
 		catch (Exception const& e) {
 			XAMP_LOG_D(logger_, "Faild to scan dir files! ", e.GetErrorMessage());
 		}
-        emit adapter->readFileProgress(dir, progress);
+        emit adapter->ReadFileProgress(dir, progress);
 		++progress;
     });
 }
 
-void BackgroundWorker::onSearchLyrics(const QString& title, const QString& artist) {
+void BackgroundWorker::OnSearchLyrics(const QString& title, const QString& artist) {
 	const auto keywords = QString::fromStdString(
-        String::Format("{} {}", 
+        String::Format("{}{}", 
         QUrl::toPercentEncoding(artist),
         QUrl::toPercentEncoding(title)));
 
@@ -212,22 +212,38 @@ void BackgroundWorker::onSearchLyrics(const QString& title, const QString& artis
         .param(qTEXT("limit"), qTEXT("10"))
         .param(qTEXT("type"), qTEXT("1"))
         .param(qTEXT("keywords"), keywords)
-        .success([this](const QString& response) {
+        .success([this, title](const auto& response) {
 			if (response.isEmpty()) {
                 return;
             }
-        	Spotify::SearchLyricsResult result;
-            Spotify::parseJson(response, result);
+			QList<spotify::SearchLyricsResult> results;
+            spotify::ParseSearchLyricsResult(response, results);
+            auto song_id = 0;
+            Q_FOREACH(const auto &result, results) {
+                if (result.song != title) {
+                   continue;
+                }
+                song_id = result.id;
+                break;
+            }
+            if (!song_id) {
+                XAMP_LOG_DEBUG("Not found any lyric!");
+                return;
+            }
+            http::HttpClient(qSTR("https://music.xianqiao.wang/neteaseapiv2/lyric?id=%1").arg(song_id))
+                .success([this, title](const auto& response) {
+                emit SearchLyricsCompleted(spotify::ParseLyricsResponse(response));
+            }).get();
 		})
         .get();
 }
 
-void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
+void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
     XAMP_LOG_DEBUG("Current thread:{}", QThread::currentThreadId());
 
     auto download_podcast_error = [this](const QString& msg) {
         XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
-        emit fetchPodcastError(msg);
+        emit FetchPodcastError(msg);
     };
 
     http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"), this)
@@ -239,7 +255,7 @@ void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
         	std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
 
             Stopwatch watch;
-			auto const podcast_info = std::make_pair(image_url, parseJson(json));
+			auto const podcast_info = std::make_pair(image_url, ParseJson(json));
             XAMP_LOG_DEBUG("Thread:{} Parse meta.json success! {:.2f} sesc",
                 QThread::currentThreadId(), watch.ElapsedSeconds());
 
@@ -248,13 +264,13 @@ void BackgroundWorker::onFetchPodcast(int32_t playlist_id) {
                 .download([this, podcast_info, playlist_id](const QByteArray& data) {
 					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
                     QThread::currentThreadId(), String::FormatBytes(data.size()));
-					::DatabaseProxy::insertTrackInfo(podcast_info.second, playlist_id, true);
-					emit fetchPodcastCompleted(podcast_info.second, data);
+					::DatabaseFacade::InsertTrackInfo(podcast_info.second, playlist_id, true);
+					emit FetchPodcastCompleted(podcast_info.second, data);
 				});
             }).get();
 }
 
-void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
+void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 #if defined(Q_OS_WIN)
     MBDiscId mbdisc_id;
     std::string disc_id;
@@ -276,7 +292,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
         auto track_id = 0;
         for (const auto& track : tracks) {
-            auto metadata = getTrackInfo(QString::fromStdWString(track));
+            auto metadata = GetTrackInfo(QString::fromStdWString(track));
             metadata.file_path = tracks[track_id];
             metadata.duration = cd->GetDuration(track_id++);
             metadata.sample_rate = 44100;
@@ -288,7 +304,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
             return first.track < last.track;
         });
 
-        emit updateCdMetadata(QString::fromStdString(disc_id), track_infos);
+        emit OnReadCdTrackInfo(QString::fromStdString(disc_id), track_infos);
     }
     catch (Exception const& e) {
         XAMP_LOG_DEBUG(e.GetErrorMessage());
@@ -299,46 +315,46 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
     http::HttpClient(QString::fromStdString(url))
         .success([this, disc_id](const QString& content) {
-        auto [image_url, mb_disc_id_info] = parseMbDiscIdXML(content);
+        auto [image_url, mb_disc_id_info] = ParseMbDiscIdXml(content);
 
         mb_disc_id_info.disc_id = disc_id;
         mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
         });
 
-        emit updateMbDiscInfo(mb_disc_id_info);
+        emit OnMbDiscInfo(mb_disc_id_info);
 
         XAMP_LOG_D(logger_, "Start fetch cd cover image.");
 
         http::HttpClient(QString::fromStdString(image_url))
             .success([this, disc_id](const QString& content) {
-	            const auto cover_url = parseCoverUrl(content);
+	            const auto cover_url = ParseCoverUrl(content);
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
-                    auto cover_id = qPixmapCache.addOrUpdate(content);
+                    auto cover_id = qPixmapCache.AddOrUpdate(content);
 					XAMP_LOG_D(logger_, "Download cover image completed.");
-                    emit updateDiscCover(QString::fromStdString(disc_id), cover_id);
+                    emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
                     });				
                 }).get();
             }).get();
 #endif
 }
 
-void BackgroundWorker::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
-    if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
-        emit updateBlurImage(QImage());
+void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
+    if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
+        emit BlurImage(QImage());
         return;
     }
-    emit updateBlurImage(ImageUtils::blurImage(image, size));
+    emit BlurImage(image_utils::BlurImage(image, size));
 }
 
-void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
-    lazyInitExecutor();
+void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
+    LazyInitExecutor();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
-    const auto target_loudness = AppSettings::getValue(kAppSettingReplayGainTargetLoudnes).toDouble();
-    const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
+    const auto target_loudness = AppSettings::GetValue(kAppSettingReplayGainTargetLoudnes).toDouble();
+    const auto scan_mode = AppSettings::ValueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     QMap<int32_t, Vector<PlayListEntity>> album_group_map;
     for (const auto& entity : entities) {
@@ -366,7 +382,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
                 }
                 scanner.Process(samples, sample_size);
             };
-            read_utiltis::readAll(entity.file_path.toStdWString(), progress, prepare, dps_process);
+            read_utiltis::ReadAll(entity.file_path.toStdWString(), progress, prepare, dps_process);
             std::lock_guard<FastMutex> guard{ mutex };
             jobs.play_list_entities.push_back(entity);
             jobs.scanner.push_back(std::move(scanner));
@@ -414,7 +430,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const ForwardList<Pl
             rg.ref_loudness = target_loudness;
 
             writer_->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
-            emit updateReplayGain(playlistId,
+            emit ReadReplayGain(playlistId,
                 replay_gain.play_list_entities[i],
                 replay_gain.track_loudness[i],
                 replay_gain.album_gain,

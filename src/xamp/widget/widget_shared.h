@@ -25,15 +25,15 @@
 #include <base/rcu_ptr.h>
 
 #include <metadata/api.h>
+#include <stream/api.h>
+#include <output_device/api.h>
+#include <player/api.h>
+
+#include <output_device/deviceinfo.h>
+
 #include <metadata/imetadatawriter.h>
 #include <metadata/imetadatareader.h>
 
-#include <stream/api.h>
-
-#include <output_device/deviceinfo.h>
-#include <output_device/api.h>
-
-#include <player/api.h>
 #include <player/playstate.h>
 
 using namespace xamp::base;

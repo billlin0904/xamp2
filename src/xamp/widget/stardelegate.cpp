@@ -19,7 +19,7 @@ void StarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, 
     }
 }
 
-void StarDelegate::setBackgroundColor(QColor color) {
+void StarDelegate::SetBackgroundColor(QColor color) {
     background_color_ = color;
 }
 
@@ -39,7 +39,7 @@ QWidget* StarDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&
         (void)QObject::connect(editor,
             &StarEditor::editingFinished,
             this,
-            &StarDelegate::commitAndCloseEditor);
+            &StarDelegate::CommitAndCloseEditor);
         editor->setFocusPolicy(Qt::StrongFocus);
         return editor;
     }
@@ -69,7 +69,7 @@ void StarDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, cons
     }
 }
 
-void StarDelegate::commitAndCloseEditor() {
+void StarDelegate::CommitAndCloseEditor() {
     auto editor = qobject_cast<StarEditor*>(sender());
     emit commitData(editor);
     emit closeEditor(editor);

@@ -17,7 +17,7 @@
 
 #include "xampplayer.h"
 #include "thememanager.h"
-#include <widget/xwindow.h>
+#include <widget/xmainwindow.h>
 #include <widget/widget_shared.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
@@ -427,7 +427,7 @@ static uint32_t gradientColor(QColor const & color) {
 		| color.alpha() << 24;
 }
 
-WinTaskbar::WinTaskbar(XWindow* window, IXPlayerControlFrame* player_frame) {
+WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* player_frame) {
 	window_ = window;
 
 	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
@@ -449,21 +449,21 @@ WinTaskbar::WinTaskbar(XWindow* window, IXPlayerControlFrame* player_frame) {
 	(void)QObject::connect(play_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		player_frame,
-		&IXPlayerControlFrame::playOrPause);
+		&IXFrame::PlayOrPause);
 
 	auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	forward_tool_button->setIcon(seek_forward_icon);
 	(void)QObject::connect(forward_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		player_frame,
-		&IXPlayerControlFrame::playNext);
+		&IXFrame::PlayNext);
 
 	auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	backward_tool_button->setIcon(seek_backward_icon);
 	(void)QObject::connect(backward_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		player_frame,
-		&IXPlayerControlFrame::playPrevious);
+		&IXFrame::PlayPrevious);
 
 	thumbnail_tool_bar_->addButton(backward_tool_button);
 	thumbnail_tool_bar_->addButton(play_tool_button);
@@ -520,7 +520,7 @@ void setAccentPolicy(HWND hwnd, bool enable, int animation_id) noexcept {
 
 	ACCENT_STATE flags = (is_rs4_or_greater ? ACCENT_ENABLE_ACRYLICBLURBEHIND : ACCENT_ENABLE_BLURBEHIND);
 
-	QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
+	QColor background_color(AppSettings::ValueAsString(kAppSettingBackgroundColor));
 	background_color.setAlpha(50);
 
 	ACCENT_POLICY policy = {

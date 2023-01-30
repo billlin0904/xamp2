@@ -17,7 +17,7 @@
 #include <widget/playlistentity.h>
 
 class XProgressDialog;
-class DatabaseProxy;
+class DatabaseFacade;
 class QLabel;
 class ClickableLabel;
 class AlbumViewPage;
@@ -31,17 +31,17 @@ public:
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
-	void setTextColor(QColor color);
+	void SetTextColor(QColor color);
 
-	void clearImageCache();
+	void ClearImageCache();
 
-	void setPlayingAlbumId(int32_t album_id) {
+	void SetPlayingAlbumId(int32_t album_id) {
 		playing_album_id_ = album_id;
 	}
 signals:
-	void enterAlbumView(const QModelIndex& index) const;
+	void EnterAlbumView(const QModelIndex& index) const;
 
-	void showAlbumOpertationMenu(const QModelIndex& index, const QPoint &pt) const;
+	void ShowAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
 
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
@@ -64,7 +64,7 @@ class AlbumViewPage final : public QFrame {
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
 
-	void setPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id);
+	void SetPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id);
 
 	ClickableLabel* artist() {
 		return artist_;
@@ -75,9 +75,9 @@ public:
 	}
 
 signals:
-	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void ClickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void leaveAlbumView() const;
+	void LeaveAlbumView() const;
 
 private:
 	ClickableLabel* artist_;
@@ -97,57 +97,57 @@ public:
 		return page_;
 	}
 
-	void enablePage(bool enable);
+	void EnablePage(bool enable);
 
-	void readSingleFileTrackInfo(const QString& file_name);
+	void ReadSingleFileTrackInfo(const QString& file_name);
 
-	void setPlayingAlbumId(int32_t album_id);
+	void SetPlayingAlbumId(int32_t album_id);
 
 signals:
-    void addPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
+    void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
-	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void ClickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void clickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
+	void ClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
-	void removeAll();
+	void RemoveAll();
 
-	void loadCompleted();
+	void LoadCompleted();
 
-	void readTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
+	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
 		QString const& file_path, 
 		int32_t playlist_id,
 		bool is_podcast_mode);
 public slots:
-	void refreshOnece();
+	void Refresh();
 
-	void setFilterByArtistId(int32_t artist_id);
+	void SetFilterByArtistId(int32_t artist_id);
 
-	void hideWidget();
+	void HideWidget();
 
-	void onSearchTextChanged(const QString& text);
+	void OnSearchTextChanged(const QString& text);
 
-    void onThemeChanged(QColor backgroundColor, QColor color);
+    void OnThemeChanged(QColor backgroundColor, QColor color);
 
     void append(const QString& file_name);
 
-    void processTrackInfo(const ForwardList<TrackInfo> & entities);
+    void ProcessTrackInfo(const ForwardList<TrackInfo> & entities);
 
-	void showOperationMenu(const QPoint& pt);
+	void ShowMenu(const QPoint& pt);
 
-	void showAlbumViewMenu(const QPoint& pt);
+	void ShowAlbumViewMenu(const QPoint& pt);
 
-	void onReadFileStart(int dir_size);
+	void OnReadFileStart(int dir_size);
 
-	void onReadFileProgress(const QString& dir, int progress);
+	void OnReadFileProgress(const QString& dir, int progress);
 
-	void onReadFileEnd();
+	void OnReadFileEnd();
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
-	void showPageAnimation();
+	void ShowPageAnimation();
 
-	void hidePageAnimation();
+	void HidePageAnimation();
 
 	bool enable_page_{ true };
 	bool hide_page_{ false };

@@ -13,14 +13,14 @@ class XDialog : public QDialog {
 public:
     explicit XDialog(QWidget* parent = nullptr);
 
-    void setContentWidget(QWidget* content);
+    void SetContentWidget(QWidget* content);
 
-    QWidget* contentWidget() const {
-        return frame_->contentWidget();
+    QWidget* ContentWidget() const {
+        return frame_->ContentWidget();
     }
 
-    void setTitle(const QString& title) const {
-        frame_->setTitle(title);
+    void SetTitle(const QString& title) const {
+        frame_->SetTitle(title);
     }
 
     void showEvent(QShowEvent* event) override;

@@ -13,22 +13,22 @@
 
 class JsonSettings {
 public:
-    static void loadJsonFile(QString const& file_name);
+    static void LoadJsonFile(QString const& file_name);
 
-    static QMap<QString, QVariant> getValueAsMap(QString const& key);
+    static QMap<QString, QVariant> ValueAsMap(QString const& key);
 
-    static QVariant getValue(QString const& key);
+    static QVariant GetValue(QString const& key);
 
-    static int32_t getAsInt(QString const& key);
+    static int32_t GetAsInt(QString const& key);
 
     static void remove(const QString& key);
 
     template <typename T>
-    static void setDefaultValue(QString const& key, T const & value) {
+    static void SetDefaultValue(QString const& key, T const & value) {
         default_settings_[key] = value;
     }
 
-    static void setValue(QString const & key, QVariant const & value) {
+    static void SetValue(QString const & key, QVariant const & value) {
         settings_->setValue(key, value);
     }
 

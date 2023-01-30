@@ -517,19 +517,19 @@ GlobalShortcut::GlobalShortcut()
     : impl_(MakePimpl<GlobalShortcutImpl>()) {
 }
 
-bool GlobalShortcut::registerShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
+bool GlobalShortcut::RegisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
     return impl_->registerShortcut(wid, native_key, native_mods);
 }
 
-bool GlobalShortcut::unregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
+bool GlobalShortcut::UnregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
     return impl_->unregisterShortcut(wid, native_key, native_mods);
 }
 
-quint32 GlobalShortcut::nativeModifiers(Qt::KeyboardModifiers modifiers) {
+quint32 GlobalShortcut::NativeModifiers(Qt::KeyboardModifiers modifiers) {
     return impl_->nativeModifiers(modifiers);
 }
 
-quint32 GlobalShortcut::nativeKeycode(Qt::Key key) {
+quint32 GlobalShortcut::NativeKeycode(Qt::Key key) {
     return impl_->nativeKeycode(key);
 }
 

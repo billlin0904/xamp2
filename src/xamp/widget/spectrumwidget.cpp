@@ -116,7 +116,7 @@ void SpectrumWidget::drawWave(QPainter& painter, size_t num_bars, bool is_line) 
 	}
 	points.push_back(QPoint(width(), height()));
 
-	QPainterPath path = generator_.generateSmoothCurve(points);
+	QPainterPath path = generator_.GenerateSmoothCurve(points);
 	path.closeSubpath();
 	if (is_line) {
 		painter.setPen(bar_color_);

@@ -7,8 +7,6 @@
 
 #include <QObject>
 #include <QMap>
-#include <widget/str_utilts.h>
-#include <widget/widget_shared.h>
 
 enum Glyphs {
     ICON_VOLUME_UP,

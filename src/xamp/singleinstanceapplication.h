@@ -5,19 +5,23 @@
 
 #pragma once
 
-#include <widget/widget_shared.h>
-#include <base/platfrom_handle.h>
+#include <QApplication>
+#include <QScopedPointer>
 
-class SingleInstanceApplication {
+class XMainWindow;
+class QLocalServer;
+
+class SingleInstanceApplication : public QApplication {
+    Q_OBJECT
 public:
-    SingleInstanceApplication();
+    SingleInstanceApplication(int& argc, char* argv[]);
 
-	~SingleInstanceApplication();
+	virtual ~SingleInstanceApplication() override;
 
-    bool attach() const;
+    bool IsAttach() const;
 
+    XMainWindow* window{ nullptr };
 private:
-#ifdef XAMP_OS_WIN
-	mutable WinHandle singular_;
-#endif
+    bool is_running_{ false };
+    QScopedPointer<QLocalServer> server_;
 };

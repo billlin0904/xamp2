@@ -1,14 +1,13 @@
 #include <QStyle>
-#include <QToolTip>
 
-#include "str_utilts.h"
+#include <widget/str_utilts.h>
 #include <widget/seekslider.h>
 
 SeekSlider::SeekSlider(QWidget* parent)
 	: QSlider(parent) {
 }
 
-void SeekSlider::setRange(int64_t min, int64_t max) {
+void SeekSlider::SetRange(int64_t min, int64_t max) {
 	min_ = min;
 	max_ = max;
 	QSlider::setRange(static_cast<int>(min), static_cast<int>(max));
@@ -27,11 +26,10 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 			value = ((max_ - min_) * (height() - y) / height()) + min_;
 		}
 		setValue(value);
-		emit leftButtonValueChanged(value);
+		emit LeftButtonValueChanged(value);
 	}
 	return QSlider::mousePressEvent(event);
 }
 
 void SeekSlider::enterEvent(QEvent* event) {
-	QToolTip::showText(QCursor::pos(), formatDuration(value()));
 }

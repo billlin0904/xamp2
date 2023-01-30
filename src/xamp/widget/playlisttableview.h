@@ -11,7 +11,7 @@
 
 #include <widget/playlistentity.h>
 #include <widget/database.h>
-#include <widget/metadataextractadapter.h>
+#include <widget/databasefacade.h>
 
 #include <base/rng.h>
 #include <base/encodingprofile.h>
@@ -106,7 +106,7 @@ signals:
 
 	void fetchPodcast(int32_t playlist_id);
 
-	void readTrackInfo(const QSharedPointer<DatabaseProxy>& adapter,
+	void readTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
 		QString const& file_path,
 		int32_t playlist_id,
 		bool is_podcast_mode);

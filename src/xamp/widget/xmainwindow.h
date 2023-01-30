@@ -17,45 +17,45 @@ namespace win32 {
 }
 #endif
 
-class XWindow final : public IXWindow {
-    Q_OBJECT
+class XMainWindow final : public IXMainWindow {
 public:
-    XWindow();
+    XMainWindow();
 
-	virtual ~XWindow() override;
+	virtual ~XMainWindow() override;
 
     void setShortcut(const QKeySequence& shortcut) override;
 
-    void setContentWidget(IXPlayerControlFrame *content_widget);
+    void SetContentWidget(IXFrame *content_widget);
 
-    void setTaskbarProgress(int32_t percent) override;
+    void SetTaskbarProgress(int32_t percent) override;
 
-    void resetTaskbarProgress() override;
+    void ResetTaskbarProgress() override;
 
-    void setTaskbarPlayingResume() override;
+    void SetTaskbarPlayingResume() override;
 
-    void setTaskbarPlayerPaused() override;
+    void SetTaskbarPlayerPaused() override;
 
-    void setTaskbarPlayerPlaying() override;
+    void SetTaskbarPlayerPlaying() override;
 
-    void setTaskbarPlayerStop() override;
+    void SetTaskbarPlayerStop() override;
 
-    void setTitleBarAction(QFrame* title_bar) override;
+    void SetTitleBarAction(QFrame* title_bar) override;
 
-    void restoreGeometry();
+    void RestoreGeometry();
 
-    void initMaximumState() override;
+    void InitMaximumState() override;
 
-    void updateMaximumState() override;
+    void UpdateMaximumState() override;
 
-    void readDriveInfo();
+    void ReadDriveInfo();
 
-    void drivesRemoved(char driver_letter);
+    void DrivesRemoved(char driver_letter);
 
-    void systemThemeChanged(ThemeColor theme_color);
+    void SystemThemeChanged(ThemeColor theme_color);
 
-    void shortcutsPressed(uint16_t native_key, uint16_t native_mods);
+    void ShortcutsPressed(uint16_t native_key, uint16_t native_mods);
 
+    void ShowWindow();
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -79,11 +79,11 @@ protected:
 
     void closeEvent(QCloseEvent* event) override;
 
-    void saveGeometry() override;
+    void SaveGeometry() override;
 
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 private:
-    void addSystemMenu(QWidget *widget);
+    void AddSystemMenu(QWidget *widget);
 
     void focusInEvent(QFocusEvent* event) override;
 
@@ -91,7 +91,7 @@ private:
 
     void showEvent(QShowEvent* event) override;
 
-    void updateScreenNumber();
+    void UpdateScreenNumber();
 
     QPoint last_pos_;
     QRect last_rect_;
@@ -103,5 +103,5 @@ private:
     QMap<QString, DriveInfo> exist_drives_;
 #endif
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
-    IXPlayerControlFrame *player_control_frame_;
+    IXFrame *player_control_frame_;
 };

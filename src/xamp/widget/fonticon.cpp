@@ -5,9 +5,13 @@
 #include <QtCore>
 #include <QPalette>
 
-#include <utility>
 #include <widget/str_utilts.h>
 #include <widget/fonticonanimation.h>
+
+#include <widget/widget_shared.h>
+
+#include <utility>
+
 #include <widget/fonticon.h>
 
 class FontIconEngine : public QIconEngine {

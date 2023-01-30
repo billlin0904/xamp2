@@ -17,7 +17,9 @@ static QString urlSafeBase64Encode(const QByteArray& data) noexcept {
     return QLatin1String(data.toBase64(QByteArray::Base64UrlEncoding));
 }
 
-QString QEtag::getTagId(const QByteArray &buffer) noexcept {
+namespace QEtag {
+
+QString GetTagId(const QByteArray &buffer) noexcept {
     // 七牛雲儲存etag演算法
 	// https://github.com/qiniu/qetag
 	// 如果你能夠確認文件 <= 4M，那麼 hash = UrlsafeBase64([0x16, sha1(FileContent)])
@@ -57,7 +59,7 @@ QString QEtag::getTagId(const QByteArray &buffer) noexcept {
     }
 }
 
-QString QEtag::getTagId(const QString& file_name) noexcept {
+QString GetTagId(const QString& file_name) noexcept {
 	QString etag;
     QFileInfo fi(file_name);
 
@@ -101,4 +103,6 @@ QString QEtag::getTagId(const QString& file_name) noexcept {
         }
     }
     return etag;
+}
+
 }

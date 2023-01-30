@@ -189,7 +189,6 @@
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\cuesheet.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
@@ -205,9 +204,7 @@
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\spotify_utilis.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
-    <ClCompile Include="widget\waveformanalyzer.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
-    <ClCompile Include="widget\xwindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
@@ -216,7 +213,7 @@
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
-    <ClCompile Include="widget\metadataextractadapter.cpp">
+    <ClCompile Include="widget\databasefacade.cpp">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
@@ -246,6 +243,7 @@
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xframe.cpp" />
+    <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\zib_utiltis.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
@@ -270,12 +268,11 @@
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
-    <QtMoc Include="cdpage.h" />
+    <ClInclude Include="cdpage.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="widget\albumentity.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <QtMoc Include="widget\filesystemviewpage.h" />
-    <ClInclude Include="widget\cuesheet.h" />
     <ClInclude Include="widget\driveinfo.h" />
     <ClInclude Include="widget\filesystemmodel.h" />
     <QtMoc Include="widget\processindicator.h" />
@@ -286,15 +283,15 @@
     <ClInclude Include="widget\globalshortcut.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
+    <ClInclude Include="widget\themecolor.h" />
     <ClInclude Include="widget\volumecontroldialog.h" />
-    <ClInclude Include="widget\waveformanalyzer.h" />
     <ClInclude Include="widget\xprogressdialog.h" />
+    <ClInclude Include="widget\xmainwindow.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
     <QtMoc Include="widget\doubleslider.h" />
     <QtMoc Include="widget\equalizerdialog.h" />
-    <ClInclude Include="widget\xwindow.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
     </QtMoc>
@@ -306,7 +303,7 @@
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xdialog.h">
     </QtMoc>
-    <ClInclude Include="singleinstanceapplication.h" />
+    <QtMoc Include="singleinstanceapplication.h" />
     <QtMoc Include="aboutpage.h">
     </QtMoc>
     <ClInclude Include="resource.h" />
@@ -347,7 +344,7 @@
     </QtMoc>
     <QtMoc Include="widget\playlisttableproxymodel.h">
     </QtMoc>
-    <QtMoc Include="widget\metadataextractadapter.h">
+    <QtMoc Include="widget\databasefacade.h">
     </QtMoc>
     <ClInclude Include="widget\playlistentity.h" />
     <ClInclude Include="widget\playlisttablemodel.h" />

@@ -19,9 +19,9 @@ public:
 	}
 
 public slots:
-	void onThemeChanged(QColor backgroundColor, QColor color);
+	void OnThemeChanged(QColor backgroundColor, QColor color);
 
-	void refreshOnece();
+	void Refresh();
 
 private:
 	AlbumView* album_view_;

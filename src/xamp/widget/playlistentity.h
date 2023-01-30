@@ -15,8 +15,8 @@ struct PlayListEntity final {
     int32_t album_id{0};
     int32_t artist_id{0};
     uint32_t track{0};
-    uint32_t bitrate{0};
-    uint32_t samplerate{0};
+    uint32_t bit_rate{0};
+    uint32_t sample_rate{0};
     uint32_t rating{0};
     uint32_t year{0};
     uint64_t file_size{ 0 };

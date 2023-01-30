@@ -24,19 +24,19 @@ public:
 
 	Q_DISABLE_COPY(WheelableWidget)
 
-    virtual void paintBackground(QPainter* painter) = 0;
+    virtual void PaintBackground(QPainter* painter) = 0;
 
-	virtual void paintItem(QPainter* painter, int32_t index, QRect &rect) = 0;
+	virtual void PaintItem(QPainter* painter, int32_t index, QRect &rect) = 0;
 
-	virtual void paintItemMask(QPainter* painter) = 0;
+	virtual void PaintItemMask(QPainter* painter) = 0;
 
-	virtual int32_t itemHeight() const = 0;
+	virtual int32_t ItemHeight() const = 0;
 
-	virtual int32_t itemCount() const = 0;
+	virtual int32_t ItemCount() const = 0;
 
-	int32_t currentIndex() const;
+	int32_t CurrentIndex() const;
 
-	void setCurrentIndex(const int32_t index);
+	void SetCurrentIndex(const int32_t index);
 
 private:
 	void paintEvent(QPaintEvent *event) override;
@@ -50,10 +50,10 @@ private:
 signals:
 	void stopped(int32_t index);
 
-	void changeTo(int32_t index);
+	void ChangeTo(int32_t index);
 
 public slots:
-	void scrollTo(int32_t index);
+	void ScrollTo(int32_t index);
 
 private:
 	bool event(QEvent *event) override;
@@ -64,7 +64,7 @@ protected:
 	int32_t item_;
 	int32_t item_offset_; // 0-itemHeight()
 	float mask_length_;
-	QRect current_rollrect_;
+	QRect current_roll_rect_;
 	QFont current_mask_font_;
 	QString real_current_text_;
 };

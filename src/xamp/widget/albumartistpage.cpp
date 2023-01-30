@@ -35,19 +35,19 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	default_layout->setStretch(1, 2);
 	verticalLayout_2->addLayout(default_layout);
 
-	(void)QObject::connect(album_view_, &AlbumView::removeAll,
-		this, &AlbumArtistPage::refreshOnece);
+	(void)QObject::connect(album_view_, &AlbumView::RemoveAll,
+		this, &AlbumArtistPage::Refresh);
 
-	(void)QObject::connect(album_view_, &AlbumView::loadCompleted,
-		this, &AlbumArtistPage::refreshOnece);
+	(void)QObject::connect(album_view_, &AlbumView::LoadCompleted,
+		this, &AlbumArtistPage::Refresh);
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 }
 
-void AlbumArtistPage::refreshOnece() {
-	album_view_->refreshOnece();
+void AlbumArtistPage::Refresh() {
+	album_view_->Refresh();
 }
 
-void AlbumArtistPage::onThemeChanged(QColor backgroundColor, QColor color) {
+void AlbumArtistPage::OnThemeChanged(QColor backgroundColor, QColor color) {
 	//setStyleSheet(backgroundColorToString(backgroundColor));
 }

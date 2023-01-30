@@ -35,7 +35,7 @@ public:
 		(expr);\
     }\
     catch (SqlException const& e) {\
-		XMessageBox::showBug(e);\
+		XMessageBox::ShowBug(e);\
     }
 
 struct AlbumStats {
@@ -67,7 +67,7 @@ enum PlayingState {
 
 class Database final {
 public:
-    static Database& getThreadDatabase();
+    static Database& GetThreadDatabase();
 
     Database();
 
@@ -83,133 +83,132 @@ public:
 
     void rollback();
 
-    int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
+    int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
-    int32_t addPlaylist(const QString& name, int32_t playlist_index);
+    int32_t AddPlaylist(const QString& name, int32_t playlist_index);
 
-    void setAlbumCover(int32_t album_id, const QString& cover_id);
+    void SetAlbumCover(int32_t album_id, const QString& cover_id);
 
-    void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
+    void SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
-    std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
+    std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;
 
-    std::optional<ArtistStats> getArtistStats(int32_t artist_id) const;
+    std::optional<ArtistStats> GetArtistStats(int32_t artist_id) const;
 
-    void addTablePlaylist(int32_t table_id, int32_t playlist_id);
+    void AddTablePlaylist(int32_t table_id, int32_t playlist_id);
 
-    int32_t addOrUpdateMusic(const TrackInfo& track_info);
+    int32_t AddOrUpdateMusic(const TrackInfo& track_info);
 
-    int32_t addOrUpdateArtist(const QString& artist);
+    int32_t AddOrUpdateArtist(const QString& artist);
 
-    void updateArtistCoverId(int32_t artist_id, const QString& cover_id);
+    void UpdateArtistCoverId(int32_t artist_id, const QString& cover_id);
 
-    void updateMusicFilePath(int32_t music_id, const QString& file_path);
+    void UpdateMusicFilePath(int32_t music_id, const QString& file_path);
 
-    void updateMusicRating(int32_t music_id, int32_t rating);
+    void UpdateMusicRating(int32_t music_id, int32_t rating);
 
-    void updateMusicTitle(int32_t music_id, const QString& title);
+    void UpdateMusicTitle(int32_t music_id, const QString& title);
 
-    void addOrUpdateTrackLoudness(int32_t album_id,
+    void AddOrUpdateTrackLoudness(int32_t album_id,
         int32_t artist_id,
         int32_t music_id, 
         double track_loudness);
 
-    void updateReplayGain(int32_t music_id,
+    void UpdateReplayGain(int32_t music_id,
         double album_rg_gain,
         double album_peak,
         double track_rg_gain,
         double track_peak);
 
-    ForwardList<PlayListEntity> getPlayListEntityFromPathHash(size_t path_hash) const;
+    ForwardList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
 
-    size_t getParentPathHash(const QString& parent_path) const;
+    size_t GetParentPathHash(const QString& parent_path) const;
 
-    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id = qEmptyString);
+    int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id = qEmptyString);
 
-    void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
+    void AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
-    void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
+    void AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
-    void addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness = 0) const;
+    void AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness = 0) const;
 
-    int32_t getAlbumIdByDiscId(const QString& disc_id) const;
+    int32_t GetAlbumIdByDiscId(const QString& disc_id) const;
 
-    void updateAlbumByDiscId(const QString& disc_id, const QString& album);
+    void UpdateAlbumByDiscId(const QString& disc_id, const QString& album);
 
-    void updateArtistByDiscId(const QString& disc_id, const QString& artist);
+    void UpdateArtistByDiscId(const QString& disc_id, const QString& artist);
 
-    QString getAlbumCoverId(int32_t album_id) const;
+    QString GetAlbumCoverId(int32_t album_id) const;
 
-    QString getAlbumCoverId(const QString& album) const;
+    QString GetAlbumCoverId(const QString& album) const;
 
-    QString getArtistCoverId(int32_t artist_id) const;
+    QString GetArtistCoverId(int32_t artist_id) const;
 
-    void setTableName(int32_t table_id, const QString &name);
+    void SetTableName(int32_t table_id, const QString &name);
 
-    void removeAlbum(int32_t album_id);
+    void RemoveAlbum(int32_t album_id);
 
-    void forEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
+    void ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
 
-    void forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
+    void ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 
-    void forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const &)> &&fun);
+    void ForEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const &)> &&fun);
 
-    void forEachAlbum(std::function<void(int32_t)>&& fun);
+    void ForEachAlbum(std::function<void(int32_t)>&& fun);
 
-    std::optional<QString> getAlbumFirstMusicFilePath(int32_t album_id);
+    std::optional<QString> GetAlbumFirstMusicFilePath(int32_t album_id);
 
-    void removeAllArtist();
+    void RemoveAllArtist();
 
-    void removeArtistId(int32_t artist_id);
+    void RemoveArtistId(int32_t artist_id);
 
-    void removeMusic(int32_t music_id);
+    void RemoveMusic(int32_t music_id);
 
-    void removeTrackLoudnessMusicId(int32_t music_id);
+    void RemoveTrackLoudnessMusicId(int32_t music_id);
 
-    void removeMusic(QString const& file_path);
+    void RemoveMusic(QString const& file_path);
 
-    void removePlaylistAllMusic(int32_t playlist_id);
+    void RemovePlaylistAllMusic(int32_t playlist_id);
 
-    void removeMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids);
+    void RemoveMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids);
 	
-    void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
+    void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
-    int32_t findTablePlaylistId(int32_t table_id) const;
+    int32_t FindTablePlaylistId(int32_t table_id) const;
 
-    bool isPlaylistExist(int32_t playlist_id) const;
+    bool IsPlaylistExist(int32_t playlist_id) const;
 
-    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
+    void AddMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
 
-    void addMusicToPlaylist(const ForwardList<int32_t> & music_id, int32_t playlist_id) const;
+    void AddMusicToPlaylist(const ForwardList<int32_t> & music_id, int32_t playlist_id) const;
 
-    void setNowPlaying(int32_t playlist_id, int32_t music_id);
+    void SetNowPlaying(int32_t playlist_id, int32_t music_id);
 
-    void clearNowPlaying(int32_t playlist_id);
+    void ClearNowPlaying(int32_t playlist_id);
 
-    void clearNowPlaying(int32_t playlist_id, int32_t music_id);
+    void ClearNowPlaying(int32_t playlist_id, int32_t music_id);
 
-    void clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id);
+    void ClearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id);
 
-    void setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
+    void SetNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
 private:
-    static PlayListEntity queryToPlayListEntity(const QSqlQuery& query);
+    static PlayListEntity QueryToPlayListEntity(const QSqlQuery& query);
 
-    void removeAlbumArtist(int32_t album_id);
+    void RemoveAlbumArtist(int32_t album_id);
 
-    void removeAlbumMusicId(int32_t music_id);
+    void RemoveAlbumMusicId(int32_t music_id);
 
-    void removePlaylistMusics(int32_t music_id);
+    void RemovePlaylistMusics(int32_t music_id);
 
-    void removeAlbumArtistId(int32_t artist_id);
+    void RemoveAlbumArtistId(int32_t artist_id);
 
-    void createTableIfNotExist();
+    void CreateTableIfNotExist();
 
-    QString getVersion() const;
+    QString GetVersion() const;
 
     QString connection_name_;
     QSqlDatabase db_;
     LoggerPtr logger_;
 };
 
-//#define qDatabase SharedSingleton<Database>::GetInstance()
-#define qDatabase Database::getThreadDatabase()
+#define qDatabase Database::GetThreadDatabase()
