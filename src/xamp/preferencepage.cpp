@@ -1,5 +1,4 @@
 #include <QFileDialog>
-#include <QDir>
 #include <QInputDialog>
 #include <QStandardItemModel>
 
@@ -13,6 +12,7 @@
 #include <widget/pixmapcache.h>
 #include <widget/widget_shared.h>
 
+#include <thememanager.h>
 #include <preferencepage.h>
 
 class ActiveListWidget : public QWidget {
@@ -174,7 +174,7 @@ void PreferencePage::InitSoxResampler() {
 		});
 }
 
-void PreferencePage::SetLang(int index) {
+void PreferencePage::SetLanguage(int index) {
 	const auto lang = LocaleLanguageManager::LanguageNames()[index];
 	ui_.langCombo->setCurrentIndex(index);
 	AppSettings::LoadLanguage(lang.GetIsoCode());
@@ -182,7 +182,7 @@ void PreferencePage::SetLang(int index) {
 	ui_.retranslateUi(this);
 }
 
-void PreferencePage::InitLang() {
+void PreferencePage::InitialLanguage() {
 	const LocaleLanguage current_lang(AppSettings::ValueAsString(kAppSettingLang));
 
 	auto current_index = 0;
@@ -201,7 +201,7 @@ void PreferencePage::InitLang() {
 
 	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), 
 		[this](auto const& index) {
-		SetLang(index);
+		SetLanguage(index);
 		});
 }
 
@@ -236,7 +236,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	InitSoxResampler();
 	InitR8BrainResampler();
 	InitPcm2Dsd();
-	InitLang();
+	InitialLanguage();
 
 	switch (qTheme.themeColor()) {
 	case ThemeColor::LIGHT_THEME:
@@ -257,13 +257,13 @@ PreferencePage::PreferencePage(QWidget *parent)
 
     ui_.preferenceTreeWidget->header()->hide();
     
-    auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Settings"));
+    auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     settings_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
-    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
+    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Audio Resampler"));
     settings_item->addChild(dsp_manager_item);
 
-	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM-DSD Covert"));
+	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM/DSD Convert"));
 	settings_item->addChild(pcm2dsd_item);
 
 	// todo: 先不實作FoobarDSP相關UI
@@ -277,8 +277,8 @@ PreferencePage::PreferencePage(QWidget *parent)
     (void)QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
         const OrderedMap<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
-            { tr("Resampler"), 1 },
-			{ tr("PCM-DSD Covert"), 2 },
+            { tr("Audio Resampler"), 1 },
+			{ tr("PCM/DSD Convert"), 2 },
         };
 
 	    const auto select_type = item->text(column);
@@ -349,7 +349,7 @@ PreferencePage::PreferencePage(QWidget *parent)
         AppSettings::SetValue(kAppSettingAlbumImageCacheSize, value);
     });
 		
-	setStyleSheet(qTEXT(R"(
+	/*setStyleSheet(qTEXT(R"(
 			QFrame#PreferenceDialog { 
 				background-color: transparent;
 			}
@@ -365,7 +365,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	ui_.soxrResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
 	ui_.r8brainResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
 	ui_.dspManagerPage->setStyleSheet(qTEXT("background: transparent;"));
-	ui_.pcm2dsdPage->setStyleSheet(qTEXT("background: transparent;"));
+	ui_.pcm2dsdPage->setStyleSheet(qTEXT("background: transparent;"));*/
 
 	const QList<QWidget*> widgets {
 		ui_.darkRadioButton,
@@ -378,12 +378,12 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbReplayGameMode,
 	};
 
-	const QList<QWidget*> pcm2dsd_widgets{
+	const QList<QWidget*> pcm2dsd_page_widgets{
 		ui_.enablePcm2DsdCheckBox,
 		ui_.lbDsdTimes,
 	};
 
-	const QList<QWidget*> soxr_resampler_widgets{
+	const QList<QWidget*> soxr_page_widgets{
 		ui_.lbResampler,
 		ui_.lbResamplerSettings,
 		ui_.lbTargetSampleRate,
@@ -394,7 +394,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbRollOffLevel,
 	};
 
-	const QList<QWidget*> r8brain_resampler_widgets{
+	const QList<QWidget*> r8brain_page_widgets{
 		ui_.lbR8BrainTargetSampleRate,
 		ui_.lbR8BrainHz,
 	};
@@ -410,15 +410,15 @@ PreferencePage::PreferencePage(QWidget *parent)
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
-	Q_FOREACH(auto* w, pcm2dsd_widgets) {
+	Q_FOREACH(auto* w, pcm2dsd_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
-	Q_FOREACH(auto* w, soxr_resampler_widgets) {
+	Q_FOREACH(auto* w, soxr_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
-	Q_FOREACH(auto* w, r8brain_resampler_widgets) {
+	Q_FOREACH(auto* w, r8brain_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 }

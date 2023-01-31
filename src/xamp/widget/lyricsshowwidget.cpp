@@ -34,6 +34,17 @@ void LyricsShowWidget::initial() {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<LyricsShowWidget> action_map(this);
+
+		(void)action_map.AddAction(tr("Show original lyrics"), [this]() {
+			lrc_ = orilyrc_;
+			LoadLrc(lrc_);
+		});
+
+		(void)action_map.AddAction(tr("Show translate lyrics"), [this]() {
+			lrc_ = trlyrc_;
+			LoadLrc(lrc_);
+		});
+
 		(void)action_map.AddAction(tr("Set font size(small)"), [this]() {
 			AppSettings::SetValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(12);
@@ -239,8 +250,9 @@ void LyricsShowWidget::LoadLrc(const QString& lrc) {
 	update();
 }
 
-void LyricsShowWidget::SetLrc(const QString &lrc) {
+void LyricsShowWidget::SetLrc(const QString &lrc, const QString& trlyrc) {
 	lrc_ = lrc;
+	trlyrc_ = trlyrc;
 	stop();
 	LoadLrc(lrc_);
 }

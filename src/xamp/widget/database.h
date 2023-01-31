@@ -105,6 +105,10 @@ public:
 
     void UpdateMusicFilePath(int32_t music_id, const QString& file_path);
 
+    void AddOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc);
+
+    std::optional<std::tuple<QString, QString>> GetLyrc(int32_t music_id);
+
     void UpdateMusicRating(int32_t music_id, int32_t rating);
 
     void UpdateMusicTitle(int32_t music_id, const QString& title);

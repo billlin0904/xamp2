@@ -99,9 +99,9 @@ private:
 
 #if defined(Q_OS_WIN)
     QScreen* current_screen_;
-    QScopedPointer<win32::WinTaskbar> taskbar_;
+    QScopedPointer<win32::WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
 #endif
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
-    IXFrame *player_control_frame_;
+	IXFrame *content_widget_;
 };

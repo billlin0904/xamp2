@@ -25,14 +25,15 @@ bool ParseSearchLyricsResult(QString const& json, QList<SearchLyricsResult>& res
 	return !results.isEmpty();
 }
 
-QString ParseLyricsResponse(QString const& json) {
+std::tuple<QString, QString> ParseLyricsResponse(QString const& json) {
 	QJsonParseError error;
 	const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
 	if (error.error != QJsonParseError::NoError) {
-		return qEmptyString;
+		return { qEmptyString, qEmptyString };
 	}
 	auto lyrics = doc[qTEXT("lrc")][qTEXT("lyric")].toString();
-	return lyrics;
+	auto trlyrics = doc[qTEXT("tlyric")][qTEXT("lyric")].toString();
+	return { lyrics, trlyrics };
 }
 
 }

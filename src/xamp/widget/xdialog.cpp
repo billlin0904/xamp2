@@ -28,13 +28,18 @@ void XDialog::SetContentWidget(QWidget* content) {
     frame_->SetContentWidget(content);
 
     if (!qTheme.useNativeWindow()) {
+#ifdef Q_OS_WIN
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-        setAttribute(Qt::WA_TranslucentBackground, true);
+#else
+        setWindowFlags(windowFlags() & (~Qt::WindowMinMaxButtonsHint) & (~Qt::Dialog))
+            | Qt::FramelessWindowHint | Qt::Window);
+#endif
+        setAttribute(Qt::WA_TranslucentBackground);
+        setAttribute(Qt::WA_StyledBackground);
     } else {
         setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 #ifdef Q_OS_WIN
         win32::setTitleBarColor(winId(), qTheme.themeColor());
-        win32::addDwmShadow(winId());
 #endif
     }
 
@@ -44,23 +49,6 @@ void XDialog::SetContentWidget(QWidget* content) {
     default_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(default_layout);
 
-#ifdef Q_OS_WIN
-    if (!qTheme.useNativeWindow()) {
-        auto* shadow = new QGraphicsDropShadowEffect(frame_);
-        shadow->setOffset(0, 0);
-        shadow->setBlurRadius(20);
-
-        switch (qTheme.themeColor()) {
-        case ThemeColor::DARK_THEME:
-            shadow->setColor(Qt::black);
-            break;
-        case ThemeColor::LIGHT_THEME:
-            shadow->setColor(Qt::gray);
-            break;
-        }
-        frame_->setGraphicsEffect(shadow);
-    }
-#endif
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
     setMouseTracking(true);
     (void)QObject::connect(frame_, &XFrame::CloseFrame, [this]() {
@@ -135,7 +123,7 @@ void XDialog::showEvent(QShowEvent* event) {
         opacity_animation->setStartValue(0);
         opacity_animation->setEndValue(1);
         opacity_animation->setDuration(200);
-        opacity_animation->setEasingCurve(QEasingCurve::InSine);
+        opacity_animation->setEasingCurve(QEasingCurve::OutCubic);
         (void)QObject::connect(opacity_animation,
             &QPropertyAnimation::finished,
             opacity_effect,

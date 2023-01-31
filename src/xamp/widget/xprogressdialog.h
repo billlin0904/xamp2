@@ -28,6 +28,7 @@ public:
 
 	bool WasCanceled() const;
 private:
+	int max_width_ = 800;
 	QAbstractButton* default_button_;
 	QProgressBar* progress_bar_;
 	QLabel* message_text_label_;

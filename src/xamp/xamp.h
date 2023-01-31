@@ -49,7 +49,7 @@ public:
 
     virtual ~Xamp() override;
 
-    void SetXWindow(IXMainWindow* top_window);
+    void SetXWindow(IXMainWindow* main_window);
 
     void ApplyTheme(QColor backgroundColor, QColor color);
 
@@ -71,7 +71,8 @@ signals:
 		int32_t playlist_id,
 		bool is_podcast_mode);
 
-	void SearchLyrics(const QString& title, const QString& artist);
+	void SearchLyrics(int32_t music_id, const QString& title, const QString& artist);
+
 public slots:
     void play(const PlayListEntity& item);
 
@@ -97,7 +98,8 @@ public slots:
 
 	void OnUpdateDiscCover(const QString& disc_id, const QString& cover_id);
 
-	void OnSearchLyricsCompleted(const QString& lyrics);
+	void OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
+
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 

@@ -4,7 +4,11 @@
 #include <QApplication>
 
 #include <base/assert.h>
+#include <stream/soxresampler.h>
+#include <stream/r8brainresampler.h>
+#include <stream/idspmanager.h>
 
+#include <widget/appsettingnames.h>
 #include <widget/xprogressdialog.h>
 #include <widget/processindicator.h>
 #include <widget/xmainwindow.h>
@@ -90,7 +94,7 @@ QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
     QString const& cancel,
     QWidget* parent) {
     if (!parent) {
-        parent = qApp->activeWindow();
+        parent = GetMainWindow();
     }
     if (parent != nullptr) {
         parent->setFocus();
@@ -107,17 +111,19 @@ void CenterParent(QWidget* widget) {
     if (widget->parent() && widget->parent()->isWidgetType()) {
         widget->move((widget->parentWidget()->width() - widget->width()) / 2,
             (widget->parentWidget()->height() - widget->height()) / 2);
+    } else {
+        CenterDesktop(widget);
     }
 }
 
 void CenterDesktop(QWidget* widget) {
-	const auto desktop = QApplication::desktop();
-    const auto screen_num = desktop->screenNumber(QCursor::pos());
-	const auto rect = desktop->screenGeometry(screen_num);
-    widget->move(rect.center() - widget->rect().center());
+	const auto screen_geometry = QApplication::desktop()->screenGeometry();
+    auto x = (screen_geometry.width() - widget->width()) / 2;
+    auto y = (screen_geometry.height() - widget->height()) / 2;
+    widget->move(x, y);
 }
 
-void CenterTarget(QWidget* source_widget, const QWidget* target_widget) {
+void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget) {
     auto center_pos = target_widget->mapToGlobal(target_widget->rect().center());
     const auto sz = source_widget->size();
     center_pos.setX(center_pos.x() - sz.width() / 2);
@@ -125,6 +131,50 @@ void CenterTarget(QWidget* source_widget, const QWidget* target_widget) {
     center_pos = source_widget->mapFromGlobal(center_pos);
     center_pos = source_widget->mapToParent(center_pos);
     source_widget->move(center_pos);
+}
+
+PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
+    auto next = static_cast<int32_t>(cur) + 1;
+    auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
+    return static_cast<PlayerOrder>(next % max);
+}
+
+AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter() {
+    return MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
+}
+
+AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings) {
+    const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
+    const auto stop_band = settings[kSoxrStopBand].toInt();
+    const auto pass_band = settings[kSoxrPassBand].toInt();
+    const auto phase = settings[kSoxrPhase].toInt();
+    const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
+    const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
+
+    auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
+    auto* soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
+    soxr_sample_rate_converter->SetQuality(quality);
+    soxr_sample_rate_converter->SetStopBand(stop_band);
+    soxr_sample_rate_converter->SetPassBand(pass_band);
+    soxr_sample_rate_converter->SetPhase(phase);
+    soxr_sample_rate_converter->SetRollOff(roll_off_level);
+    soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
+    return converter;
+}
+
+PlaybackFormat GetPlaybackFormat(IAudioPlayer* player) {
+    PlaybackFormat format;
+
+    if (player->IsDSDFile()) {
+        format.dsd_mode = player->GetDsdModes();
+        format.dsd_speed = *player->GetDSDSpeed();
+        format.is_dsd_file = true;
+    }
+
+    format.enable_sample_rate_convert = player->GetDSPManager()->IsEnableSampleRateConverter();
+    format.file_format = player->GetInputFormat();
+    format.output_format = player->GetOutputFormat();
+    return format;
 }
 
 XMainWindow* GetMainWindow() {

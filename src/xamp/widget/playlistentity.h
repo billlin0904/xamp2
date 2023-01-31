@@ -33,11 +33,13 @@ struct PlayListEntity final {
     QString title;
     QString album;
     QString artist;
-    QString file_ext;
+    QString file_extension;
     QString cover_id;
     QString file_name;
     QString genre;
     QString comment;
+    QString lyrc;
+    QString trlyrc;
 };
 
 // for QVariantÂà´«¨Ï¥Î

@@ -33,9 +33,9 @@ private:
 
     void InitPcm2Dsd();
 
-    void SetLang(int index);
+    void SetLanguage(int index);
 
-    void InitLang();
+    void InitialLanguage();
 
     void SaveAll();
 

@@ -6,7 +6,6 @@
 #pragma once
 
 #include <widget/widget_shared.h>
-
 #include "ui_equalizerdialog.h"
 
 class EqualizerDialog : public QFrame {

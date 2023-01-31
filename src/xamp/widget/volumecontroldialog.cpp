@@ -70,6 +70,8 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { border: 1px solid gray; })"));
         break;
     }
+
+    SetVolume(AppSettings::ValueAsInt(kAppSettingVolume));
 }
 
 VolumeControlDialog::~VolumeControlDialog() {

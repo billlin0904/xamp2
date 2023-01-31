@@ -33,7 +33,7 @@ struct SearchLyricsResult {
 
 bool ParseSearchLyricsResult(QString const& json, QList<SearchLyricsResult> & results);
 
-QString ParseLyricsResponse(QString const& json);
+std::tuple<QString, QString> ParseLyricsResponse(QString const& json);
 
 }
 

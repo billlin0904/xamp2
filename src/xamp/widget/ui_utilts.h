@@ -5,10 +5,8 @@
 
 #pragma once
 
-#include <base/audioformat.h>
-#include <player/audio_player.h>
 #include <widget/widget_shared.h>
-#include <thememanager.h>
+#include <widget/playerorder.h>
 
 class XMainWindow;
 class XProgressDialog;
@@ -39,6 +37,14 @@ void CenterDesktop(QWidget* widget);
 
 void CenterParent(QWidget* widget);
 
-void CenterTarget(QWidget* source_widget, const QWidget* target_widget);
+void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
 
 XMainWindow* GetMainWindow();
+
+PlayerOrder GetNextOrder(PlayerOrder cur) noexcept;
+
+AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter();
+
+AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
+
+PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);

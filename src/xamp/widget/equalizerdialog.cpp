@@ -8,6 +8,8 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
+    ui_.label_23->setStyleSheet(qTEXT("background-color: transparent;"));
+
     band_sliders_ = std::vector<DoubleSlider*>{
             ui_.band1Slider,
             ui_.band2Slider,

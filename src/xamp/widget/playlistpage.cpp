@@ -110,8 +110,6 @@ void PlaylistPage::initial() {
 
 	default_layout->setStretch(2, 1);
 
-	//setStyleSheet(qTEXT("background-color: transparent;"));
-
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
 		this,

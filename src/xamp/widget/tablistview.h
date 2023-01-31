@@ -11,13 +11,13 @@
 
 enum TabIndex {
     TAB_PLAYLIST,
+    TAB_LYRICS,
     TAB_PODCAST,
     TAB_FILE_EXPLORER,
     TAB_ALBUM,
     TAB_ARTIST,
-    TAB_LYRICS,
-    TAB_SETTINGS,
     TAB_CD,
+    TAB_SETTINGS,
     TAB_ABOUT,
 };
 

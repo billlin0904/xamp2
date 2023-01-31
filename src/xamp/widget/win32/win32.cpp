@@ -544,7 +544,7 @@ void setAccentPolicy(const WId window_id, bool enable, int animation_id) noexcep
 
 void addDwmShadow(const WId window_id) noexcept {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
-	MARGINS borderless = { -1, -1, -1, -1 };
+	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 

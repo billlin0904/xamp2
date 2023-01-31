@@ -2,27 +2,31 @@
 
 #include <base/base.h>
 #include <base/math.h>
+#include <widget/widget_shared.h>
+#include <stream/fft.h>
 
+#include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
+#include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 
 inline constexpr auto kMaxBands = 64;
 inline constexpr auto kFFTSize = 64;
 
-static double toMag(const std::complex<float>& r) {
+static double ToMag(const std::complex<float>& r) {
     return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
 }
 
-static double freqToBin(int32_t freq, int32_t fft_size, double rate) {
-    double ratio = (double)(fft_size * freq) / rate;
+static double FreqToBin(int32_t freq, int32_t fft_size, double rate) {
+    double ratio = static_cast<double>(fft_size * freq) / rate;
     return Round(ratio);
 }
 
-static double binToFreq(int bin, int32_t fft_size, double rate) {
+static double BinToFreq(int bin, int32_t fft_size, double rate) {
     return rate * bin / fft_size;
 }
 
-static void linearInterpolation(double rate) {
+static void LinearInterpolation(double rate) {
     const auto kRoot24 = std::pow(2.0, (1.0 / 24.0));
     const auto kC0 = std::pow(440 * kRoot24,  -144);
     std::vector<std::tuple<double, double, double>> scale;
@@ -32,10 +36,10 @@ static void linearInterpolation(double rate) {
     for (auto octave = 0; octave < 11; octave++) {
         for (auto note = 0; note < 24; note++) {
             const auto freq = std::pow(kC0 * kRoot24, (octave * 24 + note));
-            const auto bin = freqToBin(freq, kFFTSize, rate);
-            const auto binFreq  = binToFreq(bin, kFFTSize, rate);
-            const auto nextFreq = binToFreq(bin + 1, kFFTSize, rate);
-            const auto ratio = (freq - binFreq) / (nextFreq - binFreq);
+            const auto bin = FreqToBin(freq, kFFTSize, rate);
+            const auto bin_freq  = BinToFreq(bin, kFFTSize, rate);
+            const auto next_freq = BinToFreq(bin + 1, kFFTSize, rate);
+            const auto ratio = (freq - bin_freq) / (next_freq - bin_freq);
             scale.push_back({freq, bin, ratio});
         }
     }
@@ -52,6 +56,42 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 	timer_.setTimerType(Qt::PreciseTimer);
 	timer_.start(25);
 	bar_color_ = QColor(5, 184, 204);
+
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	(void)QObject::connect(this, &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
+		ActionMap<SpectrumWidget> action_map(this);
+
+	(void)action_map.AddAction(tr("Bar style"), [this]() {
+		setStyle(SpectrumStyles::BAR_STYLE);
+	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
+		});
+
+	(void)action_map.AddAction(tr("Wave style"), [this]() {
+		setStyle(SpectrumStyles::WAVE_STYLE);
+	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
+		});
+
+	(void)action_map.AddAction(tr("Wave line style"), [this]() {
+		setStyle(SpectrumStyles::WAVE_LINE_STYLE);
+	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
+		});
+
+	action_map.AddSeparator();
+
+	(void)action_map.AddAction(tr("No Window"), []() {
+		AppSettings::setEnumValue(kAppSettingWindowType, WindowType::NO_WINDOW);
+		});
+
+	(void)action_map.AddAction(tr("Hamming Window"), []() {
+		AppSettings::setEnumValue(kAppSettingWindowType, WindowType::HAMMING);
+		});
+
+	(void)action_map.AddAction(tr("Blackman harris Window"), []() {
+		AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
+		});
+
+	action_map.exec(pt);
+		});
 }
 
 void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
@@ -63,7 +103,7 @@ void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
 	}
 
 	for (auto i = 0; i < max_bands; ++i) {
-		mag_datas_[i] = toMag(result[i]) * 0.025;
+		mag_datas_[i] = ToMag(result[i]) * 0.025;
 		//mag_datas_[i] = toMag(result[i]) / max_bands;
 		mag_datas_[i] = (std::max)(mag_datas_[i], 0.01f);
 		mag_datas_[i] = (std::min)(mag_datas_[i], 0.9f);

@@ -145,16 +145,17 @@ public:
             switch (index.column()) {
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
-                opt.text = qSTR("%1").arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1")
+            		.arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
-                opt.text = qSTR("%1 dB").arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
+                opt.text = qSTR("%1 dB")
+            		.arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             case PLAYLIST_TRACK_LOUDNESS:
                 opt.text = qSTR("%1 LUFS")
-                    .arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'))
-                    .rightJustified(8);
+                    .arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
                 break;
             }
             break;
@@ -169,7 +170,6 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-				//static constexpr auto kPlaylistCoverSize = QSize(64, 64);
 				static constexpr auto kPlaylistCoverSize = QSize(32, 32);
                 opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.find(value.toString()), kPlaylistCoverSize));
 				opt.features = QStyleOptionViewItem::HasDecoration;
@@ -208,7 +208,7 @@ static PlayListEntity getEntity(const QModelIndex& index, const QModelIndex& src
     model.album_id          = GetIndexValue(index, src, PLAYLIST_ALBUM_ID).toInt();
     model.artist_id         = GetIndexValue(index, src, PLAYLIST_ARTIST_ID).toInt();
     model.cover_id          = GetIndexValue(index, src, PLAYLIST_COVER_ID).toString();
-    model.file_ext          = GetIndexValue(index, src, PLAYLIST_FILE_EXT).toString();
+    model.file_extension          = GetIndexValue(index, src, PLAYLIST_FILE_EXT).toString();
     model.parent_path       = GetIndexValue(index, src, PLAYLIST_FILE_PARENT_PATH).toString();
     model.timestamp         = GetIndexValue(index, src, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
     model.playlist_music_id = GetIndexValue(index, src, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
@@ -721,6 +721,9 @@ void PlayListTableView::initial() {
     (void) QObject::connect(control_A_key, &QShortcut::activated, [this]() {
         selectAll();
     });
+
+    // note: Fix QTableView select color issue.
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {

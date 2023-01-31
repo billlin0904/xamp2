@@ -58,9 +58,9 @@ void AlbumViewStyledDelegate::ClearImageCache() {
 }
 
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
-    auto* ev = static_cast<QMouseEvent*> (event);
+	const auto* ev = static_cast<QMouseEvent*> (event);
     mouse_point_ = ev->pos();
-    auto current_cursor = QApplication::overrideCursor();
+	const auto current_cursor = QApplication::overrideCursor();
 
     const auto default_cover_size = qTheme.defaultCoverSize();
     constexpr auto icon_size = 24;
@@ -288,7 +288,7 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
     page_->SetCoverById(cover_id);
 
     if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
-        page_->format()->setText(tr("%1 Tracks, %2, %3, %4")
+        page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().tracks))
             .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year))
@@ -601,26 +601,26 @@ void AlbumView::append(const QString& file_name) {
 }
 
 void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
-    const auto adapter = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
+    const auto database_facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
 
-    (void)QObject::connect(adapter.get(),
+    (void)QObject::connect(database_facade.get(),
         &DatabaseFacade::ReadCompleted,
         this,
         &AlbumView::ProcessTrackInfo);
 
-    (void)QObject::connect(adapter.get(),
+    (void)QObject::connect(database_facade.get(),
         &DatabaseFacade::ReadFileStart,
         this, &AlbumView::OnReadFileStart);
 
-    (void)QObject::connect(adapter.get(),
+    (void)QObject::connect(database_facade.get(),
         &DatabaseFacade::ReadFileProgress,
         this, &AlbumView::OnReadFileProgress);
 
-    (void)QObject::connect(adapter.get(),
+    (void)QObject::connect(database_facade.get(),
         &DatabaseFacade::ReadFileEnd,
         this, &AlbumView::OnReadFileEnd);
 
-    emit ReadTrackInfo(adapter, file_name, -1, false);
+    emit ReadTrackInfo(database_facade, file_name, -1, false);
 }
 
 void AlbumView::OnReadFileStart(int dir_size) {

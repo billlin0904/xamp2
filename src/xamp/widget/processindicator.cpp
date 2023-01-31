@@ -1,4 +1,6 @@
 #include <QPainter>
+
+#include <thememanager.h>
 #include <widget/ui_utilts.h>
 #include <widget/processindicator.h>
 

@@ -7,7 +7,6 @@
 #include <widget/http.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
-#include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
@@ -18,6 +17,7 @@
 #include <base/logger_impl.h>
 #include <base/google_siphash.h>
 #include <base/scopeguard.h>
+#include <base/fastmutex.h>
 #if defined(Q_OS_WIN)
 #include <player/mbdiscid.h>
 #endif
@@ -202,7 +202,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     });
 }
 
-void BackgroundWorker::OnSearchLyrics(const QString& title, const QString& artist) {
+void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
 	const auto keywords = QString::fromStdString(
         String::Format("{}{}", 
         QUrl::toPercentEncoding(artist),
@@ -212,7 +212,7 @@ void BackgroundWorker::OnSearchLyrics(const QString& title, const QString& artis
         .param(qTEXT("limit"), qTEXT("10"))
         .param(qTEXT("type"), qTEXT("1"))
         .param(qTEXT("keywords"), keywords)
-        .success([this, title](const auto& response) {
+        .success([this, music_id, title](const auto& response) {
 			if (response.isEmpty()) {
                 return;
             }
@@ -231,8 +231,9 @@ void BackgroundWorker::OnSearchLyrics(const QString& title, const QString& artis
                 return;
             }
             http::HttpClient(qSTR("https://music.xianqiao.wang/neteaseapiv2/lyric?id=%1").arg(song_id))
-                .success([this, title](const auto& response) {
-                emit SearchLyricsCompleted(spotify::ParseLyricsResponse(response));
+                .success([this, music_id, title](const auto& response) {
+                const auto [lyrc, trlyrc] = spotify::ParseLyricsResponse(response);
+                emit SearchLyricsCompleted(music_id, lyrc, trlyrc);
             }).get();
 		})
         .get();

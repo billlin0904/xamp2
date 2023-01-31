@@ -160,6 +160,8 @@ void Database::CreateTableIfNotExist() {
                        year integer,
                        fileSize integer,
                        parentPathHash integer,
+					   lyrc TEXT,
+					   trLyrc TEXT,
                        UNIQUE(path, offset)
                        )
                        )"));
@@ -742,7 +744,7 @@ PlayListEntity Database::QueryToPlayListEntity(const QSqlQuery& query) {
     entity.file_name = query.value(qTEXT("fileName")).toString();
     entity.album = query.value(qTEXT("album")).toString();
     entity.artist = query.value(qTEXT("artist")).toString();
-    entity.file_ext = query.value(qTEXT("fileExt")).toString();
+    entity.file_extension = query.value(qTEXT("fileExt")).toString();
     entity.parent_path = query.value(qTEXT("parentPath")).toString();
     entity.duration = query.value(qTEXT("duration")).toDouble();
     entity.bit_rate = query.value(qTEXT("bit_rate")).toUInt();
@@ -759,6 +761,10 @@ PlayListEntity Database::QueryToPlayListEntity(const QSqlQuery& query) {
     entity.comment = query.value(qTEXT("comment")).toString();
     entity.year = query.value(qTEXT("year")).toUInt();
     entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
+
+    entity.lyrc = query.value(qTEXT("lyrc")).toString();
+    entity.trlyrc = query.value(qTEXT("trLyrc")).toString();
+
     return entity;
 }
 
@@ -798,6 +804,29 @@ ForwardList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_
     }
 
     return track_infos;
+}
+
+std::optional<std::tuple<QString, QString>> Database::GetLyrc(int32_t music_id) {
+    QSqlQuery query(db_);
+    query.prepare(qTEXT(R"(
+    SELECT
+        lyrc, trLyrc
+    FROM
+        musics
+    WHERE
+        musicId = :musicId
+    )")
+    );
+
+    query.bindValue(qTEXT(":musicId"), music_id);
+
+    while (query.next()) {
+        return std::tuple<QString, QString> {
+            query.value(qTEXT("lyrc")).toString(),
+            query.value(qTEXT("trLyrc")).toString()
+        };
+    }
+    return std::nullopt;
 }
 
 size_t Database::GetParentPathHash(const QString & parent_path) const {
@@ -878,6 +907,18 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     XAMP_LOG_D(logger_, "addOrUpdateMusic musicId:{}", music_id);
 
     return music_id;
+}
+
+void Database::AddOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc) {
+    QSqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE musics SET lyrc = :lyrc, trlyrc = :trlyrc WHERE (musicId = :musicId)"));
+
+    query.bindValue(qTEXT(":musicId"), music_id);
+    query.bindValue(qTEXT(":lyrc"), lyrc);
+    query.bindValue(qTEXT(":trlyrc"), trlyrc);
+
+    query.exec();
 }
 
 void Database::UpdateMusicFilePath(int32_t music_id, const QString& file_path) {

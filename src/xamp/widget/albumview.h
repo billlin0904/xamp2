@@ -87,7 +87,7 @@ private:
 class AlbumView final : public QListView {
 	Q_OBJECT
 public:
-    static constexpr auto kPageAnimationDurationMs = 500;
+    static constexpr auto kPageAnimationDurationMs = 200;
 
 	explicit AlbumView(QWidget* parent = nullptr);
 

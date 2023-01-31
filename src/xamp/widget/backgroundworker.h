@@ -56,7 +56,7 @@ signals:
 
     void FetchPodcastError(const QString& msg);
 
-    void SearchLyricsCompleted(const QString& lyrics);
+    void SearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
 
 public Q_SLOT:
 	void OnFetchPodcast(int32_t playlist_id);
@@ -72,7 +72,7 @@ public Q_SLOT:
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    void OnSearchLyrics(const QString &title, const QString &artist);
+    void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
 
     void OnProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
 private:

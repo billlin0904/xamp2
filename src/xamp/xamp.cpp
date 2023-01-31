@@ -1,116 +1,68 @@
-#include <QDebug>
-#include <QToolTip>
 #include <QCloseEvent>
-#include <QInputDialog>
-#include <QShortcut>
-#include <QWidgetAction>
+#include <QDebug>
 #include <QFileDialog>
-#include <QProcess>
-#include <QProgressDialog>
 #include <QFileSystemWatcher>
+#include <QInputDialog>
+#include <QProcess>
+#include <QShortcut>
 #include <QtMath>
+#include <QToolTip>
+#include <QWidgetAction>
 
+#include <base/logger_impl.h>
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
-#include <base/logger_impl.h>
-#include <base/volume.h>
 
-#include <stream/soxresampler.h>
-#include <stream/r8brainresampler.h>
-#include <stream/idspmanager.h>
-#include <stream/pcm2dsdsamplewriter.h>
+#include <stream/api.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/dsd_utils.h>
-#include <stream/api.h>
+#include <stream/idspmanager.h>
+#include <stream/pcm2dsdsamplewriter.h>
+#include <stream/r8brainresampler.h>
 
 #include <output_device/api.h>
 #include <output_device/iaudiodevicemanager.h>
 
 #include <player/api.h>
 
-#include <widget/xdialog.h>
-#include <widget/appsettings.h>
-#include <widget/albumview.h>
-#include <widget/lyricsshowwidget.h>
-#include <widget/playlisttableview.h>
-#include <widget/albumartistpage.h>
-#include <widget/lrcpage.h>
-#include <widget/str_utilts.h>
-#include <widget/playlistpage.h>
-#include <widget/xmessagebox.h>
-#include <widget/image_utiltis.h>
-#include <widget/database.h>
-#include <widget/pixmapcache.h>
-#include <widget/artistinfopage.h>
-#include <widget/jsonsettings.h>
-#include <widget/ui_utilts.h>
-#include <widget/read_utiltis.h>
-#include <widget/equalizerdialog.h>
-#include <widget/playlisttablemodel.h>
 #include <widget/actionmap.h>
-#include <widget/spectrumwidget.h>
-#include <widget/filesystemviewpage.h>
+#include <widget/albumartistpage.h>
+#include <widget/albumview.h>
+#include <widget/appsettings.h>
+#include <widget/artistinfopage.h>
 #include <widget/backgroundworker.h>
-#include <widget/podcast_uiltis.h>
+#include <widget/database.h>
+#include <widget/equalizerdialog.h>
+#include <widget/filesystemviewpage.h>
 #include <widget/http.h>
-#include <widget/xprogressdialog.h>
+#include <widget/image_utiltis.h>
+#include <widget/jsonsettings.h>
+#include <widget/lrcpage.h>
+#include <widget/lyricsshowwidget.h>
+#include <widget/pixmapcache.h>
+#include <widget/playlistpage.h>
+#include <widget/playlisttablemodel.h>
+#include <widget/playlisttableview.h>
+#include <widget/podcast_uiltis.h>
+#include <widget/read_utiltis.h>
+#include <widget/spectrumwidget.h>
+#include <widget/str_utilts.h>
+#include <widget/ui_utilts.h>
 #include <widget/volumecontroldialog.h>
+#include <widget/xdialog.h>
+#include <widget/xmessagebox.h>
+#include <widget/xprogressdialog.h>
 
 #if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
 #include <stream/mfaacencoder.h>
 #endif
 
-#include "cdpage.h"
+#include "xamp.h"
 #include "aboutpage.h"
+#include "cdpage.h"
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "version.h"
-#include "xamp.h"
-
-static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
-    auto next = static_cast<int32_t>(cur) + 1;
-    auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
-    return static_cast<PlayerOrder>(next % max);
-}
-
-static AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter() {
-    return MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
-}
-
-static AlignPtr<IAudioProcessor> MakeSampleRateConverter(const QVariantMap &settings) {
-    const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
-    const auto stop_band = settings[kSoxrStopBand].toInt();
-    const auto pass_band = settings[kSoxrPassBand].toInt();
-    const auto phase = settings[kSoxrPhase].toInt();
-    const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
-    const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
-
-    auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
-    auto* soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
-    soxr_sample_rate_converter->SetQuality(quality);
-    soxr_sample_rate_converter->SetStopBand(stop_band);
-    soxr_sample_rate_converter->SetPassBand(pass_band);
-    soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetRollOff(roll_off_level);
-    soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
-    return converter;
-}
-
-static PlaybackFormat GetPlaybackFormat(IAudioPlayer* player) {
-    PlaybackFormat format;
-
-    if (player->IsDSDFile()) {
-        format.dsd_mode = player->GetDsdModes();
-        format.dsd_speed = *player->GetDSDSpeed();
-        format.is_dsd_file = true;
-    }
-
-    format.enable_sample_rate_convert = player->GetDSPManager()->IsEnableSampleRateConverter();
-    format.file_format = player->GetInputFormat();
-    format.output_format = player->GetOutputFormat();
-    return format;
-}
 
 Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
     : is_seeking_(false)
@@ -133,8 +85,8 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
 
 Xamp::~Xamp() = default;
 
-void Xamp::SetXWindow(IXMainWindow* top_window) {
-    main_window_ = top_window;
+void Xamp::SetXWindow(IXMainWindow* main_window) {
+    main_window_ = main_window;
     background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start(QThread::LowestPriority);
@@ -152,6 +104,7 @@ void Xamp::SetXWindow(IXMainWindow* top_window) {
     SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 
     playlist_page_->HidePlaybackInformation(true);
+
     podcast_page_->HidePlaybackInformation(true);
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
@@ -208,41 +161,6 @@ void Xamp::InitialSpectrum() {
         Qt::QueuedConnection);
 
     lrc_page_->spectrum()->setStyle(AppSettings::ValueAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
-    lrc_page_->spectrum()->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(lrc_page_->spectrum(), &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
-        ActionMap<SpectrumWidget> action_map(lrc_page_->spectrum());
-
-    (void)action_map.AddAction(tr("Bar style"), [this]() {
-        lrc_page_->spectrum()->setStyle(SpectrumStyles::BAR_STYLE);
-		AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
-        });
-
-    (void)action_map.AddAction(tr("Wave style"), [this]() {
-        lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_STYLE);
-		AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
-        });
-
-    (void)action_map.AddAction(tr("Wave line style"), [this]() {
-        lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_LINE_STYLE);
-		AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
-        });
-
-    action_map.AddSeparator();
-
-    (void)action_map.AddAction(tr("No Window"), []() {
-        AppSettings::setEnumValue(kAppSettingWindowType, WindowType::NO_WINDOW);
-        });
-
-    (void)action_map.AddAction(tr("Hamming Window"), []() {
-        AppSettings::setEnumValue(kAppSettingWindowType, WindowType::HAMMING);
-        });
-
-    (void)action_map.AddAction(tr("Blackman harris Window"), []() {
-        AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
-        });
-
-		action_map.exec(pt);
-        });
 }
 
 void Xamp::UpdateMaximumState(bool is_maximum) {
@@ -313,7 +231,7 @@ void Xamp::InitialUi() {
         f.setWeight(QFont::DemiBold);
         f.setPointSize(qTheme.fontSize());
         ui_.titleFrameLabel->setFont(f);
-        ui_.titleFrameLabel->setText(qTEXT("XAMP2"));
+        ui_.titleFrameLabel->setText(kApplicationTitle);
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     }
 
@@ -459,13 +377,13 @@ void Xamp::SliderAnimation(bool enable) {
     if (!enable) {
         ui_.searchFrame->hide();
         ui_.tableLabel->hide();
-        animation->setEasingCurve(QEasingCurve::InCubic);
+        animation->setEasingCurve(QEasingCurve::OutCubic);
         animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), kMaxSliderWidth, slider_geometry.height()));
         animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), kMinSliderWidth, slider_geometry.height()));
         size = QSize(kMinSliderWidth, slider_geometry.height());
     }
     else {
-        animation->setEasingCurve(QEasingCurve::InExpo);
+        animation->setEasingCurve(QEasingCurve::OutCubic);
         animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), kMinSliderWidth, slider_geometry.height()));
         animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), kMaxSliderWidth, slider_geometry.height()));
         size = QSize(kMaxSliderWidth, slider_geometry.height());
@@ -492,7 +410,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
         VolumeControlDialog vc(player_, this);
-        CenterTarget(&vc, ui_.mutedButton);
+        MoveToTopWidget(&vc, ui_.mutedButton);
         vc.exec();
     });
 
@@ -755,8 +673,9 @@ void Xamp::ApplyTheme(QColor backgroundColor, QColor color) {
     UpdateButtonState();
 }
 
-void Xamp::OnSearchLyricsCompleted(const QString& lyrics) {
-    lrc_page_->lyrics()->SetLrc(lyrics);
+void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
+    lrc_page_->lyrics()->SetLrc(lyrics, trlyrics);
+    qDatabase.AddOrUpdateLyrc(music_id, lyrics, trlyrics);
 }
 
 void Xamp::ShortcutsPressed(const QKeySequence& shortcut) {
@@ -796,7 +715,7 @@ void Xamp::GetNextPage() {
     if (stack_page_id_.isEmpty()) {
         return;
     }
-    auto idx = ui_.currentView->currentIndex();
+    const auto idx = ui_.currentView->currentIndex();
     ui_.currentView->setCurrentIndex(idx + 1);
 }
 
@@ -929,35 +848,45 @@ void Xamp::PlayLocalFile(const PlayListEntity& item) {
 void Xamp::PlayOrPause() {
     XAMP_LOG_DEBUG("Player state:{}", player_->GetState());
 
-    if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
-        qTheme.setPlayOrPauseButton(ui_, false);
-        player_->Pause();
-        current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PAUSE);
-        main_window_->SetTaskbarPlayerPaused();
+    try {
+        if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
+            qTheme.setPlayOrPauseButton(ui_, false);
+            player_->Pause();
+            current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PAUSE);
+            main_window_->SetTaskbarPlayerPaused();
+        }
+        else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
+            qTheme.setPlayOrPauseButton(ui_, true);
+            player_->Resume();
+            current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
+            main_window_->SetTaskbarPlayingResume();
+        }
+        else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
+            if (!ui_.currentView->count()) {
+                return;
+            }
+            playlist_page_ = current_playlist_page_;
+            if (const auto select_item = playlist_page_->playlist()->selectItem()) {
+                play_index_ = select_item.value();
+            }
+            play_index_ = playlist_page_->playlist()->model()->index(
+                play_index_.row(), PLAYLIST_PLAYING);
+            if (play_index_.row() == -1) {
+                XMessageBox::ShowInformation(tr("Not found any playing item."));
+                return;
+            }
+            playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+            playlist_page_->playlist()->setNowPlaying(play_index_, true);
+            playlist_page_->playlist()->play(play_index_);
+        }
     }
-    else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-        qTheme.setPlayOrPauseButton(ui_, true);
-        player_->Resume();
-        current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
-        main_window_->SetTaskbarPlayingResume();
+    catch (Exception const &e) {
+        XAMP_LOG_DEBUG(e.GetStackTrace());
     }
-    else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
-        if (!ui_.currentView->count()) {
-            return;
-        }
-        playlist_page_ = current_playlist_page_;
-        if (const auto select_item = playlist_page_->playlist()->selectItem()) {
-            play_index_ = select_item.value();
-        }
-        play_index_ = playlist_page_->playlist()->model()->index(
-            play_index_.row(), PLAYLIST_PLAYING);
-        if (play_index_.row() == -1) {
-            XMessageBox::ShowInformation(tr("Not found any playing item."));
-            return;
-        }
-        playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-        playlist_page_->playlist()->setNowPlaying(play_index_, true);
-        playlist_page_->playlist()->play(play_index_);
+    catch (std::exception const &e) {
+        XAMP_LOG_DEBUG(e.what());
+    }
+    catch (...) {	    
     }
 }
 
@@ -1000,17 +929,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) {
 }
 
 QString Xamp::TranslateErrorCode(const Errors error) {
-    static const QMap<Errors, QString> et_lut{
-        { Errors::XAMP_ERROR_DEVICE_IN_USE, tr("Device in use.") },
-        { Errors::XAMP_ERROR_FILE_NOT_FOUND, tr("File not found.") },
-        { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, tr("Device not found.") },
-        { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, tr("Device unsupported format.") },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE, tr("Not support samplate rate.") },
-    };
-    if (!et_lut.contains(error)) {
-        return fromStdStringView(EnumToString(error));
-    }
-    return et_lut[error];
+    return fromStdStringView(EnumToString(error));
 }
 
 void Xamp::SetupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format) {
@@ -1096,7 +1015,7 @@ void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 				target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
 
 				initial_sample_rate_converter = [=]() {
-					player_->GetDSPManager()->AddPreDSP(MakeSampleRateConverter(soxr_settings));
+					player_->GetDSPManager()->AddPreDSP(MakeSoxrSampleRateConverter(soxr_settings));
 				};
 			}
 			else if (sample_rate_converter_type == kR8Brain) {
@@ -1161,7 +1080,8 @@ void Xamp::play(const PlayListEntity& item) {
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
             if (player_->GetInputFormat() != AudioFormat::k16BitPCM441Khz) {
-                const auto message = qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
+                const auto message = 
+                    qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
                     .arg(player_->GetInputFormat().GetBitsPerSample())
                     .arg(formatSampleRate(player_->GetInputFormat().GetSampleRate()));
                 ShowMeMessage(message);
@@ -1196,8 +1116,8 @@ void Xamp::play(const PlayListEntity& item) {
 void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done) {
     auto* cur_page = current_playlist_page_;
 
-    QString ext = item.file_ext;
-    if (item.file_ext.isEmpty()) {
+    QString ext = item.file_extension;
+    if (item.file_extension.isEmpty()) {
         ext = qTEXT(".m4a");
     }
 	
@@ -1205,7 +1125,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     lrc_page_->spectrum()->reset();
 	
     if (open_done) {
-        ui_.seekSlider->SetRange(0, Round(player_->GetDuration()) * 1000 - 1);
+        auto max_duration_ms = Round(player_->GetDuration()) * 1000;
+        ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(formatDuration(0));
         ui_.endPosLabel->setText(formatDuration(player_->GetDuration()));
@@ -1246,7 +1167,12 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     podcast_page_->format()->setText(qEmptyString);
 
-    emit SearchLyrics(item.title, item.artist);
+    auto lyrc_opt = qDatabase.GetLyrc(item.music_id);
+    if (!lyrc_opt) {
+        emit SearchLyrics(item.music_id, item.title, item.artist);
+    } else {
+        OnSearchLyricsCompleted(item.music_id, std::get<0>(lyrc_opt.value()), std::get<1>(lyrc_opt.value()));
+    }
 }
 
 void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -1455,11 +1381,11 @@ void Xamp::InitialPlaylist() {
     about_page_ = new AboutPage(this);
 
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.fontIcon(Glyphs::ICON_PODCAST));
     ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+    ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+    ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.fontIcon(Glyphs::ICON_PODCAST));
     ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, qTheme.fontIcon(Glyphs::ICON_ALBUM));
     ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, qTheme.fontIcon(Glyphs::ICON_ARTIST));
-    ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.fontIcon(Glyphs::ICON_PREFERENCE));
     ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
     ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.fontIcon(Glyphs::ICON_ABOUT));
@@ -1601,8 +1527,8 @@ void Xamp::InitialPlaylist() {
         background_worker_,
         &BackgroundWorker::OnReadTrackInfo);
 
-    PushWidget(lrc_page_);
     PushWidget(playlist_page_);
+    PushWidget(lrc_page_);
     PushWidget(album_page_);
     PushWidget(artist_info_page_);
     PushWidget(podcast_page_);
@@ -1610,6 +1536,7 @@ void Xamp::InitialPlaylist() {
     PushWidget(preference_page_);
     PushWidget(cd_page_);
     PushWidget(about_page_);
+
     ui_.currentView->setCurrentIndex(0);
 
     (void)QObject::connect(album_page_->album(),

@@ -37,7 +37,7 @@ public:
 public slots:
 	void stop();	
 
-	void SetLrc(const QString &lrc);
+	void SetLrc(const QString &lrc, const QString& trlyc);
 
 	void SetLrcTime(int32_t length);
 
@@ -73,5 +73,7 @@ private:
 	QColor lrc_highlight_color_;
 	QColor background_color_;
 	QString lrc_;
+	QString orilyrc_;
+	QString trlyrc_;
 	LrcParser lyric_;	
 };

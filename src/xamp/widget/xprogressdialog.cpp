@@ -8,7 +8,8 @@
 
 XProgressDialog::XProgressDialog(const QString& title,
                                  const QString& cancel_text,
-                                 int minimum, int maximum,
+                                 int minimum, 
+								 int maximum,
                                  QWidget* parent)
 	: XDialog(parent) {
 	message_text_label_ = new QLabel(this);
@@ -22,7 +23,7 @@ XProgressDialog::XProgressDialog(const QString& title,
 	progress_bar_->setFont(QFont(qTEXT("FormatFont")));
 	progress_bar_->setFixedHeight(15);
 
-	message_text_label_->setAlignment(Qt::AlignCenter);
+	message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
 	message_text_label_->setOpenExternalLinks(true);
 	message_text_label_->setFixedHeight(20);
@@ -48,8 +49,11 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	SetContentWidget(client_widget);
 	SetTitle(title);
-	setMaximumWidth(800);
-	setMinimumWidth(800);
+	if (parent) {
+		max_width_ = parent->width() * 0.8;
+	}
+	setMaximumWidth(max_width_);
+	setMinimumWidth(max_width_);
 	size_ = size();
 }
 
@@ -67,7 +71,7 @@ void XProgressDialog::SetValue(int value) {
 
 void XProgressDialog::SetLabelText(const QString& text) {
 	QFontMetrics metrics(font());
-	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, 400));
+	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, max_width_));
 }
 
 bool XProgressDialog::WasCanceled() const {
