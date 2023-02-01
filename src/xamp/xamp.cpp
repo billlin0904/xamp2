@@ -112,11 +112,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     
     AvoidRedrawOnResize();
 
-    ApplyTheme(qTheme.palette().color(QPalette::WindowText), qTheme.themeTextColor());
-    qTheme.setPlayOrPauseButton(ui_, false);       
+    ApplyTheme(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
+    qTheme.SetPlayOrPauseButton(ui_, false);       
 
     const auto tab_name = AppSettings::ValueAsString(kAppSettingLastTabName);
-    const auto tab_id = ui_.sliderBar->getTabId(tab_name);
+    const auto tab_id = ui_.sliderBar->GetTabId(tab_name);
     if (tab_id != -1) {
         ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
         SetCurrentTab(tab_id);
@@ -164,15 +164,13 @@ void Xamp::InitialSpectrum() {
 }
 
 void Xamp::UpdateMaximumState(bool is_maximum) {
-    qTheme.updateMaximumIcon(ui_, is_maximum);
+    qTheme.UpdateMaximumIcon(ui_, is_maximum);
 }
 
 void Xamp::FocusIn() {
-    qTheme.updateTitlebarState(ui_.titleFrame, true);
 }
 
 void Xamp::FocusOut() {
-    qTheme.updateTitlebarState(ui_.titleFrame, false);
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -207,11 +205,11 @@ void Xamp::cleanup() {
 void Xamp::InitialUi() {
     QFont f(qTEXT("DisplayFont"));
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(qTheme.fontSize());
+    f.setPointSize(qTheme.GetFontSize());
     ui_.titleLabel->setFont(f);
 
     f.setWeight(QFont::Normal);
-    f.setPointSize(qTheme.fontSize());
+    f.setPointSize(qTheme.GetFontSize());
     ui_.artistLabel->setFont(f);
 
     ui_.bitPerfectButton->setFont(f);
@@ -222,14 +220,14 @@ void Xamp::InitialUi() {
     ui_.formatLabel->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.hiResLabel->setStyleSheet(qTEXT("background-color: transparent"));
 
-    if (qTheme.useNativeWindow()) {
+    if (qTheme.UseNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
         f.setWeight(QFont::DemiBold);
-        f.setPointSize(qTheme.fontSize());
+        f.setPointSize(qTheme.GetFontSize());
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(kApplicationTitle);
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -237,7 +235,7 @@ void Xamp::InitialUi() {
 
     QFont mono_font(qTEXT("MonoFont"));
 #ifdef Q_OS_WIN
-    mono_font.setPointSize(qTheme.fontSize());
+    mono_font.setPointSize(qTheme.GetFontSize());
     ui_.startPosLabel->setFont(mono_font);
     ui_.endPosLabel->setFont(mono_font);
 #else
@@ -246,7 +244,7 @@ void Xamp::InitialUi() {
     ui_.endPosLabel->setFont(mono_font);
 #endif
 
-    ui_.searchLineEdit->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+    ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
     main_window_->SetTitleBarAction(ui_.titleFrame);
 }
 
@@ -270,12 +268,12 @@ QWidgetAction* Xamp::CreateTextSeparator(const QString& desc) {
     desc_label->setObjectName(qTEXT("textSeparator"));
 
     QFont f(qTEXT("DisplayFont"));
-    f.setPointSize(qTheme.fontSize());
+    f.setPointSize(qTheme.GetFontSize());
     f.setBold(true);
     desc_label->setFont(f);
 
     auto* frame = new QFrame();
-    qTheme.setTextSeparator(frame);
+    qTheme.SetTextSeparator(frame);
     auto* default_layout = new QVBoxLayout(frame);
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(0, 0, 0, 0);
@@ -292,7 +290,7 @@ void Xamp::InitialDeviceList() {
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
         menu = new XMenu();
-        qTheme.setMenuStyle(menu);
+        qTheme.SetMenuStyle(menu);
         ui_.selectDeviceButton->setMenu(menu);
     }
 
@@ -331,7 +329,7 @@ void Xamp::InitialDeviceList() {
             device_id_action[device_info.device_id] = device_action;            
 
             auto trigger_callback = [device_info, this]() {
-                qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
+                qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
                 device_info_ = device_info;
                 AppSettings::SetValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::SetValue(kAppSettingDeviceId, device_info_.device_id);
@@ -344,7 +342,7 @@ void Xamp::InitialDeviceList() {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
-                qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
+                qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
             }
         }
 
@@ -360,7 +358,7 @@ void Xamp::InitialDeviceList() {
 
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
-        qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.connect_type);
+        qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.connect_type);
         device_id_action[device_info_.device_id]->setChecked(true);
         AppSettings::SetValue(kAppSettingDeviceType, device_info_.device_type_id);
         AppSettings::SetValue(kAppSettingDeviceId, device_info_.device_id);
@@ -418,18 +416,18 @@ void Xamp::InitialController() {
         QWidget::close();
     });
 
-    qTheme.setBitPerfectButton(ui_, AppSettings::ValueAsBool(kEnableBitPerfect));
+    qTheme.SetBitPerfectButton(ui_, AppSettings::ValueAsBool(kEnableBitPerfect));
 
     (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::pressed, [this]() {
 	    const auto enable_or_disable = !AppSettings::ValueAsBool(kEnableBitPerfect);
         AppSettings::SetValue(kEnableBitPerfect, enable_or_disable);
-        qTheme.setBitPerfectButton(ui_, enable_or_disable);
+        qTheme.SetBitPerfectButton(ui_, enable_or_disable);
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::LeftButtonValueChanged, [this](auto value) {
         try {
 			player_->Seek(value / 1000.0);
-            qTheme.setPlayOrPauseButton(ui_, true);
+            qTheme.SetPlayOrPauseButton(ui_, true);
             main_window_->SetTaskbarPlayingResume();
         }
         catch (const Exception & e) {
@@ -452,10 +450,10 @@ void Xamp::InitialController() {
     SetPlayerOrder();
 
     if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
-        qTheme.setMuted(ui_.mutedButton, true);
+        qTheme.SetMuted(ui_.mutedButton, true);
     }
     else {
-        qTheme.setMuted(ui_.mutedButton, false);
+        qTheme.SetMuted(ui_.mutedButton, false);
     }
 
     (void)QObject::connect(state_adapter_.get(),
@@ -483,11 +481,7 @@ void Xamp::InitialController() {
         Qt::QueuedConnection);
 
     (void)QObject::connect(ui_.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
-        if (ui_.currentView->count() > 0) {
-            auto* playlist_view = CurrentPlyalistPage()->playlist();
-            emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
-            emit album_page_->album()->OnSearchTextChanged(text);
-        }
+        emit album_page_->album()->OnSearchTextChanged(text);
     });
 
     (void)QObject::connect(ui_.nextButton, &QToolButton::pressed, [this]() {
@@ -537,12 +531,12 @@ void Xamp::InitialController() {
         ui_.currentView->setCurrentWidget(lrc_page_);
     });
 
-    (void)QObject::connect(ui_.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
+    (void)QObject::connect(ui_.sliderBar, &TabListView::ClickedTable, [this](auto table_id) {
         SetCurrentTab(table_id);
-        AppSettings::SetValue(kAppSettingLastTabName, ui_.sliderBar->getTabName(table_id));
+        AppSettings::SetValue(kAppSettingLastTabName, ui_.sliderBar->GetTabName(table_id));
     });
 
-    (void)QObject::connect(ui_.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
+    (void)QObject::connect(ui_.sliderBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
         qDatabase.SetTableName(table_id, name);
     });
 
@@ -550,7 +544,7 @@ void Xamp::InitialController() {
         SliderAnimation(AppSettings::ValueAsBool(kAppSettingShowLeftList));
         });
 
-    ui_.sliderBarButton->setIconSize(qTheme.tabIconSize());
+    ui_.sliderBarButton->setIconSize(qTheme.GetTabIconSize());
    (void)QObject::connect(ui_.sliderBarButton, &QToolButton::clicked, [this]() {
 	   const auto enable = !AppSettings::ValueAsBool(kAppSettingShowLeftList);
        AppSettings::SetValue(kAppSettingShowLeftList, enable);
@@ -643,24 +637,24 @@ void Xamp::SetCurrentTab(int32_t table_id) {
 }
 
 void Xamp::UpdateButtonState() {    
-    qTheme.setPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
+    qTheme.SetPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
     preference_page_->update();
 }
 
 void Xamp::SystemThemeChanged(ThemeColor theme_color) {
-    if (qTheme.themeColor() == theme_color) {
+    if (qTheme.GetThemeColor() == theme_color) {
         return;
     }
 
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-        qTheme.setThemeColor(ThemeColor::DARK_THEME);		
+        qTheme.SetThemeColor(ThemeColor::DARK_THEME);		
         break;
     case ThemeColor::LIGHT_THEME:
-        qTheme.setThemeColor(ThemeColor::LIGHT_THEME);
+        qTheme.SetThemeColor(ThemeColor::LIGHT_THEME);
         break;
 	}
-    qTheme.applyTheme();
+    qTheme.ApplyTheme();
 
     /*cleanup();
     qApp->exit(kRestartExistCode);*/
@@ -668,8 +662,8 @@ void Xamp::SystemThemeChanged(ThemeColor theme_color) {
 
 void Xamp::ApplyTheme(QColor backgroundColor, QColor color) {
     ThemeChanged(backgroundColor, color);
-    qTheme.setBackgroundColor(ui_, backgroundColor);
-    qTheme.setWidgetStyle(ui_);
+    qTheme.SetBackgroundColor(ui_, backgroundColor);
+    qTheme.SetWidgetStyle(ui_);
     UpdateButtonState();
 }
 
@@ -725,7 +719,7 @@ void Xamp::SetTablePlaylistView(int table_id, ConstLatin1String column_setting_n
     auto found = false;
     Q_FOREACH(auto idx, stack_page_id_) {
         if (auto* page = dynamic_cast<PlaylistPage*>(ui_.currentView->widget(idx))) {
-            if (page->playlist()->playlistId() == playlist_id) {
+            if (page->playlist()->GetPlaylistId() == playlist_id) {
                 ui_.currentView->setCurrentIndex(idx);
                 found = true;
                 break;
@@ -772,9 +766,9 @@ void Xamp::stop() {
     SetSeekPosValue(0);
     lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
-    playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-    album_page_->album()->albumViewPage()->playlistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-    qTheme.setPlayOrPauseButton(ui_, false);
+    playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
+    album_page_->album()->albumViewPage()->playlistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
+    qTheme.SetPlayOrPauseButton(ui_, false);
 }
 
 void Xamp::PlayNext() {
@@ -790,7 +784,7 @@ void Xamp::DeleteKeyPress() {
         return;
     }
     auto* playlist_view = playlist_page_->playlist();
-    playlist_view->removeSelectItems();
+    playlist_view->RemoveSelectItems();
 }
 
 void Xamp::SetPlayerOrder() {
@@ -801,19 +795,19 @@ void Xamp::SetPlayerOrder() {
         if (order_ != order) {
             XMessageBox::ShowInformation(tr("Repeat once"), kApplicationTitle, false);
         }
-        qTheme.setRepeatOncePlayOrder(ui_);
+        qTheme.SetRepeatOncePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         if (order_ != order) {
             XMessageBox::ShowInformation(tr("Repeat one"), kApplicationTitle, false);
         }
-        qTheme.setRepeatOnePlayOrder(ui_);
+        qTheme.SetRepeatOnePlayOrder(ui_);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         if (order_ != order) {
             XMessageBox::ShowInformation(tr("Shuffle all"), kApplicationTitle, false);
         }
-        qTheme.setShufflePlayorder(ui_);
+        qTheme.SetShufflePlayOrder(ui_);
         break;
     default:
         break;
@@ -850,15 +844,15 @@ void Xamp::PlayOrPause() {
 
     try {
         if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
-            qTheme.setPlayOrPauseButton(ui_, false);
+            qTheme.SetPlayOrPauseButton(ui_, false);
             player_->Pause();
-            current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PAUSE);
+            current_playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_PAUSE);
             main_window_->SetTaskbarPlayerPaused();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-            qTheme.setPlayOrPauseButton(ui_, true);
+            qTheme.SetPlayOrPauseButton(ui_, true);
             player_->Resume();
-            current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
+            current_playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_PLAYING);
             main_window_->SetTaskbarPlayingResume();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
@@ -866,7 +860,7 @@ void Xamp::PlayOrPause() {
                 return;
             }
             playlist_page_ = current_playlist_page_;
-            if (const auto select_item = playlist_page_->playlist()->selectItem()) {
+            if (const auto select_item = playlist_page_->playlist()->GetSelectItem()) {
                 play_index_ = select_item.value();
             }
             play_index_ = playlist_page_->playlist()->model()->index(
@@ -875,8 +869,8 @@ void Xamp::PlayOrPause() {
                 XMessageBox::ShowInformation(tr("Not found any playing item."));
                 return;
             }
-            playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-            playlist_page_->playlist()->setNowPlaying(play_index_, true);
+            playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
+            playlist_page_->playlist()->SetNowPlaying(play_index_, true);
             playlist_page_->playlist()->play(play_index_);
         }
     }
@@ -897,7 +891,7 @@ void Xamp::ResetSeekPosValue() {
 
 void Xamp::ProcessTrackInfo(const ForwardList<TrackInfo>&) const {
     album_page_->album()->Refresh();
-    playlist_page_->playlist()->executeQuery();
+    playlist_page_->playlist()->Reload();
 }
 
 void Xamp::SetupDsp(const PlayListEntity& item) {
@@ -1121,7 +1115,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         ext = qTEXT(".m4a");
     }
 	
-    qTheme.setPlayOrPauseButton(ui_, open_done);
+    qTheme.SetPlayOrPauseButton(ui_, open_done);
     lrc_page_->spectrum()->reset();
 	
     if (open_done) {
@@ -1139,7 +1133,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         UpdateButtonState();
         emit NowPlaying(item.artist, item.title);
     } else {
-        cur_page->playlist()->executeQuery();
+        cur_page->playlist()->Reload();
     }
 
     SetCover(item.cover_id, cur_page);
@@ -1158,7 +1152,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         ui_.formatLabel->setText(Format2String(playback_format, ext));
         if (playback_format.file_format > AudioFormat::k16BitPCM441Khz) {
             ui_.hiResLabel->show();
-            ui_.hiResLabel->setIcon(qTheme.hiResIcon());
+            ui_.hiResLabel->setIcon(qTheme.GetHiResIcon());
         } else {
             ui_.hiResLabel->hide();
         }        
@@ -1197,7 +1191,7 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 
     if (!album.isEmpty()) {
         cd_page_->playlistPage()->title()->setText(album);
-        cd_page_->playlistPage()->playlist()->executeQuery();
+        cd_page_->playlistPage()->playlist()->Reload();
     }
 
     if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
@@ -1214,24 +1208,24 @@ void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
     SetCover(cover_id, cd_page_->playlistPage());
 }
 
-void Xamp::OnUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
+void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
     const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
     qDatabase.RemoveAlbum(album_id);
 
-    cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->processTrackInfo(track_infos);
+    cd_page_->playlistPage()->playlist()->RemoveAll();
+    cd_page_->playlistPage()->playlist()->ProcessTrackInfo(track_infos);
     cd_page_->showPlaylistPage(true);
 }
 
 void Xamp::DrivesChanges(const QList<DriveInfo>& drive_infos) {
-    cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->executeQuery();
+    cd_page_->playlistPage()->playlist()->RemoveAll();
+    cd_page_->playlistPage()->playlist()->Reload();
     emit FetchCdInfo(drive_infos.first());
 }
 
 void Xamp::DrivesRemoved(const DriveInfo& /*drive_info*/) {
-    cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->executeQuery();
+    cd_page_->playlistPage()->playlist()->RemoveAll();
+    cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(false);
 }
 
@@ -1252,7 +1246,7 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
     if (!found_cover) {
         SetPlaylistPageCover(nullptr, page);
         if (lrc_page_ != nullptr) {
-            lrc_page_->SetBackgroundColor(qTheme.backgroundColor());
+            lrc_page_->SetBackgroundColor(qTheme.BackgroundColor());
         }
     }
 }
@@ -1290,13 +1284,13 @@ void Xamp::PlayNextItem(int32_t forward) {
     if (count > 1) {
         switch (order_) {
         case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-            play_index_ = playlist_view->nextIndex(forward);
+            play_index_ = playlist_view->GetNextIndex(forward);
             if (play_index_.row() == -1) {
                 return;
             }
             break;
         case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-            play_index_ = playlist_view->shuffeIndex();
+            play_index_ = playlist_view->GetShuffleIndex();
             break;
         case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         default:
@@ -1318,7 +1312,7 @@ void Xamp::PlayNextItem(int32_t forward) {
         XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
         return;
     }
-    playlist_view->reload();
+    playlist_view->FastReload();
 }
 
 void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
@@ -1328,9 +1322,9 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 
 void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
-    qDatabase.AddMusicToPlaylist(music_ids, playlist_view->playlistId());
-    emit playlist_view->readReplayGain(false, entities);
-    playlist_view->executeQuery();
+    qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
+    emit playlist_view->ReadReplayGain(false, entities);
+    playlist_view->Reload();
 }
 
 void Xamp::OnClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id) {
@@ -1341,7 +1335,7 @@ void Xamp::OnClickedAlbum(const QString& album, int32_t album_id, const QString&
 
 void Xamp::SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
     if (!cover) {
-        cover = &qTheme.unknownCover();
+        cover = &qTheme.UnknownCover();
     }
 
 	if (!page) {
@@ -1380,15 +1374,15 @@ void Xamp::InitialPlaylist() {
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
 
-    ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.fontIcon(Glyphs::ICON_DESKTOP));
-    ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
-    ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.fontIcon(Glyphs::ICON_PODCAST));
-    ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, qTheme.fontIcon(Glyphs::ICON_ALBUM));
-    ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, qTheme.fontIcon(Glyphs::ICON_ARTIST));
-    ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.fontIcon(Glyphs::ICON_PREFERENCE));
-    ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.fontIcon(Glyphs::ICON_ABOUT));
+    ui_.sliderBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.sliderBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui_.sliderBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
+    ui_.sliderBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
+    ui_.sliderBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
+    ui_.sliderBar->AddTab(tr("Artists"), TAB_ARTIST, qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
+    ui_.sliderBar->AddTab(tr("Settings"), TAB_SETTINGS, qTheme.GetFontIcon(Glyphs::ICON_PREFERENCE));
+    ui_.sliderBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
+    ui_.sliderBar->AddTab(tr("About"), TAB_ABOUT, qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
     qDatabase.ForEachTable([this](auto table_id,
@@ -1399,16 +1393,16 @@ void Xamp::InitialPlaylist() {
                 return;
             }
 
-            ui_.sliderBar->addTab(name, table_id, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+            ui_.sliderBar->AddTab(name, table_id, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
             if (!playlist_page_) {
                 playlist_page_ = NewPlaylistPage(playlist_id, qEmptyString);
-                playlist_page_->playlist()->setPlaylistId(playlist_id, name);
+                playlist_page_->playlist()->SetPlaylistId(playlist_id, name);
             }
 
-            if (playlist_page_->playlist()->playlistId() != playlist_id) {
+            if (playlist_page_->playlist()->GetPlaylistId() != playlist_id) {
                 playlist_page_ = NewPlaylistPage(playlist_id, qEmptyString);
-                playlist_page_->playlist()->setPlaylistId(playlist_id, name);
+                playlist_page_->playlist()->SetPlaylistId(playlist_id, name);
             }
         });
 
@@ -1419,7 +1413,7 @@ void Xamp::InitialPlaylist() {
         }
         playlist_page_ = NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         ConnectPlaylistPageSignal(playlist_page_);
-        playlist_page_->playlist()->headerViewHidden(false);
+        playlist_page_->playlist()->SetHeaderViewHidden(false);
     }
 
     if (!podcast_page_) {
@@ -1428,8 +1422,8 @@ void Xamp::InitialPlaylist() {
             playlist_id = qDatabase.AddPlaylist(qEmptyString, 1);
         }
         podcast_page_ = NewPlaylistPage(playlist_id, kAppSettingPodcastPlaylistColumnName);
-        podcast_page_->playlist()->setPodcastMode();
-        podcast_page_->playlist()->headerViewHidden(false);
+        podcast_page_->playlist()->SetPodcastMode();
+        podcast_page_->playlist()->SetHeaderViewHidden(false);
         ConnectPlaylistPageSignal(podcast_page_);
     }
 
@@ -1439,8 +1433,8 @@ void Xamp::InitialPlaylist() {
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.AddPlaylist(qEmptyString, 2);
         }
-        file_system_view_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
-        file_system_view_page_->playlistPage()->playlist()->headerViewHidden(false);
+        file_system_view_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
+        file_system_view_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
         SetCover(qEmptyString, file_system_view_page_->playlistPage());
         ConnectPlaylistPageSignal(file_system_view_page_->playlistPage());
     }
@@ -1451,8 +1445,8 @@ void Xamp::InitialPlaylist() {
             playlist_id = qDatabase.AddPlaylist(qEmptyString, 4);
         }
         cd_page_ = new CdPage(this);
-        cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
-        cd_page_->playlistPage()->playlist()->headerViewHidden(false);
+        cd_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
+        cd_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
         SetCover(qEmptyString, cd_page_->playlistPage());
         ConnectPlaylistPageSignal(cd_page_->playlistPage());
     }
@@ -1477,7 +1471,7 @@ void Xamp::InitialPlaylist() {
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::OnReadCdTrackInfo,
         this,
-        &Xamp::OnUpdateCdMetadata,
+        &Xamp::OnUpdateCdTrackInfo,
         Qt::QueuedConnection);
 
     (void)QObject::connect(background_worker_,
@@ -1781,12 +1775,12 @@ void Xamp::EncodeFlacFile(const PlayListEntity& item) {
 
 void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::addPlaylistItemFinished,
+        &PlayListTableView::AddPlaylistItemFinished,
         album_page_,
         &AlbumArtistPage::Refresh);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::playMusic,
+        &PlayListTableView::PlayMusic,
         playlist_page,
         &PlaylistPage::PlayMusic);
 
@@ -1796,59 +1790,59 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::PlayPlayListEntity);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::encodeFlacFile,
+        &PlayListTableView::EncodeFlacFile,
         this,
         &Xamp::EncodeFlacFile);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::encodeAACFile,
+        &PlayListTableView::EncodeAacFile,
         this,
         &Xamp::EncodeAacFile);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::encodeWavFile,
+        &PlayListTableView::EncodeWavFile,
         this,
         &Xamp::EncodeWavFile);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::readReplayGain,
+        &PlayListTableView::ReadReplayGain,
         background_worker_,
         &BackgroundWorker::OnReadReplayGain);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::readTrackInfo,
+        &PlayListTableView::ReadTrackInfo,
         background_worker_,
         &BackgroundWorker::OnReadTrackInfo);
 
-    if (playlist_page->playlist()->isPodcastMode()) {
+    if (playlist_page->playlist()->IsPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
-            &PlayListTableView::fetchPodcast,
+            &PlayListTableView::FetchPodcast,
             background_worker_,
             &BackgroundWorker::OnFetchPodcast);
 
         (void)QObject::connect(background_worker_,
             &BackgroundWorker::FetchPodcastCompleted,
             playlist_page->playlist(),
-            &PlayListTableView::onFetchPodcastCompleted,
+            &PlayListTableView::OnFetchPodcastCompleted,
             Qt::QueuedConnection);
 
         (void)QObject::connect(background_worker_,
             &BackgroundWorker::FetchPodcastError,
             playlist_page->playlist(),
-            &PlayListTableView::onFetchPodcastError,
+            &PlayListTableView::OnFetchPodcastError,
             Qt::QueuedConnection);
     }
     
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::ReadReplayGain,
         playlist_page->playlist(),
-        &PlayListTableView::updateReplayGain,
+        &PlayListTableView::UpdateReplayGain,
         Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
         playlist_page->playlist(),
-        &PlayListTableView::onThemeColorChanged);
+        &PlayListTableView::OnThemeColorChanged);
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
@@ -1859,7 +1853,7 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
 	auto* playlist_page = new PlaylistPage(this);
     ui_.currentView->addWidget(playlist_page);    
-    playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
+    playlist_page->playlist()->SetPlaylistId(playlist_id, column_setting_name);
     return playlist_page;
 }
 
@@ -1873,5 +1867,5 @@ void Xamp::ExtractFile(const QString& file_path) {
         &DatabaseFacade::ReadCompleted,
         this,
         &Xamp::ProcessTrackInfo);
-    emit ReadTrackInfo(adapter, file_path, playlist_page_->playlist()->playlistId(), false);
+    emit ReadTrackInfo(adapter, file_path, playlist_page_->playlist()->GetPlaylistId(), false);
 }

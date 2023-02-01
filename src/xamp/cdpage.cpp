@@ -15,7 +15,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.pcButton->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+    ui.pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
     ui.pcButton->setIconSize(QSize(64, 64));
 
     ui.cdButton->setStyleSheet(qTEXT(R"(
@@ -24,7 +24,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.cdButton->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
+    ui.cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui.cdButton->setIconSize(QSize(64, 64));
 
     ui.arrowButton->setStyleSheet(qTEXT(R"(
@@ -33,10 +33,10 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.arrowButton->setIcon(qTheme.fontIcon(Glyphs::ICON_LEFT_ARROW));
+    ui.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
     ui.arrowButton->setIconSize(QSize(64, 64));
 
-    ui.playlistPage->playlist()->setPodcastMode(false);
+    ui.playlistPage->playlist()->SetPodcastMode(false);
     ui.playlistPage->hide();
 
     ui.tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));

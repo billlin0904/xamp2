@@ -7,7 +7,7 @@ AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
 
-    ui.lblLogo->setPixmap(qTheme.appIcon().pixmap(128, 128));
+    ui.lblLogo->setPixmap(qTheme.GetAppliacationIcon().pixmap(128, 128));
 
     QFont dp_font(qTEXT("DisplayFont"));
     dp_font.setBold(true);
@@ -21,12 +21,12 @@ AboutPage::AboutPage(QWidget* parent)
 
     QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
     ui.lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));
-    ui.lbIGithubIcon->setPixmap(qTheme.githubIcon());
+    ui.lbIGithubIcon->setPixmap(qTheme.GithubIcon());
     ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
 
     QFont font(qTEXT("UIFont"));
     font.setBold(false);
-    font.setPointSize(qTheme.fontSize());
+    font.setPointSize(qTheme.GetFontSize());
     ui.txtBws->setFont(font);
     ui.txtBws->setVisible(false);
 

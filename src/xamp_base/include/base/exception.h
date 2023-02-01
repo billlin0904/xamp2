@@ -8,6 +8,7 @@
 #include <base/base.h>
 #include <base/enum.h>
 #include <base/audioformat.h>
+#include <base/str_utilts.h>
 
 #include <exception>
 #include <ostream>
@@ -148,11 +149,16 @@ XAMP_DECLARE_EXCEPTION_CLASS(NotSupportResampleSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportExclusiveModeException)
 XAMP_DECLARE_EXCEPTION_CLASS(BufferOverflowException)
 
-#define BufferOverFlowThrow(expr) \
-    do {\
-        if (!(expr)) {\
-        throw BufferOverflowException();\
-        }\
-    } while(false)
+template <typename E, typename... Args>
+void Throw(std::string_view s, Args &&...args) {
+    throw E(String::Format(s, std::forward<Args>(args)...).c_str());
+}
+
+template <typename E, typename T = bool, typename... Args>
+void ThrowIf(T &&value, std::string_view s, Args &&...args) {
+    if (!value) {
+        Throw<E>(s, std::forward<Args>(args)...);
+    }
+}
 
 }

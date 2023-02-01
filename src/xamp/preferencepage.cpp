@@ -189,7 +189,7 @@ void PreferencePage::InitialLanguage() {
 	auto index = 0;
 
     Q_FOREACH (auto lang, LocaleLanguageManager::LanguageNames()) {
-        QIcon ico(qTheme.flagNamePath(lang.CountryIsoCode().toUpper()));
+        QIcon ico(qTheme.GetCountryFlagFilePath(lang.CountryIsoCode().toUpper()));
 		ui_.langCombo->addItem(ico, lang.NativeNameLang());
 		if (current_lang.GetIsoCode() == lang.GetIsoCode()) {
 			current_index = index;
@@ -238,7 +238,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	InitPcm2Dsd();
 	InitialLanguage();
 
-	switch (qTheme.themeColor()) {
+	switch (qTheme.GetThemeColor()) {
 	case ThemeColor::LIGHT_THEME:
 		ui_.lightRadioButton->setChecked(true);
 		break;
@@ -248,11 +248,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 	}
 
 	(void)QObject::connect(ui_.lightRadioButton, &QRadioButton::clicked, [](auto checked) {
-		qTheme.setThemeColor(ThemeColor::LIGHT_THEME);
+		qTheme.SetThemeColor(ThemeColor::LIGHT_THEME);
 		});
 
 	(void)QObject::connect(ui_.darkRadioButton, &QRadioButton::clicked, [](auto checked) {
-		qTheme.setThemeColor(ThemeColor::DARK_THEME);
+		qTheme.SetThemeColor(ThemeColor::DARK_THEME);
 		});
 
     ui_.preferenceTreeWidget->header()->hide();

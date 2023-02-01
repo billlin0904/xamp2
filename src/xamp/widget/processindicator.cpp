@@ -15,7 +15,7 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
     setFocusPolicy(Qt::NoFocus);
     CenterParent(this);
 
-    switch (qTheme.themeColor()) {
+    switch (qTheme.GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         SetColor(Qt::white);
         break;

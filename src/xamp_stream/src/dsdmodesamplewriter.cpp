@@ -25,13 +25,19 @@ bool DsdModeSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int
     return Process(input.data(), input.size(), buffer);
 }
 
-bool DsdModeSampleWriter::ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-    BufferOverFlowThrow(buffer.TryWrite(sample_buffer, num_samples));
+bool DsdModeSampleWriter::ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& fifo) {
+    ThrowIf<BufferOverflowException>(fifo.TryWrite(sample_buffer, num_samples),
+        "Failed to write buffer, read:{} write:{}",
+        fifo.GetAvailableRead(),
+        fifo.GetAvailableWrite());
     return true;
 }
 
-bool DsdModeSampleWriter::ProcessPcm(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-    BufferOverFlowThrow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
+bool DsdModeSampleWriter::ProcessPcm(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& fifo) {
+    ThrowIf<BufferOverflowException>(fifo.TryWrite(sample_buffer, num_samples * sample_size_),
+        "Failed to write buffer, read:{} write:{}",
+        fifo.GetAvailableRead(),
+        fifo.GetAvailableWrite());
     return true;
 }
 

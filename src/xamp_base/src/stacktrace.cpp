@@ -202,7 +202,7 @@ static void WriteLog(std::ostringstream& ostr, size_t frame_count, CaptureStackA
         ostr << "\t#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << entry.index << " "
             << std::left << std::setfill(' ') << std::setw(max_width) << entry.module_name << " "
             << " "
-            << std::left << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << entry.address << " ";
+            << std::left << "0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << entry.address << " ";
 
         if (entry.has_symbol) {
             ostr << entry.symbol_name;
@@ -236,7 +236,7 @@ std::string StackTrace::CaptureStack() {
 #ifdef XAMP_OS_WIN
     addrlist.fill(nullptr);
     std::ostringstream ostr;
-    const auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist.data(), nullptr);
+    const auto frame_count = ::CaptureStackBackTrace(1, kMaxStackFrameSize, addrlist.data(), nullptr);
     WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else

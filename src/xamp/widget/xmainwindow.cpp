@@ -72,7 +72,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     }
 
 #if defined(Q_OS_WIN)
-    if (!qTheme.useNativeWindow()) {
+    if (!qTheme.UseNativeWindow()) {
         setWindowTitle(kApplicationTitle);
         setAttribute(Qt::WA_TranslucentBackground, true);
         setAttribute(Qt::WA_StyledBackground, true);
@@ -85,7 +85,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         installEventFilter(this);
     } else {
         win32::setWindowedWindowStyle(winId());
-        win32::setTitleBarColor(winId(), qTheme.themeColor());
+        win32::setTitleBarColor(winId(), qTheme.GetThemeColor());
         win32::addDwmShadow(winId());
         setMouseTracking(true);
     }
@@ -644,7 +644,7 @@ void XMainWindow::AddSystemMenu(QWidget* widget) {
         action_map.SetCallback(restore_act, [this]() {
             showNormal();
             });
-        restore_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RESTORE_WINDOW));
+        restore_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_RESTORE_WINDOW));
         restore_act->setEnabled(isMaximized());
 
         auto* move_act = action_map.AddAction(tr("Move(M)"));
@@ -657,7 +657,7 @@ void XMainWindow::AddSystemMenu(QWidget* widget) {
         action_map.SetCallback(mini_act, [this]() {
             showMinimized();
             });
-        mini_act->setIcon(qTheme.fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
+        mini_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
         mini_act->setEnabled(true);
 
         auto* max_act = action_map.AddAction(tr("Maximum(M)"));
@@ -665,14 +665,14 @@ void XMainWindow::AddSystemMenu(QWidget* widget) {
             showMaximized();
             });
         max_act->setEnabled(!isMaximized());
-        max_act->setIcon(qTheme.fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
+        max_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
         action_map.AddSeparator();
 
         auto* close_act = action_map.AddAction(tr("Close(X)"));
         action_map.SetCallback(close_act, [this]() {
             close();
             });
-        close_act->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW));
+        close_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
         action_map.exec(pt);
         });

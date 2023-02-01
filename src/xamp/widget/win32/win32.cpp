@@ -430,11 +430,11 @@ static uint32_t gradientColor(QColor const & color) {
 WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* player_frame) {
 	window_ = window;
 
-	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
-	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
-	stop_play_icon = qTheme.fontIcon(Glyphs::ICON_STOP_PLAY);
-	seek_forward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD);
-	seek_backward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD);
+	play_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
+	pause_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
+	stop_play_icon = qTheme.GetFontIcon(Glyphs::ICON_STOP_PLAY);
+	seek_forward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD);
+	seek_backward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD);
 
 	thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
 	thumbnail_tool_bar_->setWindow(window->windowHandle());
@@ -595,7 +595,7 @@ void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
 	constexpr int kWindows11MicroVersion = 22000;
 
 	auto hwnd = reinterpret_cast<HWND>(window_id);
-	auto color = qTheme.backgroundColor();
+	auto color = qTheme.BackgroundColor();
 
 	const auto os_ver = QOperatingSystemVersion::current();
 	const auto major_version = os_ver.majorVersion();

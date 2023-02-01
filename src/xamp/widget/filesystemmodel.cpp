@@ -8,9 +8,9 @@ FileSystemModel::FileSystemModel(QObject* parent)
 QVariant FileSystemModel::data(const QModelIndex& index, int role) const {
 	if (role == Qt::DecorationRole) {
 		if (isDir(index)) {
-			return qTheme.fontIcon(Glyphs::ICON_FOLDER);
+			return qTheme.GetFontIcon(Glyphs::ICON_FOLDER);
 		}
-		return qTheme.fontIcon(Glyphs::ICON_AUDIO);
+		return qTheme.GetFontIcon(Glyphs::ICON_AUDIO);
 	} else if (role == Qt::ToolTipRole) {
 		return filePath(index);
 	}

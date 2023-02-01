@@ -26,7 +26,7 @@ void XFrame::SetContentWidget(QWidget* content) {
     setLayout(default_layout);
 
     QFrame* title_frame = nullptr;
-    if (!qTheme.useNativeWindow()) {
+    if (!qTheme.UseNativeWindow()) {
         title_frame = new QFrame(this);
     } else {
         title_frame = new QFrame();
@@ -89,14 +89,14 @@ void XFrame::SetContentWidget(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    if (!qTheme.useNativeWindow()) {
+    if (!qTheme.UseNativeWindow()) {
         default_layout->addWidget(title_frame, 1);
     }
 
     default_layout->addWidget(content_, 0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    qTheme.setStandardButtonStyle(close_button, min_win_button, max_win_button);
+    qTheme.SetStandardButtonStyle(close_button, min_win_button, max_win_button);
 
     max_win_button->setDisabled(true);
     min_win_button->setDisabled(true);

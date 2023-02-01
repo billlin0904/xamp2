@@ -104,7 +104,7 @@ IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
 AudioPlayer::AudioPlayer()
     : is_muted_(false)
 	, is_dsd_file_(false)
-    , enable_fadeout_(true)
+    , enable_fadeout_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , sample_size_(0)
     , target_sample_rate_(0)

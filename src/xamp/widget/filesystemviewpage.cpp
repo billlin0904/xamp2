@@ -89,7 +89,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
             ui.playlistPage->playlist()->append(path);
         });
-        add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+        add_file_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.AddAction(tr("Load file directory"), [this](auto pt) {
             const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -101,14 +101,14 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             AppSettings::SetValue(kAppSettingMyMusicFolderPath, dir_name);
             ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::GetMyMusicFolderPath())));
         });
-        load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
+        load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FOLDER));
 
         action_map.exec(pt, pt);
         });
 
     setStyleSheet(qTEXT("background-color: transparent"));
-    playlistPage()->playlist()->disableDelete();
-    playlistPage()->playlist()->disableLoadFile();
+    playlistPage()->playlist()->DisableDelete();
+    playlistPage()->playlist()->DisableLoadFile();
 }
 
 PlaylistPage* FileSystemViewPage::playlistPage() {

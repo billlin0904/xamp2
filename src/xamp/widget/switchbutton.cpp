@@ -11,7 +11,7 @@ SwitchButton::SwitchButton(QWidget *parent)
 
     QString handle_color;
 
-    is_darktheme_ = qTheme.themeColor() == ThemeColor::DARK_THEME;
+    is_darktheme_ = qTheme.GetThemeColor() == ThemeColor::DARK_THEME;
     if (is_darktheme_) {
         handle_color = qTEXT("black");
     } else {

@@ -8,6 +8,8 @@
 #include <QObject>
 #include <QMap>
 
+#include <widget/widget_shared.h>
+
 enum Glyphs {
     ICON_VOLUME_UP,
     ICON_VOLUME_OFF,
@@ -92,6 +94,8 @@ struct FontIconOption {
 
 class FontIcon : public QObject {
 public:
+    friend class SharedSingleton<FontIcon>;
+
     explicit FontIcon(QObject* parent = nullptr);
 
     bool addFont(const QString& filename);

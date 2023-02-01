@@ -52,8 +52,9 @@ XProgressDialog::XProgressDialog(const QString& title,
 	if (parent) {
 		max_width_ = parent->width() * 0.8;
 	}
-	setMaximumWidth(max_width_);
-	setMinimumWidth(max_width_);
+
+	setMaximumWidth(parent->width() - 100);
+	setMinimumWidth(parent->width() - 100);
 	size_ = size();
 }
 

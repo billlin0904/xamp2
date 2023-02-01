@@ -111,7 +111,7 @@ void PlaylistPage::initial() {
 	default_layout->setStretch(2, 1);
 
 	(void)QObject::connect(playlist_,
-		&PlayListTableView::updateAlbumCover,
+		&PlayListTableView::UpdateAlbumCover,
 		this,
 		&PlaylistPage::SetCoverById);
 }

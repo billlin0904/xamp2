@@ -34,9 +34,6 @@ private:
 class DatabaseFacade final : public QObject {
 	Q_OBJECT
 public:
-    static constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
-    static constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
-
     explicit DatabaseFacade(QObject* parent = nullptr);
 
 signals:

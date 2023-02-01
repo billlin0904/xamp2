@@ -67,7 +67,7 @@ void LyricsShowWidget::initial() {
 				SetLrcHighLight(color);
 				AppSettings::SetValue(kLyricsHighLightTextColor, color);
 			});
-			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
+			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
 			dlg.exec();
 			});
 
@@ -78,7 +78,7 @@ void LyricsShowWidget::initial() {
 				SetLrcColor(color);
 				AppSettings::SetValue(kLyricsTextColor, color);
 				});
-			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.backgroundColorString()));
+			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
 			dlg.exec();
 			});
 

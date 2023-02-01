@@ -55,14 +55,14 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         }
         if (player_->IsMute()) {
             player_->SetMute(false);
-            qTheme.setMuted(ui_.volumeButton, false);
+            qTheme.SetMuted(ui_.volumeButton, false);
         } else {
             player_->SetMute(true);
-            qTheme.setMuted(ui_.volumeButton, true);
+            qTheme.SetMuted(ui_.volumeButton, true);
         }
         });
 
-    switch (qTheme.themeColor()) {
+    switch (qTheme.GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: #121212; border: 1px solid #a7c8ff; })"));
         break;
@@ -94,10 +94,10 @@ void VolumeControlDialog::SetVolume(uint32_t volume) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
-                qTheme.setVolume(ui_.volumeSlider, ui_.volumeButton, volume);
+                qTheme.SetVolume(ui_.volumeSlider, ui_.volumeButton, volume);
             }
             else {
-                qTheme.setVolume(ui_.volumeSlider, ui_.volumeButton, 0);
+                qTheme.SetVolume(ui_.volumeSlider, ui_.volumeButton, 0);
             }
         }
         else {

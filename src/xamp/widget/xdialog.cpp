@@ -27,7 +27,7 @@ void XDialog::SetContentWidget(QWidget* content) {
     frame_ = new XFrame(this);
     frame_->SetContentWidget(content);
 
-    if (!qTheme.useNativeWindow()) {
+    if (!qTheme.UseNativeWindow()) {
 #ifdef Q_OS_WIN
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
 #else
@@ -39,7 +39,7 @@ void XDialog::SetContentWidget(QWidget* content) {
     } else {
         setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 #ifdef Q_OS_WIN
-        win32::setTitleBarColor(winId(), qTheme.themeColor());
+        win32::setTitleBarColor(winId(), qTheme.GetThemeColor());
 #endif
     }
 
@@ -58,7 +58,7 @@ void XDialog::SetContentWidget(QWidget* content) {
 
 #if defined(Q_OS_WIN)
 void XDialog::mousePressEvent(QMouseEvent* event) {
-    if (qTheme.useNativeWindow()) {
+    if (qTheme.UseNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
     }
@@ -73,7 +73,7 @@ void XDialog::mousePressEvent(QMouseEvent* event) {
 }
 
 void XDialog::mouseReleaseEvent(QMouseEvent* event) {
-    if (qTheme.useNativeWindow()) {
+    if (qTheme.UseNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
     }
@@ -86,7 +86,7 @@ void XDialog::mouseReleaseEvent(QMouseEvent* event) {
 
 void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (qTheme.useNativeWindow()) {
+    if (qTheme.UseNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }
@@ -116,7 +116,7 @@ void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #endif
 
 void XDialog::showEvent(QShowEvent* event) {
-    if (!qTheme.useNativeWindow()) {
+    if (!qTheme.UseNativeWindow()) {
         auto* opacity_effect = new QGraphicsOpacityEffect(this);
         setGraphicsEffect(opacity_effect);
         auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);

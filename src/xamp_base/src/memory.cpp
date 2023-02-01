@@ -2,6 +2,7 @@
 
 #include <base/base.h>
 #include <base/simd.h>
+#include <base/stl.h>
 #include <base/align_ptr.h>
 #include <base/platfrom_handle.h>
 #include <base/memory_mapped_file.h>
@@ -42,10 +43,39 @@ bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size) {
     return PrefetchMemory(const_cast<void*>(file.GetData()), preread_file_size);
 }
 
-bool PrefetchFile(std::wstring const & file_name) {
+bool PrefetchFile(std::wstring const & file_path) {
+#ifndef XAMP_OS_WIN
 	MemoryMappedFile file;
-	file.Open(file_name);
+	file.Open(file_path);
     return PrefetchFile(file);
+#else
+	FileHandle file(::CreateFileW(file_path.c_str(),
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		nullptr,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_SEQUENTIAL_SCAN,
+		nullptr));
+	if (!file) {
+		return false;
+	}
+
+	constexpr auto kPrefetchFileReadSize = 65536;
+	Vector<char> buffer(kPrefetchFileReadSize);
+	DWORD readbytes = 0;
+	uint64_t total = 0;
+
+	while (::ReadFile(file.get(), buffer.data(), buffer.size(), &readbytes, nullptr)) {
+		if (!readbytes) {
+			break;
+		}
+		total += readbytes;
+		if (total >= kMaxPreReadFileSize) {
+			break;
+		}
+	}
+	return true;
+#endif
 }
 
 #ifdef XAMP_ENABLE_REP_MOVSB

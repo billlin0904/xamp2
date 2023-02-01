@@ -28,124 +28,122 @@ class ThemeManager {
 public:
     friend class SharedSingleton<ThemeManager>;
 
-    bool useNativeWindow() const;
+    bool UseNativeWindow() const;
 
     const QPalette& palette() const {
         return palette_;
     }
 
-    const QFont& defaultFont() const {
+    const QFont& DefaultFont() const {
         return ui_font_;
     }
 
-    const QPixmap& unknownCover() const noexcept;
+    const QPixmap& UnknownCover() const noexcept;
 
-	const QPixmap& defaultSizeUnknownCover() const noexcept;
+	const QPixmap& DefaultSizeUnknownCover() const noexcept;
 
-    QString flagNamePath(const QString& countryIsoCode);
+    QString GetCountryFlagFilePath(const QString& country_iso_code);
     
-    QIcon appIcon() const;
+    QIcon GetAppliacationIcon() const;
 
-    void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
+    void SetPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
-    void setBitPerfectButton(Ui::XampWindow& ui, bool enable);
+    void SetBitPerfectButton(Ui::XampWindow& ui, bool enable);
 
-    void setWidgetStyle(Ui::XampWindow &ui);    
+    void SetWidgetStyle(Ui::XampWindow &ui);    
 
-    const QSize& defaultCoverSize() const noexcept;
+    const QSize& DefaultCoverSize() const noexcept;
 
-    QSize cacheCoverSize() const noexcept;
+    QSize GetCacheCoverSize() const noexcept;
 
-    QSize albumCoverSize() const noexcept;
+    QSize GetAlbumCoverSize() const noexcept;
 
-    QSize saveCoverArtSize() const noexcept;
+    QSize GetSaveCoverArtSize() const noexcept;
 
-    QIcon playCircleIcon() const;
+    QIcon GetPlayCircleIcon() const;
 
-    QIcon hiResIcon() const;
+    QIcon GetHiResIcon() const;
 
-    QIcon playingIcon() const;
+    QIcon GetPlayingIcon() const;
 
-    QPixmap githubIcon() const;
+    QPixmap GithubIcon() const;
 
-    QIcon playlistPlayingIcon(QSize icon_size) const;
+    QIcon PlaylistPlayingIcon(QSize icon_size) const;
 
-    QIcon playlistPauseIcon(QSize icon_size) const;
+    QIcon PlaylistPauseIcon(QSize icon_size) const;
 
-    void updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;
+    void UpdateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;
 
-    void updateTitlebarState(QFrame* title_bar, bool is_focus);
+    void SetThemeIcon(Ui::XampWindow& ui) const;
 
-    void setThemeIcon(Ui::XampWindow& ui) const;
+    void SetShufflePlayOrder(Ui::XampWindow& ui) const;
 
-    void setShufflePlayorder(Ui::XampWindow& ui) const;
+    void SetRepeatOnePlayOrder(Ui::XampWindow& ui) const;
 
-    void setRepeatOnePlayOrder(Ui::XampWindow& ui) const;
+    void SetRepeatOncePlayOrder(Ui::XampWindow& ui) const;
 
-    void setRepeatOncePlayOrder(Ui::XampWindow& ui) const;
+    void SetThemeColor(ThemeColor theme_color);
 
-    void setThemeColor(ThemeColor theme_color);
+    void SetBackgroundColor(Ui::XampWindow& ui, QColor color);
 
-    void setBackgroundColor(Ui::XampWindow& ui, QColor color);
+    void ApplyTheme();
 
-    void applyTheme();
+    void SetBackgroundColor(QWidget* widget);
 
-    void setBackgroundColor(QWidget* widget);
+    QLatin1String ThemeColorPath() const;
 
-    QLatin1String themeColorPath() const;
+    void SetMenuStyle(QWidget* menu);
 
-    void setMenuStyle(QWidget* menu);
+    QColor GetThemeTextColor() const;
 
-    QColor themeTextColor() const;
+    QString BackgroundColorString() const;
 
-    QString backgroundColorString() const;
+    QColor BackgroundColor() const noexcept;
 
-    QColor backgroundColor() const noexcept;
+    QColor GetHoverColor() const;
 
-    QColor hoverColor() const;
+    QColor GetHighlightColor() const;
 
-    QColor highlightColor() const;
+    QColor GetTitleBarColor() const;
 
-    QColor titleBarColor() const;
+    QColor GetCoverShadowColor() const;
 
-    QColor coverShadownColor() const;
-
-    ThemeColor themeColor() const {
+    ThemeColor GetThemeColor() const {
         return theme_color_;
     }
 
-    QSize tabIconSize() const;
+    QSize GetTabIconSize() const;
 
-    void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
+    void SetStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon fontIcon(const char32_t code) const;
+    QIcon GetFontIcon(const char32_t code) const;
 
-    void setTextSeparator(QFrame* frame);
+    void SetTextSeparator(QFrame* frame);
 
-    int32_t fontSize() const;
+    int32_t GetFontSize() const;
 
-    void setMuted(Ui::XampWindow& ui, bool is_muted);
+    void SetMuted(Ui::XampWindow& ui, bool is_muted);
 
-    void setMuted(QAbstractButton* button, bool is_muted);
+    void SetMuted(QAbstractButton* button, bool is_muted);
 
-    void setVolume(QSlider* slider, QAbstractButton* button, uint32_t volume);
+    void SetVolume(QSlider* slider, QAbstractButton* button, uint32_t volume);
 
-    void setSliderTheme(QSlider* slider);
+    void SetSliderTheme(QSlider* slider);
 
-    void setDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
+    void SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
 
 private:
-    static QString fontNamePath(const QString& file_name);
+    static QString FontNamePath(const QString& file_name);
 
-    QFont loadFonts();
+    QFont LoadFonts();
 
-    void installFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
+    void InstallFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
 
-    void installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts);
+    void InstallFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts);
 
-    void setPalette();
+    void SetPalette();
 
-    void setFontAwesomeIcons();
+    void SetFontAwesomeIcons();
 
     ThemeManager();
     

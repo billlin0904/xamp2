@@ -46,7 +46,7 @@ public:
 			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
 			submenu_.reset(menu->addMenu(menu_name));
-            qTheme.setMenuStyle(submenu_.get());
+            qTheme.SetMenuStyle(submenu_.get());
 		}
 
 		template <typename Callable>
@@ -79,7 +79,7 @@ public:
 	explicit ActionMap(Type* object)
 		: object_(object)
 		, menu_(object) {
-		qTheme.setMenuStyle(&menu_);
+		qTheme.SetMenuStyle(&menu_);
 	}
 
 	QAction* AddAction(const QString& menu_name) {

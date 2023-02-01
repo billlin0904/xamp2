@@ -11,35 +11,35 @@ TabListView::TabListView(QWidget *parent)
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSpacing(2);
-    setIconSize(qTheme.tabIconSize());
+    setIconSize(qTheme.GetTabIconSize());
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
-        emit clickedTable(table_id);
+        emit ClickedTable(table_id);
     });
 
     (void)QObject::connect(&model_, &QStandardItemModel::itemChanged, [this](auto item) {
         auto table_id = item->data(Qt::UserRole + 1).toInt();
         auto table_name = item->data(Qt::DisplayRole).toString();
-        emit tableNameChanged(table_id, table_name);
+        emit TableNameChanged(table_id, table_name);
     });
 }
 
-QString TabListView::getTabName(int table_id) const {
+QString TabListView::GetTabName(int table_id) const {
 	if (!names_.contains(table_id)) {
         return qEmptyString;
 	}
     return names_[table_id];
 }
 
-int32_t TabListView::getTabId(const QString& name) const {
+int32_t TabListView::GetTabId(const QString& name) const {
     if (!ids_.contains(name)) {
         return -1;
     }
     return ids_[name];
 }
 
-void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
+void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
@@ -58,7 +58,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     item->setData(name, Qt::ToolTipRole);
 }
 
-void TabListView::addSeparator() {
+void TabListView::AddSeparator() {
     auto* item = new QStandardItem();
     item->setFlags(Qt::NoItemFlags);
     auto* hline = new QFrame(this);

@@ -393,7 +393,7 @@ static int Execute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("attach application success.");
 
-    qTheme.applyTheme();
+    qTheme.ApplyTheme();
     XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
 
     try {

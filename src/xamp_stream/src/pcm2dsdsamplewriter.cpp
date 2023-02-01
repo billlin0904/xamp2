@@ -564,9 +564,15 @@ public:
 					m += 2;
 				}
                 XAMP_LOG_D(logger_, "Write DOP data size:{} write:{}", dop_data.size() * 4, buffer.GetAvailableWrite());
-				BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 4));
+				ThrowIf<BufferOverflowException>(buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 4),
+					"Failed to write buffer, read:{} write:{}",
+					buffer.GetAvailableRead(),
+					buffer.GetAvailableWrite());
 			} else {
-				BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(onebit.data()), onebit.size()));
+				ThrowIf<BufferOverflowException>(buffer.TryWrite(reinterpret_cast<int8_t*>(onebit.data()), onebit.size()),
+					"Failed to write buffer, read:{} write:{}",
+					buffer.GetAvailableRead(),
+					buffer.GetAvailableWrite());
 			}
 		}
 

@@ -127,13 +127,25 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
+    bool faild_insert_database = false;
+
     try {
         qDatabase.transaction();
         AddTrackInfo(result, playlist_id, QDateTime::currentSecsSinceEpoch(), is_podcast_mode);
         qDatabase.commit();
-    } catch (std::exception const &e) {
+    } catch (Exception const &e) {
+        faild_insert_database = true;
+        XAMP_LOG_DEBUG("Failed to add track info({}) {}", e.GetErrorMessage(), e.GetStackTrace());
+    } catch (std::exception const& e) {
+        faild_insert_database = true;
+        XAMP_LOG_DEBUG("Failed to add track info({})", e.what());
+    } catch (...) {
+        faild_insert_database = true;
+        XAMP_LOG_DEBUG("Failed to add track info!");
+    }
+
+    if (faild_insert_database) {
         qDatabase.rollback();
-        XAMP_LOG_DEBUG("insertTrackInfo throw exception! {}", e.what());
     }
 }
 

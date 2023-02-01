@@ -92,7 +92,7 @@ public slots:
 
 	void OnClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
-	void OnUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+	void OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
 	void OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 

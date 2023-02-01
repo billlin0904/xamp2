@@ -19,7 +19,6 @@
 class StarDelegate;
 class ProcessIndicator;
 class PlayListSqlQueryTableModel;
-class PlayListTableFilterProxyModel;
 
 class PlayListTableView : public QTableView {
 	Q_OBJECT
@@ -30,96 +29,96 @@ public:
 
 	virtual ~PlayListTableView() override;
 
-	virtual void reload();
+	virtual void FastReload();
 
-	void disableDelete(bool enable = false) {
+	void DisableDelete(bool enable = false) {
 		enable_delete_ = enable;
 	}
 
-	void disableLoadFile(bool enable = false) {
+	void DisableLoadFile(bool enable = false) {
 		enable_load_file_ = enable;
 	}
 
-	void executeQuery();
+	void SetPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
-	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
+	void SetPodcastMode(bool enable = true);
 
-	void setPodcastMode(bool enable = true);
+	bool IsPodcastMode() const;
 
-	bool isPodcastMode() const;
+	int32_t GetPlaylistId() const;
 
-	int32_t playlistId() const;
+	void Reload();
 
-	void removePlaying();
+	void RemovePlaying();
 
-	void removeAll();
+	void RemoveAll();
 
-	void removeItem(const QModelIndex& index);
+	void RemoveItem(const QModelIndex& index);
 
-	void removeSelectItems();
+	void RemoveSelectItems();
 
-	void setNowPlaying(const QModelIndex& index, bool is_scroll_to = false);
+	void SetNowPlaying(const QModelIndex& index, bool is_scroll_to = false);
 
-	QModelIndex shuffeIndex();
+	QModelIndex GetShuffleIndex();
 
-	QModelIndex currentIndex() const;
+	QModelIndex GetCurrentIndex() const;
 
-    void setCurrentPlayIndex(const QModelIndex& index);
+    void SetCurrentPlayIndex(const QModelIndex& index);
 
-	QModelIndex nextIndex(int forward) const;
+	QModelIndex GetNextIndex(int forward) const;
 
-	std::optional<QModelIndex> selectItem() const;
+	std::optional<QModelIndex> GetSelectItem() const;
 
 	void play(const QModelIndex& index);
 
-	void setNowPlayState(PlayingState playing_state);
+	void SetNowPlayState(PlayingState playing_state);
 
-    void scrollToIndex(const QModelIndex& index);
+    void ScrollToIndex(const QModelIndex& index);
 
-	void resizeColumn();
+	void ResizeColumn();
 
-	OrderedMap<int32_t, QModelIndex> selectItemIndex() const;
+	OrderedMap<int32_t, QModelIndex> SelectItemIndex() const;
 
 	void append(const QString& file_name);
 
-	QModelIndex hoverIndex() const {
+	QModelIndex GetHoverIndex() const {
 		return model()->index(hover_row_, hover_column_);
 	}
 
-	void headerViewHidden(bool enable);
+	void SetHeaderViewHidden(bool enable);
+
 signals:
-	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
+	void UpdatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
-	void playMusic(const PlayListEntity& item);
+	void PlayMusic(const PlayListEntity& item);
 
-    void encodeFlacFile(const PlayListEntity& item);
+    void EncodeFlacFile(const PlayListEntity& item);
 
-	void encodeAACFile(const PlayListEntity& item, const EncodingProfile& profile);
+	void EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile);
 
-	void encodeWavFile(const PlayListEntity& item);
+	void EncodeWavFile(const PlayListEntity& item);
 
-    void readReplayGain(int32_t playlist_id, const ForwardList<PlayListEntity> &entities);
+    void ReadReplayGain(int32_t playlist_id, const ForwardList<PlayListEntity> &entities);
 
-	void updateAlbumCover(const QString &cover_id);
+	void UpdateAlbumCover(const QString &cover_id);
 
-	void addPlaylistItemFinished();
+	void AddPlaylistItemFinished();
 
-	void fetchPodcast(int32_t playlist_id);
+	void FetchPodcast(int32_t playlist_id);
 
-	void readTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
+	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
 		QString const& file_path,
 		int32_t playlist_id,
 		bool is_podcast_mode);
+
 public slots:
-	void processDatabase(const ForwardList<PlayListEntity>& entities);
+	void ProcessDatabase(const ForwardList<PlayListEntity>& entities);
 
-	void processTrackInfo(const ForwardList<TrackInfo>& entities);
+	void ProcessTrackInfo(const ForwardList<TrackInfo>& entities);
 
-	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
+	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
-	void onThemeColorChanged(QColor backgroundColor, QColor color);
-
-	void updateReplayGain(int32_t playlistId, 
+	void UpdateReplayGain(int32_t playlistId, 
 		const PlayListEntity& entity,
 		double track_loudness,
 		double album_rg_gain,
@@ -127,19 +126,19 @@ public slots:
 		double track_rg_gain,
 		double track_peak);
 
-	void onFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+	void OnFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
-	void onFetchPodcastError(const QString& msg);
+	void OnFetchPodcastError(const QString& msg);
 private:
 	PlayListEntity item(const QModelIndex& index);
 
-	void playItem(const QModelIndex& index);
+	void PlayItem(const QModelIndex& index);
 
-	void pauseItem(const QModelIndex& index);
+	void PauseItem(const QModelIndex& index);
 
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
-    void keyPressEvent(QKeyEvent *pEvent) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
     void resizeEvent(QResizeEvent* event) override;
 
@@ -148,19 +147,18 @@ private:
 	void initial();
 
 protected:
-    void downloadPodcast();
+    void DownloadPodcast();
 
-	bool podcast_mode_;
-	bool enable_delete_{true};
+	bool podcast_mode_{ false };
+	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
-	int32_t playlist_id_;
+	int32_t playlist_id_{ -1 };
 	QModelIndex play_index_;
 	StarDelegate* start_delegate_;	
     PlayListSqlQueryTableModel* model_;
-	PlayListTableFilterProxyModel* proxy_model_;
-    QSet<QString> notshow_column_names_;
+    QSet<QString> hidden_column_names_;
 	PRNG rng_;
 	QString column_setting_name_;
 	QSharedPointer<ProcessIndicator> indicator_;

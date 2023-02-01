@@ -35,15 +35,21 @@ struct ReplayGainJob {
 
 using DirPathHash = GoogleSipHash<>;
 
+static auto MakDirPathHash() noexcept -> DirPathHash {
+    static constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
+    static constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
+
+    return DirPathHash(kDirHashKey1, kDirHashKey2);
+}
+
 static void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
     bool is_podcast_mode) {
-    QDirIterator itr(dir, file_name_filters, 
-        QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
-    DirPathHash hasher(DatabaseFacade::kDirHashKey1, DatabaseFacade::kDirHashKey2);
+    auto hasher = MakDirPathHash();
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
@@ -130,7 +136,7 @@ void BackgroundWorker::OnProcessImage(const QString& file_path, const QByteArray
         try {
             qPixmapCache.OptimizeImageFromBuffer(file_path, buffer, tag_name);
         } catch (std::exception const &e) {
-            XAMP_LOG_E(logger_, "Faild to optimize image. {}", e.what());
+            XAMP_LOG_E(logger_, "Failed to optimize image. {}", e.what());
         }
     });
 }
@@ -143,7 +149,8 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, GetFileNameFilter(), filter);
-    DirPathHash hasher(DatabaseFacade::kDirHashKey1, DatabaseFacade::kDirHashKey2);
+
+    auto hasher = MakDirPathHash();
 
     Vector<QString> dirs;
 
@@ -178,7 +185,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
             return;
         }
     } catch (Exception const &e) {
-        XAMP_LOG_E(logger_, "Faild to get parent path. {}", e.GetErrorMessage());
+        XAMP_LOG_E(logger_, "Failed to get parent path. {}", e.GetErrorMessage());
         return;
     }    
 
@@ -195,8 +202,9 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
 			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
 		}
 		catch (Exception const& e) {
-			XAMP_LOG_D(logger_, "Faild to scan dir files! ", e.GetErrorMessage());
+			XAMP_LOG_D(logger_, "Failed to scan dir files! ", e.GetErrorMessage());
 		}
+
         emit adapter->ReadFileProgress(dir, progress);
 		++progress;
     });

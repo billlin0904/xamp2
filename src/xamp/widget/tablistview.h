@@ -26,18 +26,18 @@ class TabListView : public QListView {
 public:
     explicit TabListView(QWidget *parent = nullptr);
 
-    void addTab(const QString& name, int table_id, const QIcon &icon);
+    void AddTab(const QString& name, int table_id, const QIcon &icon);
 
-    void addSeparator();
+    void AddSeparator();
 
-    QString getTabName(int table_id) const;
+    QString GetTabName(int table_id) const;
 
-    int32_t getTabId(const QString &name) const;
+    int32_t GetTabId(const QString &name) const;
 
 signals:
-    void clickedTable(int table_id);
+    void ClickedTable(int table_id);
 
-    void tableNameChanged(int table_id, const QString &name);
+    void TableNameChanged(int table_id, const QString &name);
 
 private:
     QStandardItemModel model_;

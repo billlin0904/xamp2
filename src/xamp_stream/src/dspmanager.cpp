@@ -141,7 +141,10 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
 }
 
 bool DSPManager::DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
-    BufferOverFlowThrow(sample_writer_->Process(samples, num_samples, fifo));
+    ThrowIf<BufferOverflowException>(sample_writer_->Process(samples, num_samples, fifo), 
+        "Failed to write buffer, read:{} write:{}", 
+        fifo.GetAvailableRead(),
+        fifo.GetAvailableWrite());
     return false;
 }
 
@@ -168,10 +171,16 @@ bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer
     }
 
     if (post_dsp_.empty()) {
-        BufferOverFlowThrow(sample_writer_->Process(pre_dsp_buffer, fifo));
+        ThrowIf<BufferOverflowException>(sample_writer_->Process(pre_dsp_buffer, fifo),
+            "Failed to write pre buffer, read:{} write:{}",
+            fifo.GetAvailableRead(),
+            fifo.GetAvailableWrite());
     }
     else {
-        BufferOverFlowThrow(sample_writer_->Process(post_dsp_buffer, fifo));
+        ThrowIf<BufferOverflowException>(sample_writer_->Process(post_dsp_buffer, fifo),
+            "Failed to write post buffer, read:{} write:{}",
+            fifo.GetAvailableRead(),
+            fifo.GetAvailableWrite());
     }
     return false;
 }

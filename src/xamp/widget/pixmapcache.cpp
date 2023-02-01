@@ -37,7 +37,7 @@ PixmapCache::PixmapCache()
 	: logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName))
 	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = qTEXT("unknown_album");
-	cache_.Add(unknown_cover_id_, qTheme.unknownCover());
+	cache_.Add(unknown_cover_id_, qTheme.UnknownCover());
 	InitCachePath();
 	LoadCache();
 	startTimer(10000);
@@ -77,7 +77,7 @@ QPixmap PixmapCache::FindCoverInDir(const QString& file_path) {
     for (QDirIterator itr(dir, cover_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto image_file_path = itr.next();
-		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
 		QImageReader reader(image_file_path);
 		if (reader.read(&image)) {
 			return QPixmap::fromImage(image);
@@ -111,7 +111,7 @@ void PixmapCache::erase(const QString& tag_id) {
 }
 
 QPixmap PixmapCache::FromFileCache(const QString& tag_id) const {
-	QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+	QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
 	QImageReader reader(cache_path_ + tag_id + kCacheFileExtension);
 	if (reader.read(&image)) {
 		return QPixmap::fromImage(image);
@@ -127,7 +127,7 @@ QString PixmapCache::SavePixamp(const QPixmap &cover) {
     QByteArray array;
     QBuffer buffer(&array);
 
-    const auto cover_size = qTheme.cacheCoverSize();
+    const auto cover_size = qTheme.GetCacheCoverSize();
     const auto cache_cover = image_utils::ResizeImage(cover, cover_size, true);
 
 	QString tag_name;
@@ -156,7 +156,7 @@ void PixmapCache::OptimizeImageInDir(const QString& file_path) {
 		itr.hasNext();) {
 		const auto path = itr.next();
 		const QFileInfo image_file_path(path);
-		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
 		QImageReader reader(path);
 		if (reader.read(&image)) {
 			auto temp = QPixmap::fromImage(image);
@@ -177,7 +177,7 @@ void PixmapCache::LoadCache() const {
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
 		const auto path = itr.next();
-		QImage image(qTheme.cacheCoverSize(), QImage::Format_RGB32);
+		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
 		QImageReader reader(path);
 		if (reader.read(&image)) {
 			const QFileInfo image_file_path(path);
@@ -204,7 +204,7 @@ QPixmap PixmapCache::find(const QString& tag_id) const {
 	}
 
 	if (cover.isNull()) {
-		return qTheme.defaultSizeUnknownCover();
+		return qTheme.DefaultSizeUnknownCover();
 	}
 	return cover;
 }
