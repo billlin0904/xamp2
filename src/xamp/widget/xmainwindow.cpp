@@ -92,7 +92,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
     last_rect_ = win32::windowRect(winId());
 #else
-    if (!qTheme.useNativeWindow()) {
+    if (!qTheme.UseNativeWindow()) {
         if (content_widget_ != nullptr) {
             osx::hideTitleBar(content_widget_);
         }
@@ -538,7 +538,7 @@ void XMainWindow::ReadDriveInfo() {
 
 void XMainWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!qTheme.useNativeWindow() && content_widget_ != nullptr) {
+    if (!qTheme.UseNativeWindow() && content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
 	}
 #endif

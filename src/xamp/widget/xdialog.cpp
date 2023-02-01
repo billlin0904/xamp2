@@ -31,7 +31,7 @@ void XDialog::SetContentWidget(QWidget* content) {
 #ifdef Q_OS_WIN
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
 #else
-        setWindowFlags(windowFlags() & (~Qt::WindowMinMaxButtonsHint) & (~Qt::Dialog))
+        setWindowFlags(windowFlags() & ((~Qt::WindowMinMaxButtonsHint) & (~Qt::Dialog))
             | Qt::FramelessWindowHint | Qt::Window);
 #endif
         setAttribute(Qt::WA_TranslucentBackground);

@@ -298,7 +298,7 @@ QLatin1String ThemeManager::ThemeColorPath() const {
 
 QColor ThemeManager::GetThemeTextColor() const {
     auto color = Qt::black;
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         color = Qt::white;
         break;
@@ -316,7 +316,7 @@ QColor ThemeManager::BackgroundColor() const noexcept {
 QString ThemeManager::BackgroundColorString() const {
     QString color;
 
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         color = qTEXT("#19232D");
         break;
@@ -435,7 +435,7 @@ void ThemeManager::SetRepeatOncePlayOrder(Ui::XampWindow& ui) const {
 }
 
 QPixmap ThemeManager::GithubIcon() const {
-	if (GetThemeColor() == ThemeColor::DARK_THEME) {
+    if (GetThemeColor() == ThemeColor::DARK_THEME) {
         return QPixmap(qTEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
 	} else {
         return QPixmap(qTEXT(":/xamp/Resource/White/GitHub-Mark.png"));
@@ -524,7 +524,7 @@ void ThemeManager::ApplyTheme() {
 
     QString filename;
 
-    if (ThemeColor() == ThemeColor::LIGHT_THEME) {
+    if (GetThemeColor() == ThemeColor::LIGHT_THEME) {
         filename = qTEXT(":/xamp/Resource/Theme/light/style.qss");
     } else {
         filename = qTEXT(":/xamp/Resource/Theme/dark/style.qss");
@@ -547,7 +547,7 @@ QColor ThemeManager::GetTitleBarColor() const {
 }
 
 QColor ThemeManager::GetCoverShadowColor() const {
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         return Qt::black;
     case ThemeColor::LIGHT_THEME:
@@ -565,7 +565,7 @@ QSize ThemeManager::GetTabIconSize() const {
 }
 
 QColor ThemeManager::GetHoverColor() const {
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         return QColor(qTEXT("#43474e"));
     case ThemeColor::LIGHT_THEME:
@@ -575,7 +575,7 @@ QColor ThemeManager::GetHoverColor() const {
 }
 
 QColor ThemeManager::GetHighlightColor() const {
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::LIGHT_THEME:
         return QColor(qTEXT("#9FCBFF"));
     case ThemeColor::DARK_THEME:
@@ -716,7 +716,7 @@ void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::SetTextSeparator(QFrame *frame) {
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         frame->setStyleSheet(qTEXT("background-color: #37414F;"));
         break;
@@ -781,7 +781,7 @@ void ThemeManager::SetSliderTheme(QSlider* slider) {
     QString slider_border_color;
     QString slider_background_color;
 
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::LIGHT_THEME:
         slider_border_color = qTEXT("#C9CDD0");
         slider_background_color = qTEXT("#9FCBFF");
@@ -840,7 +840,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
     QString slider_border_color;
     QString slider_background_color;
 
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::LIGHT_THEME:
         slider_border_color = qTEXT("#C9CDD0");
         slider_background_color = qTEXT("#9FCBFF");
@@ -981,7 +981,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
     ));
 
     QString slider_bar_left_color;
-    switch (ThemeColor()) {
+    switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
         slider_bar_left_color = qTEXT("42, 130, 218");
         break;

@@ -1,5 +1,6 @@
 #include <stream/dsd_utils.h>
 #include <stream/bassexception.h>
+#include <base/exception.h>
 #include <base/str_utilts.h>
 
 namespace xamp::stream {
@@ -19,8 +20,10 @@ uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     case 256:
         return 705600;
     default:
-        throw NotSupportFormatException(String::Format("Not support DSD speed: {}.", dsd_speed));
+        break;
     }
+    Throw<NotSupportFormatException>("Not support DOP DSD speed: {}.", dsd_speed);
+    return 0;
 }
 
 }
