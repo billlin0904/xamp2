@@ -165,13 +165,13 @@ AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& setting
 PlaybackFormat GetPlaybackFormat(IAudioPlayer* player) {
     PlaybackFormat format;
 
-    if (player->IsDSDFile()) {
+    if (player->IsDsdFile()) {
         format.dsd_mode = player->GetDsdModes();
-        format.dsd_speed = *player->GetDSDSpeed();
+        format.dsd_speed = *player->GetDsdSpeed();
         format.is_dsd_file = true;
     }
 
-    format.enable_sample_rate_convert = player->GetDSPManager()->IsEnableSampleRateConverter();
+    format.enable_sample_rate_convert = player->GetDspManager()->IsEnableSampleRateConverter();
     format.file_format = player->GetInputFormat();
     format.output_format = player->GetOutputFormat();
     return format;

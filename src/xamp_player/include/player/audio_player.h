@@ -58,9 +58,9 @@ public:
 
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
 
-    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) override;
+    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
 
-    void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+    void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) override;
 
     void Play() override;
 
@@ -90,9 +90,9 @@ public:
 
     DsdModes GetDsdModes() const noexcept override;
 
-    bool IsDSDFile() const override;
+    bool IsDsdFile() const override;
 
-    std::optional<uint32_t> GetDSDSpeed() const override;
+    std::optional<uint32_t> GetDsdSpeed() const override;
 
     double GetDuration() const override;
 
@@ -110,7 +110,7 @@ public:
 
     const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 
-    AlignPtr<IDSPManager>& GetDSPManager() override;
+    AlignPtr<IDSPManager>& GetDspManager() override;
 
     bool CanConverter() const noexcept;
 
@@ -125,7 +125,7 @@ public:
 private:
     void DoSeek(double stream_time);        
     	
-    void OpenStream(Path const& file_path, DeviceInfo const& device_info);
+    void OpenStream(Path const& file_path, DsdModes dsd_mode);
 
     void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 
@@ -143,7 +143,7 @@ private:
 
     void OnDeviceStateChange(DeviceState state, std::string const & device_id) override;
 
-    void OpenDevice(double stream_time = 0.0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO);
+    void OpenDevice(double stream_time = 0.0);
 
     void SetState(PlayerState play_state);
 
@@ -161,7 +161,7 @@ private:
 
     void ReadPlayerAction();
 
-    void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
+    void SetStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
 
     void ProcessFadeOut();
 

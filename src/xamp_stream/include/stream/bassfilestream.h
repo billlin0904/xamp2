@@ -51,7 +51,7 @@ public:
 
     void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
 
-    uint32_t GetDsdSpeed() const noexcept override;
+    uint32_t GetDsdSpeed() const override;
 
 	uint32_t GetBitDepth() const override;
 

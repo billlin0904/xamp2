@@ -127,6 +127,9 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) n
 }
 
 static void WriteLog(std::ostringstream& ostr, size_t frame_count, CaptureStackAddress& addrlist) {
+    ostr.str("");
+    ostr.clear();
+
     ostr << "\r\nstack backtrace:\r\n";
 
     std::vector<uint8_t> symbol_buffer;
@@ -239,6 +242,7 @@ std::string StackTrace::CaptureStack() {
     const auto frame_count = ::CaptureStackBackTrace(1, kMaxStackFrameSize, addrlist.data(), nullptr);
     WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
+    return "";
 #else
     auto ParseSymbol = [](const std::string &symbol) -> std::vector<std::string> {
         std::istringstream iss(symbol);

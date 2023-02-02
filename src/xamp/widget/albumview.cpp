@@ -271,15 +271,17 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
-    page_->playlist()->RemoveAll();
-
     ForwardList<int32_t> add_playlist_music_ids;
+
+    page_->playlist()->RemoveAll();
 
     qDatabase.ForEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
             add_playlist_music_ids.push_front(entity.music_id);
         });
-    qDatabase.AddMusicToPlaylist(add_playlist_music_ids, page_->playlist()->GetPlaylistId());
+
+    IGNORE_DB_EXCEPTION(qDatabase.AddMusicToPlaylist(add_playlist_music_ids,
+        page_->playlist()->GetPlaylistId()))
 
     page_->playlist()->Reload();
     page_->title()->SetText(album);

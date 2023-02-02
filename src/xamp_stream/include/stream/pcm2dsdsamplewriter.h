@@ -16,7 +16,8 @@
 
 namespace xamp::stream {
 
-XAMP_MAKE_ENUM(Pcm2DsdConvertModes, 
+XAMP_MAKE_ENUM(Pcm2DsdConvertModes,
+	PCM2DSD_NONE,
 	PCM2DSD_DSD_DOP,
 	PCM2DSD_DSD_NATIVE)
 

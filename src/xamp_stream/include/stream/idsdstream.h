@@ -26,7 +26,7 @@ public:
 
     virtual void SetDsdToPcmSampleRate(uint32_t sample_rate) = 0;
 
-    [[nodiscard]] virtual uint32_t GetDsdSpeed() const noexcept = 0;
+    [[nodiscard]] virtual uint32_t GetDsdSpeed() const = 0;
 
     [[nodiscard]] virtual bool IsDsdFile() const noexcept = 0;
 

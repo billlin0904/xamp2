@@ -10,11 +10,13 @@
 #include <QSystemTrayIcon>
 
 #include <widget/widget_shared.h>
+
 #include <base/encodingprofile.h>
+#include <stream/pcm2dsdsamplewriter.h>
+
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
-#include <widget/albumentity.h>
 #include <widget/driveinfo.h>
 #include <widget/podcast_uiltis.h>
 
@@ -207,15 +209,19 @@ private:
 
 	void SliderAnimation(bool enable);
 
-	QString TranslateErrorCode(const Errors error);
+	QString TranslateErrorCode(const Errors error) const;
 
-	void SetupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format);
+	void SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
+		DsdModes dsd_modes,
+		int32_t input_sample_rate,
+		ByteFormat byte_format,
+		PlaybackFormat& playback_format) const;
 
 	void SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
 
-	bool ShowMeMessage(const QString &message);
+	static bool ShowMeMessage(const QString &message);
 
 	bool is_seeking_;
 	PlayerOrder order_;

@@ -898,16 +898,16 @@ void Xamp::SetupDsp(const PlayListEntity& item) {
     if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = AppSettings::ValueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
-            player_->GetDSPManager()->AddVolume();
+            player_->GetDspManager()->AddVolume();
             player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain);
         } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
-            player_->GetDSPManager()->AddVolume();
+            player_->GetDspManager()->AddVolume();
             player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.track_replay_gain);
         } else {
-            player_->GetDSPManager()->RemoveVolume();
+            player_->GetDspManager()->RemoveVolume();
         }
     } else {
-        player_->GetDSPManager()->RemoveVolume();
+        player_->GetDspManager()->RemoveVolume();
     }
 
     if (AppSettings::ValueAsBool(kAppSettingEnableEQ)) {
@@ -915,32 +915,63 @@ void Xamp::SetupDsp(const PlayListEntity& item) {
             const auto [name, settings] = 
                 AppSettings::GetEqSettings();
             player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
-            player_->GetDSPManager()->AddEqualizer();
+            player_->GetDspManager()->AddEqualizer();
         }
     } else {
-        player_->GetDSPManager()->RemoveEqualizer();
+        player_->GetDspManager()->RemoveEqualizer();
     }
 }
 
-QString Xamp::TranslateErrorCode(const Errors error) {
+QString Xamp::TranslateErrorCode(const Errors error) const {
     return fromStdStringView(EnumToString(error));
 }
 
-void Xamp::SetupSampleWriter(PlaybackFormat& playback_format, QString& samplerate_converter_type, ByteFormat byte_format) {
-    const auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
+static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo & device_info,
+    const Path & file_path,
+    int32_t input_sample_rate,
+    int32_t target_sample_rate) {
+    auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_NONE;
     auto dsd_modes = DsdModes::DSD_MODE_AUTO;
+    const auto is_enable_sample_rate_converter = target_sample_rate > 0;
+    const auto is_dsd_file = IsDsdFile(file_path);
 
-    uint32_t device_sample_rate = 0;
-	auto const convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
+    if (AppSettings::ValueAsBool(kEnablePcm2Dsd)
+        && !is_dsd_file
+        && !is_enable_sample_rate_converter
+        && input_sample_rate % kPcmSampleRate441 == 0) {
+        dsd_modes = DsdModes::DSD_MODE_DOP;
+        convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
+    }
 
-	// note: PCM2DSD function have some issue.
-	// 1. Only convert 44.1Khz 88.2Khz 176.4Khz ...
-	// 2. Fixed sample size input (can't use sample_rate converter).
+    if (dsd_modes == DsdModes::DSD_MODE_AUTO) {
+        if (is_dsd_file) {
+            if (device_info.is_support_dsd && !is_enable_sample_rate_converter) {
+                if (IsAsioDevice(device_info.device_type_id)) {
+                    dsd_modes = DsdModes::DSD_MODE_NATIVE;
+                }
+                else {
+                    dsd_modes = DsdModes::DSD_MODE_DOP;
+                }
+            } else {
+                dsd_modes = DsdModes::DSD_MODE_DSD2PCM;
+            }
+        } else {
+            dsd_modes = DsdModes::DSD_MODE_PCM;
+        }
+    }
 
-	if (AppSettings::ValueAsBool(kEnablePcm2Dsd)
-        && !player_->IsDSDFile()
-		&& !player_->GetDSPManager()->IsEnableSampleRateConverter()
-		&& input_sample_rate % kPcmSampleRate441 == 0) {
+    return { dsd_modes, convert_mode };
+}
+
+void Xamp::SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
+    DsdModes dsd_modes,
+    int32_t input_sample_rate,
+    ByteFormat byte_format,
+    PlaybackFormat& playback_format) const {
+
+	if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
+		uint32_t device_sample_rate = 0;
+
 		auto config = JsonSettings::ValueAsMap(kPCM2DSD);
 		auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
 		auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
@@ -953,26 +984,23 @@ void Xamp::SetupSampleWriter(PlaybackFormat& playback_format, QString& samplerat
 
 		if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
 			device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
-			dsd_modes = DsdModes::DSD_MODE_DOP;
 		} else {
 			device_sample_rate = writer->GetDsdSampleRate();
-			dsd_modes = DsdModes::DSD_MODE_NATIVE;
 		}
 
-		player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
+		player_->GetDspManager()->SetSampleWriter(std::move(pcm2dsd_writer));
 
-		player_->PrepareToPlay(byte_format, device_sample_rate, dsd_modes);
+		player_->PrepareToPlay(byte_format);
 		player_->SetReadSampleSize(writer->GetDataSize() * 2);
 
-        samplerate_converter_type = qEmptyString;
 		playback_format = GetPlaybackFormat(player_.get());
 		playback_format.is_dsd_file = true;
 		playback_format.dsd_mode = dsd_modes;
 		playback_format.dsd_speed = writer->GetDsdSpeed();
 		playback_format.output_format.SetSampleRate(device_sample_rate);
 	} else {
-		player_->GetDSPManager()->SetSampleWriter();
-		player_->PrepareToPlay(byte_format, device_sample_rate, dsd_modes);
+		player_->GetDspManager()->SetSampleWriter();
+		player_->PrepareToPlay(byte_format);
 		playback_format = GetPlaybackFormat(player_.get());
 	}
 }
@@ -1009,7 +1037,7 @@ void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 				target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
 
 				initial_sample_rate_converter = [=]() {
-					player_->GetDSPManager()->AddPreDSP(MakeSoxrSampleRateConverter(soxr_settings));
+					player_->GetDspManager()->AddPreDSP(MakeSoxrSampleRateConverter(soxr_settings));
 				};
 			}
 			else if (sample_rate_converter_type == kR8Brain) {
@@ -1017,7 +1045,7 @@ void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 				target_sample_rate = config[kResampleSampleRate].toUInt();
 
 				initial_sample_rate_converter = [=]() {
-					player_->GetDSPManager()->AddPreDSP(MakeR8BrainSampleRateConverter());
+					player_->GetDspManager()->AddPreDSP(MakeR8BrainSampleRateConverter());
 				};
 			}
 		}
@@ -1046,20 +1074,28 @@ void Xamp::play(const PlayListEntity& item) {
     std::function<void()> sample_rate_converter_factory;
     SetupSampleRateConverter(sample_rate_converter_factory, target_sample_rate, sample_rate_converter_type);
 
+    const auto [open_dsd_mode, convert_mode] = GetDsdModes(device_info_,
+        item.file_path.toStdWString(),
+        item.sample_rate,
+        target_sample_rate);
+
     try {
-        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
+        player_->Open(item.file_path.toStdWString(),
+            device_info_, 
+            target_sample_rate,
+            open_dsd_mode);
 
         if (!sample_rate_converter_factory) {
-            player_->GetDSPManager()->RemoveSampleRateConverter();
-            player_->GetDSPManager()->RemoveVolume();
-            player_->GetDSPManager()->RemoveEqualizer();
+            player_->GetDspManager()->RemoveSampleRateConverter();
+            player_->GetDspManager()->RemoveVolume();
+            player_->GetDspManager()->RemoveEqualizer();
 
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
                 byte_format = ByteFormat::SINT16;
             }
         } else {
             if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
-                player_->GetDSPManager()->RemoveSampleRateConverter();
+                player_->GetDspManager()->RemoveSampleRateConverter();
             }
             else {
                 sample_rate_converter_factory();
@@ -1069,7 +1105,7 @@ void Xamp::play(const PlayListEntity& item) {
 
         // note: Only PCM dsd modes enable compressor.
         if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
-            player_->GetDSPManager()->AddCompressor();
+            player_->GetDspManager()->AddCompressor();
         }
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
@@ -1083,7 +1119,15 @@ void Xamp::play(const PlayListEntity& item) {
             byte_format = ByteFormat::SINT16;
         }
 
-        SetupSampleWriter(playback_format, sample_rate_converter_type, byte_format);
+        if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
+            sample_rate_converter_type = qEmptyString;
+        }
+
+        SetupSampleWriter(convert_mode,
+            open_dsd_mode,
+            item.sample_rate,
+            byte_format,
+            playback_format);
 
         playback_format.bit_rate = item.bit_rate;
         if (sample_rate_converter_type == kR8Brain) {

@@ -29,9 +29,9 @@ public:
 
 	virtual void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) = 0;
 
-    virtual void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) = 0;
+    virtual void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
-    virtual void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
+    virtual void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) = 0;
 
     virtual void SetReadSampleSize(uint32_t num_samples) = 0;
 
@@ -67,9 +67,9 @@ public:
 
     [[nodiscard]] virtual DsdModes GetDsdModes() const noexcept = 0;
 
-    [[nodiscard]] virtual bool IsDSDFile() const = 0;
+    [[nodiscard]] virtual bool IsDsdFile() const = 0;
 
-    [[nodiscard]] virtual std::optional<uint32_t> GetDSDSpeed() const = 0;
+    [[nodiscard]] virtual std::optional<uint32_t> GetDsdSpeed() const = 0;
 
     [[nodiscard]] virtual double GetDuration() const = 0;
 
@@ -87,7 +87,7 @@ public:
 
     virtual const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
 
-    virtual AlignPtr<IDSPManager>& GetDSPManager() = 0;
+    virtual AlignPtr<IDSPManager>& GetDspManager() = 0;
 
     virtual AnyMap& GetDspConfig() = 0;
 protected:

@@ -427,7 +427,7 @@ void BassFileStream::SetDsdToPcmSampleRate(uint32_t sample_rate) {
     stream_->SetDsdToPcmSampleRate(sample_rate);
 }
 
-uint32_t BassFileStream::GetDsdSpeed() const noexcept {
+uint32_t BassFileStream::GetDsdSpeed() const {
     return stream_->GetDsdSpeed();
 }
 

@@ -269,7 +269,9 @@ void PlayListTableView::Reload() {
     )");
     const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
     model_->setQuery(query);
-    model_->lastError();
+    if (model_->lastError().type() != QSqlError::NoError) {
+        XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
+    }
     model_->dataChanged(QModelIndex(), QModelIndex());
 }
 
@@ -389,7 +391,6 @@ void PlayListTableView::SetHeaderViewHidden(bool enable) {
 	}
 
     horizontalHeader()->show();
-    setColumnHidden(PLAYLIST_COVER_ID, true);
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlayListTableView> action_map(this);
@@ -741,6 +742,7 @@ bool PlayListTableView::IsPodcastMode() const {
 void PlayListTableView::SetPodcastMode(bool enable) {
     podcast_mode_ = enable;
     if (podcast_mode_) {
+        setColumnHidden(PLAYLIST_DURATION, true);
         horizontalHeader()->setContextMenuPolicy(Qt::NoContextMenu);
     }
 }

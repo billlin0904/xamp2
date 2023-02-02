@@ -15,7 +15,6 @@
 #include <output_device/win32/asiodevicetype.h>
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
-#include <output_device/ivolumelevel.h>
 
 #include <stream/api.h>
 #include <stream/dspmanager.h>
@@ -26,8 +25,6 @@
 #include <stream/compressorparameters.h>
 #include <stream/iaudioprocessor.h>
 
-#include <player/ebur128reader.h>
-#include <player/mbdiscid.h>
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_player.h>
 
@@ -61,38 +58,34 @@ inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
-static std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path,
-    DeviceInfo const& device_info,
-    const bool enable_sample_converter) {
-    const auto is_dsd_file = IsDsdFile(path);
-    AlignPtr<FileStream> file_stream;
-    auto dsd_mode = DsdModes::DSD_MODE_PCM;
-    if (is_dsd_file) {
-        if (device_info.is_support_dsd && !enable_sample_converter) {
-            if (IsAsioDevice(device_info.device_type_id)) {
-                file_stream = StreamFactory::MakeFileStream(DsdModes::DSD_MODE_NATIVE);
-                dsd_mode = DsdModes::DSD_MODE_NATIVE;
-            }
-            else {
-                file_stream = StreamFactory::MakeFileStream(DsdModes::DSD_MODE_DOP);
-                dsd_mode = DsdModes::DSD_MODE_DOP;
-            }
-            if (auto* dsd_stream = AsDsdStream(file_stream)) {
-                dsd_stream->SetDSDMode(dsd_mode);
-            }
-        }
-        else {
-            dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
-            file_stream = StreamFactory::MakeFileStream(dsd_mode);
-        }
-    }
-    else {
-        dsd_mode = DsdModes::DSD_MODE_PCM;
-        file_stream = StreamFactory::MakeFileStream(dsd_mode);
-    }
+static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode) {
+    auto file_stream = StreamFactory::MakeFileStream(dsd_mode);
 
-    file_stream->OpenFile(path);
-    return std::make_pair(dsd_mode, std::move(file_stream));
+    /*if (auto* dsd_stream = AsDsdStream(file_stream)) {
+        switch (dsd_mode) {
+        case DsdModes::DSD_MODE_DOP:
+            if (!dsd_stream->SupportDOP()) {
+                throw NotSupportFormatException();
+            }
+            break;
+        case DsdModes::DSD_MODE_DOP_AA:
+            if (!dsd_stream->SupportDOP_AA()) {
+                throw NotSupportFormatException();
+            }
+            break;
+        case DsdModes::DSD_MODE_NATIVE:
+            if (!dsd_stream->SupportNativeSD()) {
+                throw NotSupportFormatException();
+            }
+            break;
+        case DsdModes::DSD_MODE_DSD2PCM:
+            break;
+        default:
+            throw NotSupportFormatException();
+        }
+        dsd_stream->SetDSDMode(dsd_mode);
+    }*/
+    return file_stream;
 }
 
 #ifdef ENABLE_ASIO
@@ -200,12 +193,12 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
     }
 }
 
-void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate) {
+void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
     CloseDevice(true);
     UpdateProgress();
-    target_sample_rate_ = target_sample_rate;
-    OpenStream(file_path, device_info);
+    OpenStream(file_path, output_mode);
     device_info_ = device_info;
+    target_sample_rate_ = target_sample_rate;
     XAMP_LOG_D(logger_,
         "Deveice min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
         device_info_.min_volume,
@@ -243,66 +236,41 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
     device_->SetAudioCallback(this);
 }
 
-bool AudioPlayer::IsDSDFile() const {
+bool AudioPlayer::IsDsdFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
+void AudioPlayer::SetStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
+    dsd_mode_ = dsd_mode;
+
+    stream_duration_ = stream->GetDuration();
+    input_format_ = stream->GetFormat();
+
     if (dsd_mode == DsdModes::DSD_MODE_PCM) {
-        stream_ = std::move(stream);
-        dsd_mode_ = dsd_mode;
+        dsd_speed_ = std::nullopt;
         return;
     }
 
     if (const auto* dsd_stream = AsDsdStream(stream)) {
-        switch (dsd_mode) {
-        case DsdModes::DSD_MODE_DOP:
-            if (!dsd_stream->SupportDOP()) {
-                throw NotSupportFormatException();
-            }
-            break;
-        case DsdModes::DSD_MODE_DOP_AA:
-            if (!dsd_stream->SupportDOP_AA()) {
-                throw NotSupportFormatException();
-            }
-            break;
-        case DsdModes::DSD_MODE_NATIVE:
-            if (!dsd_stream->SupportNativeSD()) {
-                throw NotSupportFormatException();
-            }
-            break;
-        case DsdModes::DSD_MODE_DSD2PCM:
-            break;
-        default:
-            throw NotSupportFormatException();
+        if (!dsd_stream->IsDsdFile()) {
+            return;
         }
-
-        stream_ = std::move(stream);
-        dsd_mode_ = dsd_mode;
-
-        auto* the_stream = AsDsdStream(stream_);
-        the_stream->SetDSDMode(dsd_mode_);
-        if (the_stream->IsDsdFile()) {
-            is_dsd_file_ = true;
-            dsd_speed_ = the_stream->GetDsdSpeed();
-        }
-        else {
-            is_dsd_file_ = false;
-            dsd_speed_ = std::nullopt;
-        }
-    }
-    else {
-        throw NotSupportFormatException();
+        is_dsd_file_ = true;
+        dsd_speed_ = dsd_stream->GetDsdSpeed();
+    } else {
+        is_dsd_file_ = false;
+        dsd_speed_ = std::nullopt;
     }
 }
 
-void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_info) {
-    auto [dsd_mode, stream] = MakeFileStream(file_path, device_info, target_sample_rate_ != 0);
-    SetDSDStreamMode(dsd_mode, stream);
-    stream_duration_ = stream_->GetDuration();
-    input_format_ = stream_->GetFormat();
+void AudioPlayer::OpenStream(Path const& file_path, DsdModes dsd_mode) {
+    stream_ = MakeFileStream(dsd_mode);
+    stream_->OpenFile(file_path);
+    SetStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
-        stream_->GetDescription(), dsd_mode_, stream_duration_.load());
+        stream_->GetDescription(),
+        dsd_mode_,
+        stream_duration_.load());
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -399,7 +367,7 @@ void AudioPlayer::ProcessFadeOut() {
     if (!device_) {
         return;
     }
-    if (!GetDSPManager()->IsEnablePcm2DsdConverter()) {
+    if (!GetDspManager()->IsEnablePcm2DsdConverter()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_PCM
             || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM) {
             XAMP_LOG_D(logger_, "Process fadeout.");
@@ -494,7 +462,7 @@ void AudioPlayer::SetMute(bool mute) {
     device_->SetMute(mute);
 }
 
-std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
+std::optional<uint32_t> AudioPlayer::GetDsdSpeed() const {
     return dsd_speed_;	
 }
 
@@ -690,28 +658,23 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
     }
 }
 
-void AudioPlayer::OpenDevice(double stream_time, DsdModes output_mode) {
+void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto* dsd_output = AsDsdDevice(device_)) {
-        if (output_mode == DsdModes::DSD_MODE_AUTO) {
+        if (dsd_mode_ == DsdModes::DSD_MODE_AUTO || dsd_mode_ == DsdModes::DSD_MODE_PCM) {
             if (const auto* const dsd_stream = AsDsdStream(stream_)) {
-                if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE || dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_DOP) {
+                if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
                     dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
-                    dsd_mode_ = dsd_stream->GetDsdMode();
                 }
                 else {
                     dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
-                    dsd_mode_ = DsdModes::DSD_MODE_PCM;
                 }
             }
         } else {
             output_format_.SetFormat(DataFormat::FORMAT_DSD);
             output_format_.SetByteFormat(ByteFormat::SINT8);
             dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
-            dsd_mode_ = output_mode;
         }
-    } else {
-        dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
 #endif
     device_->OpenStream(output_format_);
@@ -722,9 +685,7 @@ void AudioPlayer::BufferStream(double stream_time) {
     XAMP_LOG_D(logger_, "Buffing samples : {:.2f}msec", stream_time);
 
     fifo_.Clear();
-
     stream_->Seek(stream_time);
-
     sample_size_ = stream_->GetSampleSize();    
     BufferSamples(stream_, kBufferStreamCount);
 }
@@ -831,7 +792,7 @@ const AlignPtr<IAudioDeviceManager>& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
 }
 
-AlignPtr<IDSPManager>& AudioPlayer::GetDSPManager() {
+AlignPtr<IDSPManager>& AudioPlayer::GetDspManager() {
     return dsp_manager_;
 }
 
@@ -965,16 +926,19 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     return DataCallbackResult::CONTINUE;
 }
 
-void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_rate, DsdModes output_mode) {
+void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_rate) {
     if (device_sample_rate != 0) {
         target_sample_rate_ = device_sample_rate;
     }
+
     SetDeviceFormat();
-    if (byte_format != ByteFormat::INVALID_FORMAT) {
+
+	if (byte_format != ByteFormat::INVALID_FORMAT) {
         output_format_.SetByteFormat(byte_format);
     }
+
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
-    OpenDevice(0, output_mode);
+    OpenDevice(0);
     CreateBuffer();
 
     config_.AddOrReplace(DspConfig::kInputFormat, std::any(input_format_));

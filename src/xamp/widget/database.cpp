@@ -1044,9 +1044,9 @@ int32_t Database::AddOrUpdateArtist(const QString& artist) {
     VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist, :firstChar)
     )"));
 
-    auto firstChar = artist.left(1);
+    const auto first_char = artist.left(1);
     query.bindValue(qTEXT(":artist"), artist);
-    query.bindValue(qTEXT(":firstChar"), firstChar.toUpper());
+    query.bindValue(qTEXT(":firstChar"), first_char.toUpper());
 
     THROW_IF_FAIL1(query);
 
