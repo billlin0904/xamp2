@@ -161,7 +161,7 @@ private:
 
     void ReadPlayerAction();
 
-    void SetStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
+    void ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
 
     void ProcessFadeOut();
 

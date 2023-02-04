@@ -68,7 +68,8 @@ public:
 
     void LoadMemoryMappedFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
         file_.Open(file_path);
-        if (!PrefetchFile(file_, file_.GetLength())) {
+
+        if (!PrefetchFile(file_)) {
             XAMP_LOG_D(logger_, "PrefetchFile return failure!");
         }
 
@@ -104,9 +105,9 @@ public:
                     0,
                     flags | BASS_UNICODE | BASS_STREAM_DECODE));
                 return;
-            }            
+            }
 
-            LoadFile(file_path, mode, flags);
+            LoadMemoryMappedFile(file_path, mode, flags);
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);

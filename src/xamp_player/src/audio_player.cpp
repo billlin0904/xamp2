@@ -61,30 +61,35 @@ inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode) {
     auto file_stream = StreamFactory::MakeFileStream(dsd_mode);
 
-    /*if (auto* dsd_stream = AsDsdStream(file_stream)) {
-        switch (dsd_mode) {
-        case DsdModes::DSD_MODE_DOP:
-            if (!dsd_stream->SupportDOP()) {
-                throw NotSupportFormatException();
+    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
+        if (auto* dsd_stream = AsDsdStream(file_stream)) {
+            switch (dsd_mode) {
+            case DsdModes::DSD_MODE_DOP:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DOP_AA:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP_AA(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_NATIVE:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportNativeSD(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DSD2PCM:
+                break;
+            default:
+                Throw<NotSupportFormatException>(
+                    "Not support dsd-mode: {}.", dsd_mode);
+                break;
             }
-            break;
-        case DsdModes::DSD_MODE_DOP_AA:
-            if (!dsd_stream->SupportDOP_AA()) {
-                throw NotSupportFormatException();
-            }
-            break;
-        case DsdModes::DSD_MODE_NATIVE:
-            if (!dsd_stream->SupportNativeSD()) {
-                throw NotSupportFormatException();
-            }
-            break;
-        case DsdModes::DSD_MODE_DSD2PCM:
-            break;
-        default:
-            throw NotSupportFormatException();
+            dsd_stream->SetDSDMode(dsd_mode);
         }
-        dsd_stream->SetDSDMode(dsd_mode);
-    }*/
+    }
+
     return file_stream;
 }
 
@@ -240,7 +245,7 @@ bool AudioPlayer::IsDsdFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::SetStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
+void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
     dsd_mode_ = dsd_mode;
 
     stream_duration_ = stream->GetDuration();
@@ -266,7 +271,7 @@ void AudioPlayer::SetStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream)
 void AudioPlayer::OpenStream(Path const& file_path, DsdModes dsd_mode) {
     stream_ = MakeFileStream(dsd_mode);
     stream_->OpenFile(file_path);
-    SetStreamInfo(dsd_mode, stream_);
+    ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
         stream_->GetDescription(),
         dsd_mode_,
