@@ -27,8 +27,8 @@ public:
 #if defined(Q_OS_WIN)
 	bool event(QEvent* evt) override {
 		if (evt->type() == QEvent::WinIdChange) {
-			win32::setAccentPolicy(winId());
-			win32::addDwmMenuShadow(winId());
+			win32::SetAccentPolicy(winId());
+			win32::AddDwmMenuShadow(winId());
 		}
 		return QMenu::event(evt);
 	}

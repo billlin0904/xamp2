@@ -23,6 +23,7 @@ class PlayListSqlQueryTableModel;
 class PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
+	static constexpr auto kMinimalEncodingBitRate = 128;
     static constexpr auto kMaxStretchedSize = 500;
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);

@@ -39,7 +39,7 @@ public:
     }
 
 struct AlbumStats {
-    int32_t tracks{ 0 };
+    int32_t songs{ 0 };
     double durations{ 0 };
     int32_t year{ 0 };
     size_t file_size{ 0 };

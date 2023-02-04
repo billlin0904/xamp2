@@ -289,7 +289,7 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
 
     if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
-            .arg(QString::number(album_stats.value().tracks))
+            .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year))
             .arg(formatBytes(album_stats.value().file_size))

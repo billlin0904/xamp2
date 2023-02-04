@@ -590,10 +590,10 @@ void PlayListTableView::initial() {
         const auto select_row = selectionModel()->selectedRows();
         if (!select_row.isEmpty()) {
             auto* export_aac_file_submenu = action_map.AddSubMenu(tr("Export AAC file"));
-
             for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
                 if (profile.num_channels != AudioFormat::kMaxChannel
-                    && profile.bitrate < (128 * 1024)) {
+                    && profile.sample_rate < AudioFormat::k16BitPCM441Khz.GetSampleRate()
+                    && profile.bitrate < kMinimalEncodingBitRate) {
                     continue;
                 }
 
@@ -606,7 +606,7 @@ void PlayListTableView::initial() {
                     const auto rows = SelectItemIndex();
                     for (const auto& row : rows) {
                         auto entity = this->item(row.second);
-                        if (entity.sample_rate > AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
+                        if (entity.sample_rate != profile.sample_rate) {
                             continue;
                         }
                         emit EncodeAacFile(entity, profile);

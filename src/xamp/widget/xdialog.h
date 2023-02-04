@@ -8,6 +8,8 @@
 #include <QDialog>
 #include <widget/xframe.h>
 
+class QGraphicsDropShadowEffect;
+
 class XDialog : public QDialog {
     Q_OBJECT
 public:
@@ -37,5 +39,6 @@ private:
     QScreen* current_screen_{ nullptr };
 #endif
     XFrame* frame_{ nullptr };
+    QGraphicsDropShadowEffect* shadow_{ nullptr };
 };
 

@@ -29,18 +29,18 @@ void XDialog::SetContentWidget(QWidget* content) {
 
     if (!qTheme.UseNativeWindow()) {
 #ifdef Q_OS_WIN
-        setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+        setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+        shadow_ = new QGraphicsDropShadowEffect(frame_);
+        shadow_->setColor(Qt::gray);
+        shadow_->setBlurRadius(20);
+        shadow_->setOffset(0.0);
+        frame_->setGraphicsEffect(shadow_);
 #else
         setWindowFlags(windowFlags() & ((~Qt::WindowMinMaxButtonsHint) & (~Qt::Dialog))
             | Qt::FramelessWindowHint | Qt::Window);
 #endif
-        setAttribute(Qt::WA_TranslucentBackground);
-        setAttribute(Qt::WA_StyledBackground);
     } else {
-        setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
-#ifdef Q_OS_WIN
-        win32::setTitleBarColor(winId(), qTheme.GetThemeColor());
-#endif
+        setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
     }
 
     auto* default_layout = new QGridLayout(this);

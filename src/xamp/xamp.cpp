@@ -1239,8 +1239,8 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     }
 
     if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
-        cd_page_->playlistPage()->format()->setText(tr("%1 Tracks, %2, %3")
-            .arg(QString::number(album_stats.value().tracks))
+        cd_page_->playlistPage()->format()->setText(tr("%1 Songs, %2, %3")
+            .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year)));
     }
@@ -1689,31 +1689,26 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 
     QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 
-    TrackInfo metadata;
-    metadata.album = item.album.toStdWString();
-    metadata.artist = item.artist.toStdWString();
-    metadata.title = item.title.toStdWString();
-    metadata.track = item.track;
+    TrackInfo track_info;
+    track_info.album = item.album.toStdWString();
+    track_info.artist = item.artist.toStdWString();
+    track_info.title = item.title.toStdWString();
+    track_info.track = item.track;
+
+    AnyMap config;
+    config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(item.file_path.toStdWString()));
+    config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(file_name.toStdWString()));
+    config.AddOrReplace(FileEncoderConfig::kEncodingProfile, profile);
 
     try {
         auto encoder = StreamFactory::MakeAACEncoder();
-#ifdef XAMP_OS_WIN
-        auto *mf_aac_encode = dynamic_cast<MFAACFileEncoder*>(encoder.get());
-        mf_aac_encode->SetEncodingProfile(profile);
-#else
-        auto *bass_aac_encoder = dynamic_cast<BassAACFileEncoder*>(encoder.get());
-        bass_aac_encoder->SetEncodingProfile(profile);
-#endif
-
-        read_utiltis::EncodeFile(item.file_path.toStdWString(),
-            file_name.toStdWString(),
+        read_utiltis::EncodeFile(config,
             encoder,
-            L"",
             [&](auto progress) -> bool {
                 dialog->SetValue(progress);
                 qApp->processEvents();
                 return dialog->WasCanceled() != true;
-            }, metadata);
+            }, track_info);
     }
     catch (Exception const& e) {
         XMessageBox::ShowError(qTEXT(e.what()));

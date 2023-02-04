@@ -73,24 +73,22 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
 
 #if defined(Q_OS_WIN)
     if (!qTheme.UseNativeWindow()) {
-        setWindowTitle(kApplicationTitle);
-        setAttribute(Qt::WA_TranslucentBackground, true);
-        setAttribute(Qt::WA_StyledBackground, true);
-        setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
-        win32::setFramelessWindowStyle(winId());
-        win32::addDwmShadow(winId());
+        setWindowTitle(kApplicationTitle);        
+        setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
+        win32::SetFramelessWindowStyle(winId());
+        win32::AddDwmShadow(winId());
         if (AppSettings::ValueAsBool(kAppSettingEnableBlur)) {
             content_widget_->setAttribute(Qt::WA_TranslucentBackground, true);
         }
         installEventFilter(this);
+        win32::SetAccentPolicy(winId());
     } else {
-        win32::setWindowedWindowStyle(winId());
-        win32::setTitleBarColor(winId(), qTheme.GetThemeColor());
-        win32::addDwmShadow(winId());
+        win32::SetWindowedWindowStyle(winId());
+        win32::AddDwmShadow(winId());
         setMouseTracking(true);
     }
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
-    last_rect_ = win32::windowRect(winId());
+    last_rect_ = win32::GetWindowRect(winId());
 #else
     if (!qTheme.UseNativeWindow()) {
         if (content_widget_ != nullptr) {
@@ -110,6 +108,8 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         ReadDriveInfo();
         });
 #endif
+
+    win32::IsValidMutexName("285d604e-5bdb-7900-81f1-ad9fd2bad315", "guest");
 }
 
 // QScopedPointer require default destructor.
@@ -279,7 +279,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long*
         *result = WM_NCPAINT;
         return true;
     case WM_NCACTIVATE:
-        if (win32::compositionEnabled()) {
+        if (win32::IsCompositionEnabled()) {
             *result = DefWindowProc(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
         }
         else {
@@ -299,7 +299,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long*
     break;
     case WM_WININICHANGE:
         if (!lstrcmp(reinterpret_cast<LPCTSTR>(msg->lParam), L"ImmersiveColorSet")) {
-            SystemThemeChanged(win32::isDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
+            SystemThemeChanged(win32::IsDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
         }
         break;
     case WM_HOTKEY:
@@ -323,7 +323,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long*
 
 void XMainWindow::SaveGeometry() {
 #if defined(Q_OS_WIN) 
-    AppSettings::SetValue(kAppSettingGeometry, win32::windowRect(winId()));
+    AppSettings::SetValue(kAppSettingGeometry, win32::GetWindowRect(winId()));
     AppSettings::SetValue(kAppSettingWindowState, isMaximized());
     AppSettings::SetValue(kAppSettingScreenNumber, screen_number_);
     XAMP_LOG_INFO("restoreGeometry: ({}, {}, {}, {})", last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
@@ -340,7 +340,7 @@ void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
 
 void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
-    task_bar_->setTaskbarProgress(percent);
+    task_bar_->SetTaskbarProgress(percent);
 #else
     (void)percent;
 #endif
@@ -348,31 +348,31 @@ void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 
 void XMainWindow::ResetTaskbarProgress() {
 #if defined(Q_OS_WIN)
-    task_bar_->resetTaskbarProgress();
+    task_bar_->ResetTaskbarProgress();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayingResume() {
 #if defined(Q_OS_WIN)
-    task_bar_->setTaskbarPlayingResume();
+    task_bar_->SetTaskbarPlayingResume();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerPaused() {
 #if defined(Q_OS_WIN)
-    task_bar_->setTaskbarPlayerPaused();
+    task_bar_->SetTaskbarPlayerPaused();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerPlaying() {
 #if defined(Q_OS_WIN)
-    task_bar_->setTaskbarPlayerPlaying();
+    task_bar_->SetTaskbarPlayerPlaying();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
-    task_bar_->setTaskbarPlayerStop();
+    task_bar_->SetTaskbarPlayerStop();
 #endif
 }
 
@@ -696,7 +696,7 @@ void XMainWindow::mouseMoveEvent(QMouseEvent* event) {
         move(event->globalPos() - last_pos_);
     }
 
-    last_rect_ = win32::windowRect(winId());
+    last_rect_ = win32::GetWindowRect(winId());
 
     if (current_screen_ == nullptr) {
         current_screen_ = content_widget_->window()->windowHandle()->screen();

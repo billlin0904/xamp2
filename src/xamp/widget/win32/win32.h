@@ -7,7 +7,6 @@
 
 #include <QWidget>
 #include <QIcon>
-#include <QAbstractNativeEventFilter>
 
 #include "thememanager.h"
 
@@ -19,23 +18,23 @@ class QWinTaskbarProgress;
 
 namespace win32 {
 
-class WinTaskbar {
+class WinTaskbar final {
 public:
     WinTaskbar(XMainWindow* window, IXFrame* player_frame);
 
     ~WinTaskbar();
 
-    void setTaskbarProgress(const int32_t percent);
+    void SetTaskbarProgress(const int32_t percent);
 
-    void resetTaskbarProgress();
+    void ResetTaskbarProgress();
 
-    void setTaskbarPlayingResume();
+    void SetTaskbarPlayingResume();
 
-    void setTaskbarPlayerPaused();
+    void SetTaskbarPlayerPaused();
 
-    void setTaskbarPlayerPlaying();
+    void SetTaskbarPlayerPlaying();
 
-    void setTaskbarPlayerStop();
+    void SetTaskbarPlayerStop();
 
     void showEvent();
 
@@ -52,19 +51,17 @@ private:
     QWinTaskbarProgress* taskbar_progress_;
 };
 
-void setAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0) noexcept;
-void setFramelessWindowStyle(const WId window_id) noexcept;
-void setWindowedWindowStyle(const WId window_id) noexcept;
-void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept;
-void addDwmShadow(const WId window_id) noexcept;
-void addDwmMenuShadow(const WId window_id) noexcept;
-bool isWindowMaximized(const WId window_id) noexcept;
-bool compositionEnabled() noexcept;
-QRect windowRect(const WId window_id) noexcept;
-QColor colorizationColor() noexcept;
-bool isDarkModeAppEnabled() noexcept;
-std::string getRandomMutexName(const std::string& src_name);
-bool isRunning(const std::string& mutex_name);
+void SetAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0);
+void SetFramelessWindowStyle(const WId window_id);
+void SetWindowedWindowStyle(const WId window_id);
+void AddDwmShadow(const WId window_id);
+void AddDwmMenuShadow(const WId window_id);
+bool IsCompositionEnabled();
+QRect GetWindowRect(const WId window_id);
+QColor GetColorizationColor();
+bool IsDarkModeAppEnabled();
+std::string GetRandomMutexName(const std::string& src_name);
+bool IsValidMutexName(const std::string& guid, const std::string& mutex_name);
 
 }
 
