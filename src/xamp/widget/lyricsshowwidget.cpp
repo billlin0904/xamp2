@@ -251,8 +251,9 @@ void LyricsShowWidget::LoadLrc(const QString& lrc) {
 }
 
 void LyricsShowWidget::SetLrc(const QString &lrc, const QString& trlyrc) {
-	lrc_ = lrc;
+	orilyrc_ = lrc;
 	trlyrc_ = trlyrc;
+	lrc_ = orilyrc_;
 	stop();
 	LoadLrc(lrc_);
 }

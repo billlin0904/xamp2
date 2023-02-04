@@ -642,7 +642,7 @@ std::optional<AlbumStats> Database::GetAlbumStats(int32_t album_id) const {
 
     while (query.next()) {
         AlbumStats stats;
-        stats.tracks = query.value(qTEXT("tracks")).toInt();
+        stats.songs = query.value(qTEXT("tracks")).toInt();
         stats.year = query.value(qTEXT("year")).toInt();
         stats.durations = query.value(qTEXT("durations")).toDouble();
         stats.file_size = query.value(qTEXT("fileSize")).toULongLong();

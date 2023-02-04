@@ -398,7 +398,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<Pl
             });
 
         if (album.size() != jobs.play_list_entities.size()) {
-            XAMP_LOG_DEBUG("Abnormal completed completed tacks:{} all tracks:{}",
+            XAMP_LOG_DEBUG("Abnormal completed completed tacks:{} all songs:{}",
                 jobs.play_list_entities.size(),
                 album.size());
             continue;

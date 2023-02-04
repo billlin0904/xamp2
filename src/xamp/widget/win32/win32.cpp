@@ -164,170 +164,8 @@ void
 WINAPI
 RefreshImmersiveColorPolicyState();
 
-typedef struct _LSA_UNICODE_STRING {
-	USHORT Length;
-	USHORT MaximumLength;
-	PWSTR  Buffer;
-} LSA_UNICODE_STRING, * PLSA_UNICODE_STRING, UNICODE_STRING, * PUNICODE_STRING;
-
-typedef struct _OBJECT_NAME_INFORMATION {
-	UNICODE_STRING Name;
-} OBJECT_NAME_INFORMATION, * POBJECT_NAME_INFORMATION;
-
-typedef enum _POOL_TYPE {
-	NonPagedPool,
-	PagedPool,
-	NonPagedPoolMustSucceed,
-	DontUseThisType,
-	NonPagedPoolCacheAligned,
-	PagedPoolCacheAligned,
-	NonPagedPoolCacheAlignedMustS,
-	MaxPoolType,
-	NonPagedPoolSession = 32,
-	PagedPoolSession,
-	NonPagedPoolMustSucceedSession,
-	DontUseThisTypeSession,
-	NonPagedPoolCacheAlignedSession,
-	PagedPoolCacheAlignedSession,
-	NonPagedPoolCacheAlignedMustSSession
-} POOL_TYPE;
-
-typedef enum _SYSTEM_INFORMATION_CLASS {
-	SystemHandleInformation = 16,
-} SYSTEM_INFORMATION_CLASS;
-
-typedef struct  _SYSTEM_HANDLE {
-	ULONG       ProcessId;
-	UCHAR       ObjectTypeNumber;
-	UCHAR       Flags;
-	USHORT      Handle;
-	PVOID       Object;
-	ACCESS_MASK GrantedAccess;
-} SYSTEM_HANDLE, * PSYSTEM_HANDLE;
-
-typedef struct _SYSTEM_HANDLE_INFORMATION {
-	ULONG HandleCount;
-	SYSTEM_HANDLE Handles[ANYSIZE_ARRAY];
-} SYSTEM_HANDLE_INFORMATION, * PSYSTEM_HANDLE_INFORMATION;
-
-typedef enum _OBJECT_INFORMATION_CLASS {
-	ObjectBasicInformation,
-	ObjectNameInformation,
-	ObjectTypeInformation,
-	ObjectAllTypesInformation,
-	ObjectHandleInformation
-} OBJECT_INFORMATION_CLASS;
-
-typedef struct  _OBJECT_BASIC_INFORMATION {
-	ULONG           Attributes;
-	ACCESS_MASK     GrantedAccess;
-	ULONG           HandleCount;
-	ULONG           PointerCount;
-	ULONG           PagedPoolUsage;
-	ULONG           NonPagedPoolUsage;
-	ULONG           Reserved[3];
-	ULONG           NameInformationLength;
-	ULONG           TypeInformationLength;
-	ULONG           SecurityDescriptorLength;
-	LARGE_INTEGER   CreateTime;
-} OBJECT_BASIC_INFORMATION, * POBJECT_BASIC_INFORMATION;
-
-typedef struct  _OBJECT_TYPE_INFORMATION {
-	UNICODE_STRING  Name;
-	ULONG           ObjectCount;
-	ULONG           HandleCount;
-	ULONG           Reserved1[4];
-	ULONG           PeakObjectCount;
-	ULONG           PeakHandleCount;
-	ULONG           Reserved2[4];
-	ULONG           InvalidAttributes;
-	GENERIC_MAPPING GenericMapping;
-	ULONG           ValidAccess;
-	UCHAR           Unknown;
-	BOOLEAN         MaintainHandleDatabase;
-	POOL_TYPE       PoolType;
-	ULONG           PagedPoolUsage;
-	ULONG           NonPagedPoolUsage;
-} OBJECT_TYPE_INFORMATION, * POBJECT_TYPE_INFORMATION;
-
-NTSTATUS NtQuerySystemInformation (
-	SYSTEM_INFORMATION_CLASS SystemInformationClass,
-	PVOID                    SystemInformation,
-	ULONG                    SystemInformationLength,
-	PULONG                   ReturnLength);
-
-NTSTATUS NtDuplicateObject(
-	HANDLE      SourceProcessHandle,
-	HANDLE      SourceHandle,
-	HANDLE      TargetProcessHandle,
-	PHANDLE     TargetHandle,
-	ACCESS_MASK DesiredAccess,
-	ULONG       HandleAttributes,
-	ULONG       Options);
-
-NTSTATUS NtQueryObject(
-	HANDLE                   Handle,
-	OBJECT_INFORMATION_CLASS ObjectInformationClass,
-	PVOID                    ObjectInformation,
-	ULONG                    ObjectInformationLength,
-	PULONG                   ReturnLength);
-
-NTSTATUS NtClose(HANDLE Handle);
-
-typedef struct _HANDLE_ENTRY_T {
-	DWORD pid;                      // process id
-	WCHAR objName[MAX_PATH];        // name of object
-} HANDLE_ENTRY, * PHANDLE_ENTRY;
-
-struct ProcessHeapDeleter final {
-	static void* invalid() noexcept {
-		return nullptr;
-	}
-
-	static void close(void* value) {
-		::HeapFree(::GetProcessHeap(), 0, value);
-	}
-};
-
-using ProcessHeap = UniqueHandle<PVOID, ProcessHeapDeleter>;
-
-static void FreeProcessHeap(void* value) {
-	::HeapFree(::GetProcessHeap(), 0, value);
-}
-
-static PVOID AllocProcessHeap(SIZE_T size) {
-	return ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size);
-}
-
-static ProcessHeap MakeProcessHeap(SIZE_T size) {
-	return ProcessHeap(::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size));
-}
-
-static LPVOID ReallocProcessHeap(LPVOID mem, SIZE_T size) {
-	return ::HeapReAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, mem, size);
-}
 
 namespace win32 {
-
-class NtDllLib {
-public:
-	NtDllLib()
-		: module_(OpenSharedLibrary("ntdll"))
-		, NtQuerySystemInformation(module_, "NtQuerySystemInformation")
-		, NtQueryObject(module_, "NtQueryObject")
-		, NtDuplicateObject(module_, "NtDuplicateObject") {
-	}
-
-	XAMP_DISABLE_COPY(NtDllLib)
-
-private:
-	SharedLibraryHandle module_;
-
-public:
-	XAMP_DECLARE_DLL_NAME(NtQuerySystemInformation);
-	XAMP_DECLARE_DLL_NAME(NtQueryObject);
-	XAMP_DECLARE_DLL_NAME(NtDuplicateObject);
-};
 
 class User32Lib {
 public:
@@ -399,7 +237,6 @@ public:
 
 #define DWMDLL Singleton<DwmapiLib>::GetInstance()
 #define User32DLL Singleton<User32Lib>::GetInstance()
-#define NTDLL Singleton<NtDllLib>::GetInstance()
 #define UX_THEME_DLL Singleton<UxThemeLib>::GetInstance()
 
 // Ref : https://github.com/melak47/BorderlessWindow
@@ -409,7 +246,7 @@ enum class BorderlessWindowStyle : DWORD {
 	BORDERLESS_STYLE      = WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
 };
 
-static void setBorderlessWindowStyle(const WId window_id, BorderlessWindowStyle new_style) noexcept {
+static void SetBorderlessWindowStyle(const WId window_id, BorderlessWindowStyle new_style) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
 
 	auto old_style = static_cast<BorderlessWindowStyle>(::GetWindowLongPtrW(hwnd, GWL_STYLE));
@@ -420,14 +257,14 @@ static void setBorderlessWindowStyle(const WId window_id, BorderlessWindowStyle 
 	}
 }
 
-static uint32_t gradientColor(QColor const & color) {
+static uint32_t GetGradientColor(QColor const & color) {
 	return color.red() << 0
 		| color.green() << 8
 		| color.blue() << 16
 		| color.alpha() << 24;
 }
 
-WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* player_frame) {
+WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
 	window_ = window;
 
 	play_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
@@ -448,21 +285,21 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* player_frame) {
 	play_tool_button->setIcon(play_icon);
 	(void)QObject::connect(play_tool_button,
 		&QWinThumbnailToolButton::clicked,
-		player_frame,
+		content_widget,
 		&IXFrame::PlayOrPause);
 
 	auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	forward_tool_button->setIcon(seek_forward_icon);
 	(void)QObject::connect(forward_tool_button,
 		&QWinThumbnailToolButton::clicked,
-		player_frame,
+		content_widget,
 		&IXFrame::PlayNext);
 
 	auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	backward_tool_button->setIcon(seek_backward_icon);
 	(void)QObject::connect(backward_tool_button,
 		&QWinThumbnailToolButton::clicked,
-		player_frame,
+		content_widget,
 		&IXFrame::PlayPrevious);
 
 	thumbnail_tool_bar_->addButton(backward_tool_button);
@@ -472,11 +309,11 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* player_frame) {
 
 WinTaskbar::~WinTaskbar() = default;
 
-void WinTaskbar::setTaskbarProgress(const int32_t percent) {
+void WinTaskbar::SetTaskbarProgress(const int32_t percent) {
 	taskbar_progress_->setValue(percent);
 }
 
-void WinTaskbar::resetTaskbarProgress() {
+void WinTaskbar::ResetTaskbarProgress() {
 	taskbar_progress_->reset();
 	taskbar_progress_->setValue(0);
 	taskbar_progress_->setRange(0, 100);
@@ -484,21 +321,21 @@ void WinTaskbar::resetTaskbarProgress() {
 	taskbar_progress_->show();
 }
 
-void WinTaskbar::setTaskbarPlayingResume() {
+void WinTaskbar::SetTaskbarPlayingResume() {
 	taskbar_button_->setOverlayIcon(play_icon);
 	taskbar_progress_->resume();
 }
 
-void WinTaskbar::setTaskbarPlayerPaused() {
+void WinTaskbar::SetTaskbarPlayerPaused() {
 	taskbar_button_->setOverlayIcon(pause_icon);
 	taskbar_progress_->pause();
 }
 
-void WinTaskbar::setTaskbarPlayerPlaying() {
-	resetTaskbarProgress();
+void WinTaskbar::SetTaskbarPlayerPlaying() {
+	ResetTaskbarProgress();
 }
 
-void WinTaskbar::setTaskbarPlayerStop() {
+void WinTaskbar::SetTaskbarPlayerStop() {
 	taskbar_button_->setOverlayIcon(stop_play_icon);
 	taskbar_progress_->hide();
 }
@@ -507,26 +344,14 @@ void WinTaskbar::showEvent() {
 	taskbar_button_->setWindow(window_->windowHandle());
 }
 
-void addDwmMenuShadow(const WId window_id) noexcept {
-	auto hwnd = reinterpret_cast<HWND>(window_id);
-	int value = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
-	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &value, 4);
-	MARGINS borderless = { 1, 1, 1, 1 };
-	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
-}
-
-void setAccentPolicy(HWND hwnd, bool enable, int animation_id) noexcept {
-	auto is_rs4_or_greater = false;
-
-	ACCENT_STATE flags = (is_rs4_or_greater ? ACCENT_ENABLE_ACRYLICBLURBEHIND : ACCENT_ENABLE_BLURBEHIND);
-
+static void SetAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	QColor background_color(AppSettings::ValueAsString(kAppSettingBackgroundColor));
 	background_color.setAlpha(50);
 
 	ACCENT_POLICY policy = {
-		enable ? flags : ACCENT_DISABLED,
+		enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED,
 		ACCENT_FLAGS::DrawAllBorders,
-		gradientColor(background_color),
+		GetGradientColor(background_color),
 		animation_id
 	};
 
@@ -537,138 +362,65 @@ void setAccentPolicy(HWND hwnd, bool enable, int animation_id) noexcept {
 	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
 }
 
-void setAccentPolicy(const WId window_id, bool enable, int animation_id) noexcept {
+void AddDwmMenuShadow(const WId window_id) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
-	setAccentPolicy(hwnd, enable, animation_id);
+	int value = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
+	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &value, 4);
+	MARGINS borderless = { 1, 1, 1, 1 };
+	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
-void addDwmShadow(const WId window_id) noexcept {
+void SetAccentPolicy(const WId window_id, bool enable, int animation_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
+	SetAccentPolicy(hwnd, enable, animation_id);
+}
+
+void AddDwmShadow(const WId window_id) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
 	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
-QRect windowRect(const WId window_id) noexcept {
+QRect GetWindowRect(const WId window_id) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
 	RECT rect{ 0 };
-	if (::GetWindowRect(hwnd, &rect)) {
-		int width = rect.right - rect.left;
-		int height = rect.bottom - rect.top;
-		return QRect(rect.left, rect.top, width, height);
-	}
-	// todo: throw an system exception?
-	return QRect();
+	::GetWindowRect(hwnd, &rect);
+	auto width = rect.right - rect.left;
+	auto height = rect.bottom - rect.top;
+	return QRect(rect.left, rect.top, width, height);
 }
 
-bool compositionEnabled() noexcept {
+bool IsCompositionEnabled() {
 	BOOL composition_enabled = FALSE;
 	auto success = DWMDLL.DwmIsCompositionEnabled(&composition_enabled) == S_OK;
 	return composition_enabled && success;
 }
 
-void setWindowedWindowStyle(const WId window_id) noexcept {
-	setBorderlessWindowStyle(window_id, BorderlessWindowStyle::WINDOWED_STYLE);
+void SetWindowedWindowStyle(const WId window_id) {
+	SetBorderlessWindowStyle(window_id, BorderlessWindowStyle::WINDOWED_STYLE);
 }
 
-void setFramelessWindowStyle(const WId window_id) noexcept {
+void SetFramelessWindowStyle(const WId window_id) {
 	auto new_style = BorderlessWindowStyle::WINDOWED_STYLE;
-	if (compositionEnabled()) {
+	if (IsCompositionEnabled()) {
 		new_style = BorderlessWindowStyle::AERO_BORDERLESS_STYLE;
 	} else {
 		new_style = BorderlessWindowStyle::BORDERLESS_STYLE;
 	}
-	setBorderlessWindowStyle(window_id, new_style);
+	SetBorderlessWindowStyle(window_id, new_style);
 }
 
-void setTitleBarColor(const WId window_id, ThemeColor theme_color) noexcept {
-	// https://stackoverflow.com/questions/39261826/change-the-color-of-the-title-bar-caption-of-a-win32-application
-	// Undocumented in Windows 10 SDK
-	// (can be used by setting value as dwAttribute as 20),
-	// value was 19 pre Windows 10 20H1 Update).
-
-	constexpr DWORD kDWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-	constexpr DWORD kDWMWA_CAPTION_COLOR = 35;
-
-	constexpr DWORD kDWMWA_MICA_EFFECT = 1029;
-
-	constexpr int kWindows11MajorVersion = 10;
-	constexpr int kWindows11MicroVersion = 22000;
-
-	auto hwnd = reinterpret_cast<HWND>(window_id);
-	auto color = qTheme.BackgroundColor();
-
-	const auto os_ver = QOperatingSystemVersion::current();
-	const auto major_version = os_ver.majorVersion();
-	const auto micro_version = os_ver.microVersion();
-
-	switch (theme_color) {
-	case ThemeColor::DARK_THEME:
-		if (major_version == kWindows11MajorVersion && micro_version < kWindows11MicroVersion) {
-			BOOL value = TRUE;
-			DWMDLL.DwmSetWindowAttribute(hwnd,
-				kDWMWA_USE_IMMERSIVE_DARK_MODE,
-				&value,
-				sizeof(value));
-		} else {
-			int use_mica = 1;
-			DWMDLL.DwmSetWindowAttribute(hwnd,
-				kDWMWA_MICA_EFFECT,
-				&use_mica,
-				sizeof(use_mica));
-
-			int r = 0, g = 0, b = 0;
-			color.getRgb(&r, &g, &b);
-			COLORREF colorref = RGB(r, g, b);
-			DWMDLL.DwmSetWindowAttribute(hwnd,
-				kDWMWA_CAPTION_COLOR,
-				&colorref,
-				sizeof(COLORREF));
-		}
-		break;
-	case ThemeColor::LIGHT_THEME:
-		if (major_version == kWindows11MajorVersion && micro_version < kWindows11MicroVersion) {
-			BOOL value = TRUE;
-
-			DWMDLL.DwmSetWindowAttribute(hwnd,
-				0,
-				&value,
-				sizeof(value));
-		}
-		else {
-			int use_mica = 1;
-			DWMDLL.DwmSetWindowAttribute(hwnd,
-				kDWMWA_MICA_EFFECT,
-				&use_mica,
-				sizeof(use_mica));
-
-			int r = 0, g = 0, b = 0;
-			color.getRgb(&r, &g, &b);
-			COLORREF colorref = RGB(r, g, b);
-			DWMDLL.DwmSetWindowAttribute(hwnd,
-				kDWMWA_CAPTION_COLOR,
-				&colorref,
-				sizeof(COLORREF));
-		}
-		break;
-	}
-}
-
-bool isWindowMaximized(const WId window_id) noexcept {
-	auto hwnd = reinterpret_cast<HWND>(window_id);
-	return ::GetWindowLong(hwnd, GWL_STYLE) & WS_MINIMIZE;
-}
-
-QColor colorizationColor() noexcept {
+QColor GetColorizationColor() {
 	DWORD color = 0;
 	BOOL opaque_blend = 0;
 	DWMDLL.DwmGetColorizationColor(&color, &opaque_blend);
 	return QColor(color >> 24, color >> 16, color >> 8, color);
 }
 
-bool isDarkModeAppEnabled() noexcept {
+bool IsDarkModeAppEnabled() {
 	std::array<char, 4> buffer{ 0 };
 	auto data_size = static_cast<DWORD>(buffer.size());
-	auto res = ::RegGetValueW(
+	const auto res = ::RegGetValueW(
 		HKEY_CURRENT_USER,
 		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
 		L"AppsUseLightTheme",
@@ -694,7 +446,7 @@ union W128 {
 };
 
 // https://github.com/odzhan/polymutex
-std::string getRandomMutexName(const std::string& src_name) {
+std::string GetRandomMutexName(const std::string& src_name) {
 	W128 s{};
 	PRNG prng;
 	// Golden Ratio constant used for better hash scattering
@@ -706,149 +458,12 @@ std::string getRandomMutexName(const std::string& src_name) {
 	return Uuid(s.b, s.b + 16);
 }
 
-bool isRunning(const std::string& mutex_name) {
-#define STATUS_INFO_LEN_MISMATCH NTSTATUS(0xC0000004)
-#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
-	EnablePrivilege("SeDebugPrivilege", true);
-
-	NTSTATUS status = 0;
-	ULONG len = 0;
-	ULONG total = 0;
-
-	static constexpr size_t kSysHandleInfoHeapSize = 65535;
-
-	auto sys_handle_info_heap = AllocProcessHeap(kSysHandleInfoHeapSize);
-	if (!sys_handle_info_heap) {
-		return false;
-	}
-
-	XAMP_LOG_DEBUG("Grabbing handles...");
-
-	do {
-		len += kSysHandleInfoHeapSize;
-		sys_handle_info_heap = ReallocProcessHeap(sys_handle_info_heap, len);
-
-		if (!sys_handle_info_heap) {
-			break;
-		}
-
-		status = NTDLL.NtQuerySystemInformation(
-			SystemHandleInformation,
-			sys_handle_info_heap,
-			len,
-			&total);
-	} while (status == STATUS_INFO_LEN_MISMATCH);
-
-	const ProcessHeap process_heap(sys_handle_info_heap);
-
-	if (!NT_SUCCESS(status)) {
-		return false;
-	}
-
-	const auto sys_handle_info = static_cast<PSYSTEM_HANDLE_INFORMATION>(process_heap.get());
-	XAMP_LOG_DEBUG("done. Fetched {} handles allocate size: {}.", sys_handle_info->HandleCount, len);
-
-	for (ULONG i = 0; i < sys_handle_info->HandleCount; i++) {
-		if (sys_handle_info->Handles[i].ProcessId == 4) {
-			continue;
-		}
-
-		WinHandle process(::OpenProcess(PROCESS_DUP_HANDLE,
-			FALSE,
-			sys_handle_info->Handles[i].ProcessId));
-
-		if (!process) {
-			continue;
-		}
-
-		HANDLE object_handle = nullptr;
-		status = ::DuplicateHandle(process.get(),
-			reinterpret_cast<HANDLE>(sys_handle_info->Handles[i].Handle), 
-			GetCurrentProcess(),
-			&object_handle, 
-			0,
-			FALSE, 
-			DUPLICATE_SAME_ACCESS);
-		if (!status) {
-			continue;
-		}
-
-		//WinHandle duplicate_handle(object_handle);
-
-		OBJECT_BASIC_INFORMATION obj_basic_info{0};
-		status = NTDLL.NtQueryObject(object_handle,
-			ObjectBasicInformation, 
-			&obj_basic_info,
-			sizeof(obj_basic_info),
-			&len);
-		if (!NT_SUCCESS(status)) {
-			continue;
-		}
-
-		if (!obj_basic_info.NameInformationLength) {
-			continue;
-		}
-
-		len = obj_basic_info.TypeInformationLength + 2;
-		auto obj_type_info_heap = MakeProcessHeap(len);
-		const auto obj_type_info = static_cast<POBJECT_TYPE_INFORMATION>(obj_type_info_heap.get());
-		status = NTDLL.NtQueryObject(object_handle,
-			ObjectTypeInformation,
-			obj_type_info,
-			len,
-			&len);
-		if (NT_SUCCESS(status)) {
-			if (lstrcmpi(obj_type_info->Name.Buffer, L"Mutant") != 0) {
-				continue;
-			}
-		}
-
-		// Skip some objects to avoid getting stuck
-		// see: https://github.com/adamdriscoll/PoshInternals/issues/7
-		if (sys_handle_info->Handles[i].GrantedAccess    == 0x0012019f
-			&& sys_handle_info->Handles[i].GrantedAccess != 0x00120189
-			&& sys_handle_info->Handles[i].GrantedAccess != 0x120089
-			&& sys_handle_info->Handles[i].GrantedAccess != 0x1A019F) {
-			continue;
-		}
-
-		len = obj_basic_info.NameInformationLength + 2;
-		auto obj_name_info_heap = MakeProcessHeap(len);
-		const auto name_info = static_cast<POBJECT_NAME_INFORMATION>(obj_name_info_heap.get());
-		status = NTDLL.NtQueryObject(object_handle,
-			ObjectNameInformation,
-			name_info,
-			len,
-			&len);
-		if (!NT_SUCCESS(status)) {
-			continue;
-		}
-
-		auto p = wcsrchr(name_info->Name.Buffer, L'\\');
-		if (!p) {
-			continue;
-		}
-
-		p = wcsrchr(p, L'_');
-		if (!p) {
-			continue;
-		}
-
-		p += 1;
-		auto handle_mutex_name = String::ToLower(String::ToString(name_info->Name.Buffer));
-		auto handle_mutex_uuid = String::ToLower(String::ToString(p));
-		
-		Uuid parsed_uuid;
-		if (Uuid::TryParseString(handle_mutex_uuid, parsed_uuid)) {
-			const auto* r = reinterpret_cast<const W128*>(parsed_uuid.GetBytes().data());
-			const auto hash = GoogleSipHash<>::GetHash(mutex_name, r->w[0], r->w[1]);
-			XAMP_LOG_DEBUG("Found GUID => {}, k0:{:#04x}, k1:{:#04x}, q:{:#04x}, hash:{:#04x}",
-				handle_mutex_uuid, static_cast<uint64_t>(r->w[0]), static_cast<uint64_t>(r->w[1]),
-				r->q[1], hash);
-			if (r->q[1] == hash) {
-				return true;
-			}
-		}
+bool IsValidMutexName(const std::string& guid, const std::string& mutex_name) {
+	Uuid parsed_uuid;
+	if (Uuid::TryParseString(guid, parsed_uuid)) {
+		const auto* r = reinterpret_cast<const W128*>(parsed_uuid.GetBytes().data());
+		const auto hash = GoogleSipHash<>::GetHash(mutex_name, r->w[0], r->w[1]);
+		return r->q[1] == hash;
 	}
 	return false;
 }
