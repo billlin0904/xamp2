@@ -21,9 +21,9 @@ QString backgroundColorToString(QColor color) {
 
 QString formatBitRate(uint32_t bitRate) {
     if (bitRate > 10000) {
-        return QString::number(bitRate / 1000.0, 'f', 2).rightJustified(5) + qTEXT(" Mbps");
+        return QString::number(bitRate / 1000.0, 'f', 2) + qTEXT(" Mbps");
     }
-    return QString::number(bitRate).rightJustified(5) + qTEXT(" kbps");
+    return QString::number(bitRate) + qTEXT(" kbps");
 }
 
 QString formatSampleRate(const uint32_t sample_rate) {
@@ -33,14 +33,10 @@ QString formatSampleRate(const uint32_t sample_rate) {
     if (sample_rate / 1000 > 1000) {
         is_mhz_sample_rate = true;
     }
-    else {
-        precision = sample_rate % 1000 == 0 ? 0 : 1;
-    }
-
     if (is_mhz_sample_rate) {
-        return QString::number(sample_rate / 1000000.0, 'f', 2).rightJustified(6) + qTEXT(" MHz");
+        return QString::number(sample_rate / 1000000.0, 'f', 2) + qTEXT(" MHz");
     } else {
-        return QString::number(sample_rate / 1000.0, 'f', precision).rightJustified(3) + qTEXT(" kHz");
+        return QString::number(sample_rate / 1000.0, 'f', precision) + qTEXT(" kHz");
     }
 }
 

@@ -592,8 +592,8 @@ void PlayListTableView::initial() {
             auto* export_aac_file_submenu = action_map.AddSubMenu(tr("Export AAC file"));
             for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
                 if (profile.num_channels != AudioFormat::kMaxChannel
-                    && profile.sample_rate < AudioFormat::k16BitPCM441Khz.GetSampleRate()
-                    && profile.bitrate < kMinimalEncodingBitRate) {
+                    || profile.sample_rate < AudioFormat::k16BitPCM441Khz.GetSampleRate()
+                    || profile.bitrate < kMinimalEncodingBitRate) {
                     continue;
                 }
 

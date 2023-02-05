@@ -89,6 +89,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     }
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
     last_rect_ = win32::GetWindowRect(winId());
+    win32::IsValidMutexName("285d604e-5bdb-7900-81f1-ad9fd2bad315", "guest");
 #else
     if (!qTheme.UseNativeWindow()) {
         if (content_widget_ != nullptr) {
@@ -108,8 +109,6 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         ReadDriveInfo();
         });
 #endif
-
-    win32::IsValidMutexName("285d604e-5bdb-7900-81f1-ad9fd2bad315", "guest");
 }
 
 // QScopedPointer require default destructor.
