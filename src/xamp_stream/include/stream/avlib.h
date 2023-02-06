@@ -58,6 +58,8 @@ public:
    XAMP_DECLARE_DLL_NAME(avformat_find_stream_info);
    XAMP_DECLARE_DLL_NAME(av_seek_frame);
    XAMP_DECLARE_DLL_NAME(av_read_frame);
+   XAMP_DECLARE_DLL_NAME(av_write_frame);
+   XAMP_DECLARE_DLL_NAME(avformat_write_header);
    XAMP_DECLARE_DLL_NAME(avformat_network_init);
    XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
    XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
@@ -82,7 +84,9 @@ public:
     XAMP_DECLARE_DLL_NAME(av_init_packet);
     XAMP_DECLARE_DLL_NAME(av_packet_unref);
     XAMP_DECLARE_DLL_NAME(avcodec_send_packet);
+    XAMP_DECLARE_DLL_NAME(avcodec_send_frame);
     XAMP_DECLARE_DLL_NAME(avcodec_receive_frame);
+    XAMP_DECLARE_DLL_NAME(avcodec_receive_packet);
     XAMP_DECLARE_DLL_NAME(avcodec_flush_buffers);
     XAMP_DECLARE_DLL_NAME(av_get_bits_per_sample);
     XAMP_DECLARE_DLL_NAME(avcodec_find_decoder_by_name);

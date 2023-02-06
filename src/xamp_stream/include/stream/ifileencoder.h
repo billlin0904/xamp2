@@ -17,6 +17,7 @@ namespace xamp::stream {
 struct XAMP_STREAM_API FileEncoderConfig {
     constexpr static auto kInputFilePath = std::string_view("InputFilePath");
     constexpr static auto kOutputFilePath = std::string_view("OutputFilePath");
+	constexpr static auto kCodecId = std::string_view("CodecId");
     constexpr static auto kCommand = std::string_view("Command");
     constexpr static auto kBitRate = std::string_view("BitRate");
 	constexpr static auto kEncodingProfile = std::string_view("EncodingProfile");

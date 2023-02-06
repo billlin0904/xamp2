@@ -44,8 +44,6 @@ public:
 
 	uint32_t GetBitDepth() const override;
 
-	void* GetCodecContext();
-
 private:
 	class AvFileStreamImpl;
 	PimplPtr<AvFileStreamImpl> impl_;

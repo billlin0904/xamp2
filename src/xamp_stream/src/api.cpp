@@ -12,6 +12,7 @@
 #include <stream/basswavfileencoder.h>
 #include <stream/bassflacfileencoder.h>
 #include <stream/bassaacfileencoder.h>
+#include <stream/avfileencoder.h>
 #include <stream/mfaacencoder.h>
 #include <stream/bassfader.h>
 #include <stream/basscddevice.h>
@@ -74,6 +75,7 @@ AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
 AlignPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
 #ifdef XAMP_OS_WIN
     return MakeAlign<IFileEncoder, MFAACFileEncoder>();
+    //return MakeAlign<IFileEncoder, AvFileEncoder>(AvEncodeId::AV_ENCODE_ID_AAC);
 #else
     return MakeAlign<IFileEncoder, BassAACFileEncoder>();
 #endif

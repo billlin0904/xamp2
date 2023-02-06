@@ -259,11 +259,6 @@ public:
     bool IsActive() const {
         return !is_eof_;
     }
-
-    void* GetCodecContext() {
-        XAMP_EXPECTS(codec_context_ != nullptr);
-        return codec_context_.get();
-    }
 private:
     [[nodiscard]] bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
@@ -342,10 +337,6 @@ bool AvFileStream::IsActive() const noexcept {
 
 uint32_t AvFileStream::GetBitDepth() const {
     return impl_->GetBitDepth();
-}
-
-void* AvFileStream::GetCodecContext() {
-    return impl_->GetCodecContext();
 }
 
 }

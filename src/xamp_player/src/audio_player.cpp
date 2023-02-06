@@ -33,30 +33,23 @@ namespace xamp::player {
 XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
 #ifdef _DEBUG
-inline constexpr int32_t kBufferStreamCount = 3;
+static constexpr int32_t kBufferStreamCount = 3;
 #else
-inline constexpr int32_t kBufferStreamCount = 2;
+static constexpr int32_t kBufferStreamCount = 2;
 #endif
+static constexpr int32_t kTotalBufferStreamCount = 16;
+static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
+static constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
+static constexpr uint32_t kMaxWriteRatio = 64;
+static constexpr uint32_t kMaxReadRatio = 10;
+static constexpr uint32_t kMaxBufferSecs = 5;
+static constexpr uint32_t kActionQueueSize = 30;
 
-inline constexpr int32_t kTotalBufferStreamCount = 16;
-
-inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
-
-inline constexpr uint32_t kMaxBufferSecs = 5;
-	
-inline constexpr uint32_t kMaxWriteRatio = 64;
-inline constexpr uint32_t kMaxReadRatio = 10;
-inline constexpr uint32_t kActionQueueSize = 30;
-
-inline constexpr size_t kFFTSize = 512;
-
-inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
-
-inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
-inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
-inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
-inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
+static constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(100);
+static constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(30);
+static constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
+static constexpr std::chrono::seconds kWaitForStreamStopTime(10);
+static constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
 static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode) {
     auto file_stream = StreamFactory::MakeFileStream(dsd_mode);
@@ -153,7 +146,7 @@ void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
     device_manager_->RegisterDeviceListener(shared_from_this());
 
     std::weak_ptr<AudioPlayer> player = shared_from_this();
-    timer_.Start(kUpdateSampleInterval, [player]() {
+    timer_.Start(kUpdateSampleIntervalMs, [player]() {
         auto p = player.lock();
         if (!p) {
             return;
@@ -291,8 +284,8 @@ void AudioPlayer::ReadPlayerAction() {
         if (const auto* msg = action_queue_.Front()) {
             try {
                 XAMP_ON_SCOPE_EXIT({
-                action_queue_.Pop();
-                    });
+					action_queue_.Pop();
+                });
                 switch (msg->id) {
                 case PlayerActionId::PLAYER_SEEK:
                 {
@@ -301,14 +294,6 @@ void AudioPlayer::ReadPlayerAction() {
                     DoSeek(stream_time);
                 }
                 break;
-                case PlayerActionId::PLAYER_SOFTWARE_VOLUME:
-	                {
-						auto volume_db = std::any_cast<double>(msg->content);
-						XAMP_LOG_D(logger_, "Receive change volume {:.2f} dB.", volume_db);
-                        config_.AddOrReplace(DspConfig::kVolume, volume_db);
-                        dsp_manager_->Init(config_);
-	                }
-                    break;
                 }
             } catch (std::exception const &e) {
                 XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg->id), e.what());
@@ -416,20 +401,6 @@ void AudioPlayer::SetVolume(uint32_t volume) {
         return;
     }
     device_->SetVolume(volume);
-}
-
-void AudioPlayer::SetSoftwareVolumeDb(double volume_db) {
-    if (!device_) {
-        return;
-    }
-
-    if (device_->IsStreamOpen()) {
-        read_finish_and_wait_seek_signal_cond_.notify_one();
-        action_queue_.TryPush(PlayerAction{
-            PlayerActionId::PLAYER_SOFTWARE_VOLUME,
-            volume_db
-            });
-    }
 }
 
 uint32_t AudioPlayer::GetVolume() const {
@@ -548,14 +519,14 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
     action_queue_.clear();
 }
 
-void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
+void AudioPlayer::ResizeReadBuffer(uint32_t allocate_size) {
     if (read_buffer_.GetSize() == 0 || read_buffer_.GetSize() != allocate_size) {
         XAMP_LOG_D(logger_, "Allocate read buffer : {}.", String::FormatBytes(allocate_size));
         read_buffer_ = MakeBuffer<int8_t>(allocate_size);
     }
 }
 
-void AudioPlayer::AllocateFifo() {
+void AudioPlayer::ResizeFifo() {
     if (fifo_.GetSize() == 0 || fifo_.GetSize() < fifo_size_) {
         XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.", String::FormatBytes(fifo_size_));
         fifo_.Resize(fifo_size_);
@@ -563,38 +534,34 @@ void AudioPlayer::AllocateFifo() {
 }
 
 void AudioPlayer::CreateBuffer() {
-    uint32_t require_read_sample = 0;
+    uint32_t allocate_size = 0;
+
+    auto get_buffer_sameple = [](auto *device, const auto &output_format, auto ratio) {
+        return static_cast<uint32_t>(
+            GetPageAlignSize(device->GetBufferSize() * output_format.GetChannels() * ratio));
+    };
 
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-        require_read_sample = static_cast<uint32_t>(
-            GetPageAlignSize(output_format_.GetSampleRate() / 8));
-        num_read_sample_ = require_read_sample;
+        num_read_sample_ = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
+        allocate_size = kMaxPreAllocateBufferSize;
     } else {
-	    const auto ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
-        require_read_sample = static_cast<uint32_t>(
-            GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * ratio));
-        num_read_sample_ = static_cast<uint32_t>(
-            GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio));
-    }
-
-    uint32_t allocate_read_size = 0;
-    if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-        allocate_read_size = kMaxPreAllocateBufferSize;
-    } else {
-        allocate_read_size = (std::min)(
+	    constexpr auto max_ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
+        num_read_sample_ = get_buffer_sameple(device_.get(), output_format_, kMaxReadRatio);
+	    const auto max_require_sample = get_buffer_sameple(device_.get(), output_format_, max_ratio);
+        allocate_size = (std::min)(
             kMaxPreAllocateBufferSize,
-            require_read_sample *
-            stream_->GetSampleSize() * 
-            kBufferStreamCount);
-        allocate_read_size = AlignUp(allocate_read_size);
+            max_require_sample *
+            stream_->GetSampleSize() *
+            kTotalBufferStreamCount);
+        allocate_size = AlignUp(allocate_size);
     }
 
     fifo_size_ = (std::max)(
         output_format_.GetAvgBytesPerSec() * kMaxBufferSecs,
-        allocate_read_size * kTotalBufferStreamCount);
+        allocate_size);
 
-    AllocateReadBuffer(allocate_read_size);
-    AllocateFifo();
+    ResizeReadBuffer(allocate_size);
+    ResizeFifo();
 
     XAMP_LOG_D(logger_, "Read memory page count: {} page.", num_read_sample_ / GetPageSize());
 
@@ -849,7 +816,7 @@ void AudioPlayer::Play() {
         );
 
         WaitableTimer wait_timer;
-        wait_timer.SetTimeout(kReadSampleWaitTime);
+        wait_timer.SetTimeout(kReadSampleWaitTimeMs);
 
         try {
             while (p->is_playing_) {

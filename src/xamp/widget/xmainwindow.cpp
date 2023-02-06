@@ -735,6 +735,9 @@ void XMainWindow::showEvent(QShowEvent* event) {
 #endif
     setAttribute(Qt::WA_Mapped);
     QFrame::showEvent(event);
+    QSize oldSize = this->size();
+    resize(oldSize + QSize(10, 10));
+    resize(oldSize);
 }
 
 void XMainWindow::ShowWindow() {

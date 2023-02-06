@@ -34,8 +34,7 @@
 namespace xamp::player {
 
 XAMP_MAKE_ENUM(PlayerActionId,
-    PLAYER_SEEK,
-    PLAYER_SOFTWARE_VOLUME);
+    PLAYER_SEEK);
 
 struct PlayerAction {
     PlayerActionId id;
@@ -75,8 +74,6 @@ public:
     void Seek(double stream_time) override;
 
     void SetVolume(uint32_t volume) override;
-
-    void SetSoftwareVolumeDb(double volume_db) override;
 
     uint32_t GetVolume() const override;
 
@@ -155,9 +152,9 @@ private:
 
     void UpdateProgress(int32_t sample_size = 0) noexcept;
 
-    void AllocateReadBuffer(uint32_t allocate_size);
+    void ResizeReadBuffer(uint32_t allocate_size);
 
-    void AllocateFifo();
+    void ResizeFifo();
 
     void ReadPlayerAction();
 

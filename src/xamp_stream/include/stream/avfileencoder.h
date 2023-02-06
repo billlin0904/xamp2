@@ -16,17 +16,17 @@
 
 namespace xamp::stream {
 
-XAMP_MAKE_ENUM(AvCodecId,
-	AV_CODEC_ID_AAC,
-	AV_CODEC_ID_MP3,
-	AV_CODEC_ID_WAV,
-	AV_CODEC_ID_FLAC)
+XAMP_MAKE_ENUM(AvEncodeId,
+	AV_ENCODE_ID_AAC,
+	AV_ENCODE_ID_MP3,
+	AV_ENCODE_ID_WAV,
+	AV_ENCODE_ID_FLAC)
 
 class AvFileEncoder final : public IFileEncoder {
 	XAMP_DECLARE_MAKE_CLASS_UUID(AvFileEncoder, "89DFACBB-6798-447F-B195-B52DBBFC3793")
 
 public:
-	AvFileEncoder();
+	explicit AvFileEncoder(AvEncodeId codec_id);
 
 	XAMP_PIMPL(AvFileEncoder)
 
