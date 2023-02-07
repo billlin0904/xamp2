@@ -66,6 +66,8 @@ public:
    XAMP_DECLARE_DLL_NAME(avformat_new_stream);
    XAMP_DECLARE_DLL_NAME(avformat_query_codec);
    XAMP_DECLARE_DLL_NAME(av_oformat_next);
+   XAMP_DECLARE_DLL_NAME(avformat_alloc_output_context2);
+   XAMP_DECLARE_DLL_NAME(avio_open);
 };
 
 class AvCodecLib final {

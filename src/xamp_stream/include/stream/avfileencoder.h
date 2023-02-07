@@ -14,6 +14,7 @@
 #include <base/uuidof.h>
 #include <base/pimplptr.h>
 
+#ifdef USE_AV_ENCODER
 namespace xamp::stream {
 
 XAMP_MAKE_ENUM(AvEncodeId,
@@ -40,4 +41,4 @@ private:
 };
 
 }
-
+#endif

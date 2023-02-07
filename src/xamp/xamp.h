@@ -223,6 +223,8 @@ private:
 
 	static bool ShowMeMessage(const QString &message);
 
+	void showEvent(QShowEvent* event) override;
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	LrcPage* lrc_page_;

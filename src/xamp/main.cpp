@@ -341,9 +341,13 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
     QTextStream stream(&str);
     stream.setCodec("UTF-8");
 
+    auto disable_stacktrace = true;
+
     stream << context.file << ":" << context.line << ":"
-        << context.function << ": " << msg
-		<< QString::fromStdString(StackTrace{}.CaptureStack());
+        << context.function << ": " << msg;
+    if (!disable_stacktrace) {
+        stream << QString::fromStdString(StackTrace{}.CaptureStack());
+    }
 
     auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
 
@@ -435,8 +439,6 @@ static int Execute(int argc, char* argv[]) {
     //top_win.SetContentWidget(nullptr);
 
     main_window.RestoreGeometry();
-    main_window.setWindowState((main_window.windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-    main_window.InitMaximumState();
     main_window.ShowWindow();
     return app.exec();
 }

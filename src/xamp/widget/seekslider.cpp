@@ -1,5 +1,6 @@
 #include <QStyle>
 
+#include "thememanager.h"
 #include <widget/str_utilts.h>
 #include <widget/seekslider.h>
 
@@ -32,4 +33,9 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 }
 
 void SeekSlider::enterEvent(QEvent* event) {
+	qTheme.SetSliderTheme(this, true);
+}
+
+void SeekSlider::leaveEvent(QEvent* event) {
+	qTheme.SetSliderTheme(this, false);
 }

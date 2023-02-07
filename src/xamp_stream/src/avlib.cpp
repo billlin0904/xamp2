@@ -32,7 +32,9 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avformat_alloc_context)
 	, XAMP_LOAD_DLL_API(avformat_new_stream)
 	, XAMP_LOAD_DLL_API(avformat_query_codec)
-	, XAMP_LOAD_DLL_API(av_oformat_next) {
+	, XAMP_LOAD_DLL_API(av_oformat_next)
+	, XAMP_LOAD_DLL_API(avformat_alloc_output_context2)
+	, XAMP_LOAD_DLL_API(avio_open) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

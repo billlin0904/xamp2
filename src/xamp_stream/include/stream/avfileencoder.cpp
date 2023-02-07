@@ -9,6 +9,7 @@
 #include <base/scopeguard.h>
 #include <base/encodingprofile.h>
 
+#ifdef USE_AV_ENCODER
 namespace xamp::stream {
 
 static int SelectHighestChannelLayout(const AVCodec* codec) {
@@ -65,8 +66,8 @@ public:
         const auto output_file = String::ToUtf8String(output_file_path.wstring());
 
 		AVFormatContext* format_ctx = nullptr;
-        AvIfFailedThrow(avformat_alloc_output_context2(&format_ctx, nullptr, nullptr, output_file.c_str()));
-        AvIfFailedThrow(avio_open(&format_ctx->pb, output_file.c_str(), AVIO_FLAG_WRITE));
+        AvIfFailedThrow(LIBAV_LIB.FormatLib->avformat_alloc_output_context2(&format_ctx, nullptr, nullptr, output_file.c_str()));
+        AvIfFailedThrow(LIBAV_LIB.FormatLib->avio_open(&format_ctx->pb, output_file.c_str(), AVIO_FLAG_WRITE));
 
         AVCodecID id = AV_CODEC_ID_NONE;
 
@@ -177,3 +178,4 @@ void AvFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
 }
 
 }
+#endif

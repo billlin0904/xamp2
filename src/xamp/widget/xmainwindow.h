@@ -93,10 +93,9 @@ private:
 
     void UpdateScreenNumber();
 
+    uint32_t screen_number_;
     QPoint last_pos_;
     QRect last_rect_;
-    uint32_t screen_number_;
-
 #if defined(Q_OS_WIN)
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> task_bar_;

@@ -548,6 +548,8 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
         artists ON artists.artistId = albumArtist.artistId
     WHERE
         (artists.artistId = '%1') AND (albums.isPodcast = 0)
+	GROUP BY 
+		albums.albumId
     )").arg(artist_id), qDatabase.database());
 }
 

@@ -289,7 +289,7 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     }
 }
 
-QLatin1String ThemeManager::ThemeColorPath() const {
+QLatin1String ThemeManager::GetThemeColorPath() const {
     if (theme_color_ == ThemeColor::DARK_THEME) {
         return qTEXT("Black");
     }
@@ -336,15 +336,23 @@ void ThemeManager::SetMenuStyle(QWidget* menu) {
 
 QIcon ThemeManager::GetFontIcon(const char32_t code) const {
     switch (code) {
+    /*case Glyphs::ICON_MINIMIZE_WINDOW:
+        return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath()));
+    case Glyphs::ICON_MAXIMUM_WINDOW:
+        return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(GetThemeColorPath()));
+    case Glyphs::ICON_CLOSE_WINDOW:
+        return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(GetThemeColorPath()));
+    case Glyphs::ICON_RESTORE_WINDOW:
+        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(GetThemeColorPath()));*/
     case Glyphs::ICON_MINIMIZE_WINDOW:
     case Glyphs::ICON_MAXIMUM_WINDOW:
     case Glyphs::ICON_CLOSE_WINDOW:
     case Glyphs::ICON_RESTORE_WINDOW:
-		{
-			auto temp = font_icon_opts_;
-			temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.4));
-			return qFontIcon.icon(code, temp);
-		}
+    {
+        auto temp = font_icon_opts_;
+        temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.4));
+        return qFontIcon.icon(code, temp);
+    }
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
 	    {
 			auto temp = font_icon_opts_;
@@ -452,7 +460,7 @@ const QPixmap& ThemeManager::DefaultSizeUnknownCover() const noexcept {
 
 void ThemeManager::UpdateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const {
     if (is_maximum) {
-        ui.maxWinButton->setIcon(GetFontIcon(Glyphs::ICON_RESTORE_WINDOW));
+        ui.maxWinButton->setIcon(GetFontIcon(Glyphs::ICON_RESTORE_WINDOW));        
     } else {
         ui.maxWinButton->setIcon(GetFontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
     }
@@ -704,7 +712,7 @@ void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
                                          border: none;
                                          background-color: transparent;
                                          }
-                                         )").arg(ThemeColorPath()));
+                                         )").arg(GetThemeColorPath()));
 
     ui.eqButton->setStyleSheet(qTEXT(R"(
                                          QToolButton#eqButton {
@@ -777,19 +785,22 @@ void ThemeManager::SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConne
     }
 }
 
-void ThemeManager::SetSliderTheme(QSlider* slider) {
+void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
+    const QString slider_background_color = qTEXT("#9FCBFF");
     QString slider_border_color;
-    QString slider_background_color;
 
-    switch (GetThemeColor()) {
-    case ThemeColor::LIGHT_THEME:
-        slider_border_color = qTEXT("#C9CDD0");
-        slider_background_color = qTEXT("#9FCBFF");
-        break;
-    case ThemeColor::DARK_THEME:
-        slider_border_color = qTEXT("#43474e");
-        slider_background_color = qTEXT("#a7c8ff");
-        break;
+	switch (GetThemeColor()) {
+	case ThemeColor::LIGHT_THEME:
+       slider_border_color = qTEXT("#C9CDD0");
+       break;
+	case ThemeColor::DARK_THEME:
+       slider_border_color = qTEXT("#43474e");
+       break;
+   }
+
+    auto handle_border_color = slider_background_color;
+    if (!enter) {
+        handle_border_color = qTEXT("transparent");
     }
 
     slider->setStyleSheet(qTEXT(R"(
@@ -820,18 +831,19 @@ void ThemeManager::SetSliderTheme(QSlider* slider) {
 		border-radius: 2px;
     }
 
-    QSlider#%1::handle:horizontal {
+	QSlider#%1::handle:horizontal {
         width: 10px;
 		height: 10px;
         margin: -5px 0px -5px 0px;
 		border-radius: 5px;
-		background-color: %2;
-		border: 1px solid %2;
+		background-color: %4;
+		border: 1px solid %4;
     }
     )"
     ).arg(slider->objectName())
         .arg(slider_background_color)
-        .arg(slider_border_color));
+        .arg(slider_border_color)
+		.arg(handle_border_color));
 }
 
 void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {

@@ -1023,6 +1023,10 @@ bool Xamp::ShowMeMessage(const QString& message) {
     return true;
 }
 
+void Xamp::showEvent(QShowEvent* event) {
+    IXFrame::showEvent(event);
+}
+
 void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
     uint32_t &target_sample_rate,
     QString& sample_rate_converter_type) {

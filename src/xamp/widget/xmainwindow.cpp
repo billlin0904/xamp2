@@ -84,12 +84,12 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         win32::SetAccentPolicy(winId());
     } else {
         win32::SetWindowedWindowStyle(winId());
-        win32::AddDwmShadow(winId());
         setMouseTracking(true);
     }
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
     last_rect_ = win32::GetWindowRect(winId());
-    win32::IsValidMutexName("285d604e-5bdb-7900-81f1-ad9fd2bad315", "guest");
+    //auto guid = win32::GetRandomMutexName("guest");
+    win32::IsValidMutexName("cedef7bf-38d2-901e-899a-23cd4bdbed56", "guest");
 #else
     if (!qTheme.UseNativeWindow()) {
         if (content_widget_ != nullptr) {
@@ -241,6 +241,12 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long*
             return true;
         }
         break;
+    case WM_NCPAINT:
+		if (!win32::IsCompositionEnabled()) {
+            *result = 0;
+            return true;
+		}
+        break;
     case WM_GETMINMAXINFO:
         if (layout() != nullptr) {
             if (isMaximized()) {
@@ -290,12 +296,13 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long*
             }
         }
         return true;
-    case WM_WINDOWPOSCHANGING:
-    {
+    case WM_WINDOWPOSCHANGING: {
+        // Tell Windows to discard the entire contents of the client area, as re-using
+		// parts of the client area would lead to jitter during resize.
         const auto window_pos = reinterpret_cast<LPWINDOWPOS>(msg->lParam);
         window_pos->flags |= SWP_NOCOPYBITS;
-    }
-    break;
+		}
+		break;
     case WM_WININICHANGE:
         if (!lstrcmp(reinterpret_cast<LPCTSTR>(msg->lParam), L"ImmersiveColorSet")) {
             SystemThemeChanged(win32::IsDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
@@ -535,14 +542,7 @@ void XMainWindow::ReadDriveInfo() {
 #endif
 }
 
-void XMainWindow::changeEvent(QEvent* event) {
-#if defined(Q_OS_MAC)
-    if (!qTheme.UseNativeWindow() && content_widget_ != nullptr) {
-        osx::hideTitleBar(content_widget_);
-	}
-#endif
-	QFrame::changeEvent(event);
-}
+
 
 void XMainWindow::closeEvent(QCloseEvent* event) {
     if (!content_widget_) {
@@ -612,6 +612,7 @@ void XMainWindow::UpdateMaximumState() {
     }
 
     if (isMaximized()) {
+        setWindowState(windowState() & ~Qt::WindowMinimized);
         showNormal();
         content_widget_->UpdateMaximumState(false);
     }
@@ -729,15 +730,28 @@ void XMainWindow::UpdateScreenNumber() {
     XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
 }
 
+void XMainWindow::changeEvent(QEvent* event) {
+#if defined(Q_OS_MAC)
+    if (!qTheme.UseNativeWindow() && content_widget_ != nullptr) {
+        osx::hideTitleBar(content_widget_);
+    }
+#else
+    if (event->type() == QEvent::WindowStateChange) {
+        if (!isMinimized()) {
+            setAttribute(Qt::WA_Mapped);
+        }
+    }
+#endif
+    IXMainWindow::changeEvent(event);
+}
+
 void XMainWindow::showEvent(QShowEvent* event) {
 #ifdef Q_OS_WIN32
     task_bar_->showEvent();
 #endif
+    QApplication::postEvent(this, new QEvent(QEvent::UpdateRequest), Qt::LowEventPriority);
     setAttribute(Qt::WA_Mapped);
-    QFrame::showEvent(event);
-    QSize oldSize = this->size();
-    resize(oldSize + QSize(10, 10));
-    resize(oldSize);
+    IXMainWindow::showEvent(event);
 }
 
 void XMainWindow::ShowWindow() {

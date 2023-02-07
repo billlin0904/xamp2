@@ -6,6 +6,7 @@
 
 #include <QWidget>
 #include <QFrame>
+#include <QMainWindow>
 
 #include "thememanager.h"
 #include <widget/driveinfo.h>

@@ -90,7 +90,7 @@ public:
 
     void SetBackgroundColor(QWidget* widget);
 
-    QLatin1String ThemeColorPath() const;
+    QLatin1String GetThemeColorPath() const;
 
     void SetMenuStyle(QWidget* menu);
 
@@ -128,7 +128,7 @@ public:
 
     void SetVolume(QSlider* slider, QAbstractButton* button, uint32_t volume);
 
-    void SetSliderTheme(QSlider* slider);
+    void SetSliderTheme(QSlider* slider, bool enter = false);
 
     void SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
 
