@@ -53,7 +53,7 @@ public:
 
     void SetXWindow(IXMainWindow* main_window);
 
-    void ApplyTheme(QColor backgroundColor, QColor color);
+    void SetThemeColor(QColor backgroundColor, QColor color);
 
 	void ShortcutsPressed(const QKeySequence& shortcut) override;
 
@@ -102,6 +102,7 @@ public slots:
 
 	void OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
 
+	void OnCurrentThemeChanged(ThemeColor theme_color);
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
@@ -124,8 +125,6 @@ private:
 	void closeEvent(QCloseEvent* event) override;
 
 	void UpdateMaximumState(bool is_maximum) override;
-
-	void SystemThemeChanged(ThemeColor theme_color) override;
 
     void FocusIn() override;
 

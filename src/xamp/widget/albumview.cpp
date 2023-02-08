@@ -284,15 +284,15 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
         page_->playlist()->GetPlaylistId()))
 
     page_->playlist()->Reload();
-    page_->title()->SetText(album);
+    page_->title()->setText(album);
     page_->SetCoverById(cover_id);
 
     if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
-            .arg(formatDuration(album_stats.value().durations))
+            .arg(FormatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year))
-            .arg(formatBytes(album_stats.value().file_size))
+            .arg(FormatBytes(album_stats.value().file_size))
         );
     }
 
@@ -528,7 +528,7 @@ void AlbumView::EnablePage(bool enable) {
 
 void AlbumView::OnThemeChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetTextColor(color);
-    page_->setStyleSheet(backgroundColorToString(backgroundColor));
+    page_->setStyleSheet(BackgroundColorToString(backgroundColor));
 }
 
 void AlbumView::SetFilterByArtistId(int32_t artist_id) {

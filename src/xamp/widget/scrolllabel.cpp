@@ -17,7 +17,7 @@ ScrollLabel::ScrollLabel(QWidget* parent)
 	UpdateText();
 }
 
-void ScrollLabel::SetText(const QString& text) {
+void ScrollLabel::setText(const QString& text) {
 	text_ = text;
 	scroll_pos_ = 0;
 	UpdateText();

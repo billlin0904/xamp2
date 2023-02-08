@@ -112,7 +112,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     
     AvoidRedrawOnResize();
 
-    ApplyTheme(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
     qTheme.SetPlayOrPauseButton(ui_, false);       
 
     const auto tab_name = AppSettings::ValueAsString(kAppSettingLastTabName);
@@ -125,6 +124,16 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     QTimer::singleShot(300, [this]() {
         InitialDeviceList();
         });
+
+    (void)QObject::connect(&qTheme, 
+        &ThemeManager::CurrentThemeChanged, 
+        this, 
+        &Xamp::OnCurrentThemeChanged);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
+        ui_.sliderBar,
+        &TabListView::OnCurrentThemeChanged);
 }
 
 void Xamp::AvoidRedrawOnResize() {
@@ -598,8 +607,8 @@ void Xamp::InitialController() {
 #endif
 
     ui_.seekSlider->setEnabled(false);
-    ui_.startPosLabel->setText(formatDuration(0));
-    ui_.endPosLabel->setText(formatDuration(0));
+    ui_.startPosLabel->setText(FormatDuration(0));
+    ui_.endPosLabel->setText(FormatDuration(0));
     ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
 }
 
@@ -638,14 +647,10 @@ void Xamp::SetCurrentTab(int32_t table_id) {
 
 void Xamp::UpdateButtonState() {    
     qTheme.SetPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
-    preference_page_->update();
+    preference_page_->SaveSettings();
 }
 
-void Xamp::SystemThemeChanged(ThemeColor theme_color) {
-    if (qTheme.GetThemeColor() == theme_color) {
-        return;
-    }
-
+void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
         qTheme.SetThemeColor(ThemeColor::DARK_THEME);		
@@ -654,17 +659,15 @@ void Xamp::SystemThemeChanged(ThemeColor theme_color) {
         qTheme.SetThemeColor(ThemeColor::LIGHT_THEME);
         break;
 	}
-    qTheme.ApplyTheme();
-
-    /*cleanup();
-    qApp->exit(kRestartExistCode);*/
+    qTheme.LoadAndApplyQssTheme();
+    SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
 }
 
-void Xamp::ApplyTheme(QColor backgroundColor, QColor color) {
-    ThemeChanged(backgroundColor, color);
+void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
     qTheme.SetBackgroundColor(ui_, backgroundColor);
     qTheme.SetWidgetStyle(ui_);
     UpdateButtonState();
+    emit ThemeChanged(backgroundColor, color);
 }
 
 void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
@@ -825,11 +828,11 @@ void Xamp::OnSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::SetSeekPosValue(double stream_time) {
-    const auto full_text = isMoreThan1Hours(player_->GetDuration());
-    ui_.endPosLabel->setText(formatDuration(player_->GetDuration() - stream_time, full_text));
+    const auto full_text = IsMoreThan1Hours(player_->GetDuration());
+    ui_.endPosLabel->setText(FormatDuration(player_->GetDuration() - stream_time, full_text));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
     ui_.seekSlider->setValue(stream_time_as_ms);
-    ui_.startPosLabel->setText(formatDuration(stream_time, full_text));
+    ui_.startPosLabel->setText(FormatDuration(stream_time, full_text));
     main_window_->SetTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
     lrc_page_->lyrics()->SetLrcTime(stream_time_as_ms);
 }
@@ -886,7 +889,7 @@ void Xamp::PlayOrPause() {
 
 void Xamp::ResetSeekPosValue() {
     ui_.seekSlider->setValue(0);
-    ui_.startPosLabel->setText(formatDuration(0));
+    ui_.startPosLabel->setText(FormatDuration(0));
 }
 
 void Xamp::ProcessTrackInfo(const ForwardList<TrackInfo>&) const {
@@ -1117,7 +1120,7 @@ void Xamp::play(const PlayListEntity& item) {
                 const auto message = 
                     qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
                     .arg(player_->GetInputFormat().GetBitsPerSample())
-                    .arg(formatSampleRate(player_->GetInputFormat().GetSampleRate()));
+                    .arg(FormatSampleRate(player_->GetInputFormat().GetSampleRate()));
                 ShowMeMessage(message);
             }
             byte_format = ByteFormat::SINT16;
@@ -1170,8 +1173,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         auto max_duration_ms = Round(player_->GetDuration()) * 1000;
         ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(formatDuration(0));
-        ui_.endPosLabel->setText(formatDuration(player_->GetDuration()));
+        ui_.startPosLabel->setText(FormatDuration(0));
+        ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
         cur_page->format()->setText(Format2String(playback_format, ext));
 
         artist_info_page_->SetArtistId(item.artist,
@@ -1186,7 +1189,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     SetCover(item.cover_id, cur_page);
 
-    ui_.titleLabel->SetText(item.title);
+    ui_.titleLabel->setText(item.title);
     ui_.artistLabel->setText(item.artist);
 
     cur_page->title()->setText(item.title);    
@@ -1245,7 +1248,7 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
         cd_page_->playlistPage()->format()->setText(tr("%1 Songs, %2, %3")
             .arg(QString::number(album_stats.value().songs))
-            .arg(formatDuration(album_stats.value().durations))
+            .arg(FormatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year)));
     }
 }
@@ -1371,7 +1374,6 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
     qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
-    emit playlist_view->ReadReplayGain(false, entities);
     playlist_view->Reload();
 }
 
@@ -1409,7 +1411,7 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         main_window_->ResetTaskbarProgress();
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(formatDuration(0));
+        ui_.startPosLabel->setText(FormatDuration(0));
         PlayNextItem(1);
         PayNextMusic();
     }

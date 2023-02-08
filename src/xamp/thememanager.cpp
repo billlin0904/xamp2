@@ -1,5 +1,3 @@
-#include "thememanager.h"
-
 #include <widget/image_utiltis.h>
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -25,6 +23,9 @@
 #include <QFontDatabase>
 #include <QTextStream>
 #include <QFileInfo>
+#include <QtMath>
+
+#include "thememanager.h"
 
 template <typename Iterator>
 static void SortFontWeight(Iterator begin, Iterator end) {
@@ -83,6 +84,16 @@ bool ThemeManager::UseNativeWindow() const {
     return use_native_window_;
 }
 
+qreal ThemeManager::GetPixelRatio() {
+    auto* screen = QApplication::primaryScreen();
+#ifdef Q_OS_MAC
+    qreal pixel_ratio = screen->devicePixelRatio();
+#else
+    qreal pixel_ratio = screen->logicalDotsPerInch() / qreal(96);
+#endif
+    return pixel_ratio;
+}
+
 QString ThemeManager::GetCountryFlagFilePath(const QString& country_iso_code) {
     return
         qSTR("%1/flags/%2.png")
@@ -90,7 +101,7 @@ QString ThemeManager::GetCountryFlagFilePath(const QString& country_iso_code) {
         .arg(country_iso_code);
 }
 
-QString ThemeManager::FontNamePath(const QString& file_name) {
+QString ThemeManager::GetFontNamePath(const QString& file_name) {
 	return
 		qSTR("%1/fonts/%2")
 		.arg(QCoreApplication::applicationDirPath())
@@ -120,7 +131,7 @@ void ThemeManager::InstallFileFonts(const QString& font_name_prefix, QList<QStri
 }
 
 void ThemeManager::InstallFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
-	const auto font_path = FontNamePath(file_name);
+	const auto font_path = GetFontNamePath(file_name);
 	const QFileInfo info(font_path);
     if (!info.exists()) {
         XAMP_LOG_ERROR("Not found font file name: {}", file_name.toStdString());
@@ -194,10 +205,10 @@ void ThemeManager::SetFontAwesomeIcons() {
     
     switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
-        qFontIcon.addFont(FontNamePath(qTEXT("fa-solid-900.ttf")));
+        qFontIcon.addFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
         break;
     case ThemeColor::LIGHT_THEME:
-        qFontIcon.addFont(FontNamePath(qTEXT("fa-regular-400.ttf")));
+        qFontIcon.addFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
         break;
     }
     qFontIcon.setGlyphs(glyphs);
@@ -213,7 +224,7 @@ QFont ThemeManager::LoadFonts() {
     SetFontAwesomeIcons();
 
     InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-    InstallFileFonts(qTEXT("Roboto-Regular"), mono_fonts);
+    InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
     InstallFileFonts(qTEXT("Poppins"), ui_fonts);
     InstallFileFonts(qTEXT("MiSans"), ui_fonts);
     InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
@@ -260,10 +271,6 @@ ThemeManager::ThemeManager() {
     cover_size_ = QSize(210, 210);
     album_cover_size_ = QSize(250, 250);
     save_cover_art_size_ = QSize(500, 500);
-    //setThemeColor(ThemeColor::DARK_THEME);
-    //setThemeColor(ThemeColor::LIGHT_THEME);
-    const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
-    SetThemeColor(theme);
     ui_font_ = LoadFonts();
     use_native_window_ = !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow);
     ui_font_.setPointSize(GetFontSize());
@@ -336,23 +343,14 @@ void ThemeManager::SetMenuStyle(QWidget* menu) {
 
 QIcon ThemeManager::GetFontIcon(const char32_t code) const {
     switch (code) {
-    /*case Glyphs::ICON_MINIMIZE_WINDOW:
+    case Glyphs::ICON_MINIMIZE_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath()));
     case Glyphs::ICON_MAXIMUM_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(GetThemeColorPath()));
     case Glyphs::ICON_CLOSE_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(GetThemeColorPath()));
     case Glyphs::ICON_RESTORE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(GetThemeColorPath()));*/
-    case Glyphs::ICON_MINIMIZE_WINDOW:
-    case Glyphs::ICON_MAXIMUM_WINDOW:
-    case Glyphs::ICON_CLOSE_WINDOW:
-    case Glyphs::ICON_RESTORE_WINDOW:
-    {
-        auto temp = font_icon_opts_;
-        temp.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(1.4));
-        return qFontIcon.icon(code, temp);
-    }
+        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(GetThemeColorPath()));
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
 	    {
 			auto temp = font_icon_opts_;
@@ -524,10 +522,10 @@ QSize ThemeManager::GetSaveCoverArtSize() const noexcept {
 
 void ThemeManager::SetBackgroundColor(QWidget* widget) {
     auto color = palette().color(QPalette::WindowText);
-    widget->setStyleSheet(backgroundColorToString(color));
+    widget->setStyleSheet(BackgroundColorToString(color));
 }
 
-void ThemeManager::ApplyTheme() {
+void ThemeManager::LoadAndApplyQssTheme() {
     qApp->setFont(DefaultFont());
 
     QString filename;
@@ -592,9 +590,21 @@ QColor ThemeManager::GetHighlightColor() const {
     }
 }
 
-void ThemeManager::SetStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
+int32_t ThemeManager::GetTitleBarIconHeight() {
+    auto w = qCeil(10 * GetPixelRatio());
+
+    if (w <= 10)
+        w = 10;
+    else if (w <= 12)
+        w = 12;
+    else
+        w = 15;
+
+    return w;
+}
+
+void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
     const QColor hover_color = GetHoverColor();
-    constexpr auto kStandardButtonFontSize = 10;
 
     close_button->setStyleSheet(qSTR(R"(
                                          QToolButton#closeButton {
@@ -607,8 +617,8 @@ void ThemeManager::SetStandardButtonStyle(QToolButton* close_button, QToolButton
 										 background-color: %1;
 										 border-radius: 0px;
                                          }
-                                         )").arg(colorToString(hover_color)));
-    close_button->setIconSize(QSize(kStandardButtonFontSize, kStandardButtonFontSize));
+                                         )").arg(ColorToString(hover_color)));
+    close_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
     close_button->setIcon(GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
     min_win_button->setStyleSheet(qSTR(R"(
@@ -621,8 +631,8 @@ void ThemeManager::SetStandardButtonStyle(QToolButton* close_button, QToolButton
 										  background-color: %1;
 										  border-radius: 0px;				 
                                           }
-                                          )").arg(colorToString(hover_color)));
-    min_win_button->setIconSize(QSize(kStandardButtonFontSize, kStandardButtonFontSize));
+                                          )").arg(ColorToString(hover_color)));
+    min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), 1));
     min_win_button->setIcon(GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
 
     max_win_button->setStyleSheet(qSTR(R"(
@@ -635,13 +645,13 @@ void ThemeManager::SetStandardButtonStyle(QToolButton* close_button, QToolButton
 										  background-color: %1;
 										  border-radius: 0px;								 
                                           }
-                                          )").arg(colorToString(hover_color)));
-    max_win_button->setIconSize(QSize(kStandardButtonFontSize, kStandardButtonFontSize));
+                                          )").arg(ColorToString(hover_color)));
+    max_win_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
     max_win_button->setIcon(GetFontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
 }
 
 void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
-    SetStandardButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
+    SetTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
 
     const QColor hover_color = GetHoverColor();
 
@@ -670,7 +680,7 @@ void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
                                             QToolButton#sliderBarButton::menu-indicator {
                                             image: none;
                                             }
-                                            )").arg(colorToString(hover_color)));
+                                            )").arg(ColorToString(hover_color)));
     ui.sliderBarButton->setIcon(GetFontIcon(Glyphs::ICON_SLIDER_BAR));
 
     ui.stopButton->setStyleSheet(qSTR(R"(
@@ -735,11 +745,7 @@ void ThemeManager::SetTextSeparator(QFrame *frame) {
 }
 
 int32_t ThemeManager::GetFontSize() const {
-    const auto dpi = qApp->desktop()->logicalDpiX();
-    if (dpi >= 96) {
-        return 10;
-    }
-    return 14;
+    return 14 * GetPixelRatio();
 }
 
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
@@ -786,21 +792,25 @@ void ThemeManager::SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConne
 }
 
 void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
-    const QString slider_background_color = qTEXT("#9FCBFF");
+    QString slider_background_color;
     QString slider_border_color;
 
 	switch (GetThemeColor()) {
 	case ThemeColor::LIGHT_THEME:
+       slider_background_color = qTEXT("#9FCBFF");
        slider_border_color = qTEXT("#C9CDD0");
        break;
 	case ThemeColor::DARK_THEME:
+       slider_background_color = qTEXT("#1A72BB");
        slider_border_color = qTEXT("#43474e");
        break;
    }
 
     auto handle_border_color = slider_background_color;
+    auto margin = -5;
     if (!enter) {
         handle_border_color = qTEXT("transparent");
+        margin = 0;
     }
 
     slider->setStyleSheet(qTEXT(R"(
@@ -834,7 +844,7 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
 	QSlider#%1::handle:horizontal {
         width: 10px;
 		height: 10px;
-        margin: -5px 0px -5px 0px;
+        margin: %5px 0px %5px 0px;
 		border-radius: 5px;
 		background-color: %4;
 		border: 1px solid %4;
@@ -843,25 +853,45 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
     ).arg(slider->objectName())
         .arg(slider_background_color)
         .arg(slider_border_color)
-		.arg(handle_border_color));
+		.arg(handle_border_color)
+        .arg(margin)
+    );
+}
+
+void ThemeManager::SetSliderBarTheme(Ui::XampWindow& ui) {
+	QString slider_bar_left_color;
+
+	switch (GetThemeColor()) {
+	case ThemeColor::DARK_THEME:
+		slider_bar_left_color = qTEXT("42, 130, 218");
+		break;
+	case ThemeColor::LIGHT_THEME:
+		slider_bar_left_color = qTEXT("42, 130, 218");
+		break;
+	}
+
+	ui.sliderBar->setStyleSheet(qSTR(R"(
+	QListView#sliderBar {
+		border: none; 
+	}
+	QListView#sliderBar::item {
+		border: 0px;
+		padding-left: 6px;
+	}
+	QListView#sliderBar::item:hover {
+		border-radius: 2px;
+	}
+	QListView#sliderBar::item:selected {
+		padding-left: 4px;
+		border-left-width: 2px;
+		border-left-style: solid;
+		border-left-color: rgb(%1);
+	}	
+	)").arg(slider_bar_left_color));
 }
 
 void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
     ui.selectDeviceButton->setIconSize(QSize(32, 32));
-
-    QString slider_border_color;
-    QString slider_background_color;
-
-    switch (GetThemeColor()) {
-    case ThemeColor::LIGHT_THEME:
-        slider_border_color = qTEXT("#C9CDD0");
-        slider_background_color = qTEXT("#9FCBFF");
-        break;
-    case ThemeColor::DARK_THEME:
-        slider_border_color = qTEXT("#43474e");
-        slider_background_color = qTEXT("#a7c8ff");
-        break;
-    }
 
     ui.playButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#playButton {
@@ -919,7 +949,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                             color: white;
                                             border-radius: 10px;
                                             }
-                                            )").arg(colorToString(Qt::black)));
+                                            )").arg(ColorToString(Qt::black)));
 
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
@@ -955,7 +985,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                             color: black;
                                             border-radius: 10px;
                                             }
-                                            )").arg(colorToString(Qt::white)));
+                                            )").arg(ColorToString(Qt::white)));
 
         ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
@@ -992,34 +1022,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
     )"
     ));
 
-    QString slider_bar_left_color;
-    switch (GetThemeColor()) {
-    case ThemeColor::DARK_THEME:
-        slider_bar_left_color = qTEXT("42, 130, 218");
-        break;
-    case ThemeColor::LIGHT_THEME:
-        slider_bar_left_color = qTEXT("42, 130, 218");
-        break;
-    }
-
-    ui.sliderBar->setStyleSheet(qSTR(R"(
-	QListView#sliderBar {
-		border: none; 
-	}
-	QListView#sliderBar::item {
-		border: 0px;
-		padding-left: 6px;
-	}
-	QListView#sliderBar::item:hover {
-		border-radius: 2px;
-	}
-	QListView#sliderBar::item:selected {
-		padding-left: 4px;
-		border-left-width: 2px;
-		border-left-style: solid;
-		border-left-color: rgb(%1);
-	}	
-	)").arg(slider_bar_left_color));
+    SetSliderBarTheme(ui);
 
     SetSliderTheme(ui.seekSlider);
 

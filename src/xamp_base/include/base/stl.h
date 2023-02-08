@@ -135,7 +135,7 @@ time_t ToTime_t(TP tp) {
 	return system_clock::to_time_t(sctp);
 }
 
-template <typename Resolution = std::chrono::microseconds>
+template <typename Resolution = std::chrono::seconds>
 time_t GetTime_t() {
 	return std::chrono::duration_cast<Resolution>(
 		std::chrono::system_clock::now().time_since_epoch()).count();

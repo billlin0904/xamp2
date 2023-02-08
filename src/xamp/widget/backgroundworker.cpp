@@ -53,7 +53,7 @@ static void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
-        auto next_path = toNativeSeparators(itr.next());
+        auto next_path = ToNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
         paths.push_front(path);
         hasher.Update(path);
@@ -158,7 +158,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
         if (is_stop_) {
             return;
         }
-        auto path = toNativeSeparators(itr.next());
+        auto path = ToNativeSeparators(itr.next());
         hasher.Update(path.toStdWString());
         dirs.push_back(path);
     }
@@ -178,7 +178,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     const auto path_hash = hasher.GetHash();
 
     try {
-        const auto db_hash = qDatabase.GetParentPathHash(toNativeSeparators(file_path));
+        const auto db_hash = qDatabase.GetParentPathHash(ToNativeSeparators(file_path));
         if (db_hash == path_hash) {
             XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
             emit adapter->FromDatabase(qDatabase.GetPlayListEntityFromPathHash(db_hash));

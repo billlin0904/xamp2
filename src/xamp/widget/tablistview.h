@@ -9,6 +9,8 @@
 #include <QListView>
 #include <QStandardItemModel>
 
+#include "thememanager.h"
+
 enum TabIndex {
     TAB_PLAYLIST,
     TAB_LYRICS,
@@ -38,6 +40,9 @@ signals:
     void ClickedTable(int table_id);
 
     void TableNameChanged(int table_id, const QString &name);
+
+public slots:
+    void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
     QStandardItemModel model_;

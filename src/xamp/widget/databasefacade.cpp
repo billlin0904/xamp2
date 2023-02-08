@@ -80,7 +80,6 @@ void DatabaseFacade::FindAlbumCover(int32_t album_id, const std::wstring& album,
 
 void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
-    int64_t dir_last_write_time, 
     bool is_podcast) {
 	const CoverArtReader reader;
     // note: Parameter 'result' must be same album name.    
@@ -107,7 +106,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 		const auto artist_id = qDatabase.AddOrUpdateArtist(artist);
 		const auto album_id = qDatabase.AddOrUpdateAlbum(album,
             artist_id,
-            dir_last_write_time, 
+            track_info.last_write_time,
             is_podcast,
             disc_id);
 
@@ -131,7 +130,7 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32
 
     try {
         qDatabase.transaction();
-        AddTrackInfo(result, playlist_id, QDateTime::currentSecsSinceEpoch(), is_podcast_mode);
+        AddTrackInfo(result, playlist_id, is_podcast_mode);
         qDatabase.commit();
     } catch (Exception const &e) {
         faild_insert_database = true;

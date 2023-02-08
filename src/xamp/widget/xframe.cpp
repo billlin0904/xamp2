@@ -96,7 +96,7 @@ void XFrame::SetContentWidget(QWidget* content) {
     default_layout->addWidget(content_, 0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    qTheme.SetStandardButtonStyle(close_button, min_win_button, max_win_button);
+    qTheme.SetTitleBarButtonStyle(close_button, min_win_button, max_win_button);
 
     max_win_button->setDisabled(true);
     min_win_button->setDisabled(true);

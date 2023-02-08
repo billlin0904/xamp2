@@ -117,8 +117,8 @@ void PlaylistPage::initial() {
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
-	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT("; background-color: transparent; }"));
-	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + qTEXT("; background-color: transparent; }"));
+	title_->setStyleSheet(qTEXT("QLabel { color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
+	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
 }
 
 QLabel* PlaylistPage::format() {

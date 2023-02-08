@@ -140,7 +140,7 @@ void ArtistInfoPage::SetArtistId(const QString& artist, const QString& cover_id,
 }
 
 void ArtistInfoPage::OnThemeChanged(QColor backgroundColor, QColor color) {
-    artist_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT(";}"));
+    artist_->setStyleSheet(qTEXT("QLabel { color: ") + ColorToString(color) + qTEXT(";}"));
 	album_view_->OnThemeChanged(backgroundColor, color);
 }
 
@@ -153,5 +153,5 @@ void ArtistInfoPage::SetTracks(int32_t tracks) {
 }
 
 void ArtistInfoPage::SetTotalDuration(double durations) {
-	durations_->setText(formatDuration(durations));
+	durations_->setText(FormatDuration(durations));
 }

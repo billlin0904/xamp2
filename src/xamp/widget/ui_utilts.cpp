@@ -16,7 +16,7 @@
 #include <widget/ui_utilts.h>
 
 QString FormatSampleRate(const AudioFormat& format) {
-    return formatSampleRate(format.GetSampleRate());
+    return FormatSampleRate(format.GetSampleRate());
 }
 
 QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
@@ -57,11 +57,11 @@ QString Format2String(const PlaybackFormat& playback_format, const QString& file
         break;
     case DsdModes::DSD_MODE_NATIVE:
         dsd_mode = qTEXT("Native DSD");
-        output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
+        output_format_str = FormatDsdSampleRate(playback_format.dsd_speed);
         break;
     case DsdModes::DSD_MODE_DOP:
         dsd_mode = qTEXT("DOP");
-        output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
+        output_format_str = FormatDsdSampleRate(playback_format.dsd_speed);
         break;
     default: 
         break;
@@ -80,7 +80,7 @@ QString Format2String(const PlaybackFormat& playback_format, const QString& file
         result += qTEXT(" | ") + dsd_mode;
     }
     if (playback_format.bit_rate > 0) {
-        result += qTEXT(" |") + formatBitRate(playback_format.bit_rate);
+        result += qTEXT(" | ") + FormatBitRate(playback_format.bit_rate);
     }
     return result;
 }

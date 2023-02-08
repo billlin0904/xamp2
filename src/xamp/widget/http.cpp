@@ -93,7 +93,7 @@ static void logHttpRequest(const LoggerPtr &logger,
     }
     stream << "} Data: [";
     if (content_length > 0) {
-        stream << formatBytes(content_length) << " of " << content_type << " data";
+        stream << FormatBytes(content_length) << " of " << content_type << " data";
     }
     stream << "]";
     XAMP_LOG_D(logger, msg.toStdString());
@@ -389,7 +389,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, http2_enabled_env);
     }
 
-    const auto request_id = generateUUID();
+    const auto request_id = GenerateUuid();
 
     request.setRawHeader("X-Request-ID", request_id);
 

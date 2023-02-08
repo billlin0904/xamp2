@@ -139,7 +139,7 @@ void XMessageBox::SetDefaultButton(QDialogButtonBox::StandardButton button) {
 		 color: %2;
       }
 	)"
-	).arg(colorToString(qTheme.GetHighlightColor())).arg(colorToString(text_color)));
+	).arg(ColorToString(qTheme.GetHighlightColor())).arg(ColorToString(text_color)));
 	SetDefaultButton(default_button);
 }
 

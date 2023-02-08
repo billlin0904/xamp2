@@ -248,11 +248,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 	}
 
 	(void)QObject::connect(ui_.lightRadioButton, &QRadioButton::clicked, [](auto checked) {
-		qTheme.SetThemeColor(ThemeColor::LIGHT_THEME);
+		emit qTheme.CurrentThemeChanged(ThemeColor::LIGHT_THEME);
 		});
 
 	(void)QObject::connect(ui_.darkRadioButton, &QRadioButton::clicked, [](auto checked) {
-		qTheme.SetThemeColor(ThemeColor::DARK_THEME);
+		emit qTheme.CurrentThemeChanged(ThemeColor::DARK_THEME);
 		});
 
     ui_.preferenceTreeWidget->header()->hide();
@@ -423,7 +423,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	}
 }
 
-void PreferencePage::update() {
+void PreferencePage::SaveSettings() {
 	const auto enable_resampler = AppSettings::ValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);

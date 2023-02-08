@@ -133,10 +133,10 @@ public:
             opt.text = QString::number(value.toInt());
             break;
         case PLAYLIST_FILE_SIZE:
-            opt.text = formatBytes(value.toULongLong());
+            opt.text = FormatBytes(value.toULongLong());
             break;
         case PLAYLIST_BIT_RATE:
-            opt.text = formatBitRate(value.toUInt());
+            opt.text = FormatBitRate(value.toUInt());
             break;
         case PLAYLIST_ALBUM_PK:
         case PLAYLIST_ALBUM_RG:
@@ -161,13 +161,13 @@ public:
             }
             break;
         case PLAYLIST_SAMPLE_RATE:
-            opt.text = formatSampleRate(value.toUInt());
+            opt.text = FormatSampleRate(value.toUInt());
             break;
         case PLAYLIST_DURATION:
-            opt.text = formatDuration(value.toDouble());            
+            opt.text = FormatDuration(value.toDouble());            
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
-            opt.text = formatTime(value.toULongLong());
+            opt.text = FormatTime(value.toULongLong());
             break;
         case PLAYLIST_COVER_ID:
 	        {
@@ -599,8 +599,8 @@ void PlayListTableView::initial() {
 
                 auto profile_desc = qSTR("%0 bit, %1, %2").arg(
                     QString::number(profile.bit_per_sample),
-                    formatSampleRate(profile.sample_rate),
-                    formatBitRate(profile.bitrate));
+                    FormatSampleRate(profile.sample_rate),
+                    FormatBitRate(profile.bitrate));
 
                 export_aac_file_submenu->AddAction(profile_desc, [profile, this]() {
                     const auto rows = SelectItemIndex();
@@ -918,11 +918,11 @@ void PlayListTableView::ResizeColumn() {
 	    switch (column) {
         case PLAYLIST_PLAYING:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            header->resizeSection(column, 25);
+            header->resizeSection(column, kColumnPlayingWidth);
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 65);
+            header->resizeSection(column, kColumnTrackWidth);
             break;
         case PLAYLIST_TITLE:
             header->resizeSection(column,
@@ -930,14 +930,14 @@ void PlayListTableView::ResizeColumn() {
         	break;        
         case PLAYLIST_ARTIST:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 300);
+            header->resizeSection(column, kColumnArtistWidth);
             break;
         case PLAYLIST_ALBUM:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;
         case PLAYLIST_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 42);
+            header->resizeSection(column, kColumnCoverIdWidth);
             break;
         default:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

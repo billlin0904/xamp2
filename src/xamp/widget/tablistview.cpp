@@ -39,6 +39,25 @@ int32_t TabListView::GetTabId(const QString& name) const {
     return ids_[name];
 }
 
+void TabListView::OnCurrentThemeChanged(ThemeColor theme_color) {
+    auto column_index = 0;
+    Q_FOREACH(const QModelIndex & index, selectionModel()->selectedIndexes()) {
+        auto* item = model_.itemFromIndex(index);
+        switch (column_index) {
+        case TAB_PLAYLIST:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+            break;
+        case TAB_FILE_EXPLORER:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+            break;
+        case TAB_LYRICS:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
+            break;
+        }
+        ++column_index;
+    }
+}
+
 void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);

@@ -987,7 +987,7 @@ QProgressBar:disabled {
 }
 
 QProgressBar::chunk {
-  background-color: #9FCBFF;
+  background-color: #1A72BB;
   color: #1e1d23;
   border-radius: 4px;
 }
@@ -1350,7 +1350,7 @@ QSlider::groove:vertical {
 }
 
 QSlider::add-page:vertical {
-  background: #9FCBFF;
+  background: #1A72BB;
   border: 1px solid #455364;
   width: 4px;
   margin: 0px;
@@ -1362,7 +1362,7 @@ QSlider::add-page:vertical :disabled {
 }
 
 QSlider::sub-page:horizontal {
-  background: #9FCBFF;
+  background: #1A72BB;
   border: 1px solid #455364;
   height: 4px;
   margin: 0px;
@@ -1383,8 +1383,8 @@ QSlider::handle:horizontal {
 }
 
 QSlider::handle:horizontal:hover {
-  background: #9FCBFF;
-  border: 1px solid #9FCBFF;
+  background: #1A72BB;
+  border: 1px solid #1A72BB;
 }
 
 QSlider::handle:horizontal:focus {
@@ -1401,8 +1401,8 @@ QSlider::handle:vertical {
 }
 
 QSlider::handle:vertical:hover {
-  background: #9FCBFF;
-  border: 1px solid #9FCBFF;
+  background: #1A72BB;
+  border: 1px solid #1A72BB;
 }
 
 QSlider::handle:vertical:focus {

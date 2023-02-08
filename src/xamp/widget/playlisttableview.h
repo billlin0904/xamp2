@@ -26,6 +26,12 @@ public:
 	static constexpr auto kMinimalEncodingBitRate = 128;
     static constexpr auto kMaxStretchedSize = 500;
 
+	static constexpr auto kColumnPlayingWidth = 25;
+	static constexpr auto kColumnTrackWidth = 40;
+	static constexpr auto kColumnArtistWidth = 300;
+	static constexpr auto kColumnCoverIdWidth = 42;
+	static constexpr auto kColumnDefaultWidth = 80;
+
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
 	virtual ~PlayListTableView() override;

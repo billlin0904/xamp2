@@ -86,7 +86,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                 return;
             }
             auto src_index = dir_first_sort_filter_->mapToSource(index);
-            auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
+            auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
             ui.playlistPage->playlist()->append(path);
         });
         add_file_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));

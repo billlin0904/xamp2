@@ -24,7 +24,8 @@ namespace Ui {
 class XampWindow;
 }
 
-class ThemeManager {
+class ThemeManager : public QObject {
+    Q_OBJECT
 public:
     friend class SharedSingleton<ThemeManager>;
 
@@ -86,7 +87,7 @@ public:
 
     void SetBackgroundColor(Ui::XampWindow& ui, QColor color);
 
-    void ApplyTheme();
+    void LoadAndApplyQssTheme();
 
     void SetBackgroundColor(QWidget* widget);
 
@@ -114,13 +115,11 @@ public:
 
     QSize GetTabIconSize() const;
 
-    void SetStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
+    void SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
     QIcon GetFontIcon(const char32_t code) const;
 
     void SetTextSeparator(QFrame* frame);
-
-    int32_t GetFontSize() const;
 
     void SetMuted(Ui::XampWindow& ui, bool is_muted);
 
@@ -130,10 +129,21 @@ public:
 
     void SetSliderTheme(QSlider* slider, bool enter = false);
 
+    void SetSliderBarTheme(Ui::XampWindow& ui);
+
     void SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
 
+    int32_t GetFontSize() const;
+
+signals:
+    void CurrentThemeChanged(ThemeColor theme_color);
+
 private:
-    static QString FontNamePath(const QString& file_name);
+    static qreal GetPixelRatio();
+
+    static QString GetFontNamePath(const QString& file_name);
+
+    static int32_t GetTitleBarIconHeight();
 
     QFont LoadFonts();
 

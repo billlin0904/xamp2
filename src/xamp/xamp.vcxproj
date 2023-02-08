@@ -307,7 +307,7 @@
     <QtMoc Include="aboutpage.h">
     </QtMoc>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="thememanager.h" />
+    <QtMoc Include="thememanager.h" />
     <ClInclude Include="widget\actionmap.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>

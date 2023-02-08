@@ -204,7 +204,7 @@ void LrcPage::initial() {
     title_ = new ScrollLabel(this);
 	title_->setStyleSheet(qTEXT("background-color: transparent"));
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->SetText(tr("Title:"));	
+	title_->setText(tr("Title:"));
 	title_->setFont(f);
 #ifdef Q_OS_WIN
     title_->setMinimumHeight(40);

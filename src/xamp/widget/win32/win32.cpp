@@ -451,9 +451,11 @@ std::string GetRandomMutexName(const std::string& src_name) {
 	PRNG prng;
 	// Golden Ratio constant used for better hash scattering
 	// See https://softwareengineering.stackexchange.com/a/402543
-	static constexpr auto kGoldenRatio = 0x9e3779b9;
-	s.w[0] = prng.NextInt32() * kGoldenRatio;
-	s.w[1] = prng.NextInt32() * kGoldenRatio;
+	static constexpr auto kGoldenRatio = 0x9e3779b9ull;
+	s.w[0] = static_cast<uint32_t>(prng.NextInt32() * kGoldenRatio);
+	s.w[1] = static_cast<uint32_t>(prng.NextInt32() * kGoldenRatio);
+	//s.w[0] = 642678;
+	//s.w[1] = 3449517;
 	s.q[1] = GoogleSipHash<>::GetHash(src_name, s.w[0], s.w[1]);
 	return Uuid(s.b, s.b + 16);
 }

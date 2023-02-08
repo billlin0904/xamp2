@@ -57,7 +57,6 @@ public:
 private:
     static void AddTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
-        int64_t dir_last_write_time,
         bool is_podcast);
 };
 

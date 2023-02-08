@@ -17,7 +17,7 @@ class ScrollLabel : public QLabel {
 public:
 	explicit ScrollLabel(QWidget *parent = nullptr);
 
-	void SetText(const QString &text);
+	void setText(const QString &text);
 
 	QString text() const;
 

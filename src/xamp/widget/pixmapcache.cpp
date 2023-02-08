@@ -67,7 +67,7 @@ void PixmapCache::InitCachePath() {
 	else {
 		cache_path_ = AppSettings::ValueAsString(kAppSettingAlbumImageCachePath);
 	}
-	cache_path_ = toNativeSeparators(cache_path_);
+	cache_path_ = ToNativeSeparators(cache_path_);
 	AppSettings::SetValue(kAppSettingAlbumImageCachePath, cache_path_);
 }
 

@@ -70,8 +70,6 @@ public:
 
     virtual void FocusOut() = 0;
 
-    virtual void SystemThemeChanged(ThemeColor theme_color) = 0;
-
     virtual void ShortcutsPressed(const QKeySequence& shortcut) = 0;
 protected:
     IXFrame() = default;

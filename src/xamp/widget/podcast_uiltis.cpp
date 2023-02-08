@@ -31,14 +31,15 @@ ForwardList<TrackInfo> ParseJson(QString const& json) {
             auto artist = object.value(qTEXT("artist")).toString().toStdWString();
             auto title = object.value(qTEXT("title")).toString();
             auto performer = object.value(qTEXT("performer")).toString();
-            auto dateTime = object.value(qTEXT("datetime")).toDateTime();
+            auto date_time = object.value(qTEXT("datetime")).toDateTime();
             TrackInfo track_info;
             track_info.file_path = url.toStdWString();
             if (artist == performer.toStdWString()) {
-                track_info.title = title.toStdWString() + L" (" + dateTime.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") ";
+                track_info.title = title.toStdWString() + L" (" + date_time.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") ";
             } else {
-                track_info.title = title.toStdWString() + L" (" + dateTime.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") " + L" (Ori. " + artist + L")";
+                track_info.title = title.toStdWString() + L" (" + date_time.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") " + L" (Ori. " + artist + L")";
             }
+            track_info.last_write_time = date_time.toSecsSinceEpoch();
             track_info.artist = performer.toStdWString();
             track_info.album = L"Podcast";
             track_info.track = track++;
@@ -46,61 +47,6 @@ ForwardList<TrackInfo> ParseJson(QString const& json) {
         }
     }
     return track_infos;
-}
-
-std::pair<std::string, ForwardList<TrackInfo>> ParsePodcastXml(QString const& src) {
-    auto str = src.toStdString();
-
-    ForwardList<TrackInfo> metadatas;
-    xml_document<> doc;
-    doc.parse<0>(str.data());
-
-    auto* rss = doc.first_node("rss");
-    if (!rss) {
-        return std::make_pair("", metadatas);
-    }
-
-    auto* channel = rss->first_node("channel");
-    if (!channel) {
-        return std::make_pair("", metadatas);
-    }
-
-    std::string image_url;
-    auto* image = channel->first_node("itunes:image");
-    if (image != nullptr) {
-        auto href = image->first_attribute("href");
-        if (href != nullptr) {
-            std::string url_value(href->value(), href->value_size());
-            image_url = url_value;
-        }        
-    }
-    size_t i = 1;
-    for (auto* item = channel->first_node("item"); item; item = item->next_sibling("item")) {
-        TrackInfo track_info;
-        for (auto* node = item->first_node(); node; node = node->next_sibling()) {
-            std::string name(node->name(), node->name_size());
-            std::string value(node->value(), node->value_size());
-            if (name == "title") {
-                track_info.title = parseCDATA(node);
-                track_info.track = i++;
-            }
-            else if (name == "dc:creator") {
-                track_info.artist = parseCDATA(node);
-                track_info.album = parseCDATA(node);
-            }
-            else if (name == "enclosure") {
-                auto* url = node->first_attribute("url");
-                if (!url) {
-                    continue;
-                }
-                std::string path(url->value(), url->value_size());
-                track_info.file_path = String::ToString(path);
-            }
-        }
-        metadatas.push_front(track_info);
-    }
-
-    return std::make_pair(image_url, metadatas);
 }
 
 std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src) {

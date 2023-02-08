@@ -58,24 +58,24 @@ inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }
 
-QString formatSampleRate(uint32_t sample_rate);
+QString FormatSampleRate(uint32_t sample_rate);
 
-QString formatBitRate(uint32_t bitRate);
+QString FormatBitRate(uint32_t bitRate);
 
-QString formatDsdSampleRate(uint32_t dsd_speed);
+QString FormatDsdSampleRate(uint32_t dsd_speed);
 
-QString colorToString(QColor color);
+QString ColorToString(QColor color);
 
-QString backgroundColorToString(QColor color);
+QString BackgroundColorToString(QColor color);
 
-QString formatDuration(const double stream_time, bool full_text = false);
+QString FormatDuration(const double stream_time, bool full_text = false);
 
-bool isMoreThan1Hours(const double stream_time);
+bool IsMoreThan1Hours(const double stream_time);
 
-QString toNativeSeparators(const QString &path);
+QString ToNativeSeparators(const QString &path);
 
-QByteArray generateUUID();
+QByteArray GenerateUuid();
 
-QString formatBytes(quint64 bytes);
+QString FormatBytes(quint64 bytes);
 
-QString formatTime(quint64 time);
+QString FormatTime(quint64 time);

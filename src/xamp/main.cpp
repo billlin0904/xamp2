@@ -397,9 +397,6 @@ static int Execute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("attach application success.");
 
-    qTheme.ApplyTheme();
-    XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
-
     try {
         LoadComponentSharedLibrary();
     }
@@ -432,9 +429,15 @@ static int Execute(int argc, char* argv[]) {
         main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
     }
 
-    Xamp win(MakeAudioPlayer());
+    const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
+    qTheme.SetThemeColor(theme);
+    qTheme.LoadAndApplyQssTheme();
 
+    Xamp win(MakeAudioPlayer());
     win.SetXWindow(&main_window);
+
+    win.SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
+
     main_window.SetContentWidget(&win);
     //top_win.SetContentWidget(nullptr);
 

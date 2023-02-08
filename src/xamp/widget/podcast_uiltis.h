@@ -31,8 +31,6 @@ Q_DECLARE_METATYPE(MbDiscIdInfo)
 
 ForwardList<TrackInfo> ParseJson(QString const& json);
 
-std::pair<std::string, ForwardList<TrackInfo>> ParsePodcastXml(QString const& src);
-
 std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src);
 
 QString ParseCoverUrl(QString const& src);
