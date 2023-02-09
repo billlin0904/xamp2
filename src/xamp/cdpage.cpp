@@ -43,6 +43,12 @@ CdPage::CdPage(QWidget* parent)
     setStyleSheet(qTEXT("QFrame#CDPage { background-color: transparent; }"));
 }
 
+void CdPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+    ui.pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
+    ui.cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+}
+
 void CdPage::showPlaylistPage(bool show) {
     if (show) {
         ui.tipFrame->hide();

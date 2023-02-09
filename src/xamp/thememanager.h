@@ -53,7 +53,7 @@ public:
 
     void SetWidgetStyle(Ui::XampWindow &ui);    
 
-    const QSize& DefaultCoverSize() const noexcept;
+    const QSize& GetDefaultCoverSize() const noexcept;
 
     QSize GetCacheCoverSize() const noexcept;
 
@@ -67,9 +67,9 @@ public:
 
     QIcon GetPlayingIcon() const;
 
-    QPixmap GithubIcon() const;
+    QPixmap GetGithubIcon() const;
 
-    QIcon PlaylistPlayingIcon(QSize icon_size) const;
+    QIcon GetPlaylistPlayingIcon(QSize icon_size) const;
 
     QIcon PlaylistPauseIcon(QSize icon_size) const;
 

@@ -62,7 +62,7 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     mouse_point_ = ev->pos();
 	const auto current_cursor = QApplication::overrideCursor();
 
-    const auto default_cover_size = qTheme.DefaultCoverSize();
+    const auto default_cover_size = qTheme.GetDefaultCoverSize();
     constexpr auto icon_size = 24;
     const QRect more_button_rect(
         option.rect.left() + default_cover_size.width() - 10,
@@ -105,7 +105,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
 
-    const auto default_cover_size = qTheme.DefaultCoverSize();
+    const auto default_cover_size = qTheme.GetDefaultCoverSize();
     const QRect cover_rect(option.rect.left() + 10,
         option.rect.top() + 10,
         default_cover_size.width(), 
@@ -211,7 +211,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    const auto default_cover = qTheme.DefaultCoverSize();
+    const auto default_cover = qTheme.GetDefaultCoverSize();
     result.setWidth(default_cover.width() + 30);
     result.setHeight(default_cover.height() + 80);
     return result;

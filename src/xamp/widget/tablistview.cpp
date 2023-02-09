@@ -40,9 +40,8 @@ int32_t TabListView::GetTabId(const QString& name) const {
 }
 
 void TabListView::OnCurrentThemeChanged(ThemeColor theme_color) {
-    auto column_index = 0;
-    Q_FOREACH(const QModelIndex & index, selectionModel()->selectedIndexes()) {
-        auto* item = model_.itemFromIndex(index);
+    for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
+        auto* item = model_.item(column_index);
         switch (column_index) {
         case TAB_PLAYLIST:
             item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
@@ -53,8 +52,25 @@ void TabListView::OnCurrentThemeChanged(ThemeColor theme_color) {
         case TAB_LYRICS:
             item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
             break;
+        case TAB_PODCAST:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
+            break;
+        case TAB_ALBUM:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
+            break;
+        case TAB_ARTIST:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
+            break;
+        case TAB_SETTINGS:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
+            break;
+        case TAB_CD:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+            break;
+        case TAB_ABOUT:
+            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
+            break;
         }
-        ++column_index;
     }
 }
 

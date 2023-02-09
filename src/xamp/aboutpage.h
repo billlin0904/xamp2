@@ -7,13 +7,17 @@
 
 #include <ui_aboutdialog.h>
 
+#include "thememanager.h"
+
 class AboutPage final : public QFrame {
     Q_OBJECT
 public:
     explicit AboutPage(QWidget* parent = nullptr);
 
-private slots:
+public slots:
     void OnCreditsOrLicenceChecked(bool checked);
+
+    void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
     Ui::AboutDialog ui;

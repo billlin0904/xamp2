@@ -31,6 +31,7 @@ public:
 	static constexpr auto kColumnArtistWidth = 300;
 	static constexpr auto kColumnCoverIdWidth = 42;
 	static constexpr auto kColumnDefaultWidth = 80;
+	static constexpr auto kColumnDuratioWidth = 10;
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 

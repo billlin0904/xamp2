@@ -76,6 +76,7 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
     , album_page_(nullptr)
     , artist_info_page_(nullptr)
 	, file_system_view_page_(nullptr)
+	, about_page_(nullptr)
 	, main_window_(nullptr)
 	, background_worker_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
@@ -272,7 +273,7 @@ void Xamp::OnDeviceStateChanged(DeviceState state) {
 }
 
 QWidgetAction* Xamp::CreateTextSeparator(const QString& desc) {
-    QWidget* desc_label = new QLabel(desc);
+    auto* desc_label = new QLabel(desc);
 
     desc_label->setObjectName(qTEXT("textSeparator"));
 
@@ -281,17 +282,19 @@ QWidgetAction* Xamp::CreateTextSeparator(const QString& desc) {
     f.setBold(true);
     desc_label->setFont(f);
 
-    auto* frame = new QFrame();
-    qTheme.SetTextSeparator(frame);
-    auto* default_layout = new QVBoxLayout(frame);
+    auto* device_type_frame = new QFrame();
+    qTheme.SetTextSeparator(device_type_frame);
+    auto* default_layout = new QVBoxLayout(device_type_frame);
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
     default_layout->addWidget(desc_label);
-    frame->setLayout(default_layout);
+    device_type_frame->setLayout(default_layout);
 
     auto* separator = new QWidgetAction(this);
-    separator->setDefaultWidget(frame);
+    separator->setDefaultWidget(device_type_frame);
+
+    device_type_frame_.push_back(device_type_frame);
     return separator;
 }
 
@@ -659,6 +662,15 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
         qTheme.SetThemeColor(ThemeColor::LIGHT_THEME);
         break;
 	}
+    Q_FOREACH(QFrame *frame, device_type_frame_) {
+        qTheme.SetTextSeparator(frame);
+	}
+    if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
+        qTheme.SetMuted(ui_.mutedButton, true);
+    }
+    else {
+        qTheme.SetMuted(ui_.mutedButton, false);
+    }
     qTheme.LoadAndApplyQssTheme();
     SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
 }
@@ -1430,7 +1442,7 @@ void Xamp::InitialPlaylist() {
     ui_.sliderBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
     ui_.sliderBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
     ui_.sliderBar->AddTab(tr("Artists"), TAB_ARTIST, qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
-    ui_.sliderBar->AddTab(tr("Settings"), TAB_SETTINGS, qTheme.GetFontIcon(Glyphs::ICON_PREFERENCE));
+    ui_.sliderBar->AddTab(tr("Settings"), TAB_SETTINGS, qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
     ui_.sliderBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.sliderBar->AddTab(tr("About"), TAB_ABOUT, qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));

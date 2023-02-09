@@ -268,7 +268,7 @@
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
-    <ClInclude Include="cdpage.h" />
+    <QtMoc Include="cdpage.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="widget\albumentity.h" />
     <QtMoc Include="widget\spectrumwidget.h" />

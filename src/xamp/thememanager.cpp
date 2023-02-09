@@ -169,7 +169,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_LEFT_ARROW,                0xF177 },
     { ICON_ARTIST,                    0xF500 },
     { ICON_SUBTITLE,                  0xE1DE },
-    { ICON_PREFERENCE,                0xF013 },
+    { ICON_SETTINGS,                0xF013 },
     { ICON_ABOUT,                     0xF05A },
     { ICON_DARK_MODE,                 0xF186 },
     { ICON_LIGHT_MODE,                0xF185 },
@@ -283,6 +283,8 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
 
     SetPalette();
     AppSettings::setEnumValue(kAppSettingTheme, theme_color_);
+
+    font_icon_opts_.clear();
 
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
@@ -401,7 +403,7 @@ QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size) const {
     return icon;
 }
 
-QIcon ThemeManager::PlaylistPlayingIcon(QSize icon_size) const {
+QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size) const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
@@ -440,7 +442,7 @@ void ThemeManager::SetRepeatOncePlayOrder(Ui::XampWindow& ui) const {
     ui.repeatButton->setIcon(GetFontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
 }
 
-QPixmap ThemeManager::GithubIcon() const {
+QPixmap ThemeManager::GetGithubIcon() const {
     if (GetThemeColor() == ThemeColor::DARK_THEME) {
         return QPixmap(qTEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
 	} else {
@@ -504,12 +506,12 @@ void ThemeManager::SetPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     }
 }
 
-const QSize& ThemeManager::DefaultCoverSize() const noexcept {
+const QSize& ThemeManager::GetDefaultCoverSize() const noexcept {
     return cover_size_;
 }
 
 QSize ThemeManager::GetCacheCoverSize() const noexcept {
-    return DefaultCoverSize() * 2;
+    return GetDefaultCoverSize() * 2;
 }
 
 QSize ThemeManager::GetAlbumCoverSize() const noexcept {
@@ -745,7 +747,7 @@ void ThemeManager::SetTextSeparator(QFrame *frame) {
 }
 
 int32_t ThemeManager::GetFontSize() const {
-    return 14 * GetPixelRatio();
+    return 10 * GetPixelRatio();
 }
 
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
@@ -807,10 +809,10 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
    }
 
     auto handle_border_color = slider_background_color;
-    auto margin = -5;
+    auto margin = 10;
     if (!enter) {
         handle_border_color = qTEXT("transparent");
-        margin = 0;
+        margin = 1;
     }
 
     slider->setStyleSheet(qTEXT(R"(
@@ -842,9 +844,9 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
     }
 
 	QSlider#%1::handle:horizontal {
-        width: 10px;
-		height: 10px;
-        margin: %5px 0px %5px 0px;
+        width: %5px;
+		height: %5px;
+        margin: -5px 0px -5px 0px;
 		border-radius: 5px;
 		background-color: %4;
 		border: 1px solid %4;

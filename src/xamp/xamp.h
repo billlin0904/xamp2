@@ -7,6 +7,7 @@
 
 #include <QStack>
 #include <QThread>
+#include <QVector>
 #include <QSystemTrayIcon>
 
 #include <widget/widget_shared.h>
@@ -247,5 +248,6 @@ private:
     QThread background_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
+	QVector<QFrame*> device_type_frame_;
     Ui::XampWindow ui_;
 };

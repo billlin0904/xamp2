@@ -6,10 +6,12 @@
 #pragma once
 
 #include <ui_cdpage.h>
+#include "thememanager.h"
 
 class PlaylistPage;
 
 class CdPage final : public QFrame {
+    Q_OBJECT
 public:
     explicit CdPage(QWidget* parent = nullptr);
 
@@ -18,6 +20,10 @@ public:
     PlaylistPage* playlistPage() {
         return ui.playlistPage;
     }
+
+public slots:
+    void OnCurrentThemeChanged(ThemeColor theme_color);
+
 private:
     Ui::CDPage ui;
 };

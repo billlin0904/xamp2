@@ -7,7 +7,6 @@
 #include <QFormLayout>
 #include <QTimeEdit>
 #include <QLineEdit>
-#include <QSqlQuery>
 #include <QApplication>
 #include <QSqlError>
 
@@ -113,7 +112,7 @@ public:
                 QSize icon_size(kPlayingStateIconSize, kPlayingStateIconSize);
 
                 if (playing_state == PlayingState::PLAY_PLAYING) {
-                    opt.icon = qTheme.PlaylistPlayingIcon(icon_size);
+                    opt.icon = qTheme.GetPlaylistPlayingIcon(icon_size);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
@@ -941,14 +940,14 @@ void PlayListTableView::ResizeColumn() {
             break;
         default:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 80);
+            header->resizeSection(column, kColumnDefaultWidth);
             break;
         }
     }
 
     if (not_hide_column == 3) {
         header->setSectionResizeMode(PLAYLIST_DURATION, QHeaderView::Fixed);
-        header->resizeSection(PLAYLIST_DURATION, 30);
+        header->resizeSection(PLAYLIST_DURATION, kColumnDuratioWidth);
     }
 }
 

@@ -50,6 +50,9 @@ QPixmap CoverArtReader::GetEmbeddedCover(const TrackInfo& track_info) const {
     return GetEmbeddedCover(track_info.file_path);
 }
 
+LruCache<QString, int32_t> DatabaseFacade::artist_id_cache_;
+LruCache<QString, int32_t> DatabaseFacade::album_id_cache_;
+
 DatabaseFacade::DatabaseFacade(QObject* parent)
     : QObject(parent) {    
 }
@@ -102,9 +105,9 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 			artist = tr("Unknown artist");
 		}
 
-		const auto music_id = qDatabase.AddOrUpdateMusic(track_info);
-		const auto artist_id = qDatabase.AddOrUpdateArtist(artist);
-		const auto album_id = qDatabase.AddOrUpdateAlbum(album,
+        const auto music_id = qDatabase.AddOrUpdateMusic(track_info);
+        const auto artist_id = qDatabase.AddOrUpdateArtist(artist);
+        const auto album_id = qDatabase.AddOrUpdateAlbum(album,
             artist_id,
             track_info.last_write_time,
             is_podcast,
@@ -126,25 +129,31 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
-    bool faild_insert_database = false;
+    bool failed_insert_database = false;
 
-    try {
-        qDatabase.transaction();
-        AddTrackInfo(result, playlist_id, is_podcast_mode);
-        qDatabase.commit();
-    } catch (Exception const &e) {
-        faild_insert_database = true;
-        XAMP_LOG_DEBUG("Failed to add track info({}) {}", e.GetErrorMessage(), e.GetStackTrace());
-    } catch (std::exception const& e) {
-        faild_insert_database = true;
-        XAMP_LOG_DEBUG("Failed to add track info({})", e.what());
-    } catch (...) {
-        faild_insert_database = true;
-        XAMP_LOG_DEBUG("Failed to add track info!");
-    }
+    for (auto i = 0; i < 3; ++i) {
+        try {
+            qDatabase.transaction();
+            AddTrackInfo(result, playlist_id, is_podcast_mode);
+            qDatabase.commit();
+        }
+        catch (Exception const& e) {
+            failed_insert_database = true;
+            XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
+        }
+        catch (std::exception const& e) {
+            failed_insert_database = true;
+            XAMP_LOG_DEBUG("Failed to add track info({})!", e.what());
+        }
+        catch (...) {
+            failed_insert_database = true;
+            XAMP_LOG_DEBUG("Failed to add track info!");
+        }
 
-    if (faild_insert_database) {
-        qDatabase.rollback();
+        if (failed_insert_database) {
+            qDatabase.rollback();
+            XAMP_LOG_DEBUG("Retry insert database count: {}.", i);
+        }
     }
 }
 

@@ -9,6 +9,7 @@
 
 #include <QString>
 #include <QSqlDatabase>
+#include <QSqlQuery>
 
 #include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
@@ -63,6 +64,22 @@ enum PlayingState {
 	PLAY_CLEAR = 0,
     PLAY_PLAYING,
     PLAY_PAUSE,
+};
+
+class SqlQuery : public QSqlQuery {
+public:
+    explicit SqlQuery(const QString& query = QString(), QSqlDatabase db = QSqlDatabase())
+        : QSqlQuery(query, db) {
+    }
+
+    explicit SqlQuery(QSqlDatabase db)
+	    : QSqlQuery(db) {
+    }
+
+    ~SqlQuery() {
+        QSqlQuery::finish();
+        QSqlQuery::clear();
+    }
 };
 
 class Database final {
@@ -196,7 +213,7 @@ public:
 
     void SetNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
 private:
-    static PlayListEntity QueryToPlayListEntity(const QSqlQuery& query);
+    static PlayListEntity QueryToPlayListEntity(const SqlQuery& query);
 
     void RemoveAlbumArtist(int32_t album_id);
 

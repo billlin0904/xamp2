@@ -35,9 +35,9 @@ ForwardList<TrackInfo> ParseJson(QString const& json) {
             TrackInfo track_info;
             track_info.file_path = url.toStdWString();
             if (artist == performer.toStdWString()) {
-                track_info.title = title.toStdWString() + L" (" + date_time.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") ";
+                track_info.title = title.toStdWString();
             } else {
-                track_info.title = title.toStdWString() + L" (" + date_time.toString(qTEXT("yyyy-MM-dd")).toStdWString() + L") " + L" (Ori. " + artist + L")";
+                track_info.title = title.toStdWString() + L" (Ori. " + artist + L")";
             }
             track_info.last_write_time = date_time.toSecsSinceEpoch();
             track_info.artist = performer.toStdWString();
