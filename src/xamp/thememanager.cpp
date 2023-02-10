@@ -750,6 +750,10 @@ int32_t ThemeManager::GetFontSize() const {
     return 10 * GetPixelRatio();
 }
 
+QSize ThemeManager::GetTitleButtonIconSize() {
+    return QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight());
+}
+
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_UP));
@@ -778,19 +782,40 @@ void ThemeManager::SetMuted(Ui::XampWindow& ui, bool is_muted) {
     SetMuted(ui.mutedButton, is_muted);
 }
 
-void ThemeManager::SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type) {
+Glyphs ThemeManager::GetConnectTypeGlyphs(DeviceConnectType type) const {
     switch (type) {
     case DeviceConnectType::UKNOWN:
     case DeviceConnectType::BUILT_IN:
-        button->setIcon(GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER));
+        return Glyphs::ICON_BUILD_IN_SPEAKER;
         break;
     case DeviceConnectType::USB:
-        button->setIcon(GetFontIcon(Glyphs::ICON_USB));
+        return Glyphs::ICON_USB;
         break;
     case DeviceConnectType::BLUE_TOOTH:
-        button->setIcon(GetFontIcon(Glyphs::ICON_BLUE_TOOTH));
+        return Glyphs::ICON_BLUE_TOOTH;
         break;
     }
+    return Glyphs::ICON_BUILD_IN_SPEAKER;
+}
+
+QIcon ThemeManager::GetConnectTypeIcon(DeviceConnectType type) const {
+    switch (type) {
+    case DeviceConnectType::UKNOWN:
+    case DeviceConnectType::BUILT_IN:
+        return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
+        break;
+    case DeviceConnectType::USB:
+        return GetFontIcon(Glyphs::ICON_USB);
+        break;
+    case DeviceConnectType::BLUE_TOOTH:
+        return GetFontIcon(Glyphs::ICON_BLUE_TOOTH);
+        break;
+    }
+    return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
+}
+
+void ThemeManager::SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type) {
+    button->setIcon(GetConnectTypeIcon(type));
 }
 
 void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {

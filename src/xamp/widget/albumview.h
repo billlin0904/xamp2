@@ -13,7 +13,7 @@
 
 #include <widget/widget_shared.h>
 
-#include <widget/albumentity.h>
+#include <widget/themecolor.h>
 #include <widget/playlistentity.h>
 
 class XProgressDialog;
@@ -79,9 +79,13 @@ signals:
 
 	void LeaveAlbumView() const;
 
+public slots:
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
 private:
 	ClickableLabel* artist_;
 	PlaylistPage* page_;
+	QPushButton* close_button_;
 };
 
 class AlbumView final : public QListView {
@@ -118,7 +122,10 @@ signals:
 		QString const& file_path, 
 		int32_t playlist_id,
 		bool is_podcast_mode);
+
 public slots:
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
 	void Refresh();
 
 	void SetFilterByArtistId(int32_t artist_id);

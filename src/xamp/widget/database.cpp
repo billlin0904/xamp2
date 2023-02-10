@@ -897,7 +897,7 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":comment"), QString::fromStdWString(track_info.comment));
     query.bindValue(qTEXT(":year"), track_info.year);
 
-    THROW_IF_FAIL(query);
+    THROW_IF_FAIL1(query);
 
     const auto music_id = query.lastInsertId().toInt();
 

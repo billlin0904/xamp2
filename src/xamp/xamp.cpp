@@ -135,6 +135,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &ThemeManager::CurrentThemeChanged,
         ui_.sliderBar,
         &TabListView::OnCurrentThemeChanged);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
+        album_page_->album(),
+        &AlbumView::OnCurrentThemeChanged);
 }
 
 void Xamp::AvoidRedrawOnResize() {
@@ -272,7 +277,7 @@ void Xamp::OnDeviceStateChanged(DeviceState state) {
     InitialDeviceList();
 }
 
-QWidgetAction* Xamp::CreateTextSeparator(const QString& desc) {
+QWidgetAction* Xamp::CreateDeviceMenuWidget(const QString& desc, const QIcon &icon) {
     auto* desc_label = new QLabel(desc);
 
     desc_label->setObjectName(qTEXT("textSeparator"));
@@ -284,10 +289,18 @@ QWidgetAction* Xamp::CreateTextSeparator(const QString& desc) {
 
     auto* device_type_frame = new QFrame();
     qTheme.SetTextSeparator(device_type_frame);
-    auto* default_layout = new QVBoxLayout(device_type_frame);
+    auto* default_layout = new QHBoxLayout(device_type_frame);
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
+    if (!icon.isNull()) {
+        auto* icon_button = new QToolButton();
+        icon_button->setFixedSize(QSize(12, 12));
+        icon_button->setIconSize(QSize(12, 12));
+        icon_button->setIcon(icon);
+        default_layout->addWidget(icon_button);
+    }
+   
     default_layout->addWidget(desc_label);
     device_type_frame->setLayout(default_layout);
 
@@ -330,10 +343,17 @@ void Xamp::InitialDeviceList() {
         }
 
         menu->addSeparator();
-        menu->addAction(CreateTextSeparator(fromStdStringView(device_type->GetDescription())));
+        menu->addAction(CreateDeviceMenuWidget(FromStdStringView(device_type->GetDescription())));
 
         for (const auto& device_info : device_info_list) {
-            auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
+            auto* device_action = new XAction(qTheme.GetConnectTypeGlyphs(device_info.connect_type),
+                QString::fromStdWString(device_info.name), 
+                this);
+
+            (void)QObject::connect(&qTheme,
+                &ThemeManager::CurrentThemeChanged,
+                device_action,
+                &XAction::OnCurrentThemeChanged);
 
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
@@ -938,7 +958,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) {
 }
 
 QString Xamp::TranslateErrorCode(const Errors error) const {
-    return fromStdStringView(EnumToString(error));
+    return FromStdStringView(EnumToString(error));
 }
 
 static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo & device_info,
@@ -1296,10 +1316,12 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
     auto found_cover = !current_entity_.cover_id.isEmpty();
 
     if (cover_id != qPixmapCache.GetUnknownCoverId()) {
-        const auto cover = qPixmapCache.find(cover_id);
-        found_cover = true;
-        SetPlaylistPageCover(&cover, page);
-        emit BlurImage(cover_id, cover.copy(), size());
+        const auto cover = qPixmapCache.find(cover_id, false);
+        if (!cover.isNull()) {
+            found_cover = true;
+            SetPlaylistPageCover(&cover, page);
+            emit BlurImage(cover_id, cover.copy(), size());
+        }
 
     	if (lrc_page_ != nullptr) {
             lrc_page_->ClearBackground();

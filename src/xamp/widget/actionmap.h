@@ -35,6 +35,23 @@ public:
 #endif
 };
 
+class XAction : public QAction {
+	Q_OBJECT
+public:
+	explicit XAction(Glyphs glyphs, const QString& text, QObject* parent = nullptr)
+		: QAction(qTheme.GetFontIcon(glyphs), text, parent)
+		, glyphs_(glyphs){
+	}
+
+public slots:
+	void OnCurrentThemeChanged(ThemeColor theme_color) {
+		setIcon(qTheme.GetFontIcon(glyphs_));
+	}
+
+private:
+	Glyphs glyphs_;
+};
+
 template <typename Type, typename F = std::function<void()>>
 class ActionMap {
 public:

@@ -308,7 +308,7 @@
     </QtMoc>
     <ClInclude Include="resource.h" />
     <QtMoc Include="thememanager.h" />
-    <ClInclude Include="widget\actionmap.h" />
+    <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>
     <QtMoc Include="widget\clickablelabel.h">

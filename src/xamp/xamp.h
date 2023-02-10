@@ -133,7 +133,7 @@ private:
 
 	void SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
-	QWidgetAction* CreateTextSeparator(const QString& desc);
+	QWidgetAction* CreateDeviceMenuWidget(const QString& desc, const QIcon& icon = QIcon());
 
 	void OnSampleTimeChanged(double stream_time);
 

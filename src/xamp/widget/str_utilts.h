@@ -50,7 +50,7 @@ constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
+constexpr ConstLatin1String FromStdStringView(std::string_view const& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 

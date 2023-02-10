@@ -122,7 +122,7 @@ static void SaveLogConfig() {
 
     for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
         if (logger->GetName() != std::string(kXampLoggerName)) {
-            well_known_log_name[fromStdStringView(logger->GetName())] = qTEXT("info");
+            well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
         }
     }
 
@@ -154,7 +154,7 @@ static void LoadOrSaveLogConfig() {
 
     for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
         if (logger->GetName() != std::string(kXampLoggerName)) {
-            well_known_log_name[fromStdStringView(logger->GetName())] = qTEXT("info");
+            well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
         }
     }
 

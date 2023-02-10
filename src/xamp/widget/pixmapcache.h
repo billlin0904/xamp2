@@ -46,7 +46,7 @@ public:
 
 	static QPixmap FindCoverInDir(const PlayListEntity& item);
 
-    QPixmap find(const QString& tag_id) const;
+    QPixmap find(const QString& tag_id, bool not_found_use_default = true) const;
 
     QPixmap FromFileCache(const QString& tag_id) const;
 

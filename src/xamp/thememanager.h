@@ -131,10 +131,15 @@ public:
 
     void SetSliderBarTheme(Ui::XampWindow& ui);
 
+    QIcon GetConnectTypeIcon(DeviceConnectType type) const;
+
+    Glyphs GetConnectTypeGlyphs(DeviceConnectType type) const;
+
     void SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
 
     int32_t GetFontSize() const;
 
+    static QSize GetTitleButtonIconSize();
 signals:
     void CurrentThemeChanged(ThemeColor theme_color);
 

@@ -193,7 +193,7 @@ void PixmapCache::LoadCache() const {
 		String::FormatBytes(CacheSize()));
 }
 
-QPixmap PixmapCache::find(const QString& tag_id) const {
+QPixmap PixmapCache::find(const QString& tag_id, bool not_found_use_default) const {
 	const auto cover = cache_.GetOrAdd(tag_id, [tag_id, this]() {
 		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());
 		return FromFileCache(tag_id);
@@ -203,7 +203,7 @@ QPixmap PixmapCache::find(const QString& tag_id) const {
 		XAMP_LOG_D(logger_, "Find tag:{} {}", tag_id.toStdString(), cache_);
 	}
 
-	if (cover.isNull()) {
+	if (cover.isNull() && not_found_use_default) {
 		return qTheme.DefaultSizeUnknownCover();
 	}
 	return cover;

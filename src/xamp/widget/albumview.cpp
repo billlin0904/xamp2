@@ -15,6 +15,7 @@
 #include <widget/pixmapcache.h>
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
+#include <widget/albumentity.h>
 
 #include "thememanager.h"
 
@@ -226,9 +227,9 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(0, 5, 0, 0);
 
-    auto* close_button = new QPushButton(this);
-    close_button->setObjectName(qTEXT("albumViewPageCloseButton"));
-    close_button->setStyleSheet(qTEXT(R"(
+    close_button_ = new QPushButton(this);
+    close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
+    close_button_->setStyleSheet(qTEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
                                          border: none;
                                          background-color: transparent;
@@ -238,16 +239,16 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 										 border-radius: 0px;
                                          }
                                          )"));
-    close_button->setFixedSize(QSize(24, 24));
-    close_button->setIconSize(QSize(13, 13));
-    close_button->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
+    close_button_->setFixedSize(qTheme.GetTitleButtonIconSize());
+    close_button_->setIconSize(qTheme.GetTitleButtonIconSize());
+    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
-    hbox_layout->setContentsMargins(0, 0, 0, 0);
+    hbox_layout->setContentsMargins(15, 15, 0, 0);
 
     auto* button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
-    hbox_layout->addWidget(close_button);
+    hbox_layout->addWidget(close_button_);
     hbox_layout->addSpacerItem(button_spacer);
 
     page_ = new PlaylistPage(this);
@@ -258,7 +259,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setStretch(0, 0);
     default_layout->setStretch(1, 1);
 
-    (void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
+    (void)QObject::connect(close_button_, &QPushButton::clicked, [this]() {
         emit LeaveAlbumView();
     });
 
@@ -268,6 +269,10 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto * fade_effect = new QGraphicsOpacityEffect(this);
     setGraphicsEffect(fade_effect);
+}
+
+void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
@@ -575,6 +580,10 @@ void AlbumView::Refresh() {
     update();
 }
 
+void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {
+    page_->OnCurrentThemeChanged(theme_color);
+}
+
 void AlbumView::OnSearchTextChanged(const QString& text) {
     QString query(qTEXT(R"(
 SELECT
@@ -601,6 +610,7 @@ void AlbumView::append(const QString& file_name) {
         MakeProgressDialog(tr("Read track information"),
             tr("Read track information"),
             tr("Cancel"));
+    read_progress_dialog_->hide();
     ReadSingleFileTrackInfo(file_name);
 }
 

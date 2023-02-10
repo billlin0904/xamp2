@@ -122,7 +122,9 @@ QPixmap ArtistInfoPage::GetArtistImage(QPixmap const* cover) const {
 }
 
 void ArtistInfoPage::SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
-	artist_->setText(artist);
+	QFontMetrics artist_metrics(font());
+
+	artist_->setText(artist_metrics.elidedText(artist, Qt::ElideRight, 300));
 	album_view_->SetFilterByArtistId(artist_id);
 
 	const auto cover = qPixmapCache.find(cover_id);

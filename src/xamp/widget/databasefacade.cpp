@@ -136,6 +136,7 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32
             qDatabase.transaction();
             AddTrackInfo(result, playlist_id, is_podcast_mode);
             qDatabase.commit();
+            return;
         }
         catch (Exception const& e) {
             failed_insert_database = true;
