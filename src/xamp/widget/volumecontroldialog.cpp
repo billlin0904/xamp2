@@ -16,16 +16,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 	setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_StyledBackground);
 	setFixedSize(30, 110);
-
-    ui_.volumeButton->setIconSize(QSize(20, 20));
-    ui_.volumeButton->setFixedSize(20, 20);
 	ui_.volumeSlider->SetRange(0, 100);
-    ui_.volumeButton->setStyleSheet(qTEXT(R"(
-                                         QPushButton#volumeButton {
-                                         border: none;
-                                         background-color: transparent;
-                                         }
-                                         )"));
 
     if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
         SetVolume(0);
@@ -49,29 +40,13 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
         });
 
-    (void)QObject::connect(ui_.volumeButton, &QPushButton::pressed, [this]() {
-        if (!ui_.volumeSlider->isEnabled()) {
-            return;
-        }
-        if (player_->IsMute()) {
-            player_->SetMute(false);
-            qTheme.SetMuted(ui_.volumeButton, false);
-        } else {
-            player_->SetMute(true);
-            qTheme.SetMuted(ui_.volumeButton, true);
-        }
-        });
-
-    switch (qTheme.GetThemeColor()) {
-    case ThemeColor::DARK_THEME:
-        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: #121212; border: 1px solid #a7c8ff; })"));
-        break;
-    default:
-        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { border: 1px solid gray; })"));
-        break;
-    }
-
+    setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: black; border: none; })"));
     SetVolume(AppSettings::ValueAsInt(kAppSettingVolume));
+    auto f = font();
+    f.setFamily(qTEXT("MonoFont"));
+    ui_.volumeLabel->setFont(f);
+    ui_.volumeLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_.volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
 }
 
 VolumeControlDialog::~VolumeControlDialog() {
@@ -94,15 +69,12 @@ void VolumeControlDialog::SetVolume(uint32_t volume) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
-                qTheme.SetVolume(ui_.volumeSlider, ui_.volumeButton, volume);
-            }
-            else {
-                qTheme.SetVolume(ui_.volumeSlider, ui_.volumeButton, 0);
             }
         }
         else {
             ui_.volumeSlider->setDisabled(true);
         }
+        ui_.volumeLabel->setText(QString::number(volume));
     }
     catch (const Exception& e) {
         player_->Stop(false);

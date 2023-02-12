@@ -7,7 +7,6 @@
 
 #include <QObject>
 
-#include <base/lrucache.h>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 
@@ -58,8 +57,5 @@ private:
     static void AddTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast);
-
-    static LruCache<QString, int32_t> artist_id_cache_;
-    static LruCache<QString, int32_t> album_id_cache_;
 };
 

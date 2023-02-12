@@ -50,9 +50,6 @@ QPixmap CoverArtReader::GetEmbeddedCover(const TrackInfo& track_info) const {
     return GetEmbeddedCover(track_info.file_path);
 }
 
-LruCache<QString, int32_t> DatabaseFacade::artist_id_cache_;
-LruCache<QString, int32_t> DatabaseFacade::album_id_cache_;
-
 DatabaseFacade::DatabaseFacade(QObject* parent)
     : QObject(parent) {    
 }
