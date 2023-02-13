@@ -17,12 +17,16 @@ namespace xamp {
 }
 
 class VolumeControlDialog : public QDialog {
+    Q_OBJECT
 public:
 	explicit VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent = nullptr);
 
 	virtual ~VolumeControlDialog() override;
 
 	void SetVolume(uint32_t volume);
+
+signals:
+    void OnVolumeChanged(uint32_t volume);
 
 private:
 	Ui::VolumeControlDialog ui_;

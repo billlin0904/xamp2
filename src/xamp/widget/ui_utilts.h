@@ -7,6 +7,7 @@
 
 #include <widget/widget_shared.h>
 #include <widget/playerorder.h>
+#include <QSharedPointer>
 
 class XMainWindow;
 class XProgressDialog;

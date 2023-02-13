@@ -13,7 +13,8 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 	: QDialog(parent)
 	, player_(player) {
 	ui_.setupUi(this);
-	setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+
     setAttribute(Qt::WA_StyledBackground);
 	setFixedSize(30, 110);
 	ui_.volumeSlider->SetRange(0, 100);
@@ -48,7 +49,9 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: gray; border: none; })"));
         break;
     }
+
     SetVolume(AppSettings::ValueAsInt(kAppSettingVolume));
+
     auto f = font();
     f.setFamily(qTEXT("MonoFont"));
     ui_.volumeLabel->setFont(f);
@@ -83,6 +86,7 @@ void VolumeControlDialog::SetVolume(uint32_t volume) {
         else {
             ui_.volumeSlider->setDisabled(true);
         }
+        emit OnVolumeChanged(volume);
         ui_.volumeLabel->setText(QString::number(volume));
     }
     catch (const Exception& e) {

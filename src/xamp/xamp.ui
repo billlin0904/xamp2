@@ -1072,7 +1072,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="mutedButton">
+          <widget class="VolumeButton" name="mutedButton">
            <property name="minimumSize">
             <size>
              <width>24</width>
@@ -1141,6 +1141,11 @@
    <class>ScrollLabel</class>
    <extends>QLabel</extends>
    <header>widget/scrolllabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>VolumeButton</class>
+   <extends>QToolButton</extends>
+   <header>widget/volumebutton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

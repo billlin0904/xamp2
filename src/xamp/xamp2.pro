@@ -60,6 +60,7 @@ SOURCES += \
     widget/switchbutton.cpp \
     widget/tablistview.cpp \
     widget/uiplayerstateadapter.cpp \
+    widget/volumebutton.cpp \
     widget/wheelablewidget.cpp \
     widget/artistinfopage.cpp \
     widget/starrating.cpp \
@@ -129,6 +130,7 @@ HEADERS += \
     widget/switchbutton.h \
     widget/tablistview.h \
     widget/uiplayerstateadapter.h \
+    widget/volumebutton.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
     widget/artistinfopage.h \

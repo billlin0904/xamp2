@@ -262,6 +262,8 @@ void Xamp::InitialUi() {
 
     ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
     main_window_->SetTitleBarAction(ui_.titleFrame);
+
+    ui_.mutedButton->SetPlayer(player_);
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -440,9 +442,11 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
-        VolumeControlDialog vc(player_, this);
-        MoveToTopWidget(&vc, ui_.mutedButton);
-        vc.exec();
+        if (!player_->IsMute()) {
+            SetVolume(0);
+        } else {
+            SetVolume(player_->GetVolume());
+        }
     });
 
     (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
@@ -779,6 +783,7 @@ void Xamp::GoBackPage() {
 
 void Xamp::SetVolume(uint32_t volume) {
     AppSettings::SetValue(kAppSettingVolume, volume);
+    qTheme.SetMuted(ui_.mutedButton, volume == 0);
 }
 
 void Xamp::InitialShortcut() {
