@@ -959,6 +959,10 @@ QModelIndex PlayListTableView::GetCurrentIndex() const {
     return play_index_;
 }
 
+QModelIndex PlayListTableView::GetFirstIndex() const {
+    return model()->index(0, 0);
+}
+
 QModelIndex PlayListTableView::GetNextIndex(int forward) const {
     const auto count = model_->rowCount();
     const auto play_index = GetCurrentIndex();

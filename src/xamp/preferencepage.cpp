@@ -221,8 +221,9 @@ void PreferencePage::SetPhasePercentText(int32_t value) {
 
 PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
-    ui_.setupUi(this);
 
+    ui_.setupUi(this);
+#if 1
 	// todo: setMenuStyle會導致menu背景為透明.
 	/*qTheme.setMenuStyle(ui_.langCombo->view()->window());
 	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
@@ -365,7 +366,8 @@ PreferencePage::PreferencePage(QWidget *parent)
 	ui_.soxrResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
 	ui_.r8brainResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
 	ui_.dspManagerPage->setStyleSheet(qTEXT("background: transparent;"));
-	ui_.pcm2dsdPage->setStyleSheet(qTEXT("background: transparent;"));*/
+	ui_.pcm2dsdPage->setStyleSheet(qTEXT("background: transparent;"));
+	*/
 
 	const QList<QWidget*> widgets {
 		ui_.darkRadioButton,
@@ -421,9 +423,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 	Q_FOREACH(auto* w, r8brain_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
+#endif
 }
 
 void PreferencePage::SaveSettings() {
+#if 1
 	const auto enable_resampler = AppSettings::ValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
@@ -440,6 +444,7 @@ void PreferencePage::SaveSettings() {
 			ui_.selectResamplerComboBox->setCurrentIndex(2);
 		}
 	}
+#endif
 }
 
 void PreferencePage::SaveAll() {

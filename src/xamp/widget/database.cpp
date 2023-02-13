@@ -110,12 +110,12 @@ void Database::open() {
     CreateTableIfNotExist();
 }
 
-void Database::transaction() {
-    db_.transaction();
+bool Database::transaction() {
+    return db_.transaction();
 }
 
-void Database::commit() {
-    db_.commit();
+bool Database::commit() {
+    return db_.commit();
 }
 
 void Database::rollback() {

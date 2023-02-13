@@ -126,32 +126,26 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
-    bool failed_insert_database = false;
-
+    
     for (auto i = 0; i < 3; ++i) {
         try {
-            qDatabase.transaction();
+            ThrowIf<Exception>(qDatabase.transaction(), "Failed to start transaction!");
             AddTrackInfo(result, playlist_id, is_podcast_mode);
-            qDatabase.commit();
+            ThrowIf<Exception>(qDatabase.commit(), "Failed to commit!");
             return;
         }
         catch (Exception const& e) {
-            failed_insert_database = true;
             XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
         }
         catch (std::exception const& e) {
-            failed_insert_database = true;
             XAMP_LOG_DEBUG("Failed to add track info({})!", e.what());
         }
         catch (...) {
-            failed_insert_database = true;
             XAMP_LOG_DEBUG("Failed to add track info!");
         }
 
-        if (failed_insert_database) {
-            qDatabase.rollback();
-            XAMP_LOG_DEBUG("Retry insert database count: {}.", i);
-        }
+        qDatabase.rollback();
+        XAMP_LOG_DEBUG("Retry insert database count: {}.", i);
     }
 }
 

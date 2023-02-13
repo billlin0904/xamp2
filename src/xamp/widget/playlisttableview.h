@@ -67,6 +67,8 @@ public:
 
 	void SetNowPlaying(const QModelIndex& index, bool is_scroll_to = false);
 
+	QModelIndex GetFirstIndex() const;
+
 	QModelIndex GetShuffleIndex();
 
 	QModelIndex GetCurrentIndex() const;

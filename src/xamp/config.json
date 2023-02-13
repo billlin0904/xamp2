@@ -47,7 +47,7 @@
             "passBand": 96,
             "phase": 46,
             "quality": 4,
-            "resampleSampleRate": 96000,
+            "resampleSampleRate": 44100,
             "rolloffLevel": 2,
             "stopBand": 100
         }

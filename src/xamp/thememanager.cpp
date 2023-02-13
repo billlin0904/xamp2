@@ -845,6 +845,38 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
 		background-color: transparent;
     }
 
+	QSlider#%1::groove:vertical {        
+        background: %2;
+		border: 1px solid %2;
+		width: 2px;
+        border-radius: 2px;
+        padding-top: -1px;
+        padding-bottom: 1px;
+    }
+
+    QSlider#%1::sub-page:vertical {
+		background: %3;
+		border: 1px solid %3;
+		width: 2px;
+		border-radius: 2px;
+    }
+
+    QSlider#%1::add-page:vertical {
+		background: %2;
+		border: 0px solid %2;
+		width: 2px;
+		border-radius: 2px;
+    }
+
+	QSlider#%1::handle:vertical {
+        width: 10px;
+		height: 10px;
+        margin: 0px -5px 0px -5px;
+		border-radius: 5px;
+		background-color: %2;
+		border: 1px solid %2;
+    }
+
 	QSlider#%1::groove:horizontal {        
         background: %2;
 		border: 1px solid %2;

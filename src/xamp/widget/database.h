@@ -94,9 +94,9 @@ public:
 
     void open();
 
-    void transaction();
+    bool transaction();
 
-    void commit();
+    bool commit();
 
     void rollback();
 
