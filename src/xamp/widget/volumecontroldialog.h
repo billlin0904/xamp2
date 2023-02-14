@@ -23,10 +23,12 @@ public:
 
 	virtual ~VolumeControlDialog() override;
 
-	void SetVolume(uint32_t volume);
+	void SetVolume(uint32_t volume, bool notify = true);
+
+	void SetThemeColor();
 
 signals:
-    void OnVolumeChanged(uint32_t volume);
+    void VolumeChanged(uint32_t volume);
 
 private:
 	Ui::VolumeControlDialog ui_;

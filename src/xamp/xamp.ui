@@ -591,6 +591,9 @@
       </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="topMargin">
          <number>3</number>
         </property>
@@ -601,13 +604,13 @@
          <widget class="QLabel" name="endPosLabel">
           <property name="minimumSize">
            <size>
-            <width>60</width>
+            <width>50</width>
             <height>18</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
+            <width>50</width>
             <height>18</height>
            </size>
           </property>
@@ -642,13 +645,13 @@
          <widget class="QLabel" name="startPosLabel">
           <property name="minimumSize">
            <size>
-            <width>60</width>
+            <width>50</width>
             <height>18</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
+            <width>50</width>
             <height>18</height>
            </size>
           </property>
@@ -656,6 +659,47 @@
            <string/>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="VolumeButton" name="mutedButton">
+          <property name="minimumSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_11">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -702,17 +746,33 @@
           <number>0</number>
          </property>
          <item>
+          <spacer name="horizontalSpacer_9">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="ClickableLabel" name="coverLabel">
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>60</width>
+             <height>60</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>60</width>
+             <height>60</height>
             </size>
            </property>
            <property name="text">
@@ -1009,17 +1069,17 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_3">
+          <spacer name="horizontalSpacer_12">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Expanding</enum>
+            <enum>QSizePolicy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>50</width>
-             <height>0</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
           </spacer>
@@ -1072,29 +1132,20 @@
           </widget>
          </item>
          <item>
-          <widget class="VolumeButton" name="mutedButton">
-           <property name="minimumSize">
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Expanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
             <size>
-             <width>24</width>
-             <height>24</height>
+             <width>50</width>
+             <height>0</height>
             </size>
            </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
+          </spacer>
          </item>
          <item>
           <spacer name="horizontalSpacer_10">

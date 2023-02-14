@@ -123,10 +123,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         SetCurrentTab(tab_id);
     }
 
-    QTimer::singleShot(300, [this]() {
-        InitialDeviceList();
-        });
-
     (void)QObject::connect(&qTheme, 
         &ThemeManager::CurrentThemeChanged, 
         this, 
@@ -141,6 +137,15 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &ThemeManager::CurrentThemeChanged,
         album_page_->album(),
         &AlbumView::OnCurrentThemeChanged);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
+        ui_.mutedButton,
+        &VolumeButton::OnCurrentThemeChanged);
+
+    QTimer::singleShot(300, [this]() {
+        InitialDeviceList();
+        });
 }
 
 void Xamp::AvoidRedrawOnResize() {
@@ -784,6 +789,7 @@ void Xamp::GoBackPage() {
 void Xamp::SetVolume(uint32_t volume) {
     AppSettings::SetValue(kAppSettingVolume, volume);
     qTheme.SetMuted(ui_.mutedButton, volume == 0);
+    ui_.mutedButton->OnVolumeChanged(volume);
 }
 
 void Xamp::InitialShortcut() {
@@ -1336,9 +1342,6 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
 
     if (!found_cover) {
         SetPlaylistPageCover(nullptr, page);
-        if (lrc_page_ != nullptr) {
-            lrc_page_->SetBackgroundColor(qTheme.BackgroundColor());
-        }
     }
 }
 

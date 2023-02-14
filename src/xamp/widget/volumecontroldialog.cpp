@@ -41,14 +41,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
         });
 
-    switch (qTheme.GetThemeColor()) {
-    case ThemeColor::DARK_THEME:
-        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: black; border: none; })"));
-        break;
-    case ThemeColor::LIGHT_THEME:
-        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: gray; border: none; })"));
-        break;
-    }
+    SetThemeColor();
 
     SetVolume(AppSettings::ValueAsInt(kAppSettingVolume));
 
@@ -61,11 +54,22 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     qTheme.SetSliderTheme(ui_.volumeSlider, true);
 }
 
+void VolumeControlDialog::SetThemeColor() {
+    switch (qTheme.GetThemeColor()) {
+    case ThemeColor::DARK_THEME:
+        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: black; border: none; })"));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: gray; border: none; })"));
+        break;
+    }
+}
+
 VolumeControlDialog::~VolumeControlDialog() {
     AppSettings::SetValue(kAppSettingVolume, ui_.volumeSlider->value());
 }
 
-void VolumeControlDialog::SetVolume(uint32_t volume) {
+void VolumeControlDialog::SetVolume(uint32_t volume, bool notify) {
     if (volume > 100) {
         return;
     }
@@ -86,7 +90,9 @@ void VolumeControlDialog::SetVolume(uint32_t volume) {
         else {
             ui_.volumeSlider->setDisabled(true);
         }
-        emit OnVolumeChanged(volume);
+        if (notify) {
+            emit VolumeChanged(volume);
+        }
         ui_.volumeLabel->setText(QString::number(volume));
     }
     catch (const Exception& e) {

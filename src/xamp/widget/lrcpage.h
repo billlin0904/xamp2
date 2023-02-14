@@ -38,8 +38,6 @@ public:
 
 	SpectrumWidget* spectrum();
 
-	void SetBackgroundColor(QColor backgroundColor);
-
 public slots:
     void OnThemeChanged(QColor backgroundColor, QColor color);
 

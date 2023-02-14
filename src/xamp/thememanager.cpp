@@ -851,7 +851,7 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
 		width: 2px;
         border-radius: 2px;
         padding-top: -1px;
-        padding-bottom: 1px;
+        padding-bottom: 0px;
     }
 
     QSlider#%1::sub-page:vertical {

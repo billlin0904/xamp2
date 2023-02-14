@@ -2,6 +2,8 @@
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
+#include "thememanager.h"
+
 #include <widget/equalizerdialog.h>
 
 EqualizerDialog::EqualizerDialog(QWidget *parent)
@@ -9,8 +11,10 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     ui_.setupUi(this);
 
     ui_.label_23->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_.enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
 
     band_sliders_ = std::vector<DoubleSlider*>{
+			ui_.preampSlider,
             ui_.band1Slider,
             ui_.band2Slider,
             ui_.band3Slider,
@@ -73,8 +77,11 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             settings.settings.bands[band].Q = 1.41;            
             AppSettings::SetEqSettings(settings);
         });
+        qTheme.SetSliderTheme(slider, true);
         ++band;
     }
+
+    qTheme.SetSliderTheme(ui_.preampSlider, true);
 
     (void)QObject::connect(ui_.preampSlider, &DoubleSlider::DoubleValueChanged, [this](auto value) {
         PreampValueChange(value);

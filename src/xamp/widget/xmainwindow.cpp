@@ -81,15 +81,12 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
             content_widget_->setAttribute(Qt::WA_TranslucentBackground, true);
         }
         installEventFilter(this);
-        //win32::SetAccentPolicy(winId());
     } else {
         win32::SetWindowedWindowStyle(winId());
         setMouseTracking(true);
     }
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
     last_rect_ = win32::GetWindowRect(winId());
-    //auto guid = win32::GetRandomMutexName("Short test message");
-    //win32::IsValidMutexName("77859903-0011-3792-d466-a187e9ec08c6", "Short test message");
 #else
     if (!qTheme.UseNativeWindow()) {
         if (content_widget_ != nullptr) {
@@ -341,6 +338,7 @@ void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
     if (!content_widget_) {
         return;
     }
+    emit qTheme.CurrentThemeChanged(theme_color);
 }
 
 void XMainWindow::SetTaskbarProgress(const int32_t percent) {

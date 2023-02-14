@@ -203,6 +203,7 @@
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\spotify_utilis.cpp" />
+    <ClCompile Include="widget\volumebutton.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\http.cpp" />
@@ -284,7 +285,8 @@
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
     <ClInclude Include="widget\themecolor.h" />
-    <ClInclude Include="widget\volumecontroldialog.h" />
+    <QtMoc Include="widget\volumebutton.h" />
+    <QtMoc Include="widget\volumecontroldialog.h" />
     <ClInclude Include="widget\xprogressdialog.h" />
     <ClInclude Include="widget\xmainwindow.h" />
     <ClInclude Include="xampplayer.h" />

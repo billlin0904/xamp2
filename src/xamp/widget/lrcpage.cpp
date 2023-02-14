@@ -135,16 +135,7 @@ int LrcPage::GetDisappearBgProg() const {
 	return prev_bg_alpha_;
 }
 
-void LrcPage::SetBackgroundColor(QColor backgroundColor) {
-    //lyrics_widget_->setBackgroundColor(backgroundColor);
-	//setStyleSheet(backgroundColorToString(backgroundColor));
-}
-
 void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {
-    //lyrics_widget_->setLrcColor(color);
-    //lyrics_widget_->setLrcHightLight(color);
-    //lyrics_widget_->setLrcColor(Qt::white);
-    //lyrics_widget_->setLrcHightLight(Qt::white);
 }
 
 void LrcPage::initial() {

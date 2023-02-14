@@ -28,7 +28,7 @@ XAMP_DECLARE_LOG_NAME(Http);
 static constexpr int32_t kHttpDefaultTimeout = 3000;
 static constexpr size_t kHttpBufferSize = 512 * 1024;
 
-static bool isZipEncoding(QNetworkReply const *reply) {
+static bool IsZipEncoding(QNetworkReply const *reply) {
     bool is_gzipped = false;
     Q_FOREACH (const auto &header_pair, reply->rawHeaderPairs()) {
         if ((header_pair.first == "Content-Encoding") && (header_pair.second == "gzip")) {
@@ -38,7 +38,7 @@ static bool isZipEncoding(QNetworkReply const *reply) {
     return is_gzipped;
 }
 
-static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) {
+static ConstLatin1String NetworkErrorToString(QNetworkReply::NetworkError code) {
     const auto* mo = &QNetworkReply::staticMetaObject;
     const int index = mo->indexOfEnumerator("NetworkError");
     if (index == -1)
@@ -47,7 +47,7 @@ static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) 
     return { qme.valueToKey(code) };
 }
 
-static void logHttpRequest(const LoggerPtr &logger,
+static void LogHttpRequest(const LoggerPtr &logger,
     const ConstLatin1String& verb,
     const QString& url,
     const QNetworkRequest& request,
@@ -99,7 +99,7 @@ static void logHttpRequest(const LoggerPtr &logger,
     XAMP_LOG_D(logger, msg.toStdString());
 }
 
-ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
+static ConstLatin1String RequestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
     switch (operation) {
     case QNetworkAccessManager::HeadOperation:
         return qTEXT("HEAD");
@@ -119,11 +119,11 @@ ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const 
     Q_UNREACHABLE();
 }
 
-static void logHttpRequest(const LoggerPtr& logger,
+static void LogHttpRequest(const LoggerPtr& logger,
     const ConstLatin1String& verb,
     const QNetworkRequest& request,
     const QNetworkReply* reply = nullptr) {
-    logHttpRequest(logger, verb, request.url().toString(), request, reply);
+    LogHttpRequest(logger, verb, request.url().toString(), request, reply);
 }
 
 struct HttpContext {
@@ -143,32 +143,32 @@ public:
 
     ~HttpClientImpl();
 
-    HttpContext createHttpContext() const;
+    HttpContext CreateHttpContext() const;
 
-    void setTimeout(int timeout);
+    void SetTimeout(int timeout);
 
-    static QNetworkRequest createHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method);
+    static QNetworkRequest CreateHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
-    static void executeQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method);
+    static void ExecuteQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
     static void download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read);
 
-    static QString readReply(QNetworkReply *reply, const QString &charset);
+    static QString ReadReply(QNetworkReply *reply, const QString &charset);
 
-    static void handleFinish(const HttpContext& context, QNetworkReply *reply, const QString &success_message);
+    static void HandleFinish(const HttpContext& context, QNetworkReply *reply, const QString &success_message);
 
-    static void handleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total);
+    static void HandleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total);
 
     bool use_json_;
     bool use_internal_;
     int32_t timeout_;
-    QString url_;
     QString json_;
-    QUrlQuery params;
+    QUrlQuery params_;
+    QHash<QString, QString> headers_;
+    QString url_;
     QString charset_;
     QString user_agent_;
     QNetworkAccessManager *manager_;
-    QHash<QString, QString> headers_;
     std::function<void (const QString &)> success_handler_;
     std::function<void(const QString&)> error_handler_;
     std::function<void (const QByteArray &)> download_handler_;
@@ -188,7 +188,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
 }
 
-HttpContext HttpClient::HttpClientImpl::createHttpContext() const {
+HttpContext HttpClient::HttpClientImpl::CreateHttpContext() const {
     HttpContext context;
     context.success_handler = success_handler_;
     context.error_handler = error_handler_;
@@ -201,16 +201,16 @@ HttpContext HttpClient::HttpClientImpl::createHttpContext() const {
     return context;
 }
 
-void HttpClient::HttpClientImpl::setTimeout(int timeout) {
+void HttpClient::HttpClientImpl::SetTimeout(int timeout) {
     timeout_ = timeout;
 }
 
-void HttpClient::HttpClientImpl::executeQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
-	auto context = d->createHttpContext();
+void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
+	auto context = d->CreateHttpContext();
 
     context.manager->setProxy(QNetworkProxy::NoProxy);
 
-    const auto request = createHttpRequest(d, method);
+    const auto request = CreateHttpRequest(d, method);
     QNetworkReply *reply = nullptr;
 
     auto operation = QNetworkAccessManager::UnknownOperation;
@@ -224,14 +224,14 @@ void HttpClient::HttpClientImpl::executeQuery(QSharedPointer<HttpClientImpl> d, 
         reply = context.manager->post(request,
                                       d->use_json_
                                       ? d->json_.toUtf8()
-                                      : d->params.toString(QUrl::FullyEncoded).toUtf8());
+                                      : d->params_.toString(QUrl::FullyEncoded).toUtf8());
         operation = QNetworkAccessManager::PostOperation;
         break;
     case HttpMethod::HTTP_PUT:
         reply = context.manager->put(request,
                                      d->use_json_
                                      ? d->json_.toUtf8()
-                                     : d->params.toString(QUrl::FullyEncoded).toUtf8());
+                                     : d->params_.toString(QUrl::FullyEncoded).toUtf8());
         operation = QNetworkAccessManager::PutOperation;
         break;
     case HttpMethod::HTTP_DELETE:
@@ -240,24 +240,24 @@ void HttpClient::HttpClientImpl::executeQuery(QSharedPointer<HttpClientImpl> d, 
         break;
     }
 
-    logHttpRequest(context.logger, requestVerb(operation, request), request);
+    LogHttpRequest(context.logger, RequestVerb(operation, request), request);
 
     QObject::connect(reply,
         &QNetworkReply::downloadProgress,
         [reply, context, d](auto ready, auto total) {
-		handleProgress(context, reply, ready, total);
+            HandleProgress(context, reply, ready, total);
         });
 
     (void) QObject::connect(reply,
         &QNetworkReply::finished,
         [reply, context, request, operation, d] {
-        logHttpRequest(context.logger, requestVerb(operation, request), request, reply);
-	    const auto success_message = readReply(reply, context.charset);
-	    handleFinish(context, reply, success_message);
+        LogHttpRequest(context.logger, RequestVerb(operation, request), request, reply);
+	    const auto success_message = ReadReply(reply, context.charset);
+	    HandleFinish(context, reply, success_message);
     });
 }
 
-void HttpClient::HttpClientImpl::handleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total) {
+void HttpClient::HttpClientImpl::HandleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total) {
     const auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     const auto status = statusCode.isValid() ? statusCode.toInt() : 200;
 
@@ -270,7 +270,7 @@ void HttpClient::HttpClientImpl::handleProgress(const HttpContext& context, QNet
     }
 
     if (status != 200 && status != 206 && status != 416) {
-        handleFinish(context, reply, qEmptyString);
+        HandleFinish(context, reply, qEmptyString);
         return;
     }
 
@@ -280,9 +280,9 @@ void HttpClient::HttpClientImpl::handleProgress(const HttpContext& context, QNet
 }
 
 void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read) {
-    auto context = d->createHttpContext();
+    auto context = d->CreateHttpContext();
 
-    auto request = createHttpRequest(d, HttpMethod::HTTP_GET);
+    auto request = CreateHttpRequest(d, HttpMethod::HTTP_GET);
     auto* reply = context.manager->get(request);
 
     (void) QObject::connect(reply,
@@ -294,18 +294,18 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std:
     (void) QObject::connect(reply,
         &QNetworkReply::finished,
         [reply, request, context, d] {
-        logHttpRequest(context.logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
-        handleFinish(context, reply, QString());
+        LogHttpRequest(context.logger, RequestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
+        HandleFinish(context, reply, QString());
     });
 
     QObject::connect(reply,
         &QNetworkReply::downloadProgress,
         [reply, context, d](auto ready, auto total) {
-            handleProgress(context, reply, ready, total);
+            HandleProgress(context, reply, ready, total);
         });
 }
 
-void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetworkReply *reply, const QString &success_message) {
+void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetworkReply *reply, const QString &success_message) {
     const auto error = reply->error();
 
     if (error == QNetworkReply::NoError) {
@@ -314,7 +314,7 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
         }
     } else {
         if (context.error_handler != nullptr) {
-            context.error_handler(networkErrorToString(error));
+            context.error_handler(NetworkErrorToString(error));
         }
     }
 
@@ -328,13 +328,13 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
         }
     }
 
-    XAMP_LOG_D(context.logger, "Request finished! error: {}", networkErrorToString(error).data());
+    XAMP_LOG_D(context.logger, "Request finished! error: {}", NetworkErrorToString(error).data());
 }
 
-QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QString &charset) {
+QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QString &charset) {
     QScopedPointer<QTextStream> in;
 
-    if (isZipEncoding(reply)) {
+    if (IsZipEncoding(reply)) {
         in.reset(new QTextStream(gzipUncompress(reply->readAll())));
     }
     else {
@@ -358,13 +358,13 @@ QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QStrin
     return result;
 }
 
-QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
+QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
 	const auto get = method == HttpMethod::HTTP_GET;
 	const auto with_form = !get && !d->use_json_;
 	const auto with_json = !get &&  d->use_json_;
 
-    if (get && !d->params.isEmpty()) {
-        d->url_ += qTEXT("?") + d->params.toString(QUrl::FullyEncoded);
+    if (get && !d->params_.isEmpty()) {
+        d->url_ += qTEXT("?") + d->params_.toString(QUrl::FullyEncoded);
     }
 
     if (with_form) {
@@ -415,17 +415,17 @@ HttpClient::HttpClient(const QString &url, QObject* parent)
 HttpClient::~HttpClient() = default;
 
 void HttpClient::setTimeout(int timeout) {
-    impl_->setTimeout(timeout);
+    impl_->SetTimeout(timeout);
 }
 
 HttpClient& HttpClient::param(const QString &name, const QVariant &value) {
-    impl_->params.addQueryItem(name, value.toString());
+    impl_->params_.addQueryItem(name, value.toString());
     return *this;
 }
 
 HttpClient& HttpClient::params(const QMap<QString, QVariant> &ps) {
     for (auto itr = ps.cbegin(); itr != ps.cend(); ++itr) {
-        impl_->params.addQueryItem(itr.key(), itr.value().toString());
+        impl_->params_.addQueryItem(itr.key(), itr.value().toString());
     }
     return *this;
 }
@@ -464,11 +464,11 @@ HttpClient& HttpClient::progress(std::function<void(qint64, qint64)> progressHan
 }
 
 void HttpClient::get() {
-    HttpClientImpl::executeQuery(impl_, HttpMethod::HTTP_GET);
+    HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_GET);
 }
 
 void HttpClient::post() {
-    HttpClientImpl::executeQuery(impl_, HttpMethod::HTTP_POST);
+    HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_POST);
 }
 
 void HttpClient::downloadFile(const QString& file_name, std::function<void(const QString&)> download_handler, std::function<void(const QString&)> error_handler) {
