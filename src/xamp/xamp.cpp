@@ -1546,11 +1546,6 @@ void Xamp::InitialPlaylist() {
 
     current_playlist_page_ = playlist_page_;
 
-    (void)QObject::connect(&qPixmapCache,
-        &PixmapCache::ProcessImage,
-        background_worker_,
-        &BackgroundWorker::OnProcessImage);
-
     (void)QObject::connect(this,
         &Xamp::BlurImage,
         background_worker_,

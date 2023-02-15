@@ -418,6 +418,7 @@ static int Execute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Database init success.");
 
     XMainWindow main_window;
+    main_window.RestoreGeometry();
 
     if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
         main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
@@ -440,8 +441,6 @@ static int Execute(int argc, char* argv[]) {
     //top_win.SetContentWidget(nullptr);
 
     qTheme.LoadAndApplyQssTheme();
-
-    main_window.RestoreGeometry();
     main_window.ShowWindow();
     return app.exec();
 }
@@ -461,7 +460,6 @@ int main(int argc, char *argv[]) {
 	LoadOrSaveLogConfig();
 
 #ifdef Q_OS_WIN32
-    SetProcessMitigation();
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
         XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());

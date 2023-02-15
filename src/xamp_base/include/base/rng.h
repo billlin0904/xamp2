@@ -75,6 +75,8 @@ public:
 
     void SetSeed();
 
+    void SetSeed(uint64_t seed);
+
     Sfc64Engine<>& engine() {
         return engine_;
     }

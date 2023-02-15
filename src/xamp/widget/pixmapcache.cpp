@@ -28,7 +28,7 @@ inline auto kCacheFileExtension = qTEXT(".") + qSTR(PixmapCache::kImageFileForma
 XAMP_DECLARE_LOG_NAME(PixmapCache);
 
 QStringList PixmapCache::cover_ext_ =
-    QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png") << qTEXT("*.bmp");
+    QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
 
 QStringList PixmapCache::cache_ext_ =
     QStringList() << (qTEXT("*") + kCacheFileExtension);
@@ -134,18 +134,13 @@ QString PixmapCache::SavePixamp(const QPixmap &cover) {
 	if (cache_cover.save(&buffer, kImageFileFormat)) {
 		tag_name = QEtag::GetTagId(array);
 		const auto file_path = cache_path_ + tag_name + kCacheFileExtension;
-		emit ProcessImage(file_path, array, tag_name);
+		OptimizeImageFromBuffer(file_path, array, tag_name);
 	}
 	return tag_name;
 }
 
 void PixmapCache::OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) {
 	image_utils::OptimizePng(buffer, file_path);
-	cache_.AddOrUpdate(tag_name, FromFileCache(tag_name));
-}
-
-void PixmapCache::OptimizeImage(const QString& src_file_path, const QString& dest_file_path, const QString& tag_name) {
-	image_utils::OptimizePng(src_file_path, dest_file_path);
 	cache_.AddOrUpdate(tag_name, FromFileCache(tag_name));
 }
 

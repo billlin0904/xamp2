@@ -125,22 +125,6 @@ void BackgroundWorker::LazyInitExecutor() {
         affinity);
 }
 
-void BackgroundWorker::OnProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name) {
-    LazyInitExecutor();
-
-    executor_->Spawn([file_path, tag_name, buffer, this]() {
-        if (is_stop_) {
-            return;
-        }
-
-        try {
-            qPixmapCache.OptimizeImageFromBuffer(file_path, buffer, tag_name);
-        } catch (std::exception const &e) {
-            XAMP_LOG_E(logger_, "Failed to optimize image. {}", e.what());
-        }
-    });
-}
-
 void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
     QString const& file_path,
     int32_t playlist_id,
@@ -192,6 +176,23 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     const auto file_name_filters = GetFileNameFilter();
     std::atomic<int> progress(0);
 
+#if 1
+    for (const auto dir : dirs) {
+        if (is_stop_) {
+            return;
+        }
+
+        try {
+            ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
+        }
+        catch (Exception const& e) {
+            XAMP_LOG_D(logger_, "Failed to scan dir files! ", e.GetErrorMessage());
+        }
+
+        emit adapter->ReadFileProgress(dir, progress);
+        ++progress;
+    }
+#else
     Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode, dir_size](
         const auto& dir) {
     	if (is_stop_) {
@@ -208,6 +209,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
         emit adapter->ReadFileProgress(dir, progress);
 		++progress;
     });
+#endif
 }
 
 void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {

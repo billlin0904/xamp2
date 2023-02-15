@@ -19,8 +19,9 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 
-    XAMP_ALWAYS_INLINE void operator()() const {
+    XAMP_ALWAYS_INLINE void operator()() {
 	    impl_->Invoke();
+        impl_.reset();
     }
 
     MoveOnlyFunction() = default;
@@ -51,7 +52,7 @@ private:
         }
 
         XAMP_ALWAYS_INLINE void Invoke() override {
-            f_();
+            std::forward<Func>(f_)();
         }
         Func f_;
     };

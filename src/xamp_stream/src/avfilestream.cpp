@@ -116,6 +116,7 @@ public:
             XAMP_LOG_D(logger_, "Stream format = > INTERLEAVED");
             break;
         case AV_SAMPLE_FMT_S16P:
+        case AV_SAMPLE_FMT_S32P:
         case AV_SAMPLE_FMT_FLTP:
             XAMP_LOG_D(logger_, "Stream format => DEINTERLEAVED");
             break;

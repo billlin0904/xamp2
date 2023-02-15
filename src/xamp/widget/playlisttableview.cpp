@@ -191,35 +191,35 @@ public:
 };
 
 static PlayListEntity GetEntity(const QModelIndex& index) {
-    PlayListEntity model;
-    model.music_id          = GetIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
-    model.playing           = GetIndexValue(index, PLAYLIST_PLAYING).toInt();
-    model.track             = GetIndexValue(index, PLAYLIST_TRACK).toUInt();
-    model.file_path         = GetIndexValue(index, PLAYLIST_FILE_PATH).toString();
-    model.file_size         = GetIndexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
-    model.title             = GetIndexValue(index, PLAYLIST_TITLE).toString();
-    model.file_name         = GetIndexValue(index, PLAYLIST_FILE_NAME).toString();
-    model.artist            = GetIndexValue(index, PLAYLIST_ARTIST).toString();
-    model.album             = GetIndexValue(index, PLAYLIST_ALBUM).toString();
-    model.duration          = GetIndexValue(index, PLAYLIST_DURATION).toDouble();
-    model.bit_rate          = GetIndexValue(index, PLAYLIST_BIT_RATE).toUInt();
-    model.sample_rate       = GetIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
-    model.rating            = GetIndexValue(index, PLAYLIST_RATING).toUInt();
-    model.album_id          = GetIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
-    model.artist_id         = GetIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
-    model.cover_id          = GetIndexValue(index, PLAYLIST_COVER_ID).toString();
-    model.file_extension    = GetIndexValue(index, PLAYLIST_FILE_EXT).toString();
-    model.parent_path       = GetIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
-    model.timestamp         = GetIndexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
-    model.playlist_music_id = GetIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    model.album_replay_gain = GetIndexValue(index, PLAYLIST_ALBUM_RG).toDouble();
-    model.album_peak        = GetIndexValue(index, PLAYLIST_ALBUM_PK).toDouble();
-    model.track_replay_gain = GetIndexValue(index, PLAYLIST_TRACK_RG).toDouble();
-    model.track_peak        = GetIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
-    model.track_loudness    = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
-    model.genre             = GetIndexValue(index, PLAYLIST_GENRE).toString();
-    model.year              = GetIndexValue(index, PLAYLIST_YEAR).toUInt();
-    return model;
+    PlayListEntity entity;
+    entity.music_id          = GetIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
+    entity.playing           = GetIndexValue(index, PLAYLIST_PLAYING).toInt();
+    entity.track             = GetIndexValue(index, PLAYLIST_TRACK).toUInt();
+    entity.file_path         = GetIndexValue(index, PLAYLIST_FILE_PATH).toString();
+    entity.file_size         = GetIndexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
+    entity.title             = GetIndexValue(index, PLAYLIST_TITLE).toString();
+    entity.file_name         = GetIndexValue(index, PLAYLIST_FILE_NAME).toString();
+    entity.artist            = GetIndexValue(index, PLAYLIST_ARTIST).toString();
+    entity.album             = GetIndexValue(index, PLAYLIST_ALBUM).toString();
+    entity.duration          = GetIndexValue(index, PLAYLIST_DURATION).toDouble();
+    entity.bit_rate          = GetIndexValue(index, PLAYLIST_BIT_RATE).toUInt();
+    entity.sample_rate       = GetIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
+    entity.rating            = GetIndexValue(index, PLAYLIST_RATING).toUInt();
+    entity.album_id          = GetIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
+    entity.artist_id         = GetIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
+    entity.cover_id          = GetIndexValue(index, PLAYLIST_COVER_ID).toString();
+    entity.file_extension    = GetIndexValue(index, PLAYLIST_FILE_EXT).toString();
+    entity.parent_path       = GetIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    entity.timestamp         = GetIndexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
+    entity.playlist_music_id = GetIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
+    entity.album_replay_gain = GetIndexValue(index, PLAYLIST_ALBUM_RG).toDouble();
+    entity.album_peak        = GetIndexValue(index, PLAYLIST_ALBUM_PK).toDouble();
+    entity.track_replay_gain = GetIndexValue(index, PLAYLIST_TRACK_RG).toDouble();
+    entity.track_peak        = GetIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
+    entity.track_loudness    = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
+    entity.genre             = GetIndexValue(index, PLAYLIST_GENRE).toString();
+    entity.year              = GetIndexValue(index, PLAYLIST_YEAR).toUInt();
+    return entity;
 }
 
 void PlayListTableView::Reload() {
@@ -971,7 +971,12 @@ QModelIndex PlayListTableView::GetNextIndex(int forward) const {
 }
 
 QModelIndex PlayListTableView::GetShuffleIndex() {
+    auto current_playlist_music_id = 0;
+    if (play_index_.isValid()) {
+        current_playlist_music_id = GetIndexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
+    }
     const auto count = model_->rowCount();
+    rng_.SetSeed(current_playlist_music_id);
     const auto selected = rng_.NextInt32(0) % count;
     return model()->index(selected, PLAYLIST_PLAYING);
 }

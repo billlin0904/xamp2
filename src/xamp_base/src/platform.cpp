@@ -552,24 +552,46 @@ bool SetFileLowIoPriority(int32_t handle) {
 }
 
 void SetProcessMitigation() {
-    // https://blog.xpnsec.com/protecting-your-malware/
-    // todo: Qt¤£¤ä´©SetProcessMitigationPolicy
-    /*PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY signature_policy{};
+    PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY signature_policy{};
     signature_policy.MicrosoftSignedOnly = true;
-
     if (!::SetProcessMitigationPolicy(ProcessSignaturePolicy, &signature_policy,
         sizeof(signature_policy))) {
-        XAMP_LOG_DEBUG("SetProcessMitigationPolicy (MicrosoftSignedOnly) return failure! error:{}.", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessSignaturePolicy ({})", GetLastErrorMessage());
     }
-
+    
     PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dynamic_code_policy{};
     dynamic_code_policy.ProhibitDynamicCode = true;
     dynamic_code_policy.AllowThreadOptOut = true;
-
     if (!::SetProcessMitigationPolicy(ProcessDynamicCodePolicy, &dynamic_code_policy,
         sizeof(dynamic_code_policy))) {
-        XAMP_LOG_DEBUG("SetProcessMitigationPolicy (DynamicCode) return failure! error:{}.", GetLastErrorMessage());
-    }*/
+        XAMP_LOG_DEBUG("Failed to set ProcessDynamicCodePolicy ({}).", GetLastErrorMessage());
+    }
+    
+    PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY strict_handle_check_policy = {};
+    strict_handle_check_policy.HandleExceptionsPermanentlyEnabled = true;
+	strict_handle_check_policy.RaiseExceptionOnInvalidHandleReference = true;
+    if (!::SetProcessMitigationPolicy(ProcessStrictHandleCheckPolicy, &strict_handle_check_policy,
+        sizeof(strict_handle_check_policy))) {
+        XAMP_LOG_DEBUG("Failed to set ProcessStrictHandleCheckPolicy ({}).", GetLastErrorMessage());
+    }
+    
+    PROCESS_MITIGATION_ASLR_POLICY mitigation_aslr_policy = {};
+    mitigation_aslr_policy.EnableForceRelocateImages = true;
+    mitigation_aslr_policy.DisallowStrippedImages = true;
+    mitigation_aslr_policy.EnableBottomUpRandomization = true;
+    mitigation_aslr_policy.EnableHighEntropy = true;
+    if (!::SetProcessMitigationPolicy(ProcessASLRPolicy, &mitigation_aslr_policy,
+        sizeof(mitigation_aslr_policy))) {
+        XAMP_LOG_DEBUG("Failed to set ProcessASLRPolicy ({}).", GetLastErrorMessage());
+    }
+    
+    PROCESS_MITIGATION_IMAGE_LOAD_POLICY mitigation_image_load_policy = {};
+    mitigation_image_load_policy.NoRemoteImages = true;
+    mitigation_image_load_policy.NoLowMandatoryLabelImages = true;
+    if (!::SetProcessMitigationPolicy(ProcessImageLoadPolicy, &mitigation_image_load_policy,
+        sizeof(mitigation_image_load_policy))) {
+        XAMP_LOG_DEBUG("Failed to set ProcessASLRPolicy ({}).", GetLastErrorMessage());
+    }
 }
 #endif
 

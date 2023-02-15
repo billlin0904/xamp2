@@ -1,5 +1,5 @@
 #include <base/rng.h>
-
+#include <base/stl.h>
 #include <base/platform.h>
 
 namespace xamp::base {
@@ -10,6 +10,10 @@ PRNG::PRNG() noexcept
 
 void PRNG::SetSeed() {
 	engine_.seed(GenRandomSeed());
+}
+
+void PRNG::SetSeed(uint64_t seed) {
+    engine_.seed(GetTime_t<std::chrono::milliseconds>() + seed);
 }
 
 std::string PRNG::GetRandomString(size_t size) {

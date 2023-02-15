@@ -73,8 +73,6 @@ public Q_SLOT:
         bool is_podcast_mode);
 
     void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
-
-    void OnProcessImage(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
 private:
     void LazyInitExecutor();
 

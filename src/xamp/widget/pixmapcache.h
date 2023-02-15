@@ -36,9 +36,8 @@ struct PixampCacheSizeOfPolicy {
 class QTimerEvent;
 
 class PixmapCache final : public QObject {
-	Q_OBJECT
 public:
-	static constexpr char kImageFileFormat[] = "JPG";
+	static constexpr char kImageFileFormat[] = "PNG";
 
     friend class SharedSingleton<PixmapCache>;
 
@@ -72,14 +71,7 @@ public:
 
 	void OptimizeImageInDir(const QString& file_path);
 
-	void OptimizeImage(const QString& temp_file_path, const QString& file_path, const QString& tag_name);
-
 	void OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
-signals:
-	void ProcessImage(const QString & file_path, const QByteArray& buffer, const QString& tag_name);
-
-public slots:
-	
 
 protected:
 	PixmapCache();
