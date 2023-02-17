@@ -54,7 +54,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
     : QObject(parent) {    
 }
 
-void DatabaseFacade::FindAlbumCover(int32_t album_id, const std::wstring& album, const std::wstring& file_path, const CoverArtReader& reader) {
+void DatabaseFacade::FindAlbumCover(int32_t album_id, const QString& album, const std::wstring& file_path, const CoverArtReader& reader) {
 	const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
         return;
@@ -68,13 +68,15 @@ void DatabaseFacade::FindAlbumCover(int32_t album_id, const std::wstring& album,
         find_file_path = (*first_file_path).toStdWString();
     }
 
-    auto cover = reader.GetEmbeddedCover(find_file_path);
-    if (cover.isNull()) {
-        cover = PixmapCache::FindCoverInDir(QString::fromStdWString(file_path));
+	auto cover = reader.GetEmbeddedCover(find_file_path);
+    if (!cover.isNull()) {
+        qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
+        return;
     }
 
+	cover = PixmapCache::ScanImageFromDir(QString::fromStdWString(file_path));
     if (!cover.isNull()) {
-        qDatabase.SetAlbumCover(album_id, QString::fromStdWString(album), qPixmapCache.SavePixamp(cover));
+        qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
     }
 }
 
@@ -82,10 +84,9 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
 	const CoverArtReader reader;
-    // note: Parameter 'result' must be same album name.    
 	for (const auto& track_info : result) {
-		auto album = QString::fromStdWString(track_info.album);
-		auto artist = QString::fromStdWString(track_info.artist);
+        auto album = QString::fromStdWString(track_info.album);
+        auto artist = QString::fromStdWString(track_info.artist);
 		auto disc_id = QString::fromStdString(track_info.disc_id);
 
         QPixmap cover;
@@ -117,21 +118,24 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
         IGNORE_ANY_EXCEPTION(qDatabase.AddOrUpdateAlbumMusic(album_id, artist_id, music_id));
 
         if (!cover.isNull()) {
-            qDatabase.SetAlbumCover(album_id, album, qPixmapCache.SavePixamp(cover));
+            qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
         } else {
-            FindAlbumCover(album_id, track_info.album, track_info.file_path, reader);
+            FindAlbumCover(album_id, album, track_info.file_path, reader);
         }
 	}
 }
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
-    
-    for (auto i = 0; i < 3; ++i) {
+    constexpr auto kRetryInsertCount = 3;
+
+    for (auto i = 0; i < kRetryInsertCount; ++i) {
         try {
+            Stopwatch sw;
             ThrowIf<Exception>(qDatabase.transaction(), "Failed to start transaction!");
             AddTrackInfo(result, playlist_id, is_podcast_mode);
             ThrowIf<Exception>(qDatabase.commit(), "Failed to commit!");
+            XAMP_LOG_DEBUG("Add TrackInfo {} secs", sw.ElapsedSeconds());
             return;
         }
         catch (Exception const& e) {

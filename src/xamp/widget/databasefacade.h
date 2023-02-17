@@ -51,7 +51,7 @@ public:
         int32_t playlist_id, 
         bool is_podcast_mode);
 
-    static void FindAlbumCover(int32_t album_id, const std::wstring& album, const std::wstring& file_path, const CoverArtReader &reader);
+    static void FindAlbumCover(int32_t album_id, const QString& album, const std::wstring& file_path, const CoverArtReader &reader);
 
 private:
     static void AddTrackInfo(const ForwardList<TrackInfo>& result,

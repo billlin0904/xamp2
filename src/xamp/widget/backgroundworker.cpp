@@ -42,7 +42,7 @@ static auto MakDirPathHash() noexcept -> DirPathHash {
     return DirPathHash(kDirHashKey1, kDirHashKey2);
 }
 
-static void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
+void BackgroundWorker::ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -76,11 +76,21 @@ static void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
 
     HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
     std::for_each(paths.begin(), paths.end(), [&](auto& path) {
+        if (is_stop_) {
+            return;
+        }
+
+    	Stopwatch sw;
         auto track_info = reader->Extract(path);
+        XAMP_LOG_DEBUG("Extract file {} secs", sw.ElapsedSeconds());
 		album_groups[track_info.album].push_front(std::move(track_info));
     });
 
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
+        if (is_stop_) {
+            return;
+        }
+
         std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
             track.parent_path_hash = path_hash;
         });
@@ -91,6 +101,9 @@ static void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
     });
 
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
+        if (is_stop_) {
+            return;
+        }
 		DatabaseFacade::InsertTrackInfo(album_tracks.second, playlist_id, is_podcast_mode);
 		emit adapter->ReadCompleted(album_tracks.second);
     });
@@ -137,6 +150,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     auto hasher = MakDirPathHash();
 
     Vector<QString> dirs;
+    dirs.reserve(1024);
 
     while (itr.hasNext()) {
         if (is_stop_) {
@@ -341,9 +355,12 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
             .success([this, disc_id](const QString& content) {
 	            const auto cover_url = ParseCoverUrl(content);
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
-                    auto cover_id = qPixmapCache.AddOrUpdate(content);
-					XAMP_LOG_D(logger_, "Download cover image completed.");
-                    emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
+                    QPixmap cover;
+                    if (cover.loadFromData(content)) {
+                        auto cover_id = qPixmapCache.AddImage(cover);
+                        XAMP_LOG_D(logger_, "Download cover image completed.");
+                        emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
+                    }
                     });				
                 }).get();
             }).get();

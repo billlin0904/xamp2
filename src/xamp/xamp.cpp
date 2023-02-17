@@ -1328,7 +1328,7 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
     auto found_cover = !current_entity_.cover_id.isEmpty();
 
     if (cover_id != qPixmapCache.GetUnknownCoverId()) {
-        const auto cover = qPixmapCache.find(cover_id, false);
+        const auto cover = qPixmapCache.GetOrDefault(cover_id, false);
         if (!cover.isNull()) {
             found_cover = true;
             SetPlaylistPageCover(&cover, page);

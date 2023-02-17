@@ -27,9 +27,14 @@ namespace std {
 }
 #endif
 
+struct PixampCacheEntity {
+	int64_t size;
+	QPixmap image;
+};
+
 struct PixampCacheSizeOfPolicy {
-	int32_t operator()(const QString&, const QPixmap& image) {
-		return image.height() * image.width() * 4;
+	int64_t operator()(const QString&, const PixampCacheEntity& entity) {
+		return entity.size;
 	}
 };
 
@@ -41,21 +46,17 @@ public:
 
     friend class SharedSingleton<PixmapCache>;
 
-	static QPixmap FindCoverInDir(const QString& file_path);
+	static QPixmap ScanImageFromDir(const QString& file_path);
 
-	static QPixmap FindCoverInDir(const PlayListEntity& item);
+	static QPixmap FindImageFromDir(const PlayListEntity& item);
 
-    QPixmap find(const QString& tag_id, bool not_found_use_default = true) const;
+    QPixmap GetOrDefault(const QString& tag_id, bool not_found_use_default = true) const;
 
-    QPixmap FromFileCache(const QString& tag_id) const;
+	PixampCacheEntity GetFromFile(const QString& tag_id) const;
 
-    QString AddOrUpdate(const QByteArray& data);
+	void RemoveImage(const QString& tag_id);
 
-	void AddCache(const QString& tag_id, const QPixmap &cover);
-
-	void erase(const QString& tag_id);
-
-	size_t CacheSize() const;
+	size_t GetSize() const;
 
     void SetMaxSize(size_t max_size);
 
@@ -63,27 +64,27 @@ public:
 		return unknown_cover_id_;
 	}
 
-	void clear();
+	void Clear();
 
 	void ClearCache();
 
-	QString SavePixamp(const QPixmap& cover);
-
-	void OptimizeImageInDir(const QString& file_path);
-
-	void OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name);
+	QString AddImage(const QPixmap& cover);
 
 protected:
 	PixmapCache();
 
 private:
+	void OptimizeImageInDir(const QString& file_path) const;
+
+	void OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const;
+
 	void timerEvent(QTimerEvent*) override;
 
 	void LoadCache() const;
 
 	void InitCachePath();
 
-	QFileInfo CacheFileInfo(const QString& tag_id) const;
+	QFileInfo GetImageFileInfo(const QString& tag_id) const;
 
 	static QStringList cover_ext_;
 	static QStringList cache_ext_;
@@ -92,7 +93,7 @@ private:
 	QString unknown_cover_id_;
 	QString cache_path_;
 	LoggerPtr logger_;
-	mutable LruCache<QString, QPixmap, PixampCacheSizeOfPolicy> cache_;
+	mutable LruCache<QString, PixampCacheEntity, PixampCacheSizeOfPolicy> cache_;
 };
 
 #define qPixmapCache SharedSingleton<PixmapCache>::GetInstance()

@@ -36,4 +36,6 @@ bool OptimizePng(const QString& src_file_path, const QString& dest_file_path);
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path);
 
+void OptimizePng(const QByteArray& buffer, std::vector<uint8_t>& result_png);
+
 }

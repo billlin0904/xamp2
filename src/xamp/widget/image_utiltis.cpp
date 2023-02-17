@@ -14,15 +14,9 @@
 
 #include "thememanager.h"
 
-//#define USE_ZOPFLIPNG
-#define USE_PNGCRUSH
+#define USE_LIB_IMAGEQUANT
 
-#ifdef USE_ZOPFLIPNG
-#include <zopflipng_lib.h>
-#include <lodepng/lodepng.h>
-#endif
-
-#ifdef USE_PNGCRUSH
+#ifdef USE_LIB_IMAGEQUANT
 #include <libimagequant.h>
 #include <lodepng/lodepng.h>
 #endif
@@ -32,9 +26,9 @@ Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius,
 
 namespace image_utils {
 
-#ifdef USE_PNGCRUSH
+#ifdef USE_LIB_IMAGEQUANT
 
-namespace pngcrush {
+namespace imagequant {
 	template <typename T>
 	struct LiqResourceDeleter;
 
@@ -75,12 +69,12 @@ namespace pngcrush {
 		}
 	};
 
-	void OptimizePng(const std::vector<uint8_t>& original_png, std::vector<uint8_t>& result_png) {
+	void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_png) {
 		unsigned int width, height;
 		unsigned char* raw_rgba_pixels;
 
 		if (lodepng_decode32(&raw_rgba_pixels, &width, &height,
-			original_png.data(), original_png.size())) {
+			reinterpret_cast<const uint8_t*>(original_png.data()), original_png.size())) {
 			return;
 		}
 
@@ -145,35 +139,16 @@ namespace pngcrush {
 }
 #endif
 
-#ifdef USE_ZOPFLIPNG
-namespace zopflipng {	
-	void OptimizePng(const std::vector<uint8_t>& original_png, std::vector<uint8_t> &result_png) {
-		ZopfliPNGOptions png_options;
-		png_options.use_zopfli = true;
-		png_options.lossy_8bit = true;
-		png_options.lossy_transparent = true;
-		png_options.num_iterations = 20;
-		png_options.num_iterations_large = 7;
-		png_options.auto_filter_strategy = false;
-		png_options.filter_strategies.push_back(kStrategyEntropy);
-
-		if (::ZopfliPNGOptimize(original_png, png_options, png_options.verbose, &result_png)) {
-			throw PlatformSpecException();
-		}
-	}	
-}
-#endif
-
 template <typename OptimizeFunc>
-static void OptimizePng(const QString& dest_file_path, const std::vector<uint8_t> &original_png, std::vector<uint8_t> &result_png, OptimizeFunc func) {
+static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t> &result_png, OptimizeFunc func) {
 	Stopwatch sw;
 
 	func(original_png, result_png);
 
-	XAMP_LOG_DEBUG("optimize PNG {} => {} ({}% {} secs)",
+	XAMP_LOG_DEBUG("Optimize PNG {} => {} ({}%) {} secs",
 	               String::FormatBytes(original_png.size()),
 	               String::FormatBytes(result_png.size()),
-	               static_cast<uint32_t>((static_cast<double>(result_png.size()) / static_cast<double>(original_png.size())) * 100),
+	               (result_png.size() * 100 / original_png.size()),
 	               sw.ElapsedSeconds());
 
 	QFile file(dest_file_path);
@@ -187,19 +162,18 @@ static void OptimizePng(const QString& dest_file_path, const std::vector<uint8_t
 	file.write(QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
 }
 
-static void OptimizePng(const QString& dest_file_path, const std::vector<uint8_t>& original_png, std::vector<uint8_t>& result_png) {
-#if defined(USE_ZOPFLIPNG)
-	OptimizePng(dest_file_path, original_png, result_png, zopflipng::OptimizePng);
-#else
-	OptimizePng(dest_file_path, original_png, result_png, pngcrush::OptimizePng);
-#endif
+static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t>& result_png) {
+	OptimizePng(dest_file_path, original_png, result_png, imagequant::OptimizePng);
+}
+
+void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_png) {
+	imagequant::OptimizePng(original_png, result_png);
 }
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
-#if defined(USE_ZOPFLIPNG) || defined(USE_PNGCRUSH)
-	const std::vector<uint8_t> original_png(buffer.begin(), buffer.end());
+#if defined(USE_LIB_IMAGEQUANT)
 	std::vector<uint8_t> result_png;
-	OptimizePng(dest_file_path, original_png, result_png);
+	OptimizePng(dest_file_path, buffer, result_png);
 	return true;
 #else
 	const auto image = QImage::fromData(buffer);
@@ -208,7 +182,7 @@ bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 }
 
 bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
-#if defined(USE_ZOPFLIPNG) || defined(USE_PNGCRUSH)
+#if defined(USE_LIB_IMAGEQUANT)
 	if (!QFile(src_file_path).exists()) {
 		return false;
 	}
@@ -224,7 +198,8 @@ bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
 		if (lodepng::load_file(original_png, src_file_path.toLocal8Bit().data())) {
 			throw PlatformSpecException();
 		}
-		OptimizePng(QString::fromStdWString(dest_file_path.wstring()), original_png, result_png);
+		const QByteArray buffer(reinterpret_cast<const char*>(original_png.data()), original_png.size());
+		OptimizePng(QString::fromStdWString(dest_file_path.wstring()), buffer, result_png);
 	}, exception_handler);
 #else
 	Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
@@ -237,8 +212,9 @@ QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
 		                  : Qt::IgnoreAspectRatio;
 
-	return source.scaled(scaled_size, mode)
-		.scaled(size, mode, Qt::SmoothTransformation);
+	const auto temp = source.scaled(scaled_size, mode);
+	auto scaled_image = temp.scaled(size, mode, Qt::SmoothTransformation);
+	return scaled_image;
 }
 
 QByteArray Convert2ByteArray(const QPixmap& source) {

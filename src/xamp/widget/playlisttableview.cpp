@@ -171,7 +171,7 @@ public:
         case PLAYLIST_COVER_ID:
 	        {
 				static constexpr auto kPlaylistCoverSize = QSize(32, 32);
-                opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.find(value.toString()), kPlaylistCoverSize));
+                opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 				opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
@@ -898,11 +898,14 @@ void PlayListTableView::OnFetchPodcastCompleted(const ForwardList<TrackInfo>& /*
         return;
     }
 
-    const auto cover_id = qPixmapCache.AddOrUpdate(cover_image_data);
-    const auto index = this->model()->index(0, 0);
-    const auto play_item = item(index);
-    CATCH_DB_EXCEPTION(qDatabase.SetAlbumCover(play_item.album_id, play_item.album, cover_id))
-    emit UpdateAlbumCover(cover_id);
+    QPixmap cover;
+    if (cover.loadFromData(cover_image_data)) {
+        const auto cover_id = qPixmapCache.AddImage(cover);
+        const auto index = this->model()->index(0, 0);
+        const auto entity = item(index);
+        CATCH_DB_EXCEPTION(qDatabase.SetAlbumCover(entity.album_id, entity.album, cover_id))
+            emit UpdateAlbumCover(cover_id);
+    }
 }
 
 void PlayListTableView::ResizeColumn() {

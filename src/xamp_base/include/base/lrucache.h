@@ -14,7 +14,7 @@
 
 namespace xamp::base {
 
-inline constexpr int32_t kLruCacheSize = 200;
+inline constexpr int64_t kLruCacheSize = 200;
 
 template
 <
@@ -22,7 +22,7 @@ template
     typename Value
 >
 struct XAMP_BASE_API_ONLY_EXPORT DefaultSizeOfPolicy {
-	int32_t operator()(const Key &, const Value &) {
+	int64_t operator()(const Key &, const Value &) {
         return 1;
 	}
 };
@@ -40,9 +40,9 @@ public:
     using KeyIterator = typename KeyList::iterator;
     using CacheMap = HashMap<Key, KeyIterator>;
 
-    explicit LruCache(int32_t max_size = kLruCacheSize) noexcept;
+    explicit LruCache(int64_t max_size = kLruCacheSize) noexcept;
 
-    void Resize(int32_t max_size);
+    void Resize(int64_t max_size);
 
     void AddOrUpdate(Key const& key, Value value);
 
@@ -50,17 +50,17 @@ public:
 
     bool Add(Key const& key, Value value);
 
-    int32_t GetMissCount() const noexcept;
+    int64_t GetMissCount() const noexcept;
 
-    int32_t GetHitCount() const noexcept;
+    int64_t GetHitCount() const noexcept;
 
     void Erase(Key const& key);
 
     void Clear() noexcept;
 
-    int32_t GetSize() const noexcept;
+    int64_t GetSize() const noexcept;
 
-    int32_t GetMaxSize() const noexcept;
+    int64_t GetMaxSize() const noexcept;
 
     KeyIterator begin() noexcept {
         return keys_.begin();
@@ -70,7 +70,7 @@ public:
         return keys_.end();
     }
 
-    void Evict(int32_t max_size);
+    void Evict(int64_t max_size);
 
 private:
     friend std::ostream& operator<< (std::ostream& ostr, const LruCache& cache) {
@@ -84,8 +84,8 @@ private:
         return ostr;
     }
 
-    int32_t size_;
-    int32_t max_size_;
+    int64_t size_;
+    int64_t max_size_;
     mutable size_t hit_count_;
     mutable size_t miss_count_;
     mutable CacheMap cache_;
@@ -102,7 +102,7 @@ template
 	typename KeyList,
 	typename SharedMutex
 >
-LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::LruCache(int32_t max_size) noexcept
+LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::LruCache(int64_t max_size) noexcept
     : size_(0)
 	, max_size_(max_size)
     , hit_count_(0)
@@ -117,7 +117,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int32_t max_size) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int64_t max_size) {
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
         max_size_ = max_size;
@@ -218,7 +218,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Evict(int32_t max_size) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Evict(int64_t max_size) {
     while (true) {
         std::unique_lock<SharedMutex> write_lock(mutex_);
         if (!size_ || size_ <= max_size) {
@@ -239,7 +239,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int32_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMissCount() const noexcept {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMissCount() const noexcept {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return miss_count_;
 }
@@ -252,7 +252,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int32_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetHitCount() const noexcept {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetHitCount() const noexcept {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return hit_count_;
 }
@@ -298,7 +298,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int32_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMaxSize() const noexcept {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMaxSize() const noexcept {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return max_size_;
 }
@@ -311,7 +311,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int32_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetSize() const noexcept {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetSize() const noexcept {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return size_;
 }

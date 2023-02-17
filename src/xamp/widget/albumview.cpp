@@ -154,7 +154,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    auto album_cover = qPixmapCache.find(cover_id);
+    auto album_cover = qPixmapCache.GetOrDefault(cover_id);
     auto album_image = image_utils::RoundImage(album_cover, image_utils::kSmallImageRadius);
     painter->drawPixmap(cover_rect, album_image);
 
@@ -438,7 +438,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
                 qDatabase.RemoveAllArtist();
                 update();
                 emit RemoveAll();
-                qPixmapCache.clear();
+                qPixmapCache.Clear();
             }
             catch (...) {
             }
