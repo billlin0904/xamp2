@@ -31,7 +31,10 @@ public:
 	static constexpr auto kColumnArtistWidth = 300;
 	static constexpr auto kColumnCoverIdWidth = 42;
 	static constexpr auto kColumnDefaultWidth = 80;
-	static constexpr auto kColumnDuratioWidth = 10;
+	static constexpr auto kColumnDurationWidth = 10;
+	static constexpr auto kColumnHeight = 46;
+
+	static constexpr auto kPendingPlaylistSize = 30;
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
@@ -73,13 +76,19 @@ public:
 
 	QModelIndex GetCurrentIndex() const;
 
+	void AddPendingPlayList(int32_t count);
+
+	void AddPendingPlayListFromModel();
+
     void SetCurrentPlayIndex(const QModelIndex& index);
 
 	QModelIndex GetNextIndex(int forward) const;
 
 	std::optional<QModelIndex> GetSelectItem() const;
 
-	void play(const QModelIndex& index);
+	void Play(const QModelIndex& index);
+
+	void Play();
 
 	void SetNowPlayState(PlayingState playing_state);
 
@@ -169,6 +178,7 @@ protected:
 	StarDelegate* start_delegate_;	
     PlayListSqlQueryTableModel* model_;
     QSet<QString> hidden_column_names_;
+	QList<QModelIndex> pending_playlist_;
 	PRNG rng_;
 	QString column_setting_name_;
 	QSharedPointer<ProcessIndicator> indicator_;

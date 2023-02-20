@@ -188,6 +188,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 #ifdef XAMP_OS_WIN
 		SetThreadPriority(threads_.at(i), priority);
+		SetThreadMitigation();
 #endif
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);

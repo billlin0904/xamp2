@@ -40,7 +40,7 @@ PixmapCache::PixmapCache()
 	cache_.Add(unknown_cover_id_, { 1, qTheme.UnknownCover() });
 	InitCachePath();
 	LoadCache();
-	startTimer(3000);
+	startTimer(kTrimImageSizeSeconds);
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 }
 

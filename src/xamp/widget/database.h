@@ -143,6 +143,12 @@ public:
 
     ForwardList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
 
+    void AddPendingPlaylist(int32_t playlist_musics_id) const;
+
+    std::pair<int32_t, int32_t> GetFirstPendingPlaylistMusic(int32_t playlist_id);
+
+    void DeletePendingPlaylistMusic(int32_t pending_playlist_id);
+
     size_t GetParentPathHash(const QString& parent_path) const;
 
     int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id = qEmptyString);

@@ -145,11 +145,12 @@ XAMP_BASE_API void CpuRelax() noexcept;
 XAMP_BASE_API void Assert(const char* message, const char* file, uint32_t line);
 
 #ifdef XAMP_OS_WIN
-XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable) noexcept;
+XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable);
 XAMP_BASE_API void RedirectStdOut();
-XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
-XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size) noexcept;
+XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size);
+XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
 XAMP_BASE_API void SetProcessMitigation();
+XAMP_BASE_API void SetThreadMitigation();
 XAMP_BASE_API bool SetFileLowIoPriority(int32_t handle);
 #endif
 }

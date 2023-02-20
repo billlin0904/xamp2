@@ -473,7 +473,7 @@ void RedirectStdOut() {
     setbuf(stdout, nullptr);
 }
 
-bool ExtendProcessWorkingSetSize(size_t size) noexcept {
+bool ExtendProcessWorkingSetSize(size_t size) {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
 
@@ -491,7 +491,7 @@ bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
 }
 
-bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
+bool EnablePrivilege(std::string_view privilege, bool enable) {
     const WinHandle current_process(::GetCurrentProcess());
 
     WinHandle token;
@@ -529,7 +529,7 @@ bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     return true;
 }
 
-bool SetProcessWorkingSetSize(size_t working_set_size) noexcept {
+bool SetProcessWorkingSetSize(size_t working_set_size) {
     if (!EnablePrivilege("SeLockMemoryPrivilege", true)) {
         return false;
     }
@@ -551,14 +551,7 @@ bool SetFileLowIoPriority(int32_t handle) {
         sizeof(priority_hint));
 }
 
-void SetProcessMitigation() {
-    PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY signature_policy{};
-    signature_policy.MicrosoftSignedOnly = true;
-    if (!::SetProcessMitigationPolicy(ProcessSignaturePolicy, &signature_policy,
-        sizeof(signature_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessSignaturePolicy ({})", GetLastErrorMessage());
-    }
-    
+void SetThreadMitigation() {
     PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dynamic_code_policy{};
     dynamic_code_policy.ProhibitDynamicCode = true;
     dynamic_code_policy.AllowThreadOptOut = true;
@@ -566,6 +559,29 @@ void SetProcessMitigation() {
         sizeof(dynamic_code_policy))) {
         XAMP_LOG_DEBUG("Failed to set ProcessDynamicCodePolicy ({}).", GetLastErrorMessage());
     }
+
+    DWORD thread_policy = THREAD_DYNAMIC_CODE_ALLOW;
+    if (!::GetThreadInformation(::GetCurrentThread(), ThreadDynamicCodePolicy,
+        &thread_policy, sizeof(thread_policy))) {
+        XAMP_LOG_DEBUG("Failed to set GetThreadInformation ({})", GetLastErrorMessage());
+    }
+    if (thread_policy == THREAD_DYNAMIC_CODE_ALLOW) {
+        return;
+    }
+    thread_policy = THREAD_DYNAMIC_CODE_ALLOW;
+    if (!::SetThreadInformation(::GetCurrentThread(), ThreadDynamicCodePolicy,
+        &thread_policy, sizeof(thread_policy))) {
+        XAMP_LOG_DEBUG("Failed to set SetThreadInformation ({})", GetLastErrorMessage());
+    }
+}
+
+void SetProcessMitigation() {
+    PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY signature_policy{};
+    signature_policy.MicrosoftSignedOnly = true;
+    if (!::SetProcessMitigationPolicy(ProcessSignaturePolicy, &signature_policy,
+        sizeof(signature_policy))) {
+        XAMP_LOG_DEBUG("Failed to set ProcessSignaturePolicy ({})", GetLastErrorMessage());
+    }       
     
     PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY strict_handle_check_policy = {};
     strict_handle_check_policy.HandleExceptionsPermanentlyEnabled = true;

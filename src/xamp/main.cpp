@@ -23,6 +23,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/xmainwindow.h>
 #include <widget/xmessagebox.h>
+#include <widget/http.h>
 #include <widget/databasefacade.h>
 
 #include <QOperatingSystemVersion>
@@ -38,6 +39,7 @@
 #include "singleinstanceapplication.h"
 #include "version.h"
 #include "xamp.h"
+#include <QNetworkReply>
 
 #ifdef Q_OS_WIN32
 static ConstLatin1String VisualStudioVersion() {
@@ -286,7 +288,9 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
     const std::vector<std::string_view> dll_file_names{
         "psapi.dll",
         "setupapi.dll",
-        "WinTypes.dll"
+        "WinTypes.dll",
+        "AudioSes.dll",
+        "AUDIOKSE.dll"
     };
     std::vector<SharedLibraryHandle> pin_module;
     for (const auto& file_name : dll_file_names) {
@@ -306,7 +310,7 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
 
 static std::vector<SharedLibraryHandle> PrefetchDll() {
     const std::vector<std::string_view> dll_file_names{
-        "mimalloc-override.dll",
+        "mimalloc-override.dll",        
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
@@ -387,6 +391,10 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
 
+    qTheme.LoadAndApplyQssTheme();
+    const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
+    qTheme.SetThemeColor(theme);
+
 #ifndef _DEBUG    
 #else
 #ifdef XAMP_OS_WIN
@@ -406,7 +414,7 @@ static int Execute(int argc, char* argv[]) {
     }
     XAMP_LOG_DEBUG("Load component shared library success.");
 
-    LoadLang();
+    LoadLang();    
 
     try {
         qDatabase;
@@ -417,6 +425,16 @@ static int Execute(int argc, char* argv[]) {
     }
     XAMP_LOG_DEBUG("Database init success.");
 
+    if (!QSslSocket::supportsSsl()) {
+        XMessageBox::ShowError(qTEXT("TLS initialization failed."));
+        return -1;
+    }
+
+    //static const QString kSoftwareUpdateUrl =
+    //    qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    //http::HttpClient(kSoftwareUpdateUrl).get();
+    SetProcessMitigation();
+    
     XMainWindow main_window;
     main_window.RestoreGeometry();
 
@@ -430,9 +448,6 @@ static int Execute(int argc, char* argv[]) {
         main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
     }
 
-    const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
-    qTheme.SetThemeColor(theme);
-
     Xamp win(MakeAudioPlayer());
     win.SetXWindow(&main_window);
     win.SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
@@ -440,7 +455,6 @@ static int Execute(int argc, char* argv[]) {
     main_window.SetContentWidget(&win);
     //top_win.SetContentWidget(nullptr);
 
-    qTheme.LoadAndApplyQssTheme();
     main_window.ShowWindow();
     return app.exec();
 }

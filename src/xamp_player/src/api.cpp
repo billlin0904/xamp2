@@ -13,10 +13,7 @@
 
 namespace xamp::player {
 
-void LoadComponentSharedLibrary() {
-    GetPlaybackThreadPool();
-    XAMP_LOG_DEBUG("Start Playback thread pool success.");
-
+void LoadComponentSharedLibrary() {   
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS lib success.");
 
@@ -32,15 +29,17 @@ void LoadComponentSharedLibrary() {
     Ebur128Reader::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 
-#ifdef XAMP_OS_WIN
-    GetWasapiThreadPool();
-    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
-
     LoadR8brainLib();
     XAMP_LOG_DEBUG("Load r8brain lib success.");
-
+#ifdef XAMP_OS_WIN
     MBDiscId::LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
+
+    GetPlaybackThreadPool();
+    XAMP_LOG_DEBUG("Start Playback thread pool success.");
+
+    GetWasapiThreadPool();
+    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
 }
 

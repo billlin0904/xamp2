@@ -28,7 +28,7 @@
     } while (false)
 
 // SQLite不支援uint64_t格式但可以使用QByteArray保存.
-static uint64_t getUlonglongValue(const SqlQuery & q, const int32_t index) {
+static uint64_t GetUlonglongValue(const SqlQuery & q, const int32_t index) {
     auto blob_size_t = q.value(index).toByteArray();
     XAMP_ASSERT(blob_size_t.size() == sizeof(uint64_t));
     uint64_t result = 0;
@@ -37,7 +37,7 @@ static uint64_t getUlonglongValue(const SqlQuery & q, const int32_t index) {
 }
 
 // SQLite不支援uint64_t格式但可以使用QByteArray保存.
-static void bindUlonglongValue(SqlQuery & q, const ConstLatin1String placeholder, const uint64_t v) {
+static void BindUlonglongValue(SqlQuery & q, const ConstLatin1String placeholder, const uint64_t v) {
     QByteArray blob_size_t;
     blob_size_t.resize(sizeof(uint64_t));
     MemoryCopy(blob_size_t.data(), &v, sizeof(uint64_t));
@@ -278,6 +278,15 @@ void Database::CreateTableIfNotExist() {
                        FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
                        FOREIGN KEY(albumId) REFERENCES albums(albumId)
+                       )
+                       )"));
+
+    create_table_sql.push_back(
+        qTEXT(R"(
+                       CREATE TABLE IF NOT EXISTS pendingPlaylist (
+                       pendingPlaylistId integer PRIMARY KEY AUTOINCREMENT,
+                       playlistMusicsId integer,
+                       FOREIGN KEY(playlistMusicsId) REFERENCES playlistMusics(playlistMusicsId)
                        )
                        )"));
 
@@ -849,7 +858,7 @@ size_t Database::GetParentPathHash(const QString & parent_path) const {
 
     const auto index = query.record().indexOf(qTEXT("parentPathHash"));
     if (query.next()) {
-        return getUlonglongValue(query, index);
+        return GetUlonglongValue(query, index);
     }
     return 0;
 }
@@ -877,7 +886,7 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":offset"), track_info.offset);
     query.bindValue(qTEXT(":fileSize"), track_info.file_size);
 
-    bindUlonglongValue(query, qTEXT(":parentPathHash"), track_info.parent_path_hash);
+    BindUlonglongValue(query, qTEXT(":parentPathHash"), track_info.parent_path_hash);
 
     if (track_info.replay_gain) {
         query.bindValue(qTEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);
@@ -1128,6 +1137,62 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
 
     XAMP_LOG_D(logger_, "addOrUpdateAlbum albumId:{}", album_id);
     return album_id;
+}
+
+std::pair<int32_t, int32_t> Database::GetFirstPendingPlaylistMusic(int32_t playlist_id) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT(R"(
+SELECT
+    pendingPlaylistId,
+	musics.musicId 
+FROM
+	pendingPlaylist 
+JOIN playlistMusics ON pendingPlaylist.playlistMusicsId = playlistMusics.playlistMusicsId
+JOIN musics ON playlistMusics.musicId = musics.musicId
+WHERE
+	playlistMusics.playlistId = :playlistId
+ORDER BY
+	pendingPlaylistId 
+LIMIT 1
+    )"));
+
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
+    THROW_IF_FAIL1(query);
+
+    const auto index = query.record().indexOf(qTEXT("musicId"));
+    if (!query.next()) {
+        return std::make_pair(kInvalidId, kInvalidId);
+    }
+
+    return std::make_pair(
+        query.value(qTEXT("musicId")).toInt(),
+        query.value(qTEXT("pendingPlaylistId")).toInt());
+}
+
+void Database::DeletePendingPlaylistMusic(int32_t pending_playlist_id) {
+    SqlQuery query(db_);
+    query.prepare(qTEXT(R"(
+DELETE 
+FROM
+	pendingPlaylist 
+WHERE
+	pendingPlaylistId = :pendingPlaylistId
+    )"));
+    query.bindValue(qTEXT(":pendingPlaylistId"), pending_playlist_id);
+    THROW_IF_FAIL1(query);
+}
+
+void Database::AddPendingPlaylist(int32_t playlist_musics_id) const {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT(R"(
+    INSERT INTO pendingPlaylist (pendingPlaylistId, playlistMusicsId)
+    VALUES (NULL, :playlistMusicsId)
+    )"));
+    
+    query.bindValue(qTEXT(":playlistMusicsId"), playlist_musics_id);
+    THROW_IF_FAIL1(query);
 }
 
 void Database::AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {

@@ -43,6 +43,7 @@ class QTimerEvent;
 class PixmapCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
+	static constexpr int kTrimImageSizeSeconds = 10 * 1000;
 
     friend class SharedSingleton<PixmapCache>;
 

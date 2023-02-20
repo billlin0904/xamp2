@@ -144,7 +144,8 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &VolumeButton::OnCurrentThemeChanged);
 
     QTimer::singleShot(300, [this]() {
-        InitialDeviceList();
+        InitialDeviceList();        
+        //SetProcessMitigation();
         });
 }
 
@@ -918,7 +919,7 @@ void Xamp::PlayOrPause() {
             }
             playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
             playlist_page_->playlist()->SetNowPlaying(play_index_, true);
-            playlist_page_->playlist()->play(play_index_);
+            playlist_page_->playlist()->Play(play_index_);
         }
     }
     catch (Exception const &e) {
@@ -1371,38 +1372,13 @@ void Xamp::PlayNextItem(int32_t forward) {
     if (count == 0) {
         stop();
         return;
-    }
-
-    play_index_ = playlist_view->currentIndex();
-
-    if (count > 1) {
-        switch (order_) {
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-            play_index_ = playlist_view->GetNextIndex(forward);
-            if (play_index_.row() == -1) {
-                return;
-            }
-            break;
-        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-            play_index_ = playlist_view->GetShuffleIndex();
-            break;
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        default:
-            break;
-        }
-
-        if (!play_index_.isValid()) {
-            XMessageBox::ShowInformation(tr("Not found any playlist item."));
-            return;
-        }
-    } else {
-        play_index_ = playlist_view->model()->index(0, 0);
-    }
+    }    
 
     try {
-        playlist_view->play(play_index_);
+        playlist_view->Play();
+        play_index_ = playlist_view->currentIndex();
     }
-    catch (Exception const &e) {
+    catch (Exception const& e) {
         XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
         return;
     }
