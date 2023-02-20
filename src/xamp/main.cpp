@@ -430,11 +430,16 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
 
-    //static const QString kSoftwareUpdateUrl =
-    //    qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-    //http::HttpClient(kSoftwareUpdateUrl).get();
+    #ifdef XAMP_OS_WIN
+    // Force loaing network dll.
+    static const QString kSoftwareUpdateUrl =
+        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    http::HttpClient(kSoftwareUpdateUrl).get();
     SetProcessMitigation();
-    
+    #endif
+
+    qDatabase.DeletePendingPlaylist();
+
     XMainWindow main_window;
     main_window.RestoreGeometry();
 

@@ -196,6 +196,7 @@ LIBS += -framework Foundation -framework Cocoa -framework Carbon
 INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
 INCLUDEPATH += "../thirdparty/discord-rpc/include"
 INCLUDEPATH += "../thirdparty/zopfli/src/zopflipng"
+INCLUDEPATH += "../thirdparty/libimagequant/"
 
 CONFIG(debug, debug|release) {
 QMAKE_CXXFLAGS += -mavx2 -D_DEBUG
@@ -206,6 +207,7 @@ LIBS += -L"../xamp_base/debug/" -lxamp_base \
     -L"../xamp_player/debug/" -lxamp_player \
     -L"../thirdparty/zopfli/mac/Debug" -lzopfli\
     -L"../thirdparty/zopfli/mac/Debug" -lzopflipng\
+    -L"../thirdparty/libimagequant/mac/Debug" -limagequant_a\
 } else {
 QMAKE_CXXFLAGS += -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
 LIBS += -L"../xamp_base/release/" -lxamp_base \
@@ -215,6 +217,7 @@ LIBS += -L"../xamp_base/release/" -lxamp_base \
     -L"../xamp_player/release/" -lxamp_player \
     -L"../thirdparty/zopfli/mac/Release" -lzopfli\
     -L"../thirdparty/zopfli/mac/Release" -lzopflipng\
+    -L"../thirdparty/libimagequant/mac/Release" -limagequant_a\
 }
 
 # Default rules for deployment.

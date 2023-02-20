@@ -17,6 +17,8 @@ class VolumeButton : public QToolButton {
 public:
 	explicit VolumeButton(QWidget *parent = nullptr);
 
+    virtual ~VolumeButton();
+
 	void SetPlayer(std::shared_ptr<IAudioPlayer> player);
 
 public slots:

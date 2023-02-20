@@ -381,8 +381,6 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
             setColumnHidden(column.toInt(), false);
         }
     }
-
-    AddPendingPlayListFromModel();
 }
 
 void PlayListTableView::SetHeaderViewHidden(bool enable) {
@@ -571,6 +569,7 @@ void PlayListTableView::initial() {
 
                 const auto button = XMessageBox::ShowYesOrNo(tr("Remove all items?"));
                 if (button == QDialogButtonBox::Yes) {
+                    qDatabase.DeletePendingPlaylist();
                     IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(GetPlaylistId()))
                     Reload();
                     RemovePlaying();
@@ -969,20 +968,29 @@ QModelIndex PlayListTableView::GetFirstIndex() const {
     return model()->index(0, 0);
 }
 
-void PlayListTableView::AddPendingPlayListFromModel() {
-    for (auto i = 0; i < model_->rowCount(); ++i) {
-        auto index = model_->index(i, PLAYLIST_PLAYLIST_MUSIC_ID);
-        pending_playlist_.append(index);
-        auto entity = GetEntity(index);
-        qDatabase.AddPendingPlaylist(entity.playlist_music_id);
-    }
+void PlayListTableView::DeletePendingPlaylist() {
+    pending_playlist_.clear();
 }
 
-void PlayListTableView::AddPendingPlayList(int32_t count) {
-    for (auto i = 0; i < count; ++i) {
-        auto index = GetShuffleIndex();
+void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
+    QModelIndex index;
+    for (auto i = 0; i < model_->rowCount(); ++i) {
+        switch (order) {
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+            index = GetNextIndex(i);
+            break;
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+            index = currentIndex();
+            break;
+        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+            index = GetShuffleIndex();
+            break;
+        }
+        if (!index.isValid()) {
+            index = GetFirstIndex();
+        }
         pending_playlist_.append(index);
-        auto entity = GetEntity(index);        
+        auto entity = GetEntity(index);
         qDatabase.AddPendingPlaylist(entity.playlist_music_id);
     }
 }
@@ -1056,9 +1064,9 @@ void PlayListTableView::SetCurrentPlayIndex(const QModelIndex& index) {
     play_index_ = index;
 }
 
-void PlayListTableView::Play() {
+void PlayListTableView::Play(PlayerOrder order) {
     if (pending_playlist_.isEmpty()) {
-        AddPendingPlayList(kPendingPlaylistSize);
+        AddPendingPlayListFromModel(order);
     }
 
     auto [music_id, pending_playlist_id] = qDatabase.GetFirstPendingPlaylistMusic(GetPlaylistId());

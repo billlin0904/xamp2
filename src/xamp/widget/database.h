@@ -143,6 +143,8 @@ public:
 
     ForwardList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
 
+    void DeletePendingPlaylist();
+
     void AddPendingPlaylist(int32_t playlist_musics_id) const;
 
     std::pair<int32_t, int32_t> GetFirstPendingPlaylistMusic(int32_t playlist_id);

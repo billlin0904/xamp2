@@ -9,6 +9,8 @@ VolumeButton::VolumeButton(QWidget *parent)
 	setStyleSheet(qTEXT("background: transparent;"));
 }
 
+VolumeButton::~VolumeButton() = default;
+
 void VolumeButton::SetPlayer(std::shared_ptr<IAudioPlayer> player) {
 	dialog_.reset(new VolumeControlDialog(player, this));
 	(void)QObject::connect(dialog_.get(),

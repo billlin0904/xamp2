@@ -556,6 +556,7 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
         order_ = GetNextOrder(order_);
         SetPlayerOrder();
+        current_playlist_page_->playlist()->DeletePendingPlaylist();
     });
 
     (void)QObject::connect(ui_.playButton, &QToolButton::pressed, [this]() {
@@ -1375,7 +1376,7 @@ void Xamp::PlayNextItem(int32_t forward) {
     }    
 
     try {
-        playlist_view->Play();
+        playlist_view->Play(order_);
         play_index_ = playlist_view->currentIndex();
     }
     catch (Exception const& e) {
@@ -1471,7 +1472,7 @@ void Xamp::InitialPlaylist() {
 
             if (playlist_page_->playlist()->GetPlaylistId() != playlist_id) {
                 playlist_page_ = NewPlaylistPage(playlist_id, qEmptyString);
-                playlist_page_->playlist()->SetPlaylistId(playlist_id, name);
+                playlist_page_->playlist()->SetPlaylistId(playlist_id, name);                
             }
         });
 
@@ -1483,6 +1484,7 @@ void Xamp::InitialPlaylist() {
         playlist_page_ = NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         ConnectPlaylistPageSignal(playlist_page_);
         playlist_page_->playlist()->SetHeaderViewHidden(false);
+        playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
     }
 
     if (!podcast_page_) {

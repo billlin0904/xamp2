@@ -12,6 +12,7 @@
 #include <widget/playlistentity.h>
 #include <widget/database.h>
 #include <widget/databasefacade.h>
+#include <widget/playerorder.h>
 
 #include <base/rng.h>
 #include <base/encodingprofile.h>
@@ -76,9 +77,9 @@ public:
 
 	QModelIndex GetCurrentIndex() const;
 
-	void AddPendingPlayList(int32_t count);
+    void AddPendingPlayListFromModel(PlayerOrder order);
 
-	void AddPendingPlayListFromModel();
+    void DeletePendingPlaylist();
 
     void SetCurrentPlayIndex(const QModelIndex& index);
 
@@ -88,7 +89,7 @@ public:
 
 	void Play(const QModelIndex& index);
 
-	void Play();
+    void Play(PlayerOrder order);
 
 	void SetNowPlayState(PlayingState playing_state);
 
