@@ -74,7 +74,7 @@ public Q_SLOT:
 
     void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
 private:
-	void ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
+    void ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapter,
         const QStringList& file_name_filters,
         const QString& dir,
         int32_t playlist_id,

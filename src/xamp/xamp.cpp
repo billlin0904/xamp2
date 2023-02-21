@@ -238,8 +238,10 @@ void Xamp::InitialUi() {
 
     ui_.bitPerfectButton->setFont(f);
 
-    QToolTip::setFont(QFont(qTEXT("FormatFont")));
-    ui_.formatLabel->setFont(QFont(qTEXT("FormatFont")));
+    QToolTip::setFont(QFont(qTEXT("UIFont")));
+    QFont format_font(qTEXT("FormatFont"));
+    format_font.setPointSize(10);
+    ui_.formatLabel->setFont(format_font);
 
     ui_.formatLabel->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.hiResLabel->setStyleSheet(qTEXT("background-color: transparent"));
@@ -1448,6 +1450,7 @@ void Xamp::InitialPlaylist() {
         playlist_page_ = NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         ConnectPlaylistPageSignal(playlist_page_);
         playlist_page_->playlist()->SetHeaderViewHidden(false);
+        playlist_page_->playlist()->DeletePendingPlaylist();
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
     }
 

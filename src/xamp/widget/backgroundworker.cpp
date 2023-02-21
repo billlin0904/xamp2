@@ -43,7 +43,7 @@ static auto MakFilePathHash() noexcept -> DirPathHash {
     return DirPathHash(kDirHashKey1, kDirHashKey2);
 }
 
-void BackgroundWorker::ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapter,
+void BackgroundWorker::ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapter,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -161,8 +161,8 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
 
     auto hasher = MakFilePathHash();
 
-    Vector<QString> dirs;
-    dirs.reserve(1024);
+    Vector<QString> paths;
+    paths.reserve(1024);
 
     while (itr.hasNext()) {
         if (is_stop_) {
@@ -170,15 +170,15 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
         }
         auto path = ToNativeSeparators(itr.next());
         hasher.Update(path.toStdWString());
-        dirs.push_back(path);
+        paths.push_back(path);
     }
 
-    if (dirs.empty()) {
-        dirs.push_back(file_path);
+    if (paths.empty()) {
+        paths.push_back(file_path);
     }
 
-    const int dir_size = std::distance(dirs.begin(), dirs.end());
-    emit adapter->ReadFileStart(dir_size);
+    const int path_size = std::distance(paths.begin(), paths.end());
+    emit adapter->ReadFileStart(path_size);
 
     XAMP_ON_SCOPE_EXIT(
         emit adapter->ReadFileEnd();
@@ -203,36 +203,36 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     std::atomic<int> progress(0);
 
 #if 1
-    for (const auto dir : dirs) {
+    for (const auto path : paths) {
         if (is_stop_) {
             return;
         }
 
         try {
-            ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
+            ScanPathFiles(adapter, file_name_filters, path, playlist_id, is_podcast_mode);
         }
         catch (Exception const& e) {
-            XAMP_LOG_D(logger_, "Failed to scan dir files! ", e.GetErrorMessage());
+            XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());
         }
 
-        emit adapter->ReadFileProgress(dir, progress);
+        emit adapter->ReadFileProgress(path, progress);
         ++progress;
     }
 #else
-    Executor::ParallelFor(*executor_, dirs, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode, dir_size](
-        const auto& dir) {
+    Executor::ParallelFor(*executor_, paths, [this, adapter, &progress, &file_name_filters, playlist_id, is_podcast_mode, path_size](
+        const auto& path) {
     	if (is_stop_) {
             return;
         }
 
 		try {
-			ScanDirFiles(adapter, file_name_filters, dir, playlist_id, is_podcast_mode);
+            ScanPathFiles(adapter, file_name_filters, path, playlist_id, is_podcast_mode);
 		}
 		catch (Exception const& e) {
-			XAMP_LOG_D(logger_, "Failed to scan dir files! ", e.GetErrorMessage());
+            XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());
 		}
 
-        emit adapter->ReadFileProgress(dir, progress);
+        emit adapter->ReadFileProgress(path, progress);
 		++progress;
     });
 #endif

@@ -432,6 +432,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
             indicator->StartAnimation();
             try {
+                qDatabase.ClearPendingPlaylist();
                 qDatabase.ForEachAlbum([](auto album_id) {
                     qDatabase.RemoveAlbum(album_id);
                     });
@@ -610,7 +611,6 @@ void AlbumView::append(const QString& file_name) {
         MakeProgressDialog(tr("Read track information"),
             tr("Read track information"),
             tr("Cancel"));
-    read_progress_dialog_->hide();
     ReadSingleFileTrackInfo(file_name);
 }
 
