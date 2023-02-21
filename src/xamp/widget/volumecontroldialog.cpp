@@ -17,7 +17,11 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 
     setAttribute(Qt::WA_StyledBackground);
 	setFixedSize(30, 110);
+
 	ui_.volumeSlider->SetRange(0, 100);
+    ui_.volumeSlider->setFocusPolicy(Qt::NoFocus);
+    ui_.volumeSlider->setInvertedAppearance(false);
+    ui_.volumeSlider->setInvertedControls(false);
 
     if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
         SetVolume(0);

@@ -340,4 +340,8 @@ uint32_t AvFileStream::GetBitDepth() const {
     return impl_->GetBitDepth();
 }
 
+int64_t AvFileStream::GetBitRate() const {
+    return impl_->GetBitRate();
+}
+
 }

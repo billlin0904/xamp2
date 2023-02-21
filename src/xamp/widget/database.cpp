@@ -1170,7 +1170,7 @@ LIMIT 1
         query.value(qTEXT("pendingPlaylistId")).toInt());
 }
 
-void Database::DeletePendingPlaylist() {
+void Database::ClearPendingPlaylist() {
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
 DELETE

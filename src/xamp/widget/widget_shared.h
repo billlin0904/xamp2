@@ -42,3 +42,4 @@ using namespace xamp::stream;
 using namespace xamp::player;
 using namespace xamp::output_device;
 
+#define MAX_SANDBOX_MODE

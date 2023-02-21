@@ -39,3 +39,9 @@ void SeekSlider::enterEvent(QEvent* event) {
 void SeekSlider::leaveEvent(QEvent* event) {
 	qTheme.SetSliderTheme(this, false);
 }
+
+void SeekSlider::wheelEvent(QWheelEvent* event) {
+	constexpr int kVolumeSensitivity = 30;
+	const uint step = event->angleDelta().y() / kVolumeSensitivity;
+	setValue(value() + step);
+}

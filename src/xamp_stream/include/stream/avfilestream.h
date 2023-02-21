@@ -16,7 +16,7 @@
 
 namespace xamp::stream {
 
-class AvFileStream final : public FileStream {
+class XAMP_STREAM_API AvFileStream final : public FileStream {
 	XAMP_DECLARE_MAKE_CLASS_UUID(AvFileStream, "D59756C0-19CE-4E4B-BC83-6616BBB2930B")
 
 public:
@@ -44,6 +44,7 @@ public:
 
 	uint32_t GetBitDepth() const override;
 
+	int64_t GetBitRate() const;
 private:
 	class AvFileStreamImpl;
 	PimplPtr<AvFileStreamImpl> impl_;

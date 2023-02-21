@@ -733,6 +733,22 @@ void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
                                          }
                                          )"));
     ui.eqButton->setIcon(GetFontIcon(Glyphs::ICON_EQUALIZER));
+
+    ui.preferenceButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#preferenceButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    ui.preferenceButton->setIcon(GetFontIcon(Glyphs::ICON_SETTINGS));
+
+    ui.aboutButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#aboutButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    ui.aboutButton->setIcon(GetFontIcon(Glyphs::ICON_ABOUT));
 }
 
 void ThemeManager::SetTextSeparator(QFrame *frame) {
@@ -957,7 +973,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )"));
+                                            )"));   
 
     ui.searchLineEdit->setStyleSheet(qTEXT(""));
 

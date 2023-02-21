@@ -18,6 +18,7 @@
 #include <base/google_siphash.h>
 #include <base/scopeguard.h>
 #include <base/fastmutex.h>
+#include <stream/avfilestream.h>
 #if defined(Q_OS_WIN)
 #include <player/mbdiscid.h>
 #endif
@@ -35,7 +36,7 @@ struct ReplayGainJob {
 
 using DirPathHash = GoogleSipHash<>;
 
-static auto MakDirPathHash() noexcept -> DirPathHash {
+static auto MakFilePathHash() noexcept -> DirPathHash {
     static constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
     static constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
 
@@ -49,7 +50,7 @@ void BackgroundWorker::ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapte
     bool is_podcast_mode) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
-    auto hasher = MakDirPathHash();
+    auto hasher = MakFilePathHash();
     ForwardList<Path> paths;
 
     while (itr.hasNext()) {
@@ -82,6 +83,17 @@ void BackgroundWorker::ScanDirFiles(const QSharedPointer<DatabaseFacade>& adapte
 
     	Stopwatch sw;
         auto track_info = reader->Extract(path);
+        constexpr auto kTagLibInvalidBitRate = 1;
+        if (track_info.bit_rate == kTagLibInvalidBitRate || track_info.duration == 0.0) {
+            try {
+                AvFileStream stream;
+                stream.OpenFile(path);
+                track_info.duration = stream.GetDuration();
+                track_info.bit_rate = stream.GetBitRate();
+            }
+            catch (...) {
+            }
+        }
         XAMP_LOG_DEBUG("Extract file {} secs", sw.ElapsedSeconds());
 		album_groups[track_info.album].push_front(std::move(track_info));
     });
@@ -147,7 +159,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, GetFileNameFilter(), filter);
 
-    auto hasher = MakDirPathHash();
+    auto hasher = MakFilePathHash();
 
     Vector<QString> dirs;
     dirs.reserve(1024);

@@ -374,6 +374,12 @@ static void logMessageHandler(QtMsgType type, const QMessageLogContext& context,
 }
 #endif
 
+static void ApplyTheme() {
+    auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
+    qTheme.SetThemeColor(theme);
+    qTheme.LoadAndApplyQssTheme();    
+}
+
 static int Execute(int argc, char* argv[]) {
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication::setDesktopSettingsAware(false);
@@ -391,9 +397,7 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
 
-    qTheme.LoadAndApplyQssTheme();
-    const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
-    qTheme.SetThemeColor(theme);
+    ApplyTheme();
 
 #ifndef _DEBUG    
 #else
@@ -419,7 +423,7 @@ static int Execute(int argc, char* argv[]) {
     try {
         qDatabase;
     }
-    catch (const Exception& e) {
+    catch (const Exception& e) {        
         XMessageBox::ShowBug(e);
         return -1;
     }
@@ -430,15 +434,17 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
 
-    #ifdef XAMP_OS_WIN
+    #if defined(XAMP_OS_WIN)
+    #ifndef MAX_SANDBOX_MODE
     // Force loaing network dll.
     static const QString kSoftwareUpdateUrl =
         qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
     http::HttpClient(kSoftwareUpdateUrl).get();
+    #else
+    XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
     SetProcessMitigation();
     #endif
-
-    qDatabase.DeletePendingPlaylist();
+    #endif
 
     XMainWindow main_window;
     main_window.RestoreGeometry();

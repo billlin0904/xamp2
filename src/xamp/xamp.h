@@ -235,9 +235,7 @@ private:
 	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_page_;
     ArtistInfoPage* artist_info_page_;
-	PreferencePage* preference_page_;
 	FileSystemViewPage* file_system_view_page_;
-	AboutPage* about_page_;
 	IXMainWindow* main_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;

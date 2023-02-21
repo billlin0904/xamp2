@@ -61,14 +61,8 @@ void TabListView::OnCurrentThemeChanged(ThemeColor theme_color) {
         case TAB_ARTIST:
             item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
             break;
-        case TAB_SETTINGS:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
-            break;
         case TAB_CD:
             item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
-            break;
-        case TAB_ABOUT:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
             break;
         }
     }

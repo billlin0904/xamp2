@@ -36,7 +36,7 @@ public:
 		(expr);\
     }\
     catch (SqlException const& e) {\
-		XMessageBox::ShowBug(e);\
+		XMessageBox::ShowBug(e, QString::fromStdString(e.what()));\
     }
 
 struct AlbumStats {
@@ -143,7 +143,7 @@ public:
 
     ForwardList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
 
-    void DeletePendingPlaylist();
+    void ClearPendingPlaylist();
 
     void AddPendingPlaylist(int32_t playlist_musics_id) const;
 

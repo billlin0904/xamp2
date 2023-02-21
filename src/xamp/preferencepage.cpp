@@ -221,18 +221,7 @@ void PreferencePage::SetPhasePercentText(int32_t value) {
 
 PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
-
     ui_.setupUi(this);
-#if 1
-	// todo: setMenuStyle會導致menu背景為透明.
-	/*qTheme.setMenuStyle(ui_.langCombo->view()->window());
-	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
-	qTheme.setMenuStyle(ui_.selectResamplerComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.soxrSettingCombo->view()->window());
-	qTheme.setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());*/
 
 	InitSoxResampler();
 	InitR8BrainResampler();
@@ -349,25 +338,6 @@ PreferencePage::PreferencePage(QWidget *parent)
         qPixmapCache.SetMaxSize(value);
         AppSettings::SetValue(kAppSettingAlbumImageCacheSize, value);
     });
-		
-	/*setStyleSheet(qTEXT(R"(
-			QFrame#PreferenceDialog { 
-				background-color: transparent;
-			}
-            )"));
-
-	ui_.stackedWidget->setStyleSheet(qTEXT(R"(
-			QStackedWidget#stackedWidget {
-				background-color: transparent;
-            }
-            )"));
-	ui_.preferenceTreeWidget->setStyleSheet(qTEXT("QTreeView { background: transparent; }"));
-	ui_.playbackPage->setStyleSheet(qTEXT("background: transparent;"));
-	ui_.soxrResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
-	ui_.r8brainResamplerPage->setStyleSheet(qTEXT("background: transparent;"));
-	ui_.dspManagerPage->setStyleSheet(qTEXT("background: transparent;"));
-	ui_.pcm2dsdPage->setStyleSheet(qTEXT("background: transparent;"));
-	*/
 
 	const QList<QWidget*> widgets {
 		ui_.darkRadioButton,
@@ -423,11 +393,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 	Q_FOREACH(auto* w, r8brain_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
-#endif
 }
 
 void PreferencePage::SaveSettings() {
-#if 1
 	const auto enable_resampler = AppSettings::ValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
@@ -436,7 +404,7 @@ void PreferencePage::SaveSettings() {
 	else {
 		auto resampler_type = AppSettings::ValueAsString(kAppSettingResamplerType);
 		if (resampler_type == kSoxr || resampler_type.isEmpty()) {
-			ui_.resamplerStackedWidget->setCurrentIndex(1);
+				ui_.resamplerStackedWidget->setCurrentIndex(1);
 			ui_.selectResamplerComboBox->setCurrentIndex(1);
 		}
 		else if (resampler_type == kR8Brain) {
@@ -444,7 +412,6 @@ void PreferencePage::SaveSettings() {
 			ui_.selectResamplerComboBox->setCurrentIndex(2);
 		}
 	}
-#endif
 }
 
 void PreferencePage::SaveAll() {

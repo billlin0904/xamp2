@@ -75,9 +75,7 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
 	, current_playlist_page_(nullptr)
     , album_page_(nullptr)
     , artist_info_page_(nullptr)
-	, preference_page_(nullptr)
 	, file_system_view_page_(nullptr)
-	, about_page_(nullptr)
 	, main_window_(nullptr)
 	, background_worker_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
@@ -144,8 +142,12 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &VolumeButton::OnCurrentThemeChanged);
 
     QTimer::singleShot(300, [this]() {
-        InitialDeviceList();        
-        //SetProcessMitigation();
+        InitialDeviceList();   
+        #if defined(XAMP_OS_WIN)
+        #ifndef MAX_SANDBOX_MODE
+        SetProcessMitigation();
+        #endif
+        #endif
         });
 }
 
@@ -535,6 +537,25 @@ void Xamp::InitialController() {
         PlayPrevious();
     });
 
+    (void)QObject::connect(ui_.aboutButton, &QToolButton::pressed, [this]() {
+        auto* dialog = new XDialog(this);
+        auto* preference_page = new AboutPage(dialog);
+        dialog->SetContentWidget(preference_page);
+        dialog->SetTitle(tr("About"));
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        dialog->exec();
+        });
+
+    (void)QObject::connect(ui_.preferenceButton, &QToolButton::pressed, [this]() {
+        auto* dialog = new XDialog(this);
+        auto* preference_page = new PreferencePage(dialog);
+        dialog->SetContentWidget(preference_page);
+        dialog->SetTitle(tr("Preference"));
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        dialog->exec();
+        preference_page->SaveSettings();
+        });
+
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerDialog(dialog);
@@ -594,53 +615,7 @@ void Xamp::InitialController() {
        AppSettings::SetValue(kAppSettingShowLeftList, enable);
        SliderAnimation(enable);
         });   
-
-    auto* check_for_update = new QAction(tr("Check For Updates"), this);
-
-#if 0
-    static const QString kSoftwareUpdateUrl =
-        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-    auto* updater = QSimpleUpdater::getInstance();
-
-    if (AppSettings::ValueAsBool(kAppSettingAutoCheckForUpdate)) {
-        (void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
-            auto change_log = updater->getChangelog(url);
-
-            auto html = qTEXT(R"(
-            <h3>Find New Version:</h3> 			d
-			<br>
-            %1
-			</br>
-           )").arg(change_log);
-
-            QMessageBox::about(this,
-                qTEXT("Check For Updates"),
-                html);
-            });
-
-        (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
-            XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
-            });
-
-        (void)QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
-            XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
-            });
-
-        updater->setPlatformKey(kSoftwareUpdateUrl, qTEXT("windows"));
-        updater->setModuleVersion(kSoftwareUpdateUrl, kXAMPVersion);
-        updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
-        updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
-        updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
-        updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
-        updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
-        updater->checkForUpdates(kSoftwareUpdateUrl);
-
-        (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
-            updater->checkForUpdates(kSoftwareUpdateUrl);
-            });
-    }    
-#endif
-
+    
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(FormatDuration(0));
     ui_.endPosLabel->setText(FormatDuration(0));
@@ -668,21 +643,14 @@ void Xamp::SetCurrentTab(int32_t table_id) {
     case TAB_LYRICS:
         ui_.currentView->setCurrentWidget(lrc_page_);
         break;
-    case TAB_SETTINGS:
-        ui_.currentView->setCurrentWidget(preference_page_);
-        break;
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_);
-        break;
-    case TAB_ABOUT:
-        ui_.currentView->setCurrentWidget(about_page_);
         break;
     }
 }
 
 void Xamp::UpdateButtonState() {    
     qTheme.SetPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
-    preference_page_->SaveSettings();
 }
 
 void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -1441,8 +1409,6 @@ void Xamp::InitialPlaylist() {
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
     artist_info_page_ = new ArtistInfoPage(this);
-    preference_page_ = new PreferencePage(this);
-    about_page_ = new AboutPage(this);
 
     ui_.sliderBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
     ui_.sliderBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
@@ -1450,9 +1416,7 @@ void Xamp::InitialPlaylist() {
     ui_.sliderBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
     ui_.sliderBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
     ui_.sliderBar->AddTab(tr("Artists"), TAB_ARTIST, qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
-    ui_.sliderBar->AddTab(tr("Settings"), TAB_SETTINGS, qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
     ui_.sliderBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
-    ui_.sliderBar->AddTab(tr("About"), TAB_ABOUT, qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
     qDatabase.ForEachTable([this](auto table_id,
@@ -1593,9 +1557,7 @@ void Xamp::InitialPlaylist() {
     PushWidget(artist_info_page_);
     PushWidget(podcast_page_);
     PushWidget(file_system_view_page_);
-    PushWidget(preference_page_);
     PushWidget(cd_page_);
-    PushWidget(about_page_);
 
     ui_.currentView->setCurrentIndex(0);
 
