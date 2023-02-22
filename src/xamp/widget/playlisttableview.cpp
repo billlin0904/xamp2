@@ -17,6 +17,7 @@
 #include <widget/playlistsqlquerytablemodel.h>
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
+#include <widget/appsettingnames.h>
 
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
@@ -733,6 +734,10 @@ void PlayListTableView::PlayItem(const QModelIndex& index) {
     SetNowPlaying(index);
     SetNowPlayState(PLAY_PLAYING);
     const auto play_item = item(index);
+    auto [music_id, pending_playlist_id] = qDatabase.GetFirstPendingPlaylistMusic(GetPlaylistId());
+    if (play_item.music_id != music_id) {
+        AddPendingPlayListFromModel(AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder));
+    }
     emit PlayMusic(play_item);
 }
 
@@ -975,6 +980,9 @@ void PlayListTableView::DeletePendingPlaylist() {
 }
 
 void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
+    Reload();
+    DeletePendingPlaylist();
+
     QModelIndex index;
     for (auto i = 0; i < model_->rowCount(); ++i) {
         switch (order) {
@@ -1010,7 +1018,9 @@ QModelIndex PlayListTableView::GetShuffleIndex() {
         current_playlist_music_id = GetIndexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     }
     const auto count = model_->rowCount();
-    rng_.SetSeed(current_playlist_music_id);
+    if (current_playlist_music_id != 0) {
+        rng_.SetSeed(current_playlist_music_id);
+    }    
     const auto selected = rng_.NextInt32(0) % count;
     return model()->index(selected, PLAYLIST_PLAYING);
 }
@@ -1070,7 +1080,6 @@ void PlayListTableView::Play(PlayerOrder order) {
     if (pending_playlist_.isEmpty()) {
         AddPendingPlayListFromModel(order);
     }
-
     auto [music_id, pending_playlist_id] = qDatabase.GetFirstPendingPlaylistMusic(GetPlaylistId());
     if (music_id == kInvalidId || pending_playlist_id == kInvalidId) {
         return;

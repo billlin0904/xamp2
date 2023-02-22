@@ -116,6 +116,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 		}
 
         IGNORE_ANY_EXCEPTION(qDatabase.AddOrUpdateAlbumMusic(album_id, artist_id, music_id));
+        IGNORE_ANY_EXCEPTION(qDatabase.AddOrUpdateAlbumArtist(album_id, artist_id));
 
         if (!cover.isNull()) {
             qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
@@ -132,9 +133,7 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32
     for (auto i = 0; i < kRetryInsertCount; ++i) {
         try {
             Stopwatch sw;
-            ThrowIf<Exception>(qDatabase.transaction(), "Failed to start transaction!");
             AddTrackInfo(result, playlist_id, is_podcast_mode);
-            ThrowIf<Exception>(qDatabase.commit(), "Failed to commit!");
             XAMP_LOG_DEBUG("Add TrackInfo {} secs", sw.ElapsedSeconds());
             return;
         }
@@ -147,8 +146,6 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32
         catch (...) {
             XAMP_LOG_DEBUG("Failed to add track info!");
         }
-
-        qDatabase.rollback();
         XAMP_LOG_DEBUG("Retry insert database count: {}.", i);
     }
 }

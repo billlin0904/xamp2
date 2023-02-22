@@ -47,7 +47,7 @@ static void BindUlonglongValue(SqlQuery & q, const ConstLatin1String placeholder
 SqlException::SqlException(QSqlError error)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
         error.text().toStdString()) {
-    XAMP_LOG_DEBUG("SqlException: {}", error.text().toStdString());
+    XAMP_LOG_DEBUG("SqlException: {}{}", error.text().toStdString(), GetStackTrace());
 }
 
 const char* SqlException::what() const noexcept {
@@ -71,6 +71,8 @@ Database::Database() {
 QSqlDatabase& Database::database() {
     return db_;
 }
+
+QReadWriteLock Database::locker_;
 
 static QThreadStorage<QSharedPointer<Database>> s_database_storage;
 
@@ -96,7 +98,7 @@ void Database::open() {
         throw SqlException(db_.lastError());
     }
 
-    (void)db_.exec(qTEXT("PRAGMA synchronous = NORMAL"));
+    (void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
     (void)db_.exec(qTEXT("PRAGMA auto_vacuum = OFF"));
     (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
     (void)db_.exec(qTEXT("PRAGMA journal_mode = WAL"));
@@ -105,21 +107,26 @@ void Database::open() {
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));
 
-    XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.", connection_name_.toStdString(), GetVersion().toStdString());
+    XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
+        connection_name_.toStdString(), GetVersion().toStdString());
 
     CreateTableIfNotExist();
 }
 
 bool Database::transaction() {
+    locker_.lockForWrite();
     return db_.transaction();
 }
 
 bool Database::commit() {
-    return db_.commit();
+    auto result = db_.commit();
+    locker_.unlock();
+    return result;
 }
 
 void Database::rollback() {
     db_.rollback();
+    locker_.unlock();
 }
 
 QString Database::GetVersion() const {
@@ -297,6 +304,7 @@ void Database::CreateTableIfNotExist() {
 }
 
 void Database::ClearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"));
     query.bindValue(qTEXT(":playing"), PlayingState::PLAY_CLEAR);
@@ -306,6 +314,7 @@ void Database::ClearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_play
 }
 
 void Database::ClearNowPlaying(int32_t playlist_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing"));
     query.bindValue(qTEXT(":playing"), PlayingState::PLAY_CLEAR);
@@ -314,6 +323,7 @@ void Database::ClearNowPlaying(int32_t playlist_id) {
 }
 
 void Database::SetNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
     query.bindValue(qTEXT(":playing"), playing);
@@ -331,6 +341,7 @@ void Database::SetNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
 }
 
 void Database::RemovePlaylistMusics(int32_t music_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM playlistMusics WHERE musicId=:musicId"));
     query.bindValue(qTEXT(":musicId"), music_id);
@@ -338,6 +349,7 @@ void Database::RemovePlaylistMusics(int32_t music_id) {
 }
 
 void Database::RemoveAlbumMusicId(int32_t music_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM albumMusic WHERE musicId=:musicId"));
     query.bindValue(qTEXT(":musicId"), music_id);
@@ -345,6 +357,7 @@ void Database::RemoveAlbumMusicId(int32_t music_id) {
 }
 
 void Database::RemoveTrackLoudnessMusicId(int32_t music_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM musicLoudness WHERE musicId=:musicId"));
     query.bindValue(qTEXT(":musicId"), music_id);
@@ -352,6 +365,7 @@ void Database::RemoveTrackLoudnessMusicId(int32_t music_id) {
 }
 
 void Database::RemoveAlbumArtistId(int32_t artist_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM albumArtist WHERE artistId=:artistId"));
     query.bindValue(qTEXT(":artistId"), artist_id);
@@ -359,6 +373,7 @@ void Database::RemoveAlbumArtistId(int32_t artist_id) {
 }
 
 void Database::RemoveMusic(int32_t music_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM musics WHERE musicId=:musicId"));
     query.bindValue(qTEXT(":musicId"), music_id);
@@ -366,6 +381,7 @@ void Database::RemoveMusic(int32_t music_id) {
 }
 
 std::optional<QString> Database::GetAlbumFirstMusicFilePath(int32_t album_id) {
+    QReadLocker read_locker(&locker_);
     SqlQuery query(qTEXT(R"(
 SELECT
     musics.path
@@ -387,6 +403,7 @@ LIMIT
 }
 
 void Database::RemoveMusic(QString const& file_path) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT musicId FROM musics WHERE path = (:path)"));
@@ -406,6 +423,7 @@ void Database::RemoveMusic(QString const& file_path) {
 }
 
 void Database::RemoveAlbumArtist(int32_t album_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM albumArtist WHERE albumId=:albumId"));
     query.bindValue(qTEXT(":albumId"), album_id);
@@ -413,6 +431,7 @@ void Database::RemoveAlbumArtist(int32_t album_id) {
 }
 
 void Database::ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun) {
+    QReadLocker read_locker(&locker_);
     QSqlTableModel model(nullptr, db_);
 
     model.setTable(qTEXT("playlist"));
@@ -428,6 +447,7 @@ void Database::ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& 
 }
 
 void Database::ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun) {
+    QReadLocker read_locker(&locker_);
     QSqlTableModel model(nullptr, db_);
 
     model.setTable(qTEXT("tables"));
@@ -444,6 +464,7 @@ void Database::ForEachTable(std::function<void(int32_t, int32_t, int32_t, QStrin
 }
 
 void Database::ForEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const&)>&& fun) {
+    QReadLocker read_locker(&locker_);
     SqlQuery query(qTEXT(R"(
 SELECT
     albumMusic.albumId,
@@ -477,12 +498,14 @@ ORDER BY
 }
 
 void Database::RemoveAllArtist() {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM artists"));
     THROW_IF_FAIL1(query);
 }
 
 void Database::RemoveArtistId(int32_t artist_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM artists WHERE artistId=:artistId"));
     query.bindValue(qTEXT(":artistId"), artist_id);
@@ -490,6 +513,7 @@ void Database::RemoveArtistId(int32_t artist_id) {
 }
 
 void Database::ForEachAlbum(std::function<void(int32_t)>&& fun) {
+    QReadLocker read_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT albumId FROM albums"));
@@ -500,17 +524,24 @@ void Database::ForEachAlbum(std::function<void(int32_t)>&& fun) {
 }
 
 void Database::RemoveAlbum(int32_t album_id) {
-    ForEachAlbumMusic(album_id, [this](auto const& entity) {
-        ForEachPlaylist([&entity, this](auto playlistId, auto , auto) {
-            RemoveMusic(playlistId, QVector<int32_t>{ entity.music_id });
+    QList<PlayListEntity> entities;
+    ForEachAlbumMusic(album_id, [this, &entities](auto const& entity) {
+        entities.push_back(entity);        
+    });
+    Q_FOREACH(const auto & entity, entities) {
+        QList<int32_t> playlist_ids;
+        ForEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto) {
+            playlist_ids.push_back(playlistId);            
         });
+        Q_FOREACH(auto playlistId, playlist_ids) {
+            RemoveMusic(playlistId, QVector<int32_t>{ entity.music_id });
+        }
         RemoveAlbumMusicId(entity.music_id);
         RemoveTrackLoudnessMusicId(entity.music_id);
         RemoveMusic(entity.music_id);
-        });
-
+    }
     RemoveAlbumArtist(album_id);
-
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM albums WHERE albumId=:albumId"));
     query.bindValue(qTEXT(":albumId"), album_id);
@@ -518,6 +549,8 @@ void Database::RemoveAlbum(int32_t album_id) {
 }
 
 int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t playlist_id) {
+    QWriteLocker write_locker(&locker_);
+
     QSqlTableModel model(nullptr, db_);
 
     model.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -542,6 +575,8 @@ int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t pla
 }
 
 int32_t Database::AddPlaylist(const QString& name, int32_t playlist_index) {
+    QWriteLocker write_locker(&locker_);
+
     QSqlTableModel model(nullptr, db_);
 
     model.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -575,6 +610,7 @@ void Database::SetTableName(int32_t table_id, const QString& name) {
 }
 
 void Database::SetAlbumCover(int32_t album_id, const QString& cover_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId)"));
@@ -587,6 +623,7 @@ void Database::SetAlbumCover(int32_t album_id, const QString& cover_id) {
 }
 
 void Database::SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) AND (album = :album)"));
@@ -600,6 +637,7 @@ void Database::SetAlbumCover(int32_t album_id, const QString& album, const QStri
 }
 
 std::optional<ArtistStats> Database::GetArtistStats(int32_t artist_id) const {
+    QReadLocker read_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -630,6 +668,8 @@ std::optional<ArtistStats> Database::GetArtistStats(int32_t artist_id) const {
 }
 
 std::optional<AlbumStats> Database::GetAlbumStats(int32_t album_id) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -662,6 +702,8 @@ std::optional<AlbumStats> Database::GetAlbumStats(int32_t album_id) const {
 }
 
 bool Database::IsPlaylistExist(int32_t playlist_id) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT playlistId FROM playlist WHERE playlistId = (:playlistId)"));
@@ -672,6 +714,8 @@ bool Database::IsPlaylistExist(int32_t playlist_id) const {
 }
 
 int32_t Database::FindTablePlaylistId(int32_t table_id) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT playlistId FROM tablePlaylist WHERE tableId = (:tableId)"));
@@ -685,6 +729,8 @@ int32_t Database::FindTablePlaylistId(int32_t table_id) const {
 }
 
 void Database::AddTablePlaylist(int32_t table_id, int32_t playlist_id) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -698,6 +744,8 @@ void Database::AddTablePlaylist(int32_t table_id, int32_t playlist_id) {
 }
 
 QString Database::GetArtistCoverId(int32_t artist_id) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT coverId FROM artists WHERE artistId = (:artistId)"));
@@ -713,6 +761,8 @@ QString Database::GetArtistCoverId(int32_t artist_id) const {
 }
 
 QString Database::GetAlbumCoverId(int32_t album_id) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT coverId FROM albums WHERE albumId = (:albumId)"));
@@ -728,6 +778,8 @@ QString Database::GetAlbumCoverId(int32_t album_id) const {
 }
 
 QString Database::GetAlbumCoverId(const QString& album) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT coverId FROM albums WHERE album = (:album)"));
@@ -778,6 +830,8 @@ PlayListEntity Database::QueryToPlayListEntity(const SqlQuery& query) {
 }
 
 ForwardList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_hash) const {
+    QReadLocker read_locker(&locker_);
+
     ForwardList<PlayListEntity> track_infos;
 
     QByteArray blob_size_t;
@@ -816,6 +870,8 @@ ForwardList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_
 }
 
 std::optional<std::tuple<QString, QString>> Database::GetLyrc(int32_t music_id) {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
     SELECT
@@ -839,6 +895,8 @@ std::optional<std::tuple<QString, QString>> Database::GetLyrc(int32_t music_id) 
 }
 
 size_t Database::GetParentPathHash(const QString & parent_path) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
     SELECT
@@ -864,6 +922,7 @@ size_t Database::GetParentPathHash(const QString & parent_path) const {
 }
 
 int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -917,6 +976,8 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
 }
 
 void Database::AddOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET lyrc = :lyrc, trlyrc = :trlyrc WHERE (musicId = :musicId)"));
@@ -929,6 +990,8 @@ void Database::AddOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QStr
 }
 
 void Database::UpdateMusicFilePath(int32_t music_id, const QString& file_path) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET path = :path WHERE (musicId = :musicId)"));
@@ -940,6 +1003,8 @@ void Database::UpdateMusicFilePath(int32_t music_id, const QString& file_path) {
 }
 
 void Database::UpdateMusicRating(int32_t music_id, int32_t rating) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET rating = :rating WHERE (musicId = :musicId)"));
@@ -951,6 +1016,8 @@ void Database::UpdateMusicRating(int32_t music_id, int32_t rating) {
 }
 
 void Database::UpdateMusicTitle(int32_t music_id, const QString& title) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET title = :title WHERE (musicId = :musicId)"));
@@ -962,6 +1029,8 @@ void Database::UpdateMusicTitle(int32_t music_id, const QString& title) {
 }
 
 void Database::AddOrUpdateTrackLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -989,6 +1058,8 @@ void Database::UpdateReplayGain(int32_t music_id,
     double album_peak,
     double track_rg_gain,
     double track_peak) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET album_replay_gain = :album_replay_gain, album_peak = :album_peak, track_replay_gain = :track_replay_gain, track_peak = :track_peak WHERE (musicId = :musicId)"));
@@ -1003,6 +1074,8 @@ void Database::UpdateReplayGain(int32_t music_id,
 }
 
 void Database::AddMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     const auto querystr = qSTR("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
@@ -1015,6 +1088,8 @@ void Database::AddMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t
 }
 
 void Database::AddMusicToPlaylist(const ForwardList<int32_t>& music_id, int32_t playlist_id) const {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     QStringList strings;
@@ -1030,6 +1105,8 @@ void Database::AddMusicToPlaylist(const ForwardList<int32_t>& music_id, int32_t 
 }
 
 void Database::UpdateArtistCoverId(int32_t artist_id, const QString& cover_id) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE artists SET coverId = :coverId WHERE (artistId = :artistId)"));
@@ -1041,6 +1118,8 @@ void Database::UpdateArtistCoverId(int32_t artist_id, const QString& cover_id) {
 }
 
 int32_t Database::AddOrUpdateArtist(const QString& artist) {
+    QWriteLocker write_locker(&locker_);
+
     XAMP_EXPECTS(!artist.isEmpty());
 
     SqlQuery query(db_);
@@ -1061,6 +1140,8 @@ int32_t Database::AddOrUpdateArtist(const QString& artist) {
 }
 
 void Database::UpdateArtistByDiscId(const QString& disc_id, const QString& artist) {
+    QWriteLocker write_locker(&locker_);
+
     XAMP_EXPECTS(!artist.isEmpty());
 
     SqlQuery query(db_);
@@ -1090,6 +1171,8 @@ void Database::UpdateArtistByDiscId(const QString& disc_id, const QString& artis
 }
 
 int32_t Database::GetAlbumIdByDiscId(const QString& disc_id) const {
+    QReadLocker read_locker(&locker_);
+
     SqlQuery query(db_);
     query.prepare(qTEXT("SELECT albumId FROM albums WHERE discId = (:discId)"));
     query.bindValue(qTEXT(":discId"), disc_id);
@@ -1103,6 +1186,8 @@ int32_t Database::GetAlbumIdByDiscId(const QString& disc_id) const {
 }
 
 void Database::UpdateAlbumByDiscId(const QString& disc_id, const QString& album) {
+    QWriteLocker write_locker(&locker_);
+
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE albums SET album = :album WHERE (discId = :discId)"));
@@ -1114,6 +1199,7 @@ void Database::UpdateAlbumByDiscId(const QString& disc_id, const QString& album)
 }
 
 int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -1126,7 +1212,7 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
     query.bindValue(qTEXT(":album"), album);
     query.bindValue(qTEXT(":artistId"), artist_id);
     query.bindValue(qTEXT(":firstChar"), first_char.toUpper());
-    query.bindValue(qTEXT(":coverId"), GetAlbumCoverId(album));
+    query.bindValue(qTEXT(":coverId"), qEmptyString);
     query.bindValue(qTEXT(":isPodcast"), is_podcast ? 1 : 0);
     query.bindValue(qTEXT(":dateTime"), album_time);
     query.bindValue(qTEXT(":discId"), disc_id);
@@ -1140,6 +1226,7 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
 }
 
 std::pair<int32_t, int32_t> Database::GetFirstPendingPlaylistMusic(int32_t playlist_id) {
+    QReadLocker read_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -1152,8 +1239,6 @@ JOIN playlistMusics ON pendingPlaylist.playlistMusicsId = playlistMusics.playlis
 JOIN musics ON playlistMusics.musicId = musics.musicId
 WHERE
 	playlistMusics.playlistId = :playlistId
-ORDER BY
-	pendingPlaylistId 
 LIMIT 1
     )"));
 
@@ -1171,6 +1256,7 @@ LIMIT 1
 }
 
 void Database::ClearPendingPlaylist() {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
 DELETE
@@ -1181,6 +1267,7 @@ FROM
 }
 
 void Database::DeletePendingPlaylistMusic(int32_t pending_playlist_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
 DELETE 
@@ -1194,6 +1281,7 @@ WHERE
 }
 
 void Database::AddPendingPlaylist(int32_t playlist_musics_id) const {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -1206,6 +1294,7 @@ void Database::AddPendingPlaylist(int32_t playlist_musics_id) const {
 }
 
 void Database::AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -1222,6 +1311,7 @@ void Database::AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 }
 
 void Database::AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness) const {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
@@ -1238,6 +1328,7 @@ void Database::AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int
 }
 
 void Database::AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
+    QWriteLocker write_locker(&locker_);
     XAMP_EXPECTS(album_id != kInvalidId);
     XAMP_EXPECTS(artist_id != kInvalidId);
     XAMP_EXPECTS(music_id != kInvalidId);
@@ -1253,11 +1344,11 @@ void Database::AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
     query.bindValue(qTEXT(":artistId"), artist_id);
     query.bindValue(qTEXT(":musicId"), music_id);
 
-    THROW_IF_FAIL1(query);
-    AddOrUpdateAlbumArtist(album_id, artist_id);
+    THROW_IF_FAIL1(query);    
 }
 
 void Database::RemovePlaylistAllMusic(int32_t playlist_id) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
     query.bindValue(qTEXT(":playlistId"), playlist_id);
@@ -1266,6 +1357,7 @@ void Database::RemovePlaylistAllMusic(int32_t playlist_id) {
 }
 
 void Database::RemoveMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     QString str = qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)");
@@ -1283,6 +1375,7 @@ void Database::RemoveMusic(int32_t playlist_id, const QVector<int32_t>& select_m
 }
 
 void Database::RemovePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
+    QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     QString str = qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND playlistMusicsId in (%0)");

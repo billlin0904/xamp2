@@ -10,6 +10,7 @@
 #include <QString>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QReadWriteLock>
 
 #include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
@@ -238,6 +239,7 @@ private:
     QString connection_name_;
     QSqlDatabase db_;
     LoggerPtr logger_;
+    static QReadWriteLock locker_;
 };
 
 #define qDatabase Database::GetThreadDatabase()

@@ -433,9 +433,13 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             indicator->StartAnimation();
             try {
                 qDatabase.ClearPendingPlaylist();
-                qDatabase.ForEachAlbum([](auto album_id) {
-                    qDatabase.RemoveAlbum(album_id);
+                QList<int32_t> albums;
+                qDatabase.ForEachAlbum([&albums](auto album_id) {
+                    albums.push_back(album_id);                    
                     });
+                Q_FOREACH(auto album_id, albums) {
+                    qDatabase.RemoveAlbum(album_id);
+                }                
                 qDatabase.RemoveAllArtist();
                 update();
                 emit RemoveAll();
@@ -611,6 +615,7 @@ void AlbumView::append(const QString& file_name) {
         MakeProgressDialog(tr("Read track information"),
             tr("Read track information"),
             tr("Cancel"));
+    read_progress_dialog_->hide();
     ReadSingleFileTrackInfo(file_name);
 }
 

@@ -81,6 +81,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
             content_widget_->setAttribute(Qt::WA_TranslucentBackground, true);
         }
         installEventFilter(this);
+        win32::SetAccentPolicy(winId());
     } else {
         win32::SetWindowedWindowStyle(winId());
         setMouseTracking(true);
@@ -538,8 +539,6 @@ void XMainWindow::ReadDriveInfo() {
     }
 #endif
 }
-
-
 
 void XMainWindow::closeEvent(QCloseEvent* event) {
     if (!content_widget_) {

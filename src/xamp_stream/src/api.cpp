@@ -66,6 +66,7 @@ AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode) {
     default: ;
     }
     return MakeAlign<FileStream, AvFileStream>();
+    //return MakeAlign<FileStream, BassFileStream>();
 }
 
 AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {

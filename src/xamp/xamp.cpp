@@ -51,6 +51,7 @@
 #include <widget/volumecontroldialog.h>
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
+#include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 
 #if defined(Q_OS_WIN)
@@ -229,22 +230,16 @@ void Xamp::cleanup() {
 void Xamp::InitialUi() {
     QFont f(qTEXT("DisplayFont"));
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(qTheme.GetFontSize());
+    f.setPointSize(8);
     ui_.titleLabel->setFont(f);
 
     f.setWeight(QFont::Normal);
-    f.setPointSize(qTheme.GetFontSize());
+    f.setPointSize(8);
     ui_.artistLabel->setFont(f);
 
     ui_.bitPerfectButton->setFont(f);
 
-    QToolTip::setFont(QFont(qTEXT("UIFont")));
-    QFont format_font(qTEXT("FormatFont"));
-    format_font.setPointSize(10);
-    ui_.formatLabel->setFont(format_font);
-
-    ui_.formatLabel->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_.hiResLabel->setStyleSheet(qTEXT("background-color: transparent"));
+    QToolTip::setFont(QFont(qTEXT("UIFont")));    
 
     if (qTheme.UseNativeWindow()) {
         ui_.closeButton->hide();
@@ -299,12 +294,13 @@ QWidgetAction* Xamp::CreateDeviceMenuWidget(const QString& desc, const QIcon &ic
     f.setPointSize(qTheme.GetFontSize());
     f.setBold(true);
     desc_label->setFont(f);
+    desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     auto* device_type_frame = new QFrame();
     qTheme.SetTextSeparator(device_type_frame);
     auto* default_layout = new QHBoxLayout(device_type_frame);
     default_layout->setSpacing(0);
-    default_layout->setContentsMargins(0, 0, 0, 0);
+    default_layout->setContentsMargins(10, 0, 0, 0);
 
     if (!icon.isNull()) {
         auto* icon_button = new QToolButton();
@@ -541,8 +537,8 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.aboutButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
-        auto* preference_page = new AboutPage(dialog);
-        dialog->SetContentWidget(preference_page);
+        auto* about_page = new AboutPage(dialog);
+        dialog->SetContentWidget(about_page);
         dialog->SetTitle(tr("About"));
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
@@ -552,10 +548,19 @@ void Xamp::InitialController() {
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
         dialog->SetContentWidget(preference_page);
-        dialog->SetTitle(tr("Preference"));
+        dialog->SetTitle(tr("Preference"));        
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
         preference_page->SaveSettings();
+        });
+
+    (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::pressed, [this]() {
+        auto* dialog = new XDialog(this);
+        auto* page = new PendingPlaylistPage(dialog);
+        dialog->SetContentWidget(page);   
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        MoveToTopWidget(dialog, ui_.pendingPlayButton);
+        dialog->exec();
         });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
@@ -1215,14 +1220,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
 
-    if (open_done) {
-        ui_.formatLabel->setText(Format2String(playback_format, ext));
-        if (playback_format.file_format > AudioFormat::k16BitPCM441Khz) {
-            ui_.hiResLabel->show();
-            ui_.hiResLabel->setIcon(qTheme.GetHiResIcon());
-        } else {
-            ui_.hiResLabel->hide();
-        }        
+    if (open_done) {       
         player_->Play();
     }
 
@@ -1364,7 +1362,7 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
     qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
-    playlist_view->Reload();
+    playlist_view->AddPendingPlayListFromModel(order_);    
 }
 
 void Xamp::OnClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id) {
@@ -1450,7 +1448,6 @@ void Xamp::InitialPlaylist() {
         playlist_page_ = NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         ConnectPlaylistPageSignal(playlist_page_);
         playlist_page_->playlist()->SetHeaderViewHidden(false);
-        playlist_page_->playlist()->DeletePendingPlaylist();
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
     }
 

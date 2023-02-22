@@ -162,6 +162,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_COPY,                      0xF0C5 },
     { ICON_DOWNLOAD,                  0xF0ED },
     { ICON_PLAYLIST,                  0xF8C9 },
+    { ICON_PLAYLIST_ORDER,            0xE0AE },
     { ICON_EQUALIZER,                 0xF3F2 },
     { ICON_PODCAST,                   0xF2CE },
     { ICON_ALBUM,                     0xF89F },
@@ -749,6 +750,14 @@ void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
                                             }
                                             )"));
     ui.aboutButton->setIcon(GetFontIcon(Glyphs::ICON_ABOUT));
+
+    ui.pendingPlayButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#pendingPlayButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    ui.pendingPlayButton->setIcon(GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
 }
 
 void ThemeManager::SetTextSeparator(QFrame *frame) {

@@ -371,11 +371,15 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbR8BrainHz,
 	};
 
-	QFont f(qTEXT("DisplayFont"));
-	f.setWeight(QFont::DemiBold);
-	f.setPointSize(14);
+	QFont f(qTEXT("UIFont"));
+	f.setPointSize(10);
+	setFont(f);
 
 	Q_FOREACH(auto *w, widgets) {
+		QFont f(qTEXT("DisplayFont"));
+		f.setWeight(QFont::DemiBold);
+		f.setPointSize(14);
+
 		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
 			w->setFont(f);
 		}
@@ -393,6 +397,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 	Q_FOREACH(auto* w, r8brain_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
+
+	ui_.stackedWidget->setCurrentIndex(0);
+	setFixedSize(900, 700);	
 }
 
 void PreferencePage::SaveSettings() {
