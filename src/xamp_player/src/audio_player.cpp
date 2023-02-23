@@ -37,11 +37,13 @@ static constexpr int32_t kBufferStreamCount = 3;
 #else
 static constexpr int32_t kBufferStreamCount = 2;
 #endif
-static constexpr int32_t kTotalBufferStreamCount = 16;
+
 static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 static constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
-static constexpr uint32_t kMaxWriteRatio = 64;
-static constexpr uint32_t kMaxReadRatio = 10;
+
+static constexpr int32_t kTotalBufferStreamCount = 32;
+static constexpr uint32_t kMaxWriteRatio = 15;
+static constexpr uint32_t kMaxReadRatio = 5;
 static constexpr uint32_t kMaxBufferSecs = 5;
 static constexpr uint32_t kActionQueueSize = 30;
 
@@ -536,7 +538,7 @@ void AudioPlayer::ResizeFifo() {
 void AudioPlayer::CreateBuffer() {
     uint32_t allocate_size = 0;
 
-    auto get_buffer_sameple = [](auto *device, const auto &output_format, auto ratio) {
+    auto get_buffer_sample = [](auto *device, const auto &output_format, auto ratio) {
         return static_cast<uint32_t>(
             GetPageAlignSize(device->GetBufferSize() * output_format.GetChannels() * ratio));
     };
@@ -546,8 +548,8 @@ void AudioPlayer::CreateBuffer() {
         allocate_size = kMaxPreAllocateBufferSize;
     } else {
 	    constexpr auto max_ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
-        num_read_sample_ = get_buffer_sameple(device_.get(), output_format_, kMaxReadRatio);
-	    const auto max_require_sample = get_buffer_sameple(device_.get(), output_format_, max_ratio);
+        num_read_sample_ = get_buffer_sample(device_.get(), output_format_, kMaxReadRatio);
+	    const auto max_require_sample = get_buffer_sample(device_.get(), output_format_, max_ratio);
         allocate_size = (std::min)(
             kMaxPreAllocateBufferSize,
             max_require_sample *

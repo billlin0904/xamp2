@@ -14,6 +14,7 @@
 #include <widget/str_utilts.h>
 #include <widget/fonticon.h>
 #include <widget/themecolor.h>
+#include <widget/playerorder.h>
 
 class QAbstractButton;
 class QPushButton;
@@ -138,6 +139,8 @@ public:
     void SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
 
     int32_t GetFontSize() const;
+
+    void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order);
 
     static QSize GetTitleButtonIconSize();
 signals:

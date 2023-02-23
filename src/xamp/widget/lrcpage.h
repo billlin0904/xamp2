@@ -8,6 +8,8 @@
 #include <QFrame>
 #include <QPixmap>
 
+#include <widget/themecolor.h>
+
 class QLabel;
 class VinylWidget;
 class ScrollLabel;
@@ -39,6 +41,8 @@ public:
 	SpectrumWidget* spectrum();
 
 public slots:
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
     void OnThemeChanged(QColor backgroundColor, QColor color);
 
 	void SetBackground(const QImage& cover);

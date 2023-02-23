@@ -23,22 +23,21 @@ XDialog::XDialog(QWidget* parent)
     : QDialog(parent) {
 }
 
-void XDialog::SetContentWidget(QWidget* content) {
+void XDialog::SetContentWidget(QWidget* content, bool transparent_frame) {
     frame_ = new XFrame(this);
     frame_->SetContentWidget(content);
+
+    if (transparent_frame) {
+        frame_->setStyleSheet(qTEXT("background: transparent; border: none;"));
+    }    
 
     if (!qTheme.UseNativeWindow()) {
 #ifdef Q_OS_WIN
         setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-        shadow_ = new QGraphicsDropShadowEffect(frame_);
-        shadow_->setColor(Qt::gray);
-        shadow_->setBlurRadius(20);
-        shadow_->setOffset(0.0);
-        frame_->setGraphicsEffect(shadow_);
 #else
         setWindowFlags(windowFlags() & ((~Qt::WindowMinMaxButtonsHint) & (~Qt::Dialog))
             | Qt::FramelessWindowHint | Qt::Window);
-#endif
+#endif        
     } else {
         setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
     }
@@ -53,7 +52,7 @@ void XDialog::SetContentWidget(QWidget* content) {
     setMouseTracking(true);
     (void)QObject::connect(frame_, &XFrame::CloseFrame, [this]() {
         QDialog::close();
-        });
+        });    
 }
 
 #if defined(Q_OS_WIN)
@@ -114,6 +113,10 @@ void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #endif   
 }
 #endif
+
+void XDialog::SetIcon(const QIcon& icon) const {
+    frame_->SetIcon(icon);
+}
 
 void XDialog::showEvent(QShowEvent* event) {
     if (!qTheme.UseNativeWindow()) {

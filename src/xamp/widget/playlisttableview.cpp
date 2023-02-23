@@ -979,6 +979,10 @@ void PlayListTableView::DeletePendingPlaylist() {
     qDatabase.ClearPendingPlaylist();
 }
 
+QList<QModelIndex> PlayListTableView::GetPendingPlayIndexes() const {
+    return pending_playlist_;
+}
+
 void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
     Reload();
     DeletePendingPlaylist();
@@ -1089,10 +1093,10 @@ void PlayListTableView::Play(PlayerOrder order) {
     pending_playlist_.pop_front();
     XAMP_EXPECTS(entity.music_id == music_id);
     qDatabase.DeletePendingPlaylistMusic(pending_playlist_id);
-    Play(index);
+    PlayIndex(index);
 }
 
-void PlayListTableView::Play(const QModelIndex& index) {
+void PlayListTableView::PlayIndex(const QModelIndex& index) {
     play_index_ = index;
     SetNowPlaying(play_index_, true);
     const auto entity = item(play_index_);

@@ -85,9 +85,7 @@ public:
 
 	QModelIndex GetNextIndex(int forward) const;
 
-	std::optional<QModelIndex> GetSelectItem() const;
-
-	void Play(const QModelIndex& index);
+	std::optional<QModelIndex> GetSelectItem() const;	
 
     void Play(PlayerOrder order);
 
@@ -107,6 +105,7 @@ public:
 
 	void SetHeaderViewHidden(bool enable);
 
+	QList<QModelIndex> GetPendingPlayIndexes() const;
 signals:
 	void UpdatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
@@ -132,6 +131,8 @@ signals:
 		bool is_podcast_mode);
 
 public slots:
+	void PlayIndex(const QModelIndex& index);
+
 	void ProcessDatabase(const ForwardList<PlayListEntity>& entities);
 
 	void ProcessTrackInfo(const ForwardList<TrackInfo>& entities);

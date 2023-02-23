@@ -204,14 +204,7 @@ void ThemeManager::SetFontAwesomeIcons() {
 	{ ICON_MESSAGE_BOX_QUESTION,      0xF059 },
     };
     
-    switch (GetThemeColor()) {
-    case ThemeColor::DARK_THEME:
-        qFontIcon.addFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
-        break;
-    case ThemeColor::LIGHT_THEME:
-        qFontIcon.addFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
-        break;
-    }
+    qFontIcon.addFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
     qFontIcon.setGlyphs(glyphs);
 }
 
@@ -758,6 +751,30 @@ void ThemeManager::SetThemeIcon(Ui::XampWindow& ui) const {
                                             }
                                             )"));
     ui.pendingPlayButton->setIcon(GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
+
+    ui.repeatButton->setStyleSheet(qTEXT(R"(
+    QToolButton#repeatButton {
+    border: none;
+    background: transparent;
+    }
+    )"
+    ));
+}
+
+void ThemeManager::SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
+    switch (order) {
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        qTheme.SetRepeatOncePlayOrder(ui);
+        break;
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+        qTheme.SetRepeatOnePlayOrder(ui);
+        break;
+    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+        qTheme.SetShufflePlayOrder(ui);
+        break;
+    default:
+        break;
+    }
 }
 
 void ThemeManager::SetTextSeparator(QFrame *frame) {
@@ -988,6 +1005,10 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
 
     ui.searchFrame->setStyleSheet(qTEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
 
+    QFont duration_font(qTEXT("MonoFont"));
+    duration_font.setPointSize(8);
+    duration_font.setWeight(QFont::Bold);
+
     ui.startPosLabel->setStyleSheet(qTEXT(R"(
                                            QLabel#startPosLabel {
                                            color: gray;
@@ -1001,6 +1022,8 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
+    ui.startPosLabel->setFont(duration_font);
+    ui.endPosLabel->setFont(duration_font);
 
     ui.titleFrameLabel->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
@@ -1097,14 +1120,6 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
-
-    ui.repeatButton->setStyleSheet(qTEXT(R"(
-    QToolButton#repeatButton {
-    border: none;
-    background: transparent;
-    }
-    )"
-    ));
 
     SetSliderBarTheme(ui);
 

@@ -16,7 +16,9 @@ class PreferencePage final : public QFrame {
 public:
     explicit PreferencePage(QWidget *parent = nullptr);
 
-    void SaveSettings();
+    void LoadSettings();
+
+    void SaveAll();
 
 private:
     void UpdateSoxrConfigUi(const QVariantMap& soxr_settings);
@@ -35,9 +37,7 @@ private:
 
     void SetLanguage(int index);
 
-    void InitialLanguage();
-
-    void SaveAll();
+    void InitialLanguage();    
 
     QMap<QString, QVariant> CurrentSoxrSettings() const;
 

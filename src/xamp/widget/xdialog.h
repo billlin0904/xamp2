@@ -15,7 +15,7 @@ class XDialog : public QDialog {
 public:
     explicit XDialog(QWidget* parent = nullptr);
 
-    void SetContentWidget(QWidget* content);
+    void SetContentWidget(QWidget* content, bool transparent_frame = false);
 
     QWidget* ContentWidget() const {
         return frame_->ContentWidget();
@@ -24,6 +24,8 @@ public:
     void SetTitle(const QString& title) const {
         frame_->SetTitle(title);
     }
+
+    void SetIcon(const QIcon& icon) const;
 
     void showEvent(QShowEvent* event) override;
 private:

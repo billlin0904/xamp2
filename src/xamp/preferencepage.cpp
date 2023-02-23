@@ -372,7 +372,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	};
 
 	QFont f(qTEXT("UIFont"));
-	f.setPointSize(10);
+	f.setPointSize(9);
 	setFont(f);
 
 	Q_FOREACH(auto *w, widgets) {
@@ -402,7 +402,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	setFixedSize(900, 700);	
 }
 
-void PreferencePage::SaveSettings() {
+void PreferencePage::LoadSettings() {
 	const auto enable_resampler = AppSettings::ValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);

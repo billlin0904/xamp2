@@ -59,7 +59,7 @@ void LyricsShowWidget::initial() {
 			lrc_font_.setPointSize(24);
 			AppSettings::SetValue(kLyricsFontSize, 24);
 			});
-
+#if 0
 		(void)action_map.AddAction(tr("Change high light color"), [this]() {
 			auto text_color = AppSettings::ValueAsColor(kLyricsHighLightTextColor);
 			QColorDialog dlg(text_color, this);
@@ -81,6 +81,7 @@ void LyricsShowWidget::initial() {
 			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
 			dlg.exec();
 			});
+#endif
 
 		action_map.exec(pt);
 		});

@@ -135,7 +135,32 @@ int LrcPage::GetDisappearBgProg() const {
 	return prev_bg_alpha_;
 }
 
-void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {
+void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+	cover_label_->setGraphicsEffect(nullptr);
+
+	auto* effect = new QGraphicsDropShadowEffect(this);
+	effect->setOffset(10, 20);
+	effect->setColor(qTheme.GetCoverShadowColor());
+	effect->setBlurRadius(50);
+	cover_label_->setGraphicsEffect(effect);
+
+	switch (theme_color) {
+	case ThemeColor::DARK_THEME:
+		lyrics_widget_->SetLrcColor(Qt::lightGray);
+		lyrics_widget_->SetLrcHighLight(Qt::white);
+		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
+		break;
+	case ThemeColor::LIGHT_THEME:
+		lyrics_widget_->SetLrcColor(Qt::lightGray);
+		lyrics_widget_->SetLrcHighLight(Qt::black);
+		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
+		break;
+	}
+}
+
+void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {	
 }
 
 void LrcPage::initial() {

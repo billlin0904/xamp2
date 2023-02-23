@@ -97,7 +97,7 @@ public:
             } else {
                 XAMP_LOG_D(logger_, "Use codec 'libfdk_aac'.");
             }
-        }
+        }        
 
         if (!codec) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
@@ -105,6 +105,14 @@ public:
                 throw NotSupportFormatException();
             }
         }
+
+        codec_context_->thread_count = 0;
+        if (codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
+            codec_context_->thread_type = FF_THREAD_FRAME;
+        else if (codec->capabilities & AV_CODEC_CAP_SLICE_THREADS)
+            codec_context_->thread_type = FF_THREAD_SLICE;
+        else
+            codec_context_->thread_count = 1; //don't use multithreading
 
         AvIfFailedThrow(LIBAV_LIB.CodecLib->avcodec_open2(codec_context_.get(), codec, nullptr));
         

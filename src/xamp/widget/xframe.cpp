@@ -16,6 +16,15 @@ void XFrame::SetTitle(const QString& title) const {
     title_frame_label->setText(title);
 }
 
+void XFrame::SetIcon(const QIcon& icon) const {
+    icon_->setIcon(icon);
+    icon_->setHidden(false);
+}
+
+void XFrame::OnCurrentThemeChanged(ThemeColor theme_color) {
+    qTheme.SetTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
+}
+
 void XFrame::SetContentWidget(QWidget* content) {
     content_ = content;
 
@@ -57,33 +66,42 @@ void XFrame::SetContentWidget(QWidget* content) {
     }
     )"));
 
-    auto* close_button = new QToolButton(title_frame);
-    close_button->setObjectName(QString::fromUtf8("closeButton"));
-    close_button->setMinimumSize(QSize(24, 24));
-    close_button->setMaximumSize(QSize(24, 24));
-    close_button->setFocusPolicy(Qt::NoFocus);
+    close_button_ = new QToolButton(title_frame);
+    close_button_->setObjectName(QString::fromUtf8("closeButton"));
+    close_button_->setMinimumSize(QSize(24, 24));
+    close_button_->setMaximumSize(QSize(24, 24));
+    close_button_->setFocusPolicy(Qt::NoFocus);
 
-    auto* max_win_button = new QToolButton(title_frame);
-    max_win_button->setObjectName(QString::fromUtf8("maxWinButton"));
-    max_win_button->setMinimumSize(QSize(24, 24));
-    max_win_button->setMaximumSize(QSize(24, 24));
-    max_win_button->setFocusPolicy(Qt::NoFocus);
+    max_win_button_ = new QToolButton(title_frame);
+    max_win_button_->setObjectName(QString::fromUtf8("maxWinButton"));
+    max_win_button_->setMinimumSize(QSize(24, 24));
+    max_win_button_->setMaximumSize(QSize(24, 24));
+    max_win_button_->setFocusPolicy(Qt::NoFocus);
 
-    auto* min_win_button = new QToolButton(title_frame);
-    min_win_button->setObjectName(QString::fromUtf8("minWinButton"));
-    min_win_button->setMinimumSize(QSize(24, 24));
-    min_win_button->setMaximumSize(QSize(24, 24));
-    min_win_button->setFocusPolicy(Qt::NoFocus);
-    min_win_button->setPopupMode(QToolButton::InstantPopup);
+    min_win_button_ = new QToolButton(title_frame);
+    min_win_button_->setObjectName(QString::fromUtf8("minWinButton"));
+    min_win_button_->setMinimumSize(QSize(24, 24));
+    min_win_button_->setMaximumSize(QSize(24, 24));
+    min_win_button_->setFocusPolicy(Qt::NoFocus);
+    min_win_button_->setPopupMode(QToolButton::InstantPopup);
+
+    icon_ = new QToolButton(title_frame);
+    icon_->setObjectName(QString::fromUtf8("minWinButton"));
+    icon_->setMinimumSize(QSize(24, 24));
+    icon_->setMaximumSize(QSize(24, 24));
+    icon_->setFocusPolicy(Qt::NoFocus);
+    icon_->setStyleSheet(qTEXT("background: transparent; border: none;"));
+    icon_->hide();
 
     auto* horizontal_spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     auto* horizontal_layout = new QHBoxLayout(title_frame);
+    horizontal_layout->addWidget(icon_);
     horizontal_layout->addItem(horizontal_spacer);
     horizontal_layout->addWidget(title_frame_label);
-    horizontal_layout->addWidget(min_win_button);
-    horizontal_layout->addWidget(max_win_button);
-    horizontal_layout->addWidget(close_button);
+    horizontal_layout->addWidget(min_win_button_);
+    horizontal_layout->addWidget(max_win_button_);
+    horizontal_layout->addWidget(close_button_);
 
     horizontal_layout->setSpacing(0);
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
@@ -96,17 +114,22 @@ void XFrame::SetContentWidget(QWidget* content) {
     default_layout->addWidget(content_, 0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    qTheme.SetTitleBarButtonStyle(close_button, min_win_button, max_win_button);
+    qTheme.SetTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
 
-    max_win_button->setDisabled(true);
-    min_win_button->setDisabled(true);
+    max_win_button_->setDisabled(true);
+    min_win_button_->setDisabled(true);
 
-    max_win_button->hide();
-    min_win_button->hide();
+    max_win_button_->hide();
+    min_win_button_->hide();
 
-    (void)QObject::connect(close_button, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(close_button_, &QToolButton::pressed, [this]() {
         QWidget::close();
         emit CloseFrame();
-        });
+        });    
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
+        this,
+        &XFrame::OnCurrentThemeChanged);
 }
 

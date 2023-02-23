@@ -142,6 +142,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         ui_.mutedButton,
         &VolumeButton::OnCurrentThemeChanged);
 
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
+        lrc_page_,
+        &LrcPage::OnCurrentThemeChanged);
+
     QTimer::singleShot(300, [this]() {
         InitialDeviceList();   
         #if defined(XAMP_OS_WIN)
@@ -294,27 +299,21 @@ QWidgetAction* Xamp::CreateDeviceMenuWidget(const QString& desc, const QIcon &ic
     f.setPointSize(qTheme.GetFontSize());
     f.setBold(true);
     desc_label->setFont(f);
-    desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    desc_label->setAlignment(Qt::AlignCenter);
 
     auto* device_type_frame = new QFrame();
     qTheme.SetTextSeparator(device_type_frame);
-    auto* default_layout = new QHBoxLayout(device_type_frame);
-    default_layout->setSpacing(0);
-    default_layout->setContentsMargins(10, 0, 0, 0);
 
-    if (!icon.isNull()) {
-        auto* icon_button = new QToolButton();
-        icon_button->setFixedSize(QSize(12, 12));
-        icon_button->setIconSize(QSize(12, 12));
-        icon_button->setIcon(icon);
-        default_layout->addWidget(icon_button);
-    }
+    auto* default_layout = new QHBoxLayout(device_type_frame);    
    
     default_layout->addWidget(desc_label);
+
+    default_layout->setSpacing(0);
+    default_layout->setContentsMargins(0, 0, 0, 0);
     device_type_frame->setLayout(default_layout);
 
     auto* separator = new QWidgetAction(this);
-    separator->setDefaultWidget(device_type_frame);
+    separator->setDefaultWidget(device_type_frame);    
 
     device_type_frame_.push_back(device_type_frame);
     return separator;
@@ -355,15 +354,16 @@ void Xamp::InitialDeviceList() {
         menu->addAction(CreateDeviceMenuWidget(FromStdStringView(device_type->GetDescription())));
 
         for (const auto& device_info : device_info_list) {
-            auto* device_action = new XAction(qTheme.GetConnectTypeGlyphs(device_info.connect_type),
+            /*auto* device_action = new XAction(qTheme.GetConnectTypeGlyphs(device_info.connect_type),
                 QString::fromStdWString(device_info.name), 
                 this);
-
-            (void)QObject::connect(&qTheme,
+             (void)QObject::connect(&qTheme,
                 &ThemeManager::CurrentThemeChanged,
                 device_action,
-                &XAction::OnCurrentThemeChanged);
+                &XAction::OnCurrentThemeChanged);   
+             */
 
+            auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
@@ -537,8 +537,9 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.aboutButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
-        auto* about_page = new AboutPage(dialog);
+        auto* about_page = new AboutPage(dialog);        
         dialog->SetContentWidget(about_page);
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
         dialog->SetTitle(tr("About"));
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
@@ -548,18 +549,32 @@ void Xamp::InitialController() {
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
         dialog->SetContentWidget(preference_page);
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
         dialog->SetTitle(tr("Preference"));        
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-        dialog->exec();
-        preference_page->SaveSettings();
+        preference_page->LoadSettings();
+        dialog->exec();        
+        preference_page->SaveAll();
         });
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
-        auto* page = new PendingPlaylistPage(dialog);
-        dialog->SetContentWidget(page);   
+        auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
+        dialog->SetContentWidget(page, true);   
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
+        dialog->SetTitle(tr("Pending playlist"));
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-        MoveToTopWidget(dialog, ui_.pendingPlayButton);
+        (void)QObject::connect(page,
+            &PendingPlaylistPage::PlayMusic,
+            current_playlist_page_->playlist(),
+            &PlayListTableView::PlayIndex);
+        auto center_pos = ui_.pendingPlayButton->mapToGlobal(ui_.pendingPlayButton->rect().topRight());
+        const auto sz = dialog->size();
+        center_pos.setX(center_pos.x() - sz.width() / 2 - 320);
+        center_pos.setY(center_pos.y() - sz.height() - 320);
+        center_pos = dialog->mapFromGlobal(center_pos);
+        center_pos = dialog->mapToParent(center_pos);
+        dialog->move(center_pos);
         dialog->exec();
         });
 
@@ -567,6 +582,7 @@ void Xamp::InitialController() {
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerDialog(dialog);
         dialog->SetContentWidget(eq);
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
         dialog->SetTitle(tr("Equalizer"));
 
         (void)QObject::connect(eq, &EqualizerDialog::BandValueChange, [](auto, auto, auto) {
@@ -679,6 +695,8 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
         qTheme.SetMuted(ui_.mutedButton, false);
     }
     qTheme.LoadAndApplyQssTheme();
+    qTheme.SetThemeIcon(ui_);
+    qTheme.SetRepeatButtonIcon(ui_, order_);
     SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
 }
 
@@ -812,30 +830,10 @@ void Xamp::DeleteKeyPress() {
 }
 
 void Xamp::SetPlayerOrder() {
-	const auto order = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
-
-    switch (order_) {
-    case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        if (order_ != order) {
-            XMessageBox::ShowInformation(tr("Repeat once"), kApplicationTitle, false);
-        }
-        qTheme.SetRepeatOncePlayOrder(ui_);
-        break;
-    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-        if (order_ != order) {
-            XMessageBox::ShowInformation(tr("Repeat one"), kApplicationTitle, false);
-        }
-        qTheme.SetRepeatOnePlayOrder(ui_);
-        break;
-    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        if (order_ != order) {
-            XMessageBox::ShowInformation(tr("Shuffle all"), kApplicationTitle, false);
-        }
-        qTheme.SetShufflePlayOrder(ui_);
-        break;
-    default:
-        break;
-    }
+    qTheme.SetRepeatButtonIcon(ui_, order_);
+    if (playlist_page_ != nullptr) {
+        playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
+    }    
     AppSettings::setEnumValue(kAppSettingOrder, order_);
 }
 
@@ -895,7 +893,7 @@ void Xamp::PlayOrPause() {
             }
             playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
             playlist_page_->playlist()->SetNowPlaying(play_index_, true);
-            playlist_page_->playlist()->Play(play_index_);
+            playlist_page_->playlist()->PlayIndex(play_index_);
         }
     }
     catch (Exception const &e) {

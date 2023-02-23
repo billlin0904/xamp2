@@ -5,18 +5,50 @@
 #include <QSqlError>
 #include <QVBoxLayout>
 
+#include "thememanager.h"
 #include <widget/playlisttablemodel.h>
 #include <widget/database.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
+#include <widget/albumentity.h>
 #include <widget/pendingplaylistpage.h>
+
+static PlayListEntity GetEntity(const QModelIndex& index) {
+    PlayListEntity entity;
+    entity.music_id = GetIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
+    entity.playing = GetIndexValue(index, PLAYLIST_PLAYING).toInt();
+    entity.track = GetIndexValue(index, PLAYLIST_TRACK).toUInt();
+    entity.file_path = GetIndexValue(index, PLAYLIST_FILE_PATH).toString();
+    entity.file_size = GetIndexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
+    entity.title = GetIndexValue(index, PLAYLIST_TITLE).toString();
+    entity.file_name = GetIndexValue(index, PLAYLIST_FILE_NAME).toString();
+    entity.artist = GetIndexValue(index, PLAYLIST_ARTIST).toString();
+    entity.album = GetIndexValue(index, PLAYLIST_ALBUM).toString();
+    entity.duration = GetIndexValue(index, PLAYLIST_DURATION).toDouble();
+    entity.bit_rate = GetIndexValue(index, PLAYLIST_BIT_RATE).toUInt();
+    entity.sample_rate = GetIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
+    entity.rating = GetIndexValue(index, PLAYLIST_RATING).toUInt();
+    entity.album_id = GetIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
+    entity.artist_id = GetIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
+    entity.cover_id = GetIndexValue(index, PLAYLIST_COVER_ID).toString();
+    entity.file_extension = GetIndexValue(index, PLAYLIST_FILE_EXT).toString();
+    entity.parent_path = GetIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    entity.timestamp = GetIndexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
+    entity.playlist_music_id = GetIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
+    entity.album_replay_gain = GetIndexValue(index, PLAYLIST_ALBUM_RG).toDouble();
+    entity.album_peak = GetIndexValue(index, PLAYLIST_ALBUM_PK).toDouble();
+    entity.track_replay_gain = GetIndexValue(index, PLAYLIST_TRACK_RG).toDouble();
+    entity.track_peak = GetIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
+    entity.track_loudness = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
+    entity.genre = GetIndexValue(index, PLAYLIST_GENRE).toString();
+    entity.year = GetIndexValue(index, PLAYLIST_YEAR).toUInt();
+    return entity;
+}
 
 PendingPlayTableView::PendingPlayTableView(QWidget* parent)
 	: QTableView(parent) {
     model_ = new QSqlQueryModel(this);
-    setModel(model_);
-
-	setStyleSheet(qTEXT("border : none;"));
+    setModel(model_);    
     setUpdatesEnabled(true);
     setAcceptDrops(true);
     setDragEnabled(true);
@@ -48,6 +80,19 @@ PendingPlayTableView::PendingPlayTableView(QWidget* parent)
 
     // note: Fix QTableView select color issue.
     setFocusPolicy(Qt::StrongFocus);
+
+    switch (qTheme.GetThemeColor()) {
+    case ThemeColor::DARK_THEME:
+        setStyleSheet(qTEXT("background: #121212; border: none;"));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        setStyleSheet(qTEXT("background: #f9f9f9; border: none;"));
+        break;
+    }    
+
+    verticalScrollBar()->setStyleSheet(qTEXT(
+        "QScrollBar:vertical { width: 6px; }"
+    ));
 }
 
 void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
@@ -84,10 +129,11 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
     const QList<int> hidden_columns{
             PLAYLIST_MUSIC_ID,
             PLAYLIST_PLAYING,
+            PLAYLIST_TRACK,
+            PLAYLIST_ALBUM,
             PLAYLIST_FILE_PATH,
             PLAYLIST_FILE_NAME,
             PLAYLIST_FILE_SIZE,
-            PLAYLIST_ALBUM,
             PLAYLIST_DURATION,
             PLAYLIST_ARTIST,
             PLAYLIST_BIT_RATE,
@@ -111,6 +157,23 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
 
     for (auto column : qAsConst(hidden_columns)) {
         hideColumn(column);
+    }
+
+    auto* header = horizontalHeader();
+    for (auto column = 0; column < header->count(); ++column) {
+        switch (column) {
+        case PLAYLIST_TITLE:
+            header->resizeSection(column,
+                (std::max)(sizeHintForColumn(column), 400));
+            break;
+        case PLAYLIST_ALBUM:
+            header->setSectionResizeMode(column, QHeaderView::Stretch);
+            break;
+        default:
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, 80);
+            break;
+        }
     }
 }
 
@@ -164,14 +227,14 @@ WHERE
     model_->dataChanged(QModelIndex(), QModelIndex());
 }
 
-PendingPlaylistPage::PendingPlaylistPage(QWidget* parent)
-	: QFrame(parent) {
+PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWidget* parent)
+	: QFrame(parent)
+    , indexes_(indexes) {
     setFrameStyle(QFrame::StyledPanel);
 
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(0, 0, 0, 0);
 
     playlist_ = new PendingPlayTableView(this);
     playlist_->SetPlaylistId(1);
@@ -179,5 +242,9 @@ PendingPlaylistPage::PendingPlaylistPage(QWidget* parent)
     default_layout->addWidget(playlist_);
 
     default_layout->setContentsMargins(5, 5, 5, 5);
-    setFixedSize(500, 300);
+    setFixedSize(450, 300);    
+
+    (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const auto& index) {
+        PlayMusic(indexes_[index.row()]);
+        });
 }

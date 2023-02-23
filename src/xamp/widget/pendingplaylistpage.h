@@ -22,9 +22,14 @@ private:
 };
 
 class PendingPlaylistPage : public QFrame {
+	Q_OBJECT
 public:
-	explicit PendingPlaylistPage(QWidget* parent = nullptr);
+	explicit PendingPlaylistPage(const QList<QModelIndex>& indexes, QWidget* parent = nullptr);
+
+signals:
+	void PlayMusic(const QModelIndex& index);
 
 private:
 	PendingPlayTableView* playlist_;
+	QList<QModelIndex> indexes_;
 };

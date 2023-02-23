@@ -285,7 +285,7 @@
     <QtMoc Include="widget\iconsizestyle.h" />
     <QtMoc Include="widget\fonticonanimation.h" />
     <ClInclude Include="widget\globalshortcut.h" />
-    <ClInclude Include="widget\pendingplaylistpage.h" />
+    <QtMoc Include="widget\pendingplaylistpage.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
     <ClInclude Include="widget\themecolor.h" />
