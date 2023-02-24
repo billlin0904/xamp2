@@ -7,6 +7,7 @@
 
 #include <stream/stream.h>
 
+#include <base/logger.h>
 #include <base/base.h>
 #include <base/dll.h>
 
@@ -18,7 +19,10 @@ class SoxrLib final {
 public:
     SoxrLib();
 
-private:  
+    ~SoxrLib();
+
+private:
+    LoggerPtr logger_;
     SharedLibraryHandle module_;
 
 public:

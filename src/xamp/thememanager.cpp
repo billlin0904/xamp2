@@ -162,7 +162,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_COPY,                      0xF0C5 },
     { ICON_DOWNLOAD,                  0xF0ED },
     { ICON_PLAYLIST,                  0xF8C9 },
-    { ICON_PLAYLIST_ORDER,            0xE0AE },
+    { ICON_PLAYLIST_ORDER,            0xF0CA },
     { ICON_EQUALIZER,                 0xF3F2 },
     { ICON_PODCAST,                   0xF2CE },
     { ICON_ALBUM,                     0xF89F },
@@ -170,7 +170,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_LEFT_ARROW,                0xF177 },
     { ICON_ARTIST,                    0xF500 },
     { ICON_SUBTITLE,                  0xE1DE },
-    { ICON_SETTINGS,                0xF013 },
+    { ICON_SETTINGS,                  0xF013 },
     { ICON_ABOUT,                     0xF05A },
     { ICON_DARK_MODE,                 0xF186 },
     { ICON_LIGHT_MODE,                0xF185 },
@@ -268,8 +268,6 @@ ThemeManager::ThemeManager() {
     ui_font_ = LoadFonts();
     use_native_window_ = !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow);
     ui_font_.setPointSize(GetFontSize());
-    unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
-	default_size_unknown_cover_ = image_utils::ResizeImage(unknown_cover_, cover_size_);
 }
 
 void ThemeManager::SetThemeColor(ThemeColor theme_color) {
@@ -284,12 +282,15 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     case ThemeColor::DARK_THEME:
         font_icon_opts_.insert(FontIconOption::colorAttr, QVariant(QColor(240, 241, 243)));
         font_icon_opts_.insert(FontIconOption::selectedColorAttr, QVariant(QColor(240, 241, 243)));
+        unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/Black/unknown_album.png"));
         break;
     case ThemeColor::LIGHT_THEME:
         font_icon_opts_.insert(FontIconOption::colorAttr, QVariant(QColor(97, 97, 101)));
         font_icon_opts_.insert(FontIconOption::selectedColorAttr, QVariant(QColor(97, 97, 101)));
+        unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
         break;
     }
+    default_size_unknown_cover_ = image_utils::ResizeImage(unknown_cover_, album_cover_size_, true);
 }
 
 QLatin1String ThemeManager::GetThemeColorPath() const {
@@ -551,7 +552,6 @@ QColor ThemeManager::GetTitleBarColor() const {
 QColor ThemeManager::GetCoverShadowColor() const {
     switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
-        return Qt::black;
     case ThemeColor::LIGHT_THEME:
     default:
         return QColor(qTEXT("#DCDCDC"));
@@ -1049,6 +1049,13 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
+        ui.formatLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#formatLabel {
+                                         color: white;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
         ui.searchLineEdit->setStyleSheet(qSTR(R"(
                                             QLineEdit#searchLineEdit {
                                             background-color: %1;
@@ -1080,6 +1087,13 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
     else {
         ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
+                                         color: black;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+        ui.formatLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#formatLabel {
                                          color: black;
                                          background-color: transparent;
                                          }

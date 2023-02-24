@@ -23,5 +23,6 @@
         <file>Resource/Black/restore-inactive.ico</file>
         <file>Resource/Black/minimize-active.ico</file>
         <file>Resource/Black/minimize-inactive.ico</file>
+        <file>Resource/Black/unknown_album.png</file>
     </qresource>
 </RCC>

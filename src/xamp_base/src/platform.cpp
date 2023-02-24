@@ -608,6 +608,13 @@ void SetProcessMitigation() {
         sizeof(mitigation_image_load_policy))) {
         XAMP_LOG_DEBUG("Failed to set ProcessASLRPolicy ({}).", GetLastErrorMessage());
     }
+
+    PROCESS_MITIGATION_FONT_DISABLE_POLICY font_disable_policy = {};
+    font_disable_policy.DisableNonSystemFonts = true;
+    if (!::SetProcessMitigationPolicy(ProcessFontDisablePolicy, &font_disable_policy,
+        sizeof(font_disable_policy))) {
+        XAMP_LOG_DEBUG("Failed to set ProcessFontDisablePolicy ({}).", GetLastErrorMessage());
+    }
 }
 #endif
 

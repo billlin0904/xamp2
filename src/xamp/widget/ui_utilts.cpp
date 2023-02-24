@@ -79,9 +79,11 @@ QString Format2String(const PlaybackFormat& playback_format, const QString& file
     if (!dsd_mode.isEmpty()) {
         result += qTEXT(" | ") + dsd_mode;
     }
+#if 0
     if (playback_format.bit_rate > 0) {
         result += qTEXT(" | ") + FormatBitRate(playback_format.bit_rate);
     }
+#endif
     return result;
 }
 

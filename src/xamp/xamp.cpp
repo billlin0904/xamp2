@@ -139,6 +139,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::CurrentThemeChanged,
+        cd_page_,
+        &CdPage::OnCurrentThemeChanged);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
         ui_.mutedButton,
         &VolumeButton::OnCurrentThemeChanged);
 
@@ -155,6 +160,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         #endif
         #endif
         });
+
+    order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
+    SetPlayerOrder();
 }
 
 void Xamp::AvoidRedrawOnResize() {
@@ -240,11 +248,15 @@ void Xamp::InitialUi() {
 
     f.setWeight(QFont::Normal);
     f.setPointSize(8);
-    ui_.artistLabel->setFont(f);
-
+    ui_.artistLabel->setFont(f);    
     ui_.bitPerfectButton->setFont(f);
 
-    QToolTip::setFont(QFont(qTEXT("UIFont")));    
+    QFont format_font(qTEXT("FormatFont"));
+    format_font.setWeight(QFont::Normal);
+    format_font.setPointSize(8);
+    ui_.formatLabel->setFont(format_font);
+
+    QToolTip::hideText();
 
     if (qTheme.UseNativeWindow()) {
         ui_.closeButton->hide();
@@ -354,15 +366,6 @@ void Xamp::InitialDeviceList() {
         menu->addAction(CreateDeviceMenuWidget(FromStdStringView(device_type->GetDescription())));
 
         for (const auto& device_info : device_info_list) {
-            /*auto* device_action = new XAction(qTheme.GetConnectTypeGlyphs(device_info.connect_type),
-                QString::fromStdWString(device_info.name), 
-                this);
-             (void)QObject::connect(&qTheme,
-                &ThemeManager::CurrentThemeChanged,
-                device_action,
-                &XAction::OnCurrentThemeChanged);   
-             */
-
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
@@ -487,10 +490,7 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderPressed, [this]() {
         is_seeking_ = false;
         XAMP_LOG_DEBUG("sliderPressed pressed!");
-    });
-
-    order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
-    SetPlayerOrder();
+    });    
 
     if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
         qTheme.SetMuted(ui_.mutedButton, true);
@@ -600,7 +600,6 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
         order_ = GetNextOrder(order_);
         SetPlayerOrder();
-        current_playlist_page_->playlist()->DeletePendingPlaylist();
     });
 
     (void)QObject::connect(ui_.playButton, &QToolButton::pressed, [this]() {
@@ -1210,6 +1209,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     ui_.titleLabel->setText(item.title);
     ui_.artistLabel->setText(item.artist);
+    ui_.formatLabel->setText(Format2String(playback_format, ext));
 
     cur_page->title()->setText(item.title);    
     lrc_page_->lyrics()->LoadLrcFile(item.file_path);

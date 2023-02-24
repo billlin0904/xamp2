@@ -34,7 +34,7 @@ XAMP_ALWAYS_INLINE constexpr T* AssumeAligned(T* ptr) {
 
 class MemoryMappedFile;
 
-inline constexpr size_t kMaxPreReadFileSize = 8 * 1024 * 1024;
+inline constexpr size_t kMaxPreReadFileSize = 65536;
 
 XAMP_BASE_API size_t GetPageSize() noexcept;
 

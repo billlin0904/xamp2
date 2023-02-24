@@ -16,7 +16,7 @@ namespace xamp::stream {
 XAMP_DECLARE_LOG_NAME(Soxr);
 
 const std::string_view VERSION = "Soxr " SOXR_THIS_VERSION_STR;
-#define SoxrDLL Singleton<SoxrLib>::GetInstance()
+#define LISOXR_LIB Singleton<SoxrLib>::GetInstance()
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
 public:
@@ -92,17 +92,17 @@ public:
 			phase = SOXR_MINIMUM_PHASE;
 		}
 
-		auto soxr_quality = SoxrDLL.soxr_quality_spec(quality_spec | phase, flags);
+		auto soxr_quality = LISOXR_LIB.soxr_quality_spec(quality_spec | phase, flags);
 
 		soxr_quality.passband_end = pass_band_ / 100.0;
 		soxr_quality.stopband_begin = stop_band_ / 100.0;
 
-		auto iospec = SoxrDLL.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+		auto iospec = LISOXR_LIB.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
 
-		auto runtimespec = SoxrDLL.soxr_runtime_spec(1);
+		auto runtimespec = LISOXR_LIB.soxr_runtime_spec(1);
 
 		soxr_error_t error = nullptr;
-		handle_.reset(SoxrDLL.soxr_create(input_sample_rate,
+		handle_.reset(LISOXR_LIB.soxr_create(input_sample_rate,
 			output_sample_rate_,
 			AudioFormat::kMaxChannel,
 			&error,
@@ -170,7 +170,7 @@ public:
 		if (!handle_) {
 			return;
 		}
-		SoxrDLL.soxr_clear(handle_.get());
+		LISOXR_LIB.soxr_clear(handle_.get());
 	}
 
 	uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
@@ -182,7 +182,7 @@ public:
 		MaybeResizeBuffer(output, required_size);
 
 		size_t num_read_samples = 0;
-		SoxrDLL.soxr_process(handle_.get(),
+		LISOXR_LIB.soxr_process(handle_.get(),
 			samples,
 			num_samples / num_channels_,
 			nullptr,
@@ -217,7 +217,7 @@ public:
 		}
 
 		static void close(soxr_t value) noexcept {
-			SoxrDLL.soxr_delete(value);
+			LISOXR_LIB.soxr_delete(value);
 		}
 	};
 

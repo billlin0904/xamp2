@@ -994,7 +994,7 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
             index = GetNextIndex(i);
             break;
         case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-            index = currentIndex();
+            index = play_index_;
             break;
         case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
             index = GetShuffleIndex();

@@ -434,18 +434,6 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
 
-    #if defined(XAMP_OS_WIN)
-    #ifndef MAX_SANDBOX_MODE
-    // Force loaing network dll.
-    static const QString kSoftwareUpdateUrl =
-        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-    http::HttpClient(kSoftwareUpdateUrl).get();
-    #else
-    XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
-    SetProcessMitigation();
-    #endif
-    #endif
-
     XMainWindow main_window;
     main_window.RestoreGeometry();
 
@@ -462,6 +450,18 @@ static int Execute(int argc, char* argv[]) {
     Xamp win(MakeAudioPlayer());
     win.SetXWindow(&main_window);
     win.SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
+
+#if defined(XAMP_OS_WIN)
+#ifndef MAX_SANDBOX_MODE
+    // Force loaing network dll.
+    static const QString kSoftwareUpdateUrl =
+        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    http::HttpClient(kSoftwareUpdateUrl).get();
+#else
+    XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
+    SetProcessMitigation();
+#endif
+#endif
 
     main_window.SetContentWidget(&win);
     //top_win.SetContentWidget(nullptr);

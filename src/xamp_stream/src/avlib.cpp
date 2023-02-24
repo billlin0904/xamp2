@@ -142,7 +142,7 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 
 AvLib::~AvLib() {
 	FormatLib->avformat_network_deinit();
-	XAMP_LOG_D(logger, "Network deinit.");
+	XAMP_LOG_I(logger, "Release AvLib dll.");
 }
 
 AvLib::AvLib() {

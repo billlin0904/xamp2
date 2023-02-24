@@ -27,6 +27,7 @@ public:
 
 	void SetThemeColor();
 
+	void InitialVolumeControl();
 signals:
     void VolumeChanged(uint32_t volume);
 

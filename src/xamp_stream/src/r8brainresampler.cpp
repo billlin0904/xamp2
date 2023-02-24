@@ -6,7 +6,7 @@
 
 namespace xamp::stream {
 
-#define R8brainDLL Singleton<R8brainLib>::GetInstance()
+#define LIBR8_DLL Singleton<R8brainLib>::GetInstance()
 
 const std::string_view VERSION = "R8brain 5.6";
 
@@ -23,7 +23,7 @@ public:
 	}
 
 	void Init(uint32_t input_sample_rate) {
-		handle_.reset(R8brainDLL.r8b_create(input_sample_rate,
+		handle_.reset(LIBR8_DLL.r8b_create(input_sample_rate,
 			output_sample_rate_,
 			kR8brainBufferSize,
 			2.5,
@@ -43,7 +43,7 @@ public:
 		}
 
 		double* outbuff = nullptr;
-		const auto read_samples = R8brainDLL.r8b_process(handle_.get(),
+		const auto read_samples = LIBR8_DLL.r8b_process(handle_.get(),
 		                                               input_data_.data(),
 		                                               input_data_.size(),
 		                                               outbuff);
@@ -68,8 +68,8 @@ public:
 		}
 
 		static void close(CR8BResampler value) noexcept {
-			R8brainDLL.r8b_clear(value);
-			R8brainDLL.r8b_delete(value);
+			LIBR8_DLL.r8b_clear(value);
+			LIBR8_DLL.r8b_delete(value);
 		}
 	};
 

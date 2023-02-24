@@ -422,8 +422,8 @@ void ExclusiveWasapiDevice::StartStream() {
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > wait_timeout) {
 				XAMP_LOG_D(logger_, "WASAPI wait too slow! {}msec.", elapsed.count());
-				//thread_exit = true;
-				//continue;
+				thread_exit = true;
+				continue;
 			}
 
 			switch (result) {

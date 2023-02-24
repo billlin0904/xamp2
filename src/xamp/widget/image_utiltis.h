@@ -13,7 +13,7 @@
 namespace image_utils {
 
 inline constexpr int32_t kImageRadius = 4;
-inline constexpr int32_t kSmallImageRadius = 8;
+inline constexpr int32_t kSmallImageRadius = 10;
 inline constexpr int32_t kPlaylistImageRadius = 2;
 
 QPixmap RoundImage(const QPixmap& src, int32_t radius = kImageRadius);
@@ -24,9 +24,9 @@ QPixmap RoundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRa
 
 QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-std::vector<uint8_t> Convert2Vector(const QPixmap& source);
+std::vector<uint8_t> Pixmap2ByteVector(const QPixmap& source);
 
-QByteArray Convert2ByteArray(const QPixmap& source);
+QByteArray Pixmap2ByteArray(const QPixmap& source);
 
 QImage BlurImage(const QPixmap& source, QSize size);
 

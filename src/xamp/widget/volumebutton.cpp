@@ -30,6 +30,7 @@ void VolumeButton::OnVolumeChanged(uint32_t volume) {
 
 void VolumeButton::enterEvent(QEvent* event) {
 	dialog_->SetThemeColor();
+	dialog_->InitialVolumeControl();
 	MoveToTopWidget(dialog_.get(), this);
 	dialog_->show();
 }

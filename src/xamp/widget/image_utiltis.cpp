@@ -217,7 +217,7 @@ QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 	return scaled_image;
 }
 
-QByteArray Convert2ByteArray(const QPixmap& source) {
+QByteArray Pixmap2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
@@ -225,7 +225,7 @@ QByteArray Convert2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
-std::vector<uint8_t> Convert2Vector(const QPixmap& source) {
+std::vector<uint8_t> Pixmap2ByteVector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);

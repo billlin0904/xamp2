@@ -60,7 +60,7 @@ bool PrefetchFile(std::wstring const & file_path) {
 		return false;
 	}
 
-	constexpr auto kPrefetchFileReadSize = 65536;
+	constexpr auto kPrefetchFileReadSize = 4096;
 	Vector<char> buffer(kPrefetchFileReadSize);
 	DWORD readbytes = 0;
 	uint64_t total = 0;

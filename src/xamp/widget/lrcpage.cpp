@@ -138,11 +138,13 @@ int LrcPage::GetDisappearBgProg() const {
 void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	cover_label_->setGraphicsEffect(nullptr);
 
-	auto* effect = new QGraphicsDropShadowEffect(this);
-	effect->setOffset(10, 20);
-	effect->setColor(qTheme.GetCoverShadowColor());
-	effect->setBlurRadius(50);
-	cover_label_->setGraphicsEffect(effect);
+	if (theme_color == ThemeColor::LIGHT_THEME) {
+		auto* effect = new QGraphicsDropShadowEffect(this);
+		effect->setOffset(10, 20);
+		effect->setColor(qTheme.GetCoverShadowColor());
+		effect->setBlurRadius(50);
+		cover_label_->setGraphicsEffect(effect);
+	}
 
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
@@ -187,7 +189,7 @@ void LrcPage::initial() {
 	cover_label_->setStyleSheet(qTEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
-	if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
+	if (!AppSettings::ValueAsBool(kEnableBlurCover) && qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(10, 20);
 		effect->setColor(qTheme.GetCoverShadowColor());

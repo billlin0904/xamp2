@@ -6,8 +6,11 @@
 
 namespace xamp::stream {
 
+XAMP_DECLARE_LOG_NAME(LibSoxr);
+
 SoxrLib::SoxrLib() try
-    : module_(OpenSharedLibrary("soxr"))
+    : logger_(LoggerManager::GetInstance().GetLogger(kLibSoxrLoggerName))
+	, module_(OpenSharedLibrary("soxr"))
     , XAMP_LOAD_DLL_API(soxr_quality_spec)
     , XAMP_LOAD_DLL_API(soxr_create)
     , XAMP_LOAD_DLL_API(soxr_process)
@@ -18,6 +21,10 @@ SoxrLib::SoxrLib() try
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+SoxrLib::~SoxrLib() {
+    XAMP_LOG_I(logger_, "Release SoxrLib dll.");
 }
 
 }

@@ -1,6 +1,5 @@
 #include <widget/volumecontroldialog.h>
 
-
 #include "thememanager.h"
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
@@ -55,17 +54,26 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     ui_.volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: white;"));
     ui_.volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
 
-    qTheme.SetSliderTheme(ui_.volumeSlider, true);
+    qTheme.SetSliderTheme(ui_.volumeSlider, true);    
 }
 
 void VolumeControlDialog::SetThemeColor() {
     switch (qTheme.GetThemeColor()) {
     case ThemeColor::DARK_THEME:
-        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: black; border: none; })"));
+        setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: black; border: none; })"));        
         break;
     case ThemeColor::LIGHT_THEME:
         setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: gray; border: none; })"));
         break;
+    }
+    qTheme.SetSliderTheme(ui_.volumeSlider, true);
+}
+
+void VolumeControlDialog::InitialVolumeControl() {
+    if (!player_->IsHardwareControlVolume()) {
+        ui_.volumeSlider->setDisabled(true);
+    } else {
+        ui_.volumeSlider->setDisabled(false);
     }
 }
 

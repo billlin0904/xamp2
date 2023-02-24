@@ -6,11 +6,11 @@
 #pragma once
 
 #include <base/base.h>
-
+#include <base/dll.h>
+#include <base/logger.h>
 
 #include <stream/stream.h>
 #include <r8bsrc.h>
-#include <base/dll.h>
 
 namespace xamp::stream {
 
@@ -18,9 +18,12 @@ class R8brainLib {
 public:
 	R8brainLib();
 
+	~R8brainLib();
+
 	XAMP_DISABLE_COPY(R8brainLib)
 
 private:
+	LoggerPtr logger_;
 	SharedLibraryHandle module_;
 
 public:
