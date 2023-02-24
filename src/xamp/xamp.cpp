@@ -570,7 +570,7 @@ void Xamp::InitialController() {
             &PlayListTableView::PlayIndex);
         auto center_pos = ui_.pendingPlayButton->mapToGlobal(ui_.pendingPlayButton->rect().topRight());
         const auto sz = dialog->size();
-        center_pos.setX(center_pos.x() - sz.width() / 2 - 320);
+        center_pos.setX(center_pos.x() - sz.width() / 2 - 370);
         center_pos.setY(center_pos.y() - sz.height() - 320);
         center_pos = dialog->mapFromGlobal(center_pos);
         center_pos = dialog->mapToParent(center_pos);

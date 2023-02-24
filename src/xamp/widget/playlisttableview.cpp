@@ -278,7 +278,6 @@ void PlayListTableView::Reload() {
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
-    , podcast_mode_(false)
     , playlist_id_(playlist_id)
     , start_delegate_(nullptr)
     , model_(new PlayListSqlQueryTableModel(this)) {

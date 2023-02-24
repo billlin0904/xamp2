@@ -3,7 +3,9 @@
 #include <QScrollBar>
 #include <QSqlQueryModel>
 #include <QSqlError>
+#include <QStyledItemDelegate>
 #include <QVBoxLayout>
+#include <QMouseEvent>
 
 #include "thememanager.h"
 #include <widget/playlisttablemodel.h>
@@ -12,6 +14,73 @@
 #include <widget/str_utilts.h>
 #include <widget/albumentity.h>
 #include <widget/pendingplaylistpage.h>
+
+class PendingPlayTableViewStyledItemDelegate final : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    explicit PendingPlayTableViewStyledItemDelegate(QObject* parent = nullptr)
+        : QStyledItemDelegate(parent) {
+    }
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+        if (!index.isValid()) {
+            return;
+        }
+
+        QStyleOptionViewItem opt(option);
+
+        opt.state &= ~QStyle::State_HasFocus;
+
+        const auto* view = qobject_cast<const PendingPlayTableView*>(opt.styleObject);
+        const auto behavior = view->selectionBehavior();
+        const auto hover_index = view->GetHoverIndex();
+
+        if (!(option.state & QStyle::State_Selected) && behavior != QTableView::SelectItems) {
+            if (behavior == QTableView::SelectRows && hover_index.row() == index.row())
+                opt.state |= QStyle::State_MouseOver;
+            if (behavior == QTableView::SelectColumns && hover_index.column() == index.column())
+                opt.state |= QStyle::State_MouseOver;
+        }
+
+        const auto value = index.model()->data(index.model()->index(index.row(), index.column()));
+        auto use_default_style = false;
+
+        opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
+        opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
+        opt.font.setFamily(qTEXT("UIFont"));
+
+#ifdef Q_OS_WIN
+        QFont::Weight weight = QFont::Weight::DemiBold;
+        switch (qTheme.GetThemeColor()) {
+        case ThemeColor::LIGHT_THEME:
+            weight = QFont::Weight::Medium;
+            break;
+        case ThemeColor::DARK_THEME:
+            weight = QFont::Weight::DemiBold;
+            break;
+        }
+        opt.font.setWeight(weight);
+#endif
+
+        switch (index.column()) {
+        case PLAYLIST_DURATION:
+            opt.text = FormatDuration(value.toDouble());
+            break;
+        default:
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
+            use_default_style = true;
+            break;
+        }
+
+        if (!use_default_style) {
+            option.widget->style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, option.widget);
+        }
+        else {
+            QStyledItemDelegate::paint(painter, opt, index);
+        }
+    }
+};
 
 static PlayListEntity GetEntity(const QModelIndex& index) {
     PlayListEntity entity;
@@ -93,6 +162,8 @@ PendingPlayTableView::PendingPlayTableView(QWidget* parent)
     verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));
+
+    setItemDelegate(new PendingPlayTableViewStyledItemDelegate(this));
 }
 
 void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
@@ -134,7 +205,6 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
             PLAYLIST_FILE_PATH,
             PLAYLIST_FILE_NAME,
             PLAYLIST_FILE_SIZE,
-            PLAYLIST_DURATION,
             PLAYLIST_ARTIST,
             PLAYLIST_BIT_RATE,
             PLAYLIST_SAMPLE_RATE,
@@ -164,7 +234,7 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
         switch (column) {
         case PLAYLIST_TITLE:
             header->resizeSection(column,
-                (std::max)(sizeHintForColumn(column), 400));
+                (std::max)(sizeHintForColumn(column), 200));
             break;
         case PLAYLIST_ALBUM:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
@@ -173,6 +243,28 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 80);
             break;
+        }
+    }
+}
+
+void PendingPlayTableView::mouseMoveEvent(QMouseEvent* event) {
+    QTableView::mouseMoveEvent(event);
+
+    const auto index = indexAt(event->pos());
+    const auto old_hover_row = hover_row_;
+    const auto old_hover_column = hover_column_;
+    hover_row_ = index.row();
+    hover_column_ = index.column();
+
+    if (selectionBehavior() == SelectRows && old_hover_row != hover_row_) {
+        for (auto i = 0; i < model()->columnCount(); ++i)
+            update(model()->index(hover_row_, i));
+    }
+
+    if (selectionBehavior() == SelectColumns && old_hover_column != hover_column_) {
+        for (auto i = 0; i < model()->rowCount(); ++i) {
+            update(model()->index(i, hover_column_));
+            update(model()->index(i, old_hover_column));
         }
     }
 }
@@ -242,7 +334,7 @@ PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWid
     default_layout->addWidget(playlist_);
 
     default_layout->setContentsMargins(5, 5, 5, 5);
-    setFixedSize(450, 300);    
+    setFixedSize(500, 300);    
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const auto& index) {
         PlayMusic(indexes_[index.row()]);

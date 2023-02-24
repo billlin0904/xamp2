@@ -11,13 +11,22 @@
 class QSqlQueryModel;
 
 class PendingPlayTableView : public QTableView {
+	Q_OBJECT
 public:
 	explicit PendingPlayTableView(QWidget* parent = nullptr);
 
 	void Reload();
 
 	void SetPlaylistId(int32_t playlist_id);
+
+	QModelIndex GetHoverIndex() const {
+		return model()->index(hover_row_, hover_column_);
+	}
+
+	void mouseMoveEvent(QMouseEvent* event) override;
 private:
+	int32_t hover_row_{ -1 };
+	int32_t hover_column_{ -1 };
 	QSqlQueryModel* model_;
 };
 
