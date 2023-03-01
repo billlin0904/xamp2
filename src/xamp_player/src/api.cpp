@@ -29,9 +29,10 @@ void LoadComponentSharedLibrary() {
     Ebur128Reader::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 
+#ifdef XAMP_OS_WIN
     LoadR8brainLib();
     XAMP_LOG_DEBUG("Load r8brain lib success.");
-#ifdef XAMP_OS_WIN
+
     MBDiscId::LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 

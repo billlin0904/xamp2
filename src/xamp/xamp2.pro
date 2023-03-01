@@ -87,6 +87,7 @@ SOURCES += \
     widget/volumecontroldialog.cpp \
     widget/spotify_utilis.cpp \
     widget/xmainwindow.cpp \
+    widget/pendingplaylistpage.cpp \
     singleinstanceapplication.cpp \
     widget/zib_utiltis.cpp \
     version.cpp \
@@ -158,6 +159,7 @@ HEADERS += \
     widget/xprogressdialog.h \
     widget/xmainwindow.h \
     widget/volumecontroldialog.h \
+    widget/pendingplaylistpage.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \
