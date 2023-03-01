@@ -44,10 +44,10 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     , text_color_(Qt::black)
 	, more_album_opt_button_(new QPushButton())
 	, play_button_(new QPushButton())
-	, rounded_image_cache_(kMaxAlbumRoundedImageCacheSize) {
+	, image_cache_(kMaxAlbumRoundedImageCacheSize) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    mask_image_ = image_utils::RoundDarkImage(qTheme.GetCacheCoverSize(), 80, image_utils::kSmallImageRadius);
+    mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 80, image_utils::kSmallImageRadius);
 }
 
 void AlbumViewStyledDelegate::SetTextColor(QColor color) {
@@ -55,7 +55,7 @@ void AlbumViewStyledDelegate::SetTextColor(QColor color) {
 }
 
 void AlbumViewStyledDelegate::ClearImageCache() {
-    rounded_image_cache_.Clear();
+    image_cache_.Clear();
 }
 
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
@@ -126,9 +126,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setPen(QPen(text_color_));
 
     auto f = painter->font();
-#ifdef Q_OS_WIN
-    f.setPointSize(8);
-#endif
+    f.setPointSize(qTheme.GetFontSize(8));
     f.setBold(true);
     painter->setFont(f);
 
@@ -154,8 +152,13 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    auto album_cover = qPixmapCache.GetOrDefault(cover_id);
-    auto album_image = image_utils::RoundImage(album_cover, image_utils::kSmallImageRadius);
+    const auto add_factory = [cover_id, default_cover_size]() {
+        return image_utils::RoundImage(
+            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), default_cover_size, true),
+            image_utils::kSmallImageRadius);
+    };
+
+    auto album_image = image_cache_.GetOrAdd(cover_id, add_factory);
     painter->drawPixmap(cover_rect, album_image);
 
     bool hit_play_button = false;

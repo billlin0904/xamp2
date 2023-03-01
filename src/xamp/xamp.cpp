@@ -202,6 +202,7 @@ void Xamp::InitialSpectrum() {
 }
 
 void Xamp::UpdateMaximumState(bool is_maximum) {
+    lrc_page_->SetFullScreen(is_maximum);
     qTheme.UpdateMaximumIcon(ui_, is_maximum);
 }
 
@@ -243,17 +244,17 @@ void Xamp::cleanup() {
 void Xamp::InitialUi() {
     QFont f(qTEXT("DisplayFont"));
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(8);
+    f.setPointSize(qTheme.GetFontSize(8));
     ui_.titleLabel->setFont(f);
 
     f.setWeight(QFont::Normal);
-    f.setPointSize(8);
+    f.setPointSize(qTheme.GetFontSize(8));
     ui_.artistLabel->setFont(f);    
     ui_.bitPerfectButton->setFont(f);
 
     QFont format_font(qTEXT("FormatFont"));
     format_font.setWeight(QFont::Normal);
-    format_font.setPointSize(8);
+    format_font.setPointSize(qTheme.GetFontSize(8));
     ui_.formatLabel->setFont(format_font);
 
     QToolTip::hideText();
@@ -265,22 +266,16 @@ void Xamp::InitialUi() {
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
         f.setWeight(QFont::DemiBold);
-        f.setPointSize(qTheme.GetFontSize());
+        f.setPointSize(qTheme.GetDefaultFontSize());
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(kApplicationTitle);
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     }
 
     QFont mono_font(qTEXT("MonoFont"));
-#ifdef Q_OS_WIN
-    mono_font.setPointSize(qTheme.GetFontSize());
+    mono_font.setPointSize(qTheme.GetDefaultFontSize());
     ui_.startPosLabel->setFont(mono_font);
     ui_.endPosLabel->setFont(mono_font);
-#else
-    f.setPointSize(9);
-    ui_.startPosLabel->setFont(mono_font);
-    ui_.endPosLabel->setFont(mono_font);
-#endif
 
     ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
     main_window_->SetTitleBarAction(ui_.titleFrame);
@@ -308,7 +303,7 @@ QWidgetAction* Xamp::CreateDeviceMenuWidget(const QString& desc, const QIcon &ic
     desc_label->setObjectName(qTEXT("textSeparator"));
 
     QFont f(qTEXT("DisplayFont"));
-    f.setPointSize(qTheme.GetFontSize());
+    f.setPointSize(qTheme.GetDefaultFontSize());
     f.setBold(true);
     desc_label->setFont(f);
     desc_label->setAlignment(Qt::AlignCenter);
@@ -711,6 +706,27 @@ void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, cons
     qDatabase.AddOrUpdateLyrc(music_id, lyrics, trlyrics);
 }
 
+void Xamp::SetFullScreen() {
+    if (AppSettings::ValueAsBool(kAppSettingEnterFullScreen)) {
+        SetCurrentTab(TAB_LYRICS);
+        ui_.bottomFrame->setHidden(true);
+        ui_.sliderFrame->setHidden(true);
+        ui_.titleFrame->setHidden(true);
+        main_window_->showFullScreen();
+        lrc_page_->SetFullScreen(true);
+        AppSettings::SetValue(kAppSettingEnterFullScreen, false);
+    }
+    else {
+        ui_.bottomFrame->setHidden(false);
+        ui_.sliderFrame->setHidden(false);
+        ui_.titleFrame->setHidden(false);
+        main_window_->showNormal();
+        main_window_->RestoreGeometry();
+        lrc_page_->SetFullScreen(false);
+        AppSettings::SetValue(kAppSettingEnterFullScreen, true);
+    }
+}
+
 void Xamp::ShortcutsPressed(const QKeySequence& shortcut) {
     XAMP_LOG_DEBUG("shortcutsPressed: {}", shortcut.toString().toStdString());
 
@@ -733,9 +749,18 @@ void Xamp::ShortcutsPressed(const QKeySequence& shortcut) {
         { QKeySequence(Qt::Key_VolumeDown), [this]() {
             SetVolume(player_->GetVolume() - 1);
             }},
-        { QKeySequence(Qt::Key_VolumeMute), [this]() {
-            SetVolume(0);
-            }},
+        {
+        	QKeySequence(Qt::Key_VolumeMute),
+        	[this]() {
+				SetVolume(0);
+        	},
+        },
+        {
+            QKeySequence(Qt::Key_F11),
+            [this]() {
+                SetFullScreen();
+            },
+        }
     };
 
     auto key = shortcut_map.value(shortcut);
@@ -791,11 +816,6 @@ void Xamp::InitialShortcut() {
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
         PlayOrPause();
     });
-
-    const auto* play_key = new QShortcut(QKeySequence(Qt::Key_F4), this);
-    (void)QObject::connect(play_key, &QShortcut::activated, [this]() {
-        PlayNextItem(1);
-        });
 }
 
 bool Xamp::HitTitleBar(const QPoint& ps) const {
@@ -1207,8 +1227,11 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     SetCover(item.cover_id, cur_page);
 
-    ui_.titleLabel->setText(item.title);
-    ui_.artistLabel->setText(item.artist);
+    QFontMetrics title_metrics(ui_.titleLabel->font());
+    QFontMetrics artist_metrics(ui_.artistLabel->font());
+    
+    ui_.titleLabel->setText(title_metrics.elidedText(item.title, Qt::ElideRight, ui_.titleLabel->width()));
+    ui_.artistLabel->setText(artist_metrics.elidedText(item.artist, Qt::ElideRight, ui_.artistLabel->width()));
     ui_.formatLabel->setText(Format2String(playback_format, ext));
 
     cur_page->title()->setText(item.title);    
@@ -1217,6 +1240,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
+    lrc_page_->format()->setText(Format2String(playback_format, ext));
 
     if (open_done) {       
         player_->Play();

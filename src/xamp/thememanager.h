@@ -20,6 +20,7 @@ class QAbstractButton;
 class QPushButton;
 class QToolButton;
 class QSlider;
+class QLabel;
 
 namespace Ui {
 class XampWindow;
@@ -46,7 +47,7 @@ public:
 
     QString GetCountryFlagFilePath(const QString& country_iso_code);
     
-    QIcon GetAppliacationIcon() const;
+    QIcon GetApplicationIcon() const;
 
     void SetPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
@@ -138,7 +139,9 @@ public:
 
     void SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type);
 
-    int32_t GetFontSize() const;
+    int32_t GetDefaultFontSize() const;
+
+    int32_t GetFontSize(int32_t base_size) const;
 
     void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order);
 
@@ -153,6 +156,8 @@ private:
 
     static int32_t GetTitleBarIconHeight();
 
+    void CollectAllLabel();
+
     QFont LoadFonts();
 
     void InstallFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
@@ -166,16 +171,22 @@ private:
     ThemeManager();
     
     bool use_native_window_;
+    qreal width_ratio_;
+    qreal height_ratio_;
+    qreal font_ratio_;
+    QSize base_size_;
     ThemeColor theme_color_;
     QVariantMap font_icon_opts_;
     QSize album_cover_size_;
     QSize cover_size_;
+    QSize cache_cover_size_;
     QSize save_cover_art_size_;
     QColor background_color_;
     QPalette palette_;
     QFont ui_font_;
     QPixmap unknown_cover_;
     QPixmap default_size_unknown_cover_;
+    QList<QLabel*> all_labels_;
 };
 
 #define qTheme SharedSingleton<ThemeManager>::GetInstance()

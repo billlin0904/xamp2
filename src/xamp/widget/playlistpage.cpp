@@ -57,7 +57,7 @@ void PlaylistPage::initial() {
     title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(18);
+	f.setPointSize(qTheme.GetFontSize(18));
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
 	title_->setMinimumSize(QSize(0, 40));

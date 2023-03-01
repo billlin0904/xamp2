@@ -27,7 +27,7 @@ class PlaylistPage;
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
-	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 10;
+	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 100;
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
@@ -56,7 +56,7 @@ private:
 	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
-	mutable LruCache<QString, QPixmap> rounded_image_cache_;
+	mutable LruCache<QString, QPixmap> image_cache_;
 };
 
 class AlbumViewPage final : public QFrame {

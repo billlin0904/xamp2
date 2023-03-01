@@ -255,6 +255,7 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
     AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, false);
     AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
+    AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, true);
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
@@ -445,6 +446,7 @@ static int Execute(int argc, char* argv[]) {
         main_window.setShortcut(QKeySequence(Qt::Key_VolumeUp));
         main_window.setShortcut(QKeySequence(Qt::Key_VolumeDown));
         main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
+        main_window.setShortcut(QKeySequence(Qt::Key_F11));
     }
 
     Xamp win(MakeAudioPlayer());

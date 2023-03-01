@@ -41,7 +41,7 @@ public:
 
     void SetTitleBarAction(QFrame* title_bar) override;
 
-    void RestoreGeometry();
+    void RestoreGeometry() override;
 
     void InitMaximumState() override;
 

@@ -430,7 +430,7 @@ void PlayListTableView::initial() {
 #else
     f.setWeight(QFont::Weight::Normal);
 #endif
-    f.setPointSize(qTheme.GetFontSize());
+    f.setPointSize(qTheme.GetDefaultFontSize());
     setFont(f);
 
     setUpdatesEnabled(true);

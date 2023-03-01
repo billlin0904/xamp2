@@ -26,6 +26,7 @@ IMPL_APP_SETTING_NAME(AppSettingFileSystemPlaylistColumnName, "AppSettings/fileS
 IMPL_APP_SETTING_NAME(AppSettingCdPlaylistColumnName, "AppSettings/cdColumnName");
 IMPL_APP_SETTING_NAME(AppSettingIsMuted,"AppSettings/isMuted");
 IMPL_APP_SETTING_NAME(AppSettingMyMusicFolderPath, "AppSettings/myMusicFolderPath");
+IMPL_APP_SETTING_NAME(AppSettingEnterFullScreen, "AppSettings/enterFullScreen");
 
 IMPL_APP_SETTING_NAME(AppSettingTheme, "AppSettings/theme/themeColor");
 IMPL_APP_SETTING_NAME(AppSettingEnableBlur, "AppSettings/theme/enableBlur");

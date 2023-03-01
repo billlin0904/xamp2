@@ -28,6 +28,8 @@ public:
 
 	void SetCover(const QPixmap& cover);
 
+	QLabel* format();
+
 	ScrollLabel* album();
 
 	ScrollLabel* artist();
@@ -39,6 +41,8 @@ public:
 	QSize CoverSize() const;
 
 	SpectrumWidget* spectrum();
+
+	void SetFullScreen(bool enter);
 
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
@@ -68,10 +72,12 @@ private:
 	int prev_bg_alpha_ = 0;
 	LyricsShowWidget* lyrics_widget_;
     QLabel* cover_label_;
+	QLabel* format_label_;
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;
 	SpectrumWidget* spectrum_;
+	QPixmap cover_;
 	QImage background_image_;
 	QImage prev_background_image_;
 };

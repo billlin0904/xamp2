@@ -263,11 +263,17 @@ void ThemeManager::SetPalette() {
 
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(210, 210);
+    cache_cover_size_ = QSize(800, 800);
     album_cover_size_ = QSize(250, 250);
     save_cover_art_size_ = QSize(500, 500);
+    base_size_ = QSize(1920, 1080);
     ui_font_ = LoadFonts();
     use_native_window_ = !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow);
-    ui_font_.setPointSize(GetFontSize());
+    const auto* screen = qApp->screens()[0];
+    width_ratio_ = screen->size().width() / static_cast<qreal>(base_size_.width());
+    height_ratio_ = screen->size().height() / static_cast<qreal>(base_size_.height());
+    font_ratio_ = qMin(width_ratio_, height_ratio_);
+    ui_font_.setPointSize(GetDefaultFontSize());
 }
 
 void ThemeManager::SetThemeColor(ThemeColor theme_color) {
@@ -376,7 +382,7 @@ QIcon ThemeManager::GetFontIcon(const char32_t code) const {
     return qFontIcon.icon(code, font_icon_opts_);
 }
 
-QIcon ThemeManager::GetAppliacationIcon() const {
+QIcon ThemeManager::GetApplicationIcon() const {
     return QIcon(qTEXT(":/xamp/xamp.ico"));
 }
 
@@ -506,7 +512,7 @@ const QSize& ThemeManager::GetDefaultCoverSize() const noexcept {
 }
 
 QSize ThemeManager::GetCacheCoverSize() const noexcept {
-    return GetDefaultCoverSize() * 2;
+    return cache_cover_size_;
 }
 
 QSize ThemeManager::GetAlbumCoverSize() const noexcept {
@@ -597,6 +603,9 @@ int32_t ThemeManager::GetTitleBarIconHeight() {
         w = 15;
 
     return w;
+}
+
+void ThemeManager::CollectAllLabel() {
 }
 
 void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
@@ -788,8 +797,12 @@ void ThemeManager::SetTextSeparator(QFrame *frame) {
     }
 }
 
-int32_t ThemeManager::GetFontSize() const {
-    return 10 * GetPixelRatio();
+int32_t ThemeManager::GetFontSize(int32_t base_size) const {
+    return base_size * font_ratio_;
+}
+
+int32_t ThemeManager::GetDefaultFontSize() const {
+    return GetFontSize(10);
 }
 
 QSize ThemeManager::GetTitleButtonIconSize() {

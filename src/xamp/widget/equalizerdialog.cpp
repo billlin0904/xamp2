@@ -56,7 +56,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             };
 
     QFont f(qTEXT("MonoFont"));
-    f.setPointSize(8);
+    f.setPointSize(qTheme.GetFontSize(8));
     for (auto& l : band_label_) {
         l->setFont(f);
         l->setStyleSheet(qTEXT("background-color: transparent;"));

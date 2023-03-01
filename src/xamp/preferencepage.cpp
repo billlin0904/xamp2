@@ -372,13 +372,13 @@ PreferencePage::PreferencePage(QWidget *parent)
 	};
 
 	QFont f(qTEXT("UIFont"));
-	f.setPointSize(9);
+	f.setPointSize(qTheme.GetFontSize(9));
 	setFont(f);
 
 	Q_FOREACH(auto *w, widgets) {
 		QFont f(qTEXT("DisplayFont"));
 		f.setWeight(QFont::DemiBold);
-		f.setPointSize(14);
+		f.setPointSize(qTheme.GetFontSize(14));
 
 		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
 			w->setFont(f);

@@ -47,7 +47,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 		});
 
 	auto f = font();
-	f.setPointSize(30);
+	f.setPointSize(qTheme.GetFontSize(30));
 	f.setBold(true);
 	artist_ = new QLabel(this);
 	artist_->setFont(f);
@@ -57,12 +57,12 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	title->setStyleSheet(qTEXT("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Artists"));
-	f.setPointSize(35);
+	f.setPointSize(qTheme.GetFontSize(35));
 	title->setFont(f);
 	default_layout->addWidget(title);
 
 	f.setBold(false);
-    f.setPointSize(20);
+	f.setPointSize(qTheme.GetFontSize(20));
 
 	albums_ = new QLabel(this);
 	albums_->setFixedSize(QSize(16777215, 64));
