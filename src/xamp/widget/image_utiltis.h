@@ -30,6 +30,11 @@ QByteArray Pixmap2ByteArray(const QPixmap& source);
 
 QImage BlurImage(const QPixmap& source, QSize size);
 
+QImage AcrylicImage(const QImage& source,
+	const QColor& tint_color,
+	const QColor& luminosity_color = QColor(255, 255, 255, 0),
+	qreal noise_opacity = 0.03);
+
 int SampleImageBlur(const QImage &image, int blur_alpha);
 
 bool OptimizePng(const QString& src_file_path, const QString& dest_file_path);

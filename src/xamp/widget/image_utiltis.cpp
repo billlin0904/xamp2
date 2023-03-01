@@ -322,4 +322,21 @@ int SampleImageBlur(const QImage& image, int blur_alpha) {
 	return qMin(255, blur_alpha + addin);
 }
 
+QImage AcrylicImage(const QImage& source,
+	const QColor &tint_color,
+	const QColor &luminosity_color,
+	qreal noise_opacity) {
+	QImage acrylic_texture = source.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+	acrylic_texture.fill(Qt::transparent);
+	//acrylic_texture.fill(luminosity_color);
+	const QImage noise_image(qTEXT(":/xamp/Resource/noise.png"));
+	QPainter painter(&acrylic_texture);
+	//painter.fillRect(acrylic_texture.rect(), tint_color);
+	painter.setOpacity(noise_opacity);
+	painter.drawImage(acrylic_texture.rect(), noise_image);
+	const QBrush acrylic_brush(acrylic_texture);	
+	painter.fillRect(QRect(QPoint(0, 0), source.size()), acrylic_brush);
+	return acrylic_texture;
+}
+
 }
