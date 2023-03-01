@@ -142,8 +142,7 @@ QString PixmapCache::AddImage(const QPixmap& cover) {
 	if (cache_cover.save(&buffer, kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Save PNG format {} secs", sw.ElapsedSeconds());
 
-		//tag_name = QEtag::GetTagId(array);
-		tag_name = QString::fromStdString(GenerateUuid().toStdString());
+		tag_name = QEtag::GetTagId(array);
 		const auto file_path = cache_path_ + tag_name + kCacheFileExtension;
 		OptimizeImageFromBuffer(file_path, array, tag_name);
 	}

@@ -65,7 +65,7 @@ void DatabaseFacade::FindAlbumCover(int32_t album_id, const QString& album, cons
     if (!first_file_path) {
         find_file_path = file_path;
     } else {
-        find_file_path = (*first_file_path).toStdWString();
+        find_file_path = (*first_file_path).toStdWString(); 
     }
 
 	auto cover = reader.GetEmbeddedCover(find_file_path);

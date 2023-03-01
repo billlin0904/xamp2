@@ -15,6 +15,7 @@
 
 #include "appsettingnames.h"
 #include "appsettings.h"
+#include "seekslider.h"
 
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
@@ -35,12 +36,17 @@ SpectrumWidget* LrcPage::spectrum() {
 }
 
 void LrcPage::SetCover(const QPixmap& src) {
-    auto cover_size = cover_label_->size();
+	cover_ = src;
+	const auto cover_size = cover_label_->size();
     cover_label_->setPixmap(image_utils::RoundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
 }
 
 QSize LrcPage::CoverSize() const {
 	return cover_label_->size();
+}
+
+QLabel* LrcPage::format() {
+	return format_label_;
 }
 
 ScrollLabel* LrcPage::album() {
@@ -58,6 +64,18 @@ ScrollLabel* LrcPage::title() {
 void LrcPage::ClearBackground() {
 	background_image_ = QImage();
 	update();
+}
+
+void LrcPage::SetFullScreen(bool enter) {
+	if (!enter) {
+		cover_label_->setMinimumSize(QSize(355, 355));
+		cover_label_->setMaximumSize(QSize(355, 355));
+	} else {
+		cover_label_->setMinimumSize(QSize(700, 700));
+		cover_label_->setMaximumSize(QSize(700, 700));
+	}
+	const auto cover_size = cover_label_->size();
+	cover_label_->setPixmap(image_utils::RoundImage(cover_, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
 }
 
 void LrcPage::SetBackground(const QImage& cover) {
@@ -175,17 +193,18 @@ void LrcPage::initial() {
 
 	auto vertical_layout_3 = new QVBoxLayout();
 	vertical_layout_3->setSpacing(0);
-	vertical_layout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));	
+	vertical_layout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
+
+	format_label_ = new QLabel(this);
+	format_label_->setObjectName(QString::fromUtf8("formatCoverLabel"));
+	format_label_->setMinimumHeight(40);
+	format_label_->setMaximumHeight(40);
+	format_label_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
-#ifdef Q_OS_WIN
 	cover_label_->setMinimumSize(QSize(355, 355));
     cover_label_->setMaximumSize(QSize(355, 355));
-#else
-    cover_label_->setMinimumSize(QSize(500, 500));
-    cover_label_->setMaximumSize(QSize(500, 500));
-#endif
 	cover_label_->setStyleSheet(qTEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
@@ -198,6 +217,37 @@ void LrcPage::initial() {
 	}
 
     vertical_layout_3->addWidget(cover_label_);
+
+	auto* horizontalLayout_4 = new QHBoxLayout();
+	horizontalLayout_4->setSpacing(0);
+	horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
+	horizontalLayout_4->setContentsMargins(-1, 3, -1, 3);
+	auto* endPosLabel = new QLabel();
+	endPosLabel->setObjectName(QString::fromUtf8("endPosLabel"));
+	endPosLabel->setMinimumSize(QSize(50, 20));
+	endPosLabel->setMaximumSize(QSize(50, 20));
+	endPosLabel->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
+	endPosLabel->setMargin(1);
+
+	horizontalLayout_4->addWidget(endPosLabel);
+
+	auto* seekSlider = new SeekSlider();
+	seekSlider->setObjectName(QString::fromUtf8("seekSlider"));
+	seekSlider->setMinimumSize(QSize(300, 0));
+	seekSlider->setMaximumSize(QSize(300, 16));
+	seekSlider->setOrientation(Qt::Horizontal);
+
+	horizontalLayout_4->addWidget(seekSlider);
+
+	auto* startPosLabel = new QLabel();
+	startPosLabel->setObjectName(QString::fromUtf8("startPosLabel"));
+	startPosLabel->setMinimumSize(QSize(50, 20));
+	startPosLabel->setMaximumSize(QSize(50, 20));
+
+	horizontalLayout_4->addWidget(startPosLabel);
+
+	vertical_layout_3->addLayout(horizontalLayout_4);
+	vertical_layout_3->addWidget(format_label_);
 	vertical_layout_3->setContentsMargins(0, 20, 0, 0);
 
 	auto vertical_spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -216,7 +266,7 @@ void LrcPage::initial() {
 	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto f = font();
-    f.setPointSize(12);
+	f.setPointSize(qTheme.GetFontSize(12));
 	f.setBold(true);
 
     title_ = new ScrollLabel(this);
@@ -224,13 +274,8 @@ void LrcPage::initial() {
 	title_->setObjectName(QString::fromUtf8("label_2"));
 	title_->setText(tr("Title:"));
 	title_->setFont(f);
-#ifdef Q_OS_WIN
     title_->setMinimumHeight(40);
-    f.setPointSize(15);
-#else
-    title_->setMinimumHeight(50);
-    f.setPointSize(25);
-#endif
+	f.setPointSize(qTheme.GetFontSize(15));
     f.setBold(false);
     title_->setFont(f);
 
@@ -303,6 +348,10 @@ void LrcPage::initial() {
 
 	horizontal_layout_10->addLayout(vertical_layout_2);
 	horizontal_layout_10->setStretch(1, 1);
+
+	startPosLabel->hide();
+	endPosLabel->hide();
+	seekSlider->hide();
 
 	label_3->hide();
 	label_7->hide();

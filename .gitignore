@@ -17,6 +17,7 @@ CMakeLists.txt.user
 # Compiled Dynamic libraries
 *.so
 *.dylib
+*.lib
 
 # Fortran module files
 *.mod

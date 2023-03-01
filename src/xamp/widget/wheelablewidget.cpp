@@ -65,7 +65,6 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 	}
 
 	PaintItemMask(&painter);
-	//paintBackground(&painter);
 }
 
 void WheelableWidget::mousePressEvent(QMouseEvent* event) {

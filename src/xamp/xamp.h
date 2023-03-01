@@ -58,6 +58,8 @@ public:
 
 	void ShortcutsPressed(const QKeySequence& shortcut) override;
 
+	void SetFullScreen();
+
 signals:
 	void PayNextMusic();
 

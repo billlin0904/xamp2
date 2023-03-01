@@ -27,9 +27,8 @@ void LyricsShowWidget::initial() {
 
 	SetDefaultLrc();
 
-	auto text_color = AppSettings::ValueAsColor(kLyricsTextColor);
-	SetLrcColor(text_color);
-	SetLrcHighLight(text_color);
+	SetLrcColor(AppSettings::ValueAsColor(kLyricsTextColor));
+	SetLrcHighLight(AppSettings::ValueAsColor(kLyricsHighLightTextColor));
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
@@ -47,17 +46,17 @@ void LyricsShowWidget::initial() {
 
 		(void)action_map.AddAction(tr("Set font size(small)"), [this]() {
 			AppSettings::SetValue(kLyricsFontSize, 12);
-			lrc_font_.setPointSize(12);
+			lrc_font_.setPointSize(qTheme.GetFontSize(12));
 			});
 
 		(void)action_map.AddAction(tr("Set font size(middle)"), [this]() {
 			AppSettings::SetValue(kLyricsFontSize, 16);
-			lrc_font_.setPointSize(16);
+			lrc_font_.setPointSize(qTheme.GetFontSize(16));
 			});
 
 		(void)action_map.AddAction(tr("Set font size(big)"), [this]() {
-			lrc_font_.setPointSize(24);
 			AppSettings::SetValue(kLyricsFontSize, 24);
+			lrc_font_.setPointSize(qTheme.GetFontSize(24));
 			});
 #if 0
 		(void)action_map.AddAction(tr("Change high light color"), [this]() {
@@ -160,7 +159,7 @@ void LyricsShowWidget::PaintItemMask(QPainter* painter) {
 		painter->setFont(current_mask_font_);
 		painter->setPen(lrc_highlight_color_);
 
-		QFontMetrics metrics(current_mask_font_);
+		const QFontMetrics metrics(current_mask_font_);
 		painter->drawText((current_roll_rect_.width() - metrics.width(real_current_text_)) / 2,
 			current_roll_rect_.y() + (current_roll_rect_.height() - metrics.height()) / 2,
 			mask_length_,
@@ -292,7 +291,7 @@ void LyricsShowWidget::SetLrcTime(int32_t stream_time) {
 	QFontMetrics metrics(current_mask_font_);
 
 	if (item_precent_ == precent) {
-		const auto count = double(interval) / 25.0;
+		const auto count = static_cast<double>(interval) / 25.0;
 		const float lrc_mask_mini_step = metrics.width(text) / count;
 		mask_length_ += lrc_mask_mini_step;
 	}

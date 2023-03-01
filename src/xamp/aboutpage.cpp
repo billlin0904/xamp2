@@ -7,11 +7,11 @@ AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
 
-    ui.lblLogo->setPixmap(qTheme.GetAppliacationIcon().pixmap(128, 128));
+    ui.lblLogo->setPixmap(qTheme.GetApplicationIcon().pixmap(128, 128));
 
     QFont dp_font(qTEXT("DisplayFont"));
     dp_font.setBold(true);
-    dp_font.setPointSizeF(26);
+    dp_font.setPointSizeF(qTheme.GetFontSize(26));
 
     ui.lblProjectTitle->setFont(dp_font);
     ui.lblProjectTitle->setText(qTEXT("XAMP2"));
@@ -26,7 +26,7 @@ AboutPage::AboutPage(QWidget* parent)
 
     QFont font(qTEXT("UIFont"));
     font.setBold(false);
-    font.setPointSize(qTheme.GetFontSize());
+    font.setPointSize(qTheme.GetDefaultFontSize());
     ui.txtBws->setFont(font);
     ui.txtBws->setVisible(false);
 

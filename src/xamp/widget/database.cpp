@@ -610,6 +610,8 @@ void Database::SetTableName(int32_t table_id, const QString& name) {
 }
 
 void Database::SetAlbumCover(int32_t album_id, const QString& cover_id) {
+    XAMP_ENSURES(!cover_id.isEmpty());
+
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
@@ -623,6 +625,8 @@ void Database::SetAlbumCover(int32_t album_id, const QString& cover_id) {
 }
 
 void Database::SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
+    XAMP_ENSURES(!cover_id.isEmpty());
+
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
@@ -761,8 +765,6 @@ QString Database::GetArtistCoverId(int32_t artist_id) const {
 }
 
 QString Database::GetAlbumCoverId(int32_t album_id) const {
-    QReadLocker read_locker(&locker_);
-
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT coverId FROM albums WHERE albumId = (:albumId)"));
@@ -778,8 +780,6 @@ QString Database::GetAlbumCoverId(int32_t album_id) const {
 }
 
 QString Database::GetAlbumCoverId(const QString& album) const {
-    QReadLocker read_locker(&locker_);
-
     SqlQuery query(db_);
 
     query.prepare(qTEXT("SELECT coverId FROM albums WHERE album = (:album)"));
@@ -885,11 +885,14 @@ std::optional<std::tuple<QString, QString>> Database::GetLyrc(int32_t music_id) 
 
     query.bindValue(qTEXT(":musicId"), music_id);
 
+    THROW_IF_FAIL1(query);
+
     while (query.next()) {
-        return std::tuple<QString, QString> {
-            query.value(qTEXT("lyrc")).toString(),
-            query.value(qTEXT("trLyrc")).toString()
-        };
+        auto lyrc = query.value(qTEXT("lyrc")).toString();
+        auto tr_lyrc = query.value(qTEXT("trLyrc")).toString();
+        if (!lyrc.isEmpty()) {
+            return std::tuple<QString, QString> { lyrc, tr_lyrc };
+        }
     }
     return std::nullopt;
 }
@@ -1212,7 +1215,7 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
     query.bindValue(qTEXT(":album"), album);
     query.bindValue(qTEXT(":artistId"), artist_id);
     query.bindValue(qTEXT(":firstChar"), first_char.toUpper());
-    query.bindValue(qTEXT(":coverId"), qEmptyString);
+    query.bindValue(qTEXT(":coverId"), GetAlbumCoverId(album));
     query.bindValue(qTEXT(":isPodcast"), is_podcast ? 1 : 0);
     query.bindValue(qTEXT(":dateTime"), album_time);
     query.bindValue(qTEXT(":discId"), disc_id);
