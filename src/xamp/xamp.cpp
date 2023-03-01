@@ -226,7 +226,7 @@ void Xamp::cleanup() {
 
     if (!background_thread_.isFinished()) {
         if (background_worker_ != nullptr) {
-            background_worker_->stopThreadPool();
+            background_worker_->StopThreadPool();
         }
         background_thread_.requestInterruption();
         background_thread_.quit();
@@ -1612,6 +1612,11 @@ void Xamp::InitialPlaylist() {
         &BackgroundWorker::BlurImage,
         lrc_page_,
         &LrcPage::SetBackground);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::DominantColor,
+        lrc_page_->lyrics(),
+        &LyricsShowWidget::SetLrcColor);
 
     (void)QObject::connect(album_page_->album(),
         &AlbumView::AddPlaylist,

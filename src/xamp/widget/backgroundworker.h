@@ -31,7 +31,7 @@ class BackgroundWorker : public QObject {
 public:
     BackgroundWorker();
 
-    void stopThreadPool();
+    void StopThreadPool();
 
     virtual ~BackgroundWorker() override;
 
@@ -45,6 +45,8 @@ signals:
         double track_peak);
 
     void BlurImage(const QImage& image);
+
+    void DominantColor(const QColor &color);
 
     void OnReadCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 

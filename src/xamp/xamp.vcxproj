@@ -191,6 +191,7 @@
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
+    <ClCompile Include="widget\colorthief.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
@@ -277,6 +278,7 @@
     <ClInclude Include="widget\albumentity.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <QtMoc Include="widget\filesystemviewpage.h" />
+    <ClInclude Include="widget\colorthief.h" />
     <ClInclude Include="widget\driveinfo.h" />
     <ClInclude Include="widget\filesystemmodel.h" />
     <QtMoc Include="widget\processindicator.h" />

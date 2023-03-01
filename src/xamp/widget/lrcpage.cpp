@@ -13,9 +13,9 @@
 #include <widget/str_utilts.h>
 #include <widget/lrcpage.h>
 
-#include "appsettingnames.h"
-#include "appsettings.h"
-#include "seekslider.h"
+#include <widget/appsettingnames.h>
+#include <widget/appsettings.h>
+#include <widget/seekslider.h>
 
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {

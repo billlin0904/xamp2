@@ -12,6 +12,7 @@
 #include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
 #include <widget/spotify_utilis.h>
+#include <widget/colorthief.h>
 
 #include <player/ebur128reader.h>
 #include <base/logger_impl.h>
@@ -130,7 +131,7 @@ BackgroundWorker::~BackgroundWorker() {
     XAMP_LOG_DEBUG("BackgroundWorker destory!");
 }
 
-void BackgroundWorker::stopThreadPool() {
+void BackgroundWorker::StopThreadPool() {
     is_stop_ = true;
     if (executor_ != nullptr) {
         executor_->Stop();
@@ -369,7 +370,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
                     QPixmap cover;
                     if (cover.loadFromData(content)) {
-                        auto cover_id = qPixmapCache.AddImage(cover);
+	                    const auto cover_id = qPixmapCache.AddImage(cover);
                         XAMP_LOG_D(logger_, "Download cover image completed.");
                         emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
                     }
@@ -384,6 +385,8 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
         emit BlurImage(QImage());
         return;
     }
+    auto palette = ColorThief::GetPalette(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
+    emit DominantColor(palette[1]);
     emit BlurImage(image_utils::BlurImage(image, size));
 }
 
