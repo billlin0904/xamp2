@@ -79,7 +79,6 @@ void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
     model_.appendRow(item);
     names_[table_id] = name;
     ids_[name] = table_id;
-    item->setData(name, Qt::ToolTipRole);
 }
 
 void TabListView::AddSeparator() {
@@ -89,6 +88,6 @@ void TabListView::AddSeparator() {
     item->setSizeHint(QSize(80, 2));
     hline->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     model_.appendRow(item);
-    auto index = model_.indexFromItem(item);
+    const auto index = model_.indexFromItem(item);
     setIndexWidget(index, hline);
 }

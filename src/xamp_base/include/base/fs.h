@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2023 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -49,6 +49,10 @@ XAMP_BASE_API Path GetComponentsFilePath();
 XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
 XAMP_BASE_API bool IsCDAFile(Path const& path);
+
+XAMP_BASE_API bool TryImbue(std::wifstream& file, std::string_view name);
+
+XAMP_BASE_API void ImbueFileFromBom(std::wifstream& file);
 
 class XAMP_BASE_API ExceptedFile final {
 public:

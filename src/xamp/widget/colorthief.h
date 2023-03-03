@@ -5,12 +5,19 @@
 
 class QImage;
 
-using color_t = std::tuple<uint8_t, uint8_t, uint8_t>;
+using QuantizedColor = std::tuple<uint8_t, uint8_t, uint8_t>;
 
 class ColorThief {
 public:
-	static QList<QColor> GetPalette(const QImage& image, int32_t color_count = 5, int32_t quality = 10, bool ignore_white = true);
+	void LoadImage(const QImage& image, int32_t color_count = 5, int32_t quality = 10, bool ignore_white = true);
+
+	const QList<QColor>& GetPalette() const;
+
+	QColor GetDominantColor() const;
 
 private:
-	static std::vector<color_t> GetPixels(const QImage& image, int32_t quality, bool ignore_white);
+	static std::vector<QuantizedColor> GetPixels(const QImage& image, int32_t quality, bool ignore_white);
+
+private:
+	QList<QColor> palette_;
 };

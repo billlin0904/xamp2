@@ -1080,8 +1080,9 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
 
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
+				padding: 0px;
 				background-color: #121212;
-				border: 1px solid black;
+				border: 1px solid transparent;
 				border-top-left-radius: 8px;
             }			
             )"));
@@ -1124,7 +1125,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
         ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
-				border: 1px solid #eaeaea;
+				border: 1px solid transparent;
 				border-top-left-radius: 8px;
             }			
             )"));

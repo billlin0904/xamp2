@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include <base/bom.h>
+#include <base/fs.h>
 #include <base/stl.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
@@ -194,6 +194,17 @@ bool LrcParser::ParseStream(std::wistream &istr) {
 	}	
 
     return true;
+}
+
+std::wstring LrcParser::GetMaxLengthLrc() const {
+    const auto itr = std::max_element(lyrics_.begin(), lyrics_.end(), [](const LyricEntry& a, const LyricEntry& b) {
+        return a.lrc.length() < b.lrc.length();
+        });
+
+    if (itr != lyrics_.end()) {
+        return (*itr).lrc;
+    }
+    return L"";
 }
 
 int32_t LrcParser::GetMaxLrcLength() const {

@@ -20,64 +20,64 @@ int get_color_index(int r, int g, int b) {
 class VBox {
 public:
     VBox(int r1, int r2, int g1, int g2, int b1, int b2, std::vector<int>* histo)
-	    : avg_initialized(false)
-	    , count_initialized(false)
-	    , count_cache(0)
-		, r1(r1)
-	    , r2(r2)
-	    , g1(g1)
-	    , g2(g2)
-	    , b1(b1)
-	    , b2(b2)
-	    , histo(histo) {
+	    : avg_initialized_(false)
+	    , count_initialized_(false)
+	    , count_cache_(0)
+		, r1_(r1)
+	    , r2_(r2)
+	    , g1_(g1)
+	    , g2_(g2)
+	    , b1_(b1)
+	    , b2_(b2)
+	    , histo_(histo) {
     }
 
     int volume() const {
-        int sub_r = r2 - r1;
-        int sub_g = g2 - g1;
-        int sub_b = b2 - b1;
+        auto sub_r = r2_ - r1_;
+        auto sub_g = g2_ - g1_;
+        auto sub_b = b2_ - b1_;
         return (sub_r + 1) * (sub_g + 1) * (sub_b + 1);
     }
 
-    VBox copy() {
-	    return VBox(r1, r2, g1, g2, b1, b2, histo);
+    VBox copy() const {
+	    return VBox(r1_, r2_, g1_, g2_, b1_, b2_, histo_);
     }
 
-    color_t avg() {
-    	if (!avg_initialized) {
+    QuantizedColor avg() const {
+    	if (!avg_initialized_) {
     		init_avg();
     	}
-    	return avg_cache;
+    	return avg_cache_;
     }
 
-    bool contains(const color_t& pixel) {
-        int rval = std::get<0>(pixel) >> kRshift;
-        int gval = std::get<1>(pixel) >> kRshift;
-        int bval = std::get<2>(pixel) >> kRshift;
-        return rval >= r1 && rval <= r2 &&
-            gval >= g1 && gval <= g2 &&
-            bval >= b1 && bval <= b2;
+    bool contains(const QuantizedColor& pixel) const {
+        auto rval = std::get<0>(pixel) >> kRshift;
+        auto gval = std::get<1>(pixel) >> kRshift;
+        auto bval = std::get<2>(pixel) >> kRshift;
+        return rval >= r1_ && rval <= r2_ &&
+            gval >= g1_ && gval <= g2_ &&
+            bval >= b1_ && bval <= b2_;
     }
 
     int count() const {
-	    if (!count_initialized) {
+	    if (!count_initialized_) {
 		    init_count();
 	    }
-    	return count_cache;
+    	return count_cache_;
     }
 
-    void init_avg() {
-        int ntot = 0;
-        int mult = 1 << (8 - kSigbits);
+    void init_avg() const {
+        auto ntot = 0;
+        auto mult = 1 << (8 - kSigbits);
         double r_sum = 0;
         double g_sum = 0;
         double b_sum = 0;
 
-        for (int i = r1; i < r2 + 1; i++) {
-            for (int j = g1; j < g2 + 1; j++) {
-                for (int k = b1; k < b2 + 1; k++) {
-                    int histoindex = get_color_index(i, j, k);
-                    int hval = (*histo)[histoindex];
+        for (auto i = r1_; i < r2_ + 1; i++) {
+            for (auto j = g1_; j < g2_ + 1; j++) {
+                for (auto k = b1_; k < b2_ + 1; k++) {
+	                const auto histoindex = get_color_index(i, j, k);
+                    const auto hval = (*histo_)[histoindex];
                     ntot += hval;
                     r_sum += hval * (i + 0.5) * mult;
                     g_sum += hval * (j + 0.5) * mult;
@@ -86,9 +86,9 @@ public:
             }
         }
 
-        int r_avg;
-        int g_avg;
-        int b_avg;
+        auto r_avg = 0;
+        auto g_avg = 0;
+        auto b_avg = 0;
 
         if (ntot > 0) {
             r_avg = static_cast<int>(r_sum / ntot);
@@ -96,44 +96,44 @@ public:
             b_avg = static_cast<int>(b_sum / ntot);
         }
         else {
-            r_avg = static_cast<int>(mult * (r1 + r2 + 1) / 2.0);
-            g_avg = static_cast<int>(mult * (g1 + g2 + 1) / 2.0);
-            b_avg = static_cast<int>(mult * (b1 + b2 + 1) / 2.0);
+            r_avg = static_cast<int>(mult * (r1_ + r2_ + 1) / 2.0);
+            g_avg = static_cast<int>(mult * (g1_ + g2_ + 1) / 2.0);
+            b_avg = static_cast<int>(mult * (b1_ + b2_ + 1) / 2.0);
         }
 
-        avg_cache = { r_avg, g_avg, b_avg };
-        avg_initialized = true;
+        avg_cache_ = std::make_tuple(r_avg, g_avg, b_avg);
+        avg_initialized_ = true;
     }
 
     void init_count() const {
-        int npix = 0;
-        for (int i = r1; i < r2 + 1; i++) {
-            for (int j = g1; j < g2 + 1; j++) {
-                for (int k = b1; k < b2 + 1; k++) {
-                    int index = get_color_index(i, j, k);
-                    npix += (*histo)[index];
+        auto npix = 0;
+        for (auto i = r1_; i < r2_ + 1; i++) {
+            for (auto j = g1_; j < g2_ + 1; j++) {
+                for (auto k = b1_; k < b2_ + 1; k++) {
+	                const auto index = get_color_index(i, j, k);
+                    npix += (*histo_)[index];
                 }
             }
         }
-        count_cache = npix;
-        count_initialized = true;
+        count_cache_ = npix;
+        count_initialized_ = true;
     }
 
-    bool avg_initialized;
-    mutable bool count_initialized;
-    mutable int count_cache;
-    int r1;
-    int r2;
-    int g1;
-    int g2;
-    int b1;
-    int b2;
-    std::vector<int>* histo;
-    color_t avg_cache;
+    mutable bool avg_initialized_;
+    mutable bool count_initialized_;
+    mutable int count_cache_;
+    int r1_;
+    int r2_;
+    int g1_;
+    int g2_;
+    int b1_;
+    int b2_;
+    std::vector<int>* histo_;
+    mutable QuantizedColor avg_cache_;
 };
 
 std::ostream& operator<<(std::ostream& os, VBox& box) {
-    os << box.r1 << "-" << box.r2 << " " << box.g1 << "-" << box.g2 << " " << box.b1 << "-" << box.b2 << " Count: " << box.count() << " Volume: " << box.volume() << " Count * volume: " << uint64_t(box.count()) * uint64_t(box.volume());
+    os << box.r1_ << "-" << box.r2_ << " " << box.g1_ << "-" << box.g2_ << " " << box.b1_ << "-" << box.b2_ << " Count: " << box.count() << " Volume: " << box.volume() << " Count * volume: " << uint64_t(box.count()) * uint64_t(box.volume());
     return os;
 }
 
@@ -150,7 +150,7 @@ struct BoxCountVolumeCompare {
 };
 
 struct CMapCompare {
-    bool operator()(const std::tuple<VBox, color_t>& a, const std::tuple<VBox, color_t>& b) const {
+    bool operator()(const std::tuple<VBox, QuantizedColor>& a, const std::tuple<VBox, QuantizedColor>& b) const {
     	const auto &box1 = std::get<0>(a);
         const auto &box2 = std::get<0>(b);
     	return static_cast<uint64_t>(box1.count()) * static_cast<uint64_t>(box1.volume()) < static_cast<uint64_t>(box2.count()) * static_cast<uint64_t>(box2.volume());
@@ -161,15 +161,17 @@ template <typename T, typename TCompare>
 class PQueue {
 public:
 	PQueue()
-		: contents_({})
-		, sort_key_()
-		, sorted_(false) {
+		: sorted_(false) {
     }
 
     void sort() {
-        std::sort(contents_.begin(), contents_.end(), sort_key_);
+        std::sort(contents_.begin(), contents_.end(), compare_);
         sorted_ = true;
     }
+
+    void reserve(size_t size) {
+        contents_.reserve(size);
+	}
 
     void push(const T& o) {
         contents_.push_back(o);
@@ -186,51 +188,54 @@ public:
         return result;
     }
 
-    int size() {
+    size_t size() const noexcept {
 		return contents_.size();
 	}
 
-    std::vector<T> get_contents() {
+    const std::vector<T> & get_contents() const {
 		return contents_;
 	}
 
 private:
     bool sorted_;
-    TCompare sort_key_;
+    TCompare compare_;
     std::vector<T> contents_;
 };
 
 template <typename TCompare>
 class CMap {
 public:
-	CMap()
-		: vboxes_() {
-    }
+    CMap() = default;
 
-    std::vector<color_t> pallete() {
-        std::vector<color_t> colors;
-        for (auto& [vbox, avg_color] : vboxes_.get_contents()) {
+    std::vector<QuantizedColor> pallete() const {
+        std::vector<QuantizedColor> colors;
+        colors.reserve(vboxes_.size());
+        for (const auto& [vbox, avg_color] : vboxes_.get_contents()) {
             colors.push_back(avg_color);
         }
         return colors;
+    }
+
+    void reserve(size_t size) {
+        vboxes_.reserve(size);
     }
 
     void push(VBox&& box) {
         vboxes_.push({ box, box.avg() });
     }
 
-    int size() {
+    size_t size() const noexcept {
 		return vboxes_.size();
 	}
 
 private:
-    PQueue<std::tuple<VBox, color_t>, TCompare> vboxes_;
+    PQueue<std::tuple<VBox, QuantizedColor>, TCompare> vboxes_;
 };
 
-std::vector<int> get_histo(const std::vector<color_t>& pixels) {
+std::vector<int> get_histo(const std::vector<QuantizedColor>& pixels) {
     std::vector<int> histo(std::pow(2, 3 * kSigbits), 0);
 
-    for (const color_t& pixel : pixels) {
+    for (const QuantizedColor& pixel : pixels) {
         int rval = std::get<0>(pixel) >> kRshift;
         int gval = std::get<1>(pixel) >> kRshift;
         int bval = std::get<2>(pixel) >> kRshift;
@@ -240,18 +245,18 @@ std::vector<int> get_histo(const std::vector<color_t>& pixels) {
     return histo;
 }
 
-VBox vbox_from_pixels(const std::vector<color_t>& pixels, std::vector<int>& histo) {
-    int rmin = 1000000;
-    int rmax = 0;
-    int gmin = 1000000;
-    int gmax = 0;
-    int bmin = 1000000;
-    int bmax = 0;
+VBox vbox_from_pixels(const std::vector<QuantizedColor>& pixels, std::vector<int>& histo) {
+    auto rmin = 1000000;
+    auto rmax = 0;
+    auto gmin = 1000000;
+    auto gmax = 0;
+    auto bmin = 1000000;
+    auto bmax = 0;
 
-    for (const color_t& pixel : pixels) {
-        int rval = std::get<0>(pixel) >> kRshift;
-        int gval = std::get<1>(pixel) >> kRshift;
-        int bval = std::get<2>(pixel) >> kRshift;
+    for (const QuantizedColor& pixel : pixels) {
+        auto rval = std::get<0>(pixel) >> kRshift;
+        auto gval = std::get<1>(pixel) >> kRshift;
+        auto bval = std::get<2>(pixel) >> kRshift;
         rmin = std::min(rval, rmin);
         rmax = std::max(rval, rmax);
         gmin = std::min(gval, gmin);
@@ -264,27 +269,27 @@ VBox vbox_from_pixels(const std::vector<color_t>& pixels, std::vector<int>& hist
 }
 
 std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vector<int>& histo, VBox vbox) {
-    int rw = vbox.r2 - vbox.r1 + 1;
-    int gw = vbox.g2 - vbox.g1 + 1;
-    int bw = vbox.b2 - vbox.b1 + 1;
-    int maxw = std::max(rw, std::max(gw, bw));
+    auto rw = vbox.r2_ - vbox.r1_ + 1;
+    auto gw = vbox.g2_ - vbox.g1_ + 1;
+    auto bw = vbox.b2_ - vbox.b1_ + 1;
+    auto maxw = std::max(rw, std::max(gw, bw));
 
     if (vbox.count() == 1)
         return { {vbox.copy()}, {} };
 
-    int total = 0;
-    int sum = 0;
-    std::unordered_map<int, int> partialsum;
-    std::unordered_map<int, int> lookaheadsum;
+    auto total = 0;
+    auto sum = 0;
+    std::map<int, int> partialsum;
+    std::map<int, int> lookaheadsum;
     char do_cut_color = '0';
 
     if (maxw == rw) {
         do_cut_color = 'r';
-        for (int i = vbox.r1; i < vbox.r2 + 1; ++i) {
+        for (auto i = vbox.r1_; i < vbox.r2_ + 1; ++i) {
             sum = 0;
-            for (int j = vbox.g1; j < vbox.g2 + 1; j++) {
-                for (int k = vbox.b1; k < vbox.b2 + 1; k++) {
-                    int index = get_color_index(i, j, k);
+            for (auto j = vbox.g1_; j < vbox.g2_ + 1; j++) {
+                for (auto k = vbox.b1_; k < vbox.b2_ + 1; k++) {
+                    auto index = get_color_index(i, j, k);
                     sum += histo[index];
                 }
             }
@@ -294,11 +299,11 @@ std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vecto
     }
     else if (maxw == gw) {
         do_cut_color = 'g';
-        for (int i = vbox.g1; i < vbox.g2 + 1; ++i) {
+        for (auto i = vbox.g1_; i < vbox.g2_ + 1; ++i) {
             sum = 0;
-            for (int j = vbox.r1; j < vbox.r2 + 1; j++) {
-                for (int k = vbox.b1; k < vbox.b2 + 1; k++) {
-                    int index = get_color_index(j, i, k);
+            for (auto j = vbox.r1_; j < vbox.r2_ + 1; j++) {
+                for (auto k = vbox.b1_; k < vbox.b2_ + 1; k++) {
+                    auto index = get_color_index(j, i, k);
                     sum += histo[index];
                 }
             }
@@ -308,11 +313,11 @@ std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vecto
     }
     else {
         do_cut_color = 'b';
-        for (int i = vbox.b1; i < vbox.b2 + 1; ++i) {
+        for (auto i = vbox.b1_; i < vbox.b2_ + 1; ++i) {
             sum = 0;
-            for (int j = vbox.r1; j < vbox.r2 + 1; j++) {
-                for (int k = vbox.g1; k < vbox.g2 + 1; k++) {
-                    int index = get_color_index(j, k, i);
+            for (auto j = vbox.r1_; j < vbox.r2_ + 1; j++) {
+                for (auto k = vbox.g1_; k < vbox.g2_ + 1; k++) {
+                    auto index = get_color_index(j, k, i);
                     sum += histo[index];
                 }
             }
@@ -325,33 +330,33 @@ std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vecto
         lookaheadsum[i] = total - d;
     }
 
-    int dim1_val;
-    int dim2_val;
+    auto dim1_val = 0;
+    auto dim2_val = 0;
     if (do_cut_color == 'r') {
-        dim1_val = vbox.r1;
-        dim2_val = vbox.r2;
+        dim1_val = vbox.r1_;
+        dim2_val = vbox.r2_;
     }
     else if (do_cut_color == 'g') {
-        dim1_val = vbox.g1;
-        dim2_val = vbox.g2;
+        dim1_val = vbox.g1_;
+        dim2_val = vbox.g2_;
     }
     else {
-        dim1_val = vbox.b1;
-        dim2_val = vbox.b2;
+        dim1_val = vbox.b1_;
+        dim2_val = vbox.b2_;
     }
 
-    for (int i = dim1_val; i < dim2_val + 1; ++i) {
+    for (auto i = dim1_val; i < dim2_val + 1; ++i) {
         if (partialsum[i] > total / 2) {
-            VBox vbox1 = vbox.copy();
-            VBox vbox2 = vbox.copy();
-            int left = i - dim1_val;
-            int right = dim2_val - i;
-            int d2;
+            auto vbox1 = vbox.copy();
+            auto vbox2 = vbox.copy();
+            auto left = i - dim1_val;
+            auto right = dim2_val - i;
+            auto d2 = 0;
             if (left <= right) {
-                d2 = std::min(dim2_val - 1, int(i + right / 2.0));
+                d2 = std::min(dim2_val - 1, static_cast<int>(i + right / 2.0));
             }
             else {
-                d2 = std::max(dim1_val, int(i - 1 - left / 2.0));
+                d2 = std::max(dim1_val, static_cast<int>(i - 1 - left / 2.0));
             }
 
             while (!(partialsum.count(d2) > 0 && partialsum[d2] > 0)) {
@@ -366,16 +371,16 @@ std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vecto
             count2 = lookaheadsum[d2];
 
             if (do_cut_color == 'r') {
-                vbox1.r2 = d2;
-                vbox2.r1 = vbox1.r2 + 1;
+                vbox1.r2_ = d2;
+                vbox2.r1_ = vbox1.r2_ + 1;
             }
             else if (do_cut_color == 'g') {
-                vbox1.g2 = d2;
-                vbox2.g1 = vbox1.g2 + 1;
+                vbox1.g2_ = d2;
+                vbox2.g1_ = vbox1.g2_ + 1;
             }
             else {
-                vbox1.b2 = d2;
-                vbox2.b1 = vbox1.b2 + 1;
+                vbox1.b2_ = d2;
+                vbox2.b1_ = vbox1.b2_ + 1;
             }
 
             return { vbox1, vbox2 };
@@ -386,8 +391,8 @@ std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vecto
 
 template <typename TCompare>
 void iter(PQueue<VBox, TCompare>& lh, double target, std::vector<int>& histo) {
-    int n_color = 1;
-    int n_iter = 0;
+    auto n_color = 1;
+    auto n_iter = 0;
     while (n_iter < kMaxIteration) {
         VBox vbox = lh.pop();
         if (vbox.count() == 0) {
@@ -414,9 +419,9 @@ void iter(PQueue<VBox, TCompare>& lh, double target, std::vector<int>& histo) {
     }
 }
 
-CMap<CMapCompare> quantize(const std::vector<color_t>& pixels, int max_color) {
-    std::vector<int> histo = get_histo(pixels);
-    const VBox vbox = vbox_from_pixels(pixels, histo);
+CMap<CMapCompare> quantize(const std::vector<QuantizedColor>& pixels, int max_color) {
+    auto histo = get_histo(pixels);
+    const auto vbox = vbox_from_pixels(pixels, histo);
 
     PQueue<VBox, BoxCountCompare> pq;
     pq.push(vbox);
@@ -424,6 +429,7 @@ CMap<CMapCompare> quantize(const std::vector<color_t>& pixels, int max_color) {
     iter(pq, kFractByPopulations * static_cast<double>(max_color), histo);
 
     PQueue<VBox, BoxCountVolumeCompare> pq2;
+    pq2.reserve(pq.size());
     while (pq.size() > 0) {
         pq2.push(pq.pop());
     }
@@ -431,37 +437,45 @@ CMap<CMapCompare> quantize(const std::vector<color_t>& pixels, int max_color) {
     iter(pq2, max_color - pq2.size(), histo);
 
     CMap<CMapCompare> cmap;
+    cmap.reserve(pq2.size());
     while (pq2.size() > 0) {
         cmap.push(pq2.pop());
     }
     return cmap;
 }
 
-QList<QColor> ColorThief::GetPalette(const QImage& image, int32_t color_count, int32_t quality, bool ignore_white) {
+void ColorThief::LoadImage(const QImage& image, int32_t color_count, int32_t quality, bool ignore_white) {
     auto cmap = quantize(GetPixels(image, quality, ignore_white), color_count);
-    QList<QColor> colors;
-    colors.reserve(cmap.size());
+    palette_.clear();
+    palette_.reserve(cmap.size());
     for (auto avg_color : cmap.pallete()) {
-        colors.push_back(QColor(
+        palette_.push_back(QColor(
             std::get<0>(avg_color),
             std::get<1>(avg_color),
             std::get<2>(avg_color))
         );
     }
-    return colors;
 }
 
-std::vector<color_t> ColorThief::GetPixels(const QImage& image, int32_t quality, bool ignore_white) {
+const QList<QColor>& ColorThief::GetPalette() const {
+    return palette_;
+}
+
+QColor ColorThief::GetDominantColor() const {
+    return palette_[0];
+}
+
+std::vector<QuantizedColor> ColorThief::GetPixels(const QImage& image, int32_t quality, bool ignore_white) {
     const auto img = image.convertToFormat(QImage::Format_RGBA8888, Qt::AutoColor);
 
-    std::vector<color_t> pixels;
+    std::vector<QuantizedColor> pixels;
     pixels.reserve(img.sizeInBytes() / 4);
 
     for (auto x = 0; x < img.width(); ++x) {
         for (auto y = 0; y < img.height(); ++y) {
             QColor rgba(img.pixel(x, y));
             if (rgba.alpha() >= 125) {
-                if (rgba.red() < 250 || rgba.green() < 250 || rgba.blue() < 250) {
+                if (!(ignore_white && rgba.red() > 250 && rgba.green() > 250 && rgba.blue() > 250)) {
                     pixels.emplace_back(rgba.red(), rgba.green(), rgba.blue());
                 }
             }

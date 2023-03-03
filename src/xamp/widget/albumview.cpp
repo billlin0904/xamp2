@@ -89,6 +89,16 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     return true;
 }
 
+QPixmap AlbumViewStyledDelegate::GetCover(const QString& cover_id) const {
+    const auto add_factory = [cover_id]() {
+        return image_utils::RoundImage(
+            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
+            image_utils::kSmallImageRadius);
+    };
+
+    return image_cache_.GetOrAdd(cover_id, add_factory);
+}
+
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
@@ -152,14 +162,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    const auto add_factory = [cover_id, default_cover_size]() {
-        return image_utils::RoundImage(
-            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), default_cover_size, true),
-            image_utils::kSmallImageRadius);
-    };
-
-    auto album_image = image_cache_.GetOrAdd(cover_id, add_factory);
-    painter->drawPixmap(cover_rect, album_image);
+    
+    painter->drawPixmap(cover_rect, GetCover(cover_id));
 
     bool hit_play_button = false;
     if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {

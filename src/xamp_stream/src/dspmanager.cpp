@@ -8,6 +8,7 @@
 #include <stream/bassvolume.h>
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/foobardspadapter.h>
+#include <stream/basscompressor.h>
 
 #include <base/exception.h>
 #include <base/logger_impl.h>
@@ -67,6 +68,11 @@ IDSPManager& DSPManager::RemoveVolume() {
     return *this;
 }
 
+IDSPManager& DSPManager::RemoveCompressor() {
+    RemovePreDSP<BassCompressor>();
+    return *this;
+}
+
 IDSPManager& DSPManager::RemoveSampleRateConverter() {
     RemovePreDSP<R8brainSampleRateConverter>();
     RemovePreDSP<SoxrSampleRateConverter>();
@@ -74,8 +80,8 @@ IDSPManager& DSPManager::RemoveSampleRateConverter() {
 }
 
 bool DSPManager::CanProcess() const noexcept {
-    if (!pre_dsp_.empty() || !post_dsp_.empty()) {
-        return true;
+    if (pre_dsp_.empty() && post_dsp_.empty()) {
+        return false;
     }
 
 	const auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);

@@ -81,14 +81,14 @@ void WheelableWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void WheelableWidget::ScrollTo(const int32_t index) {
 	do_signal_ = false;
-	auto scroller = QScroller::scroller(this);
+	auto* scroller = QScroller::scroller(this);
 	scroller->scrollTo(QPointF(0, kWheelScrollOffset + index * ItemHeight()), kScrollTime);
 }
 
 bool WheelableWidget::event(QEvent* event) {
 	switch (event->type()) {
 	case QEvent::ScrollPrepare: {
-			auto scroll_prepare_event = dynamic_cast<QScrollPrepareEvent *>(event);
+			auto* scroll_prepare_event = dynamic_cast<QScrollPrepareEvent *>(event);
 			scroll_prepare_event->setViewportSize(QSizeF(size()));
 			scroll_prepare_event->setContentPosRange(QRectF(0.0, 0.0, 0.0, kWheelScrollOffset * 2));
 			scroll_prepare_event->setContentPos(QPointF(0.0, kWheelScrollOffset + item_ * ItemHeight() + item_offset_));

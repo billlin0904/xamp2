@@ -101,7 +101,6 @@ public:
     HRESULT Invoke(IMFAsyncResult* pAsyncResult) override {
         MediaEventType me_type = MEUnknown;
         HRESULT status = S_OK;
-        MFTIME pos;
         LONGLONG prev = 0;
 
         CComPtr<IMFMediaEvent> evt;
@@ -190,7 +189,7 @@ public:
                 MFTIME pos = 0;
                 hr = callback_->GetEncodingPosition(pos);
                 if (SUCCEEDED(hr)) {
-                    const LONGLONG percent = (100 * pos) / duration;
+                    const uint32_t percent = (100 * pos) / duration;
                     progress(percent);
                 }                
             } else {

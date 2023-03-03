@@ -43,6 +43,8 @@ public:
 
     IDSPManager& RemoveSampleRateConverter() override;
 
+    IDSPManager& RemoveCompressor() override;
+
     void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
 
     bool IsEnableSampleRateConverter() const override;

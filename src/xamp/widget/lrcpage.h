@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2023 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -19,8 +19,8 @@ class QPaintEvent;
 
 class LrcPage : public QFrame {
 	Q_OBJECT
-	Q_PROPERTY(int disappearBgProg READ GetDisappearBgProg WRITE SetDisappearBgProg)
-	Q_PROPERTY(int appearBgProg READ GetAppearBgProg WRITE SetAppearBgProg)
+	Q_PROPERTY(int disappearBgProg READ GetDisappearBgProgress WRITE SetDisappearBgProgress)
+	Q_PROPERTY(int appearBgProg READ GetAppearBgProgress WRITE SetAppearBgProgress)
 public:
 	explicit LrcPage(QWidget* parent = nullptr);
 
@@ -54,17 +54,19 @@ public slots:
 	void ClearBackground();
 
 private:
-	void SetAppearBgProg(int x);
+	void SetAppearBgProgress(int x);
 
-	int GetAppearBgProg() const;
+	int GetAppearBgProgress() const;
 
-	void SetDisappearBgProg(int x);
+	void SetDisappearBgProgress(int x);
 
-	int GetDisappearBgProg() const;
+	int GetDisappearBgProgress() const;
 
 	void StartBackgroundAnimation(int durationMs);
 
 	void paintEvent(QPaintEvent*) override;
+
+	void resizeEvent(QResizeEvent* event) override;
 
 	void initial();
 

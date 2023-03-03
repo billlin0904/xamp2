@@ -39,6 +39,11 @@ void LrcPage::SetCover(const QPixmap& src) {
 	cover_ = src;
 	const auto cover_size = cover_label_->size();
     cover_label_->setPixmap(image_utils::RoundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
+
+	if (AppSettings::ValueAsBool(kEnableBlurCover)) {
+		lyrics_widget_->SetLrcHighLight(Qt::white);
+		format_label_->setStyleSheet(qTEXT("color: white"));
+	}
 }
 
 QSize LrcPage::CoverSize() const {
@@ -67,15 +72,27 @@ void LrcPage::ClearBackground() {
 }
 
 void LrcPage::SetFullScreen(bool enter) {
+	auto f = font();
+
 	if (!enter) {
 		cover_label_->setMinimumSize(QSize(355, 355));
 		cover_label_->setMaximumSize(QSize(355, 355));
+		f.setPointSize(qTheme.GetFontSize(12));
+		format_label_->setFont(f);
 	} else {
 		cover_label_->setMinimumSize(QSize(700, 700));
 		cover_label_->setMaximumSize(QSize(700, 700));
+		f.setPointSize(qTheme.GetFontSize(16));
+		format_label_->setFont(f);
 	}
+
 	const auto cover_size = cover_label_->size();
-	cover_label_->setPixmap(image_utils::RoundImage(cover_, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
+	cover_label_->setPixmap(image_utils::RoundImage(cover_, 
+		QSize(cover_size.width(), cover_size.height()), image_utils::kSmallImageRadius));
+}
+
+void LrcPage::resizeEvent(QResizeEvent* event) {
+	SetFullScreen(spectrum_->width() > 700);
 }
 
 void LrcPage::SetBackground(const QImage& cover) {
@@ -135,21 +152,21 @@ void LrcPage::paintEvent(QPaintEvent*) {
 	}
 }
 
-void LrcPage::SetAppearBgProg(int x) {
+void LrcPage::SetAppearBgProgress(int x) {
 	current_bg_alpha_ = x;
 	update();
 }
 
-int LrcPage::GetAppearBgProg() const {
+int LrcPage::GetAppearBgProgress() const {
 	return current_bg_alpha_;
 }
 
-void LrcPage::SetDisappearBgProg(int x) {
+void LrcPage::SetDisappearBgProgress(int x) {
 	prev_bg_alpha_ = x;
 	update();
 }
 
-int LrcPage::GetDisappearBgProg() const {
+int LrcPage::GetDisappearBgProgress() const {
 	return prev_bg_alpha_;
 }
 
@@ -164,19 +181,24 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 		cover_label_->setGraphicsEffect(effect);
 	}
 
-	switch (theme_color) {
-	case ThemeColor::DARK_THEME:
-		lyrics_widget_->SetLrcColor(Qt::lightGray);
+	if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
+		switch (theme_color) {
+		case ThemeColor::DARK_THEME:
+			lyrics_widget_->SetLrcColor(Qt::lightGray);
+			lyrics_widget_->SetLrcHighLight(Qt::white);
+			AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+			AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
+			break;
+		case ThemeColor::LIGHT_THEME:
+			lyrics_widget_->SetLrcColor(Qt::lightGray);
+			lyrics_widget_->SetLrcHighLight(Qt::black);
+			AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+			AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
+			break;
+		}
+	} else {
 		lyrics_widget_->SetLrcHighLight(Qt::white);
-		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
-		break;
-	case ThemeColor::LIGHT_THEME:
-		lyrics_widget_->SetLrcColor(Qt::lightGray);
-		lyrics_widget_->SetLrcHighLight(Qt::black);
-		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
-		break;
+		format_label_->setStyleSheet(qTEXT("color: white"));
 	}
 }
 
@@ -200,6 +222,9 @@ void LrcPage::initial() {
 	format_label_->setMinimumHeight(40);
 	format_label_->setMaximumHeight(40);
 	format_label_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	QFont format_font(qTEXT("FormatFont"));
+	format_font.setPointSize(qTheme.GetFontSize(12));
+	format_label_->setFont(format_font);
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
@@ -207,14 +232,6 @@ void LrcPage::initial() {
     cover_label_->setMaximumSize(QSize(355, 355));
 	cover_label_->setStyleSheet(qTEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
-
-	if (!AppSettings::ValueAsBool(kEnableBlurCover) && qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
-		auto* effect = new QGraphicsDropShadowEffect(this);
-		effect->setOffset(10, 20);
-		effect->setColor(qTheme.GetCoverShadowColor());
-		effect->setBlurRadius(50);
-		cover_label_->setGraphicsEffect(effect);
-	}
 
     vertical_layout_3->addWidget(cover_label_);
 
@@ -358,6 +375,16 @@ void LrcPage::initial() {
 	title_->hide();
 	album_->hide();
 	artist_->hide();
+
+	if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
+		if (qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
+			auto* effect = new QGraphicsDropShadowEffect(this);
+			effect->setOffset(10, 20);
+			effect->setColor(qTheme.GetCoverShadowColor());
+			effect->setBlurRadius(50);
+			cover_label_->setGraphicsEffect(effect);
+		}
+	}
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 }

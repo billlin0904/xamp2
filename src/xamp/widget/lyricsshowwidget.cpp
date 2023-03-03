@@ -2,9 +2,9 @@
 #include <QPainter>
 #include <QDropEvent>
 #include <QMimeData>
-#include <QColorDialog>
 #include <QFileInfo>
 
+#include <widget/widget_shared.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
@@ -15,16 +15,56 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 	: WheelableWidget(false, parent)
 	, pos_(0)
 	, last_lyric_index_(0)
-	, item_precent_(0)
+	, item_percent_(0)
 	, lrc_color_(Qt::darkGray)
     , lrc_highlight_color_(Qt::black) {
     initial();
+}
+
+void LyricsShowWidget::ResizeFontSize() {
+	auto font_size = 16;
+	QFontMetrics lrc_metrics(lrc_font_);
+	const auto itr = std::max_element(lyric_.begin(), lyric_.end(), 
+	                                  [&lrc_metrics](const auto &a, const auto &b) {
+		                                  return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
+			                                  < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
+	                                  });
+	if (itr == lyric_.end()) {
+		lrc_font_.setPointSize(font_size);
+		return;
+	}
+
+	const auto max_lrc = QString::fromStdWString((*itr).lrc);
+	if (max_lrc.isEmpty()) {
+		lrc_font_.setPointSize(font_size);
+		return;
+	}
+
+	XAMP_LOG_DEBUG("Max length lrc: {}", String::ToString((*itr).lrc));
+
+	//const int32_t item_height = ItemHeight() * 1.2 / 10;
+	//font_size += item_height;
+	lrc_font_.setPointSize(font_size);
+
+	lrc_metrics = QFontMetrics(lrc_font_);
+	while (lrc_metrics.horizontalAdvance(max_lrc) > size().width()) {		
+		const auto max_width = lrc_metrics.horizontalAdvance(max_lrc);
+		font_size -= 5;
+		lrc_font_.setPointSize(font_size);
+		lrc_metrics = QFontMetrics(lrc_font_);
+		XAMP_LOG_DEBUG("Change font size => {}, width: {}", font_size, max_width);
+	}
+}
+
+void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
+	ResizeFontSize();
 }
 
 void LyricsShowWidget::initial() {
     lrc_font_ = font();
 	lrc_font_.setPointSize(AppSettings::ValueAsInt(kLyricsFontSize));
 
+	ResizeFontSize();
 	SetDefaultLrc();
 
 	SetLrcColor(AppSettings::ValueAsColor(kLyricsTextColor));
@@ -33,17 +73,18 @@ void LyricsShowWidget::initial() {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<LyricsShowWidget> action_map(this);
-
 		(void)action_map.AddAction(tr("Show original lyrics"), [this]() {
 			lrc_ = orilyrc_;
 			LoadLrc(lrc_);
+
 		});
 
 		(void)action_map.AddAction(tr("Show translate lyrics"), [this]() {
 			lrc_ = trlyrc_;
 			LoadLrc(lrc_);
+			ResizeFontSize();
 		});
-
+#if 0
 		(void)action_map.AddAction(tr("Set font size(small)"), [this]() {
 			AppSettings::SetValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(qTheme.GetFontSize(12));
@@ -58,7 +99,6 @@ void LyricsShowWidget::initial() {
 			AppSettings::SetValue(kLyricsFontSize, 24);
 			lrc_font_.setPointSize(qTheme.GetFontSize(24));
 			});
-#if 0
 		(void)action_map.AddAction(tr("Change high light color"), [this]() {
 			auto text_color = AppSettings::ValueAsColor(kLyricsHighLightTextColor);
 			QColorDialog dlg(text_color, this);
@@ -170,7 +210,7 @@ void LyricsShowWidget::PaintItemMask(QPainter* painter) {
 }
 
 int32_t LyricsShowWidget::ItemHeight() const {
-    QFontMetrics metrics(lrc_font_);
+	const QFontMetrics metrics(lrc_font_);
     return static_cast<int32_t>(metrics.height() * 1.5);
 }
 
@@ -224,6 +264,7 @@ bool LyricsShowWidget::LoadLrcFile(const QString &file_path) {
 		SetDefaultLrc();
 		return false;
 	}
+	ResizeFontSize();
 	update();
 	return true;
 }
@@ -247,6 +288,7 @@ void LyricsShowWidget::LoadLrc(const QString& lrc) {
 	if (!lyric_.Parse(stream)) {
 		return;
 	}
+	ResizeFontSize();
 	update();
 }
 
@@ -290,7 +332,7 @@ void LyricsShowWidget::SetLrcTime(int32_t stream_time) {
 
 	QFontMetrics metrics(current_mask_font_);
 
-	if (item_precent_ == precent) {
+	if (item_percent_ == precent) {
 		const auto count = static_cast<double>(interval) / 25.0;
 		const float lrc_mask_mini_step = metrics.width(text) / count;
 		mask_length_ += lrc_mask_mini_step;
@@ -299,7 +341,7 @@ void LyricsShowWidget::SetLrcTime(int32_t stream_time) {
 		mask_length_ = metrics.width(real_current_text_) * precent;
 	}
 
-	item_precent_ = precent;
+	item_percent_ = precent;
 	update();
 }
 

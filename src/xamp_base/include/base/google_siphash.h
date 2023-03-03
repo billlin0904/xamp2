@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2023 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -10,49 +10,6 @@
 #include <base/math.h>
 
 namespace xamp::base {
-
-#if XAMP_IS_LITTLE_ENDIAN
-XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
-	return x;
-}
-XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
-	return x;
-}
-static XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
-	return x;
-}
-XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
-	return x;
-}
-#elif !XAMP_IS_BIG_ENDIAN
-#  error "Unsupported byte order."
-#elif defined(XAMP_OS_WIN)
-static XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
-	return _byteswap_ulong(x);
-}
- static XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
-	return _byteswap_ulong(x);
-}
- static XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
-	return _byteswap_uint64(x);
-}
-static XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
-	return _byteswap_uint64(x);
-}
-#else
-XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
-	return __builtin_bswap32(x);
-}
-XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
-	return __builtin_bswap32(x);
-}
-XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
-	return __builtin_bswap64(x);
-}
-XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
-	return __builtin_bswap64(x);
-}
-#endif
 
 // Ref: https://github.com/google/highwayhash
 template <int TUpdateRounds = 2, int TFinalizeRounds = 4>

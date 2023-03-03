@@ -1,5 +1,4 @@
 #include <QCloseEvent>
-#include <QDebug>
 #include <QFileDialog>
 #include <QFileSystemWatcher>
 #include <QInputDialog>
@@ -48,14 +47,12 @@
 #include <widget/spectrumwidget.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
-#include <widget/volumecontroldialog.h>
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 
 #if defined(Q_OS_WIN)
-#include <stream/mfaacencoder.h>
 #endif
 
 #include "xamp.h"
@@ -712,6 +709,7 @@ void Xamp::SetFullScreen() {
         ui_.bottomFrame->setHidden(true);
         ui_.sliderFrame->setHidden(true);
         ui_.titleFrame->setHidden(true);
+        ui_.verticalSpacer_3->changeSize(0, 0);
         main_window_->showFullScreen();
         lrc_page_->SetFullScreen(true);
         AppSettings::SetValue(kAppSettingEnterFullScreen, false);
@@ -720,8 +718,8 @@ void Xamp::SetFullScreen() {
         ui_.bottomFrame->setHidden(false);
         ui_.sliderFrame->setHidden(false);
         ui_.titleFrame->setHidden(false);
+        ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
         main_window_->showNormal();
-        main_window_->RestoreGeometry();
         lrc_page_->SetFullScreen(false);
         AppSettings::SetValue(kAppSettingEnterFullScreen, true);
     }
@@ -1134,6 +1132,7 @@ void Xamp::play(const PlayListEntity& item) {
             player_->GetDspManager()->RemoveSampleRateConverter();
             player_->GetDspManager()->RemoveVolume();
             player_->GetDspManager()->RemoveEqualizer();
+            player_->GetDspManager()->RemoveCompressor();
 
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
                 byte_format = ByteFormat::SINT16;
@@ -1146,11 +1145,10 @@ void Xamp::play(const PlayListEntity& item) {
                 sample_rate_converter_factory();
             }
             SetupDsp(item);
-        }
-
-        // note: Only PCM dsd modes enable compressor.
-        if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
-            player_->GetDspManager()->AddCompressor();
+            // note: Only PCM dsd modes enable compressor.
+            if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
+                player_->GetDspManager()->AddCompressor();
+            }
         }
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {

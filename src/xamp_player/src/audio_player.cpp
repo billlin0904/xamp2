@@ -33,9 +33,9 @@ namespace xamp::player {
 XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
 #ifdef _DEBUG
-static constexpr int32_t kBufferStreamCount = 3;
+static constexpr int32_t kBufferStreamCount = 10;
 #else
-static constexpr int32_t kBufferStreamCount = 2;
+static constexpr int32_t kBufferStreamCount = 10;
 #endif
 
 static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;

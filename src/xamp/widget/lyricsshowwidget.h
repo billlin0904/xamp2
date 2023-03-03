@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2023 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -58,15 +58,20 @@ private:
 
 	void dropEvent(QDropEvent* event) override;
 
+	void resizeEvent(QResizeEvent* event) override;
+
 	void SetDefaultLrc();
 
     void initial();
 
 	void LoadLrc(const QString& lrc);
 
+	void ResizeFontSize();
+
 	int32_t pos_;
     int32_t last_lyric_index_;
-	float item_precent_;	
+	float item_percent_;
+	QSize base_size_;
 	QFont lrc_font_;
 	QFont current_mask_font_;
 	QColor lrc_color_;

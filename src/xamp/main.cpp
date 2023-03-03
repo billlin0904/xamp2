@@ -341,7 +341,7 @@ static std::vector<SharedLibraryHandle> PrefetchDll() {
 #ifdef _DEBUG
 XAMP_DECLARE_LOG_NAME(Qt);
 
-static void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
     QString str;
     QTextStream stream(&str);
     stream.setCodec("UTF-8");
@@ -403,7 +403,7 @@ static int Execute(int argc, char* argv[]) {
 #ifndef _DEBUG    
 #else
 #ifdef XAMP_OS_WIN
-    qInstallMessageHandler(logMessageHandler);
+    qInstallMessageHandler(LogMessageHandler);
     QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
 #endif
