@@ -4,8 +4,8 @@
 #include <fstream>
 
 #include <stream/avlib.h>
-#include <stream/dsd_utils.h>
 
+#include <base/dsd_utils.h>
 #include <base/scopeguard.h>
 #include <base/encodingprofile.h>
 

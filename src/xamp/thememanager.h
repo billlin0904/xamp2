@@ -21,6 +21,7 @@ class QPushButton;
 class QToolButton;
 class QSlider;
 class QLabel;
+class QListView;
 
 namespace Ui {
 class XampWindow;
@@ -131,7 +132,9 @@ public:
 
     void SetSliderTheme(QSlider* slider, bool enter = false);
 
-    void SetSliderBarTheme(Ui::XampWindow& ui);
+    void SetTabTheme(Ui::XampWindow& ui);
+
+    void SetTabTheme(QListView* tab);
 
     QIcon GetConnectTypeIcon(DeviceConnectType type) const;
 

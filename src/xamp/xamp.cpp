@@ -11,10 +11,10 @@
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
+#include <base/dsd_utils.h>
 
 #include <stream/api.h>
 #include <stream/bassaacfileencoder.h>
-#include <stream/dsd_utils.h>
 #include <stream/idspmanager.h>
 #include <stream/pcm2dsdsamplewriter.h>
 #include <stream/r8brainresampler.h>
@@ -72,7 +72,7 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
 	, cd_page_(nullptr)
 	, current_playlist_page_(nullptr)
     , album_page_(nullptr)
-    , artist_info_page_(nullptr)
+    //, artist_info_page_(nullptr)
 	, file_system_view_page_(nullptr)
 	, main_window_(nullptr)
 	, background_worker_(nullptr)
@@ -642,9 +642,6 @@ void Xamp::SetCurrentTab(int32_t table_id) {
         album_page_->Refresh();
         ui_.currentView->setCurrentWidget(album_page_);
         break;
-    case TAB_ARTIST:
-        ui_.currentView->setCurrentWidget(artist_info_page_);
-        break;
     case TAB_FILE_EXPLORER:
         ui_.currentView->setCurrentWidget(file_system_view_page_);
         break;
@@ -1213,9 +1210,9 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
         cur_page->format()->setText(Format2String(playback_format, ext));
 
-        artist_info_page_->SetArtistId(item.artist,
+        /*artist_info_page_->SetArtistId(item.artist,
             qDatabase.GetArtistCoverId(item.artist_id),
-            item.artist_id);
+            item.artist_id);*/
         album_page_->album()->SetPlayingAlbumId(item.album_id);
         UpdateButtonState();
         emit NowPlaying(item.artist, item.title);
@@ -1335,7 +1332,7 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
     }
 }
 
-PlaylistPage* Xamp::CurrentPlyalistPage() {
+PlaylistPage* Xamp::CurrentPlaylistPage() {
     current_playlist_page_ = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
     if (!current_playlist_page_) {
         current_playlist_page_ = playlist_page_;
@@ -1353,7 +1350,7 @@ void Xamp::PlayPlayListEntity(const PlayListEntity& item) {
 
 void Xamp::PlayNextItem(int32_t forward) {
     if (!current_playlist_page_) {
-        CurrentPlyalistPage();
+        CurrentPlaylistPage();
     }
 
     auto* playlist_view = current_playlist_page_->playlist();
@@ -1375,8 +1372,9 @@ void Xamp::PlayNextItem(int32_t forward) {
 }
 
 void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
-    artist_info_page_->SetArtistId(artist, qDatabase.GetArtistCoverId(artist_id), artist_id);
-    ui_.currentView->setCurrentWidget(artist_info_page_);
+    /*artist_info_page_->SetArtistId(artist, qDatabase.GetArtistCoverId(artist_id), artist_id);
+    ui_.currentView->setCurrentWidget(artist_info_page_);*/
+    album_page_->SetArtistId(artist, qDatabase.GetArtistCoverId(artist_id), artist_id);
 }
 
 void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
@@ -1428,14 +1426,14 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
 void Xamp::InitialPlaylist() {
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
-    artist_info_page_ = new ArtistInfoPage(this);
+    //artist_info_page_ = new ArtistInfoPage(this);
 
     ui_.sliderBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
     ui_.sliderBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
     ui_.sliderBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
     ui_.sliderBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
     ui_.sliderBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
-    ui_.sliderBar->AddTab(tr("Artists"), TAB_ARTIST, qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
+   //ui_.sliderBar->AddTab(tr("Artists"), TAB_ARTIST, qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
     ui_.sliderBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
@@ -1574,7 +1572,7 @@ void Xamp::InitialPlaylist() {
     PushWidget(playlist_page_);
     PushWidget(lrc_page_);
     PushWidget(album_page_);
-    PushWidget(artist_info_page_);
+    //PushWidget(artist_info_page_);
     PushWidget(podcast_page_);
     PushWidget(file_system_view_page_);
     PushWidget(cd_page_);
@@ -1586,20 +1584,20 @@ void Xamp::InitialPlaylist() {
         this,
         &Xamp::OnArtistIdChanged);
 
-    (void)QObject::connect(artist_info_page_->album(),
+    /*(void)QObject::connect(artist_info_page_->album(),
         &AlbumView::ClickedAlbum,
         this,
-        &Xamp::OnClickedAlbum);
+        &Xamp::OnClickedAlbum);*/
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
         album_page_->album(),
         &AlbumView::OnThemeChanged);
 
-    (void)QObject::connect(this,
+    /*(void)QObject::connect(this,
         &Xamp::ThemeChanged,
         artist_info_page_,
-        &ArtistInfoPage::OnThemeChanged);
+        &ArtistInfoPage::OnThemeChanged);*/
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
@@ -1621,10 +1619,10 @@ void Xamp::InitialPlaylist() {
         this,
         &Xamp::AddPlaylistItem);
 
-    (void)QObject::connect(artist_info_page_->album(),
+    /*(void)QObject::connect(artist_info_page_->album(),
         &AlbumView::AddPlaylist,
         this,
-        &Xamp::AddPlaylistItem);
+        &Xamp::AddPlaylistItem);*/
 }
 
 void Xamp::AppendToPlaylist(const QString& file_name) {

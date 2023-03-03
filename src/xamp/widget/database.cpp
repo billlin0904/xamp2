@@ -114,19 +114,15 @@ void Database::open() {
 }
 
 bool Database::transaction() {
-    locker_.lockForWrite();
     return db_.transaction();
 }
 
 bool Database::commit() {
-    auto result = db_.commit();
-    locker_.unlock();
-    return result;
+    return db_.commit();
 }
 
 void Database::rollback() {
     db_.rollback();
-    locker_.unlock();
 }
 
 QString Database::GetVersion() const {

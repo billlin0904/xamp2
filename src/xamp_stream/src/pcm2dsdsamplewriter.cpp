@@ -1,8 +1,8 @@
 #include <stream/pcm2dsdsamplewriter.h>
 
 #include <stream/fftwlib.h>
-#include <stream/dsd_utils.h>
 
+#include <base/dsd_utils.h>
 #include <base/exception.h>
 #include <base/memory.h>
 #include <base/logger_impl.h>

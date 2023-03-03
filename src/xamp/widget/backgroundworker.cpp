@@ -62,7 +62,9 @@ void BackgroundWorker::ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapt
     }
 
     if (paths.empty()) {
-        paths.push_front(dir.toStdWString());
+	    const auto path = dir.toStdWString();
+        paths.push_front(path);
+        hasher.Update(path);
     }
 
     const auto path_hash = hasher.GetHash();

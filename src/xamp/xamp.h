@@ -37,7 +37,6 @@ class QWidgetAction;
 class QFileSystemWatcher;
 class FileSystemViewPage;
 struct PlaybackFormat;
-class ToolTipsFilter;
 class QRadioButton;
 class BackgroundWorker;
 class CdPage;
@@ -197,7 +196,7 @@ private:
 
 	void ExtractFile(const QString &file_path);
 
-	PlaylistPage* CurrentPlyalistPage();
+	PlaylistPage* CurrentPlaylistPage();
 
 	void cleanup();
 
@@ -236,10 +235,9 @@ private:
 	CdPage* cd_page_;
 	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_page_;
-    ArtistInfoPage* artist_info_page_;
+    //ArtistInfoPage* artist_info_page_;
 	FileSystemViewPage* file_system_view_page_;
 	IXMainWindow* main_window_;
-	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;

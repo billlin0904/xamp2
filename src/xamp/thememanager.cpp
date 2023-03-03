@@ -972,15 +972,49 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
     );
 }
 
-void ThemeManager::SetSliderBarTheme(Ui::XampWindow& ui) {
-	QString slider_bar_left_color;
+void ThemeManager::SetTabTheme(QListView *tab) {
+    QString tab_left_color;
+
+    switch (GetThemeColor()) {
+    case ThemeColor::DARK_THEME:
+        tab_left_color = qTEXT("42, 130, 218");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        tab_left_color = qTEXT("42, 130, 218");
+        break;
+    }
+
+    tab->setStyleSheet(qSTR(R"(
+	QListView#albumTab {
+		border: none; 
+	}
+	QListView#albumTab::item {
+		border: 0px;
+		padding-left: 6px;
+	}
+	QListView#albumTab::item:hover {
+		background-color: transparent;
+		border-radius: 2px;
+	}
+	QListView#albumTab::item:selected {
+		padding-left: 4px;
+		background-color: transparent;
+		border-bottom-width: 2px;
+		border-bottom-style: solid;
+		border-bottom-color: rgb(%1);
+	}	
+	)").arg(tab_left_color));
+}
+
+void ThemeManager::SetTabTheme(Ui::XampWindow& ui) {
+	QString tab_left_color;
 
 	switch (GetThemeColor()) {
 	case ThemeColor::DARK_THEME:
-		slider_bar_left_color = qTEXT("42, 130, 218");
+		tab_left_color = qTEXT("42, 130, 218");
 		break;
 	case ThemeColor::LIGHT_THEME:
-		slider_bar_left_color = qTEXT("42, 130, 218");
+		tab_left_color = qTEXT("42, 130, 218");
 		break;
 	}
 
@@ -996,12 +1030,12 @@ void ThemeManager::SetSliderBarTheme(Ui::XampWindow& ui) {
 		border-radius: 2px;
 	}
 	QListView#sliderBar::item:selected {
-		padding-left: 4px;
+		padding-left: 4px;		
 		border-left-width: 2px;
 		border-left-style: solid;
 		border-left-color: rgb(%1);
 	}	
-	)").arg(slider_bar_left_color));
+	)").arg(tab_left_color));
 }
 
 void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
@@ -1149,7 +1183,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-    SetSliderBarTheme(ui);
+    SetTabTheme(ui);
 
     SetSliderTheme(ui.seekSlider);
 

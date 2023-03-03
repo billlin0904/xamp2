@@ -128,31 +128,25 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
-    constexpr auto kRetryInsertCount = 3;
-
-    for (auto i = 0; i < kRetryInsertCount; ++i) {
-        try {
-            Stopwatch sw;
-            AddTrackInfo(result, playlist_id, is_podcast_mode);
-            XAMP_LOG_DEBUG("Add TrackInfo {} secs", sw.ElapsedSeconds());
-            return;
-        }
-        catch (Exception const& e) {
-            XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
-        }
-        catch (std::exception const& e) {
-            XAMP_LOG_DEBUG("Failed to add track info({})!", e.what());
-        }
-        catch (...) {
-            XAMP_LOG_DEBUG("Failed to add track info!");
-        }
-        XAMP_LOG_DEBUG("Retry insert database count: {}.", i);
+    try {
+        Stopwatch sw;
+        AddTrackInfo(result, playlist_id, is_podcast_mode);
+        XAMP_LOG_DEBUG("Add TrackInfo {} secs", sw.ElapsedSeconds());
+    }
+    catch (Exception const& e) {
+        XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
+    }
+    catch (std::exception const& e) {
+        XAMP_LOG_DEBUG("Failed to add track info({})!", e.what());
+    }
+    catch (...) {
+        XAMP_LOG_DEBUG("Failed to add track info!");
     }
 }
 
 TrackInfo GetTrackInfo(QString const& file_path) {
     const Path path(file_path.toStdWString());
-    auto reader = MakeMetadataReader();
+    const auto reader = MakeMetadataReader();
     return reader->Extract(path);
 }
 

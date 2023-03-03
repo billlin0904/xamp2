@@ -6,8 +6,27 @@
 #pragma once
 
 #include <QFrame>
+#include <QListView>
+#include <QStandardItemModel>
 
 class AlbumView;
+class ArtistInfoPage;
+
+class AlbumTabListView : public QListView {
+	Q_OBJECT
+public:
+	explicit AlbumTabListView(QWidget* parent);
+
+	void AddTab(const QString& name, int tab_id);
+
+signals:
+	void ClickedTable(int table_id);
+
+	void TableNameChanged(int table_id, const QString& name);
+
+private:
+	QStandardItemModel model_;
+};
 
 class AlbumArtistPage final : public QFrame {
 	Q_OBJECT
@@ -23,7 +42,11 @@ public slots:
 
 	void Refresh();
 
+	void SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
+
 private:
+	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
+	ArtistInfoPage* artist_view_;
 };
 

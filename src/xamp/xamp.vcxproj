@@ -185,7 +185,12 @@
     <ClCompile Include="singleinstanceapplication.cpp" />
     <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="version.cpp" />
-    <ClCompile Include="widget\albumartistpage.cpp" />
+    <ClCompile Include="widget\albumartistpage.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="widget\albumentity.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
@@ -324,8 +329,7 @@
     <QtMoc Include="widget\albumartistpage.h">
     </QtMoc>
     <ClInclude Include="widget\appsettings.h" />
-    <QtMoc Include="widget\artistinfopage.h">
-    </QtMoc>
+    <QtMoc Include="widget\artistinfopage.h" />
     <ClInclude Include="widget\database.h" />
     <QtMoc Include="widget\albumview.h">
     </QtMoc>

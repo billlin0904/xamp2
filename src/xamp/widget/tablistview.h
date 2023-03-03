@@ -17,7 +17,6 @@ enum TabIndex {
     TAB_LYRICS,
     TAB_PODCAST,    
     TAB_ALBUM,
-    TAB_ARTIST,
     TAB_CD,
 };
 

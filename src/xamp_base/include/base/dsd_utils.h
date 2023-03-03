@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include <stream/stream.h>
+#include <base/base.h>
 
-namespace xamp::stream {
+namespace xamp::base {
 
 inline constexpr int32_t kPcmSampleRate441{ 44100 };
 inline constexpr int32_t kPcmSampleRate48{  48000 };
 
-XAMP_STREAM_API uint32_t GetDOPSampleRate(uint32_t dsd_speed);
+XAMP_BASE_API uint32_t GetDOPSampleRate(uint32_t dsd_speed);
 
 }

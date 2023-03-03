@@ -1,9 +1,8 @@
-#include <stream/dsd_utils.h>
-#include <stream/bassexception.h>
 #include <base/exception.h>
 #include <base/str_utilts.h>
+#include <base/dsd_utils.h>
 
-namespace xamp::stream {
+namespace xamp::base {
 
 uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     switch (dsd_speed) {

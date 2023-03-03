@@ -115,6 +115,9 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	SetAlbumCount(0);
 	SetTracks(0);
 	SetTotalDuration(0);
+
+	title->hide();
+	cover_->hide();
 }
 
 QPixmap ArtistInfoPage::GetArtistImage(QPixmap const* cover) const {

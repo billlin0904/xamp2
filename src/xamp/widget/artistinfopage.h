@@ -42,5 +42,3 @@ private:
 	AlbumView* album_view_;
 	QString cover_id_;
 };
-
-
