@@ -58,7 +58,15 @@ void AlbumViewStyledDelegate::ClearImageCache() {
     image_cache_.Clear();
 }
 
+void AlbumViewStyledDelegate::EnableAlbumView(bool enable) {
+    enable_album_view_ = enable;
+}
+
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
+    if (!enable_album_view_) {
+        return true;
+    }
+
 	const auto* ev = static_cast<QMouseEvent*> (event);
     mouse_point_ = ev->pos();
 	const auto current_cursor = QApplication::overrideCursor();
@@ -166,7 +174,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawPixmap(cover_rect, GetCover(cover_id));
 
     bool hit_play_button = false;
-    if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
+    if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
 
         constexpr auto kIconSize = 48;
@@ -189,23 +197,25 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             hit_play_button = true;
         }
     }
-    
-    const QRect more_button_rect(
-        option.rect.left() + default_cover_size.width() - 10,
-        option.rect.top() + default_cover_size.height() + 35,
-        kMoreIconSize, kMoreIconSize);
-    
+
     QStyleOptionButton button;
-    button.initFrom(more_album_opt_button_.get());
-    button.rect = more_button_rect;
-    button.icon = qTheme.GetFontIcon(Glyphs::ICON_MORE);
-    button.state |= QStyle::State_Enabled;
-    if (more_button_rect.contains(mouse_point_)) {
-        button.state |= QStyle::State_Sunken;
-        painter->setPen(qTheme.GetHoverColor());
-        painter->setBrush(QBrush(qTheme.GetHoverColor()));
-        painter->drawEllipse(more_button_rect);
-    }
+
+    if (enable_album_view_) {
+        const QRect more_button_rect(
+            option.rect.left() + default_cover_size.width() - 10,
+            option.rect.top() + default_cover_size.height() + 35,
+            kMoreIconSize, kMoreIconSize);
+        button.initFrom(more_album_opt_button_.get());
+        button.rect = more_button_rect;
+        button.icon = qTheme.GetFontIcon(Glyphs::ICON_MORE);
+        button.state |= QStyle::State_Enabled;
+        if (more_button_rect.contains(mouse_point_)) {
+            button.state |= QStyle::State_Sunken;
+            painter->setPen(qTheme.GetHoverColor());
+            painter->setBrush(QBrush(qTheme.GetHoverColor()));
+            painter->drawEllipse(more_button_rect);
+        }
+    }    
 
     if (more_album_opt_button_->isDefault()) {
         button.features = QStyleOptionButton::DefaultButton;
@@ -541,6 +551,7 @@ void AlbumView::ShowMenu(const QPoint &pt) {
 
 void AlbumView::EnablePage(bool enable) {
     enable_page_ = enable;
+    styled_delegate_->EnableAlbumView(enable);
 }
 
 void AlbumView::OnThemeChanged(QColor backgroundColor, QColor color) {

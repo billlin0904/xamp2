@@ -149,6 +149,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         lrc_page_,
         &LrcPage::OnCurrentThemeChanged);
 
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::CurrentThemeChanged,
+        album_page_,
+        &AlbumArtistPage::OnCurrentThemeChanged);
+
     QTimer::singleShot(300, [this]() {
         InitialDeviceList();   
         #if defined(XAMP_OS_WIN)
@@ -1894,6 +1899,11 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::ThemeChanged,
         playlist_page,
         &PlaylistPage::OnThemeColorChanged);
+
+    (void)QObject::connect(this,
+        &Xamp::ThemeChanged,
+        album_page_,
+        &AlbumArtistPage::OnThemeColorChanged);
 }
 
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {

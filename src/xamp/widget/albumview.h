@@ -35,6 +35,8 @@ public:
 
 	void ClearImageCache();
 
+	void EnableAlbumView(bool enable);
+
 	void SetPlayingAlbumId(int32_t album_id) {
 		playing_album_id_ = album_id;
 	}
@@ -53,6 +55,7 @@ protected:
 private:
 	QPixmap GetCover(const QString &cover_id) const;
 
+	bool enable_album_view_{ true };
 	int32_t playing_album_id_{ -1 };
 	QColor text_color_;
 	QPoint mouse_point_;

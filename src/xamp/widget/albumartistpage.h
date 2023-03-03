@@ -9,6 +9,8 @@
 #include <QListView>
 #include <QStandardItemModel>
 
+#include <widget/themecolor.h>
+
 class AlbumView;
 class ArtistInfoPage;
 
@@ -43,6 +45,10 @@ public slots:
 	void Refresh();
 
 	void SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
+
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
+	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
 	AlbumTabListView* list_view_;

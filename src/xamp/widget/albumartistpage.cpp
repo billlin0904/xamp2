@@ -42,10 +42,10 @@ AlbumTabListView::AlbumTabListView(QWidget* parent)
 void AlbumTabListView::AddTab(const QString& name, int tab_id) {
 	auto* item = new QStandardItem(name);
 	item->setData(tab_id);
-	item->setSizeHint(QSize(100, 30));
+	item->setSizeHint(QSize(150, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-	f.setPointSize(qTheme.GetFontSize(16));
+	f.setPointSize(qTheme.GetFontSize(22));
 	item->setFont(f);
 	model_.appendRow(item);
 }
@@ -72,7 +72,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	qTheme.SetTabTheme(list_view_);
 	const QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
-	list_view_->setMinimumSize(400, 30);
+	list_view_->setMinimumSize(500, 30);
 	list_view_->setMaximumHeight(50);
 	horizontal_layout_5->addWidget(list_view_);
 	auto* horizontalSpacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -108,6 +108,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 	current_view->setCurrentIndex(0);
+}
+
+void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+	album_view_->OnCurrentThemeChanged(theme_color);
+	artist_view_->album()->OnCurrentThemeChanged(theme_color);
+}
+
+void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
+	album_view_->OnThemeChanged(backgroundColor, color);
+	artist_view_->album()->OnThemeChanged(backgroundColor, color);
 }
 
 void AlbumArtistPage::SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
