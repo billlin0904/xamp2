@@ -36,10 +36,8 @@ SpectrumWidget* LrcPage::spectrum() {
 }
 
 void LrcPage::SetCover(const QPixmap& src) {
-	cover_ = src;
-	const auto cover_size = cover_label_->size();
-    cover_label_->setPixmap(image_utils::RoundImage(src, QSize(cover_size.width() - 5, cover_size.height() - 5), 5));
-
+    cover_ = src.copy();
+    SetFullScreen(spectrum_->width() > 700);
 	if (AppSettings::ValueAsBool(kEnableBlurCover)) {
 		lyrics_widget_->SetLrcHighLight(Qt::white);
 		format_label_->setStyleSheet(qTEXT("color: white"));
@@ -87,8 +85,9 @@ void LrcPage::SetFullScreen(bool enter) {
 	}
 
 	const auto cover_size = cover_label_->size();
-	cover_label_->setPixmap(image_utils::RoundImage(cover_, 
-		QSize(cover_size.width(), cover_size.height()), image_utils::kSmallImageRadius));
+    cover_label_->setPixmap(image_utils::RoundImage(cover_,
+       QSize(cover_size.width() - image_utils::kSmallImageRadius, cover_size.height() - image_utils::kSmallImageRadius),
+                                                    image_utils::kSmallImageRadius));
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
