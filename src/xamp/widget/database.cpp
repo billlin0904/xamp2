@@ -206,7 +206,7 @@ void Database::CreateTableIfNotExist() {
     create_table_sql.push_back(
         qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albums (
-                       albumId integer primary key autoincrement,
+                       albumId integer PRIMARY KEY AUTOINCREMENT,
                        artistId integer,
                        album TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
@@ -222,7 +222,7 @@ void Database::CreateTableIfNotExist() {
     create_table_sql.push_back(
         qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS artists (
-                       artistId integer primary key autoincrement,
+                       artistId integer PRIMARY KEY AUTOINCREMENT,
                        artist TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
                        firstChar TEXT,
@@ -244,7 +244,7 @@ void Database::CreateTableIfNotExist() {
     create_table_sql.push_back(
         qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albumMusic (
-                       albumMusicId integer primary key autoincrement,
+                       albumMusicId integer PRIMARY KEY AUTOINCREMENT,
                        musicId integer,
                        artistId integer,
                        albumId integer,
@@ -258,7 +258,7 @@ void Database::CreateTableIfNotExist() {
     create_table_sql.push_back(
         qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS musicLoudness (
-                       musicLoudnessId integer primary key autoincrement,
+                       musicLoudnessId integer PRIMARY KEY AUTOINCREMENT,
                        musicId integer,
                        artistId integer,
                        albumId integer,
@@ -273,7 +273,7 @@ void Database::CreateTableIfNotExist() {
     create_table_sql.push_back(
         qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS playlistMusics (
-                       playlistMusicsId integer primary key autoincrement,
+                       playlistMusicsId integer PRIMARY KEY AUTOINCREMENT,
                        playlistId integer,
                        musicId integer,
                        albumId integer,
@@ -288,7 +288,9 @@ void Database::CreateTableIfNotExist() {
         qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS pendingPlaylist (
                        pendingPlaylistId integer PRIMARY KEY AUTOINCREMENT,
+                       playlistId integer,
                        playlistMusicsId integer,
+                       FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
                        FOREIGN KEY(playlistMusicsId) REFERENCES playlistMusics(playlistMusicsId)
                        )
                        )"));
@@ -1265,6 +1267,20 @@ FROM
     THROW_IF_FAIL1(query);
 }
 
+void Database::ClearPendingPlaylist(int32_t playlist_id) {
+    QWriteLocker write_locker(&locker_);
+    SqlQuery query(db_);
+    query.prepare(qTEXT(R"(
+DELETE
+FROM
+    pendingPlaylist
+WHERE
+    playlistId = :playlistId
+    )"));
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
+    THROW_IF_FAIL1(query);
+}
+
 void Database::DeletePendingPlaylistMusic(int32_t pending_playlist_id) {
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
@@ -1279,16 +1295,17 @@ WHERE
     THROW_IF_FAIL1(query);
 }
 
-void Database::AddPendingPlaylist(int32_t playlist_musics_id) const {
+void Database::AddPendingPlaylist(int32_t playlist_musics_id, int32_t playlist_id) const {
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT INTO pendingPlaylist (pendingPlaylistId, playlistMusicsId)
-    VALUES (NULL, :playlistMusicsId)
+    INSERT INTO pendingPlaylist (pendingPlaylistId, playlistMusicsId, playlistId)
+    VALUES (NULL, :playlistMusicsId, :playlistId)
     )"));
     
     query.bindValue(qTEXT(":playlistMusicsId"), playlist_musics_id);
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
     THROW_IF_FAIL1(query);
 }
 

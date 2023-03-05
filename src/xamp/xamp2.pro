@@ -88,6 +88,7 @@ SOURCES += \
     widget/spotify_utilis.cpp \
     widget/xmainwindow.cpp \
     widget/pendingplaylistpage.cpp \
+    widget/colorthief.cpp \
     singleinstanceapplication.cpp \
     widget/zib_utiltis.cpp \
     version.cpp \
@@ -160,6 +161,7 @@ HEADERS += \
     widget/xmainwindow.h \
     widget/volumecontroldialog.h \
     widget/pendingplaylistpage.h \
+    widget/colorthief.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \

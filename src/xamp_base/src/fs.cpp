@@ -9,6 +9,7 @@
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
+#include <codecvt>
 #include <libgen.h>
 #include <limits.h>
 #include <mach-o/dyld.h>

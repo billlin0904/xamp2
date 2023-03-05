@@ -146,7 +146,9 @@ public:
 
     void ClearPendingPlaylist();
 
-    void AddPendingPlaylist(int32_t playlist_musics_id) const;
+    void ClearPendingPlaylist(int32_t playlist_id);
+
+    void AddPendingPlaylist(int32_t playlist_musics_id, int32_t playlist_id) const;
 
     std::pair<int32_t, int32_t> GetFirstPendingPlaylistMusic(int32_t playlist_id);
 

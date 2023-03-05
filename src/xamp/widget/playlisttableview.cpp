@@ -544,6 +544,7 @@ void PlayListTableView::initial() {
                 if (model_->rowCount() > 0) {
                     const auto button = XMessageBox::ShowYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
                     if (button == QDialogButtonBox::Yes) {
+                        qDatabase.ClearPendingPlaylist(GetPlaylistId());
                         qDatabase.RemovePlaylistAllMusic(GetPlaylistId());
                         Reload();
                         RemovePlaying();
@@ -569,7 +570,7 @@ void PlayListTableView::initial() {
 
                 const auto button = XMessageBox::ShowYesOrNo(tr("Remove all items?"));
                 if (button == QDialogButtonBox::Yes) {
-                    qDatabase.ClearPendingPlaylist();
+                    qDatabase.ClearPendingPlaylist(GetPlaylistId());
                     IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(GetPlaylistId()))
                     Reload();
                     RemovePlaying();
@@ -1004,7 +1005,7 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
         }
         pending_playlist_.append(index);
         auto entity = GetEntity(index);
-        qDatabase.AddPendingPlaylist(entity.playlist_music_id);
+        qDatabase.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
     }
 }
 
@@ -1108,6 +1109,7 @@ void PlayListTableView::RemovePlaying() {
 }
 
 void PlayListTableView::RemoveAll() {
+    qDatabase.ClearPendingPlaylist(GetPlaylistId());
     IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(GetPlaylistId()))
     FastReload();
 }
