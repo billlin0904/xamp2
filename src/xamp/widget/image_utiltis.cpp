@@ -12,7 +12,7 @@
 #include <base/fs.h>
 #include <base/logger_impl.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 #define USE_LIB_IMAGEQUANT
 

@@ -207,17 +207,6 @@ std::wstring LrcParser::GetMaxLengthLrc() const {
     return L"";
 }
 
-int32_t LrcParser::GetMaxLrcLength() const {
-    const auto itr = std::max_element(lyrics_.begin(), lyrics_.end(), [](const LyricEntry &a, const LyricEntry &b) {
-        return a.lrc.length() < b.lrc.length();
-    });
-
-    if (itr != lyrics_.end()) {
-        return (*itr).lrc.length();
-    }
-    return 0;
-}
-
 std::vector<LyricEntry>::iterator LrcParser::end() {
     return lyrics_.end();
 }

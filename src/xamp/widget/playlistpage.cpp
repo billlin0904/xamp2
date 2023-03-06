@@ -3,7 +3,7 @@
 #include <QVBoxLayout>
 #include <QSpacerItem>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/database.h>

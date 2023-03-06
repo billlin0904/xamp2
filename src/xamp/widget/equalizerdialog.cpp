@@ -2,7 +2,7 @@
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
-#include "thememanager.h"
+#include <thememanager.h>
 
 #include <widget/equalizerdialog.h>
 

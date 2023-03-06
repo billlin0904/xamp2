@@ -62,7 +62,7 @@ private:
 
 	void SetDefaultLrc();
 
-    void initial();
+    void Initial();
 
 	void LoadLrc(const QString& lrc);
 

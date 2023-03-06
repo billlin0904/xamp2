@@ -5,7 +5,7 @@
 #include <widget/xframe.h>
 
 #include "str_utilts.h"
-#include "thememanager.h"
+#include <thememanager.h>
 
 XFrame::XFrame(QWidget* parent)
     : QFrame(parent) {

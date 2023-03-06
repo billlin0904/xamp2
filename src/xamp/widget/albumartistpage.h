@@ -21,6 +21,7 @@ public:
 
 	void AddTab(const QString& name, int tab_id);
 
+	void SetCurrentTab(int tab_id);
 signals:
 	void ClickedTable(int table_id);
 

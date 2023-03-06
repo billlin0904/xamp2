@@ -45,9 +45,13 @@ void AlbumTabListView::AddTab(const QString& name, int tab_id) {
     item->setSizeHint(QSize(80, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-    f.setPointSize(qTheme.GetFontSize(16));
+    f.setPointSize(qTheme.GetFontSize(14));
 	item->setFont(f);
 	model_.appendRow(item);
+}
+
+void AlbumTabListView::SetCurrentTab(int tab_id) {
+	setCurrentIndex(model_.index(tab_id, 0));
 }
 
 AlbumArtistPage::AlbumArtistPage(QWidget* parent)
@@ -55,10 +59,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	, list_view_(new AlbumTabListView(this))
 	, album_view_(new AlbumView(this))
 	, artist_view_(new ArtistInfoPage(this)) {
-	auto* verticalLayout_2 = new QVBoxLayout(this);
+	auto* vertical_layout_2 = new QVBoxLayout(this);
 
-	verticalLayout_2->setSpacing(0);
-	verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+	vertical_layout_2->setSpacing(0);
+	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto * horizontal_layout_5 = new QHBoxLayout();
 	horizontal_layout_5->setSpacing(6);
@@ -68,15 +72,15 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
 	list_view_->AddTab(tr("Albums"), TAB_ALBUM);
 	list_view_->AddTab(tr("Artists"), TAB_ARTIST);
-	list_view_->AddTab(tr("Genres"), TAB_GENRE);
+	list_view_->AddTab(tr("Genre"), TAB_GENRE);
 	qTheme.SetTabTheme(list_view_);
 	const QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
     list_view_->setMinimumSize(280, 30);
 	list_view_->setMaximumHeight(50);
 	horizontal_layout_5->addWidget(list_view_);
-	auto* horizontalSpacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	horizontal_layout_5->addItem(horizontalSpacer_7);
+	auto* horizontal_spacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	horizontal_layout_5->addItem(horizontal_spacer_7);
 
 	auto* current_view = new QStackedWidget();
 	current_view->setObjectName(QString::fromUtf8("currentView"));
@@ -92,9 +96,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	default_layout->setContentsMargins(0, 0, 0, 0);
 	default_layout->addWidget(current_view);
 
-	verticalLayout_2->addLayout(horizontal_layout_5);
-	verticalLayout_2->addLayout(default_layout);
-	verticalLayout_2->setStretch(1, 2);
+	vertical_layout_2->addLayout(horizontal_layout_5);
+	vertical_layout_2->addLayout(default_layout);
+	vertical_layout_2->setStretch(1, 2);
 
 	(void)QObject::connect(album_view_, &AlbumView::RemoveAll,
 		this, &AlbumArtistPage::Refresh);
@@ -108,6 +112,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 	current_view->setCurrentIndex(0);
+	list_view_->SetCurrentTab(TAB_ALBUM);
 }
 
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {

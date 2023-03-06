@@ -7,7 +7,7 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/database.h>
 #include <widget/widget_shared.h>
@@ -152,7 +152,7 @@ PendingPlayTableView::PendingPlayTableView(QWidget* parent)
 
     switch (qTheme.GetThemeColor()) {
     case ThemeColor::DARK_THEME:
-        setStyleSheet(qTEXT("background: #121212; border: none;"));
+        setStyleSheet(qTEXT("background: #080808; border: none;"));
         break;
     case ThemeColor::LIGHT_THEME:
         setStyleSheet(qTEXT("background: #f9f9f9; border: none;"));

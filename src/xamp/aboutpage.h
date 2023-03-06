@@ -7,7 +7,7 @@
 
 #include <ui_aboutdialog.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 class AboutPage final : public QFrame {
     Q_OBJECT

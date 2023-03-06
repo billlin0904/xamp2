@@ -9,7 +9,7 @@
 #include <QListView>
 #include <QStandardItemModel>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 enum TabIndex {
     TAB_PLAYLIST,

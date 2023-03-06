@@ -16,7 +16,7 @@
 #include <base/logger_impl.h>
 
 #include "xampplayer.h"
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/xmainwindow.h>
 #include <widget/widget_shared.h>
 #include <widget/appsettingnames.h>

@@ -6,7 +6,7 @@
 #pragma once
 
 #include <ui_cdpage.h>
-#include "thememanager.h"
+#include <thememanager.h>
 
 class PlaylistPage;
 

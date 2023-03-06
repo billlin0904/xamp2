@@ -1,6 +1,6 @@
 #include <widget/str_utilts.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include "tablistview.h"
 
 TabListView::TabListView(QWidget *parent)

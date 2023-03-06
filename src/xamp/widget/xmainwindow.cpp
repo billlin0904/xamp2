@@ -1,6 +1,6 @@
 #include <widget/xmainwindow.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 #include <version.h>
 #include <widget/ui_utilts.h>

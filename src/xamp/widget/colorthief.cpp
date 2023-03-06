@@ -32,7 +32,7 @@ public:
 	    , histo_(histo) {
     }
 
-    int volume() const {
+    int volume() const noexcept {
         auto sub_r = r2_ - r1_;
         auto sub_g = g2_ - g1_;
         auto sub_b = b2_ - b1_;
@@ -145,7 +145,8 @@ struct BoxCountCompare {
 
 struct BoxCountVolumeCompare {
     bool operator()(const VBox& a, const VBox& b) const {
-        return static_cast<uint64_t>(a.count()) * static_cast<uint64_t>(a.volume()) < static_cast<uint64_t>(b.count()) * static_cast<uint64_t>(b.volume());
+        return static_cast<uint64_t>(a.count()) * static_cast<uint64_t>(a.volume())
+    	< static_cast<uint64_t>(b.count()) * static_cast<uint64_t>(b.volume());
     }
 };
 
@@ -232,7 +233,7 @@ private:
     PQueue<std::tuple<VBox, QuantizedColor>, TCompare> vboxes_;
 };
 
-std::vector<int> get_histo(const std::vector<QuantizedColor>& pixels) {
+static std::vector<int> get_histo(const std::vector<QuantizedColor>& pixels) {
     std::vector<int> histo(std::pow(2, 3 * kSigbits), 0);
 
     for (const QuantizedColor& pixel : pixels) {
@@ -245,7 +246,7 @@ std::vector<int> get_histo(const std::vector<QuantizedColor>& pixels) {
     return histo;
 }
 
-VBox vbox_from_pixels(const std::vector<QuantizedColor>& pixels, std::vector<int>& histo) {
+static VBox vbox_from_pixels(const std::vector<QuantizedColor>& pixels, std::vector<int>& histo) {
     auto rmin = 1000000;
     auto rmax = 0;
     auto gmin = 1000000;
@@ -268,7 +269,7 @@ VBox vbox_from_pixels(const std::vector<QuantizedColor>& pixels, std::vector<int
     return VBox(rmin, rmax, gmin, gmax, bmin, bmax, &histo);
 }
 
-std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vector<int>& histo, VBox vbox) {
+static std::tuple<std::optional<VBox>, std::optional<VBox>> median_cut_apply(std::vector<int>& histo, VBox vbox) {
     auto rw = vbox.r2_ - vbox.r1_ + 1;
     auto gw = vbox.g2_ - vbox.g1_ + 1;
     auto bw = vbox.b2_ - vbox.b1_ + 1;
@@ -419,7 +420,7 @@ void iter(PQueue<VBox, TCompare>& lh, double target, std::vector<int>& histo) {
     }
 }
 
-CMap<CMapCompare> quantize(const std::vector<QuantizedColor>& pixels, int max_color) {
+static CMap<CMapCompare> quantize(const std::vector<QuantizedColor>& pixels, int max_color) {
     auto histo = get_histo(pixels);
     const auto vbox = vbox_from_pixels(pixels, histo);
 
@@ -444,8 +445,49 @@ CMap<CMapCompare> quantize(const std::vector<QuantizedColor>& pixels, int max_co
     return cmap;
 }
 
+static QColor HsvToRgb(qreal h, qreal s, qreal v) {
+    double hp = h / 60.0;
+    double c = s * v;
+    double x = c * (1 - std::abs(std::fmod(hp, 2) - 1));
+    double m = v - c;
+    double r = 0, g = 0, b = 0;
+    if (hp <= 1) {
+        r = c;
+        g = x;
+    }
+    else if (hp <= 2) {
+        r = x;
+        g = c;
+    }
+    else if (hp <= 3) {
+        g = c;
+        b = x;
+    }
+    else if (hp <= 4) {
+        g = x;
+        b = c;
+    }
+    else if (hp <= 5) {
+        r = x;
+        b = c;
+    }
+    else {
+        r = c;
+        b = x;
+    }
+    r += m;
+    g += m;
+    b += m;
+    return QColor(r * 255, g * 255, b * 255);
+}
+
+//static qreal GetColorfulness(const QColor &color) {
+//    auto rg = std::abs(color.redF() - color.greenF());
+//    auto yb = std::abs(0.5 * (color.redF() + color.greenF()) - color.blueF());
+//}
+
 void ColorThief::LoadImage(const QImage& image, int32_t color_count, int32_t quality, bool ignore_white) {
-    auto cmap = quantize(GetPixels(image, quality, ignore_white), color_count);
+	const auto cmap = quantize(GetPixels(image, quality, ignore_white), color_count);
     palette_.clear();
     palette_.reserve(cmap.size());
     for (auto avg_color : cmap.pallete()) {
@@ -462,7 +504,45 @@ const QList<QColor>& ColorThief::GetPalette() const {
 }
 
 QColor ColorThief::GetDominantColor() const {
-    return palette_[0];
+    //return palette_[0];
+    auto palette = AdjustPaletteValue(palette_);
+    QList<QList<QColor>::iterator> hues;
+    for (auto itr = palette.begin(); itr != palette.end(); ++itr) {
+        const auto hsv = (*itr).toHsv();
+        if (hsv.hueF() < 0.02) {
+            hues.push_back(itr);
+        }
+    }
+    for (auto itr : hues) {
+        if (palette.size() <= 2) {
+            break;
+        }
+        palette.erase(itr);
+    }
+    return palette[0];
+}
+
+QList<QColor> ColorThief::AdjustPaletteValue(const QList<QColor>& palette) {
+    QList<QColor> new_palette;
+    qreal factor = 0;
+    for (auto rgb : palette) {
+        const auto hsv = rgb.toHsv();
+        const auto h = hsv.hueF();
+        const auto s = hsv.saturationF();
+        auto v = hsv.valueF();
+        if (v > 0.9) {
+            factor = 0.8;
+        } else if (0.8 < v <= 0.9) {
+            factor = 0.9;
+        } else if (0.7 < v <= 0.8) {
+            factor = 0.95;
+        } else {
+            factor = 1;
+        }
+        v *= factor;
+        new_palette.append(HsvToRgb(h, s, v));
+    }
+    return new_palette;
 }
 
 std::vector<QuantizedColor> ColorThief::GetPixels(const QImage& image, int32_t quality, bool ignore_white) {

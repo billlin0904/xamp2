@@ -17,7 +17,7 @@
 #include <widget/xprogressdialog.h>
 #include <widget/albumentity.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 #include <QGraphicsOpacityEffect>
 #include <QPainter>

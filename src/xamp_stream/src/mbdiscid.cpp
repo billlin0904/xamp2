@@ -7,6 +7,7 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <discid/discid.h>
 #include <stream/discIdlib.h>
 #include <stream/mbdiscid.h>
 

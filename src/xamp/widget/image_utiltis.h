@@ -14,7 +14,7 @@ namespace image_utils {
 
 inline constexpr int32_t kImageRadius = 4;
 inline constexpr int32_t kSmallImageRadius = 10;
-inline constexpr int32_t kPlaylistImageRadius = 2;
+inline constexpr int32_t kPlaylistImageRadius = 4;
 
 QPixmap RoundImage(const QPixmap& src, int32_t radius = kImageRadius);
 

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <player/player.h>
+#include <stream/stream.h>
 
 #include <base/base.h>
 #include <base/align_ptr.h>
@@ -13,9 +13,9 @@
 
 #ifdef XAMP_OS_WIN
 
-namespace xamp::player {
+namespace xamp::stream {
 
-class XAMP_PLAYER_API MBDiscId {
+class XAMP_STREAM_API MBDiscId {
 public:
 	MBDiscId();
 
@@ -28,8 +28,6 @@ public:
 	std::string GetSubmissionUrl(const std::string& drive) const;
 
 	std::string GetDiscIdLookupUrl(const std::string& drive) const;
-
-	static void LoadMBDiscIdLib();
 private:
 	class MBDiscIdImpl;
 	PimplPtr<MBDiscIdImpl> impl_;

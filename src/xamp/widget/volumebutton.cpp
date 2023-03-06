@@ -1,4 +1,4 @@
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/ui_utilts.h>
 #include <widget/volumecontroldialog.h>
 #include <widget/str_utilts.h>

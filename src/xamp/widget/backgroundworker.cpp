@@ -21,7 +21,7 @@
 #include <base/fastmutex.h>
 #include <stream/avfilestream.h>
 #if defined(Q_OS_WIN)
-#include <player/mbdiscid.h>
+#include <stream/mbdiscid.h>
 #endif
 
 #include <QDirIterator>
@@ -205,7 +205,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
     const auto file_name_filters = GetFileNameFilter();
     std::atomic<int> progress(0);
 
-#if 1
+#if 0
     for (const auto path : paths) {
         if (is_stop_) {
             return;
@@ -237,7 +237,7 @@ void BackgroundWorker::OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& ada
 
         emit adapter->ReadFileProgress(path, progress);
 		++progress;
-    });
+    }, 1);
 #endif
 }
 
@@ -270,8 +270,8 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
                 return;
             }
             http::HttpClient(qSTR("https://music.xianqiao.wang/neteaseapiv2/lyric?id=%1").arg(song_id))
-                .success([this, music_id, title](const auto& response) {
-                const auto [lyrc, trlyrc] = spotify::ParseLyricsResponse(response);
+                .success([this, music_id, title](const auto& resp) {
+                const auto [lyrc, trlyrc] = spotify::ParseLyricsResponse(resp);
                 emit SearchLyricsCompleted(music_id, lyrc, trlyrc);
             }).get();
 		})
@@ -310,8 +310,8 @@ void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
             }).get();
 }
 
-void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 #if defined(Q_OS_WIN)
+void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
     MBDiscId mbdisc_id;
     std::string disc_id;
     std::string url;
@@ -379,8 +379,8 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
                     });				
                 }).get();
             }).get();
-#endif
 }
+#endif
 
 void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
@@ -389,7 +389,7 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
     }
     ColorThief thief;
     thief.LoadImage(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
-    emit DominantColor(thief.GetPalette()[1]);
+    emit DominantColor(thief.GetDominantColor());
     emit BlurImage(image_utils::BlurImage(image, size));
     //const auto blur_image = image_utils::BlurImage(image, size);
     //emit BlurImage(image_utils::AcrylicImage(blur_image, palette[0]));

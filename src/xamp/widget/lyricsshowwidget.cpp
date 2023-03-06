@@ -18,7 +18,7 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 	, item_percent_(0)
 	, lrc_color_(Qt::darkGray)
     , lrc_highlight_color_(Qt::black) {
-    initial();
+    Initial();
 }
 
 void LyricsShowWidget::ResizeFontSize() {
@@ -41,9 +41,6 @@ void LyricsShowWidget::ResizeFontSize() {
 	}
 
 	XAMP_LOG_DEBUG("Max length lrc: {}", String::ToString((*itr).lrc));
-
-	//const int32_t item_height = ItemHeight() * 1.2 / 10;
-	//font_size += item_height;
 	lrc_font_.setPointSize(font_size);
 
 	lrc_metrics = QFontMetrics(lrc_font_);
@@ -60,7 +57,7 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 	ResizeFontSize();
 }
 
-void LyricsShowWidget::initial() {
+void LyricsShowWidget::Initial() {
     lrc_font_ = font();
 	lrc_font_.setPointSize(AppSettings::ValueAsInt(kLyricsFontSize));
 
@@ -180,7 +177,7 @@ void LyricsShowWidget::PaintItem(QPainter* painter, const int32_t index, QRect& 
 		painter->setFont(font);
 	}
 
-	QFontMetrics metrics(painter->font());
+	const QFontMetrics metrics(painter->font());
 	const auto text = QString::fromStdWString(lyric_.LineAt(index).lrc);
 
 	painter->drawText((rect.width() - metrics.width(text)) / 2,
@@ -289,6 +286,7 @@ void LyricsShowWidget::LoadLrc(const QString& lrc) {
 		return;
 	}
 	ResizeFontSize();
+	SetLrcTime(0);
 	update();
 }
 
@@ -328,7 +326,7 @@ void LyricsShowWidget::SetLrcTime(int32_t stream_time) {
 
 	const auto text = QString::fromStdWString(post_ly.lrc);
 	const auto interval = post_ly.index;
-	const auto precent = float(post_ly.index) / float(lyric_.GetSize());
+	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_.GetSize());
 
 	QFontMetrics metrics(current_mask_font_);
 

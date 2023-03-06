@@ -66,9 +66,9 @@ public Q_SLOT:
     void OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
     void OnBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
-
+#if defined(Q_OS_WIN)
     void OnFetchCdInfo(const DriveInfo &drive);
-
+#endif
     void OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
         QString const& file_path,
         int32_t playlist_id,

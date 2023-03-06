@@ -21,7 +21,6 @@ public:
 	~R8brainLib();
 
 	XAMP_DISABLE_COPY(R8brainLib)
-
 private:
 	LoggerPtr logger_;
 	SharedLibraryHandle module_;

@@ -6,7 +6,7 @@
 #pragma once
 
 #include "xampplayer.h"
-#include "thememanager.h"
+#include <thememanager.h>
 
 #include <widget/driveinfo.h>
 

@@ -9,7 +9,7 @@
 #include <player/audio_player.h>
 
 #include <player/ebur128reader.h>
-#include <player/mbdiscid.h>
+#include <stream/mbdiscid.h>
 
 namespace xamp::player {
 
@@ -33,7 +33,7 @@ void LoadComponentSharedLibrary() {
     LoadR8brainLib();
     XAMP_LOG_DEBUG("Load r8brain lib success.");
 
-    MBDiscId::LoadMBDiscIdLib();
+    LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 
     GetPlaybackThreadPool();

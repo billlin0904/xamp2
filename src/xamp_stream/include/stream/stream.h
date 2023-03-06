@@ -27,6 +27,7 @@ namespace xamp::stream {
 	struct EQSettings;
 
 	class STFT;
+	class MBDiscId;
 
     class ISampleWriter;
 	class IAudioProcessor;

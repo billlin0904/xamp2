@@ -35,7 +35,7 @@
 #include <widget/win32/win32.h>
 #endif
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include "singleinstanceapplication.h"
 #include "version.h"
 #include "xamp.h"
@@ -291,7 +291,8 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
         "setupapi.dll",
         "WinTypes.dll",
         "AudioSes.dll",
-        "AUDIOKSE.dll"
+        "AUDIOKSE.dll",
+        "DWrite.dll"
     };
     std::vector<SharedLibraryHandle> pin_module;
     for (const auto& file_name : dll_file_names) {
@@ -451,11 +452,12 @@ static int Execute(int argc, char* argv[]) {
 
     Xamp win(MakeAudioPlayer());
     win.SetXWindow(&main_window);
-    win.SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
+    win.SetThemeColor(qTheme.palette().color(QPalette::WindowText),
+        qTheme.GetThemeTextColor());
 
 #if defined(XAMP_OS_WIN)
 #ifndef MAX_SANDBOX_MODE
-    // Force loaing network dll.
+    // Force loading network dll.
     static const QString kSoftwareUpdateUrl =
         qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
     http::HttpClient(kSoftwareUpdateUrl).get();

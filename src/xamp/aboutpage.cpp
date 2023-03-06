@@ -1,6 +1,6 @@
 #include <QFile>
 #include <widget/str_utilts.h>
-#include "thememanager.h"
+#include <thememanager.h>
 #include "aboutpage.h"
 
 AboutPage::AboutPage(QWidget* parent)

@@ -31,8 +31,6 @@ public:
 
     void Clear();
 
-    int32_t GetMaxLrcLength() const;
-
     std::wstring GetMaxLengthLrc() const;
 
     std::vector<LyricEntry>::iterator end();

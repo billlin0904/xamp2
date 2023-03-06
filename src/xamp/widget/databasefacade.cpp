@@ -14,7 +14,7 @@
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadataextractadapter.h>
-#include "thememanager.h"
+#include <thememanager.h>
 
 #include <widget/widget_shared.h>
 #include <widget/http.h>

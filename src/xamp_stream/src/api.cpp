@@ -23,6 +23,7 @@
 #include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
+#include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
 
@@ -176,6 +177,9 @@ void LoadFFTLib() {
 #ifdef XAMP_OS_WIN
 void LoadR8brainLib() {
     Singleton<R8brainLib>::GetInstance();
+}
+void LoadMBDiscIdLib() {
+    Singleton<DiscIdLib>::GetInstance();
 }
 #endif
 

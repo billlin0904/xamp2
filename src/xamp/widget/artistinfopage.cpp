@@ -3,7 +3,7 @@
 #include <QFileDialog>
 
 #include <widget/database.h>
-#include "thememanager.h"
+#include <thememanager.h>
 
 #include <widget/albumview.h>
 #include <widget/actionmap.h>

@@ -8,7 +8,7 @@
 #include <QFrame>
 #include <QMainWindow>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/driveinfo.h>
 
 inline constexpr auto kRestartExistCode = -2;

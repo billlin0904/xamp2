@@ -59,7 +59,7 @@
 #include "aboutpage.h"
 #include "cdpage.h"
 #include "preferencepage.h"
-#include "thememanager.h"
+#include <thememanager.h>
 #include "version.h"
 
 Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
@@ -1377,9 +1377,8 @@ void Xamp::PlayNextItem(int32_t forward) {
 }
 
 void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
-    /*artist_info_page_->SetArtistId(artist, qDatabase.GetArtistCoverId(artist_id), artist_id);
-    ui_.currentView->setCurrentWidget(artist_info_page_);*/
     album_page_->SetArtistId(artist, qDatabase.GetArtistCoverId(artist_id), artist_id);
+    ui_.currentView->setCurrentWidget(album_page_);
 }
 
 void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
@@ -1403,8 +1402,10 @@ void Xamp::SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         page = current_playlist_page_;
 	}
 
+    const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
+        ui_.coverLabel->size().height() - image_utils::kPlaylistImageRadius);
     const auto ui_cover = image_utils::RoundImage(
-        image_utils::ResizeImage(*cover, ui_.coverLabel->size(), false),
+        image_utils::ResizeImage(*cover, cover_size, false),
         image_utils::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
@@ -1431,14 +1432,12 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
 void Xamp::InitialPlaylist() {
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
-    //artist_info_page_ = new ArtistInfoPage(this);
 
     ui_.sliderBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
     ui_.sliderBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
     ui_.sliderBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
     ui_.sliderBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
     ui_.sliderBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
-   //ui_.sliderBar->AddTab(tr("Artists"), TAB_ARTIST, qTheme.GetFontIcon(Glyphs::ICON_ARTIST));
     ui_.sliderBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
@@ -1515,12 +1514,12 @@ void Xamp::InitialPlaylist() {
         &Xamp::BlurImage,
         background_worker_,
         &BackgroundWorker::OnBlurImage);
-
+#if defined(Q_OS_WIN)
     (void)QObject::connect(this,
         &Xamp::FetchCdInfo,
         background_worker_,
         &BackgroundWorker::OnFetchCdInfo);
-
+#endif
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::OnReadCdTrackInfo,
         this,
@@ -1589,20 +1588,10 @@ void Xamp::InitialPlaylist() {
         this,
         &Xamp::OnArtistIdChanged);
 
-    /*(void)QObject::connect(artist_info_page_->album(),
-        &AlbumView::ClickedAlbum,
-        this,
-        &Xamp::OnClickedAlbum);*/
-
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
         album_page_->album(),
         &AlbumView::OnThemeChanged);
-
-    /*(void)QObject::connect(this,
-        &Xamp::ThemeChanged,
-        artist_info_page_,
-        &ArtistInfoPage::OnThemeChanged);*/
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
@@ -1623,11 +1612,6 @@ void Xamp::InitialPlaylist() {
         &AlbumView::AddPlaylist,
         this,
         &Xamp::AddPlaylistItem);
-
-    /*(void)QObject::connect(artist_info_page_->album(),
-        &AlbumView::AddPlaylist,
-        this,
-        &Xamp::AddPlaylistItem);*/
 }
 
 void Xamp::AppendToPlaylist(const QString& file_name) {

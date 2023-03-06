@@ -25,7 +25,7 @@
 #include <QFileInfo>
 #include <QtMath>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 template <typename Iterator>
 static void SortFontWeight(Iterator begin, Iterator end) {
@@ -263,7 +263,7 @@ void ThemeManager::SetPalette() {
 
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(210, 210);
-    cache_cover_size_ = QSize(800, 800);
+    cache_cover_size_ = QSize(640, 640);
     album_cover_size_ = QSize(250, 250);
     save_cover_art_size_ = QSize(500, 500);
     base_size_ = QSize(1920, 1080);
@@ -1115,7 +1115,7 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
 				padding: 0px;
-				background-color: #121212;
+				background-color: #080808;
 				border: 1px solid transparent;
 				border-top-left-radius: 8px;
             }			

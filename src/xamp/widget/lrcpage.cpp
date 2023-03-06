@@ -4,15 +4,14 @@
 #include <QPainter>
 #include <QPropertyAnimation>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
+#include <widget/lrcpage.h>
 #include <widget/spectrumwidget.h>
 #include <widget/image_utiltis.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/str_utilts.h>
-#include <widget/lrcpage.h>
-
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>
@@ -73,21 +72,22 @@ void LrcPage::SetFullScreen(bool enter) {
 	auto f = font();
 
 	if (!enter) {
-		cover_label_->setMinimumSize(QSize(355, 355));
-		cover_label_->setMaximumSize(QSize(355, 355));
+		cover_label_->setMinimumSize(QSize(411, 411));
+		cover_label_->setMaximumSize(QSize(411, 411));
 		f.setPointSize(qTheme.GetFontSize(12));
 		format_label_->setFont(f);
 	} else {
-		cover_label_->setMinimumSize(QSize(700, 700));
-		cover_label_->setMaximumSize(QSize(700, 700));
+		cover_label_->setMinimumSize(QSize(822, 822));
+		cover_label_->setMaximumSize(QSize(822, 822));
 		f.setPointSize(qTheme.GetFontSize(16));
 		format_label_->setFont(f);
 	}
 
-	const auto cover_size = cover_label_->size();
-    cover_label_->setPixmap(image_utils::RoundImage(cover_,
-       QSize(cover_size.width() - image_utils::kSmallImageRadius, cover_size.height() - image_utils::kSmallImageRadius),
-                                                    image_utils::kSmallImageRadius));
+	const QSize cover_size(cover_label_->size().width() - image_utils::kSmallImageRadius,
+		cover_label_->size().height() - image_utils::kSmallImageRadius);
+    cover_label_->setPixmap(
+		image_utils::RoundImage(image_utils::ResizeImage(cover_, 	cover_size, false),
+		image_utils::kSmallImageRadius));
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
@@ -102,7 +102,7 @@ void LrcPage::SetBackground(const QImage& cover) {
 		prev_bg_alpha_ = current_bg_alpha_;
 		prev_background_image_ = cover;
         background_image_ = cover;
-		constexpr int kBlurBackgroundAnimationMs = 3000;
+		constexpr int kBlurBackgroundAnimationMs = 5000;
 		StartBackgroundAnimation(kBlurBackgroundAnimationMs);
 	}
 	update();
@@ -227,8 +227,8 @@ void LrcPage::initial() {
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
-	cover_label_->setMinimumSize(QSize(355, 355));
-    cover_label_->setMaximumSize(QSize(355, 355));
+	cover_label_->setMinimumSize(QSize(411, 411));
+    cover_label_->setMaximumSize(QSize(411, 411));
 	cover_label_->setStyleSheet(qTEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 

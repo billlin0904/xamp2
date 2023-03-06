@@ -1,6 +1,6 @@
 #include <QStyle>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/str_utilts.h>
 #include <widget/seekslider.h>
 

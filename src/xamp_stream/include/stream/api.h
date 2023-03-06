@@ -61,6 +61,7 @@ XAMP_STREAM_API void LoadFFTLib();
 
 #ifdef XAMP_OS_WIN
 XAMP_STREAM_API void LoadR8brainLib();
+XAMP_STREAM_API void LoadMBDiscIdLib();
 #endif
 
 XAMP_STREAM_API void LoadAvLib();

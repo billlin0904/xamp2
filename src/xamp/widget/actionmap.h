@@ -16,7 +16,7 @@
 #include <widget/win32/win32.h>
 #endif
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 class XMenu : public QMenu {
 public:

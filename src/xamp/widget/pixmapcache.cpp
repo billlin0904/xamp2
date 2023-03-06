@@ -1,6 +1,6 @@
 #include <widget/pixmapcache.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include "appsettings.h"
 #include "appsettingnames.h"
 

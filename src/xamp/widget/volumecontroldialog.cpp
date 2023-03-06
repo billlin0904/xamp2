@@ -1,6 +1,6 @@
 #include <widget/volumecontroldialog.h>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>

@@ -16,7 +16,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QPropertyAnimation>
 
-#include "thememanager.h"
+#include <thememanager.h>
 #include <widget/xdialog.h>
 
 XDialog::XDialog(QWidget* parent)
