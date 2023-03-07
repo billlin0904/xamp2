@@ -444,7 +444,7 @@ void Database::ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& 
     }
 }
 
-void Database::ForEachAlbumCover(std::function<void(QString)>&& fun) const {
+void Database::ForEachAlbumCover(std::function<void(QString)>&& fun, int limit) const {
     QReadLocker read_locker(&locker_);
     SqlQuery query(db_);
 
@@ -457,7 +457,10 @@ LEFT
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.isPodcast = 0
+LIMIT
+    :limit
     )"));
+    query.bindValue(qTEXT(":limit"), limit);
     THROW_IF_FAIL1(query);
     while (query.next()) {
         fun(query.value(qTEXT("coverId")).toString());

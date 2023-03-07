@@ -50,10 +50,10 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 80, image_utils::kSmallImageRadius);
 }
 
-void AlbumViewStyledDelegate::LoadCoverCache() {
+void AlbumViewStyledDelegate::LoadCoverCache() {    
     qDatabase.ForEachAlbumCover([this](const auto& cover_id) {
         GetCover(cover_id);
-        });
+        }, kMaxAlbumRoundedImageCacheSize);
 }
 
 void AlbumViewStyledDelegate::SetTextColor(QColor color) {
