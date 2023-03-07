@@ -17,7 +17,7 @@ class ArtistInfoPage;
 class AlbumTabListView : public QListView {
 	Q_OBJECT
 public:
-	explicit AlbumTabListView(QWidget* parent);
+	explicit AlbumTabListView(QWidget* parent = nullptr);
 
 	void AddTab(const QString& name, int tab_id);
 

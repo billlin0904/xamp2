@@ -6,7 +6,7 @@
 #include <QGraphicsBlurEffect>
 
 #include <widget/widget_shared.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 
 #include <base/stopwatch.h>
 #include <base/fs.h>
@@ -221,7 +221,7 @@ QByteArray Pixmap2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, PixmapCache::kImageFileFormat);
+	source.save(&buffer, ImageCache::kImageFileFormat);
 	return bytes;
 }
 
@@ -229,7 +229,7 @@ std::vector<uint8_t> Pixmap2ByteVector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, PixmapCache::kImageFileFormat);
+	source.save(&buffer, ImageCache::kImageFileFormat);
 	return { bytes.constData(), bytes.constData() + bytes.size() };
 }
 

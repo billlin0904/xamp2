@@ -32,7 +32,7 @@ public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
-	QLabel* title_frame_label{ nullptr };
+	QLabel* title_frame_label_{ nullptr };
 	QWidget* content_{ nullptr };
 	QToolButton* icon_;
 	QToolButton* close_button_{ nullptr };

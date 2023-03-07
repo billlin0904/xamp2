@@ -77,11 +77,11 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
         win32::SetFramelessWindowStyle(winId());
         win32::AddDwmShadow(winId());
+        installEventFilter(this);
         if (AppSettings::ValueAsBool(kAppSettingEnableBlur)) {
             content_widget_->setAttribute(Qt::WA_TranslucentBackground, true);
+            win32::SetAccentPolicy(winId());
         }
-        installEventFilter(this);
-        win32::SetAccentPolicy(winId());
     } else {
         win32::SetWindowedWindowStyle(winId());
         setMouseTracking(true);

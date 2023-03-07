@@ -36,10 +36,19 @@ SpectrumWidget* LrcPage::spectrum() {
 
 void LrcPage::SetCover(const QPixmap& src) {
     cover_ = src.copy();
+
     SetFullScreen(spectrum_->width() > 700);
+
 	if (AppSettings::ValueAsBool(kEnableBlurCover)) {
 		lyrics_widget_->SetLrcHighLight(Qt::white);
 		format_label_->setStyleSheet(qTEXT("color: white"));
+
+		cover_label_->setGraphicsEffect(nullptr);
+		auto* effect = new QGraphicsDropShadowEffect(this);
+		effect->setOffset(5, 10);
+		effect->setColor(QColor(qTEXT("#080808")));
+		effect->setBlurRadius(40);
+		cover_label_->setGraphicsEffect(effect);
 	}
 }
 
@@ -137,9 +146,9 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 }
 
 void LrcPage::paintEvent(QPaintEvent*) {
-	if (AppSettings::ValueAsBool(kEnableBlurCover)) {
+	/*if (AppSettings::ValueAsBool(kEnableBlurCover)) {
 		cover_label_->setGraphicsEffect(nullptr);
-	}
+	}*/
 	QPainter painter(this);
 	if (!background_image_.isNull()) {
 		painter.setOpacity(current_bg_alpha_ / 255.0);

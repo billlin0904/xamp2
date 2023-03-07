@@ -10,9 +10,6 @@
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 
-inline constexpr auto kMaxBands = 64;
-inline constexpr auto kFFTSize = 64;
-
 static double ToMag(const std::complex<float>& r) {
     return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
 }
@@ -36,9 +33,9 @@ static void LinearInterpolation(double rate) {
     for (auto octave = 0; octave < 11; octave++) {
         for (auto note = 0; note < 24; note++) {
             const auto freq = std::pow(kC0 * kRoot24, (octave * 24 + note));
-            const auto bin = FreqToBin(freq, kFFTSize, rate);
-            const auto bin_freq  = BinToFreq(bin, kFFTSize, rate);
-            const auto next_freq = BinToFreq(bin + 1, kFFTSize, rate);
+            const auto bin = FreqToBin(freq, SpectrumWidget::kFFTSize, rate);
+            const auto bin_freq  = BinToFreq(bin, SpectrumWidget::kFFTSize, rate);
+            const auto next_freq = BinToFreq(bin + 1, SpectrumWidget::kFFTSize, rate);
             const auto ratio = (freq - bin_freq) / (next_freq - bin_freq);
             scale.push_back({freq, bin, ratio});
         }
@@ -62,17 +59,17 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 		ActionMap<SpectrumWidget> action_map(this);
 
 	(void)action_map.AddAction(tr("Bar style"), [this]() {
-		setStyle(SpectrumStyles::BAR_STYLE);
+		SetStyle(SpectrumStyles::BAR_STYLE);
 	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
 		});
 
 	(void)action_map.AddAction(tr("Wave style"), [this]() {
-		setStyle(SpectrumStyles::WAVE_STYLE);
+		SetStyle(SpectrumStyles::WAVE_STYLE);
 	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
 		});
 
 	(void)action_map.AddAction(tr("Wave line style"), [this]() {
-		setStyle(SpectrumStyles::WAVE_LINE_STYLE);
+		SetStyle(SpectrumStyles::WAVE_LINE_STYLE);
 	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
 		});
 
@@ -94,7 +91,7 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 		});
 }
 
-void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
+void SpectrumWidget::OnFftResultChanged(ComplexValarray const& result) {
 	auto max_bands = (std::min)(static_cast<size_t>(kMaxBands), result.size());
 
 	if (mag_datas_.size() != max_bands) {
@@ -113,7 +110,7 @@ void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
 	}
 }
 
-void SpectrumWidget::drawBar(QPainter &painter, size_t num_bars) {
+void SpectrumWidget::DrawBar(QPainter &painter, size_t num_bars) {
 	const auto widget_width = width();
 	const auto bar_plus_gap_width = widget_width / num_bars;
 	const auto bar_width = 0.8f * bar_plus_gap_width;
@@ -133,7 +130,7 @@ void SpectrumWidget::drawBar(QPainter &painter, size_t num_bars) {
 	}
 }
 
-void SpectrumWidget::drawWave(QPainter& painter, size_t num_bars, bool is_line) {
+void SpectrumWidget::DrawWave(QPainter& painter, size_t num_bars, bool is_line) {
 	float max = peak_delay_.at(0);
 	float min = peak_delay_.at(0);
 	for (size_t i = 1; i < num_bars; i++) {
@@ -180,22 +177,22 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 
 	switch (style_) {
 	case SpectrumStyles::BAR_STYLE:
-		drawBar(painter, num_bars);
+		DrawBar(painter, num_bars);
 		break;
 	case SpectrumStyles::WAVE_STYLE:
-		drawWave(painter, num_bars, false);
+		DrawWave(painter, num_bars, false);
 		break;
 	case SpectrumStyles::WAVE_LINE_STYLE:
-		drawWave(painter, num_bars, true);
+		DrawWave(painter, num_bars, true);
 		break;
 	}
 }
 
-void SpectrumWidget::setBarColor(QColor color) {
+void SpectrumWidget::SetBarColor(QColor color) {
 	bar_color_ = color;
 }
 
-void SpectrumWidget::setStyle(SpectrumStyles style) {
+void SpectrumWidget::SetStyle(SpectrumStyles style) {
 	style_ = style;
 }
 

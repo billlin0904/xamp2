@@ -11,8 +11,8 @@ SwitchButton::SwitchButton(QWidget *parent)
 
     QString handle_color;
 
-    is_darktheme_ = qTheme.GetThemeColor() == ThemeColor::DARK_THEME;
-    if (is_darktheme_) {
+    is_dark_theme_ = qTheme.GetThemeColor() == ThemeColor::DARK_THEME;
+    if (is_dark_theme_) {
         handle_color = qTEXT("black");
     } else {
         handle_color = qTEXT("white");
@@ -42,7 +42,7 @@ SwitchButton::SwitchButton(QWidget *parent)
 
 }
 
-void SwitchButton::setSwitchOn(bool checked) {
+void SwitchButton::SetSwitchOn(bool checked) {
     checked_ = checked;
     progress_ = checked ? 1.0 : 0.0;
     update();
@@ -101,7 +101,7 @@ void SwitchButton::paintEvent(QPaintEvent *) {
     if (checked_) {
         QString handle_color;
 
-        if (is_darktheme_) {
+        if (is_dark_theme_) {
             handle_color = qTEXT("black");
         }
         else {

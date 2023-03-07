@@ -135,7 +135,7 @@ QString Database::GetVersion() const {
 }
 
 void Database::CreateTableIfNotExist() {
-    std::vector<QLatin1String> create_table_sql;
+    QList<QLatin1String> create_table_sql;
 
     create_table_sql.push_back(
         qTEXT(R"(
@@ -296,7 +296,7 @@ void Database::CreateTableIfNotExist() {
                        )"));
 
     SqlQuery query(db_);
-    for (const auto& sql : create_table_sql) {
+    Q_FOREACH (const auto& sql , create_table_sql) {
         THROW_IF_FAIL(query, sql);
     }
 }
@@ -441,6 +441,26 @@ void Database::ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& 
         fun(record.value(qTEXT("playlistId")).toInt(),
             record.value(qTEXT("playlistIndex")).toInt(),
             record.value(qTEXT("name")).toString());
+    }
+}
+
+void Database::ForEachAlbumCover(std::function<void(QString)>&& fun) const {
+    QReadLocker read_locker(&locker_);
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT(R"(
+SELECT
+    albums.coverId
+FROM
+    albums
+LEFT 
+	JOIN artists ON artists.artistId = albums.artistId
+WHERE 
+	albums.isPodcast = 0
+    )"));
+    THROW_IF_FAIL1(query);
+    while (query.next()) {
+        fun(query.value(qTEXT("coverId")).toString());
     }
 }
 

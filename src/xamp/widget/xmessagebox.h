@@ -31,7 +31,7 @@ public:
 
 class XMessageBox : public XDialog {
 public:
-    static constexpr int kDefaultTimeoutSecond = 8;
+    static constexpr auto kDefaultTimeoutSecond = 8;
 
 	explicit XMessageBox(const QString& title= qEmptyString,
 	                     const QString& text = qEmptyString,

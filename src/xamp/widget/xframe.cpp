@@ -13,7 +13,7 @@ XFrame::XFrame(QWidget* parent)
 }
 
 void XFrame::SetTitle(const QString& title) const {
-    title_frame_label->setText(title);
+    title_frame_label_->setText(title);
 }
 
 void XFrame::SetIcon(const QIcon& icon) const {
@@ -49,16 +49,16 @@ void XFrame::SetContentWidget(QWidget* content) {
     auto f = font();
     f.setBold(true);
     f.setPointSize(qTheme.GetFontSize(10));
-    title_frame_label = new QLabel(title_frame);
-    title_frame_label->setObjectName(QString::fromUtf8("titleFrameLabel"));
+    title_frame_label_ = new QLabel(title_frame);
+    title_frame_label_->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
     size_policy3.setHorizontalStretch(1);
     size_policy3.setVerticalStretch(0);
-    size_policy3.setHeightForWidth(title_frame_label->sizePolicy().hasHeightForWidth());
-    title_frame_label->setFont(f);
-    title_frame_label->setSizePolicy(size_policy3);
-    title_frame_label->setAlignment(Qt::AlignCenter);
-    title_frame_label->setStyleSheet(qSTR(R"(
+    size_policy3.setHeightForWidth(title_frame_label_->sizePolicy().hasHeightForWidth());
+    title_frame_label_->setFont(f);
+    title_frame_label_->setSizePolicy(size_policy3);
+    title_frame_label_->setAlignment(Qt::AlignCenter);
+    title_frame_label_->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;
@@ -98,7 +98,7 @@ void XFrame::SetContentWidget(QWidget* content) {
     auto* horizontal_layout = new QHBoxLayout(title_frame);
     horizontal_layout->addWidget(icon_);
     horizontal_layout->addItem(horizontal_spacer);
-    horizontal_layout->addWidget(title_frame_label);
+    horizontal_layout->addWidget(title_frame_label_);
     horizontal_layout->addWidget(min_win_button_);
     horizontal_layout->addWidget(max_win_button_);
     horizontal_layout->addWidget(close_button_);

@@ -27,25 +27,25 @@ namespace std {
 }
 #endif
 
-struct PixampCacheEntity {
+struct ImageCacheEntity {
 	int64_t size;
 	QPixmap image;
 };
 
-struct PixampCacheSizeOfPolicy {
-	int64_t operator()(const QString&, const PixampCacheEntity& entity) {
+struct ImageCacheSizeOfPolicy {
+	int64_t operator()(const QString&, const ImageCacheEntity& entity) {
 		return entity.size;
 	}
 };
 
 class QTimerEvent;
 
-class PixmapCache final : public QObject {
+class ImageCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
 	static constexpr int kTrimImageSizeSeconds = 10 * 1000;
 
-    friend class SharedSingleton<PixmapCache>;
+    friend class SharedSingleton<ImageCache>;
 
 	static QPixmap ScanImageFromDir(const QString& file_path);
 
@@ -53,7 +53,7 @@ public:
 
     QPixmap GetOrDefault(const QString& tag_id, bool not_found_use_default = true) const;
 
-	PixampCacheEntity GetFromFile(const QString& tag_id) const;
+	ImageCacheEntity GetFromFile(const QString& tag_id) const;
 
 	void RemoveImage(const QString& tag_id);
 
@@ -69,10 +69,10 @@ public:
 
 	void ClearCache();
 
-	QString AddImage(const QPixmap& cover);
+	QString AddImage(const QPixmap& cover) const;
 
 protected:
-	PixmapCache();
+	ImageCache();
 
 private:
 	void OptimizeImageInDir(const QString& file_path) const;
@@ -94,7 +94,7 @@ private:
 	QString unknown_cover_id_;
 	QString cache_path_;
 	LoggerPtr logger_;
-	mutable LruCache<QString, PixampCacheEntity, PixampCacheSizeOfPolicy> cache_;
+	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> cache_;
 };
 
-#define qPixmapCache SharedSingleton<PixmapCache>::GetInstance()
+#define qPixmapCache SharedSingleton<ImageCache>::GetInstance()

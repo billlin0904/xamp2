@@ -38,7 +38,7 @@
 #include <widget/jsonsettings.h>
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableview.h>
@@ -72,7 +72,6 @@ Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
 	, cd_page_(nullptr)
 	, current_playlist_page_(nullptr)
     , album_page_(nullptr)
-    //, artist_info_page_(nullptr)
 	, file_system_view_page_(nullptr)
 	, main_window_(nullptr)
 	, background_worker_(nullptr)
@@ -197,10 +196,10 @@ void Xamp::InitialSpectrum() {
     (void)QObject::connect(state_adapter_.get(),
         &UIPlayerStateAdapter::fftResultChanged,
         lrc_page_->spectrum(),
-        &SpectrumWidget::onFFTResultChanged,
+        &SpectrumWidget::OnFftResultChanged,
         Qt::QueuedConnection);
 
-    lrc_page_->spectrum()->setStyle(AppSettings::ValueAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
+    lrc_page_->spectrum()->SetStyle(AppSettings::ValueAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
 }
 
 void Xamp::UpdateMaximumState(bool is_maximum) {

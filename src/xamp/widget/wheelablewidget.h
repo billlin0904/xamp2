@@ -11,13 +11,13 @@ class QWidget;
 class QRect;
 class QPainter;
 
-constexpr uint32_t kWheelScrollOffset = 50000;
-constexpr uint32_t kScrollTime = 200;
-
 class WheelableWidget : public QWidget {
 	Q_OBJECT
 
 public:
+	static constexpr auto kWheelScrollOffset = 50000;
+	static constexpr auto kScrollTime = 200;
+
 	explicit WheelableWidget(bool touch, QWidget *parent = nullptr);
 
     ~WheelableWidget() override = default;

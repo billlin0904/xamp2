@@ -222,7 +222,7 @@
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
-    <ClCompile Include="widget\pixmapcache.cpp" />
+    <ClCompile Include="widget\imagecache.cpp" />
     <ClCompile Include="widget\databasefacade.cpp">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
@@ -340,7 +340,7 @@
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
     <ClInclude Include="widget\lrcparser.h" />
-    <ClInclude Include="widget\pixmapcache.h" />
+    <ClInclude Include="widget\imagecache.h" />
     <QtMoc Include="widget\playlistpage.h">
     </QtMoc>
     <QtMoc Include="widget\seekslider.h">

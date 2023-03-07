@@ -12,7 +12,7 @@
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 #include <widget/albumentity.h>
@@ -50,11 +50,17 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 80, image_utils::kSmallImageRadius);
 }
 
+void AlbumViewStyledDelegate::LoadCoverCache() {
+    qDatabase.ForEachAlbumCover([this](const auto& cover_id) {
+        GetCover(cover_id);
+        });
+}
+
 void AlbumViewStyledDelegate::SetTextColor(QColor color) {
     text_color_ = color;
 }
 
-void AlbumViewStyledDelegate::ClearImageCache() {
+void AlbumViewStyledDelegate::ClearImageCache() const {
     image_cache_.Clear();
 }
 
@@ -112,8 +118,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
-    constexpr auto kMoreIconSize = 20;
-    QStyle* style = option.widget ? option.widget->style() : QApplication::style();
+    auto* style = option.widget ? option.widget->style() : QApplication::style();
 
     painter->setRenderHints(QPainter::Antialiasing, true);
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
@@ -176,8 +181,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     bool hit_play_button = false;
     if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
-
-        constexpr auto kIconSize = 48;
         constexpr auto offset = (kIconSize / 2) - 10;
 
         const QRect button_rect(
@@ -601,6 +604,7 @@ WHERE
 
 void AlbumView::Refresh() {
     update();
+    styled_delegate_->LoadCoverCache();
 }
 
 void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {

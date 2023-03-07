@@ -12,13 +12,13 @@ class SwitchButton : public QPushButton {
 public:
     explicit SwitchButton(QWidget *parent = nullptr);
 
-    void setSwitchOn(bool checked);
+    void SetSwitchOn(bool checked);
 protected:
     void paintEvent(QPaintEvent *ev) override;
 
     void nextCheckState() override;
 private:
-    bool is_darktheme_{false};
+    bool is_dark_theme_{false};
     bool checked_{false};
     qreal progress_{0};
 };

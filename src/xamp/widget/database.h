@@ -180,6 +180,8 @@ public:
 
     void RemoveAlbum(int32_t album_id);
 
+    void ForEachAlbumCover(std::function<void(QString)>&& fun) const;
+
     void ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
 
     void ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);

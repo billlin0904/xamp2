@@ -1,4 +1,4 @@
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 
 #include <thememanager.h>
 #include "appsettings.h"
@@ -23,17 +23,17 @@
 
 inline constexpr size_t kDefaultCacheSize = 24;
 inline constexpr qint64 kMaxCacheImageSize = 3 * 1024 * 1024;
-inline auto kCacheFileExtension = qTEXT(".") + qSTR(PixmapCache::kImageFileFormat).toLower();
+inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(PixmapCache);
 
-QStringList PixmapCache::cover_ext_ =
+QStringList ImageCache::cover_ext_ =
     QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
 
-QStringList PixmapCache::cache_ext_ =
+QStringList ImageCache::cache_ext_ =
     QStringList() << (qTEXT("*") + kCacheFileExtension);
 
-PixmapCache::PixmapCache()
+ImageCache::ImageCache()
 	: logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName))
 	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = qTEXT("unknown_album");
@@ -44,7 +44,7 @@ PixmapCache::PixmapCache()
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 }
 
-void PixmapCache::InitCachePath() {
+void ImageCache::InitCachePath() {
 	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
 			AppSettings::DefaultCachePath() + qTEXT("/caches/"),
@@ -71,7 +71,7 @@ void PixmapCache::InitCachePath() {
 	AppSettings::SetValue(kAppSettingAlbumImageCachePath, cache_path_);
 }
 
-QPixmap PixmapCache::ScanImageFromDir(const QString& file_path) {
+QPixmap ImageCache::ScanImageFromDir(const QString& file_path) {
 	const auto dir = QFileInfo(file_path).path();
 
     for (QDirIterator itr(dir, cover_ext_, QDir::Files | QDir::NoDotAndDotDot);
@@ -86,11 +86,11 @@ QPixmap PixmapCache::ScanImageFromDir(const QString& file_path) {
 	return {};
 }
 
-void PixmapCache::ClearCache() {
+void ImageCache::ClearCache() {
 	cache_.Clear();
 }
 
-void PixmapCache::Clear() {
+void ImageCache::Clear() {
 	for (QDirIterator itr(cache_path_, QDir::Files);
 		itr.hasNext();) {
 		const auto path = itr.next();
@@ -100,17 +100,17 @@ void PixmapCache::Clear() {
 	cache_.Clear();
 }
 
-QPixmap PixmapCache::FindImageFromDir(const PlayListEntity& item) {
+QPixmap ImageCache::FindImageFromDir(const PlayListEntity& item) {
 	return ScanImageFromDir(item.file_path);
 }
 
-void PixmapCache::RemoveImage(const QString& tag_id) {
+void ImageCache::RemoveImage(const QString& tag_id) {
 	QFile file(cache_path_ + tag_id + kCacheFileExtension);
 	file.remove();
 	cache_.Erase(tag_id);
 }
 
-PixampCacheEntity PixmapCache::GetFromFile(const QString& tag_id) const {
+ImageCacheEntity ImageCache::GetFromFile(const QString& tag_id) const {
 	QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
 	QImageReader reader(cache_path_ + tag_id + kCacheFileExtension);
 	if (reader.read(&image)) {
@@ -120,11 +120,11 @@ PixampCacheEntity PixmapCache::GetFromFile(const QString& tag_id) const {
 	return {};
 }
 
-QFileInfo PixmapCache::GetImageFileInfo(const QString& tag_id) const {
+QFileInfo ImageCache::GetImageFileInfo(const QString& tag_id) const {
 	return QFileInfo(cache_path_ + tag_id + kCacheFileExtension);
 }
 
-QString PixmapCache::AddImage(const QPixmap& cover) {
+QString ImageCache::AddImage(const QPixmap& cover) const {
 	QByteArray array;
     QBuffer buffer(&array);
 
@@ -149,13 +149,13 @@ QString PixmapCache::AddImage(const QPixmap& cover) {
 	return tag_name;
 }
 
-void PixmapCache::OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const {
+void ImageCache::OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const {
 	// Reduce PNG image file size and save file to disk and cache.
 	image_utils::OptimizePng(buffer, file_path);
 	cache_.AddOrUpdate(tag_name, GetFromFile(tag_name));
 }
 
-void PixmapCache::OptimizeImageInDir(const QString& file_path) const {
+void ImageCache::OptimizeImageInDir(const QString& file_path) const {
 	const auto dir = QFileInfo(file_path).path();
 
 	for (QDirIterator itr(dir, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
@@ -176,7 +176,7 @@ void PixmapCache::OptimizeImageInDir(const QString& file_path) const {
 	}
 }
 
-void PixmapCache::LoadCache() const {
+void ImageCache::LoadCache() const {
 	Stopwatch sw;
 
 	size_t i = 0;
@@ -199,7 +199,7 @@ void PixmapCache::LoadCache() const {
 		String::FormatBytes(GetSize()));
 }
 
-QPixmap PixmapCache::GetOrDefault(const QString& tag_id, bool not_found_use_default) const {
+QPixmap ImageCache::GetOrDefault(const QString& tag_id, bool not_found_use_default) const {
 	const auto [size, image] = cache_.GetOrAdd(tag_id, [tag_id, this]() {
 		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());
 		return GetFromFile(tag_id);
@@ -215,15 +215,15 @@ QPixmap PixmapCache::GetOrDefault(const QString& tag_id, bool not_found_use_defa
 	return image;
 }
 
-void PixmapCache::SetMaxSize(size_t max_size) {
+void ImageCache::SetMaxSize(size_t max_size) {
 	trim_target_size_ = max_size;
 }
 
-size_t PixmapCache::GetSize() const {
+size_t ImageCache::GetSize() const {
 	return cache_.GetSize();
 }
 
-void PixmapCache::timerEvent(QTimerEvent* ) {
+void ImageCache::timerEvent(QTimerEvent* ) {
 	if (cache_.GetSize() > trim_target_size_) {
 		cache_.Evict(trim_target_size_);
 	}

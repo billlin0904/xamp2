@@ -42,7 +42,7 @@ AlbumTabListView::AlbumTabListView(QWidget* parent)
 void AlbumTabListView::AddTab(const QString& name, int tab_id) {
 	auto* item = new QStandardItem(name);
 	item->setData(tab_id);
-    item->setSizeHint(QSize(80, 30));
+    item->setSizeHint(QSize(160, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
     f.setPointSize(qTheme.GetFontSize(14));
@@ -76,7 +76,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	qTheme.SetTabTheme(list_view_);
 	const QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
-    list_view_->setMinimumSize(280, 30);
+    list_view_->setMinimumSize(500, 30);
 	list_view_->setMaximumHeight(50);
 	horizontal_layout_5->addWidget(list_view_);
 	auto* horizontal_spacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);

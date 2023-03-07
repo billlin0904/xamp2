@@ -17,7 +17,7 @@
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
 #include <widget/database.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/str_utilts.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>

@@ -9,7 +9,7 @@
 #include <widget/appsettings.h>
 #include <widget/localelanguage.h>
 #include <widget/jsonsettings.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/widget_shared.h>
 
 #include <thememanager.h>
@@ -126,13 +126,13 @@ void PreferencePage::InitSoxResampler() {
     const auto soxr_settings = soxr_config[AppSettings::ValueAsString(kAppSettingSoxrSettingName)].toMap();
 	UpdateSoxrConfigUi(soxr_settings);
 
-    ui_.enableFramelessWindowPushButton->setSwitchOn(AppSettings::ValueAsBool(kAppSettingUseFramelessWindow));
+    ui_.enableFramelessWindowPushButton->SetSwitchOn(AppSettings::ValueAsBool(kAppSettingUseFramelessWindow));
     (void)QObject::connect(ui_.enableFramelessWindowPushButton, &SwitchButton::pressed, [this]() {
         AppSettings::SetValue(kAppSettingUseFramelessWindow,
                               !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow));
     });
 
-	ui_.enableBlurCoverImagePushButton->setSwitchOn(AppSettings::ValueAsBool(kEnableBlurCover));
+	ui_.enableBlurCoverImagePushButton->SetSwitchOn(AppSettings::ValueAsBool(kEnableBlurCover));
 	(void)QObject::connect(ui_.enableBlurCoverImagePushButton, &SwitchButton::pressed, [this]() {
 		AppSettings::SetValue(kEnableBlurCover,
 			!AppSettings::ValueAsBool(kEnableBlurCover));

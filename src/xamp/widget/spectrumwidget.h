@@ -22,24 +22,27 @@ enum SpectrumStyles {
 class SpectrumWidget : public QFrame {
 	Q_OBJECT
 public:
+	static constexpr auto kMaxBands = 64;
+	static constexpr auto kFFTSize = 64;
+
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
 	void reset();
 
-	void setStyle(SpectrumStyles style);
+	void SetStyle(SpectrumStyles style);
 
-	void setBarColor(QColor color);
+	void SetBarColor(QColor color);
 
 public slots:
-	void onFFTResultChanged(ComplexValarray const& result);
+	void OnFftResultChanged(ComplexValarray const& result);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
-	void drawWave(QPainter& painter, size_t num_bars, bool is_line);
+	void DrawWave(QPainter& painter, size_t num_bars, bool is_line);
 
-	void drawBar(QPainter& painter, size_t num_bars);
+	void DrawBar(QPainter& painter, size_t num_bars);
 
 	SpectrumStyles style_{ BAR_STYLE };
 	QColor bar_color_;

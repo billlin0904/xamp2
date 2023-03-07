@@ -8,7 +8,7 @@
 #include <widget/albumview.h>
 #include <widget/actionmap.h>
 #include <widget/image_utiltis.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/artistinfopage.h>
 
 ArtistInfoPage::ArtistInfoPage(QWidget* parent)

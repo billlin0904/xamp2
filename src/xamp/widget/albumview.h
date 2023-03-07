@@ -27,13 +27,17 @@ class PlaylistPage;
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
-	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 100;
+	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 200;
+	static constexpr auto kMoreIconSize = 20;
+	static constexpr auto kIconSize = 48;
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
+	void LoadCoverCache();
+
 	void SetTextColor(QColor color);
 
-	void ClearImageCache();
+	void ClearImageCache() const;
 
 	void EnableAlbumView(bool enable);
 

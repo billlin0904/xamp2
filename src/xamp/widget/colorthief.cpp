@@ -504,8 +504,8 @@ const QList<QColor>& ColorThief::GetPalette() const {
 }
 
 QColor ColorThief::GetDominantColor() const {
-    //return palette_[0];
-    auto palette = AdjustPaletteValue(palette_);
+    return palette_[0];
+    /*auto palette = AdjustPaletteValue(palette_);
     QList<QList<QColor>::iterator> hues;
     for (auto itr = palette.begin(); itr != palette.end(); ++itr) {
         const auto hsv = (*itr).toHsv();
@@ -519,7 +519,7 @@ QColor ColorThief::GetDominantColor() const {
         }
         palette.erase(itr);
     }
-    return palette[0];
+    return palette[0];*/
 }
 
 QList<QColor> ColorThief::AdjustPaletteValue(const QList<QColor>& palette) {

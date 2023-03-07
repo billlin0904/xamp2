@@ -5,7 +5,7 @@
 
 #include <thememanager.h>
 #include <widget/image_utiltis.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/scrolllabel.h>

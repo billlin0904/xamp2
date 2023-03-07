@@ -24,7 +24,7 @@
 #include <widget/http.h>
 #include <widget/xmessagebox.h>
 #include <widget/appsettings.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/stardelegate.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>

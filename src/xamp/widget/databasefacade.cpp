@@ -22,7 +22,7 @@
 #include <widget/database.h>
 #include <widget/appsettings.h>
 #include <widget/playlisttableview.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/databasefacade.h>
 
 #define IGNORE_ANY_EXCEPTION(expr) \
@@ -74,7 +74,7 @@ void DatabaseFacade::FindAlbumCover(int32_t album_id, const QString& album, cons
         return;
     }
 
-	cover = PixmapCache::ScanImageFromDir(QString::fromStdWString(file_path));
+	cover = ImageCache::ScanImageFromDir(QString::fromStdWString(file_path));
     if (!cover.isNull()) {
         qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
     }

@@ -10,7 +10,7 @@
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
-#include <widget/pixmapcache.h>
+#include <widget/imagecache.h>
 #include <widget/spotify_utilis.h>
 #include <widget/colorthief.h>
 
