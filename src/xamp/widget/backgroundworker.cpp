@@ -62,6 +62,10 @@ void BackgroundWorker::ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapt
     }
 
     if (paths.empty()) {
+        if (!QFileInfo(dir).isFile()) {
+            XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
+            return;
+        }
 	    const auto path = dir.toStdWString();
         paths.push_front(path);
         hasher.Update(path);
@@ -256,7 +260,9 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
                 return;
             }
 			QList<spotify::SearchLyricsResult> results;
-            spotify::ParseSearchLyricsResult(response, results);
+            if (!spotify::ParseSearchLyricsResult(response, results)) {
+                return;
+            }
             auto song_id = 0;
             Q_FOREACH(const auto &result, results) {
                 if (result.song != title) {
@@ -304,7 +310,7 @@ void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
                 .download([this, podcast_info, playlist_id](const QByteArray& data) {
 					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
                     QThread::currentThreadId(), String::FormatBytes(data.size()));
-					::DatabaseFacade::InsertTrackInfo(podcast_info.second, playlist_id, true);
+					DatabaseFacade::InsertTrackInfo(podcast_info.second, playlist_id, true);
 					emit FetchPodcastCompleted(podcast_info.second, data);
 				});
             }).get();
