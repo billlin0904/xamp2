@@ -78,6 +78,7 @@ static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
+	, ignore_wait_slow_(false)
 	, is_running_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
@@ -365,6 +366,8 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		return;
 	}
 
+	ignore_wait_slow_ = true;
+
 	::SignalObjectAndWait(close_request_.get(), 
 		thread_exit_.get(), 
 		INFINITE,
@@ -422,8 +425,10 @@ void ExclusiveWasapiDevice::StartStream() {
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > wait_timeout) {
 				XAMP_LOG_D(logger_, "WASAPI wait too slow! {}msec.", elapsed.count());
-				thread_exit = true;
-				continue;
+				if (!ignore_wait_slow_) {
+					thread_exit = true;
+					continue;
+				}							
 			}
 
 			switch (result) {

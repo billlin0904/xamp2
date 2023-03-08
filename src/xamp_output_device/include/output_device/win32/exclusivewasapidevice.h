@@ -82,6 +82,7 @@ private:
 	bool GetSample(bool is_silence) noexcept;
 	
 	bool raw_mode_;
+	bool ignore_wait_slow_;
 	std::atomic<bool> is_running_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
