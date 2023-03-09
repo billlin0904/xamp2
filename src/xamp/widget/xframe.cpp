@@ -5,11 +5,19 @@
 #include <widget/xframe.h>
 
 #include "str_utilts.h"
-#include <thememanager.h>
+#include "thememanager.h"
 
 XFrame::XFrame(QWidget* parent)
-    : QFrame(parent) {
+    : QWidget(parent) {
     setObjectName(qTEXT("XFrame"));
+    setAttribute(Qt::WA_TranslucentBackground);
+    setStyleSheet(qSTR(
+        R"(
+			QWidget#XFrame {
+				border: none;
+				border-radius: 8px;
+			}
+        )"));
 }
 
 void XFrame::SetTitle(const QString& title) const {

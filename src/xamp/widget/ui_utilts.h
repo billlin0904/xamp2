@@ -12,6 +12,7 @@
 class XMainWindow;
 class XProgressDialog;
 class ProcessIndicator;
+class QFileDialog;
 
 struct PlaybackFormat {
     bool is_dsd_file{ false };
@@ -49,3 +50,8 @@ AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter();
 AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
 
 PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);
+
+QString GetExistingDirectory(QWidget* parent = nullptr,
+    const QString& caption = QString(),
+    const QString& directory = QString(),
+    const QString& filter = QString());

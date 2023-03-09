@@ -28,7 +28,7 @@
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
 #include <widget/appsettings.h>
-#include <widget/artistinfopage.h>
+#include <widget/xmessage.h>
 #include <widget/backgroundworker.h>
 #include <widget/database.h>
 #include <widget/equalizerdialog.h>
@@ -59,8 +59,47 @@
 #include "aboutpage.h"
 #include "cdpage.h"
 #include "preferencepage.h"
-#include <thememanager.h>
+#include "thememanager.h"
 #include "version.h"
+
+static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& device_info,
+    const Path& file_path,
+    int32_t input_sample_rate,
+    int32_t target_sample_rate) {
+    auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_NONE;
+    auto dsd_modes = DsdModes::DSD_MODE_AUTO;
+    const auto is_enable_sample_rate_converter = target_sample_rate > 0;
+    const auto is_dsd_file = IsDsdFile(file_path);
+
+    if (AppSettings::ValueAsBool(kEnablePcm2Dsd)
+        && !is_dsd_file
+        && !is_enable_sample_rate_converter
+        && input_sample_rate % kPcmSampleRate441 == 0) {
+        dsd_modes = DsdModes::DSD_MODE_DOP;
+        convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
+    }
+
+    if (dsd_modes == DsdModes::DSD_MODE_AUTO) {
+        if (is_dsd_file) {
+            if (device_info.is_support_dsd && !is_enable_sample_rate_converter) {
+                if (IsAsioDevice(device_info.device_type_id)) {
+                    dsd_modes = DsdModes::DSD_MODE_NATIVE;
+                }
+                else {
+                    dsd_modes = DsdModes::DSD_MODE_DOP;
+                }
+            }
+            else {
+                dsd_modes = DsdModes::DSD_MODE_DSD2PCM;
+            }
+        }
+        else {
+            dsd_modes = DsdModes::DSD_MODE_PCM;
+        }
+    }
+
+    return { dsd_modes, convert_mode };
+}
 
 Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
     : is_seeking_(false)
@@ -87,6 +126,8 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start(QThread::LowestPriority);
+
+    messages_ = new XMessage(this);
     player_->Startup(state_adapter_);
 
     InitialUi();
@@ -101,11 +142,13 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 
     playlist_page_->HidePlaybackInformation(true);
-
     podcast_page_->HidePlaybackInformation(true);
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
     album_page_->album()->albumViewPage()->playlistPage()->HidePlaybackInformation(false);
+
+    (void)QObject::connect(album_page_->album(), &AlbumView::LoadCompleted,
+        this, &Xamp::ProcessTrackInfo);
     
     AvoidRedrawOnResize();
 
@@ -929,9 +972,11 @@ void Xamp::ResetSeekPosValue() {
     ui_.startPosLabel->setText(FormatDuration(0));
 }
 
-void Xamp::ProcessTrackInfo(const ForwardList<TrackInfo>&) const {
+void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
     album_page_->album()->Refresh();
     playlist_page_->playlist()->Reload();
+    messages_->Push(MessageTypes::MSG_SUCCESS,
+        tr("Add %1 albums %2 tracks successfully!").arg(total_album).arg(total_tracks));
 }
 
 void Xamp::SetupDsp(const PlayListEntity& item) {
@@ -964,43 +1009,6 @@ void Xamp::SetupDsp(const PlayListEntity& item) {
 
 QString Xamp::TranslateErrorCode(const Errors error) const {
     return FromStdStringView(EnumToString(error));
-}
-
-static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo & device_info,
-    const Path & file_path,
-    int32_t input_sample_rate,
-    int32_t target_sample_rate) {
-    auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_NONE;
-    auto dsd_modes = DsdModes::DSD_MODE_AUTO;
-    const auto is_enable_sample_rate_converter = target_sample_rate > 0;
-    const auto is_dsd_file = IsDsdFile(file_path);
-
-    if (AppSettings::ValueAsBool(kEnablePcm2Dsd)
-        && !is_dsd_file
-        && !is_enable_sample_rate_converter
-        && input_sample_rate % kPcmSampleRate441 == 0) {
-        dsd_modes = DsdModes::DSD_MODE_DOP;
-        convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
-    }
-
-    if (dsd_modes == DsdModes::DSD_MODE_AUTO) {
-        if (is_dsd_file) {
-            if (device_info.is_support_dsd && !is_enable_sample_rate_converter) {
-                if (IsAsioDevice(device_info.device_type_id)) {
-                    dsd_modes = DsdModes::DSD_MODE_NATIVE;
-                }
-                else {
-                    dsd_modes = DsdModes::DSD_MODE_DOP;
-                }
-            } else {
-                dsd_modes = DsdModes::DSD_MODE_DSD2PCM;
-            }
-        } else {
-            dsd_modes = DsdModes::DSD_MODE_PCM;
-        }
-    }
-
-    return { dsd_modes, convert_mode };
 }
 
 void Xamp::SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
@@ -1207,16 +1215,12 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     lrc_page_->spectrum()->reset();
 	
     if (open_done) {
-        auto max_duration_ms = Round(player_->GetDuration()) * 1000;
+	    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;
         ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(FormatDuration(0));
         ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
         cur_page->format()->setText(Format2String(playback_format, ext));
-
-        /*artist_info_page_->SetArtistId(item.artist,
-            qDatabase.GetArtistCoverId(item.artist_id),
-            item.artist_id);*/
         album_page_->album()->SetPlayingAlbumId(item.album_id);
         UpdateButtonState();
         emit NowPlaying(item.artist, item.title);
@@ -1226,8 +1230,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     SetCover(item.cover_id, cur_page);
 
-    QFontMetrics title_metrics(ui_.titleLabel->font());
-    QFontMetrics artist_metrics(ui_.artistLabel->font());
+    const QFontMetrics title_metrics(ui_.titleLabel->font());
+    const QFontMetrics artist_metrics(ui_.artistLabel->font());
     
     ui_.titleLabel->setText(title_metrics.elidedText(item.title, Qt::ElideRight, ui_.titleLabel->width()));
     ui_.artistLabel->setText(artist_metrics.elidedText(item.artist, Qt::ElideRight, ui_.artistLabel->width()));
@@ -1297,9 +1301,9 @@ void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
 void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
     const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
     qDatabase.RemoveAlbum(album_id);
-
     cd_page_->playlistPage()->playlist()->RemoveAll();
-    cd_page_->playlistPage()->playlist()->ProcessTrackInfo(track_infos);
+    DatabaseFacade::InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);
+    cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(true);
 }
 
@@ -1316,23 +1320,24 @@ void Xamp::DrivesRemoved(const DriveInfo& /*drive_info*/) {
 }
 
 void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
-    auto found_cover = !current_entity_.cover_id.isEmpty();
+    auto found_cover = false;
+    const auto cover = qPixmapCache.GetOrDefault(cover_id, true);
 
-    if (cover_id != qPixmapCache.GetUnknownCoverId()) {
-        const auto cover = qPixmapCache.GetOrDefault(cover_id, false);
-        if (!cover.isNull()) {
-            found_cover = true;
-            SetPlaylistPageCover(&cover, page);
-            emit BlurImage(cover_id, cover.copy(), size());
-        }
-
-    	if (lrc_page_ != nullptr) {
-            lrc_page_->ClearBackground();
-        }
+    if (!cover_id.isEmpty() && cover_id != qPixmapCache.GetUnknownCoverId()) {
+        found_cover = true;
     }
 
     if (!found_cover) {
         SetPlaylistPageCover(nullptr, page);
+    } else {
+        SetPlaylistPageCover(&cover, page);
+        emit BlurImage(cover_id, cover.copy(), size());
+    }
+
+    if (lrc_page_ != nullptr) {
+        lrc_page_->ClearBackground();
+        lrc_page_->SetCover(image_utils::ResizeImage(cover, lrc_page_->cover()->size(), true));
+        lrc_page_->AddCoverShadow(found_cover);
     }
 }
 
@@ -1381,7 +1386,7 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 }
 
 void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
-    auto playlist_view = playlist_page_->playlist();
+	auto *playlist_view = playlist_page_->playlist();
     qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
     playlist_view->AddPendingPlayListFromModel(order_);    
 }
@@ -1407,12 +1412,7 @@ void Xamp::SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         image_utils::ResizeImage(*cover, cover_size, false),
         image_utils::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
-
     page->SetCover(cover);
-
-    if (lrc_page_ != nullptr) {
-        lrc_page_->SetCover(image_utils::ResizeImage(*cover, lrc_page_->cover()->size(), true));
-    }   
 }
 
 void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
@@ -1575,7 +1575,6 @@ void Xamp::InitialPlaylist() {
     PushWidget(playlist_page_);
     PushWidget(lrc_page_);
     PushWidget(album_page_);
-    //PushWidget(artist_info_page_);
     PushWidget(podcast_page_);
     PushWidget(file_system_view_page_);
     PushWidget(cd_page_);
@@ -1662,7 +1661,7 @@ QWidget* Xamp::PopWidget() {
 }
 
 void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
-    auto last_dir = AppSettings::ValueAsString(kDefaultDir);
+	const auto last_dir = AppSettings::ValueAsString(kDefaultDir);
 
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     const auto file_name = QFileDialog::getSaveFileName(this,

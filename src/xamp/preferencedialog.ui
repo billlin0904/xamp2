@@ -70,7 +70,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="playbackPage">
         <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,0,0,0,0,0,0,0,0,0,0">
@@ -80,7 +80,7 @@
             <widget class="QLabel" name="lbLang">
              <property name="font">
               <font>
-               <pointsize>14</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
@@ -130,7 +130,7 @@
             <widget class="QLabel" name="lbThemeMode">
              <property name="font">
               <font>
-               <pointsize>14</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
@@ -185,7 +185,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>14</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
@@ -250,7 +250,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>14</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
@@ -315,7 +315,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>14</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
@@ -380,7 +380,7 @@
              </property>
              <property name="font">
               <font>
-               <pointsize>14</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
@@ -1044,8 +1044,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>364</width>
-           <height>32</height>
+           <width>381</width>
+           <height>41</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_27">

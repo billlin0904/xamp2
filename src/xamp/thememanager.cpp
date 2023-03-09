@@ -202,6 +202,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_MESSAGE_BOX_INFORMATION,   0xF05A },
     { ICON_MESSAGE_BOX_ERROR,         0xF05E },
 	{ ICON_MESSAGE_BOX_QUESTION,      0xF059 },
+    { ICON_MESSAGE_BOX_SUCCESS,       0xF058 },
     };
     
     qFontIcon.addFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
@@ -376,6 +377,12 @@ QIcon ThemeManager::GetFontIcon(const char32_t code) const {
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::colorAttr, QVariant(QColor(53, 193, 31)));
+			return qFontIcon.icon(code, temp);
+		}
+    case Glyphs::ICON_MESSAGE_BOX_SUCCESS:
+		{
+			auto temp = font_icon_opts_;
+			temp.insert(FontIconOption::colorAttr, QVariant(QColor(0, 249, 0)));
 			return qFontIcon.icon(code, temp);
 		}
     }

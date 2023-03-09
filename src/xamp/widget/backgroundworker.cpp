@@ -105,6 +105,7 @@ void BackgroundWorker::ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapt
 		album_groups[track_info.album].push_front(std::move(track_info));
     });
 
+    int32_t total_tracks = 0;
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
         if (is_stop_) {
             return;
@@ -117,6 +118,8 @@ void BackgroundWorker::ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapt
 		tracks.second.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
         });
+
+        total_tracks += std::distance(tracks.second.begin(), tracks.second.end());
     });
 
     std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
@@ -124,8 +127,9 @@ void BackgroundWorker::ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapt
             return;
         }
 		DatabaseFacade::InsertTrackInfo(album_tracks.second, playlist_id, is_podcast_mode);
-		emit adapter->ReadCompleted(album_tracks.second);
     });
+
+    emit adapter->ReadCompleted(album_groups.size(), total_tracks);
 }
 
 BackgroundWorker::BackgroundWorker() {

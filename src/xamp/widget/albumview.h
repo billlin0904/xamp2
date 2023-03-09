@@ -23,6 +23,7 @@ class ClickableLabel;
 class AlbumViewPage;
 class AlbumPlayListTableView;
 class PlaylistPage;
+class XMessage;
 
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
@@ -126,7 +127,7 @@ signals:
 
 	void RemoveAll();
 
-	void LoadCompleted();
+	void LoadCompleted(int32_t total_album, int32_t total_tracks);
 
 	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
 		QString const& file_path, 
@@ -147,8 +148,6 @@ public slots:
     void OnThemeChanged(QColor backgroundColor, QColor color);
 
     void append(const QString& file_name);
-
-    void ProcessTrackInfo(const ForwardList<TrackInfo> & entities);
 
 	void ShowMenu(const QPoint& pt);
 

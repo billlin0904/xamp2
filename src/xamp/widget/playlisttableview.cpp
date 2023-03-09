@@ -854,7 +854,7 @@ void PlayListTableView::ProcessDatabase(const ForwardList<PlayListEntity>& entit
     DeletePendingPlaylist();
 }
 
-void PlayListTableView::ProcessTrackInfo(const ForwardList<TrackInfo>&) {
+void PlayListTableView::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) {
     Reload();
     emit AddPlaylistItemFinished();
 }

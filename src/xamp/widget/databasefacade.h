@@ -44,7 +44,7 @@ signals:
 
     void FromDatabase(const ForwardList<PlayListEntity>& entity);
 
-	void ReadCompleted(const ForwardList<TrackInfo> &entity);
+	void ReadCompleted(int32_t total_album, int32_t total_tracks);
 
 public:
     static void InsertTrackInfo(const ForwardList<TrackInfo>& result, 

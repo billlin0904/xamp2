@@ -2,6 +2,7 @@
 #include <QProgressBar>
 #include <QCoreApplication>
 #include <QApplication>
+#include <QFileDialog>
 
 #include <base/assert.h>
 #include <stream/soxresampler.h>
@@ -150,7 +151,6 @@ AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& setting
     const auto stop_band = settings[kSoxrStopBand].toInt();
     const auto pass_band = settings[kSoxrPassBand].toInt();
     const auto phase = settings[kSoxrPhase].toInt();
-    const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
     const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
 
     auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
@@ -160,7 +160,7 @@ AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& setting
     soxr_sample_rate_converter->SetPassBand(pass_band);
     soxr_sample_rate_converter->SetPhase(phase);
     soxr_sample_rate_converter->SetRollOff(roll_off_level);
-    soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
+
     return converter;
 }
 
@@ -189,4 +189,22 @@ XMainWindow* GetMainWindow() {
     }
     XAMP_ENSURES(main_window != nullptr);
     return main_window;
+}
+
+QString GetExistingDirectory(QWidget* parent,
+    const QString& caption,
+    const QString& directory,
+    const QString& filter) {
+    QFileDialog dialog(parent, caption, directory, filter);
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setViewMode(QFileDialog::Detail);
+    dialog.setOption(QFileDialog::ShowDirsOnly);
+    QUrl selected_url;
+    if (dialog.exec() == QDialog::Accepted) {
+        selected_url = dialog.selectedUrls().value(0);
+        if (selected_url.isLocalFile() || selected_url.isEmpty()) {
+            return selected_url.toLocalFile();
+        }            
+    }
+    return selected_url.toString();
 }

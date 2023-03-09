@@ -11,7 +11,7 @@
 
 #include <widget/themecolor.h>
 
-class XFrame : public QFrame {
+class XFrame : public QWidget {
 	Q_OBJECT
 public:
 	explicit XFrame(QWidget* parent = nullptr);

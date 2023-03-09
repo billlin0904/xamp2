@@ -34,22 +34,23 @@ SpectrumWidget* LrcPage::spectrum() {
 	return spectrum_;
 }
 
-void LrcPage::SetCover(const QPixmap& src) {
-    cover_ = src.copy();
+void LrcPage::AddCoverShadow(bool is_dark) {
+	cover_label_->setGraphicsEffect(nullptr);
 
-    SetFullScreen(spectrum_->width() > 700);
-
-	if (AppSettings::ValueAsBool(kEnableBlurCover)) {
+	if (is_dark) {
 		lyrics_widget_->SetLrcHighLight(Qt::white);
 		format_label_->setStyleSheet(qTEXT("color: white"));
-
-		cover_label_->setGraphicsEffect(nullptr);
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(5, 10);
 		effect->setColor(QColor(qTEXT("#080808")));
 		effect->setBlurRadius(40);
 		cover_label_->setGraphicsEffect(effect);
 	}
+}
+
+void LrcPage::SetCover(const QPixmap& src) {
+    cover_ = src.copy();
+    SetFullScreen(spectrum_->width() > 700);
 }
 
 QSize LrcPage::CoverSize() const {
@@ -146,9 +147,6 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 }
 
 void LrcPage::paintEvent(QPaintEvent*) {
-	/*if (AppSettings::ValueAsBool(kEnableBlurCover)) {
-		cover_label_->setGraphicsEffect(nullptr);
-	}*/
 	QPainter painter(this);
 	if (!background_image_.isNull()) {
 		painter.setOpacity(current_bg_alpha_ / 255.0);
@@ -383,16 +381,6 @@ void LrcPage::initial() {
 	title_->hide();
 	album_->hide();
 	artist_->hide();
-
-	if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
-		if (qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
-			auto* effect = new QGraphicsDropShadowEffect(this);
-			effect->setOffset(10, 20);
-			effect->setColor(qTheme.GetCoverShadowColor());
-			effect->setBlurRadius(50);
-			cover_label_->setGraphicsEffect(effect);
-		}
-	}
 
 	setStyleSheet(qTEXT("background-color: transparent"));
 }

@@ -135,7 +135,7 @@ public slots:
 
 	void ProcessDatabase(const ForwardList<PlayListEntity>& entities);
 
-	void ProcessTrackInfo(const ForwardList<TrackInfo>& entities);
+	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 

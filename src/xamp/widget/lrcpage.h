@@ -28,6 +28,8 @@ public:
 
 	void SetCover(const QPixmap& cover);
 
+	void AddCoverShadow(bool is_dark = false);
+
 	QLabel* format();
 
 	ScrollLabel* album();

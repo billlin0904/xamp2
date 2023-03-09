@@ -16,6 +16,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 #include <widget/albumentity.h>
+#include <widget/xmessage.h>
 
 #include <thememanager.h>
 
@@ -484,10 +485,13 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
     load_file_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_FILE));
 
     auto* load_dir_act = action_map.AddAction(tr("Load file directory"), [this]() {
-        const auto dir_name = QFileDialog::getExistingDirectory(this,
+        /*const auto dir_name = QFileDialog::getExistingDirectory(this,
             tr("Select a directory"),
             AppSettings::GetMyMusicFolderPath(),
-            QFileDialog::ShowDirsOnly);
+            QFileDialog::ShowDirsOnly);*/
+        const auto dir_name = GetExistingDirectory(this,
+        tr("Select a directory"),
+        AppSettings::GetMyMusicFolderPath());
         if (dir_name.isEmpty()) {
             return;
         }
@@ -647,7 +651,7 @@ void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
     (void)QObject::connect(database_facade.get(),
         &DatabaseFacade::ReadCompleted,
         this,
-        &AlbumView::ProcessTrackInfo);
+        &AlbumView::LoadCompleted);
 
     (void)QObject::connect(database_facade.get(),
         &DatabaseFacade::ReadFileStart,
@@ -684,10 +688,6 @@ void AlbumView::OnReadFileEnd() {
         return;
     }
     read_progress_dialog_.reset();
-}
-
-void AlbumView::ProcessTrackInfo(const ForwardList<TrackInfo>& ) {
-    emit LoadCompleted();
 }
 
 void AlbumView::HideWidget() {

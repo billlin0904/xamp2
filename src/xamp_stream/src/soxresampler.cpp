@@ -25,8 +25,7 @@ public:
 	static constexpr int32_t kDefaultPhase = 46;
 
 	SoxrSampleRateConverterImpl() noexcept
-		: enable_steep_filter_(false)
-		, enable_dither_(true)
+		: enable_dither_(true)
 		, quality_(SoxrQuality::VHQ)
 		, input_sample_rate_(0)
 		, output_sample_rate_(0)
@@ -74,11 +73,6 @@ public:
 		if (!enable_dither_) {
 			flags |= SOXR_NO_DITHER;
 			XAMP_LOG_D(logger_, "Soxr disable dither.");
-		}
-
-		if (enable_steep_filter_) {
-			quality_spec |= SOXR_STEEP_FILTER;
-			XAMP_LOG_D(logger_, "Soxr enable steep filter.");
 		}
 
 		unsigned long phase = SOXR_LINEAR_PHASE;
@@ -140,10 +134,6 @@ public:
 
 	void Close() noexcept {
 		handle_.reset();
-	}
-
-	void SetSteepFilter(bool enable) {
-		enable_steep_filter_ = enable;
 	}
 
 	void SetQuality(SoxrQuality quality) {
@@ -222,8 +212,6 @@ public:
 	};
 
 	using SoxrHandle = UniqueHandle<soxr_t, SoxrHandleTraits>;
-
-	bool enable_steep_filter_;
 	bool enable_dither_;
 	SoxrQuality quality_;
 	uint32_t input_sample_rate_;
@@ -252,10 +240,6 @@ void SoxrSampleRateConverter::Start(const AnyMap& config) {
 void SoxrSampleRateConverter::Init(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
     impl_->Init(input_format.GetSampleRate());
-}
-
-void SoxrSampleRateConverter::SetSteepFilter(bool enable) {
-    impl_->SetSteepFilter(enable);
 }
 
 void SoxrSampleRateConverter::SetQuality(SoxrQuality quality) {

@@ -42,6 +42,7 @@ class BackgroundWorker;
 class CdPage;
 class XMenu;
 class DatabaseFacade;
+class XMessage;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -86,7 +87,7 @@ public slots:
 
 	void OnArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void ProcessTrackInfo(const ForwardList<TrackInfo>&) const;
+	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const;
 
 	void OnActivated(QSystemTrayIcon::ActivationReason reason);
 
@@ -105,6 +106,7 @@ public slots:
 	void OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
+
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
@@ -235,10 +237,10 @@ private:
 	CdPage* cd_page_;
 	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_page_;
-    //ArtistInfoPage* artist_info_page_;
 	FileSystemViewPage* file_system_view_page_;
 	IXMainWindow* main_window_;
 	BackgroundWorker* background_worker_;
+	XMessage* messages_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;
 	PlayListEntity current_entity_;

@@ -53,7 +53,6 @@ QMap<QString, QVariant> PreferencePage::CurrentSoxrSettings() const {
 
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = soxr_sample_rate;
-	settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
     settings[kSoxrRollOffLevel] = soxr_rolloff;
     settings[kSoxrQuality] = soxr_quility;
 	settings[kSoxrPassBand] = soxr_pass_band;
@@ -397,6 +396,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 	Q_FOREACH(auto* w, r8brain_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
+
+	qTheme.SetSliderTheme(ui_.soxrPhaseSlider, true);
+	qTheme.SetSliderTheme(ui_.soxrPassbandSlider, true);
 
 	ui_.stackedWidget->setCurrentIndex(0);
 	setFixedSize(900, 700);	

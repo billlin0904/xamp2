@@ -89,7 +89,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zopfli/msvc/Debug/;../thirdparty/libimagequant/msvc/Debug/;../thirdparty/vips/bin/win32/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;libvips-cpp.lib;libvips.lib;libglib-2.0.lib;libgobject-2.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
@@ -214,6 +214,7 @@
     <ClCompile Include="widget\spotify_utilis.cpp" />
     <ClCompile Include="widget\volumebutton.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
+    <ClCompile Include="widget\xmessage.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
@@ -298,6 +299,7 @@
     <ClInclude Include="widget\themecolor.h" />
     <QtMoc Include="widget\volumebutton.h" />
     <QtMoc Include="widget\volumecontroldialog.h" />
+    <QtMoc Include="widget\xmessage.h" />
     <ClInclude Include="widget\xprogressdialog.h" />
     <ClInclude Include="widget\xmainwindow.h" />
     <ClInclude Include="xampplayer.h" />

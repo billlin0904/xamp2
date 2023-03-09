@@ -35,8 +35,6 @@ public:
 
     SoxrSampleRateConverter();    
 
-    void SetSteepFilter(bool enable);
-
     void SetQuality(SoxrQuality quality);
 
     void SetStopBand(double stop_band);

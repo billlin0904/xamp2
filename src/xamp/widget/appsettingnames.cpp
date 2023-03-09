@@ -68,7 +68,6 @@ IMPL_APP_SETTING_NAME(AppSettingWindowType, "AppSettings/spectrum/windowType");
 
 IMPL_APP_SETTING_NAME(Soxr, "Soxr");
 IMPL_APP_SETTING_NAME(SoxrDefaultSettingName, "default");
-IMPL_APP_SETTING_NAME(SoxrEnableSteepFilter, "enableSteepFilter");
 IMPL_APP_SETTING_NAME(SoxrQuality, "quality");
 IMPL_APP_SETTING_NAME(SoxrStopBand, "stopBand");
 IMPL_APP_SETTING_NAME(SoxrPassBand, "passBand");
