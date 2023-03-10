@@ -15,7 +15,7 @@ class XDialog : public QDialog {
 public:
     explicit XDialog(QWidget* parent = nullptr);
 
-    void SetContentWidget(QWidget* content, bool transparent_frame = false);
+    void SetContentWidget(QWidget* content, bool transparent_frame = false, bool disable_resize = true);
 
     QWidget* ContentWidget() const {
         return frame_->ContentWidget();
@@ -27,9 +27,10 @@ public:
 
     void SetIcon(const QIcon& icon) const;
 
-    void showEvent(QShowEvent* event) override;
 private:
 #if defined(Q_OS_WIN)
+    void showEvent(QShowEvent* event) override;
+
     void mousePressEvent(QMouseEvent* event) override;
 
     void mouseReleaseEvent(QMouseEvent* event) override;

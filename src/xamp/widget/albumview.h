@@ -118,6 +118,7 @@ public:
 
 	void SetPlayingAlbumId(int32_t album_id);
 
+	void LoadCoverCache();
 signals:
     void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 

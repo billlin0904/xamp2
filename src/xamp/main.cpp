@@ -382,10 +382,13 @@ static void ApplyTheme() {
 }
 
 static int Execute(int argc, char* argv[]) {
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication::setDesktopSettingsAware(false);
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
+    QApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles);
 
     QApplication::setApplicationName(kApplicationName);
     QApplication::setApplicationVersion(kApplicationVersion);
@@ -449,7 +452,7 @@ static int Execute(int argc, char* argv[]) {
         main_window.setShortcut(QKeySequence(Qt::Key_F11));
     }
 
-    Xamp win(MakeAudioPlayer());
+    Xamp win(&main_window, MakeAudioPlayer());
     win.SetXWindow(&main_window);
     win.SetThemeColor(qTheme.palette().color(QPalette::WindowText),
         qTheme.GetThemeTextColor());
@@ -473,7 +476,7 @@ static int Execute(int argc, char* argv[]) {
     return app.exec();
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC
@@ -540,8 +543,11 @@ int main(int argc, char *argv[]) {
     );
 
     auto exist_code = 0;
-
     try {
+        static char app_name[] = "xamp2";
+        static const int argc = 1;
+        static char* argv[] = { app_name, nullptr };
+
         exist_code = Execute(argc, argv);
         if (exist_code == kRestartExistCode) {
             QProcess::startDetached(qSTR(argv[0]), qApp->arguments());

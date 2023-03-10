@@ -7,29 +7,20 @@
 
 #include <vector>
 #include <stream/stream.h>
-#include <widget/smoothcurvegenerator2.h>
 #include <QTimer>
 #include <QFrame>
 
 using xamp::stream::ComplexValarray;
 
-enum SpectrumStyles {
-	BAR_STYLE,
-	WAVE_STYLE,
-	WAVE_LINE_STYLE,
-};
-
 class SpectrumWidget : public QFrame {
 	Q_OBJECT
 public:
-	static constexpr auto kMaxBands = 64;
-	static constexpr auto kFFTSize = 64;
+	static constexpr auto kMaxBands = 128;
+	static constexpr auto kFFTSize = 2048;
 
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
-	void reset();
-
-	void SetStyle(SpectrumStyles style);
+	void Reset();
 
 	void SetBarColor(QColor color);
 
@@ -40,15 +31,11 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
-	void DrawWave(QPainter& painter, size_t num_bars, bool is_line);
-
 	void DrawBar(QPainter& painter, size_t num_bars);
 
-	SpectrumStyles style_{ BAR_STYLE };
 	QColor bar_color_;
 	ComplexValarray fft_result_;
-	std::vector<float> mag_datas_;
+	std::vector<float> bins_;
 	std::vector<float> peak_delay_;
 	QTimer timer_;
-	SmoothCurveGenerator2 generator_;
 };

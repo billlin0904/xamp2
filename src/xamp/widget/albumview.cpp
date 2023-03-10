@@ -606,9 +606,12 @@ WHERE
     )"), qDatabase.database());
 }
 
+void AlbumView::LoadCoverCache() {
+    styled_delegate_->LoadCoverCache();
+}
+
 void AlbumView::Refresh() {
     update();
-    styled_delegate_->LoadCoverCache();
 }
 
 void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {

@@ -168,7 +168,6 @@ QPushButton* XMessageBox::AddButton(QDialogButtonBox::StandardButton buttons) {
 }
 
 void XMessageBox::showEvent(QShowEvent* event) {
-	XDialog::showEvent(event);
 	if (!enable_countdown_) {
 		return;
 	}

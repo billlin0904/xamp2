@@ -1,45 +1,15 @@
 #include <QPainter>
 
-#include <base/base.h>
 #include <base/math.h>
 #include <widget/widget_shared.h>
 #include <stream/fft.h>
 
-#include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 
 static double ToMag(const std::complex<float>& r) {
     return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
-}
-
-static double FreqToBin(int32_t freq, int32_t fft_size, double rate) {
-    double ratio = static_cast<double>(fft_size * freq) / rate;
-    return Round(ratio);
-}
-
-static double BinToFreq(int bin, int32_t fft_size, double rate) {
-    return rate * bin / fft_size;
-}
-
-static void LinearInterpolation(double rate) {
-    const auto kRoot24 = std::pow(2.0, (1.0 / 24.0));
-    const auto kC0 = std::pow(440 * kRoot24,  -144);
-    std::vector<std::tuple<double, double, double>> scale;
-
-    scale.reserve(11 * 24);
-
-    for (auto octave = 0; octave < 11; octave++) {
-        for (auto note = 0; note < 24; note++) {
-            const auto freq = std::pow(kC0 * kRoot24, (octave * 24 + note));
-            const auto bin = FreqToBin(freq, SpectrumWidget::kFFTSize, rate);
-            const auto bin_freq  = BinToFreq(bin, SpectrumWidget::kFFTSize, rate);
-            const auto next_freq = BinToFreq(bin + 1, SpectrumWidget::kFFTSize, rate);
-            const auto ratio = (freq - bin_freq) / (next_freq - bin_freq);
-            scale.push_back({freq, bin, ratio});
-        }
-    }
 }
 
 SpectrumWidget::SpectrumWidget(QWidget* parent)
@@ -49,64 +19,31 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 			peek -= 0.05f;
 		}
 		update();
-		});
+	});
+
 	timer_.setTimerType(Qt::PreciseTimer);
 	timer_.start(25);
 	bar_color_ = QColor(5, 184, 204);
-
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	(void)QObject::connect(this, &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
-		ActionMap<SpectrumWidget> action_map(this);
-
-	(void)action_map.AddAction(tr("Bar style"), [this]() {
-		SetStyle(SpectrumStyles::BAR_STYLE);
-	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
-		});
-
-	(void)action_map.AddAction(tr("Wave style"), [this]() {
-		SetStyle(SpectrumStyles::WAVE_STYLE);
-	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
-		});
-
-	(void)action_map.AddAction(tr("Wave line style"), [this]() {
-		SetStyle(SpectrumStyles::WAVE_LINE_STYLE);
-	AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
-		});
-
-	action_map.AddSeparator();
-
-	(void)action_map.AddAction(tr("No Window"), []() {
-		AppSettings::setEnumValue(kAppSettingWindowType, WindowType::NO_WINDOW);
-		});
-
-	(void)action_map.AddAction(tr("Hamming Window"), []() {
-		AppSettings::setEnumValue(kAppSettingWindowType, WindowType::HAMMING);
-		});
-
-	(void)action_map.AddAction(tr("Blackman harris Window"), []() {
-		AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
-		});
-
-	action_map.exec(pt);
-		});
 }
 
 void SpectrumWidget::OnFftResultChanged(ComplexValarray const& result) {
-	auto max_bands = (std::min)(static_cast<size_t>(kMaxBands), result.size());
+	const auto max_bands = (std::min)(static_cast<size_t>(kMaxBands), 
+	                                  result.size());
 
-	if (mag_datas_.size() != max_bands) {
-		mag_datas_.resize(max_bands);
+	if (bins_.size() != max_bands) {
+		bins_.resize(max_bands);
 		peak_delay_.resize(max_bands);
 	}
 
 	for (auto i = 0; i < max_bands; ++i) {
-		mag_datas_[i] = ToMag(result[i]) * 0.025;
-		//mag_datas_[i] = toMag(result[i]) / max_bands;
-		mag_datas_[i] = (std::max)(mag_datas_[i], 0.01f);
-		mag_datas_[i] = (std::min)(mag_datas_[i], 0.9f);
-		if (peak_delay_[i] <= mag_datas_[i]) {
-			peak_delay_[i] = mag_datas_[i];
-		}
+		if (result[i].imag() == 0 && result[i].real() == 0) {
+			bins_[i] = 0;
+		} else {
+			bins_[i] = ToMag(result[i]);
+		}		
+		peak_delay_[i] = std::abs(bins_[i]) / std::sqrt(2) / 2;
+		peak_delay_[i] = (std::min)(peak_delay_[i], 2048.0f);
+		peak_delay_[i] = peak_delay_[i] / 2048.0f * 128;
 	}
 }
 
@@ -130,74 +67,27 @@ void SpectrumWidget::DrawBar(QPainter &painter, size_t num_bars) {
 	}
 }
 
-void SpectrumWidget::DrawWave(QPainter& painter, size_t num_bars, bool is_line) {
-	float max = peak_delay_.at(0);
-	float min = peak_delay_.at(0);
-	for (size_t i = 1; i < num_bars; i++) {
-		if (max < peak_delay_.at(i)) {
-			max = peak_delay_.at(i);
-		}
-
-		if (min > peak_delay_.at(i)) {
-			min = peak_delay_.at(i);
-		}
-	}
-
-	std::vector<QPointF> points;
-	points.reserve(num_bars + 2);
-	points.push_back(QPoint(0, height()));
-	for (auto i = 0; i < num_bars; i++) {
-		double x = i * width() / num_bars;
-		double y = height() - (((peak_delay_.at(i) - min) / (max - min)) * height());
-		points.push_back(QPointF(x, y));
-	}
-	points.push_back(QPoint(width(), height()));
-
-	QPainterPath path = generator_.GenerateSmoothCurve(points);
-	path.closeSubpath();
-	if (is_line) {
-		painter.setPen(bar_color_);
-		painter.drawPath(path);
-	} else {
-		/*QLinearGradient gradient(QPoint(width(), 0), QPoint(width(), height()));
-		gradient.setColorAt(0.0, bar_color);
-		gradient.setColorAt(1.0, QColor(0, 0, 0, 0));*/
-		painter.fillPath(path, bar_color_);
-	}
-}
-
 void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	QPainter painter(this);
+
 	painter.setRenderHints(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
 	const auto num_bars = peak_delay_.size();
 	if (!num_bars) {
 		return;
 	}
 
-	switch (style_) {
-	case SpectrumStyles::BAR_STYLE:
-		DrawBar(painter, num_bars);
-		break;
-	case SpectrumStyles::WAVE_STYLE:
-		DrawWave(painter, num_bars, false);
-		break;
-	case SpectrumStyles::WAVE_LINE_STYLE:
-		DrawWave(painter, num_bars, true);
-		break;
-	}
+	DrawBar(painter, num_bars);
 }
 
 void SpectrumWidget::SetBarColor(QColor color) {
 	bar_color_ = color;
 }
 
-void SpectrumWidget::SetStyle(SpectrumStyles style) {
-	style_ = style;
-}
-
-void SpectrumWidget::reset() {
-	mag_datas_.clear();
+void SpectrumWidget::Reset() {
+	bins_.clear();
 	peak_delay_.clear();
 	update();
 }

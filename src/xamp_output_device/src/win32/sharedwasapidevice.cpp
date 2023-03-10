@@ -242,7 +242,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	rt_work_queue_ = MakeWASAPIWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
+	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
 }
 
 bool SharedWasapiDevice::IsMuted() const {

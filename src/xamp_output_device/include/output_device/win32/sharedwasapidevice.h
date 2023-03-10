@@ -97,7 +97,7 @@ private:
 	CComPtr<DeviceEventNotification> device_volume_notification_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
-	CComPtr<WASAPIWorkQueue<SharedWasapiDevice>> rt_work_queue_;
+	CComPtr<WasapiWorkQueue<SharedWasapiDevice>> rt_work_queue_;
 	LoggerPtr log_;
 };
 

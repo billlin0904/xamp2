@@ -73,7 +73,10 @@ public:
     virtual void FocusOut() = 0;
 
     virtual void ShortcutsPressed(const QKeySequence& shortcut) = 0;
+
 protected:
-    IXFrame() = default;
+    explicit IXFrame(QWidget* parent = nullptr)
+	    : QFrame(parent) {
+    }
 };
 

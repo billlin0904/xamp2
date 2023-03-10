@@ -715,7 +715,7 @@ void XMainWindow::mouseMoveEvent(QMouseEvent* event) {
 void XMainWindow::UpdateScreenNumber() {
 #ifdef Q_OS_WIN32
     auto i = 1;
-    Q_FOREACH(auto screen, QGuiApplication::screens()) {
+    Q_FOREACH(auto* screen, QGuiApplication::screens()) {
         if (screen == current_screen_) {
             screen_number_ = i;
         }
@@ -738,20 +738,23 @@ void XMainWindow::changeEvent(QEvent* event) {
         }
     }
 #endif
-    IXMainWindow::changeEvent(event);
 }
 
-void XMainWindow::showEvent(QShowEvent* event) {
+void XMainWindow::showEvent(QShowEvent* event) {    
 #ifdef Q_OS_WIN32
     task_bar_->showEvent();
 #endif
     QApplication::postEvent(this, new QEvent(QEvent::UpdateRequest), Qt::LowEventPriority);
     setAttribute(Qt::WA_Mapped);
-    IXMainWindow::showEvent(event);
 }
 
 void XMainWindow::ShowWindow() {
     show();
+
+    auto state = windowState();
+    state &= ~Qt::WindowMinimized;
+    state |= Qt::WindowActive;
+
     raise(); // for MacOS
     activateWindow(); // for Windows
 }

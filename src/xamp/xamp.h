@@ -48,7 +48,7 @@ class Xamp final : public IXFrame {
 	Q_OBJECT
 
 public:
-    explicit Xamp(const std::shared_ptr<IAudioPlayer> &player);
+    Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer> &player);
 
     virtual ~Xamp() override;
 
@@ -203,8 +203,6 @@ private:
 	void cleanup();
 
     void SetupDsp(const PlayListEntity& item);
-
-	void AvoidRedrawOnResize();
 
 	void ConnectPlaylistPageSignal(PlaylistPage* playlist_page);
 

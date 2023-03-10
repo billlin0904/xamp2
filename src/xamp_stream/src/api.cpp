@@ -171,7 +171,7 @@ OrderedMap<std::string, std::string> GetBassDLLVersion() {
 
 void LoadFFTLib() {
     Singleton<FFTWLib>::GetInstance();
-    //Singleton<FFTWFLib>::GetInstance();
+    Singleton<FFTWFLib>::GetInstance();
 }
 
 #ifdef XAMP_OS_WIN

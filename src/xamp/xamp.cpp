@@ -52,9 +52,6 @@
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 
-#if defined(Q_OS_WIN)
-#endif
-
 #include "xamp.h"
 #include "aboutpage.h"
 #include "cdpage.h"
@@ -101,8 +98,9 @@ static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& de
     return { dsd_modes, convert_mode };
 }
 
-Xamp::Xamp(const std::shared_ptr<IAudioPlayer>& player)
-    : is_seeking_(false)
+Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
+    : IXFrame(parent)
+	, is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , lrc_page_(nullptr)
     , playlist_page_(nullptr)
@@ -149,8 +147,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(album_page_->album(), &AlbumView::LoadCompleted,
         this, &Xamp::ProcessTrackInfo);
-    
-    AvoidRedrawOnResize();
 
     qTheme.SetPlayOrPauseButton(ui_, false);       
 
@@ -203,14 +199,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         SetProcessMitigation();
         #endif
         #endif
+        album_page_->album()->LoadCoverCache();
         });
 
     order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
     SetPlayerOrder();
-}
-
-void Xamp::AvoidRedrawOnResize() {
-    ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -241,8 +234,6 @@ void Xamp::InitialSpectrum() {
         lrc_page_->spectrum(),
         &SpectrumWidget::OnFftResultChanged,
         Qt::QueuedConnection);
-
-    lrc_page_->spectrum()->SetStyle(AppSettings::ValueAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
 }
 
 void Xamp::UpdateMaximumState(bool is_maximum) {
@@ -320,11 +311,13 @@ void Xamp::InitialUi() {
     mono_font.setPointSize(qTheme.GetDefaultFontSize());
     ui_.startPosLabel->setFont(mono_font);
     ui_.endPosLabel->setFont(mono_font);
+    ui_.seekSlider->setDisabled(true);
 
     ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
     main_window_->SetTitleBarAction(ui_.titleFrame);
 
     ui_.mutedButton->SetPlayer(player_);
+    ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -867,7 +860,7 @@ bool Xamp::HitTitleBar(const QPoint& ps) const {
 void Xamp::stop() {
     player_->Stop(true, true);
     SetSeekPosValue(0);
-    lrc_page_->spectrum()->reset();
+    lrc_page_->spectrum()->Reset();
     ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
@@ -1212,7 +1205,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     }
 	
     qTheme.SetPlayOrPauseButton(ui_, open_done);
-    lrc_page_->spectrum()->reset();
+    lrc_page_->spectrum()->Reset();
 	
     if (open_done) {
 	    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;

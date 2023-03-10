@@ -23,7 +23,7 @@ XDialog::XDialog(QWidget* parent)
     : QDialog(parent) {
 }
 
-void XDialog::SetContentWidget(QWidget* content, bool transparent_frame) {
+void XDialog::SetContentWidget(QWidget* content, bool transparent_frame, bool disable_resize) {
     frame_ = new XFrame(this);
     frame_->SetContentWidget(content);
 
@@ -40,6 +40,10 @@ void XDialog::SetContentWidget(QWidget* content, bool transparent_frame) {
 #endif        
     } else {
         setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+    }
+
+    if (disable_resize) {
+        setWindowFlags(windowFlags() | Qt::MSWindowsFixedSizeDialogHint);
     }
 
     auto* default_layout = new QGridLayout(this);
