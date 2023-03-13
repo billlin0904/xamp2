@@ -63,7 +63,7 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;sql;network;gui;widgets;winextras;concurrent;opengl;</QtModules>
+    <QtModules>core;sql;opengl;network;gui;widgets;printsupport;winextras;concurrent;</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />
@@ -206,9 +206,11 @@
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\fonticonanimation.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />
+    <ClCompile Include="widget\parametriceqview.cpp" />
     <ClCompile Include="widget\pendingplaylistpage.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
+    <ClCompile Include="widget\qcustomplot.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\spotify_utilis.cpp" />
@@ -294,6 +296,8 @@
     <QtMoc Include="widget\fonticonanimation.h" />
     <ClInclude Include="widget\globalshortcut.h" />
     <QtMoc Include="widget\pendingplaylistpage.h" />
+    <ClInclude Include="widget\parametriceqview.h" />
+    <QtMoc Include="widget\qcustomplot.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
     <ClInclude Include="widget\themecolor.h" />

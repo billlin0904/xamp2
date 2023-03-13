@@ -606,7 +606,7 @@ void SetProcessMitigation() {
     mitigation_image_load_policy.NoLowMandatoryLabelImages = true;
     if (!::SetProcessMitigationPolicy(ProcessImageLoadPolicy, &mitigation_image_load_policy,
         sizeof(mitigation_image_load_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessASLRPolicy ({}).", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessImageLoadPolicy ({}).", GetLastErrorMessage());
     }
 
     PROCESS_MITIGATION_FONT_DISABLE_POLICY font_disable_policy = {};

@@ -165,6 +165,7 @@
     <ClInclude Include="include\stream\bassequalizer.h" />
     <ClInclude Include="include\stream\bassfader.h" />
     <ClInclude Include="include\stream\basslib.h" />
+    <ClInclude Include="include\stream\bassparametriceq.h" />
     <ClInclude Include="include\stream\bassvolume.h" />
     <ClInclude Include="include\stream\basswavfileencoder.h" />
     <ClInclude Include="include\stream\bass_utiltis.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="src\bassfader.cpp" />
     <ClCompile Include="src\bassflacfileencoder.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
+    <ClCompile Include="src\bassparametriceq.cpp" />
     <ClCompile Include="src\bassvolume.cpp" />
     <ClCompile Include="src\basswavfileencoder.cpp" />
     <ClCompile Include="src\basslib.cpp" />

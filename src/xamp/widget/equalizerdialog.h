@@ -19,8 +19,6 @@ signals:
    void PreampValueChange(float value);
 
 private:
-    void ParseEqFile();
-
     void ApplySetting(QString const &name, EQSettings const &settings);
 
     Ui::EqualizerDialog ui_;

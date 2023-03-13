@@ -58,16 +58,20 @@ bool IsDsdFile(Path const& path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode) {
-    switch (dsd_mode) {
-    case DsdModes::DSD_MODE_NATIVE:
-    case DsdModes::DSD_MODE_DOP:
-    case DsdModes::DSD_MODE_DSD2PCM:
+AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode, const Path& file_path) {
+    if (!IsCDAFile(file_path)) {
+        switch (dsd_mode) {
+        case DsdModes::DSD_MODE_NATIVE:
+        case DsdModes::DSD_MODE_DOP:
+        case DsdModes::DSD_MODE_DSD2PCM:
+            return MakeAlign<FileStream, BassFileStream>();
+        default:;
+        }
+        return MakeAlign<FileStream, AvFileStream>();
+        //return MakeAlign<FileStream, BassFileStream>();
+    } else {
         return MakeAlign<FileStream, BassFileStream>();
-    default: ;
     }
-    return MakeAlign<FileStream, AvFileStream>();
-    //return MakeAlign<FileStream, BassFileStream>();
 }
 
 AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {

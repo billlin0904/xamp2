@@ -188,7 +188,7 @@ bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
 	}
 
 	auto exception_handler = [](const auto& ex) {
-		XAMP_LOG_DEBUG(ex.GetErrorMessage());
+		XAMP_LOG_DEBUG(ex.what());
 	};
 
 	ExceptedFile excepted(dest_file_path.toStdWString());

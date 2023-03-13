@@ -22,6 +22,7 @@ struct XAMP_STREAM_API DspConfig {
     constexpr static auto kEQSettings = std::string_view("EQSettings");
     constexpr static auto kCompressorParameters = std::string_view("CompressorParameters");
     constexpr static auto kVolume = std::string_view("Volume");
+    constexpr static auto kParametricEqBand = std::string_view("ParametricEqBand");
 };
 
 class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor {

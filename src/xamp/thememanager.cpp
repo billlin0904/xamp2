@@ -1191,8 +1191,9 @@ void ThemeManager::SetWidgetStyle(Ui::XampWindow& ui) {
                                          )"));
 
     SetTabTheme(ui);
-
     SetSliderTheme(ui.seekSlider);
+
+    ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
 
     SetThemeIcon(ui);
     ui.sliderBarButton->setIconSize(GetTabIconSize());

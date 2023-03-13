@@ -77,6 +77,9 @@ public:
         catch (Exception const& e) {
             exception_handler(e);
         }
+        catch (std::exception const &e) {
+            exception_handler(e);
+        }
         catch (...) {
         }
         Fs::remove(temp_file_path_);
@@ -84,7 +87,7 @@ public:
     }
 
 private:
-    static void DefaultExceptionHandler(Exception const&) {	    
+    static void DefaultExceptionHandler(std::exception const&) {	    
     }
     Path dest_file_path_;
     Path temp_file_path_;

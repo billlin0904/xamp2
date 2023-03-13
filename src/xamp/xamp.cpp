@@ -32,6 +32,7 @@
 #include <widget/backgroundworker.h>
 #include <widget/database.h>
 #include <widget/equalizerdialog.h>
+#include <widget/parametriceqview.h>
 #include <widget/filesystemviewpage.h>
 #include <widget/http.h>
 #include <widget/image_utiltis.h>
@@ -385,6 +386,9 @@ void Xamp::InitialDeviceList() {
     const auto device_id = AppSettings::ValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
+    auto max_width = 0;
+    QFontMetrics metrics(ui_.deviceDescLabel->font());
+
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
 	    const auto device_type = (*itr).second();
         device_type->ScanNewDevice();
@@ -396,17 +400,20 @@ void Xamp::InitialDeviceList() {
 
         menu->addSeparator();
         menu->addAction(CreateDeviceMenuWidget(FromStdStringView(device_type->GetDescription())));
-
+        
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
-            device_id_action[device_info.device_id] = device_action;            
+            device_id_action[device_info.device_id] = device_action;
+
+            max_width = std::max(metrics.horizontalAdvance(QString::fromStdWString(device_info_.name)), max_width);
 
             auto trigger_callback = [device_info, this]() {
                 qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
                 device_info_ = device_info;
+                ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.name));
                 AppSettings::SetValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::SetValue(kAppSettingDeviceId, device_info_.device_id);
             };
@@ -440,6 +447,10 @@ void Xamp::InitialDeviceList() {
         AppSettings::SetValue(kAppSettingDeviceId, device_info_.device_id);
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.device_id);
     }
+
+    ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.name));
+    ui_.deviceDescLabel->setMaximumWidth(max_width);
+    ui_.deviceDescLabel->setMinimumWidth(max_width);
 }
 
 void Xamp::SliderAnimation(bool enable) {
@@ -613,9 +624,11 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerDialog(dialog);
+        //auto* eq = new ParametricEqView(dialog);
         dialog->SetContentWidget(eq);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
-        dialog->SetTitle(tr("Equalizer"));
+        //dialog->SetTitle(tr("Parametric EQ"));
+        dialog->SetTitle(tr("EQ"));
 
         (void)QObject::connect(eq, &EqualizerDialog::BandValueChange, [](auto, auto, auto) {
             AppSettings::save();
@@ -725,7 +738,7 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
     qTheme.LoadAndApplyQssTheme();
     qTheme.SetThemeIcon(ui_);
     qTheme.SetRepeatButtonIcon(ui_, order_);
-    SetThemeColor(qTheme.palette().color(QPalette::WindowText), qTheme.GetThemeTextColor());
+    SetThemeColor(qTheme.BackgroundColor(), qTheme.GetThemeTextColor());
 }
 
 void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
@@ -1267,9 +1280,17 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 	const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
 
     if (!mb_disc_id_info.tracks.empty()) {
-        qDatabase.ForEachAlbumMusic(album_id, [&mb_disc_id_info](const auto& entity) {
-            qDatabase.UpdateMusicTitle(entity.music_id, QString::fromStdWString(mb_disc_id_info.tracks.front().title));
+        QList<PlayListEntity> entities;
+        qDatabase.ForEachAlbumMusic(album_id, [&entities](const auto& entity) {
+            entities.append(entity);
             });
+        std::sort(entities.begin(), entities.end(), [](const auto& a, const auto& b) {
+            return b.track > a.track;
+            });
+        auto i = 0;
+        Q_FOREACH(const auto track, mb_disc_id_info.tracks) {
+            qDatabase.UpdateMusicTitle(entities[i++].music_id, QString::fromStdWString(track.title));
+        }
     }    
 
     if (!album.isEmpty()) {

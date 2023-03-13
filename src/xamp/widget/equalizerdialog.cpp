@@ -14,7 +14,6 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     ui_.enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
 
     band_sliders_ = std::vector<DoubleSlider*>{
-			ui_.preampSlider,
             ui_.band1Slider,
             ui_.band2Slider,
             ui_.band3Slider,
@@ -28,7 +27,6 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             };
 
     band_label_ = std::vector<QLabel*>{
-            ui_.preampDbLabel,
             ui_.band1DbLabel,
             ui_.band2DbLabel,
             ui_.band3DbLabel,
@@ -42,7 +40,6 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     };
 
     band_feq_label_ = std::vector<QLabel*>{
-            ui_.preampLabel,
             ui_.band1FeqLabel,
             ui_.band2FeqLabel,
             ui_.band3FeqLabel,
@@ -61,24 +58,26 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         l->setFont(f);
         l->setStyleSheet(qTEXT("background-color: transparent;"));
     }
+    ui_.preampDbLabel->setFont(f);
     for (auto& l : band_feq_label_) {
         l->setFont(f);
         l->setStyleSheet(qTEXT("background-color: transparent;"));
     }
+    ui_.preampLabel->setFont(f);
+    ui_.preampLabel->setStyleSheet(qTEXT("background-color: transparent;"));
 
-    auto band = 0;
+    auto i = 0;
     for (auto& slider : band_sliders_) {
-        (void)QObject::connect(slider, &DoubleSlider::DoubleValueChanged, [band, this](auto value) {
-            BandValueChange(band, value, 1.41);
-            band_label_[band]->setText(QString(qTEXT("%1")).arg(value));
-
+        (void)QObject::connect(slider, &DoubleSlider::DoubleValueChanged, [i, this](auto value) {
+            BandValueChange(i, value, 1.41);
+            band_label_[i]->setText(QString(qTEXT("%1")).arg(value));
             auto settings = AppSettings::GetEqSettings();
-            settings.settings.bands[band].gain = value;
-            settings.settings.bands[band].Q = 1.41;            
+            settings.settings.bands[i].gain = value;
+            settings.settings.bands[i].Q = 1.41;
             AppSettings::SetEqSettings(settings);
         });
         qTheme.SetSliderTheme(slider, true);
-        ++band;
+        ++i;
     }
 
     qTheme.SetSliderTheme(ui_.preampSlider, true);
@@ -113,6 +112,21 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         ui_.eqPresetComboBox->setCurrentText(name);
         ApplySetting(name, settings);
     }
+
+    (void)QObject::connect(ui_.saveButton, &QPushButton::pressed, [this]() {
+        AppEQSettings settings;
+        settings.name = ui_.eqPresetComboBox->currentText();
+        auto i = 0;
+        for (const auto& slider : band_sliders_) {
+            settings.settings.bands[i].gain = slider->value() / 10.0;
+            settings.settings.bands[i].Q = 1.41;
+            ++i;
+        }
+        settings.settings.preamp = ui_.preampSlider->value() / 10.0;
+        ApplySetting(settings.name, settings.settings);
+        AppSettings::SetEqSettings(settings);
+        AppSettings::save();
+        });
 
     (void)QObject::connect(ui_.resetButton, &QPushButton::pressed, [this]() {
         AppEQSettings settings;

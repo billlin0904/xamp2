@@ -98,6 +98,7 @@ void SwitchButton::paintEvent(QPaintEvent *) {
     auto f = font();
     f.setBold(true);
     painter.setFont(f);
+
     if (checked_) {
         QString handle_color;
 

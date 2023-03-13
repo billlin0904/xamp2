@@ -41,8 +41,7 @@ SingleInstanceApplication::SingleInstanceApplication(int& argc, char* argv[])
 	}
 }
 
-SingleInstanceApplication::~SingleInstanceApplication() {
-}
+SingleInstanceApplication::~SingleInstanceApplication() = default;
 
 bool SingleInstanceApplication::IsAttach() const {
     return !is_running_;

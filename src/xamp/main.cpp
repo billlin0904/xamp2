@@ -395,11 +395,12 @@ static int Execute(int argc, char* argv[]) {
     QApplication::setOrganizationName(kApplicationName);
     QApplication::setOrganizationDomain(kApplicationName);
 
-    const SingleInstanceApplication app(argc, argv);
+    /*const SingleInstanceApplication app(argc, argv);
     if (!app.IsAttach()) {
         XAMP_LOG_DEBUG("Application already running!");
         return -1;
-    }
+    }*/
+    QApplication app(argc, argv);
 
     ApplyTheme();
 
@@ -454,7 +455,7 @@ static int Execute(int argc, char* argv[]) {
 
     Xamp win(&main_window, MakeAudioPlayer());
     win.SetXWindow(&main_window);
-    win.SetThemeColor(qTheme.palette().color(QPalette::WindowText),
+    win.SetThemeColor(qTheme.BackgroundColor(),
         qTheme.GetThemeTextColor());
 
 #if defined(XAMP_OS_WIN)

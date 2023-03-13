@@ -116,10 +116,10 @@ void XFrame::SetContentWidget(QWidget* content) {
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
     if (!qTheme.UseNativeWindow()) {
-        default_layout->addWidget(title_frame, 1);
+        default_layout->addWidget(title_frame, 0);
     }
 
-    default_layout->addWidget(content_, 0);
+    default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
     qTheme.SetTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);

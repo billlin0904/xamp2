@@ -53,8 +53,8 @@ static constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
 static constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 static constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
-static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode) {
-    auto file_stream = StreamFactory::MakeFileStream(dsd_mode);
+static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, Path const& file_path) {
+    auto file_stream = StreamFactory::MakeFileStream(dsd_mode, file_path);
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
         if (auto* dsd_stream = AsDsdStream(file_stream)) {
@@ -264,7 +264,7 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
 }
 
 void AudioPlayer::OpenStream(Path const& file_path, DsdModes dsd_mode) {
-    stream_ = MakeFileStream(dsd_mode);
+    stream_ = MakeFileStream(dsd_mode, file_path);
     stream_->OpenFile(file_path);
     ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
