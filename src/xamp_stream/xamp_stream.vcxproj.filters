@@ -19,7 +19,6 @@
     <ClCompile Include="src\soxrlib.cpp">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="src\dsd_utils.cpp" />
     <ClCompile Include="src\soxresampler.cpp">
       <Filter>resampler</Filter>
     </ClCompile>
@@ -80,6 +79,11 @@
     <ClCompile Include="include\stream\avfileencoder.cpp">
       <Filter>encoder</Filter>
     </ClCompile>
+    <ClCompile Include="src\discIdlib.cpp" />
+    <ClCompile Include="src\mbdiscid.cpp" />
+    <ClCompile Include="src\bassparametriceq.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stream\compressorparameters.h" />
@@ -125,7 +129,6 @@
     <ClInclude Include="include\stream\basslib.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="include\stream\dsd_utils.h" />
     <ClInclude Include="include\stream\dsd_times.h" />
     <ClInclude Include="include\stream\r8brainresampler.h">
       <Filter>resampler</Filter>
@@ -183,6 +186,12 @@
     </ClInclude>
     <ClInclude Include="include\stream\avfileencoder.h">
       <Filter>encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\anymap.h" />
+    <ClInclude Include="include\stream\discIdlib.h" />
+    <ClInclude Include="include\stream\mbdiscid.h" />
+    <ClInclude Include="include\stream\bassparametriceq.h">
+      <Filter>bass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

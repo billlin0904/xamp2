@@ -6,6 +6,7 @@
 #pragma once
 
 #include <widget/widget_shared.h>
+#include <stream/bassparametriceq.h>
 #include "ui_equalizerdialog.h"
 
 class EqualizerDialog : public QFrame {
@@ -21,6 +22,9 @@ signals:
 private:
     void ApplySetting(QString const &name, EQSettings const &settings);
 
+    void AddBand(uint32_t band, FilterTypes type, float frequency, float gain, float Q, float band_width);
+
+    int32_t num_band_ = 1;
     Ui::EqualizerDialog ui_;
     std::vector<DoubleSlider*> band_sliders_;
     std::vector<QLabel*> band_label_;

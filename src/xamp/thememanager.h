@@ -149,6 +149,16 @@ public:
     void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order);
 
     static QSize GetTitleButtonIconSize();
+
+    QFont FormatFont() const;
+
+    QFont UiFont() const;
+
+    QFont DisplayFont() const;
+
+    QFont MonoFont() const;
+
+    QFont DebugFont() const;
 signals:
     void CurrentThemeChanged(ThemeColor theme_color);
 

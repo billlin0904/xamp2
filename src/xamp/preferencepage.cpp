@@ -255,10 +255,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM/DSD Convert"));
 	settings_item->addChild(pcm2dsd_item);
 
-	// todo: 先不實作FoobarDSP相關UI
-	/*auto* foobar2000_dsp_item = new QTreeWidgetItem(QStringList() << tr("Foobar2000 DSP"));
-	settings_item->addChild(foobar2000_dsp_item);*/
-
     ui_.preferenceTreeWidget->addTopLevelItem(settings_item);
     ui_.preferenceTreeWidget->expandAll();
 	ui_.preferenceTreeWidget->setCurrentItem(settings_item);
@@ -266,7 +262,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     (void)QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
         const OrderedMap<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
-            { tr("Audio Resampler"), 1 },
+            { tr("Sample rate conversion"), 1 },
 			{ tr("PCM/DSD Convert"), 2 },
         };
 
@@ -370,14 +366,14 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbR8BrainHz,
 	};
 
-	QFont f(qTEXT("UIFont"));
+	auto f = qTheme.UiFont();
 	f.setPointSize(qTheme.GetFontSize(9));
 	setFont(f);
 
 	Q_FOREACH(auto *w, widgets) {
-		QFont f(qTEXT("DisplayFont"));
-		f.setWeight(QFont::DemiBold);
-		f.setPointSize(qTheme.GetFontSize(14));
+		auto df = qTheme.DisplayFont();
+		df.setWeight(QFont::DemiBold);
+		df.setPointSize(qTheme.GetFontSize(14));
 
 		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
 			w->setFont(f);

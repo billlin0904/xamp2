@@ -8,11 +8,24 @@
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
 
+#include <base/enum.h>
 #include <base/uuidof.h>
 #include <base/align_ptr.h>
 #include <base/pimplptr.h>
 
 namespace xamp::stream {
+
+XAMP_MAKE_ENUM(FilterTypes,
+    FT_LOW_PASS,
+    FT_HIGH_PASS,
+    FT_HIGH_BAND_PASS,
+    FT_HIGH_BAND_PASS_Q,
+    FT_NOTCH,
+    FT_ALL_PASS,
+    FT_ALL_PEAKING_EQ,
+    FT_LOW_SHELF,
+    FT_LOW_HIGH_SHELF
+);
 
 class BassParametricEq final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassParametricEq, "EBFA0111-594F-4F9D-9131-256451C3BF46")
@@ -26,7 +39,7 @@ public:
 
     void Init(const AnyMap& config) override;
 
-    void SetEQ(uint32_t index, uint32_t center, uint32_t band_width, float gain);
+    void SetBand(FilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S);
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
 

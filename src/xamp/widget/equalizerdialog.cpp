@@ -65,6 +65,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     }
     ui_.preampLabel->setFont(f);
     ui_.preampLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_.preampDbLabel->setStyleSheet(qTEXT("background-color: transparent;"));
 
     auto i = 0;
     for (auto& slider : band_sliders_) {
@@ -113,6 +114,11 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         ApplySetting(name, settings);
     }
 
+    (void)QObject::connect(ui_.addButton, &QPushButton::pressed, [this]() {
+        AddBand(num_band_, FilterTypes::FT_ALL_PASS, 0, 0, 0, 0);
+        ++num_band_;
+        });
+
     (void)QObject::connect(ui_.saveButton, &QPushButton::pressed, [this]() {
         AppEQSettings settings;
         settings.name = ui_.eqPresetComboBox->currentText();
@@ -151,4 +157,74 @@ void EqualizerDialog::ApplySetting(QString const& name, EQSettings const& settin
     }
     ui_.preampSlider->setValue(settings.preamp * 10);
     ui_.preampLabel->setText(QString(qTEXT("%1")).arg(settings.preamp));
+}
+
+void EqualizerDialog::AddBand(uint32_t band, FilterTypes type, float frequency, float gain, float Q, float band_width) {
+    auto * label = new QLabel(this);
+    label->setObjectName(QString::fromUtf8("label"));
+    label->setStyleSheet(qTEXT("background-color: transparent;"));
+
+    ui_.gridLayout->addWidget(label, 2 + band, 1, 1, 1);
+
+    auto* comboBox = new QComboBox(this);
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->addItem(QString());
+    comboBox->setObjectName(QString::fromUtf8("comboBox"));
+    QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    sizePolicy.setHeightForWidth(comboBox->sizePolicy().hasHeightForWidth());
+    comboBox->setSizePolicy(sizePolicy);
+    comboBox->setMinimumSize(QSize(100, 0));
+
+    comboBox->setItemText(0, tr("Low-Pass"));
+    comboBox->setItemText(1, tr("High-Pass"));
+    comboBox->setItemText(2, tr("High-Band-Pass"));
+    comboBox->setItemText(3, tr("High-Band-Pass-Q"));
+    comboBox->setItemText(4, tr("Notch"));
+    comboBox->setItemText(5, tr("All-Pass"));
+    comboBox->setItemText(6, tr("All-Peak-EQ"));
+    comboBox->setItemText(7, tr("Low-Shelf"));
+    comboBox->setItemText(8, tr("High-Low-Shelf"));
+
+    ui_.gridLayout->addWidget(comboBox, 2 + band, 2, 1, 1);
+
+
+    auto* lineEdit_4 = new QLineEdit(this);
+    lineEdit_4->setObjectName(QString::fromUtf8("lineEdit_4"));
+    sizePolicy.setHeightForWidth(lineEdit_4->sizePolicy().hasHeightForWidth());
+    lineEdit_4->setSizePolicy(sizePolicy);
+    lineEdit_4->setMaximumSize(QSize(90, 40));
+    lineEdit_4->setReadOnly(true);
+
+    ui_.gridLayout->addWidget(lineEdit_4, 2 + band, 9, 1, 1);
+
+    auto* lineEdit_2 = new QLineEdit(this);
+    lineEdit_2->setObjectName(QString::fromUtf8("lineEdit_2"));
+    sizePolicy.setHeightForWidth(lineEdit_2->sizePolicy().hasHeightForWidth());
+    lineEdit_2->setSizePolicy(sizePolicy);
+    lineEdit_2->setMaximumSize(QSize(90, 40));
+
+    ui_.gridLayout->addWidget(lineEdit_2, 2 + band, 5, 1, 2);
+
+    auto* lineEdit_3 = new QLineEdit(this);
+    lineEdit_3->setObjectName(QString::fromUtf8("lineEdit_3"));
+    sizePolicy.setHeightForWidth(lineEdit_3->sizePolicy().hasHeightForWidth());
+    lineEdit_3->setSizePolicy(sizePolicy);
+    lineEdit_3->setMaximumSize(QSize(90, 40));
+
+    ui_.gridLayout->addWidget(lineEdit_3, 2 + band, 7, 1, 1);
+
+    auto* lineEdit = new QLineEdit(this);
+    lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+    sizePolicy.setHeightForWidth(lineEdit->sizePolicy().hasHeightForWidth());
+    lineEdit->setSizePolicy(sizePolicy);
+    lineEdit->setMaximumSize(QSize(90, 40));
+
+    ui_.gridLayout->addWidget(lineEdit, 2 + band, 3, 1, 2);
 }

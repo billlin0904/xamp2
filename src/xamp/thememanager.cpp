@@ -239,7 +239,7 @@ QFont ThemeManager::LoadFonts() {
     QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
     QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
 
-    QFont ui_font(qTEXT("UIFont"));
+    auto ui_font = UiFont();
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #ifdef Q_OS_WIN
     ui_font.setWeight(QFont::Weight::Medium);
@@ -814,6 +814,26 @@ int32_t ThemeManager::GetDefaultFontSize() const {
 
 QSize ThemeManager::GetTitleButtonIconSize() {
     return QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight());
+}
+
+QFont ThemeManager::FormatFont() const {
+    return QFont(qTEXT("FormatFont"));
+}
+
+QFont ThemeManager::UiFont() const {
+    return QFont(qTEXT("UIFont"));
+}
+
+QFont ThemeManager::DisplayFont() const {
+    return QFont(qTEXT("DisplayFont"));
+}
+
+QFont ThemeManager::MonoFont() const {
+    return QFont(qTEXT("MonoFont"));
+}
+
+QFont ThemeManager::DebugFont() const {
+    return QFont(qTEXT("DebugFont"));
 }
 
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {

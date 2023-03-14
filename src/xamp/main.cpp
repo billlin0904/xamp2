@@ -466,7 +466,7 @@ static int Execute(int argc, char* argv[]) {
     http::HttpClient(kSoftwareUpdateUrl).get();
 #else
     XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
-    SetProcessMitigation();
+    //SetProcessMitigation();
 #endif
 #endif
 
