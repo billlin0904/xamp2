@@ -8,7 +8,10 @@
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 
-static double ToMag(const std::complex<float>& r) {
+static float ToMag(const std::complex<float>& r) {
+	if (r.real() == 0 && r.imag() == 0) {
+		return 0;
+	}
     return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
 }
 
@@ -36,11 +39,7 @@ void SpectrumWidget::OnFftResultChanged(ComplexValarray const& result) {
 	}
 
 	for (auto i = 0; i < max_bands; ++i) {
-		if (result[i].imag() == 0 && result[i].real() == 0) {
-			bins_[i] = 0;
-		} else {
-			bins_[i] = ToMag(result[i]);
-		}		
+		bins_[i] = ToMag(result[i]);
 		peak_delay_[i] = std::abs(bins_[i]) / std::sqrt(2) / 2;
 		peak_delay_[i] = (std::min)(peak_delay_[i], 2048.0f);
 		peak_delay_[i] = peak_delay_[i] / 2048.0f * 128;

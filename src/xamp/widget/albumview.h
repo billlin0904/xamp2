@@ -9,10 +9,11 @@
 #include <QPropertyAnimation>
 #include <QSqlQueryModel>
 #include <QStyledItemDelegate>
+#include <QProgressDialog>
 #include <QPushButton>
 
 #include <widget/widget_shared.h>
-
+#include <widget/imagecache.h>
 #include <widget/themecolor.h>
 #include <widget/playlistentity.h>
 
@@ -25,20 +26,32 @@ class AlbumPlayListTableView;
 class PlaylistPage;
 class XMessage;
 
+class AlbumCoverCache {
+public:
+	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 200;
+
+	AlbumCoverCache() = default;
+
+	void LoadCoverCache();
+
+	void ClearImageCache();
+
+	QPixmap GetCover(const QString& cover_id);
+private:
+	LruCache<QString, QPixmap> image_cache_;
+};
+
+#define qAlbumCoverCache SharedSingleton<AlbumCoverCache>::GetInstance()
+
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
-	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 200;
 	static constexpr auto kMoreIconSize = 20;
 	static constexpr auto kIconSize = 48;
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
-	void LoadCoverCache();
-
 	void SetTextColor(QColor color);
-
-	void ClearImageCache() const;
 
 	void EnableAlbumView(bool enable);
 
@@ -58,8 +71,6 @@ protected:
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
 private:
-	QPixmap GetCover(const QString &cover_id) const;
-
 	bool enable_album_view_{ true };
 	int32_t playing_album_id_{ -1 };
 	QColor text_color_;
@@ -67,7 +78,6 @@ private:
 	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
-	mutable LruCache<QString, QPixmap> image_cache_;
 };
 
 class AlbumViewPage final : public QFrame {
@@ -106,7 +116,7 @@ public:
 
 	explicit AlbumView(QWidget* parent = nullptr);
 
-	void update();
+	void Update();
 
 	AlbumViewPage* albumViewPage() {
 		return page_;
@@ -118,7 +128,6 @@ public:
 
 	void SetPlayingAlbumId(int32_t album_id);
 
-	void LoadCoverCache();
 signals:
     void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
@@ -130,8 +139,8 @@ signals:
 
 	void LoadCompleted(int32_t total_album, int32_t total_tracks);
 
-	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
-		QString const& file_path, 
+	void ExecuteDatabase(const QSharedPointer<DatabaseFacade>& facade,
+		QString const& file_path,
 		int32_t playlist_id,
 		bool is_podcast_mode);
 
@@ -156,7 +165,9 @@ public slots:
 
 	void OnReadFileStart(int dir_size);
 
-	void OnReadFileProgress(const QString& dir, int progress);
+	void OnReadFileProgress(int progress);
+
+	void OnReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track);
 
 	void OnReadFileEnd();
 private:

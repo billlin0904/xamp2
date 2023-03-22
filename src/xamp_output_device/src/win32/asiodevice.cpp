@@ -174,10 +174,12 @@ void AsioDevice::ReOpen() {
 	}
 	if (!ASIODriver.drivers) {
 		ASIODriver.drivers = MakeAlign<AsioDrivers>();
-	}	
+	}
 	ASIODriver.drivers->removeCurrentDriver();
 	if (!ASIODriver.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
-		throw DeviceNotFoundException(ASIODriver.GetDriverName());
+		const auto driver_name = ASIODriver.GetDriverName();
+		ASIODriver.drivers.reset();
+		throw DeviceNotFoundException(driver_name);
 	}
 	is_removed_driver_ = false;
 }
@@ -422,7 +424,7 @@ void AsioDevice::SetMute(bool mute) const {
 	}
 }
 
-void AsioDevice::FillSlientData() noexcept {
+void AsioDevice::FillSilentData() noexcept {
 	for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
 		MemorySet(ASIODriver.buffer_infos[i].buffers[0],
 			0,
@@ -484,7 +486,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	if (!is_streaming_) {
 		XAMP_LOG_D(logger_, "Stream was stopped!1");
 		// 填充靜音的資料並通知結束.
-		FillSlientData();
+		FillSilentData();
 		is_stop_streaming_ = true;
 		condition_.notify_all();
 		ASIODriver.Post();
@@ -509,7 +511,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	if (got_samples) {
 		ASIODriver.Post();
 	} else {
-		FillSlientData();
+		FillSilentData();
 	}
 }
 
@@ -526,7 +528,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 
 	auto result = ::ASIOInit(&asio_driver_info);
 	if (result == ASE_NotPresent) {
-		auto driver_name = ASIODriver.GetDriverName();
+		const auto driver_name = ASIODriver.GetDriverName();
 		ASIODriver.drivers.reset();
 		throw DeviceNotFoundException(driver_name);
 	}
@@ -534,16 +536,16 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 		throw AsioException(result);
 	}	
 
-	ASIOIoFormat asio_fomrmat{};
+	ASIOIoFormat asio_io_format{};
 	if (io_format_ == DsdIoFormat::IO_FORMAT_DSD) {
-		asio_fomrmat.FormatType = kASIODSDFormat;
+		asio_io_format.FormatType = kASIODSDFormat;
 	}
 	else {
-		asio_fomrmat.FormatType = kASIOPCMFormat;
+		asio_io_format.FormatType = kASIOPCMFormat;
 	}
 
 	try {
-		AsioIfFailedThrow2(::ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
+		AsioIfFailedThrow2(::ASIOFuture(kAsioSetIoFormat, &asio_io_format), ASE_SUCCESS);
 	}
 	catch (const Exception & e) {
 		XAMP_LOG_D(logger_, "ASIOFuture retun failure. {}", e.GetErrorMessage());
@@ -563,7 +565,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 }
 
 void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
-	auto error = ::ASIOSetSampleRate(output_format.GetSampleRate());
+	const auto error = ::ASIOSetSampleRate(output_format.GetSampleRate());
 	if (error == ASE_NotPresent) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}

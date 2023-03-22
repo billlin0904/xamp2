@@ -28,6 +28,7 @@ AppEQSettings AppSettings::GetEqSettings() {
 
 void AppSettings::SetEqSettings(AppEQSettings const& eq_settings) {
     SetValue(kAppSettingEQName, QVariant::fromValue(eq_settings));
+    eq_settings_[eq_settings.name] = eq_settings.settings;
 }
 
 bool AppSettings::DontShowMeAgain(const QString& text) {
@@ -45,8 +46,8 @@ void AppSettings::AddDontShowMeAgain(const QString& text) {
 }
 
 void AppSettings::LoadEqPreset() {
-    auto path = QDir::currentPath() + qTEXT("/eqpresets/");
-    auto file_ext = QStringList() << qTEXT("*.*");
+	const auto path = QDir::currentPath() + qTEXT("/eqpresets/");
+	const auto file_ext = QStringList() << qTEXT("*.*");
 
     for (QDirIterator itr(path, file_ext, QDir::Files | QDir::NoDotAndDotDot);
         itr.hasNext();) {
@@ -66,7 +67,7 @@ void AppSettings::LoadEqPreset() {
                         &settings.preamp);
                 }
                 else if (result[0].indexOf(qTEXT("Filter") != -1)) {
-                    auto pos = str.find(L"Gain");
+	                const auto pos = str.find(L"Gain");
                     if (pos == std::wstring::npos) {
                         continue;
                     }
@@ -79,6 +80,7 @@ void AppSettings::LoadEqPreset() {
             eq_settings_[file_info.baseName()] = settings;
         }
     }
+    eq_settings_[qTEXT("Manual")] = EQSettings();
 }
 
 void AppSettings::save() {

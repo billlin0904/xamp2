@@ -25,7 +25,6 @@
 
 #include "qcustomplot.h"
 
-
 /* including file 'src/vector2d.cpp'       */
 /* modified 2022-11-06T12:45:56, size 7973 */
 
@@ -21655,7 +21654,14 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, const QVector<QPointF> &lines) 
   if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
-    drawPolyline(painter, lines);
+    if (mSmooth && mLineStyle == lsLine)
+    {
+        painter->drawPath(smooth_curve__.GenerateSmoothCurve(lines));
+    }
+  	else 
+    {
+        drawPolyline(painter, lines);
+    }
   }
 }
 
@@ -22761,6 +22767,11 @@ void QCPCurve::setScatterSkip(int skip)
 void QCPCurve::setLineStyle(QCPCurve::LineStyle style)
 {
   mLineStyle = style;
+}
+
+void QCPGraph::setSmooth(bool smooth)
+{
+    mSmooth = smooth;
 }
 
 /*! \overload

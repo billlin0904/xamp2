@@ -93,7 +93,7 @@ private:
 
 	std::tuple<int32_t, int32_t> GetDeviceBufferSize() const;
 
-	void FillSlientData() noexcept;
+	void FillSilentData() noexcept;
 
 	bool GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) noexcept;
 

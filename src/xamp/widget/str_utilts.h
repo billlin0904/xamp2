@@ -79,3 +79,7 @@ QByteArray GenerateUuid();
 QString FormatBytes(quint64 bytes);
 
 QString FormatTime(quint64 time);
+
+QString FormatDb(double value, int prec = 1);
+
+QString FormatDouble(double value, int prec = 1);

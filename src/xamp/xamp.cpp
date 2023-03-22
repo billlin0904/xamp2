@@ -1,12 +1,7 @@
+#include "xamp.h"
+
 #include <QCloseEvent>
 #include <QFileDialog>
-#include <QFileSystemWatcher>
-#include <QInputDialog>
-#include <QProcess>
-#include <QShortcut>
-#include <QtMath>
-#include <QToolTip>
-#include <QWidgetAction>
 
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
@@ -53,7 +48,6 @@
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 
-#include "xamp.h"
 #include "aboutpage.h"
 #include "cdpage.h"
 #include "preferencepage.h"
@@ -193,18 +187,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         album_page_,
         &AlbumArtistPage::OnCurrentThemeChanged);
 
-    QTimer::singleShot(300, [this]() {
-        InitialDeviceList();   
-        #if defined(XAMP_OS_WIN)
-        #ifndef MAX_SANDBOX_MODE
-        SetProcessMitigation();
-        #endif
-        #endif
-        album_page_->album()->LoadCoverCache();
-        });
-
     order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
     SetPlayerOrder();
+    InitialDeviceList();
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -326,6 +311,8 @@ void Xamp::OnVolumeChanged(float volume) {
 }
 
 void Xamp::OnDeviceStateChanged(DeviceState state) {
+    XAMP_LOG_DEBUG("OnDeviceStateChanged: {}", state);
+
     if (state == DeviceState::DEVICE_STATE_REMOVED) {
         player_->Stop(true, true, true);
     }
@@ -400,7 +387,7 @@ void Xamp::InitialDeviceList() {
 
         menu->addSeparator();
         menu->addAction(CreateDeviceMenuWidget(FromStdStringView(device_type->GetDescription())));
-        
+       
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
             device_action_group->addAction(device_action);
@@ -624,10 +611,8 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerDialog(dialog);
-        //auto* eq = new ParametricEqView(dialog);
         dialog->SetContentWidget(eq);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
-        //dialog->SetTitle(tr("Parametric EQ"));
         dialog->SetTitle(tr("EQ"));
 
         (void)QObject::connect(eq, &EqualizerDialog::BandValueChange, [](auto, auto, auto) {
@@ -637,6 +622,12 @@ void Xamp::InitialController() {
         (void)QObject::connect(eq, &EqualizerDialog::PreampValueChange, [](auto) {
             AppSettings::save();
         });
+
+        (void)QObject::connect(state_adapter_.get(),
+            &UIPlayerStateAdapter::fftResultChanged,
+            eq,
+            &EqualizerDialog::OnFftResultChanged,
+            Qt::QueuedConnection);
 
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
@@ -692,6 +683,7 @@ void Xamp::InitialController() {
 void Xamp::SetCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_ALBUM:
+        emit LoadAlbumCoverCache();
         album_page_->Refresh();
         ui_.currentView->setCurrentWidget(album_page_);
         break;
@@ -981,8 +973,8 @@ void Xamp::ResetSeekPosValue() {
 void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
     album_page_->album()->Refresh();
     playlist_page_->playlist()->Reload();
-    messages_->Push(MessageTypes::MSG_SUCCESS,
-        tr("Add %1 albums %2 tracks successfully!").arg(total_album).arg(total_tracks));
+    /*messages_->Push(MessageTypes::MSG_SUCCESS,
+        tr("Add %1 albums %2 tracks successfully!").arg(total_album).arg(total_tracks));*/
 }
 
 void Xamp::SetupDsp(const PlayListEntity& item) {
@@ -1143,7 +1135,7 @@ void Xamp::play(const PlayListEntity& item) {
             target_sample_rate,
             open_dsd_mode);
 
-        if (!sample_rate_converter_factory) {
+        if (AppSettings::ValueAsBool(kEnableBitPerfect)) {
             player_->GetDspManager()->RemoveSampleRateConverter();
             player_->GetDspManager()->RemoveVolume();
             player_->GetDspManager()->RemoveEqualizer();
@@ -1153,11 +1145,13 @@ void Xamp::play(const PlayListEntity& item) {
                 byte_format = ByteFormat::SINT16;
             }
         } else {
-            if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
-                player_->GetDspManager()->RemoveSampleRateConverter();
-            }
-            else {
-                sample_rate_converter_factory();
+            if (sample_rate_converter_factory != nullptr) {
+                if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
+                    player_->GetDspManager()->RemoveSampleRateConverter();
+                }
+                else {
+                    sample_rate_converter_factory();
+                }
             }
             SetupDsp(item);
             // note: Only PCM dsd modes enable compressor.
@@ -1316,7 +1310,8 @@ void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackIn
     const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
     qDatabase.RemoveAlbum(album_id);
     cd_page_->playlistPage()->playlist()->RemoveAll();
-    DatabaseFacade::InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);
+    DatabaseFacade facade;
+    facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);
     cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -1551,6 +1546,11 @@ void Xamp::InitialPlaylist() {
         &Xamp::OnUpdateDiscCover,
         Qt::QueuedConnection);
 
+    (void)QObject::connect(this,
+        &Xamp::LoadAlbumCoverCache,
+        background_worker_,
+        &BackgroundWorker::OnLoadAlbumCoverCache);
+
     (void)QObject::connect(file_system_view_page_,
         &FileSystemViewPage::addDirToPlaylist,
         this,
@@ -1576,15 +1576,11 @@ void Xamp::InitialPlaylist() {
         this,
         &Xamp::OnSearchLyricsCompleted);
 
-    (void)QObject::connect(this,
+    /*(void)QObject::connect(this,
         &Xamp::ReadTrackInfo,
         background_worker_,
         &BackgroundWorker::OnReadTrackInfo);
-
-    (void)QObject::connect(album_page_->album(),
-        &AlbumView::ReadTrackInfo,
-        background_worker_,
-        &BackgroundWorker::OnReadTrackInfo);
+        */
 
     PushWidget(playlist_page_);
     PushWidget(lrc_page_);
@@ -1856,10 +1852,10 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         background_worker_,
         &BackgroundWorker::OnReadReplayGain);
 
-    (void)QObject::connect(playlist_page->playlist(),
+    /*(void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::ReadTrackInfo,
         background_worker_,
-        &BackgroundWorker::OnReadTrackInfo);
+        &BackgroundWorker::OnReadTrackInfo);*/
 
     if (playlist_page->playlist()->IsPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
@@ -1919,5 +1915,5 @@ void Xamp::ExtractFile(const QString& file_path) {
         &DatabaseFacade::ReadCompleted,
         this,
         &Xamp::ProcessTrackInfo);
-    emit ReadTrackInfo(adapter, file_path, playlist_page_->playlist()->GetPlaylistId(), false);
+    adapter->ReadTrackInfo(file_path, playlist_page_->playlist()->GetPlaylistId(), false);
 }

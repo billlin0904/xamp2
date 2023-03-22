@@ -13,6 +13,7 @@ XProgressDialog::XProgressDialog(const QString& title,
                                  QWidget* parent)
 	: XDialog(parent) {
 	message_text_label_ = new QLabel(this);
+	sub_text_label_ = new QLabel(this);
 	progress_bar_ = new QProgressBar(this);
 	default_button_ = new QPushButton(this);
 
@@ -25,9 +26,13 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
-	message_text_label_->setOpenExternalLinks(true);
+	message_text_label_->setOpenExternalLinks(false);
 	message_text_label_->setFixedHeight(20);
 	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
+
+	sub_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	sub_text_label_->setFixedHeight(20);
+	sub_text_label_->setStyleSheet(qTEXT("background: transparent;"));
 
 	default_button_->setText(cancel_text);
 
@@ -36,6 +41,7 @@ XProgressDialog::XProgressDialog(const QString& title,
 	auto *horizontal_layout = new QHBoxLayout();
 	horizontal_layout->setSpacing(0);
 	horizontal_layout->addItem(spacer_item);
+	horizontal_layout->addWidget(sub_text_label_);
 	horizontal_layout->addWidget(default_button_);
 
 	auto* client_widget = new QWidget(this);
@@ -60,6 +66,10 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 void XProgressDialog::SetRange(int minimum, int maximum) {
 	progress_bar_->setRange(minimum, maximum);
+}
+
+void XProgressDialog::SetSubValue(int total, int current) {
+	sub_text_label_->setText(qSTR("%1 / %2").arg(total).arg(current));
 }
 
 void XProgressDialog::SetValue(int value) {

@@ -82,3 +82,11 @@ QString FormatTime(quint64 time) {
     date_time.setSecsSinceEpoch(time);
     return date_time.toString(qTEXT("yyyy-MM-dd"));
 }
+
+QString FormatDb(double value, int prec) {
+    return qSTR("%1 dB").arg(FormatDouble(value, prec));
+}
+
+QString FormatDouble(double value, int prec) {
+    return QString::number(value, 'f', 1);
+}

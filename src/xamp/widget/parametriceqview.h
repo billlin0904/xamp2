@@ -8,8 +8,16 @@
 #include <widget/qcustomplot.h>
 
 class ParametricEqView : public QCustomPlot {
+	Q_OBJECT
 public:
 	explicit ParametricEqView(QWidget* parent = nullptr);
+
+	void SetBand(int frequency, float value);
+
+	void SetSpectrumData(int frequency, float value);
+
+signals:
+	void DataChanged(int frequency, float value);
 
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
@@ -19,9 +27,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
-	int min_db = -15;
-	int max_db = 15;
-	int drag_number = -1;
-	int dragable_graph_number = 0;
-	int max_distance_to_add_point = 20;
+	int drag_number_ = -1;
+	int dragable_graph_number_ = 1;
+	int max_distance_to_add_point_ = 20;
 };

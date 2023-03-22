@@ -64,6 +64,17 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
 };
+
+struct ExceptionPointer : public EXCEPTION_POINTERS {
+    ExceptionPointer() {
+        ContextRecord = new CONTEXT();
+        ExceptionRecord = new EXCEPTION_RECORD();
+    }
+    ~ExceptionPointer() {
+        delete ContextRecord;
+        delete ExceptionRecord;
+    }
+};
 #endif
 
 class CrashHandler::CrashHandlerImpl {
@@ -144,12 +155,9 @@ public:
     }
 
     static void StackDump() {
-        EXCEPTION_POINTERS exception_pointers{};
+        ExceptionPointer exception_pointers;
         GetExceptionPointers(0, &exception_pointers);
-
-        if (exception_pointers.ContextRecord != nullptr && exception_pointers.ExceptionRecord != nullptr) {
-            Dump(&exception_pointers);
-        }        
+        Dump(&exception_pointers);
     }
 
     static LONG SehHandler(PEXCEPTION_POINTERS exception_pointers) {
@@ -185,7 +193,7 @@ public:
         return 0;
     }
 
-    static void GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS* exception_pointers) {
+    static void GetExceptionPointers(const DWORD exception_code, ExceptionPointer* exception_pointers) {
         CONTEXT context_record{};
         ::RtlCaptureContext(&context_record);
 
@@ -193,7 +201,7 @@ public:
         MemorySet(exception_pointers->ExceptionRecord, 0, sizeof(EXCEPTION_RECORD));
 
         exception_pointers->ExceptionRecord->ExceptionCode = exception_code;
-        exception_pointers->ExceptionRecord->ExceptionAddress = _ReturnAddress();
+        exception_pointers->ExceptionRecord->ExceptionAddress = ::_ReturnAddress();
     }
 
     void SetProcessExceptionHandlers() {

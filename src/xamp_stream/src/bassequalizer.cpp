@@ -102,7 +102,7 @@ private:
 
     HFX preamp_;
     BassStreamHandle stream_;
-    std::array<HFX, kMaxBand> fx_handles_;
+    std::array<HFX, kEQMaxBand> fx_handles_;
     LoggerPtr logger_;
 };
 

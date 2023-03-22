@@ -311,7 +311,10 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
 
 static std::vector<SharedLibraryHandle> PrefetchDll() {
     const std::vector<std::string_view> dll_file_names{
-        "mimalloc-override.dll",        
+        "mimalloc-override.dll",
+        "C:\\Program Files\\Topping\\USB Audio Device Driver\\x64\\ToppingUsbAudioasio_x64.dll",
+        "C:\\Program Files\\iFi\\USB_HD_Audio_Driver\\iFiHDUSBAudioasio_x64.dll",
+        "C:\\Program Files\\FiiO\\FiiO_Driver\\W10_x64\\fiio_usbaudioasio_x64.dll"
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
@@ -440,8 +443,7 @@ static int Execute(int argc, char* argv[]) {
     }
 
     XMainWindow main_window;
-    main_window.RestoreGeometry();
-
+    
     if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
         main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
         main_window.setShortcut(QKeySequence(Qt::Key_MediaStop));
@@ -458,21 +460,16 @@ static int Execute(int argc, char* argv[]) {
     win.SetThemeColor(qTheme.BackgroundColor(),
         qTheme.GetThemeTextColor());
 
-#if defined(XAMP_OS_WIN)
-#ifndef MAX_SANDBOX_MODE
-    // Force loading network dll.
-    static const QString kSoftwareUpdateUrl =
+	static const QString kSoftwareUpdateUrl =
         qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
     http::HttpClient(kSoftwareUpdateUrl).get();
-#else
+    SetProcessMitigation();
+
     XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
-    //SetProcessMitigation();
-#endif
-#endif
 
     main_window.SetContentWidget(&win);
     //top_win.SetContentWidget(nullptr);
-
+    main_window.RestoreGeometry();
     main_window.ShowWindow();
     return app.exec();
 }

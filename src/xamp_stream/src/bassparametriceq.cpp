@@ -38,36 +38,36 @@ public:
         }
     }
 
-    void SetBand(FilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S) const {
+    void SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S) const {
         BASS_BFX_BQF bqf{};
         BassIfFailedThrow(BASS.BASS_FXGetParameters(fx_handles_[band], &bqf));
 
         switch (filter) {
-        case FilterTypes::FT_LOW_SHELF:
+        case EQFilterTypes::FT_LOW_SHELF:
             bqf.lFilter = BASS_BFX_BQF_LOWSHELF;
             break;
-        case FilterTypes::FT_LOW_HIGH_SHELF:
+        case EQFilterTypes::FT_LOW_HIGH_SHELF:
             bqf.lFilter = BASS_BFX_BQF_HIGHSHELF;
             break;
-        case FilterTypes::FT_LOW_PASS:
+        case EQFilterTypes::FT_LOW_PASS:
             bqf.lFilter = BASS_BFX_BQF_LOWPASS;
             break;
-        case FilterTypes::FT_HIGH_PASS:
+        case EQFilterTypes::FT_HIGH_PASS:
             bqf.lFilter = BASS_BFX_BQF_HIGHPASS;
             break;
-        case FilterTypes::FT_HIGH_BAND_PASS:
+        case EQFilterTypes::FT_HIGH_BAND_PASS:
             bqf.lFilter = BASS_BFX_BQF_BANDPASS;
             break;
-        case FilterTypes::FT_HIGH_BAND_PASS_Q:
+        case EQFilterTypes::FT_HIGH_BAND_PASS_Q:
             bqf.lFilter = BASS_BFX_BQF_BANDPASS_Q;
             break;
-        case FilterTypes::FT_NOTCH:
+        case EQFilterTypes::FT_NOTCH:
             bqf.lFilter = BASS_BFX_BQF_NOTCH;
             break;
-        case FilterTypes::FT_ALL_PASS:
+        case EQFilterTypes::FT_ALL_PASS:
             bqf.lFilter = BASS_BFX_BQF_ALLPASS;
             break;
-        case FilterTypes::FT_ALL_PEAKING_EQ:
+        case EQFilterTypes::FT_ALL_PEAKING_EQ:
             bqf.lFilter = BASS_BFX_BQF_PEAKINGEQ;
             break;
         default:;
@@ -120,7 +120,7 @@ void BassParametricEq::Start(const AnyMap& config) {
 void BassParametricEq::Init(const AnyMap& config) {
 }
 
-void BassParametricEq::SetBand(FilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S) {
+void BassParametricEq::SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S) {
     impl_->SetBand(filter, band, center, band_width, gain, Q, S);
 }
 

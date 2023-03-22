@@ -17,6 +17,7 @@
                 "CrashHandler": "info",
                 "DSPThreadPool": "info",
                 "Database": "info",
+                "DatabaseFacade": "info",
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
@@ -41,14 +42,14 @@
         "Pcm2DsdTimes": 6
     },
     "R8Brain": {
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 176400
     },
     "Soxr": {
         "default": {
             "passBand": 95,
             "phase": 48,
             "quality": 4,
-            "resampleSampleRate": 44100,
+            "resampleSampleRate": 176400,
             "rolloffLevel": 2,
             "stopBand": 100
         }

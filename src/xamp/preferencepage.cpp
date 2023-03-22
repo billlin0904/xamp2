@@ -249,7 +249,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     settings_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
-    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Audio Resampler"));
+    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Sample rate conversion"));
     settings_item->addChild(dsp_manager_item);
 
 	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM/DSD Convert"));

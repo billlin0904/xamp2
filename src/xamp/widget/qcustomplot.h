@@ -103,6 +103,8 @@
 #  include <QtCore/QTimeZone>
 #endif
 
+#include <widget/smoothcurvegenerator2.h>
+
 class QCPPainter;
 class QCustomPlot;
 class QCPLayerable;
@@ -5536,6 +5538,7 @@ public:
   void setScatterSkip(int skip);
   void setChannelFillGraph(QCPGraph *targetGraph);
   void setAdaptiveSampling(bool enabled);
+  void setSmooth(bool smooth = true);
   
   // non-property methods:
   void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
@@ -5553,7 +5556,8 @@ protected:
   int mScatterSkip;
   QPointer<QCPGraph> mChannelFillGraph;
   bool mAdaptiveSampling;
-  
+  bool mSmooth;
+  mutable SmoothCurveGenerator2 smooth_curve__;
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;

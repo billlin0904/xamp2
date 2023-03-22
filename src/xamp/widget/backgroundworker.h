@@ -66,22 +66,16 @@ public Q_SLOT:
     void OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
 
     void OnBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
+
 #if defined(Q_OS_WIN)
     void OnFetchCdInfo(const DriveInfo &drive);
 #endif
-    void OnReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
-        QString const& file_path,
-        int32_t playlist_id,
-        bool is_podcast_mode);
 
     void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
-private:
-    void ScanPathFiles(const QSharedPointer<DatabaseFacade>& adapter,
-        const QStringList& file_name_filters,
-        const QString& dir,
-        int32_t playlist_id,
-        bool is_podcast_mode);
 
+    void OnLoadAlbumCoverCache();
+
+private:
     void LazyInitExecutor();
 
     bool is_stop_{false};

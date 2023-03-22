@@ -5,26 +5,26 @@
 
 #pragma once
 
-#include <vector>
+#include <QVector>
 #include <QPainterPath>
 
 class SmoothCurveGenerator2 {
 public:
-	QPainterPath GenerateSmoothCurve(const std::vector<QPointF>& points);
+	QPainterPath GenerateSmoothCurve(const QVector<QPointF>& points);
 
 private:
-	static void CalculateFirstControlPoints(std::vector<double>& result, const std::vector<double>& rhs, int n);
+	static void CalculateFirstControlPoints(QVector<double>& result, const QVector<double>& rhs, int n);
 
-	static void CalculateControlPoints(const std::vector<QPointF>& knots,
-		std::vector<QPointF>* first_control_points,
-		std::vector<QPointF>* second_control_points);
+	static void CalculateControlPoints(const QVector<QPointF>& knots,
+		QVector<QPointF>* first_control_points,
+		QVector<QPointF>* second_control_points);
 
 private:
-	std::vector<QPointF> first_control_points_;
-	std::vector<QPointF> second_control_points_;
+	QVector<QPointF> first_control_points_;
+	QVector<QPointF> second_control_points_;
 };
 
-inline QPainterPath SmoothCurveGenerator2::GenerateSmoothCurve(const std::vector<QPointF>& points) {
+inline QPainterPath SmoothCurveGenerator2::GenerateSmoothCurve(const QVector<QPointF>& points) {
 	QPainterPath path;
 	int len = points.size();
 
@@ -46,9 +46,9 @@ inline QPainterPath SmoothCurveGenerator2::GenerateSmoothCurve(const std::vector
 	return path;
 }
 
-inline void SmoothCurveGenerator2::CalculateFirstControlPoints(std::vector<double>& result, const std::vector<double> & rhs, int n) {
+inline void SmoothCurveGenerator2::CalculateFirstControlPoints(QVector<double>& result, const QVector<double> & rhs, int n) {
 	result.resize(n);
-	std::vector<double> tmp(n);
+	QVector<double> tmp(n);
 	double b = 2.0;
 	result[0] = rhs[0] / b;
 
@@ -64,9 +64,9 @@ inline void SmoothCurveGenerator2::CalculateFirstControlPoints(std::vector<doubl
 	}
 }
 
-inline void SmoothCurveGenerator2::CalculateControlPoints(const std::vector<QPointF>& knots,
-	std::vector<QPointF>* first_control_points,
-	std::vector<QPointF>* second_control_points) {
+inline void SmoothCurveGenerator2::CalculateControlPoints(const QVector<QPointF>& knots,
+	QVector<QPointF>* first_control_points,
+	QVector<QPointF>* second_control_points) {
 	int n = knots.size() - 1;
 
 	first_control_points->reserve(n);
@@ -91,10 +91,10 @@ inline void SmoothCurveGenerator2::CalculateControlPoints(const std::vector<QPoi
 	}
 
 	// Calculate first Bezier control points
-	std::vector<double> xs;
-	std::vector<double> ys;
-	std::vector<double> rhsx(n); // Right hand side vector
-	std::vector<double> rhsy(n); // Right hand side vector
+	QVector<double> xs;
+	QVector<double> ys;
+	QVector<double> rhsx(n); // Right hand side vector
+	QVector<double> rhsy(n); // Right hand side vector
 
 	// Set right hand side values
 	for (int i = 1; i < n - 1; ++i) {

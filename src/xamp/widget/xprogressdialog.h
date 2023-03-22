@@ -26,12 +26,15 @@ public:
 
 	void SetLabelText(const QString& text);
 
+	void SetSubValue(int total, int current);
+
 	bool WasCanceled() const;
 private:
 	int max_width_ = 800;
 	QAbstractButton* default_button_;
 	QProgressBar* progress_bar_;
 	QLabel* message_text_label_;
+	QLabel* sub_text_label_;
 	QVBoxLayout* layout_;
 	QSize size_;
 };

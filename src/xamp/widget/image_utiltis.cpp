@@ -171,13 +171,13 @@ void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_pn
 }
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
-#if defined(USE_LIB_IMAGEQUANT)
+#if defined(USE_LIB_IMAGEQUANT) && !defined(_DEBUG)
 	std::vector<uint8_t> result_png;
 	OptimizePng(dest_file_path, buffer, result_png);
 	return true;
 #else
 	const auto image = QImage::fromData(buffer);
-	return image.save(dest_file_path, PixmapCache::kImageFileFormat, 100);
+	return image.save(dest_file_path, ImageCache::kImageFileFormat, 100);
 #endif
 }
 

@@ -28,6 +28,10 @@ namespace std {
 #endif
 
 struct ImageCacheEntity {
+	ImageCacheEntity(int64_t size = 0, const QPixmap &image = QPixmap())
+		: size(size)
+		, image(image) {
+	}
 	int64_t size;
 	QPixmap image;
 };
@@ -70,6 +74,11 @@ public:
 	void ClearCache();
 
 	QString AddImage(const QPixmap& cover) const;
+
+	template <typename Factory>
+	void AddImage(const QString& tag_id, Factory && value_factory) {
+		cache_.GetOrAdd(tag_id, value_factory);
+	}
 
 protected:
 	ImageCache();

@@ -59,7 +59,7 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;sql;network;gui;widgets;winextras;opengl;</QtModules>
+    <QtModules>core;sql;opengl;network;gui;widgets;printsupport;winextras;</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
@@ -296,7 +296,7 @@
     <QtMoc Include="widget\fonticonanimation.h" />
     <ClInclude Include="widget\globalshortcut.h" />
     <QtMoc Include="widget\pendingplaylistpage.h" />
-    <ClInclude Include="widget\parametriceqview.h" />
+    <QtMoc Include="widget\parametriceqview.h" />
     <QtMoc Include="widget\qcustomplot.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\spotify_utilis.h" />

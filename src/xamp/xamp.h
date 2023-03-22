@@ -60,6 +60,8 @@ public:
 
 	void SetFullScreen();
 
+	void InitialDeviceList();
+
 signals:
 	void PayNextMusic();
 
@@ -71,13 +73,9 @@ signals:
 
 	void FetchCdInfo(const DriveInfo& drive);
 
-	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
-		QString const& file_path,
-		int32_t playlist_id,
-		bool is_podcast_mode);
-
 	void SearchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
+	void LoadAlbumCoverCache();
 public slots:
     void play(const PlayListEntity& item);
 
@@ -155,8 +153,6 @@ private:
 	void InitialPlaylist();
 
 	void InitialController();
-
-	void InitialDeviceList();
 
 	void InitialShortcut();
 

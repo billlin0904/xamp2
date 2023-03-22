@@ -29,7 +29,7 @@ void XDialog::SetContentWidget(QWidget* content, bool transparent_frame, bool di
 
     if (transparent_frame) {
         frame_->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    }    
+    }
 
     if (!qTheme.UseNativeWindow()) {
 #ifdef Q_OS_WIN

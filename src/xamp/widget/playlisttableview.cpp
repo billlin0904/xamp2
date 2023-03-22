@@ -842,7 +842,7 @@ void PlayListTableView::append(const QString& file_name) {
         &::DatabaseFacade::FromDatabase,
         this,
         &PlayListTableView::ProcessDatabase);
-    emit ReadTrackInfo(adapter, file_name, GetPlaylistId(), IsPodcastMode());
+    adapter->ReadTrackInfo(file_name, GetPlaylistId(), IsPodcastMode());
 }
 
 void PlayListTableView::ProcessDatabase(const ForwardList<PlayListEntity>& entities) {

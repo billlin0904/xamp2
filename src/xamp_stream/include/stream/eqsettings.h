@@ -5,14 +5,30 @@
 
 #pragma once
 
-#include <stream/stream.h>
 #include <array>
+#include <stream/stream.h>
+#include <base/enum.h>
 
 namespace xamp::stream {
 
-inline constexpr size_t kMaxBand = 10;
+inline constexpr size_t kEQMaxBand = 10;
+inline constexpr auto kDefaultQ = 1.41;
+inline constexpr auto kEQMaxDb = 15;
+inline constexpr auto kEQMinDb = -15;
 
-inline constexpr std::array<float, kMaxBand> kEQBands{
+XAMP_MAKE_ENUM(EQFilterTypes,
+    FT_LOW_PASS,
+    FT_HIGH_PASS,
+    FT_HIGH_BAND_PASS,
+    FT_HIGH_BAND_PASS_Q,
+    FT_NOTCH,
+    FT_ALL_PASS,
+    FT_ALL_PEAKING_EQ,
+    FT_LOW_SHELF,
+    FT_LOW_HIGH_SHELF
+);
+
+inline constexpr std::array<float, kEQMaxBand> kEQBands{
     31.F,
     62.F,
     125.F,
@@ -26,13 +42,14 @@ inline constexpr std::array<float, kMaxBand> kEQBands{
     };
 
 struct XAMP_STREAM_API EQBandSetting final {
+    EQFilterTypes type{ EQFilterTypes::FT_ALL_PASS };
     float gain{0};
     float Q{0};
 };
 
 struct XAMP_STREAM_API EQSettings final {
     float preamp{0};
-    std::array<EQBandSetting, kMaxBand> bands;
+    std::array<EQBandSetting, kEQMaxBand> bands;
 };
 
 }

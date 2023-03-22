@@ -153,29 +153,8 @@ void SetThreadNameById(DWORD dwThreadID, char const* threadName) {
 
 void SetThreadName(std::wstring const& name) noexcept {
 #ifdef XAMP_OS_WIN
-    WinHandle thread(::GetCurrentThread());
-
-    try {
-        // At Windows 10 1607 Supported.
-        // The SetThreadDescription API works even if no debugger is attached.
-        const SharedLibraryFunction<HRESULT(HANDLE, PCWSTR)>
-            SetThreadDescription(OpenSharedLibrary("Kernel32"), "SetThreadDescription");
-
-        if (SetThreadDescription) {
-            SetThreadDescription(thread.get(), name.c_str());
-            return;
-        }
-    }
-    catch (...) {
-    }
-
-    // The debugger needs to be around to catch the name in the exception.  If
-    // there isn't a debugger, we are just needlessly throwing an exception.
-    if (!::IsDebuggerPresent()) {
-        return;
-    }
-
-    SetThreadNameById(::GetCurrentThreadId(), String::ToUtf8String(name).c_str());
+	const WinHandle thread(::GetCurrentThread());
+    ::SetThreadDescription(thread.get(), name.c_str());
 #else
     // Mac OS X does not expose the length limit of the name, so
     // hardcode it.
@@ -544,7 +523,7 @@ bool SetProcessWorkingSetSize(size_t working_set_size) {
 bool SetFileLowIoPriority(int32_t handle) {
     FILE_IO_PRIORITY_HINT_INFO priority_hint;
     priority_hint.PriorityHint = IoPriorityHintLow;
-    auto file_handle = reinterpret_cast<HANDLE>(handle);
+    const auto file_handle = reinterpret_cast<HANDLE>(handle);
     return ::SetFileInformationByHandle(file_handle,
         FileIoPriorityHintInfo, 
         &priority_hint, 

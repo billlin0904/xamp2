@@ -125,11 +125,6 @@ signals:
 
 	void FetchPodcast(int32_t playlist_id);
 
-	void ReadTrackInfo(const QSharedPointer<DatabaseFacade>& adapter,
-		QString const& file_path,
-		int32_t playlist_id,
-		bool is_podcast_mode);
-
 public slots:
 	void PlayIndex(const QModelIndex& index);
 

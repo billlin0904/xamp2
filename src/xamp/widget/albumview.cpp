@@ -40,29 +40,38 @@ enum {
     INDEX_ARTIST_COVER_ID
 };
 
-AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
-    : QStyledItemDelegate(parent)
-    , text_color_(Qt::black)
-	, more_album_opt_button_(new QPushButton())
-	, play_button_(new QPushButton())
-	, image_cache_(kMaxAlbumRoundedImageCacheSize) {
-    more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    play_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 80, image_utils::kSmallImageRadius);
-}
-
-void AlbumViewStyledDelegate::LoadCoverCache() {    
+void AlbumCoverCache::LoadCoverCache() {
     qDatabase.ForEachAlbumCover([this](const auto& cover_id) {
         GetCover(cover_id);
         }, kMaxAlbumRoundedImageCacheSize);
 }
 
-void AlbumViewStyledDelegate::SetTextColor(QColor color) {
-    text_color_ = color;
+QPixmap AlbumCoverCache::GetCover(const QString& cover_id) {
+    const auto add_factory = [cover_id]() {
+        return image_utils::RoundImage(
+            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
+            image_utils::kSmallImageRadius);
+    };
+
+    return image_cache_.GetOrAdd(cover_id, add_factory);
 }
 
-void AlbumViewStyledDelegate::ClearImageCache() const {
+void AlbumCoverCache::ClearImageCache() {
     image_cache_.Clear();
+}
+
+AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
+    : QStyledItemDelegate(parent)
+    , text_color_(Qt::black)
+	, more_album_opt_button_(new QPushButton())
+	, play_button_(new QPushButton()) {
+    more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
+    play_button_->setStyleSheet(qTEXT("background-color: transparent"));
+    mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 80, image_utils::kSmallImageRadius);
+}
+
+void AlbumViewStyledDelegate::SetTextColor(QColor color) {
+    text_color_ = color;
 }
 
 void AlbumViewStyledDelegate::EnableAlbumView(bool enable) {
@@ -102,16 +111,6 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
         break;
     }
     return true;
-}
-
-QPixmap AlbumViewStyledDelegate::GetCover(const QString& cover_id) const {
-    const auto add_factory = [cover_id]() {
-        return image_utils::RoundImage(
-            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
-            image_utils::kSmallImageRadius);
-    };
-
-    return image_cache_.GetOrAdd(cover_id, add_factory);
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -177,7 +176,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     
-    painter->drawPixmap(cover_rect, GetCover(cover_id));
+    painter->drawPixmap(cover_rect, qAlbumCoverCache.GetCover(cover_id));
 
     bool hit_play_button = false;
     if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
@@ -501,7 +500,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
     action_map.AddSeparator();
     auto* remove_all_album_act = action_map.AddAction(tr("Remove all album"), [=]() {
         removeAlbum();
-        styled_delegate_->ClearImageCache();
+        qAlbumCoverCache.ClearImageCache();
         });
     remove_all_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));
 
@@ -588,7 +587,7 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
     )").arg(artist_id), qDatabase.database());
 }
 
-void AlbumView::update() {
+void AlbumView::Update() {
     model_.setQuery(qTEXT(R"(
 SELECT
     albums.album,
@@ -606,12 +605,8 @@ WHERE
     )"), qDatabase.database());
 }
 
-void AlbumView::LoadCoverCache() {
-    styled_delegate_->LoadCoverCache();
-}
-
 void AlbumView::Refresh() {
-    update();
+    Update();
 }
 
 void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -640,35 +635,41 @@ LIMIT 200
 }
 
 void AlbumView::append(const QString& file_name) {
-    read_progress_dialog_ =
-        MakeProgressDialog(tr("Read track information"),
-            tr("Read track information"),
-            tr("Cancel"));
-    read_progress_dialog_->hide();
+    read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
+        tr("Read track information"),
+        tr("Cancel"));
     ReadSingleFileTrackInfo(file_name);
 }
 
 void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
-    const auto database_facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
+    const auto facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
 
-    (void)QObject::connect(database_facade.get(),
+    (void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadCompleted,
         this,
         &AlbumView::LoadCompleted);
 
-    (void)QObject::connect(database_facade.get(),
+    (void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadFileStart,
-        this, &AlbumView::OnReadFileStart);
+        this,
+        &AlbumView::OnReadFileStart);
 
-    (void)QObject::connect(database_facade.get(),
+    (void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadFileProgress,
-        this, &AlbumView::OnReadFileProgress);
+        this, 
+        &AlbumView::OnReadFileProgress);
 
-    (void)QObject::connect(database_facade.get(),
+    (void)QObject::connect(facade.get(),
+        &DatabaseFacade::ReadCurrentFilePath,
+        this, 
+        &AlbumView::OnReadCurrentFilePath);
+
+    (void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadFileEnd,
-        this, &AlbumView::OnReadFileEnd);
+        this, 
+        &AlbumView::OnReadFileEnd);
 
-    emit ReadTrackInfo(database_facade, file_name, -1, false);
+    facade->ReadTrackInfo(file_name, -1, false);
 }
 
 void AlbumView::OnReadFileStart(int dir_size) {
@@ -678,11 +679,16 @@ void AlbumView::OnReadFileStart(int dir_size) {
     read_progress_dialog_->SetRange(0, dir_size);
 }
 
-void AlbumView::OnReadFileProgress(const QString& dir, int progress) {
+void AlbumView::OnReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track) {
+    read_progress_dialog_->SetLabelText(dir);
+    read_progress_dialog_->SetSubValue(total_tracks, num_track);
+    qApp->processEvents();
+}
+
+void AlbumView::OnReadFileProgress(int progress) {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->SetLabelText(dir);
     read_progress_dialog_->SetValue(progress);
 }
 

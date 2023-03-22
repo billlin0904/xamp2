@@ -118,7 +118,9 @@ AudioPlayer::AudioPlayer()
     logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
-AudioPlayer::~AudioPlayer() = default;
+AudioPlayer::~AudioPlayer() {
+    Destroy();
+}
 
 void AudioPlayer::Destroy() {
     timer_.Stop();

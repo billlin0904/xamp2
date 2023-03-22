@@ -6,6 +6,8 @@
 #pragma once
 
 #include <QObject>
+#include <QEventLoop>
+#include <QTimer>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
@@ -38,7 +40,7 @@ public:
 signals:
     void ReadFileStart(int dir_size);
 
-    void ReadFileProgress(const QString &dir, int progress);
+    void ReadFileProgress(int progress);
 
     void ReadFileEnd();
 
@@ -46,16 +48,36 @@ signals:
 
 	void ReadCompleted(int32_t total_album, int32_t total_tracks);
 
+    void ReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track);
+
 public:
-    static void InsertTrackInfo(const ForwardList<TrackInfo>& result, 
+    void ReadTrackInfo(QString const& file_path,
+        int32_t playlist_id,
+        bool is_podcast_mode);
+
+    void InsertTrackInfo(const ForwardList<TrackInfo>& result, 
         int32_t playlist_id, 
         bool is_podcast_mode);
 
-    static void FindAlbumCover(int32_t album_id, const QString& album, const std::wstring& file_path, const CoverArtReader &reader);
+    static void FindAlbumCover(int32_t album_id,
+        const QString& album,
+        const std::wstring& 
+        file_path, 
+        const CoverArtReader &reader);
 
 private:
-    static void AddTrackInfo(const ForwardList<TrackInfo>& result,
+    void ScanPathFiles(const QStringList& file_name_filters,
+        const QString& dir,
+        int32_t playlist_id,
+        bool is_podcast_mode);
+
+    void AddTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast);
+
+    bool is_stop_{false};
+    LoggerPtr logger_;
+    QEventLoop event_loop_;
+    QTimer timer_;
 };
 
