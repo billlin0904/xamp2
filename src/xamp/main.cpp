@@ -27,9 +27,9 @@
 #include <widget/databasefacade.h>
 
 #include <QOperatingSystemVersion>
-#include <QLoggingCategory>
-#include <QMessageBox>
+#include <QNetworkReply>
 #include <QProcess>
+#include <QtAutoUpdaterCore/Updater>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -39,7 +39,6 @@
 #include "singleinstanceapplication.h"
 #include "version.h"
 #include "xamp.h"
-#include <QNetworkReply>
 
 #ifdef Q_OS_WIN32
 static ConstLatin1String VisualStudioVersion() {
@@ -398,17 +397,16 @@ static int Execute(int argc, char* argv[]) {
     QApplication::setOrganizationName(kApplicationName);
     QApplication::setOrganizationDomain(kApplicationName);
 
-    /*const SingleInstanceApplication app(argc, argv);
+    const SingleInstanceApplication app(argc, argv);
     if (!app.IsAttach()) {
         XAMP_LOG_DEBUG("Application already running!");
         return -1;
-    }*/
-    QApplication app(argc, argv);
+    }
+    //QApplication app(argc, argv);
 
     ApplyTheme();
 
-#ifndef _DEBUG    
-#else
+#ifdef _DEBUG    
 #ifdef XAMP_OS_WIN
     qInstallMessageHandler(LogMessageHandler);
     QLoggingCategory::setFilterRules(qTEXT("*.info=false"));

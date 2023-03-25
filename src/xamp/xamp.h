@@ -44,6 +44,10 @@ class XMenu;
 class DatabaseFacade;
 class XMessage;
 
+namespace QtAutoUpdater {
+	class Updater;
+}
+
 class Xamp final : public IXFrame {
 	Q_OBJECT
 
@@ -198,7 +202,7 @@ private:
 
 	void cleanup();
 
-    void SetupDsp(const PlayListEntity& item);
+    void SetupDsp(const PlayListEntity& item) const;
 
 	void ConnectPlaylistPageSignal(PlaylistPage* playlist_page);
 
@@ -235,6 +239,7 @@ private:
 	IXMainWindow* main_window_;
 	BackgroundWorker* background_worker_;
 	XMessage* messages_;
+	QtAutoUpdater::Updater* updater_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;
 	PlayListEntity current_entity_;

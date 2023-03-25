@@ -37,7 +37,7 @@ struct ImageCacheEntity {
 };
 
 struct ImageCacheSizeOfPolicy {
-	int64_t operator()(const QString&, const ImageCacheEntity& entity) {
+	int64_t operator()(const QString&, const ImageCacheEntity& entity) const noexcept {
 		return entity.size;
 	}
 };

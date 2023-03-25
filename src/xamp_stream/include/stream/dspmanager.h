@@ -35,11 +35,11 @@ public:
 
     IDSPManager& AddCompressor() override;
 
-    IDSPManager& AddVolume() override;
+    IDSPManager& AddVolumeControl() override;
 
     IDSPManager& RemoveEqualizer() override;
 
-    IDSPManager& RemoveVolume() override;
+    IDSPManager& RemoveVolumeControl() override;
 
     IDSPManager& RemoveSampleRateConverter() override;
 

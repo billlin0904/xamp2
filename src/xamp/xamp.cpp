@@ -1,11 +1,7 @@
 #include "xamp.h"
 
-#include <QCloseEvent>
-#include <QFileDialog>
-
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
-#include <base/str_utilts.h>
 #include <base/dsd_utils.h>
 
 #include <stream/api.h>
@@ -19,7 +15,7 @@
 
 #include <player/api.h>
 
-#include <widget/actionmap.h>
+#include <widget/widget_shared.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
 #include <widget/appsettings.h>
@@ -29,24 +25,29 @@
 #include <widget/equalizerdialog.h>
 #include <widget/parametriceqview.h>
 #include <widget/filesystemviewpage.h>
-#include <widget/http.h>
-#include <widget/image_utiltis.h>
-#include <widget/jsonsettings.h>
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
-#include <widget/imagecache.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableview.h>
 #include <widget/podcast_uiltis.h>
-#include <widget/read_utiltis.h>
 #include <widget/spectrumwidget.h>
-#include <widget/str_utilts.h>
-#include <widget/ui_utilts.h>
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
+
+#include <widget/imagecache.h>
+#include <widget/image_utiltis.h>
+#include <widget/str_utilts.h>
+#include <widget/ui_utilts.h>
+#include <widget/actionmap.h>
+#include <widget/http.h>
+#include <widget/jsonsettings.h>
+#include <widget/read_utiltis.h>
+
+#include <QCloseEvent>
+#include <QtAutoUpdaterCore/Updater>
 
 #include "aboutpage.h"
 #include "cdpage.h"
@@ -190,6 +191,20 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
     SetPlayerOrder();
     InitialDeviceList();
+
+    //const QVariantMap settings{
+    //   { qTEXT("path"), qTEXT("C:/Qt/MaintenanceTool") } //.exe or .app is automatically added on the platform
+    //};
+    //using namespace QtAutoUpdater;
+    //updater_ = Updater::create(kApplicationTitle, settings, this);
+    //QObject::connect(updater_, &QtAutoUpdater::Updater::checkUpdatesDone,
+    //    [this](auto state) {
+    //        if (state == QtAutoUpdater::Updater::State::NewUpdates) {
+    //            updater_->runUpdater();
+    //        }
+    //        qApp->quit();
+    //    });
+    //updater_->checkForUpdates();
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -435,9 +450,8 @@ void Xamp::InitialDeviceList() {
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.device_id);
     }
 
+    //ui_.deviceDescLabel->setMaximumWidth(max_width * 2);
     ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.name));
-    ui_.deviceDescLabel->setMaximumWidth(max_width);
-    ui_.deviceDescLabel->setMinimumWidth(max_width);
 }
 
 void Xamp::SliderAnimation(bool enable) {
@@ -977,20 +991,20 @@ void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
         tr("Add %1 albums %2 tracks successfully!").arg(total_album).arg(total_tracks));*/
 }
 
-void Xamp::SetupDsp(const PlayListEntity& item) {
+void Xamp::SetupDsp(const PlayListEntity& item) const {
     if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = AppSettings::ValueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
-            player_->GetDspManager()->AddVolume();
+            player_->GetDspManager()->AddVolumeControl();
             player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain);
         } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
-            player_->GetDspManager()->AddVolume();
+            player_->GetDspManager()->AddVolumeControl();
             player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.track_replay_gain);
         } else {
-            player_->GetDspManager()->RemoveVolume();
+            player_->GetDspManager()->RemoveVolumeControl();
         }
     } else {
-        player_->GetDspManager()->RemoveVolume();
+        player_->GetDspManager()->RemoveVolumeControl();
     }
 
     if (AppSettings::ValueAsBool(kAppSettingEnableEQ)) {
@@ -1120,10 +1134,20 @@ void Xamp::play(const PlayListEntity& item) {
     PlaybackFormat playback_format;
     uint32_t target_sample_rate = 0;
     auto byte_format = ByteFormat::SINT32;
-
     std::function<void()> sample_rate_converter_factory;
-    SetupSampleRateConverter(sample_rate_converter_factory, target_sample_rate, sample_rate_converter_type);
+    const auto enable_bit_perfect = AppSettings::ValueAsBool(kEnableBitPerfect);
 
+    if (enable_bit_perfect) {
+        player_->GetDspManager()->RemoveSampleRateConverter();
+        player_->GetDspManager()->RemoveVolumeControl();
+        player_->GetDspManager()->RemoveEqualizer();
+        player_->GetDspManager()->RemoveCompressor();
+    } else {
+        SetupSampleRateConverter(sample_rate_converter_factory, 
+            target_sample_rate, 
+            sample_rate_converter_type);
+    }
+    
     const auto [open_dsd_mode, convert_mode] = GetDsdModes(device_info_,
         item.file_path.toStdWString(),
         item.sample_rate,
@@ -1135,16 +1159,7 @@ void Xamp::play(const PlayListEntity& item) {
             target_sample_rate,
             open_dsd_mode);
 
-        if (AppSettings::ValueAsBool(kEnableBitPerfect)) {
-            player_->GetDspManager()->RemoveSampleRateConverter();
-            player_->GetDspManager()->RemoveVolume();
-            player_->GetDspManager()->RemoveEqualizer();
-            player_->GetDspManager()->RemoveCompressor();
-
-            if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
-                byte_format = ByteFormat::SINT16;
-            }
-        } else {
+        if (!enable_bit_perfect) {
             if (sample_rate_converter_factory != nullptr) {
                 if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
                     player_->GetDspManager()->RemoveSampleRateConverter();
@@ -1158,6 +1173,10 @@ void Xamp::play(const PlayListEntity& item) {
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
                 player_->GetDspManager()->AddCompressor();
             }
+        } else {
+            if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
+                byte_format = ByteFormat::SINT16;
+            }            
         }
 
         if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {

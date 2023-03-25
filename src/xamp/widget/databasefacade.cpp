@@ -260,9 +260,12 @@ void DatabaseFacade::FindAlbumCover(int32_t album_id,
 void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
+    const Stopwatch watch;
 	const CoverArtReader reader;
-    auto total_tracks = std::distance(result.begin(), result.end());
+	const auto total_tracks = std::distance(result.begin(), result.end());
     auto num_track = 0;
+    HashMap<QString, int32_t> artist_id_cache;
+    HashMap<QString, int32_t> album_id_cache;
 	for (const auto& track_info : result) {
         auto file_path = QString::fromStdWString(track_info.file_path);
         auto album = QString::fromStdWString(track_info.album);
@@ -284,12 +287,30 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 		}
 
         const auto music_id = qDatabase.AddOrUpdateMusic(track_info);
-        const auto artist_id = qDatabase.AddOrUpdateArtist(artist);
-        const auto album_id = qDatabase.AddOrUpdateAlbum(album,
-            artist_id,
-            track_info.last_write_time,
-            is_podcast,
-            disc_id);
+
+        int32_t artist_id = 0;
+        if (!artist_id_cache.contains(artist)) {
+            artist_id = qDatabase.AddOrUpdateArtist(artist);
+            artist_id_cache[artist] = artist_id;
+        } else {
+            artist_id = artist_id_cache[artist];
+        }
+
+        XAMP_EXPECTS(artist_id != 0);
+
+        int32_t album_id = 0;
+        if (!album_id_cache.contains(album + artist)) {
+            album_id = qDatabase.AddOrUpdateAlbum(album,
+                artist_id,
+                track_info.last_write_time,
+                is_podcast,
+                disc_id);
+            album_id_cache[album + artist] = album_id;
+        } else {
+            album_id = album_id_cache[album + artist];
+        }
+
+        XAMP_EXPECTS(album_id != 0);
 
 		if (playlist_id != -1) {
 			qDatabase.AddMusicToPlaylist(music_id, playlist_id, album_id);
@@ -307,6 +328,8 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
         emit ReadCurrentFilePath(file_path, total_tracks, num_track++);
         event_loop_.exec();
 	}
+    XAMP_LOG_DEBUG("Thread:{} Add TrackInfo success! {:.2f} sesc",
+        QThread::currentThreadId(), watch.ElapsedSeconds());
 }
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, 
@@ -314,9 +337,14 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result,
     bool is_podcast_mode) {
     // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
     try {
-	    const Stopwatch sw;
-        AddTrackInfo(result, playlist_id, is_podcast_mode);
-        XAMP_LOG_DEBUG("Add TrackInfo {} secs", sw.ElapsedSeconds());
+        if (!qDatabase.transaction()) {
+            XAMP_LOG_DEBUG("Failed to begin transaction!");
+        }
+        AddTrackInfo(result, playlist_id, is_podcast_mode);       
+        if (!qDatabase.commit()) {
+            XAMP_LOG_DEBUG("Failed to commit!");
+        }
+        return;
     }
     catch (Exception const& e) {
         XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
@@ -327,6 +355,7 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result,
     catch (...) {
         XAMP_LOG_DEBUG("Failed to add track info!");
     }
+    qDatabase.rollback();
 }
 
 TrackInfo GetTrackInfo(QString const& file_path) {

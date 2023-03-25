@@ -137,7 +137,7 @@ void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
 
         	std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
 
-            Stopwatch watch;
+			const Stopwatch watch;
 			auto const podcast_info = std::make_pair(image_url, ParseJson(json));
             XAMP_LOG_DEBUG("Thread:{} Parse meta.json success! {:.2f} sesc",
                 QThread::currentThreadId(), watch.ElapsedSeconds());
@@ -147,8 +147,6 @@ void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
                 .download([this, podcast_info, playlist_id](const QByteArray& data) {
 					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
                     QThread::currentThreadId(), String::FormatBytes(data.size()));
-                	DatabaseFacade facade;
-                    facade.InsertTrackInfo(podcast_info.second, playlist_id, true);
 					emit FetchPodcastCompleted(podcast_info.second, data);
 				});
             }).get();

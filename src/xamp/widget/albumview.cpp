@@ -67,7 +67,8 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	, play_button_(new QPushButton()) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 80, image_utils::kSmallImageRadius);
+    mask_image_ = image_utils::RoundDarkImage(qTheme.GetDefaultCoverSize(), 
+        80, image_utils::kSmallImageRadius);
 }
 
 void AlbumViewStyledDelegate::SetTextColor(QColor color) {

@@ -107,7 +107,7 @@ AudioPlayer::AudioPlayer()
     , is_fade_out_(false)
     , is_playing_(false)
     , is_paused_(false)
-    , playback_progress_{-1}
+    , stream_time_sec_unit_{-1}
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_end_time_(0)
     , stream_duration_(0)
@@ -168,11 +168,11 @@ void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
             return;
         }
 
-        const auto playback_event = p->playback_progress_.load();
-        if (playback_event > 0) {
-            adapter->OnSampleTime(p->device_->GetStreamTime());
+        const auto stream_time_sec_unit = p->stream_time_sec_unit_.load();
+        if (stream_time_sec_unit > 0) {
+            adapter->OnSampleTime(stream_time_sec_unit / 1000.0);
         }
-        else if (p->is_playing_ && playback_event == -1) {
+        else if (p->is_playing_ && stream_time_sec_unit == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
             p->is_playing_ = false;
         }
@@ -197,7 +197,7 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
 
 void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
     CloseDevice(true);
-    UpdateProgress();
+    UpdatePlayerStreamTime();
     OpenStream(file_path, output_mode);
     device_info_ = device_info;
     target_sample_rate_ = target_sample_rate;
@@ -380,7 +380,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     if (device_->IsStreamOpen()) {
         XAMP_LOG_D(logger_, "Close device.");
         CloseDevice(wait_for_stop_stream);
-        UpdateProgress();
+        UpdatePlayerStreamTime();
         if (signal_to_stop) {
             SetState(PlayerState::PLAYER_STATE_USER_STOPPED);                        
         }
@@ -670,8 +670,8 @@ void AudioPlayer::EnableFadeOut(bool enable) {
     enable_fadeout_ = enable;
 }
 
-void AudioPlayer::UpdateProgress(int32_t sample_size) noexcept {
-    playback_progress_.exchange(sample_size);
+void AudioPlayer::UpdatePlayerStreamTime(int32_t stream_time_sec_unit) noexcept {
+    stream_time_sec_unit_.exchange(stream_time_sec_unit);
 }
 
 void AudioPlayer::Seek(double stream_time) {
@@ -708,7 +708,7 @@ void AudioPlayer::DoSeek(double stream_time) {
         stream_->GetDuration(),
         stream_time,
         sample_end_time_);
-    UpdateProgress();
+    UpdatePlayerStreamTime(stream_time * 1000);
     fifo_.Clear();
     BufferStream(stream_time);
     Resume();
@@ -867,6 +867,8 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
+    // sample_time: 指的是設備撥放時間, 會被stop重置為0
+    // stream time: 依據sample大小累計從開始撥放到結束的時間
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
@@ -879,7 +881,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
-        UpdateProgress(static_cast<int32_t>(num_samples));
+        UpdatePlayerStreamTime(static_cast<int32_t>(stream_time * 1000));
         CopySamples(samples, num_samples);
         return DataCallbackResult::CONTINUE;
     }
@@ -893,12 +895,12 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     // <------------------------------->
     //
     if (stream_time >= stream_duration_) {
-        UpdateProgress(-1);
+        UpdatePlayerStreamTime(-1);
         return DataCallbackResult::STOP;
     }
 
     num_filled_frames = num_buffer_frames;
-    UpdateProgress(static_cast<int32_t>(num_samples));
+    UpdatePlayerStreamTime(static_cast<int32_t>(stream_time * 1000));
     return DataCallbackResult::CONTINUE;
 }
 

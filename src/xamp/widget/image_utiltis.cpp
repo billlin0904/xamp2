@@ -209,7 +209,7 @@ bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
 
 QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
 	const auto scaled_size = source.size() * 2;
-	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
+	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatio
 		                  : Qt::IgnoreAspectRatio;
 
 	const auto temp = source.scaled(scaled_size, mode);

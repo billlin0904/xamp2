@@ -45,7 +45,7 @@ IDSPManager& DSPManager::AddCompressor() {
     return *this;
 }
 
-IDSPManager& DSPManager::AddVolume() {
+IDSPManager& DSPManager::AddVolumeControl() {
     AddPostDSP(StreamFactory::MakeVolume());
     return *this;
 }
@@ -63,7 +63,7 @@ IDSPManager& DSPManager::RemoveEqualizer() {
     return *this;
 }
 
-IDSPManager& DSPManager::RemoveVolume() {
+IDSPManager& DSPManager::RemoveVolumeControl() {
     RemovePreDSP<BassVolume>();
     return *this;
 }

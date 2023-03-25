@@ -150,7 +150,7 @@ private:
 
     void BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count = 1);
 
-    void UpdateProgress(int32_t sample_size = 0) noexcept;
+    void UpdatePlayerStreamTime(int32_t stream_time_sec_unit = 0) noexcept;
 
     void ResizeReadBuffer(uint32_t allocate_size);
 
@@ -177,7 +177,7 @@ private:
     std::atomic<bool> is_fade_out_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
-    std::atomic<int32_t> playback_progress_;
+    std::atomic<int32_t> stream_time_sec_unit_;
     std::atomic<PlayerState> state_;
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;

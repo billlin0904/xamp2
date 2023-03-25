@@ -4,13 +4,13 @@
 #include <widget/str_utilts.h>
 #include <widget/jsonsettings.h>
 
-static bool readJsonFile(QIODevice& device, QSettings::SettingsMap& map) {
+static bool ReadJsonFile(QIODevice& device, QSettings::SettingsMap& map) {
 	QJsonParseError error;
 	map = QJsonDocument::fromJson(device.readAll(), &error).toVariant().toMap();
 	return error.error == QJsonParseError::NoError;
 }
 
-static bool writeJsonFile(QIODevice& device, const QSettings::SettingsMap& map) {
+static bool WriteJsonFile(QIODevice& device, const QSettings::SettingsMap& map) {
 	bool ret = false;
 	const auto json_document = QJsonDocument::fromVariant(QVariant::fromValue(map));
 	if (device.write(json_document.toJson()) != -1) {
@@ -24,7 +24,7 @@ QMap<QString, QVariant> JsonSettings::default_settings_;
 
 void JsonSettings::LoadJsonFile(const QString& file_name) {
 	const auto json_format =
-		QSettings::registerFormat(qTEXT("json"), readJsonFile, writeJsonFile);
+		QSettings::registerFormat(qTEXT("json"), ReadJsonFile, WriteJsonFile);
 	settings_.reset(new QSettings(file_name, json_format));
 }
 

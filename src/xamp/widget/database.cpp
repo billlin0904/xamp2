@@ -101,11 +101,12 @@ void Database::open() {
     (void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
     (void)db_.exec(qTEXT("PRAGMA auto_vacuum = OFF"));
     (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
-    (void)db_.exec(qTEXT("PRAGMA journal_mode = WAL"));
+    (void)db_.exec(qTEXT("PRAGMA journal_mode = DELETE"));
     (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));
+    //(void)db_.exec(qTEXT("PRAGMA locking_mode = EXCLUSIVE"));
 
     XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
         connection_name_.toStdString(), GetVersion().toStdString());

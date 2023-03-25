@@ -895,8 +895,11 @@ void PlayListTableView::OnFetchPodcastError(const QString& msg) {
     OnFetchPodcastCompleted({}, {});
 }
 
-void PlayListTableView::OnFetchPodcastCompleted(const ForwardList<TrackInfo>& /*track_infos*/, const QByteArray& cover_image_data) {
+void PlayListTableView::OnFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
     XAMP_LOG_DEBUG("Download podcast completed!");
+
+    DatabaseFacade facade;
+    facade.InsertTrackInfo(track_infos, GetPlaylistId(), true);
 
     indicator_.reset();
     Reload();

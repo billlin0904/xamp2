@@ -33,11 +33,11 @@ public:
 
     virtual IDSPManager& AddCompressor() = 0;
 
-    virtual IDSPManager& AddVolume() = 0;
+    virtual IDSPManager& AddVolumeControl() = 0;
 
     virtual IDSPManager& RemoveEqualizer() = 0;
 
-    virtual IDSPManager& RemoveVolume() = 0;
+    virtual IDSPManager& RemoveVolumeControl() = 0;
 
     virtual IDSPManager& RemoveCompressor() = 0;
 

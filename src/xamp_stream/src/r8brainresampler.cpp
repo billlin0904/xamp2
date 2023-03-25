@@ -8,7 +8,7 @@ namespace xamp::stream {
 
 #define LIBR8_DLL Singleton<R8brainLib>::GetInstance()
 
-const std::string_view VERSION = "R8brain 5.6";
+const std::string_view VERSION = "R8brain 6.2";
 
 class R8brainSampleRateConverter::R8brainSampleRateConverterImpl {
 public:

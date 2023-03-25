@@ -284,12 +284,12 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	if (FAILED(hr)) {
 		return false;
 	}
-	
-	auto stream_time = stream_time_ + buffer_frames_;
-	stream_time_ = stream_time;
-	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
-	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
+	const auto stream_time = stream_time_ + buffer_frames_;
+	stream_time_ = stream_time;
+	const auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
+
+	const auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
 
 	DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
