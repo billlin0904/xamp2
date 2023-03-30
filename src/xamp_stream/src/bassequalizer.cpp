@@ -13,7 +13,6 @@ class BassEqualizer::BassEqualizerImpl {
 public:
     BassEqualizerImpl()
 		: preamp_(0) {
-        fx_handles_.fill(0);
         logger_ = LoggerManager::GetInstance().GetLogger(kBassEqualizerLoggerName);
     }
 
@@ -27,22 +26,23 @@ public:
                                              nullptr));
 
         preamp_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
+    }
 
-        auto i = 0;
-        for (auto& fx_handle : fx_handles_) {
-            fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
-            if (!fx_handle) {
-                throw BassException(BASS.BASS_ErrorGetCode());
-            }
-            BASS_BFX_PEAKEQ eq{};
-            eq.lBand = i;
-            eq.fCenter = kEQBands[i];
-            eq.fBandwidth = kEQBands[i] / 2;
-            eq.fGain = 0.0F;
-            eq.lChannel = BASS_BFX_CHANALL;
-            BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handle, &eq));
-            ++i;
+    void AddBand(uint32_t i, float freq, float band_width, float gain, float Q) {
+        auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
+        if (!fx_handle) {
+            throw BassException(BASS.BASS_ErrorGetCode());
         }
+        BASS_BFX_PEAKEQ eq{};
+        eq.lBand = i;
+        eq.fCenter = freq;
+        eq.fBandwidth = band_width;
+        eq.fGain = gain;
+        eq.fQ = Q;
+        eq.lChannel = BASS_BFX_CHANALL;
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handle, &eq));
+        fx_handles_.push_back(fx_handle);
+        XAMP_LOG_D(logger_, "Add band {}Hz {}dB Q:{} successfully!", freq, gain, Q);
     }
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
@@ -53,15 +53,15 @@ public:
         return BassUtiltis::Process(stream_, samples, out, num_samples);
     }
 
-    void SetEQ(EQSettings const &settings) {
+    void SetEq(EqSettings const &settings) {
+        SetPreamp(settings.preamp);
         uint32_t i = 0;
         for (const auto &band_setting : settings.bands) {
-            SetEQ(i++, band_setting.gain, band_setting.Q);
+            AddBand(i++, band_setting.frequency, band_setting.band_width, band_setting.gain, band_setting.Q);
         }
-        SetPreamp(settings.preamp);
     }
 
-    void SetEQ(uint32_t band, float gain, float Q) {
+    void SetEq(uint32_t band, float gain, float Q) {
         if (band >= fx_handles_.size()) {
             return;
         }
@@ -70,8 +70,6 @@ public:
         BassIfFailedThrow(BASS.BASS_FXGetParameters(fx_handles_[band], &eq));
         eq.fGain = gain;
         eq.fQ = Q;
-        eq.fBandwidth = kEQBands[band] / 2;
-        eq.fCenter = kEQBands[band];
         BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handles_[band], &eq));
     }
 
@@ -80,11 +78,12 @@ public:
         fv.lChannel = 0;
         fv.fVolume = static_cast<float>(std::pow(10, (preamp / 20)));
         BassIfFailedThrow(BASS.BASS_FXSetParameters(preamp_, &fv));
+        XAMP_LOG_D(logger_, "Add preamp {}dB successfully!", preamp);
     }
 
     void Disable() {
         for (uint32_t i = 0; i < fx_handles_.size(); ++i) {
-            SetEQ(i, 0.0, 0.0);
+            SetEq(i, 0.0, 0.0);
         }
         SetPreamp(0);
     }
@@ -94,15 +93,14 @@ private:
         for (auto fx_handle : fx_handles_) {
             BASS.BASS_ChannelRemoveFX(stream_.get(), fx_handle);
         }
-        fx_handles_.fill(0);
-
+        fx_handles_.clear();
         BASS.BASS_ChannelRemoveFX(stream_.get(), preamp_);
         preamp_ = 0;
     }
 
     HFX preamp_;
     BassStreamHandle stream_;
-    std::array<HFX, kEQMaxBand> fx_handles_;
+    Vector<HFX> fx_handles_;
     LoggerPtr logger_;
 };
 
@@ -118,16 +116,16 @@ void BassEqualizer::Start(const AnyMap& config) {
 }
 
 void BassEqualizer::Init(const AnyMap& config) {
-	const auto settings = config.Get<EQSettings>(DspConfig::kEQSettings);
-    SetEQ(settings);
+	const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
+    SetEq(settings);
 }
 
-void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {
-    impl_->SetEQ(band, gain, Q);
+void BassEqualizer::SetEq(uint32_t band, float gain, float Q) {
+    impl_->SetEq(band, gain, Q);
 }
 
-void BassEqualizer::SetEQ(EQSettings const & settings) {
-    impl_->SetEQ(settings);
+void BassEqualizer::SetEq(EqSettings const & settings) {
+    impl_->SetEq(settings);
 }
 
 void BassEqualizer::SetPreamp(float preamp) {

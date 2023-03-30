@@ -11,14 +11,14 @@
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
-QMap<QString, EQSettings> AppSettings::eq_settings_;
+QMap<QString, EqSettings> AppSettings::eq_settings_;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
     LoadEqPreset();
 }
 
-const QMap<QString, EQSettings>& AppSettings::GetEqPreset() {
+const QMap<QString, EqSettings>& AppSettings::GetEqPreset() {
     return eq_settings_;
 }
 
@@ -56,7 +56,8 @@ void AppSettings::LoadEqPreset() {
         QFile file(filepath);
         if (file.open(QIODevice::ReadOnly)) {
             QTextStream in(&file);
-            EQSettings settings;
+            EqSettings settings;
+            //settings.SetDefault();
             int i = 0;
             while (!in.atEnd()) {
                 auto line = in.readLine();
@@ -67,7 +68,11 @@ void AppSettings::LoadEqPreset() {
                         &settings.preamp);
                 }
                 else if (result[0].indexOf(qTEXT("Filter") != -1)) {
-	                const auto pos = str.find(L"Gain");
+                    settings.bands.push_back(EqBandSetting());
+                    auto pos = str.find(L"Fc");
+                    swscanf(&str[pos], L"Fc %f Hz",
+                        &settings.bands[i].frequency);
+	                pos = str.find(L"Gain");
                     if (pos == std::wstring::npos) {
                         continue;
                     }
@@ -80,7 +85,7 @@ void AppSettings::LoadEqPreset() {
             eq_settings_[file_info.baseName()] = settings;
         }
     }
-    eq_settings_[qTEXT("Manual")] = EQSettings();
+    eq_settings_[qTEXT("Manual")] = EqSettings();
 }
 
 void AppSettings::save() {

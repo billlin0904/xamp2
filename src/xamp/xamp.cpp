@@ -22,7 +22,7 @@
 #include <widget/xmessage.h>
 #include <widget/backgroundworker.h>
 #include <widget/database.h>
-#include <widget/equalizerdialog.h>
+#include <widget/equalizerview.h>
 #include <widget/parametriceqview.h>
 #include <widget/filesystemviewpage.h>
 #include <widget/lrcpage.h>
@@ -607,6 +607,7 @@ void Xamp::InitialController() {
         dialog->SetContentWidget(page, true);   
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
         dialog->SetTitle(tr("Pending playlist"));
+        dialog->SetMoveable(false);
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         (void)QObject::connect(page,
             &PendingPlaylistPage::PlayMusic,
@@ -624,23 +625,23 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
-        auto* eq = new EqualizerDialog(dialog);
-        dialog->SetContentWidget(eq);
+        auto* eq = new EqualizerView(dialog);
+        dialog->SetContentWidget(eq, false);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
         dialog->SetTitle(tr("EQ"));
 
-        (void)QObject::connect(eq, &EqualizerDialog::BandValueChange, [](auto, auto, auto) {
+        (void)QObject::connect(eq, &EqualizerView::BandValueChange, [](auto, auto, auto) {
             AppSettings::save();
         });
 
-        (void)QObject::connect(eq, &EqualizerDialog::PreampValueChange, [](auto) {
+        (void)QObject::connect(eq, &EqualizerView::PreampValueChange, [](auto) {
             AppSettings::save();
         });
 
         (void)QObject::connect(state_adapter_.get(),
             &UIPlayerStateAdapter::fftResultChanged,
             eq,
-            &EqualizerDialog::OnFftResultChanged,
+            &EqualizerView::OnFftResultChanged,
             Qt::QueuedConnection);
 
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
@@ -1017,6 +1018,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
     } else {
         player_->GetDspManager()->RemoveEqualizer();
     }
+    //player_->GetDspManager()->RemoveEqualizer();
 }
 
 QString Xamp::TranslateErrorCode(const Errors error) const {

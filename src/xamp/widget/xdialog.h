@@ -25,6 +25,10 @@ public:
         frame_->SetTitle(title);
     }
 
+    void SetMoveable(bool enable) {
+        is_moveable_ = enable;
+    }
+
     void SetIcon(const QIcon& icon) const;
 
 private:
@@ -38,6 +42,7 @@ private:
     void mouseMoveEvent(QMouseEvent* event) override;
 
     const int32_t border_width_{ 5 };
+    bool is_moveable_{true};
     QPoint last_pos_{0, 0};
     QScreen* current_screen_{ nullptr };
 #endif

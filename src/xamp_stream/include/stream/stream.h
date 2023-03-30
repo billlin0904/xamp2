@@ -24,7 +24,7 @@ namespace xamp::stream {
 	using namespace base;
 
 	struct CompressorParameters;
-	struct EQSettings;
+	struct EqSettings;
 
 	class STFT;
 	class MBDiscId;

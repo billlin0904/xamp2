@@ -26,9 +26,9 @@ public:
 
     void Init(const AnyMap& config) override;
 
-    void SetEQ(uint32_t band, float gain, float Q);
+    void SetEq(uint32_t band, float gain, float Q);
 
-    void SetEQ(EQSettings const &settings);
+    void SetEq(EqSettings const &settings);
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
 

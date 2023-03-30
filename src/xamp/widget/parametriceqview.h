@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <stream/eqsettings.h>
+#include <widget/widget_shared.h>
 #include <widget/qcustomplot.h>
 
 class ParametricEqView : public QCustomPlot {
@@ -12,7 +14,11 @@ class ParametricEqView : public QCustomPlot {
 public:
 	explicit ParametricEqView(QWidget* parent = nullptr);
 
-	void SetBand(int frequency, float value);
+	void InitialAxisTicker(const EqSettings &settings);
+
+	void SetBand(float frequency, float value);
+
+	void ClearBand();
 
 	void SetSpectrumData(int frequency, float value);
 

@@ -3,9 +3,6 @@
 #include <widget/parametriceqview.h>
 #include <widget/smoothcurvegenerator2.h>
 
-#include <base/math.h>
-#include <base/logger_impl.h>
-
 #include <stream/eqsettings.h>
 #include "thememanager.h"
 
@@ -52,16 +49,16 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     const QColor tick_text_color(qTEXT("#a1a8af"));
     const QColor line_color(90, 123, 158);
 
-    QFont f(qTEXT("FormatFont"));
+    auto f = qTheme.MonoFont();
     f.setWeight(QFont::Light);
     f.setPointSize(qTheme.GetFontSize(5));
-    setOpenGl(true);
+    //setOpenGl(true);
 
-    xAxis->setScaleType(QCPAxis::stLogarithmic);
+    //xAxis->setScaleType(QCPAxis::stLogarithmic);
     setInteraction(QCP::Interaction::iRangeDrag, false);
     setInteraction(QCP::Interaction::iRangeZoom, false);
     yAxis->setRange(QCPRange(kEQMinDb, kEQMaxDb));
-    xAxis->setRange(QCPRange(25, 16000));
+    xAxis->setRange(QCPRange(0, 44100));
 
     yAxis->setLabelFont(f);
     xAxis->setLabelFont(f);
@@ -69,25 +66,19 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     addGraph();
     addGraph();
 
-    graph(dragable_graph_number_)->setSmooth(true);
+    //graph(dragable_graph_number_)->setSmooth(true);
     graph(dragable_graph_number_)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black, 1.5), QBrush(Qt::white), 9));
     graph(dragable_graph_number_)->setPen(QPen(line_color, 2));
 
-    for (auto i = 0; i < kEQBands.size() && i < kBandsStr.size(); i++) {
-        graph(dragable_graph_number_)->addData(kEQBands[i], 0);
+    for (auto i = 0; i < kEqDefaultFrequencies.size() && i < kBandsStr.size(); i++) {
+        graph(dragable_graph_number_)->addData(kEqDefaultFrequencies[i], 0);
     }
-
-    /*for (auto i = 0; i < 4096; i++) {
-        auto freq = Index2Freq(i, 44100, 4096);
-        graph(0)->addData(freq, 0);
-    }
-    graph(0)->setPen(QPen(Qt::gray, 1));*/
 
     const QSharedPointer<QCPAxisTickerText> fixed_ticker(new QCPAxisTickerText());
     xAxis->setTicker(fixed_ticker);
-    fixed_ticker->setTickCount(kEQBands.size());
-    for (auto i = 0; i < kEQBands.size() && i < kBandsStr.size(); i++) {
-        fixed_ticker->addTick(kEQBands[i], kBandsStr.at(i));
+    fixed_ticker->setTickCount(kEqDefaultFrequencies.size());
+    for (auto i = 0; i < kEqDefaultFrequencies.size() && i < kBandsStr.size(); i++) {
+        fixed_ticker->addTick(kEqDefaultFrequencies[i], kBandsStr.at(i));
     }
 
     for (auto i = 0; i < kDBs.size(); i++) {
@@ -132,10 +123,25 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     axis_rect_gradient.setColorAt(1, QColor(30, 30, 30));
     axisRect()->setBackground(axis_rect_gradient);*/
     setBackground(QColor(qTEXT("#0f1c2a")));
+}
 
-    resize(800, 300);
-    setMinimumSize(QSize(800, 300));
-    setMaximumSize(QSize(800, 300));
+void ParametricEqView::ClearBand() {
+    xAxis->setTicker(QSharedPointer<QCPAxisTicker>(new QCPAxisTicker()));
+    graph(dragable_graph_number_)->setData(QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer()));
+}
+
+void ParametricEqView::InitialAxisTicker(const EqSettings& settings) {
+    const QSharedPointer<QCPAxisTickerText> fixed_ticker(new QCPAxisTickerText());
+    xAxis->setTicker(fixed_ticker);
+    fixed_ticker->setTickCount(settings.bands.size());
+
+    for (auto i = 0; i < settings.bands.size(); i++) {
+        fixed_ticker->addTick(settings.bands[i].frequency, FormatSampleRate(settings.bands[i].frequency));
+        graph(dragable_graph_number_)->addData(settings.bands[i].frequency, 0);
+    }
+
+    xAxis->setRange(QCPRange(10, 16000));
+    xAxis->setScaleType(QCPAxis::stLogarithmic);
 }
 
 void ParametricEqView::SetSpectrumData(int frequency, float value) {
@@ -148,7 +154,7 @@ void ParametricEqView::SetSpectrumData(int frequency, float value) {
     }
 }
 
-void ParametricEqView::SetBand(int frequency, float value) {
+void ParametricEqView::SetBand(float frequency, float value) {
     auto graph_ptr = graph(dragable_graph_number_);
     for (auto itr = graph_ptr->data()->begin(); itr != graph_ptr->data()->end(); ++itr) {
         if (itr->key == frequency) {
@@ -171,11 +177,11 @@ void ParametricEqView::mousePressEvent(QMouseEvent* event) {
 
         double nearest = -1;
         double nearest_diff = DBL_MAX;
-        for (int i = 0; i < kEQBands.size(); i++) {
-            double diff = std::abs(x - kEQBands[i]);
+        for (int i = 0; i < kEqDefaultFrequencies.size(); i++) {
+            double diff = std::abs(x - kEqDefaultFrequencies[i]);
             if (diff < nearest_diff) {
                 nearest_diff = diff;
-                nearest = kEQBands[i];
+                nearest = kEqDefaultFrequencies[i];
             }
         }
         x = nearest;
@@ -212,11 +218,11 @@ void ParametricEqView::mouseMoveEvent(QMouseEvent* event) {
 
         double nearest = -1;
         double nearest_diff = DBL_MAX;
-        for (int i = 0; i < kEQBands.size(); i++) {
-	        const double diff = std::abs(x - kEQBands[i]);
+        for (int i = 0; i < kEqDefaultFrequencies.size(); i++) {
+	        const double diff = std::abs(x - kEqDefaultFrequencies[i]);
             if (diff < nearest_diff) {
                 nearest_diff = diff;
-                nearest = kEQBands[i];
+                nearest = kEqDefaultFrequencies[i];
             }
         }
 

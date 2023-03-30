@@ -14,10 +14,10 @@
 
 class ParametricEqView;
 
-class EqualizerDialog : public QFrame {
+class EqualizerView : public QFrame {
     Q_OBJECT
 public:
-    explicit EqualizerDialog(QWidget *parent = nullptr);
+    explicit EqualizerView(QWidget *parent = nullptr);
 
 signals:
    void BandValueChange(int band, float value, float Q);
@@ -28,11 +28,13 @@ public slots:
     void OnFftResultChanged(const ComplexValarray & result);
 
 private:
-    void ApplySetting(QString const &name, EQSettings const &settings);
+    void ApplySetting(QString const &name, EqSettings const &settings);
 
     void AddBand(uint32_t band);
 
     void SetBandGain(uint32_t band, float gain);
+
+    void SaveBand(int32_t index);
 
     void SetBand(uint32_t band, EQFilterTypes type, float frequency, float gain, float Q, float band_width);
 
@@ -51,11 +53,8 @@ private:
 
     int32_t num_band_ = 1;
     ParametricEqView* parametric_eq_view_;
-    QList<DoubleSlider*> band_sliders_;
-    QList<QLabel*> band_label_;
-    QList<QLabel*> band_feq_label_;
-    std::array<FilterSetting, kEQMaxBand> filter_settings_;
+    Vector<FilterSetting> filter_settings_;
     QTimer timer_;
     ComplexValarray fft_result_;
-    Ui::EqualizerDialog ui_;
+    Ui::EqualizerView ui_;
 };

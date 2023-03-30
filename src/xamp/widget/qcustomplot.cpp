@@ -20879,7 +20879,8 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable1D<QCPGraphData>(keyAxis, valueAxis),
   mLineStyle{},
   mScatterSkip{},
-  mAdaptiveSampling{}
+  mAdaptiveSampling{},
+  mSmooth{false}
 {
   // special handling for QCPGraphs to maintain the simple graph interface:
   mParentPlot->registerGraph(this);

@@ -1,4 +1,5 @@
-#include <QTextStream>
+#include <widget/equalizerview.h>
+
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/parametriceqview.h>
@@ -7,32 +8,7 @@
 #include <stream/eqsettings.h>
 #include <thememanager.h>
 
-#include <widget/equalizerdialog.h>
-
-static uint32_t Index2Freq(int32_t i, uint32_t samples_rate, uint32_t fft_data_size) {
-    return static_cast<uint32_t>(i) * (samples_rate / fft_data_size / 2.);
-}
-
-static uint32_t Freq2Index(uint32_t freq, uint32_t samples_rate, uint32_t fft_data_size) {
-    return static_cast<uint32_t>(freq / (samples_rate / fft_data_size / 2.0));
-}
-
-static float ToMag(const std::complex<float>& r) {
-    if (r.real() == 0 && r.imag() == 0) {
-        return 0;
-    }
-    return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
-}
-
-static float ToDb(const std::complex<float>& r) {
-    if (r.real() == 0 && r.imag() == 0) {
-        return 0;
-    }
-    auto mag = std::sqrt(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
-    return 20.0 * std::log10(mag);
-}
-
-EqualizerDialog::EqualizerDialog(QWidget* parent)
+EqualizerView::EqualizerView(QWidget* parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
@@ -51,78 +27,15 @@ EqualizerDialog::EqualizerDialog(QWidget* parent)
     }
 
     ui_.enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
-
-    band_sliders_ = QList<DoubleSlider*>{
-            ui_.band1Slider,
-            ui_.band2Slider,
-            ui_.band3Slider,
-            ui_.band4Slider,
-            ui_.band5Slider,
-            ui_.band6Slider,
-            ui_.band7Slider,
-            ui_.band8Slider,
-            ui_.band9Slider,
-            ui_.band10Slider,
-    };
-
-    band_label_ = QList<QLabel*>{
-            ui_.band1DbLabel,
-            ui_.band2DbLabel,
-            ui_.band3DbLabel,
-            ui_.band4DbLabel,
-            ui_.band5DbLabel,
-            ui_.band6DbLabel,
-            ui_.band7DbLabel,
-            ui_.band8DbLabel,
-            ui_.band9DbLabel,
-            ui_.band10DbLabel,
-    };
-
-    band_feq_label_ = QList<QLabel*>{
-            ui_.band1FeqLabel,
-            ui_.band2FeqLabel,
-            ui_.band3FeqLabel,
-            ui_.band4FeqLabel,
-            ui_.band5FeqLabel,
-            ui_.band6FeqLabel,
-            ui_.band7FeqLabel,
-            ui_.band8FeqLabel,
-            ui_.band9FeqLabel,
-            ui_.band10FeqLabel,
-    };
-
+    
     auto f = qTheme.MonoFont();
-
     f.setPointSize(qTheme.GetFontSize(8));
-    for (auto& l : band_label_) {
-        l->setFont(f);
-        l->setStyleSheet(qTEXT("background-color: transparent;"));
-    }
-    ui_.preampDbLabel->setFont(f);
-    for (auto& l : band_feq_label_) {
-        l->setFont(f);
-        l->setStyleSheet(qTEXT("background-color: transparent;"));
-    }
+
     ui_.preampLabel->setFont(f);
+    ui_.preampDbLabel->setFont(f);
+
     ui_.preampLabel->setStyleSheet(qTEXT("background-color: transparent;"));
     ui_.preampDbLabel->setStyleSheet(qTEXT("background-color: transparent;"));
-
-    parametric_eq_view_ = new ParametricEqView(this);
-    ui_.verticalLayout_4->insertWidget(1, parametric_eq_view_);
-
-    auto i = 0;
-    for (auto& slider : band_sliders_) {
-        (void)QObject::connect(slider, &DoubleSlider::DoubleValueChanged, [i, this](auto value) {
-            BandValueChange(i, value, kDefaultQ);
-            band_label_[i]->setText(FormatDb(value));
-            auto settings = AppSettings::GetEqSettings();
-            settings.settings.bands[i].gain = value;
-            settings.settings.bands[i].Q = kDefaultQ;
-            AppSettings::SetEqSettings(settings);
-            });
-        qTheme.SetSliderTheme(slider, true);
-        ++i;
-    }
 
     qTheme.SetSliderTheme(ui_.preampSlider, true);
 
@@ -142,15 +55,19 @@ EqualizerDialog::EqualizerDialog(QWidget* parent)
         ui_.eqPresetComboBox->addItem(name);
     }
 
-    for (auto j = 0; j < kEQBands.size(); ++j) {
-        AddBand(num_band_);
-        ++num_band_;
+   for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
+		filter_settings_.push_back(FilterSetting());
+   		AddBand(i);
+        RemoveBand(i);
     }
 
     (void)QObject::connect(ui_.eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         AppEQSettings settings;
         settings.name = index;
         settings.settings = AppSettings::GetEqPreset()[index];
+        if (settings.settings.bands.empty()) {
+            settings.settings.bands.push_back(EqBandSetting());
+        }
         AppSettings::SetEqSettings(settings);
         AppSettings::save();
         ApplySetting(index, settings.settings);
@@ -158,43 +75,77 @@ EqualizerDialog::EqualizerDialog(QWidget* parent)
 
     if (AppSettings::contains(kAppSettingEQName)) {
         auto [name, settings] = AppSettings::GetEqSettings();
-        ui_.eqPresetComboBox->setCurrentText(name);
+        AppEQSettings app_settings;
+        app_settings.name = name;
+        app_settings.settings = settings;
+        AppSettings::SetEqSettings(app_settings);
+        ui_.eqPresetComboBox->setCurrentText(name);        
         ApplySetting(name, settings);
     }
 
-    (void)QObject::connect(ui_.newButton, &QPushButton::pressed, [this]() {
+    /*(void)QObject::connect(ui_.newButton, &QPushButton::pressed, [this]() {
         ui_.eqPresetComboBox->addItem(tr("Manual"));
         ui_.eqPresetComboBox->setCurrentText(tr("Manual"));
-        for (auto i = 0; i < kEQBands.size(); ++i) {
-            SetBand(i, EQFilterTypes::FT_ALL_PASS, kEQBands[i], 0, kDefaultQ, kEQBands[i] / 2);
+        for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
+            SetBand(i, EQFilterTypes::FT_ALL_PASS, kEqDefaultFrequencies[i], 0, kDefaultQ, kEqDefaultFrequencies[i] / 2);
             Save(i);
         }
         const auto settings = AppSettings::GetEqPreset()[tr("Manual")];
         ApplySetting(tr("Manual"), settings);
-        });
+        });*/
 
-    (void)QObject::connect(ui_.removeButton, &QPushButton::pressed, [this]() {
+    /*(void)QObject::connect(ui_.removeButton, &QPushButton::pressed, [this]() {
         --num_band_;
         RemoveBand(num_band_);
+        });*/
+
+    (void)QObject::connect(ui_.addBandButton, &QPushButton::pressed, [this]() {
+       /* auto name = ui_.eqPresetComboBox->currentText();
+        auto settings = AppSettings::GetEqPreset()[name];
+        settings.bands.push_back(EqBandSetting());
+        filter_settings_.push_back(FilterSetting());
+        AddBand(settings.bands.size() - 1);
+
+        AppEQSettings app_settings;
+        app_settings.name = name;
+        app_settings.settings = settings;
+        ApplySetting(app_settings.name, app_settings.settings);
+        AppSettings::SetEqSettings(app_settings);
+        AppSettings::save();*/
+        auto name = ui_.eqPresetComboBox->currentText();
+        auto settings = AppSettings::GetEqPreset()[name];
+        for (size_t i = settings.bands.size(); i < filter_settings_.size(); ++i) {
+            filter_settings_[i].band->show();
+            filter_settings_[i].type->show();
+            filter_settings_[i].frequency->show();
+            filter_settings_[i].gain->show();
+            filter_settings_[i].Q->show();
+            filter_settings_[i].band_width->show();
+            settings.bands.push_back(EqBandSetting());
+            AppEQSettings app_settings{ name, settings };
+            AppSettings::SetEqSettings(app_settings);
+            AppSettings::save();
+            break;
+        }
         });
 
-    (void)QObject::connect(parametric_eq_view_, &ParametricEqView::DataChanged, [this](auto freq, auto val) {
-        for (auto i = 0; i < kEQBands.size(); ++i) {
-            if (kEQBands[i] == freq) {
+    /*(void)QObject::connect(parametric_eq_view_, &ParametricEqView::DataChanged, [this](auto freq, auto val) {
+        for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
+            if (kEqDefaultFrequencies[i] == freq) {
                 SetBandGain(i, val);
                 Save(i);
                 break;
             }
         }
-        });
+        });*/
 
-    (void)QObject::connect(ui_.saveButton, &QPushButton::pressed, [this]() {
-        for (auto i = 0; i < kEQBands.size(); ++i) {
+    /*(void)QObject::connect(ui_.saveButton, &QPushButton::pressed, [this]() {
+        for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
             Save(i);
         }
-        });
+        });*/
 
-    (void)QObject::connect(ui_.resetButton, &QPushButton::pressed, [this]() {
+    /*(void)QObject::connect(ui_.resetButton, &QPushButton::pressed, [this]() {
         AppEQSettings settings;
         settings.name = ui_.eqPresetComboBox->currentText();
         for (auto& band : settings.settings.bands) {
@@ -203,68 +154,61 @@ EqualizerDialog::EqualizerDialog(QWidget* parent)
         ApplySetting(settings.name, settings.settings);
         AppSettings::SetEqSettings(settings);
         AppSettings::save();
-        });
-
-    ui_.sliderFrame->hide();
-
-    /*timer_.setTimerType(Qt::PreciseTimer);
-    timer_.start(100);
-    (void)QObject::connect(&timer_, &QTimer::timeout, [this]() {
-        for (auto i = 0; i < fft_result_.size(); ++i) {
-            auto value = ToDb(fft_result_[i]);
-            auto freq = Index2Freq(i, 44100, 4096);
-            parametric_eq_view_->SetSpectrumData(freq, value);
-        }
-        parametric_eq_view_->replot(QCustomPlot::rpQueuedReplot);
         });*/
+
+    //ui_.sliderFrame->hide();
 }
 
-void EqualizerDialog::Save(uint32_t band) {
+void EqualizerView::Save(uint32_t band) {
     AppEQSettings settings;
     settings.name = ui_.eqPresetComboBox->currentText();
     settings.settings = AppSettings::GetEqPreset()[settings.name];
+    settings.settings.SetDefault();
     settings.settings.bands[band].gain = filter_settings_[band].gain->text().toFloat();
     settings.settings.bands[band].Q = filter_settings_[band].Q->text().toFloat();
     settings.settings.preamp = ui_.preampSlider->value() / 10.0;
-    band_sliders_[band]->setValue(settings.settings.bands[band].gain * 10);
     AppSettings::SetEqSettings(settings);
     AppSettings::save();
 }
 
-void EqualizerDialog::OnFftResultChanged(const ComplexValarray& result) {
+void EqualizerView::OnFftResultChanged(const ComplexValarray& result) {
     fft_result_ = result;
 }
 
-void EqualizerDialog::ApplySetting(QString const& name, EQSettings const& settings) {
+void EqualizerView::ApplySetting(QString const& name, EqSettings const& settings) {
+    ui_.parametricEqView->ClearBand();
+    ui_.parametricEqView->InitialAxisTicker(settings);
+
     for (size_t i = 0; i < settings.bands.size(); ++i) {
-        band_sliders_[i]->setValue(settings.bands[i].gain * 10);
-        band_label_[i]->setText(FormatDb(settings.bands[i].gain));
         SetBand(i, 
             settings.bands[i].type,
-            kEQBands[i],
+            settings.bands[i].frequency,
             settings.bands[i].gain,
             settings.bands[i].Q,
-            kEQBands[i] / 2);
+            settings.bands[i].band_width);
+    }
+    for (size_t i = settings.bands.size(); i < filter_settings_.size(); ++i) {
+        RemoveBand(i);
     }
     ui_.preampSlider->setValue(settings.preamp * 10);
-    ui_.preampDbLabel->setText(FormatDb(settings.preamp));    
+    ui_.preampDbLabel->setText(FormatDb(settings.preamp));
 }
 
-void EqualizerDialog::RemoveBand(uint32_t band) const {
-    filter_settings_[band - 1].band->hide();
-    filter_settings_[band - 1].type->hide();
-    filter_settings_[band - 1].frequency->hide();
-    filter_settings_[band - 1].gain->hide();
-    filter_settings_[band - 1].Q->hide();
-    filter_settings_[band - 1].band_width->hide();
+void EqualizerView::RemoveBand(uint32_t band) const {
+    filter_settings_[band].band->hide();
+    filter_settings_[band].type->hide();
+    filter_settings_[band].frequency->hide();
+    filter_settings_[band].gain->hide();
+    filter_settings_[band].Q->hide();
+    filter_settings_[band].band_width->hide();
 }
 
-void EqualizerDialog::SetBandGain(uint32_t band, float gain) {
+void EqualizerView::SetBandGain(uint32_t band, float gain) {
     filter_settings_[band].gain->setText(FormatDouble(gain));
-    parametric_eq_view_->SetBand(kEQBands[band], gain);
+    ui_.parametricEqView->SetBand(kEqDefaultFrequencies[band], gain);
 }
 
-void EqualizerDialog::SetBand(uint32_t band, EQFilterTypes type, float frequency, float gain, float Q, float band_width) {
+void EqualizerView::SetBand(uint32_t band, EQFilterTypes type, float frequency, float gain, float Q, float band_width) {
     filter_settings_[band].band->show();
     filter_settings_[band].type->show();
     filter_settings_[band].frequency->show();
@@ -277,16 +221,41 @@ void EqualizerDialog::SetBand(uint32_t band, EQFilterTypes type, float frequency
     filter_settings_[band].gain->setText(FormatDouble(gain));
     filter_settings_[band].Q->setText(FormatDouble(Q));
     filter_settings_[band].band_width->setText(FormatDouble(frequency / 2));
-    parametric_eq_view_->SetBand(static_cast<int>(frequency), gain);
+
+    ui_.parametricEqView->SetBand(frequency, gain);
 }
 
-void EqualizerDialog::AddBand(uint32_t band) {
+void EqualizerView::SaveBand(int32_t index) {
+    auto freq = filter_settings_[index].frequency->text().toFloat();
+    auto type = filter_settings_[index].type->currentIndex();
+    auto gain = filter_settings_[index].gain->text().toFloat();
+    auto q = filter_settings_[index].Q->text().toFloat();
+    auto band_width = filter_settings_[index].band_width->text().toFloat();
+    if (ui_.eqPresetComboBox->currentText() == tr("Manual")) {
+        auto settings = AppSettings::GetEqPreset()[tr("Manual")];
+        settings.bands[index].frequency = freq;
+        settings.bands[index].Q = q;
+        settings.bands[index].gain = gain;
+        settings.bands[index].band_width = band_width;
+        ApplySetting(tr("Manual"), settings);
+        AppEQSettings app_settings;
+        app_settings.name = tr("Manual");
+        app_settings.settings = settings;
+        AppSettings::SetEqSettings(app_settings);
+        AppSettings::save();
+    }
+    else {
+        SetBand(index, static_cast<EQFilterTypes>(type), freq, gain, q, band_width);
+    }
+}
+
+void EqualizerView::AddBand(uint32_t band) {
     auto * bandLabel = new QLabel(this);
     bandLabel->setObjectName(QString::fromUtf8("bandLabel"));
     bandLabel->setStyleSheet(qTEXT("background-color: transparent;"));
-    bandLabel->setText(qSTR("Band %1").arg(band));
+    bandLabel->setText(qSTR("Band %1").arg(band + 1));
 
-    ui_.gridLayout->addWidget(bandLabel, band + 1, 1, 1, 1);
+    ui_.gridLayout->addWidget(bandLabel, band + 2, 1, 1, 1);
 
     auto* typeComBox = new QComboBox(this);
 	typeComBox->addItem(QString());
@@ -314,7 +283,7 @@ void EqualizerDialog::AddBand(uint32_t band) {
     typeComBox->setItemText(7, tr("Low-Shelf"));
     typeComBox->setItemText(8, tr("High-Low-Shelf"));
 
-    ui_.gridLayout->addWidget(typeComBox, band + 1, 2, 1, 1);
+    ui_.gridLayout->addWidget(typeComBox, band + 2, 2, 1, 1);
 
 
     auto* bandWidthLineEdit = new QLineEdit(this);
@@ -324,7 +293,7 @@ void EqualizerDialog::AddBand(uint32_t band) {
     bandWidthLineEdit->setMaximumSize(QSize(110, 40));
     bandWidthLineEdit->setReadOnly(true);
 
-    ui_.gridLayout->addWidget(bandWidthLineEdit, band + 1, 9, 1, 1);
+    ui_.gridLayout->addWidget(bandWidthLineEdit, band + 2, 9, 1, 1);
 
     auto* gainLineEdit = new QLineEdit(this);
     gainLineEdit->setObjectName(QString::fromUtf8("gainLineEdit"));
@@ -335,7 +304,7 @@ void EqualizerDialog::AddBand(uint32_t band) {
     gain_validator->setNotation(QDoubleValidator::StandardNotation);
     gainLineEdit->setValidator(gain_validator);
 
-    ui_.gridLayout->addWidget(gainLineEdit, band + 1, 5, 1, 1);
+    ui_.gridLayout->addWidget(gainLineEdit, band + 2, 5, 1, 1);
 
     auto* qLineEdit = new QLineEdit(this);
     qLineEdit->setObjectName(QString::fromUtf8("qLineEdit"));
@@ -343,7 +312,7 @@ void EqualizerDialog::AddBand(uint32_t band) {
     qLineEdit->setSizePolicy(sizePolicy);
     qLineEdit->setMaximumSize(QSize(110, 40));
 
-    ui_.gridLayout->addWidget(qLineEdit, band + 1, 7, 1, 1);
+    ui_.gridLayout->addWidget(qLineEdit, band + 2, 7, 1, 1);
 
     auto* freqLineEdit = new QLineEdit(this);
     freqLineEdit->setObjectName(QString::fromUtf8("freqLineEdit"));
@@ -351,24 +320,36 @@ void EqualizerDialog::AddBand(uint32_t band) {
     freqLineEdit->setSizePolicy(sizePolicy);
     freqLineEdit->setMaximumSize(QSize(110, 40));
 
-    ui_.gridLayout->addWidget(freqLineEdit, band + 1, 3, 1, 1);
+    ui_.gridLayout->addWidget(freqLineEdit, band + 2, 3, 1, 1);
 
-    filter_settings_[band - 1].band = bandLabel;
-    filter_settings_[band - 1].type = typeComBox;
-    filter_settings_[band - 1].band_width = bandWidthLineEdit;
-    filter_settings_[band - 1].gain = gainLineEdit;
-    filter_settings_[band - 1].Q = qLineEdit;
-    filter_settings_[band - 1].frequency = freqLineEdit;
+    filter_settings_[band].band = bandLabel;
+    filter_settings_[band].type = typeComBox;
+    filter_settings_[band].band_width = bandWidthLineEdit;
+    filter_settings_[band].gain = gainLineEdit;
+    filter_settings_[band].Q = qLineEdit;
+    filter_settings_[band].frequency = freqLineEdit;
 
-    auto index = band - 1;
-    (void) QObject::connect(gainLineEdit, &QLineEdit::editingFinished, [index, gainLineEdit, this]() {
-        SetBandGain(index, gainLineEdit->text().toFloat());
+    auto index = band;
+    (void)QObject::connect(bandWidthLineEdit, &QLineEdit::editingFinished, [index, this]() {
+        SaveBand(index);
+        });
+    (void) QObject::connect(gainLineEdit, &QLineEdit::editingFinished, [index, this]() {
+        SaveBand(index);
+        });
+    (void)QObject::connect(freqLineEdit, &QLineEdit::editingFinished, [index, this]() {
+        SaveBand(index);
+        });
+    (void)QObject::connect(qLineEdit, &QLineEdit::editingFinished, [index, this]() {
+        SaveBand(index);
+        });
+    (void)QObject::connect(freqLineEdit, &QLineEdit::editingFinished, [index, this]() {
+        SaveBand(index);
         });
 
     const auto f = qTheme.MonoFont();
-    filter_settings_[band - 1].type->setFont(f);
-    filter_settings_[band - 1].frequency->setFont(f);
-    filter_settings_[band - 1].gain->setFont(f);
-    filter_settings_[band - 1].Q->setFont(f);
-    filter_settings_[band - 1].band_width->setFont(f);
+    filter_settings_[band].type->setFont(f);
+    filter_settings_[band].frequency->setFont(f);
+    filter_settings_[band].gain->setFont(f);
+    filter_settings_[band].Q->setFont(f);
+    filter_settings_[band].band_width->setFont(f);
 }

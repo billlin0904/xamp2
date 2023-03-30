@@ -170,7 +170,7 @@
     </message>
 </context>
 <context>
-    <name>EqualizerDialog</name>
+    <name>EqualizerView</name>
     <message>
         <location filename="widget/equalizerdialog.ui" line="32"/>
         <source>Equalizer</source>

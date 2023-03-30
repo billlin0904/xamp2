@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <array>
+#include <base/stl.h>
 #include <stream/stream.h>
 #include <base/enum.h>
 
@@ -28,7 +28,7 @@ XAMP_MAKE_ENUM(EQFilterTypes,
     FT_LOW_HIGH_SHELF
 );
 
-inline constexpr std::array<float, kEQMaxBand> kEQBands{
+inline constexpr std::array<float, kEQMaxBand> kEqDefaultFrequencies{
     31.F,
     62.F,
     125.F,
@@ -41,15 +41,29 @@ inline constexpr std::array<float, kEQMaxBand> kEQBands{
     16000.F,
     };
 
-struct XAMP_STREAM_API EQBandSetting final {
+struct XAMP_STREAM_API EqBandSetting final {
     EQFilterTypes type{ EQFilterTypes::FT_ALL_PASS };
+    float frequency{0};
     float gain{0};
+    float band_width{0};
     float Q{0};
+    float S{0};
 };
 
-struct XAMP_STREAM_API EQSettings final {
-    float preamp{0};
-    std::array<EQBandSetting, kEQMaxBand> bands;
+struct XAMP_STREAM_API EqSettings final {
+    EqSettings() = default;
+
+    void SetDefault() {
+        bands.resize(kEqDefaultFrequencies.size());
+        for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
+            bands[i].frequency = kEqDefaultFrequencies[i];
+            bands[i].band_width = kEqDefaultFrequencies[i] / 2;
+            bands[i].Q = kDefaultQ;
+        }
+    }
+
+    float preamp{ 0 };
+    Vector<EqBandSetting> bands;
 };
 
 }

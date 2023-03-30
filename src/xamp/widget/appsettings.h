@@ -18,7 +18,7 @@
 
 struct AppEQSettings {
     QString name;
-    EQSettings settings;
+    EqSettings settings;
 
     friend QDataStream& operator << (QDataStream& arch, const AppEQSettings& object) {
         arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
@@ -26,7 +26,7 @@ struct AppEQSettings {
         arch << object.settings.preamp;
         arch << static_cast<quint32>(object.settings.bands.size());
         for (size_t i = 0; i < object.settings.bands.size(); ++i) {
-            arch << object.settings.bands[i].gain << object.settings.bands[i].Q;
+            arch << object.settings.bands[i].frequency << object.settings.bands[i].gain << object.settings.bands[i].Q;
         }
         return arch;
     }
@@ -37,8 +37,9 @@ struct AppEQSettings {
         arch >> object.settings.preamp;
         int total = 0;
         arch >> total;
+        object.settings.bands.resize(total);
         for (auto i = 0; i < total; ++i) {
-            arch >> object.settings.bands[i].gain >> object.settings.bands[i].Q;
+            arch >> object.settings.bands[i].frequency >> object.settings.bands[i].gain >> object.settings.bands[i].Q;
         }
         return arch;
     }
@@ -162,7 +163,7 @@ public:
 
     static void save();
 
-    static const QMap<QString, EQSettings>& GetEqPreset();
+    static const QMap<QString, EqSettings>& GetEqPreset();
 
     static AppEQSettings GetEqSettings();
 
@@ -182,5 +183,5 @@ private:
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
     static LocaleLanguageManager manager_;
-    static QMap<QString, EQSettings> eq_settings_;
+    static QMap<QString, EqSettings> eq_settings_;
 };

@@ -35,8 +35,10 @@ QString FormatSampleRate(const uint32_t sample_rate) {
     }
     if (is_mhz_sample_rate) {
         return QString::number(sample_rate / 1000000.0, 'f', 2) + qTEXT(" MHz");
-    } else {
+    } else if (sample_rate > 1000.0) {
         return QString::number(sample_rate / 1000.0, 'f', precision) + qTEXT(" kHz");
+    } else {
+        return QString::number(sample_rate) + qTEXT(" Hz");
     }
 }
 
@@ -88,5 +90,5 @@ QString FormatDb(double value, int prec) {
 }
 
 QString FormatDouble(double value, int prec) {
-    return QString::number(value, 'f', 1);
+    return QString::number(value, 'f', prec);
 }
