@@ -1,92 +1,126 @@
 #include <QPainter>
-
-#include <base/math.h>
-#include <widget/widget_shared.h>
-#include <stream/fft.h>
-
+#include <QPainterPath>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 
-static float ToMag(const std::complex<float>& r) {
-	if (r.real() == 0 && r.imag() == 0) {
-		return 0;
-	}
-    return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
-}
-
 SpectrumWidget::SpectrumWidget(QWidget* parent)
-	: QFrame(parent) {
+	: QFrame(parent)
+	, buffer_(kBufferSize, std::valarray<float>(kMaxBands)) {
 	(void) QObject::connect(&timer_, &QTimer::timeout, [this]() {
-		for (auto &peek : peak_delay_) {
-			peek -= 0.05f;
-		}
 		update();
 	});
 
 	timer_.setTimerType(Qt::PreciseTimer);
-	timer_.start(25);
-	bar_color_ = QColor(5, 184, 204);
+	timer_.start(15);
 }
 
-void SpectrumWidget::OnFftResultChanged(ComplexValarray const& result) {
-	const auto max_bands = (std::min)(static_cast<size_t>(kMaxBands), 
-	                                  result.size());
-
-	if (bins_.size() != max_bands) {
-		bins_.resize(max_bands);
-		peak_delay_.resize(max_bands);
-	}
-
-	for (auto i = 0; i < max_bands; ++i) {
-		bins_[i] = ToMag(result[i]);
-		peak_delay_[i] = std::abs(bins_[i]) / std::sqrt(2) / 2;
-		peak_delay_[i] = (std::min)(peak_delay_[i], 2048.0f);
-		peak_delay_[i] = peak_delay_[i] / 2048.0f * 128;
-	}
+void SpectrumWidget::SetSampleRate(int32_t sample_rate) {
+	sample_rate_ = sample_rate;
 }
 
-void SpectrumWidget::DrawBar(QPainter &painter, size_t num_bars) {
-	const auto widget_width = width();
-	const auto bar_plus_gap_width = widget_width / num_bars;
-	const auto bar_width = 0.8f * bar_plus_gap_width;
-	const auto gap_width = bar_plus_gap_width - bar_width;
-	const auto padding_width = widget_width - num_bars * (bar_width + gap_width);
-	const auto left_padding_width = (padding_width + gap_width) / 2;
-	const auto bar_height = height() - 2 * gap_width;
-
-	for (auto i = 0; i < num_bars; ++i) {
-		const auto value = peak_delay_[i];
-		QRect bar = rect();
-		bar.setLeft(rect().left() + left_padding_width + (i * (gap_width + bar_width)));
-		bar.setWidth(bar_width);
-		bar.setTop(rect().top() + gap_width + (1.0f - value) * bar_height);
-		bar.setBottom(rect().bottom() - gap_width);
-		painter.fillRect(bar, bar_color_);
-	}
+void SpectrumWidget::OnFftResultChanged(ComplexValarray const& fft_data) {
+	fft_data_ = fft_data;
 }
 
 void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	QPainter painter(this);
-
 	painter.setRenderHints(QPainter::Antialiasing, true);
-	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
-	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
-	const auto num_bars = peak_delay_.size();
-	if (!num_bars) {
+	if (fft_data_.size() == 0) {
 		return;
 	}
 
-	DrawBar(painter, num_bars);
-}
+	const int samples_per_band = static_cast<int>(fft_data_.size() / kMaxBands);
 
-void SpectrumWidget::SetBarColor(QColor color) {
-	bar_color_ = color;
+	std::valarray<float> band_energies(kMaxBands);
+	for (int i = 0; i < kMaxBands; i++) {
+		int start_index = i * samples_per_band;
+		int end_index = (i + 1) * samples_per_band;
+
+		// 計算當前頻帶的能量值
+		float band_energy = 0.0f;
+		for (int j = start_index; j < end_index; j++) {
+			band_energy += std::norm(fft_data_[j]);
+		}
+		const float band_power = band_energy / static_cast<float>(samples_per_band);
+		band_energies[i] = band_power;
+	}
+
+	// 計算每個頻帶的能量值的db值
+	const std::valarray<float> band_db_values = 10.0f * std::log10(band_energies);
+
+	if (band_db_values.max() == -std::numeric_limits<float>::infinity()) {
+		return;
+	}
+
+	// 將頻譜資料保存到緩衝區
+	buffer_[buffer_ptr_] = band_db_values;
+	// 更新緩衝區指標
+	buffer_ptr_ = (buffer_ptr_ + 1) % kBufferSize;
+
+	std::valarray<float> average_spectrum(kMaxBands);
+	for (int i = 0; i < kBufferSize; i++) {
+		average_spectrum += buffer_[i];
+	}
+	average_spectrum /= kBufferSize;
+
+	float max_db_value = average_spectrum.max();
+
+	float rect_width = static_cast<float>(width()) / static_cast<float>(kMaxBands);
+	float rect_height = static_cast<float>(height());
+
+	QVector<QColor> colors;
+
+	const float kMinRectHeight = 5.0f;
+
+	if (style_ == SpectrumStyles::BAR_STYLE) {
+		QVector<QRectF> rects;
+		for (int i = 0; i < kMaxBands; i++) {
+			float db_value = average_spectrum[i];
+			float db_normalized = std::min(db_value / max_db_value, 1.0f);
+			float rect_x = static_cast<float>(i) * rect_width;
+			float rect_y = rect_height * (1.0f - db_normalized);
+			if (rect_y < kMinRectHeight) {
+				rect_y = kMinRectHeight;
+			}
+			QRectF rect(rect_x, rect_y, rect_width, rect_height - rect_y);
+			rects.append(rect);
+			colors.append(QColor::fromHsvF(static_cast<float>(i) / static_cast<float>(kMaxBands), 1.0f, 1.0f));
+		}
+
+		for (int i = 0; i < kMaxBands; i++) {
+			painter.fillRect(rects[i], colors[i]);
+		}
+	} else {
+		QPainterPath path;
+		path.moveTo(0, height());
+		for (int i = 0; i < kMaxBands; i++) {
+			float db_value = average_spectrum[i];
+			float db_normalized = std::min(db_value / max_db_value, 1.0f);
+			float rect_x = static_cast<float>(i) * rect_width;
+			float rect_y = rect_height * (1.0f - db_normalized);
+			if (rect_y < kMinRectHeight) {
+				rect_y = kMinRectHeight;
+			}
+			path.lineTo(rect_x, rect_y);
+		}
+		path.lineTo(width(), height());
+		path.closeSubpath();
+
+		QLinearGradient gradient(0, 0, width(), 0);
+		for (int i = 0; i < kMaxBands; i++) {
+			gradient.setColorAt(static_cast<float>(i) / static_cast<float>(kMaxBands), QColor::fromHsvF(static_cast<float>(i) / static_cast<float>(kMaxBands), 1.0f, 1.0f));
+		}
+		QBrush brush(gradient);
+		painter.fillPath(path, brush);
+	}
 }
 
 void SpectrumWidget::Reset() {
-	bins_.clear();
-	peak_delay_.clear();
+	fft_data_ = 0;
+	for (auto &buffer : buffer_) {
+		buffer = 0;
+	}
 	update();
 }

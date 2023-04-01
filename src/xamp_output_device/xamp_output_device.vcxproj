@@ -177,6 +177,8 @@
     <ClInclude Include="include\output_device\win32\mfasynccallback.h" />
     <ClInclude Include="include\output_device\win32\mmcss.h" />
     <ClInclude Include="include\output_device\win32\mmcss_types.h" />
+    <ClInclude Include="include\output_device\win32\nulloutputdevice.h" />
+    <ClInclude Include="include\output_device\win32\nulloutputdevicetype.h" />
     <ClInclude Include="include\output_device\win32\wasapiworkqueue.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
@@ -196,6 +198,8 @@
     <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
     <ClCompile Include="src\win32\hrexception.cpp" />
     <ClCompile Include="src\win32\mmcss.cpp" />
+    <ClCompile Include="src\win32\nulloutputdevice.cpp" />
+    <ClCompile Include="src\win32\nulloutputdevicetype.cpp" />
     <ClCompile Include="src\win32\sharedwasapidevice.cpp" />
     <ClCompile Include="src\win32\sharedwasapidevicetype.cpp" />
     <ClCompile Include="src\win32\wasapi.cpp" />

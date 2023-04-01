@@ -495,8 +495,21 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
 static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
-    auto output = Vector<int8_t>(length * 2);
+    /*auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
+    auto output = Vector<int8_t>(length * 2);*/
+
+    const Vector<int8_t> input{
+    	0, 1, 0, 2, 0, 3, 0, 4,
+        0, 5, 0, 6, 0, 7, 0, 8,
+        0, 9, 0, 10, 0, 11, 0, 12,
+        0, 13, 0, 14, 0, 15, 0, 16,
+        0, 17, 0, 18, 0, 19, 0, 20,
+        0, 21, 0, 22, 0, 23, 0, 24,
+        0, 25, 0, 26, 0, 27, 0, 28,
+        0, 29, 0, 30, 0, 31, 0, 32,
+    };
+
+    Vector<int8_t> output(input.size());
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -504,11 +517,14 @@ static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
     input_format.SetChannel(2);
     output_format.SetChannel(2);
 
+    input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
+    output_format.SetPackedFormat(PackedFormat::PLANAR);
+
     for (auto _ : state) {
         InterleaveToPlanar<int8_t, int8_t>::Convert(input.data(),
             output.data(),
-            output.data() + (length / 2),
-            length);
+            output.data() + 32,
+            32);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(int8_t));
@@ -526,14 +542,14 @@ static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     input_format.SetChannel(2);
     output_format.SetChannel(2);
 
-    input_format.SetPackedFormat(PackedFormat::PLANAR);
+    input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
     output_format.SetPackedFormat(PackedFormat::PLANAR);
 
     const auto ctx = MakeConvert(input_format, output_format, length / 2);
 
 
     for (auto _ : state) {
-        DataConverter<PackedFormat::PLANAR, PackedFormat::PLANAR>::Convert(
+        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(
             output.data(),
             input.data(),
             ctx);
@@ -824,8 +840,8 @@ static void BM_GoogleSipHash(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_Builtin_Rotl);
 //BENCHMARK(BM_Rotl);

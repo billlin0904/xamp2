@@ -46,21 +46,8 @@ XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file, size_t prefech_size = kM
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
-#ifdef XAMP_ENABLE_REP_MOVSB
-XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept;
-#else
-inline XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept {
-	std::memset(dest, c, size);
-}
-#endif
-
-#ifdef XAMP_ENABLE_REP_MOVSB
-XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept;
-#else
-inline XAMP_BASE_API void MemoryCopy(void* XAMP_RESTRICT dest, const void* XAMP_RESTRICT src, size_t size) noexcept {
-    (void)__builtin_memcpy(dest, src, size);
-}
-#endif
+#define MemorySet(dest, c, size) std::memset(dest, c, size)
+#define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)
 
 }
 

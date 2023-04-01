@@ -7,6 +7,7 @@
 
 #include <base/base.h>
 #include <base/assert.h>
+#include <iostream>
 
 #ifdef XAMP_OS_WIN
 #include <intrin.h>
@@ -142,60 +143,25 @@ struct UnpackU8<1> {
     }
 };
 
-#define SIMD_AS_CHAR(a) char(a)
-
-#define SIMD_MM256_SETR_EPI8(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad, ae, af, b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, ba, bb, bc, bd, be, bf) \
-    {SIMD_AS_CHAR(a0), SIMD_AS_CHAR(a1), SIMD_AS_CHAR(a2), SIMD_AS_CHAR(a3), \
-    SIMD_AS_CHAR(a4), SIMD_AS_CHAR(a5), SIMD_AS_CHAR(a6), SIMD_AS_CHAR(a7), \
-    SIMD_AS_CHAR(a8), SIMD_AS_CHAR(a9), SIMD_AS_CHAR(aa), SIMD_AS_CHAR(ab), \
-    SIMD_AS_CHAR(ac), SIMD_AS_CHAR(ad), SIMD_AS_CHAR(ae), SIMD_AS_CHAR(af), \
-    SIMD_AS_CHAR(b0), SIMD_AS_CHAR(b1), SIMD_AS_CHAR(b2), SIMD_AS_CHAR(b3), \
-    SIMD_AS_CHAR(b4), SIMD_AS_CHAR(b5), SIMD_AS_CHAR(b6), SIMD_AS_CHAR(b7), \
-    SIMD_AS_CHAR(b8), SIMD_AS_CHAR(b9), SIMD_AS_CHAR(ba), SIMD_AS_CHAR(bb), \
-    SIMD_AS_CHAR(bc), SIMD_AS_CHAR(bd), SIMD_AS_CHAR(be), SIMD_AS_CHAR(bf)}
-
-
 template <>
 struct Converter<int8_t> {
-    static XAMP_ALWAYS_INLINE m256i Shuffle(m256i v, m256i indexies) {
-        return _mm256_shuffle_epi8(v, indexies);
+    static XAMP_ALWAYS_INLINE m256i Shuffle(m256i v, m256i mask) {
+        return _mm256_permutevar8x32_epi32(v, mask);
     }
 
-    /*static XAMP_ALWAYS_INLINE std::pair<m256, m256> ToInterleave(m256 a, m256 b) {
-        auto lo = _mm256_unpacklo_epi8(_mm256_castps_si256(a), _mm256_castps_si256(b));
-        auto hi = _mm256_unpacklo_epi8(_mm256_castps_si256(a), _mm256_castps_si256(b));
+    static XAMP_ALWAYS_INLINE std::pair<m256, m256> ToInterleave(m256 hi, m256 low) {
+        auto perm1 = _mm256_unpacklo_epi32(_mm256_castps_si256(hi), _mm256_castps_si256(low));
+        auto perm2 = _mm256_unpackhi_epi32(_mm256_castps_si256(hi), _mm256_castps_si256(low));
+        auto lo_ps = _mm256_castsi256_ps(perm1);
+        auto hi_ps = _mm256_castsi256_ps(perm2);
         return std::make_pair(
-            _mm256_castsi256_ps(_mm256_permute2f128_si256(lo, hi, _MM_SHUFFLE(0, 2, 0, 0))),
-            _mm256_castsi256_ps(_mm256_permute2f128_si256(lo, hi, _MM_SHUFFLE(0, 3, 0, 1)))
+            _mm256_permute2f128_ps(lo_ps, hi_ps, 0x20),
+            _mm256_permute2f128_ps(lo_ps, hi_ps, 0x31)
         );
-    }*/
+    }
 
-    static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i a, m256i b) {
-        static const m256i kShuffleEpi8Mask1 = _mm256_setr_epi8(
-            0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60,
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-
-        static const m256i kShuffleEpi8Mask2 = _mm256_setr_epi8(
-            2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62,
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-
-        static const m256i kShuffleEpi8Mask3 = _mm256_setr_epi8(
-            1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61,
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-
-        static const m256i kShuffleEpi8Mask4 = _mm256_setr_epi8(
-            3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59, 63,
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-
-        const auto lo_lo = Shuffle(a, kShuffleEpi8Mask1);
-        const auto lo_hi = Shuffle(a, kShuffleEpi8Mask2);
-        const auto temp1 = UnpackU8<0>()(lo_lo, lo_hi);
-
-        const auto hi_lo = Shuffle(a, kShuffleEpi8Mask3);
-        const auto hi_hi = Shuffle(a, kShuffleEpi8Mask4);
-        const auto temp2 = UnpackU8<0>()(hi_lo, hi_hi);
-        
-        return std::make_pair(temp1, temp2);
+    static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i hi, m256i low) {
+        return std::make_pair(hi, low);
     }
 };
 
@@ -250,16 +216,16 @@ struct InterleaveToPlanar<int8_t, int8_t> {
         int8_t* XAMP_RESTRICT b,
         size_t len,
         float mul = 1.0) {
-        constexpr auto offset = kSimdAlignedSize * 2;
+        constexpr auto offset = 32;
         XAMP_ASSERT(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;
-            auto lo = in + kSimdAlignedSize;
+            auto lo = in + offset;
             Convert(in, lo, a, b, mul);
             in += offset;
-            a += kSimdAlignedSize;
-            b += kSimdAlignedSize;
+            a += offset;
+            b += offset;
             i += offset;
         }
     }

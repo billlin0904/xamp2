@@ -9,6 +9,7 @@
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>
+#include <output_device/win32/nulloutputdevicetype.h>
 #if ENABLE_ASIO
 #include <output_device/win32/mmcss.h>
 #include <output_device/win32/asiodevice.h>
@@ -75,6 +76,7 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_LOG_DEBUG("MFStartup startup success");
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
 #if ENABLE_ASIO
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
 #endif

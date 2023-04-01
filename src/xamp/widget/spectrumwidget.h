@@ -12,17 +12,22 @@
 
 using xamp::stream::ComplexValarray;
 
+enum SpectrumStyles {
+	BAR_STYLE,
+	WAVE_STYLE,
+};
+
 class SpectrumWidget : public QFrame {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxBands = 128;
-	static constexpr auto kFFTSize = 2048;
+	static constexpr auto kBufferSize = 5;
 
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
-	void Reset();
+	void SetSampleRate(int32_t sample_rate);
 
-	void SetBarColor(QColor color);
+	void Reset();
 
 public slots:
 	void OnFftResultChanged(ComplexValarray const& result);
@@ -31,11 +36,11 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
-	void DrawBar(QPainter& painter, size_t num_bars);
-
-	QColor bar_color_;
-	ComplexValarray fft_result_;
-	std::vector<float> bins_;
-	std::vector<float> peak_delay_;
+	int32_t buffer_ptr_{0};
+	int32_t sample_rate_{44100};
+	int32_t fft_size_{4096};
+	SpectrumStyles style_{ SpectrumStyles::WAVE_STYLE };
+	ComplexValarray fft_data_;
+	std::vector<std::valarray<float>> buffer_;
 	QTimer timer_;
 };

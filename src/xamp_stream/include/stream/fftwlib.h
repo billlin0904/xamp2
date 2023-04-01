@@ -118,6 +118,8 @@ public:
 	XAMP_DECLARE_DLL_NAME(fftwf_plan_guru_split_dft_r2c);
 	XAMP_DECLARE_DLL_NAME(fftwf_execute_split_dft_r2c);
 	XAMP_DECLARE_DLL_NAME(fftwf_execute_split_dft_c2r);
+	XAMP_DECLARE_DLL_NAME(fftwf_plan_with_nthreads);
+	XAMP_DECLARE_DLL_NAME(fftwf_init_threads);
 };
 
 #define FFTW_LIB Singleton<FFTWLib>::GetInstance()

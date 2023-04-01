@@ -44,7 +44,8 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 	frame_size = 8192;
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, shift_size, buffer_size);
 	stft_ = MakeAlign<STFT>(frame_size, shift_size);
-	stft_->SetWindowType(AppSettings::ValueAsEnum<WindowType>(kAppSettingWindowType));
+	//stft_->SetWindowType(AppSettings::ValueAsEnum<WindowType>(kAppSettingWindowType));
+	stft_->SetWindowType(WindowType::HAMMING);
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {

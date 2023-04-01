@@ -78,29 +78,4 @@ bool PrefetchFile(std::wstring const & file_path) {
 #endif
 }
 
-#ifdef XAMP_ENABLE_REP_MOVSB
-void MemorySet(void* dest, int32_t c, size_t size) noexcept {
-	static constexpr size_t kRepStosbThreShold = 2048;
-
-	if (SIMD::IsAligned(dest) && size >= kRepStosbThreShold) {
-		std::memset(dest, c, size);
-	} else {
-		__stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
-	}
-}
-#endif
-
-#ifdef XAMP_ENABLE_REP_MOVSB
-void MemoryCopy(void* dest, const void* src, size_t size) noexcept {
-	static constexpr size_t kRepMovsbThreShold = 8192;
-
-	if (size >= kRepMovsbThreShold) {
-		__movsb(static_cast<unsigned char*>(dest), static_cast<const unsigned char*>(src), size);
-	}
-	else {
-		std::memcpy(dest, src, size);
-	}
-}
-#endif
-
 }

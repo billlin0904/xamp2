@@ -490,7 +490,9 @@ FFTWFLib::FFTWFLib() try
 	, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_c2r)
 	, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_r2c)
 	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_r2c)
-	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_c2r) {
+	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_c2r)
+	, XAMP_LOAD_DLL_API(fftwf_plan_with_nthreads)
+	, XAMP_LOAD_DLL_API(fftwf_init_threads) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

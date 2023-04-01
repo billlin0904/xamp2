@@ -69,10 +69,6 @@ public:
     void LoadMemoryMappedFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
         file_.Open(file_path);
 
-        if (!PrefetchFile(file_)) {
-            XAMP_LOG_D(logger_, "PrefetchFile return failure!");
-        }
-
         if (mode == DsdModes::DSD_MODE_PCM) {
             stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
                 file_.GetData(),

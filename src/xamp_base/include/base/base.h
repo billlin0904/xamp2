@@ -30,7 +30,6 @@
 	#pragma warning(disable: 4275)
 	#define XAMP_OS_WIN 1
 	#define WIN32_LEAN_AND_MEAN
-	#define XAMP_ENABLE_REP_MOVSB
 #else
     #define XAMP_BASE_API __attribute__((visibility("default")))
 	#define XAMP_BASE_API_ONLY_EXPORT

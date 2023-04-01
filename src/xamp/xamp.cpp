@@ -389,7 +389,7 @@ void Xamp::InitialDeviceList() {
     const auto & device_manager = player_->GetAudioDeviceManager();
 
     auto max_width = 0;
-    QFontMetrics metrics(ui_.deviceDescLabel->font());
+    const QFontMetrics metrics(ui_.deviceDescLabel->font());
 
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
 	    const auto device_type = (*itr).second();
@@ -1234,6 +1234,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 	
     qTheme.SetPlayOrPauseButton(ui_, open_done);
     lrc_page_->spectrum()->Reset();
+    lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
 	
     if (open_done) {
 	    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;

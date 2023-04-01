@@ -8,6 +8,7 @@
 #include <array>
 #include <base/base.h>
 #include <base/simd.h>
+#include <base/memory.h>
 
 namespace xamp::base {
 
@@ -50,19 +51,13 @@ XAMP_ALWAYS_INLINE Int24& Int24::operator=(int32_t i) noexcept {
 
 XAMP_ALWAYS_INLINE int32_t Int24::To2432Int() const noexcept {
 	int32_t v{ 0 };
-	reinterpret_cast<uint8_t*>(&v)[0] = 0;
-	reinterpret_cast<uint8_t*>(&v)[0] = data[0];
-	reinterpret_cast<uint8_t*>(&v)[1] = data[1];
-	reinterpret_cast<uint8_t*>(&v)[2] = data[2];
+	MemoryCopy(&v, &data[0], 3);
 	return v << 8;
 }
 
 XAMP_ALWAYS_INLINE int32_t Int24::To32Int() const noexcept {
 	int32_t v{ 0 };
-	reinterpret_cast<uint8_t*>(&v)[0] = 0;
-	reinterpret_cast<uint8_t*>(&v)[0] = data[0];
-	reinterpret_cast<uint8_t*>(&v)[1] = data[1];
-	reinterpret_cast<uint8_t*>(&v)[2] = data[2];
+	MemoryCopy(&v, &data[0], 3);
 	return v;
 }
 

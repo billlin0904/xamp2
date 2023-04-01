@@ -4,6 +4,7 @@
 #include <base/buffer.h>
 #include <base/assert.h>
 #include <base/math.h>
+#include <base/logger_impl.h>
 #include <stream/fft.h>
 
 #ifdef XAMP_OS_WIN
@@ -24,7 +25,7 @@ class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
-	void Init(size_t frame_size, WindowType type = WindowType::BLACKMAN_HARRIS) {
+	void Init(size_t frame_size, WindowType type) {
 		frame_size_ = frame_size;
 		data_ = MakeBuffer<float>(frame_size);
 		SetWindowType(type);
@@ -96,6 +97,11 @@ public:
 		re_ = MakeFFTWBuffer<float>(complex_size_);
 		im_ = MakeFFTWBuffer<float>(complex_size_);
 		output_ = ComplexValarray(Complex(), complex_size_);
+
+		if (FFTWF_LIB.fftwf_init_threads() != 0) {
+			XAMP_LOG_DEBUG("fftwf_init_threads return successfully!");
+		}
+		FFTWF_LIB.fftwf_plan_with_nthreads(4);
 
 		fftw_iodim dim;
 		dim.n = static_cast<int>(frame_size);

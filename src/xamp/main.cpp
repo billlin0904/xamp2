@@ -251,7 +251,7 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultValue(kEnableBitPerfect, true);
     AppSettings::SetDefaultValue(kAppSettingWindowState, false);
     AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
-    AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, false);
+    AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, true);
     AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
     AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, true);
     XAMP_LOG_DEBUG("loadAppSettings success.");
