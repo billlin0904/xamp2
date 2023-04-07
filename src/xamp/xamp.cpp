@@ -48,6 +48,8 @@
 #include <player/ebur128reader.h>
 #include <stream/compressorparameters.h>
 
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+
 #include <QCloseEvent>
 #include <QtAutoUpdaterCore/Updater>
 
@@ -96,6 +98,9 @@ static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& de
     return { dsd_modes, convert_mode };
 }
 
+using namespace wangwenx190::FramelessHelper;
+using namespace wangwenx190::FramelessHelper::Global;
+
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
 	, is_seeking_(false)
@@ -118,6 +123,14 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 Xamp::~Xamp() = default;
 
 void Xamp::SetXWindow(IXMainWindow* main_window) {
+    FramelessWidgetsHelper::get(this)->setBlurBehindWindowEnabled(true);
+    FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
+    FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
+    FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
+    FramelessWidgetsHelper::get(this)->setSystemButton(ui_.closeButton, SystemButtonType::Close);
+    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.aboutButton);
+    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.preferenceButton);
+
     main_window_ = main_window;
     background_worker_ = new BackgroundWorker();  
     background_worker_->moveToThread(&background_thread_);
@@ -317,7 +330,7 @@ void Xamp::InitialUi() {
     ui_.seekSlider->setDisabled(true);
 
     ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-    main_window_->SetTitleBarAction(ui_.titleFrame);
+    //main_window_->SetTitleBarAction(ui_.titleFrame);
 
     ui_.mutedButton->SetPlayer(player_);
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
@@ -490,10 +503,21 @@ void Xamp::SliderAnimation(bool enable) {
 void Xamp::InitialController() {
     (void)QObject::connect(ui_.minWinButton, &QToolButton::pressed, [this]() {
         main_window_->showMinimized();
+        //showMinimized();
     });
 
     (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
         main_window_->UpdateMaximumState();
+        /*if (isFullScreen()) {
+            setWindowState(windowState() & ~Qt::WindowFullScreen);
+        }
+        else {
+            showFullScreen();
+        }*/
+    });
+
+    (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
+        QWidget::close();
     });
 
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
@@ -502,10 +526,6 @@ void Xamp::InitialController() {
         } else {
             SetVolume(player_->GetVolume());
         }
-    });
-
-    (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
-        QWidget::close();
     });
 
     qTheme.SetBitPerfectButton(ui_, AppSettings::ValueAsBool(kEnableBitPerfect));
@@ -660,7 +680,7 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.stopButton, &QToolButton::pressed, [this]() {
-        stop();
+        StopPlay();
     });
 
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
@@ -769,7 +789,7 @@ void Xamp::SetFullScreen() {
         ui_.sliderFrame->setHidden(true);
         ui_.titleFrame->setHidden(true);
         ui_.verticalSpacer_3->changeSize(0, 0);
-        main_window_->showFullScreen();
+        //main_window_->showFullScreen();
         lrc_page_->SetFullScreen(true);
         AppSettings::SetValue(kAppSettingEnterFullScreen, false);
     }
@@ -778,7 +798,7 @@ void Xamp::SetFullScreen() {
         ui_.sliderFrame->setHidden(false);
         ui_.titleFrame->setHidden(false);
         ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
-        main_window_->showNormal();
+        //main_window_->showNormal();
         lrc_page_->SetFullScreen(false);
         AppSettings::SetValue(kAppSettingEnterFullScreen, true);
     }
@@ -792,7 +812,7 @@ void Xamp::ShortcutsPressed(const QKeySequence& shortcut) {
             PlayOrPause();
             }},
          { QKeySequence(Qt::Key_MediaStop), [this]() {
-            stop();
+            StopPlay();
             }},
         { QKeySequence(Qt::Key_MediaPrevious), [this]() {
             PlayPrevious();
@@ -879,7 +899,7 @@ bool Xamp::HitTitleBar(const QPoint& ps) const {
     return ui_.titleFrame->rect().contains(ps);
 }
 
-void Xamp::stop() {
+void Xamp::StopPlay() {
     player_->Stop(true, true);
     SetSeekPosValue(0);
     lrc_page_->spectrum()->Reset();
@@ -1407,7 +1427,7 @@ void Xamp::PlayNextItem(int32_t forward) {
     auto* playlist_view = current_playlist_page_->playlist();
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
-        stop();
+        StopPlay();
         return;
     }    
 

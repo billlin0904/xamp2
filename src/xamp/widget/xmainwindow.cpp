@@ -31,8 +31,12 @@
 #include <widget/osx/osx.h>
 #endif
 
+
 #include <QTimer>
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <base/logger_impl.h>
+
+using namespace wangwenx190::FramelessHelper;
 
 XMainWindow::XMainWindow()
     : IXMainWindow()
@@ -41,10 +45,11 @@ XMainWindow::XMainWindow()
     , current_screen_(nullptr)
 #endif
 	, content_widget_(nullptr) {
+    FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar(true);
     setObjectName(qTEXT("framelessWindow"));
 }
 
-void XMainWindow::setShortcut(const QKeySequence& shortcut) {
+void XMainWindow::SetShortcut(const QKeySequence& shortcut) {
     constexpr auto all_mods =
         Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier;
     const auto xkey_code = static_cast<uint>(shortcut.isEmpty() ? 0 : shortcut[0]);
@@ -71,34 +76,8 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         setLayout(default_layout);
     }
 
-#if defined(Q_OS_WIN)
-    if (!qTheme.UseNativeWindow()) {
-        setWindowTitle(kApplicationTitle);        
-        setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::CustomizeWindowHint | Qt::WindowMaximizeButtonHint);
-        win32::SetFramelessWindowStyle(winId());
-        win32::AddDwmShadow(winId());
-        installEventFilter(this);
-        if (AppSettings::ValueAsBool(kAppSettingEnableBlur)) {
-            content_widget_->setAttribute(Qt::WA_TranslucentBackground, true);
-            win32::SetAccentPolicy(winId());
-        }
-    } else {
-        win32::SetWindowedWindowStyle(winId());
-        setMouseTracking(true);
-    }
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
     last_rect_ = win32::GetWindowRect(winId());
-#else
-    if (!qTheme.UseNativeWindow()) {
-        if (content_widget_ != nullptr) {
-            osx::hideTitleBar(content_widget_);
-        }
-        if (AppSettings::ValueAsBool(kAppSettingEnableBlur)) {
-            setAttribute(Qt::WA_TranslucentBackground, true);
-        }
-        setWindowTitle(kApplicationTitle);
-    }
-#endif
 
     setAcceptDrops(true);
 
@@ -113,217 +92,6 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
 XMainWindow::~XMainWindow() {
     XAMP_LOG_DEBUG("XMainWindow destory!");
 }
-
-#if defined(Q_OS_WIN)
-// Ref : https://github.com/melak47/BorderlessWindow
-static XAMP_ALWAYS_INLINE LRESULT hitTest(const WId window_id, MSG const* msg, const IXFrame* content_widget) noexcept {
-    auto hwnd = reinterpret_cast<HWND>(window_id);
-
-    const POINT border{
-        ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
-        ::GetSystemMetrics(SM_CYFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER)
-    };
-    const POINT cursor{ GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam) };
-
-    RECT window;
-    if (!::GetWindowRect(hwnd, &window)) {
-        return HTNOWHERE;
-    }
-
-    constexpr auto borderless_resize = true;
-
-    auto drag = HTCLIENT;
-    if (content_widget->HitTitleBar(QPoint(cursor.x, cursor.y))) {
-        drag = HTCAPTION;
-    }
-
-    enum RegionMask {
-        CLIENT_MASK = 0b0000,
-        LEFT_MASK = 0b0001,
-        RIGHT_MASK = 0b0010,
-        TOP_MASK = 0b0100,
-        BOTTOM_MASK = 0b1000,
-    };
-
-    const auto result =
-        LEFT_MASK * (cursor.x < (window.left + border.x)) |
-        RIGHT_MASK * (cursor.x >= (window.right - border.x)) |
-        TOP_MASK * (cursor.y < (window.top + border.y)) |
-        BOTTOM_MASK * (cursor.y >= (window.bottom - border.y));
-
-    switch (result) {
-    case LEFT_MASK: return borderless_resize ? HTLEFT : drag;
-    case RIGHT_MASK: return borderless_resize ? HTRIGHT : drag;
-    case TOP_MASK: return borderless_resize ? HTTOP : drag;
-    case BOTTOM_MASK: return borderless_resize ? HTBOTTOM : drag;
-    case TOP_MASK | LEFT_MASK: return borderless_resize ? HTTOPLEFT : drag;
-    case TOP_MASK | RIGHT_MASK: return borderless_resize ? HTTOPRIGHT : drag;
-    case BOTTOM_MASK | LEFT_MASK: return borderless_resize ? HTBOTTOMLEFT : drag;
-    case BOTTOM_MASK | RIGHT_MASK: return borderless_resize ? HTBOTTOMRIGHT : drag;
-    case CLIENT_MASK:
-        return drag;
-    default: 
-        return HTNOWHERE;
-    }
-}
-
-bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
-#define WM_NCUAHDRAWCAPTION (0x00AE)
-#define WM_NCUAHDRAWFRAME (0x00AF)
-    const auto* msg = static_cast<MSG const*>(message);
-
-    switch (msg->message) {
-    case WM_SETFOCUS:
-    case WM_KILLFOCUS:
-    {
-        Qt::FocusReason reason;
-        if (::GetKeyState(VK_LBUTTON) < 0 || ::GetKeyState(VK_RBUTTON) < 0)
-            reason = Qt::MouseFocusReason;
-        else if (::GetKeyState(VK_SHIFT) < 0)
-            reason = Qt::BacktabFocusReason;
-        else
-            reason = Qt::TabFocusReason;
-        if (msg->message == WM_SETFOCUS) {
-            QFocusEvent e(QEvent::FocusIn, reason);
-            QApplication::sendEvent(this, &e);
-        }
-        else {
-            QFocusEvent e(QEvent::FocusOut, reason);
-            QApplication::sendEvent(this, &e);
-        }
-    }
-    break;
-    case WM_DEVICECHANGE:
-        switch (msg->wParam) {
-        case DBT_DEVICEARRIVAL:
-        {
-            auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
-            if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-                auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
-                if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                    ReadDriveInfo();
-                }
-            }
-        }
-        break;
-        case DBT_DEVICEREMOVECOMPLETE:
-        {
-            constexpr auto firstDriveFromMask = [](ULONG unitmask) -> char {
-                char i = 0;
-                for (i = 0; i < 26; ++i) {
-                    if (unitmask & 0x1)
-                        break;
-                    unitmask = unitmask >> 1;
-                }
-                return i + 'A';
-            };
-
-            const auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
-            if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-                const auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
-                if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                    const auto driver_letter = firstDriveFromMask(lpdbv->dbcv_unitmask);
-                    DrivesRemoved(driver_letter);
-                }
-            }
-        }
-        break;
-        }
-        break;
-    case WM_NCHITTEST:
-        if (!isMaximized()) {
-            *result = hitTest(winId(), msg, content_widget_);
-            if (*result == HTNOWHERE) {
-                return false;
-            }
-            return true;
-        }
-        break;
-    case WM_NCPAINT:
-		if (!win32::IsCompositionEnabled()) {
-            *result = 0;
-            return true;
-		}
-        break;
-    case WM_GETMINMAXINFO:
-        if (layout() != nullptr) {
-            if (isMaximized()) {
-                RECT frame = { 0, 0, 0, 0 };
-                ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
-                frame.left = abs(frame.left);
-                frame.top = abs(frame.bottom);
-                layout()->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
-            }
-            else {
-                layout()->setContentsMargins(0, 0, 0, 0);
-            }
-        }
-        *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
-        break;
-    case WM_NCCALCSIZE:
-        // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
-        if (msg->wParam == FALSE) {
-            // 如果 wParam 為 FALSE，則 lParam 指向一個 RECT 結構。輸入時，該結構包含建議的視窗矩形視窗。退出時，該結構應包含相應視窗客戶區的螢屏坐標。
-            *result = 0;
-        }
-        else {
-            // 如果 wParam 為 TRUE，lParam 指向一個 NCCALCSIZE_PARAMS 結構，該結構包含應用程式可以用來計算客戶矩形的新大小和位置的資訊。
-            auto* nccalcsize_params = reinterpret_cast<LPNCCALCSIZE_PARAMS>(msg->lParam);
-            nccalcsize_params->rgrc[2] = nccalcsize_params->rgrc[1];
-            nccalcsize_params->rgrc[1] = nccalcsize_params->rgrc[0];
-            *result = WVR_REDRAW;
-        }
-        return true;
-    case WM_NCUAHDRAWCAPTION:
-    case WM_NCUAHDRAWFRAME:
-        // These undocumented messages are sent to draw themed window
-        // borders. Block them to prevent drawing borders over the client
-        // area.
-        *result = WM_NCPAINT;
-        return true;
-    case WM_NCACTIVATE:
-        if (win32::IsCompositionEnabled()) {
-            *result = DefWindowProc(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
-        }
-        else {
-            if (msg->wParam == FALSE) {
-                *result = TRUE;
-            }
-            else {
-                *result = FALSE;
-            }
-        }
-        return true;
-    case WM_WINDOWPOSCHANGING: {
-        // Tell Windows to discard the entire contents of the client area, as re-using
-		// parts of the client area would lead to jitter during resize.
-        const auto window_pos = reinterpret_cast<LPWINDOWPOS>(msg->lParam);
-        window_pos->flags |= SWP_NOCOPYBITS;
-		}
-		break;
-    case WM_WININICHANGE:
-        if (!lstrcmp(reinterpret_cast<LPCTSTR>(msg->lParam), L"ImmersiveColorSet")) {
-            SystemThemeChanged(win32::IsDarkModeAppEnabled() ? ThemeColor::DARK_THEME : ThemeColor::LIGHT_THEME);
-        }
-        break;
-    case WM_HOTKEY:
-    {
-        const auto native_key = HIWORD(msg->lParam);
-        const auto native_mods = LOWORD(msg->lParam);
-        ShortcutsPressed(native_key, native_mods);
-        XAMP_LOG_DEBUG("Hot key press native_key:{} native_mods:{}", native_key, native_mods);
-    }
-    break;
-    default:
-        break;
-    }
-    return QWidget::nativeEvent(event_type, message, result);
-}
-#else
-bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
-    return QWidget::nativeEvent(event_type, message, result);
-}
-#endif
 
 void XMainWindow::SaveGeometry() {
 #if defined(Q_OS_WIN) 
@@ -550,51 +318,6 @@ void XMainWindow::closeEvent(QCloseEvent* event) {
     QWidget::closeEvent(event);
 }
 
-void XMainWindow::mousePressEvent(QMouseEvent* event) {
-    if (!content_widget_) {
-        QWidget::mousePressEvent(event);
-        return;
-    }
-
-    if (!content_widget_->HitTitleBar(event->pos())) {
-        QWidget::mousePressEvent(event);
-        return;
-    }
-
-#if 0
-    // todo: When maximize window must can be drag window.
-    if (isMaximized()) {
-        if (event->button() == Qt::LeftButton) {
-            setWindowState(windowState() & ~(Qt::WindowMinimized
-                | Qt::WindowMaximized
-                | Qt::WindowFullScreen));
-            resize(last_rect_.size());
-            last_pos_ = event->globalPos() - pos();
-            move(last_pos_);
-            return;
-        }
-    }
-#else
-    if (isMaximized()) {
-        return;
-    }
-#endif
-    
-#if defined(Q_OS_WIN)    
-    last_pos_ = event->globalPos() - pos();
-#else
-    QWidget::mousePressEvent(event);
-#endif
-}
-
-void XMainWindow::mouseReleaseEvent(QMouseEvent* event) {
-#if defined(Q_OS_WIN)
-    last_pos_ = QPoint();
-#else
-    QWidget::mouseReleaseEvent(event);
-#endif
-}
-
 void XMainWindow::InitMaximumState() {
     if (!content_widget_) {
         return;
@@ -616,18 +339,6 @@ void XMainWindow::UpdateMaximumState() {
         showMaximized();
         content_widget_->UpdateMaximumState(true);
     }
-}
-
-void XMainWindow::mouseDoubleClickEvent(QMouseEvent* event) {
-    if (!content_widget_) {
-        return;
-    }
-
-    if (!content_widget_->HitTitleBar(event->pos())) {
-        return;
-    }
-
-    UpdateMaximumState();
 }
 
 #ifdef Q_OS_WIN
@@ -674,57 +385,6 @@ void XMainWindow::AddSystemMenu(QWidget* widget) {
         });
 }
 #endif
-
-void XMainWindow::SetTitleBarAction(QFrame* title_bar) {
-#ifdef Q_OS_WIN
-    AddSystemMenu(title_bar);
-#endif
-}
-
-void XMainWindow::mouseMoveEvent(QMouseEvent* event) {
-    if (!content_widget_) {
-        QWidget::mouseMoveEvent(event);
-        return;
-    }
-
-#if defined(Q_OS_WIN)
-    if (!last_pos_.isNull()) {
-        move(event->globalPos() - last_pos_);
-    }
-
-    last_rect_ = win32::GetWindowRect(winId());
-
-    if (current_screen_ == nullptr) {
-        current_screen_ = content_widget_->window()->windowHandle()->screen();
-    }
-    else if (current_screen_ != content_widget_->window()->windowHandle()->screen()) {
-        current_screen_ = content_widget_->window()->windowHandle()->screen();
-
-        ::SetWindowPos(reinterpret_cast<HWND>(winId()), nullptr, 0, 0, 0, 0,
-            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-            SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
-    }
-
-    UpdateScreenNumber();
-
-#else
-    QWidget::mouseMoveEvent(event);
-#endif   
-}
-
-void XMainWindow::UpdateScreenNumber() {
-#ifdef Q_OS_WIN32
-    auto i = 1;
-    Q_FOREACH(auto* screen, QGuiApplication::screens()) {
-        if (screen == current_screen_) {
-            screen_number_ = i;
-        }
-        ++i;
-    }
-#else
-#endif
-    XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
-}
 
 void XMainWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)

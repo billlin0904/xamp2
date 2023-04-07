@@ -23,7 +23,7 @@ public:
 
 	virtual ~XMainWindow() override;
 
-    void setShortcut(const QKeySequence& shortcut) override;
+    void SetShortcut(const QKeySequence& shortcut) override;
 
     void SetContentWidget(IXFrame *content_widget);
 
@@ -38,8 +38,6 @@ public:
     void SetTaskbarPlayerPlaying() override;
 
     void SetTaskbarPlayerStop() override;
-
-    void SetTitleBarAction(QFrame* title_bar) override;
 
     void RestoreGeometry() override;
 
@@ -67,21 +65,12 @@ protected:
 
     void dropEvent(QDropEvent *event) override;
 
-    void mousePressEvent(QMouseEvent *event) override;
-
-    void mouseReleaseEvent(QMouseEvent * event) override;
-
-    void mouseMoveEvent(QMouseEvent * event) override;
-
-    void mouseDoubleClickEvent(QMouseEvent* event) override;
-
     void changeEvent(QEvent * event) override;
 
     void closeEvent(QCloseEvent* event) override;
 
     void SaveGeometry() override;
 
-    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 private:
     void AddSystemMenu(QWidget *widget);
 
@@ -90,8 +79,6 @@ private:
     void focusOutEvent(QFocusEvent* event) override;
 
     void showEvent(QShowEvent* event) override;
-
-    void UpdateScreenNumber();
 
     uint32_t screen_number_;
     QPoint last_pos_;

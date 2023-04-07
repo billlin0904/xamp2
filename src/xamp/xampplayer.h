@@ -10,14 +10,15 @@
 
 #include <thememanager.h>
 #include <widget/driveinfo.h>
+#include <FramelessHelper/Widgets/framelesswidget.h>
 
 inline constexpr auto kRestartExistCode = -2;
 
-class IXMainWindow : public QFrame {
+class IXMainWindow : public FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessWidget) {
 public:
-    virtual ~IXMainWindow() override = default;
+	virtual ~IXMainWindow() override = default;
 
-    virtual void setShortcut(const QKeySequence& shortcut) = 0;
+    virtual void SetShortcut(const QKeySequence& shortcut) = 0;
 
     virtual void SetTaskbarProgress(int32_t percent) = 0;
 
@@ -30,8 +31,6 @@ public:
     virtual void SetTaskbarPlayerPlaying() = 0;
 
     virtual void SetTaskbarPlayerStop() = 0;
-
-    virtual void SetTitleBarAction(QFrame *title_bar) = 0;
 
     virtual void InitMaximumState() = 0;
 
@@ -56,7 +55,7 @@ public:
 
     virtual void PlayNext() = 0;
 
-    virtual void stop() = 0;
+    virtual void StopPlay() = 0;
 
     virtual void PlayOrPause() = 0;
 

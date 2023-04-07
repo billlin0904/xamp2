@@ -116,7 +116,7 @@ private:
 
 	bool HitTitleBar(const QPoint& ps) const override;
 
-    void stop() override;
+    void StopPlay() override;
 
     void PlayNext() override;
 

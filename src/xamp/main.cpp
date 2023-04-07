@@ -31,6 +31,8 @@
 #include <QProcess>
 #include <QtAutoUpdaterCore/Updater>
 
+#include <FramelessHelper/Widgets/framelessmainwindow.h>
+
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
 #endif
@@ -442,14 +444,14 @@ static int Execute(int argc, char* argv[]) {
     XMainWindow main_window;
     
     if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
-        main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
-        main_window.setShortcut(QKeySequence(Qt::Key_MediaStop));
-        main_window.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
-        main_window.setShortcut(QKeySequence(Qt::Key_MediaNext));
-        main_window.setShortcut(QKeySequence(Qt::Key_VolumeUp));
-        main_window.setShortcut(QKeySequence(Qt::Key_VolumeDown));
-        main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
-        main_window.setShortcut(QKeySequence(Qt::Key_F11));
+        main_window.SetShortcut(QKeySequence(Qt::Key_MediaPlay));
+        main_window.SetShortcut(QKeySequence(Qt::Key_MediaStop));
+        main_window.SetShortcut(QKeySequence(Qt::Key_MediaPrevious));
+        main_window.SetShortcut(QKeySequence(Qt::Key_MediaNext));
+        main_window.SetShortcut(QKeySequence(Qt::Key_VolumeUp));
+        main_window.SetShortcut(QKeySequence(Qt::Key_VolumeDown));
+        main_window.SetShortcut(QKeySequence(Qt::Key_VolumeMute));
+        main_window.SetShortcut(QKeySequence(Qt::Key_F11));
     }
 
     Xamp win(&main_window, MakeAudioPlayer());
@@ -474,7 +476,11 @@ static int Execute(int argc, char* argv[]) {
     return app.exec();
 }
 
+FRAMELESSHELPER_USE_NAMESPACE
+
 int main() {
+    FramelessHelper::Widgets::initialize();
+
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC
