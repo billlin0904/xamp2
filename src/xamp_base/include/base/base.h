@@ -42,6 +42,14 @@
 	Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete;
 
+#define XAMP_DISABLE_MOVE(Class)\
+    Class(Class&&) = delete;\
+    Class& operator=(Class&&) = delete
+
+#define XAMP_DISABLE_COPY_AND_MOVE(Class) \
+	XAMP_DISABLE_COPY(Class);\
+	XAMP_DISABLE_MOVE(Class);\
+
 #define XAMP_COMBIN(x, y) x##y
 #define XAMP_COMBIN_NAME(x, y) XAMP_COMBIN(x, y)
 #define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __COUNTER__)

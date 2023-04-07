@@ -49,6 +49,8 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 
 	// 計算每個頻帶的能量值的db值
 	const std::valarray<float> band_db_values = 10.0f * std::log10(band_energies);
+	//std::valarray<float> band_db_values(kMaxBands);
+	//band_db_values = 2;
 
 	if (band_db_values.max() == -std::numeric_limits<float>::infinity()) {
 		return;
@@ -72,14 +74,14 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 
 	QVector<QColor> colors;
 
-	const float kMinRectHeight = 5.0f;
+	const float kMinRectHeight = 1.0f;
 
 	if (style_ == SpectrumStyles::BAR_STYLE) {
 		QVector<QRectF> rects;
 		for (int i = 0; i < kMaxBands; i++) {
-			float db_value = average_spectrum[i];
-			float db_normalized = std::min(db_value / max_db_value, 1.0f);
-			float rect_x = static_cast<float>(i) * rect_width;
+			const float db_value = average_spectrum[i];
+			const float db_normalized = std::min(db_value / std::abs(max_db_value), 1.0f);
+			const float rect_x = static_cast<float>(i) * rect_width;
 			float rect_y = rect_height * (1.0f - db_normalized);
 			if (rect_y < kMinRectHeight) {
 				rect_y = kMinRectHeight;
@@ -96,9 +98,9 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		QPainterPath path;
 		path.moveTo(0, height());
 		for (int i = 0; i < kMaxBands; i++) {
-			float db_value = average_spectrum[i];
-			float db_normalized = std::min(db_value / max_db_value, 1.0f);
-			float rect_x = static_cast<float>(i) * rect_width;
+			const float db_value = average_spectrum[i];
+			const float db_normalized = std::min(db_value / std::abs(max_db_value), 1.0f);
+			const float rect_x = static_cast<float>(i) * rect_width;
 			float rect_y = rect_height * (1.0f - db_normalized);
 			if (rect_y < kMinRectHeight) {
 				rect_y = kMinRectHeight;
@@ -110,9 +112,10 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 
 		QLinearGradient gradient(0, 0, width(), 0);
 		for (int i = 0; i < kMaxBands; i++) {
-			gradient.setColorAt(static_cast<float>(i) / static_cast<float>(kMaxBands), QColor::fromHsvF(static_cast<float>(i) / static_cast<float>(kMaxBands), 1.0f, 1.0f));
+			gradient.setColorAt(static_cast<float>(i) / static_cast<float>(kMaxBands), 
+				QColor::fromHsvF(static_cast<float>(i) / static_cast<float>(kMaxBands), 1.0f, 1.0f));
 		}
-		QBrush brush(gradient);
+		const QBrush brush(gradient);
 		painter.fillPath(path, brush);
 	}
 }

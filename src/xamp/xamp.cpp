@@ -45,6 +45,8 @@
 #include <widget/http.h>
 #include <widget/jsonsettings.h>
 #include <widget/read_utiltis.h>
+#include <player/ebur128reader.h>
+#include <stream/compressorparameters.h>
 
 #include <QCloseEvent>
 #include <QtAutoUpdaterCore/Updater>
@@ -56,9 +58,9 @@
 #include "version.h"
 
 static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& device_info,
-    const Path& file_path,
-    int32_t input_sample_rate,
-    int32_t target_sample_rate) {
+                                                            const Path& file_path,
+                                                            int32_t input_sample_rate,
+                                                            int32_t target_sample_rate) {
     auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_NONE;
     auto dsd_modes = DsdModes::DSD_MODE_AUTO;
     const auto is_enable_sample_rate_converter = target_sample_rate > 0;
@@ -68,7 +70,7 @@ static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& de
         && !is_dsd_file
         && !is_enable_sample_rate_converter
         && input_sample_rate % kPcmSampleRate441 == 0) {
-        dsd_modes = DsdModes::DSD_MODE_DOP;
+        dsd_modes = DsdModes::DSD_MODE_AUTO;
         convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
     }
 
@@ -1040,8 +1042,8 @@ void Xamp::SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
 		auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
 
 		CpuAffinity affinity;
-		affinity.Set(2);
-		affinity.Set(3);
+        affinity.SetCpu(1);
+        affinity.SetCpu(2);
 		writer->Init(input_sample_rate, affinity, convert_mode);
 
 		if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
@@ -1170,9 +1172,18 @@ void Xamp::play(const PlayListEntity& item) {
                     sample_rate_converter_factory();
                 }
             }
+
             SetupDsp(item);
+
             // note: Only PCM dsd modes enable compressor.
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
+                CompressorParameters parameters;
+                if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
+                    if (item.track_loudness != 0) {
+                        parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness, -1.0) * -1;
+                    }
+                }
+                player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
                 player_->GetDspManager()->AddCompressor();
             }
         } else {

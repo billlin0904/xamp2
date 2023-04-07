@@ -402,7 +402,6 @@ static int Execute(int argc, char* argv[]) {
         XAMP_LOG_DEBUG("Application already running!");
         return -1;
     }
-    //QApplication app(argc, argv);
 
     ApplyTheme();
 
@@ -458,9 +457,12 @@ static int Execute(int argc, char* argv[]) {
     win.SetThemeColor(qTheme.BackgroundColor(),
         qTheme.GetThemeTextColor());
 
+    XAMP_LOG_DEBUG("Preaload load socket dll.");
 	static const QString kSoftwareUpdateUrl =
         qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
     http::HttpClient(kSoftwareUpdateUrl).get();
+
+    XAMP_LOG_DEBUG("Set process mitigation.");
     SetProcessMitigation();
 
     XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");

@@ -11,8 +11,6 @@
 #ifdef XAMP_OS_WIN
 #include <new.h>
 #include <dbghelp.h>
-#include <minidumpapiset.h>
-#include <eh_details.h>
 #else
 #include <signal.h>
 #include <execinfo.h>
@@ -84,44 +82,6 @@ public:
     }
 
 #ifdef XAMP_OS_WIN
-    static bool DumpMsvcException(const EXCEPTION_POINTERS * pointers) {
-        using namespace stdx::detail;
-
-        const auto& ehe_exception_record = *reinterpret_cast<EHExceptionRecord*>(pointers->ExceptionRecord);
-        const auto* throw_information = ehe_exception_record.params.pThrowInfo;
-        if (!throw_information) {
-            XAMP_LOG_D(logger_, "No ThrowInfo exists. If this was a C++ exception, something must have corrupted it.");
-            return false;
-        }
-
-        if (!ehe_exception_record.params.pExceptionObject) {
-            return false;
-        }
-
-        const auto image_base = reinterpret_cast<uintptr_t>(ehe_exception_record.params.pThrowImageBase);
-        const auto* catchable_type_array = reinterpret_cast<const CatchableTypeArray*>(
-            static_cast<uintptr_t>(throw_information->pCatchableTypeArray) + image_base);
-        const auto* catchable_type = reinterpret_cast<CatchableType*>(
-            static_cast<uintptr_t>(catchable_type_array->arrayOfCatchableTypes[0]) + image_base);
-
-        auto* exception_record = pointers->ExceptionRecord;
-        HMODULE module = (exception_record->NumberParameters >= 4)
-            ? reinterpret_cast<HMODULE>(exception_record->ExceptionInformation[3]) : nullptr;
-
-#define RVA_TO_VA_(type, addr)  ( (type) ((uintptr_t) module + (uintptr_t) (addr)) )
-        auto* type = RVA_TO_VA_(const std::type_info*, catchable_type->pType);
-                
-        auto *exception_object = reinterpret_cast<std::exception*>(
-            adjustThis(catchable_type->thisDisplacement,
-            ehe_exception_record.params.pExceptionObject));
-
-        XAMP_LOG_D(logger_, "Catch MSVC exception class name:{} what:{}",
-            type->name(),
-            exception_object->what());
-
-        return true;
-    }
-
     static void Dump(void* info) {
         std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
@@ -130,11 +90,6 @@ public:
 
         auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            /*if ((*itr).first == EXCEPTION_MSVC_CPP) {
-                if (DumpMsvcException(exception_pointers)) {
-                    return;
-                }
-            }*/
             XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X}){}",
                 (*itr).second, (*itr).first, stack_trace.CaptureStack());
             return;

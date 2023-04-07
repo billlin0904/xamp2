@@ -29,14 +29,14 @@ public:
 	}
 
 	~WasapiWorkQueue() override {
-		Destory();
+		Destroy();
 	}
 
 	bool IsValid() const noexcept {
 		return queue_id_ != MAXDWORD;
 	}
 
-	void Destory() {
+	void Destroy() {
 		if (!IsValid()) {
 			return;
 		}

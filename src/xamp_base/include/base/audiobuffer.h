@@ -176,7 +176,6 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count, 
     count = (std::min)(count, GetAvailableRead(head, tail));
 	num_filled_count = count;
     if (!count) {
-    //if (count > GetAvailableRead(head, tail)) {
 		return false;
 	}
 

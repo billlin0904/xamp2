@@ -30,7 +30,7 @@ public:
 
     void* GetNativeHandle() const;
 
-	static double GetEbur128Gain(double loudness, double targetdb);
+	static double GetEbur128Gain(double lufs, double targetdb);
 
     static double GetMultipleLoudness(const Vector<Ebur128Reader>& scanners);
 

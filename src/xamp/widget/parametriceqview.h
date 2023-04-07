@@ -18,6 +18,8 @@ public:
 
 	void SetBand(float frequency, float value);
 
+	void SetBand(EQFilterTypes type, int frequency, float value, float q);
+
 	void ClearBand();
 
 	void SetSpectrumData(int frequency, float value);
@@ -33,7 +35,17 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
-	int drag_number_ = -1;
-	int dragable_graph_number_ = 1;
-	int max_distance_to_add_point_ = 20;
+	int32_t drag_number_ = -1;
+	int32_t dragable_graph_number_ = 1;
+	int32_t max_distance_to_add_point_ = 20;
+	int32_t sample_rate_ = 44100;
+	QCPGraph* mLowPassGraph;
+	QCPGraph* mHighPassGraph;
+	QCPGraph* mHighBandPassGraph;
+	QCPGraph* mHighBandPassQGraph;
+	QCPGraph* mNotchGraph;
+	QCPGraph* mAllPassGraph;
+	QCPGraph* mAllPeakingEqGraph;
+	QCPGraph* mLowShelfGraph;
+	QCPGraph* mLowHighShelfGraph;
 };

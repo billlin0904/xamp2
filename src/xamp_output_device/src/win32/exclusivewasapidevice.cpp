@@ -114,8 +114,15 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	REFERENCE_TIME default_device_period = 0;
 	REFERENCE_TIME minimum_device_period = 0;
 
+	// A total typical delay of 35 ms contains three parts:
+	//  o Audio endpoint device period (~10 ms).
+    //  o Stream latency between the buffer and endpoint device (~5 ms).
+    //  o Endpoint buffer (~20 ms to ensure glitch-free rendering).
+	constexpr REFERENCE_TIME kGlitchFreePeriod = 350000;
+
 	if (buffer_period_ == 0) {		
 		HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+		default_device_period = kGlitchFreePeriod;
 	} else {
 		default_device_period = buffer_period_;
 	}
@@ -391,16 +398,19 @@ void ExclusiveWasapiDevice::StartStream() {
 	XAMP_ASSERT(thread_exit_);
 	XAMP_ASSERT(close_request_);
 
-	const auto wait_timeout =
-		std::chrono::milliseconds(static_cast<uint64_t>(Nano100ToMillis(aligned_period_)))
-		+ std::chrono::milliseconds(20);
-	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", wait_timeout.count());
+	constexpr auto kMicrosecondsPerSecond = 1000000;
+	std::chrono::milliseconds buffer_duration((buffer_frames_ *
+		kMicrosecondsPerSecond /
+		mix_format_->nSamplesPerSec) / 1000);
+	buffer_duration *= 2;
+
+	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", buffer_duration.count());
 	::ResetEvent(close_request_.get());
 
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this, wait_timeout]() {
+	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this, buffer_duration]() {
 		XAMP_LOG_D(logger_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;
@@ -423,12 +433,12 @@ void ExclusiveWasapiDevice::StartStream() {
 			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, current_timeout);
 
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
-			if (elapsed > wait_timeout) {
+			if (elapsed > buffer_duration) {
 				XAMP_LOG_D(logger_, "WASAPI wait too slow! {}msec.", elapsed.count());
 				if (!ignore_wait_slow_) {
 					thread_exit = true;
 					continue;
-				}							
+				}
 			}
 
 			switch (result) {
@@ -436,7 +446,7 @@ void ExclusiveWasapiDevice::StartStream() {
 				if (!GetSample(false)) {
 					thread_exit = true;
 				}
-				current_timeout = wait_timeout.count();
+				current_timeout = buffer_duration.count();
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;
@@ -479,18 +489,6 @@ uint32_t ExclusiveWasapiDevice::GetVolume() const {
 	return static_cast<uint32_t>(volume_scalar * 100.0F);
 }
 
-void ExclusiveWasapiDevice::SetVolumeLevel(float volume_db) {
-	if (IsMuted()) {
-		SetMute(false);
-	}
-	float current_volume_db = 0.0;
-	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&current_volume_db));
-	XAMP_LOG_D(logger_, "Current master volume level:{} dB", Round(current_volume_db));
-	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevel(volume_db, &GUID_NULL));
-	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&current_volume_db));
-	XAMP_LOG_D(logger_, "Current master volume level:{} dB", Round(current_volume_db));
-}
-
 void ExclusiveWasapiDevice::SetVolume(const uint32_t volume) const {
     if (volume > 100) {
 		return;
@@ -501,16 +499,23 @@ void ExclusiveWasapiDevice::SetVolume(const uint32_t volume) const {
 
 	if (is_mute) {
 		HrIfFailledThrow(endpoint_volume_->SetMute(false, nullptr));
-	}	
+	}
 
-	const auto volume_scalar = volume / 100.0F;
-	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevelScalar(volume_scalar, &GUID_NULL));
+	// 統一化在各設備之間不同音量控制.
+	float scaled_min_volume = 0;
+	float scaled_max_volume = 0;
+	float volume_increment = 0;
+	HrIfFailledThrow(endpoint_volume_->GetVolumeRange(&scaled_min_volume, &scaled_max_volume, &volume_increment));
 
-	XAMP_LOG_D(logger_, "Current volume: {}.", GetVolume());
+    const float target_volume_scale = volume / 100.0f;
+	const float target_volume_level = (scaled_max_volume - scaled_min_volume) * target_volume_scale + scaled_min_volume;
+	const float volume_range = scaled_max_volume - scaled_min_volume;
+	const float target_volume_normalized = (target_volume_level - scaled_min_volume) / volume_range;
+	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_normalized, nullptr));
 
-	float current_volume_db = 0.0;
-	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&current_volume_db));
-	XAMP_LOG_D(logger_, "Current master volume level:{} dB", Round(current_volume_db));
+	float dbVolume = 0;
+	endpoint_volume_->GetMasterVolumeLevel(&dbVolume);
+	XAMP_LOG_DEBUG("Current {} dB", dbVolume);
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {

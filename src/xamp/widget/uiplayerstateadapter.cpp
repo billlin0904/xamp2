@@ -41,7 +41,7 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 	size_t channel_sample_rate = output_format.GetSampleRate() / AudioFormat::kMaxChannel;
 	size_t frame_size = buffer_size * AudioFormat::kMaxChannel;
 	size_t shift_size = buffer_size * 0.75; //channel_sample_rate * 0.01;
-	frame_size = 8192;
+	frame_size = 8192 * 2;
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, shift_size, buffer_size);
 	stft_ = MakeAlign<STFT>(frame_size, shift_size);
 	//stft_->SetWindowType(AppSettings::ValueAsEnum<WindowType>(kAppSettingWindowType));

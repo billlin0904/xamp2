@@ -35,30 +35,30 @@ XAMP_BASE_API SharedLibraryHandle PinSystemLibrary(const std::string_view& file_
 template
 <
     typename T,
-	typename U = std::enable_if_t<std::is_function_v<T>>
+    typename U = std::enable_if_t<std::is_function_v<T>>
 >
 class XAMP_BASE_API_ONLY_EXPORT SharedLibraryFunction final {
 public:
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
-        *reinterpret_cast<void**>(&func_) = LoadSharedLibrarySymbol(dll, name);
+        func_ = static_cast<T*>(LoadSharedLibrarySymbol(dll, name));
     }
 
 #ifdef XAMP_OS_WIN
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
-        *reinterpret_cast<void**>(&func_) = LoadSharedLibrarySymbolEx(dll, name, flags);
+        func_ = static_cast<T*>(LoadSharedLibrarySymbolEx(dll, name, flags));
     }
 #endif
 
-    XAMP_ALWAYS_INLINE operator T* () const noexcept {
+    [[nodiscard]] XAMP_ALWAYS_INLINE operator T* () const noexcept {
         XAMP_ASSERT(func_ != nullptr);
         return func_;
     }
 
-    XAMP_ALWAYS_INLINE bool IsValid() const noexcept {
+    [[nodiscard]] XAMP_ALWAYS_INLINE bool IsValid() const noexcept {
         return func_ != nullptr;
     }
 
-    XAMP_DISABLE_COPY(SharedLibraryFunction)
+    XAMP_DISABLE_COPY_AND_MOVE(SharedLibraryFunction)
 private:
     T *func_{nullptr};
 };

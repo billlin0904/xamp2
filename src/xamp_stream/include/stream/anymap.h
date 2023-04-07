@@ -23,6 +23,14 @@ public:
         configs_.insert_or_assign(name, std::forward<T>(value));
     }
 
+    template <typename T>
+    void Replace(const std::string_view& name, T&& value) {
+        if (!configs_.contains(name)) {
+            return;
+        }
+        configs_.insert_or_assign(name, std::forward<T>(value));
+    }
+
     AudioFormat AsAudioFormat(const std::string_view& name) const {
         return Get<AudioFormat>(name);
     }

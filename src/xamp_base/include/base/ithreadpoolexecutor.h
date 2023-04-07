@@ -78,7 +78,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
 XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     const std::string_view& pool_name,
     ThreadPriority priority = ThreadPriority::NORMAL,
-    CpuAffinity affinity = kDefaultAffinityCpuCore,
+    CpuAffinity affinity = CpuAffinity::kAll,
     uint32_t max_thread = std::thread::hardware_concurrency(),
     TaskSchedulerPolicy policy = TaskSchedulerPolicy::RANDOM_POLICY,
     TaskStealPolicy steal_policy = TaskStealPolicy::CONTINUATION_STEALING_POLICY);

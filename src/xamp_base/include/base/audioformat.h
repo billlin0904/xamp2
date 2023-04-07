@@ -90,6 +90,8 @@ public:
 
     [[nodiscard]] uint32_t GetBytesPerSample() const noexcept;
 
+    [[nodiscard]] uint32_t GetSampleSize() const noexcept;
+
     [[nodiscard]] uint32_t GetBlockAlign() const noexcept;
 
     [[nodiscard]] ByteFormat GetByteFormat() const noexcept;
@@ -166,6 +168,10 @@ XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBitsPerSample() const noexcept {
 
 XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBytesPerSample() const noexcept {
     return bits_per_sample_ / 8;
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleSize() const noexcept {
+    return GetBytesPerSample() * GetChannels();
 }
 
 XAMP_ALWAYS_INLINE void AudioFormat::SetSampleRate(uint32_t sample_rate) noexcept {

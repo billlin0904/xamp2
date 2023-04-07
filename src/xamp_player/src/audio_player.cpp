@@ -22,7 +22,6 @@
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
 #include <stream/bassfader.h>
-#include <stream/compressorparameters.h>
 #include <stream/iaudioprocessor.h>
 
 #include <player/iplaybackstateadapter.h>
@@ -32,18 +31,14 @@ namespace xamp::player {
 
 XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
-#ifdef _DEBUG
-static constexpr int32_t kBufferStreamCount = 10;
-#else
-static constexpr int32_t kBufferStreamCount = 10;
-#endif
+static constexpr int32_t kBufferStreamCount = 4;
 
 static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 static constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 
 static constexpr int32_t kTotalBufferStreamCount = 32;
-static constexpr uint32_t kMaxWriteRatio = 15;
-static constexpr uint32_t kMaxReadRatio = 5;
+static constexpr uint32_t kMaxWriteRatio = 32;
+static constexpr uint32_t kMaxReadRatio = 8;
 static constexpr uint32_t kMaxBufferSecs = 5;
 static constexpr uint32_t kActionQueueSize = 30;
 
@@ -201,12 +196,6 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     OpenStream(file_path, output_mode);
     device_info_ = device_info;
     target_sample_rate_ = target_sample_rate;
-    XAMP_LOG_D(logger_,
-        "Deveice min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
-        device_info_.min_volume,
-        device_info_.max_volume,
-        device_info_.volume_increment,
-        (device_info_.max_volume - device_info_.min_volume) / device_info_.volume_increment);
 }
 
 void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
@@ -223,7 +212,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            // device可能是ASIO解後再移除drvier.
+            // device可能是ASIO解後再移除driver.
             device_.reset();
             ResetAsioDriver();
             XAMP_LOG_D(logger_, "ResetASIODriver!");
@@ -547,22 +536,23 @@ void AudioPlayer::CreateBuffer() {
 
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         num_read_sample_ = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
-        allocate_size = kMaxPreAllocateBufferSize;
-    } else {
-	    constexpr auto max_ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
-        num_read_sample_ = get_buffer_sample(device_.get(), output_format_, kMaxReadRatio);
-	    const auto max_require_sample = get_buffer_sample(device_.get(), output_format_, max_ratio);
-        allocate_size = (std::min)(
-            kMaxPreAllocateBufferSize,
-            max_require_sample *
-            stream_->GetSampleSize() *
-            kTotalBufferStreamCount);
-        allocate_size = AlignUp(allocate_size);
+        fifo_size_ = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
     }
-
-    fifo_size_ = (std::max)(
-        output_format_.GetAvgBytesPerSec() * kMaxBufferSecs,
-        allocate_size);
+    else {
+        constexpr auto max_ratio = std::max(kMaxReadRatio, kMaxWriteRatio);
+        num_read_sample_ = get_buffer_sample(device_.get(), output_format_, kMaxReadRatio);
+        const auto max_require_sample = num_read_sample_ * max_ratio;
+        allocate_size = std::min(kMaxPreAllocateBufferSize,
+            max_require_sample 
+            * stream_->GetSampleSize() 
+            * kTotalBufferStreamCount);
+        allocate_size = AlignUp(allocate_size);
+        fifo_size_ = output_format_.GetSampleRate()
+    	* kMaxBufferSecs
+    	* output_format_.GetChannels()
+    	* output_format_.GetSampleSize()
+    	* kBufferStreamCount;
+    }
 
     ResizeReadBuffer(allocate_size);
     ResizeFifo();
@@ -923,7 +913,6 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     config_.AddOrReplace(DspConfig::kOutputFormat, std::any(output_format_));
     config_.AddOrReplace(DspConfig::kDsdMode, std::any(dsd_mode_));
     config_.AddOrReplace(DspConfig::kSampleSize, std::any(stream_->GetSampleSize()));
-    config_.AddOrReplace(DspConfig::kCompressorParameters, std::any(CompressorParameters()));
     config_.AddOrReplace(DspConfig::kVolume, std::any(1.0));
 
     dsp_manager_->Init(config_);

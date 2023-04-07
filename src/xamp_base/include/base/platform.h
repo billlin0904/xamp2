@@ -36,77 +36,21 @@ struct XAMP_BASE_API PlatformUUID {
     uint8_t id[16];
 };
 
-inline constexpr auto XAMP_MAX_CPU = 256u;
-inline constexpr auto XAMP_MASK_STRIDE = 64u;
-inline constexpr auto XAMP_CPU_MASK_ROWS = (XAMP_MAX_CPU / XAMP_MASK_STRIDE);
-
 struct XAMP_BASE_API CpuAffinity {
-    void Clear(int32_t cpu) {
-        auto [row, offset] = GetCPURowOffset(cpu);
-        mask[row] &= ~(1ULL << offset);
-    }
+public:
+    static const CpuAffinity kAll;
+    static const CpuAffinity kInvalid;
 
-    void Set(int32_t cpu) {
-        auto [row, offset] = GetCPURowOffset(cpu);
-        mask[row] |= (1ULL << offset);
-    }
+    explicit CpuAffinity(int32_t only_use_cpu = -1, bool all_cpu_set = true);
 
-    bool IsSet(int32_t cpu) const {
-        auto [row, offset] = GetCPURowOffset(cpu);
-        return (mask[row] & (1ULL << offset)) != 0;
-    }
+    operator bool() const noexcept;
 
-    int32_t FirstSetCpu() const;
+    void SetCpu(int32_t cpu);
 
-    static std::tuple<uint32_t, uint32_t> GetCPURowOffset(int32_t cpu) {
-        auto row = cpu / XAMP_MASK_STRIDE;
-        return { row, cpu << XAMP_MASK_STRIDE * row };
-    }
-
-    friend bool operator != (const CpuAffinity& a, const CpuAffinity& b) {
-        for (auto i = 0u; i < XAMP_CPU_MASK_ROWS; i++) {
-            if (a.mask[i] != b.mask[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    friend std::ostream& operator << (std::ostream &ostr, const CpuAffinity &aff) {
-        for (auto i = 0u; i < XAMP_CPU_MASK_ROWS; i++) {
-            ostr << "cpu mask[" << i << "]=" << aff.mask[i] << " ";
-        }
-        return ostr;
-    }
-
-    uint64_t mask[XAMP_CPU_MASK_ROWS]{0};
+    void SetAffinity(JThread& thread);
+private:
+    std::array<bool, 256> cpus;
 };
-
-#ifdef XAMP_OS_WIN
-struct XAMP_BASE_API ProcessorInformation {
-    bool is_hyper_threaded{ false };
-
-    struct XAMP_BASE_API Processor {
-        uint32_t cpu_id{ 0 };
-        uint32_t core_index{ 0 };
-    };
-
-    std::vector<Processor> processors;
-
-    friend std::ostream& operator << (std::ostream& ostr, const ProcessorInformation& info) {
-        ostr << "is_hyper_threaded:" << info.is_hyper_threaded;
-        for (const auto processor : info.processors) {
-            ostr << "cpu id[" << processor.cpu_id << "]=" << processor.core_index << " ";
-        }
-        return ostr;
-    }
-};
-#endif
-
-/// <summary>
-/// Default thread pool affinity core.
-/// </summary>
-inline constexpr CpuAffinity kDefaultAffinityCpuCore{ 1 };
 
 inline constexpr uint32_t kInfinity = -1;
 
@@ -114,7 +58,7 @@ XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority) n
 
 XAMP_BASE_API void SetThreadName(std::wstring const & name) noexcept;
 
-XAMP_BASE_API void SetThreadAffinity(JThread& thread, CpuAffinity affinity = kDefaultAffinityCpuCore) noexcept;
+XAMP_BASE_API void SetThreadAffinity(JThread& thread, CpuAffinity affinity = CpuAffinity()) noexcept;
 
 XAMP_BASE_API std::string GetCurrentThreadId();
 

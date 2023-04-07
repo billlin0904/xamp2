@@ -31,7 +31,7 @@ public:
 	static constexpr auto kColumnTrackWidth = 40;
 	static constexpr auto kColumnArtistWidth = 300;
 	static constexpr auto kColumnCoverIdWidth = 42;
-	static constexpr auto kColumnDefaultWidth = 80;
+	static constexpr auto kColumnDefaultWidth = 120;
 	static constexpr auto kColumnDurationWidth = 10;
 	static constexpr auto kColumnHeight = 46;
 

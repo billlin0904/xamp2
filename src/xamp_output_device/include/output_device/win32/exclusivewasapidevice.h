@@ -12,7 +12,6 @@
 #include <output_device/win32/wasapi.h>
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
-#include <output_device/ivolumelevel.h>
 
 #include <base/logger.h>
 #include <base/dataconverter.h>
@@ -24,7 +23,7 @@
 
 namespace xamp::output_device::win32 {
 
-class ExclusiveWasapiDevice final : public IOutputDevice, public IDsdDevice, public IVolumeLevel {
+class ExclusiveWasapiDevice final : public IOutputDevice, public IDsdDevice {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -69,8 +68,6 @@ public:
 	void SetIoFormat(DsdIoFormat format) override;
 
 	DsdIoFormat GetIoFormat() const override;
-
-	void SetVolumeLevel(float volume_db) override;
 private:
 
 	void InitialDeviceFormat(AudioFormat const & output_format, const uint32_t valid_bits_samples);

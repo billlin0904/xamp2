@@ -25,9 +25,6 @@
     <ClCompile Include="src\r8brainresampler.cpp">
       <Filter>resampler</Filter>
     </ClCompile>
-    <ClCompile Include="src\foobardspadapter.cpp">
-      <Filter>foobar</Filter>
-    </ClCompile>
     <ClCompile Include="src\basscddevice.cpp">
       <Filter>bass</Filter>
     </ClCompile>
@@ -136,9 +133,6 @@
     <ClInclude Include="include\stream\soxresampler.h">
       <Filter>resampler</Filter>
     </ClInclude>
-    <ClInclude Include="include\stream\foobardspadapter.h">
-      <Filter>foobar</Filter>
-    </ClInclude>
     <ClInclude Include="include\stream\basscddevice.h">
       <Filter>bass</Filter>
     </ClInclude>
@@ -203,9 +197,6 @@
     </Filter>
     <Filter Include="resampler">
       <UniqueIdentifier>{a5a85287-05b2-4448-aa1b-5ad0562c4e20}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="foobar">
-      <UniqueIdentifier>{9ddef9c9-f2d8-45ac-887f-486f0916c8fb}</UniqueIdentifier>
     </Filter>
     <Filter Include="bass">
       <UniqueIdentifier>{3b06c6de-e4f2-4a52-bf6c-fe0a97db2590}</UniqueIdentifier>

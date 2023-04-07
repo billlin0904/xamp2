@@ -55,13 +55,13 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 
 	// 因為macOS 不支援thread running狀態設置affinity,
 	// 所以都改由此方式初始化affinity.
-	JThread([this, priority, affinity] {
+	JThread([this, priority, affinity]() mutable {
 		for (size_t i = 0; i < max_thread_; ++i) {
 #ifndef XAMP_OS_WIN
 			SetThreadPriority(threads_.at(i), priority);
 #endif
-			if (affinity != kDefaultAffinityCpuCore) {
-				SetThreadAffinity(threads_.at(i), affinity);
+			if (affinity) {
+				affinity.SetAffinity(threads_.at(i));
 				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, affinity);
 			}
 		}

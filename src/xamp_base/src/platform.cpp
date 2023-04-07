@@ -164,124 +164,79 @@ void SetThreadName(std::wstring const& name) noexcept {
 #endif
 }
 
+const CpuAffinity CpuAffinity::kAll(-1, true);
+const CpuAffinity CpuAffinity::kInvalid(-1, false);
+
+CpuAffinity::CpuAffinity(int32_t only_use_cpu, bool all_cpu_set) {
+    if (only_use_cpu != -1) {
+        cpus.fill(all_cpu_set);
+        cpus[only_use_cpu] = true;
+    } else {
+        cpus.fill(all_cpu_set);
+    }
+}
+
+void CpuAffinity::SetCpu(int32_t cpu) {
+    cpus[cpu] = true;
+}
+
+CpuAffinity::operator bool() const noexcept {
+    for (int i = 0; i < cpus.size(); ++i) {
+        if (cpus[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void CpuAffinity::SetAffinity(JThread& thread) {
 #ifdef XAMP_OS_WIN
-ProcessorInformation GetProcessorInformation() {
-    const WinHandle current_process(::GetCurrentProcess());
-
-    ULONG retsize = 0u;
-    ::GetSystemCpuSetInformation(nullptr, 0, 
-        &retsize,
-        current_process.get(),
-        0);
-
-    const auto data = std::make_unique<uint8_t[]>(retsize);
-    if (!::GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(data.get()),
-        retsize,
-        &retsize, 
-        current_process.get(),
-        0)) {
-        XAMP_LOG_DEBUG("GetSystemCpuSetInformation return failure!");
-    }
-
-    ProcessorInformation process_info;
-    std::set<DWORD> cores;
-    std::vector<DWORD> processors;
-
-    uint8_t const* ptr = data.get();
-    for (DWORD size = 0; size < retsize; ) {
-	    const auto *info = reinterpret_cast<const SYSTEM_CPU_SET_INFORMATION*>(ptr);
-        if (info->Type == CpuSetInformation) {
-            ProcessorInformation::Processor processor{ info->CpuSet.Id,info->CpuSet.CoreIndex };
-            process_info.processors.push_back(processor);
-            processors.push_back(info->CpuSet.Id);
-            cores.insert(info->CpuSet.CoreIndex);
-        }
-        ptr += info->Size;
-        size += info->Size;
-    }
-
-    process_info.is_hyper_threaded = processors.size() != cores.size();
-    return process_info;
-}
-#endif
-
-static int32_t FFSLL(uint64_t mask) {
-    auto bit = 0;
-
-    if (mask == 0) {
-        return 0;
-    }
-
-    for (bit = 1; !(mask & 1); bit++) {
-        mask = mask >> 1;
-    }
-    return bit;
-}
-
-int32_t CpuAffinity::FirstSetCpu() const {
-    auto row_first_cpu = 0;
-    auto cpus_offset = 0;
-    auto mask_first_cpu = -1;
-    auto row = 0u;
-
-    while (mask_first_cpu < 0 && row < XAMP_CPU_MASK_ROWS) {
-        row_first_cpu = FFSLL(mask[row]) - 1;
-        if (row_first_cpu > -1) {
-            mask_first_cpu = cpus_offset + row_first_cpu;
-        } else {
-            cpus_offset += XAMP_MASK_STRIDE;
-            row++;
+    DWORD_PTR affinity_mask = 0;
+    for (int i = 0; i < cpus.size(); ++i) {
+        if (cpus[i]) {
+            affinity_mask |= (1ull << i);
         }
     }
-    return mask_first_cpu;
-}
 
-void SetThreadAffinity(JThread& thread, CpuAffinity affinity) noexcept {
-#ifdef XAMP_OS_WIN
-    auto cpu = affinity.FirstSetCpu();
-    uint32_t group_size = 0;
+    const DWORD group_count = ::GetActiveProcessorGroupCount();
+    for (DWORD group_index = 0; group_index < group_count; ++group_index) {
+        GROUP_AFFINITY group_affinity = {};
+        group_affinity.Group = group_index;
 
-	const auto groups = ::GetActiveProcessorGroupCount();
-    auto cpu_offset = 0, group = -1;
-
-    for (WORD i = 0; i < groups; i++) {
-	    group_size = ::GetActiveProcessorCount(i);
-        if (cpu_offset + group_size > cpu) {
-            group = i;            
-            break;
+        const DWORD processor_count = ::GetActiveProcessorCount(group_index);
+        DWORD current_processor = 0;
+        for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
+            if (cpus[group_index * 64 + processor_index]) {
+                group_affinity.Mask |= (1ull << processor_index);
+                ++current_processor;
+			}
         }
-        cpu_offset += group_size;
-	}
+        group_affinity.Mask &= ((1ull << current_processor) - 1);
+        if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
+            XAMP_LOG_DEBUG("Fail to set SetThreadGroupAffinity");
+        }
 
-    if (group == -1) {
-        XAMP_LOG_DEBUG("Not found any group affinity:{}", affinity);
-        return;
-    }
-
-    const auto group_cpu_mask = affinity.mask[0];
-
-    GROUP_AFFINITY group_affinity;
-    group_affinity.Group = static_cast<WORD>(group);
-    group_affinity.Mask = group_cpu_mask;
-    group_affinity.Reserved[0] = 0;
-    group_affinity.Reserved[1] = 0;
-    group_affinity.Reserved[2] = 0;
-    if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
-        XAMP_LOG_DEBUG("Can't set thread group affinity");
-    }
-
-    XAMP_LOG_DEBUG("Thread affinity mask: {:#04x}", group_affinity.Mask);
-
-    PROCESSOR_NUMBER processor_number;
-    processor_number.Group = group;
-    processor_number.Number = cpu;
-    processor_number.Reserved = 0;
-    if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
-        XAMP_LOG_DEBUG("Can't set threadeal processor");
-    }
+        for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
+            if (cpus[group_index * 64 + processor_index]) {
+                PROCESSOR_NUMBER processor_number = {};
+                processor_number.Group = group_index;
+                processor_number.Number = processor_index;
+                processor_number.Reserved = 0;
+                if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
+                    XAMP_LOG_DEBUG("Fail to set SetThreadIdealProcessorEx");
+                }
+            }
+        }
+    }    
 #else
-    SetThreadAffinity(thread.native_handle(),
-                      static_cast<int32_t>(affinity.mask[0]));
+    cpu_set_t cpu_set;
+    CPU_ZERO(&cpu_set);
+    for (int i = 0; i < cpus.size(); ++i) {
+        if (cpus[i]) {
+            CPU_SET(i, &cpu_set);
+        }
+    }
+    pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set), &cpu_set);
 #endif
 }
 

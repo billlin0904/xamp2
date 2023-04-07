@@ -159,10 +159,10 @@ double Ebur128Reader::GetMultipleLoudness(const Vector<Ebur128Reader> &scanners)
     return Ebur128ReaderImpl::GetMultipleLoudness(scanners);
 }
 
-double Ebur128Reader::GetEbur128Gain(double loudness, double targetdb) {
+double Ebur128Reader::GetEbur128Gain(double lufs, double targetdb) {
 	// EBUR128 sets the target level to -23 LUFS = 84dB
 	// -23 - loudness = track gain to get to 84dB		
-	return (-23.0 - loudness + targetdb - kReferenceLoudness);
+	return (-23.0 - lufs + targetdb - kReferenceLoudness);
 }
 
 void Ebur128Reader::LoadEbur128Lib() {

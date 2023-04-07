@@ -116,6 +116,21 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 		CComPtr<IMMDevice> device;
 
 		HrIfFailledThrow(devices->Item(i, &device));
+
+		CComPtr<IAudioClient> client;
+		auto hr = device->Activate(__uuidof(IAudioClient), 
+			CLSCTX_ALL,
+			nullptr,
+			reinterpret_cast<void**>(&client));
+		if (SUCCEEDED(hr)) {
+			WAVEFORMATEX* format = nullptr;
+			hr = client->GetMixFormat(&format);
+			if (FAILED(hr)) {
+				continue;
+			}
+			CComHeapPtr<WAVEFORMATEX> mix_format(format);
+		}
+
 		auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
 
 		if (default_device_name == info.name) {
@@ -128,26 +143,6 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume)
 		));
-
-		float min_volume = 0;
-		float max_volume = 0;
-		float volume_increment = 0;
-		HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increment));
-		info.min_volume = min_volume;
-		info.max_volume = max_volume;
-		info.volume_increment = volume_increment;
-
-		XAMP_LOG_D(logger_, "{:30} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
-			String::ToUtf8String(info.name),
-			info.min_volume,
-			info.max_volume,
-			info.volume_increment,
-			(info.max_volume - info.min_volume) / info.volume_increment);
-
-		uint32_t step = 0;
-		uint32_t step_count = 0;
-		HrIfFailledThrow(endpoint_volume->GetVolumeStepInfo(&step, &step_count));
-		XAMP_LOG_D(logger_, "Step:{} Step Count:{}", step, step_count);
 
 		DWORD volume_support_mask = 0;
 		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));

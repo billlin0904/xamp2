@@ -128,29 +128,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 			info.is_default_device = true;
 		}
 
-		CComPtr<IAudioEndpointVolume> endpoint_volume;
-		HrIfFailledThrow(device->Activate(__uuidof(IAudioEndpointVolume),
-			CLSCTX_INPROC_SERVER,
-			nullptr,
-			reinterpret_cast<void**>(&endpoint_volume)
-		));
-		float min_volume = 0;
-		float max_volume = 0;
-		float volume_increment = 0;
-		HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increment));
-		info.min_volume = min_volume;
-		info.max_volume = max_volume;
-		info.volume_increment = volume_increment;
-
-		XAMP_LOG_D(log_, "{:30} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
-			String::ToUtf8String(info.name),
-			info.min_volume,
-			info.max_volume,
-			info.volume_increment,
-			(info.max_volume - info.min_volume) / info.volume_increment);
-
 		info.is_hardware_control_volume = true;
-
 		info.is_support_dsd = false;
 		device_list.emplace_back(info);
 	}

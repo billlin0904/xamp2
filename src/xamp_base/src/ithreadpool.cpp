@@ -27,7 +27,7 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& poo
     TaskStealPolicy steal_policy) {
     return MakeThreadPoolExecutor(pool_name,
         ThreadPriority::NORMAL,
-        kDefaultAffinityCpuCore,
+        CpuAffinity::kAll,
         std::thread::hardware_concurrency(),
         policy,
         steal_policy);
@@ -40,7 +40,7 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     TaskStealPolicy steal_policy) {
     return MakeThreadPoolExecutor(pool_name,
         priority,
-        kDefaultAffinityCpuCore,
+        CpuAffinity::kAll,
         std::thread::hardware_concurrency(),
         policy,
         steal_policy);
@@ -52,12 +52,12 @@ XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
 IThreadPoolExecutor& GetPlaybackThreadPool() {
     static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,
-        kDefaultAffinityCpuCore);
+        CpuAffinity::kAll);
 	return executor;
 }
 
 IThreadPoolExecutor& GetWasapiThreadPool() {
-    static const CpuAffinity wasapi_cpu_aff{ 1 };
+    static const CpuAffinity wasapi_cpu_aff(1, false);
     static ThreadPoolExecutor executor(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,
         wasapi_cpu_aff,

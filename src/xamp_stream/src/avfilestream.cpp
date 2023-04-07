@@ -168,7 +168,7 @@ public:
     }
 
     uint32_t GetSamples(float* buffer, uint32_t length) const noexcept {
-        const auto channel_read_bytes = length / sizeof(float);
+        const auto channel_read_samples = length / sizeof(float);
         uint32_t num_read_sample = 0;
 
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
@@ -216,7 +216,7 @@ public:
                         return 0;
                     }
                     num_read_sample += convert_size;
-                    if (num_read_sample >= channel_read_bytes) {
+                    if (num_read_sample >= channel_read_samples) {
                         return num_read_sample;
                     }
                 }

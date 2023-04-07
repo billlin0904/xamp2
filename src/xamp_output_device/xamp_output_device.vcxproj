@@ -167,7 +167,6 @@
     <ClInclude Include="include\output_device\idevicetype.h" />
     <ClInclude Include="include\output_device\idsddevice.h" />
     <ClInclude Include="include\output_device\iaudiodevicemanager.h" />
-    <ClInclude Include="include\output_device\ivolumelevel.h" />
     <ClInclude Include="include\output_device\output_device.h" />
     <ClInclude Include="include\output_device\win32\asiodevice.h" />
     <ClInclude Include="include\output_device\win32\asioexception.h" />

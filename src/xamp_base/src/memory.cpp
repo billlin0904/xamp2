@@ -1,7 +1,6 @@
 #include <base/memory.h>
 
 #include <base/base.h>
-#include <base/simd.h>
 #include <base/stl.h>
 #include <base/align_ptr.h>
 #include <base/platfrom_handle.h>

@@ -60,8 +60,8 @@ void BackgroundWorker::LazyInitExecutor() {
     }
 
     CpuAffinity affinity;
-    affinity.Set(2);
-    affinity.Set(3);
+    affinity.SetCpu(1);
+    affinity.SetCpu(2);
     executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
         ThreadPriority::BACKGROUND, 
         affinity);

@@ -459,10 +459,10 @@ void PlayListTableView::initial() {
 
     horizontalHeader()->setVisible(true);
     horizontalHeader()->setHighlightSections(false);
-    horizontalHeader()->setStretchLastSection(true);
+    horizontalHeader()->setStretchLastSection(false);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     setItemDelegate(new PlayListStyledItemDelegate(this));
-
+ 
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     verticalScrollBar()->setStyleSheet(qTEXT(
@@ -920,7 +920,8 @@ void PlayListTableView::OnFetchPodcastCompleted(const ForwardList<TrackInfo>& tr
 }
 
 void PlayListTableView::ResizeColumn() {
-	auto* header = horizontalHeader();
+    auto* header = horizontalHeader();
+	
     auto not_hide_column = 0;
 
     for (auto column = 0; column < header->count(); ++column) {
@@ -938,8 +939,7 @@ void PlayListTableView::ResizeColumn() {
             header->resizeSection(column, kColumnTrackWidth);
             break;
         case PLAYLIST_TITLE:
-            header->resizeSection(column,
-                (std::max)(sizeHintForColumn(column), kMaxStretchedSize));
+            header->setSectionResizeMode(column, QHeaderView::Stretch);
         	break;        
         case PLAYLIST_ARTIST:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
@@ -957,11 +957,6 @@ void PlayListTableView::ResizeColumn() {
             header->resizeSection(column, kColumnDefaultWidth);
             break;
         }
-    }
-
-    if (not_hide_column == 3) {
-        header->setSectionResizeMode(PLAYLIST_DURATION, QHeaderView::Fixed);
-        header->resizeSection(PLAYLIST_DURATION, kColumnDurationWidth);
     }
 }
 

@@ -140,8 +140,12 @@ void ParametricEqView::InitialAxisTicker(const EqSettings& settings) {
         graph(dragable_graph_number_)->addData(settings.bands[i].frequency, 0);
     }
 
-    xAxis->setRange(QCPRange(10, 16000));
+    xAxis->setRange(QCPRange(settings.bands.front().frequency, settings.bands.back().frequency));
     xAxis->setScaleType(QCPAxis::stLogarithmic);
+}
+
+void ParametricEqView::SetBand(EQFilterTypes type, int frequency, float value, float q) {
+    
 }
 
 void ParametricEqView::SetSpectrumData(int frequency, float value) {

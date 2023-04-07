@@ -176,7 +176,6 @@
     <ClInclude Include="include\stream\eqsettings.h" />
     <ClInclude Include="include\stream\fft.h" />
     <ClInclude Include="include\stream\fftwlib.h" />
-    <ClInclude Include="include\stream\foobardspadapter.h" />
     <ClInclude Include="include\stream\iaudiostream.h" />
     <ClInclude Include="include\stream\basscddevice.h" />
     <ClInclude Include="include\stream\bassflacfileencoder.h" />
@@ -223,7 +222,6 @@
     <ClCompile Include="src\dspmanager.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />
-    <ClCompile Include="src\foobardspadapter.cpp" />
     <ClCompile Include="src\mbdiscid.cpp" />
     <ClCompile Include="src\mfaacencoder.cpp" />
     <ClCompile Include="src\padcastcache.cpp" />

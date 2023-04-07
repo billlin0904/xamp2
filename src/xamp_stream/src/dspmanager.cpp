@@ -7,7 +7,6 @@
 #include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
 #include <stream/dsdmodesamplewriter.h>
-#include <stream/foobardspadapter.h>
 #include <stream/basscompressor.h>
 
 #include <base/exception.h>
@@ -70,6 +69,7 @@ IDSPManager& DSPManager::RemoveVolumeControl() {
 
 IDSPManager& DSPManager::RemoveCompressor() {
     RemovePreDSP<BassCompressor>();
+    RemovePostDSP<BassCompressor>();
     return *this;
 }
 

@@ -127,7 +127,7 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	is_running_ = false;
-	rt_work_queue_->Destory();
+	rt_work_queue_->Destroy();
 	client_->Stop();
 }
 

@@ -41,7 +41,7 @@
         }
     },
     "Pcm2Dsd": {
-        "Pcm2DsdTimes": 6
+        "Pcm2DsdTimes": 5
     },
     "R8Brain": {
         "resampleSampleRate": 176400

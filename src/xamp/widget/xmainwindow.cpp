@@ -74,7 +74,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
 #if defined(Q_OS_WIN)
     if (!qTheme.UseNativeWindow()) {
         setWindowTitle(kApplicationTitle);        
-        setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
+        setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::CustomizeWindowHint | Qt::WindowMaximizeButtonHint);
         win32::SetFramelessWindowStyle(winId());
         win32::AddDwmShadow(winId());
         installEventFilter(this);
@@ -733,8 +733,13 @@ void XMainWindow::changeEvent(QEvent* event) {
     }
 #else
     if (event->type() == QEvent::WindowStateChange) {
-        if (!isMinimized()) {
+        if (isMinimized()) {
+            setUpdatesEnabled(false);
+        }
+        else if (windowState() == Qt::WindowNoState) {
             setAttribute(Qt::WA_Mapped);
+            setUpdatesEnabled(true);
+            update();
         }
     }
 #endif
@@ -743,9 +748,7 @@ void XMainWindow::changeEvent(QEvent* event) {
 void XMainWindow::showEvent(QShowEvent* event) {    
 #ifdef Q_OS_WIN32
     task_bar_->showEvent();
-#endif
-    QApplication::postEvent(this, new QEvent(QEvent::UpdateRequest), Qt::LowEventPriority);
-    setAttribute(Qt::WA_Mapped);
+#endif    
 }
 
 void XMainWindow::ShowWindow() {
