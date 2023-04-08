@@ -3,7 +3,6 @@
 #include <execution>
 #include <forward_list>
 
-#include <QFile>
 #include <QDirIterator>
 #include <qguiapplication.h>
 #include <QtConcurrent/qtconcurrentrun.h>
@@ -17,13 +16,15 @@
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadataextractadapter.h>
+
+#include <stream/avfilestream.h>
+
 #include <thememanager.h>
 
 #include <widget/widget_shared.h>
 #include <widget/http.h>
 #include <widget/xmessagebox.h>
 #include <widget/database.h>
-#include <widget/appsettings.h>
 #include <widget/playlisttableview.h>
 #include <widget/imagecache.h>
 #include <widget/databasefacade.h>
@@ -119,14 +120,14 @@ void DatabaseFacade::ScanPathFiles(const QStringList& file_name_filters,
         auto track_info = reader->Extract(path);
         constexpr auto kTagLibInvalidBitRate = 1;
         if (track_info.bit_rate == kTagLibInvalidBitRate || track_info.duration == 0.0) {
-            /*try {
+            try {
                 AvFileStream stream;
                 stream.OpenFile(path);
                 track_info.duration = stream.GetDuration();
                 track_info.bit_rate = stream.GetBitRate();
             }
             catch (...) {
-            }*/
+            }
         }
         XAMP_LOG_DEBUG("Extract file {} secs", sw.ElapsedSeconds());
         album_groups[track_info.album].push_front(std::move(track_info));
@@ -285,9 +286,8 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 		if (artist.isEmpty()) {
 			artist = tr("Unknown artist");
 		}
-
-        const auto music_id = qDatabase.AddOrUpdateMusic(track_info);
-
+        
+        const auto music_id = qDatabase.AddOrUpdateMusic(track_info);      
         int32_t artist_id = 0;
         if (!artist_id_cache.contains(artist)) {
             artist_id = qDatabase.AddOrUpdateArtist(artist);
@@ -324,9 +324,11 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
         } else {
             FindAlbumCover(album_id, album, track_info.file_path, reader);
         }
-        
+                        
         emit ReadCurrentFilePath(file_path, total_tracks, num_track++);
-        event_loop_.exec();
+        if (!is_podcast) {
+            event_loop_.exec();
+        }        
 	}
     XAMP_LOG_DEBUG("Thread:{} Add TrackInfo success! {:.2f} sesc",
         QThread::currentThreadId(), watch.ElapsedSeconds());

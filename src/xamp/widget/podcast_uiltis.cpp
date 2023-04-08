@@ -4,7 +4,7 @@
 
 #include <base/str_utilts.h>
 #include <stream/filestream.h>
-
+#include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/podcast_uiltis.h>
 

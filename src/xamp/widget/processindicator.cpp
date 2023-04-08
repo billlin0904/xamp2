@@ -70,7 +70,7 @@ void ProcessIndicator::SetColor(const QColor& color) {
 }
 
 QSize ProcessIndicator::sizeHint() const {
-    return QSize(40, 40);
+    return QSize(25, 25);
 }
 
 int ProcessIndicator::heightForWidth(int w) const {
@@ -89,7 +89,9 @@ void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {
     const auto width = qMin(this->width(), this->height());
 
     QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
+    p.setRenderHints(QPainter::Antialiasing, true);
+    p.setRenderHints(QPainter::SmoothPixmapTransform, true);
+    p.setRenderHints(QPainter::TextAntialiasing, true);
 
     const auto outer_radius = (width - 1) * 0.5;
     const auto inner_radius = (width - 1) * 0.5 * 0.38;
