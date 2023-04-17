@@ -7,6 +7,7 @@
 #include <base/str_utilts.h>
 
 #ifdef XAMP_OS_WIN
+#include <codecvt>
 #include <base/windows_handle.h>
 #else
 #include <codecvt>
@@ -18,7 +19,7 @@
 
 #include <fstream>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 bool IsFilePath(std::wstring const& file_path) noexcept {
 	const auto lowcase_file_path = String::ToLower(file_path);
@@ -26,16 +27,23 @@ bool IsFilePath(std::wstring const& file_path) noexcept {
 		|| lowcase_file_path.find(L"http") == std::string::npos;
 }
 
- Path GetTempFilePath() {
- 	constexpr auto kMaxRetryCreateTempFile = 100;
+Path GetTempFilePath() {
+	// Short retry times to avoid cost too much time.
+ 	constexpr auto kMaxRetryCreateTempFile = 10;
 	const auto temp_path = Fs::temp_directory_path();
 	
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(MakeTempFileName() + ".tmp");
-		std::ofstream file(path.native());
-		if (file.is_open()) {
-			file.close();
-			return path;
+		std::error_code ec;
+		// Create parent directory if not exist.
+		if (Fs::create_directories(path.parent_path(), ec) 
+			&& Fs::status(path.parent_path(), ec).type() == Fs::file_type::directory) {
+			// Create temp file.
+			std::ofstream file(path.native());
+			if (file.is_open()) {
+				file.close();
+				return path;
+			}
 		}
 	}
 	throw PlatformSpecException("Can't create temp file.");
@@ -134,7 +142,7 @@ bool TryImbue(std::wifstream& file, std::string_view name) {
 
 void ImbueFileFromBom(std::wifstream& file) {
 #ifdef XAMP_OS_WIN
-	static constexpr std::array<std::string_view, 4> locale_names{
+	static const Vector<std::string_view> locale_names{
 		"en_US.UTF-8",
 		"zh_TW.UTF-8",
 		"zh_CN.UTF-8",
@@ -144,9 +152,22 @@ void ImbueFileFromBom(std::wifstream& file) {
 	std::wstring bom;
 
 	if (std::getline(file, bom, L'\r')) {
-		for (auto locale_name : locale_names) {
+		// UTF-16 BOM
+		if (bom.size() > 2 && bom[0] == 0xFEFF) {
+			file.imbue(std::locale(std::locale(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>()));
+			file.seekg(2, std::ios_base::beg);
+			return;
+		}
+		// UTF-8 BOM
+		if (bom.size() > 3 && bom.substr(0, 3) == L"\xEF\xBB\xBF") {
+			file.imbue(std::locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t, 0x10FFFF, std::little_endian>()));
+			file.seekg(3, std::ios_base::beg);
+			return;
+		}
+		// Other BOM
+		for (auto locale_name : locale_names) {			
 			if (TryImbue(file, locale_name)) {
-				file.seekg(0, std::ios::beg);
+				file.seekg(0, std::ios_base::beg);
 				break;
 			}
 		}
@@ -157,4 +178,4 @@ void ImbueFileFromBom(std::wifstream& file) {
 #endif
 }
 
-}
+XAMP_BASE_NAMESPACE_END

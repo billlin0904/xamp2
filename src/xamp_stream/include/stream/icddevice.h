@@ -11,7 +11,7 @@
 #include <base/align_ptr.h>
 #include <base/enum.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(CDDeviceAction,
 		CD_DOOR_CLOSE,
@@ -73,5 +73,5 @@ protected:
 	ICDDevice() = default;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

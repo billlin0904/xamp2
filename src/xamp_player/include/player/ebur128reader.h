@@ -10,7 +10,7 @@
 #include <base/pimplptr.h>
 #include <base/stl.h>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 class XAMP_PLAYER_API Ebur128Reader final {
 public:
@@ -40,4 +40,4 @@ private:
 	PimplPtr<Ebur128ReaderImpl> impl_;
 };
 
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

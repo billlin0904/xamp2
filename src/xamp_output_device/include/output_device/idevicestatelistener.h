@@ -12,16 +12,29 @@
 
 #include <string>
 
-namespace xamp::output_device {
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
+/*
+* IDeviceStateListener is a callback interface for device state.
+* 
+*/
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceStateListener {
 public:
 	XAMP_BASE_CLASS(IDeviceStateListener)
 
-    virtual void OnDeviceStateChange(DeviceState state, std::string const &device_id) = 0;
+	/*
+	* OnDeviceStateChange is called when device state changed.
+	* 
+	* @param[in] state is a device state.
+	* @param[in] device_id is a device id.
+	*/
+    virtual void OnDeviceStateChange(DeviceState state, const std::string &device_id) = 0;
 
 protected:
+	/*
+	* Constructor.
+	*/
 	IDeviceStateListener() = default;
 };
 
-}
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

@@ -13,7 +13,7 @@
 #include <stream/stream.h>
 #include <discid/discid.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API DiscIdLib final {
 public:
@@ -35,7 +35,7 @@ public:
 	XAMP_DECLARE_DLL(discid_get_error_msg) discid_get_error_msg;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 
 #endif
 

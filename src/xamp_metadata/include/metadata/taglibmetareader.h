@@ -11,7 +11,7 @@
 #include <base/align_ptr.h>
 #include <base/pimplptr.h>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 class TaglibMetadataReader final : public IMetadataReader {
 public:
@@ -33,5 +33,5 @@ private:
     PimplPtr<TaglibMetadataReaderImpl> reader_;
 };
 
-}
+XAMP_METADATA_NAMESPACE_END
 

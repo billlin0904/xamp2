@@ -70,7 +70,6 @@ enum Glyphs {
 };
 
 struct FontIconOption {
-    static const QString animationAttr;
     static const QString rectAttr;
     static const QString scaleFactorAttr;
     static const QString fontStyleAttr;
@@ -101,8 +100,6 @@ public:
     explicit FontIcon(QObject* parent = nullptr);
 
     bool addFont(const QString& filename);
-
-    QIcon animationIcon(const char32_t& code, QWidget *parent, const QString& family = QString()) const;
 
     QIcon icon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
 

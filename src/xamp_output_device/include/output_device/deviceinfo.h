@@ -12,10 +12,28 @@
 #include <base/enum.h>
 #include <output_device/output_device.h>
 
-namespace xamp::output_device {
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
-XAMP_MAKE_ENUM(DeviceConnectType, UKNOWN, USB, BUILT_IN, BLUE_TOOTH)
+/*
+* DeviceConnectType is the enum for device connect type.
+* 
+* <remarks>
+* UKNOWN: Unknown.
+* USB: USB.
+* BUILT_IN: Built in.
+* BLUE_TOOTH: Blue tooth.
+* </remarks>
+*/
+XAMP_MAKE_ENUM(DeviceConnectType,
+	UKNOWN, 
+	USB, 
+	BUILT_IN,
+	BLUE_TOOTH)
 
+/*
+* DeviceInfo is the device info.
+* 
+*/
 struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_default_device{ false };
 	bool is_support_dsd{ false };
@@ -26,4 +44,4 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	Uuid device_type_id;
 };
 
-}
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

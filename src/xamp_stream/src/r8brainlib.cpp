@@ -4,7 +4,7 @@
 #include <base/logger_impl.h>
 #include <base/exception.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(R8brainLib);
 
@@ -24,4 +24,4 @@ R8brainLib::~R8brainLib() {
 	XAMP_LOG_I(logger_, "Release R8brainLib dll.");
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

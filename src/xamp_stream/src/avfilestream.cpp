@@ -8,7 +8,7 @@
 #include <base/scopeguard.h>
 #include <base/math.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(AvFileStream);
 
@@ -350,4 +350,4 @@ int64_t AvFileStream::GetBitRate() const {
     return impl_->GetBitRate();
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

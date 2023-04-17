@@ -5,7 +5,7 @@
 #include <stream/eqsettings.h>
 #include <stream/bassequalizer.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassEqualizer);
 
@@ -152,5 +152,5 @@ void BassEqualizer::Flush() {
 	
 }
 
+XAMP_STREAM_NAMESPACE_END
 
-}

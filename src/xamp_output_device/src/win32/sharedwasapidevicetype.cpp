@@ -12,7 +12,7 @@
 #include <base/logger_impl.h>
 #include <base/str_utilts.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 class SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl final {
 public:
@@ -31,31 +31,25 @@ public:
 	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 	
 private:
-	void Initial();
-
 	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
 
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	LoggerPtr log_;
-	Vector<DeviceInfo> device_list_;
+	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;
+	// Device list
+	Vector<DeviceInfo> device_list_;
+	// Logger
+	LoggerPtr logger_;
 };
 
 SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::SharedWasapiDeviceTypeImpl() noexcept {
-	log_ = LoggerManager::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName);
-	ScanNewDevice();
+	logger_ = LoggerManager::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName);
 }
 
 void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ScanNewDevice() {
-	Initial();
+	enumerator_ = helper::CreateDeviceEnumerator();
 	device_list_ = GetDeviceInfoList();
-}
-
-void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Initial() {
-	if (!enumerator_) {
-		enumerator_ = helper::CreateDeviceEnumerator();
-	}
 }
 
 CComPtr<IMMDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceById(std::wstring const & device_id) const {
@@ -97,40 +91,50 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Ge
 
 Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
-	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
-
 	UINT count = 0;
-	HrIfFailledThrow(devices->GetCount(&count));
-
 	Vector<DeviceInfo> device_list;
-	device_list.reserve(count);
-
 	std::wstring default_device_name;
-	if (const auto default_device_info = GetDefaultDeviceInfo()) {
-		default_device_name = default_device_info.value().name;
-	}
 
-	XAMP_LOG_D(log_, "Load all devices");
+	try {
+		// Get all active devices
+		HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+
+		// Get device count
+		HrIfFailledThrow(devices->GetCount(&count));
+
+		device_list.reserve(count);
+
+		if (const auto default_device_info = GetDefaultDeviceInfo()) {
+			default_device_name = default_device_info.value().name;
+		}
+	}
+	catch (const std::exception& e) {
+		XAMP_LOG_E(logger_, "Fail to list active device! {}", e.what());
+		return device_list;
+	}	
+
+	XAMP_LOG_D(logger_, "Load all devices");
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
-		HrIfFailledThrow(devices->Item(i, &device));
+		try {
+			HrIfFailledThrow(devices->Item(i, &device));
 
-		auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType));
-#ifdef _DEBUG
-		XAMP_LOG_TRACE("Get {} device {} property.", SharedWasapiDeviceType::Description, String::ToUtf8String(info.name));
-		for (const auto& property : helper::GetDeviceProperty(device)) {
-			XAMP_LOG_TRACE("{}: {}", property.first, String::ToUtf8String(property.second));
-		}
-#endif  
-		if (default_device_name == info.name) {
-			info.is_default_device = true;
-		}
+			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType));
+			if (default_device_name == info.name) {
+				info.is_default_device = true;
+			}
 
-		info.is_hardware_control_volume = true;
-		info.is_support_dsd = false;
-		device_list.emplace_back(info);
+			// Shared mode device always support hardware volume control
+			info.is_hardware_control_volume = true;
+			// Shared mode device always not support DSD
+			info.is_support_dsd = false;
+			device_list.push_back(info);
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_D(logger_, "Load device failed: {}", e.what());
+		}
 	}
 
 	std::sort(device_list.begin(), device_list.end(),
@@ -177,6 +181,7 @@ AlignPtr<IOutputDevice> SharedWasapiDeviceType::MakeDevice(const std::string& de
 	return impl_->MakeDevice(device_id);
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
 #endif
 

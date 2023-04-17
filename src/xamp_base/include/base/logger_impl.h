@@ -26,7 +26,7 @@ namespace spdlog {
     using sink_ptr = std::shared_ptr<sinks::sink>;
 }
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 enum LogLevel {
     LOG_LEVEL_TRACE,
@@ -71,8 +71,13 @@ public:
 
     const std::string & GetName() const;
 
+    bool ShouldLog(LogLevel level) const;
+
     template <typename... Args>
     void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
+        if (!ShouldLog(level)) {
+            return;
+        }
         auto message = fmt::format(s, args...);
         LogMsg(level, filename, line, func, message);
     }
@@ -122,5 +127,5 @@ private:
     LoggerPtr default_logger_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END
 

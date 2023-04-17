@@ -10,11 +10,11 @@
 #include <base/fs.h>
 #include <metadata/metadata.h>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
 
 XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
 
-}
+XAMP_METADATA_NAMESPACE_END
 

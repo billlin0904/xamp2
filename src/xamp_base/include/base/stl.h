@@ -17,7 +17,7 @@
 #include <base/align_ptr.h>
 #include <robin_hood.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_MAC
 #if __cplusplus < XAMP_CPP20_LANG_VER
@@ -219,5 +219,4 @@ ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const T& value, Compare 
 	return first != last && !comp(*first, value) ? first : last;
 }
 
-}
-
+XAMP_BASE_NAMESPACE_END

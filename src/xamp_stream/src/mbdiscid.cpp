@@ -11,7 +11,7 @@
 #include <stream/discIdlib.h>
 #include <stream/mbdiscid.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 #define DiscIdDLL Singleton<DiscIdLib>::GetInstance()
 
@@ -98,6 +98,6 @@ std::string MBDiscId::GetDiscIdLookupUrl(const std::string& drive) const {
 	return impl_->GetDiscIdLookupUrl(drive);
 }
 
-}
+XAMP_STREAM_NAMESPACE_END
 
 #endif

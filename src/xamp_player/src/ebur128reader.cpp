@@ -10,7 +10,7 @@
 #include <base/trackinfo.h>
 #include <player/ebur128reader.h>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 #define IfFailThrow(expr) \
 	do { \
@@ -169,4 +169,4 @@ void Ebur128Reader::LoadEbur128Lib() {
 	Singleton<Ebur128Lib>::GetInstance();
 }
 	
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

@@ -26,7 +26,7 @@
 #include <fftw3.h>
 #endif
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 #if (USE_INTEL_MKL_LIB)
 
@@ -206,7 +206,7 @@ FFTWPlan MakeFFTW(uint32_t fft_size, uint32_t times, FFTWDoubleArray& fft_in, FF
 
 FFTWPlan MakeIFFTW(uint32_t fft_size, uint32_t times, FFTWComplexArray& ifft_in, FFTWDoubleArray& ifft_out);
 
-}
+XAMP_STREAM_NAMESPACE_END
 
 #endif
 

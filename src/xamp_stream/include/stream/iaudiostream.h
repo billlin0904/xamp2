@@ -8,7 +8,7 @@
 #include <stream/stream.h>
 #include <base/audioformat.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API XAMP_NO_VTABLE IAudioStream {
 public:
@@ -35,5 +35,4 @@ protected:
     IAudioStream() = default;
 };
 
-}
-
+XAMP_STREAM_NAMESPACE_END

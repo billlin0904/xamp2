@@ -7,7 +7,7 @@
 
 #include <stream/stream.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 struct XAMP_STREAM_API CompressorParameters final {
     CompressorParameters() noexcept
@@ -25,4 +25,4 @@ struct XAMP_STREAM_API CompressorParameters final {
     float release;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

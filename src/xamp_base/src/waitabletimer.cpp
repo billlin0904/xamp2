@@ -133,7 +133,7 @@ public:
 TimePeriod WaitableTimer::WaitableTimerImpl::time_period_;
 #endif
 WaitableTimer::WaitableTimer() noexcept
-	: impl_(MakeAlign<WaitableTimerImpl>()){
+	: impl_(MakePimpl<WaitableTimerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(WaitableTimer)

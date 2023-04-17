@@ -9,7 +9,7 @@
 #include <base/base.h>
 #include <base/logger.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API VmMemLock final {
 public:
@@ -30,5 +30,5 @@ private:
 	LoggerPtr logger_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END
 

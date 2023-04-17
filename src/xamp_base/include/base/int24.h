@@ -10,7 +10,7 @@
 #include <base/simd.h>
 #include <base/memory.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API Int24 final {
 public:
@@ -61,4 +61,4 @@ XAMP_ALWAYS_INLINE int32_t Int24::To32Int() const noexcept {
 	return v;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

@@ -2,6 +2,9 @@
 
 #include <thememanager.h>
 
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+#include <base/logger_impl.h>
+
 #include <version.h>
 #include <widget/ui_utilts.h>
 #include <widget/appsettingnames.h>
@@ -20,6 +23,7 @@
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QScreen>
+#include <QTimer>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -31,12 +35,7 @@
 #include <widget/osx/osx.h>
 #endif
 
-
-#include <QTimer>
-#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
-#include <base/logger_impl.h>
-
-using namespace wangwenx190::FramelessHelper;
+FRAMELESSHELPER_USE_NAMESPACE
 
 XMainWindow::XMainWindow()
     : IXMainWindow()

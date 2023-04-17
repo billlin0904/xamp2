@@ -37,7 +37,7 @@ ImageCache::ImageCache()
 	: logger_(LoggerManager::GetInstance().GetLogger(kPixmapCacheLoggerName))
 	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = qTEXT("unknown_album");
-	cache_.Add(unknown_cover_id_, { 1, qTheme.UnknownCover() });
+	cache_.Add(unknown_cover_id_, { 1, qTheme.GetUnknownCover() });
 	InitCachePath();
 	LoadCache();
 	startTimer(kTrimImageSizeSeconds);

@@ -13,20 +13,6 @@
 #include <widget/playlistentity.h>
 #include <widget/image_utiltis.h>
 
-#ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
-namespace std {
-	template <>
-	struct hash<QString> {
-		typedef size_t result_type;
-		typedef QString argument_type;
-
-		result_type operator()(const argument_type& s) const {
-			return qHash(s);
-		}
-	};
-}
-#endif
-
 struct ImageCacheEntity {
 	ImageCacheEntity(int64_t size = 0, const QPixmap &image = QPixmap())
 		: size(size)

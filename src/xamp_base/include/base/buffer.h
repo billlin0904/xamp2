@@ -9,8 +9,14 @@
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* Buffer<T> is a wrapper of std::unique_ptr<T[]>.
+* 
+* @tparam T Type of buffer.
+* @tparam U Enable if T is trivially copyable.
+*/
 template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 class XAMP_BASE_API_ONLY_EXPORT Buffer {
 public:
@@ -40,7 +46,7 @@ public:
 
     T* Get() noexcept { 
         return ptr_.get();
-    }    
+    }
 
     [[nodiscard]] const T* Get() const noexcept {
         return ptr_.get();
@@ -100,10 +106,17 @@ public:
 
 private:
     size_t size_ = 0;
-    AlignArray<T> ptr_;    
+    AlignArray<T> ptr_;
     VmMemLock lock_;
 };
 
+/*
+* BufferRef<T> is a wrapper of Buffer<T>.
+* 
+* @tparam T Type of buffer.
+* @tparam U Enable if T is trivially copyable.
+* @note BufferRef<T> is not thread safe.
+*/
 template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
     explicit BufferRef(Buffer<T>& buf)
@@ -147,6 +160,6 @@ XAMP_BASE_API_ONLY_EXPORT Buffer<T> MakeBuffer(size_t size) {
     return Buffer<T>(size);
 }
 
-}
+XAMP_BASE_NAMESPACE_END
 
 

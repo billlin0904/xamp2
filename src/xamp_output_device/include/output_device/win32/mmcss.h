@@ -12,23 +12,44 @@
 #include <output_device/output_device.h>
 #include <output_device/win32/mmcss_types.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
+/*
+* Mmcss 
+* https://docs.microsoft.com/en-us/windows/win32/coreaudio/using-mmcss
+* 
+* Mmcss is a Windows API that allows applications to boost the priority 
+* of threads that perform time-critical tasks.
+*/
 class Mmcss final {
 public:
+	/*
+	* Constructor.
+	*/
 	Mmcss();
 
 	XAMP_PIMPL(Mmcss)
 
+	/*
+	* Boost current thread priority.
+	* 
+	* @param[in] task_name
+	* @param[in] priority
+	*/
 	void BoostPriority(std::wstring_view task_name = kMmcssProfileProAudio, MmcssThreadPriority priority = MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL) noexcept;
 
+	/*
+	* Revert current thread priority.
+	*/
 	void RevertPriority() noexcept;
 private:
 	class MmcssImpl;
-	AlignPtr<MmcssImpl> impl_;
+	PimplPtr<MmcssImpl> impl_;
 };
 
-}
-#endif
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
+#endif // XAMP_OS_WIN
 

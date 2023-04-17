@@ -1,7 +1,8 @@
-#if ENABLE_ASIO
 #include <output_device/win32/asioexception.h>
 
-namespace xamp::output_device::win32 {
+#if ENABLE_ASIO && XAMP_OS_WIN
+
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 std::string_view AsioException::ErrorMessage(ASIOError error) noexcept {
 	switch (error) {
@@ -42,5 +43,6 @@ AsioException::AsioException(ASIOError error)
 	what_ = ErrorMessage(error);
 }
 
-}
-#endif
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
+#endif // ENABLE_ASIO && XAMP_OS_WIN

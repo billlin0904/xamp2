@@ -55,12 +55,13 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	SetContentWidget(client_widget);
 	SetTitle(title);
+
 	if (parent) {
 		max_width_ = parent->width() * 0.8;
-	}
+		setMaximumWidth(parent->width() - 100);
+		setMinimumWidth(parent->width() - 100);
+	}	
 
-	setMaximumWidth(parent->width() - 100);
-	setMinimumWidth(parent->width() - 100);
 	size_ = size();
 }
 
@@ -69,7 +70,7 @@ void XProgressDialog::SetRange(int minimum, int maximum) {
 }
 
 void XProgressDialog::SetSubValue(int total, int current) {
-	sub_text_label_->setText(qSTR("%1 / %2").arg(total).arg(current));
+	sub_text_label_->setText(qSTR("%1 / %2").arg(current).arg(total));
 }
 
 void XProgressDialog::SetValue(int value) {

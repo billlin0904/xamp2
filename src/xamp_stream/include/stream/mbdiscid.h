@@ -13,7 +13,7 @@
 
 #ifdef XAMP_OS_WIN
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API MBDiscId {
 public:
@@ -33,6 +33,6 @@ private:
 	PimplPtr<MBDiscIdImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 
 #endif

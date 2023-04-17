@@ -13,7 +13,7 @@
 #include <base/base.h>
 #include <base/exception.h>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE IPlaybackStateAdapter {
 public:
@@ -37,4 +37,4 @@ protected:
 	IPlaybackStateAdapter() = default;
 };
 
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

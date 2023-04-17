@@ -10,7 +10,7 @@
 #include <base/blocking_queue.h>
 #include <base/spmc_queue.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 using SharedTaskQueue = BlockingQueue<MoveOnlyFunction>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
@@ -19,4 +19,4 @@ using WorkStealingTaskQueue = BlockingQueue<MoveOnlyFunction>;
 //using WorkStealingTaskQueue = SpmcQueue<MoveOnlyFunction>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
-}
+XAMP_BASE_NAMESPACE_END

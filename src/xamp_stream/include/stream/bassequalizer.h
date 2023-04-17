@@ -12,7 +12,7 @@
 #include <base/align_ptr.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassEqualizer final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassEqualizer, "FCC73B23-6806-44CD-882D-EA21A3482F51")
@@ -46,4 +46,4 @@ private:
     PimplPtr<BassEqualizerImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

@@ -6,8 +6,6 @@
 #include <widget/appsettings.h>
 #include <widget/xmessagebox.h>
 
-#include <QToolTip>
-
 VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent)
 	: QDialog(parent)
 	, player_(player) {
@@ -36,12 +34,10 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
         });
 
     (void)QObject::connect(ui_.volumeSlider, &SeekSlider::LeftButtonValueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
 		SetVolume(volume);
         });
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + qTEXT("%"));
         });
 
     SetThemeColor();
@@ -69,14 +65,6 @@ void VolumeControlDialog::SetThemeColor() {
     qTheme.SetSliderTheme(ui_.volumeSlider, true);
 }
 
-void VolumeControlDialog::InitialVolumeControl() {
-    if (!player_->IsHardwareControlVolume()) {
-        ui_.volumeSlider->setDisabled(true);
-    } else {
-        ui_.volumeSlider->setDisabled(false);
-    }
-}
-
 VolumeControlDialog::~VolumeControlDialog() {
     AppSettings::SetValue(kAppSettingVolume, ui_.volumeSlider->value());
 }
@@ -97,6 +85,7 @@ void VolumeControlDialog::SetVolume(uint32_t volume, bool notify) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
+                ui_.volumeSlider->setDisabled(false);
             }
         }
         else {

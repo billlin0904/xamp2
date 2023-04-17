@@ -9,7 +9,7 @@
 #include <base/align_ptr.h>
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef __cpp_lib_jthread
 
@@ -158,4 +158,4 @@ private:
 };
 #endif
 
-}
+XAMP_BASE_NAMESPACE_END

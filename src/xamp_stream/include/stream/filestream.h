@@ -10,7 +10,7 @@
 
 #include <base/fs.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
 public:
@@ -28,4 +28,4 @@ protected:
     FileStream() = default;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

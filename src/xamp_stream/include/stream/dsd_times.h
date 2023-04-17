@@ -6,8 +6,9 @@
 #pragma once
 
 #include <base/enum.h>
+#include <stream/stream.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(DsdTimes,
 	DSD_TIME_3X = 3, // DSD8
@@ -20,5 +21,5 @@ XAMP_MAKE_ENUM(DsdTimes,
 	DSD_TIME_10X,
 	DSD_TIME_11X)
 
-}
+XAMP_STREAM_NAMESPACE_END
 

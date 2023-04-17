@@ -16,7 +16,7 @@
 #include <base/encodingprofile.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 enum AACProfileLevel {
 	AAC_PROFILE_L2 = 0x29,
@@ -57,5 +57,6 @@ private:
 	PimplPtr<MFAACFileEncoderImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
+
 #endif

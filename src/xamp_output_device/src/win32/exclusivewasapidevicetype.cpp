@@ -10,13 +10,15 @@
 #include <base/str_utilts.h>
 #include <base/logger_impl.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);
 
 class ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl final {
 public:
 	ExclusiveWasapiDeviceTypeImpl() noexcept;
+
+	~ExclusiveWasapiDeviceTypeImpl() = default;
 
 	void ScanNewDevice();
 
@@ -31,30 +33,24 @@ public:
 	AlignPtr<IOutputDevice> MakeDevice(std::string const& device_id);
 
 private:
-	void Initial();
-
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(std::wstring const& device_id) const;
 
 	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
 
+	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;
+	// Device list
 	Vector<DeviceInfo> device_list_;
+	// Logger
 	LoggerPtr logger_;
 };
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceTypeImpl() noexcept {
 	logger_ = LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);
-	ScanNewDevice();
-}
-
-void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Initial() {
-	if (!enumerator_) {
-		enumerator_ = helper::CreateDeviceEnumerator();
-	}
 }
 
 void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ScanNewDevice() {
-	Initial();
+	enumerator_ = helper::CreateDeviceEnumerator();
 	device_list_ = GetDeviceInfoList();
 }
 
@@ -97,64 +93,80 @@ DeviceInfo ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceIn
 
 Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
-	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
-
-	UINT count = 0;
-	HrIfFailledThrow(devices->GetCount(&count));
-
 	Vector<DeviceInfo> device_list;
-	device_list.reserve(count);
-
 	std::wstring default_device_name;
-	if (const auto default_device_info = GetDefaultDeviceInfo()) {
-		default_device_name = default_device_info.value().name;
-	}
+	UINT count = 0;
+
+	try {
+		// Get all active devices
+		HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+
+		// Get device count
+		HrIfFailledThrow(devices->GetCount(&count));
+
+		device_list.reserve(count);
+
+		if (const auto default_device_info = GetDefaultDeviceInfo()) {
+			default_device_name = default_device_info.value().name;
+		}
+	} catch (const std::exception& e) {
+		XAMP_LOG_E(logger_, "Fail to list active device! {}", e.what());
+		return device_list;
+	}	
 
 	XAMP_LOG_D(logger_, "Load all devices");
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
-		HrIfFailledThrow(devices->Item(i, &device));
+		try {
+			HrIfFailledThrow(devices->Item(i, &device));
 
-		CComPtr<IAudioClient> client;
-		auto hr = device->Activate(__uuidof(IAudioClient), 
-			CLSCTX_ALL,
-			nullptr,
-			reinterpret_cast<void**>(&client));
-		if (SUCCEEDED(hr)) {
-			WAVEFORMATEX* format = nullptr;
-			hr = client->GetMixFormat(&format);
-			if (FAILED(hr)) {
-				continue;
+			// Check device support exclusive mode
+			CComPtr<IAudioClient> client;
+			auto hr = device->Activate(__uuidof(IAudioClient),
+				CLSCTX_ALL,
+				nullptr,
+				reinterpret_cast<void**>(&client));
+			if (SUCCEEDED(hr)) {
+				WAVEFORMATEX* format = nullptr;
+				hr = client->GetMixFormat(&format);
+				if (FAILED(hr)) {
+					continue;
+				}
+				CComHeapPtr<WAVEFORMATEX> mix_format(format);
 			}
-			CComHeapPtr<WAVEFORMATEX> mix_format(format);
+
+			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
+
+			if (default_device_name == info.name) {
+				info.is_default_device = true;
+			}
+
+			CComPtr<IAudioEndpointVolume> endpoint_volume;
+			HrIfFailledThrow(device->Activate(__uuidof(IAudioEndpointVolume),
+				CLSCTX_INPROC_SERVER,
+				nullptr,
+				reinterpret_cast<void**>(&endpoint_volume)
+			));
+
+			DWORD volume_support_mask = 0;
+			HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
+
+			// Check device support volume control
+			info.is_hardware_control_volume = (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
+				&& (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE);
+
+			// Exclusive mode device always support DSD
+			info.is_support_dsd = true;
+
+			device_list.push_back(info);
+		} catch (const std::exception& e) {
+			XAMP_LOG_D(logger_, "Load device failed: {}", e.what());
 		}
-
-		auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
-
-		if (default_device_name == info.name) {
-			info.is_default_device = true;
-		}
-
-		CComPtr<IAudioEndpointVolume> endpoint_volume;
-		HrIfFailledThrow(device->Activate(__uuidof(IAudioEndpointVolume),
-			CLSCTX_INPROC_SERVER,
-			nullptr,
-			reinterpret_cast<void**>(&endpoint_volume)
-		));
-
-		DWORD volume_support_mask = 0;
-		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
-
-		info.is_hardware_control_volume = (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
-			&& (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE);
-
-		// TODO: 一些DAC有支援WASAPI DOP模式.
-		info.is_support_dsd = true;
-		device_list.emplace_back(info);
 	}
 
+	// Sort device list by name length
 	std::sort(device_list.begin(), device_list.end(), 
 		[](const auto& first, const auto& second) {
 		return first.name.length() > second.name.length();
@@ -199,5 +211,6 @@ AlignPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(std::string const&
 	return impl_->MakeDevice(device_id);
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
 #endif

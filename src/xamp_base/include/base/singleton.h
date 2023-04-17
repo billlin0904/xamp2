@@ -7,17 +7,18 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 // https://preshing.com/20130930/double-checked-locking-is-fixed-in-cpp11/
 
 template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT Singleton {
 public:
-	/// <summary>
-	/// 不允許跨Library呼叫, 因為不會產生單例物件.
-	/// </summary>
-	/// <returns></returns>
+	/*
+	* Get singleton instance.
+	* 
+	* note: 不允許跨Library呼叫, 因為不會產生單例物件.
+	*/
 	static T& GetInstance();
 
 protected:
@@ -34,4 +35,4 @@ T& Singleton<T>::GetInstance() {
 	return instance;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

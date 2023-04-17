@@ -9,9 +9,10 @@
 #include <base/math.h>
 #include <limits>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 // Extremely fast random number generator that also produces very high quality random.
+// The algorithm is based on the paper "SFC64: a fast 64-bit random number generator" by Sebastiano Vigna.//     
 // see PractRand: http://pracrand.sourceforge.net/PractRand.txt
 template <int32_t TRotation = 24, int32_t TRightShift = 11, int32_t TLeftShift = 3>
 class XAMP_BASE_API_ONLY_EXPORT Sfc64Engine final {
@@ -76,4 +77,4 @@ private:
     uint64_t inc_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

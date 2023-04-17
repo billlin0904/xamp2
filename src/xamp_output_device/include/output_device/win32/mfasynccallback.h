@@ -15,14 +15,32 @@
 #include <windows.h>
 #include <mfidl.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-template <typename ParentType>
+/*
+* MFAsyncCallback is the class for IMFAsyncCallback.
+* 
+* @tparam ParentClass Parent class type.
+*/
+template <typename ParentClass>
 class MFAsyncCallback final : public UnknownImpl<IMFAsyncCallback> {
 public:
-	typedef HRESULT(ParentType::*Callback)(IMFAsyncResult *);
+	/*
+	* Callback function type
+	* 
+	* @param[in] result: IMFAsyncResult pointer.
+	* @return HRESULT
+	*/
+	typedef HRESULT(ParentClass::*Callback)(IMFAsyncResult *);
 
-	MFAsyncCallback(ParentType* parent, const Callback fn, const DWORD queue_id)
+	/*
+	* Constructor.
+	* 
+	* @param[in] parent: Parent class.
+	* @param[in] fn: Callback function.
+	* @param[in] queue_id: Queue id.
+	*/
+	MFAsyncCallback(ParentClass* parent, const Callback fn, const DWORD queue_id)
 		: queue_id_(queue_id)
 		, parent_(parent)
 		, callback_(fn) {
@@ -30,6 +48,17 @@ public:
 		XAMP_ASSERT(fn != nullptr);
 	}
 
+	/*
+	* Destructor.
+	*/
+	virtual ~MFAsyncCallback() = default;
+
+	/*
+	* Query interface.
+	* 
+	* @param[in] iid: Interface id.
+	* @param[out] ppv: Interface pointer.	
+	*/
 	STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override {
 		if (!ppv) {
 			return E_POINTER;
@@ -48,21 +77,36 @@ public:
 		return S_OK;
 	}
 
+	/*
+	* Get parameters.
+	* 
+	* @param[out] flags: Flags.
+	* @param[out] queue: Queue id.
+	*/
 	STDMETHODIMP GetParameters(DWORD* flags, DWORD* queue) override {
 		*flags = 0;
 		*queue = queue_id_;
 		return S_OK;
 	}
 
+	/*
+	* Invoke.
+	* 
+	* @param[in] async_result: Async result.	
+	*/
 	STDMETHODIMP Invoke(IMFAsyncResult* async_result) override {
 		return (parent_->*callback_)(async_result);
 	}
 
 private:
-	DWORD queue_id_;
-	ParentType *parent_;
+	// Queue id
+	DWORD queue_id_;	
+	// Parent class
+	ParentClass *parent_;
+	// Callback function
 	const Callback callback_;
 };
 
-}
-#endif
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
+#endif // XAMP_OS_WIN

@@ -9,7 +9,7 @@
 
 #include <fstream>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassWavFileEncoder::BassWavFileEncoderImpl {
 public:
@@ -72,4 +72,4 @@ void BassWavFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
     impl_->Encode(progress);
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

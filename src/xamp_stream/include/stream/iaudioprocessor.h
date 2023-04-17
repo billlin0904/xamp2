@@ -12,7 +12,7 @@
 #include <base/uuid.h>
 #include <base/buffer.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 struct XAMP_STREAM_API DspConfig {
     constexpr static auto kInputFormat = std::string_view("InputFormat");
@@ -45,5 +45,5 @@ protected:
 	IAudioProcessor() = default;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

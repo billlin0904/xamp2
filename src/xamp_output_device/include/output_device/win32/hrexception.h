@@ -14,18 +14,54 @@
 #include <base/exception.h>
 #include <base/fs.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
+/*
+* HRException is the exception for HRESULT.
+* 
+*/
 class XAMP_OUTPUT_DEVICE_API HRException final : public PlatformSpecException {
 public:
+	/*
+	* Throw from HRESULT.
+	* 
+	* @param[in] hresult: HRESULT
+	* @param[in] expr: expression
+	* @param[in] file_path: file path
+	* @param[in] line_number: line number
+	*/
 	static void ThrowFromHResult(long hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
 
+	/*
+	* Constructor.
+	* 
+	* @param[in] hresult: HRESULT
+	* @param[in] expr: expression
+	* @param[in] file_path: file path
+	* @param[in] line_number: line number
+	*/
 	explicit HRException(long hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
 
+	/*
+	* Destructor.
+	*/
+	virtual ~HRException() = default;
+
+	/*
+	* Get HRESULT.
+	*/
 	long GetHResult() const;
 
+	/*
+	* Get expression.
+	*/
 	const char* GetExpression() const noexcept override;
 
+	/*
+	* Get file name and line.
+	* 
+	* @return file name and line
+	*/
 	std::string GetFileNameAndLine() const;
 
 private:
@@ -34,7 +70,7 @@ private:
 	std::string file_name_and_line_;
 };
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
 #define HrIfFailledThrow2(hresult, otherHr) \
 	do { \

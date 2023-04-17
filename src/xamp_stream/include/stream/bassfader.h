@@ -12,7 +12,7 @@
 #include <base/align_ptr.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API BassFader final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassFader, "6981FB2E-E133-4B33-9378-F23628EEE4FE")
@@ -42,5 +42,4 @@ private:
     PimplPtr<BassFaderImpl> impl_;
 };
 
-}
-
+XAMP_STREAM_NAMESPACE_END

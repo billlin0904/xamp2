@@ -28,7 +28,7 @@
 #define XAMP_VECTOR_CALL __attribute__((vectorcall))
 #endif
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr int32_t kFloat16Scale = 32767;
 inline constexpr int32_t kFloat24Scale = 8388607;
@@ -89,10 +89,11 @@ public:
 
     template <size_t N = 0>
     static XAMP_ALWAYS_INLINE void F32ToS32(void* dst, m256 src) {
+        const auto rounded = Round(src);
         if constexpr (N > 0) {
-            Store(dst, ShiftLeftBits<N>(Round(src)));
+            Store(dst, ShiftLeftBits<N>(rounded));
         } else {
-            Store(dst, Round(src));
+            Store(dst, rounded);
         }
     }
 
@@ -272,4 +273,4 @@ struct InterleaveToPlanar<float, int32_t> {
     }
 };
 
-}
+XAMP_BASE_NAMESPACE_END

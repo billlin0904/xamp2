@@ -11,7 +11,7 @@
 #include <base/ithreadpoolexecutor.h>
 #include <base/workstealingtaskqueue.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API ITaskSchedulerPolicy {
 public:
@@ -84,5 +84,5 @@ public:
     size_t ScheduleNext(size_t index, const Vector<WorkStealingTaskQueuePtr>& work_queues) override;
 };
 
-}
+XAMP_BASE_NAMESPACE_END
 

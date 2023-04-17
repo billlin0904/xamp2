@@ -9,7 +9,7 @@
 #include <base/base.h>
 #include <base/math.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 // Ref: https://github.com/google/highwayhash
 template <int TUpdateRounds = 2, int TFinalizeRounds = 4>
@@ -107,4 +107,4 @@ private:
     uint64_t v3_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

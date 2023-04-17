@@ -9,7 +9,7 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef __cpp_lib_atomic_shared_ptr
 
@@ -182,4 +182,4 @@ private:
 	atomic_shared_ptr<const T> ptr_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

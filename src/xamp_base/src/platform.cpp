@@ -44,17 +44,30 @@ static XAMP_ALWAYS_INLINE uint32_t ToMilliseconds(const timespec* ts) noexcept {
     return ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
 }
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* Futex wait implementation.
+* 
+* @param[out] to_wait_on The atomic variable to wait on.
+* @param[in] expected The expected value of the atomic variable.
+* @param[in] milliseconds The number of milliseconds to wait for.
+* @return true if the atomic variable was woken up, false if the wait timed out.
+*/
 template <typename T>
 static XAMP_ALWAYS_INLINE bool PlatformFutexWait(std::atomic<T>& to_wait_on, uint32_t &expected, uint32_t milliseconds) noexcept {
-#ifdef XAMP_OS_WIN
+#ifdef XAMP_OS_WIN    
     return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds);
 #elif defined(XAMP_OS_MAC)
     return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, milliseconds * 1000) >= 0;
 #endif
 }
 
+/*
+* Futex wake implementation.
+* 
+* @param[out] to_wake The atomic variable to wake up.
+*/
 template <typename T>
 static XAMP_ALWAYS_INLINE void PlatformFutexWakeSingle(std::atomic<T>& to_wake) noexcept {
 #ifdef XAMP_OS_WIN
@@ -64,6 +77,11 @@ static XAMP_ALWAYS_INLINE void PlatformFutexWakeSingle(std::atomic<T>& to_wake) 
 #endif
 }
 
+/*
+* Futex wake all implementation.
+* 
+* @param[out] to_wake The atomic variable to wake up.
+*/
 template <typename T>
 static XAMP_ALWAYS_INLINE void PlatformFutexWakeAll(std::atomic<T>& to_wake) noexcept {
 #ifdef XAMP_OS_WIN
@@ -85,22 +103,29 @@ bool AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t &expected, uint32_t 
     return PlatformFutexWait(to_wait_on, expected, milliseconds);
 }
 
-int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) noexcept {
+int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) noexcept {   
     if (to == nullptr) {
+        // Wait forever.
         AtomicWait(to_wait_on, expected, kInfinity);
         return 0;
     }
 
+    // Check for invalid time-out values.
+    XAMP_EXPECTS(to->tv_nsec >= 0);
+
+    // Check for invalid time-out values.
     if (to->tv_nsec >= 1000000000) {
         errno = EINVAL;
         return -1;
     }
 
+    // Check for time-outs that are too large to be represented in milliseconds.
     if (to->tv_sec >= 2147) {
         PlatformFutexWait(to_wait_on, expected, 2147000000);
         return 0; /* time-out out of range, claim spurious wake-up */
     }
 
+    // Wait for the specified time-out.
     if (!PlatformFutexWait(to_wait_on, expected, ToMilliseconds(to))) {
         errno = ETIMEDOUT;
         return -1;
@@ -632,4 +657,4 @@ void Assert(const char* message, const char* file, uint32_t line) {
 #endif
 }
 
-}
+XAMP_BASE_NAMESPACE_END

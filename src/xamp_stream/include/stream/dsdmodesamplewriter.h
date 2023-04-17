@@ -12,7 +12,7 @@
 
 #include <functional>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API DsdModeSampleWriter final : public ISampleWriter {
     XAMP_DECLARE_MAKE_CLASS_UUID(DsdModeSampleWriter, "490A3F39-6829-49B7-822C-DD7D72D7E57F")
@@ -34,5 +34,5 @@ private:
     std::function<bool(int8_t const* , size_t , AudioBuffer<int8_t>& )> dispatch_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

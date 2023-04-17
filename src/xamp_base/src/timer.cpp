@@ -8,7 +8,7 @@
 #include <dispatch/dispatch.h>
 #endif
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #if defined(XAMP_OS_WIN)
 
@@ -183,4 +183,4 @@ bool Timer::IsStarted() const {
 	return impl_->IsStarted();
 }
 
-}
+XAMP_BASE_NAMESPACE_END

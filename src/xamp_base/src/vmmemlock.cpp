@@ -8,7 +8,7 @@
 #include <base/memory.h>
 #include <base/platform.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(VirtualMemory);
 
@@ -63,4 +63,4 @@ VmMemLock& VmMemLock::operator=(VmMemLock&& other) noexcept {
 	return *this;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

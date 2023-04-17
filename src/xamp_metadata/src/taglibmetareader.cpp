@@ -14,7 +14,7 @@
 #include <sstream>
 #include <functional>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 static double ParseStringList(std::string const& s, bool string_dummy = true) {
     std::stringstream ss;
@@ -464,4 +464,4 @@ bool TaglibMetadataReader::IsSupported(Path const & path) const {
     return reader_->IsSupported(path);
 }
 
-}
+XAMP_METADATA_NAMESPACE_END

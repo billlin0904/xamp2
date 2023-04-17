@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <base/align_ptr.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API CrashHandler {
 public:
@@ -24,4 +24,4 @@ private:
 	AlignPtr<CrashHandlerImpl> impl_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

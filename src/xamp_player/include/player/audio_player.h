@@ -31,7 +31,7 @@
 #include <optional>
 #include <any>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(PlayerActionId,
     PLAYER_SEEK);
@@ -164,6 +164,10 @@ private:
 
     void FadeOut();
 
+    void WaitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& stopped_lock);
+
+    bool ShouldKeepReading() const noexcept;
+
     bool is_muted_;
     bool is_dsd_file_;
     bool enable_fadeout_;
@@ -171,7 +175,7 @@ private:
     uint8_t sample_size_;
     uint32_t target_sample_rate_;
     uint32_t fifo_size_;
-    uint32_t num_read_sample_;
+    uint32_t num_read_buffer_size_;
     uint32_t volume_;
     std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_fade_out_;
@@ -206,4 +210,4 @@ private:
     LoggerPtr logger_;
 };
 
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

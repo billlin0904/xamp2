@@ -19,7 +19,7 @@
 
 #include <propvarutil.h>
 
-namespace xamp::output_device::win32::helper {
+XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(EndpointFactor,
 		RemoteNetworkDevice,
@@ -34,16 +34,30 @@ XAMP_MAKE_ENUM(EndpointFactor,
 		DigitalAudioDisplayDevice,
 		UnknownFormFactor);
 
-
+/*
+* Propvariant wrapper class.
+* 
+*/
 struct PropVariant final : PROPVARIANT {
+	/*
+	* Constructor.
+	*/
 	PropVariant() noexcept { 
 		::PropVariantInit(this);
 	}
 
+	/*
+	* Destructor.
+	*/
 	~PropVariant() noexcept {
 		::PropVariantClear(this);
 	}
 
+	/*
+	* To string.
+	* 
+	* @return std::wstring
+	*/
 	[[nodiscard]] std::wstring ToString() const noexcept {
 		std::wstring result;
 		PWSTR psz = nullptr;
@@ -55,53 +69,13 @@ struct PropVariant final : PROPVARIANT {
 	}
 };
 
-static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
-#define IfFailedRetrunUknownType(hr) \
-	if (FAILED(hr)) {\
-	return DeviceConnectType::UKNOWN;\
-	}
-
-	CComPtr<IDeviceTopology> device_topology;
-	IfFailedRetrunUknownType(device->Activate(__uuidof(IDeviceTopology),
-		CLSCTX_ALL,
-		nullptr,
-		reinterpret_cast<void**>(&device_topology)));
-
-	CComPtr<IConnector> connector;
-	IfFailedRetrunUknownType(device_topology->GetConnector(0, &connector));
-
-	CComPtr<IPart> part;
-	IfFailedRetrunUknownType(connector->QueryInterface(IID_PPV_ARGS(&part)));
-
-	UINT id = 0;
-	IfFailedRetrunUknownType(part->GetLocalId(&id));
-
-	LPWSTR part_name = nullptr;
-	IfFailedRetrunUknownType(part->GetName(&part_name));
-
-	XAMP_ON_SCOPE_EXIT({
-		::CoTaskMemFree(part_name);
-		});
-	std::wstring name(part_name);
-	CComPtr<IPartsList> parts_list;
-	auto hr= part->EnumPartsIncoming(&parts_list);
-	if (hr == E_NOTFOUND) {
-		CComPtr<IConnector> part_connector;
-		IfFailedRetrunUknownType(part->QueryInterface(IID_PPV_ARGS(&part_connector)));
-		CComPtr<IConnector> otherside_connector;
-		IfFailedRetrunUknownType(part_connector->GetConnectedTo(&otherside_connector));
-		CComPtr<IPart> otherside_part;
-		IfFailedRetrunUknownType(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)));
-		CComPtr<IDeviceTopology> otherside_topology;
-		IfFailedRetrunUknownType(otherside_part->GetTopologyObject(&otherside_topology));
-		LPWSTR device_name = nullptr;
-		IfFailedRetrunUknownType(otherside_topology->GetDeviceId(&device_name));
-		XAMP_ON_SCOPE_EXIT({
-			::CoTaskMemFree(device_name);
-			});
-		name = device_name;
-	}
-	name = String::ToLower(name);
+/*
+* Get device connect type.
+* 
+* @param[in] name device name.
+* @return DeviceConnectType
+*/
+static DeviceConnectType GetDeviceConnectType(const std::wstring& name) {
 	if (name.find(L"usb") != std::wstring::npos) {
 		return DeviceConnectType::USB;
 	}
@@ -111,10 +85,80 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 	if (name.find(L"bthenum") != std::wstring::npos) {
 		return DeviceConnectType::BLUE_TOOTH;
 	}
-	XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", id, String::ToString(name));
 	return DeviceConnectType::UKNOWN;
 }
 
+using ComString = CComHeapPtr<wchar_t>;
+
+/*
+* Get device connect type.
+* 
+* @param[in] device device.
+* @return DeviceConnectType
+*/
+static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
+#define IfFailedRetrunUknownType(hr) \
+	if (FAILED(hr)) {\
+	return DeviceConnectType::UKNOWN;\
+	}
+
+	// Get device topology
+	CComPtr<IDeviceTopology> device_topology;
+	IfFailedRetrunUknownType(device->Activate(__uuidof(IDeviceTopology),
+		CLSCTX_ALL,
+		nullptr,
+		reinterpret_cast<void**>(&device_topology)));
+
+	// Get connector
+	CComPtr<IConnector> connector;
+	IfFailedRetrunUknownType(device_topology->GetConnector(0, &connector));
+
+	// Get part
+	CComPtr<IPart> part;
+	IfFailedRetrunUknownType(connector->QueryInterface(IID_PPV_ARGS(&part)));
+
+	// Get part id
+	UINT id = 0;
+	IfFailedRetrunUknownType(part->GetLocalId(&id));
+
+	// Get part name
+	ComString part_name;
+	IfFailedRetrunUknownType(part->GetName(&part_name));
+
+	std::wstring name(part_name);
+	CComPtr<IPartsList> parts_list;
+
+	// Enum parts incoming
+	auto hr = part->EnumPartsIncoming(&parts_list);
+	if (hr == E_NOTFOUND) {
+		// Enum parts outgoing
+		CComPtr<IConnector> part_connector;
+		IfFailedRetrunUknownType(part->QueryInterface(IID_PPV_ARGS(&part_connector)));
+		// Get connected to
+		CComPtr<IConnector> otherside_connector;
+		IfFailedRetrunUknownType(part_connector->GetConnectedTo(&otherside_connector));
+		// Get part
+		CComPtr<IPart> otherside_part;
+		IfFailedRetrunUknownType(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)));
+		// Get topology
+		CComPtr<IDeviceTopology> otherside_topology;
+		IfFailedRetrunUknownType(otherside_part->GetTopologyObject(&otherside_topology));
+		// Get device id
+		ComString device_name;
+		IfFailedRetrunUknownType(otherside_topology->GetDeviceId(&device_name));
+		name = device_name;
+	}
+	name = String::ToLower(name);
+	auto device_connect_type = GetDeviceConnectType(name);
+	XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", device_connect_type, String::ToString(name));
+	return device_connect_type;
+}
+
+/*
+* Create device enumerator.
+* 
+* @return CComPtr<IMMDeviceEnumerator>
+*/
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	CComPtr<IMMDeviceEnumerator> enumerator;
 	HrIfFailledThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
@@ -125,7 +169,15 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	return enumerator;
 }
 
-std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComPtr<IMMDevice>& device) {
+/*
+* Get device property string.
+* 
+* @param[in] key property key.
+* @param[in] type property type.
+* @param[in] device device.
+* @return std::wstring
+*/
+static std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComPtr<IMMDevice>& device) {
 	std::wstring str;
 
 	CComPtr<IPropertyStore> property;
@@ -157,31 +209,6 @@ std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComP
 	return prop_variant.ToString();
 }
 
-HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device) {
-	struct DeviceProperty {
-		PROPERTYKEY key;
-		VARTYPE type;
-		std::string name;
-	};
-
-	HashMap<std::string, std::wstring> result;
-	
-	auto const device_property = Vector<DeviceProperty>{
-		{PKEY_AudioEndpoint_FormFactor , VT_UI4, "PKEY_AudioEndpoint_FormFactor"},
-		{PKEY_AudioEndpoint_GUID,  VT_LPWSTR, "PKEY_AudioEndpoint_GUID"},
-		{PKEY_AudioEngine_DeviceFormat,  VT_BLOB, "PKEY_AudioEngine_DeviceFormat"},
-		{PKEY_Device_EnumeratorName,  VT_LPWSTR, "PKEY_Device_EnumeratorName"},
-		{PKEY_AudioEndpoint_JackSubType,  VT_LPWSTR, "PKEY_AudioEndpoint_JackSubType"},
-		{PKEY_Device_EnumeratorName,  VT_LPWSTR, "PKEY_Device_EnumeratorName"},
-	};
-
-	for (const auto &property : device_property) {
-		result[property.name] = GetDevicePropertyString(property.key, property.type, device);
-	}
-
-	return result;
-}
-
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id) {
 	DeviceInfo info;
 	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
@@ -204,7 +231,7 @@ double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
 	return 1000.0 * (static_cast<double>(position) / device_frequency);
 }
 
+XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END
 
+#endif // XAMP_OS_WIN
 
-}
-#endif

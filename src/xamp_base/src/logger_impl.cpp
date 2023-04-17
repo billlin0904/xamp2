@@ -17,7 +17,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class LogFlagFormatrer final : public spdlog::custom_flag_formatter {
 public:
@@ -103,6 +103,10 @@ const std::string& Logger::GetName() const {
 	return logger_->name();
 }
 
+bool Logger::ShouldLog(LogLevel level) const {
+	return logger_->should_log(static_cast<spdlog::level::level_enum>(level));
+}
+
 Vector<LoggerPtr> LoggerManager::GetAllLogger() {
 	Vector<LoggerPtr> loggers;
 	spdlog::details::registry::instance().apply_all([&loggers](auto x) {
@@ -175,4 +179,4 @@ LoggerManager& LoggerManager::AddLogFile(const std::string &file_name) {
 	return *this;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

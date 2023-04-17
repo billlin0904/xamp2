@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
@@ -32,14 +32,13 @@ void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::strin
     return func;
 }
 
-bool AddSharedLibrarySearchDirectory(const Path& path) {
+bool AddSharedLibrarySearchDirectory(const Path& path) {    
     ::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
 
 	const auto utf16_string = path.wstring();
 
-    wchar_t buffer[MAX_PATH];
-    wchar_t** part = nullptr;
-    ::GetFullPathNameW(utf16_string.c_str(), MAX_PATH, buffer, part);
+    wchar_t buffer[MAX_PATH];   
+    ::GetFullPathNameW(utf16_string.c_str(), MAX_PATH, buffer, nullptr);
 
     if (!::AddDllDirectory(buffer)) {
         if (::GetLastError() != ERROR_FILE_NOT_FOUND) {
@@ -57,6 +56,9 @@ SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name) {
 		throw LoadDllFailureException(file_name);
 	}
     SharedLibraryHandle shared_library(module);
+    if (!shared_library) {
+		throw LoadDllFailureException(file_name);
+	}
     PrefetchSharedLibrary(shared_library);
 	return shared_library;
 }
@@ -102,6 +104,9 @@ void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_
 #endif
 
 bool PrefetchSharedLibrary(SharedLibraryHandle const& module) {
+    if (!module) {
+        return false;
+    }
     const auto path = GetSharedLibraryPath(module);
     MemoryMappedFile file;
     file.Open(path.wstring(), true);
@@ -112,4 +117,4 @@ SharedLibraryHandle OpenSharedLibrary(const std::string_view& file_name) {
     return LoadSharedLibrary(GetSharedLibraryName(file_name));
 }
 
-}
+XAMP_BASE_NAMESPACE_END

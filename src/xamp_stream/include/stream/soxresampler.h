@@ -13,7 +13,7 @@
 #include <base/audiobuffer.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(SoxrQuality,
           LOW,
@@ -66,5 +66,4 @@ private:
     PimplPtr<SoxrSampleRateConverterImpl> impl_;
 };
 
-}
-
+XAMP_STREAM_NAMESPACE_END

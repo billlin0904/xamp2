@@ -10,7 +10,7 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API_ONLY_EXPORT UncaughtExceptionDetector final {
 public:
@@ -69,7 +69,7 @@ auto operator+(ScopeGuardOnFailure, Func&& func) {
     return ScopeGuard<Func, false, true>(std::forward<Func>(func));
 }
 
-}
+XAMP_BASE_NAMESPACE_END
 
 #define XAMP_ON_SCOPE_EXIT(code) \
     const auto XAMP_ANON_VAR_NAME(__scope_guard_) = xamp::base::ScopeGuardOnSuccess() + ([&]() { code; })

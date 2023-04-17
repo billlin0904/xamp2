@@ -8,7 +8,7 @@
 #include <atomic>
 #include <base/platform.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class Spinlock {
 public:
@@ -42,5 +42,5 @@ private:
 	std::atomic<uint32_t> flag_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END
 

@@ -12,7 +12,7 @@
 #include <base/exception.h>
 #include <base/logger_impl.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(DspManager);
 
@@ -35,7 +35,12 @@ void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
 }
 
 IDSPManager& DSPManager::AddEqualizer() {
-    AddPostDSP(StreamFactory::MakeEqualizer());
+    AddPreDSP(StreamFactory::MakeEqualizer());
+    return *this;
+}
+
+IDSPManager& DSPManager::RemoveCompressor() {
+    RemovePostDSP<BassCompressor>();
     return *this;
 }
 
@@ -64,12 +69,6 @@ IDSPManager& DSPManager::RemoveEqualizer() {
 
 IDSPManager& DSPManager::RemoveVolumeControl() {
     RemovePreDSP<BassVolume>();
-    return *this;
-}
-
-IDSPManager& DSPManager::RemoveCompressor() {
-    RemovePreDSP<BassCompressor>();
-    RemovePostDSP<BassCompressor>();
     return *this;
 }
 
@@ -219,4 +218,4 @@ void DSPManager::Init(const AnyMap& config) {
     }
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

@@ -14,7 +14,7 @@
 
 #ifdef XAMP_OS_MAC
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
  enum EncodingAudioObjectType {
      // "AAC Profile" MPEG-2 Low-complexity (LC) combined with MPEG-4 Perceptual Noise Substitution (PNS)
@@ -50,6 +50,6 @@ private:
 	AlignPtr<BassAACFileEncoderImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 
-#endif
+#endif // XAMP_OS_MAC

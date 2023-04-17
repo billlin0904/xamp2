@@ -21,7 +21,7 @@ struct hash<filesystem::path> {
 }
 #endif
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 namespace Fs = std::filesystem;
 using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
@@ -50,47 +50,85 @@ XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
 XAMP_BASE_API bool IsCDAFile(Path const& path);
 
-XAMP_BASE_API bool TryImbue(std::wifstream& file, std::string_view name);
-
+/*
+* Imbue file from bom.
+* 
+* @param[in] file
+*/
 XAMP_BASE_API void ImbueFileFromBom(std::wifstream& file);
 
+/*
+* Exception safe file.
+* 
+*/
 class XAMP_BASE_API ExceptedFile final {
 public:
+    /*
+    * Constructor.
+    */
     explicit ExceptedFile(Path const& dest_file_path) {
-        dest_file_path_ = dest_file_path;
-        temp_file_path_ = Fs::temp_directory_path()
-            / Fs::path(MakeTempFileName() + ".tmp");
+        dest_file_path_ = dest_file_path;        
     }
 
+    /*
+    * Try to write file.
+    * 
+    * @param[in] func
+    * @return bool  
+    */
     template <typename Func>
     bool Try(Func&& func) {
-        return Try(func, DefaultExceptionHandler);
+        return TryImpl(std::forward<Func>(func), [](std::exception const&) {});
     }
 
+    /*
+    * Try to write file.
+    *
+    * @param[in] func
+    * @param[in] exception_handler
+    * @return bool
+    */
     template <typename Func, typename ExceptionHandler>
-    bool Try(Func&& func, ExceptionHandler && exception_handler) {
+    bool Try(Func&& func, ExceptionHandler&& exception_handler) {
+        return TryImpl(std::forward<Func>(func), std::forward<ExceptionHandler>(exception_handler));
+    }
+
+private:
+    /*
+    * Try to write file.
+    * 
+    * @param[in] func
+    * @param[in] exception_handler
+    * @return bool
+    */
+    template <typename Func, typename ExceptionHandler>
+    bool TryImpl(Func&& func, ExceptionHandler&& exception_handler) {
+        // Create temp file path.
+        temp_file_path_ = Fs::temp_directory_path()
+            / Fs::path(MakeTempFileName() + ".tmp");
+
         try {
+            // Write file.
             func(temp_file_path_);
+            // Rename file.
             Fs::rename(temp_file_path_, dest_file_path_);
             return true;
         }
         catch (Exception const& e) {
             exception_handler(e);
         }
-        catch (std::exception const &e) {
+        catch (std::exception const& e) {
             exception_handler(e);
         }
         catch (...) {
+            exception_handler(std::runtime_error("Unknown exception"));
         }
+        // Remove temp file.
         Fs::remove(temp_file_path_);
         return false;
-    }
-
-private:
-    static void DefaultExceptionHandler(std::exception const&) {	    
     }
     Path dest_file_path_;
     Path temp_file_path_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

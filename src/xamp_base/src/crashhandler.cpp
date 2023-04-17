@@ -18,7 +18,7 @@
 
 #include <mutex>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(CrashHandler);
 
@@ -81,7 +81,7 @@ public:
         logger_ = LoggerManager::GetInstance().GetLogger(kCrashHandlerLoggerName);
     }
 
-#ifdef XAMP_OS_WIN
+#ifdef XAMP_OS_WIN    
     static void Dump(void* info) {
         std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
@@ -302,4 +302,4 @@ void CrashHandler::SetThreadExceptionHandlers() {
 #endif
 }
 
-}
+XAMP_BASE_NAMESPACE_END

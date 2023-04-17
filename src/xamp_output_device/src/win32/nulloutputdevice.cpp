@@ -1,14 +1,19 @@
+#include <output_device/win32/nulloutputdevice.h>
+
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/logger_impl.h>
 #include <base/timer.h>
-#include <output_device/win32/nulloutputdevice.h>
-
-#include "output_device/iaudiocallback.h"
+#include <output_device/iaudiocallback.h>
 
 #ifdef XAMP_OS_WIN
 
-namespace xamp::output_device::win32 {
+#include <output_device/win32/wasapi.h>
+#include <output_device/win32/mmcss.h>
+
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
+
+using namespace helper;
 
 NullOutputDevice::NullOutputDevice()
 	: is_running_(false)
@@ -19,8 +24,7 @@ NullOutputDevice::NullOutputDevice()
 	, log_(LoggerManager::GetInstance().GetLogger(kNullOutputDeviceLoggerName)) {
 }
 
-NullOutputDevice::~NullOutputDevice() {
-}
+NullOutputDevice::~NullOutputDevice() = default;
 
 bool NullOutputDevice::IsStreamOpen() const noexcept {
 	return true;
@@ -47,12 +51,18 @@ void NullOutputDevice::CloseStream() {
 }
 
 void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
-	buffer_frames_ = 432;
+	static constexpr auto kDefaultBufferFrame = 432;
+
+	buffer_frames_ = kDefaultBufferFrame;
 	const size_t buffer_size = buffer_frames_ * output_format.GetChannels();
 	if (buffer_.size() != buffer_size) {
 		buffer_ = MakeBuffer<float>(buffer_size);
 	}
 	output_format_ = output_format;
+
+	wait_time_ = std::chrono::milliseconds((buffer_frames_ *
+		kMicrosecondsPerSecond /
+		output_format.GetSampleRate()) / 1000);
 }
 
 bool NullOutputDevice::IsMuted() const {
@@ -76,7 +86,7 @@ uint32_t NullOutputDevice::GetBufferSize() const noexcept {
 }
 
 void NullOutputDevice::SetVolume(uint32_t volume) const {
-
+	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 }
 
 void NullOutputDevice::SetStreamTime(double stream_time) noexcept {
@@ -89,9 +99,12 @@ double NullOutputDevice::GetStreamTime() const noexcept {
 
 void NullOutputDevice::StartStream() {
 	is_stopped_ = false;
-	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this]() {		
+	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this]() {	
+		Mmcss mmcss;
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
+
+		mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
 
 		while (!is_stopped_) {
 			const auto stream_time = stream_time_ + buffer_frames_;
@@ -102,10 +115,12 @@ void NullOutputDevice::StartStream() {
 			XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 
 			} else {
-				return;
+				break;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::this_thread::sleep_for(wait_time_);
 		}
+
+		mmcss.RevertPriority();
 		});
 }
 
@@ -120,5 +135,6 @@ bool NullOutputDevice::IsHardwareControlVolume() const {
 	return true;
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
 #endif

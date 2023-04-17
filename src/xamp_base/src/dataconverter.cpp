@@ -1,6 +1,6 @@
 #include <base/dataconverter.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 AudioConvertContext::AudioConvertContext() {
     in_offset.fill(0);
@@ -62,5 +62,4 @@ AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const&
     return context;
 }
 
-}
-
+XAMP_BASE_NAMESPACE_END

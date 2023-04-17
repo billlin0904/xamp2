@@ -25,7 +25,7 @@
 
 #include <base/unique_handle.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 struct XAMP_BASE_API HandleTraits final {
 	static HANDLE invalid() noexcept;
@@ -77,5 +77,6 @@ using MappingAddressHandle = UniqueHandle<void*, MappingMemoryAddressTraits>;
 using TimerQueueHandle = UniqueHandle<HANDLE, TimerQueueTraits>;
 using RegHandle = UniqueHandle<HKEY, RegTraits>;
 
-}
+XAMP_BASE_NAMESPACE_END
+
 #endif

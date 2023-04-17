@@ -11,7 +11,7 @@
 #include <player/ebur128reader.h>
 #include <stream/mbdiscid.h>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 void LoadComponentSharedLibrary() {   
     LoadBassLib();
@@ -54,4 +54,4 @@ std::shared_ptr<IAudioPlayer> MakeAudioPlayer() {
     return MakeAlignedShared<AudioPlayer>();
 }
 
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

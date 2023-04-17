@@ -223,7 +223,6 @@
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
     <ClInclude Include="include\base\xoshiro.h" />
-    <ClInclude Include="include\task.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />

@@ -11,7 +11,7 @@
 #include <base/uuidof.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassWavFileEncoder final 	: public IFileEncoder {
 	XAMP_DECLARE_MAKE_CLASS_UUID(BassWavFileEncoder, "41592357-F396-4222-965C-E5A465E128C1")
@@ -30,4 +30,4 @@ private:
 	AlignPtr<BassWavFileEncoderImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

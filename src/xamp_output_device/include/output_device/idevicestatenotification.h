@@ -7,16 +7,26 @@
 
 #include <output_device/output_device.h>
 
-namespace xamp::output_device {
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
+/*
+* IDeviceStateNotification is the interface for device state notification.
+* 
+*/
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceStateNotification {
 public:
 	XAMP_BASE_CLASS(IDeviceStateNotification)
 
+	/*
+	* Run.
+	*/
 	virtual void Run() = 0;
 
 protected:
+	/*
+	* Constructor.
+	*/
 	IDeviceStateNotification() = default;
 };
 
-}
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

@@ -85,7 +85,7 @@ bool IsAsioDevice(Uuid const& id) noexcept {
 
 void ResetAsioDriver() {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    win32::AsioDevice::ResetDriver();
+    win32::AsioDevice::ResetCurrentDriver();
 #endif
 }
 

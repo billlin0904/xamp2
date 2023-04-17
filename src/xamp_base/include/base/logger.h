@@ -11,7 +11,7 @@
 #include <string_view>
 #include <string>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class Logger;
 
@@ -22,7 +22,7 @@ using LoggerPtr = std::shared_ptr<Logger>;
 XAMP_DECLARE_LOG_NAME(Xamp);
 XAMP_DECLARE_LOG_NAME(CoreAudio);
 	
-}
+XAMP_BASE_NAMESPACE_END
 
 #define XAMP_DEFAULT_LOG() xamp::base::LoggerManager::GetInstance()
 

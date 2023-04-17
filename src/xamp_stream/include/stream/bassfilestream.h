@@ -66,7 +66,7 @@ public:
     bool SupportNativeSD() const noexcept override;
 private:	
 	class BassFileStreamImpl;
-	PimplPtr<BassFileStreamImpl> stream_;
+	AlignPtr<BassFileStreamImpl> stream_;
 };
 
 }

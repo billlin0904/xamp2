@@ -11,7 +11,6 @@
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
-#include <stream/podcastcache.h>
 #include <stream/pcm2dsdsamplewriter.h>
 
 #include <widget/qdebugsink.h>
@@ -25,6 +24,9 @@
 #include <widget/xmessagebox.h>
 #include <widget/http.h>
 #include <widget/databasefacade.h>
+#if defined(Q_OS_WIN)
+#include <widget/win32/win32.h>
+#endif
 
 #include <QOperatingSystemVersion>
 #include <QNetworkReply>
@@ -33,14 +35,10 @@
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
 
-#if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
-#endif
-
 #include <thememanager.h>
-#include "singleinstanceapplication.h"
-#include "version.h"
-#include "xamp.h"
+#include <singleinstanceapplication.h>
+#include <version.h>
+#include <xamp.h>
 
 #ifdef Q_OS_WIN32
 static ConstLatin1String VisualStudioVersion() {
@@ -48,6 +46,22 @@ static ConstLatin1String VisualStudioVersion() {
         return "2022";
     }
     return "2019";
+}
+static std::string GetCompilerTime() {
+    return qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
+        .arg(kApplicationVersion)
+        .arg(VisualStudioVersion())
+        .arg((_MSC_FULL_VER / 100000) % 100)
+        .arg(_MSC_FULL_VER % 100000)
+        .arg(qTEXT(__DATE__))
+        .arg(qTEXT(__TIME__)).toStdString();
+}
+#else
+static std::string GetCompilerTime() {
+    return qSTR("Build Clang %1.%2.%3")
+        .arg(__clang_major__)
+        .arg(__clang_minor__)
+        .arg(__clang_patchlevel__).toStdString()
 }
 #endif
 
@@ -414,6 +428,8 @@ static int Execute(int argc, char* argv[]) {
 #endif
 #endif
 
+    XMainWindow main_window;
+
     XAMP_LOG_DEBUG("attach application success.");
 
     try {
@@ -434,14 +450,12 @@ static int Execute(int argc, char* argv[]) {
         XMessageBox::ShowBug(e);
         return -1;
     }
-    XAMP_LOG_DEBUG("Database init success.");
+    XAMP_LOG_DEBUG("Database init success.");    
 
     if (!QSslSocket::supportsSsl()) {
         XMessageBox::ShowError(qTEXT("TLS initialization failed."));
         return -1;
-    }
-
-    XMainWindow main_window;
+    }    
     
     if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
         main_window.SetShortcut(QKeySequence(Qt::Key_MediaPlay));
@@ -476,8 +490,6 @@ static int Execute(int argc, char* argv[]) {
     return app.exec();
 }
 
-FRAMELESSHELPER_USE_NAMESPACE
-
 int main() {
     FramelessHelper::Widgets::initialize();
 
@@ -494,6 +506,8 @@ int main() {
 
 	LoadOrSaveLogConfig();
 
+    XAMP_LOG_DEBUG(GetCompilerTime());
+
 #ifdef Q_OS_WIN32
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
@@ -501,24 +515,11 @@ int main() {
         return -1;
     }
 
-    XAMP_LOG_DEBUG(qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
-        .arg(kApplicationVersion)
-        .arg(VisualStudioVersion())
-        .arg((_MSC_FULL_VER / 100000) % 100)
-        .arg(_MSC_FULL_VER % 100000)
-        .arg(qTEXT(__DATE__))
-        .arg(qTEXT(__TIME__)).toStdString());
-
     const auto prefetch_dll = PrefetchDll();
     XAMP_LOG_DEBUG("Prefetch dll success.");
 
     const auto pin_system_dll = PinSystemDll();
     XAMP_LOG_DEBUG("Pin system dll success.");
-#else
-    XAMP_LOG_DEBUG(qSTR("Build Clang %1.%2.%3")
-        .arg(__clang_major__)
-        .arg(__clang_minor__)
-        .arg(__clang_patchlevel__).toStdString());
 #endif
 
     const auto os_ver = QOperatingSystemVersion::current();
@@ -530,7 +531,6 @@ int main() {
 
     LoadAppSettings();
     LoadSampleRateConverterConfig();
-    PodcastCache.SetTempPath(AppSettings::ValueAsString(kAppSettingPodcastCachePath).toStdWString());
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();    

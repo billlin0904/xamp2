@@ -13,7 +13,7 @@
 #include <base/base.h>
 #include <base/jthread.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(
     ThreadPriority,
@@ -74,6 +74,15 @@ XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
 
 XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
 
+/*
+* Futex wait implementation.
+*
+* @param[out] to_wait_on The atomic variable to wait on.
+* @param[in] expected The expected value of the atomic variable.
+* @param[in] to The time to wait for.
+*
+* @return 0 if the atomic variable was woken up, -1 if the wait timed out.
+*/
 XAMP_BASE_API int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) noexcept;
 
 XAMP_BASE_API bool AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t &expected, uint32_t milliseconds) noexcept;
@@ -97,4 +106,5 @@ XAMP_BASE_API void SetProcessMitigation();
 XAMP_BASE_API void SetThreadMitigation();
 XAMP_BASE_API bool SetFileLowIoPriority(int32_t handle);
 #endif
-}
+
+XAMP_BASE_NAMESPACE_END

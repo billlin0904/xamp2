@@ -13,23 +13,56 @@
 
 #include <metadata/metadata.h>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
+/*
+* IMetadataReader is a interface for reading metadata from file.
+* 
+*/
 class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataReader {
 public:
     XAMP_BASE_CLASS(IMetadataReader)
 
+    /*
+    * Extract metadata from file.
+    * 
+    * @param[in] path file path.
+    * @return TrackInfo
+    */
     virtual TrackInfo Extract(Path const &path) = 0;
 
+    /*
+    * Get ReplayGain from file.
+    * 
+    * @param[in] path file path.
+    * @return ReplayGain
+    */
     virtual std::optional<ReplayGain> GetReplayGain(const Path& path) = 0;
  
+    /*
+    * Get embedded cover from file.
+    * 
+    * @param[in] path file path.
+    * @return Vector<uint8_t>
+    */
     virtual const Vector<uint8_t>& GetEmbeddedCover(Path const &path) = 0;
 
+    /*
+    * Get supported file extensions.
+    * 
+    * @return HashSet<std::string>
+    */
     [[nodiscard]] virtual HashSet<std::string> const & GetSupportFileExtensions() const = 0;
 
+    /*
+    * Check file is supported.
+    * 
+    * @param[in] path file path.
+    * @return bool
+    */
     [[nodiscard]] virtual bool IsSupported(Path const & path) const = 0;
 protected:
     IMetadataReader() = default;
 };
 
-}
+XAMP_METADATA_NAMESPACE_END

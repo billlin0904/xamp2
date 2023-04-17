@@ -12,7 +12,7 @@
 
 #ifdef XAMP_OS_WIN
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassCDDevice final : public ICDDevice {
 public:
@@ -46,7 +46,7 @@ private:
 	PimplPtr<BassCDDeviceImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 
-#endif
+#endif // XAMP_OS_WIN
 

@@ -4,7 +4,7 @@
 #include <base/logger_impl.h>
 #include <base/exception.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(LibSoxr);
 
@@ -27,4 +27,4 @@ SoxrLib::~SoxrLib() {
     XAMP_LOG_I(logger_, "Release SoxrLib dll.");
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

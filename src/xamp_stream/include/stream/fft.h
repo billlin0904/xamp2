@@ -10,7 +10,7 @@
 #include <base/align_ptr.h>
 #include <base/enum.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(WindowType,
     NO_WINDOW,
@@ -48,5 +48,4 @@ private:
     AlignPtr<FFTImpl> impl_;
 };
 
-}
-
+XAMP_STREAM_NAMESPACE_END

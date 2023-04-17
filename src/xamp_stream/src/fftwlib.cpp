@@ -19,7 +19,7 @@ fftw3_mkl_s fftw3_mkl = {
 };
 #endif
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 
@@ -516,4 +516,4 @@ FFTWPlan MakeIFFTW(uint32_t fft_size, uint32_t times, FFTWComplexArray& ifft_in,
 
 #endif
 
-}
+XAMP_STREAM_NAMESPACE_END

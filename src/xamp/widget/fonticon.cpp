@@ -6,7 +6,6 @@
 #include <QPalette>
 
 #include <widget/str_utilts.h>
-#include <widget/fonticonanimation.h>
 
 #include <widget/widget_shared.h>
 
@@ -33,7 +32,6 @@ private:
     QVariantMap options_;
 };
 
-const QString FontIconOption::animationAttr(qTEXT("animation"));
 const QString FontIconOption::rectAttr(qTEXT("rect"));
 const QString FontIconOption::scaleFactorAttr(qTEXT("scaleFactor"));
 const QString FontIconOption::fontStyleAttr(qTEXT("fontStyle"));
@@ -80,12 +78,7 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     QFont font(font_family_);
     font.setStyleStrategy(QFont::PreferAntialias);
 
-    auto var = options_.value(FontIconOption::animationAttr);
-    if (auto* animation = var.value<FontIconAnimation*>()) {
-        animation->setup(*painter, rect);
-    }
-
-    var = options_.value(FontIconOption::rectAttr);
+    auto var = options_.value(FontIconOption::rectAttr);
     if (var.isValid()) {
         paint_rect = var.value<QRect>();
     }
@@ -222,12 +215,6 @@ bool FontIcon::addFont(const QString& filename) {
     const auto family = QFontDatabase::applicationFontFamilies(id).first();
     addFamily(family);
     return true;
-}
-
-QIcon FontIcon::animationIcon(const char32_t& code, QWidget* parent, const QString& family) const {
-    QVariantMap options;
-    options.insert(FontIconOption::animationAttr, QVariant::fromValue(new FontIconAnimation(parent)));
-    return icon(code, options, family);
 }
 
 QIcon FontIcon::icon(const char32_t& code, QVariantMap options, const QString& family) const {

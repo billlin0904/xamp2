@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
@@ -37,8 +37,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	logger_ = LoggerManager::GetInstance().GetLogger(pool_name);
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
-		task_scheduler_policy_->SetMaxThread(max_thread_);
-
+		task_scheduler_policy_->SetMaxThread(max_thread_);		
 		for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
 		}
@@ -69,8 +68,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 		start_clean_up_.count_down();
 		}).detach();
 
-	//CreateIdleThread();
-
 	XAMP_LOG_D(logger_,
 		"TaskScheduler initial max thread:{} affinity:{} priority:{}",
 		max_thread, affinity, priority);
@@ -100,9 +97,13 @@ void TaskScheduler::Destroy() noexcept {
 
 	XAMP_LOG_D(logger_, "Thread pool start destory.");
 
+	// Wait for all threads to finish
 	is_stopped_ = true;
+
+	// Wake up all threads
 	task_pool_->WakeupForShutdown();
 
+	// Wait for all threads to finish
 	for (size_t i = 0; i < max_thread_; ++i) {
 		threads_.at(i).request_stop();
 
@@ -127,6 +128,7 @@ void TaskScheduler::Destroy() noexcept {
 
 std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
 	MoveOnlyFunction func;
+	// Wait for a task to be available
 	if (task_pool_->Dequeue(func, timeout)) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
 		return std::move(func);
@@ -135,6 +137,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono
 }
 
 std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue() {
+	// Wait for a task to be available
     if (auto func = task_pool_->TryDequeue()) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
 	}
@@ -143,6 +146,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue() {
 
 std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue* local_queue) const {
 	MoveOnlyFunction func;
+	// Try to get a task from the local queue
 	if (local_queue->TryDequeue(func)) {
 		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
 		return func;
@@ -151,7 +155,15 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue
 }
 
 std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(StopToken const& stop_token, size_t i) {
-	for (size_t n = 0; n != max_thread_; ++n) {
+	// Try to steal a task from another thread's queue
+	// Note: The order in which we try the queues is important to prevent
+	//       all threads from trying to steal from the same thread
+	// 	 (which would lead to a deadlock)
+
+	constexpr size_t kMaxAttempts = 100;
+	size_t attempts = 0;
+
+	for (size_t n = 0; attempts < kMaxAttempts && n != max_thread_; ++n, ++attempts) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
 		}
@@ -170,63 +182,6 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	std::wostringstream stream;
 	stream << String::ToStdWString(pool_name_) << L" Worker Thread(" << i << ")";
 	SetThreadName(stream.str());
-}
-
-void TaskScheduler::CreateIdleThread() {
-	JThread([this]() {
-		constexpr std::chrono::milliseconds kIdleThreadCheckInterval(1000);
-		constexpr std::chrono::milliseconds kIdleThreadTimeout(6000);
-
-		Stopwatch stopwatch;
-
-		while (!is_stopped_) {
-			auto thread_size = 0;
-			{
-				std::lock_guard<FastMutex> lock(mutex_);
-				thread_size = threads_.size();
-			}
-
-			const auto idle_thread_count = thread_size - running_thread_;
-
-			if (idle_thread_count > last_idle_thread_count_ &&
-				stopwatch.Elapsed<std::chrono::milliseconds>() >= kIdleThreadTimeout) {
-				AddThread();
-				last_idle_thread_count_ = idle_thread_count;
-			}
-
-			if (idle_thread_count < last_idle_thread_count_ &&
-				stopwatch.Elapsed<std::chrono::milliseconds>() >= kIdleThreadTimeout) {
-				RemoveThread();
-				last_idle_thread_count_ = idle_thread_count;
-			}
-
-			if (idle_thread_count == thread_size) {
-				stopwatch.Reset();
-			}
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(kIdleThreadCheckInterval));
-		}
-		}).detach();
-}
-
-void TaskScheduler::AddThread() {
-	std::lock_guard<FastMutex> lock(mutex_);
-	if (threads_.size() < max_thread_) {
-		task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
-		AddThread(threads_.size() + 1, thread_priority_);
-		XAMP_LOG_I(logger_, "ThreadPoolExecutor add new thread, total: {}", threads_.size());
-	}
-}
-
-void TaskScheduler::RemoveThread() {
-	std::lock_guard<FastMutex> lock(mutex_);
-	if (threads_.size() > min_thread_) {
-		auto& thread = threads_.back();
-		thread.request_stop();
-		thread.join();
-		threads_.pop_back();
-		XAMP_LOG_I(logger_, "ThreadPoolExecutor remove thread, total: {}", threads_.size());
-	}
 }
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
@@ -259,25 +214,31 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
+		// Main loop
 		while (!is_stopped_ && !stop_token.stop_requested()) {
+			// Try to get a task from the local queue
 			auto task = TryLocalPop(local_queue);
 
+			// Try to get a task from the global queue
 			if (!task) {
-				const auto steal_index = policy->ScheduleNext(i, task_work_queues_);
+				const auto steal_index = policy->ScheduleNext(i, task_work_queues_);				
 				if (steal_index != (std::numeric_limits<size_t>::max)()) {
+					// Try to steal a task from another thread's queue
 					task = TrySteal(stop_token, steal_index);
 				}
-
-				if (!task) {
-					++steal_failure_count;
+				// Try to get a task from the shared queue
+				if (!task) {					
+					++steal_failure_count;					
 					if (steal_failure_count >= kMaxStealFailureSize) {
 						task = TryDequeueSharedQueue(kDefaultTimeout);
 					}
 				}
 			}
 
+			// If no task was found, wait for a notification
 			if (!task) {
-				CpuRelax();
+				// Cpu relax
+				CpuRelax();				
 				continue;
 			} else {
 				steal_failure_count = 0;
@@ -314,4 +275,4 @@ void ThreadPoolExecutor::Stop() {
 	scheduler_->Destroy();
 }
 
-}
+XAMP_BASE_NAMESPACE_END

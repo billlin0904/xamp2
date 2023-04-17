@@ -19,7 +19,7 @@
 #include <fstream>
 #include <vector>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(Pcm2DsdConverter);
 XAMP_DECLARE_LOG_NAME(DSPThreadPool);
@@ -697,4 +697,4 @@ bool Pcm2DsdSampleWriter::Process(float const* samples, size_t num_samples, Audi
 
 #endif
 
-}
+XAMP_STREAM_NAMESPACE_END

@@ -28,7 +28,7 @@
 #include <set>
 #include <map>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 
@@ -286,5 +286,5 @@ private:
 
 #define BASS Singleton<BassLib>::GetInstance()
 
-}
+XAMP_STREAM_NAMESPACE_END
 

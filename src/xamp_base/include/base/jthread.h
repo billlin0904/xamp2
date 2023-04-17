@@ -8,7 +8,7 @@
 #include <thread>
 #include <base/stop_token.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef __cpp_lib_jthread
 
@@ -136,5 +136,5 @@ inline void JThread::swap(JThread& t) noexcept {
 }
 #endif
 
-}
+XAMP_BASE_NAMESPACE_END
 

@@ -8,9 +8,10 @@
 #include <string>
 
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API MemoryMappedFile {
 public:
@@ -28,8 +29,7 @@ public:
 
 private:
 	class MemoryMappedFileImpl;
-	AlignPtr<MemoryMappedFileImpl> impl_;
+	PimplPtr<MemoryMappedFileImpl> impl_;
 };
 
-}
-
+XAMP_BASE_NAMESPACE_END

@@ -8,7 +8,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 class NullOutputDeviceType::NullOutputDeviceTypeImpl final {
 public:
@@ -56,9 +56,11 @@ Vector<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo
 }
 
 std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDefaultDeviceInfo() const {
+	static constexpr std::wstring_view kDescription = L"Null Output Device";
+	static constexpr std::string_view kDeviceId = "16AE95CF-6173-41DA-859D-EFF9D45CC504";
 	DeviceInfo info;
-	info.name = L"Null Output Device";
-	info.device_id = "16AE95CF-6173-41DA-859D-EFF9D45CC504";
+	info.name = kDescription;
+	info.device_id = kDeviceId;
 	info.device_type_id = XAMP_UUID_OF(NullOutputDeviceType);
 	return info;
 }
@@ -99,6 +101,7 @@ AlignPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::string& devi
 	return impl_->MakeDevice(device_id);
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
 #endif
 

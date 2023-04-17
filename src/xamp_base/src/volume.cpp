@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 static constexpr float kDbPerStep = 0.5f;
 static constexpr float kDbConvert = -kDbPerStep * 2.302585093f / 20.0f;
@@ -23,4 +23,4 @@ int32_t LogToLineaer(float volume_db) noexcept {
 	return volume_db ? 100 - static_cast<int32_t>(kDbConvertInverse * std::log(volume_db) + 0.5) : 0;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

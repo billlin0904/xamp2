@@ -14,18 +14,40 @@
 #include <output_device/win32/unknownimpl.h>
 #include <output_device/win32/wasapi.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
+/*
+ * Win32DeviceStateNotification is win32 device state notification.
+ */
 class Win32DeviceStateNotification
 	: public UnknownImpl<IMMNotificationClient>
 	, public IDeviceStateNotification {
 public:
+	/*
+	 * Constructor.
+	 * 
+	 * @param callback: device state listener.
+	 */
 	explicit Win32DeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback);
 
+	/*
+	* Destructor.
+	*/
 	virtual ~Win32DeviceStateNotification() override;
 
+	/*
+	* Run.
+	*/
 	void Run() override;
 
+	/*
+	* QueryInterface.
+	* 
+	* @param[in] iid: interface id.
+	* @param[in] object: object.
+	* 
+	* @return HRESULT
+	*/
 	STDMETHOD(QueryInterface)(REFIID iid, void** object) override;
 
 private:
@@ -43,6 +65,6 @@ private:
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 };
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#endif
+#endif // XAMP_OS_WIN

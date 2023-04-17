@@ -10,7 +10,7 @@
 
 #include <avrt.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 class Mmcss::MmcssImpl {
 public:
@@ -51,7 +51,7 @@ private:
 };
 
 Mmcss::Mmcss()
-	: impl_(MakeAlign<MmcssImpl>()) {
+	: impl_(MakePimpl<MmcssImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(Mmcss)
@@ -64,6 +64,7 @@ void Mmcss::RevertPriority() noexcept {
 	impl_->RevertPriority();
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
 #endif
 

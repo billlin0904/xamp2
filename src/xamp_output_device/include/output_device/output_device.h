@@ -35,3 +35,12 @@ class IDeviceStateListener;
 class IDeviceStateNotification;
 
 }
+
+#define XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN namespace xamp::output_device {
+#define XAMP_OUTPUT_DEVICE_NAMESPACE_END }
+
+#define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN namespace xamp::output_device::win32 {
+#define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END }
+
+#define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN namespace xamp::output_device::win32::helper {
+#define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END }

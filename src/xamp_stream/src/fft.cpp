@@ -15,7 +15,7 @@
 #include <Accelerate/Accelerate.h>
 #endif
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 static size_t ComplexSize(size_t size) {
 	return (size / 2) + 1;
@@ -254,4 +254,4 @@ const ComplexValarray& FFT::Forward(float const* data, size_t size) {
 	return impl_->Forward(data, size);
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

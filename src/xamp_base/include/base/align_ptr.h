@@ -9,31 +9,88 @@
 #include <cassert>
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* Allaocate aligned memory.
+* 
+* @param[in] size
+* @param[in] aligned_size
+* @return void*
+*/
 XAMP_BASE_API void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
 
+/*
+* Free aligned memory.
+* 
+* @param[in] p
+* @return void
+* @note p must be allocated by AlignedMalloc.
+*/
 XAMP_BASE_API void AlignedFree(void* p) noexcept;
 
+/*
+* Allocate stack memory.
+* 
+* @param[in] size
+* @return void*
+* @note StackAlloc is not thread safe.
+*/
 XAMP_BASE_API void* StackAlloc(size_t size);
 
+/*
+* Free stack memory.
+* 
+* @param[in] p
+* @return void
+* @note p must be allocated by StackAlloc.
+*/
 XAMP_BASE_API void StackFree(void* p);
 
+/*
+* Align value to aligned_size.
+* 
+* @param[in] value
+* @param[in] aligned_size
+* @return T
+* @note aligned_size must be power of 2.
+*/
 template <typename T>
 constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
     return T((value + (T(aligned_size) - 1)) & ~T(aligned_size - 1));
 }
 
-template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocOf(size_t aligned_size) noexcept {
-    return static_cast<Type*>(AlignedMalloc(sizeof(Type), aligned_size));
+/*
+* Allocate aligned memory.
+* 
+* @param[in] aligned_size
+* @return void*
+* @note aligned_size must be power of 2.
+*/
+template <typename T>
+XAMP_BASE_API_ONLY_EXPORT T* AlignedMallocOf(size_t aligned_size) noexcept {
+    return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
 }
 
+/*
+* Allocate aligned memory.
+* 
+* @param[in] n
+* @param[in] aligned_size
+* @return void*
+* @note aligned_size must be power of 2.
+*/
 template <typename Type>
 XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocCountOf(size_t n, size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
+/*
+* Aligned deleter.
+* 
+* @param[in] p
+* @return void
+*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
     void operator()(Type* p) const noexcept {
@@ -41,14 +98,26 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
     }
 };
 
+/*
+* Aligned class deleter.
+*
+* @param[in] p
+* @return void
+*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
-    void operator()(Type* p) const noexcept {
+    void operator()(Type* p) const {
         p->~Type();
         AlignedFree(p);
     }
 };
 
+/*
+* Stack buffer deleter.
+* 
+* @param[in] p
+* @return void
+*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
     void operator()(Type* p) const noexcept {
@@ -56,6 +125,12 @@ struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
     }
 };
 
+/*
+* Free deleter.
+* 
+* @param[in] p
+* @return void
+*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
     void operator()(Type* p) const noexcept {
@@ -74,6 +149,13 @@ using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 template <typename Type>
 using AlignArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
+/*
+* Make aligned pointer.
+* 
+* @param[in] args
+* @return AlignPtr<Type>
+* @note Type must be default constructible.
+*/
 template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
     auto* ptr = AlignedMallocOf<ImplType>(AlignSize);
@@ -91,6 +173,13 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
     }
 }
 
+/*
+* Make aligned pointer.
+* 
+* @param[in] args
+* @return AlignPtr<Type>
+* @note Type must be default constructible.
+*/
 template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
     auto* ptr = AlignedMallocOf<Type>(AlignSize);
@@ -107,6 +196,12 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
     }
 }
 
+/*
+* Make aligned array.
+* 
+* @param[in] n
+* @return AlignArray<Type>
+*/
 template <typename Type>
 XAMP_BASE_API_ONLY_EXPORT AlignArray<Type> MakeAlignedArray(size_t n) {
     auto ptr = AlignedMallocCountOf<Type>(n, kMallocAlignSize);
@@ -116,6 +211,13 @@ XAMP_BASE_API_ONLY_EXPORT AlignArray<Type> MakeAlignedArray(size_t n) {
     return AlignArray<Type>(static_cast<Type*>(ptr));
 }
 
+/*
+* Make stack buffer.
+* 
+* @param[in] n
+* @return StackBufferPtr<Type>
+* @note StackAlloc is not thread safe.
+*/
 template <typename Type = uint8_t>
 XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
     auto* ptr = StackAlloc(sizeof(Type) * n);
@@ -125,5 +227,5 @@ XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
     return StackBufferPtr<Type>(static_cast<Type*>(ptr));
 }
 
-}
+XAMP_BASE_NAMESPACE_END
 

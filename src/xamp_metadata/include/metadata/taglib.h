@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <metadata/metadata.h>
+
 #include <tlist.h>
 #include <tfilestream.h>
 #include <fileref.h>
@@ -28,10 +30,13 @@
 #include <id3v2/frames/textidentificationframe.h>
 #include <id3v2/frames/attachedpictureframe.h>
 #include <id3v2/id3v2tag.h>
+#include <id3v2/id3v2framefactory.h>
+#include <id3v2/id3v2header.h>
+#include <id3v2/id3v2extendedheader.h>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 using namespace TagLib;
 
-}
+XAMP_METADATA_NAMESPACE_END
 

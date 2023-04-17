@@ -9,7 +9,7 @@
 #include <stream/stream.h>
 #include <base/enum.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr size_t kEQMaxBand = 10;
 inline constexpr auto kDefaultQ = 1.41;
@@ -66,4 +66,4 @@ struct XAMP_STREAM_API EqSettings final {
     Vector<EqBandSetting> bands;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

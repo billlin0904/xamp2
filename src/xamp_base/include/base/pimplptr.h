@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <array>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 template <typename T>
 class PimplPtr {
@@ -97,5 +97,5 @@ PimplPtr<T> MakePimpl(Args&&... args) {
 	return PimplPtr<T>(std::forward<Args>(args)...);
 }
 
-}
+XAMP_BASE_NAMESPACE_END
 

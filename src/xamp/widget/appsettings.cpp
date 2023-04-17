@@ -1,12 +1,14 @@
+#include <widget/appsettings.h>
+
 #include <QStandardPaths>
 #include <QDirIterator>
 #include <QTextStream>
 #include <QSize>
+
 #include <base/logger_impl.h>
 #include <widget/appsettingnames.h>
 #include <widget/xmainwindow.h>
 #include <widget/playerorder.h>
-#include <widget/appsettings.h>
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;

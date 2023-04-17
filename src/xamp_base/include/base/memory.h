@@ -9,7 +9,7 @@
 #include <string>
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef __cpp_lib_assume_aligned
 
@@ -49,5 +49,5 @@ XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 #define MemorySet(dest, c, size) std::memset(dest, c, size)
 #define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)
 
-}
+XAMP_BASE_NAMESPACE_END
 

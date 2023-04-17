@@ -1,7 +1,7 @@
 #include <base/platform.h>
 #include <base/itaskschedulerpolicy.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 #define XAMP_NO_TLS_GUARDS [[msvc::no_tls_guard]]
@@ -59,9 +59,10 @@ void ThreadLocalRandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 }
 
 size_t ThreadLocalRandomSchedulerPolicy::ScheduleNext(size_t index,
-	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();
+	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {		
+	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();	
 	const auto random_index = prng() % static_cast<uint32_t>(max_thread_);
+	// Avoid self stealing
 	if (random_index == index) {
 		return (std::numeric_limits<size_t>::max)();
 	}
@@ -79,8 +80,8 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 
 size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
 	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
-	auto& prng = prngs_[index];
-	const auto random_index = prng() % prngs_.size();
+	auto& prng = prngs_[index];	
+	const auto random_index = prng() % prngs_.size();	
 	if (random_index == index) {
 		return (std::numeric_limits<size_t>::max)();
 	}
@@ -105,4 +106,4 @@ size_t LeastLoadSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index, con
 	return min_wq_size_index;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

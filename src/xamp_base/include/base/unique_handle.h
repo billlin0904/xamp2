@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 template <typename T, typename Traits>
 class XAMP_BASE_API_ONLY_EXPORT UniqueHandle final {
@@ -104,4 +104,4 @@ auto operator<=(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> co
 	return left.get() <= right.get();
 }
 
-}
+XAMP_BASE_NAMESPACE_END

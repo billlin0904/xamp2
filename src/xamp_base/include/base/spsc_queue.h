@@ -11,7 +11,7 @@
 #include <base/base.h>
 #include <base/assert.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 template <typename Type>
 class XAMP_BASE_API_ONLY_EXPORT SpscQueue {
@@ -110,8 +110,7 @@ private:
 
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-
     uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
 };
 
-}
+XAMP_BASE_NAMESPACE_END

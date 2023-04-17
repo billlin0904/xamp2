@@ -4,7 +4,7 @@
 #else
 #include <widget/osx/osx.h>
 #endif
-#include <widget/fonticonanimation.h>
+
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
@@ -458,7 +458,7 @@ QPixmap ThemeManager::GetGithubIcon() const {
 	}
 }
 
-const QPixmap& ThemeManager::UnknownCover() const noexcept {
+const QPixmap& ThemeManager::GetUnknownCover() const noexcept {
     return unknown_cover_;
 }
 

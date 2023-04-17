@@ -12,7 +12,7 @@
 #include <base/audiobuffer.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr int32_t kR8brainBufferSize = 64 * 1024;
 
@@ -43,5 +43,4 @@ private:
     PimplPtr<R8brainSampleRateConverterImpl> impl_;
 };
 
-}
-
+XAMP_STREAM_NAMESPACE_END

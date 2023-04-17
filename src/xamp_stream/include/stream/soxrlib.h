@@ -13,7 +13,7 @@
 
 #include <soxr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class SoxrLib final {
 public:
@@ -35,4 +35,4 @@ public:
     XAMP_DECLARE_DLL_NAME(soxr_clear);
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

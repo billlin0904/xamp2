@@ -11,7 +11,7 @@
 
 #include <soxr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(Soxr);
 
@@ -286,5 +286,4 @@ std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
 	return VERSION;
 }
 	
-}
-
+XAMP_STREAM_NAMESPACE_END

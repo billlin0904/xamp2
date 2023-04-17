@@ -16,7 +16,7 @@
 #include <base/fastconditionvariable.h>
 #include <base/fastmutex.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef __cpp_lib_latch
 
@@ -68,4 +68,4 @@ private:
 
 #endif
 
-}
+XAMP_BASE_NAMESPACE_END

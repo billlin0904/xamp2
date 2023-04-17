@@ -6,7 +6,7 @@
 
 #include <bass/bassdsd.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BASS);
 
@@ -350,4 +350,4 @@ HashSet<std::string> BassLib::GetSupportFileExtensions() const {
     return result;
 } 
 
-}
+XAMP_STREAM_NAMESPACE_END

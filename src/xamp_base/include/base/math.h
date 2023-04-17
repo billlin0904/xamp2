@@ -12,8 +12,19 @@
 #include <base/base.h>
 #include <base/memory.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* Math constant.
+*/
+inline constexpr double XAMP_PI{ 3.14159265358979323846 };
+
+/*
+* Splitmix64 random number generator.
+* 
+* @param[in] state
+* @return std::array<uint64_t, N>
+*/
 template <size_t N>
 constexpr std::array<uint64_t, N> Splitmix64(uint64_t state) noexcept {
 	std::array<uint64_t, N> seeds = {};
@@ -26,6 +37,12 @@ constexpr std::array<uint64_t, N> Splitmix64(uint64_t state) noexcept {
 	return seeds;
 }
 
+/*
+* From unaligned memory.
+* 
+* @param[in] address
+* @return T
+*/
 template <typename T>
 static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
 	static_assert(std::is_trivially_copyable_v<T>);
@@ -34,6 +51,13 @@ static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
 	return res;
 }
 
+/*
+* Rotates bits to the left.
+* 
+* @param[in] x
+* @param[in] shift
+* @return uint64_t
+*/
 template <uint32_t TShiftBits>
 uint64_t Rotl64(const uint64_t x) noexcept {
 	const uint64_t left = x << TShiftBits;
@@ -41,14 +65,34 @@ uint64_t Rotl64(const uint64_t x) noexcept {
 	return left | right;
 }
 
+/*
+* Rotates bits to the left.
+* 
+* @param[in] x
+* @param[in] shift
+* @return uint64_t
+*/
 static XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
     return (x << shift) | (x >> (64 - shift));
 }
 
+/*
+* Rotates bits to the left.
+*
+* @param[in] x
+* @param[in] shift
+* @return uint32_t
+*/
 static XAMP_ALWAYS_INLINE uint32_t Rotl32(const uint32_t x, uint32_t shift) noexcept {
 	return (x << shift) | (x >> (32 - shift));
 }
 
+/*
+* Next power of two.
+* 
+* @param[in] v
+* @return int32_t
+*/
 static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
 	v--;
 	v |= v >> 1;
@@ -60,16 +104,36 @@ static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
 	return v;
 }
 
+/*
+* Is next power of two.
+* 
+* @param[in] v
+* @return int32_t
+*/
 static XAMP_ALWAYS_INLINE int32_t IsPowerOfTwo(int32_t v) noexcept {
 	return v > 0 && !(v & (v - 1));
 }
 
+/*
+* Round.
+* 
+* @param[in] a
+* @return T
+*/
 template <typename T>
 T Round(T a) {
     static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");
     return (a > 0) ? ::floor(a + static_cast<T>(0.5)) : ::ceil(a - static_cast<T>(0.5));
 }
 
+/*
+* Round.
+* 
+* @param[in] a
+* @param[in] places
+* @return T
+* @note places must be positive.
+*/
 template <typename T>
 T Round(T a, int32_t places) {
     static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");
@@ -120,5 +184,5 @@ XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
 }
 #endif
 
-}
+XAMP_BASE_NAMESPACE_END
 

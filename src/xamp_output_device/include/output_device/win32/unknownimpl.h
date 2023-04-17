@@ -13,37 +13,57 @@
 
 #ifdef XAMP_OS_WIN
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
+/*
+* UnknownImpl is the class for IUnknown.
+* 
+* @tparam Base class type.
+*/
 template <typename Base>
 class UnknownImpl : public Base {
 public:
 	XAMP_DISABLE_COPY(UnknownImpl)
 
+	/*
+	* Destructor
+	*/
 	virtual ~UnknownImpl() = default;	
 
+	/*
+	* Add reference count
+	* 
+	* @return reference count
+	*/	
 	ULONG STDMETHODCALLTYPE AddRef() override {
-		return ::InterlockedIncrement(&refcount_);
+		auto result = refcount_.fetch_add(1);
+		return result;
 	}
 
+	/*
+	* Release reference count
+	* 
+	* @return reference count
+	*/
 	ULONG STDMETHODCALLTYPE Release() override {
-		ULONG result = ::InterlockedDecrement(&refcount_);
-		if (result == 0) {
-			delete this;
-		}
+		auto result = refcount_.fetch_sub(1);
 		return result;
 	}
 
 protected:
+	/*
+	* Constructor
+	*/
 	UnknownImpl() noexcept
 		: refcount_(0) {
 	}
 
 private:
-	ULONG refcount_;
+	// Reference count
+	std::atomic<ULONG> refcount_;
 };
 
-}
+XAMP_OUTPUT_DEVICE_NAMESPACE_END
 
-#endif
+#endif // XAMP_OS_WIN
 

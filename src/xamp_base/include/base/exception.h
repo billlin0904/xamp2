@@ -14,8 +14,32 @@
 #include <ostream>
 #include <string>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* Error code enum
+* 
+* <remarks>
+* XAMP_ERROR_SUCCESS: Success
+* XAMP_ERROR_PLATFORM_SPEC_ERROR: Platform specific error
+* XAMP_ERROR_LIBRARY_SPEC_ERROR: Library specific error
+* XAMP_ERROR_DEVICE_CREATE_FAILURE: Device create failure
+* XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT: Device unsupported format
+* XAMP_ERROR_DEVICE_IN_USE: Device in use
+* XAMP_ERROR_DEVICE_NOT_FOUND: Device not found
+* XAMP_ERROR_FILE_NOT_FOUND: File not found
+* XAMP_ERROR_NOT_SUPPORT_SAMPLERATE: Not support samplerate
+* XAMP_ERROR_NOT_SUPPORT_FORMAT: Not support format
+* XAMP_ERROR_LOAD_DLL_FAILURE: Load dll failure
+* XAMP_ERROR_STOP_STREAM_TIMEOUT: Stop stream timeout
+* XAMP_ERROR_SAMPLERATE_CHANGED: Samplerate changed
+* XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE: Not support resample samplerate
+* XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC: Not found dll export function
+* XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE: Not support exclusive mode
+* XAMP_ERROR_NOT_BUFFER_OVERFLOW: Not buffer overflow
+* XAMP_ERROR_UNKNOWN: Unknown error
+* </remarks>
+*/
 XAMP_MAKE_ENUM(Errors,
                XAMP_ERROR_SUCCESS = 0,
                XAMP_ERROR_PLATFORM_SPEC_ERROR,
@@ -36,30 +60,64 @@ XAMP_MAKE_ENUM(Errors,
                XAMP_ERROR_NOT_BUFFER_OVERFLOW,
                XAMP_ERROR_UNKNOWN)
 
-XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
-
-XAMP_BASE_API std::string GetLastErrorMessage();
-
+/*
+* Exception class
+* 
+*/
 class XAMP_BASE_API Exception : public std::exception {
 public:
+    /*
+    * Constructor.
+    * 
+    * @param message: Message.
+    * @param what: What.
+    */
     Exception(std::string const& message, std::string_view what = "");
 
+    /*
+    * Constructor.
+    * 
+    * @param error: Error code.
+    * @param message: Message.
+    * @param what: What.
+    */
 	explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
                        std::string const & message = "",
                        std::string_view what = "");
     
+    /*
+    * Destructor.
+    */
     ~Exception() noexcept override = default;
 
+    /*
+    * what function.
+    */
     [[nodiscard]] char const * what() const noexcept override;
 
+    /*
+    * Get error code.
+    */
     [[nodiscard]] virtual Errors GetError() const noexcept;
 
+    /*
+    * Get error message.
+    */
     [[nodiscard]] char const * GetErrorMessage() const noexcept;
 
+    /*
+    * Get expression.
+    */
     [[nodiscard]] virtual const char * GetExpression() const noexcept;
 
+    /*
+    * Get stack trace.
+    */
     [[nodiscard]] char const* GetStackTrace() const noexcept;
 
+    /*
+    * Get error code string.
+    */
     static std::string_view ErrorToString(Errors error);
 private:
     Errors error_;
@@ -69,6 +127,10 @@ protected:
     std::string message_;
     std::string stacktrace_;
 };
+
+XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
+
+XAMP_BASE_API std::string GetLastErrorMessage();
 
 class XAMP_BASE_API LibrarySpecException : public Exception {
 public:
@@ -161,4 +223,4 @@ void ThrowIf(T &&value, std::string_view s, Args &&...args) {
     }
 }
 
-}
+XAMP_BASE_NAMESPACE_END

@@ -5,7 +5,7 @@
 #include <base/logger_impl.h>
 #include <base/exception.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 AvException::AvException(int32_t error)
 	: Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) {
@@ -220,4 +220,4 @@ Vector<std::string> AvLib::GetSupportFileExtensions() const {
 	return result;
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

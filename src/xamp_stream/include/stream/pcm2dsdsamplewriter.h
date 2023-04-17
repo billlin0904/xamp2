@@ -14,7 +14,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(Pcm2DsdConvertModes,
 	PCM2DSD_NONE,
@@ -46,5 +46,5 @@ private:
 	AlignPtr<Pcm2DsdSampleWriterImpl> impl_;
 };
 	
-}
+XAMP_STREAM_NAMESPACE_END
 

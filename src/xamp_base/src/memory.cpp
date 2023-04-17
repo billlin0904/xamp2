@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 size_t GetPageSize() noexcept {
@@ -77,4 +77,4 @@ bool PrefetchFile(std::wstring const & file_path) {
 #endif
 }
 
-}
+XAMP_BASE_NAMESPACE_END

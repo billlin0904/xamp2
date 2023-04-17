@@ -17,6 +17,9 @@
 #define XAMP_METADATA_API __attribute__((visibility("default")))
 #endif
 
+#define XAMP_METADATA_NAMESPACE_BEGIN namespace xamp::metadata {
+#define XAMP_METADATA_NAMESPACE_END }
+
 namespace xamp::metadata {
     using namespace xamp::base;
 

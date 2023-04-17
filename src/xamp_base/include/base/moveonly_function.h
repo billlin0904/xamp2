@@ -10,8 +10,12 @@
 #include <base/base.h>
 #include <base/align_ptr.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* MoveOnlyFunction is a function wrapper that can only be moved.
+* It is used to wrap a function that is only called once.
+*/
 class MoveOnlyFunction final {
 public:
     template <typename Func>
@@ -38,6 +42,11 @@ public:
     XAMP_DISABLE_COPY(MoveOnlyFunction)
 	
 private:
+    /*
+    * ImplBase is a virtual base class for ImplType.
+    * It is used to avoid the need to know the type of the function
+    * when calling Invoke().
+    */
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
         virtual void Invoke() = 0;
@@ -58,5 +67,5 @@ private:
     };
 };
 
-}
+XAMP_BASE_NAMESPACE_END
 

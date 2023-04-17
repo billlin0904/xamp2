@@ -38,7 +38,7 @@ namespace TagLib {
 	}
 }
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 static bool ClearTxxTag(ID3v2::Tag* tag, 
 	TagLib::String const& tag_name,
@@ -167,7 +167,7 @@ public:
 		const auto ext = String::ToLower(path.extension().string());
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
 
-		if (ext == ".m4a") {			
+		if (ext == ".m4a") {
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
             Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
@@ -274,4 +274,4 @@ void TaglibMetadataWriter::WriteEmbeddedCover(Path const & path, std::vector<uin
 	writer_->WriteEmbeddedCover(path, image);
 }
 
-}
+XAMP_METADATA_NAMESPACE_END

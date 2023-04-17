@@ -3,7 +3,7 @@
 #include <base/logger_impl.h>
 #include <base/ithreadpoolexecutor.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
@@ -65,4 +65,4 @@ IThreadPoolExecutor& GetWasapiThreadPool() {
     return executor;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

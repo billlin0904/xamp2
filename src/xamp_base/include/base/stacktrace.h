@@ -10,7 +10,7 @@
 #include <array>
 #include <string>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 static constexpr size_t kMaxStackFrameSize = 62;
 using CaptureStackAddress = std::array<void*, kMaxStackFrameSize>;
@@ -24,6 +24,4 @@ public:
     std::string CaptureStack();
 };
 
-}
-
-
+XAMP_BASE_NAMESPACE_END

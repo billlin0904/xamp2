@@ -14,7 +14,7 @@
 #include <base/align_ptr.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassParametricEq final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassParametricEq, "EBFA0111-594F-4F9D-9131-256451C3BF46")
@@ -53,5 +53,5 @@ private:
     PimplPtr<BassParametricEqImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

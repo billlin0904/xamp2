@@ -4,7 +4,7 @@
 #include <base/assert.h>
 #include <base/logger_impl.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 #define LIBR8_DLL Singleton<R8brainLib>::GetInstance()
 
@@ -116,5 +116,4 @@ std::string_view R8brainSampleRateConverter::GetDescription() const noexcept {
 	return VERSION;
 }
 
-
-}
+XAMP_STREAM_NAMESPACE_END

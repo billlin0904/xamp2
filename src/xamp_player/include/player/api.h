@@ -10,7 +10,7 @@
 #include <player/iplaybackstateadapter.h>
 #include <stream/icddevice.h>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 XAMP_PLAYER_API void LoadComponentSharedLibrary();
 
@@ -20,4 +20,4 @@ XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer();
 XAMP_PLAYER_API AlignPtr<ICDDevice> OpenCD(int32_t driver_letter);
 #endif
 
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

@@ -8,7 +8,7 @@
 #include <base/trackinfo.h>
 #include <metadata/metadata.h>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataExtractAdapter {
 public:
@@ -25,4 +25,4 @@ protected:
     IMetadataExtractAdapter() = default;
 };
 
-}
+XAMP_METADATA_NAMESPACE_END

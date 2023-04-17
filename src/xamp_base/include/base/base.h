@@ -135,25 +135,26 @@
 
 #define XAMP_HTTP_USER_AGENT "xamp2/1.0.0"
 
-namespace xamp::base {
+#define XAMP_BASE_NAMESPACE_BEGIN namespace xamp::base {
+#define XAMP_BASE_NAMESPACE_END }
 
-/// <summary>
-/// Avoid cache-pollution padding size.
-/// </summary>
+XAMP_BASE_NAMESPACE_BEGIN
+
+/*
+* Avoid cache-pollution padding size.
+*/
 inline constexpr size_t kCacheAlignSize{ 64 };
 
-/// <summary>
-/// Avoid 64k Alias conflicts.
-/// </summary>
+/*
+* Avoid 64k Alias conflicts.
+*/
 static constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
 static constexpr size_t kMaxL1CacheLineSize{ 256 * 1024 };
 
-/// <summary>
-/// Memory allocate aligned size
-/// Assume we need 32-byte alignment for AVX2 instructions.
-/// </summary>
+/*
+* Memory allocate aligned size
+* Assume we need 32-byte alignment for AVX2 instructions.
+*/
 inline constexpr size_t kMallocAlignSize{ 32 };
 
-inline constexpr double XAMP_PI{ 3.14159265358979323846 };
-
-}
+XAMP_BASE_NAMESPACE_END

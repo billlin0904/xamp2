@@ -123,7 +123,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 Xamp::~Xamp() = default;
 
 void Xamp::SetXWindow(IXMainWindow* main_window) {
-    FramelessWidgetsHelper::get(this)->setBlurBehindWindowEnabled(true);
+    //FramelessWidgetsHelper::get(this)->setBlurBehindWindowEnabled(true);
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
@@ -132,7 +132,21 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.preferenceButton);
 
     main_window_ = main_window;
-    background_worker_ = new BackgroundWorker();  
+
+    (void)QObject::connect(ui_.minWinButton, &QToolButton::pressed, [this]() {
+        main_window_->showMinimized();
+        });
+
+    (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
+        main_window_->UpdateMaximumState();
+        });
+
+    (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
+        QWidget::close();
+        });
+
+
+    background_worker_ = new BackgroundWorker();
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start(QThread::LowestPriority);
 
@@ -154,12 +168,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     podcast_page_->HidePlaybackInformation(true);
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
-    album_page_->album()->albumViewPage()->playlistPage()->HidePlaybackInformation(false);
-
-    (void)QObject::connect(album_page_->album(), &AlbumView::LoadCompleted,
-        this, &Xamp::ProcessTrackInfo);
-
-    qTheme.SetPlayOrPauseButton(ui_, false);       
+    album_page_->album()->albumViewPage()->playlistPage()->HidePlaybackInformation(false);    
 
     const auto tab_name = AppSettings::ValueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.sliderBar->GetTabId(tab_name);
@@ -167,6 +176,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
         SetCurrentTab(tab_id);
     }
+
+    (void)QObject::connect(album_page_->album(), &AlbumView::LoadCompleted,
+        this, &Xamp::ProcessTrackInfo);
 
     (void)QObject::connect(&qTheme, 
         &ThemeManager::CurrentThemeChanged, 
@@ -330,10 +342,10 @@ void Xamp::InitialUi() {
     ui_.seekSlider->setDisabled(true);
 
     ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-    //main_window_->SetTitleBarAction(ui_.titleFrame);
 
     ui_.mutedButton->SetPlayer(player_);
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
+    qTheme.SetPlayOrPauseButton(ui_, false);
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -465,7 +477,6 @@ void Xamp::InitialDeviceList() {
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.device_id);
     }
 
-    //ui_.deviceDescLabel->setMaximumWidth(max_width * 2);
     ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.name));
 }
 
@@ -500,26 +511,7 @@ void Xamp::SliderAnimation(bool enable) {
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
-void Xamp::InitialController() {
-    (void)QObject::connect(ui_.minWinButton, &QToolButton::pressed, [this]() {
-        main_window_->showMinimized();
-        //showMinimized();
-    });
-
-    (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
-        main_window_->UpdateMaximumState();
-        /*if (isFullScreen()) {
-            setWindowState(windowState() & ~Qt::WindowFullScreen);
-        }
-        else {
-            showFullScreen();
-        }*/
-    });
-
-    (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
-        QWidget::close();
-    });
-
+void Xamp::InitialController() {    
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
         if (!player_->IsMute()) {
             SetVolume(0);
@@ -755,19 +747,29 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
         qTheme.SetThemeColor(ThemeColor::LIGHT_THEME);
         break;
 	}
+
     Q_FOREACH(QFrame *frame, device_type_frame_) {
         qTheme.SetTextSeparator(frame);
 	}
+
     if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
         qTheme.SetMuted(ui_.mutedButton, true);
     }
     else {
         qTheme.SetMuted(ui_.mutedButton, false);
     }
+
     qTheme.LoadAndApplyQssTheme();
     qTheme.SetThemeIcon(ui_);
     qTheme.SetRepeatButtonIcon(ui_, order_);
     SetThemeColor(qTheme.BackgroundColor(), qTheme.GetThemeTextColor());
+
+    lrc_page_->SetCover(qTheme.GetUnknownCover());
+
+    SetPlaylistPageCover(nullptr, playlist_page_);
+    SetPlaylistPageCover(nullptr, podcast_page_);
+    SetPlaylistPageCover(nullptr, cd_page_->playlistPage());
+    SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 }
 
 void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
@@ -1010,8 +1012,6 @@ void Xamp::ResetSeekPosValue() {
 void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
     album_page_->album()->Refresh();
     playlist_page_->playlist()->Reload();
-    /*messages_->Push(MessageTypes::MSG_SUCCESS,
-        tr("Add %1 albums %2 tracks successfully!").arg(total_album).arg(total_tracks));*/
 }
 
 void Xamp::SetupDsp(const PlayListEntity& item) const {
@@ -1040,7 +1040,6 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
     } else {
         player_->GetDspManager()->RemoveEqualizer();
     }
-    //player_->GetDspManager()->RemoveEqualizer();
 }
 
 QString Xamp::TranslateErrorCode(const Errors error) const {
@@ -1461,7 +1460,7 @@ void Xamp::OnClickedAlbum(const QString& album, int32_t album_id, const QString&
 
 void Xamp::SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
     if (!cover) {
-        cover = &qTheme.UnknownCover();
+        cover = &qTheme.GetUnknownCover();
     }
 
 	if (!page) {
@@ -1628,12 +1627,6 @@ void Xamp::InitialPlaylist() {
         &BackgroundWorker::SearchLyricsCompleted,
         this,
         &Xamp::OnSearchLyricsCompleted);
-
-    /*(void)QObject::connect(this,
-        &Xamp::ReadTrackInfo,
-        background_worker_,
-        &BackgroundWorker::OnReadTrackInfo);
-        */
 
     PushWidget(playlist_page_);
     PushWidget(lrc_page_);

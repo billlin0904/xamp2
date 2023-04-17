@@ -42,7 +42,7 @@ public:
         return ui_font_;
     }
 
-    const QPixmap& UnknownCover() const noexcept;
+    const QPixmap& GetUnknownCover() const noexcept;
 
 	const QPixmap& DefaultSizeUnknownCover() const noexcept;
 

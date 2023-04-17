@@ -2,7 +2,7 @@
 #include <base/platfrom_handle.h>
 #include <base/fastmutex.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class SRWMutex::SRWMutexImpl {
 public:
@@ -62,7 +62,7 @@ public:
 XAMP_PIMPL_IMPL(SRWMutex)
 
 SRWMutex::SRWMutex() noexcept
-	: impl_(MakeAlign<SRWMutexImpl>()) {
+	: impl_(MakePimpl<SRWMutexImpl>()) {
 }
 
 void SRWMutex::lock() noexcept {
@@ -77,4 +77,4 @@ bool SRWMutex::try_lock() noexcept {
     return impl_->try_lock();
 }
 
-}
+XAMP_BASE_NAMESPACE_END

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <algorithm>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
 ExceptionClassName::ExceptionClassName(std::string const& message)\
@@ -174,4 +174,4 @@ IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NO
 IMP_EXCEPTION_CLASS(NotSupportExclusiveModeException, Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
 IMP_EXCEPTION_CLASS(BufferOverflowException, Errors::XAMP_ERROR_NOT_BUFFER_OVERFLOW)
 
-}
+XAMP_BASE_NAMESPACE_END

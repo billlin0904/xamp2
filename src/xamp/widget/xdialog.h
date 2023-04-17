@@ -6,11 +6,14 @@
 #pragma once
 
 #include <QDialog>
+#include <FramelessHelper/Widgets/framelessdialog.h>
 #include <widget/xframe.h>
 
 class QGraphicsDropShadowEffect;
 
-class XDialog : public QDialog {
+FRAMELESSHELPER_USE_NAMESPACE
+
+class XDialog : public FramelessDialog {
     Q_OBJECT
 public:
     explicit XDialog(QWidget* parent = nullptr);

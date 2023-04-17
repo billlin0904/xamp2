@@ -29,7 +29,7 @@
 #include <base/logger_impl.h>
 #include <base/exception.h>
 
-namespace xamp::output_device {
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 class AudioDeviceManager::DeviceStateNotificationImpl {
 public:
@@ -69,8 +69,6 @@ AudioDeviceManager::AudioDeviceManager()
 	: impl_(MakePimpl<DeviceStateNotificationImpl>()) {
 #ifdef XAMP_OS_WIN
     using namespace win32;
-    constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
-    SetProcessWorkingSetSize(kWorkingSetSize);
     XAMP_LOG_DEBUG("LoadAvrtLib success");
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
@@ -152,4 +150,4 @@ void AudioDeviceManager::RegisterDevice(Uuid const& id, std::function<AlignPtr<I
     factory_.emplace(std::make_pair(id, std::move(func)));
 }
 
-}
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

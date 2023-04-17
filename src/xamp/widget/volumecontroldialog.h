@@ -9,12 +9,7 @@
 
 #include "ui_volumecontroldialog.h"
 #include <widget/widget_shared.h>
-
-namespace xamp {
-	namespace player {
-		class IAudioPlayer;
-	}
-}
+#include <widget/xdialog.h>
 
 class VolumeControlDialog : public QDialog {
     Q_OBJECT
@@ -27,7 +22,6 @@ public:
 
 	void SetThemeColor();
 
-	void InitialVolumeControl();
 signals:
     void VolumeChanged(uint32_t volume);
 

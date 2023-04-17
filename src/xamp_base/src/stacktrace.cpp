@@ -21,7 +21,7 @@
 #include <sstream>
 #include <filesystem>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
@@ -288,4 +288,4 @@ std::string StackTrace::CaptureStack() {
 #endif
 }
 
-}
+XAMP_BASE_NAMESPACE_END

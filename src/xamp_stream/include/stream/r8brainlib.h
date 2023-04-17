@@ -12,7 +12,7 @@
 #include <stream/stream.h>
 #include <r8bsrc.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class R8brainLib {
 public:
@@ -32,4 +32,4 @@ public:
 	XAMP_DECLARE_DLL_NAME(r8b_process);
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

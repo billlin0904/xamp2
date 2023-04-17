@@ -7,8 +7,9 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
+#include <base/pimplptr.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API SRWMutex final {
 public:
@@ -23,10 +24,10 @@ public:
 	[[nodiscard]] bool try_lock() noexcept;
 private:
 	class SRWMutexImpl;
-	AlignPtr<SRWMutexImpl> impl_;
+	PimplPtr<SRWMutexImpl> impl_;
 };
 
 using FastMutex = SRWMutex;
 	
-}
+XAMP_BASE_NAMESPACE_END
 

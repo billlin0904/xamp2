@@ -198,13 +198,11 @@
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\colorthief.cpp" />
     <ClCompile Include="widget\database.cpp" />
-    <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
     <ClCompile Include="widget\equalizerview.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
-    <ClCompile Include="widget\fonticonanimation.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />
     <ClCompile Include="widget\parametriceqview.cpp" />
     <ClCompile Include="widget\pendingplaylistpage.cpp" />
@@ -293,7 +291,6 @@
     <ClInclude Include="widget\appsettingnames.h" />
     <ClInclude Include="widget\fonticon.h" />
     <QtMoc Include="widget\iconsizestyle.h" />
-    <QtMoc Include="widget\fonticonanimation.h" />
     <ClInclude Include="widget\globalshortcut.h" />
     <QtMoc Include="widget\pendingplaylistpage.h" />
     <QtMoc Include="widget\parametriceqview.h" />
@@ -308,7 +305,6 @@
     <ClInclude Include="widget\xmainwindow.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
-    <QtMoc Include="widget\discordnotify.h" />
     <QtMoc Include="widget\doubleslider.h" />
     <QtMoc Include="widget\equalizerview.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />

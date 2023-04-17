@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <memory>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr uint32_t kMaxThread = 32;
 
@@ -100,4 +100,4 @@ XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();
 
 XAMP_BASE_API IThreadPoolExecutor& GetWasapiThreadPool();
 
-}
+XAMP_BASE_NAMESPACE_END

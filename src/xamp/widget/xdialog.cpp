@@ -20,7 +20,7 @@
 #include <widget/xdialog.h>
 
 XDialog::XDialog(QWidget* parent)
-    : QDialog(parent) {
+    : FramelessDialog(parent) {
 }
 
 void XDialog::SetContentWidget(QWidget* content, bool transparent_frame, bool disable_resize) {
@@ -29,17 +29,6 @@ void XDialog::SetContentWidget(QWidget* content, bool transparent_frame, bool di
 
     if (transparent_frame) {
         frame_->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    }
-
-    if (!qTheme.UseNativeWindow()) {
-#ifdef Q_OS_WIN
-        setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-#else
-        setWindowFlags(windowFlags() & ((~Qt::WindowMinMaxButtonsHint) & (~Qt::Dialog))
-            | Qt::FramelessWindowHint | Qt::Window);
-#endif        
-    } else {
-        setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
     }
 
     if (disable_resize) {

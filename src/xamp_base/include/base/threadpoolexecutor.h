@@ -21,15 +21,25 @@
 #include <base/ithreadpoolexecutor.h>
 #include <base/platform.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* TaskScheduler is a thread pool executor.
+* 
+*/
 class TaskScheduler final : public ITaskScheduler {
 public:
+    /*
+    * Constructor.
+    */
     TaskScheduler(const std::string_view & pool_name,
         size_t max_thread,
         CpuAffinity affinity,
         ThreadPriority priority);
 
+    /*
+    * Constructor.
+    */
     TaskScheduler(TaskSchedulerPolicy policy,
         TaskStealPolicy steal_policy,
         const std::string_view& pool_name,
@@ -39,31 +49,55 @@ public:
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
+    /*
+    * Destructor.
+    */
     ~TaskScheduler() override;
 
+    /*
+    * Get thread pool size.
+    */
     size_t GetThreadSize() const override;
 
+    /*
+    * Submit job to thread pool.
+    */
     void SubmitJob(MoveOnlyFunction&& task) override;
 
+    /*
+    * Destroy thread pool.
+    */
     void Destroy() noexcept override;
 private:
+    /*
+    * Set thread name.
+    */
     void SetWorkerThreadName(size_t i);
-
+    
+    /*
+    * Try dequeue task from shared queue.
+    */
     std::optional<MoveOnlyFunction> TryDequeueSharedQueue();
 
+    /*
+    * Try steal task from other thread.
+    */
     std::optional<MoveOnlyFunction> TrySteal(StopToken const & stop_token, size_t i);
 
+    /*
+    * Try dequeue task from local queue.
+    */
     std::optional<MoveOnlyFunction> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
 
+    /*
+    * Try dequeue task from shared queue.
+    */
     std::optional<MoveOnlyFunction> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
 
-    void CreateIdleThread();
-
-    void AddThread();
-
+    /*
+    * Add thread to thread pool.
+    */
     void AddThread(size_t i, ThreadPriority priority);
-
-    void RemoveThread();
 
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
@@ -106,4 +140,4 @@ public:
     size_t GetThreadSize() const override;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

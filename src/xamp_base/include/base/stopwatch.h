@@ -8,7 +8,7 @@
 #include <chrono>
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API Stopwatch final {
 public:
@@ -31,5 +31,4 @@ private:
 	Clock::time_point start_time_;
 };
 
-}
-
+XAMP_BASE_NAMESPACE_END

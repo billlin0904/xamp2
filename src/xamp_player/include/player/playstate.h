@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include <player/player.h>
 #include <base/enum.h>
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(PlayerState,
 		  PLAYER_STATE_INIT,
@@ -17,4 +18,4 @@ XAMP_MAKE_ENUM(PlayerState,
           PLAYER_STATE_STOPPED,
           PLAYER_STATE_USER_STOPPED)
 
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END

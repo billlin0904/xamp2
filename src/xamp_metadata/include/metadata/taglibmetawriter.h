@@ -10,7 +10,7 @@
 #include <base/pimplptr.h>
 #include <base/align_ptr.h>
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
 
 class TaglibMetadataWriter final : public IMetadataWriter {
 public:
@@ -38,4 +38,4 @@ private:
     PimplPtr<TaglibMetadataWriterImpl> writer_;
 };
 
-}
+XAMP_METADATA_NAMESPACE_END

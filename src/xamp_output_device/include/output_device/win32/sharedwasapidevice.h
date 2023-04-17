@@ -17,54 +17,150 @@
 
 #include <atomic>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(SharedWasapiDevice);
 
+/*
+ * SharedWasapiDevice is a shared mode output device.
+ */
 class SharedWasapiDevice final : public IOutputDevice {
 public:
+	/*
+	* Constructor.
+	* 
+	* @param device IMMDevice
+	*/
 	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
 
+	/*
+	 * Destructor.
+	 */
 	virtual ~SharedWasapiDevice() override;
 
+	/*
+	* Open stream.
+	* 
+	* @param output_format AudioFormat
+	*/
 	void OpenStream(AudioFormat const & output_format) override;
 
+	/*
+	* Set audio callback.
+	*
+	* @param callback: audio callback
+	* @return void
+	*/
 	void SetAudioCallback(IAudioCallback* callback) noexcept override;
 
+	/*
+	* Is stream open.
+	*
+	* @return bool
+	*/
 	bool IsStreamOpen() const noexcept override;
 
+	/*
+	* Is stream running.
+	*
+	* @return bool
+	*/
 	bool IsStreamRunning() const noexcept override;
 
+	/*
+	* Stop stream.
+	*
+	* @param wait_for_stop_stream: wait for stop stream
+	*/
 	void StopStream(bool wait_for_stop_stream = true) override;
 
+	/*
+	* Close stream.
+	*/
 	void CloseStream() override;
 
+	/*
+	* Start stream.
+	*/
 	void StartStream() override;
 
+	/*
+	* Set stream time.
+	*
+	* @param stream_time: stream time
+	*/
 	void SetStreamTime(double stream_time) noexcept override;
 
+	/*
+	* Get stream time.
+	*
+	* @return double
+	*/
 	double GetStreamTime() const noexcept override;
 
+	/*
+	* Get volume.
+	*
+	* @return uint32_t
+	*/
 	uint32_t GetVolume() const override;
 
+	/*
+	* Is muted.
+	*
+	* @return bool
+	*/
 	bool IsMuted() const override;
 
+	/*
+	* Set volume
+	* @param volume: volume (1~100)
+	*/
 	void SetVolume(uint32_t volume) const override;
 
+	/*
+	* Set mute.
+	*
+	* @param mute: mute (true/false)
+	*/
 	void SetMute(bool mute) const override;
 
+	/*
+	* Get packed format.
+	*
+	* @return PackedFormat
+	*/
 	PackedFormat GetPackedFormat() const noexcept override;
 
+	/*
+	* Set scheduler service
+	*
+	* @param[in] mmcss_name: mmcss name
+	* @param[in] thread_priority: thread priority
+	*/
 	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
 
+	/*
+	* Get device buffer size.
+	*
+	* @return uint32_t
+	*/
 	uint32_t GetBufferSize() const noexcept override;
 
+	/*
+	* Is hardware control volume.
+	*
+	* @return bool
+	*/
 	bool IsHardwareControlVolume() const override;
 
+	/*
+	* Abort stream.
+	*/
 	void AbortStream() noexcept override;
 
 private:
-	HRESULT GetSampleRequested(bool is_silence) noexcept;
+	HRESULT GetSample(bool is_silence) noexcept;
 
 	HRESULT GetSample(uint32_t frame_available, bool is_silence) noexcept;
 
@@ -95,14 +191,13 @@ private:
 	CComPtr<IAudioClock> clock_;
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<DeviceEventNotification> device_volume_notification_;
+	CComPtr<ISimpleAudioVolume> simple_audio_volume_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
 	CComPtr<WasapiWorkQueue<SharedWasapiDevice>> rt_work_queue_;
 	LoggerPtr log_;
 };
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#endif
-
-
+#endif // XAMP_OS_WIN

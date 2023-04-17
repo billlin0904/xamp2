@@ -1,6 +1,7 @@
-#if ENABLE_ASIO
-
 #include <output_device/win32/asiodevicetype.h>
+
+#if ENABLE_ASIO && XAMP_OS_WIN
+
 #include <output_device/win32/asiodevice.h>
 
 #include <base/align_ptr.h>
@@ -8,7 +9,7 @@
 
 #include <asiodrivers.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 class AsioDeviceType::AsioDeviceTypeImpl final {
 public:
@@ -30,7 +31,6 @@ private:
 
 	static HashMap<std::string, DeviceInfo> device_info_cache_;
 };
-
 
 HashMap<std::string, DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::device_info_cache_;
 
@@ -83,17 +83,6 @@ DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const&
 	info.name = name;
 	info.device_id = device_id;
 	info.device_type_id = XAMP_UUID_OF(AsioDeviceType);
-	/*try {
-		const auto device = MakeAlign<IOutputDevice, AsioDevice>(device_id);
-		auto* asio_device = dynamic_cast<AsioDevice*>(device.get());
-		asio_device->OpenStream(AudioFormat::kPCM441Khz);
-		info.is_support_dsd = asio_device->IsSupportDsdFormat();
-		info.is_hardware_control_volume = asio_device->IsHardwareControlVolume();
-		info.is_support_dsd = true;
-		info.is_hardware_control_volume = true;
-	} catch (Exception const &e) {
-		XAMP_LOG_DEBUG(e.what());
-	}*/
 	info.is_support_dsd = true;
 	info.is_hardware_control_volume = true;
 	return info;
@@ -143,5 +132,6 @@ size_t AsioDeviceType::AsioDeviceTypeImpl::GetDeviceCount() const {
 	return device_info_cache_.size();
 }
 
-}
-#endif
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
+#endif // ENABLE_ASIO && XAMP_OS_WIN

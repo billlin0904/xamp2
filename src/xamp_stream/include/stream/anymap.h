@@ -14,7 +14,7 @@
 #include <any>
 #include <string_view>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API AnyMap {
 public:
@@ -51,5 +51,5 @@ private:
     OrderedMap<std::string_view, std::any> configs_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

@@ -11,7 +11,7 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 struct XAMP_BASE_API ReplayGain {
     double track_gain{ 0 };
@@ -62,4 +62,4 @@ static constexpr std::string_view kITunesReplaygainReferenceLoudness{ "----:com.
 static constexpr double kReferenceLoudness = -23;
 static constexpr double kReferenceGain = 84.0;
 
-}
+XAMP_BASE_NAMESPACE_END

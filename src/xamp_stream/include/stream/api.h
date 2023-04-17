@@ -14,7 +14,7 @@
 #include <base/dsdsampleformat.h>
 #include <stream/stream.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API StreamFactory {
 public:
@@ -70,5 +70,4 @@ XAMP_STREAM_API void LoadSoxrLib();
 
 XAMP_STREAM_API void LoadBassLib();
 
-
-}
+XAMP_STREAM_NAMESPACE_END

@@ -7,7 +7,7 @@
 
 #include <base/buffer.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassFlacFileEncoder::BassFlacFileEncoderImpl {
 public:
@@ -74,4 +74,4 @@ void BassFlacFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) 
     impl_->Encode(progress);
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

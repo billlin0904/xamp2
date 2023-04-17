@@ -13,7 +13,7 @@
 #include <base/stl.h>
 #include <base/audiobuffer.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class DSPManager : public IDSPManager {
 public:
@@ -138,4 +138,4 @@ private:
     std::function<bool(float const*, size_t, AudioBuffer<int8_t>&)> dispatch_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

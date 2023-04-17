@@ -28,7 +28,7 @@ extern "C" {
 #include <base/assert.h>
 #include <base/stl.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API AvException final : public Exception {
 public:
@@ -212,4 +212,4 @@ struct AvResourceDeleter<AVAudioFifo> {
 template <typename T>
 using AvPtr = std::unique_ptr<T, AvResourceDeleter<T>>;
 
-}
+XAMP_STREAM_NAMESPACE_END

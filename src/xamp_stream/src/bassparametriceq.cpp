@@ -7,7 +7,7 @@
 #include <stream/eqsettings.h>
 #include <stream/bassparametriceq.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassParametricEq);
 
@@ -206,6 +206,4 @@ void BassParametricEq::Flush() {
 	
 }
 
-
-}
-
+XAMP_STREAM_NAMESPACE_END

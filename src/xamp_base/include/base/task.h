@@ -6,10 +6,11 @@
 #pragma once
 
 #include <future>
+#include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 template <typename T = void>
 using Task = std::future<T>;
 
-}
+XAMP_BASE_NAMESPACE_END

@@ -12,21 +12,25 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
-//
-// Single producer multiple consumer queue.
-//
-// "Correct and Efficient Work-Stealing for Weak Memory Models
-// https://github.com/taskflow/work-stealing-queue/blob/master/references/ppopp13.pdf
-//
+/*
+* Single producer multiple consumer queue.
+* 
+* param T Type of the element. Must be nothrow move assignable.
+* param V Type of the value. Must be nothrow move assignable.
+* 
+* @note 
+* "Correct and Efficient Work-Stealing for Weak Memory Models
+* https://github.com/taskflow/work-stealing-queue/blob/master/references/ppopp13.pdf
+*/
 template
 <
     typename T,
     typename V =
     std::enable_if_t
     <
-    std::is_nothrow_move_assignable_v<T>
+        std::is_nothrow_move_assignable_v<T>
     >
 >
 class SpmcQueue {
@@ -175,5 +179,4 @@ private:
     std::vector<CircularArray*> garbage_;
 };
 
-}
-
+XAMP_BASE_NAMESPACE_END

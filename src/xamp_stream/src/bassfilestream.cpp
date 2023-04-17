@@ -1,6 +1,5 @@
 #include <stream/bassfilestream.h>
 
-#include <stream/podcastcache.h>
 #include <stream/bassexception.h>
 #include <stream/basslib.h>
 
@@ -151,21 +150,12 @@ public:
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
         const auto is_file_path = IsFilePath(file_path.wstring());
-        file_cache_.reset();
-
-        if (!is_file_path) {
-            file_cache_ = GetPodcastFileCache(file_path.wstring());
-        }
-
         XAMP_LOG_D(logger_, "Start open file");
 
         Stopwatch sw;
         sw.Reset();
-        if (file_cache_ != nullptr && file_cache_->IsCompleted()) {
-            LoadFileOrURL(file_cache_->GetFilePath().wstring(), true, mode_, flags);
-        } else {
-            LoadFileOrURL(file_path.wstring(), is_file_path, mode_, flags);
-        }
+
+        LoadFileOrURL(file_path.wstring(), is_file_path, mode_, flags);
 
         XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
@@ -226,7 +216,6 @@ public:
         auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
             XAMP_LOG_D(impl->logger_, "Downloading 100% completed!");
-            impl->file_cache_->Close();
             return;
     	}
         if (length == 0) {
@@ -237,7 +226,6 @@ public:
             impl->download_size_ += length;
             XAMP_LOG_D(impl->logger_, "Downloading {:.2f}% {}", impl->GetReadProgress(),
                            String::FormatBytes(impl->download_size_));
-            impl->file_cache_->Write(buffer, length);
         }
     }
 
@@ -248,7 +236,6 @@ public:
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
         download_size_ = 0;
-        file_cache_.reset();
     }
 
     [[nodiscard]] bool IsDsdFile() const noexcept {
@@ -358,12 +345,11 @@ private:
     size_t download_size_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
-    std::shared_ptr<PodcastFileCache> file_cache_;
     LoggerPtr logger_;
 };
 
 BassFileStream::BassFileStream()
-    : stream_(MakePimpl<BassFileStreamImpl>()) {
+    : stream_(MakeAlign<BassFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(BassFileStream)

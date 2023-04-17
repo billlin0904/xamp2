@@ -14,7 +14,9 @@
 
 inline constexpr auto kRestartExistCode = -2;
 
-class IXMainWindow : public FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessWidget) {
+FRAMELESSHELPER_USE_NAMESPACE
+
+class IXMainWindow : public FramelessWidget {
 public:
 	virtual ~IXMainWindow() override = default;
 

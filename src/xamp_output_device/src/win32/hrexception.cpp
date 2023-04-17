@@ -55,7 +55,6 @@ static std::string ErrorToString(HRESULT hr) noexcept {
 }
 
 static std::string GetHRErrorMessage(HRESULT hr) {
-    //return _com_error{ hr }.ErrorMessage();
     return ErrorToString(hr);
 }
 
@@ -63,13 +62,13 @@ void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr, const
     throw HRException(hresult, expr, file_path, line_number);
 }
 
-std::string MakeErrorMessage(HRESULT hr) {
+static std::string MakeErrorMessage(HRESULT hr) {
     std::ostringstream ostr;
     ostr << "Hr code: 0x" << std::uppercase << std::setfill('0') << std::setw(8) << std::hex << hr << " (" << GetHRErrorMessage(hr) << ")";
     return ostr.str();
 }
 
-std::string MakeFileNameAndLine(const Path& file_path, int32_t line_number) {
+static std::string MakeFileNameAndLine(const Path& file_path, int32_t line_number) {
     std::ostringstream ostr;
     ostr << file_path.filename() << ":" << std::dec << line_number;
     return ostr.str();

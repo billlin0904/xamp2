@@ -11,7 +11,7 @@
 
 #include <base/enum.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 inline constexpr std::wstring_view kMmcssProfileAudio(L"Audio");
 inline constexpr std::wstring_view kMmcssProfileCapture(L"Capture");
@@ -28,5 +28,7 @@ XAMP_MAKE_ENUM(MmcssThreadPriority,
 	MMCSS_THREAD_PRIORITY_HIGH,
 	MMCSS_THREAD_PRIORITY_CRITICAL)
 
-}
-#endif
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
+#endif // XAMP_OS_WIN
+

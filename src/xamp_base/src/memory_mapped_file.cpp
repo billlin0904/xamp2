@@ -7,7 +7,7 @@
 
 #include <filesystem>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
@@ -125,7 +125,7 @@ private:
 #endif
 
 MemoryMappedFile::MemoryMappedFile()
-    : impl_(MakeAlign<MemoryMappedFileImpl>()) {
+    : impl_(MakePimpl<MemoryMappedFileImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)
@@ -146,4 +146,4 @@ void MemoryMappedFile::Close() noexcept {
     impl_->Close();
 }
 
-}
+XAMP_BASE_NAMESPACE_END

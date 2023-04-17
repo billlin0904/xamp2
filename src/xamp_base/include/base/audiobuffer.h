@@ -11,8 +11,14 @@
 #include <base/memory.h>
 #include <base/buffer.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* AudioBuffer is a thread safe circular buffer.
+* 
+* @tparam T is the type of the buffer.
+* @tparam U is the enable_if_t type.
+*/
 template 
 <
 	typename T,
@@ -20,43 +26,121 @@ template
 >
 class XAMP_BASE_API_ONLY_EXPORT AudioBuffer final {
 public:
+	/*
+	* Constructor.
+	*/
 	AudioBuffer() noexcept;
 
+	/*
+	* Constructor.
+	*/
 	explicit AudioBuffer(size_t size);
 
+	/*
+	* Destructor.
+	*/
 	~AudioBuffer() noexcept;
 
-	XAMP_DISABLE_COPY(AudioBuffer)
+	XAMP_DISABLE_COPY_AND_MOVE(AudioBuffer)
 
+	/*
+	* Get the buffer data.
+	* 
+	* @return the buffer data.
+	*/
 	T* GetData() const noexcept;
 	
+	/*
+	* Clear the buffer.
+	* 
+	*/
 	void Clear() noexcept;
 
+	/*
+	* Resize the buffer.
+	* 
+	* @param[in] size is the new size of the buffer.
+	*/
 	void Resize(size_t size);
 
+	/*
+	* Get the buffer size.
+	* 
+	* @return the buffer size.
+	*/
 	size_t GetSize() const noexcept;
 
+	/*
+	* Get the buffer byte size.
+	* 
+	* @return the buffer byte size.
+	*/
 	size_t GetByteSize() const noexcept;
 
+	/*
+	* Get the available write size.
+	* 
+	* @return the available write size.
+	*/
     size_t GetAvailableWrite() const noexcept;
 
+	/*
+	* Get the available read size.
+	* 
+	* @return the available read size.
+	*/
     size_t GetAvailableRead() const noexcept;
 
+	/*
+	* Write data to the buffer.
+	* 
+	* @param[in] data is the data to write.
+	* @param[in] count is the number of data to write.
+	* @return true if write success.
+	*/
     bool TryWrite(const T* data, size_t count) noexcept;
 
+	/*
+	* Read data from the buffer.
+	* 
+	* @param[out] data is the data to read.
+	* @param[in] count is the number of data to read.
+	* @param[out] num_filled_count is the number of data read.
+	* @return true if read success.
+	*/
     bool TryRead(T* data, size_t count, size_t& num_filled_count) noexcept;
 
+	/*
+	* Fill the buffer with value.
+	* 
+	* @param[in] value is the value to fill.
+	*/
 	void Fill(T value) noexcept;
 
 private:
+	/*
+	* Get the available write size.
+	* 
+	* @param[in] head is the head of the buffer.
+	* @param[in] tail is the tail of the buffer.
+	* @return the available write size.
+	*/
     size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
 
+	/*
+	* Get the available read size.
+	* 
+	* @param[in] head is the head of the buffer.
+	* @param[in] tail is the tail of the buffer.
+	* @return the available read size.
+	*/
     size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
     
-	Buffer<T> buffer_;
-	size_t size_;
+	Buffer<T> buffer_;	
+	size_t size_;		
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
+	// Padding to avoid false sharing.
 	uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
 };
 
@@ -198,4 +282,4 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count, 
 	return true;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

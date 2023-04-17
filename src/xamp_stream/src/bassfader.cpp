@@ -5,7 +5,7 @@
 #include <base/logger_impl.h>
 #include <stream/bassfader.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassFader);
 
@@ -90,4 +90,6 @@ std::string_view BassFader::GetDescription() const noexcept {
 void BassFader::Flush() {
 	
 }
-}
+
+XAMP_STREAM_NAMESPACE_END
+

@@ -20,6 +20,9 @@
 #define XAMP_STREAM_API __attribute__((visibility("default")))
 #endif
 
+#define XAMP_STREAM_NAMESPACE_BEGIN namespace xamp::stream {
+#define XAMP_STREAM_NAMESPACE_END }
+
 namespace xamp::stream {
 	using namespace base;
 

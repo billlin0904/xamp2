@@ -3,7 +3,7 @@
 #include <base/stl.h>
 #include <stream/dsdmodesamplewriter.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 DsdModeSampleWriter::DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size)
     : dsd_mode_(dsd_mode)
@@ -41,4 +41,4 @@ bool DsdModeSampleWriter::ProcessPcm(int8_t const * sample_buffer, size_t num_sa
     return true;
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

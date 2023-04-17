@@ -12,7 +12,7 @@
 #include <functional>
 #include <shared_mutex>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr int64_t kLruCacheSize = 200;
 
@@ -316,4 +316,4 @@ int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetSize() cons
     return size_;
 }
 
-}
+XAMP_BASE_NAMESPACE_END

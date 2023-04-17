@@ -13,7 +13,7 @@
 #include <base/base.h>
 #include <base/exception.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 	
 inline constexpr size_t kMaxUuidSize = 16;
 inline constexpr size_t kMaxUuidHexStringLength = 36;
@@ -140,5 +140,4 @@ struct less<xamp::base::Uuid> {
     }
 };
 
-}
-
+XAMP_BASE_NAMESPACE_END

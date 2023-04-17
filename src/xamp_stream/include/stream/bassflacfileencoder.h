@@ -11,7 +11,7 @@
 #include <base/uuidof.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class BassFlacFileEncoder final : public IFileEncoder {
 	XAMP_DECLARE_MAKE_CLASS_UUID(BassFlacFileEncoder, "C4E07DD2-9296-49B2-99B7-7EEEED3A2046")
@@ -30,5 +30,5 @@ private:
 	AlignPtr<BassFlacFileEncoderImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

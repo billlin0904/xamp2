@@ -7,7 +7,8 @@
 
 #include <base/base.h>
 
-#if ENABLE_ASIO
+#if ENABLE_ASIO && XAMP_OS_WIN
+
 #include <asiosys.h>
 #include <asio.h>
 #include <asiodrivers.h>
@@ -16,14 +17,34 @@
 #include <base/exception.h>
 #include <output_device/output_device.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
+/*
+* AsioException is the asio exception.
+* 
+*/
 class XAMP_OUTPUT_DEVICE_API AsioException final : public Exception {
 public:
+	/*
+	* Constructor
+	* 
+	* @param error: asio error
+	*/
 	explicit AsioException(Errors error);
 
+	/*
+	* Constructor
+	* 
+	* @param error: asio error
+	*/
 	explicit AsioException(ASIOError error);
 
+	/*
+	* Get error message
+	* 
+	* @param error: asio error
+	* @return error message
+	*/
 	static std::string_view ErrorMessage(ASIOError error) noexcept;
 };
 
@@ -51,5 +72,6 @@ public:
 		} \
 	} while (false)
 
-}
-#endif
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+
+#endif // ENABLE_ASIO && XAMP_OS_WIN

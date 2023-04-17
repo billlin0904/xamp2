@@ -2,6 +2,7 @@
 
 #include <base/assert.h>
 #include <base/align_ptr.h>
+#include <base/math.h>
 
 #ifdef XAMP_OS_WIN
 #include <malloc.h>
@@ -30,11 +31,12 @@ void StackFree(void* p) {
 
 #else
 void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
+    XAMP_EXPECTS(IsPowerOfTwo(aligned_size));
     return ::_aligned_malloc(size, aligned_size);
 }
 
 void AlignedFree(void* p) noexcept {
-    XAMP_ASSERT(p != nullptr);
+    XAMP_EXPECTS(p != nullptr);
     ::_aligned_free(p);
 }
 
@@ -44,7 +46,7 @@ void* StackAlloc(size_t size) {
 }
 
 void StackFree(void* p) {
-    XAMP_ASSERT(p != nullptr);
+    XAMP_EXPECTS(p != nullptr);
     ::_freea(p);
 }
 #endif

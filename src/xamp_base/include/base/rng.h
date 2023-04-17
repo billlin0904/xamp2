@@ -14,7 +14,7 @@
 #include <base/stl.h>
 #include <base/sfc64.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API PRNG final {
 public:
@@ -56,20 +56,22 @@ public:
         const int32_t min = (std::numeric_limits<int8_t>::min)(),
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
         Vector<int8_t> output(size);
-        std::generate(output.begin(), output.end(), [this, min, max]() noexcept {
+        const auto gen = [this, min, max]() noexcept {
             return static_cast<int8_t>((*this)(min, max));
-            });
+        };
+        std::generate_n(output.begin(), size, gen);
         return output;
     }
 
     template <typename T>
 	Vector<T> NextBytes(size_t size,
 		const T min = (std::numeric_limits<T>::min)(),
-		const T max = (std::numeric_limits<T>::max)()) {
+		const T max = (std::numeric_limits<T>::max)()) {        
         Vector<T> output(size);
-        std::generate(output.begin(), output.end(), [this, min, max]() noexcept {
+        const auto gen = [this, min, max]() noexcept {
             return static_cast<T>((*this)(min, max));
-            });
+        };
+        std::generate_n(output.begin(), size, gen);
 		return output;
 	}
 
@@ -86,4 +88,4 @@ private:
     Sfc64Engine<> engine_;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

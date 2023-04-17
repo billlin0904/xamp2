@@ -12,8 +12,21 @@
 #include <base/base.h>
 #include <base/enum.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
+/*
+* Byte format
+* 
+* <remarks>
+* INVALID_FORMAT: invalid format
+* SINT8: 8 bit signed integer
+* SINT16: 16 bit signed integer
+* SINT24: 24 bit signed integer
+* SINT32: 32 bit signed integer
+* FLOAT32: 32 bit float
+* FLOAT64: 64 bit float
+* </remarks>
+*/
 XAMP_MAKE_ENUM(ByteFormat,
           INVALID_FORMAT,
 		  SINT8,
@@ -23,10 +36,27 @@ XAMP_MAKE_ENUM(ByteFormat,
           FLOAT32,
           FLOAT64)
 
+   
+/*
+* Packed format
+* 
+* <remarks>
+* INTERLEAVED: interleaved
+* PLANAR: planar
+* </remarks>
+*/
 XAMP_MAKE_ENUM(PackedFormat,
           INTERLEAVED,
           PLANAR)
 
+/*
+* Data format
+* 
+* <remarks>
+* FORMAT_DSD: DSD
+* FORMAT_PCM: PCM
+* </remarks>
+*/
 XAMP_MAKE_ENUM(DataFormat,
           FORMAT_DSD,
           FORMAT_PCM)
@@ -36,6 +66,13 @@ XAMP_MAKE_ENUM(DataFormat,
     static const AudioFormat k24Bit##Name;\
 	static const AudioFormat kFloat##Name
 
+/*
+* Audio format
+* 
+* <remarks>
+* Audio format is a combination of data format, sample rate, bits per sample, number of channels and byte format.
+* </remarks>
+*/
 class XAMP_BASE_API AudioFormat final {
 public:
     static const AudioFormat kUnknownFormat;
@@ -287,7 +324,7 @@ XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
     *this = kUnknownFormat;
 }
 
-}
+XAMP_BASE_NAMESPACE_END
 
 template <>
 struct std::hash<xamp::base::AudioFormat> {
