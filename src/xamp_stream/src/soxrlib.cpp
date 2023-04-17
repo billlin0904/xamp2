@@ -23,8 +23,6 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-SoxrLib::~SoxrLib() {
-    XAMP_LOG_I(logger_, "Release SoxrLib dll.");
-}
+SoxrLib::~SoxrLib() = default;
 
 XAMP_STREAM_NAMESPACE_END

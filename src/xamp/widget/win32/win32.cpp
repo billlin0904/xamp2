@@ -12,7 +12,6 @@
 #include <base/platform.h>
 #include <base/platfrom_handle.h>
 #include <base/uuid.h>
-#include <base/siphash.h>
 #include <base/logger_impl.h>
 
 #include "xampplayer.h"

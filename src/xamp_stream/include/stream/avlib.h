@@ -32,9 +32,17 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API AvException final : public Exception {
 public:
-    explicit AvException(int32_t error);
+    explicit AvException(int32_t error_code);
 
     ~AvException() override;
+
+	[[nodiscard]] char const* what() const noexcept override;
+
+	[[nodiscard]] int32_t GetErrorCode() const noexcept;
+
+    private:
+	int32_t error_code_;
+	std::string error_msg_;
 };
 
 #define AvIfFailedThrow(expr) \

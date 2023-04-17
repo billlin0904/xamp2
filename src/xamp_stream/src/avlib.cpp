@@ -8,13 +8,22 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 AvException::AvException(int32_t error)
-	: Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) {
+	: Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) 
+	, error_code_(error) {
 	char buf[256]{};
 	LIBAV_LIB.UtilLib->av_strerror(error, buf, sizeof(buf) - 1);
 	message_.assign(buf);
 }
 
 AvException::~AvException() = default;
+
+char const* AvException::what() const noexcept {
+	return message_.c_str();
+}
+
+int32_t AvException::GetErrorCode() const noexcept {
+	return error_code_;
+}
 
 XAMP_DECLARE_LOG_NAME(LibAv);
 
@@ -142,7 +151,6 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 
 AvLib::~AvLib() {
 	FormatLib->avformat_network_deinit();
-	XAMP_LOG_I(logger, "Release AvLib dll.");
 }
 
 AvLib::AvLib() {

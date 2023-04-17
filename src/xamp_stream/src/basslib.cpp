@@ -266,14 +266,12 @@ void BassLib::Load() {
 }
 
 void BassLib::Free() {
-    XAMP_LOG_I(logger, "Release BassLib dll.");
     plugins_.clear();
     if (module_.is_valid()) {
         try {
             BASS.BASS_Free();
         }
-        catch (const Exception& e) {
-            XAMP_LOG_I(logger, "{}", e.what());
+        catch (...) {
         }
     }
 }

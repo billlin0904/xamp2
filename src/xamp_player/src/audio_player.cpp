@@ -37,8 +37,8 @@ static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 static constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 
 static constexpr int32_t kTotalBufferStreamCount = 32;
-static constexpr uint32_t kMaxWriteRatio = 32;
-static constexpr uint32_t kMaxReadRatio = 8;
+static constexpr uint32_t kMaxWriteRatio = 10;
+static constexpr uint32_t kMaxReadRatio = 4;
 static constexpr uint32_t kMaxBufferSecs = 5;
 static constexpr uint32_t kActionQueueSize = 30;
 
@@ -96,8 +96,8 @@ AudioPlayer::AudioPlayer()
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , sample_size_(0)
     , target_sample_rate_(0)
-    , fifo_size_(0)
     , num_read_buffer_size_(0)
+    , num_write_buffer_size_(0)
     , volume_(0)
     , is_fade_out_(false)
     , is_playing_(false)
@@ -196,14 +196,6 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     OpenStream(file_path, output_mode);
     device_info_ = device_info;
     target_sample_rate_ = target_sample_rate;
-}
-
-void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
-    device_info_ = device_info;
-}
-
-DeviceInfo AudioPlayer::GetDevice() const {
-    return device_info_;
 }
 
 void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & device_id, bool open_always) {
@@ -435,13 +427,6 @@ std::optional<uint32_t> AudioPlayer::GetDsdSpeed() const {
     return dsd_speed_;	
 }
 
-double AudioPlayer::GetStreamTime() const {
-    if (!device_) {
-        return 0.0;
-    }
-    return device_->GetStreamTime();
-}
-
 double AudioPlayer::GetDuration() const {
     if (!stream_) {
         return 0.0;
@@ -519,51 +504,46 @@ void AudioPlayer::ResizeReadBuffer(uint32_t allocate_size) {
     }
 }
 
-void AudioPlayer::ResizeFifo() {
-    if (fifo_.GetSize() == 0 || fifo_.GetSize() < fifo_size_) {
-        XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.", String::FormatBytes(fifo_size_));
-        fifo_.Resize(fifo_size_);
+void AudioPlayer::ResizeFifo(uint32_t fifo_size) {
+    if (fifo_.GetSize() == 0 || fifo_.GetSize() < fifo_size) {
+        XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.", String::FormatBytes(fifo_size));
+        fifo_.Resize(fifo_size);
     }
 }
 
 void AudioPlayer::CreateBuffer() {
     uint32_t allocate_size = 0;
+    uint32_t fifo_size = 0;
 
-    auto get_buffer_sample = [](auto *device, const auto &output_format, auto ratio) {
+    auto get_buffer_sample = [](auto *device, auto ratio) {
         return static_cast<uint32_t>(
             GetPageAlignSize(device->GetBufferSize() * ratio));
     };
 
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         num_read_buffer_size_ = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
-        fifo_size_ = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
+        fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
     }
     else {
-        constexpr auto max_ratio = std::max(kMaxReadRatio, kMaxWriteRatio);
-        num_read_buffer_size_ = get_buffer_sample(device_.get(), output_format_, kMaxReadRatio);
-        const auto max_require_sample = num_read_buffer_size_ * max_ratio;
+        auto max_ratio = output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec();
+        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio);
+        num_read_buffer_size_ = get_buffer_sample(device_.get(), 1);
         allocate_size = std::min(kMaxPreAllocateBufferSize,
-            max_require_sample 
+            num_write_buffer_size_
             * stream_->GetSampleSize() 
             * kTotalBufferStreamCount);
         allocate_size = AlignUp(allocate_size);
-        fifo_size_ = output_format_.GetSampleRate()
-    	* kMaxBufferSecs
-    	* output_format_.GetChannels()
-    	* output_format_.GetSampleSize()
-    	* kBufferStreamCount;
+        fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec() * kBufferStreamCount;
     }
 
     ResizeReadBuffer(allocate_size);
-    ResizeFifo();
+    ResizeFifo(fifo_size);
 
-    XAMP_LOG_D(logger_, "Read memory page count: {} page.", num_read_buffer_size_ / GetPageSize());
-
-    XAMP_LOG_D(logger_, "Output buffer:{} device format: {} num_read_sample: {} fifo buffer: {}.",
-        device_->GetBufferSize(),
-        output_format_,
+    XAMP_LOG_DEBUG("Device output buffer:{} num_write_buffer_size:{} num_read_sample:{} fifo buffer:{}.",
+        String::FormatBytes(device_->GetBufferSize()),
+        String::FormatBytes(num_write_buffer_size_),
         String::FormatBytes(num_read_buffer_size_),
-        String::FormatBytes(fifo_.GetSize()));
+        String::FormatBytes(fifo_size));
 }
 
 void AudioPlayer::SetDeviceFormat() {
@@ -808,12 +788,12 @@ void AudioPlayer::Play() {
         std::unique_lock<FastMutex> stopped_lock{ p->stopped_mutex_ };
 
         auto* buffer = p->read_buffer_.Get();
-        const auto buffer_size = p->num_read_buffer_size_;
-        const auto num_sample_write = buffer_size * kMaxWriteRatio;
+        const auto num_read_buffer_size = p->num_read_buffer_size_;
+        const auto num_write_buffer_size = p->num_write_buffer_size_ * kMaxWriteRatio;
 
-        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}",
-            String::FormatBytes(buffer_size),
-            String::FormatBytes(num_sample_write)
+        XAMP_LOG_D(p->logger_, "num_read_buffer_size: {}, num_write_buffer_size: {}",
+            String::FormatBytes(num_read_buffer_size),
+            String::FormatBytes(num_write_buffer_size)
         );
 
         WaitableTimer wait_timer;
@@ -823,20 +803,19 @@ void AudioPlayer::Play() {
             while (p->is_playing_) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
-                    p->ReadPlayerAction();
                 }
 
                 p->ReadPlayerAction();
 
-                if (p->fifo_.GetAvailableWrite() < num_sample_write) {
+                if (p->fifo_.GetAvailableWrite() < num_write_buffer_size) {
                     wait_timer.Wait();
                     XAMP_LOG_T(p->logger_, "FIFO buffer: {} num_sample_write: {}",
                                p->fifo_.GetAvailableWrite(),
-                               num_sample_write
+                               num_write_buffer_size
                                );
                     continue;
                 }                
-                p->ReadSampleLoop(buffer, buffer_size, stopped_lock);
+                p->ReadSampleLoop(buffer, num_read_buffer_size, stopped_lock);
             }
         }
         catch (const Exception& e) {
@@ -912,7 +891,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
         output_format_.SetByteFormat(byte_format);
     }
 
-    CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
+    CreateDevice(device_info_.value().device_type_id, device_info_.value().device_id, false);
     OpenDevice(0);
     CreateBuffer();
 

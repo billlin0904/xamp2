@@ -186,7 +186,6 @@
     <ClInclude Include="include\base\simd.h" />
     <ClInclude Include="include\base\scopeguard.h" />
     <ClInclude Include="include\base\singleton.h" />
-    <ClInclude Include="include\base\siphash.h" />
     <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\spsc_queue.h" />
     <ClInclude Include="include\base\stl.h" />
@@ -222,7 +221,6 @@
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
-    <ClInclude Include="include\base\xoshiro.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />
@@ -242,7 +240,6 @@
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
-    <ClCompile Include="src\siphash.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\uuid.cpp" />
     <ClCompile Include="src\logger_impl.cpp" />
@@ -259,7 +256,6 @@
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
     <ClCompile Include="src\windows_handle.cpp" />
-    <ClCompile Include="src\xoshiro.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -20,8 +20,6 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-R8brainLib::~R8brainLib() {
-	XAMP_LOG_I(logger_, "Release R8brainLib dll.");
-}
+R8brainLib::~R8brainLib() = default;
 
 XAMP_STREAM_NAMESPACE_END

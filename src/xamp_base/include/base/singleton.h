@@ -9,8 +9,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-// https://preshing.com/20130930/double-checked-locking-is-fixed-in-cpp11/
-
 template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT Singleton {
 public:
@@ -31,6 +29,7 @@ public:
 
 template <typename T>
 T& Singleton<T>::GetInstance() {
+	// https://preshing.com/20130930/double-checked-locking-is-fixed-in-cpp11/
 	static T instance;
 	return instance;
 }
