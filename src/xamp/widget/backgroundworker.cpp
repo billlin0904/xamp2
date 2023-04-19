@@ -25,7 +25,10 @@
 #include <stream/mbdiscid.h>
 #endif
 
+#include <QJsonDocument>
+#include <QJsonArray>
 #include <QDirIterator>
+#include <QJsonValueRef>
 #include <QThread>
 
 #include "thememanager.h"
@@ -77,9 +80,138 @@ void BackgroundWorker::OnLoadAlbumCoverCache() {
         cover_ids.push_back(cover_id);
         }, AlbumCoverCache::kMaxAlbumRoundedImageCacheSize);
 
-    Executor::ParallelFor(*executor_, cover_ids,[](const auto& cover_id) {
-        qAlbumCoverCache.GetCover(cover_id);
-        });
+    try {
+        Executor::ParallelFor(*executor_, cover_ids, [](const auto& cover_id) {
+            qAlbumCoverCache.GetCover(cover_id);
+            });
+    }
+    catch (const std::exception& e) {
+		XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
+	}
+}
+
+namespace kkbox {
+
+struct ImageData {
+    int32_t width;
+    int32_t height;
+    QString url;
+};
+
+struct ArtistData {
+    QString id;
+    QString name;
+    QString url;
+    QList<ImageData> images;
+};
+
+struct Credential {
+    QString access_token;
+    QString token_type;
+    QString expires_in;
+    QString refresh_token;
+    QString scope;
+};
+
+}
+
+static std::optional<kkbox::ArtistData> ParseArtistData(const QJsonDocument& doc, const QString& find_artist) {
+    auto artists = doc[qTEXT("artists")][qTEXT("data")].toArray();
+    std::optional<kkbox::ArtistData> result = std::nullopt;
+    bool found = false;
+
+    for (auto artist : artists) {        
+        auto object = artist.toVariant().toMap();
+        auto name = object.value(qTEXT("name")).toString();
+        if (name != find_artist) {
+            continue;
+        }
+
+        found = true;
+        auto id = object.value(qTEXT("id")).toString();
+        auto url = object.value(qTEXT("url")).toString();
+        auto images = object.value(qTEXT("images")).toJsonArray();
+
+        kkbox::ArtistData data;
+        data.id = id;
+        data.name = name;
+        data.url = url;
+
+        for (auto image : images) {
+            auto image_object = image.toVariant().toMap();
+            auto width = image_object.value(qTEXT("width")).toInt();
+			auto height = image_object.value(qTEXT("height")).toInt();
+			auto url = image_object.value(qTEXT("url")).toString();
+            kkbox::ImageData image;
+			image.width = width;
+			image.height = height;
+			image.url = url;
+            data.images.push_back(image);
+        }
+        if (found) {
+            result = data;
+            break;
+        }
+    }
+    return result;
+}
+
+void BackgroundWorker::GetArtist(int32_t artist_id, const QString& artist) {
+    static const QString credentialFLowUrl = qTEXT("https://account.kkbox.com/oauth2/token");
+    const QString client_id = qTEXT("bd5cfe4143f918a3db24dcb388972054");
+    const QString client_secret = qTEXT("425cacb9f036585d34f7a2725c98e417");
+    const QString grant_type = qTEXT("client_credentials");
+
+    http::HttpClient(credentialFLowUrl)
+        .param(qTEXT("grant_type"), grant_type)
+        .param(qTEXT("client_id"), client_id)
+        .param(qTEXT("client_secret"), client_secret)
+        .success([this, artist_id, artist](const auto& json) {
+            QJsonParseError error;
+            const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+            if (error.error != QJsonParseError::NoError) {
+                return;
+            }
+            
+            auto access_token = doc[qTEXT("access_token")].toString();
+            auto token_type = doc[qTEXT("token_type")].toString();
+            auto expires_in = doc[qTEXT("expires_in")].toString();
+            
+            kkbox::Credential credential;
+            credential.access_token = access_token;
+            credential.token_type = token_type;
+            credential.expires_in = expires_in;
+
+            auto keyword = artist;
+            auto type = qTEXT("artist");
+            auto territory = qTEXT("JP");
+
+            static const QString searchUrl = qTEXT("https://api.kkbox.com/v1.1/search");
+            http::HttpClient(searchUrl)
+                .param(qTEXT("q"), keyword)
+                .param(qTEXT("type"), type)
+                .param(qTEXT("territory"), territory)
+                .param(qTEXT("limit"), 15)
+                .header(qTEXT("Authorization"), QString(qTEXT("%1 %2").arg(credential.token_type).arg(credential.access_token)))
+                .success([this, artist_id, artist](const auto& json) {
+                QJsonParseError error;
+                const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+                if (error.error != QJsonParseError::NoError) {
+                    return;
+                }
+
+                if (auto artist_data = ParseArtistData(doc, artist)) {
+                    if (artist_data.value().images.size() != 2) {
+					    return;
+				    }
+                    http::HttpClient(artist_data.value().images[1].url)
+                        .download([this, artist_id, artist](const auto &content) {
+                        emit SearchArtistCompleted(artist_id, artist, content);
+                        });
+			    }			
+                }).get();
+        })
+        .post();
 }
 
 void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
@@ -87,6 +219,8 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
         String::Format("{}{}", 
         QUrl::toPercentEncoding(artist),
         QUrl::toPercentEncoding(title)));
+
+    GetArtist(music_id, artist);
 
     http::HttpClient(qTEXT("https://music.xianqiao.wang/neteaseapiv2/search"))
         .param(qTEXT("limit"), qTEXT("10"))
@@ -233,8 +367,6 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
     thief.LoadImage(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
     emit DominantColor(thief.GetDominantColor());
     emit BlurImage(image_utils::BlurImage(image, size));
-    //const auto blur_image = image_utils::BlurImage(image, size);
-    //emit BlurImage(image_utils::AcrylicImage(blur_image, palette[0]));
 }
 
 void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {

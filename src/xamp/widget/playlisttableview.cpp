@@ -915,7 +915,7 @@ void PlayListTableView::OnFetchPodcastCompleted(const ForwardList<TrackInfo>& tr
         const auto index = this->model()->index(0, 0);
         const auto entity = item(index);
         CATCH_DB_EXCEPTION(qDatabase.SetAlbumCover(entity.album_id, entity.album, cover_id))
-            emit UpdateAlbumCover(cover_id);
+        emit UpdateAlbumCover(cover_id);
     }
 }
 

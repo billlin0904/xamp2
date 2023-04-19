@@ -485,10 +485,6 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
     load_file_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_FILE));
 
     auto* load_dir_act = action_map.AddAction(tr("Load file directory"), [this]() {
-        /*const auto dir_name = QFileDialog::getExistingDirectory(this,
-            tr("Select a directory"),
-            AppSettings::GetMyMusicFolderPath(),
-            QFileDialog::ShowDirsOnly);*/
         const auto dir_name = GetExistingDirectory(this,
         tr("Select a directory"),
         AppSettings::GetMyMusicFolderPath());

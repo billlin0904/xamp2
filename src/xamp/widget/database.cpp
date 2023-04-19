@@ -212,7 +212,6 @@ void Database::CreateTableIfNotExist() {
                        album TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
                        discId TEXT,
-                       firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        isPodcast integer,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
@@ -1212,7 +1211,6 @@ int32_t Database::GetAlbumIdByDiscId(const QString& disc_id) const {
 
 void Database::UpdateAlbumByDiscId(const QString& disc_id, const QString& album) {
     QWriteLocker write_locker(&locker_);
-
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE albums SET album = :album WHERE (discId = :discId)"));
@@ -1228,15 +1226,12 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId, isPodcast, dateTime, discId)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId, :isPodcast, :dateTime, :discId)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, isPodcast, dateTime, discId)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :isPodcast, :dateTime, :discId)
     )"));
-
-    const auto first_char = album.left(1);
 
     query.bindValue(qTEXT(":album"), album);
     query.bindValue(qTEXT(":artistId"), artist_id);
-    query.bindValue(qTEXT(":firstChar"), first_char.toUpper());
     query.bindValue(qTEXT(":coverId"), GetAlbumCoverId(album));
     query.bindValue(qTEXT(":isPodcast"), is_podcast ? 1 : 0);
     query.bindValue(qTEXT(":dateTime"), album_time);

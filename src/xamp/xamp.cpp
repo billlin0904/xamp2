@@ -779,6 +779,13 @@ void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
     emit ThemeChanged(backgroundColor, color);
 }
 
+void Xamp::OnSearchArtistCompleted(int32_t artist_id, const QString& artist, const QByteArray& image) {
+    QPixmap cover;
+    if (cover.loadFromData(image)) {        
+        qDatabase.UpdateArtistCoverId(qDatabase.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
+    }
+}
+
 void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
     lrc_page_->lyrics()->SetLrc(lyrics, trlyrics);
     qDatabase.AddOrUpdateLyrc(music_id, lyrics, trlyrics);
@@ -1611,7 +1618,7 @@ void Xamp::InitialPlaylist() {
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
         album_page_,
-        &AlbumArtistPage::OnThemeChanged);
+        &AlbumArtistPage::OnThemeColorChanged);
 
     if (!qDatabase.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.AddPlaylist(qEmptyString, 1);
@@ -1627,6 +1634,11 @@ void Xamp::InitialPlaylist() {
         &BackgroundWorker::SearchLyricsCompleted,
         this,
         &Xamp::OnSearchLyricsCompleted);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::SearchArtistCompleted,
+        this,
+        &Xamp::OnSearchArtistCompleted);
 
     PushWidget(playlist_page_);
     PushWidget(lrc_page_);

@@ -7,12 +7,35 @@
 
 #include <QFrame>
 #include <QListView>
+#include <QSqlQueryModel>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 
 #include <widget/themecolor.h>
 
 class AlbumView;
 class ArtistInfoPage;
+class QPushButton;
+class QLabel;
+
+class ArtistStyledItemDelegate : public QStyledItemDelegate {
+	Q_OBJECT
+public:
+	explicit ArtistStyledItemDelegate(QObject* parent = nullptr);
+
+	void SetTextColor(QColor color);
+
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+
+	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
+signals:
+	void EnterAlbumView(const QModelIndex& index) const;
+
+private:
+	QColor text_color_;
+};
 
 class AlbumTabListView : public QListView {
 	Q_OBJECT
@@ -31,6 +54,35 @@ private:
 	QStandardItemModel model_;
 };
 
+class ArtistViewPage final : public QFrame {
+	Q_OBJECT
+public:
+ 	explicit ArtistViewPage(QWidget* parent = nullptr);
+
+	void SetArtistImage(const QPixmap &image);
+
+	void resizeEvent(QResizeEvent* event) override;
+private:
+	QLabel* artist_image_;
+	QPushButton* close_button_;
+	AlbumView* album_view_;
+};
+
+class ArtistView final : public QListView {
+	Q_OBJECT
+public:
+	explicit ArtistView(QWidget* parent = nullptr);
+
+	void OnThemeChanged(QColor backgroundColor, QColor color);
+
+	void Refresh();
+private:
+	void resizeEvent(QResizeEvent* event) override;
+
+	ArtistViewPage* page_;
+	QSqlQueryModel model_;
+};
+
 class AlbumArtistPage final : public QFrame {
 	Q_OBJECT
 public:
@@ -41,8 +93,6 @@ public:
 	}
 
 public slots:
-	void OnThemeChanged(QColor backgroundColor, QColor color);
-
 	void Refresh();
 
 	void SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
@@ -54,6 +104,7 @@ public slots:
 private:
 	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
-	ArtistInfoPage* artist_view_;
+	ArtistView* artist_view_;
+	ArtistInfoPage* artist_info_view_;
 };
 

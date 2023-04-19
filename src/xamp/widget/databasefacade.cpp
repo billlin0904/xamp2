@@ -283,7 +283,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 			}
 		}
 
-		if (artist.isEmpty()) {
+		if (artist.isEmpty() || is_podcast) {
 			artist = tr("Unknown artist");
 		}
         
@@ -337,7 +337,6 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, 
     int32_t playlist_id, 
     bool is_podcast_mode) {
-    // Note: Don't not call qApp->processEvents(), maybe stack overflow issue.
     try {
         if (!qDatabase.transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");

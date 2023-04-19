@@ -37,7 +37,7 @@ static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 static constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 
 static constexpr int32_t kTotalBufferStreamCount = 32;
-static constexpr uint32_t kMaxWriteRatio = 10;
+static constexpr uint32_t kMaxWriteRatio = 20;
 static constexpr uint32_t kMaxReadRatio = 4;
 static constexpr uint32_t kMaxBufferSecs = 5;
 static constexpr uint32_t kActionQueueSize = 30;
@@ -791,7 +791,7 @@ void AudioPlayer::Play() {
         const auto num_read_buffer_size = p->num_read_buffer_size_;
         const auto num_write_buffer_size = p->num_write_buffer_size_ * kMaxWriteRatio;
 
-        XAMP_LOG_D(p->logger_, "num_read_buffer_size: {}, num_write_buffer_size: {}",
+        XAMP_LOG_DEBUG("num_read_buffer_size: {}, num_write_buffer_size: {}",
             String::FormatBytes(num_read_buffer_size),
             String::FormatBytes(num_write_buffer_size)
         );
@@ -803,6 +803,7 @@ void AudioPlayer::Play() {
             while (p->is_playing_) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
+                    p->ReadPlayerAction();
                 }
 
                 p->ReadPlayerAction();

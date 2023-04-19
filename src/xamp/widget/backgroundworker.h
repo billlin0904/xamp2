@@ -56,9 +56,11 @@ signals:
 
     void FetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
-    void FetchPodcastError(const QString& msg);
+    void FetchPodcastError(const QString& msg);    
 
     void SearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
+
+    void SearchArtistCompleted(int32_t artist_id, const QString& artist, const QByteArray& image);
 
 public Q_SLOT:
 	void OnFetchPodcast(int32_t playlist_id);
@@ -74,6 +76,8 @@ public Q_SLOT:
     void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
 
     void OnLoadAlbumCoverCache();
+
+    void GetArtist(int32_t music_id, const QString& artist);
 
 private:
     void LazyInitExecutor();

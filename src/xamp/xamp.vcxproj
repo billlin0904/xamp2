@@ -374,6 +374,7 @@
   <ItemGroup>
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
+    <None Include="cpp.hint" />
     <None Include="FIRFilter.dat" />
     <None Include="ja_JP.ts" />
     <None Include="NoiseShapingCoeff.dat" />
