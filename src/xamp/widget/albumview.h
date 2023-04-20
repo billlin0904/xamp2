@@ -46,6 +46,11 @@ private:
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
+	enum ShowModes {
+		SHOW_ARTIST,
+		SHOW_YEAR,
+	};
+
 	static constexpr auto kMoreIconSize = 20;
 	static constexpr auto kIconSize = 48;
 
@@ -57,6 +62,10 @@ public:
 
 	void SetPlayingAlbumId(int32_t album_id) {
 		playing_album_id_ = album_id;
+	}
+
+	void SetShowMode(ShowModes mode) {
+		show_mode_ = mode;
 	}
 signals:
 	void EnterAlbumView(const QModelIndex& index) const;
@@ -70,8 +79,9 @@ protected:
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
-private:
+private:	
 	bool enable_album_view_{ true };
+	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };
 	QColor text_color_;
 	QPoint mouse_point_;
@@ -104,6 +114,8 @@ public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
+	void paintEvent(QPaintEvent* event) override;
+
 	ClickableLabel* artist_;
 	PlaylistPage* page_;
 	QPushButton* close_button_;

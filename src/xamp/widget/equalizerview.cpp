@@ -28,7 +28,7 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     ui_.enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
     
-    auto f = qTheme.MonoFont();
+    auto f = qTheme.GetMonoFont();
     f.setPointSize(qTheme.GetFontSize(8));
 
     ui_.preampLabel->setFont(f);
@@ -346,7 +346,7 @@ void EqualizerView::AddBand(uint32_t band) {
         SaveBand(index);
         });
 
-    const auto f = qTheme.MonoFont();
+    const auto f = qTheme.GetMonoFont();
     filter_settings_[band].type->setFont(f);
     filter_settings_[band].frequency->setFont(f);
     filter_settings_[band].gain->setFont(f);

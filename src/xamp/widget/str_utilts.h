@@ -44,7 +44,7 @@ namespace std {
 	};
 }
 
-inline constexpr ConstLatin1String qEmptyString{ "" };
+inline constexpr ConstLatin1String kEmptyString{ "" };
 
 constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };

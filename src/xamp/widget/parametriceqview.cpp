@@ -49,7 +49,7 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     const QColor tick_text_color(qTEXT("#a1a8af"));
     const QColor line_color(90, 123, 158);
 
-    auto f = qTheme.MonoFont();
+    auto f = qTheme.GetMonoFont();
     f.setWeight(QFont::Light);
     f.setPointSize(qTheme.GetFontSize(5));
     //setOpenGl(true);

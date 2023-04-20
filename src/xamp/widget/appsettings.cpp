@@ -106,7 +106,7 @@ QString AppSettings::GetMyMusicFolderPath() {
     if (!contains(kAppSettingMyMusicFolderPath)) {
         auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
         if (folder_path.isEmpty()) {
-            return qEmptyString;
+            return kEmptyString;
         }
         return folder_path[0];
     }

@@ -42,7 +42,7 @@ static ConstLatin1String NetworkErrorToString(QNetworkReply::NetworkError code) 
     const auto* mo = &QNetworkReply::staticMetaObject;
     const int index = mo->indexOfEnumerator("NetworkError");
     if (index == -1)
-        return qEmptyString;
+        return kEmptyString;
     const auto qme = mo->enumerator(index);
     return { qme.valueToKey(code) };
 }
@@ -270,7 +270,7 @@ void HttpClient::HttpClientImpl::HandleProgress(const HttpContext& context, QNet
     }
 
     if (status != 200 && status != 206 && status != 416) {
-        HandleFinish(context, reply, qEmptyString);
+        HandleFinish(context, reply, kEmptyString);
         return;
     }
 

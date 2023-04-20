@@ -33,8 +33,8 @@ class XMessageBox : public XDialog {
 public:
     static constexpr auto kDefaultTimeoutSecond = 8;
 
-	explicit XMessageBox(const QString& title= qEmptyString,
-	                     const QString& text = qEmptyString,
+	explicit XMessageBox(const QString& title= kEmptyString,
+	                     const QString& text = kEmptyString,
 	                     QWidget* parent = nullptr,
 						 QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
 						 QDialogButtonBox::StandardButton default_button = QDialogButtonBox::StandardButton::Ok,
@@ -93,7 +93,7 @@ public:
         QWidget* parent = nullptr);
 
     static std::tuple<QDialogButtonBox::StandardButton, bool> ShowCheckBoxQuestion(const QString& text,
-        const QString& check_box_text = qEmptyString,
+        const QString& check_box_text = kEmptyString,
         const QString& title = kApplicationTitle,
         bool enable_countdown = true,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
@@ -101,7 +101,7 @@ public:
         QWidget* parent = nullptr);
 
     static std::tuple<QDialogButtonBox::StandardButton, bool> ShowCheckBoxInformation(const QString& text,
-        const QString& check_box_text = qEmptyString,
+        const QString& check_box_text = kEmptyString,
         const QString& title = kApplicationTitle,
         bool enable_countdown = true,
         QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,

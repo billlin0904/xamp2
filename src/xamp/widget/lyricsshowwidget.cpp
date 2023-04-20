@@ -283,7 +283,7 @@ void LyricsShowWidget::AddFullLrc(const QString& lrc, std::chrono::milliseconds 
 void LyricsShowWidget::LoadLrc(const QString& lrc) {
 	std::wistringstream stream{ lrc.toStdWString() };
 	if (!lyric_.Parse(stream)) {
-		return;
+		SetDefaultLrc();
 	}
 	ResizeFontSize();
 	SetLrcTime(0);

@@ -110,7 +110,6 @@ static PlayListEntity GetEntity(const QModelIndex& index) {
     entity.track_peak = GetIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
     entity.track_loudness = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
     entity.genre = GetIndexValue(index, PLAYLIST_GENRE).toString();
-    entity.year = GetIndexValue(index, PLAYLIST_YEAR).toUInt();
     return entity;
 }
 
@@ -189,7 +188,6 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
     model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
     model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("LOUDNESS"));
     model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
-    model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
     model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, tr("ALBUM.ID"));
     model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PLAYLIST.ID"));
     model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FILE.EXT"));
@@ -216,7 +214,6 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
             PLAYLIST_TRACK_PK,
             PLAYLIST_TRACK_LOUDNESS,
             PLAYLIST_GENRE,
-            PLAYLIST_YEAR,
             PLAYLIST_ALBUM_ID,
             PLAYLIST_ARTIST_ID,
             PLAYLIST_COVER_ID,
@@ -298,8 +295,7 @@ SELECT
 	musics.track_replay_gain,
 	musics.track_peak,
 	musicLoudness.track_loudness,
-	musics.genre,
-	musics.year 
+	musics.genre
 FROM
 	pendingPlaylist
 	JOIN playlistMusics ON pendingPlaylist.playlistMusicsId = playlistMusics.playlistMusicsId

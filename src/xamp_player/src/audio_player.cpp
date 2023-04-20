@@ -231,6 +231,7 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
 
     if (dsd_mode == DsdModes::DSD_MODE_PCM) {
         dsd_speed_ = std::nullopt;
+        is_dsd_file_ = false;
         return;
     }
 
@@ -607,15 +608,17 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto* dsd_output = AsDsdDevice(device_)) {
-        if (dsd_mode_ == DsdModes::DSD_MODE_AUTO || dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+        if (dsd_mode_ == DsdModes::DSD_MODE_AUTO 
+            || dsd_mode_ == DsdModes::DSD_MODE_PCM 
+            || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
             if (const auto* const dsd_stream = AsDsdStream(stream_)) {
-                if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
+                if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
                     dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 }
                 else {
                     dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
                 }
-            }
+            }            
         } else {
             output_format_.SetFormat(DataFormat::FORMAT_DSD);
             output_format_.SetByteFormat(ByteFormat::SINT8);

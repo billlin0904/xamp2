@@ -29,7 +29,7 @@ std::tuple<QString, QString> ParseLyricsResponse(QString const& json) {
 	QJsonParseError error;
 	const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
 	if (error.error != QJsonParseError::NoError) {
-		return { qEmptyString, qEmptyString };
+		return { kEmptyString, kEmptyString };
 	}
 	auto lyrics = doc[qTEXT("lrc")][qTEXT("lyric")].toString();
 	auto trlyrics = doc[qTEXT("tlyric")][qTEXT("lyric")].toString();

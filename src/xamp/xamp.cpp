@@ -180,6 +180,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     (void)QObject::connect(album_page_->album(), &AlbumView::LoadCompleted,
         this, &Xamp::ProcessTrackInfo);
 
+    (void)QObject::connect(album_page_->artist(), &ArtistView::GetArtist,
+        background_worker_, &BackgroundWorker::OnGetArtist);
+
     (void)QObject::connect(&qTheme, 
         &ThemeManager::CurrentThemeChanged, 
         this, 
@@ -779,11 +782,12 @@ void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
     emit ThemeChanged(backgroundColor, color);
 }
 
-void Xamp::OnSearchArtistCompleted(int32_t artist_id, const QString& artist, const QByteArray& image) {
+void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& image) {
     QPixmap cover;
     if (cover.loadFromData(image)) {        
         qDatabase.UpdateArtistCoverId(qDatabase.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
     }
+    album_page_->Refresh();
 }
 
 void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
@@ -1197,12 +1201,10 @@ void Xamp::play(const PlayListEntity& item) {
                 else {
                     sample_rate_converter_factory();
                 }
-            }
-
-            SetupDsp(item);
-
-            // note: Only PCM dsd modes enable compressor.
+            }           
+            
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
+                SetupDsp(item);
                 CompressorParameters parameters;
                 if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
                     if (item.track_loudness != 0) {
@@ -1230,7 +1232,7 @@ void Xamp::play(const PlayListEntity& item) {
         }
 
         if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
-            sample_rate_converter_type = qEmptyString;
+            sample_rate_converter_type = kEmptyString;
         }
 
         SetupSampleWriter(convert_mode,
@@ -1308,7 +1310,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         player_->Play();
     }
 
-    podcast_page_->format()->setText(qEmptyString);
+    podcast_page_->format()->setText(kEmptyString);
 
     auto lyrc_opt = qDatabase.GetLyrc(item.music_id);
     if (!lyrc_opt) {
@@ -1519,12 +1521,12 @@ void Xamp::InitialPlaylist() {
             ui_.sliderBar->AddTab(name, table_id, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
             if (!playlist_page_) {
-                playlist_page_ = NewPlaylistPage(playlist_id, qEmptyString);
+                playlist_page_ = NewPlaylistPage(playlist_id, kEmptyString);
                 playlist_page_->playlist()->SetPlaylistId(playlist_id, name);
             }
 
             if (playlist_page_->playlist()->GetPlaylistId() != playlist_id) {
-                playlist_page_ = NewPlaylistPage(playlist_id, qEmptyString);
+                playlist_page_ = NewPlaylistPage(playlist_id, kEmptyString);
                 playlist_page_->playlist()->SetPlaylistId(playlist_id, name);                
             }
         });
@@ -1532,7 +1534,7 @@ void Xamp::InitialPlaylist() {
     if (!playlist_page_) {
         auto playlist_id = kDefaultPlaylistId;
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(qEmptyString, 0);
+            playlist_id = qDatabase.AddPlaylist(kEmptyString, 0);
         }
         playlist_page_ = NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
         ConnectPlaylistPageSignal(playlist_page_);
@@ -1543,7 +1545,7 @@ void Xamp::InitialPlaylist() {
     if (!podcast_page_) {
         auto playlist_id = kDefaultPodcastPlaylistId;
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(qEmptyString, 1);
+            playlist_id = qDatabase.AddPlaylist(kEmptyString, 1);
         }
         podcast_page_ = NewPlaylistPage(playlist_id, kAppSettingPodcastPlaylistColumnName);
         podcast_page_->playlist()->SetPodcastMode();
@@ -1555,23 +1557,23 @@ void Xamp::InitialPlaylist() {
         file_system_view_page_ = new FileSystemViewPage(this);
         auto playlist_id = kDefaultFileExplorerPlaylistId;
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(qEmptyString, 2);
+            playlist_id = qDatabase.AddPlaylist(kEmptyString, 2);
         }
         file_system_view_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
         file_system_view_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
-        SetCover(qEmptyString, file_system_view_page_->playlistPage());
+        SetCover(kEmptyString, file_system_view_page_->playlistPage());
         ConnectPlaylistPageSignal(file_system_view_page_->playlistPage());
     }
 
     if (!cd_page_) {
         auto playlist_id = kDefaultCdPlaylistId;
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(qEmptyString, 4);
+            playlist_id = qDatabase.AddPlaylist(kEmptyString, 4);
         }
         cd_page_ = new CdPage(this);
         cd_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
         cd_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
-        SetCover(qEmptyString, cd_page_->playlistPage());
+        SetCover(kEmptyString, cd_page_->playlistPage());
         ConnectPlaylistPageSignal(cd_page_->playlistPage());
     }
 
@@ -1621,7 +1623,7 @@ void Xamp::InitialPlaylist() {
         &AlbumArtistPage::OnThemeColorChanged);
 
     if (!qDatabase.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
-        qDatabase.AddPlaylist(qEmptyString, 1);
+        qDatabase.AddPlaylist(kEmptyString, 1);
     }
     ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
 

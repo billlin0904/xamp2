@@ -239,7 +239,7 @@ QFont ThemeManager::LoadFonts() {
     QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
     QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
 
-    auto ui_font = UiFont();
+    auto ui_font = GetUiFont();
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #ifdef Q_OS_WIN
     ui_font.setWeight(QFont::Weight::Medium);
@@ -301,10 +301,14 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
 }
 
 QLatin1String ThemeManager::GetThemeColorPath() const {
-    if (theme_color_ == ThemeColor::DARK_THEME) {
-        return qTEXT("Black");
-    }
-    return qTEXT("White");
+    return GetThemeColorPath(theme_color_);
+}
+
+QLatin1String ThemeManager::GetThemeColorPath(ThemeColor theme_color) const {
+    if (theme_color == ThemeColor::DARK_THEME) {
+		return qTEXT("Black");
+	}
+	return qTEXT("White");
 }
 
 QColor ThemeManager::GetThemeTextColor() const {
@@ -345,16 +349,18 @@ void ThemeManager::SetMenuStyle(QWidget* menu) {
     menu->setStyle(new IconSizeStyle(12));
 }
 
-QIcon ThemeManager::GetFontIcon(const char32_t code) const {
+QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> theme_color) const {
+    auto color = theme_color ? *theme_color : GetThemeColor();
+
     switch (code) {
     case Glyphs::ICON_MINIMIZE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath()));
+        return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath(color)));
     case Glyphs::ICON_MAXIMUM_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(GetThemeColorPath()));
+        return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(GetThemeColorPath(color)));
     case Glyphs::ICON_CLOSE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(GetThemeColorPath()));
+        return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(GetThemeColorPath(color)));
     case Glyphs::ICON_RESTORE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(GetThemeColorPath()));
+        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(GetThemeColorPath(color)));
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
 	    {
 			auto temp = font_icon_opts_;
@@ -568,6 +574,22 @@ QColor ThemeManager::GetCoverShadowColor() const {
     case ThemeColor::LIGHT_THEME:
     default:
         return QColor(qTEXT("#DCDCDC"));
+    }
+}
+
+void ThemeManager::SetLinearGradient(QLinearGradient& gradient) const {
+    switch (GetThemeColor()) {
+        case ThemeColor::DARK_THEME:
+            gradient.setColorAt(0, QColor("#1e1d23"));
+            gradient.setColorAt(0.74, QColor("#000000"));
+            break;
+        case ThemeColor::LIGHT_THEME:       
+            gradient.setCoordinateMode(QGradient::StretchToDeviceMode);
+            gradient.setStart(0, 0);
+            gradient.setFinalStop(1, 1);
+            gradient.setColorAt(0, QColor(255, 254, 255));
+            gradient.setColorAt(1, QColor(215, 255, 254));
+            break;
     }
 }
 
@@ -816,23 +838,23 @@ QSize ThemeManager::GetTitleButtonIconSize() {
     return QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight());
 }
 
-QFont ThemeManager::FormatFont() const {
+QFont ThemeManager::GetFormatFont() const {
     return QFont(qTEXT("FormatFont"));
 }
 
-QFont ThemeManager::UiFont() const {
+QFont ThemeManager::GetUiFont() const {
     return QFont(qTEXT("UIFont"));
 }
 
-QFont ThemeManager::DisplayFont() const {
+QFont ThemeManager::GetDisplayFont() const {
     return QFont(qTEXT("DisplayFont"));
 }
 
-QFont ThemeManager::MonoFont() const {
+QFont ThemeManager::GetMonoFont() const {
     return QFont(qTEXT("MonoFont"));
 }
 
-QFont ThemeManager::DebugFont() const {
+QFont ThemeManager::GetDebugFont() const {
     return QFont(qTEXT("DebugFont"));
 }
 

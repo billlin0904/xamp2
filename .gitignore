@@ -80,3 +80,11 @@ src/build-xamp_stream-Desktop_Qt_5_15_2_clang_64bit-Debug
 src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Release
 src/build-xamp_stream-Desktop_Qt_5_15_2_clang_64bit-Release
 src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Debug
+/src/thirdparty/framelesshelper/msvc
+/src/thirdparty/libimagequant/msvc
+/src/thirdparty/qtautoupdater
+/src/thirdparty/soxr
+/src/xamp_stream/xamp_stream.vcxproj.filters
+/src/widget_shared/widget_shared.vcxproj.filters
+/src/widget_shared/widget_shared.vcxproj.user
+/src/widget_shared/x64

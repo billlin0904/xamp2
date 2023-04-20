@@ -11,6 +11,7 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
 #include <base/logger.h>
 
@@ -22,7 +23,7 @@ XAMP_DECLARE_LOG_NAME(NullOutputDevice);
 * NullOutputDevice is the null output device.
 * 
 */
-class NullOutputDevice final : public IOutputDevice {
+class NullOutputDevice final : public IOutputDevice, public IDsdDevice {
 public:
 	/*
 	* Constructor
@@ -150,8 +151,22 @@ public:
 	*/
 	void AbortStream() noexcept override;
 
+	/*
+	* Set DSD IO format.
+	*
+	* @param[in] format: DSD IO format
+	*/
+	void SetIoFormat(DsdIoFormat format) override;
+
+	/*
+	* Get DSD IO format.
+	*
+	* @return DsdIoFormat
+	*/
+	[[nodiscard]] virtual DsdIoFormat GetIoFormat() const override;
 private:
 	bool is_running_;
+	bool raw_mode_;
 	mutable bool is_muted_;
 	std::atomic<bool> is_stopped_;
 	uint32_t buffer_frames_;

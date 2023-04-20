@@ -18,7 +18,6 @@ struct PlayListEntity final {
     uint32_t bit_rate{0};
     uint32_t sample_rate{0};
     uint32_t rating{0};
-    uint32_t year{0};
     uint64_t file_size{ 0 };
     double duration{0};
     double album_replay_gain{0};

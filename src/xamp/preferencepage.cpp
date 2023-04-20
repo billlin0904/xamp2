@@ -366,12 +366,12 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbR8BrainHz,
 	};
 
-	auto f = qTheme.UiFont();
+	auto f = qTheme.GetUiFont();
 	f.setPointSize(qTheme.GetFontSize(9));
 	setFont(f);
 
 	Q_FOREACH(auto *w, widgets) {
-		auto df = qTheme.DisplayFont();
+		auto df = qTheme.GetDisplayFont();
 		df.setWeight(QFont::DemiBold);
 		df.setPointSize(qTheme.GetFontSize(14));
 

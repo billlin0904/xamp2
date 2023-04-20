@@ -1,6 +1,7 @@
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QStandardItemModel>
+#include <QGraphicsOpacityEffect>
 #include <QPainter>
 #include <QApplication>
 #include <QScrollBar>
@@ -22,6 +23,13 @@ enum {
 	TAB_ALBUM,
 	TAB_ARTIST,
 	TAB_GENRE,
+};
+
+enum {
+	INDEX_ARTIST,
+	INDEX_ARTIST_ID,
+	INDEX_COVER_ID,
+	INDEX_FIRST_CHAR,
 };
 
 AlbumTabListView::AlbumTabListView(QWidget* parent)
@@ -134,6 +142,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	album_view_->OnCurrentThemeChanged(theme_color);
+	artist_view_->OnCurrentThemeChanged(theme_color);
 }
 
 void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
@@ -161,10 +170,10 @@ void ArtistStyledItemDelegate::SetTextColor(QColor color) {
 void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
 	auto* style = option.widget ? option.widget->style() : QApplication::style();
 
-	auto artist = index.model()->data(index.model()->index(index.row(), 0)).toString();
-	auto artistId = index.model()->data(index.model()->index(index.row(), 1)).toString();
-	auto artistCoverId = index.model()->data(index.model()->index(index.row(), 2)).toString();
-	auto first_char = index.model()->data(index.model()->index(index.row(), 3)).toString();
+	auto artist = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST)).toString();
+	auto artist_id = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST_ID)).toString();
+	auto artist_cover_id = index.model()->data(index.model()->index(index.row(), INDEX_COVER_ID)).toString();
+	auto first_char = index.model()->data(index.model()->index(index.row(), INDEX_FIRST_CHAR)).toString();
 
 	const auto default_cover_size = qTheme.GetDefaultCoverSize();
 	const QRect cover_rect(option.rect.left() + 10,
@@ -184,8 +193,8 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	
 	auto font = painter->font();
 
-	if (!artistCoverId.isEmpty()) {
-		auto artist_cover = qAlbumCoverCache.GetCover(artistCoverId);
+	if (!artist_cover_id.isEmpty()) {
+		auto artist_cover = qAlbumCoverCache.GetCover(artist_cover_id);
 		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
 	} else {				
 		painter->setPen(Qt::white);
@@ -236,29 +245,29 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
 	close_button_->setStyleSheet(qTEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
-                                         border: none;
-                                         background-color: transparent;
-										 border-radius: 0px;
+                                         border-radius: 5px;        
+                                         background-color: gray;
                                          }
-										 QPushButton#albumViewPageCloseButton:hover {	
-										 border-radius: 0px;
+										 QPushButton#albumViewPageCloseButton:hover {
+                                         color: white;
+                                         background-color: darkgray;                                         
                                          }
                                          )"));
-	close_button_->setFixedSize(qTheme.GetTitleButtonIconSize());
+	close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 2);
 	close_button_->setIconSize(qTheme.GetTitleButtonIconSize());
-	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
+	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
 
 	(void)QObject::connect(close_button_, &QPushButton::clicked, [this]() {
 		hide();
 		});
 
-	auto* hbox_layout = new QHBoxLayout();
-	hbox_layout->setSpacing(0);
-	hbox_layout->setContentsMargins(15, 15, 0, 0);
+	auto* close_button_hbox_layout = new QHBoxLayout();
+	close_button_hbox_layout->setSpacing(0);
+	close_button_hbox_layout->setContentsMargins(15, 15, 0, 0);
 
 	auto* button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Fixed);
-	hbox_layout->addWidget(close_button_);
-	hbox_layout->addSpacerItem(button_spacer);
+	close_button_hbox_layout->addWidget(close_button_);
+	close_button_hbox_layout->addSpacerItem(button_spacer);
 
 	auto* default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
@@ -268,37 +277,79 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	artist_image_->setObjectName(QString::fromUtf8("artistImage"));
 	artist_image_->setFixedHeight(300);
 	artist_image_->setAlignment(Qt::AlignCenter);
+
+	auto* album_title_layout = new QVBoxLayout();
+	album_title_layout->setSpacing(0);
+	album_title_layout->setObjectName(QString::fromUtf8("verticalLayout_2"));
+	album_title_layout->setContentsMargins(0, 5, -1, -1);	
+
+	auto artist = new QLabel(this);
+	auto f = font();
+	f.setWeight(QFont::DemiBold);
+	f.setPointSize(qTheme.GetFontSize(15));
+	artist->setFont(f);
+	artist->setText(tr("ARTIST"));
+
+	artist_name_ = new QLabel(this);
+	f.setWeight(QFont::DemiBold);
+	f.setPointSize(qTheme.GetFontSize(30));
+	artist_name_->setFont(f);
+	artist_name_->setObjectName(QString::fromUtf8("artistNameLabel"));
+	artist_name_->setMinimumSize(QSize(0, 80));
+	artist_name_->setMaximumSize(QSize(16777215, 80));
+
+	auto* top_spacer = new QSpacerItem(20, 40, QSizePolicy::Expanding, QSizePolicy::Fixed);
+	auto* artist_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	
+	album_title_layout->addSpacerItem(top_spacer);
+	album_title_layout->addWidget(artist);
+	album_title_layout->addWidget(artist_name_);
+	album_title_layout->addSpacerItem(artist_spacer);
+	album_title_layout->setStretch(2, 1);
+
+	auto* hbox_layout = new QHBoxLayout();
 	hbox_layout->addWidget(artist_image_);
-	hbox_layout->setStretch(2, 1);
+	hbox_layout->addLayout(album_title_layout);
+
+	auto* all_album_layout = new QVBoxLayout();
+
+	auto all_album = new QLabel(this);
+	f.setWeight(QFont::DemiBold);
+	f.setPointSize(qTheme.GetFontSize(20));
+	all_album->setFont(f);
+	all_album->setText(tr("ALL ALBUMS"));
 
 	album_view_ = new AlbumView(this);
 	album_view_->setObjectName(QString::fromUtf8("albumView"));
-	default_layout->addLayout(hbox_layout);	
-	default_layout->addWidget(album_view_);
-	default_layout->setStretch(1, 1);
 
-	setStyleSheet(qSTR(
-		R"(
-              QFrame#artistView {
-					background: qlineargradient(
-						x1:0, y1:0, x2:1, y2:0, stop:0 #f46b45, stop:1 #eea849
-					);
-              }
-			  QFrame#artistView:height {
-					background: qlineargradient(
-						x1:0, y1:0, x2:1, y2:0, stop:0 #f46b45, stop:1 #eea849, spread: repeat-y
-					);
-              }
-        )"
-	));
+	all_album_layout->addWidget(all_album);
+	all_album_layout->addWidget(album_view_);
+	all_album_layout->setStretch(1, 1);
+
+	default_layout->addLayout(close_button_hbox_layout);	
+	default_layout->addLayout(hbox_layout);
+	default_layout->addLayout(all_album_layout);
+	default_layout->setStretch(2, 1);
+
+	auto* fade_effect = new QGraphicsOpacityEffect(this);
+	setGraphicsEffect(fade_effect);
 }
 
-void ArtistViewPage::resizeEvent(QResizeEvent* event) {
-	setProperty("height", rect().height());
+void ArtistViewPage::paintEvent(QPaintEvent* event) {
+	QPainter painter(this);
+	QLinearGradient gradient(0, 0, 0, height());
+	qTheme.SetLinearGradient(gradient);
+	painter.fillRect(rect(), gradient);
 }
 
-void ArtistViewPage::SetArtistImage(const QPixmap& image) {
+void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+}
+
+void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QPixmap& image) {
+	artist_name_->setText(artist);
 	artist_image_->setPixmap(image);
+	album_view_->SetFilterByArtistId(artist_id);
 }
 
 ArtistView::ArtistView(QWidget* parent)
@@ -330,12 +381,29 @@ ArtistView::ArtistView(QWidget* parent)
 
 	(void)QObject::connect(styled_delegate, &ArtistStyledItemDelegate::EnterAlbumView, [this](auto index) {
 		const auto list_view_rect = this->rect();
-		auto artistCoverId = GetIndexValue(index, 2).toString();
-		auto artist_cover = qAlbumCoverCache.GetCover(artistCoverId);
-		page_->SetArtistImage(artist_cover);
+		auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
+		auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
+		auto artist_cover_id = GetIndexValue(index, INDEX_COVER_ID).toString();
+		auto artist_cover = qAlbumCoverCache.GetCover(artist_cover_id);
+
+		if (enable_page_) {
+			ShowPageAnimation();
+			page_->show();
+		}
+
+		emit GetArtist(artist);
+		page_->SetArtist(artist, artist_id, image_utils::RoundImage(artist_cover, artist_cover.width() / 2));
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 25));
 		page_->move(QPoint(list_view_rect.x() + 3, 0));
 		page_->show();
+		});
+
+	auto* fade_effect = page_->graphicsEffect();
+	animation_ = new QPropertyAnimation(fade_effect, "opacity");
+	QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
+		if (hide_page_) {
+			page_->hide();
+		}
 		});
 }
 
@@ -350,8 +418,31 @@ void ArtistView::resizeEvent(QResizeEvent* event) {
 	QListView::resizeEvent(event);
 }
 
+void ArtistView::ShowPageAnimation() {
+	animation_->setStartValue(0.01);
+	animation_->setEndValue(1.0);
+	animation_->setDuration(kPageAnimationDurationMs);
+	animation_->setEasingCurve(QEasingCurve::OutCubic);
+	animation_->start();
+	hide_page_ = false;
+}
+
+void ArtistView::HidePageAnimation() {
+	animation_->setStartValue(1.0);
+	animation_->setEndValue(0.0);
+	animation_->setDuration(kPageAnimationDurationMs);
+	animation_->setEasingCurve(QEasingCurve::OutCubic);
+	animation_->start();
+	hide_page_ = true;
+}
+
 void ArtistView::OnThemeChanged(QColor backgroundColor, QColor color) {
 	dynamic_cast<ArtistStyledItemDelegate*>(itemDelegate())->SetTextColor(color);
+	page_->album()->OnThemeChanged(backgroundColor, color);
+}
+
+void ArtistView::OnCurrentThemeChanged(ThemeColor theme_color) {
+	page_->OnCurrentThemeChanged(theme_color);
 }
 
 void ArtistView::Refresh() {

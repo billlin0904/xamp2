@@ -24,7 +24,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui.lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
     ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
 
-    QFont font = qTheme.UiFont();
+    QFont font = qTheme.GetUiFont();
     font.setBold(false);
     font.setPointSize(qTheme.GetDefaultFontSize());
     ui.txtBws->setFont(font);

@@ -160,8 +160,7 @@ void Database::CreateTableIfNotExist() {
                        track_replay_gain DOUBLE,
                        track_peak DOUBLE,
                        genre TEXT,
-                       comment TEXT,
-                       year integer,
+                       comment TEXT,                       
                        fileSize integer,
                        parentPathHash integer,
 					   lyrc TEXT,
@@ -213,6 +212,7 @@ void Database::CreateTableIfNotExist() {
                        coverId TEXT,
                        discId TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       year integer,
                        isPodcast integer,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
                        UNIQUE(albumId, artistId)
@@ -782,7 +782,7 @@ QString Database::GetArtistCoverId(int32_t artist_id) const {
     if (query.next()) {
         return query.value(index).toString();
     }
-    return qEmptyString;
+    return kEmptyString;
 }
 
 QString Database::GetAlbumCoverId(int32_t album_id) const {
@@ -797,7 +797,7 @@ QString Database::GetAlbumCoverId(int32_t album_id) const {
     if (query.next()) {
         return query.value(index).toString();
     }
-    return qEmptyString;
+    return kEmptyString;
 }
 
 QString Database::GetAlbumCoverId(const QString& album) const {
@@ -812,7 +812,7 @@ QString Database::GetAlbumCoverId(const QString& album) const {
     if (query.next()) {
         return query.value(index).toString();
     }
-    return qEmptyString;
+    return kEmptyString;
 }
 
 PlayListEntity Database::QueryToPlayListEntity(const SqlQuery& query) {
@@ -841,7 +841,6 @@ PlayListEntity Database::QueryToPlayListEntity(const SqlQuery& query) {
 
     entity.genre = query.value(qTEXT("genre")).toString();
     entity.comment = query.value(qTEXT("comment")).toString();
-    entity.year = query.value(qTEXT("year")).toUInt();
     entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
 
     entity.lyrc = query.value(qTEXT("lyrc")).toString();
@@ -951,8 +950,8 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
 
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bit_rate, sample_rate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year, fileSize, parentPathHash)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bit_rate, :sample_rate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year, :fileSize, :parentPathHash)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bit_rate, sample_rate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, fileSize, parentPathHash)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bit_rate, :sample_rate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :fileSize, :parentPathHash)
     )")
     );
 
@@ -987,7 +986,6 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);
     query.bindValue(qTEXT(":genre"), QString::fromStdWString(track_info.genre));
     query.bindValue(qTEXT(":comment"), QString::fromStdWString(track_info.comment));
-    query.bindValue(qTEXT(":year"), track_info.year);
 
     THROW_IF_FAIL1(query);
 
@@ -1221,13 +1219,13 @@ void Database::UpdateAlbumByDiscId(const QString& disc_id, const QString& album)
     THROW_IF_FAIL1(query);
 }
 
-int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id) {
+int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast, const QString& disc_id) {
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, isPodcast, dateTime, discId)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :isPodcast, :dateTime, :discId)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, isPodcast, dateTime, discId, year)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :isPodcast, :dateTime, :discId, :year)
     )"));
 
     query.bindValue(qTEXT(":album"), album);
@@ -1236,6 +1234,7 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
     query.bindValue(qTEXT(":isPodcast"), is_podcast ? 1 : 0);
     query.bindValue(qTEXT(":dateTime"), album_time);
     query.bindValue(qTEXT(":discId"), disc_id);
+    query.bindValue(qTEXT(":year"), year);
 
     THROW_IF_FAIL1(query);
 

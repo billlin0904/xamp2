@@ -49,7 +49,7 @@ class XMessageItem : public QWidget {
 public:
     explicit XMessageItem(QWidget* parent = nullptr,
         MessageTypes type = MessageTypes::MSG_INFORMATION,
-        const QString& content = qEmptyString);
+        const QString& content = kEmptyString);
 
     ~XMessageItem() override;
 

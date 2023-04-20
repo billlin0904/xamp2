@@ -14,8 +14,8 @@ class QVBoxLayout;
 
 class XProgressDialog : public XDialog {
 public:
-	explicit XProgressDialog(const QString& title= qEmptyString,
-		const QString& cancel_text = qEmptyString,
+	explicit XProgressDialog(const QString& title= kEmptyString,
+		const QString& cancel_text = kEmptyString,
 		int minimum = 0, 
 		int maximum = 100,
 		QWidget* parent = nullptr);

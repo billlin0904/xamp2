@@ -107,7 +107,7 @@ public slots:
 
 	void OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
 
-	void OnSearchArtistCompleted(int32_t music_id, const QString& artist, const QByteArray& image);
+	void OnSearchArtistCompleted(const QString& artist, const QByteArray& image);
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 

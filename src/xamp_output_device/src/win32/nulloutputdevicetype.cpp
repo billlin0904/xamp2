@@ -61,6 +61,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDef
 	DeviceInfo info;
 	info.name = kDescription;
 	info.device_id = kDeviceId;
+	info.is_support_dsd = true;
 	info.device_type_id = XAMP_UUID_OF(NullOutputDeviceType);
 	return info;
 }

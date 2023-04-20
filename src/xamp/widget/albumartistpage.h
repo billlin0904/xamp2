@@ -10,6 +10,7 @@
 #include <QSqlQueryModel>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
+#include <QPropertyAnimation>
 
 #include <widget/themecolor.h>
 
@@ -17,6 +18,7 @@ class AlbumView;
 class ArtistInfoPage;
 class QPushButton;
 class QLabel;
+class QPropertyAnimation;
 
 class ArtistStyledItemDelegate : public QStyledItemDelegate {
 	Q_OBJECT
@@ -59,10 +61,17 @@ class ArtistViewPage final : public QFrame {
 public:
  	explicit ArtistViewPage(QWidget* parent = nullptr);
 
-	void SetArtistImage(const QPixmap &image);
+	void SetArtist(const QString &artist, int32_t artist_id, const QPixmap &image);
 
-	void resizeEvent(QResizeEvent* event) override;
+	void paintEvent(QPaintEvent* event) override;
+
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
+	AlbumView* album() const {
+		return album_view_;
+	}
 private:
+	QLabel* artist_name_;	
 	QLabel* artist_image_;
 	QPushButton* close_button_;
 	AlbumView* album_view_;
@@ -71,15 +80,30 @@ private:
 class ArtistView final : public QListView {
 	Q_OBJECT
 public:
+	static constexpr auto kPageAnimationDurationMs = 200;
+
 	explicit ArtistView(QWidget* parent = nullptr);
 
 	void OnThemeChanged(QColor backgroundColor, QColor color);
 
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
 	void Refresh();
+
+signals:
+	void GetArtist(const QString& artist);
+
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
+	void ShowPageAnimation();
+
+	void HidePageAnimation();
+
+	bool enable_page_{ true };
+	bool hide_page_{ false };
 	ArtistViewPage* page_;
+	QPropertyAnimation* animation_;
 	QSqlQueryModel model_;
 };
 
@@ -90,6 +114,10 @@ public:
 
 	AlbumView* album() const {
 		return album_view_;
+	}
+
+	ArtistView* artist() const {
+		return artist_view_;
 	}
 
 public slots:

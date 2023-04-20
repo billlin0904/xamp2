@@ -37,7 +37,8 @@ enum {
     INDEX_ARTIST,
     INDEX_ALBUM_ID,
     INDEX_ARTIST_ID,
-    INDEX_ARTIST_COVER_ID
+    INDEX_ARTIST_COVER_ID,
+    INDEX_ALBUM_YEAR,
 };
 
 void AlbumCoverCache::LoadCoverCache() {
@@ -125,10 +126,15 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
     painter->setRenderHints(QPainter::TextAntialiasing, true);
 
-    auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
-    auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
-    auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
-    auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
+    auto album = GetIndexValue(index, INDEX_ALBUM).toString();
+    auto cover_id = GetIndexValue(index, INDEX_COVER).toString();
+    auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
+    auto album_id = GetIndexValue(index, INDEX_ALBUM_ID).toInt();
+    auto album_year = GetIndexValue(index, INDEX_ALBUM_YEAR).toInt();
+
+    if (show_mode_ == SHOW_YEAR) {
+        artist = album_year <= 0 ? qTEXT("Unknown") : QString::number(album_year);
+    }
 
     const auto default_cover_size = qTheme.GetDefaultCoverSize();
     const QRect cover_rect(option.rect.left() + 10,
@@ -252,17 +258,18 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
     close_button_->setStyleSheet(qTEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
-                                         border: none;
-                                         background-color: transparent;
-										 border-radius: 0px;
+                                         border-radius: 5px;        
+                                         background-color: gray;
                                          }
-										 QPushButton#albumViewPageCloseButton:hover {	
-										 border-radius: 0px;
+										 QPushButton#albumViewPageCloseButton:hover {
+                                         color: white;
+                                         background-color: darkgray;                                         
                                          }
                                          )"));
-    close_button_->setFixedSize(qTheme.GetTitleButtonIconSize());
+    close_button_->setAttribute(Qt::WA_TranslucentBackground);
+    close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 2);
     close_button_->setIconSize(qTheme.GetTitleButtonIconSize());
-    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
+    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -293,7 +300,14 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 }
 
 void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
+    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+}
+
+void AlbumViewPage::paintEvent(QPaintEvent* event) {
+    QPainter painter(this);
+    QLinearGradient gradient(0, 0, 0, height());
+    qTheme.SetLinearGradient(gradient);
+    painter.fillRect(rect(), gradient);
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
@@ -330,8 +344,7 @@ AlbumView::AlbumView(QWidget* parent)
     , page_(new AlbumViewPage(this))
 	, styled_delegate_(new AlbumViewStyledDelegate(this))
 	, model_(this) {
-    setModel(&model_);
-    Refresh();
+    setModel(&model_);    
     setUniformItemSizes(true);
     setDragEnabled(false);
     setSelectionRectVisible(false);
@@ -348,7 +361,6 @@ AlbumView::AlbumView(QWidget* parent)
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);
 
-    qTheme.SetBackgroundColor(page_);
     page_->hide();
 
     (void)QObject::connect(page_,
@@ -373,7 +385,7 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
         auto album_id = GetIndexValue(index, INDEX_ALBUM_ID).toInt();
         auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
-        auto artist_cover_id = GetIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
+        auto artist_cover_id = GetIndexValue(index, INDEX_ARTIST_COVER_ID).toString();        
 
         const auto list_view_rect = this->rect();
         page_->SetPlaylistMusic(album, album_id, cover_id);
@@ -412,7 +424,7 @@ AlbumView::AlbumView(QWidget* parent)
             page_->hide();
         }
     });
-
+    Refresh();
     update();
 }
 
@@ -559,7 +571,6 @@ void AlbumView::EnablePage(bool enable) {
 
 void AlbumView::OnThemeChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetTextColor(color);
-    page_->setStyleSheet(BackgroundColorToString(backgroundColor));
 }
 
 void AlbumView::SetFilterByArtistId(int32_t artist_id) {
@@ -570,7 +581,8 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
         artist,
         albums.albumId,
         artists.artistId,
-        artists.coverId
+        artists.coverId,
+        albums.year
     FROM
         albumArtist
     LEFT JOIN
@@ -582,6 +594,7 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
 	GROUP BY 
 		albums.albumId
     )").arg(artist_id), qDatabase.database());
+    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_YEAR);
 }
 
 void AlbumView::Update() {
@@ -592,7 +605,8 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId
+    artists.coverId,
+    albums.year
 FROM
     albums
 LEFT 
@@ -600,6 +614,7 @@ LEFT
 WHERE 
 	albums.isPodcast = 0
     )"), qDatabase.database());
+    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
 }
 
 void AlbumView::Refresh() {
@@ -618,7 +633,8 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId
+    artists.coverId,
+    albums.year
 FROM
     albums
     LEFT JOIN artists ON artists.artistId = albums.artistId

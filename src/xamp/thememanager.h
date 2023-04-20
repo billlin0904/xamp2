@@ -96,6 +96,8 @@ public:
 
     QLatin1String GetThemeColorPath() const;
 
+    QLatin1String GetThemeColorPath(ThemeColor theme_color) const;
+
     void SetMenuStyle(QWidget* menu);
 
     QColor GetThemeTextColor() const;
@@ -116,11 +118,13 @@ public:
         return theme_color_;
     }
 
+    void SetLinearGradient(QLinearGradient &gradient) const;
+
     QSize GetTabIconSize() const;
 
     void SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon GetFontIcon(const char32_t code) const;
+    QIcon GetFontIcon(const char32_t code, std::optional<ThemeColor> theme_color = std::nullopt) const;
 
     void SetTextSeparator(QFrame* frame);
 
@@ -150,15 +154,15 @@ public:
 
     static QSize GetTitleButtonIconSize();
 
-    QFont FormatFont() const;
+    QFont GetFormatFont() const;
 
-    QFont UiFont() const;
+    QFont GetUiFont() const;
 
-    QFont DisplayFont() const;
+    QFont GetDisplayFont() const;
 
-    QFont MonoFont() const;
+    QFont GetMonoFont() const;
 
-    QFont DebugFont() const;
+    QFont GetDebugFont() const;
 signals:
     void CurrentThemeChanged(ThemeColor theme_color);
 

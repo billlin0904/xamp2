@@ -250,8 +250,8 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::SetDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
 
-    AppSettings::SetDefaultValue(kAppSettingDeviceType, qEmptyString);
-    AppSettings::SetDefaultValue(kAppSettingDeviceId, qEmptyString);
+    AppSettings::SetDefaultValue(kAppSettingDeviceType, kEmptyString);
+    AppSettings::SetDefaultValue(kAppSettingDeviceId, kEmptyString);
     AppSettings::SetDefaultValue(kAppSettingVolume, 50);    
     AppSettings::SetDefaultValue(kAppSettingEnableBlur, false);
     AppSettings::SetDefaultValue(kAppSettingUseFramelessWindow, true);

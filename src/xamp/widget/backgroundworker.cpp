@@ -156,7 +156,7 @@ static std::optional<kkbox::ArtistData> ParseArtistData(const QJsonDocument& doc
     return result;
 }
 
-void BackgroundWorker::GetArtist(int32_t artist_id, const QString& artist) {
+void BackgroundWorker::OnGetArtist(const QString& artist) {
     static const QString credentialFLowUrl = qTEXT("https://account.kkbox.com/oauth2/token");
     const QString client_id = qTEXT("bd5cfe4143f918a3db24dcb388972054");
     const QString client_secret = qTEXT("425cacb9f036585d34f7a2725c98e417");
@@ -166,7 +166,7 @@ void BackgroundWorker::GetArtist(int32_t artist_id, const QString& artist) {
         .param(qTEXT("grant_type"), grant_type)
         .param(qTEXT("client_id"), client_id)
         .param(qTEXT("client_secret"), client_secret)
-        .success([this, artist_id, artist](const auto& json) {
+        .success([this, artist](const auto& json) {
             QJsonParseError error;
             const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
             if (error.error != QJsonParseError::NoError) {
@@ -193,7 +193,7 @@ void BackgroundWorker::GetArtist(int32_t artist_id, const QString& artist) {
                 .param(qTEXT("territory"), territory)
                 .param(qTEXT("limit"), 15)
                 .header(qTEXT("Authorization"), QString(qTEXT("%1 %2").arg(credential.token_type).arg(credential.access_token)))
-                .success([this, artist_id, artist](const auto& json) {
+                .success([this, artist](const auto& json) {
                 QJsonParseError error;
                 const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
                 if (error.error != QJsonParseError::NoError) {
@@ -205,8 +205,8 @@ void BackgroundWorker::GetArtist(int32_t artist_id, const QString& artist) {
 					    return;
 				    }
                     http::HttpClient(artist_data.value().images[1].url)
-                        .download([this, artist_id, artist](const auto &content) {
-                        emit SearchArtistCompleted(artist_id, artist, content);
+                        .download([this, artist](const auto &content) {
+                        emit SearchArtistCompleted(artist, content);
                         });
 			    }			
                 }).get();
@@ -219,8 +219,6 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
         String::Format("{}{}", 
         QUrl::toPercentEncoding(artist),
         QUrl::toPercentEncoding(title)));
-
-    GetArtist(music_id, artist);
 
     http::HttpClient(qTEXT("https://music.xianqiao.wang/neteaseapiv2/search"))
         .param(qTEXT("limit"), qTEXT("10"))
@@ -243,6 +241,7 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
                 break;
             }
             if (!song_id) {
+                emit SearchLyricsCompleted(music_id, kEmptyString, kEmptyString);
                 XAMP_LOG_DEBUG("Not found any lyric!");
                 return;
             }

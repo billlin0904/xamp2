@@ -430,7 +430,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	std::chrono::milliseconds glitch_time((buffer_frames_ *
 		kMicrosecondsPerSecond /
 		mix_format_->nSamplesPerSec) / 1000);
-	glitch_time *= 2;
+	glitch_time *= 4;
 
 	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", glitch_time.count());
 	// Reset event.

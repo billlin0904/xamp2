@@ -211,7 +211,10 @@ void DatabaseFacade::ReadTrackInfo(QString const& file_path,
     const auto file_name_filters = GetFileNameFilter();
     int progress(0);
 
-    for (const auto path : paths) {
+    const int kIncrement = paths.size() / 10;
+    int count = 0;
+
+    for (const auto& path : paths) {
         if (is_stop_) {
             return;
         }
@@ -223,8 +226,10 @@ void DatabaseFacade::ReadTrackInfo(QString const& file_path,
             XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());
         }
 
-        emit ReadFileProgress(progress);
-        event_loop_.exec();
+        if (++count >= kIncrement) {
+            emit ReadFileProgress(progress);
+            event_loop_.exec();
+        }        
         ++progress;
     }
 }
@@ -265,8 +270,17 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 	const CoverArtReader reader;
 	const auto total_tracks = std::distance(result.begin(), result.end());
     auto num_track = 0;
+    auto album_year = 0;
     HashMap<QString, int32_t> artist_id_cache;
     HashMap<QString, int32_t> album_id_cache;
+
+    auto itr = std::max_element(result.begin(), result.end(), [](const auto& first, const auto& last) {
+		return first.year < last.year;
+		});
+    if (itr != result.end()) {
+        album_year = (*itr).year;
+	}
+
 	for (const auto& track_info : result) {
         auto file_path = QString::fromStdWString(track_info.file_path);
         auto album = QString::fromStdWString(track_info.album);
@@ -303,6 +317,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
             album_id = qDatabase.AddOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
+                album_year,
                 is_podcast,
                 disc_id);
             album_id_cache[album + artist] = album_id;

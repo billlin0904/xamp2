@@ -17,6 +17,7 @@ using namespace helper;
 
 NullOutputDevice::NullOutputDevice()
 	: is_running_(false)
+	, raw_mode_(false)
 	, is_muted_(false)
 	, is_stopped_(true)
 	, buffer_frames_(0)
@@ -129,6 +130,19 @@ bool NullOutputDevice::IsStreamRunning() const noexcept {
 }
 
 void NullOutputDevice::AbortStream() noexcept {
+}
+
+void NullOutputDevice::SetIoFormat(DsdIoFormat format) {
+	if (format == DsdIoFormat::IO_FORMAT_DSD) {
+		raw_mode_ = true;
+	}
+	else {
+		raw_mode_ = false;
+	}
+}
+
+DsdIoFormat NullOutputDevice::GetIoFormat() const {
+	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DSD : DsdIoFormat::IO_FORMAT_PCM;
 }
 
 bool NullOutputDevice::IsHardwareControlVolume() const {
