@@ -53,11 +53,347 @@
 #include <QCloseEvent>
 #include <QtAutoUpdaterCore/Updater>
 
-#include "aboutpage.h"
-#include "cdpage.h"
-#include "preferencepage.h"
-#include "thememanager.h"
-#include "version.h"
+#include <widget/aboutpage.h>
+#include <widget/cdpage.h>
+#include <widget/preferencepage.h>
+#include <thememanager.h>
+#include <version.h>
+
+void SetShufflePlayOrder(Ui::XampWindow& ui) {
+    ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
+}
+
+void SetRepeatOnePlayOrder(Ui::XampWindow& ui) {
+    ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
+}
+
+void SetRepeatOncePlayOrder(Ui::XampWindow& ui) {
+    ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
+}
+
+void SetThemeIcon(Ui::XampWindow& ui) {
+    qTheme.SetTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
+
+    const QColor hover_color = qTheme.GetHoverColor();
+
+    if (qTheme.UseNativeWindow()) {
+        ui.logoButton->hide();
+    }
+    else {
+        ui.logoButton->setStyleSheet(qSTR(R"(
+                                         QToolButton#logoButton {
+                                         border: none;
+                                         image: url(":/xamp/xamp.ico");
+                                         background-color: transparent;
+                                         }
+										)"));
+    }
+
+    ui.sliderBarButton->setStyleSheet(qSTR(R"(
+                                            QToolButton#sliderBarButton {
+                                            border: none;
+                                            background-color: transparent;
+											border-radius: 0px;
+                                            }
+											QToolButton#sliderBarButton:hover {												
+											background-color: %1;
+											border-radius: 0px;								 
+											}
+                                            QToolButton#sliderBarButton::menu-indicator {
+                                            image: none;
+                                            }
+                                            )").arg(ColorToString(hover_color)));
+    ui.sliderBarButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SLIDER_BAR));
+
+    ui.stopButton->setStyleSheet(qSTR(R"(
+                                         QToolButton#stopButton {
+                                         border: none;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+    ui.stopButton->setIcon(qTheme.GetFontIcon(ICON_STOP_PLAY));
+
+    ui.nextButton->setStyleSheet(qTEXT(R"(
+                                        QToolButton#nextButton {
+                                        border: none;
+                                        background-color: transparent;
+                                        }
+                                        )"));
+    ui.nextButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD));
+
+    ui.prevButton->setStyleSheet(qTEXT(R"(
+                                        QToolButton#prevButton {
+                                        border: none;
+                                        background-color: transparent;
+                                        }
+                                        )"));
+    ui.prevButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD));
+
+    ui.selectDeviceButton->setStyleSheet(qTEXT(R"(
+                                                QToolButton#selectDeviceButton {                                                
+                                                border: none;
+                                                background-color: transparent;                                                
+                                                }
+                                                QToolButton#selectDeviceButton::menu-indicator { image: none; }
+                                                )"));
+    ui.selectDeviceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SPEAKER));
+
+    ui.mutedButton->setStyleSheet(qSTR(R"(
+                                         QToolButton#mutedButton {
+                                         image: url(:/xamp/Resource/%1/volume_up.png);
+                                         border: none;
+                                         background-color: transparent;
+                                         }
+                                         )").arg(qTheme.GetThemeColorPath()));
+
+    ui.eqButton->setStyleSheet(qTEXT(R"(
+                                         QToolButton#eqButton {
+                                         border: none;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+    ui.eqButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
+
+    ui.preferenceButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#preferenceButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    ui.preferenceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
+
+    ui.aboutButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#aboutButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    ui.aboutButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
+
+    ui.pendingPlayButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#pendingPlayButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    ui.pendingPlayButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
+
+    ui.repeatButton->setStyleSheet(qTEXT(R"(
+    QToolButton#repeatButton {
+    border: none;
+    background: transparent;
+    }
+    )"
+    ));
+}
+
+void SetMuted(Ui::XampWindow& ui, bool is_muted) {
+    qTheme.SetMuted(ui.mutedButton, is_muted);
+}
+
+void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
+    switch (order) {
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        SetRepeatOncePlayOrder(ui);
+        break;
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+        SetRepeatOnePlayOrder(ui);
+        break;
+    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+        SetShufflePlayOrder(ui);
+        break;
+    default:
+        break;
+    }
+}
+
+void SetTabTheme(Ui::XampWindow& ui) {
+	QString tab_left_color;
+
+	switch (qTheme.GetThemeColor()) {
+	case ThemeColor::DARK_THEME:
+		tab_left_color = qTEXT("42, 130, 218");
+		break;
+	case ThemeColor::LIGHT_THEME:
+		tab_left_color = qTEXT("42, 130, 218");
+		break;
+	}
+
+	ui.sliderBar->setStyleSheet(qSTR(R"(
+	QListView#sliderBar {
+		border: none; 
+	}
+	QListView#sliderBar::item {
+		border: 0px;
+		padding-left: 6px;
+	}
+	QListView#sliderBar::item:hover {
+		border-radius: 2px;
+	}
+	QListView#sliderBar::item:selected {
+		padding-left: 4px;		
+		border-left-width: 2px;
+		border-left-style: solid;
+		border-left-color: rgb(%1);
+	}	
+	)").arg(tab_left_color));
+}
+
+void SetWidgetStyle(Ui::XampWindow& ui) {
+    ui.selectDeviceButton->setIconSize(QSize(32, 32));
+
+    ui.playButton->setStyleSheet(qTEXT(R"(
+                                            QToolButton#playButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));   
+
+    ui.searchLineEdit->setStyleSheet(qTEXT(""));
+
+    ui.searchFrame->setStyleSheet(qTEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
+
+    QFont duration_font(qTEXT("MonoFont"));
+    duration_font.setPointSize(8);
+    duration_font.setWeight(QFont::Bold);
+
+    ui.startPosLabel->setStyleSheet(qTEXT(R"(
+                                           QLabel#startPosLabel {
+                                           color: gray;
+                                           background-color: transparent;
+                                           }
+                                           )"));
+
+    ui.endPosLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#endPosLabel {
+                                         color: gray;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+    ui.startPosLabel->setFont(duration_font);
+    ui.endPosLabel->setFont(duration_font);
+
+    ui.titleFrameLabel->setStyleSheet(qSTR(R"(
+    QLabel#titleFrameLabel {
+    border: none;
+    background: transparent;
+    }
+    )"));
+
+    ui.tableLabel->setStyleSheet(qSTR(R"(
+    QLabel#tableLabel {
+    border: none;
+    background: transparent;
+	color: gray;
+    }
+    )"));
+
+    ui.searchLineEdit->setClearButtonEnabled(true);
+    if (qTheme.GetThemeColor() == ThemeColor::DARK_THEME) {
+        ui.titleLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#titleLabel {
+                                         color: white;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+        ui.formatLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#formatLabel {
+                                         color: white;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+        ui.searchLineEdit->setStyleSheet(qSTR(R"(
+                                            QLineEdit#searchLineEdit {
+                                            background-color: %1;
+                                            border: gray;
+                                            color: white;
+                                            border-radius: 10px;
+                                            }
+                                            )").arg(ColorToString(Qt::black)));
+
+        ui.currentView->setStyleSheet(qSTR(R"(
+			QStackedWidget#currentView {
+				padding: 0px;
+				background-color: #080808;
+				border: 1px solid transparent;
+				border-top-left-radius: 8px;
+            }			
+            )"));
+
+        ui.bottomFrame->setStyleSheet(
+            qTEXT(R"(
+            QFrame#bottomFrame{
+                border-top: 1px solid black;
+                border-radius: 0px;
+				border-bottom: none;
+				border-left: none;
+				border-right: none;
+            }
+            )"));
+    }
+    else {
+        ui.titleLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#titleLabel {
+                                         color: black;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+        ui.formatLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#formatLabel {
+                                         color: black;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+        ui.searchLineEdit->setStyleSheet(qSTR(R"(
+                                            QLineEdit#searchLineEdit {
+                                            background-color: %1;
+                                            border: gray;
+                                            color: black;
+                                            border-radius: 10px;
+                                            }
+                                            )").arg(ColorToString(Qt::white)));
+
+        ui.currentView->setStyleSheet(qTEXT(R"(
+			QStackedWidget#currentView {
+				background-color: #f9f9f9;
+				border: 1px solid transparent;
+				border-top-left-radius: 8px;
+            }			
+            )"));
+
+        ui.bottomFrame->setStyleSheet(
+            qTEXT(R"(
+            QFrame#bottomFrame {
+                border-top: 1px solid #eaeaea;
+                border-radius: 0px;
+				border-bottom: none;
+				border-left: none;
+				border-right: none;
+            }
+            )"));
+    }
+
+    ui.artistLabel->setStyleSheet(qTEXT(R"(
+                                         QLabel#artistLabel {
+                                         color: rgb(250, 88, 106);
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+    qTheme.SetTabTheme(ui.sliderBar);
+    qTheme.SetSliderTheme(ui.seekSlider);
+
+    ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
+
+    SetThemeIcon(ui);
+    ui.sliderBarButton->setIconSize(qTheme.GetTabIconSize());
+    ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));    
+    ui.currentViewFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
+}
 
 static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& device_info,
                                                             const Path& file_path,
@@ -269,7 +605,7 @@ void Xamp::InitialSpectrum() {
 
 void Xamp::UpdateMaximumState(bool is_maximum) {
     lrc_page_->SetFullScreen(is_maximum);
-    qTheme.UpdateMaximumIcon(ui_, is_maximum);
+    qTheme.UpdateMaximumIcon(ui_.maxWinButton, is_maximum);
 }
 
 void Xamp::FocusIn() {
@@ -348,7 +684,7 @@ void Xamp::InitialUi() {
 
     ui_.mutedButton->SetPlayer(player_);
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
-    qTheme.SetPlayOrPauseButton(ui_, false);
+    qTheme.SetPlayOrPauseButton(ui_.playButton, false);
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -523,18 +859,18 @@ void Xamp::InitialController() {
         }
     });
 
-    qTheme.SetBitPerfectButton(ui_, AppSettings::ValueAsBool(kEnableBitPerfect));
+    qTheme.SetBitPerfectButton(ui_.bitPerfectButton, AppSettings::ValueAsBool(kEnableBitPerfect));
 
     (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::pressed, [this]() {
 	    const auto enable_or_disable = !AppSettings::ValueAsBool(kEnableBitPerfect);
         AppSettings::SetValue(kEnableBitPerfect, enable_or_disable);
-        qTheme.SetBitPerfectButton(ui_, enable_or_disable);
+        qTheme.SetBitPerfectButton(ui_.bitPerfectButton, enable_or_disable);
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::LeftButtonValueChanged, [this](auto value) {
         try {
 			player_->Seek(value / 1000.0);
-            qTheme.SetPlayOrPauseButton(ui_, true);
+            qTheme.SetPlayOrPauseButton(ui_.playButton, true);
             main_window_->SetTaskbarPlayingResume();
         }
         catch (const Exception & e) {
@@ -738,7 +1074,7 @@ void Xamp::SetCurrentTab(int32_t table_id) {
 }
 
 void Xamp::UpdateButtonState() {    
-    qTheme.SetPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
+    qTheme.SetPlayOrPauseButton(ui_.playButton, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
 }
 
 void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -763,8 +1099,8 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
     }
 
     qTheme.LoadAndApplyQssTheme();
-    qTheme.SetThemeIcon(ui_);
-    qTheme.SetRepeatButtonIcon(ui_, order_);
+    SetThemeIcon(ui_);
+    SetRepeatButtonIcon(ui_, order_);
     SetThemeColor(qTheme.BackgroundColor(), qTheme.GetThemeTextColor());
 
     lrc_page_->SetCover(qTheme.GetUnknownCover());
@@ -776,8 +1112,8 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
-    qTheme.SetBackgroundColor(ui_, backgroundColor);
-    qTheme.SetWidgetStyle(ui_);
+    qTheme.SetBackgroundColor(backgroundColor);
+    SetWidgetStyle(ui_);
     UpdateButtonState();
     emit ThemeChanged(backgroundColor, color);
 }
@@ -919,7 +1255,7 @@ void Xamp::StopPlay() {
     ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
-    qTheme.SetPlayOrPauseButton(ui_, false);
+    qTheme.SetPlayOrPauseButton(ui_.playButton, false);
 }
 
 void Xamp::PlayNext() {
@@ -939,7 +1275,7 @@ void Xamp::DeleteKeyPress() {
 }
 
 void Xamp::SetPlayerOrder() {
-    qTheme.SetRepeatButtonIcon(ui_, order_);
+    SetRepeatButtonIcon(ui_, order_);
     if (playlist_page_ != nullptr) {
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
     }    
@@ -975,13 +1311,13 @@ void Xamp::PlayOrPause() {
 
     try {
         if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
-            qTheme.SetPlayOrPauseButton(ui_, false);
+            qTheme.SetPlayOrPauseButton(ui_.playButton, false);
             player_->Pause();
             current_playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_PAUSE);
             main_window_->SetTaskbarPlayerPaused();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-            qTheme.SetPlayOrPauseButton(ui_, true);
+            qTheme.SetPlayOrPauseButton(ui_.playButton, true);
             player_->Resume();
             current_playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_PLAYING);
             main_window_->SetTaskbarPlayingResume();
@@ -1271,7 +1607,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         ext = qTEXT(".m4a");
     }
 	
-    qTheme.SetPlayOrPauseButton(ui_, open_done);
+    qTheme.SetPlayOrPauseButton(ui_.playButton, open_done);
     lrc_page_->spectrum()->Reset();
     lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
 	

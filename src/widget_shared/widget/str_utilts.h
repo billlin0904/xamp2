@@ -1,0 +1,87 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <QString>
+#include <QColor>
+#include <QHashFunctions>
+
+#include <widget/widget_shared_global.h>
+
+struct XAMP_WIDGET_SHARED_EXPORT ConstLatin1String final : public QLatin1String {
+    constexpr ConstLatin1String(char const* const s) noexcept
+        : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
+    }
+
+	constexpr ConstLatin1String(char const* const s, int length) noexcept
+		: QLatin1String(s, length) {
+	}
+};
+
+class XAMP_WIDGET_SHARED_EXPORT ConstString final : public std::string_view {
+public:
+	using std::string_view::string_view;
+
+	QString utf16() const {
+		return QString::fromUtf8(data(), size());
+	}
+
+	QByteArray utf8() const {
+		return QByteArray::fromRawData(data(), size());
+	}
+};
+
+namespace std {
+	template <>
+	struct hash<ConstLatin1String> {
+		typedef size_t result_type;
+		typedef ConstLatin1String argument_type;
+
+		result_type operator()(const argument_type& s) const {
+			return qHash(s);
+		}
+	};
+}
+
+inline constexpr ConstLatin1String kEmptyString{ "" };
+
+constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
+    return { str };
+}
+
+constexpr ConstLatin1String FromStdStringView(std::string_view const& s) noexcept {
+	return { s.data(), static_cast<int>(s.length()) };
+}
+
+XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
+    return {QLatin1String{ str }};
+}
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(uint32_t sample_rate);
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatBitRate(uint32_t bitRate);
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatDsdSampleRate(uint32_t dsd_speed);
+
+XAMP_WIDGET_SHARED_EXPORT QString ColorToString(QColor color);
+
+XAMP_WIDGET_SHARED_EXPORT QString BackgroundColorToString(QColor color);
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatDuration(const double stream_time, bool full_text = false);
+
+XAMP_WIDGET_SHARED_EXPORT bool IsMoreThan1Hours(const double stream_time);
+
+XAMP_WIDGET_SHARED_EXPORT QString ToNativeSeparators(const QString &path);
+
+XAMP_WIDGET_SHARED_EXPORT QByteArray GenerateUuid();
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatBytes(quint64 bytes);
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatTime(quint64 time);
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatDb(double value, int prec = 1);
+
+XAMP_WIDGET_SHARED_EXPORT QString FormatDouble(double value, int prec = 1);

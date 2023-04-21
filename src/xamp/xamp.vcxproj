@@ -72,7 +72,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;QCUSTOMPLOT_USE_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/zlib/;../thirdparty/zopfli/src/zopflipng/;../thirdparty/libimagequant/;../thirdparty/qtautoupdater/msvc2019_64/include/;../thirdparty/framelesshelper/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/zopfli/src/zopflipng/;../thirdparty/libimagequant/;../thirdparty/qtautoupdater/msvc2019_64/include/;../thirdparty/framelesshelper/include/</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -89,7 +89,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zopfli/msvc/Debug/;../thirdparty/libimagequant/msvc/Debug/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;opengl32.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;opengl32.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;widget_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
@@ -178,93 +178,16 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="aboutpage.cpp" />
-    <ClCompile Include="cdpage.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="preferencepage.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
-    <ClCompile Include="thememanager.cpp" />
-    <ClCompile Include="version.cpp" />
-    <ClCompile Include="widget\albumartistpage.cpp">
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
-    </ClCompile>
-    <ClCompile Include="widget\albumentity.cpp" />
-    <ClCompile Include="widget\albumview.cpp" />
-    <ClCompile Include="widget\appsettings.cpp" />
-    <ClCompile Include="widget\artistinfopage.cpp" />
-    <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\colorthief.cpp" />
-    <ClCompile Include="widget\database.cpp" />
-    <ClCompile Include="widget\doubleslider.cpp" />
-    <ClCompile Include="widget\equalizerview.cpp" />
-    <ClCompile Include="widget\filesystemmodel.cpp" />
-    <ClCompile Include="widget\filesystemviewpage.cpp" />
-    <ClCompile Include="widget\fonticon.cpp" />
-    <ClCompile Include="widget\globalshortcut.cpp" />
-    <ClCompile Include="widget\parametriceqview.cpp" />
-    <ClCompile Include="widget\pendingplaylistpage.cpp" />
-    <ClCompile Include="widget\podcast_uiltis.cpp" />
-    <ClCompile Include="widget\processindicator.cpp" />
-    <ClCompile Include="widget\qcustomplot.cpp" />
-    <ClCompile Include="widget\qetag.cpp" />
-    <ClCompile Include="widget\spectrumwidget.cpp" />
-    <ClCompile Include="widget\spotify_utilis.cpp" />
-    <ClCompile Include="widget\volumebutton.cpp" />
-    <ClCompile Include="widget\volumecontroldialog.cpp" />
-    <ClCompile Include="widget\xmessage.cpp" />
-    <ClCompile Include="widget\xprogressdialog.cpp" />
-    <ClCompile Include="widget\http.cpp" />
-    <ClCompile Include="widget\image_utiltis.cpp" />
-    <ClCompile Include="widget\jsonsettings.cpp" />
-    <ClCompile Include="widget\localelanguage.cpp" />
-    <ClCompile Include="widget\lrcpage.cpp" />
-    <ClCompile Include="widget\lrcparser.cpp" />
-    <ClCompile Include="widget\lyricsshowwidget.cpp" />
-    <ClCompile Include="widget\imagecache.cpp" />
-    <ClCompile Include="widget\databasefacade.cpp">
-      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
-      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood</IncludePath>
-    </ClCompile>
-    <ClCompile Include="widget\playlistpage.cpp" />
-    <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
-    <ClCompile Include="widget\playlisttableproxymodel.cpp" />
-    <ClCompile Include="widget\playlisttableview.cpp" />
-    <ClCompile Include="widget\read_utiltis.cpp" />
-    <ClCompile Include="widget\backgroundworker.cpp" />
-    <ClCompile Include="widget\scrolllabel.cpp" />
-    <ClCompile Include="widget\seekslider.cpp" />
-    <ClCompile Include="widget\appsettingnames.cpp" />
-    <ClCompile Include="widget\stardelegate.cpp" />
-    <ClCompile Include="widget\stareditor.cpp" />
-    <ClCompile Include="widget\starrating.cpp" />
-    <ClCompile Include="widget\str_utilts.cpp" />
-    <ClCompile Include="widget\switchbutton.cpp" />
-    <ClCompile Include="widget\tablistview.cpp" />
-    <ClCompile Include="widget\xmessagebox.cpp" />
-    <ClCompile Include="widget\uiplayerstateadapter.cpp" />
-    <ClCompile Include="widget\ui_utilts.cpp" />
-    <ClCompile Include="widget\wheelablewidget.cpp" />
-    <ClCompile Include="widget\win32\win32.cpp" />
-    <ClCompile Include="widget\xdialog.cpp" />
-    <ClCompile Include="widget\xframe.cpp" />
-    <ClCompile Include="widget\xmainwindow.cpp" />
-    <ClCompile Include="widget\zib_utiltis.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="aboutdialog.ui" />
-    <QtUic Include="cdpage.ui" />
-    <QtUic Include="filesystemviewpage.ui" />
-    <QtUic Include="preferencedialog.ui" />
-    <QtUic Include="volumecontroldialog.ui" />
-    <QtUic Include="widget\equalizerdialog.ui" />
+    <QtUic Include="..\widget_shared\aboutdialog.ui" />
+    <QtUic Include="..\widget_shared\cdpage.ui" />
+    <QtUic Include="..\widget_shared\equalizerdialog.ui" />
+    <QtUic Include="..\widget_shared\filesystemviewpage.ui" />
+    <QtUic Include="..\widget_shared\preferencedialog.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -277,95 +200,9 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="widget\xframe.h" />
-    <QtMoc Include="preferencepage.h" />
-    <QtMoc Include="cdpage.h" />
-    <ClInclude Include="version.h" />
-    <ClInclude Include="widget\albumentity.h" />
-    <QtMoc Include="widget\spectrumwidget.h" />
-    <QtMoc Include="widget\filesystemviewpage.h" />
-    <ClInclude Include="widget\colorthief.h" />
-    <ClInclude Include="widget\driveinfo.h" />
-    <ClInclude Include="widget\filesystemmodel.h" />
-    <QtMoc Include="widget\processindicator.h" />
-    <ClInclude Include="widget\appsettingnames.h" />
-    <ClInclude Include="widget\fonticon.h" />
-    <QtMoc Include="widget\iconsizestyle.h" />
-    <ClInclude Include="widget\globalshortcut.h" />
-    <QtMoc Include="widget\pendingplaylistpage.h" />
-    <QtMoc Include="widget\parametriceqview.h" />
-    <QtMoc Include="widget\qcustomplot.h" />
-    <ClInclude Include="widget\smoothcurvegenerator2.h" />
-    <ClInclude Include="widget\spotify_utilis.h" />
-    <ClInclude Include="widget\themecolor.h" />
-    <QtMoc Include="widget\volumebutton.h" />
-    <QtMoc Include="widget\volumecontroldialog.h" />
-    <QtMoc Include="widget\xmessage.h" />
-    <ClInclude Include="widget\xprogressdialog.h" />
-    <ClInclude Include="widget\xmainwindow.h" />
-    <ClInclude Include="xampplayer.h" />
-    <QtMoc Include="widget\lyricsshowwidget.h" />
-    <QtMoc Include="widget\doubleslider.h" />
-    <QtMoc Include="widget\equalizerview.h" />
-    <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
-    <QtMoc Include="widget\uiplayerstateadapter.h">
-    </QtMoc>
-    <ClInclude Include="widget\podcast_uiltis.h" />
-    <ClInclude Include="widget\read_utiltis.h" />
-    <QtMoc Include="widget\switchbutton.h" />
-    <QtMoc Include="widget\backgroundworker.h" />
-    <ClInclude Include="widget\ui_utilts.h" />
-    <ClInclude Include="widget\widget_shared.h" />
-    <QtMoc Include="widget\xdialog.h">
-    </QtMoc>
     <QtMoc Include="singleinstanceapplication.h" />
-    <QtMoc Include="aboutpage.h">
-    </QtMoc>
     <ClInclude Include="resource.h" />
-    <QtMoc Include="thememanager.h" />
-    <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="xamp.h">
-    </QtMoc>
-    <QtMoc Include="widget\clickablelabel.h">
-    </QtMoc>
-    <QtMoc Include="widget\albumartistpage.h">
-    </QtMoc>
-    <ClInclude Include="widget\appsettings.h" />
-    <QtMoc Include="widget\artistinfopage.h" />
-    <ClInclude Include="widget\database.h" />
-    <QtMoc Include="widget\albumview.h">
-    </QtMoc>
-    <ClInclude Include="widget\qetag.h" />
-    <ClInclude Include="widget\image_utiltis.h" />
-    <QtMoc Include="widget\lrcpage.h">
-    </QtMoc>
-    <ClInclude Include="widget\jsonsettings.h" />
-    <ClInclude Include="widget\localelanguage.h" />
-    <ClInclude Include="widget\lrcparser.h" />
-    <ClInclude Include="widget\imagecache.h" />
-    <QtMoc Include="widget\playlistpage.h">
-    </QtMoc>
-    <QtMoc Include="widget\seekslider.h">
-    </QtMoc>
-    <QtMoc Include="widget\stardelegate.h">
-    </QtMoc>
-    <QtMoc Include="widget\stareditor.h">
-    </QtMoc>
-    <ClInclude Include="widget\scrolllabel.h" />
-    <ClInclude Include="widget\starrating.h" />
-    <ClInclude Include="widget\str_utilts.h" />
-    <QtMoc Include="widget\tablistview.h">
-    </QtMoc>
-    <QtMoc Include="widget\playlisttableproxymodel.h">
-    </QtMoc>
-    <QtMoc Include="widget\databasefacade.h">
-    </QtMoc>
-    <ClInclude Include="widget\playlistentity.h" />
-    <ClInclude Include="widget\playlisttablemodel.h" />
-    <QtMoc Include="widget\playlisttableview.h">
-    </QtMoc>
-    <ClInclude Include="widget\xmessagebox.h" />
-    <QtMoc Include="widget\wheelablewidget.h">
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
