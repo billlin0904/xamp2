@@ -195,7 +195,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		auto artist_cover = qAlbumCoverCache.GetCover(artist_cover_id);
+		auto artist_cover = AlbumViewStyledDelegate::GetCover(artist_cover_id);
 		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
 	} else {				
 		painter->setPen(Qt::white);
@@ -385,7 +385,7 @@ ArtistView::ArtistView(QWidget* parent)
 		auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
 		auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
 		auto artist_cover_id = GetIndexValue(index, INDEX_COVER_ID).toString();
-		auto artist_cover = qAlbumCoverCache.GetCover(artist_cover_id);
+		auto artist_cover = AlbumViewStyledDelegate::GetCover(artist_cover_id);
 
 		if (enable_page_) {
 			ShowPageAnimation();

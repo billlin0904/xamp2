@@ -10,8 +10,12 @@ copy x64\Release\bassmix.dll deploy\
 copy x64\Release\ebur128.dll deploy\
 copy x64\Release\mimalloc-override.dll deploy\
 copy x64\Release\mimalloc-redirect.dll deploy\
+copy x64\Release\widget_shared.dll deploy\
 copy x64\Release\QSimpleUpdater.dll deploy\
 copy x64\Release\r8bsrc.dll deploy\
+
+copy x64\Release\FramelessHelperCore.dll deploy\
+copy x64\Release\FramelessHelperWidgets.dll deploy\
 
 copy x64\Release\bass.dll deploy\
 copy x64\Release\bassdsd.dll deploy\

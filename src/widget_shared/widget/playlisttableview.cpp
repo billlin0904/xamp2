@@ -261,8 +261,12 @@ void PlayListTableView::Reload() {
     JOIN artists ON albumMusic.artistId = artists.artistId
     WHERE
     playlistMusics.playlistId = %1
-	ORDER BY
-	playlistMusics.playlistMusicsId, musics.path, albums.album;
+    GROUP BY
+    musics.parentPath,
+    musics.track
+    ORDER BY
+    musics.parentPath DESC,
+    musics.track ASC;
     )");
     const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
     model_->setQuery(query);
@@ -488,10 +492,6 @@ void PlayListTableView::initial() {
     setEditTriggers(DoubleClicked | SelectedClicked);
     verticalHeader()->setSectionsMovable(false);
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    (void)QObject::connect(horizontalHeader(), &QHeaderView::sectionClicked, [this](int logicalIndex) {
-        sortByColumn(logicalIndex, Qt::AscendingOrder);
-    });
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         PlayItem(index);

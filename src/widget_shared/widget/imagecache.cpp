@@ -22,7 +22,7 @@
 #include <QImageReader>
 
 inline constexpr size_t kDefaultCacheSize = 24;
-inline constexpr qint64 kMaxCacheImageSize = 10 * 1024 * 1024;
+inline constexpr qint64 kMaxCacheImageSize = 60 * 1024 * 1024; // 60MB = 52 images
 inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(PixmapCache);
@@ -124,6 +124,23 @@ QFileInfo ImageCache::GetImageFileInfo(const QString& tag_id) const {
 	return QFileInfo(cache_path_ + tag_id + kCacheFileExtension);
 }
 
+QPixmap ImageCache::GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) {
+	auto image = GetOrDefault(tag_id, false);
+	if (!image.isNull()) {
+		return image;
+	}
+
+	const auto file_path = cache_path_ + tag_id + kCacheFileExtension;
+	QByteArray array;
+	QBuffer buffer(&array);
+
+	auto cache_cover = value_factory();
+	if (cache_cover.save(&buffer, kImageFileFormat)) {
+		OptimizeImageFromBuffer(file_path, array, tag_id);
+	}
+	return GetOrDefault(tag_id);
+}
+
 QString ImageCache::AddImage(const QPixmap& cover) const {
 	QByteArray array;
     QBuffer buffer(&array);
@@ -188,6 +205,9 @@ void ImageCache::LoadCache() const {
 		if (reader.read(&image)) {
 			const QFileInfo file_info(path);
 			const auto tag_name = file_info.baseName();
+			if (cache_.IsFulled(file_info.size())) {
+				break;
+			}
 			cache_.AddOrUpdate(tag_name, { file_info.size(), QPixmap::fromImage(image) });
 			XAMP_LOG_D(logger_, "Add tag:{} {}", tag_name.toStdString(), cache_);
 		}

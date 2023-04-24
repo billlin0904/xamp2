@@ -28,23 +28,6 @@ class AlbumPlayListTableView;
 class PlaylistPage;
 class XMessage;
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumCoverCache {
-public:
-	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 48;
-
-	AlbumCoverCache() = default;
-
-	void LoadCoverCache();
-
-	void ClearImageCache();
-
-	QPixmap GetCover(const QString& cover_id);
-private:
-	LruCache<QString, QPixmap> image_cache_;
-};
-
-#define qAlbumCoverCache SharedSingleton<AlbumCoverCache>::GetInstance()
-
 class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
@@ -53,6 +36,7 @@ public:
 		SHOW_YEAR,
 	};
 
+	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 48;
 	static constexpr auto kMoreIconSize = 20;
 	static constexpr auto kIconSize = 48;
 
@@ -69,6 +53,10 @@ public:
 	void SetShowMode(ShowModes mode) {
 		show_mode_ = mode;
 	}
+
+	static void LoadCoverCache();
+
+	static QPixmap GetCover(const QString& cover_id);
 signals:
 	void EnterAlbumView(const QModelIndex& index) const;
 
@@ -125,7 +113,7 @@ private:
 
 class XAMP_WIDGET_SHARED_EXPORT LazyLoadingModel : public QSqlQueryModel {
 public:
-	static constexpr auto kMaxBatchSize = 24;
+	static constexpr auto kMaxBatchSize = 48;
 
 	explicit LazyLoadingModel(QObject* parent = nullptr) 
 		: QSqlQueryModel(parent) {

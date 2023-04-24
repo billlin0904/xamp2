@@ -14,7 +14,7 @@
 
 #include <thememanager.h>
 
-#define USE_LIB_IMAGEQUANT
+//#define USE_LIB_IMAGEQUANT
 
 #ifdef USE_LIB_IMAGEQUANT
 #include <libimagequant.h>
@@ -163,11 +163,15 @@ static void OptimizePng(const QString& dest_file_path, const QByteArray& origina
 }
 
 static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t>& result_png) {
+#ifdef USE_LIB_IMAGEQUANT
 	OptimizePng(dest_file_path, original_png, result_png, imagequant::OptimizePng);
+#endif
 }
 
 void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_png) {
+#ifdef USE_LIB_IMAGEQUANT
 	imagequant::OptimizePng(original_png, result_png);
+#endif
 }
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {

@@ -72,6 +72,15 @@ public:
 
     void Evict(int64_t max_size);
 
+    bool IsFulled(size_t new_entry_size) const noexcept {
+        std::shared_lock<SharedMutex> read_lock{ mutex_ };
+        return size_ + new_entry_size >= max_size_;
+    }
+
+    bool Contains(Key const& key) const noexcept {
+        std::shared_lock<SharedMutex> read_lock{ mutex_ };
+        return cache_.contains(key);
+	}
 private:
     friend std::ostream& operator<< (std::ostream& ostr, const LruCache& cache) {
         auto hit_count = cache.GetHitCount();

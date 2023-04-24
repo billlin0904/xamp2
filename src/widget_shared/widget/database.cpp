@@ -505,8 +505,12 @@ FROM
     LEFT JOIN musicLoudness ON musicLoudness.musicId = albumMusic.musicId
 WHERE
     albums.albumId = ?
+GROUP BY
+    musics.parentPath,
+    musics.track
 ORDER BY
-    musics.track DESC;
+    musics.parentPath DESC,
+    musics.track ASC;
 )"), db_);
     query.addBindValue(album_id);
 

@@ -44,26 +44,6 @@ enum {
     INDEX_ALBUM_YEAR,
 };
 
-void AlbumCoverCache::LoadCoverCache() {
-    qDatabase.ForEachAlbumCover([this](const auto& cover_id) {
-        GetCover(cover_id);
-        }, kMaxAlbumRoundedImageCacheSize);
-}
-
-QPixmap AlbumCoverCache::GetCover(const QString& cover_id) {
-    const auto add_factory = [cover_id]() {
-        return image_utils::RoundImage(
-            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
-            image_utils::kSmallImageRadius);
-    };
-
-    return image_cache_.GetOrAdd(cover_id, add_factory);
-}
-
-void AlbumCoverCache::ClearImageCache() {
-    image_cache_.Clear();
-}
-
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , text_color_(Qt::black)
@@ -81,6 +61,20 @@ void AlbumViewStyledDelegate::SetTextColor(QColor color) {
 
 void AlbumViewStyledDelegate::EnableAlbumView(bool enable) {
     enable_album_view_ = enable;
+}
+
+void AlbumViewStyledDelegate::LoadCoverCache() {
+    qDatabase.ForEachAlbumCover([](const auto& cover_id) {
+        GetCover(qTEXT("album_") + cover_id);
+        }, kMaxAlbumRoundedImageCacheSize);
+}
+
+QPixmap AlbumViewStyledDelegate::GetCover(const QString& cover_id) {
+    return qPixmapCache.GetOrAdd(qTEXT("album_") + cover_id, [cover_id]() {
+        return image_utils::RoundImage(
+            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
+            image_utils::kSmallImageRadius);
+        });
 }
 
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
@@ -186,7 +180,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     
-    painter->drawPixmap(cover_rect, qAlbumCoverCache.GetCover(cover_id));
+    painter->drawPixmap(cover_rect, GetCover(cover_id));
 
     bool hit_play_button = false;
     if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
@@ -237,7 +231,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     style->drawControl(QStyle::CE_PushButton, &button, painter, more_album_opt_button_.get());
     if (!hit_play_button) {
         QApplication::restoreOverrideCursor();
-    }
+    }    
 }
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -519,7 +513,6 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
     action_map.AddSeparator();
     auto* remove_all_album_act = action_map.AddAction(tr("Remove all album"), [=]() {
         removeAlbum();
-        qAlbumCoverCache.ClearImageCache();
         });
     remove_all_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));
 
@@ -624,9 +617,6 @@ LEFT
 WHERE 
 	albums.isPodcast = 0
     )"), qDatabase.database());
-    /*while (model_.canFetchMore()) {
-        model_.fetchMore();
-    }*/
     if (model_.lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
     }
@@ -678,7 +668,7 @@ void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
         this,
         &AlbumView::LoadCompleted);
 
-    (void)QObject::connect(facade.get(),
+    /*(void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadFileStart,
         this,
         &AlbumView::OnReadFileStart);
@@ -691,7 +681,7 @@ void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
     (void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadCurrentFilePath,
         this, 
-        &AlbumView::OnReadCurrentFilePath);
+        &AlbumView::OnReadCurrentFilePath);*/
 
     (void)QObject::connect(facade.get(),
         &DatabaseFacade::ReadFileEnd,
@@ -709,6 +699,9 @@ void AlbumView::OnReadFileStart(int dir_size) {
 }
 
 void AlbumView::OnReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track) {
+    if (!read_progress_dialog_) {
+        return;
+    }
     read_progress_dialog_->SetLabelText(dir);
     read_progress_dialog_->SetSubValue(total_tracks, num_track);
     qApp->processEvents();

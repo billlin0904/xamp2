@@ -62,10 +62,7 @@ public:
 
 	QString AddImage(const QPixmap& cover) const;
 
-	template <typename Factory>
-	void AddImage(const QString& tag_id, Factory && value_factory) {
-		cache_.GetOrAdd(tag_id, value_factory);
-	}
+	QPixmap GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory);
 
 protected:
 	ImageCache();

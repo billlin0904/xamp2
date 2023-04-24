@@ -14,6 +14,7 @@
 #include <widget/spotify_utilis.h>
 #include <widget/colorthief.h>
 #include <widget/albumview.h>
+#include <widget/kkbox_utilis.h>
 
 #include <player/ebur128reader.h>
 #include <base/logger_impl.h>
@@ -74,86 +75,20 @@ void BackgroundWorker::OnLoadAlbumCoverCache() {
     LazyInitExecutor();
 
     QList<QString> cover_ids;
-    cover_ids.reserve(AlbumCoverCache::kMaxAlbumRoundedImageCacheSize);
+    cover_ids.reserve(AlbumViewStyledDelegate::kMaxAlbumRoundedImageCacheSize);
 
     qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
         cover_ids.push_back(cover_id);
-        }, AlbumCoverCache::kMaxAlbumRoundedImageCacheSize);
+        }, AlbumViewStyledDelegate::kMaxAlbumRoundedImageCacheSize);
 
     try {
         Executor::ParallelFor(*executor_, cover_ids, [](const auto& cover_id) {
-            qAlbumCoverCache.GetCover(cover_id);
+            AlbumViewStyledDelegate::GetCover(cover_id);
             });
     }
     catch (const std::exception& e) {
 		XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
 	}
-}
-
-namespace kkbox {
-
-struct ImageData {
-    int32_t width;
-    int32_t height;
-    QString url;
-};
-
-struct ArtistData {
-    QString id;
-    QString name;
-    QString url;
-    QList<ImageData> images;
-};
-
-struct Credential {
-    QString access_token;
-    QString token_type;
-    QString expires_in;
-    QString refresh_token;
-    QString scope;
-};
-
-}
-
-static std::optional<kkbox::ArtistData> ParseArtistData(const QJsonDocument& doc, const QString& find_artist) {
-    auto artists = doc[qTEXT("artists")][qTEXT("data")].toArray();
-    std::optional<kkbox::ArtistData> result = std::nullopt;
-    bool found = false;
-
-    for (auto artist : artists) {        
-        auto object = artist.toVariant().toMap();
-        auto name = object.value(qTEXT("name")).toString();
-        if (name != find_artist) {
-            continue;
-        }
-
-        found = true;
-        auto id = object.value(qTEXT("id")).toString();
-        auto url = object.value(qTEXT("url")).toString();
-        auto images = object.value(qTEXT("images")).toJsonArray();
-
-        kkbox::ArtistData data;
-        data.id = id;
-        data.name = name;
-        data.url = url;
-
-        for (auto image : images) {
-            auto image_object = image.toVariant().toMap();
-            auto width = image_object.value(qTEXT("width")).toInt();
-			auto height = image_object.value(qTEXT("height")).toInt();
-			auto url = image_object.value(qTEXT("url")).toString();
-            kkbox::ImageData image;
-			image.width = width;
-			image.height = height;
-			image.url = url;
-            data.images.push_back(image);
-        }
-        if (found) {
-            result = data;
-            break;
-        }
-    }
-    return result;
 }
 
 void BackgroundWorker::OnGetArtist(const QString& artist) {
@@ -194,13 +129,7 @@ void BackgroundWorker::OnGetArtist(const QString& artist) {
                 .param(qTEXT("limit"), 15)
                 .header(qTEXT("Authorization"), QString(qTEXT("%1 %2").arg(credential.token_type).arg(credential.access_token)))
                 .success([this, artist](const auto& json) {
-                QJsonParseError error;
-                const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-                if (error.error != QJsonParseError::NoError) {
-                    return;
-                }
-
-                if (auto artist_data = ParseArtistData(doc, artist)) {
+                if (auto artist_data = kkbox::ParseArtistData(json, artist)) {
                     if (artist_data.value().images.size() != 2) {
 					    return;
 				    }
