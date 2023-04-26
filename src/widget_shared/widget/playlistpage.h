@@ -13,6 +13,7 @@
 
 class QSpacerItem;
 class QLabel;
+class QToolButton;
 class ScrollLabel;
 class PlayListTableView;
 
@@ -33,6 +34,8 @@ public:
 
 	void HidePlaybackInformation(bool hide);
 
+	void SetAlbumId(int32_t album_id, int32_t heart);
+
 signals:
 	void PlayMusic(const PlayListEntity& item);
 
@@ -44,6 +47,9 @@ public slots:
 private:
 	void initial();
 	
+	std::optional<int32_t> album_id_;
+	int32_t album_heart_{ 0 };
+	QToolButton *heart_button_{nullptr};
 	PlayListTableView* playlist_;
 	QLabel* cover_;
     ScrollLabel* title_;

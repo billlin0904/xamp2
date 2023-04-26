@@ -10,8 +10,9 @@
 #include <QVector>
 #include <QSystemTrayIcon>
 
-#include <widget/widget_shared.h>
+#include <optional>
 
+#include <widget/widget_shared.h>
 #include <base/encodingprofile.h>
 #include <stream/pcm2dsdsamplewriter.h>
 
@@ -21,8 +22,8 @@
 #include <widget/driveinfo.h>
 #include <widget/podcast_uiltis.h>
 
-#include "xampplayer.h"
-#include "ui_xamp.h"
+#include <xampplayer.h>
+#include <ui_xamp.h>
 
 class LrcPage;
 class PlaylistPage;
@@ -81,7 +82,7 @@ signals:
 
 	void LoadAlbumCoverCache();
 public slots:
-    void play(const PlayListEntity& item);
+    void PlayEntity(const PlayListEntity& item);
 
 	void PlayPlayListEntity(const PlayListEntity& item);
 
@@ -96,8 +97,6 @@ public slots:
 	void OnVolumeChanged(float volume);
 
 	void SetCover(const QString& cover_id, PlaylistPage* page);
-
-	void OnClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
 	void OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
@@ -243,8 +242,8 @@ private:
 	XMessage* messages_;
 	QtAutoUpdater::Updater* updater_;
 	QModelIndex play_index_;
-	DeviceInfo device_info_;
-	PlayListEntity current_entity_;
+	std::optional<DeviceInfo> device_info_;
+	std::optional<PlayListEntity> current_entity_;
     QStack<int32_t> stack_page_id_;
     QThread background_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

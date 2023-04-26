@@ -218,6 +218,7 @@ static PlayListEntity GetEntity(const QModelIndex& index) {
     entity.track_peak        = GetIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
     entity.track_loudness    = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
     entity.genre             = GetIndexValue(index, PLAYLIST_GENRE).toString();
+    entity.heart             = GetIndexValue(index, PLAYLIST_HEART).toUInt();
     return entity;
 }
 
@@ -250,7 +251,8 @@ void PlayListTableView::Reload() {
     musics.track_replay_gain,
 	musics.track_peak,
 	musicLoudness.track_loudness,
-	musics.genre
+	musics.genre,
+    musics.heart
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId

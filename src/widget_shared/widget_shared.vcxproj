@@ -110,6 +110,7 @@
     <QtMoc Include="widget\aboutpage.h" />
     <QtMoc Include="widget\cdpage.h" />
     <QtMoc Include="widget\preferencepage.h" />
+    <QtMoc Include="widget\artistview.h" />
     <ClInclude Include="widget\kkbox_utilis.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <ClInclude Include="widget\win32\win32.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="widget\appsettingnames.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
+    <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\backgroundworker.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />

@@ -215,6 +215,7 @@ Vector<std::string> AvLib::GetSupportFileExtensions() const {
 	ordered_extension.insert("mp3");
 	ordered_extension.insert("dsf");
 	ordered_extension.insert("dff");
+	ordered_extension.erase("m3u8");
 
 	result.reserve(ordered_extension.size());
 

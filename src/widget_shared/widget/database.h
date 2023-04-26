@@ -130,6 +130,10 @@ public:
 
     void UpdateMusicRating(int32_t music_id, int32_t rating);
 
+    void UpdateAlbumHeart(int32_t album_id, int32_t rating);
+
+    void UpdateMusicHeart(int32_t music_id, int32_t heart);
+
     void UpdateMusicTitle(int32_t music_id, const QString& title);
 
     void AddOrUpdateTrackLoudness(int32_t album_id,
@@ -205,7 +209,7 @@ public:
 
     void RemovePlaylistAllMusic(int32_t playlist_id);
 
-    void RemoveMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids);
+    void RemovePendingListMusic(int32_t playlist_id);
 	
     void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
@@ -230,6 +234,8 @@ private:
     static PlayListEntity QueryToPlayListEntity(const SqlQuery& query);
 
     void RemoveAlbumArtist(int32_t album_id);
+
+    void RemoveAlbumMusicAlbum(int32_t album_id);
 
     void RemoveAlbumMusicId(int32_t music_id);
 

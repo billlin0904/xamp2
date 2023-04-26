@@ -204,9 +204,11 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_MESSAGE_BOX_ERROR,         0xF05E },
 	{ ICON_MESSAGE_BOX_QUESTION,      0xF059 },
     { ICON_MESSAGE_BOX_SUCCESS,       0xF058 },
+    { ICON_HEART,                     0xF004 },
+    { ICON_HEART_PRESS,               0xF004 },
     };
     
-    qFontIcon.addFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
+    qFontIcon.addFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
     qFontIcon.setGlyphs(glyphs);
 }
 
@@ -325,11 +327,11 @@ QColor ThemeManager::GetThemeTextColor() const {
     return color;
 }
 
-QColor ThemeManager::BackgroundColor() const noexcept {
+QColor ThemeManager::GetBackgroundColor() const noexcept {
     return background_color_;
 }
 
-QString ThemeManager::BackgroundColorString() const {
+QString ThemeManager::GetBackgroundColorString() const {
     QString color;
 
     switch (GetThemeColor()) {
@@ -354,6 +356,18 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
     auto color = theme_color ? *theme_color : GetThemeColor();
 
     switch (code) {
+    case Glyphs::ICON_HEART_PRESS:
+    case Glyphs::ICON_HEART:
+    {
+        auto temp = font_icon_opts_;
+        if (code == Glyphs::ICON_HEART) {
+            temp.insert(FontIconOption::colorAttr, QVariant(QColor(128, 128, 128)));
+        }
+        else {
+            temp.insert(FontIconOption::colorAttr, QVariant(QColor(255, 0, 0)));
+        }        
+        return qFontIcon.icon(code, temp);
+    }
     case Glyphs::ICON_MINIMIZE_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath(color)));
     case Glyphs::ICON_MAXIMUM_WINDOW:
@@ -500,6 +514,11 @@ void ThemeManager::SetBitPerfectButton(QToolButton * bitPerfectButton, bool enab
     }
 }
 
+void ThemeManager::SetHeartButton(QToolButton* heartButton, bool press) {
+    heartButton->setIcon(GetFontIcon(press ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART));
+    heartButton->setStyleSheet(qTEXT("background: transparent;"));
+}
+
 void ThemeManager::SetPlayOrPauseButton(QToolButton *playButton, bool is_playing) {
     if (is_playing) {
         playButton->setIcon(GetFontIcon(Glyphs::ICON_PAUSE));
@@ -554,7 +573,7 @@ void ThemeManager::SetBackgroundColor(QColor color) {
 }
 
 QColor ThemeManager::GetTitleBarColor() const {
-    return QColor(BackgroundColor());
+    return QColor(GetBackgroundColor());
 }
 
 QColor ThemeManager::GetCoverShadowColor() const {
@@ -621,9 +640,6 @@ int32_t ThemeManager::GetTitleBarIconHeight() {
         w = 15;
 
     return w;
-}
-
-void ThemeManager::CollectAllLabel() {
 }
 
 void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {

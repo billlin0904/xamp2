@@ -42,6 +42,7 @@ enum {
     INDEX_ARTIST_ID,
     INDEX_ARTIST_COVER_ID,
     INDEX_ALBUM_YEAR,
+    INDEX_ALBUM_HEART,
 };
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
@@ -205,19 +206,19 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         }
     }
 
-    QStyleOptionButton button;
+    QStyleOptionButton more_option_button;
 
     if (enable_album_view_) {
         const QRect more_button_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 35,
             kMoreIconSize, kMoreIconSize);
-        button.initFrom(more_album_opt_button_.get());
-        button.rect = more_button_rect;
-        button.icon = qTheme.GetFontIcon(Glyphs::ICON_MORE);
-        button.state |= QStyle::State_Enabled;
+        more_option_button.initFrom(more_album_opt_button_.get());
+        more_option_button.rect = more_button_rect;
+        more_option_button.icon = qTheme.GetFontIcon(Glyphs::ICON_MORE);
+        more_option_button.state |= QStyle::State_Enabled;
         if (more_button_rect.contains(mouse_point_)) {
-            button.state |= QStyle::State_Sunken;
+            more_option_button.state |= QStyle::State_Sunken;
             painter->setPen(qTheme.GetHoverColor());
             painter->setBrush(QBrush(qTheme.GetHoverColor()));
             painter->drawEllipse(more_button_rect);
@@ -225,10 +226,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     }    
 
     if (more_album_opt_button_->isDefault()) {
-        button.features = QStyleOptionButton::DefaultButton;
+        more_option_button.features = QStyleOptionButton::DefaultButton;
     }
-    button.iconSize = QSize(kMoreIconSize, kMoreIconSize);
-    style->drawControl(QStyle::CE_PushButton, &button, painter, more_album_opt_button_.get());
+    more_option_button.iconSize = QSize(kMoreIconSize, kMoreIconSize);
+    style->drawControl(QStyle::CE_PushButton, &more_option_button, painter, more_album_opt_button_.get());
     if (!hit_play_button) {
         QApplication::restoreOverrideCursor();
     }    
@@ -307,7 +308,7 @@ void AlbumViewPage::paintEvent(QPaintEvent* event) {
     painter.fillRect(rect(), gradient);
 }
 
-void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
+void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
     ForwardList<int32_t> add_playlist_music_ids;
 
     page_->playlist()->RemoveAll();
@@ -320,6 +321,7 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
     IGNORE_DB_EXCEPTION(qDatabase.AddMusicToPlaylist(add_playlist_music_ids,
         page_->playlist()->GetPlaylistId()))
 
+    page_->SetAlbumId(album_id, album_heart);
     page_->playlist()->Reload();
     page_->title()->setText(album);
     page_->SetCoverById(cover_id);
@@ -382,10 +384,11 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
         auto album_id = GetIndexValue(index, INDEX_ALBUM_ID).toInt();
         auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
-        auto artist_cover_id = GetIndexValue(index, INDEX_ARTIST_COVER_ID).toString();        
+        auto artist_cover_id = GetIndexValue(index, INDEX_ARTIST_COVER_ID).toString();    
+        auto album_heart = GetIndexValue(index, INDEX_ALBUM_HEART).toInt();
 
         const auto list_view_rect = this->rect();
-        page_->SetPlaylistMusic(album, album_id, cover_id);
+        page_->SetPlaylistMusic(album, album_id, cover_id, album_heart);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 25));
         page_->move(QPoint(list_view_rect.x() + 3, 0));
 
@@ -585,7 +588,8 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
         albums.albumId,
         artists.artistId,
         artists.coverId,
-        albums.year
+        albums.year,
+        albums.heart
     FROM
         albumArtist
     LEFT JOIN
@@ -596,6 +600,8 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
         (artists.artistId = '%1') AND (albums.isPodcast = 0)
 	GROUP BY 
 		albums.albumId
+    ORDER BY
+        albums.year DESC
     )").arg(artist_id), qDatabase.database());
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_YEAR);
 }
@@ -609,13 +615,16 @@ SELECT
     albums.albumId,
     artists.artistId,
     artists.coverId,
-    albums.year
+    albums.year,
+    albums.heart
 FROM
     albums
 LEFT 
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.isPodcast = 0
+ORDER BY
+    albums.album DESC
     )"), qDatabase.database());
     if (model_.lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());

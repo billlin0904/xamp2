@@ -470,7 +470,7 @@ static int Execute(int argc, char* argv[]) {
 
     Xamp win(&main_window, MakeAudioPlayer());
     win.SetXWindow(&main_window);
-    win.SetThemeColor(qTheme.BackgroundColor(),
+    win.SetThemeColor(qTheme.GetBackgroundColor(),
         qTheme.GetThemeTextColor());
 
     XAMP_LOG_DEBUG("Preaload load socket dll.");

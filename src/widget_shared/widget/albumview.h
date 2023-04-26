@@ -85,7 +85,7 @@ class XAMP_WIDGET_SHARED_EXPORT AlbumViewPage final : public QFrame {
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
 
-	void SetPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id);
+	void SetPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id, int32_t album_heart);
 
 	ClickableLabel* artist() {
 		return artist_;

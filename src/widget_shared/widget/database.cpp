@@ -164,6 +164,7 @@ void Database::CreateTableIfNotExist() {
                        comment TEXT,                       
                        fileSize integer,
                        parentPathHash integer,
+                       heart integer,
 					   lyrc TEXT,
 					   trLyrc TEXT,
                        UNIQUE(path, offset)
@@ -214,6 +215,7 @@ void Database::CreateTableIfNotExist() {
                        discId TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        year integer,
+                       heart integer,
                        isPodcast integer,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
                        UNIQUE(albumId, artistId)
@@ -344,6 +346,14 @@ void Database::RemovePlaylistMusics(int32_t music_id) {
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM playlistMusics WHERE musicId=:musicId"));
     query.bindValue(qTEXT(":musicId"), music_id);
+    THROW_IF_FAIL1(query);
+}
+
+void Database::RemoveAlbumMusicAlbum(int32_t album_id) {
+    QWriteLocker write_locker(&locker_);
+    SqlQuery query(db_);
+    query.prepare(qTEXT("DELETE FROM albumMusic WHERE albumId=:albumId"));
+    query.bindValue(qTEXT(":albumId"), album_id);
     THROW_IF_FAIL1(query);
 }
 
@@ -560,9 +570,10 @@ void Database::RemoveAlbum(int32_t album_id) {
             playlist_ids.push_back(playlistId);            
         });
         Q_FOREACH(auto playlistId, playlist_ids) {
-            RemoveMusic(playlistId, QVector<int32_t>{ entity.music_id });
+            RemovePendingListMusic(playlistId);
+            RemovePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
         }
-        RemoveAlbumMusicId(entity.music_id);
+        RemoveAlbumMusicAlbum(album_id);
         RemoveTrackLoudnessMusicId(entity.music_id);
         RemoveMusic(entity.music_id);
     }
@@ -1042,6 +1053,32 @@ void Database::UpdateMusicRating(int32_t music_id, int32_t rating) {
     THROW_IF_FAIL1(query);
 }
 
+void Database::UpdateAlbumHeart(int32_t album_id, int32_t heart) {
+    QWriteLocker write_locker(&locker_);
+
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE albums SET heart = :heart WHERE (albumId = :albumId)"));
+
+    query.bindValue(qTEXT(":albumId"), album_id);
+    query.bindValue(qTEXT(":heart"), heart);
+
+    THROW_IF_FAIL1(query);
+}
+
+void Database::UpdateMusicHeart(int32_t music_id, int32_t heart) {
+    QWriteLocker write_locker(&locker_);
+
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE musics SET heart = :heart WHERE (musicId = :musicId)"));
+
+    query.bindValue(qTEXT(":musicId"), music_id);
+    query.bindValue(qTEXT(":heart"), heart);
+
+    THROW_IF_FAIL1(query);
+}
+
 void Database::UpdateMusicTitle(int32_t music_id, const QString& title) {
     QWriteLocker write_locker(&locker_);
 
@@ -1395,7 +1432,15 @@ void Database::RemovePlaylistAllMusic(int32_t playlist_id) {
     XAMP_LOG_D(logger_, "removePlaylistAllMusic playlist_id:{}", playlist_id);
 }
 
-void Database::RemoveMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
+void Database::RemovePendingListMusic(int32_t playlist_id) {
+    QWriteLocker write_locker(&locker_);
+    SqlQuery query(db_);
+    query.prepare(qTEXT("DELETE FROM pendingPlaylist WHERE playlistId=:playlistId"));
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
+    THROW_IF_FAIL1(query);
+}
+
+void Database::RemovePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
@@ -1411,22 +1456,8 @@ void Database::RemoveMusic(int32_t playlist_id, const QVector<int32_t>& select_m
 
     query.bindValue(qTEXT(":playlistId"), playlist_id);
     THROW_IF_FAIL1(query);
-}
 
-void Database::RemovePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
-    QWriteLocker write_locker(&locker_);
-    SqlQuery query(db_);
-
-    QString str = qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND playlistMusicsId in (%0)");
-
-    QStringList list;
-    for (auto id : select_music_ids) {
-        list << QString::number(id);
+    if (!query.next()) {
+        XAMP_LOG_D(logger_, "RemovePlaylistMusic playlist:{} affected rows: 0 {}", playlist_id, q.toStdString());
     }
-
-    auto q = str.arg(list.join(qTEXT(",")));
-    query.prepare(q);
-
-    query.bindValue(qTEXT(":playlistId"), playlist_id);
-    THROW_IF_FAIL1(query);
 }

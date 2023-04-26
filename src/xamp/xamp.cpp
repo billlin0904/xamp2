@@ -1,4 +1,8 @@
-#include "xamp.h"
+#include <xamp.h>
+
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+#include <QCloseEvent>
+#include <QtAutoUpdaterCore/Updater>
 
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
@@ -9,6 +13,9 @@
 #include <stream/idspmanager.h>
 #include <stream/pcm2dsdsamplewriter.h>
 #include <stream/r8brainresampler.h>
+#include <stream/compressorparameters.h>
+
+#include <player/ebur128reader.h>
 
 #include <output_device/api.h>
 #include <output_device/iaudiodevicemanager.h>
@@ -18,6 +25,7 @@
 #include <widget/widget_shared.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
+#include <widget/artistview.h>
 #include <widget/appsettings.h>
 #include <widget/xmessage.h>
 #include <widget/backgroundworker.h>
@@ -45,14 +53,6 @@
 #include <widget/http.h>
 #include <widget/jsonsettings.h>
 #include <widget/read_utiltis.h>
-#include <player/ebur128reader.h>
-#include <stream/compressorparameters.h>
-
-#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
-
-#include <QCloseEvent>
-#include <QtAutoUpdaterCore/Updater>
-
 #include <widget/aboutpage.h>
 #include <widget/cdpage.h>
 #include <widget/preferencepage.h>
@@ -776,14 +776,16 @@ void Xamp::InitialDeviceList() {
             device_action->setChecked(false);
             device_id_action[device_info.device_id] = device_action;
 
-            max_width = std::max(metrics.horizontalAdvance(QString::fromStdWString(device_info_.name)), max_width);
+            if (device_info_) {
+                max_width = std::max(metrics.horizontalAdvance(QString::fromStdWString(device_info_.value().name)), max_width);
+            }            
 
             auto trigger_callback = [device_info, this]() {
                 qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
                 device_info_ = device_info;
-                ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.name));
-                AppSettings::SetValue(kAppSettingDeviceType, device_info_.device_type_id);
-                AppSettings::SetValue(kAppSettingDeviceId, device_info_.device_id);
+                ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
+                AppSettings::SetValue(kAppSettingDeviceType, device_info_.value().device_type_id);
+                AppSettings::SetValue(kAppSettingDeviceId, device_info_.value().device_id);
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
@@ -809,14 +811,16 @@ void Xamp::InitialDeviceList() {
 
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
-        qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.connect_type);
-        device_id_action[device_info_.device_id]->setChecked(true);
-        AppSettings::SetValue(kAppSettingDeviceType, device_info_.device_type_id);
-        AppSettings::SetValue(kAppSettingDeviceId, device_info_.device_id);
-        XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.device_id);
+        qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.value().connect_type);
+        device_id_action[device_info_.value().device_id]->setChecked(true);
+        AppSettings::SetValue(kAppSettingDeviceType, device_info_.value().device_type_id);
+        AppSettings::SetValue(kAppSettingDeviceId, device_info_.value().device_id);
+        XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.value().device_id);
     }
 
-    ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.name));
+    if (device_info_) {
+        ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
+    }    
 }
 
 void Xamp::SliderAnimation(bool enable) {
@@ -859,7 +863,16 @@ void Xamp::InitialController() {
         }
     });
 
+    qTheme.SetHeartButton(ui_.heartButton);
     qTheme.SetBitPerfectButton(ui_.bitPerfectButton, AppSettings::ValueAsBool(kEnableBitPerfect));
+
+    (void)QObject::connect(ui_.heartButton, &QToolButton::pressed, [this]() {
+        if (current_entity_) {
+            current_entity_.value().heart = ~current_entity_.value().heart;
+            qDatabase.UpdateMusicHeart(current_entity_.value().music_id, current_entity_.value().heart);
+            qTheme.SetHeartButton(ui_.heartButton, current_entity_.value().heart);
+        }        
+        });
 
     (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::pressed, [this]() {
 	    const auto enable_or_disable = !AppSettings::ValueAsBool(kEnableBitPerfect);
@@ -869,6 +882,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::LeftButtonValueChanged, [this](auto value) {
         try {
+			is_seeking_ = true;
 			player_->Seek(value / 1000.0);
             qTheme.SetPlayOrPauseButton(ui_.playButton, true);
             main_window_->SetTaskbarPlayingResume();
@@ -1015,7 +1029,11 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
-        OnArtistIdChanged(current_entity_.artist, current_entity_.cover_id, current_entity_.artist_id);
+        if (current_entity_) {
+            OnArtistIdChanged(current_entity_.value().artist,
+                current_entity_.value().cover_id,
+                current_entity_.value().artist_id);
+        }        
     });
 
     (void)QObject::connect(ui_.coverLabel, &ClickableLabel::clicked, [this]() {
@@ -1101,7 +1119,7 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
     qTheme.LoadAndApplyQssTheme();
     SetThemeIcon(ui_);
     SetRepeatButtonIcon(ui_, order_);
-    SetThemeColor(qTheme.BackgroundColor(), qTheme.GetThemeTextColor());
+    SetThemeColor(qTheme.GetBackgroundColor(), qTheme.GetThemeTextColor());
 
     lrc_page_->SetCover(qTheme.GetUnknownCover());
 
@@ -1256,6 +1274,7 @@ void Xamp::StopPlay() {
     playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
     qTheme.SetPlayOrPauseButton(ui_.playButton, false);
+    current_entity_ = std::nullopt;
 }
 
 void Xamp::PlayNext() {
@@ -1486,7 +1505,12 @@ void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 	}
 }
 
-void Xamp::play(const PlayListEntity& item) {
+void Xamp::PlayEntity(const PlayListEntity& entity) {
+    if (!device_info_) {
+        ShowMeMessage(tr("Not found any audio device, please check your audio device."));
+        return;
+    }
+
     auto open_done = false;
 
     ui_.seekSlider->setEnabled(true);
@@ -1495,6 +1519,7 @@ void Xamp::play(const PlayListEntity& item) {
         if (open_done) {
             return;
         }
+        current_entity_ = std::nullopt;
         ResetSeekPosValue();
         ui_.seekSlider->setEnabled(false);
         player_->Stop(false, true);
@@ -1518,14 +1543,14 @@ void Xamp::play(const PlayListEntity& item) {
             sample_rate_converter_type);
     }
     
-    const auto [open_dsd_mode, convert_mode] = GetDsdModes(device_info_,
-        item.file_path.toStdWString(),
-        item.sample_rate,
+    const auto [open_dsd_mode, convert_mode] = GetDsdModes(device_info_.value(),
+        entity.file_path.toStdWString(),
+        entity.sample_rate,
         target_sample_rate);
 
     try {
-        player_->Open(item.file_path.toStdWString(),
-            device_info_, 
+        player_->Open(entity.file_path.toStdWString(),
+            device_info_.value(),
             target_sample_rate,
             open_dsd_mode);
 
@@ -1540,11 +1565,11 @@ void Xamp::play(const PlayListEntity& item) {
             }           
             
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
-                SetupDsp(item);
+                SetupDsp(entity);
                 CompressorParameters parameters;
                 if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
-                    if (item.track_loudness != 0) {
-                        parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness, -1.0) * -1;
+                    if (entity.track_loudness != 0) {
+                        parameters.gain = Ebur128Reader::GetEbur128Gain(entity.track_loudness, -1.0) * -1;
                     }
                 }
                 player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
@@ -1556,7 +1581,7 @@ void Xamp::play(const PlayListEntity& item) {
             }            
         }
 
-        if (device_info_.connect_type == DeviceConnectType::BLUE_TOOTH) {
+        if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
             if (player_->GetInputFormat() != AudioFormat::k16BitPCM441Khz) {
                 const auto message = 
                     qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
@@ -1573,11 +1598,11 @@ void Xamp::play(const PlayListEntity& item) {
 
         SetupSampleWriter(convert_mode,
             open_dsd_mode,
-            item.sample_rate,
+            entity.sample_rate,
             byte_format,
             playback_format);
 
-        playback_format.bit_rate = item.bit_rate;
+        playback_format.bit_rate = entity.bit_rate;
         if (sample_rate_converter_type == kR8Brain) {
             player_->SetReadSampleSize(kR8brainBufferSize);
         }
@@ -1596,7 +1621,7 @@ void Xamp::play(const PlayListEntity& item) {
         XMessageBox::ShowError(tr("Unknown error"));
     }
 
-    UpdateUi(item, playback_format, open_done);
+    UpdateUi(entity, playback_format, open_done);
 }
 
 void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done) {
@@ -1654,6 +1679,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     } else {
         OnSearchLyricsCompleted(item.music_id, std::get<0>(lyrc_opt.value()), std::get<1>(lyrc_opt.value()));
     }
+
+    qTheme.SetHeartButton(ui_.heartButton, current_entity_.value().heart);
 }
 
 void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -1755,11 +1782,11 @@ PlaylistPage* Xamp::CurrentPlaylistPage() {
     return current_playlist_page_;
 }
 
-void Xamp::PlayPlayListEntity(const PlayListEntity& item) {
+void Xamp::PlayPlayListEntity(const PlayListEntity& entity) {
     current_playlist_page_ = qobject_cast<PlaylistPage*>(sender());
     main_window_->SetTaskbarPlayerPlaying();
-    current_entity_ = item;
-    play(item);
+    current_entity_ = entity;
+    PlayEntity(entity);
     update();
 }
 
@@ -1795,12 +1822,6 @@ void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardL
 	auto *playlist_view = playlist_page_->playlist();
     qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
     playlist_view->AddPendingPlayListFromModel(order_);    
-}
-
-void Xamp::OnClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id) {
-    album_page_->album()->HideWidget();
-    album_page_->album()->albumViewPage()->SetPlaylistMusic(album, album_id, cover_id);
-    ui_.currentView->setCurrentWidget(album_page_);
 }
 
 void Xamp::SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {

@@ -53,6 +53,8 @@ public:
 
     void SetBitPerfectButton(QToolButton* bitPerfectButton, bool enable);
 
+    void SetHeartButton(QToolButton* heartButton, bool press = false);
+
     void UpdateMaximumIcon(QToolButton* maxWinButton, bool is_maximum) const;
 
     void SetBackgroundColor(QColor color);
@@ -91,9 +93,9 @@ public:
 
     QColor GetThemeTextColor() const;
 
-    QString BackgroundColorString() const;
+    QString GetBackgroundColorString() const;
 
-    QColor BackgroundColor() const noexcept;
+    QColor GetBackgroundColor() const noexcept;
 
     QColor GetHoverColor() const;
 
@@ -155,8 +157,6 @@ private:
     static QString GetFontNamePath(const QString& file_name);
 
     static int32_t GetTitleBarIconHeight();
-
-    void CollectAllLabel();
 
     QFont LoadFonts();
 
