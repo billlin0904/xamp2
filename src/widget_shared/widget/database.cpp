@@ -246,6 +246,16 @@ void Database::CreateTableIfNotExist() {
 
     create_table_sql.push_back(
         qTEXT(R"(
+                       CREATE TABLE IF NOT EXISTS albumCategories (
+                       albumCategoryId integer primary key autoincrement,
+                       category TEXT,
+                       albumId integer,
+                       FOREIGN KEY(albumId) REFERENCES albums(albumId)
+                       )
+                       )"));
+
+    create_table_sql.push_back(
+        qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albumMusic (
                        albumMusicId integer PRIMARY KEY AUTOINCREMENT,
                        musicId integer,
@@ -355,6 +365,14 @@ void Database::RemoveAlbumMusicAlbum(int32_t album_id) {
     query.prepare(qTEXT("DELETE FROM albumMusic WHERE albumId=:albumId"));
     query.bindValue(qTEXT(":albumId"), album_id);
     THROW_IF_FAIL1(query);
+}
+
+void Database::RemoveAlbumCategory(int32_t album_id) {
+	QWriteLocker write_locker(&locker_);
+	SqlQuery query(db_);
+	query.prepare(qTEXT("DELETE FROM albumCategories WHERE albumId=:albumId"));
+	query.bindValue(qTEXT(":albumId"), album_id);
+	THROW_IF_FAIL1(query);
 }
 
 void Database::RemoveAlbumMusicId(int32_t music_id) {
@@ -573,6 +591,7 @@ void Database::RemoveAlbum(int32_t album_id) {
             RemovePendingListMusic(playlistId);
             RemovePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
         }
+        RemoveAlbumCategory(album_id);
         RemoveAlbumMusicAlbum(album_id);
         RemoveTrackLoudnessMusicId(entity.music_id);
         RemoveMusic(entity.music_id);
@@ -595,7 +614,7 @@ int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t pla
     model.select();
 
     if (!model.insertRows(0, 1)) {
-        return kInvalidId;
+        return kInvalidDatabaseId;
     }
 
     model.setData(model.index(0, 0), QVariant());
@@ -604,7 +623,7 @@ int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t pla
     model.setData(model.index(0, 3), name);
 
     if (!model.submitAll()) {
-        return kInvalidId;
+        return kInvalidDatabaseId;
     }
 
     model.database().commit();
@@ -621,7 +640,7 @@ int32_t Database::AddPlaylist(const QString& name, int32_t playlist_index) {
     model.select();
 
     if (!model.insertRows(0, 1)) {
-        return kInvalidId;
+        return kInvalidDatabaseId;
     }
 
     model.setData(model.index(0, 0), QVariant());
@@ -629,7 +648,7 @@ int32_t Database::AddPlaylist(const QString& name, int32_t playlist_index) {
     model.setData(model.index(0, 2), name);
 
     if (!model.submitAll()) {
-        return kInvalidId;
+        return kInvalidDatabaseId;
     }
 
     model.database().commit();
@@ -766,7 +785,7 @@ int32_t Database::FindTablePlaylistId(int32_t table_id) const {
     while (query.next()) {
         return query.value(qTEXT("playlistId")).toInt();
     }
-    return kInvalidId;
+    return kInvalidDatabaseId;
 }
 
 void Database::AddTablePlaylist(int32_t table_id, int32_t playlist_id) {
@@ -814,6 +833,19 @@ QString Database::GetAlbumCoverId(int32_t album_id) const {
         return query.value(index).toString();
     }
     return kEmptyString;
+}
+
+int32_t Database::GetAlbumId(const QString& album) const {
+    QReadLocker read_locker(&locker_);
+	SqlQuery query(db_);
+	query.prepare(qTEXT("SELECT albumId FROM albums WHERE album = (:album)"));
+	query.bindValue(qTEXT(":album"), album);
+	THROW_IF_FAIL1(query);
+	const auto index = query.record().indexOf(qTEXT("albumId"));
+    if (query.next()) {
+		return query.value(index).toInt();
+	}
+	return kInvalidDatabaseId;
 }
 
 QString Database::GetAlbumCoverId(const QString& album) const {
@@ -1009,7 +1041,7 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
 
     XAMP_LOG_D(logger_, "addOrUpdateMusic musicId:{}", music_id);
 
-    XAMP_ENSURES(music_id != kInvalidId);
+    XAMP_ENSURES(music_id != kInvalidDatabaseId);
     return music_id;
 }
 
@@ -1246,7 +1278,7 @@ int32_t Database::GetAlbumIdByDiscId(const QString& disc_id) const {
     if (query.next()) {
         return query.value(index).toInt();
     }
-    return kInvalidId;
+    return kInvalidDatabaseId;
 }
 
 void Database::UpdateAlbumByDiscId(const QString& disc_id, const QString& album) {
@@ -1308,7 +1340,7 @@ LIMIT 1
 
     const auto index = query.record().indexOf(qTEXT("musicId"));
     if (!query.next()) {
-        return std::make_pair(kInvalidId, kInvalidId);
+        return std::make_pair(kInvalidDatabaseId, kInvalidDatabaseId);
     }
 
     return std::make_pair(
@@ -1369,6 +1401,21 @@ void Database::AddPendingPlaylist(int32_t playlist_musics_id, int32_t playlist_i
     THROW_IF_FAIL1(query);
 }
 
+void Database::AddOrUpdateAlbumCategory(int32_t album_id, const QString& category) const {
+    QWriteLocker write_locker(&locker_);
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT(R"(
+    INSERT INTO albumCategories (albumCategoryId, albumId, category)
+    VALUES (NULL, :albumId, :category)
+    )"));
+
+    query.bindValue(qTEXT(":albumId"), album_id);
+    query.bindValue(qTEXT(":category"), category);
+
+    THROW_IF_FAIL1(query);
+}
+
 void Database::AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
@@ -1405,9 +1452,9 @@ void Database::AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int
 
 void Database::AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
     QWriteLocker write_locker(&locker_);
-    XAMP_EXPECTS(album_id != kInvalidId);
-    XAMP_EXPECTS(artist_id != kInvalidId);
-    XAMP_EXPECTS(music_id != kInvalidId);
+    XAMP_EXPECTS(album_id != kInvalidDatabaseId);
+    XAMP_EXPECTS(artist_id != kInvalidDatabaseId);
+    XAMP_EXPECTS(music_id != kInvalidDatabaseId);
 
     SqlQuery query(db_);
 

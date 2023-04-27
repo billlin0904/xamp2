@@ -26,7 +26,7 @@ XAMP_MAKE_ENUM(EQFilterTypes,
     FT_ALL_PEAKING_EQ,
     FT_LOW_SHELF,
     FT_LOW_HIGH_SHELF
-);
+)
 
 inline constexpr std::array<float, kEQMaxBand> kEqDefaultFrequencies{
     31.F,

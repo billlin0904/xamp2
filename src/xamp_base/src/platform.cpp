@@ -500,6 +500,13 @@ bool SetProcessWorkingSetSize(size_t working_set_size) {
     return false;
 }
 
+size_t GetAvailablePhysicalMemory() {
+    MEMORYSTATUSEX memory_status{};
+    memory_status.dwLength = sizeof(memory_status);
+    ::GlobalMemoryStatusEx(&memory_status);
+    return memory_status.ullAvailPhys;;
+}
+
 bool SetFileLowIoPriority(int32_t handle) {
     FILE_IO_PRIORITY_HINT_INFO priority_hint;
     priority_hint.PriorityHint = IoPriorityHintLow;

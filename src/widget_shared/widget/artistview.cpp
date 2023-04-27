@@ -215,7 +215,8 @@ void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QPixmap& image) {
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(image);
-	album_view_->SetFilterByArtistId(artist_id);
+	album_view_->FilterByArtistId(artist_id);
+	album_view_->Update();
 }
 
 ArtistView::ArtistView(QWidget* parent)

@@ -222,13 +222,18 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 	XAMP_LOG_D(log_, "Use latency: {:.2f}", buffer_time_ * msec_per_samples);
 }
 
-void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {
+void SharedWasapiDevice::InitialRawMode(AudioFormat const& output_format) {
 	InitialDeviceFormat(output_format);
 
-	HrIfFailledThrow(client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+	auto hr = client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 		buffer_time_,
 		mix_format_,
-		nullptr));
+		nullptr);
+	// 0x800700AA: The requested resource is in use 
+	if (hr == 0x800700AA) {
+		throw DeviceInUseException();
+	}
+	HrIfFailledThrow(hr);
 
 	BOOL offload_capable = FALSE;
 	if (SUCCEEDED(client_->IsOffloadCapable(AudioCategory_Media, &offload_capable))) {

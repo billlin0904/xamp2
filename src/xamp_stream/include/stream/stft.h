@@ -10,7 +10,7 @@
 
 #include <base/buffer.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API STFT {
 public:
@@ -32,4 +32,4 @@ private:
 	Buffer<float> out_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

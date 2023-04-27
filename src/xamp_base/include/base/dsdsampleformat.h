@@ -7,7 +7,7 @@
 
 #include <base/enum.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(DsdFormat,
           DSD_INT8LSB,
@@ -22,4 +22,4 @@ XAMP_MAKE_ENUM(DsdModes,
 		  DSD_MODE_DOP_AA,
 		  DSD_MODE_DSD2PCM)
 
-}
+XAMP_BASE_NAMESPACE_END

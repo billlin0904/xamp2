@@ -53,7 +53,7 @@ double ReadAll(Path const& file_path,
 	prepare(input_format);
 
 	if (max_duration == (std::numeric_limits<uint64_t>::max)()) {
-		max_duration = static_cast<uint64_t>(file_stream->GetDuration());
+		max_duration = static_cast<uint64_t>(file_stream->GetDurationAsSeconds());
 	}
 
     while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
@@ -71,7 +71,7 @@ double ReadAll(Path const& file_path,
 		dsp_process(buffer.get(), read_size * input_format.GetChannels());
 	}
 
-	return file_stream->GetDuration();
+	return file_stream->GetDurationAsSeconds();
 }
 
 std::tuple<double, double> ReadFileLufs(Path const& file_path,

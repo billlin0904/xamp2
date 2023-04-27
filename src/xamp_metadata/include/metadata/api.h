@@ -9,6 +9,8 @@
 #include <base/align_ptr.h>
 #include <base/fs.h>
 #include <metadata/metadata.h>
+#include <metadata/imetadatareader.h>
+#include <metadata/imetadatawriter.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 

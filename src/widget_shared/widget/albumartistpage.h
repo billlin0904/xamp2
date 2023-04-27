@@ -62,6 +62,7 @@ public slots:
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
+	QFrame* album_frame_;
 	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
 	ArtistView* artist_view_;

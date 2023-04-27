@@ -126,12 +126,12 @@ public:
 #define FFTWF_LIB Singleton<FFTWFLib>::GetInstance()
 
 template <typename T>
-struct FFTWPtrTraits {
-};
+struct FFTWPtrTraits;
 
 template <>
 struct FFTWPtrTraits<double> final {
 	void operator()(double* value) const {
+		XAMP_EXPECTS(value != nullptr);
 		FFTW_LIB.fftw_free(value);
 	}
 };
@@ -139,6 +139,7 @@ struct FFTWPtrTraits<double> final {
 template <>
 struct FFTWPtrTraits<fftw_complex> final {
 	void operator()(fftw_complex* value) const {
+		XAMP_EXPECTS(value != nullptr);
 		FFTW_LIB.fftw_free(value);
 	}
 };
@@ -146,6 +147,7 @@ struct FFTWPtrTraits<fftw_complex> final {
 template <>
 struct FFTWPtrTraits<float> final {
 	void operator()(float* value) const {
+		XAMP_EXPECTS(value != nullptr);
 		FFTWF_LIB.fftwf_free(value);
 	}
 };
@@ -153,14 +155,16 @@ struct FFTWPtrTraits<float> final {
 template <>
 struct FFTWPtrTraits<fftw_plan> final {
 	void operator()(fftw_plan* value) const {
+		XAMP_EXPECTS(value != nullptr);
 		FFTW_LIB.fftw_destroy_plan(*value);
 	}
 };
 
 template <>
 struct FFTWPtrTraits<fftwf_plan> final {
-	void operator()(fftwf_plan value) const {
-		FFTWF_LIB.fftwf_destroy_plan(value);
+	void operator()(fftwf_plan* value) const {
+		XAMP_EXPECTS(value != nullptr);
+		FFTWF_LIB.fftwf_destroy_plan(*value);
 	}
 };
 
@@ -170,6 +174,7 @@ struct FFTWFPlanTraits final {
 	}
 
 	static void close(fftwf_plan value) {
+		XAMP_EXPECTS(value != nullptr);
 		FFTWF_LIB.fftwf_destroy_plan(value);
 	}
 };
@@ -180,6 +185,7 @@ struct FFTWPlanTraits final {
 	}
 
 	static void close(fftw_plan value) {
+		XAMP_EXPECTS(value != nullptr);
 		FFTW_LIB.fftw_destroy_plan(value);
 	}
 };

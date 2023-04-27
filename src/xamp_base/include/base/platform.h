@@ -72,6 +72,8 @@ XAMP_BASE_API bool VirtualMemoryLock(void* address, size_t size);
 
 XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
 
+XAMP_BASE_API size_t GetAvailablePhysicalMemory();
+
 XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
 
 /*

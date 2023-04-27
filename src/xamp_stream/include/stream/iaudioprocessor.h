@@ -14,7 +14,11 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-struct XAMP_STREAM_API DspConfig {
+/*
+* DspConfig is a struct for audio processor configuration.
+* 
+*/
+namespace DspConfig {
     constexpr static auto kInputFormat = std::string_view("InputFormat");
     constexpr static auto kDsdMode = std::string_view("DsdMode");
     constexpr static auto kOutputFormat = std::string_view("OutputFormat");
@@ -24,22 +28,67 @@ struct XAMP_STREAM_API DspConfig {
     constexpr static auto kVolume = std::string_view("Volume");
 };
 
+/*
+* IAudioProcessor is an interface for audio processor.
+* 
+*/
 class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor {
 public:
 	XAMP_BASE_CLASS(IAudioProcessor)
 
+    /*
+    * Start the audio processor.
+    * 
+    * @param config: the configuration for the audio processor.
+    */
     virtual void Start(const AnyMap& config) = 0;
 
+    /*
+    * Initialize the audio processor.
+    * 
+    * @param config: the configuration for the audio processor.
+    */
     virtual void Init(const AnyMap& config) = 0;
 
+    /*
+    * Process the audio samples.
+    * 
+    * @param samples: the input audio samples.
+    * @param num_samples: the number of input audio samples.
+    * @param output: the output audio samples.
+    * 
+    * @return: true if success, otherwise false.
+    */
     virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
 
+    /*
+    * Process the audio samples.
+    * 
+    * @param samples: the input audio samples.
+    * @param num_samples: the number of input audio samples.
+    * 
+    * @return the number of output audio samples.
+    */
     virtual uint32_t Process(float const* samples, float* out, uint32_t num_samples) = 0;
 
+    /*
+    * Get the type id of the audio processor.
+    * 
+    * @return the type id of the audio processor.
+    */
     [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
+    /*
+    * Get the description of the audio processor.
+    * 
+    * @return the description of the audio processor.
+    */
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
+    /*
+    * Flush the audio processor.
+    * 
+    */
     virtual void Flush() = 0;
 protected:
 	IAudioProcessor() = default;

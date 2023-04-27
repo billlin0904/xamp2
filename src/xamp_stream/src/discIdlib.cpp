@@ -5,7 +5,7 @@
 
 #ifdef XAMP_OS_WIN
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 DiscIdLib::DiscIdLib() try
 	: module_(OpenSharedLibrary("discid"))
@@ -22,6 +22,6 @@ catch (const base::Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-}
+XAMP_STREAM_NAMESPACE_END
 
 #endif

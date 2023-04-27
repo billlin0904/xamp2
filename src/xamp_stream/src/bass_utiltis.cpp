@@ -43,7 +43,7 @@ void Encode(FileStream& stream, std::function<bool(uint32_t) > const& progress) 
     auto buffer = MakeBuffer<float>(kReadSampleSize * AudioFormat::kMaxChannel);
 
     uint32_t num_samples = 0;
-    const auto max_duration = static_cast<uint64_t>(stream.GetDuration());
+    const auto max_duration = static_cast<uint64_t>(stream.GetDurationAsSeconds());
 
     while (stream.IsActive()) {
         const auto read_size = stream.GetSamples(buffer.data(), kReadSampleSize)

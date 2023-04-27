@@ -27,13 +27,13 @@ public:
 
 	void Close() noexcept override;
 
-	double GetDuration() const override;
+	double GetDurationAsSeconds() const override;
 
 	AudioFormat GetFormat() const override;
 
     uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
-	void Seek(double stream_time) const override;
+	void SeekAsSeconds(double stream_time) const override;
 
 	std::string_view GetDescription() const noexcept override;
 

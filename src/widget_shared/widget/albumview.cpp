@@ -579,8 +579,8 @@ void AlbumView::OnThemeChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetTextColor(color);
 }
 
-void AlbumView::SetFilterByArtistId(int32_t artist_id) {
-    model_.setQuery(qSTR(R"(
+void AlbumView::FilterByArtistId(int32_t artist_id) {
+    last_query_ = qSTR(R"(
     SELECT
         album,
         albums.coverId,
@@ -597,17 +597,42 @@ void AlbumView::SetFilterByArtistId(int32_t artist_id) {
     LEFT JOIN
         artists ON artists.artistId = albumArtist.artistId
     WHERE
-        (artists.artistId = '%1') AND (albums.isPodcast = 0)
+        (artists.artistId = %1) AND (albums.isPodcast = 0)
 	GROUP BY 
 		albums.albumId
     ORDER BY
         albums.year DESC
-    )").arg(artist_id), qDatabase.database());
+    )").arg(artist_id);
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_YEAR);
 }
 
-void AlbumView::Update() {
-    model_.setQuery(qTEXT(R"(
+void AlbumView::FilterCategories(const QString & category) {
+    last_query_ = qTEXT(R"(
+SELECT
+    albums.album,
+    albums.coverId,
+    artists.artist,
+    albums.albumId,
+    artists.artistId,
+    artists.coverId,
+    albums.year,
+    albums.heart
+FROM
+    albums
+LEFT 
+	JOIN artists ON artists.artistId = albums.artistId
+LEFT 
+	JOIN albumCategories ON albumCategories.albumId = albums.albumId
+WHERE 
+	albumCategories.category = '%1'
+ORDER BY
+    albums.album DESC
+    )").arg(category);
+    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
+}
+
+void AlbumView::ShowAll() {
+    last_query_ = qTEXT(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -625,23 +650,12 @@ WHERE
 	albums.isPodcast = 0
 ORDER BY
     albums.album DESC
-    )"), qDatabase.database());
-    if (model_.lastError().type() != QSqlError::NoError) {
-        XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
-    }
+    )");   
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
 }
 
-void AlbumView::Refresh() {
-    Update();
-}
-
-void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {
-    page_->OnCurrentThemeChanged(theme_color);
-}
-
 void AlbumView::OnSearchTextChanged(const QString& text) {
-    QString query(qTEXT(R"(
+    last_query_ = qTEXT(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -658,14 +672,32 @@ WHERE
     albums.album LIKE '%%1%' OR artists.artist LIKE '%%1%'
     ) AND (albums.isPodcast = 0)
 LIMIT 200
-    )"));
-    model_.setQuery(query.arg(text), qDatabase.database());
+    )").arg(text);
+    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
+}
+
+void AlbumView::Update() {
+    if (last_query_.isEmpty()) {
+        ShowAll();
+    }
+    model_.setQuery(last_query_, qDatabase.database());
+    if (model_.lastError().type() != QSqlError::NoError) {
+        XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
+    }
+}
+
+void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {
+    page_->OnCurrentThemeChanged(theme_color);
+}
+
+void AlbumView::Refresh() {
+    Update();
 }
 
 void AlbumView::append(const QString& file_name) {
-    read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
+    /*read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
         tr("Read track information"),
-        tr("Cancel"));
+        tr("Cancel"));*/
     ReadSingleFileTrackInfo(file_name);
 }
 

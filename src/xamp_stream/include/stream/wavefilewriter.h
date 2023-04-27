@@ -12,7 +12,7 @@
 
 #include <fstream>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class WaveFileWriter final {
 public:
@@ -40,4 +40,4 @@ private:
 	std::ofstream file_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

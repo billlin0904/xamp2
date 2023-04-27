@@ -160,8 +160,11 @@ public:
 
 	void ReadSingleFileTrackInfo(const QString& file_name);
 
+	void ShowAll();
+
 	void SetPlayingAlbumId(int32_t album_id);
 
+	void FilterCategories(const QString& category);
 signals:
     void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
@@ -183,7 +186,7 @@ public slots:
 
 	void Refresh();
 
-	void SetFilterByArtistId(int32_t artist_id);
+	void FilterByArtistId(int32_t artist_id);
 
 	void HideWidget();
 
@@ -213,6 +216,7 @@ private:
 
 	bool enable_page_{ true };
 	bool hide_page_{ false };
+	QString last_query_;
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;

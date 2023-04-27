@@ -26,22 +26,22 @@
 namespace xamp::stream {
 	using namespace base;
 
-	struct CompressorParameters;
-	struct EqSettings;
+    struct CompressorParameters;
+    struct EqSettings;
 
-	class STFT;
-	class MBDiscId;
+    class STFT;
+    class MBDiscId;
 
     class ISampleWriter;
-	class IAudioProcessor;
-	class IAudioStream;
-	class ICDDevice;
-	class IFileEncoder;
-	class FileStream;
-	class IDsdStream;
-	class IDSPManager;
-	class Pcm2DsdSampleWriter;
+    class IAudioProcessor;
+    class IAudioStream;
+    class ICDDevice;
+    class IFileEncoder;
+    class FileStream;
+    class IDsdStream;
+    class IDSPManager;
+    class Pcm2DsdSampleWriter;
 
-	using Complex = std::complex<float>;
-	using ComplexValarray = std::valarray<Complex>;
+    using Complex = std::complex<float>;
+    using ComplexValarray = std::valarray<Complex>;
 }

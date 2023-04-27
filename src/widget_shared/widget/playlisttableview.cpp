@@ -1079,7 +1079,7 @@ void PlayListTableView::Play(PlayerOrder order) {
         AddPendingPlayListFromModel(order);
     }
     auto [music_id, pending_playlist_id] = qDatabase.GetFirstPendingPlaylistMusic(GetPlaylistId());
-    if (music_id == kInvalidId || pending_playlist_id == kInvalidId) {
+    if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
         return;
     }
     auto index = pending_playlist_.front();

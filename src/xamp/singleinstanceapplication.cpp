@@ -1,8 +1,10 @@
 #include <QFileInfo>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <QSysInfo>
 
 #include <base/logger_impl.h>
+#include <base/platform.h>
 
 #include <widget/xmainwindow.h>
 
@@ -46,4 +48,3 @@ SingleInstanceApplication::~SingleInstanceApplication() = default;
 bool SingleInstanceApplication::IsAttach() const {
     return !is_running_;
 }
-

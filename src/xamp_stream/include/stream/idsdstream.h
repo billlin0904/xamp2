@@ -10,7 +10,7 @@
 #include <base/base.h>
 #include <base/dsdsampleformat.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API XAMP_NO_VTABLE IDsdStream {
 public:
@@ -39,5 +39,5 @@ protected:
     IDsdStream() = default;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

@@ -54,7 +54,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
     double durations{ 0 };
 };
 
-inline constexpr int32_t kInvalidId = -1;
+inline constexpr int32_t kInvalidDatabaseId = -1;
 
 inline constexpr auto kDefaultPlaylistId = 1;
 inline constexpr auto kDefaultPodcastPlaylistId = 2;
@@ -165,6 +165,8 @@ public:
 
     void AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
+    void AddOrUpdateAlbumCategory(int32_t album_id, const QString & category) const;
+
     void AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
     void AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness = 0) const;
@@ -176,6 +178,8 @@ public:
     void UpdateArtistByDiscId(const QString& disc_id, const QString& artist);
 
     QString GetAlbumCoverId(int32_t album_id) const;
+
+    int32_t GetAlbumId(const QString& album) const;
 
     QString GetAlbumCoverId(const QString& album) const;
 
@@ -236,6 +240,8 @@ private:
     void RemoveAlbumArtist(int32_t album_id);
 
     void RemoveAlbumMusicAlbum(int32_t album_id);
+
+    void RemoveAlbumCategory(int32_t album_id);
 
     void RemoveAlbumMusicId(int32_t music_id);
 

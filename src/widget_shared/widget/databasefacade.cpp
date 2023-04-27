@@ -122,13 +122,13 @@ void DatabaseFacade::ScanPathFiles(const QStringList& file_name_filters,
             try {
                 AvFileStream stream;
                 stream.OpenFile(path);
-                track_info.duration = stream.GetDuration();
+                track_info.duration = stream.GetDurationAsSeconds();
                 track_info.bit_rate = stream.GetBitRate();
             }
             catch (...) {
             }
         }
-        XAMP_LOG_DEBUG("Extract file {} secs", sw.ElapsedSeconds());
+        //XAMP_LOG_DEBUG("Extract file {} secs", sw.ElapsedSeconds());
         album_groups[track_info.album].push_front(std::move(track_info));
         });
 
@@ -233,6 +233,19 @@ void DatabaseFacade::ReadTrackInfo(QString const& file_path,
     }
 }
 
+QSet<QString> DatabaseFacade::GetAlbumCategories(const QString& album) const {
+    QRegularExpression regex(R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete)(?:(?: \[.*\])|(?: - .*))?)", QRegularExpression::CaseInsensitiveOption);
+
+    QSet<QString> categories;
+    QRegularExpressionMatchIterator it = regex.globalMatch(album);
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+        QString category = match.captured(1).toLower().trimmed();
+        categories.insert(category);
+    }
+    return categories;
+}
+
 void DatabaseFacade::FindAlbumCover(int32_t album_id,
     const QString& album, 
     const std::wstring& file_path,
@@ -299,7 +312,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 		if (artist.isEmpty() || is_podcast) {
 			artist = tr("Unknown artist");
 		}
-        
+
         const auto music_id = qDatabase.AddOrUpdateMusic(track_info);      
         int32_t artist_id = 0;
         if (!artist_id_cache.contains(artist)) {
@@ -311,17 +324,18 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 
         XAMP_EXPECTS(artist_id != 0);
 
-        int32_t album_id = 0;
-        if (!album_id_cache.contains(album + artist)) {
+        auto album_id = qDatabase.GetAlbumId(album);
+        if (album_id == kInvalidDatabaseId) {
             album_id = qDatabase.AddOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
                 is_podcast,
                 disc_id);
-            album_id_cache[album + artist] = album_id;
-        } else {
-            album_id = album_id_cache[album + artist];
+            album_id_cache[album] = album_id;
+            for (const auto &category : GetAlbumCategories(album)) {
+                qDatabase.AddOrUpdateAlbumCategory(album_id, category);
+            }
         }
 
         XAMP_EXPECTS(album_id != 0);
@@ -344,8 +358,8 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
             event_loop_.exec();
         }        
 	}
-    XAMP_LOG_DEBUG("Thread:{} Add TrackInfo success! {:.2f} sesc",
-        QThread::currentThreadId(), watch.ElapsedSeconds());
+    //XAMP_LOG_DEBUG("Thread:{} Add TrackInfo success! {:.2f} sesc",
+    //    QThread::currentThreadId(), watch.ElapsedSeconds());
 }
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, 

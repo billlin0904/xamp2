@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 struct XAMP_BASE_API EncodingProfile {
 	EncodingProfile();
@@ -19,4 +19,4 @@ struct XAMP_BASE_API EncodingProfile {
 	uint32_t bytes_per_second = 0;
 };
 
-}
+XAMP_BASE_NAMESPACE_END

@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QEventLoop>
 #include <QTimer>
+#include <QRegularExpression>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
@@ -75,6 +76,8 @@ private:
     void AddTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast);
+
+    QSet<QString> GetAlbumCategories(const QString& album) const;
 
     bool is_stop_{false};
     LoggerPtr logger_;

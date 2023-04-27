@@ -490,9 +490,7 @@ static int Execute(int argc, char* argv[]) {
     return app.exec();
 }
 
-int main() {
-    FramelessHelper::Widgets::initialize();
-
+int main() {    
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC
@@ -500,6 +498,15 @@ int main() {
 #endif
         .AddLogFile("xamp.log")
         .Startup();
+
+    FramelessHelper::Widgets::initialize();
+
+    auto phy_mem_kb = GetAvailablePhysicalMemory();
+    XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(phy_mem_kb));
+    auto working_size = phy_mem_kb * 0.6;
+    if (working_size > 0) {
+        SetProcessWorkingSetSize(working_size);
+    }
 
     AppSettings::loadIniFile(qTEXT("xamp.ini"));
     JsonSettings::LoadJsonFile(qTEXT("config.json"));
@@ -540,6 +547,7 @@ int main() {
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
+        FramelessHelper::Widgets::uninitialize();
         JsonSettings::save();
         AppSettings::save();
         SaveLogConfig();
@@ -560,7 +568,7 @@ int main() {
     catch (Exception const& e) {
         exist_code = -1;
         XAMP_LOG_ERROR("message:{} {}", e.what(), e.GetStackTrace());
-    }
+    }    
     return exist_code;
 }
 

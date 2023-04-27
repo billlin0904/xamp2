@@ -362,7 +362,7 @@ void BassFileStream::Close() noexcept {
     stream_->Close();
 }
 
-double BassFileStream::GetDuration() const {
+double BassFileStream::GetDurationAsSeconds() const {
     return stream_->GetDuration();
 }
 
@@ -370,7 +370,7 @@ AudioFormat BassFileStream::GetFormat() const {
     return stream_->GetFormat();
 }
 
-void BassFileStream::Seek(double stream_time) const {
+void BassFileStream::SeekAsSeconds(double stream_time) const {
     stream_->Seek(stream_time);
 }
 

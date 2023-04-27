@@ -12,9 +12,9 @@
 
 #include <functional>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
-struct XAMP_STREAM_API FileEncoderConfig {
+namespace FileEncoderConfig {
     constexpr static auto kInputFilePath = std::string_view("InputFilePath");
     constexpr static auto kOutputFilePath = std::string_view("OutputFilePath");
 	constexpr static auto kCodecId = std::string_view("CodecId");
@@ -35,4 +35,4 @@ protected:
 	IFileEncoder() = default;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

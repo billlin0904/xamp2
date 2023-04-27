@@ -5,13 +5,10 @@
 
 #pragma once
 
+#include <base/audiobuffer.h>
 #include <stream/stream.h>
 
-#include <base/audiobuffer.h>
-
-namespace xamp::stream {
-
-using namespace xamp::base;
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API XAMP_NO_VTABLE ISampleWriter {
 public:
@@ -25,4 +22,4 @@ protected:
     ISampleWriter() = default;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END

@@ -3,7 +3,7 @@
 #include <base/dataconverter.h>
 #include <stream/wavefilewriter.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 struct CHUNK {
 	char id[4]{ 0 };
@@ -133,4 +133,4 @@ void WaveFileWriter::WriteHeader(AudioFormat const& format) {
 	format_ = format;
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

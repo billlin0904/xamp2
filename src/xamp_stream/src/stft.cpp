@@ -3,7 +3,7 @@
 #include <base/audioformat.h>
 #include <stream/stft.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 STFT::STFT(size_t frame_size, size_t shift_size)
 	: frame_size_(frame_size)
@@ -42,4 +42,4 @@ const ComplexValarray& STFT::Process(const float* in, size_t length) {
     return fft_.Forward(out_.data(), frame_size_);
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

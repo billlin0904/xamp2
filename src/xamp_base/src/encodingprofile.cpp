@@ -1,8 +1,8 @@
 #include <base/encodingprofile.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 EncodingProfile::EncodingProfile() = default;
 
-}
+XAMP_BASE_NAMESPACE_END
 

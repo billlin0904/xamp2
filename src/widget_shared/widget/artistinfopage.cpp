@@ -129,7 +129,7 @@ void ArtistInfoPage::SetArtistId(const QString& artist, const QString& cover_id,
 	QFontMetrics artist_metrics(font());
 
 	artist_->setText(artist_metrics.elidedText(artist, Qt::ElideRight, 300));
-	album_view_->SetFilterByArtistId(artist_id);
+	album_view_->FilterByArtistId(artist_id);
 
 	const auto cover = qPixmapCache.GetOrDefault(cover_id);
 	const auto small_cover = GetArtistImage(&cover);

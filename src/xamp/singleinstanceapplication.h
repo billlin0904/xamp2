@@ -14,6 +14,8 @@ class QLocalServer;
 class SingleInstanceApplication : public QApplication {
     Q_OBJECT
 public:
+    static constexpr int kReduceWorkingSetSeconds = 1 * 1000;
+
     SingleInstanceApplication(int& argc, char* argv[]);
 
 	virtual ~SingleInstanceApplication() override;
@@ -21,6 +23,7 @@ public:
     bool IsAttach() const;
 
     XMainWindow* window{ nullptr };
+
 private:
     bool is_running_{ false };
     QScopedPointer<QLocalServer> server_;

@@ -226,7 +226,7 @@ bool AudioPlayer::IsDsdFile() const {
 void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
     dsd_mode_ = dsd_mode;
 
-    stream_duration_ = stream->GetDuration();
+    stream_duration_ = stream->GetDurationAsSeconds();
     input_format_ = stream->GetFormat();
 
     if (dsd_mode == DsdModes::DSD_MODE_PCM) {
@@ -634,7 +634,7 @@ void AudioPlayer::BufferStream(double stream_time) {
     XAMP_LOG_D(logger_, "Buffing samples : {:.2f}msec", stream_time);
 
     fifo_.Clear();
-    stream_->Seek(stream_time);
+    stream_->SeekAsSeconds(stream_time);
     sample_size_ = stream_->GetSampleSize();    
     BufferSamples(stream_, kBufferStreamCount);
 }
@@ -667,7 +667,7 @@ void AudioPlayer::DoSeek(double stream_time) {
 	}
 	
     try {
-        stream_->Seek(stream_time);
+        stream_->SeekAsSeconds(stream_time);
     }
     catch (Exception const& e) {
         XAMP_LOG_D(logger_, e.GetErrorMessage());
@@ -676,9 +676,9 @@ void AudioPlayer::DoSeek(double stream_time) {
     }
 
     device_->SetStreamTime(stream_time);
-    sample_end_time_ = stream_->GetDuration() - stream_time;
+    sample_end_time_ = stream_->GetDurationAsSeconds() - stream_time;
     XAMP_LOG_D(logger_, "Stream duration:{:.2f} seeking:{:.2f} sec, end time:{:.2f} sec.",
-        stream_->GetDuration(),
+        stream_->GetDurationAsSeconds(),
         stream_time,
         sample_end_time_);
     UpdatePlayerStreamTime(stream_time * 1000);
@@ -906,7 +906,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     config_.AddOrReplace(DspConfig::kVolume, std::any(1.0));
 
     dsp_manager_->Init(config_);
-	sample_end_time_ = stream_->GetDuration();
+	sample_end_time_ = stream_->GetDurationAsSeconds();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
     fader_ = StreamFactory::MakeFader();
     fader_->Start(config_);

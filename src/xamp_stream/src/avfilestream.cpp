@@ -14,16 +14,28 @@ XAMP_DECLARE_LOG_NAME(AvFileStream);
 
 class AvFileStream::AvFileStreamImpl {
 public:
+    /*
+    * Constructor.
+    * 
+    */
     AvFileStreamImpl()
         : audio_stream_id_(-1)
         , duration_(0.0) {
         logger_ = LoggerManager::GetInstance().GetLogger(kAvFileStreamLoggerName);
     }
 
+    /*
+    * Destructor.
+    * 
+    */
     ~AvFileStreamImpl() noexcept {
         Close();
     }
 
+    /*
+    * Close file stream.
+    * 
+    */
     void Close() noexcept {
         audio_stream_id_ = -1;
         duration_ = 0;
@@ -34,6 +46,11 @@ public:
         format_context_.reset();
     }
 
+    /*
+    * Load file from file path.
+    * 
+    * @param file_path File path.
+    */
     void LoadFromFile(Path const& file_path) {
         AVFormatContext* format_context = nullptr;
         AVDictionary* options = nullptr;
@@ -50,7 +67,9 @@ public:
             if (err == AVERROR_INVALIDDATA) {
                 throw NotSupportFormatException();
             }
-            throw AvException(err);
+            else {
+				throw AvException(err);
+			}
         }
 
         if (format_context != nullptr) {
@@ -60,7 +79,9 @@ public:
             throw NotSupportFormatException();
         }
 
+        // robe size: 50KB
         format_context->probesize = 50000;
+        // max analyze duration: 5s
         format_context->max_analyze_duration = 5 * AV_TIME_BASE;
 
         if (LIBAV_LIB.FormatLib->avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
@@ -84,9 +105,15 @@ public:
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
     }
 
+    /*
+    * Open audio stream.
+    * 
+    * @throw NotSupportFormatException
+    */
     void OpenAudioStream() {
         codec_context_.reset(format_context_->streams[audio_stream_id_]->codec);
 
+        // Find libfdk_aac codec.
         AVCodec* codec = nullptr;
         if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder_by_name("libfdk_aac");
@@ -97,6 +124,7 @@ public:
             }
         }        
 
+        // Fallback find other codec.
         if (!codec) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
             if (!codec) {
@@ -149,6 +177,7 @@ public:
             0,
             nullptr));
 
+        // Downmix to stereo.
         AvIfFailedThrow(LIBAV_LIB.SwrLib->swr_init(swr_context_.get()));
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
         if (codec_context_->channels != AudioFormat::kMaxChannel) {
@@ -167,6 +196,14 @@ public:
         is_eof_ = false;
     }
 
+    /*
+    * Get audio samples.
+    * 
+    * @param buffer The buffer to store samples.
+    * @param length The length of buffer.
+    * 
+    * @return The number of samples read.
+    */
     uint32_t GetSamples(float* buffer, uint32_t length) const noexcept {
         const auto channel_read_samples = length / sizeof(float);
         uint32_t num_read_sample = 0;
@@ -263,14 +300,32 @@ public:
         is_eof_ = false;
     }
 
+    /*
+    * Check if the stream is active.
+    * 
+    * @return True if the stream is active.
+    */
     bool IsActive() const {
         return !is_eof_;
     }
 private:
+    /*
+    * Check if the stream has audio.
+    * 
+    * @return True if the stream has audio.
+    */
     [[nodiscard]] bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
     }
 
+    /*
+    * Convert audio samples.
+    * 
+    * @param buffer The buffer to store samples.
+    * @param length The length of buffer.
+    * 
+    * @return The number of samples converted.
+    */
     uint32_t ConvertSamples(float* buffer, uint32_t length) const noexcept {
         if (audio_frame_->nb_samples > length) {
             return 0;
@@ -314,7 +369,7 @@ void AvFileStream::Close() noexcept {
     impl_->Close();
 }
 
-double AvFileStream::GetDuration() const {
+double AvFileStream::GetDurationAsSeconds() const {
     return impl_->GetDuration();
 }
 
@@ -326,7 +381,7 @@ uint32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const noexcept 
     return impl_->GetSamples(static_cast<float *>(buffer), length);
 }
 
-void AvFileStream::Seek(double stream_time) const {
+void AvFileStream::SeekAsSeconds(double stream_time) const {
     impl_->Seek(stream_time);
 }
 
