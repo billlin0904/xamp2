@@ -56,7 +56,7 @@ public:
 
 	static void LoadCoverCache();
 
-	static QPixmap GetCover(const QString& cover_id);
+	static QPixmap GetCover(const QString& tag, const QString& cover_id);
 signals:
 	void EnterAlbumView(const QModelIndex& index) const;
 
@@ -108,7 +108,7 @@ private:
 
 	ClickableLabel* artist_;
 	PlaylistPage* page_;
-	QPushButton* close_button_;
+	QPushButton* close_button_;	
 };
 
 class XAMP_WIDGET_SHARED_EXPORT LazyLoadingModel : public QSqlQueryModel {

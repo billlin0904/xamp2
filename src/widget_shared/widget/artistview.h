@@ -41,7 +41,7 @@ class XAMP_WIDGET_SHARED_EXPORT ArtistViewPage final : public QFrame {
 public:
 	explicit ArtistViewPage(QWidget* parent = nullptr);
 
-	void SetArtist(const QString& artist, int32_t artist_id, const QPixmap& image);
+	void SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id);
 
 	void paintEvent(QPaintEvent* event) override;
 
@@ -55,6 +55,7 @@ private:
 	QLabel* artist_image_;
 	QPushButton* close_button_;
 	AlbumView* album_view_;
+	QPixmap cover_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT ArtistView final : public QListView {

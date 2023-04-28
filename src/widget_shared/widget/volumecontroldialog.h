@@ -7,7 +7,7 @@
 
 #include <QDialog>
 
-#include "ui_volumecontroldialog.h"
+#include <ui_volumecontroldialog.h>
 #include <widget/widget_shared.h>
 #include <widget/xdialog.h>
 

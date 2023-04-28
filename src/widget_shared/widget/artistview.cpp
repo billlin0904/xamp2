@@ -59,7 +59,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		auto artist_cover = AlbumViewStyledDelegate::GetCover(artist_cover_id);
+		auto artist_cover = AlbumViewStyledDelegate::GetCover(qTEXT("thumbnail_"), artist_cover_id);
 		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
 	}
 	else {
@@ -206,17 +206,29 @@ void ArtistViewPage::paintEvent(QPaintEvent* event) {
 	QLinearGradient gradient(0, 0, 0, height());
 	qTheme.SetLinearGradient(gradient);
 	painter.fillRect(rect(), gradient);
+
+	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
+
+	if (!cover_.isNull()) {
+		auto cover = image_utils::ResizeImage(cover_, size(), false);
+		QPoint center = rect().center() - cover.rect().center();
+		painter.drawPixmap(center, cover);
+		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	}	
 }
 
 void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
 }
 
-void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QPixmap& image) {
+void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
+	auto artist_cover = AlbumViewStyledDelegate::GetCover(qTEXT("thumbnail_"), artist_cover_id);
+	auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);
 	artist_name_->setText(artist);
-	artist_image_->setPixmap(image);
+	artist_image_->setPixmap(round_image);
 	album_view_->FilterByArtistId(artist_id);
 	album_view_->Update();
+	cover_ = qPixmapCache.GetOrDefault(artist_cover_id, false);
 }
 
 ArtistView::ArtistView(QWidget* parent)
@@ -251,15 +263,14 @@ ArtistView::ArtistView(QWidget* parent)
 		auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
 		auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
 		auto artist_cover_id = GetIndexValue(index, INDEX_COVER_ID).toString();
-		auto artist_cover = AlbumViewStyledDelegate::GetCover(artist_cover_id);
-
+		
 		if (enable_page_) {
 			ShowPageAnimation();
 			page_->show();
 		}
 
 		emit GetArtist(artist);
-		page_->SetArtist(artist, artist_id, image_utils::RoundImage(artist_cover, artist_cover.width() / 2));
+		page_->SetArtist(artist, artist_id, artist_cover_id);
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 25));
 		page_->move(QPoint(list_view_rect.x() + 3, 0));
 		page_->show();

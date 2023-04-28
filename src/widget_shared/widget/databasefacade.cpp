@@ -234,7 +234,7 @@ void DatabaseFacade::ReadTrackInfo(QString const& file_path,
 }
 
 QSet<QString> DatabaseFacade::GetAlbumCategories(const QString& album) const {
-    QRegularExpression regex(R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete)(?:(?: \[.*\])|(?: - .*))?)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression regex(R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete|collection|collections)(?:(?: \[.*\])|(?: - .*))?)", QRegularExpression::CaseInsensitiveOption);
 
     QSet<QString> categories;
     QRegularExpressionMatchIterator it = regex.globalMatch(album);

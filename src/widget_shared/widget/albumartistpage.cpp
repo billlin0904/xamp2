@@ -114,9 +114,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	auto* comboxLayout_1 = new QHBoxLayout();
 	auto* comboxLayout = new QHBoxLayout();
+
+	auto f = font();
+	f.setBold(true);
+	f.setPointSize(qTheme.GetFontSize(10));
+
 	auto* categoryLabel = new QLabel(tr("Category:"));
+	categoryLabel->setFont(f);
 
 	auto* categoryComboBox = new QComboBox();
+	categoryComboBox->setObjectName(QString::fromUtf8("categoryComboBox"));
 	categoryComboBox->addItem(tr("all"));
 	categoryComboBox->addItem(tr("soundtrack"));
 	categoryComboBox->addItem(tr("final fantasy"));
@@ -124,7 +131,22 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	categoryComboBox->addItem(tr("vocal collection"));	
 	categoryComboBox->addItem(tr("best"));
 	categoryComboBox->addItem(tr("complete"));
+	categoryComboBox->addItem(tr("collections"));
+	categoryComboBox->addItem(tr("collection"));
 	categoryComboBox->setCurrentIndex(0);
+
+	// QStackedWidget設定background與border顏色與背景相同, 
+	// 所以重新設定categoryComboBox的border顏色與背景色
+	categoryComboBox->setStyleSheet(qTEXT(R"(
+    QComboBox#categoryComboBox {
+		border: 1px solid #455364;
+		border-radius: 4px;
+		selection-background-color: #346792;
+		padding-left: 4px;
+		padding-right: 4px;
+		min-height: 1.5em;
+	}
+    )"));
 
 	comboxLayout->addWidget(categoryLabel);
 	comboxLayout->addWidget(categoryComboBox);

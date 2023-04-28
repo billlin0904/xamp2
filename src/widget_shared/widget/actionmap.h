@@ -25,15 +25,15 @@ public:
 		: QMenu(object) {
 	}
 
-#if defined(Q_OS_WIN)
-	bool event(QEvent* evt) override {
-		if (evt->type() == QEvent::WinIdChange) {
-			win32::SetAccentPolicy(winId());
-			win32::AddDwmMenuShadow(winId());
-		}
-		return QMenu::event(evt);
-	}
-#endif
+//#if defined(Q_OS_WIN)
+//	bool event(QEvent* evt) override {
+//		if (evt->type() == QEvent::WinIdChange) {
+//			win32::SetAccentPolicy(winId());
+//			win32::AddDwmMenuShadow(winId());
+//		}
+//		return QMenu::event(evt);
+//	}
+//#endif
 };
 
 class XAMP_WIDGET_SHARED_EXPORT XAction : public QAction {

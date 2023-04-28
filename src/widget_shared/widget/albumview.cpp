@@ -66,12 +66,12 @@ void AlbumViewStyledDelegate::EnableAlbumView(bool enable) {
 
 void AlbumViewStyledDelegate::LoadCoverCache() {
     qDatabase.ForEachAlbumCover([](const auto& cover_id) {
-        GetCover(qTEXT("album_") + cover_id);
+        GetCover(qTEXT("thumbnail_"), cover_id);
         }, kMaxAlbumRoundedImageCacheSize);
 }
 
-QPixmap AlbumViewStyledDelegate::GetCover(const QString& cover_id) {
-    return qPixmapCache.GetOrAdd(qTEXT("album_") + cover_id, [cover_id]() {
+QPixmap AlbumViewStyledDelegate::GetCover(const QString &tag, const QString& cover_id) {
+    return qPixmapCache.GetOrAdd(tag + cover_id, [cover_id]() {
         return image_utils::RoundImage(
             image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
             image_utils::kSmallImageRadius);
@@ -181,7 +181,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     
-    painter->drawPixmap(cover_rect, GetCover(cover_id));
+    painter->drawPixmap(cover_rect, GetCover(qTEXT("thumbnail_"), cover_id));
 
     bool hit_play_button = false;
     if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
@@ -305,7 +305,7 @@ void AlbumViewPage::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
     QLinearGradient gradient(0, 0, 0, height());
     qTheme.SetLinearGradient(gradient);
-    painter.fillRect(rect(), gradient);
+    painter.fillRect(rect(), gradient);   
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {

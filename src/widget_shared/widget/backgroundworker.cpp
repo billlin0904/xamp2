@@ -83,7 +83,7 @@ void BackgroundWorker::OnLoadAlbumCoverCache() {
 
     try {
         Executor::ParallelFor(*executor_, cover_ids, [](const auto& cover_id) {
-            AlbumViewStyledDelegate::GetCover(cover_id);
+            AlbumViewStyledDelegate::GetCover(qTEXT("album_thumbnail"), cover_id);
             });
     }
     catch (const std::exception& e) {

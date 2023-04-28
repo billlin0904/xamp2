@@ -28,7 +28,7 @@ public:
 
     quint32 NativeKeycode(Qt::Key key);
 private:
-    class XAMP_WIDGET_SHARED_EXPORT GlobalShortcutImpl;
+    class GlobalShortcutImpl;
     PimplPtr<GlobalShortcutImpl> impl_;
 };
 

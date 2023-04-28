@@ -8,7 +8,7 @@
 #include <QWidget>
 #include <QIcon>
 
-#include "thememanager.h"
+#include <thememanager.h>
 
 class IXFrame;
 class XMainWindow;
@@ -51,17 +51,7 @@ private:
     QWinTaskbarProgress* taskbar_progress_;
 };
 
-void SetAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0);
-void SetFramelessWindowStyle(const WId window_id);
-void SetWindowedWindowStyle(const WId window_id);
-void AddDwmShadow(const WId window_id);
-void AddDwmMenuShadow(const WId window_id);
-bool IsCompositionEnabled();
 QRect GetWindowRect(const WId window_id);
-QColor GetColorizationColor();
-bool IsDarkModeAppEnabled();
-std::string GetRandomMutexName(const std::string& src_name);
-bool IsValidMutexName(const std::string& guid, const std::string& mutex_name);
 
 }
 

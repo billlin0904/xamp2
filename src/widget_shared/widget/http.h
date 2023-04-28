@@ -57,7 +57,7 @@ public:
     void setUserAgent(const QString &user_agent);
 
 private:
-    class XAMP_WIDGET_SHARED_EXPORT HttpClientImpl;
+    class HttpClientImpl;
     QSharedPointer<HttpClientImpl> impl_;
 };
 
