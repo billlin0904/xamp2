@@ -160,7 +160,6 @@
     <ClInclude Include="include\base\assert.h" />
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
-    <ClInclude Include="include\base\chachaengine.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\dsd_utils.h" />
     <ClInclude Include="include\base\encodingprofile.h" />
@@ -225,7 +224,6 @@
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
-    <ClCompile Include="src\chachaengine.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />

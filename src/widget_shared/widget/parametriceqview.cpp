@@ -59,7 +59,7 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     setInteraction(QCP::Interaction::iRangeDrag, false);
     setInteraction(QCP::Interaction::iRangeZoom, false);
     yAxis->setRange(QCPRange(kEQMinDb, kEQMaxDb));
-    xAxis->setRange(QCPRange(0, 44100));
+    xAxis->setRange(QCPRange(1, 15000));
 
     yAxis->setLabelFont(f);
     xAxis->setLabelFont(f);
@@ -67,7 +67,6 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     addGraph();
     addGraph();
 
-    //graph(dragable_graph_number_)->setSmooth(true);
     graph(dragable_graph_number_)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black, 1.5), QBrush(Qt::white), 9));
     graph(dragable_graph_number_)->setPen(QPen(line_color, 2));
 
@@ -123,7 +122,7 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     axis_rect_gradient.setColorAt(0, QColor(80, 80, 80));
     axis_rect_gradient.setColorAt(1, QColor(30, 30, 30));
     axisRect()->setBackground(axis_rect_gradient);*/
-    setBackground(QColor(qTEXT("#0f1c2a")));
+    setBackground(QColor(qTEXT("#0f1c2a")));    
 }
 
 void ParametricEqView::ClearBand() {
@@ -136,13 +135,23 @@ void ParametricEqView::InitialAxisTicker(const EqSettings& settings) {
     xAxis->setTicker(fixed_ticker);
     fixed_ticker->setTickCount(settings.bands.size());
 
+    QVector<double> bandwidths;
     for (auto i = 0; i < settings.bands.size(); i++) {
         fixed_ticker->addTick(settings.bands[i].frequency, FormatSampleRate(settings.bands[i].frequency));
         graph(dragable_graph_number_)->addData(settings.bands[i].frequency, 0);
+        double bw = settings.bands[i].frequency / settings.bands[i].Q;
+        bandwidths.append(bw);
     }
 
+    auto* errorBars = new QCPErrorBars(xAxis, yAxis);
+    errorBars->setData(bandwidths);
+    errorBars->setSymbolGap(1);
+    errorBars->setPen(QPen(QColor(qTEXT("#5d7d9d"))));
+    errorBars->setWhiskerWidth(1.2);
+    errorBars->setDataPlottable(graph(dragable_graph_number_));
+
     xAxis->setRange(QCPRange(settings.bands.front().frequency, settings.bands.back().frequency));
-    xAxis->setScaleType(QCPAxis::stLogarithmic);
+    xAxis->setScaleType(QCPAxis::stLinear);
 }
 
 void ParametricEqView::SetBand(EQFilterTypes type, int frequency, float value, float q) {

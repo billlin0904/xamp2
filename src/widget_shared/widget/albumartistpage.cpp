@@ -122,34 +122,21 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* categoryLabel = new QLabel(tr("Category:"));
 	categoryLabel->setFont(f);
 
-	auto* categoryComboBox = new QComboBox();
-	categoryComboBox->setObjectName(QString::fromUtf8("categoryComboBox"));
-	categoryComboBox->addItem(tr("all"));
-	categoryComboBox->addItem(tr("soundtrack"));
-	categoryComboBox->addItem(tr("final fantasy"));
-	categoryComboBox->addItem(tr("piano collections"));
-	categoryComboBox->addItem(tr("vocal collection"));	
-	categoryComboBox->addItem(tr("best"));
-	categoryComboBox->addItem(tr("complete"));
-	categoryComboBox->addItem(tr("collections"));
-	categoryComboBox->addItem(tr("collection"));
-	categoryComboBox->setCurrentIndex(0);
-
-	// QStackedWidget設定background與border顏色與背景相同, 
-	// 所以重新設定categoryComboBox的border顏色與背景色
-	categoryComboBox->setStyleSheet(qTEXT(R"(
-    QComboBox#categoryComboBox {
-		border: 1px solid #455364;
-		border-radius: 4px;
-		selection-background-color: #346792;
-		padding-left: 4px;
-		padding-right: 4px;
-		min-height: 1.5em;
-	}
-    )"));
+	categoryComboBox_ = new QComboBox();
+	categoryComboBox_->setObjectName(QString::fromUtf8("categoryComboBox"));
+	categoryComboBox_->addItem(tr("all"));
+	categoryComboBox_->addItem(tr("soundtrack"));
+	categoryComboBox_->addItem(tr("final fantasy"));
+	categoryComboBox_->addItem(tr("piano collections"));
+	categoryComboBox_->addItem(tr("vocal collection"));	
+	categoryComboBox_->addItem(tr("best"));
+	categoryComboBox_->addItem(tr("complete"));
+	categoryComboBox_->addItem(tr("collections"));
+	categoryComboBox_->addItem(tr("collection"));
+	categoryComboBox_->setCurrentIndex(0);	
 
 	comboxLayout->addWidget(categoryLabel);
-	comboxLayout->addWidget(categoryComboBox);
+	comboxLayout->addWidget(categoryComboBox_);
 
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	comboxLayout_1->addSpacerItem(horizontalSpacer);
@@ -176,7 +163,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::LoadCompleted,
 		this, &AlbumArtistPage::Refresh);
 
-	(void)QObject::connect(categoryComboBox, &QComboBox::textActivated, [this](const auto &category) {
+	(void)QObject::connect(categoryComboBox_, &QComboBox::textActivated, [this](const auto &category) {
 		if (category != tr("all")) {
 			album_view_->FilterCategories(category);
 		}
@@ -199,16 +186,48 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->setCurrentIndex(0);
 	list_view_->SetCurrentTab(TAB_ALBUM);
+
+	OnCurrentThemeChanged(qTheme.GetThemeColor());
 }
 
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	album_view_->OnCurrentThemeChanged(theme_color);
 	artist_view_->OnCurrentThemeChanged(theme_color);
+
+	// QStackedWidget設定background與border顏色與背景相同, 
+	// 所以重新設定categoryComboBox的border顏色與背景色
+	QString border_color;
+	QString selection_background_color;
+	QString on_selection_background_color;
+	switch (theme_color) {
+		case ThemeColor::LIGHT_THEME:	
+			border_color = "#C9CDD0";
+			selection_background_color = "#FAFAFA";
+			on_selection_background_color = "#1e1d23";
+			break;
+		case ThemeColor::DARK_THEME:
+			border_color = "#455364";		
+			selection_background_color = "#1e1d23";
+			on_selection_background_color = "#9FCBFF";
+			break;
+	}
+	categoryComboBox_->setStyleSheet(qSTR(R"(
+    QComboBox#categoryComboBox {
+		background-color: %2;
+		border: 1px solid %1;
+	}
+	QComboBox QAbstractItemView#categoryComboBox {
+		background-color: %2;
+	}
+	QComboBox#categoryComboBox:on {
+		selection-background-color: %3;
+	}
+    )").arg(border_color).arg(selection_background_color).arg(on_selection_background_color));
 }
 
 void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
 	album_view_->OnThemeChanged(backgroundColor, color);
-	artist_view_->OnThemeChanged(backgroundColor, color);
+	artist_view_->OnThemeChanged(backgroundColor, color);	
 }
 
 void AlbumArtistPage::Refresh() {

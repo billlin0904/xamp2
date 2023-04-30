@@ -20,8 +20,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-XAMP_DECLARE_LOG_NAME(CrashHandler);
-
 #ifdef XAMP_OS_WIN
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 

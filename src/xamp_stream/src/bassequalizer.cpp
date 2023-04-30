@@ -36,7 +36,7 @@ public:
         BASS_BFX_PEAKEQ eq{};
         eq.lBand = i;
         eq.fCenter = freq;
-        eq.fBandwidth = band_width;
+        eq.fBandwidth = (freq / Q);
         eq.fGain = gain;
         eq.fQ = Q;
         eq.lChannel = BASS_BFX_CHANALL;
@@ -73,12 +73,12 @@ public:
         BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handles_[band], &eq));
     }
 
-    void SetPreamp(float preamp) {
-        BASS_BFX_VOLUME fv;
-        fv.lChannel = 0;
-        fv.fVolume = static_cast<float>(std::pow(10, (preamp / 20)));
+    void SetPreamp(float preamp_db) {
+        BASS_BFX_VOLUME fv{};
+        fv.lChannel = BASS_BFX_CHANALL;
+        fv.fVolume = static_cast<float>(std::pow(10, (preamp_db / 20)));
         BassIfFailedThrow(BASS.BASS_FXSetParameters(preamp_, &fv));
-        XAMP_LOG_D(logger_, "Add preamp {}dB successfully!", preamp);
+        XAMP_LOG_D(logger_, "Add preamp {}dB successfully!", preamp_db);
     }
 
     void Disable() {

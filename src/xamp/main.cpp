@@ -214,6 +214,11 @@ static void LoadOrSaveLogConfig() {
         	->SetLevel(ParseLogLevel(log_level));
         }       
     }
+
+#ifdef _DEBUG
+    XAMP_DEFAULT_LOG().GetLogger(kCrashHandlerLoggerName)
+        ->SetLevel(LOG_LEVEL_DEBUG);
+#endif
 }
 
 static void RegisterMetaType() {

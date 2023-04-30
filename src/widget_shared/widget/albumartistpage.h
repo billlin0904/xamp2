@@ -20,6 +20,7 @@ class ArtistView;
 class ArtistInfoPage;
 class QPushButton;
 class QLabel;
+class QComboBox;
 class QPropertyAnimation;
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
@@ -63,6 +64,7 @@ public slots:
 
 private:
 	QFrame* album_frame_;
+	QComboBox* categoryComboBox_;
 	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
 	ArtistView* artist_view_;

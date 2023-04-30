@@ -5,10 +5,13 @@
 
 #pragma once
 
+#include <base/logger.h>
 #include <base/base.h>
 #include <base/align_ptr.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+XAMP_DECLARE_LOG_NAME(CrashHandler);
 
 class XAMP_BASE_API CrashHandler {
 public:
