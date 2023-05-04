@@ -100,4 +100,6 @@ XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();
 
 XAMP_BASE_API IThreadPoolExecutor& GetWasapiThreadPool();
 
+XAMP_BASE_API IThreadPoolExecutor& GetBackgroundThreadPool();
+
 XAMP_BASE_NAMESPACE_END

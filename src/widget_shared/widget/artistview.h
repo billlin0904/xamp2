@@ -9,6 +9,7 @@
 #include <QStyledItemDelegate>
 #include <QSqlQueryModel>
 
+#include <widget/str_utilts.h>
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
@@ -20,6 +21,8 @@ class QPropertyAnimation;
 class XAMP_WIDGET_SHARED_EXPORT ArtistStyledItemDelegate : public QStyledItemDelegate {
 	Q_OBJECT
 public:
+	static const ConstLatin1String kArtistCacheTag;
+
 	explicit ArtistStyledItemDelegate(QObject* parent = nullptr);
 
 	void SetTextColor(QColor color);
@@ -38,7 +41,7 @@ private:
 
 class XAMP_WIDGET_SHARED_EXPORT ArtistViewPage final : public QFrame {
 	Q_OBJECT
-public:
+public:	
 	explicit ArtistViewPage(QWidget* parent = nullptr);
 
 	void SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id);
@@ -73,6 +76,9 @@ public:
 
 signals:
 	void GetArtist(const QString& artist);
+
+public slots:
+	void OnSearchTextChanged(const QString& text);
 
 private:
 	void resizeEvent(QResizeEvent* event) override;

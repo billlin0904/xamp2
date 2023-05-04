@@ -13,6 +13,7 @@
 #include <QMouseEvent>
 #include <QLinearGradient>
 #include <QBitmap>
+#include <QLineEdit>
 #include <QComboBox>
 
 #include <widget/albumentity.h>
@@ -125,16 +126,35 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	categoryComboBox_ = new QComboBox();
 	categoryComboBox_->setObjectName(QString::fromUtf8("categoryComboBox"));
 	categoryComboBox_->addItem(tr("all"));
+	categoryComboBox_->addItem(tr("dsd"));
+	categoryComboBox_->addItem(tr("hires"));
 	categoryComboBox_->addItem(tr("soundtrack"));
 	categoryComboBox_->addItem(tr("final fantasy"));
 	categoryComboBox_->addItem(tr("piano collections"));
 	categoryComboBox_->addItem(tr("vocal collection"));	
 	categoryComboBox_->addItem(tr("best"));
-	categoryComboBox_->addItem(tr("complete"));
-	categoryComboBox_->addItem(tr("collections"));
+	categoryComboBox_->addItem(tr("complete"));	
 	categoryComboBox_->addItem(tr("collection"));
 	categoryComboBox_->setCurrentIndex(0);	
 
+	searchLineEdit_ = new QLineEdit();
+	searchLineEdit_->setObjectName(QString::fromUtf8("searchLineEdit"));
+	QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	sizePolicy3.setHorizontalStretch(0);
+	sizePolicy3.setVerticalStretch(0);
+	sizePolicy3.setHeightForWidth(searchLineEdit_->sizePolicy().hasHeightForWidth());
+	searchLineEdit_->setSizePolicy(sizePolicy3);
+	searchLineEdit_->setMinimumSize(QSize(180, 30));
+	searchLineEdit_->setFocusPolicy(Qt::ClickFocus);
+	searchLineEdit_->setClearButtonEnabled(true);
+	searchLineEdit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+	searchLineEdit_->setPlaceholderText(tr("Search Album / Artist"));
+	(void)QObject::connect(searchLineEdit_, &QLineEdit::textChanged, [this](const auto &text) {
+		album_view_->OnSearchTextChanged(text);
+		album_view_->Update();
+	});
+
+	comboxLayout->addWidget(searchLineEdit_);
 	comboxLayout->addWidget(categoryLabel);
 	comboxLayout->addWidget(categoryComboBox_);
 
@@ -203,14 +223,17 @@ void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 		case ThemeColor::LIGHT_THEME:	
 			border_color = "#C9CDD0";
 			selection_background_color = "#FAFAFA";
-			on_selection_background_color = "#1e1d23";
+			on_selection_background_color = "#1e1d23";			
 			break;
 		case ThemeColor::DARK_THEME:
 			border_color = "#455364";		
 			selection_background_color = "#1e1d23";
-			on_selection_background_color = "#9FCBFF";
+			on_selection_background_color = "#9FCBFF";	
 			break;
 	}
+
+	qTheme.SetLineEditStyle(searchLineEdit_, qTEXT("searchLineEdit"));
+
 	categoryComboBox_->setStyleSheet(qSTR(R"(
     QComboBox#categoryComboBox {
 		background-color: %2;

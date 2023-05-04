@@ -247,9 +247,7 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )"));   
-
-    ui.searchLineEdit->setStyleSheet(qTEXT(""));
+                                            )"));
 
     ui.searchFrame->setStyleSheet(qTEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
 
@@ -288,7 +286,6 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
     }
     )"));
 
-    ui.searchLineEdit->setClearButtonEnabled(true);
     if (qTheme.GetThemeColor() == ThemeColor::DARK_THEME) {
         ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
@@ -303,15 +300,6 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
-
-        ui.searchLineEdit->setStyleSheet(qSTR(R"(
-                                            QLineEdit#searchLineEdit {
-                                            background-color: %1;
-                                            border: gray;
-                                            color: white;
-                                            border-radius: 10px;
-                                            }
-                                            )").arg(ColorToString(Qt::black)));
 
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
@@ -347,15 +335,6 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
-
-        ui.searchLineEdit->setStyleSheet(qSTR(R"(
-                                            QLineEdit#searchLineEdit {
-                                            background-color: %1;
-                                            border: gray;
-                                            color: black;
-                                            border-radius: 10px;
-                                            }
-                                            )").arg(ColorToString(Qt::white)));
 
         ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
@@ -571,6 +550,42 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     //        qApp->quit();
     //    });
     //updater_->checkForUpdates();
+
+    (void)QObject::connect(this,
+        &Xamp::ExtractFile,
+        background_worker_,
+        &BackgroundWorker::OnExtractFile,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(album_page_->album(),
+        &AlbumView::ExtractFile,
+        background_worker_,
+        &BackgroundWorker::OnExtractFile,
+        Qt::QueuedConnection);    
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::ReadFileStart,
+        this,
+        &Xamp::OnReadFileStart,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::ReadFileProgress,
+        this,
+        &Xamp::OnReadFileProgress,
+        Qt::QueuedConnection);   
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::InsertDatabase,
+        this,
+        &Xamp::OnInsertDatabase,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::ReadCompleted,
+        this,
+        &Xamp::OnReadCompleted,
+        Qt::QueuedConnection);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -680,11 +695,9 @@ void Xamp::InitialUi() {
     ui_.endPosLabel->setFont(mono_font);
     ui_.seekSlider->setDisabled(true);
 
-    ui_.searchLineEdit->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-
     ui_.mutedButton->SetPlayer(player_);
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
-    qTheme.SetPlayOrPauseButton(ui_.playButton, false);
+    qTheme.SetPlayOrPauseButton(ui_.playButton, false);    
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -934,10 +947,6 @@ void Xamp::InitialController() {
         &Xamp::OnVolumeChanged,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(ui_.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
-        emit album_page_->album()->OnSearchTextChanged(text);
-    });
-
     (void)QObject::connect(ui_.nextButton, &QToolButton::pressed, [this]() {
         PlayNext();
     });
@@ -1063,7 +1072,6 @@ void Xamp::InitialController() {
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(FormatDuration(0));
     ui_.endPosLabel->setText(FormatDuration(0));
-    ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
 }
 
 void Xamp::SetCurrentTab(int32_t table_id) {
@@ -2057,7 +2065,7 @@ void Xamp::AddItem(const QString& file_name) {
         AppendToPlaylist(file_name);
     }
     else {
-        ExtractFile(file_name);
+        emit ExtractFile(file_name, playlist_page_->playlist()->GetPlaylistId(), false);
     }
 }
 
@@ -2269,10 +2277,10 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         background_worker_,
         &BackgroundWorker::OnReadReplayGain);
 
-    /*(void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::ReadTrackInfo,
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::ExtractFile,
         background_worker_,
-        &BackgroundWorker::OnReadTrackInfo);*/
+        &BackgroundWorker::OnExtractFile);
 
     if (playlist_page->playlist()->IsPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
@@ -2297,7 +2305,7 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &BackgroundWorker::ReadReplayGain,
         playlist_page->playlist(),
         &PlayListTableView::UpdateReplayGain,
-        Qt::QueuedConnection);
+        Qt::QueuedConnection);    
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
@@ -2326,11 +2334,26 @@ void Xamp::AddDropFileItem(const QUrl& url) {
     AddItem(url.toLocalFile());
 }
 
-void Xamp::ExtractFile(const QString& file_path) {
-    const auto adapter = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
-    (void)QObject::connect(adapter.get(),
-        &DatabaseFacade::ReadCompleted,
-        this,
-        &Xamp::ProcessTrackInfo);
-    adapter->ReadTrackInfo(file_path, playlist_page_->playlist()->GetPlaylistId(), false);
+void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result,
+    int32_t playlist_id,
+    bool is_podcast_mode) {
+    DatabaseFacade::InsertTrackInfo(result, playlist_id, is_podcast_mode);
+}
+
+void Xamp::OnReadFileProgress(int progress) {
+    if (!read_progress_dialog_) {
+        return;
+    }
+    read_progress_dialog_->SetValue(progress);    
+}
+
+void Xamp::OnReadCompleted() {
+    read_progress_dialog_.reset();
+    album_page_->album()->Update();
+}
+
+void Xamp::OnReadFileStart() {
+    read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
+        tr("Read track information"),
+        tr("Cancel"));
 }

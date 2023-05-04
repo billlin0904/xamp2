@@ -63,7 +63,18 @@ signals:
 
     void SearchArtistCompleted(const QString& artist, const QByteArray& image);
 
+    void InsertDatabase(const ForwardList<TrackInfo>& result,
+        int32_t playlist_id,
+        bool is_podcast_mode);
+
+    void ReadCompleted();
+
+    void ReadFileProgress(int progress);
+
+    void ReadFileStart();
 public Q_SLOT:
+    void OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+
 	void OnFetchPodcast(int32_t playlist_id);
 
     void OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
@@ -81,10 +92,7 @@ public Q_SLOT:
     void OnGetArtist(const QString& artist);
 
 private:
-    void LazyInitExecutor();
-
     bool is_stop_{false};
-    AlignPtr<IThreadPoolExecutor> executor_;
     AlignPtr<IMetadataWriter> writer_;
     LoggerPtr logger_;
 };

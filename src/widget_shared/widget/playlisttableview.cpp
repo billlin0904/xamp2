@@ -827,18 +827,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-	const auto adapter = QSharedPointer<::DatabaseFacade>(new ::DatabaseFacade());
-
-    (void)QObject::connect(adapter.get(),
-                            &::DatabaseFacade::ReadCompleted,
-                            this,
-                            &PlayListTableView::ProcessTrackInfo);
-
-    (void)QObject::connect(adapter.get(),
-        &::DatabaseFacade::FromDatabase,
-        this,
-        &PlayListTableView::ProcessDatabase);
-    adapter->ReadTrackInfo(file_name, GetPlaylistId(), IsPodcastMode());
+    emit ExtractFile(file_name, GetPlaylistId(), IsPodcastMode());
 }
 
 void PlayListTableView::ProcessDatabase(const ForwardList<PlayListEntity>& entities) {

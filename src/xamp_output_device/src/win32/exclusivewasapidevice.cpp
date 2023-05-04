@@ -510,8 +510,10 @@ void ExclusiveWasapiDevice::StartStream() {
 		});
 
 	// Wait thread start.
-	constexpr auto kWaitThreadStartSecond = 60 * 1000;
-	::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond);
+	constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
+	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
+		throw HRException(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
+	}
 
 	// Start stream.
 	HrIfFailledThrow(client_->Start());

@@ -26,50 +26,50 @@ public:
 	XAMP_BASE_CLASS(IAudioDeviceManager)
 
 	/*
-	* Register device listener
+	* Register device listener.
 	* 
-	* @param callback: device state listener
+	* @param callback: device state listener.
 	*/
 	virtual void RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) = 0;
 
 	/*
-	* Register device type
+	* Register device type.
 	* 
-	* @param id: device type id
+	* @param id: device type id.
 	*/
 	virtual void RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) = 0;
 
 	/*
-	* Create default device type
+	* Create default device type.
 	* 
-	* @return default device type
+	* @return default device type.
 	*/
 	[[nodiscard]] virtual AlignPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
 
 	/*
-	* Create device type
+	* Create device type.
 	* 
-	* @param id: device type id
+	* @param id: device type id.
 	*/
 	[[nodiscard]] virtual AlignPtr<IDeviceType> Create(Uuid const& id) const = 0;
 
 	/*
-	* Get available device type
+	* Get available device type.
 	* 
-	* @return available device type
+	* @return available device type.
 	*/
 	[[nodiscard]] virtual Vector<Uuid> GetAvailableDeviceType() const = 0;
 
 	/*
-	* Clear all device type
+	* Clear all device type.
 	* 
 	*/
 	virtual void Clear() = 0;
 
 	/*
-	* Begin iterator
+	* Begin iterator.
 	* 
-	* @return begin iterator
+	* @return begin iterator.
 	*/	
 	virtual DeviceTypeFactoryMap::iterator Begin() = 0;
 
@@ -82,7 +82,7 @@ public:
 
 protected:
 	/*
-	* Constructor
+	* Constructor.
 	*/	
 	IAudioDeviceManager() = default;
 };

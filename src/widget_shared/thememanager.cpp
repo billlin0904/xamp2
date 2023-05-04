@@ -26,6 +26,7 @@
 #include <QtMath>
 #include <QSlider>
 #include <QToolButton>
+#include <QLineEdit>
 #include <QListView>
 
 template <typename Iterator>
@@ -223,7 +224,7 @@ QFont ThemeManager::LoadFonts() {
 
     InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
     InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    InstallFileFonts(qTEXT("Poppins"), ui_fonts);
+    InstallFileFonts(qTEXT("OpenSans"), ui_fonts);
     InstallFileFonts(qTEXT("MiSans"), ui_fonts);
     InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
@@ -266,7 +267,7 @@ void ThemeManager::SetPalette() {
 }
 
 ThemeManager::ThemeManager() {
-    cover_size_ = QSize(210, 210);
+    cover_size_ = QSize(185, 185);
     cache_cover_size_ = QSize(640, 640);
     album_cover_size_ = QSize(250, 250);
     save_cover_art_size_ = QSize(500, 500);
@@ -585,6 +586,20 @@ QColor ThemeManager::GetCoverShadowColor() const {
     }
 }
 
+QString ThemeManager::GetLinearGradientStyle() const {
+    switch (GetThemeColor()) {
+    default:
+    case ThemeColor::DARK_THEME:
+        return qTEXT("qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e1d23, stop:0.74 #000000)");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        return qTEXT("qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+            "stop: 0 rgba(255, 254, 255, 255),"
+            "stop : 1 rgba(215, 255, 254, 255))");
+        break;
+    }
+}
+
 void ThemeManager::SetLinearGradient(QLinearGradient& gradient) const {
     switch (GetThemeColor()) {
         case ThemeColor::DARK_THEME:
@@ -730,6 +745,31 @@ QFont ThemeManager::GetMonoFont() const {
 
 QFont ThemeManager::GetDebugFont() const {
     return QFont(qTEXT("DebugFont"));
+}
+
+void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_name) {
+    switch (GetThemeColor()) {
+        case ThemeColor::DARK_THEME:
+            line_edit->setStyleSheet(qSTR(R"(
+                                            QLineEdit#%1 {
+                                            background-color: %2;
+                                            border: gray;
+                                            color: white;
+                                            border-radius: 10px;
+                                            }
+                                            )").arg(object_name).arg(ColorToString(Qt::black)));
+			break;
+        case ThemeColor::LIGHT_THEME:
+            line_edit->setStyleSheet(qSTR(R"(
+                                            QLineEdit#%1 {
+                                            background-color: %2;
+                                            border: gray;
+                                            color: black;
+                                            border-radius: 10px;
+                                            }
+                                            )").arg(object_name).arg(ColorToString(Qt::white)));
+            break;
+    }
 }
 
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {

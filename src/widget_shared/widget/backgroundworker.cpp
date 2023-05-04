@@ -34,7 +34,6 @@
 
 #include <thememanager.h>
 
-XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
 
 struct ReplayGainJob {
@@ -53,37 +52,19 @@ BackgroundWorker::~BackgroundWorker() {
 
 void BackgroundWorker::StopThreadPool() {
     is_stop_ = true;
-    if (executor_ != nullptr) {
-        executor_->Stop();
-    }
-}
-
-void BackgroundWorker::LazyInitExecutor() {
-    if (executor_ != nullptr) {
-        return;
-    }
-
-    CpuAffinity affinity;
-    affinity.SetCpu(1);
-    affinity.SetCpu(2);
-    executor_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName,
-        ThreadPriority::BACKGROUND, 
-        affinity);
 }
 
 void BackgroundWorker::OnLoadAlbumCoverCache() {
-    LazyInitExecutor();
-
     QList<QString> cover_ids;
-    cover_ids.reserve(AlbumViewStyledDelegate::kMaxAlbumRoundedImageCacheSize);
+    cover_ids.reserve(LazyLoadingModel::kMaxBatchSize);
 
     qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
         cover_ids.push_back(cover_id);
-        }, AlbumViewStyledDelegate::kMaxAlbumRoundedImageCacheSize);
+        }, LazyLoadingModel::kMaxBatchSize);
 
     try {
-        Executor::ParallelFor(*executor_, cover_ids, [](const auto& cover_id) {
-            AlbumViewStyledDelegate::GetCover(qTEXT("album_thumbnail"), cover_id);
+        Executor::ParallelFor(GetBackgroundThreadPool(), cover_ids, [](const auto& cover_id) {
+            AlbumViewStyledDelegate::GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
             });
     }
     catch (const std::exception& e) {
@@ -91,7 +72,50 @@ void BackgroundWorker::OnLoadAlbumCoverCache() {
 	}
 }
 
+namespace lastfm {
+    struct ArtistInfo {
+        QString name;
+        QString mbid;
+        QString url;
+        QString image_url;
+        QString summary;
+    };
+}
+
 void BackgroundWorker::OnGetArtist(const QString& artist) {
+    //ApiKey = "34f77350f3e23c3a8e0aefecf3ccfaf5";
+    //SharedSecret = "bdadfb76384d1d28b078d2ca22e04d95";
+
+    /*const QString searchUrl = qSTR(
+        "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=%1&api_key=%2&format=json"
+    ).arg(qTEXT(QUrl::toPercentEncoding(artist))).arg(qTEXT("34f77350f3e23c3a8e0aefecf3ccfaf5"));
+
+    http::HttpClient(searchUrl)
+        .success([this, artist](const auto& json) {
+        XAMP_LOG_DEBUG("Successfully!");
+        QJsonParseError error;
+        const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+        if (error.error != QJsonParseError::NoError) {
+            return;
+        }
+        lastfm::ArtistInfo artist_info;
+        artist_info.name = doc["artist"]["name"].toString();
+        artist_info.mbid = doc["artist"]["mbid"].toString();
+        artist_info.url = doc["artist"]["url"].toString();
+        for (auto image : doc["artist"]["image"].toArray()) {
+            if (image.toVariant().toMap()["size"].toString() == "mega") {
+				artist_info.image_url = image.toVariant().toMap()["#text"].toString();
+				break;
+			}
+		}
+		artist_info.summary = doc["artist"]["bio"]["summary"].toString();
+        http::HttpClient(artist_info.image_url).download([this, artist](const QByteArray& data) {
+            XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!",
+            QThread::currentThreadId(), String::FormatBytes(data.size()));
+            emit SearchArtistCompleted(artist, data);
+            });
+		}).get();*/
+
     static const QString credentialFLowUrl = qTEXT("https://account.kkbox.com/oauth2/token");
     const QString client_id = qTEXT("bd5cfe4143f918a3db24dcb388972054");
     const QString client_secret = qTEXT("425cacb9f036585d34f7a2725c98e417");
@@ -298,8 +322,6 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
 }
 
 void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
-    LazyInitExecutor();
-
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
@@ -315,7 +337,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<Pl
         FastMutex mutex;
         ReplayGainJob jobs;
 
-        Executor::ParallelFor(*executor_, album, [this, scan_mode, &mutex, &jobs](auto const &entity) {
+        Executor::ParallelFor(GetBackgroundThreadPool(), album, [this, scan_mode, &mutex, &jobs](auto const& entity) {
             auto progress = [scan_mode](auto percent) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && percent > 50) {
                     return false;
@@ -390,4 +412,9 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<Pl
             );
         }
     }
+}
+
+void BackgroundWorker::OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode) {
+    const auto facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
+    facade->ReadTrackInfo(this, file_path, playlist_id, false);
 }

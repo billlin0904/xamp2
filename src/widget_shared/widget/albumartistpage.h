@@ -65,6 +65,7 @@ public slots:
 private:
 	QFrame* album_frame_;
 	QComboBox* categoryComboBox_;
+	QLineEdit* searchLineEdit_;
 	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
 	ArtistView* artist_view_;

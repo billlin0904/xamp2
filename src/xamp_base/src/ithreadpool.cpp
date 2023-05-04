@@ -48,6 +48,7 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
 
 XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
+XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 
 IThreadPoolExecutor& GetPlaybackThreadPool() {
     static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
@@ -57,11 +58,26 @@ IThreadPoolExecutor& GetPlaybackThreadPool() {
 }
 
 IThreadPoolExecutor& GetWasapiThreadPool() {
-    static const CpuAffinity wasapi_cpu_aff(1, false);
+    static const CpuAffinity wasapi_cpu_aff(0, false);
     static ThreadPoolExecutor executor(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,
         wasapi_cpu_aff,
         ThreadPriority::HIGHEST);
+    return executor;
+}
+
+static CpuAffinity GetBackgroundCpuAffinity() {
+    CpuAffinity affinity;
+    affinity.SetCpu(1);
+    affinity.SetCpu(2);
+    return affinity;
+}
+
+IThreadPoolExecutor& GetBackgroundThreadPool() {
+    static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
+        std::thread::hardware_concurrency(),
+        GetBackgroundCpuAffinity(),
+        ThreadPriority::BACKGROUND);
     return executor;
 }
 

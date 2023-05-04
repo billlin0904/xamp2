@@ -39,6 +39,7 @@ public:
 	* @param[in] num_filled_bytes is a number of bytes filled in buffer.
 	* @param[in] stream_time is a stream time.
 	* @param[in] sample_time is a sample time.
+	* 
 	* @return DataCallbackResult::CONTINUE if need more data, DataCallbackResult::STOP if no need more data.
 	*/
     virtual DataCallbackResult OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_bytes, double stream_time, double sample_time) noexcept = 0;

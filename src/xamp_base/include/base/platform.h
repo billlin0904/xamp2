@@ -58,8 +58,6 @@ XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority) n
 
 XAMP_BASE_API void SetThreadName(std::wstring const & name) noexcept;
 
-XAMP_BASE_API void SetThreadAffinity(JThread& thread, CpuAffinity affinity = CpuAffinity()) noexcept;
-
 XAMP_BASE_API std::string GetCurrentThreadId();
 
 XAMP_BASE_API std::string MakeUuidString();

@@ -44,6 +44,7 @@ class CdPage;
 class XMenu;
 class DatabaseFacade;
 class XMessage;
+class XProgressDialog;
 
 namespace QtAutoUpdater {
 	class Updater;
@@ -81,6 +82,9 @@ signals:
 	void SearchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
 	void LoadAlbumCoverCache();
+
+	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+
 public slots:
     void PlayEntity(const PlayListEntity& item);
 
@@ -110,6 +114,15 @@ public slots:
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
+	void OnInsertDatabase(const ForwardList<TrackInfo>& result,
+		int32_t playlist_id,
+		bool is_podcast_mode);
+
+	void OnReadFileProgress(int progress);
+
+	void OnReadCompleted();
+
+	void OnReadFileStart();
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
@@ -196,9 +209,7 @@ private:
     void UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
 	void UpdateButtonState();
-
-	void ExtractFile(const QString &file_path);
-
+	
 	PlaylistPage* CurrentPlaylistPage();
 
 	void cleanup();
@@ -249,5 +260,6 @@ private:
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;
+	QSharedPointer<XProgressDialog> read_progress_dialog_;
     Ui::XampWindow ui_;
 };

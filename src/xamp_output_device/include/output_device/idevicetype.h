@@ -31,7 +31,6 @@ public:
 	/*
 	* Scan new device.
 	* 
-	* @return void
 	*/
 	virtual void ScanNewDevice() = 0;
 
@@ -45,14 +44,15 @@ public:
 	/*
 	* Get device type id.
 	* 
-	* @return Uuid
+	* @return type id.
 	*/
 	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
 	/*
 	* Make device.
 	* 
-	* @param device_id: device id
+	* @param device_id: device id.
+	* 
 	* @return AlignPtr<IOutputDevice>
 	*/
     virtual AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) = 0;
@@ -67,7 +67,8 @@ public:
 	/*
 	* Get device info.
 	*
-	* @param device: device index
+	* @param device: device index.
+	* 
 	* @return DeviceInfo
 	*/
 	[[nodiscard]] virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
@@ -75,7 +76,7 @@ public:
 	/*
 	* Get device info.
 	* 
-	* @return Vector<DeviceInfo>
+	* @return Vector<DeviceInfo>.
 	*/
 	[[nodiscard]] virtual Vector<DeviceInfo> GetDeviceInfo() const = 0;
 
@@ -88,7 +89,7 @@ public:
 
 protected:
 	/*
-	* Constructor
+	* Constructor.
 	*/
 	IDeviceType() = default;
 };

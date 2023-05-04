@@ -102,6 +102,8 @@ bool ArtistStyledItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* mo
 	return true;
 }
 
+const ConstLatin1String ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_thumbnail"));
+
 ArtistViewPage::ArtistViewPage(QWidget* parent)
 	: QFrame(parent) {
 	setObjectName(QString::fromUtf8("artistView"));
@@ -222,13 +224,16 @@ void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
-	auto artist_cover = AlbumViewStyledDelegate::GetCover(qTEXT("thumbnail_"), artist_cover_id);
-	auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);
+	auto artist_cover = AlbumViewStyledDelegate::GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+	auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(round_image);
 	album_view_->FilterByArtistId(artist_id);
 	album_view_->Update();
 	cover_ = qPixmapCache.GetOrDefault(artist_cover_id, false);
+	if (!cover_.isNull()) {
+		cover_ = QPixmap::fromImage(image_utils::BlurImage(cover_, size()));
+	}
 }
 
 ArtistView::ArtistView(QWidget* parent)
@@ -271,8 +276,7 @@ ArtistView::ArtistView(QWidget* parent)
 
 		emit GetArtist(artist);
 		page_->SetArtist(artist, artist_id, artist_cover_id);
-		page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 25));
-		page_->move(QPoint(list_view_rect.x() + 3, 0));
+		page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
 		page_->show();
 		});
 
@@ -285,12 +289,15 @@ ArtistView::ArtistView(QWidget* parent)
 		});
 }
 
+void ArtistView::OnSearchTextChanged(const QString& text) {
+
+}
+
 void ArtistView::resizeEvent(QResizeEvent* event) {
 	if (page_ != nullptr) {
 		if (!page_->isHidden()) {
 			const auto list_view_rect = this->rect();
-			page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 15));
-			page_->move(QPoint(list_view_rect.x() + 3, 0));
+			page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
 		}
 	}
 	QListView::resizeEvent(event);

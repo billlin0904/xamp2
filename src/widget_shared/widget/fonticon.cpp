@@ -66,6 +66,7 @@ static T getOrDefault(QVariantMap const & opt, const QString & s, T defaultValue
 
 FontIconEngine::FontIconEngine(QVariantMap opt)
     : QIconEngine()
+    , letter_(0)
 	, options_(std::move(opt)){
 }
 

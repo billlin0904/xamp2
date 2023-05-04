@@ -38,7 +38,7 @@ public:
 
     friend class XAMP_WIDGET_SHARED_EXPORT SharedSingleton<ImageCache>;
 
-	static QPixmap ScanImageFromDir(const QString& file_path);
+	static QPixmap ScanCoverFromDir(const QString& file_path);
 
 	static QPixmap FindImageFromDir(const PlayListEntity& item);
 

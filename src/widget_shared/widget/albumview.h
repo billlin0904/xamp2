@@ -12,6 +12,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 
+#include <widget/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/themecolor.h>
@@ -36,7 +37,7 @@ public:
 		SHOW_YEAR,
 	};
 
-	static constexpr size_t kMaxAlbumRoundedImageCacheSize = 48;
+	static const ConstLatin1String kAlbumCacheTag;
 	static constexpr auto kMoreIconSize = 20;
 	static constexpr auto kIconSize = 48;
 
@@ -53,8 +54,6 @@ public:
 	void SetShowMode(ShowModes mode) {
 		show_mode_ = mode;
 	}
-
-	static void LoadCoverCache();
 
 	static QPixmap GetCover(const QString& tag, const QString& cover_id);
 signals:
@@ -87,10 +86,6 @@ public:
 
 	void SetPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id, int32_t album_heart);
 
-	ClickableLabel* artist() {
-		return artist_;
-	}
-
 	PlaylistPage* playlistPage() {
 		return page_;
 	}
@@ -106,14 +101,13 @@ public slots:
 private:
 	void paintEvent(QPaintEvent* event) override;
 
-	ClickableLabel* artist_;
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
 };
 
 class XAMP_WIDGET_SHARED_EXPORT LazyLoadingModel : public QSqlQueryModel {
 public:
-	static constexpr auto kMaxBatchSize = 48;
+	static constexpr auto kMaxBatchSize = 64; // Max show 32 albums in one page
 
 	explicit LazyLoadingModel(QObject* parent = nullptr) 
 		: QSqlQueryModel(parent) {
@@ -181,6 +175,8 @@ signals:
 		int32_t playlist_id,
 		bool is_podcast_mode);
 
+	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
@@ -200,13 +196,6 @@ public slots:
 
 	void ShowAlbumViewMenu(const QPoint& pt);
 
-	void OnReadFileStart(int dir_size);
-
-	void OnReadFileProgress(int progress);
-
-	void OnReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track);
-
-	void OnReadFileEnd();
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
@@ -221,6 +210,5 @@ private:
 	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;
 	LazyLoadingModel model_;
-	QSharedPointer<XProgressDialog> read_progress_dialog_;
 };
 

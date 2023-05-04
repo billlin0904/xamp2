@@ -14,6 +14,8 @@ copy x64\Release\widget_shared.dll deploy\
 copy x64\Release\QSimpleUpdater.dll deploy\
 copy x64\Release\r8bsrc.dll deploy\
 
+copy x64\Release\widget_shared.dll deploy\
+
 copy x64\Release\FramelessHelperCore.dll deploy\
 copy x64\Release\FramelessHelperWidgets.dll deploy\
 

@@ -24,6 +24,7 @@ class QSlider;
 class QLabel;
 class QListView;
 class QSlider;
+class QLineEdit;
 class QToolButton;
 
 class XAMP_WIDGET_SHARED_EXPORT ThemeManager : public QObject {
@@ -111,6 +112,8 @@ public:
 
     void SetLinearGradient(QLinearGradient &gradient) const;
 
+    QString GetLinearGradientStyle() const;
+
     QSize GetTabIconSize() const;
 
     void SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
@@ -148,6 +151,8 @@ public:
     QFont GetMonoFont() const;
 
     QFont GetDebugFont() const;
+
+    void SetLineEditStyle(QLineEdit *line_edit, const QString &object_name);
 signals:
     void CurrentThemeChanged(ThemeColor theme_color);
 

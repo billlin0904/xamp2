@@ -45,6 +45,8 @@ enum {
     INDEX_ALBUM_HEART,
 };
 
+const ConstLatin1String AlbumViewStyledDelegate::kAlbumCacheTag(qTEXT("album_thumbnail"));
+
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , text_color_(Qt::black)
@@ -62,12 +64,6 @@ void AlbumViewStyledDelegate::SetTextColor(QColor color) {
 
 void AlbumViewStyledDelegate::EnableAlbumView(bool enable) {
     enable_album_view_ = enable;
-}
-
-void AlbumViewStyledDelegate::LoadCoverCache() {
-    qDatabase.ForEachAlbumCover([](const auto& cover_id) {
-        GetCover(qTEXT("thumbnail_"), cover_id);
-        }, kMaxAlbumRoundedImageCacheSize);
 }
 
 QPixmap AlbumViewStyledDelegate::GetCover(const QString &tag, const QString& cover_id) {
@@ -180,8 +176,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    
-    painter->drawPixmap(cover_rect, GetCover(qTEXT("thumbnail_"), cover_id));
+    painter->drawPixmap(cover_rect, GetCover(kAlbumCacheTag, cover_id));
 
     bool hit_play_button = false;
     if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
@@ -208,7 +203,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     QStyleOptionButton more_option_button;
 
-    if (enable_album_view_) {
+    if (enable_album_view_ && option.rect.contains(mouse_point_)) {
         const QRect more_button_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 35,
@@ -289,7 +284,6 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
         emit LeaveAlbumView();
     });
 
-    setStyleSheet(qTEXT("QFrame#albumViewPage { background-color: transparent; }"));
     page_->playlist()->DisableDelete();
     page_->playlist()->DisableLoadFile();
 
@@ -303,12 +297,18 @@ void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 
 void AlbumViewPage::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
-    QLinearGradient gradient(0, 0, 0, height());
-    qTheme.SetLinearGradient(gradient);
-    painter.fillRect(rect(), gradient);   
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
+    setStyleSheet(qSTR(
+        R"(
+           QFrame#albumViewPage {
+		        background-color: %1;
+                border-radius: 8px;
+           }
+        )"
+    ).arg(qTheme.GetLinearGradientStyle()));
+
     ForwardList<int32_t> add_playlist_music_ids;
 
     page_->playlist()->RemoveAll();
@@ -389,8 +389,7 @@ AlbumView::AlbumView(QWidget* parent)
 
         const auto list_view_rect = this->rect();
         page_->SetPlaylistMusic(album, album_id, cover_id, album_heart);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 25));
-        page_->move(QPoint(list_view_rect.x() + 3, 0));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
 
         if (enable_page_) {
             ShowPageAnimation();
@@ -419,7 +418,7 @@ AlbumView::AlbumView(QWidget* parent)
 
     auto * fade_effect = page_->graphicsEffect();
     animation_ = new QPropertyAnimation(fade_effect, "opacity");
-    QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
+    (void)QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
         if (hide_page_) {
             page_->hide();
         }
@@ -427,7 +426,7 @@ AlbumView::AlbumView(QWidget* parent)
     
     Refresh();
 
-    QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int value) {
+    (void)QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int value) {
         if (value == verticalScrollBar()->maximum()) {
             model_.fetchMore();
         }
@@ -475,15 +474,18 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
                 qDatabase.ClearPendingPlaylist();
                 QList<int32_t> albums;
                 qDatabase.ForEachAlbum([&albums](auto album_id) {
-                    albums.push_back(album_id);                    
+                    albums.push_back(album_id);               
+                    qApp->processEvents();
                     });
                 Q_FOREACH(auto album_id, albums) {
                     qDatabase.RemoveAlbum(album_id);
+                    qApp->processEvents();
                 }                
                 qDatabase.RemoveAllArtist();
                 update();
                 emit RemoveAll();
                 qPixmapCache.Clear();
+                indicator->StopAnimation();
             }
             catch (...) {
             }
@@ -607,7 +609,7 @@ void AlbumView::FilterByArtistId(int32_t artist_id) {
 }
 
 void AlbumView::FilterCategories(const QString & category) {
-    last_query_ = qTEXT(R"(
+    last_query_ = qSTR(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -632,7 +634,7 @@ ORDER BY
 }
 
 void AlbumView::ShowAll() {
-    last_query_ = qTEXT(R"(
+    last_query_ = qSTR(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -655,7 +657,7 @@ ORDER BY
 }
 
 void AlbumView::OnSearchTextChanged(const QString& text) {
-    last_query_ = qTEXT(R"(
+    last_query_ = qSTR(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -666,12 +668,13 @@ SELECT
     albums.year
 FROM
     albums
-    LEFT JOIN artists ON artists.artistId = albums.artistId
+LEFT JOIN artists ON artists.artistId = albums.artistId
 WHERE
     (
     albums.album LIKE '%%1%' OR artists.artist LIKE '%%1%'
     ) AND (albums.isPodcast = 0)
-LIMIT 200
+ORDER BY
+    albums.album DESC
     )").arg(text);
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
 }
@@ -695,71 +698,11 @@ void AlbumView::Refresh() {
 }
 
 void AlbumView::append(const QString& file_name) {
-    /*read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
-        tr("Read track information"),
-        tr("Cancel"));*/
     ReadSingleFileTrackInfo(file_name);
 }
 
 void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
-    const auto facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
-
-    (void)QObject::connect(facade.get(),
-        &DatabaseFacade::ReadCompleted,
-        this,
-        &AlbumView::LoadCompleted);
-
-    /*(void)QObject::connect(facade.get(),
-        &DatabaseFacade::ReadFileStart,
-        this,
-        &AlbumView::OnReadFileStart);
-
-    (void)QObject::connect(facade.get(),
-        &DatabaseFacade::ReadFileProgress,
-        this, 
-        &AlbumView::OnReadFileProgress);
-
-    (void)QObject::connect(facade.get(),
-        &DatabaseFacade::ReadCurrentFilePath,
-        this, 
-        &AlbumView::OnReadCurrentFilePath);*/
-
-    (void)QObject::connect(facade.get(),
-        &DatabaseFacade::ReadFileEnd,
-        this, 
-        &AlbumView::OnReadFileEnd);
-
-    facade->ReadTrackInfo(file_name, -1, false);
-}
-
-void AlbumView::OnReadFileStart(int dir_size) {
-    if (!read_progress_dialog_) {
-        return;
-    }
-    read_progress_dialog_->SetRange(0, dir_size);
-}
-
-void AlbumView::OnReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track) {
-    if (!read_progress_dialog_) {
-        return;
-    }
-    read_progress_dialog_->SetLabelText(dir);
-    read_progress_dialog_->SetSubValue(total_tracks, num_track);
-    qApp->processEvents();
-}
-
-void AlbumView::OnReadFileProgress(int progress) {
-    if (!read_progress_dialog_) {
-        return;
-    }
-    read_progress_dialog_->SetValue(progress);
-}
-
-void AlbumView::OnReadFileEnd() {
-    if (!read_progress_dialog_) {
-        return;
-    }
-    read_progress_dialog_.reset();
+    emit ExtractFile(file_name, -1, false);
 }
 
 void AlbumView::HideWidget() {
@@ -773,8 +716,7 @@ void AlbumView::resizeEvent(QResizeEvent* event) {
     if (page_ != nullptr) {
         if (!page_->isHidden()) {
             const auto list_view_rect = this->rect();
-            page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 15));
-            page_->move(QPoint(list_view_rect.x() + 3, 0));
+            page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
         }
     }    
     QListView::resizeEvent(event);

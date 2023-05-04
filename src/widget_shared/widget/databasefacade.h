@@ -14,6 +14,7 @@
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
 
+class BackgroundWorker;
 class PlayListTableView;
 
 TrackInfo GetTrackInfo(QString const& file_path);
@@ -40,24 +41,19 @@ public:
     explicit DatabaseFacade(QObject* parent = nullptr);
 
 signals:
-    void ReadFileStart(int dir_size);
-
-    void ReadFileProgress(int progress);
-
-    void ReadFileEnd();
-
     void FromDatabase(const ForwardList<PlayListEntity>& entity);
 
-	void ReadCompleted(int32_t total_album, int32_t total_tracks);
-
-    void ReadCurrentFilePath(const QString& dir, int32_t total_tracks, int32_t num_track);
-
-public:
-    void ReadTrackInfo(QString const& file_path,
+    void InsertDatabase(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    void InsertTrackInfo(const ForwardList<TrackInfo>& result, 
+public:
+    void ReadTrackInfo(BackgroundWorker *worker,
+        QString const& file_path,
+        int32_t playlist_id,
+        bool is_podcast_mode);
+
+    static void InsertTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id, 
         bool is_podcast_mode);
 
@@ -67,21 +63,20 @@ public:
         file_path, 
         const CoverArtReader &reader);
 
-private:
-    void ScanPathFiles(const QStringList& file_name_filters,
+private:   
+    static void AddTrackInfo(const ForwardList<TrackInfo>& result,
+        int32_t playlist_id,
+        bool is_podcast);
+
+    static QSet<QString> GetAlbumCategories(const QString& album);
+
+    void ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
+        const QStringList& file_name_filters,
         const QString& dir,
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    void AddTrackInfo(const ForwardList<TrackInfo>& result,
-        int32_t playlist_id,
-        bool is_podcast);
-
-    QSet<QString> GetAlbumCategories(const QString& album) const;
-
     bool is_stop_{false};
     LoggerPtr logger_;
-    QEventLoop event_loop_;
-    QTimer timer_;
 };
 

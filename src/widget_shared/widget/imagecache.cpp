@@ -71,10 +71,59 @@ void ImageCache::InitCachePath() {
 	AppSettings::SetValue(kAppSettingAlbumImageCachePath, cache_path_);
 }
 
-QPixmap ImageCache::ScanImageFromDir(const QString& file_path) {
-	const auto dir = QFileInfo(file_path).path();
+QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
+	const QList<QString> target_folders = { "Scans", "Artwork" };
+	const QString cover_name = "Front";
 
-    for (QDirIterator itr(dir, cover_ext_, QDir::Files | QDir::NoDotAndDotDot);
+	QDir dir(file_path);
+	QDir scan_dir(dir);
+
+	// Find 'Scans' folder in the same level or in parent folders.
+	while (!scan_dir.isRoot()) {
+		if (std::any_of(target_folders.cbegin(), target_folders.cend(), [&](const QString& folder) {
+			return scan_dir.entryList(QDir::Dirs).contains(folder, Qt::CaseInsensitive);
+			})) {
+			// Enter the first found target folder
+			scan_dir.cd(target_folders.first());
+			break;
+		}
+		// Parent path maybe contains image file.
+		const auto image_files = scan_dir.entryList(cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+		if (!image_files.isEmpty()) {			
+			break;
+		}
+		scan_dir.cdUp();
+	}
+
+	// Scan image file in 'Front' file name.
+	const auto image_files = scan_dir.entryList(cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+	for (const auto& image_file_path : image_files) {
+		if (!image_file_path.toLower().contains(cover_name.toLower())) {
+			continue;
+		}
+		QImageReader reader(scan_dir.filePath(image_file_path));
+		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
+		if (reader.read(&image)) {
+			return QPixmap::fromImage(image);
+		}
+	}
+
+	// If no file matches the 'Front' file name, return the first file that matches the name filters.
+	if (!image_files.empty()) {
+		QImageReader reader(scan_dir.filePath(image_files[0]));
+		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
+		if (reader.read(&image)) {
+			return QPixmap::fromImage(image);
+		}
+	}
+
+	// Not found any image file, reset to file path.
+	if (scan_dir.isRoot()) {
+		scan_dir = QDir(file_path);
+	}
+
+	QFileInfo file_info(scan_dir.absolutePath());
+	for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
 		itr.hasNext();) {
 		const auto image_file_path = itr.next();
 		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
@@ -83,6 +132,7 @@ QPixmap ImageCache::ScanImageFromDir(const QString& file_path) {
 			return QPixmap::fromImage(image);
 		}
 	}
+
 	return {};
 }
 
@@ -101,7 +151,7 @@ void ImageCache::Clear() {
 }
 
 QPixmap ImageCache::FindImageFromDir(const PlayListEntity& item) {
-	return ScanImageFromDir(item.file_path);
+	return ScanCoverFromDir(item.file_path);
 }
 
 void ImageCache::RemoveImage(const QString& tag_id) {
@@ -150,14 +200,14 @@ QString ImageCache::AddImage(const QPixmap& cover) const {
 
 	// Resize PNG image size.
     const auto cache_cover = image_utils::ResizeImage(cover, cover_size, true);
-	XAMP_LOG_DEBUG("Resize image {} secs", sw.ElapsedSeconds());
+	XAMP_LOG_D(logger_, "Resize image {} secs", sw.ElapsedSeconds());
 
 	sw.Reset();
 	QString tag_name;
 
 	// Change image file format to PNG format.
 	if (cache_cover.save(&buffer, kImageFileFormat)) {
-		XAMP_LOG_DEBUG("Save PNG format {} secs", sw.ElapsedSeconds());
+		XAMP_LOG_D(logger_, "Save PNG format {} secs", sw.ElapsedSeconds());
 
 		tag_name = QEtag::GetTagId(array);
 		const auto file_path = cache_path_ + tag_name + kCacheFileExtension;

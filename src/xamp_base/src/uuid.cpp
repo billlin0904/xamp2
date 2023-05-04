@@ -4,7 +4,7 @@
 #include <sstream>
 #include <charconv>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 static bool TryParseHex(const char a, const char b, uint8_t &data) noexcept {
     const char buffer[] = { a, b, '\0' };
@@ -136,4 +136,4 @@ bool Uuid::TryParseString(std::string const& hex_string, Uuid& uuid) {
     return true;
 }
 	
-}
+XAMP_BASE_NAMESPACE_END
