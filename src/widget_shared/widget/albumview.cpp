@@ -389,7 +389,7 @@ AlbumView::AlbumView(QWidget* parent)
 
         const auto list_view_rect = this->rect();
         page_->SetPlaylistMusic(album, album_id, cover_id, album_heart);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
 
         if (enable_page_) {
             ShowPageAnimation();
@@ -671,7 +671,7 @@ FROM
 LEFT JOIN artists ON artists.artistId = albums.artistId
 WHERE
     (
-    albums.album LIKE '%%1%' OR artists.artist LIKE '%%1%'
+    albums.album LIKE '%%1%'
     ) AND (albums.isPodcast = 0)
 ORDER BY
     albums.album DESC
@@ -716,7 +716,7 @@ void AlbumView::resizeEvent(QResizeEvent* event) {
     if (page_ != nullptr) {
         if (!page_->isHidden()) {
             const auto list_view_rect = this->rect();
-            page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
+            page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
         }
     }    
     QListView::resizeEvent(event);

@@ -149,13 +149,22 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 
 void LrcPage::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
+
+	QLinearGradient gradient(0, 0, 0, height());
+	qTheme.SetLinearGradient(gradient);
+	painter.fillRect(rect(), gradient);
+
+	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
+
 	if (!background_image_.isNull()) {
 		painter.setOpacity(current_bg_alpha_ / 255.0);
 		painter.drawImage(rect(), background_image_);
+		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	}
 	if (!prev_background_image_.isNull() && prev_bg_alpha_) {
 		painter.setOpacity(prev_bg_alpha_ / 255.0);
 		painter.drawImage(rect(), prev_background_image_);
+		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	}
 }
 

@@ -15,6 +15,7 @@
 #include <QBitmap>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QCompleter>
 
 #include <widget/albumentity.h>
 #include <widget/str_utilts.h>
@@ -113,8 +114,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_frame_layout->setObjectName(QString::fromUtf8("currentAlbumViewFrameLayout"));
 	album_frame_layout->setContentsMargins(0, 0, 0, 0);
 
-	auto* comboxLayout_1 = new QHBoxLayout();
-	auto* comboxLayout = new QHBoxLayout();
+	auto* album_combox_layout_1 = new QHBoxLayout();
+	auto* album_combox_layout = new QHBoxLayout();
 
 	auto f = font();
 	f.setBold(true);
@@ -123,50 +124,125 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* categoryLabel = new QLabel(tr("Category:"));
 	categoryLabel->setFont(f);
 
-	categoryComboBox_ = new QComboBox();
-	categoryComboBox_->setObjectName(QString::fromUtf8("categoryComboBox"));
-	categoryComboBox_->addItem(tr("all"));
-	categoryComboBox_->addItem(tr("dsd"));
-	categoryComboBox_->addItem(tr("hires"));
-	categoryComboBox_->addItem(tr("soundtrack"));
-	categoryComboBox_->addItem(tr("final fantasy"));
-	categoryComboBox_->addItem(tr("piano collections"));
-	categoryComboBox_->addItem(tr("vocal collection"));	
-	categoryComboBox_->addItem(tr("best"));
-	categoryComboBox_->addItem(tr("complete"));	
-	categoryComboBox_->addItem(tr("collection"));
-	categoryComboBox_->setCurrentIndex(0);	
+	category_combo_box_ = new QComboBox();
+	category_combo_box_->setObjectName(QString::fromUtf8("categoryComboBox"));
+	category_combo_box_->addItem(tr("all"));
+	category_combo_box_->addItem(tr("dsd"));
+	category_combo_box_->addItem(tr("hires"));
+	category_combo_box_->addItem(tr("soundtrack"));
+	category_combo_box_->addItem(tr("final fantasy"));
+	category_combo_box_->addItem(tr("piano collections"));
+	category_combo_box_->addItem(tr("vocal collection"));	
+	category_combo_box_->addItem(tr("best"));
+	category_combo_box_->addItem(tr("complete"));	
+	category_combo_box_->addItem(tr("collection"));
+	category_combo_box_->setCurrentIndex(0);	
 
-	searchLineEdit_ = new QLineEdit();
-	searchLineEdit_->setObjectName(QString::fromUtf8("searchLineEdit"));
+	album_search_line_edit_ = new QLineEdit();
+	album_search_line_edit_->setObjectName(QString::fromUtf8("albumSearchLineEdit"));
 	QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	sizePolicy3.setHorizontalStretch(0);
 	sizePolicy3.setVerticalStretch(0);
-	sizePolicy3.setHeightForWidth(searchLineEdit_->sizePolicy().hasHeightForWidth());
-	searchLineEdit_->setSizePolicy(sizePolicy3);
-	searchLineEdit_->setMinimumSize(QSize(180, 30));
-	searchLineEdit_->setFocusPolicy(Qt::ClickFocus);
-	searchLineEdit_->setClearButtonEnabled(true);
-	searchLineEdit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-	searchLineEdit_->setPlaceholderText(tr("Search Album / Artist"));
-	(void)QObject::connect(searchLineEdit_, &QLineEdit::textChanged, [this](const auto &text) {
+	sizePolicy3.setHeightForWidth(album_search_line_edit_->sizePolicy().hasHeightForWidth());
+	album_search_line_edit_->setSizePolicy(sizePolicy3);
+	album_search_line_edit_->setMinimumSize(QSize(180, 30));
+	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
+	album_search_line_edit_->setClearButtonEnabled(true);
+	album_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+	album_search_line_edit_->setPlaceholderText(tr("Search Album"));
+	
+	album_model_ = new QStandardItemModel(0, 1 , this);
+	auto *album_completer = new QCompleter(album_model_, this);
+	album_completer->setCaseSensitivity(Qt::CaseInsensitive);
+	album_completer->setFilterMode(Qt::MatchContains);
+	album_completer->setCompletionMode(QCompleter::PopupCompletion);
+	album_search_line_edit_->setCompleter(album_completer);
+
+	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, album_completer](const auto& text) {
+		const auto items = album_model_->findItems(text, Qt::MatchExactly);
+		if (!items.isEmpty()) {
+			return;
+		}
+		if (album_model_->rowCount() >= kMaxCompletionCount) {
+			album_model_->removeRows(0, kMaxCompletionCount - album_model_->rowCount() + 1);
+		}
+
+		album_model_->appendRow(new QStandardItem(text));
+		album_completer->setModel(album_model_);
+		album_completer->setCompletionPrefix(text);
+
 		album_view_->OnSearchTextChanged(text);
 		album_view_->Update();
-	});
+		});
 
-	comboxLayout->addWidget(searchLineEdit_);
-	comboxLayout->addWidget(categoryLabel);
-	comboxLayout->addWidget(categoryComboBox_);
+	album_combox_layout->addWidget(album_search_line_edit_);
+	album_combox_layout->addWidget(categoryLabel);
+	album_combox_layout->addWidget(category_combo_box_);
 
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	comboxLayout_1->addSpacerItem(horizontalSpacer);
-	comboxLayout_1->addLayout(comboxLayout);
+	album_combox_layout_1->addSpacerItem(horizontalSpacer);
+	album_combox_layout_1->addLayout(album_combox_layout);
 
-	album_frame_layout->addLayout(comboxLayout_1);
+	album_frame_layout->addLayout(album_combox_layout_1);
 	album_frame_layout->addWidget(album_view_, 1);
 
+	artist_frame_ = new QFrame();
+	artist_frame_->setObjectName(QString::fromUtf8("currentArtistViewFrame"));
+	artist_frame_->setFrameShape(QFrame::StyledPanel);
+
+	auto* artist_frame_layout = new QVBoxLayout(artist_frame_);
+	artist_frame_layout->setSpacing(0);
+	artist_frame_layout->setObjectName(QString::fromUtf8("currentArtistViewFrameLayout"));
+	artist_frame_layout->setContentsMargins(0, 0, 0, 0);
+
+	artist_search_line_edit_ = new QLineEdit();
+	artist_search_line_edit_->setObjectName(QString::fromUtf8("artistSearchLineEdit"));
+	QSizePolicy sizePolicy4(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	sizePolicy3.setHorizontalStretch(0);
+	sizePolicy3.setVerticalStretch(0);
+	sizePolicy3.setHeightForWidth(artist_search_line_edit_->sizePolicy().hasHeightForWidth());
+	artist_search_line_edit_->setSizePolicy(sizePolicy4);
+	artist_search_line_edit_->setMinimumSize(QSize(180, 30));
+	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
+	artist_search_line_edit_->setClearButtonEnabled(true);
+	artist_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+	artist_search_line_edit_->setPlaceholderText(tr("Search Artist"));
+	
+	artist_model_ = new QStandardItemModel(0, 1, this);
+	auto* artist_completer = new QCompleter(artist_model_, this);
+	artist_completer->setCaseSensitivity(Qt::CaseInsensitive);
+	artist_completer->setFilterMode(Qt::MatchContains);
+	artist_search_line_edit_->setCompleter(artist_completer);
+
+	(void)QObject::connect(artist_search_line_edit_, &QLineEdit::textChanged, [artist_completer, this](const auto& text) {
+		const auto items = artist_model_->findItems(text, Qt::MatchExactly);
+		if (!items.isEmpty()) {
+			return;
+		}
+		if (artist_model_->rowCount() >= kMaxCompletionCount) {
+			artist_model_->removeRows(0, kMaxCompletionCount - artist_model_->rowCount() + 1);
+		}
+
+		artist_model_->appendRow(new QStandardItem(text));
+		artist_completer->setModel(artist_model_);
+		artist_completer->setCompletionPrefix(text);
+
+		artist_view_->OnSearchTextChanged(text);
+		artist_view_->Update();
+		});
+
+	auto horizontalSpacer_1 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	auto* artist_combox_layout_1 = new QHBoxLayout();
+	auto* artist_combox_layout = new QHBoxLayout();
+	artist_combox_layout->addWidget(artist_search_line_edit_);
+	artist_combox_layout_1->addSpacerItem(horizontalSpacer_1);
+	artist_combox_layout_1->addLayout(artist_combox_layout);
+
+	artist_frame_layout->addLayout(artist_combox_layout_1);
+	artist_frame_layout->addWidget(artist_view_, 1);
+
 	current_view->addWidget(album_frame_);
-	current_view->addWidget(artist_view_);
+	current_view->addWidget(artist_frame_);
 
 	auto* default_layout = new QHBoxLayout();
 	default_layout->setSpacing(0);
@@ -183,7 +259,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::LoadCompleted,
 		this, &AlbumArtistPage::Refresh);
 
-	(void)QObject::connect(categoryComboBox_, &QComboBox::textActivated, [this](const auto &category) {
+	(void)QObject::connect(category_combo_box_, &QComboBox::textActivated, [this](const auto &category) {
 		if (category != tr("all")) {
 			album_view_->FilterCategories(category);
 		}
@@ -199,7 +275,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 				current_view->setCurrentWidget(album_frame_);
 				break;
 			case TAB_ARTIST:
-				current_view->setCurrentWidget(artist_view_);
+				current_view->setCurrentWidget(artist_frame_);
 				break;
 		}
 		});
@@ -232,9 +308,10 @@ void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 			break;
 	}
 
-	qTheme.SetLineEditStyle(searchLineEdit_, qTEXT("searchLineEdit"));
+	qTheme.SetLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
+	qTheme.SetLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
 
-	categoryComboBox_->setStyleSheet(qSTR(R"(
+	category_combo_box_->setStyleSheet(qSTR(R"(
     QComboBox#categoryComboBox {
 		background-color: %2;
 		border: 1px solid %1;

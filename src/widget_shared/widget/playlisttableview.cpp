@@ -263,12 +263,6 @@ void PlayListTableView::Reload() {
     JOIN artists ON albumMusic.artistId = artists.artistId
     WHERE
     playlistMusics.playlistId = %1
-    GROUP BY
-    musics.parentPath,
-    musics.track
-    ORDER BY
-    musics.parentPath DESC,
-    musics.track ASC;
     )");
     const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
     model_->setQuery(query);

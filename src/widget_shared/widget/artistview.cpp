@@ -5,6 +5,7 @@
 
 #include <thememanager.h>
 
+#include <QSqlError>
 #include <QScrollBar>
 #include <QGraphicsOpacityEffect>
 #include <QPainter>
@@ -276,7 +277,7 @@ ArtistView::ArtistView(QWidget* parent)
 
 		emit GetArtist(artist);
 		page_->SetArtist(artist, artist_id, artist_cover_id);
-		page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
+		page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
 		page_->show();
 		});
 
@@ -290,14 +291,36 @@ ArtistView::ArtistView(QWidget* parent)
 }
 
 void ArtistView::OnSearchTextChanged(const QString& text) {
+	last_query_ = qSTR(R"(
+SELECT
+    artists.artist,
+    artists.artistId,
+    artists.coverId,
+	artists.firstChar
+FROM
+    artists
+WHERE
+    (
+    artists.artist LIKE '%%1%'
+    )
+    )").arg(text);
+}
 
+void ArtistView::Update() {	
+	if (last_query_.isEmpty()) {
+		ShowAll();
+	}
+	model_.setQuery(last_query_, qDatabase.database());
+	if (model_.lastError().type() != QSqlError::NoError) {
+		XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
+	}
 }
 
 void ArtistView::resizeEvent(QResizeEvent* event) {
 	if (page_ != nullptr) {
 		if (!page_->isHidden()) {
 			const auto list_view_rect = this->rect();
-			page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
+			page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
 		}
 	}
 	QListView::resizeEvent(event);
@@ -330,8 +353,8 @@ void ArtistView::OnCurrentThemeChanged(ThemeColor theme_color) {
 	page_->OnCurrentThemeChanged(theme_color);
 }
 
-void ArtistView::Refresh() {
-	model_.setQuery(qTEXT(R"(
+void ArtistView::ShowAll() {
+	last_query_ = qTEXT(R"(
 SELECT
     artists.artist,
     artists.artistId,
@@ -339,5 +362,9 @@ SELECT
 	artists.firstChar
 FROM
     artists
-    )"), qDatabase.database());
+    )");
+}
+
+void ArtistView::Refresh() {
+	Update();
 }

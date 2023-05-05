@@ -315,9 +315,9 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
         emit BlurImage(QImage());
         return;
     }
-    ColorThief thief;
-    thief.LoadImage(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
-    emit DominantColor(thief.GetDominantColor());
+    //ColorThief thief;
+    //thief.LoadImage(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
+    //emit DominantColor(thief.GetDominantColor());
     emit BlurImage(image_utils::BlurImage(image, size));
 }
 

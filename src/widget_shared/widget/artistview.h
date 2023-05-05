@@ -74,6 +74,8 @@ public:
 
 	void Refresh();
 
+	void Update();
+
 signals:
 	void GetArtist(const QString& artist);
 
@@ -81,6 +83,8 @@ public slots:
 	void OnSearchTextChanged(const QString& text);
 
 private:
+	void ShowAll();
+
 	void resizeEvent(QResizeEvent* event) override;
 
 	void ShowPageAnimation();
@@ -89,6 +93,7 @@ private:
 
 	bool enable_page_{ true };
 	bool hide_page_{ false };
+	QString last_query_;
 	ArtistViewPage* page_;
 	QPropertyAnimation* animation_;
 	QSqlQueryModel model_;

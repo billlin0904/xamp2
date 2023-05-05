@@ -478,10 +478,10 @@ static int Execute(int argc, char* argv[]) {
     win.SetThemeColor(qTheme.GetBackgroundColor(),
         qTheme.GetThemeTextColor());
 
-    XAMP_LOG_DEBUG("Preaload load socket dll.");
-	static const QString kSoftwareUpdateUrl =
-        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-    http::HttpClient(kSoftwareUpdateUrl).get();
+    //XAMP_LOG_DEBUG("Preaload load socket dll.");
+	//static const QString kSoftwareUpdateUrl =
+    //    qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    //http::HttpClient(kSoftwareUpdateUrl).get();
 
     XAMP_LOG_DEBUG("Set process mitigation.");
     SetProcessMitigation();

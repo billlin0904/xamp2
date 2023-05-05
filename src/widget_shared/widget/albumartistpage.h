@@ -22,6 +22,7 @@ class QPushButton;
 class QLabel;
 class QComboBox;
 class QPropertyAnimation;
+class QLineEdit;
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
 	Q_OBJECT
@@ -43,6 +44,8 @@ private:
 class XAMP_WIDGET_SHARED_EXPORT AlbumArtistPage final : public QFrame {
 	Q_OBJECT
 public:
+	static constexpr size_t kMaxCompletionCount = 10;
+
 	explicit AlbumArtistPage(QWidget* parent = nullptr);
 
 	AlbumView* album() const {
@@ -63,9 +66,13 @@ public slots:
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
+	QStandardItemModel* album_model_;
+	QStandardItemModel* artist_model_;
 	QFrame* album_frame_;
-	QComboBox* categoryComboBox_;
-	QLineEdit* searchLineEdit_;
+	QFrame* artist_frame_;
+	QComboBox* category_combo_box_;
+	QLineEdit* album_search_line_edit_;
+	QLineEdit* artist_search_line_edit_;
 	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
 	ArtistView* artist_view_;
