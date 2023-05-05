@@ -120,7 +120,7 @@ void LrcPage::SetBackground(const QImage& cover) {
 }
 
 void LrcPage::StartBackgroundAnimation(const int durationMs) {
-	constexpr auto kBlurAlpha = 128;
+	constexpr auto kBlurAlpha = 200;
 	current_bg_alpha_ = image_utils::SampleImageBlur(background_image_, kBlurAlpha);
 
 	auto* fade_in_animation = new QPropertyAnimation(this, "appearBgProg");
@@ -149,6 +149,10 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 
 void LrcPage::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
+
+	if (background_image_.isNull()) {
+		return;
+	}
 
 	QLinearGradient gradient(0, 0, 0, height());
 	qTheme.SetLinearGradient(gradient);

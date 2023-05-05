@@ -216,13 +216,6 @@ CpuAffinity::operator bool() const noexcept {
 
 void CpuAffinity::SetAffinity(JThread& thread) {
 #ifdef XAMP_OS_WIN
-    DWORD_PTR affinity_mask = 0;
-    for (int i = 0; i < cpus.size(); ++i) {
-        if (cpus[i]) {
-            affinity_mask |= (1ull << i);
-        }
-    }
-
     const DWORD group_count = ::GetActiveProcessorGroupCount();
     for (DWORD group_index = 0; group_index < group_count; ++group_index) {
         GROUP_AFFINITY group_affinity = {};
@@ -236,9 +229,12 @@ void CpuAffinity::SetAffinity(JThread& thread) {
                 ++current_processor;
 			}
         }
-        group_affinity.Mask &= ((1ull << current_processor) - 1);
+
         if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
             XAMP_LOG_DEBUG("Fail to set SetThreadGroupAffinity");
+        }
+        else {
+            XAMP_LOG_DEBUG("Success to set SetThreadGroupAffinity mask: {:#02X}", group_affinity.Mask);
         }
 
         for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {

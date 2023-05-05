@@ -67,7 +67,7 @@ IThreadPoolExecutor& GetWasapiThreadPool() {
 }
 
 static CpuAffinity GetBackgroundCpuAffinity() {
-    CpuAffinity affinity;
+    CpuAffinity affinity(-1, false);
     affinity.SetCpu(1);
     affinity.SetCpu(2);
     return affinity;
@@ -77,7 +77,7 @@ IThreadPoolExecutor& GetBackgroundThreadPool() {
     static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
         std::thread::hardware_concurrency(),
         GetBackgroundCpuAffinity(),
-        ThreadPriority::BACKGROUND);
+        ThreadPriority::NORMAL);
     return executor;
 }
 

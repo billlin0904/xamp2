@@ -176,7 +176,6 @@
     <ClInclude Include="include\base\platfrom_handle.h" />
     <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpoolexecutor.h" />
-    <ClInclude Include="include\base\spmc_queue.h" />
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\rcu_ptr.h" />
