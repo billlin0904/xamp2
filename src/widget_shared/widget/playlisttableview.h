@@ -130,7 +130,7 @@ signals:
 public slots:
 	void PlayIndex(const QModelIndex& index);
 
-	void ProcessDatabase(const ForwardList<PlayListEntity>& entities);
+	void ProcessDatabase(int32_t playlist_id, const ForwardList<PlayListEntity>& entities);
 
 	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 

@@ -113,7 +113,7 @@ void LrcPage::SetBackground(const QImage& cover) {
 		prev_bg_alpha_ = current_bg_alpha_;
 		prev_background_image_ = cover;
         background_image_ = cover;
-		constexpr int kBlurBackgroundAnimationMs = 5000;
+		constexpr int kBlurBackgroundAnimationMs = 1500;
 		StartBackgroundAnimation(kBlurBackgroundAnimationMs);
 	}
 	update();

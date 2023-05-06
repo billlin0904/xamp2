@@ -1905,6 +1905,12 @@ void Xamp::InitialPlaylist() {
         ConnectPlaylistPageSignal(playlist_page_);
         playlist_page_->playlist()->SetHeaderViewHidden(false);
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
+
+        (void)QObject::connect(background_worker_,
+            &BackgroundWorker::FromDatabase,
+            playlist_page_->playlist(),
+            &PlayListTableView::ProcessDatabase,
+            Qt::QueuedConnection);
     }
 
     if (!podcast_page_) {
@@ -2338,6 +2344,7 @@ void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast_mode) {
     DatabaseFacade::InsertTrackInfo(result, playlist_id, is_podcast_mode);
+    playlist_page_->playlist()->Reload();
 }
 
 void Xamp::OnReadFileProgress(int progress) {

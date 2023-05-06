@@ -70,7 +70,8 @@ static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
     return DirPathHash(kDirHashKey1, kDirHashKey2);
 }
 
-void DatabaseFacade::ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
+void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
+    HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -102,7 +103,7 @@ void DatabaseFacade::ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInfo>>
     const auto db_hash = qDatabase.GetParentPathHash(dir);
     if (db_hash == path_hash) {
         XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
-        emit FromDatabase(qDatabase.GetPlayListEntityFromPathHash(db_hash));
+        emit worker->FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
         return;
     }
 
@@ -114,6 +115,8 @@ void DatabaseFacade::ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInfo>>
 
         Stopwatch sw;
         auto track_info = reader->Extract(path);
+        // 如果父路徑下是D:\\music\\flac dir是D:\\music\\就會有問題, 所以parent_path設為dir
+        track_info.parent_path = dir.toStdWString();
         constexpr auto kTagLibInvalidBitRate = 1;
         if (track_info.bit_rate == kTagLibInvalidBitRate || track_info.duration == 0.0) {
             try {
@@ -184,7 +187,7 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
         const auto db_hash = qDatabase.GetParentPathHash(ToNativeSeparators(file_path));
         if (db_hash == path_hash) {
             XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
-            emit FromDatabase(qDatabase.GetPlayListEntityFromPathHash(db_hash));
+            emit worker->FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
             return;
         }
     }
@@ -206,7 +209,7 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
 		HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
 
         try {
-			ScanPathFiles(album_groups, file_name_filters, path, playlist_id, is_podcast_mode);
+			ScanPathFiles(worker, album_groups, file_name_filters, path, playlist_id, is_podcast_mode);
 		}
         catch (Exception const& e) {
 			XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());

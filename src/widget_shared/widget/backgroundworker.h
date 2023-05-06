@@ -72,6 +72,9 @@ signals:
     void ReadFileProgress(int progress);
 
     void ReadFileStart();
+
+    void FromDatabase(int32_t playlist_id,const ForwardList<PlayListEntity>& entity);
+
 public Q_SLOT:
     void OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
 

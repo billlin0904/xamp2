@@ -40,13 +40,11 @@ class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 public:
     explicit DatabaseFacade(QObject* parent = nullptr);
 
-signals:
-    void FromDatabase(const ForwardList<PlayListEntity>& entity);
-
+signals:    
     void InsertDatabase(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast_mode);
-
+    
 public:
     void ReadTrackInfo(BackgroundWorker *worker,
         QString const& file_path,
@@ -70,7 +68,8 @@ private:
 
     static QSet<QString> GetAlbumCategories(const QString& album);
 
-    void ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
+    void ScanPathFiles(BackgroundWorker* worker,
+        HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
         const QStringList& file_name_filters,
         const QString& dir,
         int32_t playlist_id,

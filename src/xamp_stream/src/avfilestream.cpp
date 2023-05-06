@@ -64,12 +64,16 @@ public:
         const auto file_path_ut8 = String::ToString(file_path.wstring());
         const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
         if (err != 0) {
-            if (err == AVERROR_INVALIDDATA) {
+            static constexpr auto AVERROR_NOFMT = -42;
+            switch (err) {
+            case AVERROR_INVALIDDATA:
                 throw NotSupportFormatException();
+                break;
+            case AVERROR_NOFMT:
+                throw FileNotFoundException();
+            default:
+                throw AvException(err);
             }
-            else {
-				throw AvException(err);
-			}
         }
 
         if (format_context != nullptr) {
