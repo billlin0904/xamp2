@@ -8,7 +8,7 @@
 #include <QPushButton>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SwitchButton : public QPushButton {
+class SwitchButton : public QPushButton {
     Q_OBJECT
 public:
     explicit SwitchButton(QWidget *parent = nullptr);

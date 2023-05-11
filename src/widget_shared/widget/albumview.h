@@ -29,14 +29,15 @@ class AlbumPlayListTableView;
 class PlaylistPage;
 class XMessage;
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledItemDelegate {
-	Q_OBJECT
-public:
-	enum ShowModes {
-		SHOW_ARTIST,
-		SHOW_YEAR,
-	};
+enum ShowModes {
+	SHOW_ARTIST,
+	SHOW_YEAR,
+	SHOW_NORMAL,
+};
 
+class AlbumViewStyledDelegate final : public QStyledItemDelegate {
+	Q_OBJECT
+public:	
 	static const ConstLatin1String kAlbumCacheTag;
 	static constexpr auto kMoreIconSize = 20;
 	static constexpr auto kIconSize = 48;
@@ -53,6 +54,10 @@ public:
 
 	void SetShowMode(ShowModes mode) {
 		show_mode_ = mode;
+	}
+
+	ShowModes GetShowModes() const {
+		return show_mode_;
 	}
 
 	static QPixmap GetCover(const QString& tag, const QString& cover_id);
@@ -79,7 +84,7 @@ private:
 	QScopedPointer<QPushButton> play_button_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumViewPage final : public QFrame {
+class AlbumViewPage final : public QFrame {
 	Q_OBJECT
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
@@ -105,7 +110,7 @@ private:
 	QPushButton* close_button_;	
 };
 
-class XAMP_WIDGET_SHARED_EXPORT LazyLoadingModel : public QSqlQueryModel {
+class LazyLoadingModel : public QSqlQueryModel {
 public:
 	static constexpr auto kMaxBatchSize = 64; // Max show 32 albums in one page
 
@@ -137,7 +142,7 @@ private:
 	int32_t load_rows_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumView final : public QListView {
+class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {
 	Q_OBJECT
 public:
     static constexpr auto kPageAnimationDurationMs = 200;
@@ -154,11 +159,13 @@ public:
 
 	void ReadSingleFileTrackInfo(const QString& file_name);
 
-	void ShowAll();
+	virtual void ShowAll();
 
 	void SetPlayingAlbumId(int32_t album_id);
 
 	void FilterCategories(const QString& category);
+
+	void SetShowMode(ShowModes mode);
 signals:
     void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
@@ -205,7 +212,11 @@ private:
 
 	bool enable_page_{ true };
 	bool hide_page_{ false };
+
+protected:
 	QString last_query_;
+
+private:
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;

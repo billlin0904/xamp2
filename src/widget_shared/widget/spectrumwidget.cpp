@@ -21,6 +21,10 @@ void SpectrumWidget::SetSampleRate(int32_t sample_rate) {
 	sample_rate_ = sample_rate;
 }
 
+void SpectrumWidget::SetFftSize(int32_t fft_size) {
+	fft_size_ = fft_size;
+}
+
 void SpectrumWidget::OnFftResultChanged(ComplexValarray const& fft_data) {
 	fft_data_ = fft_data;
 }
@@ -51,9 +55,6 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 
 	// 計算每個頻帶的能量值的db值
 	const std::valarray<float> band_db_values = 10.0f * std::log10(band_energies);
-	//std::valarray<float> band_db_values(kMaxBands);
-	//band_db_values = 2;
-
 	if (band_db_values.max() == -std::numeric_limits<float>::infinity()) {
 		return;
 	}

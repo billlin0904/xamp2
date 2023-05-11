@@ -13,7 +13,7 @@ class QImage;
 
 using QuantizedColor = std::tuple<uint8_t, uint8_t, uint8_t>;
 
-class XAMP_WIDGET_SHARED_EXPORT ColorThief {
+class ColorThief {
 public:
 	ColorThief() = default;
 

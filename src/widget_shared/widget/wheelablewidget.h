@@ -12,9 +12,8 @@ class QWidget;
 class QRect;
 class QPainter;
 
-class XAMP_WIDGET_SHARED_EXPORT WheelableWidget : public QWidget {
+class WheelableWidget : public QWidget {
 	Q_OBJECT
-
 public:
 	static constexpr auto kWheelScrollOffset = 50000;
 	static constexpr auto kScrollTime = 200;

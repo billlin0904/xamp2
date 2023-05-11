@@ -23,7 +23,7 @@ QString GetFileDialogFileExtensions();
 
 QStringList GetFileNameFilter();
 
-class XAMP_WIDGET_SHARED_EXPORT CoverArtReader final {
+class CoverArtReader final {
 public:
     CoverArtReader();
 
@@ -38,6 +38,8 @@ private:
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
 public:
+    static constexpr size_t kReserveSize = 1024;
+    
     explicit DatabaseFacade(QObject* parent = nullptr);
 
 signals:    
@@ -46,6 +48,8 @@ signals:
         bool is_podcast_mode);
     
 public:
+    static QStringList NormalizeGenre(const QString& genre);
+
     void ReadTrackInfo(BackgroundWorker *worker,
         QString const& file_path,
         int32_t playlist_id,
@@ -65,8 +69,6 @@ private:
     static void AddTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast);
-
-    static QSet<QString> GetAlbumCategories(const QString& album);
 
     void ScanPathFiles(BackgroundWorker* worker,
         HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,

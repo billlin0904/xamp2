@@ -1,6 +1,8 @@
 #include <widget/albumartistpage.h>
 #include <widget/artistview.h>
 
+#include <widget/genre_view.h>
+
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QStandardItemModel>
@@ -16,8 +18,12 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QCompleter>
+#include <QToolButton>
+#include <QScrollArea>
+#include <QStackedWidget>
 
 #include <widget/albumentity.h>
+#include <widget/clickablelabel.h>
 #include <widget/str_utilts.h>
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
@@ -29,6 +35,90 @@ enum {
 	TAB_ARTIST,
 	TAB_GENRE,
 };
+
+const QSet<QString> AlbumArtistPage::kGenre = {
+  "Blues", "Classic Rock", "Country", "Dance",
+  "Disco", "Funk", "Grunge", "Hip-Hop",
+  "Jazz", "Metal", "New Age", "Oldies",
+  "Other", "Pop", "R&B", "Rap",
+  "Reggae", "Rock", "Techno", "Industrial",
+  "Alternative", "Ska", "Death Metal", "Pranks",
+  "Soundtrack", "Euro-Techno", "Ambient", "Trip-Hop",
+  "Vocal", "Jazz+Funk", "Fusion", "Trance",
+  "Classical", "Instrumental", "Acid", "House",
+  "Game", "Sound Clip", "Gospel", "Noise",
+  "AlternRock", "Bass", "Soul", "Punk",
+  "Space", "Meditative", "Instrumental Pop", "Instrumental Rock",
+  "Ethnic", "Gothic", "Darkwave", "Techno-Industrial",
+  "Electronic", "Pop-Folk", "Eurodance", "Dream",
+  "Southern Rock", "Comedy", "Cult", "Gangsta",
+  "Top 40", "Christian Rap", "Pop/Funk", "Jungle",
+  "Native American", "Cabaret", "New Wave", "Psychadelic",
+  "Rave", "Showtunes", "Trailer", "Lo-Fi",
+  "Tribal", "Acid Punk", "Acid Jazz", "Polka",
+  "Retro", "Musical", "Rock & Roll", "Hard Rock",
+  "Folk", "Folk/Rock", "National folk", "Swing",
+  "Fast-fusion", "Bebob", "Latin", "Revival",
+  "Celtic", "Bluegrass", "Avantgarde", "Gothic Rock",
+  "Progressive Rock", "Psychedelic Rock", "Symphonic Rock", "Slow Rock",
+  "Big Band", "Chorus", "Easy Listening", "Acoustic",
+  "Humour", "Speech", "Chanson", "Opera",
+  "Chamber Music", "Sonata", "Symphony", "Booty Bass",
+  "Primus", "Porn Groove", "Satire", "Slow Jam",
+  "Club", "Tango", "Samba", "Folklore",
+  "Ballad", "Powder Ballad", "Rhythmic Soul", "Freestyle",
+  "Duet", "Punk Rock", "Drum Solo", "A Capella",
+  "Euro-House", "Dance Hall", "Goa", "Drum & Bass",
+  "Club House", "Hardcore", "Terror", "Indie",
+  "BritPop", "NegerPunk", "Polsk Punk", "Beat",
+  "Christian Gangsta", "Heavy Metal", "Black Metal", "Crossover",
+  "Contemporary C", "Christian Rock", "Merengue", "Salsa",
+  "Thrash Metal", "Anime", "JPop", "SynthPop"
+};
+
+GenrePage::GenrePage(QWidget* parent)
+	: QFrame(parent) {
+	auto genre_container_layout = new QVBoxLayout(this);
+
+	auto f = font();
+	genre_label_ = new ClickableLabel();
+	f.setPointSize(qTheme.GetFontSize(15));
+	f.setBold(true);
+	genre_label_->setFont(f);
+
+	auto* cevron_right = new QToolButton();
+	cevron_right->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CHEVRON_LEFT));
+
+	auto* genre_combox_layout = new QHBoxLayout();
+	auto horizontalSpacer_3 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	genre_combox_layout->addWidget(genre_label_);
+	genre_combox_layout->addWidget(cevron_right);
+	genre_combox_layout->addSpacerItem(horizontalSpacer_3);
+
+	genre_view_ = new GenreView(this);
+
+	genre_view_->ShowAll();
+	genre_view_->Refresh();
+
+	genre_container_layout->addLayout(genre_combox_layout);
+	genre_container_layout->addWidget(genre_view_, 1);
+
+	(void)QObject::connect(genre_label_, &ClickableLabel::clicked, [this]() {
+		emit goBackPage();
+		});
+
+	(void)QObject::connect(cevron_right, &QToolButton::clicked, [this]() {
+		emit goBackPage();
+		});
+}
+
+void GenrePage::SetGenre(const QString& genre) {
+	genre_view_->SetGenre(genre);
+	genre_label_->setText(genre);
+	genre_view_->ShowAllAlbum();
+	genre_view_->SetShowMode(SHOW_NORMAL);
+	genre_view_->Refresh();
+}
 
 AlbumTabListView::AlbumTabListView(QWidget* parent)
 	: QListView(parent)
@@ -57,7 +147,7 @@ AlbumTabListView::AlbumTabListView(QWidget* parent)
 void AlbumTabListView::AddTab(const QString& name, int tab_id) {
 	auto* item = new QStandardItem(name);
 	item->setData(tab_id);
-    item->setSizeHint(QSize(160, 30));
+    item->setSizeHint(QSize(90, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
     f.setPointSize(qTheme.GetFontSize(14));
@@ -75,6 +165,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	, album_view_(new AlbumView(this))
 	, artist_view_(new ArtistView(this))
 	, artist_info_view_(new ArtistInfoPage(this)) {
+	album_view_->Refresh();
+	album_view_->Update();
+	artist_view_->Refresh();
+	artist_view_->Update();
+
 	auto* vertical_layout_2 = new QVBoxLayout(this);
 
 	vertical_layout_2->setSpacing(0);
@@ -121,8 +216,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 	f.setPointSize(qTheme.GetFontSize(10));
 
-	auto* categoryLabel = new QLabel(tr("Category:"));
-	categoryLabel->setFont(f);
+	auto* category_label = new QLabel(tr("Category:"));
+	category_label->setFont(f);
 
 	category_combo_box_ = new QComboBox();
 	category_combo_box_->setObjectName(QString::fromUtf8("categoryComboBox"));
@@ -176,7 +271,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		});
 
 	album_combox_layout->addWidget(album_search_line_edit_);
-	album_combox_layout->addWidget(categoryLabel);
+	album_combox_layout->addWidget(category_label);
 	album_combox_layout->addWidget(category_combo_box_);
 
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -186,10 +281,44 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_frame_layout->addLayout(album_combox_layout_1);
 	album_frame_layout->addWidget(album_view_, 1);
 
+	auto genre_stackwidget = new QStackedWidget(this);
+
+	auto* container_frame = new QFrame();
+	auto genre_container_layout = new QVBoxLayout(container_frame);
+
+	auto *genre_page = new GenrePage();
+	(void)QObject::connect(genre_page, &GenrePage::goBackPage, [genre_stackwidget]() {
+		genre_stackwidget->setCurrentIndex(0);
+		});
+
+	genre_stackwidget->addWidget(container_frame);
+	genre_stackwidget->addWidget(genre_page);
+
+	auto* scroll_area = new QScrollArea();
+	scroll_area->setWidgetResizable(true);
+	scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+	genre_frame_ = new QFrame();
+	genre_frame_->setObjectName(QString::fromUtf8("currentGenreViewFrame"));
+	genre_frame_->setFrameShape(QFrame::StyledPanel);
+
+	genre_frame_layout_ = new QVBoxLayout(genre_frame_);
+	genre_frame_layout_->setSpacing(0);
+	genre_frame_layout_->setObjectName(QString::fromUtf8("currentGenreViewFrameLayout"));
+	genre_frame_layout_->setContentsMargins(0, 0, 0, 0);
+
+	scroll_area->setWidget(genre_frame_);
+
+	Q_FOREACH(auto genre, qDatabase.GetGenres()) {
+		AddGenreList(genre_page, genre_stackwidget, genre);
+	}
+
+	genre_container_layout->addWidget(scroll_area);
+	
 	artist_frame_ = new QFrame();
 	artist_frame_->setObjectName(QString::fromUtf8("currentArtistViewFrame"));
 	artist_frame_->setFrameShape(QFrame::StyledPanel);
-
 	auto* artist_frame_layout = new QVBoxLayout(artist_frame_);
 	artist_frame_layout->setSpacing(0);
 	artist_frame_layout->setObjectName(QString::fromUtf8("currentArtistViewFrameLayout"));
@@ -243,6 +372,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->addWidget(album_frame_);
 	current_view->addWidget(artist_frame_);
+	current_view->addWidget(genre_stackwidget);
 
 	auto* default_layout = new QHBoxLayout();
 	default_layout->setSpacing(0);
@@ -269,13 +399,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_view_->Update();
 		});
 
-	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view](auto table_id) {
+	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view, genre_stackwidget](auto table_id) {
 		switch (table_id) {
 			case TAB_ALBUM:
 				current_view->setCurrentWidget(album_frame_);
 				break;
 			case TAB_ARTIST:
 				current_view->setCurrentWidget(artist_frame_);
+				break;
+			case TAB_GENRE:
+				current_view->setCurrentWidget(genre_stackwidget);
 				break;
 		}
 		});
@@ -286,55 +419,83 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	OnCurrentThemeChanged(qTheme.GetThemeColor());
 }
 
+void AlbumArtistPage::AddGenreList(GenrePage *page, QStackedWidget* stack, const QString &genre) {
+	auto f = font();
+	auto* genre_label = new ClickableLabel(genre);
+	f.setPointSize(qTheme.GetFontSize(15));
+	f.setBold(true);
+	genre_label->setFont(f);	
+
+	auto* cevron_right = new QToolButton();
+	cevron_right->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CHEVRON_RIGHT));
+
+	auto *genre_combox_layout = new QHBoxLayout();
+	auto horizontalSpacer_3 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	genre_combox_layout->addWidget(genre_label);
+	genre_combox_layout->addWidget(cevron_right);
+	genre_combox_layout->addSpacerItem(horizontalSpacer_3);
+
+	auto* genre_view = new GenreView(this);
+	genre_view->SetGenre(genre);
+	genre_view->ShowAll();
+	genre_view->Refresh();
+	genre_view->verticalScrollBar()->hide();
+	genre_view->setFixedHeight(275);
+	genre_view->SetShowMode(SHOW_NORMAL);
+
+	(void)QObject::connect(genre_label, &ClickableLabel::clicked, [page, genre, stack, this]() {
+		page->SetGenre(genre);
+		stack->setCurrentIndex(1);
+		});
+
+	(void)QObject::connect(cevron_right, &QToolButton::clicked, [page, genre, stack, this]() {
+		page->SetGenre(genre);
+		stack->setCurrentIndex(1);
+		});
+
+	genre_page_list_.append(page);
+	genre_list_.append(genre_view);
+
+	genre_frame_layout_->addLayout(genre_combox_layout);
+	genre_frame_layout_->addWidget(genre_view, 1);
+}
+
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	album_view_->OnCurrentThemeChanged(theme_color);
 	artist_view_->OnCurrentThemeChanged(theme_color);
 
-	// QStackedWidget設定background與border顏色與背景相同, 
-	// 所以重新設定categoryComboBox的border顏色與背景色
-	QString border_color;
-	QString selection_background_color;
-	QString on_selection_background_color;
-	switch (theme_color) {
-		case ThemeColor::LIGHT_THEME:	
-			border_color = "#C9CDD0";
-			selection_background_color = "#FAFAFA";
-			on_selection_background_color = "#1e1d23";			
-			break;
-		case ThemeColor::DARK_THEME:
-			border_color = "#455364";		
-			selection_background_color = "#1e1d23";
-			on_selection_background_color = "#9FCBFF";	
-			break;
+	Q_FOREACH(auto * view, genre_list_) {
+		view->OnCurrentThemeChanged(theme_color);
+	}
+	Q_FOREACH(auto* page, genre_page_list_) {
+		page->view()->OnCurrentThemeChanged(theme_color);
 	}
 
 	qTheme.SetLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
 	qTheme.SetLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
-
-	category_combo_box_->setStyleSheet(qSTR(R"(
-    QComboBox#categoryComboBox {
-		background-color: %2;
-		border: 1px solid %1;
-	}
-	QComboBox QAbstractItemView#categoryComboBox {
-		background-color: %2;
-	}
-	QComboBox#categoryComboBox:on {
-		selection-background-color: %3;
-	}
-    )").arg(border_color).arg(selection_background_color).arg(on_selection_background_color));
+	qTheme.SetComboBoxStyle(category_combo_box_, qTEXT("categoryComboBox"));
 }
 
 void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
 	album_view_->OnThemeChanged(backgroundColor, color);
-	artist_view_->OnThemeChanged(backgroundColor, color);	
+	artist_view_->OnThemeChanged(backgroundColor, color);
+
+	Q_FOREACH(auto * view, genre_list_) {
+		view->OnThemeChanged(backgroundColor, color);
+	}
+	Q_FOREACH(auto* page, genre_page_list_) {
+		page->view()->OnThemeChanged(backgroundColor, color);
+	}
 }
 
 void AlbumArtistPage::Refresh() {
 	album_view_->Refresh();
 	artist_view_->Refresh();
+	Q_FOREACH(auto * view, genre_list_) {
+		view->Refresh();
+	}
+	Q_FOREACH(auto * page, genre_page_list_) {
+		page->view()->Refresh();
+	}
 }
 
-void AlbumArtistPage::SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
-
-}

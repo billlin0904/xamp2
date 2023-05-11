@@ -18,7 +18,7 @@
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SqlException final : public Exception {
+class SqlException final : public Exception {
 public:
     explicit SqlException(QSqlError error);
 
@@ -68,7 +68,7 @@ enum PlayingState {
     PLAY_PAUSE,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT SqlQuery : public QSqlQuery {
+class SqlQuery : public QSqlQuery {
 public:
     explicit SqlQuery(const QString& query = QString(), QSqlDatabase db = QSqlDatabase())
         : QSqlQuery(query, db) {
@@ -101,6 +101,8 @@ public:
     bool commit();
 
     void rollback();
+
+    QStringList GetGenres() const;
 
     int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
@@ -161,7 +163,9 @@ public:
 
     size_t GetParentPathHash(const QString& parent_path) const;
 
-    int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast, const QString& disc_id = kEmptyString);
+    int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast,
+        const QString& disc_id = kEmptyString,
+        const QString& album_genre = kEmptyString);
 
     void AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 

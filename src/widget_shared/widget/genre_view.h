@@ -5,22 +5,18 @@
 
 #pragma once
 
-#include <QProxyStyle>
 #include <widget/widget_shared_global.h>
+#include <widget/albumview.h>
 
-class IconSizeStyle : public QProxyStyle {
-	Q_OBJECT
+class XAMP_WIDGET_SHARED_EXPORT GenreView final : public AlbumView {
 public:
-	explicit IconSizeStyle(int32_t size)
-		: size_(size) {		
-	}
+	explicit GenreView(QWidget* parent = nullptr);
 
-    int pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const override {
-        if (metric == PM_SmallIconSize) {
-            return size_;
-        }
-        return QProxyStyle::pixelMetric(metric, option, widget);
-    }
+	void SetGenre(const QString& genre);
+
+	void ShowAll() override;
+
+	void ShowAllAlbum(int32_t limit = 65535);
 private:
-    int32_t size_;
+	QString genre_;
 };

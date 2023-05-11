@@ -28,6 +28,7 @@
 #include <QToolButton>
 #include <QLineEdit>
 #include <QListView>
+#include <QComboBox>
 
 template <typename Iterator>
 static void SortFontWeight(Iterator begin, Iterator end) {
@@ -207,6 +208,8 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_MESSAGE_BOX_SUCCESS,       0xF058 },
     { ICON_HEART,                     0xF004 },
     { ICON_HEART_PRESS,               0xF004 },
+    { ICON_CHEVRON_RIGHT,             0xF054 },
+    { ICON_CHEVRON_LEFT,              0xF053 }
     };
     
     qFontIcon.addFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
@@ -745,6 +748,42 @@ QFont ThemeManager::GetMonoFont() const {
 
 QFont ThemeManager::GetDebugFont() const {
     return QFont(qTEXT("DebugFont"));
+}
+
+void ThemeManager::SetComboBoxStyle(QComboBox* combo_box, const QString& object_name) {
+    QString border_color;
+    QString selection_background_color;
+    QString on_selection_background_color;
+
+    switch (GetThemeColor()) {
+    case ThemeColor::LIGHT_THEME:
+        border_color = "#C9CDD0";
+        selection_background_color = "#FAFAFA";
+        on_selection_background_color = "#1e1d23";
+        break;
+    case ThemeColor::DARK_THEME:
+        border_color = "#455364";
+        selection_background_color = "#1e1d23";
+        on_selection_background_color = "#9FCBFF";
+        break;
+    }
+
+    combo_box->setStyleSheet(qSTR(R"(
+    QComboBox#%4 {
+		background-color: %2;
+		border: 1px solid %1;
+	}
+	QComboBox QAbstractItemView#%4 {
+		background-color: %2;
+	}
+	QComboBox#%4:on {
+		selection-background-color: %3;
+	}
+    )").arg(border_color)
+       .arg(selection_background_color)
+       .arg(on_selection_background_color)
+       .arg(object_name)
+    );
 }
 
 void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_name) {

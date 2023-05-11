@@ -8,7 +8,7 @@
 #include <QFileSystemModel>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT FileSystemModel : public QFileSystemModel {
+class FileSystemModel : public QFileSystemModel {
 public:
 	explicit FileSystemModel(QObject* parent = nullptr);
 

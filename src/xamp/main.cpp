@@ -35,6 +35,8 @@
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
 
+#include <widget/databasefacade.h>
+
 #include <thememanager.h>
 #include <singleinstanceapplication.h>
 #include <version.h>
@@ -496,6 +498,13 @@ static int Execute(int argc, char* argv[]) {
 }
 
 int main() {    
+    DatabaseFacade::NormalizeGenre(qTEXT("a capella"));
+    DatabaseFacade::NormalizeGenre(qTEXT("International, Far East, Asia"));
+    DatabaseFacade::NormalizeGenre(qTEXT("Blues,Funk/Soul, Pop "));
+    DatabaseFacade::NormalizeGenre(qTEXT("Electronic Classical Stage & Screen"));
+    DatabaseFacade::NormalizeGenre(qTEXT("Classical|Keyboard"));
+    DatabaseFacade::NormalizeGenre(qTEXT("Domestic(J-Pops)"));
+
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC

@@ -44,7 +44,7 @@ private:
     QList<XMessageItem*> items_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT XMessageItem : public QWidget {
+class XMessageItem : public QWidget {
     Q_OBJECT
 public:
     explicit XMessageItem(QWidget* parent = nullptr,

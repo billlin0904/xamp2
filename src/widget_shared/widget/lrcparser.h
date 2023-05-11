@@ -14,13 +14,13 @@
 #include <base/base.h>
 #include <widget/widget_shared_global.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT LyricEntry {
+struct LyricEntry {
     int32_t index{0};
     std::chrono::milliseconds timestamp{0};
     std::wstring lrc;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT LrcParser {
+class LrcParser {
 public:
 	LrcParser();
 

@@ -209,6 +209,7 @@ private:
 	
 	bool raw_mode_;
 	bool ignore_wait_slow_;
+	bool is_2432_format_;
 	std::atomic<bool> is_running_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;

@@ -32,6 +32,7 @@
                 "PlaybackThreadPool": "info",
                 "Qt": "info",
                 "R8brainLib": "info",
+                "ScanPathThreadPool": "info",
                 "SharedWasapiDevice": "info",
                 "Soxr": "info",
                 "TagLib": "info",

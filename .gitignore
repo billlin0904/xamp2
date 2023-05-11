@@ -88,3 +88,4 @@ src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Debug
 /src/widget_shared/widget_shared.vcxproj.filters
 /src/widget_shared/widget_shared.vcxproj.user
 /src/widget_shared/x64
+/src/thirdparty/liblastfm

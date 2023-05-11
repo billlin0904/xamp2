@@ -4,7 +4,11 @@
 #include <widget/str_utilts.h>
 
 ClickableLabel::ClickableLabel(QWidget* parent)
-	: QLabel(parent) {
+	: ClickableLabel(QString(), parent) {
+}
+
+ClickableLabel::ClickableLabel(const QString& text, QWidget* parent)
+	: QLabel(text, parent) {
 	setMouseTracking(true);
 	setStyleSheet(qTEXT("background: transparent; border: none;"));
 }

@@ -53,7 +53,7 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
     auto f = qTheme.GetMonoFont();
     f.setWeight(QFont::Light);
     f.setPointSize(qTheme.GetFontSize(5));
-    //setOpenGl(true);
+    //setOpenGl(true);    
 
     //xAxis->setScaleType(QCPAxis::stLogarithmic);
     setInteraction(QCP::Interaction::iRangeDrag, false);
@@ -69,6 +69,7 @@ ParametricEqView::ParametricEqView(QWidget* parent) {
 
     graph(dragable_graph_number_)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black, 1.5), QBrush(Qt::white), 9));
     graph(dragable_graph_number_)->setPen(QPen(line_color, 2));
+    graph(dragable_graph_number_)->setSmooth();
 
     for (auto i = 0; i < kEqDefaultFrequencies.size() && i < kBandsStr.size(); i++) {
         graph(dragable_graph_number_)->addData(kEqDefaultFrequencies[i], 0);

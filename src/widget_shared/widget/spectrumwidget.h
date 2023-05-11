@@ -22,12 +22,14 @@ enum SpectrumStyles {
 class XAMP_WIDGET_SHARED_EXPORT SpectrumWidget : public QFrame {
 	Q_OBJECT
 public:
-	static constexpr auto kMaxBands = 128;
+	static constexpr auto kMaxBands = 256;
 	static constexpr auto kBufferSize = 5;
 
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
 	void SetSampleRate(int32_t sample_rate);
+
+	void SetFftSize(int32_t fft_size);
 
 	void Reset();
 

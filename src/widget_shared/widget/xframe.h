@@ -12,7 +12,7 @@
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT XFrame : public QWidget {
+class XFrame : public QWidget {
 	Q_OBJECT
 public:
 	explicit XFrame(QWidget* parent = nullptr);

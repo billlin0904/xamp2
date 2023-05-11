@@ -15,6 +15,8 @@
 #include <base/logger_impl.h>
 #include <base/google_siphash.h>
 #include <base/scopeguard.h>
+#include <base/fastmutex.h>
+
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadataextractadapter.h>
@@ -39,6 +41,30 @@ XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 		catch (...) {}\
     } while (false)
 
+using DirPathHash = GoogleSipHash<>;
+
+static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
+    constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
+    constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
+
+    return DirPathHash(kDirHashKey1, kDirHashKey2);
+}
+
+static QSet<QString> GetAlbumCategories(const QString& album) {
+    QRegularExpression regex(
+        R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete|collection)(?:(?: \[.*\])|(?: - .*))?)",
+        QRegularExpression::CaseInsensitiveOption);
+
+    QSet<QString> categories;
+    auto it = regex.globalMatch(album);
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+        QString category = match.captured(1).toLower().trimmed();
+        categories.insert(category);
+    }
+    return categories;
+}
+
 CoverArtReader::CoverArtReader()
     : cover_reader_(MakeMetadataReader()) {
 }
@@ -61,13 +87,44 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);    
 }
 
-using DirPathHash = GoogleSipHash<>;
+QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
+    static const QString kJop = "jpop";
+    QStringList normalizedTags;
 
-static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
-    constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
-    constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
+    if (genre.isEmpty()) return normalizedTags;
 
-    return DirPathHash(kDirHashKey1, kDirHashKey2);
+    if (genre.length() == 1 && genre[0] == ' ') return normalizedTags;
+
+    auto tags = genre.split(QRegExp("\\s*,\\s*"), Qt::SkipEmptyParts);
+
+    for (auto tag : tags) {
+        tag = tag.trimmed();
+        if (tag.contains(QRegExp("[/|()&]"))) {
+            QStringList subTags = tag.split(QRegExp("[/|()&]"), Qt::SkipEmptyParts);
+            for (auto s : subTags) {         
+                s = s.trimmed().toLower();
+                if (s.length() == 1) {
+                    continue;
+                }                
+                if (s == kJop) {
+                    s = "j-pop";
+                }
+                normalizedTags.append(s);
+            }            
+        }
+        else {
+            auto s = tag.trimmed().toLower();
+            if (s.length() == 1) {
+                continue;
+            }
+            if (s == kJop) {
+                s = "j-pop";
+            }
+            normalizedTags.append(s);
+        }
+    }
+
+    return normalizedTags;
 }
 
 void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
@@ -79,12 +136,14 @@ void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
 
     auto hasher = MakFilePathHash();
-    ForwardList<Path> paths;
+
+    Vector<Path> paths;
+    paths.reserve(kReserveSize);
 
     while (itr.hasNext()) {
         auto next_path = ToNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
-        paths.push_front(path);
+        paths.push_back(path);
         hasher.Update(path);
     }
 
@@ -94,7 +153,7 @@ void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
             return;
         }
         const auto path = dir.toStdWString();
-        paths.push_front(path);
+        paths.push_back(path);
         hasher.Update(path);
     }
 
@@ -106,47 +165,26 @@ void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
         emit worker->FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
         return;
     }
+   
+   if (is_stop_) {
+       return;
+   }
 
-    auto reader = MakeMetadataReader();    
-    std::for_each(paths.begin(), paths.end(), [&](auto& path) {
-        if (is_stop_) {
-            return;
-        }
+   auto reader = MakeMetadataReader();
+   FastMutex mutex;
 
-        Stopwatch sw;
-        auto track_info = reader->Extract(path);
-        // 如果父路徑下是D:\\music\\flac dir是D:\\music\\就會有問題, 所以parent_path設為dir
-        track_info.parent_path = dir.toStdWString();
-        constexpr auto kTagLibInvalidBitRate = 1;
-        if (track_info.bit_rate == kTagLibInvalidBitRate || track_info.duration == 0.0) {
-            try {
-                AvFileStream stream;
-                stream.OpenFile(path);
-                track_info.duration = stream.GetDurationAsSeconds();
-                track_info.bit_rate = stream.GetBitRate();
-            }
-            catch (...) {
-            }
-        }
-        album_groups[track_info.album].push_front(std::move(track_info));
-        });
+   XAMP_LOG_DEBUG("Extract file count: {}", paths.size());
 
-    int32_t total_tracks = 0;
-    std::for_each(album_groups.begin(), album_groups.end(), [&](auto& tracks) {
-        if (is_stop_) {
-            return;
-        }
-
-        std::for_each(tracks.second.begin(), tracks.second.end(), [&](auto& track) {
-            track.parent_path_hash = path_hash;
-            });
-
-        tracks.second.sort([](const auto& first, const auto& last) {
-            return first.track < last.track;
-            });
-
-        total_tracks += std::distance(tracks.second.begin(), tracks.second.end());
-        });
+   Executor::ParallelFor(GetScanPathThreadPool(), paths, [&](auto& path) {                   
+       try {
+           auto track_info = reader->Extract(path);
+           std::lock_guard<FastMutex> lock{ mutex };
+           track_info.parent_path_hash = path_hash;
+           album_groups[track_info.album].emplace_front(std::move(track_info));
+       }
+       catch (...) {
+       }
+       });
 }
 
 void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
@@ -158,8 +196,7 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
     QDirIterator itr(file_path, GetFileNameFilter(), filter);
 
     auto hasher = MakFilePathHash();
-
-    constexpr size_t kReserveSize = 1024;
+    
     Vector<QString> paths;
     paths.reserve(kReserveSize);
 
@@ -219,8 +256,10 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
         std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
             if (is_stop_) {
                 return;
-            }                        
-            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            }
+            album_tracks.second.sort([](const auto& first, const auto& last) {
+                return first.track < last.track;
+                });
             emit worker->InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);            
             });
 
@@ -230,21 +269,6 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
 	});
 
     emit worker->ReadCompleted();
-}
-
-QSet<QString> DatabaseFacade::GetAlbumCategories(const QString& album) {
-    QRegularExpression regex(
-        R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete|collection)(?:(?: \[.*\])|(?: - .*))?)",
-        QRegularExpression::CaseInsensitiveOption);
-
-    QSet<QString> categories;
-    QRegularExpressionMatchIterator it = regex.globalMatch(album);
-    while (it.hasNext()) {
-        QRegularExpressionMatch match = it.next();
-        QString category = match.captured(1).toLower().trimmed();
-        categories.insert(category);
-    }
-    return categories;
 }
 
 void DatabaseFacade::FindAlbumCover(int32_t album_id,
@@ -283,19 +307,20 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
     const Stopwatch watch;
-	const CoverArtReader reader;
-	const auto total_tracks = std::distance(result.begin(), result.end());
-    auto num_track = 0;
-    auto album_year = 0;
+	const CoverArtReader reader;	
+
+    constexpr ConstLatin1String kHiRes("hires");    
+    constexpr ConstLatin1String kDsdCategory("dsd");
+    constexpr auto k24Bit96KhzBitRate = 4608;
+
+    const std::wstring kDffExtension(L".dff");
+    const std::wstring kDsfExtension(L".dsf");
+
     HashMap<QString, int32_t> artist_id_cache;
     HashMap<QString, int32_t> album_id_cache;
-
-    auto itr = std::max_element(result.begin(), result.end(), [](const auto& first, const auto& last) {
-		return first.year < last.year;
-		});
-    if (itr != result.end()) {
-        album_year = (*itr).year;
-	}
+    
+    auto album_year = result.front().year;
+    auto album_genre = NormalizeGenre(QString::fromStdWString(result.front().genre)).join(",");
     
 	for (const auto& track_info : result) {        
         auto file_path = QString::fromStdWString(track_info.file_path);
@@ -337,17 +362,17 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
                 track_info.last_write_time,
                 album_year,
                 is_podcast,
-                disc_id);
+                disc_id,
+                album_genre);
             album_id_cache[album] = album_id;
             for (const auto &category : GetAlbumCategories(album)) {
                 qDatabase.AddOrUpdateAlbumCategory(album_id, category);
             }
-            // 4608 bitrate is 24bit 96khz
-            if (track_info.bit_rate >= 4608) {
-				qDatabase.AddOrUpdateAlbumCategory(album_id, "hires");
+            if (track_info.bit_rate >= k24Bit96KhzBitRate) {
+				qDatabase.AddOrUpdateAlbumCategory(album_id, kHiRes);
 			}
-            if (track_info.file_ext == L".dsf" || track_info.file_ext == L".dff") {
-				qDatabase.AddOrUpdateAlbumCategory(album_id, "dsd");
+            if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
+				qDatabase.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
 			}
         }
 
@@ -368,7 +393,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
             qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
         } else {
             FindAlbumCover(album_id, album, track_info.file_path, reader);
-        }        
+        }
 	}
 }
 
@@ -378,6 +403,7 @@ void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result,
     try {
         if (!qDatabase.transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
+            return;
         }
         AddTrackInfo(result, playlist_id, is_podcast_mode);       
         if (!qDatabase.commit()) {

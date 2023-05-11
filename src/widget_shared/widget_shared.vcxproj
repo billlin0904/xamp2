@@ -111,6 +111,7 @@
     <QtMoc Include="widget\cdpage.h" />
     <QtMoc Include="widget\preferencepage.h" />
     <QtMoc Include="widget\artistview.h" />
+    <ClInclude Include="widget\genre_view.h" />
     <ClInclude Include="widget\kkbox_utilis.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <ClInclude Include="widget\win32\win32.h" />
@@ -190,7 +191,12 @@
     <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="version.cpp" />
     <ClCompile Include="widget\aboutpage.cpp" />
-    <ClCompile Include="widget\albumartistpage.cpp" />
+    <ClCompile Include="widget\albumartistpage.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="widget\albumentity.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettingnames.cpp" />
@@ -208,6 +214,7 @@
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
+    <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\imagecache.cpp" />

@@ -8,7 +8,7 @@
 #include <QStyledItemDelegate>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT StarDelegate : public QStyledItemDelegate {
+class StarDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
     explicit StarDelegate(QWidget* parent = nullptr);

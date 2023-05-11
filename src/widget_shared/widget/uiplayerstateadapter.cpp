@@ -9,7 +9,18 @@
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
-	, enable_spectrum_(false) {
+	, enable_spectrum_(false)
+	, band_size_(128)
+	, fft_size_(8192)
+	, desired_band_width_(44100.0) {
+}
+
+void UIPlayerStateAdapter::SetBandSize(size_t band_size) {
+	band_size_ = band_size;
+}
+
+void UIPlayerStateAdapter::SetSpectrumBandwidth(double band_width) {
+	desired_band_width_ = band_width;
 }
 
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
@@ -33,17 +44,29 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
+int32_t UIPlayerStateAdapter::GetFftSize() const {
+	return fft_size_;
+}
+
 void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
 	enable_spectrum_ = AppSettings::ValueAsBool(kAppSettingEnableSpectrum);
 	if (!enable_spectrum_) {
 		return;
+	}	
+	size_t fft_shift_size = buffer_size * 0.55;	
+	size_t frame_size = 0;
+	/*if (output_format.GetSampleRate() > 48000) {
+		frame_size = CalculateFFTSize(desired_band_width_, output_format.GetSampleRate(), band_size_);
+		fft_size_ = frame_size;
 	}
-	size_t channel_sample_rate = output_format.GetSampleRate() / AudioFormat::kMaxChannel;
-	size_t frame_size = buffer_size * AudioFormat::kMaxChannel;
-	size_t shift_size = buffer_size * 0.55; //channel_sample_rate * 0.01;
-	frame_size = 8192 * 2;
-	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, shift_size, buffer_size);
-	stft_ = MakeAlign<STFT>(frame_size, shift_size);
+	else {
+		fft_size_ = 8192;
+		frame_size = fft_size_ * AudioFormat::kMaxChannel;
+	}*/
+	fft_size_ = 4096;
+	frame_size = fft_size_ * AudioFormat::kMaxChannel;
+	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, fft_shift_size, buffer_size);
+	stft_ = MakeAlign<STFT>(frame_size, fft_shift_size);
 	stft_->SetWindowType(WindowType::HAMMING);
 }
 

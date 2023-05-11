@@ -10,7 +10,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT ProcessIndicator : public QWidget {
+class ProcessIndicator : public QWidget {
     Q_OBJECT
     Q_PROPERTY(int delay READ AnimationDelay WRITE SetAnimationDelay)
     Q_PROPERTY(bool displayedWhenStopped READ IsDisplayedWhenStopped WRITE SetDisplayedWhenStopped)

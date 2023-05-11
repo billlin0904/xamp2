@@ -10,7 +10,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SmoothCurveGenerator2 {
+class SmoothCurveGenerator2 {
 public:
 	QPainterPath GenerateSmoothCurve(const QVector<QPointF>& points);
 

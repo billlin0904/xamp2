@@ -1641,8 +1641,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     }
 	
     qTheme.SetPlayOrPauseButton(ui_.playButton, open_done);
-    lrc_page_->spectrum()->Reset();
-    lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
+    lrc_page_->spectrum()->Reset();    
 	
     if (open_done) {
 	    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;
@@ -1679,6 +1678,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
         player_->Play();
     }
 
+    lrc_page_->spectrum()->SetFftSize(state_adapter_->GetFftSize());
+    lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
     podcast_page_->format()->setText(kEmptyString);
 
     auto lyrc_opt = qDatabase.GetLyrc(item.music_id);
@@ -1821,8 +1822,7 @@ void Xamp::PlayNextItem(int32_t forward) {
     playlist_view->FastReload();
 }
 
-void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
-    album_page_->SetArtistId(artist, qDatabase.GetArtistCoverId(artist_id), artist_id);
+void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {    
     ui_.currentView->setCurrentWidget(album_page_);
 }
 

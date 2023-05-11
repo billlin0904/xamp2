@@ -12,7 +12,7 @@
 
 class QSqlQueryModel;
 
-class XAMP_WIDGET_SHARED_EXPORT PendingPlayTableView : public QTableView {
+class PendingPlayTableView : public QTableView {
 	Q_OBJECT
 public:
 	explicit PendingPlayTableView(QWidget* parent = nullptr);

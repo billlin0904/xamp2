@@ -17,6 +17,8 @@
 #include <widget/xprogressdialog.h>
 #include <widget/albumentity.h>
 #include <widget/xmessage.h>
+#include <widget/ui_utilts.h>
+#include <base/scopeguard.h>
 
 #include <widget/widget_shared.h>
 
@@ -179,7 +181,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawPixmap(cover_rect, GetCover(kAlbumCacheTag, cover_id));
 
     bool hit_play_button = false;
-    if (enable_album_view_ && option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
+    if (enable_album_view_
+        && show_mode_ != SHOW_NORMAL
+        && option.state & QStyle::State_MouseOver 
+        && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
         constexpr auto offset = (kIconSize / 2) - 10;
 
@@ -203,7 +208,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     QStyleOptionButton more_option_button;
 
-    if (enable_album_view_ && option.rect.contains(mouse_point_)) {
+    if (enable_album_view_
+        && option.rect.contains(mouse_point_)
+        && show_mode_ != SHOW_NORMAL) {
         const QRect more_button_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 35,
@@ -423,15 +430,11 @@ AlbumView::AlbumView(QWidget* parent)
             page_->hide();
         }
     });
-    
-    Refresh();
-
     (void)QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int value) {
         if (value == verticalScrollBar()->maximum()) {
             model_.fetchMore();
         }
     });
-    update();
 }
 
 void AlbumView::HidePageAnimation() {
@@ -461,6 +464,29 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 
     ActionMap<AlbumView> action_map(this);
 
+    const auto album = GetIndexValue(index, INDEX_ALBUM).toString();
+    const auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
+
+    auto* copy_album_act = action_map.AddAction(tr("Copy album"), [album]() {
+        QApplication::clipboard()->setText(album);
+        });
+    copy_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_COPY));
+
+    action_map.AddAction(tr("Copy artist"), [artist]() {
+        QApplication::clipboard()->setText(artist);
+        });
+
+    XAMP_ON_SCOPE_EXIT(
+        action_map.exec(pt);
+    );
+
+    auto show_mode = dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->GetShowModes();
+    if (show_mode == SHOW_NORMAL) {
+        return;
+    }
+
+    action_map.AddSeparator();
+
     auto removeAlbum = [=]() {
         if (!model_.rowCount()) {
             return;
@@ -468,8 +494,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 
         const auto button = XMessageBox::ShowYesOrNo(tr("Remove all album?"));
         if (button == QDialogButtonBox::Yes) {
-            const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
-            indicator->StartAnimation();
+            auto process_dialog = MakeProgressDialog(tr("Remove all album?"), QString(), tr("Cancel"));
             try {
                 qDatabase.ClearPendingPlaylist();
                 QList<int32_t> albums;
@@ -477,15 +502,18 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
                     albums.push_back(album_id);               
                     qApp->processEvents();
                     });
+                process_dialog->SetRange(0, albums.size() + 1);
+                int32_t count = 0;
                 Q_FOREACH(auto album_id, albums) {
                     qDatabase.RemoveAlbum(album_id);
                     qApp->processEvents();
+                    process_dialog->SetValue(count++ * 100 / albums.size() + 1);
                 }                
                 qDatabase.RemoveAllArtist();
+                process_dialog->SetValue(100);
                 update();
                 emit RemoveAll();
                 qPixmapCache.Clear();
-                indicator->StopAnimation();
             }
             catch (...) {
             }
@@ -519,9 +547,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
     auto* remove_all_album_act = action_map.AddAction(tr("Remove all album"), [=]() {
         removeAlbum();
         });
-    remove_all_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));
-
-    action_map.exec(pt);
+    remove_all_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));    
 }
 
 void AlbumView::ShowMenu(const QPoint &pt) {
@@ -581,6 +607,10 @@ void AlbumView::OnThemeChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetTextColor(color);
 }
 
+void AlbumView::SetShowMode(ShowModes mode) {
+    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(mode);
+}
+
 void AlbumView::FilterByArtistId(int32_t artist_id) {
     last_query_ = qSTR(R"(
     SELECT
@@ -605,7 +635,7 @@ void AlbumView::FilterByArtistId(int32_t artist_id) {
     ORDER BY
         albums.year DESC
     )").arg(artist_id);
-    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_YEAR);
+    SetShowMode(SHOW_YEAR);
 }
 
 void AlbumView::FilterCategories(const QString & category) {
@@ -630,7 +660,7 @@ WHERE
 ORDER BY
     albums.album DESC
     )").arg(category);
-    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
+    SetShowMode(SHOW_ARTIST);
 }
 
 void AlbumView::ShowAll() {
@@ -653,7 +683,7 @@ WHERE
 ORDER BY
     albums.album DESC
     )");   
-    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
+    SetShowMode(SHOW_ARTIST);
 }
 
 void AlbumView::OnSearchTextChanged(const QString& text) {
@@ -676,7 +706,7 @@ WHERE
 ORDER BY
     albums.album DESC
     )").arg(text);
-    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->SetShowMode(AlbumViewStyledDelegate::SHOW_ARTIST);
+    SetShowMode(SHOW_ARTIST);
 }
 
 void AlbumView::Update() {

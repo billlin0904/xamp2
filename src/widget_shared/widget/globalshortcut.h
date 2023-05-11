@@ -14,7 +14,7 @@
 #include <base/pimplptr.h>
 #include <base/base.h>
 
-class XAMP_WIDGET_SHARED_EXPORT GlobalShortcut {
+class GlobalShortcut {
 public:
     GlobalShortcut();
 

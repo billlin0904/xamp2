@@ -10,7 +10,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT PlayListTableFilterProxyModel final : public QSortFilterProxyModel {
+class PlayListTableFilterProxyModel final : public QSortFilterProxyModel {
     Q_OBJECT
 public:
     explicit PlayListTableFilterProxyModel(QObject *parent = nullptr);

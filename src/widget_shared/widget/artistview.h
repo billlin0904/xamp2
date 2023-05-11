@@ -18,7 +18,7 @@ class QLabel;
 class QPushButton;
 class QPropertyAnimation;
 
-class XAMP_WIDGET_SHARED_EXPORT ArtistStyledItemDelegate : public QStyledItemDelegate {
+class ArtistStyledItemDelegate : public QStyledItemDelegate {
 	Q_OBJECT
 public:
 	static const ConstLatin1String kArtistCacheTag;
@@ -39,7 +39,7 @@ private:
 	QColor text_color_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT ArtistViewPage final : public QFrame {
+class ArtistViewPage final : public QFrame {
 	Q_OBJECT
 public:	
 	explicit ArtistViewPage(QWidget* parent = nullptr);

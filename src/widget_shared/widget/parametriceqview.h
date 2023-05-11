@@ -10,7 +10,7 @@
 #include <widget/qcustomplot.h>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT ParametricEqView : public QCustomPlot {
+class ParametricEqView : public QCustomPlot {
 	Q_OBJECT
 public:
 	explicit ParametricEqView(QWidget* parent = nullptr);

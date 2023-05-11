@@ -18,7 +18,7 @@ class QWinTaskbarProgress;
 
 namespace win32 {
 
-class XAMP_WIDGET_SHARED_EXPORT WinTaskbar final {
+class WinTaskbar final {
 public:
     WinTaskbar(XMainWindow* window, IXFrame* player_frame);
 

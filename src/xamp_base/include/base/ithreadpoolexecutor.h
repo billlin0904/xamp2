@@ -102,4 +102,6 @@ XAMP_BASE_API IThreadPoolExecutor& GetWasapiThreadPool();
 
 XAMP_BASE_API IThreadPoolExecutor& GetBackgroundThreadPool();
 
+XAMP_BASE_API IThreadPoolExecutor& GetScanPathThreadPool();
+
 XAMP_BASE_NAMESPACE_END

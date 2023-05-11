@@ -17,12 +17,36 @@
 
 class AlbumView;
 class ArtistView;
+class GenreView;
 class ArtistInfoPage;
 class QPushButton;
 class QLabel;
 class QComboBox;
 class QPropertyAnimation;
 class QLineEdit;
+class QHBoxLayout;
+class QVBoxLayout;
+class GenrePage;
+class QStackedWidget;
+class ClickableLabel;
+
+class GenrePage : public QFrame {
+	Q_OBJECT
+public:
+	explicit GenrePage(QWidget* parent = nullptr);
+
+	void SetGenre(const QString& genre);
+
+	GenreView* view() {
+		return genre_view_;
+	}
+signals:
+	void goBackPage();
+
+private:
+	ClickableLabel* genre_label_;
+	GenreView* genre_view_;
+};
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
 	Q_OBJECT
@@ -59,17 +83,23 @@ public:
 public slots:
 	void Refresh();
 
-	void SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
-
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
+	void AddGenreList(GenrePage* page, QStackedWidget* stack, const QString& genre);
+	
+	static const QSet<QString> kGenre;
+
+	QVBoxLayout* genre_frame_layout_;
 	QStandardItemModel* album_model_;
 	QStandardItemModel* artist_model_;
 	QFrame* album_frame_;
 	QFrame* artist_frame_;
+	QFrame* genre_frame_;
+	QList<GenreView*> genre_list_;
+	QList<GenrePage*> genre_page_list_;
 	QComboBox* category_combo_box_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;

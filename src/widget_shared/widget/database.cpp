@@ -217,6 +217,7 @@ void Database::CreateTableIfNotExist() {
                        year integer,
                        heart integer,
                        isPodcast integer,
+                       genre TEXT,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
                        UNIQUE(albumId, artistId)
                        )
@@ -602,6 +603,36 @@ void Database::RemoveAlbum(int32_t album_id) {
     query.prepare(qTEXT("DELETE FROM albums WHERE albumId=:albumId"));
     query.bindValue(qTEXT(":albumId"), album_id);
     THROW_IF_FAIL1(query);
+}
+
+QStringList Database::GetGenres() const {
+    QReadLocker read_locker(&locker_);
+    QStringList genres;
+
+    SqlQuery query(db_);
+    query.prepare(qTEXT(R"(
+SELECT
+    CASE
+        WHEN instr(albums.genre, ',') > 0 THEN substr(albums.genre, 1, instr(albums.genre, ',') - 1)
+        ELSE albums.genre
+    END AS group_name,
+    COUNT(*) AS count
+FROM albums
+GROUP BY group_name
+ORDER BY count DESC;
+    )")
+    );
+
+    THROW_IF_FAIL1(query);
+
+    while (query.next()) {
+        auto genre = query.value(qTEXT("group_name")).toString();
+        if (genre.isEmpty()) {
+            continue;
+        }
+        genres.append(genre);
+    }
+    return genres;
 }
 
 int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t playlist_id) {
@@ -1293,13 +1324,13 @@ void Database::UpdateAlbumByDiscId(const QString& disc_id, const QString& album)
     THROW_IF_FAIL1(query);
 }
 
-int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast, const QString& disc_id) {
+int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast, const QString& disc_id, const QString & album_genre) {
     QWriteLocker write_locker(&locker_);
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, isPodcast, dateTime, discId, year)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :isPodcast, :dateTime, :discId, :year)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, isPodcast, dateTime, discId, year, genre)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :isPodcast, :dateTime, :discId, :year, :genre)
     )"));
 
     query.bindValue(qTEXT(":album"), album);
@@ -1309,6 +1340,7 @@ int32_t Database::AddOrUpdateAlbum(const QString& album, int32_t artist_id, int6
     query.bindValue(qTEXT(":dateTime"), album_time);
     query.bindValue(qTEXT(":discId"), disc_id);
     query.bindValue(qTEXT(":year"), year);
+    query.bindValue(qTEXT(":genre"), album_genre);
 
     THROW_IF_FAIL1(query);
 

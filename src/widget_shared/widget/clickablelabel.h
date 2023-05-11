@@ -15,6 +15,8 @@ class XAMP_WIDGET_SHARED_EXPORT ClickableLabel final : public QLabel {
 public:
 	explicit ClickableLabel(QWidget* parent = nullptr);
 
+	ClickableLabel(const QString& text, QWidget* parent = nullptr);
+
 signals:
 	void clicked();
 

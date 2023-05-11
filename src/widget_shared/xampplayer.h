@@ -16,7 +16,7 @@ inline constexpr auto kRestartExistCode = -2;
 
 FRAMELESSHELPER_USE_NAMESPACE
 
-class XAMP_WIDGET_SHARED_EXPORT IXMainWindow : public FramelessWidget {
+class IXMainWindow : public FramelessWidget {
 public:
 	virtual ~IXMainWindow() override = default;
 
@@ -45,7 +45,7 @@ protected:
     IXMainWindow() = default;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT IXFrame : public QFrame {
+class IXFrame : public QFrame {
 public:
     virtual ~IXFrame() override = default;
 

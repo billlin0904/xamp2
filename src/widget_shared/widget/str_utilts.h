@@ -64,24 +64,24 @@ XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(uint32_t sample_rate);
 
 XAMP_WIDGET_SHARED_EXPORT QString FormatBitRate(uint32_t bitRate);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatDsdSampleRate(uint32_t dsd_speed);
-
 XAMP_WIDGET_SHARED_EXPORT QString ColorToString(QColor color);
-
-XAMP_WIDGET_SHARED_EXPORT QString BackgroundColorToString(QColor color);
 
 XAMP_WIDGET_SHARED_EXPORT QString FormatDuration(const double stream_time, bool full_text = false);
 
 XAMP_WIDGET_SHARED_EXPORT bool IsMoreThan1Hours(const double stream_time);
 
-XAMP_WIDGET_SHARED_EXPORT QString ToNativeSeparators(const QString &path);
+XAMP_WIDGET_SHARED_EXPORT QString ToNativeSeparators(const QString& path);
 
-XAMP_WIDGET_SHARED_EXPORT QByteArray GenerateUuid();
+QString FormatDsdSampleRate(uint32_t dsd_speed);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatBytes(quint64 bytes);
+QString BackgroundColorToString(QColor color);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatTime(quint64 time);
+QByteArray GenerateUuid();
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatDb(double value, int prec = 1);
+QString FormatBytes(quint64 bytes);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatDouble(double value, int prec = 1);
+QString FormatTime(quint64 time);
+
+QString FormatDb(double value, int prec = 1);
+
+QString FormatDouble(double value, int prec = 1);

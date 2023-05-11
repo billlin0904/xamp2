@@ -46,7 +46,7 @@ private:
 
     struct FilterSetting {
         QLabel* band;
-        QComboBox* type;
+        //QComboBox* type;
         QLineEdit* frequency;
         QLineEdit* gain;
         QLineEdit* Q;

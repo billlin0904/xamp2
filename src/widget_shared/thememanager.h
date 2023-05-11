@@ -26,11 +26,12 @@ class QListView;
 class QSlider;
 class QLineEdit;
 class QToolButton;
+class QComboBox;
 
 class XAMP_WIDGET_SHARED_EXPORT ThemeManager : public QObject {
     Q_OBJECT
 public:
-    friend class XAMP_WIDGET_SHARED_EXPORT SharedSingleton<ThemeManager>;
+    friend class SharedSingleton<ThemeManager>;
 
     bool UseNativeWindow() const;
 
@@ -153,6 +154,8 @@ public:
     QFont GetDebugFont() const;
 
     void SetLineEditStyle(QLineEdit *line_edit, const QString &object_name);
+
+    void SetComboBoxStyle(QComboBox *combo_box, const QString &object_name);
 signals:
     void CurrentThemeChanged(ThemeColor theme_color);
 

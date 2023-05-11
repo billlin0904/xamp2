@@ -13,7 +13,7 @@
 
 namespace spotify {
 
-struct XAMP_WIDGET_SHARED_EXPORT SearchLyricsResult {
+struct SearchLyricsResult {
 	struct Artist {
 		int32_t id{};
 		QString name;

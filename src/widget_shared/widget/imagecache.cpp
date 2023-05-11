@@ -213,6 +213,8 @@ QString ImageCache::AddImage(const QPixmap& cover) const {
 		const auto file_path = cache_path_ + tag_name + kCacheFileExtension;
 		OptimizeImageFromBuffer(file_path, array, tag_name);
 	}
+
+	XAMP_ENSURES(!tag_name.isEmpty());
 	return tag_name;
 }
 

@@ -99,6 +99,7 @@ static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
 	, ignore_wait_slow_(false)
+	, is_2432_format_(true)
 	, is_running_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
@@ -234,11 +235,13 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			// 不管是24/32或是32/32 format資料都是24/32.
 			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 				InitialDeviceFormat(output_format, 32);
+				is_2432_format_ = false;
 				XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
 			}
 			else {
-				constexpr uint32_t kValidBitPerSamples = 24;
+				constexpr uint32_t kValidBitPerSamples = 24;				
 				InitialDeviceFormat(output_format, kValidBitPerSamples);
+				is_2432_format_ = true;
 				XAMP_LOG_D(logger_, "Use valid output format: {}.", kValidBitPerSamples);
 			}
 		} else {
@@ -335,10 +338,18 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 		}
 
 		if (mix_format_->wBitsPerSample != 16) {
-			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
-				reinterpret_cast<int32_t*>(data),
-				buffer_.Get(),
-				data_convert_);
+			if (!is_2432_format_) {
+				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+					reinterpret_cast<int32_t*>(data),
+					buffer_.Get(),
+					data_convert_);
+			}
+			else {
+				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
+					reinterpret_cast<int32_t*>(data),
+					buffer_.Get(),
+					data_convert_);
+			}			
 		} else {
 			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
 				reinterpret_cast<int16_t*>(data),

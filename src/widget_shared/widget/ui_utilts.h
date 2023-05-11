@@ -25,24 +25,29 @@ struct XAMP_WIDGET_SHARED_EXPORT PlaybackFormat {
     AudioFormat output_format;
 };
 
+QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget);
+
+void CenterDesktop(QWidget* widget);
+
+void CenterParent(QWidget* widget);
+
+void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
+
+XMainWindow* GetMainWindow();
+
+QString GetExistingDirectory(QWidget* parent = nullptr,
+    const QString& caption = QString(),
+    const QString& directory = QString(),
+    const QString& filter = QString());
+
 XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(const AudioFormat& format);
 
 XAMP_WIDGET_SHARED_EXPORT QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext);
-
-XAMP_WIDGET_SHARED_EXPORT QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget);
 
 XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,
     QWidget* parent = nullptr);
-
-XAMP_WIDGET_SHARED_EXPORT void CenterDesktop(QWidget* widget);
-
-XAMP_WIDGET_SHARED_EXPORT void CenterParent(QWidget* widget);
-
-XAMP_WIDGET_SHARED_EXPORT void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
-
-XAMP_WIDGET_SHARED_EXPORT XMainWindow* GetMainWindow();
 
 XAMP_WIDGET_SHARED_EXPORT PlayerOrder GetNextOrder(PlayerOrder cur) noexcept;
 
@@ -51,8 +56,3 @@ XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConvert
 XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
 
 XAMP_WIDGET_SHARED_EXPORT PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);
-
-XAMP_WIDGET_SHARED_EXPORT QString GetExistingDirectory(QWidget* parent = nullptr,
-    const QString& caption = QString(),
-    const QString& directory = QString(),
-    const QString& filter = QString());
