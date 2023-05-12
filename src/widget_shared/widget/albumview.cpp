@@ -663,6 +663,35 @@ ORDER BY
     SetShowMode(SHOW_ARTIST);
 }
 
+void AlbumView::FilterCategories(const QSet<QString>& category) {
+    QStringList categories;
+    Q_FOREACH(auto & c, category) {
+        categories.append(qSTR("'%1'").arg(c));
+	}
+    last_query_ = qSTR(R"(
+SELECT
+    albums.album,
+    albums.coverId,
+    artists.artist,
+    albums.albumId,
+    artists.artistId,
+    artists.coverId,
+    albums.year,
+    albums.heart
+FROM
+    albums
+LEFT 
+	JOIN artists ON artists.artistId = albums.artistId
+LEFT 
+	JOIN albumCategories ON albumCategories.albumId = albums.albumId
+WHERE 
+	albumCategories.category IN (%1)
+ORDER BY
+    albums.album DESC
+    )").arg(categories.join(","));
+    SetShowMode(SHOW_ARTIST);
+}
+
 void AlbumView::ShowAll() {
     last_query_ = qSTR(R"(
 SELECT

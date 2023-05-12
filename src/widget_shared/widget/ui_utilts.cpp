@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QApplication>
 #include <QFileDialog>
+#include <QRandomGenerator>
 
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
@@ -207,4 +208,122 @@ QString GetExistingDirectory(QWidget* parent,
         }            
     }
     return selected_url.toString();
+}
+
+static QString PickRandomProperty(const QMap<QString, QMap<QString, QString>>& obj) {
+    int count = 0;
+    QString result;
+    QMap<QString, QMap<QString, QString>>::const_iterator it = obj.constBegin();
+    while (it != obj.constEnd()) {
+        if (QRandomGenerator::global()->generateDouble() < 1.0 / ++count)
+            result = it.key();
+        ++it;
+    }
+    return result;
+}
+
+static QString PickRandomProperty(const QMap<QString, QString>& obj) {
+    int count = 0;
+    QString result;
+    auto it = obj.constBegin();
+    while (it != obj.constEnd()) {
+        if (QRandomGenerator::global()->generateDouble() < 1.0 / ++count)
+            result = it.key();
+        ++it;
+    }
+    return result;
+}
+
+QColor GenerateRandomColor() {
+    static const QMap<QString, QMap<QString, QString>> colors = {
+        {"red", {
+            {"50", "#ffebee"},
+            {"100", "#ffcdd2"},
+            {"200", "#ef9a9a"},
+            {"300", "#e57373"},
+            {"400", "#ef5350"},
+            {"500", "#f44336"},
+            {"600", "#e53935"},
+            {"700", "#d32f2f"},
+            {"800", "#c62828"},
+            {"900", "#b71c1c"},
+            {"hex", "#f44336"},
+            {"a100", "#ff8a80"},
+            {"a200", "#ff5252"},
+            {"a400", "#ff1744"},
+            {"a700", "#d50000"}
+        }},
+        { "pink", {
+        //{"50", "#fce4ec"},
+        {"100" , "#f8bbd0"},
+        {"200" , "#f48fb1"},
+        {"300" , "#f06292"},
+        {"400" , "#ec407a"},
+        {"500" , "#e91e63"},
+        {"600" , "#d81b60"},
+        {"700" , "#c2185b"},
+        {"800" , "#ad1457"},
+        {"900" , "#880e4f"},
+        {"hex" , "#e91e63"},
+        {"a100" , "#ff80ab"},
+        {"a200" , "#ff4081"},
+        {"a400" , "#f50057"},
+        {"a700" , "#c51162"},
+      }},
+      { "purple", {
+		{"50", "#f3e5f5"},
+		{"100" , "#e1bee7"},
+		{"200" , "#ce93d8"},
+		{"300" , "#ba68c8"},
+		{"400" , "#ab47bc"},
+		{"500" , "#9c27b0"},
+		{"600" , "#8e24aa"},
+		{"700" , "#7b1fa2"},
+		{"800" , "#6a1b9a"},
+		{"900" , "#4a148c"},
+		{"hex" , "#9c27b0"},
+		{"a100" , "#ea80fc"},
+		{"a200" , "#e040fb"},
+		{"a400" , "#d500f9"},
+		{"a700" , "#aa00ff"},
+	  }},
+      { "deep-purple", {
+		{"50", "#ede7f6"},
+		{"100" , "#d1c4e9"},
+		{"200" , "#b39ddb"},
+		{"300" , "#9575cd"},
+		{"400" , "#7e57c2"},
+		{"500" , "#673ab7"},
+		{"600" , "#5e35b1"},
+		{"700" , "#512da8"},
+		{"800" , "#4527a0"},
+		{"900" , "#311b92"},
+		{"hex" , "#673ab7"},
+		{"a100" , "#b388ff"},
+		{"a200" , "#7c4dff"},
+		{"a400" , "#651fff"},
+		{"a700" , "#6200ea"},
+	  }},
+      { "indigo", {
+		{"50", "#e8eaf6"},
+		{"100" , "#c5cae9"},
+		{"200" , "#9fa8da"},
+		{"300" , "#7986cb"},
+		{"400" , "#5c6bc0"},
+		{"500" , "#3f51b5"},
+		{"600" , "#3949ab"},
+		{"700" , "#303f9f"},
+		{"800" , "#283593"},
+		{"900" , "#1a237e"},
+		{"hex" , "#3f51b5"},
+		{"a100" , "#8c9eff"},
+		{"a200" , "#536dfe"},
+        }}
+    };
+
+    QString colorKey = PickRandomProperty(colors);
+    QMap<QString, QString> colorList = colors.value(colorKey);
+    QString newColorKey = PickRandomProperty(colorList);
+    QString newColor = colorList.value(newColorKey);
+    return QColor(newColor);
 }

@@ -29,6 +29,7 @@ class QVBoxLayout;
 class GenrePage;
 class QStackedWidget;
 class ClickableLabel;
+class QListWidget;
 
 class GenrePage : public QFrame {
 	Q_OBJECT
@@ -89,8 +90,6 @@ public slots:
 
 private:
 	void AddGenreList(GenrePage* page, QStackedWidget* stack, const QString& genre);
-	
-	static const QSet<QString> kGenre;
 
 	QVBoxLayout* genre_frame_layout_;
 	QStandardItemModel* album_model_;
@@ -100,6 +99,7 @@ private:
 	QFrame* genre_frame_;
 	QList<GenreView*> genre_list_;
 	QList<GenrePage*> genre_page_list_;
+	QSet<QString> category_set_;
 	QComboBox* category_combo_box_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;

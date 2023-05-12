@@ -72,6 +72,8 @@ public:
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
+	void ShowAll();
+
 	void Refresh();
 
 	void Update();
@@ -82,9 +84,7 @@ signals:
 public slots:
 	void OnSearchTextChanged(const QString& text);
 
-private:
-	void ShowAll();
-
+private:	
 	void resizeEvent(QResizeEvent* event) override;
 
 	void ShowPageAnimation();

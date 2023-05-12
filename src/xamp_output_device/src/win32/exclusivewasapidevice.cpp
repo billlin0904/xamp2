@@ -13,6 +13,7 @@
 #include <base/str_utilts.h>
 #include <base/stopwatch.h>
 #include <base/logger_impl.h>
+#include <base/scopeguard.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
@@ -441,7 +442,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	std::chrono::milliseconds glitch_time((buffer_frames_ *
 		kMicrosecondsPerSecond /
 		mix_format_->nSamplesPerSec) / 1000);
-	glitch_time *= 4;
+	glitch_time *= 10;
 
 	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", glitch_time.count());
 	// Reset event.
@@ -469,6 +470,19 @@ void ExclusiveWasapiDevice::StartStream() {
 		auto thread_exit = false;
 		// Signal thread start.
 		::SetEvent(thread_start_.get());
+
+		XAMP_ON_SCOPE_EXIT(
+			// Stop stream.
+			client_->Stop();
+
+			// Signal thread exit.
+			::SetEvent(thread_exit_.get());
+
+			// Revert thread priority.
+			mmcss.RevertPriority();
+
+			XAMP_LOG_D(logger_, "End exclusive mode stream task!");
+		);
 
 		while (!thread_exit) {
 			watch.Reset();
@@ -508,16 +522,6 @@ void ExclusiveWasapiDevice::StartStream() {
 			}
 		}
 
-		// Stop stream.
-		client_->Stop();
-
-		// Signal thread exit.
-		::SetEvent(thread_exit_.get());	
-
-		// Revert thread priority.
-		mmcss.RevertPriority();
-
-		XAMP_LOG_D(logger_, "End exclusive mode stream task!");
 		});
 
 	// Wait thread start.

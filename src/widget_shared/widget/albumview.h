@@ -165,6 +165,8 @@ public:
 
 	void FilterCategories(const QString& category);
 
+	void FilterCategories(const QSet<QString>& category);
+
 	void SetShowMode(ShowModes mode);
 signals:
     void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);

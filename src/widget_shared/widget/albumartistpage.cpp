@@ -21,6 +21,7 @@
 #include <QToolButton>
 #include <QScrollArea>
 #include <QStackedWidget>
+#include <QListWidget>
 
 #include <widget/albumentity.h>
 #include <widget/clickablelabel.h>
@@ -28,6 +29,7 @@
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
+#include <widget/ui_utilts.h>
 #include <thememanager.h>
 
 enum {
@@ -36,44 +38,46 @@ enum {
 	TAB_GENRE,
 };
 
-const QSet<QString> AlbumArtistPage::kGenre = {
-  "Blues", "Classic Rock", "Country", "Dance",
-  "Disco", "Funk", "Grunge", "Hip-Hop",
-  "Jazz", "Metal", "New Age", "Oldies",
-  "Other", "Pop", "R&B", "Rap",
-  "Reggae", "Rock", "Techno", "Industrial",
-  "Alternative", "Ska", "Death Metal", "Pranks",
-  "Soundtrack", "Euro-Techno", "Ambient", "Trip-Hop",
-  "Vocal", "Jazz+Funk", "Fusion", "Trance",
-  "Classical", "Instrumental", "Acid", "House",
-  "Game", "Sound Clip", "Gospel", "Noise",
-  "AlternRock", "Bass", "Soul", "Punk",
-  "Space", "Meditative", "Instrumental Pop", "Instrumental Rock",
-  "Ethnic", "Gothic", "Darkwave", "Techno-Industrial",
-  "Electronic", "Pop-Folk", "Eurodance", "Dream",
-  "Southern Rock", "Comedy", "Cult", "Gangsta",
-  "Top 40", "Christian Rap", "Pop/Funk", "Jungle",
-  "Native American", "Cabaret", "New Wave", "Psychadelic",
-  "Rave", "Showtunes", "Trailer", "Lo-Fi",
-  "Tribal", "Acid Punk", "Acid Jazz", "Polka",
-  "Retro", "Musical", "Rock & Roll", "Hard Rock",
-  "Folk", "Folk/Rock", "National folk", "Swing",
-  "Fast-fusion", "Bebob", "Latin", "Revival",
-  "Celtic", "Bluegrass", "Avantgarde", "Gothic Rock",
-  "Progressive Rock", "Psychedelic Rock", "Symphonic Rock", "Slow Rock",
-  "Big Band", "Chorus", "Easy Listening", "Acoustic",
-  "Humour", "Speech", "Chanson", "Opera",
-  "Chamber Music", "Sonata", "Symphony", "Booty Bass",
-  "Primus", "Porn Groove", "Satire", "Slow Jam",
-  "Club", "Tango", "Samba", "Folklore",
-  "Ballad", "Powder Ballad", "Rhythmic Soul", "Freestyle",
-  "Duet", "Punk Rock", "Drum Solo", "A Capella",
-  "Euro-House", "Dance Hall", "Goa", "Drum & Bass",
-  "Club House", "Hardcore", "Terror", "Indie",
-  "BritPop", "NegerPunk", "Polsk Punk", "Beat",
-  "Christian Gangsta", "Heavy Metal", "Black Metal", "Crossover",
-  "Contemporary C", "Christian Rock", "Merengue", "Salsa",
-  "Thrash Metal", "Anime", "JPop", "SynthPop"
+class TagWidgetItem : public QListWidgetItem {
+public:
+	TagWidgetItem(const QString &tag, QColor color, QListWidget* parent = nullptr)
+		: QListWidgetItem(parent)
+		, color_(color)
+		, tag_(tag) {
+		setFlags(Qt::NoItemFlags);
+	}
+
+	QString GetTag() const {
+		return tag_;
+	}
+
+	bool IsEnable() const {
+		return enabled_;
+	}
+
+	void SetEnable(bool enable) {
+		enabled_ = enable;
+		if (enabled_) {
+			listWidget()->itemWidget(this)->setStyleSheet(
+				qSTR("border-radius: 18px; background-color: %1;").arg(color_.name())
+			);
+		}
+		else {
+			QColor color = Qt::black;
+			listWidget()->itemWidget(this)->setStyleSheet(
+				qSTR("border-radius: 18px; background-color: %1;").arg(color.name())
+			);
+		}
+		listWidget()->update();
+	}
+
+	void Enable() {
+		SetEnable(!IsEnable());
+	}
+private:
+	bool enabled_ = true;
+	QColor color_;
+	QString tag_;
 };
 
 GenrePage::GenrePage(QWidget* parent)
@@ -114,7 +118,9 @@ GenrePage::GenrePage(QWidget* parent)
 
 void GenrePage::SetGenre(const QString& genre) {
 	genre_view_->SetGenre(genre);
-	genre_label_->setText(genre);
+	auto genre_label_text = genre;
+	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
+	genre_label_->setText(genre_label_text);
 	genre_view_->ShowAllAlbum();
 	genre_view_->SetShowMode(SHOW_NORMAL);
 	genre_view_->Refresh();
@@ -219,19 +225,109 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* category_label = new QLabel(tr("Category:"));
 	category_label->setFont(f);
 
+	const QStringList category_list = {		 
+		tr("dsd"),
+		tr("hires"), 
+		tr("soundtrack"),
+		tr("final fantasy"),
+		tr("piano collections"),
+		tr("vocal collection"), 
+		tr("best"), tr("complete"),
+		tr("collection") 
+	};
+
 	category_combo_box_ = new QComboBox();
 	category_combo_box_->setObjectName(QString::fromUtf8("categoryComboBox"));
+
 	category_combo_box_->addItem(tr("all"));
-	category_combo_box_->addItem(tr("dsd"));
-	category_combo_box_->addItem(tr("hires"));
-	category_combo_box_->addItem(tr("soundtrack"));
-	category_combo_box_->addItem(tr("final fantasy"));
-	category_combo_box_->addItem(tr("piano collections"));
-	category_combo_box_->addItem(tr("vocal collection"));	
-	category_combo_box_->addItem(tr("best"));
-	category_combo_box_->addItem(tr("complete"));	
-	category_combo_box_->addItem(tr("collection"));
+	Q_FOREACH(auto category, category_list) {
+		category_combo_box_->addItem(category);
+	}
+
 	category_combo_box_->setCurrentIndex(0);	
+
+	auto* tagListWidget = new QListWidget();
+	tagListWidget->setDragEnabled(false);
+	tagListWidget->setUniformItemSizes(true);
+	tagListWidget->setFlow(QListView::LeftToRight);
+	tagListWidget->setResizeMode(QListView::Adjust);
+	tagListWidget->setFrameStyle(QFrame::StyledPanel);
+	tagListWidget->setViewMode(QListView::IconMode);
+	tagListWidget->setFixedHeight(100);	
+
+	tagListWidget->setStyleSheet(qTEXT(
+		"QListWidget {"
+		"  border: none;"
+		"} "
+		"QListWidget::item {"
+		"  border: 1px solid transparent;"
+		"  border-radius: 18px;"
+		"  background-color: transparent;"
+		"}"
+		"QListWidget::item:selected {"
+		"  background-color: transparent;"
+		"}"
+	));
+
+	auto addTag = [&](const QString &tag) {
+		auto color = GenerateRandomColor();
+
+		auto* item = new TagWidgetItem(tag, color, tagListWidget);
+		
+		auto f = font();
+		f.setBold(true);
+		f.setPointSize(qTheme.GetFontSize(10));
+		item->setSizeHint(QSize(170, 40));
+
+		auto* layout = new QHBoxLayout();
+		auto* tag_label = new QLabel(tag);		
+		tag_label->setFont(f);
+		tag_label->setAlignment(Qt::AlignCenter);
+
+		layout->addWidget(tag_label);
+		layout->setSpacing(0);
+		layout->setContentsMargins(0, 0, 0, 0);
+
+		auto* widget = new QWidget();
+		widget->setLayout(layout);
+		widget->setStyleSheet(
+			qSTR("border-radius: 18px; background-color: %1;").arg(color.name())
+		);	
+		tagListWidget->setItemWidget(item, widget);
+		item->Enable();
+
+		(void)QObject::connect(tagListWidget, &QListWidget::itemClicked, [tagListWidget, this](auto* item) {
+			if (!item) {
+				return;
+			}
+
+			auto* tag_item = dynamic_cast<TagWidgetItem*>(item);		
+			if (!tag_item) {
+				return;
+			}
+			tag_item->Enable();
+			if (!tag_item->IsEnable()) {
+				category_set_.remove(tag_item->GetTag());
+			}
+			else {
+				category_set_.insert(tag_item->GetTag());
+			}
+			if (!category_set_.isEmpty()) {
+				album_view_->FilterCategories(category_set_);
+				album_view_->Update();
+			}
+			});
+		/*(void)QObject::connect(deleteButton, &QPushButton::clicked, [tagListWidget, item]() {
+			delete tagListWidget->takeItem(tagListWidget->row(item));
+			});*/
+	};
+
+	Q_FOREACH(auto category, category_list) {
+		addTag(category);
+	}
+
+	auto* tagLayout = new QVBoxLayout();	
+	tagLayout->addWidget(tagListWidget);
 
 	album_search_line_edit_ = new QLineEdit();
 	album_search_line_edit_->setObjectName(QString::fromUtf8("albumSearchLineEdit"));
@@ -253,7 +349,29 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_completer->setCompletionMode(QCompleter::PopupCompletion);
 	album_search_line_edit_->setCompleter(album_completer);
 
-	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, album_completer](const auto& text) {
+	auto clearAllTag = [tagListWidget]() {
+		for (auto i = 0; i < tagListWidget->count(); ++i) {
+			auto item = (TagWidgetItem*)tagListWidget->item(i);
+			item->SetEnable(false);
+		}
+	};
+
+	auto actionList = album_search_line_edit_->findChildren<QAction*>();
+	if (!actionList.isEmpty()) {
+		Q_FOREACH(auto * action, actionList) {
+			if (action) {
+				(void)QObject::connect(action, &QAction::triggered, [clearAllTag, this]() {
+					album_view_->ShowAll();
+					album_view_->Update();		
+					clearAllTag();
+					});
+			}
+		}
+	}
+
+	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, clearAllTag, album_completer](const auto& text) {
+		clearAllTag();
+
 		const auto items = album_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
 			return;
@@ -279,6 +397,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_combox_layout_1->addLayout(album_combox_layout);
 
 	album_frame_layout->addLayout(album_combox_layout_1);
+	album_frame_layout->addLayout(tagLayout);
 	album_frame_layout->addWidget(album_view_, 1);
 
 	auto genre_stackwidget = new QStackedWidget(this);
@@ -336,12 +455,24 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_search_line_edit_->setClearButtonEnabled(true);
 	artist_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
 	artist_search_line_edit_->setPlaceholderText(tr("Search Artist"));
+
+	actionList = artist_search_line_edit_->findChildren<QAction*>();
+	if (!actionList.isEmpty()) {
+		Q_FOREACH(auto * action, actionList) {
+			if (action) {
+				(void)QObject::connect(action, &QAction::triggered, [this]() {
+					artist_view_->ShowAll();
+					artist_view_->Update();
+					});
+			}
+		}
+	}
 	
 	artist_model_ = new QStandardItemModel(0, 1, this);
 	auto* artist_completer = new QCompleter(artist_model_, this);
 	artist_completer->setCaseSensitivity(Qt::CaseInsensitive);
 	artist_completer->setFilterMode(Qt::MatchContains);
-	artist_search_line_edit_->setCompleter(artist_completer);
+	artist_search_line_edit_->setCompleter(artist_completer);	
 
 	(void)QObject::connect(artist_search_line_edit_, &QLineEdit::textChanged, [artist_completer, this](const auto& text) {
 		const auto items = artist_model_->findItems(text, Qt::MatchExactly);
@@ -421,7 +552,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 void AlbumArtistPage::AddGenreList(GenrePage *page, QStackedWidget* stack, const QString &genre) {
 	auto f = font();
-	auto* genre_label = new ClickableLabel(genre);
+
+	auto genre_label_text = genre;
+	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
+	auto* genre_label = new ClickableLabel(genre_label_text);
 	f.setPointSize(qTheme.GetFontSize(15));
 	f.setBold(true);
 	genre_label->setFont(f);	

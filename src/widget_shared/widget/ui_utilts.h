@@ -40,6 +40,8 @@ QString GetExistingDirectory(QWidget* parent = nullptr,
     const QString& directory = QString(),
     const QString& filter = QString());
 
+QColor GenerateRandomColor();
+
 XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(const AudioFormat& format);
 
 XAMP_WIDGET_SHARED_EXPORT QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext);
