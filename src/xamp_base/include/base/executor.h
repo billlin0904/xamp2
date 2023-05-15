@@ -56,21 +56,76 @@ void ParallelFor(C& items, Func&& f, size_t batches = kDefaultParallelBatchSize)
 * @return void
 */
 template <typename C, typename Func>
-void ParallelFor(IThreadPoolExecutor& executor, C& items, Func&& f, size_t batches = kDefaultParallelBatchSize) {
+void ParallelFor(IThreadPoolExecutor& executor,
+    C& items,
+    Func&& f,
+    const std::chrono::seconds &wait_timeout = std::chrono::seconds(1),
+    size_t batches = kDefaultParallelBatchSize) {
     auto begin = std::begin(items);
     auto size = std::distance(begin, std::end(items));
 
+    std::vector<std::pair<decltype(begin), SharedTask<void>>> futures;
+    futures.reserve(batches);
+
+    std::vector<std::pair<decltype(begin), SharedTask<void>>> timed_out_tasks;
+
+    auto IsFutureDuplicate = [](const auto & futures, auto begin, auto i) -> bool {
+        bool duplicate = false;
+        for (const auto& future : futures) {
+            if (future.first == begin + i) {
+                duplicate = true;
+                break;
+            }
+        }
+        return duplicate;
+    };
+
+    auto IsTimedOutTasksDuplicate = [](const auto& timed_out_tasks, auto itr) -> bool {
+        bool duplicate = false;
+        for (const auto& f : timed_out_tasks) {
+            if (f.first == itr->first) {
+                duplicate = true;
+                break;
+            }
+        }
+        return duplicate;
+    };
+
     for (size_t i = 0; i < size;) {
-        Vector<Task<void>> futures((std::min)(size - i, batches));
-        for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [f, begin, i]() -> void {
-                f(*(begin + i));
-                });
-            ++i;
+        size_t batch_size = (std::min)(batches, size - i);
+
+        size_t spawn_size = 0;
+        for (size_t j = 0; j < batch_size; ++j) {
+            if (!IsFutureDuplicate(futures, begin, i)) {
+                auto task = Executor::Spawn(executor, [f, begin, i]() -> void {
+                    f(*(begin + i));
+                    });
+
+                futures.emplace_back(begin + i, task.share());
+                ++spawn_size;
+            }
         }
-        for (auto& ff : futures) {
-            ff.wait();
+
+        i += spawn_size;
+
+        auto itr = futures.begin();
+        while (itr != futures.end()) {
+            if (itr->second.wait_for(wait_timeout) == std::future_status::ready) {
+                itr->second.get();
+                itr = futures.erase(itr);
+            }
+            else {
+                if (!IsTimedOutTasksDuplicate(timed_out_tasks, itr)) {
+                    timed_out_tasks.push_back(*itr);
+                }                
+                ++itr;
+            }
         }
+    }
+
+    // Wait for all timed-out tasks to complete
+    for (const auto& task : timed_out_tasks) {
+        task.second.wait();
     }
 }
 

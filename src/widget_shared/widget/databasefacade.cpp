@@ -170,15 +170,15 @@ void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
        return;
    }
 
-   auto reader = MakeMetadataReader();
    FastMutex mutex;
 
    XAMP_LOG_DEBUG("Extract file count: {}", paths.size());
 
-   Executor::ParallelFor(GetScanPathThreadPool(), paths, [&](auto& path) {                   
+   Executor::ParallelFor(GetScanPathThreadPool(), paths, [&](auto& path) {
+       auto reader = MakeMetadataReader();
        try {
-           auto track_info = reader->Extract(path);
-           std::lock_guard<FastMutex> lock{ mutex };
+           std::lock_guard<FastMutex> lock{ mutex };           
+           auto track_info = reader->Extract(path);           
            track_info.parent_path_hash = path_hash;
            album_groups[track_info.album].emplace_front(std::move(track_info));
        }
@@ -243,7 +243,16 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
 			return;
 		}
 
+        XAMP_LOG_DEBUG("Process {}", path.toStdString());
+
 		HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
+
+        XAMP_ON_SCOPE_EXIT(
+            auto value = progress.load();
+            emit worker->ReadFileProgress((value * 100) / paths.size());
+            ++progress;
+            XAMP_LOG_DEBUG("Progress {}%", (value * 100) / paths.size());
+        );
 
         try {
 			ScanPathFiles(worker, album_groups, file_name_filters, path, playlist_id, is_podcast_mode);
@@ -259,13 +268,9 @@ void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
             }
             album_tracks.second.sort([](const auto& first, const auto& last) {
                 return first.track < last.track;
-                });
-            emit worker->InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);            
             });
-
-        auto value = progress.load();
-        emit worker->ReadFileProgress((value * 100) / paths.size());
-        ++progress;
+            emit worker->InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);            
+            });        
 	});
 
     emit worker->ReadCompleted();
@@ -368,12 +373,13 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
             for (const auto &category : GetAlbumCategories(album)) {
                 qDatabase.AddOrUpdateAlbumCategory(album_id, category);
             }
-            if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-				qDatabase.AddOrUpdateAlbumCategory(album_id, kHiRes);
-			}
+            
             if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
-				qDatabase.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
-			}
+                qDatabase.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
+            }
+            else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
+				qDatabase.AddOrUpdateAlbumCategory(album_id, kHiRes);
+			}            
         }
 
         XAMP_EXPECTS(album_id != 0);

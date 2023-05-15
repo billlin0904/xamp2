@@ -1,7 +1,4 @@
 #include <widget/albumartistpage.h>
-#include <widget/artistview.h>
-
-#include <widget/genre_view.h>
 
 #include <QVBoxLayout>
 #include <QStackedWidget>
@@ -23,6 +20,8 @@
 #include <QStackedWidget>
 #include <QListWidget>
 
+#include <widget/artistview.h>
+#include <widget/genre_view.h>
 #include <widget/albumentity.h>
 #include <widget/clickablelabel.h>
 #include <widget/str_utilts.h>
@@ -30,54 +29,13 @@
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
 #include <widget/ui_utilts.h>
+#include <widget/taglistview.h>
 #include <thememanager.h>
 
 enum {
 	TAB_ALBUM,
 	TAB_ARTIST,
 	TAB_GENRE,
-};
-
-class TagWidgetItem : public QListWidgetItem {
-public:
-	TagWidgetItem(const QString &tag, QColor color, QListWidget* parent = nullptr)
-		: QListWidgetItem(parent)
-		, color_(color)
-		, tag_(tag) {
-		setFlags(Qt::NoItemFlags);
-	}
-
-	QString GetTag() const {
-		return tag_;
-	}
-
-	bool IsEnable() const {
-		return enabled_;
-	}
-
-	void SetEnable(bool enable) {
-		enabled_ = enable;
-		if (enabled_) {
-			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 18px; background-color: %1;").arg(color_.name())
-			);
-		}
-		else {
-			QColor color = Qt::black;
-			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 18px; background-color: %1;").arg(color.name())
-			);
-		}
-		listWidget()->update();
-	}
-
-	void Enable() {
-		SetEnable(!IsEnable());
-	}
-private:
-	bool enabled_ = true;
-	QColor color_;
-	QString tag_;
 };
 
 GenrePage::GenrePage(QWidget* parent)
@@ -314,6 +272,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			}
 			if (!category_set_.isEmpty()) {
 				album_view_->FilterCategories(category_set_);
+				album_view_->Update();
+			}
+			else {
+				album_view_->ShowAll();
 				album_view_->Update();
 			}
 			});

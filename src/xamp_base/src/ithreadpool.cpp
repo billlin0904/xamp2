@@ -85,11 +85,11 @@ IThreadPoolExecutor& GetBackgroundThreadPool() {
 }
 
 IThreadPoolExecutor& GetScanPathThreadPool() {
-    	static ThreadPoolExecutor executor(kScanPathThreadPoolLoggerName,
-            		std::thread::hardware_concurrency(),
-            		CpuAffinity::kAll,
-            		ThreadPriority::BACKGROUND);
-	return executor;
+    static ThreadPoolExecutor executor(kScanPathThreadPoolLoggerName,
+       std::thread::hardware_concurrency(),
+       GetBackgroundCpuAffinity(),
+       ThreadPriority::BACKGROUND);
+    return executor;
 }
 
 XAMP_BASE_NAMESPACE_END

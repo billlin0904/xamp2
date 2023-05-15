@@ -13,4 +13,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 template <typename T = void>
 using Task = std::future<T>;
 
+template <typename T = void>
+using SharedTask = std::shared_future<T>;
+
 XAMP_BASE_NAMESPACE_END

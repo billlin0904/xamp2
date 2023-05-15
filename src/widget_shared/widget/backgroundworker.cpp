@@ -417,4 +417,5 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<Pl
 void BackgroundWorker::OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode) {
     const auto facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
     facade->ReadTrackInfo(this, file_path, playlist_id, false);
+    OnLoadAlbumCoverCache();
 }

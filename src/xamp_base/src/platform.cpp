@@ -660,4 +660,68 @@ void Assert(const char* message, const char* file, uint32_t line) {
 #endif
 }
 
+void ExecutionStopwatch::Start() {
+    is_running_ = true;
+    start_timestamp_ = GetThreadTimes();
+}
+
+void ExecutionStopwatch::Stop() {
+    is_running_ = false;
+    end_timestamp_ = GetThreadTimes();
+}
+
+void ExecutionStopwatch::Reset() {
+    start_timestamp_ = 0;
+    end_timestamp_ = 0;
+}
+
+std::chrono::milliseconds ExecutionStopwatch::Elapsed() const {
+    int64_t elapsed = end_timestamp_ - start_timestamp_;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::nanoseconds(elapsed));
+}
+
+bool ExecutionStopwatch::IsRunning() const noexcept {
+    return is_running_;
+}
+
+namespace detail {
+    static void GetThreadTimes(ULARGE_INTEGER& kernel_time_value, ULARGE_INTEGER user_time_value) {
+        FILETIME creation_time, exit_time, kernel_time, user_time;
+        if (!::GetThreadTimes(::GetCurrentThread(), &creation_time, &exit_time, &kernel_time, &user_time))
+            throw std::runtime_error("Failed to get thread times.");
+
+        kernel_time_value.HighPart = kernel_time.dwHighDateTime;
+        kernel_time_value.LowPart = kernel_time.dwLowDateTime;
+        user_time_value.HighPart = user_time.dwHighDateTime;
+        user_time_value.LowPart = user_time.dwLowDateTime;
+    }
+}
+
+int64_t ExecutionStopwatch::GetThreadTimes() {
+    ULARGE_INTEGER kernel_time_value{}, user_time_value{};
+    detail::GetThreadTimes(kernel_time_value, user_time_value);
+
+    return kernel_time_value.QuadPart + user_time_value.QuadPart;
+}
+
+double ExecutionStopwatch::GetCpuUsage() const {    
+    std::chrono::milliseconds elapsed = Elapsed();
+    double elapsed_seconds = elapsed.count() / 1000.0;
+
+    if (elapsed_seconds == 0) {
+        return 0;
+    }
+
+    ULARGE_INTEGER kernel_time_value{}, user_time_value{};
+    detail::GetThreadTimes(kernel_time_value, user_time_value);
+
+    double kernel_time_seconds = kernel_time_value.QuadPart / 10000000.0;  // 锣传计
+    double user_time_seconds = user_time_value.QuadPart / 10000000.0;  // 锣传计    
+    
+    // 璸衡 CPU ㄏノ瞯
+    double cpu_usage = (kernel_time_seconds + user_time_seconds) / elapsed_seconds;
+
+    return cpu_usage;
+}
+
 XAMP_BASE_NAMESPACE_END

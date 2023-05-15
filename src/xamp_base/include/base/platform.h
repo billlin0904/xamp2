@@ -52,6 +52,29 @@ private:
     std::array<bool, 256> cpus;
 };
 
+class XAMP_BASE_API ExecutionStopwatch {
+public:
+    ExecutionStopwatch() = default;
+
+    void Start();
+
+    void Stop();
+
+    void Reset();
+
+    std::chrono::milliseconds Elapsed() const;
+
+    bool IsRunning() const noexcept;
+
+    double GetCpuUsage() const;
+private:
+    static int64_t GetThreadTimes();
+
+    bool is_running_ = false;
+    int64_t start_timestamp_ = 0;
+    int64_t end_timestamp_ = 0;    
+};
+
 inline constexpr uint32_t kInfinity = -1;
 
 XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept;

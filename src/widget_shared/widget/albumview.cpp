@@ -464,17 +464,19 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 
     ActionMap<AlbumView> action_map(this);
 
-    const auto album = GetIndexValue(index, INDEX_ALBUM).toString();
-    const auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
+    if (index.isValid()) {
+        const auto album = GetIndexValue(index, INDEX_ALBUM).toString();
+        const auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
 
-    auto* copy_album_act = action_map.AddAction(tr("Copy album"), [album]() {
-        QApplication::clipboard()->setText(album);
-        });
-    copy_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_COPY));
+        auto* copy_album_act = action_map.AddAction(tr("Copy album"), [album]() {
+            QApplication::clipboard()->setText(album);
+            });
+        copy_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_COPY));
 
-    action_map.AddAction(tr("Copy artist"), [artist]() {
-        QApplication::clipboard()->setText(artist);
-        });
+        action_map.AddAction(tr("Copy artist"), [artist]() {
+            QApplication::clipboard()->setText(artist);
+            });
+    }   
 
     XAMP_ON_SCOPE_EXIT(
         action_map.exec(pt);

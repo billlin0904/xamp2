@@ -11,6 +11,8 @@
 #include <iterator>
 #include <forward_list>
 #include <functional>
+#include <unordered_map>
+#include <unordered_set>
 #include <map>
 
 #include <base/base.h>
@@ -205,10 +207,10 @@ std::vector<TValue> Values(const TMap<TKey, TValue> &map) {
 }
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
-using HashMap = robin_hood::unordered_map<K, V, H, E>;
+using HashMap = std::unordered_map<K, V, H, E>;
 
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
-using HashSet = robin_hood::unordered_set<T, H, E>;
+using HashSet = std::unordered_set<T, H, E>;
 
 template <typename K, typename V, typename P = std::less<K>>
 using OrderedMap = std::map<K, V, P>;

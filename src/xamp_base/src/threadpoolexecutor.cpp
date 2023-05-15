@@ -214,6 +214,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
+		ExecutionStopwatch excution_stopwatch;
+
 		// Main loop
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			// Try to get a task from the local queue
@@ -246,9 +248,15 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 			auto running_thread = ++running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{}", i, thread_id, running_thread);
+			excution_stopwatch.Start();
 			(*task)();
+			excution_stopwatch.Stop();
 			--running_thread_;
-			XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished.", i, thread_id);
+
+			auto cup_useage = excution_stopwatch.GetCpuUsage();
+			if (cup_useage > 0) {
+				XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished ({}%).", i, thread_id, cup_useage);
+			}			
 		}
 
 		XAMP_LOG_D(logger_, "Worker Thread {} is existed.", i);

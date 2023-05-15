@@ -113,6 +113,7 @@
     <QtMoc Include="widget\artistview.h" />
     <ClInclude Include="widget\genre_view.h" />
     <ClInclude Include="widget\kkbox_utilis.h" />
+    <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <ClInclude Include="widget\win32\win32.h" />
     <ClInclude Include="xampplayer.h" />
@@ -247,6 +248,7 @@
     <ClCompile Include="widget\str_utilts.cpp" />
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
+    <ClCompile Include="widget\taglistview.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\ui_utilts.cpp" />
     <ClCompile Include="widget\volumebutton.cpp" />
