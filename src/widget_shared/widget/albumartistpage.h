@@ -99,7 +99,6 @@ private:
 	QFrame* genre_frame_;
 	QList<GenreView*> genre_list_;
 	QList<GenrePage*> genre_page_list_;
-	QSet<QString> category_set_;
 	QComboBox* category_combo_box_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;

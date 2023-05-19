@@ -21,6 +21,7 @@
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
+                "ExtractFileWorker": "info",
                 "Http": "info",
                 "LibAv": "info",
                 "LibSoxr": "info",
@@ -49,11 +50,11 @@
     },
     "Soxr": {
         "default": {
-            "passBand": 1,
-            "phase": 0,
-            "quality": 0,
+            "passBand": 96,
+            "phase": 47,
+            "quality": 4,
             "resampleSampleRate": 44100,
-            "rolloffLevel": 0,
+            "rolloffLevel": 2,
             "stopBand": 100
         }
     }

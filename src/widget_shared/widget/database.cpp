@@ -228,6 +228,7 @@ void Database::CreateTableIfNotExist() {
                        CREATE TABLE IF NOT EXISTS artists (
                        artistId integer PRIMARY KEY AUTOINCREMENT,
                        artist TEXT NOT NULL DEFAULT '',
+                       artistNameEn TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
                        firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -1228,6 +1229,19 @@ void Database::AddMusicToPlaylist(const ForwardList<int32_t>& music_id, int32_t 
     const auto querystr = qTEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ")
     + strings.join(qTEXT(","));
     query.prepare(querystr);
+    THROW_IF_FAIL1(query);
+}
+
+void Database::UpdateArtistEnglishName(const QString& artist, const QString& en_name) {
+    QWriteLocker write_locker(&locker_);
+
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE artists SET artistNameEn = :artistNameEn WHERE (artist = :artist)"));
+
+    query.bindValue(qTEXT(":artist"), artist);
+    query.bindValue(qTEXT(":artistNameEn"), en_name);
+
     THROW_IF_FAIL1(query);
 }
 

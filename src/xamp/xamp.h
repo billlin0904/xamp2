@@ -45,6 +45,8 @@ class XMenu;
 class DatabaseFacade;
 class XMessage;
 class XProgressDialog;
+class FindAlbumCoverWorker;
+class ExtractFileWorker;
 
 namespace QtAutoUpdater {
 	class Updater;
@@ -83,7 +85,9 @@ signals:
 
 	void LoadAlbumCoverCache();
 
-	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
+
+	void Tanslation(const QString& keyword, const QString& from, const QString& to);
 
 public slots:
     void PlayEntity(const PlayListEntity& item);
@@ -123,6 +127,14 @@ public slots:
 	void OnReadCompleted();
 
 	void OnReadFileStart();
+
+	void OnFoundFileCount(size_t file_count);
+
+	void OnSetAlbumCover(int32_t album_id,
+		const QString& album,
+		const QString& cover_id);
+
+	void OnTranslationCompleted(const QString& keyword, const QString& result);
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
@@ -250,6 +262,8 @@ private:
 	FileSystemViewPage* file_system_view_page_;
 	IXMainWindow* main_window_;
 	BackgroundWorker* background_worker_;
+	FindAlbumCoverWorker* find_album_cover_worker_;
+	ExtractFileWorker* extract_file_worker_;
 	XMessage* messages_;
 	QtAutoUpdater::Updater* updater_;
 	QModelIndex play_index_;
@@ -257,6 +271,8 @@ private:
 	std::optional<PlayListEntity> current_entity_;
     QStack<int32_t> stack_page_id_;
     QThread background_thread_;
+	QThread find_album_cover_thread_;
+	QThread extract_file_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;

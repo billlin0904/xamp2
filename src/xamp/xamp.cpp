@@ -44,6 +44,8 @@
 #include <widget/xmessagebox.h>
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
+#include <widget/extractfileworker.h>
+#include <widget/findalbumcoverworker.h>
 
 #include <widget/imagecache.h>
 #include <widget/image_utiltis.h>
@@ -465,6 +467,14 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start(QThread::LowestPriority);
 
+    find_album_cover_worker_ = new FindAlbumCoverWorker();
+    find_album_cover_worker_->moveToThread(&find_album_cover_thread_);
+    find_album_cover_thread_.start(QThread::LowestPriority);
+
+    extract_file_worker_ = new ExtractFileWorker();
+    extract_file_worker_->moveToThread(&extract_file_thread_);
+    extract_file_thread_.start(QThread::LowestPriority);
+
     messages_ = new XMessage(this);
     player_->Startup(state_adapter_);
 
@@ -497,6 +507,15 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(album_page_->artist(), &ArtistView::GetArtist,
         background_worker_, &BackgroundWorker::OnGetArtist);
+
+    (void)QObject::connect(this, &Xamp::Tanslation,
+        background_worker_, &BackgroundWorker::OnTanslation);
+
+    (void)QObject::connect(background_worker_, &BackgroundWorker::TranslationCompleted,
+        this, &Xamp::OnTranslationCompleted);
+
+    (void)QObject::connect(find_album_cover_worker_, &FindAlbumCoverWorker::SetAlbumCover,
+        this, &Xamp::OnSetAlbumCover);
 
     (void)QObject::connect(&qTheme, 
         &ThemeManager::CurrentThemeChanged, 
@@ -553,36 +572,42 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(this,
         &Xamp::ExtractFile,
-        background_worker_,
-        &BackgroundWorker::OnExtractFile,
+        extract_file_worker_,
+        &ExtractFileWorker::OnExtractFile,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(album_page_->album(),
+   (void)QObject::connect(album_page_->album(),
         &AlbumView::ExtractFile,
-        background_worker_,
-        &BackgroundWorker::OnExtractFile,
+        extract_file_worker_,
+        &ExtractFileWorker::OnExtractFile,
         Qt::QueuedConnection);    
 
-    (void)QObject::connect(background_worker_,
-        &BackgroundWorker::ReadFileStart,
+    (void)QObject::connect(extract_file_worker_,
+        &ExtractFileWorker::ReadFileStart,
         this,
         &Xamp::OnReadFileStart,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_,
-        &BackgroundWorker::ReadFileProgress,
+    (void)QObject::connect(extract_file_worker_,
+        &ExtractFileWorker::ReadFileProgress,
         this,
         &Xamp::OnReadFileProgress,
         Qt::QueuedConnection);   
 
-    (void)QObject::connect(background_worker_,
-        &BackgroundWorker::InsertDatabase,
+    (void)QObject::connect(extract_file_worker_,
+        &ExtractFileWorker::FoundFileCount,
+        this,
+        &Xamp::OnFoundFileCount,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(extract_file_worker_,
+        &ExtractFileWorker::InsertDatabase,
         this,
         &Xamp::OnInsertDatabase,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_,
-        &BackgroundWorker::ReadCompleted,
+    (void)QObject::connect(extract_file_worker_,
+        &ExtractFileWorker::ReadCompleted,
         this,
         &Xamp::OnReadCompleted,
         Qt::QueuedConnection);
@@ -649,6 +674,20 @@ void Xamp::cleanup() {
         background_thread_.quit();
         background_thread_.wait();
         XAMP_LOG_DEBUG("background_thread stop!");
+    }
+
+    if (!find_album_cover_thread_.isFinished()) {
+        find_album_cover_thread_.requestInterruption();
+        find_album_cover_thread_.quit();
+        find_album_cover_thread_.wait();
+        XAMP_LOG_DEBUG("find_album_cover_thread stop!");
+    }
+
+    if (!extract_file_thread_.isFinished()) {
+        extract_file_thread_.requestInterruption();
+        extract_file_thread_.quit();
+        extract_file_thread_.wait();
+        XAMP_LOG_DEBUG("find_album_cover_thread stop!");
     }
 
     if (main_window_ != nullptr) {
@@ -1149,6 +1188,7 @@ void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& imag
     if (cover.loadFromData(image)) {        
         qDatabase.UpdateArtistCoverId(qDatabase.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
     }
+    emit Tanslation(artist, qTEXT("ja"), qTEXT("en"));
     album_page_->Refresh();
 }
 
@@ -1744,7 +1784,8 @@ void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackIn
     qDatabase.RemoveAlbum(album_id);
     cd_page_->playlistPage()->playlist()->RemoveAll();
     DatabaseFacade facade;
-    facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);
+    facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);    
+    emit Tanslation(QString::fromStdWString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
     cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -1906,11 +1947,11 @@ void Xamp::InitialPlaylist() {
         playlist_page_->playlist()->SetHeaderViewHidden(false);
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
 
-        (void)QObject::connect(background_worker_,
-            &BackgroundWorker::FromDatabase,
+        /*(void)QObject::connect(extract_file_worker_,
+            &ExtractFileWorker::FromDatabase,
             playlist_page_->playlist(),
             &PlayListTableView::ProcessDatabase,
-            Qt::QueuedConnection);
+            Qt::QueuedConnection);*/
     }
 
     if (!podcast_page_) {
@@ -1978,10 +2019,10 @@ void Xamp::InitialPlaylist() {
         &Xamp::OnUpdateDiscCover,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(this,
+    /*(void)QObject::connect(this,
         &Xamp::LoadAlbumCoverCache,
-        background_worker_,
-        &BackgroundWorker::OnLoadAlbumCoverCache);
+        extract_file_worker_,
+        &ExtractFileWorker::OnLoadAlbumCoverCache);*/
 
     (void)QObject::connect(file_system_view_page_,
         &FileSystemViewPage::addDirToPlaylist,
@@ -2283,10 +2324,10 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         background_worker_,
         &BackgroundWorker::OnReadReplayGain);
 
-    (void)QObject::connect(playlist_page->playlist(),
+    /*(void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::ExtractFile,
-        background_worker_,
-        &BackgroundWorker::OnExtractFile);
+        extract_file_worker_,
+        &ExtractFileWorker::OnExtractFile);*/
 
     if (playlist_page->playlist()->IsPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
@@ -2343,8 +2384,32 @@ void Xamp::AddDropFileItem(const QUrl& url) {
 void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast_mode) {
-    DatabaseFacade::InsertTrackInfo(result, playlist_id, is_podcast_mode);
+    DatabaseFacade facede;
+    (void)QObject::connect(&facede,
+        &DatabaseFacade::FindAlbumCover,
+        find_album_cover_worker_, 
+        &FindAlbumCoverWorker::OnFindAlbumCover,
+        Qt::QueuedConnection);
+    facede.InsertTrackInfo(result, playlist_id, is_podcast_mode);    
+    emit Tanslation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
+}
+
+void Xamp::OnFoundFileCount(size_t file_count) {
+    if (!read_progress_dialog_) {
+        return;
+    }
+    read_progress_dialog_->SetLabelText(qSTR("Found file count %1").arg(file_count));
+}
+
+void Xamp::OnSetAlbumCover(int32_t album_id,
+    const QString& album,
+    const QString& cover_id) {
+    qDatabase.SetAlbumCover(album_id, album, cover_id);
+}
+
+void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result) {
+    qDatabase.UpdateArtistEnglishName(keyword, result);
 }
 
 void Xamp::OnReadFileProgress(int progress) {

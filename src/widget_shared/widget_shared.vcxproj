@@ -111,6 +111,8 @@
     <QtMoc Include="widget\cdpage.h" />
     <QtMoc Include="widget\preferencepage.h" />
     <QtMoc Include="widget\artistview.h" />
+    <QtMoc Include="widget\findalbumcoverworker.h" />
+    <QtMoc Include="widget\extractfileworker.h" />
     <ClInclude Include="widget\genre_view.h" />
     <ClInclude Include="widget\kkbox_utilis.h" />
     <QtMoc Include="widget\taglistview.h" />
@@ -212,8 +214,10 @@
     <ClCompile Include="widget\databasefacade.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
     <ClCompile Include="widget\equalizerview.cpp" />
+    <ClCompile Include="widget\extractfileworker.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
+    <ClCompile Include="widget\findalbumcoverworker.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />

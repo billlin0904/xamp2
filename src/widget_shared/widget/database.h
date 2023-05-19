@@ -122,6 +122,8 @@ public:
 
     int32_t AddOrUpdateArtist(const QString& artist);
 
+    void UpdateArtistEnglishName(const QString& artist, const QString& en_name);
+
     void UpdateArtistCoverId(int32_t artist_id, const QString& cover_id);
 
     void UpdateMusicFilePath(int32_t music_id, const QString& file_path);

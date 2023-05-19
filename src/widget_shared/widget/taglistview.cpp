@@ -7,10 +7,11 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-TagWidgetItem::TagWidgetItem(const QString& tag, QColor color, QListWidget* parent)
+TagWidgetItem::TagWidgetItem(const QString& tag, QColor color, QLabel* label, QListWidget* parent)
 	: QListWidgetItem(parent)
 	, color_(color)
-	, tag_(tag) {
+	, tag_(tag)
+	, label_(label) {
 	setFlags(Qt::NoItemFlags);
 }
 
@@ -26,13 +27,27 @@ void TagWidgetItem::SetEnable(bool enable) {
 	enabled_ = enable;
 	if (enabled_) {
 		listWidget()->itemWidget(this)->setStyleSheet(
-			qSTR("border-radius: 18px; background-color: %1;").arg(color_.name())
+			qSTR("border-radius: 6px; border: 1px solid %1; background-color: #171818;").arg(color_.name())
+		);
+		label_->setStyleSheet(
+			qSTR("color: %1;").arg(color_.name())
 		);
 	}
 	else {
-		QColor color = Qt::black;
+		QColor color;
+		switch (qTheme.GetThemeColor()) {
+		case ThemeColor::DARK_THEME:
+			color = QColor(qTEXT("#2e2f31"));
+			break;
+		case ThemeColor::LIGHT_THEME:
+			color = Qt::lightGray;
+			break;
+		}
 		listWidget()->itemWidget(this)->setStyleSheet(
-			qSTR("border-radius: 18px; background-color: %1;").arg(color.name())
+			qSTR("border-radius: 6px; border: 1px solid %1; background-color: #2f3233;").arg(color.name())
+		);
+		label_->setStyleSheet(
+			qSTR("color: white;")
 		);
 	}
 	listWidget()->update();
@@ -46,21 +61,21 @@ TagListView::TagListView(QWidget* parent)
 	: QFrame(parent) {
 	taglist_ = new QListWidget();
 	taglist_->setDragEnabled(false);
-	taglist_->setUniformItemSizes(true);
+	taglist_->setUniformItemSizes(false);
 	taglist_->setFlow(QListView::LeftToRight);
 	taglist_->setResizeMode(QListView::Adjust);
 	taglist_->setFrameStyle(QFrame::StyledPanel);
 	taglist_->setViewMode(QListView::IconMode);
 	taglist_->setFixedHeight(100);
-
+	taglist_->setSpacing(5);
 	taglist_->setStyleSheet(qTEXT(
 		"QListWidget {"
 		"  border: none;"
-		"} "
+		"}"
 		"QListWidget::item {"
 		"  border: 1px solid transparent;"
-		"  border-radius: 18px;"
-		"  background-color: transparent;"
+		"  border-radius: 8px;"
+		"  background-color: #2f3233;"
 		"}"
 		"QListWidget::item:selected {"
 		"  background-color: transparent;"
@@ -96,20 +111,27 @@ TagListView::TagListView(QWidget* parent)
 	setLayout(tagLayout);
 }
 
-void TagListView::AddTag(const QString& tag) {
-	auto color = GenerateRandomColor();
-
-	auto* item = new TagWidgetItem(tag, color, taglist_);
+void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
+	QColor color(qTEXT("#1A72BB"));	
 
 	auto f = font();
+	auto* layout = new QHBoxLayout();
+	auto* tag_label = new QLabel(tag);	
+	tag_label->setAlignment(Qt::AlignCenter);
+
+	auto* item = new TagWidgetItem(tag, color, tag_label, taglist_);
 	f.setBold(true);
 	f.setPointSize(qTheme.GetFontSize(10));
-	item->setSizeHint(QSize(170, 40));
-
-	auto* layout = new QHBoxLayout();
-	auto* tag_label = new QLabel(tag);
 	tag_label->setFont(f);
-	tag_label->setAlignment(Qt::AlignCenter);
+
+	if (!uniform_item_sizes) {
+		QFontMetrics metrics(f);
+		auto width = metrics.horizontalAdvance(tag) * 1.5;
+		item->setSizeHint(QSize(width, 40));
+	}
+	else {
+		item->setSizeHint(QSize(80, 40));
+	}
 
 	layout->addWidget(tag_label);
 	layout->setSpacing(0);
@@ -118,7 +140,7 @@ void TagListView::AddTag(const QString& tag) {
 	auto* widget = new QWidget();
 	widget->setLayout(layout);
 	widget->setStyleSheet(
-		qSTR("border-radius: 18px; background-color: %1;").arg(color.name())
+		qSTR("border-radius: 6px; border: 1px solid transparent;")
 	);
 	taglist_->setItemWidget(item, widget);
 	item->Enable();	
@@ -126,7 +148,10 @@ void TagListView::AddTag(const QString& tag) {
 
 void TagListView::ClearTag() {
 	for (auto i = 0; i < taglist_->count(); ++i) {
-		auto item = (TagWidgetItem*)taglist_->item(i);
+		auto item = dynamic_cast<TagWidgetItem*>(taglist_->item(i));
+		if (!item) {
+			continue;
+		}
 		item->SetEnable(false);
 	}
 }

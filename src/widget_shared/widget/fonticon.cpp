@@ -54,7 +54,7 @@ QColor FontIconOption::activeOnColor(QColor::Invalid);
 double FontIconOption::opacity = 1.0;
 
 template <typename T>
-static T getOrDefault(QVariantMap const & opt, const QString & s, T defaultValue) {
+static T GetOrDefault(QVariantMap const & opt, const QString & s, T defaultValue) {
 	const auto var = opt.value(s);
     if (!var.isValid()) {
         return defaultValue;
@@ -108,33 +108,33 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     case QIcon::Normal:
         switch (state) {
         case QIcon::On:
-            pen_color = getOrDefault<QColor>(options_, FontIconOption::onColorAttr, FontIconOption::onColor);
+            pen_color = GetOrDefault<QColor>(options_, FontIconOption::onColorAttr, FontIconOption::onColor);
             break;
         }
         break;
     case QIcon::Active:
         switch (state) {
 		case QIcon::Off:
-            pen_color = getOrDefault<QColor>(options_, FontIconOption::activeColorAttr, FontIconOption::activeColor);
+            pen_color = GetOrDefault<QColor>(options_, FontIconOption::activeColorAttr, FontIconOption::activeColor);
 			break;
 		case QIcon::On:
-            pen_color = getOrDefault<QColor>(options_, FontIconOption::activeOnColorAttr, FontIconOption::activeOnColor);
+            pen_color = GetOrDefault<QColor>(options_, FontIconOption::activeOnColorAttr, FontIconOption::activeOnColor);
             if (!pen_color.isValid()) {
-                pen_color = getOrDefault<QColor>(options_, FontIconOption::onColorAttr, FontIconOption::onColor);
+                pen_color = GetOrDefault<QColor>(options_, FontIconOption::onColorAttr, FontIconOption::onColor);
             }
             break;
         }
         break;
     case QIcon::Disabled:
-        pen_color = getOrDefault<QColor>(options_, FontIconOption::disabledColorAttr, FontIconOption::disabledColor);
+        pen_color = GetOrDefault<QColor>(options_, FontIconOption::disabledColorAttr, FontIconOption::disabledColor);
         break;
     case QIcon::Selected:
-        pen_color = getOrDefault<QColor>(options_, FontIconOption::selectedColorAttr, FontIconOption::selectedColor);
+        pen_color = GetOrDefault<QColor>(options_, FontIconOption::selectedColorAttr, FontIconOption::selectedColor);
         break;
     }
 
     if (!pen_color.isValid()) {
-        pen_color = getOrDefault<QColor>(options_, FontIconOption::colorAttr, FontIconOption::color);
+        pen_color = GetOrDefault<QColor>(options_, FontIconOption::colorAttr, FontIconOption::color);
     }
 
     painter->save();
@@ -193,13 +193,11 @@ QIconEngine* FontIconEngine::clone() const {
     return engine;
 }
 
-HashMap<char32_t, uint32_t> FontIcon::glyphs_;
-
 FontIcon::FontIcon(QObject* parent)
     : QObject(parent) {
 }
 
-bool FontIcon::addFont(const QString& filename) {
+bool FontIcon::AddFont(const QString& filename) {
     QFile font_file(filename);
     if (!font_file.open(QIODevice::ReadOnly)) {
         return false;
@@ -213,18 +211,18 @@ bool FontIcon::addFont(const QString& filename) {
     }
 
     const auto family = QFontDatabase::applicationFontFamilies(id).first();
-    addFamily(family);
+    AddFamily(family);
     return true;
 }
 
-QIcon FontIcon::icon(const char32_t& code, QVariantMap options, const QString& family) const {
-    if (families().isEmpty()) {
+QIcon FontIcon::GetIcon(const char32_t& code, QVariantMap options, const QString& family) const {
+    if (GetFamilies().isEmpty()) {
         return {};
     }
 
     QString use_family = family;
     if (use_family.isEmpty()) {
-        use_family = families().first();
+        use_family = GetFamilies().first();
     }
 
     auto* engine = new FontIconEngine(std::move(options));
@@ -238,14 +236,14 @@ QIcon FontIcon::icon(const char32_t& code, QVariantMap options, const QString& f
     return QIcon(engine);
 }
 
-const QStringList& FontIcon::families() const {
+const QStringList& FontIcon::GetFamilies() const {
     return families_;
 }
 
-void FontIcon::addFamily(const QString& family) {
+void FontIcon::AddFamily(const QString& family) {
     families_.append(family);
 }
 
-void FontIcon::setGlyphs(const HashMap<char32_t, uint32_t>& glyphs) {
+void FontIcon::SetGlyphs(const HashMap<char32_t, uint32_t>& glyphs) {
     glyphs_ = glyphs;
 }

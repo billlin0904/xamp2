@@ -212,8 +212,8 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_CHEVRON_LEFT,              0xF053 }
     };
     
-    qFontIcon.addFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
-    qFontIcon.setGlyphs(glyphs);
+    qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
+    qFontIcon.SetGlyphs(glyphs);
 }
 
 QFont ThemeManager::LoadFonts() {
@@ -226,8 +226,12 @@ QFont ThemeManager::LoadFonts() {
     SetFontAwesomeIcons();
 
     InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
+    //InstallFileFonts(qTEXT("HelveticaNowText"), format_font);
     InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    InstallFileFonts(qTEXT("OpenSans"), ui_fonts);
+    //InstallFileFonts(qTEXT("OpenSans"), ui_fonts);
+    //InstallFileFonts(qTEXT("Roboto"), ui_fonts);
+    //InstallFileFonts(qTEXT("Poppins"), ui_fonts);
+    InstallFileFonts(qTEXT("HelveticaNowText"), ui_fonts);
     InstallFileFonts(qTEXT("MiSans"), ui_fonts);
     InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
@@ -370,7 +374,7 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
         else {
             temp.insert(FontIconOption::colorAttr, QVariant(QColor(255, 0, 0)));
         }        
-        return qFontIcon.icon(code, temp);
+        return qFontIcon.GetIcon(code, temp);
     }
     case Glyphs::ICON_MINIMIZE_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath(color)));
@@ -384,34 +388,34 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
 	    {
 			auto temp = font_icon_opts_;
             temp.insert(FontIconOption::colorAttr, QVariant(QColor(255, 164, 6)));
-            return qFontIcon.icon(code, temp);
+            return qFontIcon.GetIcon(code, temp);
 	    }
     case Glyphs::ICON_MESSAGE_BOX_ERROR:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::colorAttr, QVariant(QColor(189, 29, 29)));
-			return qFontIcon.icon(code, temp);
+			return qFontIcon.GetIcon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_INFORMATION:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::colorAttr, QVariant(QColor(43, 128, 234)));
-		    return qFontIcon.icon(code, temp);
+		    return qFontIcon.GetIcon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_QUESTION:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::colorAttr, QVariant(QColor(53, 193, 31)));
-			return qFontIcon.icon(code, temp);
+			return qFontIcon.GetIcon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_SUCCESS:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::colorAttr, QVariant(QColor(0, 249, 0)));
-			return qFontIcon.icon(code, temp);
+			return qFontIcon.GetIcon(code, temp);
 		}
     }
-    return qFontIcon.icon(code, font_icon_opts_);
+    return qFontIcon.GetIcon(code, font_icon_opts_);
 }
 
 QIcon ThemeManager::GetApplicationIcon() const {
@@ -428,7 +432,7 @@ QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size) const {
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
 
-    auto icon = qFontIcon.icon(Glyphs::ICON_PLAY_LIST_PAUSE, font_options);
+    auto icon = qFontIcon.GetIcon(Glyphs::ICON_PLAY_LIST_PAUSE, font_options);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
         QIcon::Selected, QIcon::Off);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::On),
@@ -441,7 +445,7 @@ QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size) const {
     font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
-    auto icon = qFontIcon.icon(Glyphs::ICON_PLAY_LIST_PLAY, font_options);
+    auto icon = qFontIcon.GetIcon(Glyphs::ICON_PLAY_LIST_PLAY, font_options);
 
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
         QIcon::Selected, QIcon::Off);
@@ -453,14 +457,14 @@ QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size) const {
 QIcon ThemeManager::GetPlayingIcon() const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::colorAttr, QColor(252, 215, 75));
-    return qFontIcon.icon(0xF8F2, font_options);
+    return qFontIcon.GetIcon(0xF8F2, font_options);
 }
 
 QIcon ThemeManager::GetHiResIcon() const {
     QVariantMap options;
     options.insert(FontIconOption::colorAttr, QColor(250, 197, 24));
     options.insert(FontIconOption::scaleFactorAttr, 0.8);
-    return QIcon(qFontIcon.icon(0xE1AE, options));
+    return QIcon(qFontIcon.GetIcon(0xE1AE, options));
 }
 
 QPixmap ThemeManager::GetGithubIcon() const {

@@ -104,18 +104,18 @@ public:
 
     explicit FontIcon(QObject* parent = nullptr);
 
-    bool addFont(const QString& filename);
+    bool AddFont(const QString& filename);
 
-    QIcon icon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
+    QIcon GetIcon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
 
-    const QStringList& families() const;
+    const QStringList& GetFamilies() const;
 
-    static void setGlyphs(const HashMap<char32_t, uint32_t> &glyphs);
+    void SetGlyphs(const HashMap<char32_t, uint32_t> &glyphs);
 protected:
-    void addFamily(const QString& family);
+    void AddFamily(const QString& family);
 
     QStringList families_;
-    static HashMap<char32_t, uint32_t> glyphs_;
+    mutable HashMap<char32_t, uint32_t> glyphs_;
 };
 
 #define qFontIcon SharedSingleton<FontIcon>::GetInstance()

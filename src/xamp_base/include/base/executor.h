@@ -59,7 +59,7 @@ template <typename C, typename Func>
 void ParallelFor(IThreadPoolExecutor& executor,
     C& items,
     Func&& f,
-    const std::chrono::seconds &wait_timeout = std::chrono::seconds(1),
+    const std::chrono::milliseconds &wait_timeout = std::chrono::milliseconds(100),
     size_t batches = kDefaultParallelBatchSize) {
     auto begin = std::begin(items);
     auto size = std::distance(begin, std::end(items));

@@ -245,6 +245,7 @@ static void RegisterMetaType() {
     qRegisterMetaType<ForwardList<TrackInfo>>("ForwardList<TrackInfo>");
     qRegisterMetaType<DriveInfo>("DriveInfo");
     qRegisterMetaType<EncodingProfile>("EncodingProfile");
+    qRegisterMetaType<std::wstring>("std::wstring");
 }
 
 static void LoadAppSettings() {

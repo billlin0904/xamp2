@@ -300,8 +300,20 @@ static void ExtractTag(Path const & path, Tag const * tag, AudioProperties*audio
             metadata.artist = tag->artist().toWString();
             metadata.title = tag->title().toWString();
             metadata.album = tag->album().toWString();
-            metadata.track = tag->track();
+            metadata.track = tag->track();            
             metadata.year = tag->year();
+            // 如果讀取到年分是20211126
+            if (metadata.year > 0) {
+                if (metadata.year > 10000) {
+                    metadata.year = metadata.year / 10000;
+                }
+                else if (metadata.year <= 1900) {
+                    metadata.year = 1990;
+                }
+            }
+            else {
+                metadata.year = 0;
+            }
             metadata.genre = tag->genre().toWString();
             metadata.comment = tag->comment().toWString();
         }
@@ -368,7 +380,7 @@ public:
         }
 
         const auto ext = String::ToLower(path.extension().string());
-        track_info.replay_gain = GetReplayGain(ext, fileref.file());
+        //track_info.replay_gain = GetReplayGain(ext, fileref.file());
         return track_info;
     }
 

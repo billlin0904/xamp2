@@ -74,6 +74,8 @@ public:
 
 	void ShowAll();
 
+	void FilterAritstName(const QSet<QString>& name);
+
 	void Refresh();
 
 	void Update();

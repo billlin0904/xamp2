@@ -1,5 +1,5 @@
 #include <widget/databasefacade.h>
-#include <widget/backgroundworker.h>
+#include <widget/extractfileworker.h>
 
 #include <atomic>
 #include <utility>
@@ -40,15 +40,6 @@ XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 		}\
 		catch (...) {}\
     } while (false)
-
-using DirPathHash = GoogleSipHash<>;
-
-static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
-    constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
-    constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
-
-    return DirPathHash(kDirHashKey1, kDirHashKey2);
-}
 
 static QSet<QString> GetAlbumCategories(const QString& album) {
     QRegularExpression regex(
@@ -127,193 +118,10 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
     return normalizedTags;
 }
 
-void DatabaseFacade::ScanPathFiles(BackgroundWorker* worker,
-    HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
-    const QStringList& file_name_filters,
-    const QString& dir,
-    int32_t playlist_id,
-    bool is_podcast_mode) {
-    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
-
-    auto hasher = MakFilePathHash();
-
-    Vector<Path> paths;
-    paths.reserve(kReserveSize);
-
-    while (itr.hasNext()) {
-        auto next_path = ToNativeSeparators(itr.next());
-        auto path = next_path.toStdWString();
-        paths.push_back(path);
-        hasher.Update(path);
-    }
-
-    if (paths.empty()) {
-        if (!QFileInfo(dir).isFile()) {
-            XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
-            return;
-        }
-        const auto path = dir.toStdWString();
-        paths.push_back(path);
-        hasher.Update(path);
-    }
-
-    const auto path_hash = hasher.GetHash();
-
-    const auto db_hash = qDatabase.GetParentPathHash(dir);
-    if (db_hash == path_hash) {
-        XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
-        emit worker->FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
-        return;
-    }
-   
-   if (is_stop_) {
-       return;
-   }
-
-   FastMutex mutex;
-
-   XAMP_LOG_DEBUG("Extract file count: {}", paths.size());
-
-   Executor::ParallelFor(GetScanPathThreadPool(), paths, [&](auto& path) {
-       auto reader = MakeMetadataReader();
-       try {
-           std::lock_guard<FastMutex> lock{ mutex };           
-           auto track_info = reader->Extract(path);           
-           track_info.parent_path_hash = path_hash;
-           album_groups[track_info.album].emplace_front(std::move(track_info));
-       }
-       catch (...) {
-       }
-       });
-}
-
-void DatabaseFacade::ReadTrackInfo(BackgroundWorker* worker,
-    QString const& file_path,
-    int32_t playlist_id,
-    bool is_podcast_mode) {
-
-    constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-    QDirIterator itr(file_path, GetFileNameFilter(), filter);
-
-    auto hasher = MakFilePathHash();
-    
-    Vector<QString> paths;
-    paths.reserve(kReserveSize);
-
-    while (itr.hasNext()) {
-        if (is_stop_) {
-            return;
-        }
-        auto path = ToNativeSeparators(itr.next());
-        hasher.Update(path.toStdWString());
-        paths.push_back(path);
-    }
-
-    if (paths.empty()) {
-        paths.push_back(file_path);
-    }
-
-    const int path_size = std::distance(paths.begin(), paths.end());
-    XAMP_ON_SCOPE_EXIT(
-		XAMP_LOG_D(logger_, "Finish to read track info.");
-    );
-
-    const auto path_hash = hasher.GetHash();
-
-    try {
-        const auto db_hash = qDatabase.GetParentPathHash(ToNativeSeparators(file_path));
-        if (db_hash == path_hash) {
-            XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
-            emit worker->FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
-            return;
-        }
-    }
-    catch (Exception const& e) {
-        XAMP_LOG_E(logger_, "Failed to get parent path. {}", e.GetErrorMessage());
-        return;
-    }
-
-    const auto file_name_filters = GetFileNameFilter();
-    std::atomic<size_t> progress(0);
-
-    emit worker->ReadFileStart();
-
-    Executor::ParallelFor(GetBackgroundThreadPool(), paths, [&](const auto& path) {
-        if (is_stop_) {
-			return;
-		}
-
-        XAMP_LOG_DEBUG("Process {}", path.toStdString());
-
-		HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
-
-        XAMP_ON_SCOPE_EXIT(
-            auto value = progress.load();
-            emit worker->ReadFileProgress((value * 100) / paths.size());
-            ++progress;
-            XAMP_LOG_DEBUG("Progress {}%", (value * 100) / paths.size());
-        );
-
-        try {
-			ScanPathFiles(worker, album_groups, file_name_filters, path, playlist_id, is_podcast_mode);
-		}
-        catch (Exception const& e) {
-			XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());
-            return;
-		}
-
-        std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
-            if (is_stop_) {
-                return;
-            }
-            album_tracks.second.sort([](const auto& first, const auto& last) {
-                return first.track < last.track;
-            });
-            emit worker->InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);            
-            });        
-	});
-
-    emit worker->ReadCompleted();
-}
-
-void DatabaseFacade::FindAlbumCover(int32_t album_id,
-    const QString& album, 
-    const std::wstring& file_path,
-    const CoverArtReader& reader) {
-	const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
-    if (!cover_id.isEmpty()) {
-        return;
-    }
-
-    std::wstring find_file_path;
-	const auto first_file_path = qDatabase.GetAlbumFirstMusicFilePath(album_id);
-    if (!first_file_path) {
-        find_file_path = file_path;
-    } else {
-        find_file_path = (*first_file_path).toStdWString(); 
-    }
-
-	auto cover = reader.GetEmbeddedCover(find_file_path);
-    if (!cover.isNull()) {
-        qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
-        return;
-    }
-
-	cover = ImageCache::ScanCoverFromDir(QString::fromStdWString(file_path));
-    if (!cover.isNull()) {
-        qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
-    }
-    else {
-        qDatabase.SetAlbumCover(album_id, album, qPixmapCache.GetUnknownCoverId());
-    }
-}
-
 void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
-    const Stopwatch watch;
-	const CoverArtReader reader;	
-
+    const Stopwatch sw;
     constexpr ConstLatin1String kHiRes("hires");    
     constexpr ConstLatin1String kDsdCategory("dsd");
     constexpr auto k24Bit96KhzBitRate = 4608;
@@ -321,8 +129,10 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     const std::wstring kDffExtension(L".dff");
     const std::wstring kDsfExtension(L".dsf");
 
-    HashMap<QString, int32_t> artist_id_cache;
-    HashMap<QString, int32_t> album_id_cache;
+    FloatMap<QString, int32_t> artist_id_cache;
+    FloatMap<QString, int32_t> album_id_cache;
+    FloatMap<int32_t, QString> cover_id_cache;
+    CoverArtReader reader;
     
     auto album_year = result.front().year;
     auto album_genre = NormalizeGenre(QString::fromStdWString(result.front().genre)).join(",");
@@ -393,14 +203,26 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 
         if (!is_file_path) {
             continue;
-        }
+        }        
 
         if (!cover.isNull()) {
             qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
-        } else {
-            FindAlbumCover(album_id, album, track_info.file_path, reader);
+            continue;
+        }
+
+        if (cover_id_cache.contains(album_id)) {
+            continue;
+        }
+
+        const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
+        if (cover_id.isEmpty()) {
+            emit FindAlbumCover(album_id, album, track_info.file_path);
+        }
+        else {
+            cover_id_cache[album_id] = cover_id;
         }
 	}
+    XAMP_LOG_DEBUG("AddTrackInfo ({} secs)", sw.ElapsedSeconds());
 }
 
 void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, 

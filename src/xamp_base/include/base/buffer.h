@@ -8,6 +8,7 @@
 #include <base/memory.h>
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
+#include <base/assert.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -157,6 +158,7 @@ private:
 
 template <typename T>
 XAMP_BASE_API_ONLY_EXPORT Buffer<T> MakeBuffer(size_t size) {
+    XAMP_ENSURES(size > 0);
     return Buffer<T>(size);
 }
 

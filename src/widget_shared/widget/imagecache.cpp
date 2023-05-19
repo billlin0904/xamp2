@@ -72,7 +72,7 @@ void ImageCache::InitCachePath() {
 }
 
 QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
-	const QList<QString> target_folders = { "Scans", "Artwork" };
+	const QList<QString> target_folders = { "scans", "artwork", "booklet" };
 	const QString cover_name = "Front";
 
 	QDir dir(file_path);

@@ -2,6 +2,7 @@
 #include <widget/albumview.h>
 #include <widget/database.h>
 #include <widget/albumentity.h>
+#include <widget/taglistview.h>
 
 #include <thememanager.h>
 
@@ -351,6 +352,26 @@ void ArtistView::OnThemeChanged(QColor backgroundColor, QColor color) {
 
 void ArtistView::OnCurrentThemeChanged(ThemeColor theme_color) {
 	page_->OnCurrentThemeChanged(theme_color);
+}
+
+void ArtistView::FilterAritstName(const QSet<QString>& name) {
+	QStringList names;
+	Q_FOREACH(auto & c, name) {
+		names.append(qSTR("'%1'").arg(c));
+	}
+
+	last_query_ = qSTR(R"(
+SELECT
+    artists.artist,
+    artists.artistId,
+    artists.coverId,
+	artists.firstChar,
+	SUBSTR(artistNameEn, 1, 1) AS enNameFirstChar
+FROM
+    artists
+WHERE
+	enNameFirstChar IN (%1)
+    )").arg(names.join(","));
 }
 
 void ArtistView::ShowAll() {

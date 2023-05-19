@@ -36,6 +36,7 @@ enum {
 	TAB_ALBUM,
 	TAB_ARTIST,
 	TAB_GENRE,
+	TAB_YEAR,
 };
 
 GenrePage::GenrePage(QWidget* parent)
@@ -115,6 +116,7 @@ void AlbumTabListView::AddTab(const QString& name, int tab_id) {
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
     f.setPointSize(qTheme.GetFontSize(14));
+	f.setBold(true);
 	item->setFont(f);
 	model_.appendRow(item);
 }
@@ -145,9 +147,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_6);
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->AddTab(tr("Albums"), TAB_ALBUM);
-	list_view_->AddTab(tr("Artists"), TAB_ARTIST);
-	list_view_->AddTab(tr("Genre"), TAB_GENRE);
+	list_view_->AddTab(tr("ALBUM"), TAB_ALBUM);
+	list_view_->AddTab(tr("ARTIST"), TAB_ARTIST);
+	list_view_->AddTab(tr("GENRE"), TAB_GENRE);
+	list_view_->AddTab(tr("YEAR"), TAB_YEAR);
 
 	qTheme.SetTabTheme(list_view_);
 
@@ -183,7 +186,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* category_label = new QLabel(tr("Category:"));
 	category_label->setFont(f);
 
-	const QStringList category_list = {		 
+	QStringList title_category_list = {		 
 		tr("dsd"),
 		tr("hires"), 
 		tr("soundtrack"),
@@ -198,98 +201,30 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	category_combo_box_->setObjectName(QString::fromUtf8("categoryComboBox"));
 
 	category_combo_box_->addItem(tr("all"));
-	Q_FOREACH(auto category, category_list) {
+	Q_FOREACH(auto category, title_category_list) {
 		category_combo_box_->addItem(category);
 	}
 
 	category_combo_box_->setCurrentIndex(0);	
 
-	auto* tagListWidget = new QListWidget();
-	tagListWidget->setDragEnabled(false);
-	tagListWidget->setUniformItemSizes(true);
-	tagListWidget->setFlow(QListView::LeftToRight);
-	tagListWidget->setResizeMode(QListView::Adjust);
-	tagListWidget->setFrameStyle(QFrame::StyledPanel);
-	tagListWidget->setViewMode(QListView::IconMode);
-	tagListWidget->setFixedHeight(100);	
-
-	tagListWidget->setStyleSheet(qTEXT(
-		"QListWidget {"
-		"  border: none;"
-		"} "
-		"QListWidget::item {"
-		"  border: 1px solid transparent;"
-		"  border-radius: 18px;"
-		"  background-color: transparent;"
-		"}"
-		"QListWidget::item:selected {"
-		"  background-color: transparent;"
-		"}"
-	));
-
-	auto addTag = [&](const QString &tag) {
-		auto color = GenerateRandomColor();
-
-		auto* item = new TagWidgetItem(tag, color, tagListWidget);
-		
-		auto f = font();
-		f.setBold(true);
-		f.setPointSize(qTheme.GetFontSize(10));
-		item->setSizeHint(QSize(170, 40));
-
-		auto* layout = new QHBoxLayout();
-		auto* tag_label = new QLabel(tag);		
-		tag_label->setFont(f);
-		tag_label->setAlignment(Qt::AlignCenter);
-
-		layout->addWidget(tag_label);
-		layout->setSpacing(0);
-		layout->setContentsMargins(0, 0, 0, 0);
-
-		auto* widget = new QWidget();
-		widget->setLayout(layout);
-		widget->setStyleSheet(
-			qSTR("border-radius: 18px; background-color: %1;").arg(color.name())
-		);	
-		tagListWidget->setItemWidget(item, widget);
-		item->Enable();
-
-		(void)QObject::connect(tagListWidget, &QListWidget::itemClicked, [tagListWidget, this](auto* item) {
-			if (!item) {
-				return;
-			}
-
-			auto* tag_item = dynamic_cast<TagWidgetItem*>(item);		
-			if (!tag_item) {
-				return;
-			}
-			tag_item->Enable();
-			if (!tag_item->IsEnable()) {
-				category_set_.remove(tag_item->GetTag());
-			}
-			else {
-				category_set_.insert(tag_item->GetTag());
-			}
-			if (!category_set_.isEmpty()) {
-				album_view_->FilterCategories(category_set_);
-				album_view_->Update();
-			}
-			else {
-				album_view_->ShowAll();
-				album_view_->Update();
-			}
-			});
-		/*(void)QObject::connect(deleteButton, &QPushButton::clicked, [tagListWidget, item]() {
-			delete tagListWidget->takeItem(tagListWidget->row(item));
-			});*/
-	};
-
-	Q_FOREACH(auto category, category_list) {
-		addTag(category);
+	auto* album_tag_list_widget = new TagListView();
+	std::sort(title_category_list.begin(), title_category_list.end(), [](const auto& left, const auto& right) {
+		return left.length() < right.length();
+		});
+	
+	Q_FOREACH(auto category, title_category_list) {
+		album_tag_list_widget->AddTag(category);
 	}
 
-	auto* tagLayout = new QVBoxLayout();	
-	tagLayout->addWidget(tagListWidget);
+	(void)QObject::connect(album_tag_list_widget, &TagListView::TagChanged, [this](const auto& tags) {
+		album_view_->FilterCategories(tags);
+		album_view_->Update();
+		});
+
+	(void)QObject::connect(album_tag_list_widget, &TagListView::TagClear, [this]() {
+		album_view_->ShowAll();
+		album_view_->Update();
+		});
 
 	album_search_line_edit_ = new QLineEdit();
 	album_search_line_edit_->setObjectName(QString::fromUtf8("albumSearchLineEdit"));
@@ -311,28 +246,21 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_completer->setCompletionMode(QCompleter::PopupCompletion);
 	album_search_line_edit_->setCompleter(album_completer);
 
-	auto clearAllTag = [tagListWidget]() {
-		for (auto i = 0; i < tagListWidget->count(); ++i) {
-			auto item = (TagWidgetItem*)tagListWidget->item(i);
-			item->SetEnable(false);
-		}
-	};
-
 	auto actionList = album_search_line_edit_->findChildren<QAction*>();
 	if (!actionList.isEmpty()) {
 		Q_FOREACH(auto * action, actionList) {
 			if (action) {
-				(void)QObject::connect(action, &QAction::triggered, [clearAllTag, this]() {
+				(void)QObject::connect(action, &QAction::triggered, [album_tag_list_widget, this]() {
 					album_view_->ShowAll();
 					album_view_->Update();		
-					clearAllTag();
+					album_tag_list_widget->ClearTag();
 					});
 			}
 		}
 	}
 
-	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, clearAllTag, album_completer](const auto& text) {
-		clearAllTag();
+	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, album_tag_list_widget, album_completer](const auto& text) {
+		album_tag_list_widget->ClearTag();
 
 		const auto items = album_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
@@ -359,7 +287,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_combox_layout_1->addLayout(album_combox_layout);
 
 	album_frame_layout->addLayout(album_combox_layout_1);
-	album_frame_layout->addLayout(tagLayout);
+	album_frame_layout->addWidget(album_tag_list_widget);
 	album_frame_layout->addWidget(album_view_, 1);
 
 	auto genre_stackwidget = new QStackedWidget(this);
@@ -391,10 +319,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	scroll_area->setWidget(genre_frame_);
 
-	Q_FOREACH(auto genre, qDatabase.GetGenres()) {
+	/*Q_FOREACH(auto genre, qDatabase.GetGenres()) {
 		AddGenreList(genre_page, genre_stackwidget, genre);
-	}
-
+	}*/
+	AddGenreList(genre_page, genre_stackwidget, qTEXT("J-pop"));
 	genre_container_layout->addWidget(scroll_area);
 	
 	artist_frame_ = new QFrame();
@@ -460,7 +388,20 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_combox_layout_1->addSpacerItem(horizontalSpacer_1);
 	artist_combox_layout_1->addLayout(artist_combox_layout);
 
+	QStringList artist_category_list;
+	for (auto i = 0; i < 26; ++i) {
+		artist_category_list.append(QString('A' + i));
+	}
+
+	auto* artist_tag_list_widget = new TagListView();
+
+	Q_FOREACH(auto category, artist_category_list) {
+		artist_tag_list_widget->AddTag(category, true);
+	}
+
 	artist_frame_layout->addLayout(artist_combox_layout_1);
+
+	artist_frame_layout->addWidget(artist_tag_list_widget);
 	artist_frame_layout->addWidget(artist_view_, 1);
 
 	current_view->addWidget(album_frame_);
@@ -482,7 +423,17 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::LoadCompleted,
 		this, &AlbumArtistPage::Refresh);
 
-	(void)QObject::connect(category_combo_box_, &QComboBox::textActivated, [this](const auto &category) {
+	(void)QObject::connect(artist_tag_list_widget, &TagListView::TagChanged, [this](const auto& tags) {
+		artist_view_->FilterAritstName(tags);
+		artist_view_->Update();
+		});
+
+	(void)QObject::connect(artist_tag_list_widget, &TagListView::TagClear, [this]() {
+		artist_view_->ShowAll();
+		artist_view_->Update();
+		});
+
+	(void)QObject::connect(category_combo_box_, &QComboBox::textActivated, [this, album_tag_list_widget](const auto &category) {
 		if (category != tr("all")) {
 			album_view_->FilterCategories(category);
 		}
@@ -490,6 +441,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			album_view_->ShowAll();
 		}
 		album_view_->Update();
+		album_tag_list_widget->ClearTag();
 		});
 
 	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view, genre_stackwidget](auto table_id) {

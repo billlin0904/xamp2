@@ -8,9 +8,11 @@
 #include <QListWidget>
 #include <QSet>
 
+class QLabel;
+
 class TagWidgetItem : public QListWidgetItem {
 public:
-	TagWidgetItem(const QString& tag, QColor color, QListWidget* parent = nullptr);
+	TagWidgetItem(const QString& tag, QColor color, QLabel* label, QListWidget* parent = nullptr);
 
 	QString GetTag() const;
 
@@ -23,6 +25,7 @@ private:
 	bool enabled_ = true;
 	QColor color_;
 	QString tag_;
+	QLabel* label_;
 };
 
 class TagListView : public QFrame {
@@ -30,7 +33,7 @@ class TagListView : public QFrame {
 public:
 	explicit TagListView(QWidget* parent = nullptr);
 
-	void AddTag(const QString &tag);
+	void AddTag(const QString &tag, bool uniform_item_sizes = false);
 
 	void ClearTag();
 

@@ -1,5 +1,6 @@
 #include <widget/backgroundworker.h>
 
+#include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
 #include <widget/database.h>
 #include <widget/databasefacade.h>
@@ -41,8 +42,7 @@ struct ReplayGainJob {
     Vector<Ebur128Reader> scanner;
 };
 
-BackgroundWorker::BackgroundWorker() {
-    writer_ = MakeMetadataWriter();
+BackgroundWorker::BackgroundWorker() {    
     logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
 
@@ -54,23 +54,23 @@ void BackgroundWorker::StopThreadPool() {
     is_stop_ = true;
 }
 
-void BackgroundWorker::OnLoadAlbumCoverCache() {
-    QList<QString> cover_ids;
-    cover_ids.reserve(LazyLoadingModel::kMaxBatchSize);
-
-    qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
-        cover_ids.push_back(cover_id);
-        }, LazyLoadingModel::kMaxBatchSize);
-
-    try {
-        Executor::ParallelFor(GetBackgroundThreadPool(), cover_ids, [](const auto& cover_id) {
-            AlbumViewStyledDelegate::GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
-            });
-    }
-    catch (const std::exception& e) {
-		XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
-	}
-}
+//void BackgroundWorker::OnLoadAlbumCoverCache() {
+//    QList<QString> cover_ids;
+//    cover_ids.reserve(LazyLoadingModel::kMaxBatchSize);
+//
+//    qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
+//        cover_ids.push_back(cover_id);
+//        }, LazyLoadingModel::kMaxBatchSize);
+//
+//    try {
+//        Executor::ParallelFor(GetBackgroundThreadPool(), cover_ids, [](const auto& cover_id) {
+//            AlbumViewStyledDelegate::GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
+//            });
+//    }
+//    catch (const std::exception& e) {
+//		XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
+//	}
+//}
 
 namespace lastfm {
     struct ArtistInfo {
@@ -161,7 +161,10 @@ void BackgroundWorker::OnGetArtist(const QString& artist) {
                         .download([this, artist](const auto &content) {
                         emit SearchArtistCompleted(artist, content);
                         });
-			    }			
+                }
+                else {
+                    emit SearchArtistCompleted(artist, QByteArray());
+                }
                 }).get();
         })
         .post();
@@ -322,6 +325,8 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
 }
 
 void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
+    auto writer = MakeMetadataWriter();
+
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
@@ -401,7 +406,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<Pl
             rg.track_peak = replay_gain.track_peak[i];
             rg.ref_loudness = target_loudness;
 
-            writer_->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
+            writer->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
             emit ReadReplayGain(playlistId,
                 replay_gain.play_list_entities[i],
                 replay_gain.track_loudness[i],
@@ -414,8 +419,17 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<Pl
     }
 }
 
-void BackgroundWorker::OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode) {
-    const auto facade = QSharedPointer<DatabaseFacade>(new DatabaseFacade());
-    facade->ReadTrackInfo(this, file_path, playlist_id, false);
-    OnLoadAlbumCoverCache();
+void BackgroundWorker::OnTanslation(const QString& keyword, const QString& from, const QString& to) {
+    const auto url =
+        QString("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
+        .arg(QString(QUrl::toPercentEncoding(keyword)))
+        .arg(to)
+        .arg(from);
+    http::HttpClient(url)
+        .success([keyword, this](const QString& content) {
+        auto result = content;
+        result = result.replace("[[[\"", "");
+        result = result.mid(0, result.indexOf(",\"") - 1);
+        emit TranslationCompleted(keyword, result);
+            }).get();
 }
