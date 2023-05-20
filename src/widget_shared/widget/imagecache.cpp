@@ -174,6 +174,14 @@ QFileInfo ImageCache::GetImageFileInfo(const QString& tag_id) const {
 	return QFileInfo(cache_path_ + tag_id + kCacheFileExtension);
 }
 
+QPixmap ImageCache::GetCover(const QString& tag, const QString& cover_id) {
+	return GetOrAdd(tag + cover_id, [cover_id]() {
+		return image_utils::RoundImage(
+			image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
+			image_utils::kSmallImageRadius);
+		});
+}
+
 QPixmap ImageCache::GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) {
 	auto image = GetOrDefault(tag_id, false);
 	if (!image.isNull()) {

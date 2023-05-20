@@ -61,7 +61,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		auto artist_cover = AlbumViewStyledDelegate::GetCover(qTEXT("thumbnail_"), artist_cover_id);
+		auto artist_cover = qPixmapCache.GetCover(qTEXT("thumbnail_"), artist_cover_id);
 		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
 	}
 	else {
@@ -226,7 +226,7 @@ void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
-	auto artist_cover = AlbumViewStyledDelegate::GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+	auto artist_cover = qPixmapCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 	auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(round_image);

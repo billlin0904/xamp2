@@ -805,6 +805,23 @@ bool Database::IsPlaylistExist(int32_t playlist_id) const {
     return query.next();
 }
 
+QStringList Database::GetCategories() const {
+    QReadLocker read_locker(&locker_);
+
+    QStringList categories;
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("SELECT category FROM albumCategories GROUP BY category"));
+
+    THROW_IF_FAIL1(query);
+
+    while (query.next()) {
+        categories.append(query.value(qTEXT("category")).toString());
+    }
+
+    return categories;
+}
+
 int32_t Database::FindTablePlaylistId(int32_t table_id) const {
     QReadLocker read_locker(&locker_);
 

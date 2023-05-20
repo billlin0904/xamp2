@@ -1189,6 +1189,7 @@ void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& imag
         qDatabase.UpdateArtistCoverId(qDatabase.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
     }
     emit Tanslation(artist, qTEXT("ja"), qTEXT("en"));
+    //emit Tanslation(artist, qTEXT("en"), qTEXT("ja"));
     album_page_->Refresh();
 }
 

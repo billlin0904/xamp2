@@ -58,9 +58,7 @@ public:
 
 	ShowModes GetShowModes() const {
 		return show_mode_;
-	}
-
-	static QPixmap GetCover(const QString& tag, const QString& cover_id);
+	}	
 signals:
 	void EnterAlbumView(const QModelIndex& index) const;
 

@@ -68,14 +68,6 @@ void AlbumViewStyledDelegate::EnableAlbumView(bool enable) {
     enable_album_view_ = enable;
 }
 
-QPixmap AlbumViewStyledDelegate::GetCover(const QString &tag, const QString& cover_id) {
-    return qPixmapCache.GetOrAdd(tag + cover_id, [cover_id]() {
-        return image_utils::RoundImage(
-            image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
-            image_utils::kSmallImageRadius);
-        });
-}
-
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
     if (!enable_album_view_) {
         return true;
@@ -178,7 +170,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    painter->drawPixmap(cover_rect, GetCover(kAlbumCacheTag, cover_id));
+    painter->drawPixmap(cover_rect, qPixmapCache.GetCover(kAlbumCacheTag, cover_id));
 
     bool hit_play_button = false;
     if (enable_album_view_

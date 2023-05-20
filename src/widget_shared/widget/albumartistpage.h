@@ -30,6 +30,7 @@ class GenrePage;
 class QStackedWidget;
 class ClickableLabel;
 class QListWidget;
+class TagListView;
 
 class GenrePage : public QFrame {
 	Q_OBJECT
@@ -106,5 +107,7 @@ private:
 	AlbumView* album_view_;
 	ArtistView* artist_view_;
 	ArtistInfoPage* artist_info_view_;
+	TagListView* album_tag_list_widget_;
+	TagListView* artist_tag_list_widget_;
 };
 

@@ -64,6 +64,7 @@ public:
 
 	QPixmap GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory);
 
+	QPixmap GetCover(const QString& tag, const QString& cover_id);
 protected:
 	ImageCache();
 

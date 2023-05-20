@@ -8,6 +8,8 @@
 #include <QListWidget>
 #include <QSet>
 
+#include <widget/themecolor.h>
+
 class QLabel;
 
 class TagWidgetItem : public QListWidgetItem {
@@ -37,6 +39,11 @@ public:
 
 	void ClearTag();
 
+	void SetListViewFixedHeight(int32_t height);
+
+	void OnCurrentThemeChanged(ThemeColor theme_color);
+
+	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 signals:
 	void TagChanged(const QSet<QString> &tags);
 

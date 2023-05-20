@@ -992,7 +992,7 @@ void ThemeManager::SetTabTheme(QListView *tab) {
 	}
 	QListView#albumTab::item {
 		border: 0px;
-		padding-left: 6px;
+		padding-left: 6px;       
 	}
 	QListView#albumTab::item:hover {
 		background-color: transparent;
@@ -1001,10 +1001,11 @@ void ThemeManager::SetTabTheme(QListView *tab) {
 	QListView#albumTab::item:selected {
 		padding-left: 4px;
 		background-color: transparent;
+        color: rgb(%2);
 		border-bottom-width: 2px;
 		border-bottom-style: solid;
 		border-bottom-color: rgb(%1);
 	}	
-	)").arg(tab_left_color));
+	)").arg(tab_left_color).arg(tab_left_color));
 }
 

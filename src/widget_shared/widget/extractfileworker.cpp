@@ -213,8 +213,8 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
 
         XAMP_ON_SCOPE_EXIT(
             auto value = progress.load();
-        emit ReadFileProgress((value * 100) / file_count_paths.size());
-        ++progress;
+            emit ReadFileProgress((value * 100) / file_count_paths.size());
+            ++progress;
         );
 
         try {
@@ -255,7 +255,7 @@ void ExtractFileWorker::OnLoadAlbumCoverCache() {
 
     try {
         Executor::ParallelFor(GetBackgroundThreadPool(), cover_ids, [](const auto& cover_id) {
-            AlbumViewStyledDelegate::GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
+            qPixmapCache.GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
             });
     }
     catch (const std::exception& e) {
