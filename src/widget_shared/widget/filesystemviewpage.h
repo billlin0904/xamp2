@@ -21,6 +21,8 @@ public:
 signals:
 	void addDirToPlaylist(const QString& url);
 
+	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+
 private:
 	class XAMP_WIDGET_SHARED_EXPORT DirFirstSortFilterProxyModel;
 

@@ -14,6 +14,7 @@ class QAbstractButton;
 class QVBoxLayout;
 
 class XAMP_WIDGET_SHARED_EXPORT XProgressDialog : public XDialog {
+	Q_OBJECT
 public:
 	explicit XProgressDialog(const QString& title= kEmptyString,
 		const QString& cancel_text = kEmptyString,
@@ -30,6 +31,10 @@ public:
 	void SetSubValue(int total, int current);
 
 	bool WasCanceled() const;
+
+signals:
+	void CancelRequested();
+
 private:
 	int max_width_ = 800;
 	QAbstractButton* default_button_;

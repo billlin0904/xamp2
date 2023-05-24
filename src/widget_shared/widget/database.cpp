@@ -536,10 +536,9 @@ FROM
 WHERE
     albums.albumId = ?
 GROUP BY
-    musics.parentPath,
-    musics.track
+    musics.path
 ORDER BY
-    musics.parentPath DESC,
+    musics.path ASC,
     musics.track ASC;
 )"), db_);
     query.addBindValue(album_id);

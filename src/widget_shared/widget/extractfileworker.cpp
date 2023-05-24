@@ -23,6 +23,10 @@ static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
 }
 
 static size_t GetFileCount(const QString& dir, const QStringList& file_name_filters) {
+    if (QFileInfo(dir).isFile()) {
+        return 1;
+    }
+
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     size_t file_count = 0;
     while (itr.hasNext()) {
@@ -155,9 +159,9 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     int32_t playlist_id,
     bool is_podcast_mode) {
     Stopwatch sw;
+    is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, GetFileNameFilter(), filter);
-
     auto hasher = MakFilePathHash();
 
     Vector<QString> paths;
@@ -245,8 +249,12 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
     OnLoadAlbumCoverCache();
 }
 
+void ExtractFileWorker::OnCancelRequested() {
+    is_stop_ = true;
+}
+
 void ExtractFileWorker::OnLoadAlbumCoverCache() {
-    QList<QString> cover_ids;
+    /*QList<QString> cover_ids;
     cover_ids.reserve(LazyLoadingModel::kMaxBatchSize);
 
     qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
@@ -260,5 +268,5 @@ void ExtractFileWorker::OnLoadAlbumCoverCache() {
     }
     catch (const std::exception& e) {
         XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
-    }
+    }*/
 }

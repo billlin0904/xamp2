@@ -40,9 +40,9 @@ public:
     using KeyIterator = typename KeyList::iterator;
     using CacheMap = HashMap<Key, KeyIterator>;
 
-    explicit LruCache(int64_t max_size = kLruCacheSize) noexcept;
+    explicit LruCache(int64_t capacity = kLruCacheSize) noexcept;
 
-    void Resize(int64_t max_size);
+    void Resize(int64_t capacity);
 
     void AddOrUpdate(Key const& key, Value value);
 
@@ -74,7 +74,7 @@ public:
 
     bool IsFulled(size_t new_entry_size) const noexcept {
         std::shared_lock<SharedMutex> read_lock{ mutex_ };
-        return size_ + new_entry_size >= max_size_;
+        return size_ + new_entry_size >= capacity_;
     }
 
     bool Contains(Key const& key) const noexcept {
@@ -94,7 +94,7 @@ private:
     }
 
     int64_t size_;
-    int64_t max_size_;
+    int64_t capacity_;
     mutable size_t hit_count_;
     mutable size_t miss_count_;
     mutable CacheMap cache_;
@@ -111,9 +111,9 @@ template
 	typename KeyList,
 	typename SharedMutex
 >
-LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::LruCache(int64_t max_size) noexcept
+LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::LruCache(int64_t capacity) noexcept
     : size_(0)
-	, max_size_(max_size)
+	, capacity_(capacity)
     , hit_count_(0)
 	, miss_count_(0) {
 }
@@ -126,12 +126,12 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int64_t max_size) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int64_t capacity) {
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
-        max_size_ = max_size;
+        capacity_ = capacity;
     }
-    Evict(max_size_);
+    Evict(capacity_);
 }
 
 template
@@ -155,7 +155,7 @@ bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Add(Key const& ke
         cache_[key] = keys_.begin();
     }
 
-    Evict(max_size_);
+    Evict(capacity_);
     return true;
 }
 
@@ -188,7 +188,7 @@ Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key con
         cache_[key] = keys_.begin();
     }
 
-    Evict(max_size_);
+    Evict(capacity_);
 
     return value;
 }
@@ -216,7 +216,7 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key c
         }
     }
 
-    Evict(max_size_);
+    Evict(capacity_);
 }
 
 template
@@ -309,7 +309,7 @@ template
 >
 int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMaxSize() const noexcept {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
-    return max_size_;
+    return capacity_;
 }
 
 template

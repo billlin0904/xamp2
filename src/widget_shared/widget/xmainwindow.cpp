@@ -79,12 +79,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     last_rect_ = win32::GetWindowRect(winId());
 
     setAcceptDrops(true);
-
-#if defined(Q_OS_WIN)
-    QTimer::singleShot(2500, [this]() {
-        ReadDriveInfo();
-        });
-#endif
+    ReadDriveInfo();
 }
 
 // QScopedPointer require default destructor.

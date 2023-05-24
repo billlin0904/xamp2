@@ -116,6 +116,7 @@
     <ClInclude Include="widget\genre_view.h" />
     <ClInclude Include="widget\kkbox_utilis.h" />
     <QtMoc Include="widget\taglistview.h" />
+    <ClInclude Include="widget\lazyloadingmodel.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <ClInclude Include="widget\win32\win32.h" />
     <ClInclude Include="xampplayer.h" />
@@ -187,7 +188,7 @@
     <ClInclude Include="widget\xmainwindow.h" />
     <QtMoc Include="widget\xmessage.h" />
     <ClInclude Include="widget\xmessagebox.h" />
-    <ClInclude Include="widget\xprogressdialog.h" />
+    <QtMoc Include="widget\xprogressdialog.h" />
     <ClInclude Include="widget\zib_utiltis.h" />
   </ItemGroup>
   <ItemGroup>

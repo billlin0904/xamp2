@@ -80,6 +80,16 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     (void)QObject::connect(ui.dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui.dirTree);
 
+        action_map.AddAction(tr("Add file directory to album"), [this](auto pt) {
+            auto index = ui.dirTree->indexAt(pt);
+            if (!index.isValid()) {
+                return;
+            }
+            auto src_index = dir_first_sort_filter_->mapToSource(index);
+            auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
+            emit ExtractFile(path, -1, false);
+            });
+
         auto add_file_to_playlist_act = action_map.AddAction(tr("Add file directory to playlist"), [this](auto pt) {
             auto index = ui.dirTree->indexAt(pt);
             if (!index.isValid()) {
@@ -88,6 +98,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             auto src_index = dir_first_sort_filter_->mapToSource(index);
             auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
             ui.playlistPage->playlist()->append(path);
+            ui.playlistPage->playlist()->Reload();
         });
         add_file_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 

@@ -151,6 +151,11 @@ function(setup_project)
                     string(REGEX REPLACE "[-|/]w " " " CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
                     string(REGEX REPLACE "[-|/]W[0|1|2|3|4|all|X] " " " CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
                 endif()
+                if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+                    if(NOT ("x${CMAKE_C_FLAGS_RELEASE}" STREQUAL "x"))
+                        string(REGEX REPLACE "-O[d|0|1|2|3|fast] " " " CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
+                    endif()
+                endif()
                 if(PROJ_ARGS_NO_WARNING)
                     string(APPEND CMAKE_C_FLAGS " /w ")
                 elseif(PROJ_ARGS_MAX_WARNING)
@@ -166,13 +171,24 @@ function(setup_project)
                     if(NOT ("x${CMAKE_C_FLAGS_RELEASE}" STREQUAL "x"))
                         string(REGEX REPLACE "[-|/]Ob[0|1|2|3] " " " CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
                     endif()
-                    string(APPEND CMAKE_C_FLAGS_RELEASE " /Ob3 ")
+                    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+                        string(APPEND CMAKE_C_FLAGS_RELEASE " /Ob2 ")
+                    else()
+                        string(APPEND CMAKE_C_FLAGS_RELEASE " /Ob3 ")
+                    endif()
+                    set(CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE} PARENT_SCOPE)
+                endif()
+                if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+                    string(APPEND CMAKE_C_FLAGS_RELEASE " /clang:-Ofast ")
                     set(CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE} PARENT_SCOPE)
                 endif()
             else()
                 if(NOT ("x${CMAKE_C_FLAGS}" STREQUAL "x"))
                     string(REPLACE "-w " " " CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
                     string(REGEX REPLACE "-W[all|extra|error|pedantic] " " " CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+                endif()
+                if(NOT ("x${CMAKE_C_FLAGS_RELEASE}" STREQUAL "x"))
+                    string(REGEX REPLACE "-O[d|0|1|2|3|fast] " " " CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
                 endif()
                 if(PROJ_ARGS_NO_WARNING)
                     string(APPEND CMAKE_C_FLAGS " -w ")
@@ -184,7 +200,9 @@ function(setup_project)
                 if(PROJ_ARGS_WARNINGS_ARE_ERRORS)
                     string(APPEND CMAKE_C_FLAGS " -Werror ")
                 endif()
+                string(APPEND CMAKE_C_FLAGS_RELEASE " -Ofast ")
                 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} PARENT_SCOPE)
+                set(CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE} PARENT_SCOPE)
             endif()
         elseif(__lang STREQUAL "CXX")
             enable_language(CXX)
@@ -200,6 +218,11 @@ function(setup_project)
                     string(REGEX REPLACE "[-|/]EH(a-?|r-?|s-?|c-?)+ " " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
                     string(REGEX REPLACE "[-|/]w " " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
                     string(REGEX REPLACE "[-|/]W[0|1|2|3|4|all|X] " " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+                endif()
+                if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+                    if(NOT ("x${CMAKE_CXX_FLAGS_RELEASE}" STREQUAL "x"))
+                        string(REGEX REPLACE "-O[d|0|1|2|3|fast] " " " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+                    endif()
                 endif()
                 if(PROJ_ARGS_NO_WARNING)
                     string(APPEND CMAKE_CXX_FLAGS " /w ")
@@ -226,13 +249,24 @@ function(setup_project)
                     if(NOT ("x${CMAKE_CXX_FLAGS_RELEASE}" STREQUAL "x"))
                         string(REGEX REPLACE "[-|/]Ob[0|1|2|3] " " " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
                     endif()
-                    string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ob3 ")
+                    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+                        string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ob2 ")
+                    else()
+                        string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ob3 ")
+                    endif()
+                    set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE} PARENT_SCOPE)
+                endif()
+                if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+                    string(APPEND CMAKE_CXX_FLAGS_RELEASE " /clang:-Ofast ")
                     set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE} PARENT_SCOPE)
                 endif()
             else()
                 if(NOT ("x${CMAKE_CXX_FLAGS}" STREQUAL "x"))
                     string(REPLACE "-w " " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
                     string(REGEX REPLACE "-W[all|extra|error|pedantic] " " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+                endif()
+                if(NOT ("x${CMAKE_CXX_FLAGS_RELEASE}" STREQUAL "x"))
+                    string(REGEX REPLACE "-O[d|0|1|2|3|fast] " " " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
                 endif()
                 if(PROJ_ARGS_NO_WARNING)
                     string(APPEND CMAKE_CXX_FLAGS " -w ")
@@ -254,14 +288,18 @@ function(setup_project)
                 else()
                     string(APPEND CMAKE_CXX_FLAGS " -fno-exceptions ")
                 endif()
+                string(APPEND CMAKE_CXX_FLAGS_RELEASE " -Ofast ")
                 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
+                set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE} PARENT_SCOPE)
             endif()
         elseif(__lang STREQUAL "RC")
             if(WIN32)
                 enable_language(RC)
             endif()
             if(MSVC)
-                # Clang-CL forces us use "-" instead of "/".
+                # Clang-CL forces us use "-" instead of "/" because it always
+                # regard everything begins with "/" as a file path instead of
+                # a command line parameter.
                 set(CMAKE_RC_FLAGS "-c65001 -DWIN32 -nologo" PARENT_SCOPE)
             endif()
         endif()
@@ -355,6 +393,19 @@ function(setup_compile_params)
         message(AUTHOR_WARNING "setup_compile_params: Unrecognized arguments: ${COM_ARGS_UNPARSED_ARGUMENTS}")
     endif()
     foreach(__target ${COM_ARGS_TARGETS})
+        set(__target_type "UNKNOWN")
+        get_target_property(__target_type ${__target} TYPE)
+        # Turn off LTCG/LTO for static libraries, because enabling it for the static libraries
+        # will destroy the binary compatibility of them and some compilers will also produce
+        # some way too large object files which we can't accept in most cases.
+        if(__target_type STREQUAL "STATIC_LIBRARY")
+            set_target_properties(${__target} PROPERTIES
+                INTERPROCEDURAL_OPTIMIZATION OFF
+                INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL OFF
+                INTERPROCEDURAL_OPTIMIZATION_RELEASE OFF
+                INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO OFF
+            )
+        endif()
         # Needed by both MSVC and MinGW, otherwise some APIs we need will not be available.
         if(WIN32)
             set(_WIN32_WINNT_WIN10 0x0A00)
@@ -379,16 +430,14 @@ function(setup_compile_params)
                 STRICT # https://learn.microsoft.com/en-us/windows/win32/winprog/enabling-strict
                 WIN32_LEAN_AND_MEAN WINRT_LEAN_AND_MEAN # Filter out some rarely used headers, to increase compilation speed.
             )
-            if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang") # Clang-CL doesn't support all these parameters.
+            if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
                 target_compile_options(${__target} PRIVATE
                     /bigobj /utf-8 $<$<NOT:$<CONFIG:Debug>>:/fp:fast /GT /Gw /Gy /Zc:inline>
                 )
                 target_link_options(${__target} PRIVATE
                     $<$<NOT:$<CONFIG:Debug>>:/OPT:REF /OPT:ICF /OPT:LBR>
-                    /DYNAMICBASE /NXCOMPAT /LARGEADDRESSAWARE /WX
+                    /DYNAMICBASE /FIXED:NO /NXCOMPAT /LARGEADDRESSAWARE /WX
                 )
-                set(__target_type "UNKNOWN")
-                get_target_property(__target_type ${__target} TYPE)
                 if(__target_type STREQUAL "EXECUTABLE")
                     target_compile_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GA>)
                     target_link_options(${__target} PRIVATE /TSAWARE)
@@ -410,6 +459,9 @@ function(setup_compile_params)
                         target_compile_options(${__target} PRIVATE /d2FH4)
                     endif()
                 endif()
+                if(MSVC_VERSION GREATER_EQUAL 1925) # Visual Studio 2019 version 16.5
+                    target_compile_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/QIntel-jcc-erratum>)
+                endif()
                 if(MSVC_VERSION GREATER_EQUAL 1929) # Visual Studio 2019 version 16.10
                     target_compile_options(${__target} PRIVATE /await:strict)
                 elseif(MSVC_VERSION GREATER_EQUAL 1900) # Visual Studio 2015
@@ -425,11 +477,6 @@ function(setup_compile_params)
                 if(COM_ARGS_INTELCET)
                     if(MSVC_VERSION GREATER_EQUAL 1920) # Visual Studio 2019 version 16.0
                         target_link_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/CETCOMPAT>)
-                    endif()
-                endif()
-                if(COM_ARGS_INTELJCC)
-                    if(MSVC_VERSION GREATER_EQUAL 1925) # Visual Studio 2019 version 16.5
-                        target_compile_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/QIntel-jcc-erratum>)
                     endif()
                 endif()
                 if(COM_ARGS_SPECTRE)
@@ -496,41 +543,33 @@ function(setup_compile_params)
                 endif()
             endif()
         else()
-            # MinGW also support these flags.
+            if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                # Use pipes for communicating between sub-processes. Faster. Have no effect for Clang.
+                target_compile_options(${__target} PRIVATE -pipe)
+            endif()
             target_compile_options(${__target} PRIVATE
-                $<$<NOT:$<CONFIG:Debug>>:-ffunction-sections -fdata-sections>
+                $<$<NOT:$<CONFIG:Debug>>:-ffp-contract=fast -fomit-frame-pointer -ffunction-sections -fdata-sections>
             )
             if(APPLE)
                 target_link_options(${__target} PRIVATE
-                    $<$<NOT:$<CONFIG:Debug>>:-Wl,-dead_strip>
+                    -Wl,-fatal_warnings
+                    $<$<NOT:$<CONFIG:Debug>>:-Wl,-dead_strip -Wl,-no_data_in_code_info -Wl,-no_function_starts>
                 )
             else()
                 target_link_options(${__target} PRIVATE
-                    $<$<NOT:$<CONFIG:Debug>>:-Wl,--gc-sections>
+                    -Wl,--fatal-warnings -Wl,--build-id=sha1
+                    $<$<NOT:$<CONFIG:Debug>>:-Wl,--gc-sections -Wl,-O3> # Specifically tell the linker to perform optimizations.
+                )
+            endif()
+            if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                target_compile_options(${__target} PRIVATE
+                    $<$<NOT:$<CONFIG:Debug>>:-Wa,-mbranches-within-32B-boundaries>
                 )
             endif()
             if(COM_ARGS_INTELCET)
-                if(MINGW)
-                    # Currently not supported.
-                else()
-                    target_compile_options(${__target} PRIVATE
-                        $<$<NOT:$<CONFIG:Debug>>:-fcf-protection=full>
-                    )
-                endif()
-            endif()
-            if(COM_ARGS_INTELJCC)
-                if(MINGW)
-                    # Currently not supported.
-                else()
-                    set(__prefix)
-                    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-                        set(__prefix "-Wa,")
-                    endif()
-                    target_compile_options(${__target} PRIVATE
-                        $<$<NOT:$<CONFIG:Debug>>:${__prefix}-mbranches-within-32B-boundaries>
-                    )
-                    unset(__prefix)
-                endif()
+                target_compile_options(${__target} PRIVATE
+                    $<$<NOT:$<CONFIG:Debug>>:-mshstk>
+                )
             endif()
             if(COM_ARGS_CFGUARD)
                 if(MINGW)
@@ -538,45 +577,139 @@ function(setup_compile_params)
                         $<$<NOT:$<CONFIG:Debug>>:-mguard=cf>
                     )
                     target_link_options(${__target} PRIVATE
-                        $<$<NOT:$<CONFIG:Debug>>:-Wl,-mguard=cf>
+                        $<$<NOT:$<CONFIG:Debug>>:-Wl,-mguard=cf> # TODO: Do we need "-Wl," here?
                     )
-                else()
-                    # AppleClang says x86 doesn't support -fsanitize=cfi -fsanitize-cfi-cross-dso, why?
+                elseif(APPLE OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
                     target_compile_options(${__target} PRIVATE
                         $<$<NOT:$<CONFIG:Debug>>:-fcf-protection=full>
                     )
                 endif()
             endif()
             if(COM_ARGS_SPECTRE)
-                if(MINGW)
-                    # Currently not supported.
-                elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-                    target_compile_options(${__target} PRIVATE
-                        $<$<NOT:$<CONFIG:Debug>>:
-                            -mretpoline
-                            -mspeculative-load-hardening
-                        >
-                    )
-                    # AppleClang can't recognize these parameters, why?
-                    #[[target_link_options(${__target} PRIVATE
-                        $<$<NOT:$<CONFIG:Debug>>:
-                            -Wl,-z,relro
-                            -Wl,-z,now
-                            -Wl,-z,noexecstack
-                            -Wl,-z,separate-code
-                        >
-                    )]]
-                elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-                    target_compile_options(${__target} PRIVATE
+                if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                    #[[target_compile_options(${__target} PRIVATE
                         $<$<NOT:$<CONFIG:Debug>>:
                             # These parameters are not compatible with -fcf-protection=full
-                            #[[-mindirect-branch=thunk
+                            -mindirect-branch=thunk
                             -mfunction-return=thunk
                             -mindirect-branch-register
-                            -mindirect-branch-cs-prefix]]
-                            -fcf-protection=full
+                            -mindirect-branch-cs-prefix
                         >
+                    )]]
+                endif()
+            endif()
+        endif()
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            set(__lto_enabled)
+            if(DEFINED CMAKE_BUILD_TYPE)
+                set(__upper_type)
+                string(TOUPPER ${CMAKE_BUILD_TYPE} __upper_type)
+                get_target_property(__lto_enabled ${__target} INTERPROCEDURAL_OPTIMIZATION_${__upper_type})
+            endif()
+            if(NOT __lto_enabled)
+                get_target_property(__lto_enabled ${__target} INTERPROCEDURAL_OPTIMIZATION)
+            endif()
+            if(__lto_enabled)
+                target_compile_options(${__target} PRIVATE
+                    $<$<NOT:$<CONFIG:Debug>>:-fsplit-lto-unit -fwhole-program-vtables>
+                )
+                if(MSVC)
+                    target_link_options(${__target} PRIVATE
+                        $<$<NOT:$<CONFIG:Debug>>:/OPT:lldltojobs=all /OPT:lldlto=3> # /lldltocachepolicy:cache_size=10%:cache_size_bytes=40g:cache_size_files=100000
                     )
+                else()
+                    target_link_options(${__target} PRIVATE
+                        $<$<NOT:$<CONFIG:Debug>>:-fwhole-program-vtables -Wl,--thinlto-jobs=all -Wl,--lto-O3> # -Wl,--thinlto-cache-policy=cache_size=10%:cache_size_bytes=40g:cache_size_files=100000
+                    )
+                endif()
+            endif()
+            target_link_options(${__target} PRIVATE
+                $<$<NOT:$<CONFIG:Debug>>:-Wl,--icf=all>
+            )
+            #[[target_compile_options(${__target} PRIVATE
+                $<$<NOT:$<CONFIG:Debug>>:-fsanitize=shadow-call-stack -fno-stack-protector>
+            )
+            target_link_options(${__target} PRIVATE
+                $<$<NOT:$<CONFIG:Debug>>:-fsanitize=shadow-call-stack -fno-stack-protector>
+            )]]
+            target_compile_options(${__target} PRIVATE
+                -fcolor-diagnostics
+                # Enable -fmerge-all-constants. This used to be the default in clang
+                # for over a decade. It makes clang non-conforming, but is fairly safe
+                # in practice and saves some binary size.
+                -fmerge-all-constants
+            )
+            if(MSVC)
+                # Required to make the 19041 SDK compatible with clang-cl.
+                target_compile_definitions(${__target} PRIVATE __WRL_ENABLE_FUNCTION_STATICS__)
+                target_compile_options(${__target} PRIVATE
+                    /bigobj /utf-8 /FS
+                    -fmsc-version=1935 # Tell clang-cl to emulate Visual Studio 2022 version 17.5
+                    # This flag enforces that member pointer base types are complete.
+                    # It helps prevent us from running into problems in the Microsoft C++ ABI.
+                    -fcomplete-member-pointers
+                    # Consistently use backslash as the path separator when expanding the
+                    # __FILE__ macro when targeting Windows regardless of the build environment.
+                    -ffile-reproducible
+                    # Enable ANSI escape codes if something emulating them is around (cmd.exe
+                    # doesn't understand ANSI escape codes by default).
+                    -fansi-escape-codes
+                    /Zc:dllexportInlines- # Do not export inline member functions. This is similar to "-fvisibility-inlines-hidden".
+                    /Zc:char8_t /Zc:sizedDealloc /Zc:strictStrings /Zc:threadSafeInit /Zc:trigraphs /Zc:twoPhase
+                    /clang:-mcx16 # Needed by _InterlockedCompareExchange128() from CPP/WinRT.
+                    $<$<NOT:$<CONFIG:Debug>>:/clang:-mbranches-within-32B-boundaries /fp:fast /Gw /Gy /Zc:inline>
+                )
+                target_link_options(${__target} PRIVATE
+                    --color-diagnostics
+                    /DYNAMICBASE /FIXED:NO /NXCOMPAT /LARGEADDRESSAWARE
+                    $<$<NOT:$<CONFIG:Debug>>:/OPT:REF /OPT:ICF /OPT:LBR /OPT:lldtailmerge>
+                )
+                if(__target_type STREQUAL "EXECUTABLE")
+                    target_compile_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GA>)
+                    target_link_options(${__target} PRIVATE /TSAWARE)
+                endif()
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    target_link_options(${__target} PRIVATE /HIGHENTROPYVA)
+                endif()
+                if(COM_ARGS_CFGUARD)
+                    target_compile_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/guard:cf>)
+                    target_link_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GUARD:CF>)
+                endif()
+                if(COM_ARGS_INTELCET)
+                    target_link_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/CETCOMPAT>)
+                endif()
+                if(COM_ARGS_EHCONTGUARD)
+                    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                        target_compile_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/guard:ehcont>)
+                        target_link_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/guard:ehcont>)
+                    endif()
+                endif()
+            else()
+                target_link_options(${__target} PRIVATE -fuse-ld=lld -Wl,--color-diagnostics)
+                if(APPLE)
+                    # TODO: -fobjc-arc (http://clang.llvm.org/docs/AutomaticReferenceCounting.html)
+                    target_compile_options(${__target} PRIVATE -fobjc-call-cxx-cdtors)
+                    target_link_options(${__target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:-Wl,--strict-auto-link>)
+                else()
+                    target_link_options(${__target} PRIVATE -Wl,-z,keep-text-section-prefix)
+                endif()
+                if(COM_ARGS_SPECTRE)
+                    target_compile_options(${__target} PRIVATE
+                        $<$<NOT:$<CONFIG:Debug>>:-mretpoline -mspeculative-load-hardening>
+                    )
+                    # AppleClang can't recognize "-z" parameters, why?
+                    if(NOT APPLE)
+                        target_link_options(${__target} PRIVATE
+                            $<$<NOT:$<CONFIG:Debug>>:-Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-z,separate-code>
+                        )
+                    endif()
+                endif()
+                if(COM_ARGS_CFGUARD)
+                    if(NOT APPLE)
+                        target_compile_options(${__target} PRIVATE
+                            $<$<NOT:$<CONFIG:Debug>>:-fsanitize=cfi -fsanitize-cfi-cross-dso>
+                        )
+                    endif()
                 endif()
             endif()
         endif()
@@ -1177,4 +1310,96 @@ function(generate_win32_manifest_file)
 </assembly>
 ")
     file(WRITE "${MF_ARGS_PATH}" ${__contents})
+endfunction()
+
+function(query_qt_paths)
+    cmake_parse_arguments(QT_ARGS "" "SDK_DIR;BIN_DIR;DOC_DIR;INCLUDE_DIR;LIB_DIR;PLUGINS_DIR;QML_DIR;TRANSLATIONS_DIR" "" ${ARGN})
+    find_package(QT NAMES Qt6 Qt5 QUIET COMPONENTS Core)
+    find_package(Qt${QT_VERSION_MAJOR} QUIET COMPONENTS Core)
+    if(NOT (Qt6_FOUND OR Qt5_FOUND))
+        message(AUTHOR_WARNING "You need to install the QtCore module first to be able to query Qt installation paths.")
+        return()
+    endif()
+    # /whatever/Qt/6.5.0/gcc_64/lib/cmake/Qt6
+    set(__qt_inst_dir "${Qt${QT_VERSION_MAJOR}_DIR}")
+    cmake_path(GET __qt_inst_dir PARENT_PATH __qt_inst_dir)
+    cmake_path(GET __qt_inst_dir PARENT_PATH __qt_inst_dir)
+    cmake_path(GET __qt_inst_dir PARENT_PATH __qt_inst_dir)
+    if(QT_ARGS_SDK_DIR)
+        set(${QT_ARGS_SDK_DIR} "${__qt_inst_dir}" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_BIN_DIR)
+        set(${QT_ARGS_BIN_DIR} "${__qt_inst_dir}/bin" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_DOC_DIR)
+        set(${QT_ARGS_DOC_DIR} "${__qt_inst_dir}/doc" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_INCLUDE_DIR)
+        set(${QT_ARGS_INCLUDE_DIR} "${__qt_inst_dir}/include" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_LIB_DIR)
+        set(${QT_ARGS_LIB_DIR} "${__qt_inst_dir}/lib" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_PLUGINS_DIR)
+        set(${QT_ARGS_PLUGINS_DIR} "${__qt_inst_dir}/plugins" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_QML_DIR)
+        set(${QT_ARGS_QML_DIR} "${__qt_inst_dir}/qml" PARENT_SCOPE)
+    endif()
+    if(QT_ARGS_TRANSLATIONS_DIR)
+        set(${QT_ARGS_TRANSLATIONS_DIR} "${__qt_inst_dir}/translations" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(query_qt_library_info)
+    cmake_parse_arguments(QT_ARGS "" "STATIC;SHARED;VERSION" "" ${ARGN})
+    find_package(QT NAMES Qt6 Qt5 QUIET COMPONENTS Core)
+    find_package(Qt${QT_VERSION_MAJOR} QUIET COMPONENTS Core)
+    if(NOT (Qt6_FOUND OR Qt5_FOUND))
+        message(AUTHOR_WARNING "You need to install the QtCore module first to be able to query Qt library information.")
+        return()
+    endif()
+    if(QT_ARGS_STATIC OR QT_ARGS_SHARED)
+        get_target_property(__lib_type Qt${QT_VERSION_MAJOR}::Core TYPE)
+        if(QT_ARGS_STATIC)
+            if(__lib_type STREQUAL "STATIC_LIBRARY")
+                set(${QT_ARGS_STATIC} ON PARENT_SCOPE)
+            elseif(__lib_type STREQUAL "SHARED_LIBRARY")
+                set(${QT_ARGS_STATIC} OFF PARENT_SCOPE)
+            endif()
+        endif()
+        if(QT_ARGS_SHARED)
+            if(__lib_type STREQUAL "STATIC_LIBRARY")
+                set(${QT_ARGS_SHARED} OFF PARENT_SCOPE)
+            elseif(__lib_type STREQUAL "SHARED_LIBRARY")
+                set(${QT_ARGS_SHARED} ON PARENT_SCOPE)
+            endif()
+        endif()
+    endif()
+    if(QT_ARGS_VERSION)
+        set(${QT_ARGS_VERSION} "${QT_VERSION}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(dump_target_info)
+    cmake_parse_arguments(arg "" "" "TARGETS" ${ARGN})
+    if(NOT arg_TARGETS)
+        message(AUTHOR_WARNING "dump_target_info: you have to specify at least one target!")
+        return()
+    endif()
+    foreach(__target ${arg_TARGETS})
+        if(NOT TARGET ${__target})
+            message(AUTHOR_WARNING "${__target} is not a valid CMake target!")
+            continue()
+        endif()
+        set(__compile_options)
+        set(__compile_definitions)
+        set(__link_options)
+        get_target_property(__compile_options ${__target} COMPILE_OPTIONS)
+        get_target_property(__compile_definitions ${__target} COMPILE_DEFINITIONS)
+        get_target_property(__link_options ${__target} LINK_OPTIONS)
+        message("${__target}'s compile options: ${__compile_options}")
+        message("${__target}'s compile definitions: ${__compile_definitions}")
+        message("${__target}'s link options: ${__link_options}")
+    endforeach()
 endfunction()

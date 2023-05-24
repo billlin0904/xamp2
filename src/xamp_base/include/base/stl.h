@@ -206,7 +206,7 @@ std::vector<TValue> Values(const TMap<TKey, TValue> &map) {
 	return keys;
 }
 
-// #define XAMP_USE_STD_MAP
+#define XAMP_USE_STD_MAP
 
 #ifdef XAMP_USE_STD_MAP
 template <typename T1, typename T2>
@@ -216,7 +216,7 @@ template <typename K, typename V, typename H = std::hash<K>, typename E = std::e
 using HashMap = std::unordered_map<K, V, H, E>;
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
-using HashMap = std::unordered_map<K, V, H, E>;
+using FloatMap = std::unordered_map<K, V, H, E>;
 
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
 using HashSet = std::unordered_set<T, H, E>;

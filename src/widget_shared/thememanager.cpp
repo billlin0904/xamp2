@@ -221,22 +221,21 @@ QFont ThemeManager::LoadFonts() {
     QList<QString> mono_fonts;
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
+    QList<QString> en_fonts;
     QList<QString> debug_fonts;
 
     SetFontAwesomeIcons();
 
     InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-    //InstallFileFonts(qTEXT("HelveticaNowText"), format_font);
     InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    //InstallFileFonts(qTEXT("OpenSans"), ui_fonts);
-    //InstallFileFonts(qTEXT("Roboto"), ui_fonts);
-    //InstallFileFonts(qTEXT("Poppins"), ui_fonts);
-    InstallFileFonts(qTEXT("HelveticaNowText"), ui_fonts);
+    InstallFileFonts(qTEXT("HelveticaNowText"), en_fonts);
     InstallFileFonts(qTEXT("MiSans"), ui_fonts);
     InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
     SortFontWeight(ui_fonts.begin(), ui_fonts.end());
-
+    ui_fonts.insert(0, en_fonts[0]);
+    ui_fonts.insert(1, en_fonts[1]);
+    
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
     }
@@ -647,7 +646,8 @@ QColor ThemeManager::GetHighlightColor() const {
         return QColor(qTEXT("#9FCBFF"));
     case ThemeColor::DARK_THEME:
     default:
-        return QColor(qTEXT("#a7c8ff"));
+        //return QColor(qTEXT("#a7c8ff"));
+        return QColor(qTEXT("#00b4d8"));
     }
 }
 

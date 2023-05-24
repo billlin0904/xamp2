@@ -400,7 +400,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 }
 
 HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
-	if (is_running_) {
+	if (is_running_ && rt_work_queue_ != nullptr) {
 		try {
 			GetSample(false);
 			rt_work_queue_->WaitAsync(sample_ready_.get());

@@ -49,7 +49,7 @@
         "resampleSampleRate": 176400
     },
     "Soxr": {
-        "default": {
+        "BlueTooth": {
             "passBand": 96,
             "phase": 47,
             "quality": 4,

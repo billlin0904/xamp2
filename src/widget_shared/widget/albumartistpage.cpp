@@ -544,5 +544,10 @@ void AlbumArtistPage::Refresh() {
 	Q_FOREACH(auto * page, genre_page_list_) {
 		page->view()->Refresh();
 	}
+
+	auto title_category_list = qDatabase.GetCategories();
+	Q_FOREACH(auto category, title_category_list) {
+		album_tag_list_widget_->AddTag(category);
+	}
 }
 

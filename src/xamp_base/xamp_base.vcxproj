@@ -172,6 +172,7 @@
     <ClInclude Include="include\base\jthread.h" />
     <ClInclude Include="include\base\latch.h" />
     <ClInclude Include="include\base\logger_impl.h" />
+    <ClInclude Include="include\base\lrukcache.h" />
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />

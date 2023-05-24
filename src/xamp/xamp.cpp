@@ -556,19 +556,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     SetPlayerOrder();
     InitialDeviceList();
 
-    //const QVariantMap settings{
-    //   { qTEXT("path"), qTEXT("C:/Qt/MaintenanceTool") } //.exe or .app is automatically added on the platform
-    //};
-    //using namespace QtAutoUpdater;
-    //updater_ = Updater::create(kApplicationTitle, settings, this);
-    //QObject::connect(updater_, &QtAutoUpdater::Updater::checkUpdatesDone,
-    //    [this](auto state) {
-    //        if (state == QtAutoUpdater::Updater::State::NewUpdates) {
-    //            updater_->runUpdater();
-    //        }
-    //        qApp->quit();
-    //    });
-    //updater_->checkForUpdates();
+    (void)QObject::connect(file_system_view_page_,
+        &FileSystemViewPage::ExtractFile,
+        extract_file_worker_,
+        &ExtractFileWorker::OnExtractFile,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::ExtractFile,
@@ -666,29 +658,21 @@ void Xamp::cleanup() {
         XAMP_LOG_DEBUG("Player destroy!");
     }
 
-    if (!background_thread_.isFinished()) {
-        if (background_worker_ != nullptr) {
-            background_worker_->StopThreadPool();
+    if (background_worker_ != nullptr) {
+        background_worker_->StopThreadPool();
+    }
+
+    auto QuitAndWaitThread = [](auto &thread) {
+        if (!thread.isFinished()) {
+            thread.requestInterruption();
+            thread.quit();
+            thread.wait();
         }
-        background_thread_.requestInterruption();
-        background_thread_.quit();
-        background_thread_.wait();
-        XAMP_LOG_DEBUG("background_thread stop!");
-    }
+    };
 
-    if (!find_album_cover_thread_.isFinished()) {
-        find_album_cover_thread_.requestInterruption();
-        find_album_cover_thread_.quit();
-        find_album_cover_thread_.wait();
-        XAMP_LOG_DEBUG("find_album_cover_thread stop!");
-    }
-
-    if (!extract_file_thread_.isFinished()) {
-        extract_file_thread_.requestInterruption();
-        extract_file_thread_.quit();
-        extract_file_thread_.wait();
-        XAMP_LOG_DEBUG("find_album_cover_thread stop!");
-    }
+    QuitAndWaitThread(background_thread_);
+    QuitAndWaitThread(find_album_cover_thread_);
+    QuitAndWaitThread(extract_file_thread_);
 
     if (main_window_ != nullptr) {
         main_window_->SaveGeometry();
@@ -878,7 +862,7 @@ void Xamp::InitialDeviceList() {
 void Xamp::SliderAnimation(bool enable) {
     auto* animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
     const auto slider_geometry = ui_.sliderFrame->geometry();
-    constexpr auto kMaxSliderWidth = 200;
+    constexpr auto kMaxSliderWidth = 175;
     constexpr auto kMinSliderWidth = 43;
     QSize size;
     if (!enable) {
@@ -1205,7 +1189,6 @@ void Xamp::SetFullScreen() {
         ui_.sliderFrame->setHidden(true);
         ui_.titleFrame->setHidden(true);
         ui_.verticalSpacer_3->changeSize(0, 0);
-        //main_window_->showFullScreen();
         lrc_page_->SetFullScreen(true);
         AppSettings::SetValue(kAppSettingEnterFullScreen, false);
     }
@@ -1214,7 +1197,6 @@ void Xamp::SetFullScreen() {
         ui_.sliderFrame->setHidden(false);
         ui_.titleFrame->setHidden(false);
         ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
-        //main_window_->showNormal();
         lrc_page_->SetFullScreen(false);
         AppSettings::SetValue(kAppSettingEnterFullScreen, true);
     }
@@ -1430,6 +1412,18 @@ void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
 }
 
 void Xamp::SetupDsp(const PlayListEntity& item) const {
+    if (AppSettings::ValueAsBool(kAppSettingEnableEQ)) {
+        if (AppSettings::contains(kAppSettingEQName)) {
+            const auto [name, settings] =
+                AppSettings::GetEqSettings();
+            player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
+            player_->GetDspManager()->AddEqualizer();
+        }
+    }
+    else {
+        player_->GetDspManager()->RemoveEqualizer();
+    }
+
     if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = AppSettings::ValueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
@@ -1443,18 +1437,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
         }
     } else {
         player_->GetDspManager()->RemoveVolumeControl();
-    }
-
-    if (AppSettings::ValueAsBool(kAppSettingEnableEQ)) {
-        if (AppSettings::contains(kAppSettingEQName)) {
-            const auto [name, settings] = 
-                AppSettings::GetEqSettings();
-            player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
-            player_->GetDspManager()->AddEqualizer();
-        }
-    } else {
-        player_->GetDspManager()->RemoveEqualizer();
-    }
+    }    
 }
 
 QString Xamp::TranslateErrorCode(const Errors error) const {
@@ -1530,28 +1513,32 @@ void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_c
     QString& sample_rate_converter_type) {
     sample_rate_converter_type = AppSettings::ValueAsString(kAppSettingResamplerType);
 
-    if (!AppSettings::ValueAsBool(kEnableBitPerfect)) {
-		if (AppSettings::ValueAsBool(kAppSettingResamplerEnable)) {
-			if (sample_rate_converter_type == kSoxr || sample_rate_converter_type.isEmpty()) {
-				QMap<QString, QVariant> soxr_settings;
-				const auto setting_name = AppSettings::ValueAsString(kAppSettingSoxrSettingName);
-				soxr_settings = JsonSettings::GetValue(kSoxr).toMap()[setting_name].toMap();
-				target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
-
-				initial_sample_rate_converter = [=]() {
-					player_->GetDspManager()->AddPreDSP(MakeSoxrSampleRateConverter(soxr_settings));
-				};
-			}
-			else if (sample_rate_converter_type == kR8Brain) {
-				auto config = JsonSettings::ValueAsMap(kR8Brain);
-				target_sample_rate = config[kResampleSampleRate].toUInt();
-
-				initial_sample_rate_converter = [=]() {
-					player_->GetDspManager()->AddPreDSP(MakeR8BrainSampleRateConverter());
-				};
-			}
-		}
+    if (AppSettings::ValueAsBool(kEnableBitPerfect)) {
+        return;
 	}
+
+    if (!AppSettings::ValueAsBool(kAppSettingResamplerEnable)) {
+        return;
+    }
+
+    if (sample_rate_converter_type == kSoxr || sample_rate_converter_type.isEmpty()) {
+        QMap<QString, QVariant> soxr_settings;
+        const auto setting_name = AppSettings::ValueAsString(kAppSettingSoxrSettingName);
+        soxr_settings = JsonSettings::GetValue(kSoxr).toMap()[setting_name].toMap();
+        target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
+
+        initial_sample_rate_converter = [=]() {
+            player_->GetDspManager()->AddPreDSP(MakeSoxrSampleRateConverter(soxr_settings));
+        };
+    }
+    else if (sample_rate_converter_type == kR8Brain) {
+        auto config = JsonSettings::ValueAsMap(kR8Brain);
+        target_sample_rate = config[kResampleSampleRate].toUInt();
+
+        initial_sample_rate_converter = [=]() {
+            player_->GetDspManager()->AddPreDSP(MakeR8BrainSampleRateConverter());
+        };
+    }
 }
 
 void Xamp::PlayEntity(const PlayListEntity& entity) {
@@ -1613,8 +1600,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
                 }
             }           
             
-            if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
-                SetupDsp(entity);
+            if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {                
                 CompressorParameters parameters;
                 if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
                     if (entity.track_loudness != 0) {
@@ -1623,6 +1609,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
                 }
                 player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
                 player_->GetDspManager()->AddCompressor();
+                SetupDsp(entity);
             }
         } else {
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
@@ -2325,10 +2312,10 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         background_worker_,
         &BackgroundWorker::OnReadReplayGain);
 
-    /*(void)QObject::connect(playlist_page->playlist(),
+    (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::ExtractFile,
         extract_file_worker_,
-        &ExtractFileWorker::OnExtractFile);*/
+        &ExtractFileWorker::OnExtractFile);
 
     if (playlist_page->playlist()->IsPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
@@ -2420,13 +2407,21 @@ void Xamp::OnReadFileProgress(int progress) {
     read_progress_dialog_->SetValue(progress);    
 }
 
-void Xamp::OnReadCompleted() {
+void Xamp::OnReadCompleted() {    
+    album_page_->Refresh();
+    playlist_page_->playlist()->Reload();
+    current_playlist_page_->playlist()->Reload();
+    file_system_view_page_->playlistPage()->playlist()->Reload();
     read_progress_dialog_.reset();
-    album_page_->album()->Update();
 }
 
 void Xamp::OnReadFileStart() {
     read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
         tr("Read track information"),
         tr("Cancel"));
+
+    (void)QObject::connect(read_progress_dialog_.get(),
+        &XProgressDialog::CancelRequested, [this]() {
+            extract_file_worker_->OnCancelRequested();
+        });
 }

@@ -9,6 +9,8 @@
 #include <QObject>
 
 #include <base/logger.h>
+#include <base/lrukcache.h>
+
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/image_utiltis.h>
@@ -89,6 +91,7 @@ private:
 	QString cache_path_;
 	LoggerPtr logger_;
 	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> cache_;
+	LruCache<QString, QPixmap> cover_cache_;
 };
 
 #define qPixmapCache SharedSingleton<ImageCache>::GetInstance()

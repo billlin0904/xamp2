@@ -264,10 +264,9 @@ void PlayListTableView::Reload() {
     WHERE
     playlistMusics.playlistId = %1
     GROUP BY
-    musics.parentPath,
-    musics.track
+    musics.path
     ORDER BY
-    musics.parentPath DESC,
+    musics.path ASC,
     musics.track ASC;
     )");
     const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
@@ -1113,7 +1112,7 @@ void PlayListTableView::RemoveSelectItems() {
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
         const auto it = item((*itr).second);
         CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_, it.playlist_music_id))
-        remove_music_ids.push_back(it.playlist_music_id);
+        remove_music_ids.push_back(it.music_id);
     }
 
     const auto count = model_->rowCount();

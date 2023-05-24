@@ -78,6 +78,17 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	QDir dir(file_path);
 	QDir scan_dir(dir);
 
+	QFileInfo file_info(scan_dir.absolutePath());
+	for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+		itr.hasNext();) {
+		const auto image_file_path = itr.next();
+		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
+		QImageReader reader(image_file_path);
+		if (reader.read(&image)) {
+			return QPixmap::fromImage(image);
+		}
+	}
+
 	// Find 'Scans' folder in the same level or in parent folders.
 	while (!scan_dir.isRoot()) {
 		if (std::any_of(target_folders.cbegin(), target_folders.cend(), [&](const QString& folder) {
@@ -112,22 +123,6 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	if (!image_files.empty()) {
 		QImageReader reader(scan_dir.filePath(image_files[0]));
 		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
-		if (reader.read(&image)) {
-			return QPixmap::fromImage(image);
-		}
-	}
-
-	// Not found any image file, reset to file path.
-	if (scan_dir.isRoot()) {
-		scan_dir = QDir(file_path);
-	}
-
-	QFileInfo file_info(scan_dir.absolutePath());
-	for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-		itr.hasNext();) {
-		const auto image_file_path = itr.next();
-		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB32);
-		QImageReader reader(image_file_path);
 		if (reader.read(&image)) {
 			return QPixmap::fromImage(image);
 		}
@@ -174,11 +169,14 @@ QFileInfo ImageCache::GetImageFileInfo(const QString& tag_id) const {
 	return QFileInfo(cache_path_ + tag_id + kCacheFileExtension);
 }
 
-QPixmap ImageCache::GetCover(const QString& tag, const QString& cover_id) {
-	return GetOrAdd(tag + cover_id, [cover_id]() {
-		return image_utils::RoundImage(
-			image_utils::ResizeImage(qPixmapCache.GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
-			image_utils::kSmallImageRadius);
+QPixmap ImageCache::GetCover(const QString& tag, const QString& cover_id) {	
+	XAMP_LOG_DEBUG(cover_cache_);
+	return cover_cache_.GetOrAdd(tag + cover_id, [this, tag, cover_id]() {
+		return GetOrAdd(tag + cover_id, [cover_id, this]() {
+			return image_utils::RoundImage(
+				image_utils::ResizeImage(GetOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
+				image_utils::kSmallImageRadius);
+			});
 		});
 }
 

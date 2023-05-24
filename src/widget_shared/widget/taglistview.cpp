@@ -8,7 +8,7 @@
 #include <QLabel>
 
 TagWidgetItem::TagWidgetItem(const QString& tag, QColor color, QLabel* label, QListWidget* parent)
-	: QListWidgetItem(parent)
+	: QListWidgetItem(tag, parent)
 	, color_(color)
 	, tag_(tag)
 	, label_(label) {
@@ -156,13 +156,17 @@ void TagListView::OnThemeColorChanged(QColor backgroundColor, QColor color) {
 }
 
 void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
-	//QColor color(qTEXT("#2a82da"));	
-	QColor color(qTEXT("#00b4d8"));
+	auto items = taglist_->findItems(tag, Qt::MatchContains);
+	if (!items.isEmpty()) {
+		return;
+	}
+	
+	auto color = qTheme.GetHighlightColor();
 
 	auto f = font();
 	auto* layout = new QHBoxLayout();
 	auto* tag_label = new QLabel(tag);	
-	tag_label->setAlignment(Qt::AlignCenter);
+	tag_label->setAlignment(Qt::AlignCenter);	
 
 	auto* item = new TagWidgetItem(tag, color, tag_label, taglist_);
 	f.setBold(true);

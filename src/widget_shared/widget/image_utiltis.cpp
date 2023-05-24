@@ -8,13 +8,14 @@
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 
+#include <base/object_pool.h>
 #include <base/stopwatch.h>
 #include <base/fs.h>
 #include <base/logger_impl.h>
 
 #include <thememanager.h>
 
-//#define USE_LIB_IMAGEQUANT
+#define USE_LIB_IMAGEQUANT
 
 #ifdef USE_LIB_IMAGEQUANT
 #include <libimagequant.h>
@@ -176,6 +177,11 @@ void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_pn
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 #if defined(USE_LIB_IMAGEQUANT) && !defined(_DEBUG)
+	/*static auto buffer_pool = std::make_shared<ObjectPool<std::vector<uint8_t>>>(16);
+	auto result_png_ptr = buffer_pool->Acquire();
+	result_png_ptr->clear();
+	OptimizePng(dest_file_path, buffer, *result_png_ptr);
+	*/
 	std::vector<uint8_t> result_png;
 	OptimizePng(dest_file_path, buffer, result_png);
 	return true;

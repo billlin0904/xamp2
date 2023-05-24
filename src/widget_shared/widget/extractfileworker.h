@@ -33,10 +33,12 @@ signals:
 
     void FromDatabase(int32_t playlist_id, const ForwardList<PlayListEntity>& entity);
 
-public Q_SLOT:
+public slots:
     void OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
 
     void OnLoadAlbumCoverCache();
+
+    void OnCancelRequested();
 
 private:
     void ReadTrackInfo(QString const& file_path,
@@ -49,7 +51,7 @@ private:
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    bool is_stop_{ false };
+    bool is_stop_{ true };
     LoggerPtr logger_;
 };
 

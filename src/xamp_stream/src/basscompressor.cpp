@@ -23,6 +23,7 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
+        BassIfFailedThrow(stream_);
     }
 
     void Init(CompressorParameters const& parameters) {

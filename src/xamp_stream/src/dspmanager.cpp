@@ -45,7 +45,7 @@ IDSPManager& DSPManager::RemoveCompressor() {
 }
 
 IDSPManager& DSPManager::AddCompressor() {
-    AddPostDSP(StreamFactory::MakeCompressor());
+    AddPreDSP(StreamFactory::MakeCompressor());
     return *this;
 }
 

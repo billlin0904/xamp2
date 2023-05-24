@@ -1,11 +1,12 @@
 #include <widget/findalbumcoverworker.h>
 
+#include <base/executor.h>
+
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 #include <widget/imagecache.h>
 
-FindAlbumCoverWorker::FindAlbumCoverWorker() {
-}
+FindAlbumCoverWorker::FindAlbumCoverWorker() = default;
 
 void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
     const QString& album,

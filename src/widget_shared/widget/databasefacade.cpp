@@ -43,7 +43,7 @@ XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 static QSet<QString> GetAlbumCategories(const QString& album) {
     QRegularExpression regex(
-        R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete|collection)(?:(?: \[.*\])|(?: - .*))?)",
+        R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)",
         QRegularExpression::CaseInsensitiveOption);
 
     QSet<QString> categories;
@@ -118,6 +118,20 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
     return normalizedTags;
 }
 
+void NormalizeArtist(QString &artist, QStringList &artists) {
+    if (artist.contains(' ')) {
+        if (!artist[0].isUpper()) {
+            artist = artist.remove(' ');
+        }
+    }
+
+    artists = artist.split(QRegularExpression("[,/&]"), Qt::SkipEmptyParts);
+    if (!artists.isEmpty()) {
+        artist = artists.first();
+        artists.pop_front();
+    }
+}
+
 void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
@@ -143,6 +157,9 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
         auto artist = QString::fromStdWString(track_info.artist);
 		auto disc_id = QString::fromStdString(track_info.disc_id);
 
+        QStringList artists;
+        NormalizeArtist(artist, artists);
+                
         const auto is_file_path = IsFilePath(track_info.file_path);
 
         QPixmap cover;
@@ -198,8 +215,12 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
 			qDatabase.AddMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-        IGNORE_ANY_EXCEPTION(qDatabase.AddOrUpdateAlbumMusic(album_id, artist_id, music_id));
-        IGNORE_ANY_EXCEPTION(qDatabase.AddOrUpdateAlbumArtist(album_id, artist_id));
+        qDatabase.AddOrUpdateAlbumMusic(album_id, artist_id, music_id);
+        qDatabase.AddOrUpdateAlbumArtist(album_id, artist_id);
+        for (const auto& multi_artist : artists) {
+            auto id = qDatabase.AddOrUpdateArtist(multi_artist);
+            qDatabase.AddOrUpdateAlbumArtist(album_id, id);
+        }
 
         if (!is_file_path) {
             continue;

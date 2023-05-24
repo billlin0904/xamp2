@@ -64,6 +64,14 @@ XProgressDialog::XProgressDialog(const QString& title,
 	}	
 
 	size_ = size();
+
+	(void)QObject::connect(default_button_,
+		&QAbstractButton::pressed,
+		[this]() {
+		progress_bar_->reset();
+		close();
+		emit CancelRequested();
+		});
 }
 
 void XProgressDialog::SetRange(int minimum, int maximum) {

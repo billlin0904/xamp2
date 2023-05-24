@@ -307,6 +307,15 @@ static void LoadLang() {
 }
 
 #ifdef XAMP_OS_WIN
+static void SetWorkingSetSize() {
+    auto memory_size = GetAvailablePhysicalMemory();
+    XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
+    auto working_size = memory_size * 0.6;
+    if (working_size > 0) {
+        SetProcessWorkingSetSize(working_size);
+    }
+}
+
 static std::vector<SharedLibraryHandle> PinSystemDll() {
     const std::vector<std::string_view> dll_file_names{
         "psapi.dll",
@@ -407,7 +416,35 @@ static void ApplyTheme() {
     qTheme.LoadAndApplyQssTheme();    
 }
 
+static void BasicFunctionality() {
+#define EXPECT_EQ(expected, actual) assert(expected == actual)
+    LruKCache<int, int> cache(2, 2, 4);
+    
+    cache.AddOrUpdate(2, 1);
+    EXPECT_EQ(cache.Get(2), std::nullopt);
+
+    cache.AddOrUpdate(3, 1);
+    EXPECT_EQ(cache.Get(3), std::nullopt);
+
+    cache.AddOrUpdate(4, 1);
+    cache.AddOrUpdate(4, 1);
+    EXPECT_EQ(cache.Get(2), std::nullopt);
+
+    cache.AddOrUpdate(4, 2);
+    EXPECT_EQ(cache.Get(4), 2);
+
+    EXPECT_EQ(cache.Get(3), std::nullopt);
+
+    cache.AddOrUpdate(5, 1);
+    cache.AddOrUpdate(5, 1);
+
+    EXPECT_EQ(cache.Get(4), std::nullopt);
+    EXPECT_EQ(cache.Get(5), 1);
+}
+
 static int Execute(int argc, char* argv[]) {
+    //BasicFunctionality();
+
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
@@ -481,11 +518,6 @@ static int Execute(int argc, char* argv[]) {
     win.SetThemeColor(qTheme.GetBackgroundColor(),
         qTheme.GetThemeTextColor());
 
-    //XAMP_LOG_DEBUG("Preaload load socket dll.");
-	//static const QString kSoftwareUpdateUrl =
-    //    qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-    //http::HttpClient(kSoftwareUpdateUrl).get();
-
     XAMP_LOG_DEBUG("Set process mitigation.");
     SetProcessMitigation();
 
@@ -498,14 +530,7 @@ static int Execute(int argc, char* argv[]) {
     return app.exec();
 }
 
-int main() {    
-    DatabaseFacade::NormalizeGenre(qTEXT("a capella"));
-    DatabaseFacade::NormalizeGenre(qTEXT("International, Far East, Asia"));
-    DatabaseFacade::NormalizeGenre(qTEXT("Blues,Funk/Soul, Pop "));
-    DatabaseFacade::NormalizeGenre(qTEXT("Electronic Classical Stage & Screen"));
-    DatabaseFacade::NormalizeGenre(qTEXT("Classical|Keyboard"));
-    DatabaseFacade::NormalizeGenre(qTEXT("Domestic(J-Pops)"));
-
+int main() {
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC
@@ -514,14 +539,7 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
-    FramelessHelper::Widgets::initialize();
-
-    auto phy_mem_kb = GetAvailablePhysicalMemory();
-    XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(phy_mem_kb));
-    auto working_size = phy_mem_kb * 0.6;
-    if (working_size > 0) {
-        SetProcessWorkingSetSize(working_size);
-    }
+    FramelessHelper::Widgets::initialize();    
 
     AppSettings::loadIniFile(qTEXT("xamp.ini"));
     JsonSettings::LoadJsonFile(qTEXT("config.json"));
@@ -531,6 +549,8 @@ int main() {
     XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
+    SetWorkingSetSize();
+
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
         XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
