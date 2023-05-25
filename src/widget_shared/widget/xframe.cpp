@@ -1,12 +1,17 @@
+#include <widget/xframe.h>
 #include <widget/str_utilts.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpacerItem>
 #include <QToolButton>
-#include <widget/xframe.h>
 
 #include <thememanager.h>
+
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+
+FRAMELESSHELPER_USE_NAMESPACE
 
 XFrame::XFrame(QWidget* parent)
     : QWidget(parent) {
@@ -43,13 +48,7 @@ void XFrame::SetContentWidget(QWidget* content) {
     default_layout->setContentsMargins(5, 0, 5, 5);
     setLayout(default_layout);
 
-    QFrame* title_frame = nullptr;
-    if (!qTheme.UseNativeWindow()) {
-        title_frame = new QFrame(this);
-    } else {
-        title_frame = new QFrame();
-    }
-
+    auto* title_frame = new QFrame();
     title_frame->setObjectName(QString::fromUtf8("titleFrame"));
     title_frame->setMinimumSize(QSize(0, 24));
     title_frame->setFrameShape(QFrame::NoFrame);
@@ -116,10 +115,7 @@ void XFrame::SetContentWidget(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    if (!qTheme.UseNativeWindow()) {
-        default_layout->addWidget(title_frame, 0);
-    }
-
+    default_layout->addWidget(title_frame, 0);
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
@@ -140,5 +136,16 @@ void XFrame::SetContentWidget(QWidget* content) {
         &ThemeManager::CurrentThemeChanged,
         this,
         &XFrame::OnCurrentThemeChanged);
+
+    FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame);
+    FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
+    FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
+    FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
+    
+    WaitForReady();
 }
 
+void XFrame::WaitForReady() {
+    FramelessWidgetsHelper::get(this)->waitForReady();
+    FramelessWidgetsHelper::get(this)->moveWindowToDesktopCenter();
+}

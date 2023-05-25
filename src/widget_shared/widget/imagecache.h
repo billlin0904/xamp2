@@ -36,9 +36,9 @@ class QTimerEvent;
 class XAMP_WIDGET_SHARED_EXPORT ImageCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
-	static constexpr int kTrimImageSizeSeconds = 10 * 1000;
+	static constexpr int kTrimImageSizeSeconds = 3 * 1000;
 
-    friend class XAMP_WIDGET_SHARED_EXPORT SharedSingleton<ImageCache>;
+    friend class SharedSingleton<ImageCache>;
 
 	static QPixmap ScanCoverFromDir(const QString& file_path);
 

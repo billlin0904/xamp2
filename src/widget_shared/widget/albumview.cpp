@@ -487,30 +487,45 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
         }
 
         const auto button = XMessageBox::ShowYesOrNo(tr("Remove all album?"));
-        if (button == QDialogButtonBox::Yes) {
-            auto process_dialog = MakeProgressDialog(tr("Remove all album?"), QString(), tr("Cancel"));
-            try {
-                qDatabase.ClearPendingPlaylist();
-                QList<int32_t> albums;
-                qDatabase.ForEachAlbum([&albums](auto album_id) {
-                    albums.push_back(album_id);               
-                    qApp->processEvents();
-                    });
-                process_dialog->SetRange(0, albums.size() + 1);
-                int32_t count = 0;
-                Q_FOREACH(auto album_id, albums) {
-                    qDatabase.RemoveAlbum(album_id);
-                    qApp->processEvents();
-                    process_dialog->SetValue(count++ * 100 / albums.size() + 1);
-                }                
-                qDatabase.RemoveAllArtist();
-                process_dialog->SetValue(100);
-                update();
-                emit RemoveAll();
-                qPixmapCache.Clear();
+        if (button != QDialogButtonBox::Yes) {
+            return;
+        }
+
+        auto process_dialog = MakeProgressDialog(tr("Remove all album?"), QString(), tr("Cancel"));
+        qApp->processEvents();
+
+        try {
+            if (!qDatabase.transaction()) {
+                return;
             }
-            catch (...) {
+
+            qDatabase.ClearPendingPlaylist();
+
+            QList<int32_t> albums;
+            qDatabase.ForEachAlbum([&albums](auto album_id) {
+                albums.push_back(album_id);
+                qApp->processEvents();
+            });
+
+            process_dialog->SetRange(0, albums.size() + 1);
+
+            int32_t count = 0;
+
+            Q_FOREACH(auto album_id, albums) {
+                qDatabase.RemoveAlbum(album_id);
+                qApp->processEvents();
+                process_dialog->SetValue(count++ * 100 / albums.size() + 1);
             }
+            qDatabase.RemoveAllArtist();
+
+            process_dialog->SetValue(100);
+            qDatabase.commit();
+            update();
+            emit RemoveAll();
+            qPixmapCache.Clear();
+        }
+        catch (...) {
+            qDatabase.rollback();
         }
     };
 

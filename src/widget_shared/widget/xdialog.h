@@ -28,26 +28,11 @@ public:
         frame_->SetTitle(title);
     }
 
-    void SetMoveable(bool enable) {
-        is_moveable_ = enable;
-    }
-
     void SetIcon(const QIcon& icon) const;
 
 private:
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
-
-    void mousePressEvent(QMouseEvent* event) override;
-
-    void mouseReleaseEvent(QMouseEvent* event) override;
-
-    void mouseMoveEvent(QMouseEvent* event) override;
-
-    const int32_t border_width_{ 5 };
-    bool is_moveable_{true};
-    QPoint last_pos_{0, 0};
-    QScreen* current_screen_{ nullptr };
 #endif
     XFrame* frame_{ nullptr };
     QGraphicsDropShadowEffect* shadow_{ nullptr };

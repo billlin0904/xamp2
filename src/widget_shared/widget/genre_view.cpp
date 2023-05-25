@@ -29,8 +29,20 @@ ORDER BY
     albums.album DESC
 LIMIT %2
     )").arg(genre_.toLower()).arg(limit);
+    show_all_ = limit == kMaxShowAlbum;
 }
 
 void GenreView::ShowAll() {
-    ShowAllAlbum(5);
+    auto album_count = this->width() / kAlbumViewCoverSize;
+    album_count = (std::max)(album_count, 6);
+    ShowAllAlbum(album_count);
+}
+
+void GenreView::resizeEvent(QResizeEvent* event) {
+    if (!show_all_) {
+        auto album_count = this->width() / kAlbumViewCoverSize;
+        ShowAllAlbum(album_count);
+    }    
+    AlbumView::resizeEvent(event);
+    Update();
 }

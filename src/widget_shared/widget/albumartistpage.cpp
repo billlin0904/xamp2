@@ -19,7 +19,9 @@
 #include <QScrollArea>
 #include <QStackedWidget>
 #include <QListWidget>
+#include <QTimer>
 
+#include <widget/ui_utilts.h>
 #include <widget/artistview.h>
 #include <widget/genre_view.h>
 #include <widget/albumentity.h>
@@ -29,6 +31,7 @@
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
 #include <widget/ui_utilts.h>
+#include <widget/processindicator.h>
 #include <widget/taglistview.h>
 #include <thememanager.h>
 
@@ -210,6 +213,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	}
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
+		auto indicator = MakeProcessIndicator(this);
+		indicator->StartAnimation();		
+		Delay(1);
 		album_view_->FilterCategories(tags);
 		album_view_->Update();
 		});
@@ -292,9 +298,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(genre_page, &GenrePage::goBackPage, [genre_stackwidget]() {
 		genre_stackwidget->setCurrentIndex(0);
 		});
-
+	
 	genre_stackwidget->addWidget(container_frame);
-	genre_stackwidget->addWidget(genre_page);
+	genre_stackwidget->addWidget(genre_page);	
 
 	auto* scroll_area = new QScrollArea();
 	scroll_area->setWidgetResizable(true);
@@ -312,10 +318,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	scroll_area->setWidget(genre_frame_);
 
-	/*Q_FOREACH(auto genre, qDatabase.GetGenres()) {
+	Q_FOREACH(auto genre, qDatabase.GetGenres()) {
 		AddGenreList(genre_page, genre_stackwidget, genre);
-	}*/
-	AddGenreList(genre_page, genre_stackwidget, qTEXT("J-pop"));
+	}
+	
+	/*AddGenreList(genre_page, genre_stackwidget, qTEXT("Anime"));
+	AddGenreList(genre_page, genre_stackwidget, qTEXT("J-pop"));*/
+
+	auto* vertical_spacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	genre_frame_layout_->addItem(vertical_spacer);
+
 	genre_container_layout->addWidget(scroll_area);
 	
 	artist_frame_ = new QFrame();
@@ -427,7 +439,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		});
 
 	(void)QObject::connect(category_combo_box_, &QComboBox::textActivated, [this](const auto &category) {
-		if (category != tr("all")) {
+		auto indicator = MakeProcessIndicator(this);
+		indicator->StartAnimation();
+		Delay(1);
+		if (category != tr("all")) {			
 			album_view_->FilterCategories(category);
 		}
 		else {
@@ -498,7 +513,7 @@ void AlbumArtistPage::AddGenreList(GenrePage *page, QStackedWidget* stack, const
 	genre_list_.append(genre_view);
 
 	genre_frame_layout_->addLayout(genre_combox_layout);
-	genre_frame_layout_->addWidget(genre_view, 1);
+	genre_frame_layout_->addWidget(genre_view, 0);	
 }
 
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {

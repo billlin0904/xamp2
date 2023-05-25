@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QRandomGenerator>
+#include <QTime>
 
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
@@ -106,17 +107,26 @@ QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
     auto* dialog = new XProgressDialog(text, cancel, 0, 100, parent);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
-    dialog->setWindowModality(Qt::ApplicationModal);
+    dialog->setWindowModality(Qt::ApplicationModal);    
 	dialog->show();
     return QSharedPointer<XProgressDialog>(dialog);
 }
 
 void CenterParent(QWidget* widget) {
-    if (widget->parent() && widget->parent()->isWidgetType()) {
-        widget->move((widget->parentWidget()->width() - widget->width()) / 2,
-            (widget->parentWidget()->height() - widget->height()) / 2);
-    } else {
-        CenterDesktop(widget);
+    QWidget* host = nullptr;
+
+    if (!host)
+        host = widget->parentWidget();
+
+    if (host) {
+        auto host_rect = host->geometry();
+        widget->move(host_rect.center() - widget->rect().center());
+    }
+    else {
+        QRect screenGeometry = QApplication::desktop()->screenGeometry();
+        int x = (screenGeometry.width() - widget->width()) / 2;
+        int y = (screenGeometry.height() - widget->height()) / 2;
+        widget->move(x, y);
     }
 }
 
@@ -326,4 +336,10 @@ QColor GenerateRandomColor() {
     QString newColorKey = PickRandomProperty(colorList);
     QString newColor = colorList.value(newColorKey);
     return QColor(newColor);
+}
+
+void Delay(int32_t seconds) {
+    QTime dieTime = QTime::currentTime().addSecs(seconds);
+    while (QTime::currentTime() < dieTime)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }

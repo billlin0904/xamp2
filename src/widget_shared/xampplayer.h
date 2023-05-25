@@ -61,8 +61,6 @@ public:
 
     virtual void PlayOrPause() = 0;
 
-    virtual bool HitTitleBar(const QPoint &ps) const = 0;
-
     virtual void DrivesChanges(const QList<DriveInfo>& drive_infos) = 0;
 
     virtual void DrivesRemoved(const DriveInfo& drive_info) = 0;

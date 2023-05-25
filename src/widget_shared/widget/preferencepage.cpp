@@ -329,12 +329,6 @@ PreferencePage::PreferencePage(QWidget *parent)
         SaveAll();
 		});
 
-    ui_.albumImageCacheSizeSpinBox->setValue(AppSettings::GetValue(kAppSettingAlbumImageCacheSize).toInt());
-    (void)QObject::connect(ui_.albumImageCacheSizeSpinBox, static_cast<void (QSpinBox::*)(int32_t)>(&QSpinBox::valueChanged), [](auto value) {
-        qPixmapCache.SetMaxSize(value);
-        AppSettings::SetValue(kAppSettingAlbumImageCacheSize, value);
-    });
-
 	const QList<QWidget*> widgets {
 		ui_.darkRadioButton,
 		ui_.lightRadioButton,
@@ -342,7 +336,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lbLang,
 		ui_.lbFramelessWindow,
 		ui_.lbBlurCoverImage,
-		ui_.lbAlbumImageCacheSize,
 		ui_.lbReplayGameMode,
 	};
 
@@ -398,7 +391,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	qTheme.SetSliderTheme(ui_.soxrPassbandSlider, true);
 
 	ui_.stackedWidget->setCurrentIndex(0);
-	setFixedSize(900, 700);	
+	setFixedSize(900, 700);		
 }
 
 void PreferencePage::LoadSettings() {

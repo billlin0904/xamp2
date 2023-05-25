@@ -224,7 +224,9 @@ static PlayListEntity GetEntity(const QModelIndex& index) {
 
 void PlayListTableView::Reload() {
     // 呼叫此函數就會更新index, 會導致playing index失效
-    const QString s = qTEXT(R"(
+    QString s;
+    if (!IsPodcastMode()) {
+        s = qTEXT(R"(
     SELECT
 	albums.coverId,
     musics.musicId,
@@ -269,6 +271,52 @@ void PlayListTableView::Reload() {
     musics.path ASC,
     musics.track ASC;
     )");
+    }
+    else {
+        s = qTEXT(R"(
+    SELECT
+	albums.coverId,
+    musics.musicId,
+    playlistMusics.playing,
+    musics.track,
+    musics.path,
+	musics.fileSize,
+    musics.title,
+    musics.fileName,
+    artists.artist,
+    albums.album,
+    musics.duration,
+    musics.bit_rate,
+    musics.sample_rate,
+    musics.rating,
+    albumMusic.albumId,
+    albumMusic.artistId,    
+	musics.fileExt,
+    musics.parentPath,
+    musics.dateTime,
+	playlistMusics.playlistMusicsId,
+    musics.album_replay_gain,
+    musics.album_peak,	
+    musics.track_replay_gain,
+	musics.track_peak,
+	musicLoudness.track_loudness,
+	musics.genre,
+    musics.heart
+    FROM
+    playlistMusics
+    JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
+    JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+    JOIN musics ON playlistMusics.musicId = musics.musicId
+    JOIN albums ON albumMusic.albumId = albums.albumId
+    JOIN artists ON albumMusic.artistId = artists.artistId
+    WHERE
+    playlistMusics.playlistId = %1
+    ORDER BY
+    musics.track DESC;
+    )");
+    }
+    
     const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {

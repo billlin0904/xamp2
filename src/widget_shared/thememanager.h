@@ -33,13 +33,11 @@ class XAMP_WIDGET_SHARED_EXPORT ThemeManager : public QObject {
 public:
     friend class SharedSingleton<ThemeManager>;
 
-    bool UseNativeWindow() const;
-
-    const QPalette& palette() const {
+    const QPalette& GetPalette() const {
         return palette_;
     }
 
-    const QFont& DefaultFont() const {
+    const QFont& GetDefaultFont() const {
         return ui_font_;
     }
 
@@ -178,7 +176,6 @@ private:
 
     ThemeManager();
     
-    bool use_native_window_;
     qreal width_ratio_;
     qreal height_ratio_;
     qreal font_ratio_;
@@ -194,7 +191,6 @@ private:
     QFont ui_font_;
     QPixmap unknown_cover_;
     QPixmap default_size_unknown_cover_;
-    QList<QLabel*> all_labels_;
 };
 
 #define qTheme SharedSingleton<ThemeManager>::GetInstance()

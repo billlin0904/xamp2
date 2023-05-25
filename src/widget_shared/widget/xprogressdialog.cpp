@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 
 #include <widget/ui_utilts.h>
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 
 XProgressDialog::XProgressDialog(const QString& title,
                                  const QString& cancel_text,
@@ -93,6 +94,7 @@ void XProgressDialog::SetValue(int value) {
 void XProgressDialog::SetLabelText(const QString& text) {
 	QFontMetrics metrics(font());
 	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, max_width_));
+	CenterParent(this);
 }
 
 bool XProgressDialog::WasCanceled() const {

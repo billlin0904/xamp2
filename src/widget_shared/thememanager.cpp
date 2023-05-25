@@ -83,10 +83,6 @@ static void SortFontWeight(Iterator begin, Iterator end) {
     });
 }
 
-bool ThemeManager::UseNativeWindow() const {
-    return use_native_window_;
-}
-
 qreal ThemeManager::GetPixelRatio() {
     auto* screen = QApplication::primaryScreen();
 #ifdef Q_OS_MAC
@@ -279,7 +275,6 @@ ThemeManager::ThemeManager() {
     save_cover_art_size_ = QSize(500, 500);
     base_size_ = QSize(1920, 1080);
     ui_font_ = LoadFonts();
-    use_native_window_ = !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow);
     const auto* screen = qApp->screens()[0];
     width_ratio_ = screen->size().width() / static_cast<qreal>(base_size_.width());
     height_ratio_ = screen->size().height() / static_cast<qreal>(base_size_.height());
@@ -552,12 +547,12 @@ QSize ThemeManager::GetSaveCoverArtSize() const noexcept {
 }
 
 void ThemeManager::SetBackgroundColor(QWidget* widget) {
-    auto color = palette().color(QPalette::WindowText);
+    auto color = GetPalette().color(QPalette::WindowText);
     widget->setStyleSheet(BackgroundColorToString(color));
 }
 
 void ThemeManager::LoadAndApplyQssTheme() {
-    qApp->setFont(DefaultFont());
+    qApp->setFont(GetDefaultFont());
 
     QString filename;
 
@@ -617,7 +612,8 @@ void ThemeManager::SetLinearGradient(QLinearGradient& gradient) const {
             gradient.setStart(0, 0);
             gradient.setFinalStop(1, 1);
             gradient.setColorAt(0, QColor(255, 254, 255));
-            gradient.setColorAt(1, QColor(215, 255, 254));
+            //gradient.setColorAt(1, QColor(215, 255, 254));
+            gradient.setColorAt(1, QColor(Qt::lightGray));
             break;
     }
 }

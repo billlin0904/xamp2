@@ -29,7 +29,7 @@ QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget);
 
 void CenterDesktop(QWidget* widget);
 
-void CenterParent(QWidget* widget);
+XAMP_WIDGET_SHARED_EXPORT void CenterParent(QWidget* widget);
 
 void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
 
@@ -58,3 +58,5 @@ XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConvert
 XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
 
 XAMP_WIDGET_SHARED_EXPORT PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);
+
+void Delay(int32_t seconds);

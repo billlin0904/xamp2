@@ -32,10 +32,11 @@ signals:
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
+	void WaitForReady();
 private:
 	QLabel* title_frame_label_{ nullptr };
 	QWidget* content_{ nullptr };
-	QToolButton* icon_;
+	QToolButton* icon_{ nullptr };
 	QToolButton* close_button_{ nullptr };
 	QToolButton* max_win_button_{ nullptr };
 	QToolButton* min_win_button_{ nullptr };

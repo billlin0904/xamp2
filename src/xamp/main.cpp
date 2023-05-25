@@ -267,7 +267,6 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);
     AppSettings::SetDefaultValue(kAppSettingDiscordNotify, false);
     AppSettings::SetDefaultValue(kFlacEncodingLevel, 8);
-    AppSettings::SetDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::SetDefaultValue(kAppSettingShowLeftList, true);
     AppSettings::SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
     AppSettings::SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);

@@ -83,8 +83,6 @@ signals:
 
 	void SearchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
-	void LoadAlbumCoverCache();
-
 	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
 
 	void Tanslation(const QString& keyword, const QString& from, const QString& to);
@@ -139,8 +137,6 @@ private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
 	void DrivesRemoved(const DriveInfo& drive_info) override;
-
-	bool HitTitleBar(const QPoint& ps) const override;
 
     void StopPlay() override;
 

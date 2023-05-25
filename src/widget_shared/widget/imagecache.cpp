@@ -22,7 +22,7 @@
 #include <QImageReader>
 
 inline constexpr size_t kDefaultCacheSize = 24;
-inline constexpr qint64 kMaxCacheImageSize = 60 * 1024 * 1024; // 60MB = 52 images
+inline constexpr qint64 kMaxCacheImageSize = 1024 * 1024;
 inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(PixmapCache);

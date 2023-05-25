@@ -36,8 +36,6 @@ signals:
 public slots:
     void OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
 
-    void OnLoadAlbumCoverCache();
-
     void OnCancelRequested();
 
 private:

@@ -134,6 +134,9 @@ public:
 	void FilterCategories(const QSet<QString>& category);
 
 	void SetShowMode(ShowModes mode);
+
+	void resizeEvent(QResizeEvent* event) override;
+
 signals:
     void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
 
@@ -151,7 +154,6 @@ signals:
 		bool is_podcast_mode);
 
 	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
-
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
@@ -171,9 +173,7 @@ public slots:
 
 	void ShowAlbumViewMenu(const QPoint& pt);
 
-private:
-	void resizeEvent(QResizeEvent* event) override;
-
+private:	
 	void ShowPageAnimation();
 
 	void HidePageAnimation();

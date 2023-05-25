@@ -54,24 +54,6 @@ void BackgroundWorker::StopThreadPool() {
     is_stop_ = true;
 }
 
-//void BackgroundWorker::OnLoadAlbumCoverCache() {
-//    QList<QString> cover_ids;
-//    cover_ids.reserve(LazyLoadingModel::kMaxBatchSize);
-//
-//    qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
-//        cover_ids.push_back(cover_id);
-//        }, LazyLoadingModel::kMaxBatchSize);
-//
-//    try {
-//        Executor::ParallelFor(GetBackgroundThreadPool(), cover_ids, [](const auto& cover_id) {
-//            AlbumViewStyledDelegate::GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
-//            });
-//    }
-//    catch (const std::exception& e) {
-//		XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
-//	}
-//}
-
 namespace lastfm {
     struct ArtistInfo {
         QString name;

@@ -78,18 +78,13 @@ void SetThemeIcon(Ui::XampWindow& ui) {
 
     const QColor hover_color = qTheme.GetHoverColor();
 
-    if (qTheme.UseNativeWindow()) {
-        ui.logoButton->hide();
-    }
-    else {
-        ui.logoButton->setStyleSheet(qSTR(R"(
+    ui.logoButton->setStyleSheet(qSTR(R"(
                                          QToolButton#logoButton {
                                          border: none;
                                          image: url(":/xamp/xamp.ico");
                                          background-color: transparent;
                                          }
 										)"));
-    }
 
     ui.sliderBarButton->setStyleSheet(qSTR(R"(
                                             QToolButton#sliderBarButton {
@@ -440,7 +435,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 Xamp::~Xamp() = default;
 
 void Xamp::SetXWindow(IXMainWindow* main_window) {
-    //FramelessWidgetsHelper::get(this)->setBlurBehindWindowEnabled(true);
+    FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar(true);
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
@@ -699,18 +694,11 @@ void Xamp::InitialUi() {
 
     QToolTip::hideText();
 
-    if (qTheme.UseNativeWindow()) {
-        ui_.closeButton->hide();
-        ui_.maxWinButton->hide();
-        ui_.minWinButton->hide();
-        ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
-    } else {
-        f.setWeight(QFont::DemiBold);
-        f.setPointSize(qTheme.GetDefaultFontSize());
-        ui_.titleFrameLabel->setFont(f);
-        ui_.titleFrameLabel->setText(kApplicationTitle);
-        ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    }
+    f.setWeight(QFont::DemiBold);
+    f.setPointSize(qTheme.GetDefaultFontSize());
+    ui_.titleFrameLabel->setFont(f);
+    ui_.titleFrameLabel->setText(kApplicationTitle);
+    ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     QFont mono_font(qTEXT("MonoFont"));
     mono_font.setPointSize(qTheme.GetDefaultFontSize());
@@ -984,6 +972,7 @@ void Xamp::InitialController() {
         dialog->SetContentWidget(about_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
         dialog->SetTitle(tr("About"));
+        CenterParent(about_page);
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
         });
@@ -996,7 +985,8 @@ void Xamp::InitialController() {
         dialog->SetTitle(tr("Preference"));        
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         preference_page->LoadSettings();
-        dialog->exec();        
+        CenterParent(preference_page);
+        dialog->exec();
         preference_page->SaveAll();
         });
 
@@ -1006,7 +996,7 @@ void Xamp::InitialController() {
         dialog->SetContentWidget(page, true);   
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
         dialog->SetTitle(tr("Pending playlist"));
-        dialog->SetMoveable(false);
+        //dialog->SetMoveable(false);
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         (void)QObject::connect(page,
             &PendingPlaylistPage::PlayMusic,
@@ -1100,7 +1090,6 @@ void Xamp::InitialController() {
 void Xamp::SetCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_ALBUM:
-        emit LoadAlbumCoverCache();
         album_page_->Refresh();
         ui_.currentView->setCurrentWidget(album_page_);
         break;
@@ -1291,10 +1280,6 @@ void Xamp::InitialShortcut() {
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
         PlayOrPause();
     });
-}
-
-bool Xamp::HitTitleBar(const QPoint& ps) const {
-    return ui_.titleFrame->rect().contains(ps);
 }
 
 void Xamp::StopPlay() {
@@ -1935,11 +1920,11 @@ void Xamp::InitialPlaylist() {
         playlist_page_->playlist()->SetHeaderViewHidden(false);
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
 
-        /*(void)QObject::connect(extract_file_worker_,
+        (void)QObject::connect(extract_file_worker_,
             &ExtractFileWorker::FromDatabase,
             playlist_page_->playlist(),
             &PlayListTableView::ProcessDatabase,
-            Qt::QueuedConnection);*/
+            Qt::QueuedConnection);
     }
 
     if (!podcast_page_) {
@@ -2006,11 +1991,6 @@ void Xamp::InitialPlaylist() {
         this,
         &Xamp::OnUpdateDiscCover,
         Qt::QueuedConnection);
-
-    /*(void)QObject::connect(this,
-        &Xamp::LoadAlbumCoverCache,
-        extract_file_worker_,
-        &ExtractFileWorker::OnLoadAlbumCoverCache);*/
 
     (void)QObject::connect(file_system_view_page_,
         &FileSystemViewPage::addDirToPlaylist,
@@ -2250,11 +2230,11 @@ void Xamp::EncodeFlacFile(const PlayListEntity& item) {
          tr("Export '") + item.title + tr("' to flac file"),
          tr("Cancel"));
 
-    TrackInfo metadata;
-    metadata.album = item.album.toStdWString();
-    metadata.artist = item.artist.toStdWString();
-    metadata.title = item.title.toStdWString();
-    metadata.track = item.track;
+    TrackInfo track_info;
+    track_info.album = item.album.toStdWString();
+    track_info.artist = item.artist.toStdWString();
+    track_info.title = item.title.toStdWString();
+    track_info.track = item.track;
 
     const auto command
     	= qSTR("-%1 -V").arg(AppSettings::GetValue(kFlacEncodingLevel).toInt()).toStdWString();
@@ -2269,7 +2249,7 @@ void Xamp::EncodeFlacFile(const PlayListEntity& item) {
                 dialog->SetValue(progress);
                 qApp->processEvents();
                 return dialog->WasCanceled() != true;
-            }, metadata);
+            }, track_info);
     }
     catch (Exception const& e) {
         XMessageBox::ShowError(qTEXT(e.what()));
@@ -2387,7 +2367,7 @@ void Xamp::OnFoundFileCount(size_t file_count) {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->SetLabelText(qSTR("Found file count %1").arg(file_count));
+    read_progress_dialog_->SetLabelText(qSTR("Found file count %1").arg(file_count));    
 }
 
 void Xamp::OnSetAlbumCover(int32_t album_id,

@@ -8,6 +8,11 @@
 #include <widget/widget_shared_global.h>
 #include <widget/albumview.h>
 
+class QResizeEvent;
+
+inline constexpr auto kMaxShowAlbum = 65535;
+inline constexpr auto kAlbumViewCoverSize = 215;
+
 class XAMP_WIDGET_SHARED_EXPORT GenreView final : public AlbumView {
 public:
 	explicit GenreView(QWidget* parent = nullptr);
@@ -16,7 +21,10 @@ public:
 
 	void ShowAll() override;
 
-	void ShowAllAlbum(int32_t limit = 65535);
+	void ShowAllAlbum(int32_t limit = kMaxShowAlbum);
 private:
+	void resizeEvent(QResizeEvent* event) override;
+
+	bool show_all_{ false };
 	QString genre_;
 };

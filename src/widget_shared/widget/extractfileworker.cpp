@@ -246,27 +246,8 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
 
 void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode) {
     ReadTrackInfo(file_path, playlist_id, false);
-    OnLoadAlbumCoverCache();
 }
 
 void ExtractFileWorker::OnCancelRequested() {
     is_stop_ = true;
-}
-
-void ExtractFileWorker::OnLoadAlbumCoverCache() {
-    /*QList<QString> cover_ids;
-    cover_ids.reserve(LazyLoadingModel::kMaxBatchSize);
-
-    qDatabase.ForEachAlbumCover([&cover_ids](const auto& cover_id) {
-        cover_ids.push_back(cover_id);
-        }, LazyLoadingModel::kMaxBatchSize);
-
-    try {
-        Executor::ParallelFor(GetBackgroundThreadPool(), cover_ids, [](const auto& cover_id) {
-            qPixmapCache.GetCover(AlbumViewStyledDelegate::kAlbumCacheTag, cover_id);
-            });
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_ERROR("OnLoadAlbumCoverCache: {}", e.what());
-    }*/
 }

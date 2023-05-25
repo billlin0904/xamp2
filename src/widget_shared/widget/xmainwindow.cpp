@@ -43,8 +43,7 @@ XMainWindow::XMainWindow()
 	, screen_number_(1)
     , current_screen_(nullptr)
 #endif
-	, content_widget_(nullptr) {
-    FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar(true);
+	, content_widget_(nullptr) {    
     setObjectName(qTEXT("framelessWindow"));
 }
 
@@ -382,7 +381,7 @@ void XMainWindow::AddSystemMenu(QWidget* widget) {
 
 void XMainWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!qTheme.UseNativeWindow() && content_widget_ != nullptr) {
+    if (content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
     }
 #else

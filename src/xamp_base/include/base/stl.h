@@ -206,7 +206,7 @@ std::vector<TValue> Values(const TMap<TKey, TValue> &map) {
 	return keys;
 }
 
-#define XAMP_USE_STD_MAP
+//#define XAMP_USE_STD_MAP
 
 #ifdef XAMP_USE_STD_MAP
 template <typename T1, typename T2>

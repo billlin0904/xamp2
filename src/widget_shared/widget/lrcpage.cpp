@@ -35,12 +35,10 @@ SpectrumWidget* LrcPage::spectrum() {
 	return spectrum_;
 }
 
-void LrcPage::AddCoverShadow(bool is_dark) {
+void LrcPage::AddCoverShadow(bool found_cover) {
 	cover_label_->setGraphicsEffect(nullptr);
 
-	if (is_dark) {
-		lyrics_widget_->SetLrcHighLight(Qt::white);
-		format_label_->setStyleSheet(qTEXT("color: white"));
+	if (found_cover) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(5, 10);
 		effect->setColor(QColor(qTEXT("#080808")));
@@ -128,7 +126,7 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 	fade_in_animation->setEndValue(current_bg_alpha_);
 	fade_in_animation->setDuration(durationMs);
 	fade_in_animation->setEasingCurve(QEasingCurve::OutCubic);
-	QObject::connect(fade_in_animation, &QPropertyAnimation::finished, this, [=] {
+	(void)QObject::connect(fade_in_animation, &QPropertyAnimation::finished, this, [=] {
 		fade_in_animation->deleteLater();
 		});
 	current_bg_alpha_ = 0;
@@ -201,28 +199,24 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 		cover_label_->setGraphicsEffect(effect);
 	}
 
-	if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
-		switch (theme_color) {
-		case ThemeColor::DARK_THEME:
-			lyrics_widget_->SetLrcColor(Qt::lightGray);
-			lyrics_widget_->SetLrcHighLight(Qt::white);
-			AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-			AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
-			break;
-		case ThemeColor::LIGHT_THEME:
-			lyrics_widget_->SetLrcColor(Qt::lightGray);
-			lyrics_widget_->SetLrcHighLight(Qt::black);
-			AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-			AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
-			break;
-		}
-	} else {
+	switch (theme_color) {
+	case ThemeColor::DARK_THEME:
+		lyrics_widget_->SetLrcColor(Qt::lightGray);
 		lyrics_widget_->SetLrcHighLight(Qt::white);
-		format_label_->setStyleSheet(qTEXT("color: white"));
+		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
+		break;
+	case ThemeColor::LIGHT_THEME:
+		lyrics_widget_->SetLrcColor(Qt::lightGray);
+		lyrics_widget_->SetLrcHighLight(Qt::black);
+		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
+		break;
 	}
 }
 
 void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {	
+	OnCurrentThemeChanged(qTheme.GetThemeColor());
 }
 
 void LrcPage::initial() {
