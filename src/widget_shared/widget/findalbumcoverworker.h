@@ -23,5 +23,9 @@ public slots:
 	void OnFindAlbumCover(int32_t album_id,
 		const QString& album,
 		const std::wstring& file_path);
+
+	void OnCancelRequested();
+private:
+	bool is_stop_{ true };
 };
 

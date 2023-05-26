@@ -339,8 +339,9 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
 
 AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
-    , page_(new AlbumViewPage(this))
+    , page_(nullptr)
 	, styled_delegate_(new AlbumViewStyledDelegate(this))
+    , animation_(nullptr)
 	, model_(this) {
     setModel(&model_);    
     setUniformItemSizes(true);
@@ -357,27 +358,44 @@ AlbumView::AlbumView(QWidget* parent)
     setItemDelegate(styled_delegate_);
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
-    setMouseTracking(true);
-
-    page_->hide();
-
-    (void)QObject::connect(page_,
-                            &AlbumViewPage::ClickedArtist,
-                            this,
-                            &AlbumView::ClickedArtist);
-
-    (void)QObject::connect(page_->playlistPage()->playlist(),
-        &PlayListTableView::UpdatePlayingState,
-        this,
-        [this](auto entity, auto playing_state) {
-            styled_delegate_->SetPlayingAlbumId(playing_state == PlayingState::PLAY_CLEAR ? -1 : entity.album_id);
-        });
+    setMouseTracking(true);       
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::ShowAlbumMenu, [this](auto index, auto pt) {
         ShowMenu(pt);
         });
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::EnterAlbumView, [this](auto index) {
+        if (!page_) {
+            page_ = new AlbumViewPage(this);
+            page_->hide();
+            (void)QObject::connect(page_,
+                &AlbumViewPage::ClickedArtist,
+                this,
+                &AlbumView::ClickedArtist);
+            (void)QObject::connect(page_->playlistPage()->playlist(),
+                &PlayListTableView::UpdatePlayingState,
+                this,
+                [this](auto entity, auto playing_state) {
+                    styled_delegate_->SetPlayingAlbumId(playing_state == PlayingState::PLAY_CLEAR ? -1 : entity.album_id);
+                });
+            (void)QObject::connect(page_, &AlbumViewPage::LeaveAlbumView, [this]() {
+                verticalScrollBar()->show();
+                HidePageAnimation();
+                });
+            auto* fade_effect = page_->graphicsEffect();
+            animation_ = new QPropertyAnimation(fade_effect, "opacity");
+            (void)QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
+                if (hide_page_) {
+                    page_->hide();
+                }
+                });
+            (void)QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int value) {
+                if (value == verticalScrollBar()->maximum()) {
+                    model_.fetchMore();
+                }
+                });
+        }        
+
         auto album = GetIndexValue(index, INDEX_ALBUM).toString();
         auto cover_id = GetIndexValue(index, INDEX_COVER).toString();
         auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
@@ -397,12 +415,7 @@ AlbumView::AlbumView(QWidget* parent)
 
         verticalScrollBar()->hide();
         emit ClickedAlbum(album, album_id, cover_id);
-        });
-
-    (void)QObject::connect(page_, &AlbumViewPage::LeaveAlbumView, [this]() {
-        verticalScrollBar()->show();
-		HidePageAnimation();
-        });
+        }); 
 
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
@@ -413,20 +426,7 @@ AlbumView::AlbumView(QWidget* parent)
 
     verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
-    ));
-
-    auto * fade_effect = page_->graphicsEffect();
-    animation_ = new QPropertyAnimation(fade_effect, "opacity");
-    (void)QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
-        if (hide_page_) {
-            page_->hide();
-        }
-    });
-    (void)QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int value) {
-        if (value == verticalScrollBar()->maximum()) {
-            model_.fetchMore();
-        }
-    });
+    ));    
 }
 
 void AlbumView::HidePageAnimation() {
@@ -750,7 +750,9 @@ void AlbumView::Update() {
 }
 
 void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {
-    page_->OnCurrentThemeChanged(theme_color);
+    if (page_ != nullptr) {
+        page_->OnCurrentThemeChanged(theme_color);
+    }    
 }
 
 void AlbumView::Refresh() {

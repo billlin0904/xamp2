@@ -512,10 +512,11 @@ static int Execute(int argc, char* argv[]) {
     }
 
     Xamp win(&main_window, MakeAudioPlayer());
-    win.SetXWindow(&main_window);
+    
     win.SetThemeColor(qTheme.GetBackgroundColor(),
         qTheme.GetThemeTextColor());
-
+    win.SetXWindow(&main_window);
+    
     XAMP_LOG_DEBUG("Set process mitigation.");
     SetProcessMitigation();
 

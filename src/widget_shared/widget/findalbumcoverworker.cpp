@@ -8,9 +8,17 @@
 
 FindAlbumCoverWorker::FindAlbumCoverWorker() = default;
 
+void FindAlbumCoverWorker::OnCancelRequested() {
+    is_stop_ = true;
+}
+
 void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
     const QString& album,
     const std::wstring& file_path) {
+    if (is_stop_) {
+        return;
+    }
+
     const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
         return;

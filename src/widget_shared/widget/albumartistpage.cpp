@@ -33,6 +33,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/processindicator.h>
 #include <widget/taglistview.h>
+#include <widget/genre_view_page.h>
 #include <thememanager.h>
 
 enum {
@@ -41,52 +42,6 @@ enum {
 	TAB_GENRE,
 	TAB_YEAR,
 };
-
-GenrePage::GenrePage(QWidget* parent)
-	: QFrame(parent) {
-	auto genre_container_layout = new QVBoxLayout(this);
-
-	auto f = font();
-	genre_label_ = new ClickableLabel();
-	f.setPointSize(qTheme.GetFontSize(15));
-	f.setBold(true);
-	genre_label_->setFont(f);
-
-	auto* cevron_right = new QToolButton();
-	cevron_right->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CHEVRON_LEFT));
-
-	auto* genre_combox_layout = new QHBoxLayout();
-	auto horizontalSpacer_3 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	genre_combox_layout->addWidget(genre_label_);
-	genre_combox_layout->addWidget(cevron_right);
-	genre_combox_layout->addSpacerItem(horizontalSpacer_3);
-
-	genre_view_ = new GenreView(this);
-
-	genre_view_->ShowAll();
-	genre_view_->Refresh();
-
-	genre_container_layout->addLayout(genre_combox_layout);
-	genre_container_layout->addWidget(genre_view_, 1);
-
-	(void)QObject::connect(genre_label_, &ClickableLabel::clicked, [this]() {
-		emit goBackPage();
-		});
-
-	(void)QObject::connect(cevron_right, &QToolButton::clicked, [this]() {
-		emit goBackPage();
-		});
-}
-
-void GenrePage::SetGenre(const QString& genre) {
-	genre_view_->SetGenre(genre);
-	auto genre_label_text = genre;
-	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
-	genre_label_->setText(genre_label_text);
-	genre_view_->ShowAllAlbum();
-	genre_view_->SetShowMode(SHOW_NORMAL);
-	genre_view_->Refresh();
-}
 
 AlbumTabListView::AlbumTabListView(QWidget* parent)
 	: QListView(parent)
@@ -284,51 +239,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	album_combox_layout_1->addSpacerItem(horizontalSpacer);
 	album_combox_layout_1->addLayout(album_combox_layout);
-
+	
 	album_frame_layout->addLayout(album_combox_layout_1);
 	album_frame_layout->addWidget(album_tag_list_widget_);
 	album_frame_layout->addWidget(album_view_, 1);
 
-	auto genre_stackwidget = new QStackedWidget(this);
-
-	auto* container_frame = new QFrame();
-	auto genre_container_layout = new QVBoxLayout(container_frame);
-
-	auto *genre_page = new GenrePage();
-	(void)QObject::connect(genre_page, &GenrePage::goBackPage, [genre_stackwidget]() {
-		genre_stackwidget->setCurrentIndex(0);
-		});
-	
-	genre_stackwidget->addWidget(container_frame);
-	genre_stackwidget->addWidget(genre_page);	
-
-	auto* scroll_area = new QScrollArea();
-	scroll_area->setWidgetResizable(true);
-	scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-
-	genre_frame_ = new QFrame();
-	genre_frame_->setObjectName(QString::fromUtf8("currentGenreViewFrame"));
-	genre_frame_->setFrameShape(QFrame::StyledPanel);
-
-	genre_frame_layout_ = new QVBoxLayout(genre_frame_);
-	genre_frame_layout_->setSpacing(0);
-	genre_frame_layout_->setObjectName(QString::fromUtf8("currentGenreViewFrameLayout"));
-	genre_frame_layout_->setContentsMargins(0, 0, 0, 0);
-
-	scroll_area->setWidget(genre_frame_);
+	genre_stackwidget_ = new GenreViewPage(this);
 
 	Q_FOREACH(auto genre, qDatabase.GetGenres()) {
-		AddGenreList(genre_page, genre_stackwidget, genre);
+		genre_stackwidget_->AddGenreList(genre);
 	}
-	
-	/*AddGenreList(genre_page, genre_stackwidget, qTEXT("Anime"));
-	AddGenreList(genre_page, genre_stackwidget, qTEXT("J-pop"));*/
-
-	auto* vertical_spacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	genre_frame_layout_->addItem(vertical_spacer);
-
-	genre_container_layout->addWidget(scroll_area);
 	
 	artist_frame_ = new QFrame();
 	artist_frame_->setObjectName(QString::fromUtf8("currentArtistViewFrame"));
@@ -411,7 +331,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->addWidget(album_frame_);
 	current_view->addWidget(artist_frame_);
-	current_view->addWidget(genre_stackwidget);
+	current_view->addWidget(genre_stackwidget_);
 
 	auto* default_layout = new QHBoxLayout();
 	default_layout->setSpacing(0);
@@ -452,7 +372,26 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_tag_list_widget_->ClearTag();
 		});
 
-	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view, genre_stackwidget](auto table_id) {
+	year_frame_ = new QFrame();
+	year_frame_->setObjectName(QString::fromUtf8("currentArtistViewFrame"));
+	year_frame_->setFrameShape(QFrame::StyledPanel);
+	auto* year_frame_layout = new QVBoxLayout(year_frame_);
+	year_frame_layout->setSpacing(0);
+	year_frame_layout->setObjectName(QString::fromUtf8("currentArtistViewFrameLayout"));
+	year_frame_layout->setContentsMargins(0, 0, 0, 0);	
+
+	year_view_ = new AlbumView();
+	year_tag_list_widget_ = new TagListView();
+	Q_FOREACH (auto year, qDatabase.GetYears()) {
+		year_tag_list_widget_->AddTag(year, true);
+	}
+
+	year_frame_layout->addWidget(year_tag_list_widget_);
+	year_frame_layout->addWidget(year_view_, 1);
+
+	current_view->addWidget(year_frame_);
+
+	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view](auto table_id) {
 		switch (table_id) {
 			case TAB_ALBUM:
 				current_view->setCurrentWidget(album_frame_);
@@ -461,7 +400,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 				current_view->setCurrentWidget(artist_frame_);
 				break;
 			case TAB_GENRE:
-				current_view->setCurrentWidget(genre_stackwidget);
+				current_view->setCurrentWidget(genre_stackwidget_);
+				break;
+			case TAB_YEAR:
+				current_view->setCurrentWidget(year_frame_);
 				break;
 		}
 		});
@@ -472,61 +414,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	OnCurrentThemeChanged(qTheme.GetThemeColor());
 }
 
-void AlbumArtistPage::AddGenreList(GenrePage *page, QStackedWidget* stack, const QString &genre) {
-	auto f = font();
-
-	auto genre_label_text = genre;
-	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
-	auto* genre_label = new ClickableLabel(genre_label_text);
-	f.setPointSize(qTheme.GetFontSize(15));
-	f.setBold(true);
-	genre_label->setFont(f);	
-
-	auto* cevron_right = new QToolButton();
-	cevron_right->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CHEVRON_RIGHT));
-
-	auto *genre_combox_layout = new QHBoxLayout();
-	auto horizontalSpacer_3 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	genre_combox_layout->addWidget(genre_label);
-	genre_combox_layout->addWidget(cevron_right);
-	genre_combox_layout->addSpacerItem(horizontalSpacer_3);
-
-	auto* genre_view = new GenreView(this);
-	genre_view->SetGenre(genre);
-	genre_view->ShowAll();
-	genre_view->Refresh();
-	genre_view->verticalScrollBar()->hide();
-	genre_view->setFixedHeight(275);
-	genre_view->SetShowMode(SHOW_NORMAL);
-
-	(void)QObject::connect(genre_label, &ClickableLabel::clicked, [page, genre, stack, this]() {
-		page->SetGenre(genre);
-		stack->setCurrentIndex(1);
-		});
-
-	(void)QObject::connect(cevron_right, &QToolButton::clicked, [page, genre, stack, this]() {
-		page->SetGenre(genre);
-		stack->setCurrentIndex(1);
-		});
-
-	genre_page_list_.append(page);
-	genre_list_.append(genre_view);
-
-	genre_frame_layout_->addLayout(genre_combox_layout);
-	genre_frame_layout_->addWidget(genre_view, 0);	
-}
-
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	album_view_->OnCurrentThemeChanged(theme_color);
 	artist_view_->OnCurrentThemeChanged(theme_color);
 
-	Q_FOREACH(auto * view, genre_list_) {
-		view->OnCurrentThemeChanged(theme_color);
-	}
-	Q_FOREACH(auto* page, genre_page_list_) {
-		page->view()->OnCurrentThemeChanged(theme_color);
-	}
-
+	genre_stackwidget_->OnCurrentThemeChanged(theme_color);
 	album_tag_list_widget_->OnCurrentThemeChanged(theme_color);
 	artist_tag_list_widget_->OnCurrentThemeChanged(theme_color);
 
@@ -541,24 +433,13 @@ void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) 
 
 	album_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
 	artist_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
-
-	Q_FOREACH(auto * view, genre_list_) {
-		view->OnThemeChanged(backgroundColor, color);
-	}
-	Q_FOREACH(auto* page, genre_page_list_) {
-		page->view()->OnThemeChanged(backgroundColor, color);
-	}
+	genre_stackwidget_->OnThemeColorChanged(backgroundColor, color);
 }
 
 void AlbumArtistPage::Refresh() {
 	album_view_->Refresh();
 	artist_view_->Refresh();
-	Q_FOREACH(auto * view, genre_list_) {
-		view->Refresh();
-	}
-	Q_FOREACH(auto * page, genre_page_list_) {
-		page->view()->Refresh();
-	}
+	genre_stackwidget_->Refresh();
 
 	auto title_category_list = qDatabase.GetCategories();
 	Q_FOREACH(auto category, title_category_list) {

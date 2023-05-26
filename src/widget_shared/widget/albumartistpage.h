@@ -31,24 +31,7 @@ class QStackedWidget;
 class ClickableLabel;
 class QListWidget;
 class TagListView;
-
-class GenrePage : public QFrame {
-	Q_OBJECT
-public:
-	explicit GenrePage(QWidget* parent = nullptr);
-
-	void SetGenre(const QString& genre);
-
-	GenreView* view() {
-		return genre_view_;
-	}
-signals:
-	void goBackPage();
-
-private:
-	ClickableLabel* genre_label_;
-	GenreView* genre_view_;
-};
+class GenreViewPage;
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
 	Q_OBJECT
@@ -90,24 +73,24 @@ public slots:
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
-	void AddGenreList(GenrePage* page, QStackedWidget* stack, const QString& genre);
-
 	QVBoxLayout* genre_frame_layout_;
 	QStandardItemModel* album_model_;
 	QStandardItemModel* artist_model_;
 	QFrame* album_frame_;
 	QFrame* artist_frame_;
 	QFrame* genre_frame_;
-	QList<GenreView*> genre_list_;
-	QList<GenrePage*> genre_page_list_;
+	QFrame* year_frame_;
+	GenreViewPage* genre_stackwidget_;
 	QComboBox* category_combo_box_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;
 	AlbumTabListView* list_view_;
 	AlbumView* album_view_;
 	ArtistView* artist_view_;
+	AlbumView* year_view_;
 	ArtistInfoPage* artist_info_view_;
 	TagListView* album_tag_list_widget_;
 	TagListView* artist_tag_list_widget_;
+	TagListView* year_tag_list_widget_;
 };
 

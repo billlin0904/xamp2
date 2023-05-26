@@ -605,6 +605,34 @@ void Database::RemoveAlbum(int32_t album_id) {
     THROW_IF_FAIL1(query);
 }
 
+QStringList Database::GetYears() const {
+    QReadLocker read_locker(&locker_);
+    QStringList years;
+
+    SqlQuery query(db_);
+    query.prepare(qTEXT(R"(
+SELECT
+    year AS group_year,
+    COUNT(*) AS count
+FROM albums
+WHERE group_year != 0
+GROUP BY group_year
+ORDER BY group_year DESC;
+    )")
+    );
+
+    THROW_IF_FAIL1(query);
+
+    while (query.next()) {
+        auto genre = query.value(qTEXT("group_year")).toString();
+        if (genre.isEmpty()) {
+            continue;
+        }
+        years.append(genre);
+    }
+    return years;
+}
+
 QStringList Database::GetGenres() const {
     QReadLocker read_locker(&locker_);
     QStringList genres;

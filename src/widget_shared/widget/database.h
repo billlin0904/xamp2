@@ -106,6 +106,8 @@ public:
 
     QStringList GetCategories() const;
 
+    QStringList GetYears() const;
+
     int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
     int32_t AddPlaylist(const QString& name, int32_t playlist_index);

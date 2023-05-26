@@ -488,7 +488,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     podcast_page_->HidePlaybackInformation(true);
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
-    album_page_->album()->albumViewPage()->playlistPage()->HidePlaybackInformation(false);    
 
     const auto tab_name = AppSettings::ValueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.sliderBar->GetTabId(tab_name);
@@ -664,6 +663,9 @@ void Xamp::cleanup() {
             thread.wait();
         }
     };
+
+    extract_file_worker_->OnCancelRequested();
+    find_album_cover_worker_->OnCancelRequested();
 
     QuitAndWaitThread(background_thread_);
     QuitAndWaitThread(find_album_cover_thread_);
@@ -2005,7 +2007,8 @@ void Xamp::InitialPlaylist() {
     if (!qDatabase.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.AddPlaylist(kEmptyString, 1);
     }
-    ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
+    // TODO:
+    //ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
 
     (void)QObject::connect(this,
         &Xamp::SearchLyrics,
@@ -2384,5 +2387,6 @@ void Xamp::OnReadFileStart() {
     (void)QObject::connect(read_progress_dialog_.get(),
         &XProgressDialog::CancelRequested, [this]() {
             extract_file_worker_->OnCancelRequested();
+            find_album_cover_worker_->OnCancelRequested();
         });
 }

@@ -113,6 +113,7 @@
     <QtMoc Include="widget\artistview.h" />
     <QtMoc Include="widget\findalbumcoverworker.h" />
     <QtMoc Include="widget\extractfileworker.h" />
+    <QtMoc Include="widget\genre_view_page.h" />
     <ClInclude Include="widget\genre_view.h" />
     <ClInclude Include="widget\kkbox_utilis.h" />
     <QtMoc Include="widget\taglistview.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="widget\findalbumcoverworker.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
+    <ClCompile Include="widget\genre_view_page.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\imagecache.cpp" />
