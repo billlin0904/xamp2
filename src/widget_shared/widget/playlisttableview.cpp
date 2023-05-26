@@ -555,22 +555,14 @@ void PlayListTableView::initial() {
         if (!podcast_mode_) {
             if (enable_load_file_) {
                 auto* load_file_act = action_map.AddAction(tr("Load local file"), [this]() {
-                    const auto file_name = QFileDialog::getOpenFileName(this,
-                        tr("Open file"),
-                        AppSettings::GetMyMusicFolderPath(),
-                        tr("Music Files ") + GetFileDialogFileExtensions(),
-                        nullptr);
-                    if (file_name.isEmpty()) {
-                        return;
-                    }
-					append(file_name);
+                    GetOpenMusicFileName(this, [this](const auto& file_name) {
+                        append(file_name);
+                    });
                 });
                 load_file_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_FILE));
 
                 auto* load_dir_act = action_map.AddAction(tr("Load file directory"), [this]() {
-                    const auto dir_name = QFileDialog::getExistingDirectory(this,
-                    tr("Select a Directory"),
-                    AppSettings::GetMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
+                    const auto dir_name = GetExistingDirectory(this);
                     if (dir_name.isEmpty()) {
                         return;
                     }

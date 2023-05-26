@@ -27,9 +27,7 @@
 #include <stream/avlib.h>
 #include <stream/api.h>
 
-namespace xamp::stream {
-
-using namespace xamp::base;
+XAMP_STREAM_NAMESPACE_BEGIN
 
 static bool IsDsdFileChunk(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
@@ -195,4 +193,4 @@ void LoadSoxrLib() {
     Singleton<SoxrLib>::GetInstance();
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

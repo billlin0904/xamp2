@@ -1,6 +1,5 @@
 #include <widget/preferencepage.h>
 
-#include <QFileDialog>
 #include <QInputDialog>
 #include <QStandardItemModel>
 

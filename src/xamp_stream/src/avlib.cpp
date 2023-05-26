@@ -43,7 +43,8 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avformat_query_codec)
 	, XAMP_LOAD_DLL_API(av_oformat_next)
 	, XAMP_LOAD_DLL_API(avformat_alloc_output_context2)
-	, XAMP_LOAD_DLL_API(avio_open) {
+	, XAMP_LOAD_DLL_API(avio_open)
+	, XAMP_LOAD_DLL_API(av_interleaved_write_frame) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -68,7 +69,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_find_encoder)
 	, XAMP_LOAD_DLL_API(avcodec_configuration)
 	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context)
-	, XAMP_LOAD_DLL_API(av_codec_next) {
+	, XAMP_LOAD_DLL_API(av_codec_next)
+	, XAMP_LOAD_DLL_API(av_packet_rescale_ts) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -82,6 +84,7 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_get_bytes_per_sample)
 	, XAMP_LOAD_DLL_API(av_strerror)
 	, XAMP_LOAD_DLL_API(av_frame_alloc)
+	, XAMP_LOAD_DLL_API(av_frame_make_writable)
 	, XAMP_LOAD_DLL_API(av_malloc)
 	, XAMP_LOAD_DLL_API(av_samples_get_buffer_size)
 	, XAMP_LOAD_DLL_API(av_log_set_callback)
@@ -90,9 +93,13 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_dict_set)
 	, XAMP_LOAD_DLL_API(av_get_channel_layout_nb_channels)
 	, XAMP_LOAD_DLL_API(av_audio_fifo_alloc) 
+	, XAMP_LOAD_DLL_API(av_audio_fifo_size)
 	, XAMP_LOAD_DLL_API(av_audio_fifo_realloc)
 	, XAMP_LOAD_DLL_API(av_audio_fifo_write) 
-	, XAMP_LOAD_DLL_API(av_audio_fifo_free) {
+	, XAMP_LOAD_DLL_API(av_audio_fifo_free)
+	, XAMP_LOAD_DLL_API(av_samples_fill_arrays)
+	, XAMP_LOAD_DLL_API(av_rescale_q)
+	, XAMP_LOAD_DLL_API(av_sample_fmt_is_planar) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

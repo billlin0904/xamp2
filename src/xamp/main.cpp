@@ -260,8 +260,7 @@ static void LoadAppSettings() {
 
     AppSettings::SetDefaultValue(kAppSettingDeviceType, kEmptyString);
     AppSettings::SetDefaultValue(kAppSettingDeviceId, kEmptyString);
-    AppSettings::SetDefaultValue(kAppSettingVolume, 50);    
-    AppSettings::SetDefaultValue(kAppSettingEnableBlur, false);
+    AppSettings::SetDefaultValue(kAppSettingVolume, 50);
     AppSettings::SetDefaultValue(kAppSettingUseFramelessWindow, true);
     AppSettings::SetDefaultValue(kLyricsFontSize, 12);
     AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);

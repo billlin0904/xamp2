@@ -247,6 +247,7 @@ void BassLib::Load() {
     LoadPlugin("bass_aac.dll");
     LoadPlugin("bassflac.dll");
     LoadPlugin("bass_ape.dll");
+    LoadPlugin("bassalac.dll");
     LoadPlugin("basscd.dll");
     // For GetSupportFileExtensions need!
     LoadPlugin("bassdsd.dll");

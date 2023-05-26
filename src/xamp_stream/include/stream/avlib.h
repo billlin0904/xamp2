@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -76,6 +76,7 @@ public:
    XAMP_DECLARE_DLL_NAME(av_oformat_next);
    XAMP_DECLARE_DLL_NAME(avformat_alloc_output_context2);
    XAMP_DECLARE_DLL_NAME(avio_open);
+   XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
 };
 
 class AvCodecLib final {
@@ -104,6 +105,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_configuration);
     XAMP_DECLARE_DLL_NAME(avcodec_parameters_from_context);
     XAMP_DECLARE_DLL_NAME(av_codec_next);
+    XAMP_DECLARE_DLL_NAME(av_packet_rescale_ts);
 };
 
 class AvUtilLib final {
@@ -120,6 +122,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_get_bytes_per_sample);
     XAMP_DECLARE_DLL_NAME(av_strerror);
     XAMP_DECLARE_DLL_NAME(av_frame_alloc);
+    XAMP_DECLARE_DLL_NAME(av_frame_make_writable);
     XAMP_DECLARE_DLL_NAME(av_malloc);
     XAMP_DECLARE_DLL_NAME(av_samples_get_buffer_size);
     XAMP_DECLARE_DLL_NAME(av_log_set_callback);
@@ -128,9 +131,13 @@ public:
     XAMP_DECLARE_DLL_NAME(av_dict_set);
     XAMP_DECLARE_DLL_NAME(av_get_channel_layout_nb_channels);
     XAMP_DECLARE_DLL_NAME(av_audio_fifo_alloc);
+    XAMP_DECLARE_DLL_NAME(av_audio_fifo_size);
     XAMP_DECLARE_DLL_NAME(av_audio_fifo_realloc);
     XAMP_DECLARE_DLL_NAME(av_audio_fifo_write);
     XAMP_DECLARE_DLL_NAME(av_audio_fifo_free);
+    XAMP_DECLARE_DLL_NAME(av_samples_fill_arrays);
+    XAMP_DECLARE_DLL_NAME(av_rescale_q);
+    XAMP_DECLARE_DLL_NAME(av_sample_fmt_is_planar);
 };
 
 class AvSwLib final {
@@ -212,7 +219,7 @@ struct AvResourceDeleter<AVFrame> {
 template <>
 struct AvResourceDeleter<AVAudioFifo> {
     void operator()(AVAudioFifo* p) const {
-        XAMP_ASSERT(p != nullptr);
+        XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.UtilLib->av_audio_fifo_free(p);
     }
 };

@@ -2111,149 +2111,130 @@ QWidget* Xamp::PopWidget() {
 }
 
 void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
-	const auto last_dir = AppSettings::ValueAsString(kDefaultDir);
-
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+	const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
-    const auto file_name = QFileDialog::getSaveFileName(this,
+    GetSaveFileName(this,
+        [this, item, profile](const auto &file_name) {
+            const auto dialog = MakeProgressDialog(
+                tr("Export progress dialog"),
+                tr("Export '") + item.title + tr("' to aac file"),
+                tr("Cancel"));
+
+            QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+
+            TrackInfo track_info;
+            track_info.album = item.album.toStdWString();
+            track_info.artist = item.artist.toStdWString();
+            track_info.title = item.title.toStdWString();
+            track_info.track = item.track;
+
+            AnyMap config;
+            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(item.file_path.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(file_name.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kEncodingProfile, profile);
+
+            try {
+                auto encoder = StreamFactory::MakeAACEncoder();
+                read_utiltis::EncodeFile(config,
+                    encoder,
+                    [&](auto progress) -> bool {
+                        dialog->SetValue(progress);
+                        qApp->processEvents();
+                        return dialog->WasCanceled() != true;
+                    }, track_info);
+            }
+            catch (Exception const& e) {
+                XMessageBox::ShowError(qTEXT(e.what()));
+            }
+        },
         tr("Save AAC file"),
         save_file_name,
-        tr("AAC Files (*.m4a)"));
+        tr("AAC Files (*.m4a)"));   
 
-    if (file_name.isNull()) {
-        return;
-    }
-
-    QDir current_dir;
-    AppSettings::SetValue(kDefaultDir, current_dir.absoluteFilePath(file_name));
-
-    const auto dialog = MakeProgressDialog(
-        tr("Export progress dialog"),
-        tr("Export '") + item.title + tr("' to aac file"),
-        tr("Cancel"));
-
-    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-
-    TrackInfo track_info;
-    track_info.album = item.album.toStdWString();
-    track_info.artist = item.artist.toStdWString();
-    track_info.title = item.title.toStdWString();
-    track_info.track = item.track;
-
-    AnyMap config;
-    config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(item.file_path.toStdWString()));
-    config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(file_name.toStdWString()));
-    config.AddOrReplace(FileEncoderConfig::kEncodingProfile, profile);
-
-    try {
-        auto encoder = StreamFactory::MakeAACEncoder();
-        read_utiltis::EncodeFile(config,
-            encoder,
-            [&](auto progress) -> bool {
-                dialog->SetValue(progress);
-                qApp->processEvents();
-                return dialog->WasCanceled() != true;
-            }, track_info);
-    }
-    catch (Exception const& e) {
-        XMessageBox::ShowError(qTEXT(e.what()));
-    }
+    
 }
 
 void Xamp::EncodeWavFile(const PlayListEntity& item) {
-    auto last_dir = AppSettings::ValueAsString(kDefaultDir);
-
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
-    const auto file_name = QFileDialog::getSaveFileName(this,
+    GetSaveFileName(this,
+        [this, item](const auto& file_name) {
+            const auto dialog = MakeProgressDialog(
+                tr("Export progress dialog"),
+                tr("Export '") + item.title + tr("' to wav file"),
+                tr("Cancel"));
+
+            TrackInfo metadata;
+            metadata.album = item.album.toStdWString();
+            metadata.artist = item.artist.toStdWString();
+            metadata.title = item.title.toStdWString();
+            metadata.track = item.track;
+
+            std::wstring command;
+
+            try {
+                auto encoder = StreamFactory::MakeWaveEncoder();
+                read_utiltis::EncodeFile(item.file_path.toStdWString(),
+                    file_name.toStdWString(),
+                    encoder,
+                    command,
+                    [&](auto progress) -> bool {
+                        dialog->SetValue(progress);
+                        qApp->processEvents();
+                        return dialog->WasCanceled() != true;
+                    }, metadata);
+            }
+            catch (Exception const& e) {
+                XMessageBox::ShowError(qTEXT(e.what()));
+            }
+        },
         tr("Save Wav file"),
         save_file_name,
-        tr("Wav Files (*.wav)"));
-
-    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-
-    if (file_name.isNull()) {
-        return;
-    }
-
-    QDir current_dir;
-    AppSettings::SetValue(kDefaultDir, current_dir.absoluteFilePath(file_name));
-
-    const auto dialog = MakeProgressDialog(
-        tr("Export progress dialog"),
-        tr("Export '") + item.title + tr("' to wav file"),
-        tr("Cancel"));
-
-    TrackInfo metadata;
-    metadata.album = item.album.toStdWString();
-    metadata.artist = item.artist.toStdWString();
-    metadata.title = item.title.toStdWString();
-    metadata.track = item.track;
-
-    std::wstring command;
-
-    try {
-        auto encoder = StreamFactory::MakeWaveEncoder();
-        read_utiltis::EncodeFile(item.file_path.toStdWString(),
-            file_name.toStdWString(),
-            encoder,
-            command,
-            [&](auto progress) -> bool {
-                dialog->SetValue(progress);
-                qApp->processEvents();
-                return dialog->WasCanceled() != true;
-            }, metadata);
-    }
-    catch (Exception const& e) {
-        XMessageBox::ShowError(qTEXT(e.what()));
-    }
+        tr("Wav Files (*.wav)"));    
 }
 
 void Xamp::EncodeFlacFile(const PlayListEntity& item) {
-    auto last_dir = AppSettings::ValueAsString(kDefaultDir);
-
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
-    const auto file_name = QFileDialog::getSaveFileName(this,
+
+    GetSaveFileName(this,
+        [item](const auto& file_name) {
+            const auto dialog = MakeProgressDialog(
+                tr("Export progress dialog"),
+                tr("Export '") + item.title + tr("' to flac file"),
+                tr("Cancel"));
+
+            TrackInfo track_info;
+            track_info.album = item.album.toStdWString();
+            track_info.artist = item.artist.toStdWString();
+            track_info.title = item.title.toStdWString();
+            track_info.track = item.track;
+
+            const auto command
+                = qSTR("-%1 -V").arg(AppSettings::GetValue(kFlacEncodingLevel).toInt()).toStdWString();
+
+            try {
+                auto encoder = StreamFactory::MakeFlacEncoder();
+                read_utiltis::EncodeFile(item.file_path.toStdWString(),
+                    file_name.toStdWString(),
+                    encoder,
+                    command,
+                    [&](auto progress) -> bool {
+                        dialog->SetValue(progress);
+                        qApp->processEvents();
+                        return dialog->WasCanceled() != true;
+                    }, track_info);
+            }
+            catch (Exception const& e) {
+                XMessageBox::ShowError(qTEXT(e.what()));
+            }
+        },    
         tr("Save Flac file"),
         save_file_name,
-        tr("FLAC Files (*.flac)"));
-
-    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-
-    if (file_name.isNull()) {
-        return;
-    }
-
-    QDir current_dir;
-    AppSettings::SetValue(kDefaultDir, current_dir.absoluteFilePath(file_name));
-
-    const auto dialog = MakeProgressDialog(
-        tr("Export progress dialog"),
-         tr("Export '") + item.title + tr("' to flac file"),
-         tr("Cancel"));
-
-    TrackInfo track_info;
-    track_info.album = item.album.toStdWString();
-    track_info.artist = item.artist.toStdWString();
-    track_info.title = item.title.toStdWString();
-    track_info.track = item.track;
-
-    const auto command
-    	= qSTR("-%1 -V").arg(AppSettings::GetValue(kFlacEncodingLevel).toInt()).toStdWString();
-
-    try {
-        auto encoder = StreamFactory::MakeFlacEncoder();
-        read_utiltis::EncodeFile(item.file_path.toStdWString(),
-            file_name.toStdWString(),
-            encoder,
-            command,
-            [&](auto progress) -> bool {
-                dialog->SetValue(progress);
-                qApp->processEvents();
-                return dialog->WasCanceled() != true;
-            }, track_info);
-    }
-    catch (Exception const& e) {
-        XMessageBox::ShowError(qTEXT(e.what()));
-    }
+        tr("FLAC Files (*.flac)"));    
 }
 
 void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {

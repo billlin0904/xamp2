@@ -6,6 +6,7 @@
 #include <widget/actionmap.h>
 #include <widget/playlisttableview.h>
 #include <widget/filesystemmodel.h>
+#include <widget/ui_utilts.h>
 
 #include <QDateTime>
 #include <QFileDialog>
@@ -103,9 +104,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         add_file_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.AddAction(tr("Load file directory"), [this](auto pt) {
-            const auto dir_name = QFileDialog::getExistingDirectory(this,
-                tr("Select a Directory"),
-                AppSettings::GetMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
+            const auto dir_name = GetExistingDirectory(this);
             if (dir_name.isEmpty()) {
                 return;
             }

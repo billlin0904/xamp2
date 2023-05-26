@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -14,14 +14,17 @@
 #include <base/uuidof.h>
 #include <base/pimplptr.h>
 
+#define USE_AV_ENCODER
+
 #ifdef USE_AV_ENCODER
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(AvEncodeId,
 	AV_ENCODE_ID_AAC,
 	AV_ENCODE_ID_MP3,
 	AV_ENCODE_ID_WAV,
-	AV_ENCODE_ID_FLAC)
+	AV_ENCODE_ID_FLAC,
+	AV_ENCODE_ID_ALAC)
 
 class AvFileEncoder final : public IFileEncoder {
 	XAMP_DECLARE_MAKE_CLASS_UUID(AvFileEncoder, "89DFACBB-6798-447F-B195-B52DBBFC3793")
@@ -40,5 +43,5 @@ private:
 	AlignPtr<AvFileEncoderImpl> impl_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 #endif

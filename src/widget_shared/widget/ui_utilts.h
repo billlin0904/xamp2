@@ -35,13 +35,6 @@ void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
 
 XMainWindow* GetMainWindow();
 
-QString GetExistingDirectory(QWidget* parent = nullptr,
-    const QString& caption = QString(),
-    const QString& directory = QString(),
-    const QString& filter = QString());
-
-QColor GenerateRandomColor();
-
 XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(const AudioFormat& format);
 
 XAMP_WIDGET_SHARED_EXPORT QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext);
@@ -59,4 +52,22 @@ XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(
 
 XAMP_WIDGET_SHARED_EXPORT PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);
 
-void Delay(int32_t seconds);
+XAMP_WIDGET_SHARED_EXPORT QString GetFileDialogFileExtensions();
+
+XAMP_WIDGET_SHARED_EXPORT QString GetExistingDirectory(QWidget* parent);
+
+XAMP_WIDGET_SHARED_EXPORT void GetOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action);
+
+XAMP_WIDGET_SHARED_EXPORT void GetOpenFileName(QWidget* parent,
+    std::function<void(const QString&)>&& action,
+    const QString& caption = QString(),
+    const QString& dir = QString(),
+    const QString& filter = QString());
+
+XAMP_WIDGET_SHARED_EXPORT void GetSaveFileName(QWidget* parent,
+    std::function<void(const QString&)>&& action,
+    const QString& caption = QString(),
+    const QString& dir = QString(),
+    const QString& filter = QString());
+
+XAMP_WIDGET_SHARED_EXPORT void Delay(int32_t seconds);

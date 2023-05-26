@@ -278,16 +278,6 @@ TrackInfo GetTrackInfo(QString const& file_path) {
     return reader->Extract(path);
 }
 
-QString GetFileDialogFileExtensions() {
-    QString exts(qTEXT("("));
-    for (const auto& file_ext : GetSupportFileExtensions()) {
-        exts += qTEXT("*") + QString::fromStdString(file_ext);
-        exts += qTEXT(" ");
-    }
-    exts += qTEXT(")");
-    return exts;
-}
-
 QStringList GetFileNameFilter() {
     QStringList name_filter;
     for (auto& file_ext : GetSupportFileExtensions()) {

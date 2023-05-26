@@ -23,7 +23,7 @@
 #define XAMP_STREAM_NAMESPACE_BEGIN namespace xamp::stream {
 #define XAMP_STREAM_NAMESPACE_END }
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 	using namespace base;
 
     struct CompressorParameters;
@@ -44,4 +44,4 @@ namespace xamp::stream {
 
     using Complex = std::complex<float>;
     using ComplexValarray = std::valarray<Complex>;
-}
+XAMP_STREAM_NAMESPACE_END

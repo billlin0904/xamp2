@@ -19,8 +19,6 @@ class PlayListTableView;
 
 TrackInfo GetTrackInfo(QString const& file_path);
 
-QString GetFileDialogFileExtensions();
-
 QStringList GetFileNameFilter();
 
 class CoverArtReader final {
