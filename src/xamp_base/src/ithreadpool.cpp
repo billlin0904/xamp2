@@ -50,6 +50,7 @@ XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 XAMP_DECLARE_LOG_NAME(ScanPathThreadPool);
+XAMP_DECLARE_LOG_NAME(OptimizeImageThreadPool);
 
 IThreadPoolExecutor& GetPlaybackThreadPool() {
     static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,

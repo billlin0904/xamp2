@@ -238,10 +238,10 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
     }
 
     try {
-	    ForwardList<TrackInfo> track_infos;
+        QList<TrackInfo> track_infos;
 	    auto cd = OpenCD(drive.driver_letter);
         cd->SetMaxSpeed();
-        const auto tracks = cd->GetTotalTracks();
+        auto tracks = cd->GetTotalTracks();
 
         auto track_id = 0;
         for (const auto& track : tracks) {
@@ -250,10 +250,10 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
             metadata.duration = cd->GetDuration(track_id++);
             metadata.sample_rate = 44100;
             metadata.disc_id = disc_id;
-            track_infos.push_front(metadata);
+            track_infos.push_back(metadata);
         }
 
-        track_infos.sort([](const auto& first, const auto& last) {
+        std::sort(track_infos.begin(), track_infos.end(), [](const auto& first, const auto& last) {
             return first.track < last.track;
         });
 
@@ -306,7 +306,7 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
     emit BlurImage(image_utils::BlurImage(image, size));
 }
 
-void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities) {
+void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {
     auto writer = MakeMetadataWriter();
 
     auto entities_size = std::distance(entities.begin(), entities.end());

@@ -205,7 +205,8 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_HEART,                     0xF004 },
     { ICON_HEART_PRESS,               0xF004 },
     { ICON_CHEVRON_RIGHT,             0xF054 },
-    { ICON_CHEVRON_LEFT,              0xF053 }
+    { ICON_CHEVRON_LEFT,              0xF053 },
+    { ICON_SORT_DOWN,                 0xF160 }
     };
     
     qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
@@ -270,9 +271,9 @@ void ThemeManager::SetPalette() {
 
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(185, 185);
-    cache_cover_size_ = QSize(640, 640);
-    album_cover_size_ = QSize(250, 250);
-    save_cover_art_size_ = QSize(500, 500);
+    cache_cover_size_ = QSize(350, 350);
+    album_cover_size_ = QSize(206, 206);
+    save_cover_art_size_ = QSize(350, 350);
     base_size_ = QSize(1920, 1080);
     ui_font_ = LoadFonts();
     const auto* screen = qApp->screens()[0];
@@ -540,10 +541,6 @@ QSize ThemeManager::GetCacheCoverSize() const noexcept {
 
 QSize ThemeManager::GetAlbumCoverSize() const noexcept {
     return album_cover_size_;
-}
-
-QSize ThemeManager::GetSaveCoverArtSize() const noexcept {
-    return save_cover_art_size_;
 }
 
 void ThemeManager::SetBackgroundColor(QWidget* widget) {

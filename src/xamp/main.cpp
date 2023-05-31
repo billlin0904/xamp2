@@ -238,11 +238,11 @@ static void RegisterMetaType() {
     qRegisterMetaType<PlayListEntity>("PlayListEntity");
     qRegisterMetaType<Errors>("Errors");
     qRegisterMetaType<Vector<float>>("Vector<float>");
-    qRegisterMetaType<ForwardList<PlayListEntity>>("ForwardList<PlayListEntity>");
+    qRegisterMetaType<QList<PlayListEntity>>("QList<PlayListEntity>");
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<ComplexValarray>("ComplexValarray");
-    qRegisterMetaType<ForwardList<TrackInfo>>("ForwardList<TrackInfo>");
+    qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
     qRegisterMetaType<DriveInfo>("DriveInfo");
     qRegisterMetaType<EncodingProfile>("EncodingProfile");
     qRegisterMetaType<std::wstring>("std::wstring");
@@ -414,31 +414,31 @@ static void ApplyTheme() {
     qTheme.LoadAndApplyQssTheme();    
 }
 
-static void BasicFunctionality() {
-#define EXPECT_EQ(expected, actual) assert(expected == actual)
-    LruKCache<int, int> cache(2, 2, 4);
-    
-    cache.AddOrUpdate(2, 1);
-    EXPECT_EQ(cache.Get(2), std::nullopt);
-
-    cache.AddOrUpdate(3, 1);
-    EXPECT_EQ(cache.Get(3), std::nullopt);
-
-    cache.AddOrUpdate(4, 1);
-    cache.AddOrUpdate(4, 1);
-    EXPECT_EQ(cache.Get(2), std::nullopt);
-
-    cache.AddOrUpdate(4, 2);
-    EXPECT_EQ(cache.Get(4), 2);
-
-    EXPECT_EQ(cache.Get(3), std::nullopt);
-
-    cache.AddOrUpdate(5, 1);
-    cache.AddOrUpdate(5, 1);
-
-    EXPECT_EQ(cache.Get(4), std::nullopt);
-    EXPECT_EQ(cache.Get(5), 1);
-}
+//static void BasicFunctionality() {
+//#define EXPECT_EQ(expected, actual) assert(expected == actual)
+//    LruKCache<int, int> cache(2, 2, 4);
+//    
+//    cache.AddOrUpdate(2, 1);
+//    EXPECT_EQ(cache.Get(2), std::nullopt);
+//
+//    cache.AddOrUpdate(3, 1);
+//    EXPECT_EQ(cache.Get(3), std::nullopt);
+//
+//    cache.AddOrUpdate(4, 1);
+//    cache.AddOrUpdate(4, 1);
+//    EXPECT_EQ(cache.Get(2), std::nullopt);
+//
+//    cache.AddOrUpdate(4, 2);
+//    EXPECT_EQ(cache.Get(4), 2);
+//
+//    EXPECT_EQ(cache.Get(3), std::nullopt);
+//
+//    cache.AddOrUpdate(5, 1);
+//    cache.AddOrUpdate(5, 1);
+//
+//    EXPECT_EQ(cache.Get(4), std::nullopt);
+//    EXPECT_EQ(cache.Get(5), 1);
+//}
 
 static int Execute(int argc, char* argv[]) {
     //BasicFunctionality();
@@ -496,7 +496,7 @@ static int Execute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Database init success.");    
 
     if (!QSslSocket::supportsSsl()) {
-        XMessageBox::ShowError(qTEXT("TLS initialization failed."));
+        XMessageBox::ShowError(qTEXT("SSL initialization failed."));
         return -1;
     }    
     
@@ -511,11 +511,10 @@ static int Execute(int argc, char* argv[]) {
         main_window.SetShortcut(QKeySequence(Qt::Key_F11));
     }
 
-    Xamp win(&main_window, MakeAudioPlayer());
-    
+    Xamp win(&main_window, MakeAudioPlayer());    
+    win.SetXWindow(&main_window);
     win.SetThemeColor(qTheme.GetBackgroundColor(),
         qTheme.GetThemeTextColor());
-    win.SetXWindow(&main_window);
     
     XAMP_LOG_DEBUG("Set process mitigation.");
     SetProcessMitigation();

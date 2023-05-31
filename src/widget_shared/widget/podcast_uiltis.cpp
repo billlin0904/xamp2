@@ -18,9 +18,9 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-ForwardList<TrackInfo> ParseJson(QString const& json) {
+QList<TrackInfo> ParseJson(QString const& json) {
     QJsonParseError error;
-    ForwardList<TrackInfo> track_infos;
+    QList<TrackInfo> track_infos;
 
     auto track = 1;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
@@ -44,7 +44,7 @@ ForwardList<TrackInfo> ParseJson(QString const& json) {
             track_info.artist = performer.toStdWString();
             track_info.album = L"Podcast";
             track_info.track = track++;
-            track_infos.push_front(track_info);
+            track_infos.push_back(track_info);
         }
     }
     return track_infos;

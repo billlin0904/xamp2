@@ -43,7 +43,7 @@ XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 static QSet<QString> GetAlbumCategories(const QString& album) {
     QRegularExpression regex(
-        R"((final fantasy \b|piano collections|vocal collection|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)",
+        R"((final fantasy \b|piano|vocal|soundtrack|best|complete|collection|edition|version|the king of fighter)(?:(?: \[.*\])|(?: - .*))?)",
         QRegularExpression::CaseInsensitiveOption);
 
     QSet<QString> categories;
@@ -123,6 +123,9 @@ void NormalizeArtist(QString &artist, QStringList &artists) {
         if (!artist[0].isUpper()) {
             artist = artist.remove(' ');
         }
+        else {
+            artist = artist.trimmed();
+        }
     }
 
     artists = artist.split(QRegularExpression("[,/&]"), Qt::SkipEmptyParts);
@@ -132,7 +135,7 @@ void NormalizeArtist(QString &artist, QStringList &artists) {
     }
 }
 
-void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
+void DatabaseFacade::AddTrackInfo(const QList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
     const Stopwatch sw;
@@ -246,7 +249,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result,
     XAMP_LOG_DEBUG("AddTrackInfo ({} secs)", sw.ElapsedSeconds());
 }
 
-void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, 
+void DatabaseFacade::InsertTrackInfo(const QList<TrackInfo>& result, 
     int32_t playlist_id, 
     bool is_podcast_mode) {
     try {

@@ -44,7 +44,7 @@ public:
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
-	void SetTextColor(QColor color);
+	void SetAlbumTextColor(QColor color);
 
 	void EnableAlbumView(bool enable);
 
@@ -75,7 +75,7 @@ private:
 	bool enable_album_view_{ true };
 	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };
-	QColor text_color_;
+	QColor album_text_color_;
 	QPoint mouse_point_;
 	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
@@ -117,9 +117,7 @@ public:
 
 	void Update();
 
-	AlbumViewPage* albumViewPage() {
-		return page_;
-	}
+	AlbumViewPage* albumViewPage();
 
 	void EnablePage(bool enable);
 
@@ -133,12 +131,16 @@ public:
 
 	void FilterCategories(const QSet<QString>& category);
 
+	void FilterYears(const QSet<QString>& years);
+
+	void SortYears();
+
 	void SetShowMode(ShowModes mode);
 
 	void resizeEvent(QResizeEvent* event) override;
 
 signals:
-    void AddPlaylist(const ForwardList<int32_t> &music_ids, const ForwardList<PlayListEntity> &entities);
+    void AddPlaylist(const QList<int32_t> &music_ids, const QList<PlayListEntity> &entities);
 
 	void ClickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 

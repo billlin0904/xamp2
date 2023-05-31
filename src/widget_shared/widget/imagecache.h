@@ -7,16 +7,17 @@
 
 #include <QFileInfo>
 #include <QObject>
+#include <QBuffer>
 
 #include <base/logger.h>
-#include <base/lrukcache.h>
+#include <base/object_pool.h>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/image_utiltis.h>
 #include <widget/widget_shared_global.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT ImageCacheEntity {
+struct ImageCacheEntity {
 	ImageCacheEntity(int64_t size = 0, const QPixmap &image = QPixmap())
 		: size(size)
 		, image(image) {
@@ -25,7 +26,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ImageCacheEntity {
 	QPixmap image;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT ImageCacheSizeOfPolicy {
+struct ImageCacheSizeOfPolicy {
 	int64_t operator()(const QString&, const ImageCacheEntity& entity) const noexcept {
 		return entity.size;
 	}
@@ -71,8 +72,6 @@ protected:
 	ImageCache();
 
 private:
-	void OptimizeImageInDir(const QString& file_path) const;
-
 	void OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const;
 
 	void timerEvent(QTimerEvent*) override;
@@ -91,6 +90,7 @@ private:
 	QString cache_path_;
 	LoggerPtr logger_;
 	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> cache_;
+	mutable std::shared_ptr<ObjectPool<QBuffer>> buffer_pool_;
 	LruCache<QString, QPixmap> cover_cache_;
 };
 

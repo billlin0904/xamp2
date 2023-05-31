@@ -65,6 +65,10 @@ public:
 		return artist_view_;
 	}
 
+	AlbumView* year() const {
+		return year_view_;
+	}
+
 public slots:
 	void Refresh();
 
@@ -81,7 +85,6 @@ private:
 	QFrame* genre_frame_;
 	QFrame* year_frame_;
 	GenreViewPage* genre_stackwidget_;
-	QComboBox* category_combo_box_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;
 	AlbumTabListView* list_view_;

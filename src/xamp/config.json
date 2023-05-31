@@ -28,6 +28,7 @@
                 "MFEncoder": "info",
                 "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
+                "OptimizeImageThreadPool": "info",
                 "Pcm2DsdConverter": "info",
                 "PixmapCache": "info",
                 "PlaybackThreadPool": "info",
@@ -51,7 +52,7 @@
     "Soxr": {
         "BlueTooth": {
             "passBand": 96,
-            "phase": 47,
+            "phase": 46,
             "quality": 4,
             "resampleSampleRate": 44100,
             "rolloffLevel": 2,

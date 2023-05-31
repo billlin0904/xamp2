@@ -72,6 +72,7 @@ enum Glyphs {
     ICON_HEART,
     ICON_CHEVRON_RIGHT,
     ICON_CHEVRON_LEFT,
+    ICON_SORT_DOWN,
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {

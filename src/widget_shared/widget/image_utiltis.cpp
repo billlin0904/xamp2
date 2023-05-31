@@ -4,6 +4,7 @@
 #include <QBuffer>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsBlurEffect>
+#include <QSaveFile>
 
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
@@ -93,7 +94,7 @@ namespace imagequant {
 
 		const size_t pixels_size = width * height;
 
-		std::vector<unsigned char> raw_8bit_pixels(pixels_size);
+		std::vector<uint8_t> raw_8bit_pixels(pixels_size);
 		liq_set_dithering_level(result.get(), 1.0);
 
 		liq_write_remapped_image(result.get(), input_image.get(), raw_8bit_pixels.data(), pixels_size);
@@ -176,18 +177,20 @@ void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_pn
 }
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
-#if defined(USE_LIB_IMAGEQUANT) && !defined(_DEBUG)
-	/*static auto buffer_pool = std::make_shared<ObjectPool<std::vector<uint8_t>>>(16);
+#if 0 // defined(USE_LIB_IMAGEQUANT) && !defined(_DEBUG)
+	static auto buffer_pool = std::make_shared<ObjectPool<std::vector<uint8_t>>>(16);
 	auto result_png_ptr = buffer_pool->Acquire();
 	result_png_ptr->clear();
 	OptimizePng(dest_file_path, buffer, *result_png_ptr);
-	*/
-	std::vector<uint8_t> result_png;
-	OptimizePng(dest_file_path, buffer, result_png);
+	
+	/*std::vector<uint8_t> result_png;
+	OptimizePng(dest_file_path, buffer, result_png);*/
 	return true;
 #else
-	const auto image = QImage::fromData(buffer);
-	return image.save(dest_file_path, ImageCache::kImageFileFormat, 100);
+	QSaveFile file(dest_file_path);	
+	file.open(QIODevice::WriteOnly);
+	file.write(buffer);
+	return file.commit();	
 #endif
 }
 

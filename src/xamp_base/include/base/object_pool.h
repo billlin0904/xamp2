@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <deque>
+
 #include <base/base.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
@@ -94,7 +96,7 @@ private:
     FastConditionVariable idle_cv_;
 
     factory_type factory_;
-    std::vector<std::unique_ptr<T>> objects_;
+    std::deque<std::unique_ptr<T>> objects_;
 
     T *CreateObject() {
         if (current_size_ < max_size_) {

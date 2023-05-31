@@ -118,7 +118,7 @@ signals:
 
 	void EncodeWavFile(const PlayListEntity& item);
 
-    void ReadReplayGain(int32_t playlist_id, const ForwardList<PlayListEntity> &entities);
+    void ReadReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
 
 	void UpdateAlbumCover(const QString &cover_id);
 
@@ -130,7 +130,7 @@ signals:
 public slots:
 	void PlayIndex(const QModelIndex& index);
 
-	void ProcessDatabase(int32_t playlist_id, const ForwardList<PlayListEntity>& entities);
+	void ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 
@@ -144,7 +144,7 @@ public slots:
 		double track_rg_gain,
 		double track_peak);
 
-	void OnFetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+	void OnFetchPodcastCompleted(const QList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
 	void OnFetchPodcastError(const QString& msg);
 private:

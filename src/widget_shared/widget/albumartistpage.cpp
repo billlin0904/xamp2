@@ -141,20 +141,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 	f.setPointSize(qTheme.GetFontSize(10));
 
-	auto* category_label = new QLabel(tr("Category:"));
-	category_label->setFont(f);
-
 	auto title_category_list = qDatabase.GetCategories();
-
-	category_combo_box_ = new QComboBox();
-	category_combo_box_->setObjectName(QString::fromUtf8("categoryComboBox"));
-
-	category_combo_box_->addItem(tr("all"));
-	Q_FOREACH(auto category, title_category_list) {
-		category_combo_box_->addItem(category);
-	}
-
-	category_combo_box_->setCurrentIndex(0);	
 
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->SetListViewFixedHeight(70);
@@ -232,21 +219,53 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_view_->Update();
 		});
 
-	album_combox_layout->addWidget(album_search_line_edit_);
-	album_combox_layout->addWidget(category_label);
-	album_combox_layout->addWidget(category_combo_box_);
+	album_combox_layout->addWidget(album_search_line_edit_);	
 
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	album_combox_layout_1->addSpacerItem(horizontalSpacer);
+
+	auto* sort_by_button = new QToolButton();
+	sort_by_button->setText(tr("Sort by years"));
+	sort_by_button->setObjectName(QString::fromUtf8("sortByButton"));
+	sort_by_button->setFocusPolicy(Qt::NoFocus);
+	sort_by_button->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SORT_DOWN));
+	sort_by_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	sort_by_button->setAutoRaise(true);
+	sort_by_button->setPopupMode(QToolButton::MenuButtonPopup);
+
+	album_combox_layout_1->addWidget(sort_by_button, 1);
+	auto* sort_menu = new QMenu(this);
+	auto *sort_year_act = sort_menu->addAction(tr("Sort By Year"));
+	auto* sort_playback_count_act = sort_menu->addAction(tr("Sort By PlayCunt"));
+	(void)QObject::connect(sort_year_act, &QAction::triggered, [this, sort_by_button]() {
+		album_view_->SortYears();
+		album_view_->Update();
+		sort_by_button->setText(tr("Sort By Year"));
+		album_tag_list_widget_->ClearTag();
+		});
+	(void)QObject::connect(sort_playback_count_act, &QAction::triggered, [this, sort_by_button]() {
+		sort_by_button->setText(tr("Sort By PlayCunt"));
+		album_tag_list_widget_->ClearTag();
+		});
+	sort_by_button->setMenu(sort_menu);
+
 	album_combox_layout_1->addLayout(album_combox_layout);
-	
 	album_frame_layout->addLayout(album_combox_layout_1);
+
+	auto* tags_label = new QLabel(tr("Category"));
+	f.setPointSize(qTheme.GetFontSize(12));
+	tags_label->setFont(f);
+
+	album_frame_layout->addWidget(tags_label);
+
 	album_frame_layout->addWidget(album_tag_list_widget_);
 	album_frame_layout->addWidget(album_view_, 1);
 
 	genre_stackwidget_ = new GenreViewPage(this);
+	auto genres_list = qDatabase.GetGenres();
+	std::sort(genres_list.begin(), genres_list.end());
 
-	Q_FOREACH(auto genre, qDatabase.GetGenres()) {
+	Q_FOREACH(auto genre, genres_list) {
 		genre_stackwidget_->AddGenreList(genre);
 	}
 	
@@ -350,7 +369,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
 		artist_view_->FilterAritstName(tags);
-		artist_view_->Update();
+		artist_view_->Update();		
 		});
 
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagClear, [this]() {
@@ -358,36 +377,33 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		artist_view_->Update();
 		});
 
-	(void)QObject::connect(category_combo_box_, &QComboBox::textActivated, [this](const auto &category) {
-		auto indicator = MakeProcessIndicator(this);
-		indicator->StartAnimation();
-		Delay(1);
-		if (category != tr("all")) {			
-			album_view_->FilterCategories(category);
-		}
-		else {
-			album_view_->ShowAll();
-		}
-		album_view_->Update();
-		album_tag_list_widget_->ClearTag();
-		});
-
 	year_frame_ = new QFrame();
 	year_frame_->setObjectName(QString::fromUtf8("currentArtistViewFrame"));
 	year_frame_->setFrameShape(QFrame::StyledPanel);
 	auto* year_frame_layout = new QVBoxLayout(year_frame_);
 	year_frame_layout->setSpacing(0);
+	QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	year_frame_layout->setObjectName(QString::fromUtf8("currentArtistViewFrameLayout"));
 	year_frame_layout->setContentsMargins(0, 0, 0, 0);	
 
 	year_view_ = new AlbumView();
 	year_tag_list_widget_ = new TagListView();
+	year_tag_list_widget_->setSizePolicy(sizePolicy);
 	Q_FOREACH (auto year, qDatabase.GetYears()) {
 		year_tag_list_widget_->AddTag(year, true);
-	}
-
+	}	
 	year_frame_layout->addWidget(year_tag_list_widget_);
 	year_frame_layout->addWidget(year_view_, 1);
+
+	(void)QObject::connect(year_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
+		year_view_->FilterYears(tags);
+		year_view_->Update();
+		});
+
+	(void)QObject::connect(year_tag_list_widget_, &TagListView::TagClear, [this]() {
+		year_view_->ShowAll();
+		year_view_->Update();
+		});
 
 	current_view->addWidget(year_frame_);
 
@@ -417,6 +433,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	album_view_->OnCurrentThemeChanged(theme_color);
 	artist_view_->OnCurrentThemeChanged(theme_color);
+	year_view_->OnCurrentThemeChanged(theme_color);
 
 	genre_stackwidget_->OnCurrentThemeChanged(theme_color);
 	album_tag_list_widget_->OnCurrentThemeChanged(theme_color);
@@ -424,13 +441,12 @@ void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 
 	qTheme.SetLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
 	qTheme.SetLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
-	qTheme.SetComboBoxStyle(category_combo_box_, qTEXT("categoryComboBox"));
 }
 
 void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
 	album_view_->OnThemeChanged(backgroundColor, color);
 	artist_view_->OnThemeChanged(backgroundColor, color);
-
+	year_view_->OnThemeChanged(backgroundColor, color);
 	album_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
 	artist_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
 	genre_stackwidget_->OnThemeColorChanged(backgroundColor, color);
@@ -438,7 +454,7 @@ void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) 
 
 void AlbumArtistPage::Refresh() {
 	album_view_->Refresh();
-	artist_view_->Refresh();
+	artist_view_->Refresh();	
 	genre_stackwidget_->Refresh();
 
 	auto title_category_list = qDatabase.GetCategories();

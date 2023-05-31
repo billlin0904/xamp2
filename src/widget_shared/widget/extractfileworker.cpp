@@ -39,50 +39,52 @@ static size_t GetFileCount(const QString& dir, const QStringList& file_name_filt
 
 static Vector<QString> GetPathSortByFileCount(const Vector<QString>& paths,
     const QStringList& file_name_filters,
-    std::function<void(size_t)>&& action) {
+    std::function<void(size_t)>&& action) {    
     FastMutex mutex;
-    OrderedMap<size_t, Vector<QString>> file_count_map;
-    OrderedMap<QString, size_t> path2file_count_map;
-    size_t total_file_count = 0;
 
+    struct PathInfo {
+        QString path;
+        size_t file_count;
+        size_t depth;
+    };
+
+    size_t total_file_count = 0;
+    Vector<PathInfo> path_infos;
+    path_infos.reserve(paths.size());
+
+    // Calculate file counts and depths in parallel
     Executor::ParallelFor(GetScanPathThreadPool(), paths, [&](const auto& path) {
+        size_t file_count = GetFileCount(path, file_name_filters);
+        size_t depth = path.count('/');
         std::lock_guard<FastMutex> guard{ mutex };
-        auto file_count = GetFileCount(path, file_name_filters);
-        file_count_map[file_count].push_back(path);
-        path2file_count_map[path] = file_count;
+        path_infos.push_back({ path, file_count, depth });
         total_file_count += file_count;
         action(total_file_count);
         });
 
-    auto comparePaths = [&](const QString& path1, const QString& path2) {
-        const auto file_count1 = path2file_count_map[path1];
-        const auto file_count2 = path2file_count_map[path2];
-        const auto depth1 = path1.count('/');
-        const auto depth2 = path2.count('/');
-        if (file_count1 != file_count2) {
-            return file_count1 < file_count2;
+    // Sort path_infos based on file count and depth
+    std::sort(path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
+        if (p1.file_count != p2.file_count) {
+            return p1.file_count < p2.file_count;
         }
-        else {
-            return depth1 < depth2;
-        }
-    };
+        return p1.depth < p2.depth;
+        });
 
-    Vector<QString> file_count_paths;
-    file_count_paths.reserve(file_count_map.size());
-    for (auto& pair : file_count_map) {
-        auto& paths = pair.second;
-        std::sort(paths.begin(), paths.end(), comparePaths);
-        file_count_paths.insert(file_count_paths.end(), paths.begin(), paths.end());
+    // Extract sorted paths
+    Vector<QString> sorted_paths;
+    sorted_paths.reserve(path_infos.size());
+    for (const auto& path_info : path_infos) {
+        sorted_paths.push_back(path_info.path);
     }
 
-    return file_count_paths;
+    return sorted_paths;
 }
 
 ExtractFileWorker::ExtractFileWorker() {
     logger_ = LoggerManager::GetInstance().GetLogger(kExtractFileWorkerLoggerName);
 }
 
-void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInfo>>& album_groups,
+void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, QList<TrackInfo>>& album_groups,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -145,7 +147,7 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, ForwardList<TrackInf
                 auto track_info = reader->Extract(path);
                 track_info.parent_path_hash = path_hash;
                 std::lock_guard<FastMutex> guard{ mutex };
-                album_groups[track_info.album].emplace_front(std::move(track_info));
+                album_groups[track_info.album].push_back(std::move(track_info));
             }
             catch (...) {
             }
@@ -213,7 +215,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
             return;
         }
 
-        HashMap<std::wstring, ForwardList<TrackInfo>> album_groups;
+        HashMap<std::wstring, QList<TrackInfo>> album_groups;
 
         XAMP_ON_SCOPE_EXIT(
             auto value = progress.load();
@@ -233,7 +235,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
             if (is_stop_) {
                 return;
             }
-            album_tracks.second.sort([](const auto& first, const auto& last) {
+            std::sort(album_tracks.second.begin(), album_tracks.second.end(), [](const auto& first, const auto& last) {
                 return first.track < last.track;
                 });
             emit InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);

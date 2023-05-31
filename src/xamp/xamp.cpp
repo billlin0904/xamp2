@@ -301,8 +301,7 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
 				padding: 0px;
-				background-color: #080808;
-				border: 1px solid transparent;
+				background-color: #080808;				
 				border-top-left-radius: 8px;
             }			
             )"));
@@ -336,7 +335,6 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
         ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
-				border: 1px solid transparent;
 				border-top-left-radius: 8px;
             }			
             )"));
@@ -1754,7 +1752,7 @@ void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
     SetCover(cover_id, cd_page_->playlistPage());
 }
 
-void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
+void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const QList<TrackInfo>& track_infos) {
     const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
     qDatabase.RemoveAlbum(album_id);
     cd_page_->playlistPage()->playlist()->RemoveAll();
@@ -1842,7 +1840,7 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
     ui_.currentView->setCurrentWidget(album_page_);
 }
 
-void Xamp::AddPlaylistItem(const ForwardList<int32_t>& music_ids, const ForwardList<PlayListEntity> & entities) {
+void Xamp::AddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
 	auto *playlist_view = playlist_page_->playlist();
     qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
     playlist_view->AddPendingPlayListFromModel(order_);    
@@ -2007,8 +2005,10 @@ void Xamp::InitialPlaylist() {
     if (!qDatabase.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.AddPlaylist(kEmptyString, 1);
     }
+
     // TODO:
-    //ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
+    ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
+    ConnectPlaylistPageSignal(album_page_->year()->albumViewPage()->playlistPage());
 
     (void)QObject::connect(this,
         &Xamp::SearchLyrics,
@@ -2038,11 +2038,6 @@ void Xamp::InitialPlaylist() {
         &AlbumView::ClickedArtist,
         this,
         &Xamp::OnArtistIdChanged);
-
-    (void)QObject::connect(this,
-        &Xamp::ThemeChanged,
-        album_page_->album(),
-        &AlbumView::OnThemeChanged);
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
@@ -2315,11 +2310,6 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::ThemeChanged,
         playlist_page,
         &PlaylistPage::OnThemeColorChanged);
-
-    (void)QObject::connect(this,
-        &Xamp::ThemeChanged,
-        album_page_,
-        &AlbumArtistPage::OnThemeColorChanged);
 }
 
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
@@ -2333,7 +2323,7 @@ void Xamp::AddDropFileItem(const QUrl& url) {
     AddItem(url.toLocalFile());
 }
 
-void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result,
+void Xamp::OnInsertDatabase(const QList<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast_mode) {
     DatabaseFacade facede;

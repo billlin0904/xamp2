@@ -155,7 +155,7 @@ public:
         double track_rg_gain,
         double track_peak);
 
-    ForwardList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
+    QList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
 
     void ClearPendingPlaylist();
 
@@ -233,7 +233,7 @@ public:
 
     void AddMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
 
-    void AddMusicToPlaylist(const ForwardList<int32_t> & music_id, int32_t playlist_id) const;
+    void AddMusicToPlaylist(const QList<int32_t> & music_id, int32_t playlist_id) const;
 
     void SetNowPlaying(int32_t playlist_id, int32_t music_id);
 

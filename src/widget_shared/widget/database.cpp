@@ -538,7 +538,6 @@ WHERE
 GROUP BY
     musics.path
 ORDER BY
-    musics.path ASC,
     musics.track ASC;
 )"), db_);
     query.addBindValue(album_id);
@@ -973,10 +972,10 @@ PlayListEntity Database::QueryToPlayListEntity(const SqlQuery& query) {
     return entity;
 }
 
-ForwardList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_hash) const {
+QList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_hash) const {
     QReadLocker read_locker(&locker_);
 
-    ForwardList<PlayListEntity> track_infos;
+    QList<PlayListEntity> track_infos;
 
     QByteArray blob_size_t;
     blob_size_t.resize(sizeof(uint64_t));
@@ -1007,7 +1006,7 @@ ForwardList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_
     THROW_IF_FAIL1(query);
 
     while (query.next()) {
-        track_infos.push_front(QueryToPlayListEntity(query));
+        track_infos.push_back(QueryToPlayListEntity(query));
     }
 
     return track_infos;
@@ -1259,7 +1258,7 @@ void Database::AddMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t
     THROW_IF_FAIL1(query);
 }
 
-void Database::AddMusicToPlaylist(const ForwardList<int32_t>& music_id, int32_t playlist_id) const {
+void Database::AddMusicToPlaylist(const QList<int32_t>& music_id, int32_t playlist_id) const {
     QWriteLocker write_locker(&locker_);
 
     SqlQuery query(db_);

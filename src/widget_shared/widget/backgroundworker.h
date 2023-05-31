@@ -49,13 +49,13 @@ signals:
 
     void DominantColor(const QColor &color);
 
-    void OnReadCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+    void OnReadCdTrackInfo(const QString& disc_id, const QList<TrackInfo>& track_infos);
 
     void OnMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
     void OnDiscCover(const QString& disc_id, const QString& cover_id);
 
-    void FetchPodcastCompleted(const ForwardList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+    void FetchPodcastCompleted(const QList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
     void FetchPodcastError(const QString& msg);    
 
@@ -67,7 +67,7 @@ signals:
 public Q_SLOT:
 	void OnFetchPodcast(int32_t playlist_id);
 
-    void OnReadReplayGain(int32_t playlistId, const ForwardList<PlayListEntity>& entities);
+    void OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
 
     void OnBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
 

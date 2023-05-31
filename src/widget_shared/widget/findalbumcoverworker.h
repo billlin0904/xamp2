@@ -26,6 +26,6 @@ public slots:
 
 	void OnCancelRequested();
 private:
-	bool is_stop_{ true };
+	bool is_stop_{ false };
 };
 

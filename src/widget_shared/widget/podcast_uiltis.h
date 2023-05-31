@@ -10,6 +10,7 @@
 #include <base/stl.h>
 #include <base/trackinfo.h>
 
+#include <QList>
 #include <QMetaType>
 
 #include <widget/str_utilts.h>
@@ -32,7 +33,7 @@ struct XAMP_WIDGET_SHARED_EXPORT MbDiscIdInfo {
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)
 
-ForwardList<TrackInfo> ParseJson(QString const& json);
+QList<TrackInfo> ParseJson(QString const& json);
 
 std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src);
 

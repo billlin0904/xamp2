@@ -207,7 +207,7 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
 		break;
 	case ThemeColor::LIGHT_THEME:
-		lyrics_widget_->SetLrcColor(Qt::lightGray);
+		lyrics_widget_->SetLrcColor(Qt::white);
 		lyrics_widget_->SetLrcHighLight(Qt::black);
 		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
 		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));

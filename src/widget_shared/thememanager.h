@@ -65,8 +65,6 @@ public:
 
     QSize GetAlbumCoverSize() const noexcept;
 
-    QSize GetSaveCoverArtSize() const noexcept;
-
     QIcon GetPlayCircleIcon() const;
 
     QIcon GetHiResIcon() const;
