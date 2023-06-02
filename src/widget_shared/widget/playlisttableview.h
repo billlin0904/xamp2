@@ -144,7 +144,7 @@ public slots:
 		double track_rg_gain,
 		double track_peak);
 
-	void OnFetchPodcastCompleted(const QList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+	void OnFetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
 	void OnFetchPodcastError(const QString& msg);
 private:

@@ -1752,7 +1752,7 @@ void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
     SetCover(cover_id, cd_page_->playlistPage());
 }
 
-void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const QList<TrackInfo>& track_infos) {
+void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos) {
     const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
     qDatabase.RemoveAlbum(album_id);
     cd_page_->playlistPage()->playlist()->RemoveAll();
@@ -2323,7 +2323,7 @@ void Xamp::AddDropFileItem(const QUrl& url) {
     AddItem(url.toLocalFile());
 }
 
-void Xamp::OnInsertDatabase(const QList<TrackInfo>& result,
+void Xamp::OnInsertDatabase(const Vector<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast_mode) {
     DatabaseFacade facede;

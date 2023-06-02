@@ -51,12 +51,12 @@ signals:
 public:
     static QStringList NormalizeGenre(const QString& genre);
 
-    void InsertTrackInfo(const QList<TrackInfo>& result,
+    void InsertTrackInfo(const Vector<TrackInfo>& result,
         int32_t playlist_id, 
         bool is_podcast_mode);
 
 private:   
-    void AddTrackInfo(const QList<TrackInfo>& result,
+    void AddTrackInfo(const Vector<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast);
 

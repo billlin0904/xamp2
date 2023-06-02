@@ -238,7 +238,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
     }
 
     try {
-        QList<TrackInfo> track_infos;
+        Vector<TrackInfo> track_infos;
 	    auto cd = OpenCD(drive.driver_letter);
         cd->SetMaxSpeed();
         auto tracks = cd->GetTotalTracks();

@@ -18,9 +18,9 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-QList<TrackInfo> ParseJson(QString const& json) {
+Vector<TrackInfo> ParseJson(QString const& json) {
     QJsonParseError error;
-    QList<TrackInfo> track_infos;
+    Vector<TrackInfo> track_infos;
 
     auto track = 1;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);

@@ -245,7 +245,7 @@ public:
 
     void SetNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
 private:
-    static PlayListEntity QueryToPlayListEntity(const SqlQuery& query);
+    static PlayListEntity FromSqlQuery(const SqlQuery& query);
 
     void RemoveAlbumArtist(int32_t album_id);
 

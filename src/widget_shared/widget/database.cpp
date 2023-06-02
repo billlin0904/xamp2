@@ -535,10 +535,6 @@ FROM
     LEFT JOIN musicLoudness ON musicLoudness.musicId = albumMusic.musicId
 WHERE
     albums.albumId = ?
-GROUP BY
-    musics.path
-ORDER BY
-    musics.track ASC;
 )"), db_);
     query.addBindValue(album_id);
 
@@ -547,7 +543,7 @@ ORDER BY
     }
 
     while (query.next()) {
-        fun(QueryToPlayListEntity(query));
+        fun(FromSqlQuery(query));
     }
 }
 
@@ -938,7 +934,7 @@ QString Database::GetAlbumCoverId(const QString& album) const {
     return kEmptyString;
 }
 
-PlayListEntity Database::QueryToPlayListEntity(const SqlQuery& query) {
+PlayListEntity Database::FromSqlQuery(const SqlQuery& query) {
     PlayListEntity entity;
     entity.album_id = query.value(qTEXT("albumId")).toInt();
     entity.artist_id = query.value(qTEXT("artistId")).toInt();
@@ -1006,7 +1002,7 @@ QList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_hash) 
     THROW_IF_FAIL1(query);
 
     while (query.next()) {
-        track_infos.push_back(QueryToPlayListEntity(query));
+        track_infos.push_back(FromSqlQuery(query));
     }
 
     return track_infos;

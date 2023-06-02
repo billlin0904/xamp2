@@ -19,7 +19,7 @@ public:
     ExtractFileWorker();
 
 signals:
-    void InsertDatabase(const QList<TrackInfo>& result,
+    void InsertDatabase(const Vector<TrackInfo>& result,
         int32_t playlist_id,
         bool is_podcast_mode);
 
@@ -43,7 +43,7 @@ private:
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    void ScanPathFiles(HashMap<std::wstring, QList<TrackInfo>>& album_groups,
+    void ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
         const QStringList& file_name_filters,
         const QString& dir,
         int32_t playlist_id,

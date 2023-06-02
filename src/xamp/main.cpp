@@ -243,6 +243,7 @@ static void RegisterMetaType() {
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<ComplexValarray>("ComplexValarray");
     qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
+    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DriveInfo>("DriveInfo");
     qRegisterMetaType<EncodingProfile>("EncodingProfile");
     qRegisterMetaType<std::wstring>("std::wstring");
@@ -414,35 +415,7 @@ static void ApplyTheme() {
     qTheme.LoadAndApplyQssTheme();    
 }
 
-//static void BasicFunctionality() {
-//#define EXPECT_EQ(expected, actual) assert(expected == actual)
-//    LruKCache<int, int> cache(2, 2, 4);
-//    
-//    cache.AddOrUpdate(2, 1);
-//    EXPECT_EQ(cache.Get(2), std::nullopt);
-//
-//    cache.AddOrUpdate(3, 1);
-//    EXPECT_EQ(cache.Get(3), std::nullopt);
-//
-//    cache.AddOrUpdate(4, 1);
-//    cache.AddOrUpdate(4, 1);
-//    EXPECT_EQ(cache.Get(2), std::nullopt);
-//
-//    cache.AddOrUpdate(4, 2);
-//    EXPECT_EQ(cache.Get(4), 2);
-//
-//    EXPECT_EQ(cache.Get(3), std::nullopt);
-//
-//    cache.AddOrUpdate(5, 1);
-//    cache.AddOrUpdate(5, 1);
-//
-//    EXPECT_EQ(cache.Get(4), std::nullopt);
-//    EXPECT_EQ(cache.Get(5), 1);
-//}
-
 static int Execute(int argc, char* argv[]) {
-    //BasicFunctionality();
-
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
@@ -547,7 +520,9 @@ int main() {
     XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
+#ifndef _DEBUG
     SetWorkingSetSize();
+#endif
 
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {

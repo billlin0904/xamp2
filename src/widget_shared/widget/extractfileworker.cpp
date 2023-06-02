@@ -84,7 +84,7 @@ ExtractFileWorker::ExtractFileWorker() {
     logger_ = LoggerManager::GetInstance().GetLogger(kExtractFileWorkerLoggerName);
 }
 
-void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, QList<TrackInfo>>& album_groups,
+void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
     const QStringList& file_name_filters,
     const QString& dir,
     int32_t playlist_id,
@@ -97,7 +97,10 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, QList<TrackInfo>>& a
         auto next_path = ToNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
         auto directory = QFileInfo(next_path).dir().path().toStdWString();
-        directory_files[directory].push_back(path);
+        if (!directory_files.contains(directory)) {
+            directory_files[directory].reserve(kReserveSize);
+        }
+        directory_files[directory].push_back(path);       
         hasher.Update(path);
     }
 
@@ -147,6 +150,9 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, QList<TrackInfo>>& a
                 auto track_info = reader->Extract(path);
                 track_info.parent_path_hash = path_hash;
                 std::lock_guard<FastMutex> guard{ mutex };
+                if (!album_groups.contains(track_info.album)) {
+                    album_groups[track_info.album].reserve(kReserveSize);
+                }
                 album_groups[track_info.album].push_back(std::move(track_info));
             }
             catch (...) {
@@ -215,7 +221,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
             return;
         }
 
-        HashMap<std::wstring, QList<TrackInfo>> album_groups;
+        HashMap<std::wstring, Vector<TrackInfo>> album_groups;
 
         XAMP_ON_SCOPE_EXIT(
             auto value = progress.load();

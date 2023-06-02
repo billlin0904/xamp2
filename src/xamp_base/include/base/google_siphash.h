@@ -33,6 +33,11 @@ public:
         Update(reinterpret_cast<const char*>(str.data()), str.size() * sizeof(CharT));
     }
 
+    template <typename CharT>
+    void Update(const CharT *str, size_t length) noexcept {
+        Update(reinterpret_cast<const char*>(str), length * sizeof(CharT));
+    }
+
     XAMP_ALWAYS_INLINE void Update(const char* bytes, size_t size) noexcept {
         const size_t remainder = size & (kPacketSize - 1);
         const size_t truncated_size = size - remainder;

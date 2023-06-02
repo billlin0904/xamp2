@@ -135,7 +135,7 @@ void NormalizeArtist(QString &artist, QStringList &artists) {
     }
 }
 
-void DatabaseFacade::AddTrackInfo(const QList<TrackInfo>& result,
+void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
     const Stopwatch sw;
@@ -249,7 +249,7 @@ void DatabaseFacade::AddTrackInfo(const QList<TrackInfo>& result,
     XAMP_LOG_DEBUG("AddTrackInfo ({} secs)", sw.ElapsedSeconds());
 }
 
-void DatabaseFacade::InsertTrackInfo(const QList<TrackInfo>& result, 
+void DatabaseFacade::InsertTrackInfo(const Vector<TrackInfo>& result,
     int32_t playlist_id, 
     bool is_podcast_mode) {
     try {

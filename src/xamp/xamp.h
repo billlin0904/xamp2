@@ -104,7 +104,7 @@ public slots:
 
 	void SetCover(const QString& cover_id, PlaylistPage* page);
 
-	void OnUpdateCdTrackInfo(const QString& disc_id, const QList<TrackInfo>& track_infos);
+	void OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos);
 
 	void OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
@@ -116,7 +116,7 @@ public slots:
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
-	void OnInsertDatabase(const QList<TrackInfo>& result,
+	void OnInsertDatabase(const Vector<TrackInfo>& result,
 		int32_t playlist_id,
 		bool is_podcast_mode);
 

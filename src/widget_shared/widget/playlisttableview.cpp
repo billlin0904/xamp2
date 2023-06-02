@@ -223,10 +223,8 @@ static PlayListEntity GetEntity(const QModelIndex& index) {
 }
 
 void PlayListTableView::Reload() {
-    // 呼叫此函數就會更新index, 會導致playing index失效
-    QString s;
-    if (!IsPodcastMode()) {
-        s = qTEXT(R"(
+    // 呼叫此函數就會更新index, 會導致playing index失效    
+    QString s = qTEXT(R"(
     SELECT
 	albums.coverId,
     musics.musicId,
@@ -264,100 +262,23 @@ void PlayListTableView::Reload() {
     JOIN albums ON albumMusic.albumId = albums.albumId
     JOIN artists ON albumMusic.artistId = artists.artistId
     WHERE
-    playlistMusics.playlistId = %1
-    GROUP BY
-    musics.path
-    ORDER BY
-    musics.path ASC,
-    musics.track ASC;
-    )");
+    playlistMusics.playlistId = %1)");
+
+    if (!IsPodcastMode()) {       
+        s += qTEXT(R"(
+        GROUP BY
+        musics.parentPath, musics.track
+        ORDER BY
+        musics.parentPath ASC, musics.track ASC;
+        )");
     }
     else {
-        s = qTEXT(R"(
-    SELECT
-	albums.coverId,
-    musics.musicId,
-    playlistMusics.playing,
-    musics.track,
-    musics.path,
-	musics.fileSize,
-    musics.title,
-    musics.fileName,
-    artists.artist,
-    albums.album,
-    musics.duration,
-    musics.bit_rate,
-    musics.sample_rate,
-    musics.rating,
-    albumMusic.albumId,
-    albumMusic.artistId,    
-	musics.fileExt,
-    musics.parentPath,
-    musics.dateTime,
-	playlistMusics.playlistMusicsId,
-    musics.album_replay_gain,
-    musics.album_peak,	
-    musics.track_replay_gain,
-	musics.track_peak,
-	musicLoudness.track_loudness,
-	musics.genre,
-    musics.heart
-    FROM
-    playlistMusics
-    JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
-    JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
-    JOIN musics ON playlistMusics.musicId = musics.musicId
-    JOIN albums ON albumMusic.albumId = albums.albumId
-    JOIN artists ON albumMusic.artistId = artists.artistId
-    WHERE
-    playlistMusics.playlistId = %1
-    ORDER BY
-    musics.track DESC;
-    )");
+        s += qTEXT(R"(
+        ORDER BY
+        musics.track DESC;
+        )");
     }
 
-    /*s = qTEXT(R"(
-    SELECT
-	albums.coverId,
-    musics.musicId,
-    playlistMusics.playing,
-    musics.track,
-    musics.path,
-	musics.fileSize,
-    musics.title,
-    musics.fileName,
-    artists.artist,
-    albums.album,
-    musics.duration,
-    musics.bit_rate,
-    musics.sample_rate,
-    musics.rating,
-    albumMusic.albumId,
-    albumMusic.artistId,    
-	musics.fileExt,
-    musics.parentPath,
-    musics.dateTime,
-	playlistMusics.playlistMusicsId,
-    musics.album_replay_gain,
-    musics.album_peak,	
-    musics.track_replay_gain,
-	musics.track_peak,
-	musicLoudness.track_loudness,
-	musics.genre,
-    musics.heart
-    FROM
-    playlistMusics
-    JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
-    JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
-    JOIN musics ON playlistMusics.musicId = musics.musicId
-    JOIN albums ON albumMusic.albumId = albums.albumId
-    JOIN artists ON albumMusic.artistId = artists.artistId
-    WHERE
-    playlistMusics.playlistId = %1
-    )");*/
-    
     const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
@@ -965,7 +886,7 @@ void PlayListTableView::OnFetchPodcastError(const QString& msg) {
     OnFetchPodcastCompleted({}, {});
 }
 
-void PlayListTableView::OnFetchPodcastCompleted(const QList<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
+void PlayListTableView::OnFetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
     XAMP_LOG_DEBUG("Download podcast completed!");
 
     DatabaseFacade facade;
@@ -1073,7 +994,11 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
         }
         pending_playlist_.append(index);
         auto entity = GetEntity(index);
-        qDatabase.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
+        try {
+            qDatabase.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
+        }
+        catch (...) {
+        }
     }
 }
 

@@ -49,13 +49,13 @@ signals:
 
     void DominantColor(const QColor &color);
 
-    void OnReadCdTrackInfo(const QString& disc_id, const QList<TrackInfo>& track_infos);
+    void OnReadCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos);
 
     void OnMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
     void OnDiscCover(const QString& disc_id, const QString& cover_id);
 
-    void FetchPodcastCompleted(const QList<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+    void FetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data);
 
     void FetchPodcastError(const QString& msg);    
 
