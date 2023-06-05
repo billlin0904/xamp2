@@ -22,7 +22,8 @@ NullOutputDevice::NullOutputDevice()
 	, is_stopped_(true)
 	, buffer_frames_(0)
 	, callback_(nullptr)
-	, log_(LoggerManager::GetInstance().GetLogger(kNullOutputDeviceLoggerName)) {
+	, wait_time_(0)
+	, logger_(LoggerManager::GetInstance().GetLogger(kNullOutputDeviceLoggerName)) {
 }
 
 NullOutputDevice::~NullOutputDevice() = default;
@@ -91,7 +92,8 @@ void NullOutputDevice::SetVolume(uint32_t volume) const {
 }
 
 void NullOutputDevice::SetStreamTime(double stream_time) noexcept {
-	stream_time_ = stream_time * static_cast<double>(output_format_.GetSampleRate());
+	stream_time_ = static_cast<int64_t>(stream_time 
+		* static_cast<double>(output_format_.GetSampleRate()));
 }
 
 double NullOutputDevice::GetStreamTime() const noexcept {
@@ -113,9 +115,7 @@ void NullOutputDevice::StartStream() {
 			const auto stream_time_float = static_cast<double>(stream_time) / output_format_.GetSampleRate();
 
 			is_running_ = true;
-			XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
-
-			} else {
+			XAMP_UNLIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 				break;
 			}
 			std::this_thread::sleep_for(wait_time_);

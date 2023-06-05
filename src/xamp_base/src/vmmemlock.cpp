@@ -24,7 +24,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();	
 
 	if (!VirtualMemoryLock(address, size)) { // try lock memory!
-		throw PlatformSpecException("VirtualLock return failure!");
+		throw PlatformException("VirtualLock return failure!");
 	}
 
 	// note: 強制配置實體記憶體page, 可以優化後面的相關操作. 等同於mmap API的MAP_POPULATE旗標.

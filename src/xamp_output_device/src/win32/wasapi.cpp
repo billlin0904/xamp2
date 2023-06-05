@@ -14,7 +14,7 @@
 #include <base/logger_impl.h>
 #include <base/platfrom_handle.h>
 #include <output_device/idevicetype.h>
-#include <output_device/win32/hrexception.h>
+#include <output_device/win32/comexception.h>
 #include <output_device/win32/wasapi.h>
 
 #include <propvarutil.h>

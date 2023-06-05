@@ -105,7 +105,7 @@ public:
 			&runtimespec));
 		if (!handle_) {
 			XAMP_LOG_D(logger_, "Soxr error: {}", !error ? "" : error);
-			throw LibrarySpecException("sox_create return failure!");
+			throw LibraryException("sox_create return failure!");
 		}
 
 		input_sample_rate_ = input_sample_rate;

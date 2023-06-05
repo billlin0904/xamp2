@@ -132,22 +132,22 @@ XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
 XAMP_BASE_API std::string GetLastErrorMessage();
 
-class XAMP_BASE_API LibrarySpecException : public Exception {
+class XAMP_BASE_API LibraryException : public Exception {
 public:
-	explicit LibrarySpecException(std::string const& message, std::string_view what = "");
+	explicit LibraryException(std::string const& message, std::string_view what = "");
 };
 
-class XAMP_BASE_API PlatformSpecException : public Exception {
+class XAMP_BASE_API PlatformException : public Exception {
 public:
-    PlatformSpecException();
+    PlatformException();
 
-    explicit PlatformSpecException(int32_t err);
+    explicit PlatformException(int32_t err);
 
-    explicit PlatformSpecException(std::string_view what);
+    explicit PlatformException(std::string_view what);
 
-    PlatformSpecException(std::string_view what, int32_t err);
+    PlatformException(std::string_view what, int32_t err);
 
-    ~PlatformSpecException() override = default;
+    ~PlatformException() override = default;
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \

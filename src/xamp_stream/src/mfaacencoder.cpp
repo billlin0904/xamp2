@@ -30,7 +30,7 @@ XAMP_DECLARE_LOG_NAME(MFEncoder);
 #define HrIfFailledThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
-			throw PlatformSpecException(hresult); \
+			throw PlatformException(hresult); \
 		} \
 	} while (false)
 

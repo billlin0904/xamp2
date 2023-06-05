@@ -176,7 +176,7 @@ private:
 	Task<void> render_task_;
 	std::chrono::milliseconds wait_time_;
 	AudioFormat output_format_;
-	LoggerPtr log_;
+	LoggerPtr logger_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

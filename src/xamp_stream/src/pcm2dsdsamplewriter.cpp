@@ -438,14 +438,14 @@ public:
 		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		lch_out_.open(lch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!lch_out_.is_open()) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 
 		rch_out_path_ = GetTempFilePath();
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		rch_out_.open(rch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!rch_out_.is_open()) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 	}
 

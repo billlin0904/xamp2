@@ -57,7 +57,7 @@ void WaveFileWriter::Open(Path const& file_path, AudioFormat const& format) {
 	Close();
 	file_.open(file_path, std::ios::binary);
 	if (!file_) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 	WriteHeader(format);	
 }
@@ -82,14 +82,14 @@ void WaveFileWriter::WriteSample(float sample) {
 	if (format_.GetBitsPerSample() == 16) {
 		auto output = static_cast<int16_t>(kFloat16Scale * sample);
 		if (!file_.write(reinterpret_cast<const char*>(&output), sizeof(output))) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 		data_length_ += 2;
 	}
 	else if (format_.GetBitsPerSample() == 24) {
 		const Int24 output(sample);
 		if (!file_.write(reinterpret_cast<const char*>(output.data.data()), output.data.size())) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 		data_length_ += 3;
 	} else {
@@ -99,17 +99,17 @@ void WaveFileWriter::WriteSample(float sample) {
 
 void WaveFileWriter::WriteDataLength() {
 	if (!file_.seekp(4)) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 	uint32_t length = data_length_ + sizeof(COMBINED_HEADER) - 8;
 	if (!file_.write(reinterpret_cast<const char*>(&length), sizeof(length))) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 	if (!file_.seekp(40)) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 	if (!file_.write(reinterpret_cast<const char*>(&data_length_), sizeof(data_length_))) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 }
 
@@ -128,7 +128,7 @@ void WaveFileWriter::WriteHeader(AudioFormat const& format) {
 	MemoryCopy(header.data.descriptor.id, "data", 4);
 	header.data.descriptor.size = 0;
 	if (!file_.write(reinterpret_cast<const char*>(&header), sizeof(COMBINED_HEADER))) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 	format_ = format;
 }

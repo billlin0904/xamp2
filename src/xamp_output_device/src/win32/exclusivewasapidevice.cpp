@@ -3,7 +3,7 @@
 #ifdef XAMP_OS_WIN
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/mmcss.h>
-#include <output_device/win32/hrexception.h>
+#include <output_device/win32/comexception.h>
 #include <output_device/win32/wasapi.h>
 
 #include <base/math.h>
@@ -301,7 +301,7 @@ void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, 
 
 void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 	if (FAILED(hr)) {
-		const HRException exception(hr);
+		const ComException exception(hr);
 		callback_->OnError(exception);
 		is_running_ = false;
 	}	
@@ -430,7 +430,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	XAMP_LOG_D(logger_, "StartStream!");
 
 	if (!client_ || !render_client_) {
-		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
+		throw ComException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
 	XAMP_EXPECTS(sample_ready_);
@@ -527,7 +527,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Wait thread start.
 	constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
 	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
-		throw HRException(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
+		throw ComException(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
 	}
 
 	// Start stream.

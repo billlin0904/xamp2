@@ -584,10 +584,10 @@ bool VirtualMemoryLock(void* address, size_t size) {
 #ifdef XAMP_OS_WIN
     if (!::VirtualLock(address, size)) { // try lock memory!
         if (!ExtendProcessWorkingSetSize(size)) {
-            throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
+            throw PlatformException("ExtendProcessWorkingSetSize return failure!");
         }
         if (!::VirtualLock(address, size)) {
-            throw PlatformSpecException("VirtualLock return failure!");
+            throw PlatformException("VirtualLock return failure!");
         }
     }
     return true;

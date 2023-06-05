@@ -3,7 +3,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <output_device/win32/wasapi.h>
-#include <output_device/win32/hrexception.h>
+#include <output_device/win32/comexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/sharedwasapidevice.h>
 #include <output_device/win32/sharedwasapidevicetype.h>

@@ -40,7 +40,7 @@ std::string GetLastErrorMessage() {
 }
 #endif
 
-LibrarySpecException::LibrarySpecException(const std::string & message, std::string_view what)
+LibraryException::LibraryException(const std::string & message, std::string_view what)
     : Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, message, what) {
 }
 
@@ -147,19 +147,19 @@ DeviceNotFoundException::DeviceNotFoundException(std::string_view device_name)
     message_ = ostr.str();
 }
 
-PlatformSpecException::PlatformSpecException()
+PlatformException::PlatformException()
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GET_ERROR_MESSAGE()) {
 }
 
-PlatformSpecException::PlatformSpecException(std::string_view what)
+PlatformException::PlatformException(std::string_view what)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GET_ERROR_MESSAGE(), what) {
 }
 
-PlatformSpecException::PlatformSpecException(int32_t err)
+PlatformException::PlatformException(int32_t err)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
 }
 
-PlatformSpecException::PlatformSpecException(std::string_view what, int32_t err)
+PlatformException::PlatformException(std::string_view what, int32_t err)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
 }
 

@@ -9,7 +9,7 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <output_device/win32/hrexception.h>
+#include <output_device/win32/comexception.h>
 #include <output_device/win32/unknownimpl.h>
 
 #include <base/assert.h>
@@ -86,24 +86,13 @@ public:
 	* @param[in] iid: interface id.
 	* @param[in] ppv: object.
 	*/
-	STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override {
-		if (!ppv) {
-			return E_POINTER;
-		}
-
-		if (iid == __uuidof(IUnknown)) {
-			*ppv = static_cast<IUnknown*>(static_cast<IMFAsyncCallback*>(this));
-		}
-		else if (iid == __uuidof(IMFAsyncCallback)) {
-			*ppv = static_cast<IMFAsyncCallback*>(this);
-		}
-		else {
-			*ppv = nullptr;
-			return E_NOINTERFACE;
-		}
-
-		AddRef();
-		return S_OK;
+	STDMETHODIMP QueryInterface(REFIID riid, void** ppv) override {
+		static const QITAB qit[] = {
+			QITABENT(WasapiWorkQueue, IUnknown),
+			QITABENT(WasapiWorkQueue, IMFAsyncCallback),
+			{ 0 },
+		};
+		return QISearch(this, qit, riid, ppv);
 	}
 
 	/*

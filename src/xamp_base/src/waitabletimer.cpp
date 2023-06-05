@@ -66,7 +66,7 @@ public:
 
 	void Wait() override {
 		if (::WaitForSingleObject(timer_.get(), INFINITE) != WAIT_OBJECT_0) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 		Reset();
 	}
@@ -76,7 +76,7 @@ public:
 		LARGE_INTEGER timespan = { 0 };
 		timespan.QuadPart = kMilliSecond * timeout_.count();
 		if (!::SetWaitableTimer(timer_.get(), &timespan, 0, nullptr, nullptr, FALSE)) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 	}
 

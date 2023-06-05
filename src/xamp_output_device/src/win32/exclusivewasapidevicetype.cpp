@@ -1,7 +1,7 @@
 #include <output_device/win32/exclusivewasapidevicetype.h>
 
 #ifdef XAMP_OS_WIN
-#include <output_device/win32/hrexception.h>
+#include <output_device/win32/comexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 #include <output_device/win32/wasapi.h>
 

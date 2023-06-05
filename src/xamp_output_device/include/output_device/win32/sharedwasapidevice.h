@@ -195,7 +195,7 @@ private:
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
 	CComPtr<WasapiWorkQueue<SharedWasapiDevice>> rt_work_queue_;
-	LoggerPtr log_;
+	LoggerPtr logger_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

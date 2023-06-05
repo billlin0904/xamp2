@@ -72,7 +72,7 @@ public:
 			immediately ? 0 : interval.count(),
 			once ? 0 : interval.count(),
 			WT_EXECUTEINTIMERTHREAD | WT_EXECUTELONGFUNCTION)) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 		timer_.Reset(timer_queue_.get(), timer);
 		callback_ = std::move(callback);

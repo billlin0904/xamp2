@@ -15,7 +15,7 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 #define IfFailThrow(expr) \
 	do { \
 		if ((expr) != EBUR128_SUCCESS) { \
-			throw LibrarySpecException(#expr); \
+			throw LibraryException(#expr); \
 		} \
 	} while (false)
 

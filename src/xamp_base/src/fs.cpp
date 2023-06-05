@@ -46,7 +46,7 @@ Path GetTempFilePath() {
 			}
 		}
 	}
-	throw PlatformSpecException("Can't create temp file.");
+	throw PlatformException("Can't create temp file.");
 }
 
 std::string MakeTempFileName() {
@@ -91,21 +91,21 @@ int64_t GetLastWriteTime(const Path& path) {
 		0, 
 		nullptr));
 	if (!file) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 
 	SYSTEMTIME st_utc, st_local;
 	FILETIME ft_create, ft_access, ft_write;
 	if (!::GetFileTime(file.get(), &ft_create, &ft_access, &ft_write)) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 
 	if (!::FileTimeToSystemTime(&ft_write, &st_utc)) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 
 	if (!::SystemTimeToTzSpecificLocalTime(nullptr, &st_utc, &st_local)) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 
 	std::tm tm;

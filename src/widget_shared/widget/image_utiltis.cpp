@@ -155,7 +155,7 @@ static void OptimizePng(const QString& dest_file_path, const QByteArray& origina
 
 	QFile file(dest_file_path);
 	if (!file.open(QIODevice::WriteOnly)) {
-		throw PlatformSpecException();
+		throw PlatformException();
 	}
 
 #ifdef XAMP_OS_WIN
@@ -209,7 +209,7 @@ bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
 		std::vector<uint8_t> original_png;
 		std::vector<uint8_t> result_png;
 		if (lodepng::load_file(original_png, src_file_path.toLocal8Bit().data())) {
-			throw PlatformSpecException();
+			throw PlatformException();
 		}
 		const QByteArray buffer(reinterpret_cast<const char*>(original_png.data()), original_png.size());
 		OptimizePng(QString::fromStdWString(dest_file_path.wstring()), buffer, result_png);

@@ -163,7 +163,7 @@ public:
 
         const auto duration = GetDuration();
         if (duration < 1.0) {
-            throw LibrarySpecException(String::Format("Duration too small! {:.2f} secs", duration));
+            throw LibraryException(String::Format("Duration too small! {:.2f} secs", duration));
         }
 
         if (GetFormat().GetChannels() == AudioFormat::kMaxChannel) {

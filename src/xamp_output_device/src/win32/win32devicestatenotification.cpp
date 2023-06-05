@@ -3,10 +3,10 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/str_utilts.h>
-#include <output_device/win32/hrexception.h>
+#include <output_device/win32/comexception.h>
 #include <output_device/win32/win32devicestatenotification.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 static constexpr IID kMMNotificationClientID = __uuidof(IMMNotificationClient);
 
@@ -94,6 +94,6 @@ STDMETHODIMP Win32DeviceStateNotification::OnDefaultDeviceChanged(EDataFlow flow
 	return S_OK;
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
 #endif

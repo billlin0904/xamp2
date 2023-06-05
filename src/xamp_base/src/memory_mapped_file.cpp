@@ -62,7 +62,7 @@ private:
             0,
             nullptr));
         if (!mapping_handle) {
-            throw PlatformSpecException();
+            throw PlatformException();
         }
         address_.reset(::MapViewOfFile(mapping_handle.get(),
             access,
@@ -70,7 +70,7 @@ private:
             0,
             0));
         if (!address_) {
-            throw PlatformSpecException();
+            throw PlatformException();
         }
     }
 
