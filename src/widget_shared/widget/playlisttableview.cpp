@@ -887,12 +887,15 @@ void PlayListTableView::OnFetchPodcastError(const QString& msg) {
 }
 
 void PlayListTableView::OnFetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
-    XAMP_LOG_DEBUG("Download podcast completed!");
+    XAMP_LOG_DEBUG("Download podcast completed!");   
+    indicator_.reset();
+
+    if (track_infos.empty()) {
+        return;
+    }
 
     DatabaseFacade facade;
     facade.InsertTrackInfo(track_infos, GetPlaylistId(), true);
-
-    indicator_.reset();
     Reload();
 
     if (!model()->rowCount()) {

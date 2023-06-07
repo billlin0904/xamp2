@@ -16,7 +16,7 @@
 
 #include <thememanager.h>
 
-#define USE_LIB_IMAGEQUANT
+//#define USE_LIB_IMAGEQUANT
 
 #ifdef USE_LIB_IMAGEQUANT
 #include <libimagequant.h>

@@ -2,7 +2,6 @@
 
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <QCloseEvent>
-#include <QtAutoUpdaterCore/Updater>
 
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>

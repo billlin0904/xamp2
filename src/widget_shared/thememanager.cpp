@@ -276,10 +276,11 @@ ThemeManager::ThemeManager() {
     save_cover_art_size_ = QSize(350, 350);
     base_size_ = QSize(1920, 1080);
     ui_font_ = LoadFonts();
-    const auto* screen = qApp->screens()[0];
-    width_ratio_ = screen->size().width() / static_cast<qreal>(base_size_.width());
-    height_ratio_ = screen->size().height() / static_cast<qreal>(base_size_.height());
-    font_ratio_ = qMin(width_ratio_, height_ratio_);
+    //const auto* screen = qApp->screens()[0];
+    //width_ratio_ = screen->size().width() / static_cast<qreal>(base_size_.width());
+    //height_ratio_ = screen->size().height() / static_cast<qreal>(base_size_.height());
+    //font_ratio_ = qMin(width_ratio_, height_ratio_);
+    font_ratio_ = 1.0;
     ui_font_.setPointSize(GetDefaultFontSize());
 }
 

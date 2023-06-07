@@ -26,12 +26,12 @@
 #include <widget/databasefacade.h>
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
+#include <QLoggingCategory>
 #endif
 
 #include <QOperatingSystemVersion>
 #include <QNetworkReply>
 #include <QProcess>
-#include <QtAutoUpdaterCore/Updater>
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
 
