@@ -968,7 +968,7 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
     );
 }
 
-void ThemeManager::SetTabTheme(QListView *tab) {
+void ThemeManager::SetAlbumNaviBarTheme(QListView *tab) {
     QString tab_left_color;
 
     switch (GetThemeColor()) {

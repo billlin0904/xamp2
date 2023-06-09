@@ -93,33 +93,35 @@ GenreViewPage::GenreViewPage(QWidget* parent)
 }
 
 void GenreViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-	Q_FOREACH(auto * view, genre_list_) {
-		view->OnCurrentThemeChanged(theme_color);
-	}
-	Q_FOREACH(auto * page, genre_page_list_) {
-		page->view()->OnCurrentThemeChanged(theme_color);
+	Q_FOREACH(auto page, genre_view_) {
+		page.first->view()->OnCurrentThemeChanged(theme_color);
+		page.second->OnCurrentThemeChanged(theme_color);
 	}
 }
 
 void GenreViewPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
-	Q_FOREACH(auto * view, genre_list_) {
-		view->OnThemeChanged(backgroundColor, color);
-	}
-	Q_FOREACH(auto * page, genre_page_list_) {
-		page->view()->OnThemeChanged(backgroundColor, color);
+	Q_FOREACH(auto page, genre_view_) {
+		page.first->view()->OnThemeChanged(backgroundColor, color);
+		page.second->OnThemeChanged(backgroundColor, color);
 	}
 }
 
 void GenreViewPage::Refresh() {
-	Q_FOREACH(auto * view, genre_list_) {
-		view->Refresh();
-	}
-	Q_FOREACH(auto * page, genre_page_list_) {
-		page->view()->Refresh();
+	Q_FOREACH(auto page, genre_view_) {
+		page.first->view()->Refresh();
+		page.second->Refresh();
 	}
 }
 
-void GenreViewPage::AddGenreList(const QString& genre) {
+void GenreViewPage::RemoveGenre(const QString& genre) {
+	genre_view_.remove(genre);
+}
+
+void GenreViewPage::AddGenre(const QString& genre) {
+	if (genre_view_.contains(genre)) {
+		return;
+	}
+
 	auto f = font();
 
 	auto genre_label_text = genre;
@@ -156,8 +158,7 @@ void GenreViewPage::AddGenreList(const QString& genre) {
 		setCurrentIndex(1);
 		});
 
-	genre_page_list_.append(genre_page_);
-	genre_list_.append(genre_view);
+	genre_view_[genre] = qMakePair(genre_page_, genre_view);
 
 	genre_frame_layout_->addLayout(genre_combox_layout);
 	genre_frame_layout_->addWidget(genre_view, 0);

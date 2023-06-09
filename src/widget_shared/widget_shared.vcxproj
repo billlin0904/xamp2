@@ -185,7 +185,6 @@
     <QtMoc Include="widget\wheelablewidget.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xdialog.h" />
-    <QtMoc Include="widget\xframe.h" />
     <ClInclude Include="widget\xmainwindow.h" />
     <QtMoc Include="widget\xmessage.h" />
     <ClInclude Include="widget\xmessagebox.h" />
@@ -263,7 +262,6 @@
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
-    <ClCompile Include="widget\xframe.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\xmessage.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />

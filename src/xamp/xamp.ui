@@ -474,7 +474,7 @@
          </widget>
         </item>
         <item>
-         <widget class="TabListView" name="sliderBar">
+         <widget class="TabListView" name="naviBar">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
             <horstretch>0</horstretch>

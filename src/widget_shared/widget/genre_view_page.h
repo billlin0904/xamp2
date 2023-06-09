@@ -7,6 +7,7 @@
 
 #include <QStackedWidget>
 #include <QList>
+#include <QMap>
 #include <QFrame>
 #include <QColor>
 
@@ -38,7 +39,9 @@ class GenreViewPage : public QStackedWidget {
 public:
 	explicit GenreViewPage(QWidget* parent = nullptr);
 
-	void AddGenreList(const QString& genre);
+	void AddGenre(const QString& genre);
+
+	void RemoveGenre(const QString& genre);
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
@@ -49,6 +52,5 @@ private:
 	GenrePage* genre_page_;
 	QFrame* genre_frame_;
 	QVBoxLayout* genre_frame_layout_;
-	QList<GenreView*> genre_list_;
-	QList<GenrePage*> genre_page_list_;
+	QMap<QString, QPair<GenrePage*, GenreView*>> genre_view_;
 };

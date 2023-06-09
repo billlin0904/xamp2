@@ -15,6 +15,7 @@
 inline constexpr auto kRestartExistCode = -2;
 
 FRAMELESSHELPER_USE_NAMESPACE
+using namespace wangwenx190::FramelessHelper::Global;
 
 class IXMainWindow : public FramelessWidget {
 public:

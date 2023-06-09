@@ -155,6 +155,15 @@ void TagListView::OnThemeColorChanged(QColor backgroundColor, QColor color) {
 
 }
 
+void TagListView::EnableTag(const QString& tag) {
+	auto items = taglist_->findItems(tag, Qt::MatchContains);
+	if (items.isEmpty()) {
+		return;
+	}
+	auto item = dynamic_cast<TagWidgetItem*>(items.first());
+	emit taglist_->itemClicked(item);
+}
+
 void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 	auto items = taglist_->findItems(tag, Qt::MatchContains);
 	if (!items.isEmpty()) {

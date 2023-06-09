@@ -4,6 +4,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QLabel>
 
 #include <widget/ui_utilts.h>
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>

@@ -110,7 +110,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	list_view_->AddTab(tr("GENRE"), TAB_GENRE);
 	list_view_->AddTab(tr("YEAR"), TAB_YEAR);
 
-	qTheme.SetTabTheme(list_view_);
+	qTheme.SetAlbumNaviBarTheme(list_view_);
 
 	const QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
@@ -266,7 +266,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	std::sort(genres_list.begin(), genres_list.end());
 
 	Q_FOREACH(auto genre, genres_list) {
-		genre_stackwidget_->AddGenreList(genre);
+		genre_stackwidget_->AddGenre(genre);
 	}
 	
 	artist_frame_ = new QFrame();
@@ -457,9 +457,23 @@ void AlbumArtistPage::Refresh() {
 	artist_view_->Refresh();	
 	genre_stackwidget_->Refresh();
 
-	auto title_category_list = qDatabase.GetCategories();
-	Q_FOREACH(auto category, title_category_list) {
+	Q_FOREACH(auto category, qDatabase.GetCategories()) {
 		album_tag_list_widget_->AddTag(category);
+	}
+
+	auto years = qDatabase.GetYears();
+	Q_FOREACH(auto year, years) {
+		year_tag_list_widget_->AddTag(year, true);
+	}
+	if (!years.empty()) {
+		year_tag_list_widget_->EnableTag(years.first());
+	}	
+
+	auto genres_list = qDatabase.GetGenres();
+	std::sort(genres_list.begin(), genres_list.end());
+
+	Q_FOREACH(auto genre, genres_list) {
+		genre_stackwidget_->AddGenre(genre);
 	}
 }
 

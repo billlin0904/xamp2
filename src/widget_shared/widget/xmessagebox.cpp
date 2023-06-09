@@ -4,6 +4,7 @@
 #include <widget/xmainwindow.h>
 #include <widget/ui_utilts.h>
 
+#include <QLabel>
 #include <QApplication>
 #include <QCheckBox>
 #include <QPropertyAnimation>

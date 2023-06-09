@@ -35,8 +35,6 @@
 #include <widget/osx/osx.h>
 #endif
 
-FRAMELESSHELPER_USE_NAMESPACE
-
 XMainWindow::XMainWindow()
     : IXMainWindow()
 #if defined(Q_OS_WIN)

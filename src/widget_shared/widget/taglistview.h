@@ -41,6 +41,8 @@ public:
 
 	void SetListViewFixedHeight(int32_t height);
 
+	void EnableTag(const QString& tag);
+
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);

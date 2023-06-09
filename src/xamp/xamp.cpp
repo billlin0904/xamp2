@@ -203,7 +203,7 @@ void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
     }
 }
 
-void SetTabTheme(Ui::XampWindow& ui) {
+void SetNaviBarTheme(TabListView *navi_bar) {
 	QString tab_left_color;
 
 	switch (qTheme.GetThemeColor()) {
@@ -215,18 +215,18 @@ void SetTabTheme(Ui::XampWindow& ui) {
 		break;
 	}
 
-	ui.sliderBar->setStyleSheet(qSTR(R"(
-	QListView#sliderBar {
+    navi_bar->setStyleSheet(qSTR(R"(
+	QListView#naviBar {
 		border: none; 
 	}
-	QListView#sliderBar::item {
+	QListView#naviBar::item {
 		border: 0px;
 		padding-left: 6px;
 	}
-	QListView#sliderBar::item:hover {
+	QListView#naviBar::item:hover {
 		border-radius: 2px;
 	}
-	QListView#sliderBar::item:selected {
+	QListView#naviBar::item:selected {
 		padding-left: 4px;		
 		border-left-width: 2px;
 		border-left-style: solid;
@@ -357,7 +357,7 @@ void SetWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-    qTheme.SetTabTheme(ui.sliderBar);
+    SetNaviBarTheme(ui.naviBar);
     qTheme.SetSliderTheme(ui.seekSlider);
 
     ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
@@ -407,9 +407,6 @@ static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& de
     return { dsd_modes, convert_mode };
 }
 
-using namespace wangwenx190::FramelessHelper;
-using namespace wangwenx190::FramelessHelper::Global;
-
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
 	, is_seeking_(false)
@@ -454,7 +451,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         QWidget::close();
         });
 
-
     background_worker_ = new BackgroundWorker();
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start(QThread::LowestPriority);
@@ -487,9 +483,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
 
     const auto tab_name = AppSettings::ValueAsString(kAppSettingLastTabName);
-    const auto tab_id = ui_.sliderBar->GetTabId(tab_name);
+    const auto tab_id = ui_.naviBar->GetTabId(tab_name);
     if (tab_id != -1) {
-        ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
+        ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(tab_id, 0));
         SetCurrentTab(tab_id);
     }
 
@@ -515,7 +511,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::CurrentThemeChanged,
-        ui_.sliderBar,
+        ui_.naviBar,
         &TabListView::OnCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
@@ -842,6 +838,7 @@ void Xamp::InitialDeviceList() {
     }
 
     if (device_info_) {
+        ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
         ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
     }    
 }
@@ -970,8 +967,7 @@ void Xamp::InitialController() {
         auto* about_page = new AboutPage(dialog);        
         dialog->SetContentWidget(about_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
-        dialog->SetTitle(tr("About"));
-        CenterParent(about_page);
+        dialog->SetTitle(tr("About"));        
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
         });
@@ -979,12 +975,9 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.preferenceButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
-        dialog->SetContentWidget(preference_page);
-        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
-        dialog->SetTitle(tr("Preference"));        
+        dialog->SetContentWidget(preference_page);        
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         preference_page->LoadSettings();
-        CenterParent(preference_page);
         dialog->exec();
         preference_page->SaveAll();
         });
@@ -1061,12 +1054,12 @@ void Xamp::InitialController() {
         ui_.currentView->setCurrentWidget(lrc_page_);
     });
 
-    (void)QObject::connect(ui_.sliderBar, &TabListView::ClickedTable, [this](auto table_id) {
+    (void)QObject::connect(ui_.naviBar, &TabListView::ClickedTable, [this](auto table_id) {
         SetCurrentTab(table_id);
-        AppSettings::SetValue(kAppSettingLastTabName, ui_.sliderBar->GetTabName(table_id));
+        AppSettings::SetValue(kAppSettingLastTabName, ui_.naviBar->GetTabName(table_id));
     });
 
-    (void)QObject::connect(ui_.sliderBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
+    (void)QObject::connect(ui_.naviBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
         qDatabase.SetTableName(table_id, name);
     });
 
@@ -1880,13 +1873,13 @@ void Xamp::InitialPlaylist() {
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
 
-    ui_.sliderBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.sliderBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
-    ui_.sliderBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
-    ui_.sliderBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
-    ui_.sliderBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
-    ui_.sliderBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
-    ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
+    ui_.naviBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.naviBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui_.naviBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
+    ui_.naviBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
+    ui_.naviBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
+    ui_.naviBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
+    ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
 
     qDatabase.ForEachTable([this](auto table_id,
         auto /*table_index*/,
@@ -1896,7 +1889,7 @@ void Xamp::InitialPlaylist() {
                 return;
             }
 
-            ui_.sliderBar->AddTab(name, table_id, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+            ui_.naviBar->AddTab(name, table_id, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
             if (!playlist_page_) {
                 playlist_page_ = NewPlaylistPage(playlist_id, kEmptyString);
