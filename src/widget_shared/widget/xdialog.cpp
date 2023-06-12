@@ -20,7 +20,6 @@ void XDialog::SetContent(QWidget* content) {
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(5, 0, 5, 5);
     setLayout(default_layout);
 
     auto* title_frame = new QFrame();

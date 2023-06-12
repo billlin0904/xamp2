@@ -290,7 +290,7 @@ static void LoadSampleRateConverterConfig() {
 }
 
 static void LoadLang() {
-    XAMP_LOG_DEBUG("LoadLang.");
+    XAMP_LOG_DEBUG("Load language file.");
 
     if (AppSettings::ValueAsString(kAppSettingLang).isEmpty()) {
         const LocaleLanguage lang;
@@ -312,6 +312,7 @@ static void SetWorkingSetSize() {
     auto working_size = memory_size * 0.6;
     if (working_size > 0) {
         SetProcessWorkingSetSize(working_size);
+        XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(working_size));
     }
 }
 
@@ -322,7 +323,7 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
         "WinTypes.dll",
         "AudioSes.dll",
         "AUDIOKSE.dll",
-        "DWrite.dll"
+        "DWrite.dll",        
     };
     std::vector<SharedLibraryHandle> pin_module;
     for (const auto& file_name : dll_file_names) {
@@ -520,9 +521,7 @@ int main() {
     XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
-#ifndef _DEBUG
     SetWorkingSetSize();
-#endif
 
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {

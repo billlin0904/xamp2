@@ -51,11 +51,11 @@
     },
     "Soxr": {
         "BlueTooth": {
-            "passBand": 96,
-            "phase": 46,
-            "quality": 4,
+            "passBand": 1,
+            "phase": 0,
+            "quality": 0,
             "resampleSampleRate": 44100,
-            "rolloffLevel": 2,
+            "rolloffLevel": 0,
             "stopBand": 100
         }
     }

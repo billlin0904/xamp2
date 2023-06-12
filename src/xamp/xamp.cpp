@@ -728,7 +728,7 @@ QWidgetAction* Xamp::CreateDeviceMenuWidget(const QString& desc, const QIcon &ic
     desc_label->setObjectName(qTEXT("textSeparator"));
 
     QFont f(qTEXT("DisplayFont"));
-    f.setPointSize(qTheme.GetDefaultFontSize());
+    f.setPointSize(qTheme.GetFontSize(8));
     f.setBold(true);
     desc_label->setFont(f);
     desc_label->setAlignment(Qt::AlignCenter);
@@ -1873,6 +1873,7 @@ void Xamp::InitialPlaylist() {
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
 
+    ui_.naviBar->AddSeparator();
     ui_.naviBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
     ui_.naviBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));

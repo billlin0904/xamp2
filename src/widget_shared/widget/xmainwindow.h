@@ -72,8 +72,6 @@ protected:
     void SaveGeometry() override;
 
 private:
-    void AddSystemMenu(QWidget *widget);
-
     void focusInEvent(QFocusEvent* event) override;
 
     void focusOutEvent(QFocusEvent* event) override;

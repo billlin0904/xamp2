@@ -246,6 +246,9 @@ void CpuAffinity::SetAffinity(JThread& thread) {
                 if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
                     XAMP_LOG_DEBUG("Fail to set SetThreadIdealProcessorEx");
                 }
+                else {
+                    XAMP_LOG_DEBUG("Success to set SetThreadIdealProcessorEx group:{} processor index:{}", group_index, processor_index);
+                }
             }
         }
     }    
@@ -493,7 +496,7 @@ bool SetProcessWorkingSetSize(size_t working_set_size) {
         return false;
     }
     XAMP_LOG_DEBUG("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
-    return false;
+    return true;
 }
 
 size_t GetAvailablePhysicalMemory() {

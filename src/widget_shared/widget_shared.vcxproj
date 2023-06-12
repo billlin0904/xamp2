@@ -65,7 +65,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zopfli/msvc/Debug/;../thirdparty/libimagequant/msvc/Debug/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/liblastfm/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;opengl32.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;lastfm5.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

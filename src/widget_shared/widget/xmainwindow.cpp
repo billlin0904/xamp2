@@ -332,51 +332,6 @@ void XMainWindow::UpdateMaximumState() {
     }
 }
 
-#ifdef Q_OS_WIN
-void XMainWindow::AddSystemMenu(QWidget* widget) {
-    widget->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    (void)QObject::connect(widget, &QFrame::customContextMenuRequested, [this, widget](auto pt) {
-        ActionMap<QWidget> action_map(widget);
-        auto* restore_act = action_map.AddAction(tr("Restore(R)"));
-        action_map.SetCallback(restore_act, [this]() {
-            showNormal();
-            });
-        restore_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_RESTORE_WINDOW));
-        restore_act->setEnabled(isMaximized());
-
-        auto* move_act = action_map.AddAction(tr("Move(M)"));
-        move_act->setEnabled(true);
-
-        auto* size_act = action_map.AddAction(tr("Size(S)"));
-        size_act->setEnabled(true);
-
-        auto* mini_act = action_map.AddAction(tr("Minimize(N)"));
-        action_map.SetCallback(mini_act, [this]() {
-            showMinimized();
-            });
-        mini_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
-        mini_act->setEnabled(true);
-
-        auto* max_act = action_map.AddAction(tr("Maximum(M)"));
-        action_map.SetCallback(max_act, [this]() {
-            showMaximized();
-            });
-        max_act->setEnabled(!isMaximized());
-        max_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
-        action_map.AddSeparator();
-
-        auto* close_act = action_map.AddAction(tr("Close(X)"));
-        action_map.SetCallback(close_act, [this]() {
-            close();
-            });
-        close_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
-
-        action_map.exec(pt);
-        });
-}
-#endif
-
 void XMainWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
     if (content_widget_ != nullptr) {

@@ -369,7 +369,8 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_COVER_ID,
             PLAYLIST_FILE_EXT,
             PLAYLIST_FILE_PARENT_PATH,
-            PLAYLIST_PLAYLIST_MUSIC_ID
+            PLAYLIST_PLAYLIST_MUSIC_ID,
+            PLAYLIST_HEART,
         };
 
         for (auto column : qAsConst(hidden_columns)) {
