@@ -60,19 +60,19 @@
 #include <thememanager.h>
 #include <version.h>
 
-void SetShufflePlayOrder(Ui::XampWindow& ui) {
+static void SetShufflePlayOrder(Ui::XampWindow& ui) {
     ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
 }
 
-void SetRepeatOnePlayOrder(Ui::XampWindow& ui) {
+static void SetRepeatOnePlayOrder(Ui::XampWindow& ui) {
     ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
 }
 
-void SetRepeatOncePlayOrder(Ui::XampWindow& ui) {
+static void SetRepeatOncePlayOrder(Ui::XampWindow& ui) {
     ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
 }
 
-void SetThemeIcon(Ui::XampWindow& ui) {
+static void SetThemeIcon(Ui::XampWindow& ui) {
     qTheme.SetTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
 
     const QColor hover_color = qTheme.GetHoverColor();
@@ -183,11 +183,11 @@ void SetThemeIcon(Ui::XampWindow& ui) {
     ));
 }
 
-void SetMuted(Ui::XampWindow& ui, bool is_muted) {
+static void SetMuted(Ui::XampWindow& ui, bool is_muted) {
     qTheme.SetMuted(ui.mutedButton, is_muted);
 }
 
-void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
+static void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
     switch (order) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         SetRepeatOncePlayOrder(ui);
@@ -203,7 +203,7 @@ void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
     }
 }
 
-void SetNaviBarTheme(TabListView *navi_bar) {
+static void SetNaviBarTheme(TabListView *navi_bar) {
 	QString tab_left_color;
 
 	switch (qTheme.GetThemeColor()) {
@@ -235,7 +235,7 @@ void SetNaviBarTheme(TabListView *navi_bar) {
 	)").arg(tab_left_color));
 }
 
-void SetWidgetStyle(Ui::XampWindow& ui) {
+static void SetWidgetStyle(Ui::XampWindow& ui) {
     ui.selectDeviceButton->setIconSize(QSize(32, 32));
 
     ui.playButton->setStyleSheet(qTEXT(R"(
@@ -429,7 +429,6 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 Xamp::~Xamp() = default;
 
 void Xamp::SetXWindow(IXMainWindow* main_window) {
-    FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar(true);
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
@@ -477,7 +476,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     SetPlaylistPageCover(nullptr, cd_page_->playlistPage());
     SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 
-    playlist_page_->HidePlaybackInformation(true);
+    playlist_page_->HidePlaybackInformation(false);
     podcast_page_->HidePlaybackInformation(true);
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
@@ -633,7 +632,11 @@ void Xamp::FocusIn() {
 void Xamp::FocusOut() {
 }
 
-void Xamp::closeEvent(QCloseEvent*) {
+void Xamp::closeEvent(QCloseEvent* event) {
+    if (XMessageBox::ShowYesOrNo(tr("Do you want to exit the app ?")) == QDialogButtonBox::No) {
+        event->ignore();
+        return;
+    }
     cleanup();
     window()->close();
 }
@@ -1081,7 +1084,7 @@ void Xamp::InitialController() {
 
 void Xamp::SetCurrentTab(int32_t table_id) {
     switch (table_id) {
-    case TAB_ALBUM:
+    case TAB_MUSIC_LIBRARY:
         album_page_->Refresh();
         ui_.currentView->setCurrentWidget(album_page_);
         break;
@@ -1281,7 +1284,7 @@ void Xamp::StopPlay() {
     ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
-    qTheme.SetPlayOrPauseButton(ui_.playButton, false);
+    qTheme.SetPlayOrPauseButton(ui_.playButton, true); // note: Stop play must set true.
     current_entity_ = std::nullopt;
 }
 
@@ -1634,35 +1637,38 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         XMessageBox::ShowError(tr("Unknown error"));
     }
 
-    UpdateUi(entity, playback_format, open_done);
+    if (open_done) {
+        UpdateUi(entity, playback_format, open_done);
+    }
+    else {
+        current_playlist_page_->playlist()->Reload();
+    }
+
+    lrc_page_->spectrum()->Reset();
 }
 
 void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done) {
-    auto* cur_page = current_playlist_page_;
-
     QString ext = item.file_extension;
     if (item.file_extension.isEmpty()) {
         ext = qTEXT(".m4a");
     }
 	
     qTheme.SetPlayOrPauseButton(ui_.playButton, open_done);
-    lrc_page_->spectrum()->Reset();    
-	
-    if (open_done) {
-	    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;
-        ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
-        ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(FormatDuration(0));
-        ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
-        cur_page->format()->setText(Format2String(playback_format, ext));
-        album_page_->album()->SetPlayingAlbumId(item.album_id);
-        UpdateButtonState();
-        emit NowPlaying(item.artist, item.title);
-    } else {
-        cur_page->playlist()->Reload();
-    }
 
-    SetCover(item.cover_id, cur_page);
+    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;
+    ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
+    ui_.seekSlider->setValue(0);
+    ui_.startPosLabel->setText(FormatDuration(0));
+    ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
+    
+    current_playlist_page_->format()->setText(Format2String(playback_format, ext));
+    current_playlist_page_->title()->setText(item.title);
+
+    album_page_->album()->SetPlayingAlbumId(item.album_id);
+    UpdateButtonState();
+    emit NowPlaying(item.artist, item.title);
+
+    SetCover(item.cover_id, current_playlist_page_);
 
     const QFontMetrics title_metrics(ui_.titleLabel->font());
     const QFontMetrics artist_metrics(ui_.artistLabel->font());
@@ -1670,21 +1676,15 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     ui_.titleLabel->setText(title_metrics.elidedText(item.title, Qt::ElideRight, ui_.titleLabel->width()));
     ui_.artistLabel->setText(artist_metrics.elidedText(item.artist, Qt::ElideRight, ui_.artistLabel->width()));
     ui_.formatLabel->setText(Format2String(playback_format, ext));
-
-    cur_page->title()->setText(item.title);    
-    lrc_page_->lyrics()->LoadLrcFile(item.file_path);
-	
+    
+    lrc_page_->lyrics()->LoadLrcFile(item.file_path);	
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
     lrc_page_->format()->setText(Format2String(playback_format, ext));
-
-    if (open_done) {       
-        player_->Play();
-    }
-
     lrc_page_->spectrum()->SetFftSize(state_adapter_->GetFftSize());
     lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
+
     podcast_page_->format()->setText(kEmptyString);
 
     auto lyrc_opt = qDatabase.GetLyrc(item.music_id);
@@ -1695,6 +1695,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     }
 
     qTheme.SetHeartButton(ui_.heartButton, current_entity_.value().heart);
+
+    player_->Play();
 }
 
 void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -1814,6 +1816,7 @@ void Xamp::PlayNextItem(int32_t forward) {
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
         StopPlay();
+        XMessageBox::ShowInformation(tr("Not found any playing item."));
         return;
     }    
 
@@ -1875,10 +1878,10 @@ void Xamp::InitialPlaylist() {
 
     ui_.naviBar->AddSeparator();
     ui_.naviBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.naviBar->AddTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui_.naviBar->AddTab(tr("File explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
     ui_.naviBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
-    ui_.naviBar->AddTab(tr("Albums"), TAB_ALBUM, qTheme.GetFontIcon(Glyphs::ICON_ALBUM));
+    ui_.naviBar->AddTab(tr("Music library"), TAB_MUSIC_LIBRARY, qTheme.GetFontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
 

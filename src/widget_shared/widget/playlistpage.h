@@ -45,7 +45,7 @@ public slots:
 	void SetCoverById(const QString& cover_id);
 
 private:
-	void initial();
+	void Initial();
 	
 	std::optional<int32_t> album_id_;
 	int32_t album_heart_{ 0 };

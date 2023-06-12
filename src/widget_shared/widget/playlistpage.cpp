@@ -15,10 +15,10 @@
 
 PlaylistPage::PlaylistPage(QWidget* parent)
 	: QFrame(parent) {
-	initial();
+	Initial();
 }
 
-void PlaylistPage::initial() {
+void PlaylistPage::Initial() {
 	setFrameStyle(QFrame::StyledPanel);
 
 	auto* default_layout = new QVBoxLayout(this);
@@ -34,14 +34,13 @@ void PlaylistPage::initial() {
 	auto* left_space_layout = new QVBoxLayout();
 	left_space_layout->setSpacing(0);
 	left_space_layout->setObjectName(QString::fromUtf8("verticalLayout_3"));
-	vertical_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-	left_space_layout->addItem(vertical_spacer_);
+	//vertical_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	//left_space_layout->addItem(vertical_spacer_);
 
 	cover_ = new QLabel();
 	cover_->setObjectName(QString::fromUtf8("label"));
-	cover_->setMinimumSize(QSize(170, 170));
-	cover_->setMaximumSize(QSize(170, 170));
+	cover_->setMinimumSize(QSize(200, 200));
+	cover_->setMaximumSize(QSize(200, 200));
 	cover_->setAttribute(Qt::WA_StaticContents);
 
 	left_space_layout->addWidget(cover_);
@@ -62,7 +61,7 @@ void PlaylistPage::initial() {
     title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(qTheme.GetFontSize(24));
+	f.setPointSize(qTheme.GetFontSize(20));
 
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
@@ -89,6 +88,8 @@ void PlaylistPage::initial() {
 	QFont format_font(qTEXT("FormatFont"));
 	format_->setFont(format_font);
 
+	vertical_spacer_ = new QSpacerItem(20, 24, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	album_title_layout->addItem(vertical_spacer_);
 	album_title_layout->addWidget(title_);
 
 	middle_spacer_ = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -102,6 +103,7 @@ void PlaylistPage::initial() {
 
 	child_layout->addLayout(album_title_layout, 0);
 	child_layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+	album_title_layout->setContentsMargins(0, 10, 0, 0);
 
 	default_layout->addLayout(child_layout);	
 

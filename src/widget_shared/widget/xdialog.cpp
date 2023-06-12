@@ -97,7 +97,7 @@ void XDialog::SetContent(QWidget* content) {
 
     max_win_button_->setDisabled(true);
     min_win_button_->setDisabled(true);
-
+    
     max_win_button_->hide();
     min_win_button_->hide();
 
@@ -118,10 +118,12 @@ void XDialog::SetContent(QWidget* content) {
     WaitForReady();    
 }
 
+void XDialog::HideCloseButton() {
+    close_button_->hide();
+}
+
 void XDialog::WaitForReady() {
     FramelessWidgetsHelper::get(this)->waitForReady();
-    //FramelessWidgetsHelper::get(this)->moveWindowToDesktopCenter();
-    //CenterParent(this);
 }
 
 void XDialog::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -134,6 +136,7 @@ void XDialog::SetTitle(const QString& title) const {
 
 void XDialog::SetContentWidget(QWidget* content, bool transparent_frame, bool disable_resize) {
     SetContent(content);
+    FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
 }
 
 void XDialog::SetIcon(const QIcon& icon) const {

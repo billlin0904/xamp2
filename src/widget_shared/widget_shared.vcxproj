@@ -70,7 +70,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;opengl32.lib;FramelessHelperCore.lib;FramelessHelperWidgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;FramelessHelperCore.lib;FramelessHelperWidgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zopfli/msvc/Release/;../thirdparty/libimagequant/msvc/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>

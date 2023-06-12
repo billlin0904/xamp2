@@ -89,6 +89,8 @@ XMessageBox::XMessageBox(const QString& title,
 	connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
 	timer_.setInterval(1000);
 	default_button_text_ = DefaultButton()->text();
+
+	HideCloseButton();
 }
 
 void XMessageBox::SetTextFont(const QFont& font) {

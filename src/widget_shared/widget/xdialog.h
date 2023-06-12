@@ -31,6 +31,8 @@ public:
 
     void SetIcon(const QIcon& icon) const;    
 
+    void HideCloseButton();
+
 private slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
 

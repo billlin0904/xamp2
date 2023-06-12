@@ -164,7 +164,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_PLAYLIST_ORDER,            0xF0CA },
     { ICON_EQUALIZER,                 0xF3F2 },
     { ICON_PODCAST,                   0xF2CE },
-    { ICON_ALBUM,                     0xF89F },
+    { ICON_MUSIC_LIBRARY,             0xF001 },
     { ICON_CD,                        0xF51F },
     { ICON_LEFT_ARROW,                0xF177 },
     { ICON_ARTIST,                    0xF500 },

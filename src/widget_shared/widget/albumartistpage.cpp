@@ -37,8 +37,8 @@
 #include <thememanager.h>
 
 enum {
-	TAB_ALBUM,
-	TAB_ARTIST,
+	TAB_ALBUMS,
+	TAB_ARTISTS,
 	TAB_GENRE,
 	TAB_YEAR,
 };
@@ -105,10 +105,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_6);
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->AddTab(tr("ALBUM"), TAB_ALBUM);
-	list_view_->AddTab(tr("ARTIST"), TAB_ARTIST);
-	list_view_->AddTab(tr("GENRE"), TAB_GENRE);
-	list_view_->AddTab(tr("YEAR"), TAB_YEAR);
+	list_view_->AddTab(tr("Albums"), TAB_ALBUMS);
+	list_view_->AddTab(tr("Artists"), TAB_ARTISTS);
+	list_view_->AddTab(tr("Genre"), TAB_GENRE);
+	list_view_->AddTab(tr("Year"), TAB_YEAR);
 
 	qTheme.SetAlbumNaviBarTheme(list_view_);
 
@@ -409,10 +409,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view](auto table_id) {
 		switch (table_id) {
-			case TAB_ALBUM:
+			case TAB_ALBUMS:
 				current_view->setCurrentWidget(album_frame_);
 				break;
-			case TAB_ARTIST:
+			case TAB_ARTISTS:
 				current_view->setCurrentWidget(artist_frame_);
 				break;
 			case TAB_GENRE:
@@ -425,7 +425,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		});
 
 	current_view->setCurrentIndex(0);
-	list_view_->SetCurrentTab(TAB_ALBUM);
+	list_view_->SetCurrentTab(TAB_ALBUMS);
 
 	OnCurrentThemeChanged(qTheme.GetThemeColor());
 }

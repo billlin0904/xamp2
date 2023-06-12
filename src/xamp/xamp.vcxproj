@@ -146,7 +146,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>./x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zopfli/msvc/Release/;../thirdparty/libimagequant/msvc/Release/;../thirdparty/framelesshelper/msvc/lib/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;zopfli.lib;zopflipng.lib;imagequant.lib;opengl32.lib;FramelessHelperCore.lib;FramelessHelperWidgets.lib;widget_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;FramelessHelperCore.lib;FramelessHelperWidgets.lib;widget_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
