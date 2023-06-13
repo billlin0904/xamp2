@@ -20,7 +20,7 @@ enum class HttpMethod {
     HTTP_DELETE
 };
 
-class HttpClient {
+class XAMP_WIDGET_SHARED_EXPORT HttpClient {
 public:
     explicit HttpClient(const QUrl& url, QObject* parent = nullptr);
 	

@@ -346,7 +346,8 @@ static std::vector<SharedLibraryHandle> PrefetchDll() {
         "mimalloc-override.dll",
         "C:\\Program Files\\Topping\\USB Audio Device Driver\\x64\\ToppingUsbAudioasio_x64.dll",
         "C:\\Program Files\\iFi\\USB_HD_Audio_Driver\\iFiHDUSBAudioasio_x64.dll",
-        "C:\\Program Files\\FiiO\\FiiO_Driver\\W10_x64\\fiio_usbaudioasio_x64.dll"
+        "C:\\Program Files\\FiiO\\FiiO_Driver\\W10_x64\\fiio_usbaudioasio_x64.dll",
+        "C:\\Program Files\\Bonjour\\mdnsNSP.dll"
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
@@ -489,11 +490,13 @@ static int Execute(int argc, char* argv[]) {
     win.SetXWindow(&main_window);
     win.SetThemeColor(qTheme.GetBackgroundColor(),
         qTheme.GetThemeTextColor());
-    
+
+#ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG("Set process mitigation.");
     SetProcessMitigation();
 
     XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
+#endif
 
     main_window.SetContentWidget(&win);
     //top_win.SetContentWidget(nullptr);
