@@ -15,7 +15,6 @@ enum TabIndex {
     TAB_PLAYLIST,
     TAB_FILE_EXPLORER,
     TAB_LYRICS,
-    TAB_PODCAST,    
     TAB_MUSIC_LIBRARY,
     TAB_CD,
 };

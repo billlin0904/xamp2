@@ -17,10 +17,7 @@
 #include <widget/xprogressdialog.h>
 #include <widget/albumentity.h>
 #include <widget/xmessage.h>
-#include <widget/ui_utilts.h>
 #include <base/scopeguard.h>
-
-#include <widget/widget_shared.h>
 
 #include <thememanager.h>
 
@@ -265,9 +262,9 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
-    hbox_layout->setContentsMargins(15, 15, 0, 0);
+    hbox_layout->setContentsMargins(10, 10, 0, 0);
 
-    auto* button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    auto* button_spacer = new QSpacerItem(20, 5, QSizePolicy::Expanding, QSizePolicy::Expanding);
     hbox_layout->addWidget(close_button_);
     hbox_layout->addSpacerItem(button_spacer);
 

@@ -6,34 +6,34 @@
 
 AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
-    ui.setupUi(this);
+    ui_.setupUi(this);
 
-    ui.lblLogo->setPixmap(qTheme.GetApplicationIcon().pixmap(128, 128));
+    ui_.lblLogo->setPixmap(qTheme.GetApplicationIcon().pixmap(128, 128));
 
     QFont dp_font(qTEXT("DisplayFont"));
     dp_font.setBold(true);
     dp_font.setPointSizeF(qTheme.GetFontSize(26));
 
-    ui.lblProjectTitle->setFont(dp_font);
-    ui.lblProjectTitle->setText(qTEXT("XAMP2"));
-    ui.lblProjectTitle->setStyleSheet(qTEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
+    ui_.lblProjectTitle->setFont(dp_font);
+    ui_.lblProjectTitle->setText(qTEXT("XAMP2"));
+    ui_.lblProjectTitle->setStyleSheet(qTEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
-    ui.lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player."));
+    ui_.lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player."));
 
     QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
-    ui.lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));
-    ui.lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
-    ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
+    ui_.lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));
+    ui_.lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
+    ui_.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
 
     QFont font = qTheme.GetUiFont();
     font.setBold(false);
     font.setPointSize(qTheme.GetDefaultFontSize());
-    ui.txtBws->setFont(font);
-    ui.txtBws->setVisible(false);
+    ui_.txtBws->setFont(font);
+    ui_.txtBws->setVisible(false);
 
     QFile lincense_file(qTEXT("lincense.txt"));
     if (lincense_file.open(QIODevice::ReadOnly)) {
-        lincense_ = QLatin1String(lincense_file.readAll());
+        license_ = QLatin1String(lincense_file.readAll());
     }
 
     QFile credits_file(qTEXT("credits.txt"));
@@ -42,27 +42,27 @@ AboutPage::AboutPage(QWidget* parent)
     }
 
     setStyleSheet(qTEXT("QFrame#AboutDialog { background-color: transparent }"));
-    ui.lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
-    ui.lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
-    ui.lblCopying->setStyleSheet(qTEXT("background-color: transparent"));
-    ui.lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
-    ui.lblDomain->setStyleSheet(qTEXT("background-color: transparent"));
-    ui.wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.lblCopying->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.lblDomain->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
 }
 
 void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    ui.lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
+    ui_.lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
 }
 
-void AboutPage::OnCreditsOrLicenceChecked(bool checked) {
+void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
     if (sender()->objectName() == qTEXT("btnLicense")) {
-        ui.txtBws->setText(lincense_);
-        ui.btnCredits->setChecked(false);
+        ui_.txtBws->setText(license_);
+        ui_.btnCredits->setChecked(false);
     }
     else if (sender()->objectName() == qTEXT("btnCredits")) {
-        ui.txtBws->setText(credits_);
-        ui.btnLicense->setChecked(false);
+        ui_.txtBws->setText(credits_);
+        ui_.btnLicense->setChecked(false);
     }
-    ui.txtBws->setVisible(checked);
-    ui.wdtContent->setVisible(!checked);
+    ui_.txtBws->setVisible(checked);
+    ui_.wdtContent->setVisible(!checked);
 }

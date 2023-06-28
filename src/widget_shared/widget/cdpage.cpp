@@ -7,54 +7,54 @@
 
 CdPage::CdPage(QWidget* parent)
     : QFrame(parent) {
-    ui.setupUi(this);
+    ui_.setupUi(this);
 
-    ui.pcButton->setStyleSheet(qTEXT(R"(
+    ui_.pcButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#pcButton {
                                         border: none;
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
-    ui.pcButton->setIconSize(QSize(64, 64));
+    ui_.pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui_.pcButton->setIconSize(QSize(64, 64));
 
-    ui.cdButton->setStyleSheet(qTEXT(R"(
+    ui_.cdButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#cdButton {
                                         border: none;                                        
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
-    ui.cdButton->setIconSize(QSize(64, 64));
+    ui_.cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+    ui_.cdButton->setIconSize(QSize(64, 64));
 
-    ui.arrowButton->setStyleSheet(qTEXT(R"(
+    ui_.arrowButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#arrowButton {
                                         border: none;
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
-    ui.arrowButton->setIconSize(QSize(64, 64));
+    ui_.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
+    ui_.arrowButton->setIconSize(QSize(64, 64));
 
-    ui.playlistPage->playlist()->SetPodcastMode(false);
-    ui.playlistPage->hide();
+    ui_.playlistPage->playlist()->SetPodcastMode(false);
+    ui_.playlistPage->hide();
 
-    ui.tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_.tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));
     setStyleSheet(qTEXT("QFrame#CDPage { background-color: transparent; }"));
 }
 
 void CdPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    ui.pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
-    ui.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
-    ui.cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+    ui_.pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui_.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
+    ui_.cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
 }
 
 void CdPage::showPlaylistPage(bool show) {
     if (show) {
-        ui.tipFrame->hide();
-        ui.playlistPage->show();
+        ui_.tipFrame->hide();
+        ui_.playlistPage->show();
     } else {
-        ui.tipFrame->show();
-        ui.playlistPage->hide();
+        ui_.tipFrame->show();
+        ui_.playlistPage->hide();
     }
 }

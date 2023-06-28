@@ -411,15 +411,14 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
 	, is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
+    , main_window_(nullptr)
     , lrc_page_(nullptr)
-    , playlist_page_(nullptr)
-	, podcast_page_(nullptr)
+	, playlist_page_(nullptr)
 	, music_page_(nullptr)
-	, cd_page_(nullptr)
 	, current_playlist_page_(nullptr)
-    , album_page_(nullptr)
+    , cd_page_(nullptr)
+	, album_page_(nullptr)
 	, file_system_view_page_(nullptr)
-	, main_window_(nullptr)
 	, background_worker_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 	, player_(player) {
@@ -450,19 +449,18 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         QWidget::close();
         });
 
-    background_worker_ = new BackgroundWorker();
+    background_worker_.reset(new BackgroundWorker());
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start(QThread::LowestPriority);
 
-    find_album_cover_worker_ = new FindAlbumCoverWorker();
+    find_album_cover_worker_.reset(new FindAlbumCoverWorker());
     find_album_cover_worker_->moveToThread(&find_album_cover_thread_);
     find_album_cover_thread_.start(QThread::LowestPriority);
 
-    extract_file_worker_ = new ExtractFileWorker();
+    extract_file_worker_.reset(new ExtractFileWorker());
     extract_file_worker_->moveToThread(&extract_file_thread_);
     extract_file_thread_.start(QThread::LowestPriority);
 
-    messages_ = new XMessage(this);
     player_->Startup(state_adapter_);
 
     InitialUi();
@@ -471,13 +469,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     InitialShortcut();
     InitialSpectrum();
 
-    SetPlaylistPageCover(nullptr, playlist_page_);
-    SetPlaylistPageCover(nullptr, podcast_page_);  
+    SetPlaylistPageCover(nullptr, playlist_page_.get());
     SetPlaylistPageCover(nullptr, cd_page_->playlistPage());
     SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 
     playlist_page_->HidePlaybackInformation(false);
-    podcast_page_->HidePlaybackInformation(true);
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
 
@@ -492,15 +488,15 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         this, &Xamp::ProcessTrackInfo);
 
     (void)QObject::connect(album_page_->artist(), &ArtistView::GetArtist,
-        background_worker_, &BackgroundWorker::OnGetArtist);
+        background_worker_.get(), &BackgroundWorker::OnGetArtist);
 
-    (void)QObject::connect(this, &Xamp::Tanslation,
-        background_worker_, &BackgroundWorker::OnTanslation);
+    (void)QObject::connect(this, &Xamp::Translation,
+        background_worker_.get(), &BackgroundWorker::OnTanslation);
 
-    (void)QObject::connect(background_worker_, &BackgroundWorker::TranslationCompleted,
+    (void)QObject::connect(background_worker_.get(), &BackgroundWorker::TranslationCompleted,
         this, &Xamp::OnTranslationCompleted);
 
-    (void)QObject::connect(find_album_cover_worker_, &FindAlbumCoverWorker::SetAlbumCover,
+    (void)QObject::connect(find_album_cover_worker_.get(), &FindAlbumCoverWorker::SetAlbumCover,
         this, &Xamp::OnSetAlbumCover);
 
     (void)QObject::connect(&qTheme, 
@@ -520,7 +516,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::CurrentThemeChanged,
-        cd_page_,
+        cd_page_.get(),
         &CdPage::OnCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
@@ -530,61 +526,61 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::CurrentThemeChanged,
-        lrc_page_,
+        lrc_page_.get(),
         &LrcPage::OnCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::CurrentThemeChanged,
-        album_page_,
+        album_page_.get(),
         &AlbumArtistPage::OnCurrentThemeChanged);
 
     order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
     SetPlayerOrder();
     InitialDeviceList();
 
-    (void)QObject::connect(file_system_view_page_,
+    (void)QObject::connect(file_system_view_page_.get(),
         &FileSystemViewPage::ExtractFile,
-        extract_file_worker_,
+        extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile,
         Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::ExtractFile,
-        extract_file_worker_,
+        extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile,
         Qt::QueuedConnection);
 
    (void)QObject::connect(album_page_->album(),
         &AlbumView::ExtractFile,
-        extract_file_worker_,
+        extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile,
         Qt::QueuedConnection);    
 
-    (void)QObject::connect(extract_file_worker_,
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::ReadFileStart,
         this,
         &Xamp::OnReadFileStart,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_,
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::ReadFileProgress,
         this,
         &Xamp::OnReadFileProgress,
         Qt::QueuedConnection);   
 
-    (void)QObject::connect(extract_file_worker_,
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::FoundFileCount,
         this,
         &Xamp::OnFoundFileCount,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_,
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::InsertDatabase,
         this,
         &Xamp::OnInsertDatabase,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_,
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::ReadCompleted,
         this,
         &Xamp::OnReadCompleted,
@@ -652,7 +648,7 @@ void Xamp::cleanup() {
         background_worker_->StopThreadPool();
     }
 
-    auto QuitAndWaitThread = [](auto &thread) {
+    auto quit_and_wait_thread = [](auto &thread) {
         if (!thread.isFinished()) {
             thread.requestInterruption();
             thread.quit();
@@ -663,9 +659,9 @@ void Xamp::cleanup() {
     extract_file_worker_->OnCancelRequested();
     find_album_cover_worker_->OnCancelRequested();
 
-    QuitAndWaitThread(background_thread_);
-    QuitAndWaitThread(find_album_cover_thread_);
-    QuitAndWaitThread(extract_file_thread_);
+    quit_and_wait_thread(background_thread_);
+    quit_and_wait_thread(find_album_cover_thread_);
+    quit_and_wait_thread(extract_file_thread_);
 
     if (main_window_ != nullptr) {
         main_window_->SaveGeometry();
@@ -772,7 +768,7 @@ void Xamp::InitialDeviceList() {
 
     OrderedMap<std::string, QAction*> device_id_action;
 
-    const auto device_type_id = AppSettings::ValueAsID(kAppSettingDeviceType);
+    const auto device_type_id = AppSettings::ValueAsId(kAppSettingDeviceType);
     const auto device_id = AppSettings::ValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
@@ -850,7 +846,7 @@ void Xamp::SliderAnimation(bool enable) {
     auto* animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
     const auto slider_geometry = ui_.sliderFrame->geometry();
     constexpr auto kMaxSliderWidth = 175;
-    constexpr auto kMinSliderWidth = 43;
+    constexpr auto kMinSliderWidth = 50;
     QSize size;
     if (!enable) {
         ui_.searchFrame->hide();
@@ -1054,7 +1050,7 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.coverLabel, &ClickableLabel::clicked, [this]() {
-        ui_.currentView->setCurrentWidget(lrc_page_);
+        ui_.currentView->setCurrentWidget(lrc_page_.get());
     });
 
     (void)QObject::connect(ui_.naviBar, &TabListView::ClickedTable, [this](auto table_id) {
@@ -1086,22 +1082,19 @@ void Xamp::SetCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
         album_page_->Refresh();
-        ui_.currentView->setCurrentWidget(album_page_);
+        ui_.currentView->setCurrentWidget(album_page_.get());
         break;
     case TAB_FILE_EXPLORER:
-        ui_.currentView->setCurrentWidget(file_system_view_page_);
-        break;
-    case TAB_PODCAST:
-        ui_.currentView->setCurrentWidget(podcast_page_);
+        ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
     case TAB_PLAYLIST:
-        ui_.currentView->setCurrentWidget(playlist_page_);
+        ui_.currentView->setCurrentWidget(playlist_page_.get());
         break;
     case TAB_LYRICS:
-        ui_.currentView->setCurrentWidget(lrc_page_);
+        ui_.currentView->setCurrentWidget(lrc_page_.get());
         break;
     case TAB_CD:
-        ui_.currentView->setCurrentWidget(cd_page_);
+        ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     }
 }
@@ -1138,8 +1131,7 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
 
     lrc_page_->SetCover(qTheme.GetUnknownCover());
 
-    SetPlaylistPageCover(nullptr, playlist_page_);
-    SetPlaylistPageCover(nullptr, podcast_page_);
+    SetPlaylistPageCover(nullptr, playlist_page_.get());
     SetPlaylistPageCover(nullptr, cd_page_->playlistPage());
     SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 }
@@ -1156,8 +1148,8 @@ void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& imag
     if (cover.loadFromData(image)) {        
         qDatabase.UpdateArtistCoverId(qDatabase.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
     }
-    emit Tanslation(artist, qTEXT("ja"), qTEXT("en"));
-    //emit Tanslation(artist, qTEXT("en"), qTEXT("ja"));
+    emit Translation(artist, qTEXT("ja"), qTEXT("en"));
+    //emit Translation(artist, qTEXT("en"), qTEXT("ja"));
     album_page_->Refresh();
 }
 
@@ -1309,7 +1301,7 @@ void Xamp::SetPlayerOrder() {
     if (playlist_page_ != nullptr) {
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
     }    
-    AppSettings::setEnumValue(kAppSettingOrder, order_);
+    AppSettings::SetEnumValue(kAppSettingOrder, order_);
 }
 
 void Xamp::OnSampleTimeChanged(double stream_time) {
@@ -1356,19 +1348,18 @@ void Xamp::PlayOrPause() {
             if (!ui_.currentView->count()) {
                 return;
             }
-            playlist_page_ = current_playlist_page_;
-            if (const auto select_item = playlist_page_->playlist()->GetSelectItem()) {
+            if (const auto select_item = current_playlist_page_->playlist()->GetSelectItem()) {
                 play_index_ = select_item.value();
             }
-            play_index_ = playlist_page_->playlist()->model()->index(
+            play_index_ = current_playlist_page_->playlist()->model()->index(
                 play_index_.row(), PLAYLIST_PLAYING);
             if (play_index_.row() == -1) {
                 XMessageBox::ShowInformation(tr("Not found any playing item."));
                 return;
             }
-            playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
-            playlist_page_->playlist()->SetNowPlaying(play_index_, true);
-            playlist_page_->playlist()->PlayIndex(play_index_);
+            current_playlist_page_->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
+            current_playlist_page_->playlist()->SetNowPlaying(play_index_, true);
+            current_playlist_page_->playlist()->PlayIndex(play_index_);
         }
     }
     catch (Exception const &e) {
@@ -1685,8 +1676,6 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     lrc_page_->spectrum()->SetFftSize(state_adapter_->GetFftSize());
     lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
 
-    podcast_page_->format()->setText(kEmptyString);
-
     auto lyrc_opt = qDatabase.GetLyrc(item.music_id);
     if (!lyrc_opt) {
         emit SearchLyrics(item.music_id, item.title, item.artist);
@@ -1752,7 +1741,7 @@ void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& 
     cd_page_->playlistPage()->playlist()->RemoveAll();
     DatabaseFacade facade;
     facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);    
-    emit Tanslation(QString::fromStdWString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
+    emit Translation(QString::fromStdWString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
     cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -1794,7 +1783,7 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
 PlaylistPage* Xamp::CurrentPlaylistPage() {
     current_playlist_page_ = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
     if (!current_playlist_page_) {
-        current_playlist_page_ = playlist_page_;
+        current_playlist_page_ = playlist_page_.get();
     }
     return current_playlist_page_;
 }
@@ -1832,7 +1821,7 @@ void Xamp::PlayNextItem(int32_t forward) {
 }
 
 void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {    
-    ui_.currentView->setCurrentWidget(album_page_);
+    ui_.currentView->setCurrentWidget(album_page_.get());
 }
 
 void Xamp::AddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
@@ -1873,14 +1862,13 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
 }
 
 void Xamp::InitialPlaylist() {
-    lrc_page_ = new LrcPage(this);
-    album_page_ = new AlbumArtistPage(this);
+    lrc_page_.reset(new LrcPage(this));
+    album_page_.reset(new AlbumArtistPage(this));
 
     ui_.naviBar->AddSeparator();
-    ui_.naviBar->AddTab(tr("Playlists"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.naviBar->AddTab(tr("Playlist"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->AddTab(tr("File explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
     ui_.naviBar->AddTab(tr("Lyrics"), TAB_LYRICS, qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
-    ui_.naviBar->AddTab(tr("Podcast"), TAB_PODCAST, qTheme.GetFontIcon(Glyphs::ICON_PODCAST));
     ui_.naviBar->AddTab(tr("Music library"), TAB_MUSIC_LIBRARY, qTheme.GetFontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
@@ -1896,12 +1884,12 @@ void Xamp::InitialPlaylist() {
             ui_.naviBar->AddTab(name, table_id, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
             if (!playlist_page_) {
-                playlist_page_ = NewPlaylistPage(playlist_id, kEmptyString);
+                playlist_page_.reset(NewPlaylistPage(playlist_id, kEmptyString));
                 playlist_page_->playlist()->SetPlaylistId(playlist_id, name);
             }
 
             if (playlist_page_->playlist()->GetPlaylistId() != playlist_id) {
-                playlist_page_ = NewPlaylistPage(playlist_id, kEmptyString);
+                playlist_page_.reset(NewPlaylistPage(playlist_id, kEmptyString));
                 playlist_page_->playlist()->SetPlaylistId(playlist_id, name);                
             }
         });
@@ -1911,31 +1899,20 @@ void Xamp::InitialPlaylist() {
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.AddPlaylist(kEmptyString, 0);
         }
-        playlist_page_ = NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName);
-        ConnectPlaylistPageSignal(playlist_page_);
+        playlist_page_.reset(NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName));
+        ConnectPlaylistPageSignal(playlist_page_.get());
         playlist_page_->playlist()->SetHeaderViewHidden(false);
         playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
 
-        (void)QObject::connect(extract_file_worker_,
+        (void)QObject::connect(extract_file_worker_.get(),
             &ExtractFileWorker::FromDatabase,
             playlist_page_->playlist(),
             &PlayListTableView::ProcessDatabase,
             Qt::QueuedConnection);
     }
 
-    if (!podcast_page_) {
-        auto playlist_id = kDefaultPodcastPlaylistId;
-        if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(kEmptyString, 1);
-        }
-        podcast_page_ = NewPlaylistPage(playlist_id, kAppSettingPodcastPlaylistColumnName);
-        podcast_page_->playlist()->SetPodcastMode();
-        podcast_page_->playlist()->SetHeaderViewHidden(false);
-        ConnectPlaylistPageSignal(podcast_page_);
-    }
-
     if (!file_system_view_page_) {
-        file_system_view_page_ = new FileSystemViewPage(this);
+        file_system_view_page_.reset(new FileSystemViewPage(this));
         auto playlist_id = kDefaultFileExplorerPlaylistId;
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.AddPlaylist(kEmptyString, 2);
@@ -1951,51 +1928,51 @@ void Xamp::InitialPlaylist() {
         if (!qDatabase.IsPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.AddPlaylist(kEmptyString, 4);
         }
-        cd_page_ = new CdPage(this);
+        cd_page_.reset(new CdPage(this));
         cd_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
         cd_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
         SetCover(kEmptyString, cd_page_->playlistPage());
         ConnectPlaylistPageSignal(cd_page_->playlistPage());
     }
 
-    current_playlist_page_ = playlist_page_;
+    current_playlist_page_ = playlist_page_.get();
 
     (void)QObject::connect(this,
         &Xamp::BlurImage,
-        background_worker_,
+        background_worker_.get(),
         &BackgroundWorker::OnBlurImage);
 #if defined(Q_OS_WIN)
     (void)QObject::connect(this,
         &Xamp::FetchCdInfo,
-        background_worker_,
+        background_worker_.get(),
         &BackgroundWorker::OnFetchCdInfo);
 #endif
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::OnReadCdTrackInfo,
         this,
         &Xamp::OnUpdateCdTrackInfo,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::OnMbDiscInfo,
         this,
         &Xamp::OnUpdateMbDiscInfo,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
 		&BackgroundWorker::OnDiscCover,
         this,
         &Xamp::OnUpdateDiscCover,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(file_system_view_page_,
+    (void)QObject::connect(file_system_view_page_.get(),
         &FileSystemViewPage::addDirToPlaylist,
         this,
         &Xamp::AppendToPlaylist);    
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
-        album_page_,
+        album_page_.get(),
         &AlbumArtistPage::OnThemeColorChanged);
 
     if (!qDatabase.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
@@ -2008,25 +1985,24 @@ void Xamp::InitialPlaylist() {
 
     (void)QObject::connect(this,
         &Xamp::SearchLyrics,
-        background_worker_,
+        background_worker_.get(),
         &BackgroundWorker::OnSearchLyrics);
 
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::SearchLyricsCompleted,
         this,
         &Xamp::OnSearchLyricsCompleted);
 
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::SearchArtistCompleted,
         this,
         &Xamp::OnSearchArtistCompleted);
 
-    PushWidget(playlist_page_);
-    PushWidget(lrc_page_);
-    PushWidget(album_page_);
-    PushWidget(podcast_page_);
-    PushWidget(file_system_view_page_);
-    PushWidget(cd_page_);
+    PushWidget(playlist_page_.get());
+    PushWidget(lrc_page_.get());
+    PushWidget(album_page_.get());
+    PushWidget(file_system_view_page_.get());
+    PushWidget(cd_page_.get());
 
     ui_.currentView->setCurrentIndex(0);
 
@@ -2037,15 +2013,15 @@ void Xamp::InitialPlaylist() {
 
     (void)QObject::connect(this,
         &Xamp::ThemeChanged,
-        lrc_page_,
+        lrc_page_.get(),
         &LrcPage::OnThemeChanged);
 
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::BlurImage,
-        lrc_page_,
+        lrc_page_.get(),
         &LrcPage::SetBackground);
 
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::DominantColor,
         lrc_page_->lyrics(),
         &LyricsShowWidget::SetLrcColor);
@@ -2234,7 +2210,7 @@ void Xamp::EncodeFlacFile(const PlayListEntity& item) {
 void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::AddPlaylistItemFinished,
-        album_page_,
+        album_page_.get(),
         &AlbumArtistPage::Refresh);
 
     (void)QObject::connect(playlist_page->playlist(),
@@ -2264,34 +2240,34 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::ReadReplayGain,
-        background_worker_,
+        background_worker_.get(),
         &BackgroundWorker::OnReadReplayGain);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::ExtractFile,
-        extract_file_worker_,
+        extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile);
 
     if (playlist_page->playlist()->IsPodcastMode()) {
         (void)QObject::connect(playlist_page->playlist(),
             &PlayListTableView::FetchPodcast,
-            background_worker_,
+            background_worker_.get(),
             &BackgroundWorker::OnFetchPodcast);
 
-        (void)QObject::connect(background_worker_,
+        (void)QObject::connect(background_worker_.get(),
             &BackgroundWorker::FetchPodcastCompleted,
             playlist_page->playlist(),
             &PlayListTableView::OnFetchPodcastCompleted,
             Qt::QueuedConnection);
 
-        (void)QObject::connect(background_worker_,
+        (void)QObject::connect(background_worker_.get(),
             &BackgroundWorker::FetchPodcastError,
             playlist_page->playlist(),
             &PlayListTableView::OnFetchPodcastError,
             Qt::QueuedConnection);
     }
     
-    (void)QObject::connect(background_worker_,
+    (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::ReadReplayGain,
         playlist_page->playlist(),
         &PlayListTableView::UpdateReplayGain,
@@ -2325,11 +2301,11 @@ void Xamp::OnInsertDatabase(const Vector<TrackInfo>& result,
     DatabaseFacade facede;
     (void)QObject::connect(&facede,
         &DatabaseFacade::FindAlbumCover,
-        find_album_cover_worker_, 
+        find_album_cover_worker_.get(),
         &FindAlbumCoverWorker::OnFindAlbumCover,
         Qt::QueuedConnection);
     facede.InsertTrackInfo(result, playlist_id, is_podcast_mode);    
-    emit Tanslation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    emit Translation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
 }
 
@@ -2350,7 +2326,7 @@ void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result)
     qDatabase.UpdateArtistEnglishName(keyword, result);
 }
 
-void Xamp::OnReadFileProgress(int progress) {
+void Xamp::OnReadFileProgress(int32_t progress) {
     if (!read_progress_dialog_) {
         return;
     }

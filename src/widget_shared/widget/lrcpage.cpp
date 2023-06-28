@@ -100,7 +100,7 @@ void LrcPage::SetFullScreen(bool enter) {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	SetFullScreen(spectrum_->width() > 700);
+	//SetFullScreen(spectrum_->width() > 700);
 }
 
 void LrcPage::SetBackground(const QImage& cover) {

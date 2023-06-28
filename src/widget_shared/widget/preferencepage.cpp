@@ -125,12 +125,6 @@ void PreferencePage::InitSoxResampler() {
     const auto soxr_settings = soxr_config[AppSettings::ValueAsString(kAppSettingSoxrSettingName)].toMap();
 	UpdateSoxrConfigUi(soxr_settings);
 
-    ui_.enableFramelessWindowPushButton->SetSwitchOn(AppSettings::ValueAsBool(kAppSettingUseFramelessWindow));
-    (void)QObject::connect(ui_.enableFramelessWindowPushButton, &SwitchButton::pressed, [this]() {
-        AppSettings::SetValue(kAppSettingUseFramelessWindow,
-                              !AppSettings::ValueAsBool(kAppSettingUseFramelessWindow));
-    });
-
 	ui_.enableBlurCoverImagePushButton->SetSwitchOn(AppSettings::ValueAsBool(kEnableBlurCover));
 	(void)QObject::connect(ui_.enableBlurCoverImagePushButton, &SwitchButton::pressed, [this]() {
 		AppSettings::SetValue(kEnableBlurCover,
@@ -279,15 +273,15 @@ PreferencePage::PreferencePage(QWidget *parent)
     (void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [](auto index) {
 		switch (index) {
 		case 0:
-			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
+			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
 			AppSettings::SetValue(kAppSettingEnableReplayGain, true);
 			break;
 		case 1:
-			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
 			AppSettings::SetValue(kAppSettingEnableReplayGain, true);
 			break;
 		case 2:
-			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
+			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
 			AppSettings::SetValue(kAppSettingEnableReplayGain, false);			
 			break;
 		}
@@ -333,7 +327,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lightRadioButton,
 		ui_.lbThemeMode,
 		ui_.lbLang,
-		ui_.lbFramelessWindow,
 		ui_.lbBlurCoverImage,
 		ui_.lbReplayGameMode,
 	};

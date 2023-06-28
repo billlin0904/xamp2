@@ -48,10 +48,6 @@ class XProgressDialog;
 class FindAlbumCoverWorker;
 class ExtractFileWorker;
 
-namespace QtAutoUpdater {
-	class Updater;
-}
-
 class Xamp final : public IXFrame {
 	Q_OBJECT
 
@@ -73,7 +69,7 @@ public:
 signals:
 	void PayNextMusic();
 
-    void ThemeChanged(QColor backgroundColor, QColor color);
+    void ThemeChanged(QColor background_color, QColor color);
 
 	void NowPlaying(QString const& artist, QString const& title);
 
@@ -85,12 +81,12 @@ signals:
 
 	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
 
-	void Tanslation(const QString& keyword, const QString& from, const QString& to);
+	void Translation(const QString& keyword, const QString& from, const QString& to);
 
 public slots:
-    void PlayEntity(const PlayListEntity& item);
+    void PlayEntity(const PlayListEntity& entity);
 
-	void PlayPlayListEntity(const PlayListEntity& item);
+	void PlayPlayListEntity(const PlayListEntity& entity);
 
     void AddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
 
@@ -120,7 +116,7 @@ public slots:
 		int32_t playlist_id,
 		bool is_podcast_mode);
 
-	void OnReadFileProgress(int progress);
+	void OnReadFileProgress(int32_t progress);
 
 	void OnReadCompleted();
 
@@ -248,23 +244,20 @@ private:
 
 	bool is_seeking_;
 	PlayerOrder order_;
-	LrcPage* lrc_page_;
-	PlaylistPage* playlist_page_;
-	PlaylistPage* podcast_page_;
-	PlaylistPage* music_page_;
-	CdPage* cd_page_;
-	PlaylistPage* current_playlist_page_;
-	AlbumArtistPage* album_page_;
-	FileSystemViewPage* file_system_view_page_;
-	IXMainWindow* main_window_;
-	BackgroundWorker* background_worker_;
-	FindAlbumCoverWorker* find_album_cover_worker_;
-	ExtractFileWorker* extract_file_worker_;
-	XMessage* messages_;
-	QtAutoUpdater::Updater* updater_;
 	QModelIndex play_index_;
+	IXMainWindow* main_window_;
+	PlaylistPage* current_playlist_page_;
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;
+	QScopedPointer<LrcPage> lrc_page_;
+	QScopedPointer<PlaylistPage> playlist_page_;
+	QScopedPointer<PlaylistPage> music_page_;
+	QScopedPointer<CdPage> cd_page_;
+	QScopedPointer<AlbumArtistPage> album_page_;
+	QScopedPointer<FileSystemViewPage> file_system_view_page_;
+	QScopedPointer<BackgroundWorker> background_worker_;
+	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
+	QScopedPointer<ExtractFileWorker> extract_file_worker_;
     QStack<int32_t> stack_page_id_;
     QThread background_thread_;
 	QThread find_album_cover_thread_;

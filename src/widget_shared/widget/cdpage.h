@@ -19,13 +19,13 @@ public:
 
     void showPlaylistPage(bool show);
 
-    PlaylistPage* playlistPage() {
-        return ui.playlistPage;
+    PlaylistPage* playlistPage() const {
+        return ui_.playlistPage;
     }
 
 public slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
-    Ui::CDPage ui;
+    Ui::CDPage ui_;
 };

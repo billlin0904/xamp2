@@ -60,7 +60,7 @@ enum class ReplayGainScanMode {
 
 class XAMP_WIDGET_SHARED_EXPORT AppSettings final {
 public:    
-    static void loadIniFile(QString const & file_name);
+    static void LoadIniFile(QString const & file_name);
 
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
     static void SetValue(QString const& key, T value) {
@@ -73,7 +73,7 @@ public:
     }
 
     template <typename T>
-    static void setEnumValue(const QString& key, T value) {
+    static void SetEnumValue(const QString& key, T value) {
         static_assert(std::is_enum_v<T>, "T must be enum value");
         SetValue<int32_t>(key, static_cast<int32_t>(value));
     }
@@ -124,7 +124,7 @@ public:
         return QColor(ValueAsString(key));
     }
 
-    static Uuid ValueAsID(QString const & key);
+    static Uuid ValueAsId(QString const & key);
 
     static QSize ValueAsSize(QString const& width_key, QString const& height_key);
 

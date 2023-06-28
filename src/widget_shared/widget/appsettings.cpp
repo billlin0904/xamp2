@@ -3,19 +3,17 @@
 #include <QStandardPaths>
 #include <QDirIterator>
 #include <QTextStream>
-#include <QSize>
 
 #include <base/logger_impl.h>
 #include <widget/appsettingnames.h>
 #include <widget/xmainwindow.h>
-#include <widget/playerorder.h>
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
 QMap<QString, EqSettings> AppSettings::eq_settings_;
 
-void AppSettings::loadIniFile(const QString& file_name) {
+void AppSettings::LoadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
     LoadEqPreset();
 }
@@ -113,7 +111,7 @@ QString AppSettings::GetMyMusicFolderPath() {
     return ValueAsString(kAppSettingMyMusicFolderPath);
 }
 
-Uuid AppSettings::ValueAsID(const QString& key) {
+Uuid AppSettings::ValueAsId(const QString& key) {
 	auto str = GetValue(key).toString();
 	if (str.isEmpty()) {
         return Uuid::kNullUuid;

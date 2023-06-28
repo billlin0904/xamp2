@@ -80,7 +80,7 @@ TagListView::TagListView(QWidget* parent)
 	taglist_->setResizeMode(QListView::Adjust);
 	taglist_->setFrameStyle(QFrame::StyledPanel);
 	taglist_->setViewMode(QListView::IconMode);
-	taglist_->setFixedHeight(100);
+	taglist_->setFixedHeight(120);
 	taglist_->setSpacing(5);	
 
 	(void)QObject::connect(taglist_, &QListWidget::itemClicked, [this](auto* item) {
@@ -179,16 +179,16 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 
 	auto* item = new TagWidgetItem(tag, color, tag_label, taglist_);
 	f.setBold(true);
-	f.setPointSize(qTheme.GetFontSize(12));
+	f.setPointSize(qTheme.GetFontSize(8));
 	tag_label->setFont(f);
 
 	if (!uniform_item_sizes) {
 		QFontMetrics metrics(f);
-		auto width = metrics.horizontalAdvance(tag) * 1.3;
-		item->setSizeHint(QSize(width, 40));
+		auto width = metrics.horizontalAdvance(tag) * 1.25;
+		item->setSizeHint(QSize(width, 30));
 	}
 	else {
-		item->setSizeHint(QSize(80, 40));
+		item->setSizeHint(QSize(80, 30));
 	}
 
 	layout->addWidget(tag_label);

@@ -288,7 +288,7 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
 
     SetPalette();
-    AppSettings::setEnumValue(kAppSettingTheme, theme_color_);
+    AppSettings::SetEnumValue(kAppSettingTheme, theme_color_);
 
     font_icon_opts_.clear();
 

@@ -418,13 +418,7 @@ static void ApplyTheme() {
 }
 
 static int Execute(int argc, char* argv[]) {
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
-    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-    QApplication::setDesktopSettingsAware(false);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
-    QApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication::setApplicationName(kApplicationName);
     QApplication::setApplicationVersion(kApplicationVersion);
@@ -505,6 +499,16 @@ static int Execute(int argc, char* argv[]) {
     return app.exec();
 }
 
+struct FramelessHelperRAII {
+    FramelessHelperRAII() {
+        FramelessHelper::Widgets::initialize();
+    }
+
+    ~FramelessHelperRAII() {
+        FramelessHelper::Widgets::uninitialize();
+    }
+};
+
 int main() {
     LoggerManager::GetInstance()
         .AddDebugOutput()
@@ -514,9 +518,9 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
-    FramelessHelper::Widgets::initialize();    
+    FramelessHelperRAII frameless_helper_raii;
 
-    AppSettings::loadIniFile(qTEXT("xamp.ini"));
+    AppSettings::LoadIniFile(qTEXT("xamp.ini"));
     JsonSettings::LoadJsonFile(qTEXT("config.json"));
 
 	LoadOrSaveLogConfig();
@@ -524,7 +528,7 @@ int main() {
     XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
-    SetWorkingSetSize();
+    //SetWorkingSetSize();
 
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
@@ -557,7 +561,6 @@ int main() {
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
-        FramelessHelper::Widgets::uninitialize();
         JsonSettings::save();
         AppSettings::save();
         SaveLogConfig();

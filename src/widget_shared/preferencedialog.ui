@@ -73,7 +73,7 @@
         <number>0</number>
        </property>
        <widget class="QWidget" name="playbackPage">
-        <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,0,0,0,0,0,0,0,0">
+        <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,0,0,0,0,0,0,0">
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_15">
            <item>
@@ -172,55 +172,6 @@
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_14">
-           <item>
-            <widget class="QLabel" name="lbFramelessWindow">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-               <kerning>false</kerning>
-              </font>
-             </property>
-             <property name="text">
-              <string>Frameless window</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="SwitchButton" name="enableFramelessWindowPushButton">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>26</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>60</width>
-               <height>26</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <kerning>false</kerning>
-              </font>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </item>
          <item>
           <spacer name="verticalSpacer_2">

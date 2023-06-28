@@ -132,7 +132,6 @@
     <QtMoc Include="widget\artistinfopage.h" />
     <QtMoc Include="widget\backgroundworker.h" />
     <QtMoc Include="widget\clickablelabel.h" />
-    <ClInclude Include="widget\colorthief.h" />
     <ClInclude Include="widget\database.h" />
     <QtMoc Include="widget\databasefacade.h" />
     <QtMoc Include="widget\doubleslider.h" />
@@ -210,7 +209,6 @@
     <ClCompile Include="widget\backgroundworker.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\colorthief.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\databasefacade.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />

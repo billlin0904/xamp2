@@ -15,12 +15,12 @@ public:
     explicit AboutPage(QWidget* parent = nullptr);
 
 public slots:
-    void OnCreditsOrLicenceChecked(bool checked);
+    void OnCreditsOrLicenseChecked(bool checked);
 
     void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
-    Ui::AboutDialog ui;
-    QString lincense_;
+    Ui::AboutDialog ui_;
+    QString license_;
     QString credits_;
 };

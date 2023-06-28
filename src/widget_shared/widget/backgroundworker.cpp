@@ -13,7 +13,6 @@
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/spotify_utilis.h>
-#include <widget/colorthief.h>
 #include <widget/albumview.h>
 #include <widget/kkbox_utilis.h>
 
