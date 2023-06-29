@@ -16,6 +16,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     int32_t playlist_music_id{0};
     int32_t album_id{0};
     int32_t artist_id{0};
+    uint32_t bit{0};
     uint32_t track{0};
     uint32_t bit_rate{0};
     uint32_t sample_rate{0};

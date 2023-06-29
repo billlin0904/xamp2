@@ -646,7 +646,7 @@ QColor ThemeManager::GetHighlightColor() const {
 }
 
 int32_t ThemeManager::GetTitleBarIconHeight() {
-    auto w = qCeil(10 * GetPixelRatio());
+    /*auto w = qCeil(10 * GetPixelRatio());
 
     if (w <= 10)
         w = 10;
@@ -655,7 +655,8 @@ int32_t ThemeManager::GetTitleBarIconHeight() {
     else
         w = 15;
 
-    return w;
+    return w;*/
+    return 10;
 }
 
 void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {

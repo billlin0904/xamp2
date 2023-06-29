@@ -176,6 +176,18 @@ AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& setting
     return converter;
 }
 
+AlignPtr<IAudioProcessor> MakeBlueToothSampleRateConverter() {
+    QMap<QString, QVariant> bluetooth_soxr_settings;
+
+    bluetooth_soxr_settings[kResampleSampleRate] = 44100;
+    bluetooth_soxr_settings[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
+    bluetooth_soxr_settings[kSoxrPhase] = 46;
+    bluetooth_soxr_settings[kSoxrStopBand] = 100;
+    bluetooth_soxr_settings[kSoxrPassBand] = 96;
+    bluetooth_soxr_settings[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
+    return MakeSoxrSampleRateConverter(bluetooth_soxr_settings);
+}
+
 PlaybackFormat GetPlaybackFormat(IAudioPlayer* player) {
     PlaybackFormat format;
 

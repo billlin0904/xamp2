@@ -238,7 +238,7 @@ private:
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
 
-	static bool ShowMeMessage(const QString &message);
+	static void ShowMeMessage(const QString &message);
 
 	void showEvent(QShowEvent* event) override;
 

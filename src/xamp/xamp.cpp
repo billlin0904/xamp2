@@ -1457,22 +1457,17 @@ void Xamp::SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
 	}
 }
 
-bool Xamp::ShowMeMessage(const QString& message) {
+void Xamp::ShowMeMessage(const QString& message) {
     if (AppSettings::DontShowMeAgain(message)) {
         auto [button, checked] = XMessageBox::ShowCheckBoxInformation(
             message,
             tr("Ok, and don't show again."),
             kApplicationTitle,
-            false,
-            QDialogButtonBox::No | QDialogButtonBox::Yes,
-            QDialogButtonBox::No);
+            false);
         if (checked) {
             AppSettings::AddDontShowMeAgain(message);
-            return true;
         }
-        return button == QDialogButtonBox::Yes;
     }
-    return true;
 }
 
 void Xamp::showEvent(QShowEvent* event) {
@@ -1518,6 +1513,8 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         return;
     }
 
+    lrc_page_->spectrum()->Reset();
+
     auto open_done = false;
 
     ui_.seekSlider->setEnabled(true);
@@ -1548,6 +1545,21 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         SetupSampleRateConverter(sample_rate_converter_factory, 
             target_sample_rate, 
             sample_rate_converter_type);
+    }
+
+    if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
+        if (entity.sample_rate != AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
+            const auto message =
+                qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
+                .arg(entity.bit)
+                .arg(FormatSampleRate(entity.sample_rate));
+            ShowMeMessage(message);
+            player_->GetDspManager()->RemoveSampleRateConverter();
+            target_sample_rate = 44100;
+            sample_rate_converter_type = kSoxr;
+            player_->GetDspManager()->AddPreDSP(MakeBlueToothSampleRateConverter());
+        }
+        byte_format = ByteFormat::SINT16;
     }
     
     const auto [open_dsd_mode, convert_mode] = GetDsdModes(device_info_.value(),
@@ -1585,18 +1597,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         } else {
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
                 byte_format = ByteFormat::SINT16;
-            }            
-        }
-
-        if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
-            if (player_->GetInputFormat() != AudioFormat::k16BitPCM441Khz) {
-                const auto message = 
-                    qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
-                    .arg(player_->GetInputFormat().GetBitsPerSample())
-                    .arg(FormatSampleRate(player_->GetInputFormat().GetSampleRate()));
-                ShowMeMessage(message);
             }
-            byte_format = ByteFormat::SINT16;
         }
 
         if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
@@ -1633,9 +1634,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
     }
     else {
         current_playlist_page_->playlist()->Reload();
-    }
-
-    lrc_page_->spectrum()->Reset();
+    }    
 }
 
 void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done) {

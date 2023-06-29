@@ -101,14 +101,14 @@
        <widget class="QToolButton" name="maxWinButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -119,8 +119,8 @@
         </property>
         <property name="iconSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
        </widget>
@@ -180,14 +180,14 @@
        <widget class="QToolButton" name="closeButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -198,8 +198,8 @@
         </property>
         <property name="iconSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
        </widget>
@@ -240,14 +240,14 @@
        <widget class="QToolButton" name="minWinButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -258,8 +258,8 @@
         </property>
         <property name="iconSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>16</width>
+          <height>16</height>
          </size>
         </property>
         <property name="popupMode">

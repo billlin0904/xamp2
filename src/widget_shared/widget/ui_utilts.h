@@ -50,6 +50,8 @@ XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConvert
 
 XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
 
+XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeBlueToothSampleRateConverter();
+
 XAMP_WIDGET_SHARED_EXPORT PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);
 
 XAMP_WIDGET_SHARED_EXPORT QString GetFileDialogFileExtensions();
