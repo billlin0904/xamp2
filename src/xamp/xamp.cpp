@@ -1009,6 +1009,7 @@ void Xamp::InitialController() {
         dialog->SetContentWidget(eq, false);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
         dialog->SetTitle(tr("EQ"));
+        eq->setMinimumWidth(800);
 
         (void)QObject::connect(eq, &EqualizerView::BandValueChange, [](auto, auto, auto) {
             AppSettings::save();

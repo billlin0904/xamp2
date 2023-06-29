@@ -646,21 +646,12 @@ QColor ThemeManager::GetHighlightColor() const {
 }
 
 int32_t ThemeManager::GetTitleBarIconHeight() {
-    /*auto w = qCeil(10 * GetPixelRatio());
-
-    if (w <= 10)
-        w = 10;
-    else if (w <= 12)
-        w = 12;
-    else
-        w = 15;
-
-    return w;*/
     return 10;
 }
 
 void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
     const QColor hover_color = GetHoverColor();
+    QColor color_hover_color(qTEXT("#dc3545"));
 
     close_button->setStyleSheet(qSTR(R"(
                                          QToolButton#closeButton {
@@ -673,7 +664,7 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										 background-color: %1;
 										 border-radius: 0px;
                                          }
-                                         )").arg(ColorToString(hover_color)));
+                                         )").arg(ColorToString(color_hover_color)));
     close_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
     close_button->setIcon(GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
@@ -690,7 +681,7 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
                                           )").arg(ColorToString(hover_color)));
     min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), 1));
     min_win_button->setIcon(GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
-
+    
     max_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;

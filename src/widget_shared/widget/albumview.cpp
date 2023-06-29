@@ -16,7 +16,6 @@
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 #include <widget/albumentity.h>
-#include <widget/xmessage.h>
 #include <base/scopeguard.h>
 
 #include <thememanager.h>

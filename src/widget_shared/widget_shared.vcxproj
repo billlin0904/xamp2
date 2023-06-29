@@ -185,7 +185,6 @@
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xdialog.h" />
     <ClInclude Include="widget\xmainwindow.h" />
-    <QtMoc Include="widget\xmessage.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\xprogressdialog.h" />
     <ClInclude Include="widget\zib_utiltis.h" />
@@ -261,7 +260,6 @@
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
-    <ClCompile Include="widget\xmessage.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\zib_utiltis.cpp" />

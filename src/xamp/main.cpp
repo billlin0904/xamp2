@@ -487,7 +487,7 @@ static int Execute(int argc, char* argv[]) {
 
 #ifdef Q_OS_WIN32
     XAMP_LOG_DEBUG("Set process mitigation.");
-    SetProcessMitigation();
+    //SetProcessMitigation();
 
     XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 #endif
