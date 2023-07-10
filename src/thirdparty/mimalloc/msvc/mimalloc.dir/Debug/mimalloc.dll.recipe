@@ -2,10 +2,10 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\rdbill0452\Documents\Github\xamp2\src\thirdparty\mimalloc\msvc\x64\Debug\ZERO_CHECK</FullPath>
+      <FullPath>C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\x64\Debug\ZERO_CHECK</FullPath>
     </ProjectOutput>
     <ProjectOutput>
-      <FullPath>C:\Users\rdbill0452\Documents\Github\xamp2\src\thirdparty\mimalloc\msvc\Debug\mimalloc.dll</FullPath>
+      <FullPath>C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\Debug\mimalloc.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

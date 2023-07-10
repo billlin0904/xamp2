@@ -1,0 +1,10 @@
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-static.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-obj.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-test-api.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-test-api-fill.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-test-stress.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/RUN_TESTS.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/INSTALL.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/ALL_BUILD.dir
+C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/ZERO_CHECK.dir

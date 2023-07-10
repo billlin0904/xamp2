@@ -1,0 +1,14 @@
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\stats.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\stats.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\random.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\random.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\os.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\os.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\bitmap.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\bitmap.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\arena.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\arena.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\segment-cache.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\segment-cache.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\segment.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\segment.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\page.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\page.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\alloc.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\alloc.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\alloc-aligned.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\alloc-aligned.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\alloc-posix.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\alloc-posix.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\heap.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\heap.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\options.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\options.obj
+C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\init.c;C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\mimalloc.dir\Debug\init.obj
