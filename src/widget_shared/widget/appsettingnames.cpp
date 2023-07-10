@@ -85,3 +85,4 @@ IMPL_APP_SETTING_NAME(LogDefault, "Default");
 IMPL_APP_SETTING_NAME(LogOverride, "Override");
 
 IMPL_APP_SETTING_NAME(AppSettingEnableShortcut, "AppSettings/enableShortcut");
+IMPL_APP_SETTING_NAME(AppSettingEnableSandboxMode, "AppSettings/enableSandboxMode");

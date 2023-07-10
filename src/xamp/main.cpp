@@ -276,7 +276,8 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
     AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, true);
     AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
-    AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, true);
+    AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, false);
+    AppSettings::SetDefaultValue(kAppSettingEnableSandboxMode, true);
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
@@ -486,8 +487,17 @@ static int Execute(int argc, char* argv[]) {
         qTheme.GetThemeTextColor());
 
 #ifdef Q_OS_WIN32
-    XAMP_LOG_DEBUG("Set process mitigation.");
-    //SetProcessMitigation();
+    const auto os_ver = QOperatingSystemVersion::current();
+    XAMP_LOG_DEBUG("Running {} {}.{}.{}",
+        os_ver.name().toStdString(),
+        os_ver.majorVersion(),
+        os_ver.minorVersion(),
+        os_ver.microVersion());
+
+    if (AppSettings::ValueAsBool(kAppSettingEnableSandboxMode)) {
+        XAMP_LOG_DEBUG("Set process mitigation.");
+        SetProcessMitigation();
+    }
 
     XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 #endif
@@ -542,13 +552,6 @@ int main() {
     const auto pin_system_dll = PinSystemDll();
     XAMP_LOG_DEBUG("Pin system dll success.");
 #endif
-
-    const auto os_ver = QOperatingSystemVersion::current();
-    XAMP_LOG_DEBUG("Running {} {}.{}.{}",
-        os_ver.name().toStdString(),
-        os_ver.majorVersion(),
-        os_ver.minorVersion(),
-        os_ver.microVersion());
 
     LoadAppSettings();
     LoadSampleRateConverterConfig();

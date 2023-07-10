@@ -76,3 +76,4 @@ DECLARE_APP_SETTING_NAME(LogOverride);
 DECLARE_APP_SETTING_NAME(AppSettingAlbumImageCachePath);
 DECLARE_APP_SETTING_NAME(AppSettingEnableShortcut);
 DECLARE_APP_SETTING_NAME(AppSettingEnterFullScreen);
+DECLARE_APP_SETTING_NAME(AppSettingEnableSandboxMode);
