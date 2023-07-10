@@ -81,7 +81,7 @@ signals:
 
 	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
 
-	void Translation(const QString& keyword, const QString& from, const QString& to);
+	void Translation(const QString& keyword, const QString& from, const QString& to);	
 
 public slots:
     void PlayEntity(const PlayListEntity& entity);
@@ -121,6 +121,8 @@ public slots:
 	void OnReadCompleted();
 
 	void OnReadFileStart();
+
+	void OnReadFilePath(const QString& file_path);
 
 	void OnFoundFileCount(size_t file_count);
 
@@ -237,8 +239,6 @@ private:
 	void SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
-
-	static void ShowMeMessage(const QString &message);
 
 	void showEvent(QShowEvent* event) override;
 

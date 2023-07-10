@@ -27,8 +27,8 @@ XAMP_DECLARE_LOG_NAME(DefaultThreadPoollExecutor);
 * @return Task<decltype(f(args...))>
 */
 template <typename F, typename ... Args>
-decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args) {
-    return executor.Spawn(f, std::forward<Args>(args) ...);
+decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
+    return executor.Spawn(f, std::forward<Args>(args) ..., flags);
 }
 
 /*

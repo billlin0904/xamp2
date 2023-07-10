@@ -33,7 +33,8 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy))
 	, work_done_(max_thread_)
-	, start_clean_up_(1) {
+	, start_clean_up_(1)
+	, task_execute_flags_(max_thread_) {
 	logger_ = LoggerManager::GetInstance().GetLogger(pool_name);
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
@@ -81,13 +82,15 @@ size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
 }
 
-void TaskScheduler::SubmitJob(MoveOnlyFunction&& task) {
+void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
 	auto* policy = task_scheduler_policy_.get();
 	task_steal_policy_->SubmitJob(std::move(task),
+		flags,
 		max_thread_,
 		task_pool_.get(),
 		policy, 
-		task_work_queues_);
+		task_work_queues_,
+		task_execute_flags_);
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -120,8 +123,10 @@ void TaskScheduler::Destroy() noexcept {
 	task_pool_.reset();
 	threads_.clear();
 	task_work_queues_.clear();
+	task_execute_flags_.clear();
+
 	task_scheduler_policy_.reset();
-    task_steal_policy_.reset();
+    task_steal_policy_.reset();	
 
 	XAMP_LOG_D(logger_, "Thread pool was destory.");
 }
@@ -184,7 +189,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
+void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](StopToken stop_token) mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto L1_padding_buffer =
@@ -223,7 +228,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 			// Try to get a task from the global queue
 			if (!task) {
-				const auto steal_index = policy->ScheduleNext(i, task_work_queues_);				
+				const auto steal_index = policy->ScheduleNext(i, task_work_queues_, task_execute_flags_);				
 				if (steal_index != (std::numeric_limits<size_t>::max)()) {
 					// Try to steal a task from another thread's queue
 					task = TrySteal(stop_token, steal_index);
@@ -252,6 +257,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			(*task)();
 			excution_stopwatch.Stop();
 			--running_thread_;
+
+			task_execute_flags_[i] = ExecuteFlags::EXECUTE_NORMAL;
 
 			auto cup_useage = excution_stopwatch.GetCpuUsage();
 			if (cup_useage > 0) {

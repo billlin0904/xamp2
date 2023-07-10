@@ -11,15 +11,11 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy) {
 	switch (policy) {
-	case TaskSchedulerPolicy::LEAST_LOAD_POLICY:
-		return MakeAlign<ITaskSchedulerPolicy, LeastLoadSchedulerPolicy>();
 	case TaskSchedulerPolicy::ROUND_ROBIN_POLICY:
 		return MakeAlign<ITaskSchedulerPolicy, RoundRobinSchedulerPolicy>();
 	case TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY:
-		return MakeAlign<ITaskSchedulerPolicy, ThreadLocalRandomSchedulerPolicy>();
-	case TaskSchedulerPolicy::RANDOM_POLICY:
 	default:
-		return MakeAlign<ITaskSchedulerPolicy, RandomSchedulerPolicy>();
+		return MakeAlign<ITaskSchedulerPolicy, ThreadLocalRandomSchedulerPolicy>();
 	}
 }
 
@@ -28,16 +24,22 @@ AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
 }
 
 void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
+	ExecuteFlags flags,
 	size_t max_thread,
 	SharedTaskQueue* task_pool,
 	ITaskSchedulerPolicy* policy,
-	const Vector<WorkStealingTaskQueuePtr>& task_work_queues) {
+	const Vector<WorkStealingTaskQueuePtr>& task_work_queues,
+	Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	static constexpr size_t K = 4;
 
 	for (size_t n = 0; n < max_thread * K; ++n) {
 		auto current = n % max_thread;
+		if (thread_execute_flags[current] == ExecuteFlags::EXECUTE_LONG_RUNNING) {
+			continue;
+		}
 		auto& queue = task_work_queues.at(current);
 		if (queue->TryEnqueue(task)) {
+			thread_execute_flags[current] = flags;
 			return;
 		}
 	}
@@ -45,9 +47,15 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 }
 
 size_t RoundRobinSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index,
-	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
+	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
+	const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	static std::atomic<int32_t> id{ -1 };
-	return (id.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
+	while (true) {
+		auto index = (id.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
+		if (thread_execute_flags[index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+			return index;
+		}
+	}
 }
 
 void RoundRobinSchedulerPolicy::SetMaxThread(size_t max_thread) {
@@ -59,51 +67,20 @@ void ThreadLocalRandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 }
 
 size_t ThreadLocalRandomSchedulerPolicy::ScheduleNext(size_t index,
-	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {		
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();	
-	const auto random_index = prng() % static_cast<uint32_t>(max_thread_);
-	// Avoid self stealing
-	if (random_index == index) {
-		return (std::numeric_limits<size_t>::max)();
+	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
+	const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
+	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();		
+	uint32_t random_index = 0;
+	while (true) {
+		random_index = prng() % static_cast<uint32_t>(max_thread_);
+		if (thread_execute_flags[random_index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+			// Avoid self stealing
+			if (random_index == index) {
+				return (std::numeric_limits<size_t>::max)();
+			}
+			return random_index;
+		}		
 	}
-	return random_index;
-}
-
-void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
-	prngs_.resize(max_thread);
-
-	for (size_t i = 0; i < max_thread; ++i) {
-		auto seed = GenRandomSeed();
-		prngs_[i].seed(seed, seed, seed);
-	}
-}
-
-size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
-	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues) {
-	auto& prng = prngs_[index];	
-	const auto random_index = prng() % prngs_.size();	
-	if (random_index == index) {
-		return (std::numeric_limits<size_t>::max)();
-	}
-	return random_index;
-}
-
-void LeastLoadSchedulerPolicy::SetMaxThread([[maybe_unused]] size_t max_thread) {
-}
-
-size_t LeastLoadSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index, const Vector<WorkStealingTaskQueuePtr>& work_queues) {
-	size_t min_wq_size_index = 0;
-	size_t min_wq_size = 0;
-	size_t i = 0;
-	for (const auto &wq : work_queues) {
-		const auto queue_size = wq->size();
-		if (queue_size < min_wq_size) {
-			min_wq_size_index = i;
-			min_wq_size = queue_size;
-		}
-		++i;
-	}
-	return min_wq_size_index;
 }
 
 XAMP_BASE_NAMESPACE_END

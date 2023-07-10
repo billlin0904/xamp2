@@ -62,7 +62,7 @@ public:
     /*
     * Submit job to thread pool.
     */
-    void SubmitJob(MoveOnlyFunction&& task) override;
+    void SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) override;
 
     /*
     * Destroy thread pool.
@@ -108,6 +108,7 @@ private:
     ThreadPriority thread_priority_;
     std::string pool_name_;
     Vector<JThread> threads_;
+    Vector<std::atomic<ExecuteFlags>> task_execute_flags_;
     SharedTaskQueuePtr task_pool_;
     AlignPtr<ITaskStealPolicy> task_steal_policy_;
     AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;

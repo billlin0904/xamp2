@@ -25,6 +25,8 @@ signals:
 
     void ReadCompleted();
 
+    void ReadFilePath(const QString& file_path);
+
     void ReadFileProgress(int progress);
 
     void FoundFileCount(size_t file_count);

@@ -831,7 +831,7 @@ void AudioPlayer::Play() {
 
         XAMP_LOG_D(p->logger_, "Stream thread done!");
         p->stream_.reset();
-    });
+    }, ExecuteFlags::EXECUTE_LONG_RUNNING);
 }
 
 void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {

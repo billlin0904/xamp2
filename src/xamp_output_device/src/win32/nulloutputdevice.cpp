@@ -122,7 +122,7 @@ void NullOutputDevice::StartStream() {
 		}
 
 		mmcss.RevertPriority();
-		});
+		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 }
 
 bool NullOutputDevice::IsStreamRunning() const noexcept {

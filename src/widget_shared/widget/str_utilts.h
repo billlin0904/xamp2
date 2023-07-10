@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QHashFunctions>
 
+#include <base/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT ConstLatin1String final : public QLatin1String {
@@ -85,3 +86,9 @@ QString FormatTime(quint64 time);
 QString FormatDb(double value, int prec = 1);
 
 QString FormatDouble(double value, int prec = 1);
+
+template <typename... Args>
+QString StringFormat(std::string_view s, Args &&...args) {
+	using namespace xamp::base::String;
+	return QString::fromStdString(Format(s, args...));
+}

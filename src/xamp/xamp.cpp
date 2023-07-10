@@ -60,6 +60,19 @@
 #include <thememanager.h>
 #include <version.h>
 
+static void ShowMeMessage(const QString& message) {
+    if (AppSettings::DontShowMeAgain(message)) {
+        auto [button, checked] = XMessageBox::ShowCheckBoxInformation(
+            message,
+            qApp->tr("Ok, and don't show again."),
+            kApplicationTitle,
+            false);
+        if (checked) {
+            AppSettings::AddDontShowMeAgain(message);
+        }
+    }
+}
+
 static void SetShufflePlayOrder(Ui::XampWindow& ui) {
     ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
 }
@@ -575,6 +588,12 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
+        &ExtractFileWorker::ReadFilePath,
+        this,
+        &Xamp::OnReadFilePath,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::InsertDatabase,
         this,
         &Xamp::OnInsertDatabase,
@@ -673,17 +692,17 @@ void Xamp::cleanup() {
 void Xamp::InitialUi() {
     QFont f(qTEXT("DisplayFont"));
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(qTheme.GetFontSize(8));
+    f.setPointSize(qTheme.GetFontSize(6));
     ui_.titleLabel->setFont(f);
 
     f.setWeight(QFont::Normal);
-    f.setPointSize(qTheme.GetFontSize(8));
+    f.setPointSize(qTheme.GetFontSize(6));
     ui_.artistLabel->setFont(f);    
     ui_.bitPerfectButton->setFont(f);
 
     QFont format_font(qTEXT("FormatFont"));
     format_font.setWeight(QFont::Normal);
-    format_font.setPointSize(qTheme.GetFontSize(8));
+    format_font.setPointSize(qTheme.GetFontSize(6));
     ui_.formatLabel->setFont(format_font);
 
     QToolTip::hideText();
@@ -1456,19 +1475,6 @@ void Xamp::SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
 		player_->PrepareToPlay(byte_format);
 		playback_format = GetPlaybackFormat(player_.get());
 	}
-}
-
-void Xamp::ShowMeMessage(const QString& message) {
-    if (AppSettings::DontShowMeAgain(message)) {
-        auto [button, checked] = XMessageBox::ShowCheckBoxInformation(
-            message,
-            tr("Ok, and don't show again."),
-            kApplicationTitle,
-            false);
-        if (checked) {
-            AppSettings::AddDontShowMeAgain(message);
-        }
-    }
 }
 
 void Xamp::showEvent(QShowEvent* event) {
@@ -2305,7 +2311,7 @@ void Xamp::OnInsertDatabase(const Vector<TrackInfo>& result,
         &FindAlbumCoverWorker::OnFindAlbumCover,
         Qt::QueuedConnection);
     facede.InsertTrackInfo(result, playlist_id, is_podcast_mode);    
-    emit Translation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    //emit Translation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
 }
 
@@ -2314,6 +2320,13 @@ void Xamp::OnFoundFileCount(size_t file_count) {
         return;
     }
     read_progress_dialog_->SetLabelText(qSTR("Found file count %1").arg(file_count));    
+}
+
+void Xamp::OnReadFilePath(const QString& file_path) {
+    if (!read_progress_dialog_) {
+        return;
+    }
+    read_progress_dialog_->SetLabelText(file_path);
 }
 
 void Xamp::OnSetAlbumCover(int32_t album_id,

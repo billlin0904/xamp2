@@ -82,6 +82,7 @@ static Vector<QString> GetPathSortByFileCount(const Vector<QString>& paths,
 
 ExtractFileWorker::ExtractFileWorker() {
     logger_ = LoggerManager::GetInstance().GetLogger(kExtractFileWorkerLoggerName);
+    GetScanPathThreadPool();
 }
 
 void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
@@ -160,6 +161,7 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& 
             //XAMP_LOG_DEBUG("Extract file path : {}", String::ToString(path.wstring()));
             });
         //XAMP_LOG_DEBUG("Extract file {} count:{} ({} secs)", String::ToString(directory), file_paths.size(), sw.ElapsedSeconds());
+        ReadFilePath(StringFormat("Extract file {} count:{} ({} secs)", String::ToString(directory), file_paths.size(), sw.ElapsedSeconds()));
     }
 }
 

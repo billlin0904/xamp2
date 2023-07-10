@@ -17,13 +17,15 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+XAMP_MAKE_ENUM(ExecuteFlags, EXECUTE_NORMAL = 0, EXECUTE_LONG_RUNNING)
+
 inline constexpr uint32_t kMaxThread = 32;
 
 class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)
 
-	virtual void SubmitJob(MoveOnlyFunction&& task) = 0;
+	virtual void SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) = 0;
 
     virtual size_t GetThreadSize() const = 0;
 
@@ -42,7 +44,7 @@ public:
     virtual void Stop() = 0;
 
     template <typename F, typename... Args>
-    decltype(auto) Spawn(F&& f, Args&&... args);
+    decltype(auto) Spawn(F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_LONG_RUNNING);
 
 protected:
     explicit IThreadPoolExecutor(AlignPtr<ITaskScheduler> scheduler)
@@ -53,7 +55,7 @@ protected:
 };
 
 template <typename F, typename ... Args>
-decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
+decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags flags) {
     using ReturnType = std::invoke_result_t<F, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
@@ -70,7 +72,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
     // note: unique_ptr會在SubmitJob離開lambda解構, 但是shared_ptr會確保lambda在解構的時候task才會解構.
     scheduler_->SubmitJob([t = std::move(task)]() {
         (*t)();
-    });
+    }, flags);
 
     return future;
 }
@@ -80,7 +82,7 @@ XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     ThreadPriority priority = ThreadPriority::NORMAL,
     CpuAffinity affinity = CpuAffinity::kAll,
     uint32_t max_thread = std::thread::hardware_concurrency(),
-    TaskSchedulerPolicy policy = TaskSchedulerPolicy::RANDOM_POLICY,
+    TaskSchedulerPolicy policy = TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY,
     TaskStealPolicy steal_policy = TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
 XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(

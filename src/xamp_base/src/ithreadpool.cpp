@@ -7,6 +7,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
+inline constexpr auto kMaxBackgroundThreadPoolSize{ 32 };
+inline constexpr auto kMaxScanPathThreadPoolSize{ 4 };
 
 AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
     ThreadPriority priority,
@@ -46,18 +48,8 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
         steal_policy);
 }
 
-XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
-XAMP_DECLARE_LOG_NAME(ScanPathThreadPool);
-XAMP_DECLARE_LOG_NAME(OptimizeImageThreadPool);
-
-IThreadPoolExecutor& GetPlaybackThreadPool() {
-    static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
-        kMaxPlaybackThreadPoolSize,
-        CpuAffinity::kAll);
-	return executor;
-}
 
 IThreadPoolExecutor& GetWasapiThreadPool() {
     static const CpuAffinity wasapi_cpu_aff(0, false);
@@ -79,18 +71,18 @@ static CpuAffinity GetBackgroundCpuAffinity() {
 
 IThreadPoolExecutor& GetBackgroundThreadPool() {
     static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
-        std::thread::hardware_concurrency(),
+        kMaxBackgroundThreadPoolSize,
         GetBackgroundCpuAffinity(),
         ThreadPriority::BACKGROUND);
     return executor;
 }
 
 IThreadPoolExecutor& GetScanPathThreadPool() {
-    static ThreadPoolExecutor executor(kScanPathThreadPoolLoggerName,
-       std::thread::hardware_concurrency(),
-       GetBackgroundCpuAffinity(),
-       ThreadPriority::BACKGROUND);
-    return executor;
+    return GetBackgroundThreadPool();
+}
+
+IThreadPoolExecutor& GetPlaybackThreadPool() {
+    return GetBackgroundThreadPool();
 }
 
 XAMP_BASE_NAMESPACE_END

@@ -63,7 +63,7 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;sql;opengl;network;gui;widgets;printsupport;winextras;concurrent;</QtModules>
+    <QtModules>core;sql;network;gui;widgets;winextras;</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />
@@ -80,7 +80,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <BrowseInformation>true</BrowseInformation>
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
-      <IntelJCCErratum>true</IntelJCCErratum>
+      <IntelJCCErratum>false</IntelJCCErratum>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
