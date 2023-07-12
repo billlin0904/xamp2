@@ -10,6 +10,7 @@
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
+#include <widget/database.h>
 
 class XAMP_WIDGET_SHARED_EXPORT ExtractFileWorker : public QObject {
     Q_OBJECT
@@ -45,11 +46,11 @@ private:
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    void ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
+    void ScanPathFiles(PooledDatabasePtr database_pool,
+        HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
         const QStringList& file_name_filters,
         const QString& dir,
-        int32_t playlist_id,
-        bool is_podcast_mode);
+        int32_t playlist_id);
 
     bool is_stop_{ true };
     LoggerPtr logger_;

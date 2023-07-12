@@ -383,8 +383,8 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
 
 static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& device_info,
                                                             const Path& file_path,
-                                                            int32_t input_sample_rate,
-                                                            int32_t target_sample_rate) {
+                                                            uint32_t input_sample_rate,
+                                                            uint32_t target_sample_rate) {
     auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_NONE;
     auto dsd_modes = DsdModes::DSD_MODE_AUTO;
     const auto is_enable_sample_rate_converter = target_sample_rate > 0;
@@ -425,11 +425,11 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 	, is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , main_window_(nullptr)
-    , lrc_page_(nullptr)
+    , current_playlist_page_(nullptr)
+	, lrc_page_(nullptr)
 	, playlist_page_(nullptr)
 	, music_page_(nullptr)
-	, current_playlist_page_(nullptr)
-    , cd_page_(nullptr)
+	, cd_page_(nullptr)
 	, album_page_(nullptr)
 	, file_system_view_page_(nullptr)
 	, background_worker_(nullptr)
@@ -1543,6 +1543,8 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
     std::function<void()> sample_rate_converter_factory;
     const auto enable_bit_perfect = AppSettings::ValueAsBool(kEnableBitPerfect);
 
+    player_->Stop();
+
     if (enable_bit_perfect) {
         player_->GetDspManager()->RemoveSampleRateConverter();
         player_->GetDspManager()->RemoveVolumeControl();
@@ -1554,17 +1556,23 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
             sample_rate_converter_type);
     }
 
-    if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
-        if (entity.sample_rate != AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
+    if (device_info_.value().connect_type == DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH) {
+        AudioFormat default_format;
+        if (device_info_.value().default_format) {
+            default_format = device_info_.value().default_format.value();
+        } else {
+            default_format = AudioFormat::k16BitPCM441Khz;
+        }
+        if (entity.sample_rate != default_format.GetSampleRate()) {
             const auto message =
-                qSTR("Playing blue-tooth device need set %1bit/%2Khz to 16bit/44.1Khz.")
-                .arg(entity.bit)
-                .arg(FormatSampleRate(entity.sample_rate));
+                qSTR("Playing blue-tooth device need set %1 to %2.")
+                .arg(FormatSampleRate(entity.sample_rate))
+                .arg(FormatSampleRate(default_format.GetSampleRate()));
             ShowMeMessage(message);
             player_->GetDspManager()->RemoveSampleRateConverter();
-            target_sample_rate = 44100;
+            target_sample_rate = default_format.GetSampleRate();
             sample_rate_converter_type = kSoxr;
-            player_->GetDspManager()->AddPreDSP(MakeBlueToothSampleRateConverter());
+            player_->GetDspManager()->AddPreDSP(MakeSampleRateConverter(target_sample_rate));
         }
         byte_format = ByteFormat::SINT16;
     }
@@ -1593,7 +1601,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {                
                 CompressorParameters parameters;
                 if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
-                    if (entity.track_loudness != 0) {
+                    if (entity.track_loudness != 0.0) {
                         parameters.gain = Ebur128Reader::GetEbur128Gain(entity.track_loudness, -1.0) * -1;
                     }
                 }
@@ -2319,7 +2327,7 @@ void Xamp::OnFoundFileCount(size_t file_count) {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->SetLabelText(qSTR("Found file count %1").arg(file_count));    
+    read_progress_dialog_->SetTitle(qSTR("Found file count %1").arg(file_count));    
 }
 
 void Xamp::OnReadFilePath(const QString& file_path) {

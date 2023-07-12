@@ -179,7 +179,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
 			artist = tr("Unknown artist");
 		}
 
-        const auto music_id = qDatabase.AddOrUpdateMusic(track_info);      
+        const auto music_id = qDatabase.AddOrUpdateMusic(track_info);
         int32_t artist_id = 0;
         if (!artist_id_cache.contains(artist)) {
             artist_id = qDatabase.AddOrUpdateArtist(artist);
@@ -208,14 +208,14 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
                 qDatabase.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-				qDatabase.AddOrUpdateAlbumCategory(album_id, kHiRes);
+                qDatabase.AddOrUpdateAlbumCategory(album_id, kHiRes);
 			}            
         }
 
         XAMP_EXPECTS(album_id != 0);
 
 		if (playlist_id != -1) {
-			qDatabase.AddMusicToPlaylist(music_id, playlist_id, album_id);
+            qDatabase.AddMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
         qDatabase.AddOrUpdateAlbumMusic(album_id, artist_id, music_id);
@@ -246,7 +246,9 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
             cover_id_cache[album_id] = cover_id;
         }
 	}
-    XAMP_LOG_DEBUG("AddTrackInfo ({} secs)", sw.ElapsedSeconds());
+    if (sw.ElapsedSeconds() > 1.0) {
+        XAMP_LOG_DEBUG("AddTrackInfo ({} secs, {} items)", sw.ElapsedSeconds(), result.size());
+    }
 }
 
 void DatabaseFacade::InsertTrackInfo(const Vector<TrackInfo>& result,
@@ -281,10 +283,14 @@ TrackInfo GetTrackInfo(QString const& file_path) {
     return reader->Extract(path);
 }
 
-QStringList GetFileNameFilter() {
-    QStringList name_filter;
-    for (auto& file_ext : GetSupportFileExtensions()) {
-        name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
-    }
-    return name_filter;
+const QStringList& GetFileNameFilter() {
+    struct StaticGetFileNameFilter {
+        StaticGetFileNameFilter() {
+            for (auto& file_ext : GetSupportFileExtensions()) {
+                name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
+            }
+        }
+        QStringList name_filter;
+    };
+    return SharedSingleton<StaticGetFileNameFilter>::GetInstance().name_filter;
 }

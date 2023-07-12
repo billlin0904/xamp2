@@ -122,6 +122,8 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 		try {
 			HrIfFailledThrow(devices->Item(i, &device));
 
+			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
+
 			// Check device support exclusive mode
 			CComPtr<IAudioClient> client;
 			auto hr = device->Activate(__uuidof(IAudioClient),
@@ -135,12 +137,15 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 					continue;
 				}
 				CComHeapPtr<WAVEFORMATEX> mix_format(format);
+				info.default_format = helper::ToAudioFormat(format);
 			}
-
-			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
 
 			if (default_device_name == info.name) {
 				info.is_default_device = true;
+			}
+
+			if (info.default_format) {
+				XAMP_LOG_DEBUG("{} default format: {}", String::ToString(info.name), info.default_format.value());
 			}
 
 			CComPtr<IAudioEndpointVolume> endpoint_volume;

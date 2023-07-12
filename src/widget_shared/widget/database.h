@@ -12,6 +12,8 @@
 #include <QSqlQuery>
 #include <QReadWriteLock>
 
+#include <base/object_pool.h>
+
 #include <widget/widget_shared_global.h>
 #include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
@@ -84,15 +86,19 @@ public:
     }
 };
 
+QString GetDatabaseId();
+
 class XAMP_WIDGET_SHARED_EXPORT Database final {
 public:
-    static Database& GetThreadDatabase();
+    explicit Database(const QString& name);
 
     Database();
 
     ~Database();
 
     QSqlDatabase& database();
+
+    void close();
 
     void open();
 
@@ -269,4 +275,17 @@ private:
     static QReadWriteLock locker_;
 };
 
-#define qDatabase Database::GetThreadDatabase()
+class DatabaseFactory {
+public:
+    Database* Create() {
+        auto* database = new Database(GetDatabaseId());
+        database->open();
+        return database;
+    }
+};
+
+using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;
+
+PooledDatabasePtr GetPooledDatabase(int32_t pool_size = 32);
+
+#define qDatabase SharedSingleton<Database>::GetInstance()

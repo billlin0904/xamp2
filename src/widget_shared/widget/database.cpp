@@ -7,7 +7,6 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QThread>
-#include <QThreadStorage>
 
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -45,6 +44,14 @@ static void BindUlonglongValue(SqlQuery & q, const ConstLatin1String placeholder
     q.bindValue(placeholder, blob_size_t);
 }
 
+QString GetDatabaseId() {
+    return qTEXT("xamp_db_") + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
+}
+
+PooledDatabasePtr GetPooledDatabase(int32_t pool_size) {
+    return std::make_shared<ObjectPool<Database, DatabaseFactory>>(pool_size);
+}
+
 SqlException::SqlException(QSqlError error)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
         error.text().toStdString()) {
@@ -57,16 +64,19 @@ const char* SqlException::what() const noexcept {
 
 XAMP_DECLARE_LOG_NAME(Database);
 
-Database::Database() {
+Database::Database(const QString& name) {
     logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseLoggerName);
-
-    connection_name_ = qTEXT("xamp_db_") + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
-
-    if (QSqlDatabase::contains(connection_name_)) {
-        db_ = QSqlDatabase::database(connection_name_);
-    } else {
-        db_ = QSqlDatabase::addDatabase(qTEXT("QSQLITE"), connection_name_);
+    if (QSqlDatabase::contains(name)) {
+        db_ = QSqlDatabase::database(name);
     }
+    else {
+        db_ = QSqlDatabase::addDatabase(qTEXT("QSQLITE"), name);
+    }
+    connection_name_ = name;
+}
+
+Database::Database()
+	: Database(qTEXT("UI")) {
 }
 
 QSqlDatabase& Database::database() {
@@ -75,21 +85,13 @@ QSqlDatabase& Database::database() {
 
 QReadWriteLock Database::locker_;
 
-static QThreadStorage<QSharedPointer<Database>> s_database_storage;
-
-Database& Database::GetThreadDatabase() {
-    if (!s_database_storage.hasLocalData()) {
-        auto drivers = QSqlDatabase::drivers();
-        QSharedPointer<Database> database(new Database());
-        database->open();
-        s_database_storage.setLocalData(std::move(database));
-    }
-    return *s_database_storage.localData();
+Database::~Database() {
+    close();
 }
 
-Database::~Database() {
-    db_.close();
+void Database::close() {
     XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());
+    db_.close();
 }
 
 void Database::open() {

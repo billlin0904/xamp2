@@ -457,7 +457,7 @@ static int Execute(int argc, char* argv[]) {
     LoadLang();    
 
     try {
-        qDatabase;
+        qDatabase.open();
     }
     catch (const Exception& e) {        
         XMessageBox::ShowBug(e);

@@ -97,7 +97,7 @@ void BackgroundWorker::OnGetArtist(const QString& artist) {
             });
 		}).get();*/
 
-    static const QString credentialFLowUrl = qTEXT("https://account.kkbox.com/oauth2/token");
+    /*static const QString credentialFLowUrl = qTEXT("https://account.kkbox.com/oauth2/token");
     const QString client_id = qTEXT("bd5cfe4143f918a3db24dcb388972054");
     const QString client_secret = qTEXT("425cacb9f036585d34f7a2725c98e417");
     const QString grant_type = qTEXT("client_credentials");
@@ -148,11 +148,11 @@ void BackgroundWorker::OnGetArtist(const QString& artist) {
                 }
                 }).get();
         })
-        .post();
+        .post();*/
 }
 
 void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
-	const auto keywords = QString::fromStdString(
+	/*const auto keywords = QString::fromStdString(
         String::Format("{}{}", 
         QUrl::toPercentEncoding(artist),
         QUrl::toPercentEncoding(title)));
@@ -188,7 +188,7 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
                 emit SearchLyricsCompleted(music_id, lyrc, trlyrc);
             }).get();
 		})
-        .get();
+        .get();*/
 }
 
 void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {

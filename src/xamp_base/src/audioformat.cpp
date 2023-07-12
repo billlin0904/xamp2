@@ -7,15 +7,15 @@ namespace xamp::base {
 
 #define DECLARE_AUDIO_FORMAT_IMPL(Name, SampleRate) \
 	const AudioFormat AudioFormat::k16Bit##Name(DataFormat::FORMAT_PCM,\
-		2,\
+		AudioFormat::kMaxChannel,\
 		ByteFormat::SINT16,\
 		SampleRate);\
 	const AudioFormat AudioFormat::k24Bit##Name(DataFormat::FORMAT_PCM,\
-		2, \
+		AudioFormat::kMaxChannel, \
 		ByteFormat::SINT24,\
 		SampleRate);\
 	const AudioFormat AudioFormat::kFloat##Name(DataFormat::FORMAT_PCM,\
-		2, \
+		AudioFormat::kMaxChannel, \
 		ByteFormat::FLOAT32,\
 		SampleRate)
 

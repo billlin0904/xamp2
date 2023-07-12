@@ -13,7 +13,7 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-class TaglibMetadataReader final : public IMetadataReader {
+class XAMP_METADATA_API TaglibMetadataReader final : public IMetadataReader {
 public:
     TaglibMetadataReader();
 

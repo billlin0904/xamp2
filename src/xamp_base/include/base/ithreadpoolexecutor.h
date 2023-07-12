@@ -44,7 +44,7 @@ public:
     virtual void Stop() = 0;
 
     template <typename F, typename... Args>
-    decltype(auto) Spawn(F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_LONG_RUNNING);
+    decltype(auto) Spawn(F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL);
 
 protected:
     explicit IThreadPoolExecutor(AlignPtr<ITaskScheduler> scheduler)

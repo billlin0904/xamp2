@@ -19,7 +19,7 @@ class PlayListTableView;
 
 TrackInfo GetTrackInfo(QString const& file_path);
 
-QStringList GetFileNameFilter();
+const QStringList& GetFileNameFilter();
 
 class CoverArtReader final {
 public:

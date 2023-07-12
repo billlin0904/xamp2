@@ -19,7 +19,7 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         return;
     }
 
-    const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
+    /*const auto cover_id = qSharedDatabase.GetAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
         return;
     }
@@ -46,5 +46,5 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
     }
     else {
         emit SetAlbumCover(album_id, album, qPixmapCache.GetUnknownCoverId());
-    }
+    }*/
 }

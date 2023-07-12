@@ -132,6 +132,8 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
 */
 double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
 
+AudioFormat ToAudioFormat(const WAVEFORMATEX* format);
+
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END
 
 #endif

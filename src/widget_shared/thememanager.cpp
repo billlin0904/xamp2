@@ -827,14 +827,14 @@ void ThemeManager::SetVolume(QSlider *slider, QAbstractButton* button, uint32_t 
 
 Glyphs ThemeManager::GetConnectTypeGlyphs(DeviceConnectType type) const {
     switch (type) {
-    case DeviceConnectType::UKNOWN:
-    case DeviceConnectType::BUILT_IN:
+    case DeviceConnectType::CONNECT_TYPE_UNKNOWN:
+    case DeviceConnectType::CONNECT_TYPE_BUILT_IN:
         return Glyphs::ICON_BUILD_IN_SPEAKER;
         break;
-    case DeviceConnectType::USB:
+    case DeviceConnectType::CONNECT_TYPE_USB:
         return Glyphs::ICON_USB;
         break;
-    case DeviceConnectType::BLUE_TOOTH:
+    case DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH:
         return Glyphs::ICON_BLUE_TOOTH;
         break;
     }
@@ -843,14 +843,14 @@ Glyphs ThemeManager::GetConnectTypeGlyphs(DeviceConnectType type) const {
 
 QIcon ThemeManager::GetConnectTypeIcon(DeviceConnectType type) const {
     switch (type) {
-    case DeviceConnectType::UKNOWN:
-    case DeviceConnectType::BUILT_IN:
+    case DeviceConnectType::CONNECT_TYPE_UNKNOWN:
+    case DeviceConnectType::CONNECT_TYPE_BUILT_IN:
         return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
         break;
-    case DeviceConnectType::USB:
+    case DeviceConnectType::CONNECT_TYPE_USB:
         return GetFontIcon(Glyphs::ICON_USB);
         break;
-    case DeviceConnectType::BLUE_TOOTH:
+    case DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH:
         return GetFontIcon(Glyphs::ICON_BLUE_TOOTH);
         break;
     }

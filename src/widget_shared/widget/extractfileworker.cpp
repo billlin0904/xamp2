@@ -7,6 +7,9 @@
 #include <base/google_siphash.h>
 #include <base/scopeguard.h>
 
+#include <metadata/taglibmetareader.h>
+#include <metadata/taglibmetawriter.h>
+
 #include <widget/database.h>
 #include <widget/albumview.h>
 #include <widget/databasefacade.h>
@@ -19,7 +22,7 @@ static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
     constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
     constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
 
-    return DirPathHash(kDirHashKey1, kDirHashKey2);
+    return {kDirHashKey1, kDirHashKey2};
 }
 
 static size_t GetFileCount(const QString& dir, const QStringList& file_name_filters) {
@@ -37,9 +40,10 @@ static size_t GetFileCount(const QString& dir, const QStringList& file_name_filt
     return file_count;
 }
 
-static Vector<QString> GetPathSortByFileCount(const Vector<QString>& paths,
+static Vector<QString> GetPathSortByFileCount(
+    const Vector<QString>& paths,
     const QStringList& file_name_filters,
-    std::function<void(size_t)>&& action) {    
+    std::function<void(size_t)>&& action) {
     FastMutex mutex;
 
     struct PathInfo {
@@ -48,7 +52,7 @@ static Vector<QString> GetPathSortByFileCount(const Vector<QString>& paths,
         size_t depth;
     };
 
-    size_t total_file_count = 0;
+    std::atomic<size_t> total_file_count = 0;
     Vector<PathInfo> path_infos;
     path_infos.reserve(paths.size());
 
@@ -56,8 +60,10 @@ static Vector<QString> GetPathSortByFileCount(const Vector<QString>& paths,
     Executor::ParallelFor(GetScanPathThreadPool(), paths, [&](const auto& path) {
         size_t file_count = GetFileCount(path, file_name_filters);
         size_t depth = path.count('/');
-        std::lock_guard<FastMutex> guard{ mutex };
-        path_infos.push_back({ path, file_count, depth });
+        {
+            std::lock_guard<FastMutex> guard{ mutex };
+            path_infos.push_back({ path, file_count, depth });
+        }
         total_file_count += file_count;
         action(total_file_count);
         });
@@ -85,11 +91,11 @@ ExtractFileWorker::ExtractFileWorker() {
     GetScanPathThreadPool();
 }
 
-void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
+void ExtractFileWorker::ScanPathFiles(PooledDatabasePtr database_pool,
+    HashMap<std::wstring, Vector<TrackInfo>>& album_groups,
     const QStringList& file_name_filters,
     const QString& dir,
-    int32_t playlist_id,
-    bool is_podcast_mode) {
+    int32_t playlist_id) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     FloatMap<std::wstring, Vector<Path>> directory_files;
     auto hasher = MakFilePathHash();
@@ -119,10 +125,10 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& 
 
     const auto path_hash = hasher.GetHash();
 
-    const auto db_hash = qDatabase.GetParentPathHash(dir);
+    const auto db_hash = database_pool->Acquire()->GetParentPathHash(dir);
     if (db_hash == path_hash) {
         XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
-        emit FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
+        emit FromDatabase(playlist_id, database_pool->Acquire()->GetPlayListEntityFromPathHash(db_hash));
         return;
     }
 
@@ -146,9 +152,9 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& 
             if (is_stop_) {
                 return;
             }
-            auto reader = MakeMetadataReader();
             try {
-                auto track_info = reader->Extract(path);
+	            TaglibMetadataReader reader;
+	            auto track_info = reader.Extract(path);
                 track_info.parent_path_hash = path_hash;
                 std::lock_guard<FastMutex> guard{ mutex };
                 if (!album_groups.contains(track_info.album)) {
@@ -158,10 +164,8 @@ void ExtractFileWorker::ScanPathFiles(HashMap<std::wstring, Vector<TrackInfo>>& 
             }
             catch (...) {
             }
-            //XAMP_LOG_DEBUG("Extract file path : {}", String::ToString(path.wstring()));
             });
-        //XAMP_LOG_DEBUG("Extract file {} count:{} ({} secs)", String::ToString(directory), file_paths.size(), sw.ElapsedSeconds());
-        ReadFilePath(StringFormat("Extract file {} count:{} ({} secs)", String::ToString(directory), file_paths.size(), sw.ElapsedSeconds()));
+        ReadFilePath(StringFormat("Extract file {}", String::ToString(directory)));
     }
 }
 
@@ -194,13 +198,15 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         XAMP_LOG_D(logger_, "Finish to read track info.");
     );
 
+    constexpr auto kMaxDatabasePoolSize = 8;
+    auto database_pool = GetPooledDatabase(kMaxDatabasePoolSize);
     const auto path_hash = hasher.GetHash();
 
     try {
-        const auto db_hash = qDatabase.GetParentPathHash(ToNativeSeparators(file_path));
+        const auto db_hash = database_pool->Acquire()->GetParentPathHash(ToNativeSeparators(file_path));
         if (db_hash == path_hash) {
             XAMP_LOG_D(logger_, "Cache hit hash:{} path: {}", db_hash, String::ToString(file_path.toStdWString()));
-            emit FromDatabase(playlist_id, qDatabase.GetPlayListEntityFromPathHash(db_hash));
+            emit FromDatabase(playlist_id, database_pool->Acquire()->GetPlayListEntityFromPathHash(db_hash));
             return;
         }
     }
@@ -209,12 +215,11 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         return;
     }
 
-    const auto file_name_filters = GetFileNameFilter();
     std::atomic<size_t> progress(0);
 
     emit ReadFileStart();
 
-    auto file_count_paths = GetPathSortByFileCount(paths, file_name_filters, [this](auto total_file_count) {
+    auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
         });
 
@@ -232,7 +237,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         );
 
         try {
-            ScanPathFiles(album_groups, file_name_filters, path, playlist_id, is_podcast_mode);
+            ScanPathFiles(database_pool, album_groups, GetFileNameFilter(), path, playlist_id);
         }
         catch (Exception const& e) {
             XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());

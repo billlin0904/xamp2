@@ -261,7 +261,7 @@
    <sender>btnCredits</sender>
    <signal>clicked(bool)</signal>
    <receiver>AboutDialog</receiver>
-   <slot>OnCreditsOrLicenceChecked(bool)</slot>
+   <slot>OnCreditsOrLicenseChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>50</x>
@@ -277,7 +277,7 @@
    <sender>btnLicense</sender>
    <signal>clicked(bool)</signal>
    <receiver>AboutDialog</receiver>
-   <slot>OnCreditsOrLicenceChecked(bool)</slot>
+   <slot>OnCreditsOrLicenseChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>135</x>

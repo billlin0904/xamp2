@@ -77,15 +77,15 @@ struct PropVariant final : PROPVARIANT {
 */
 static DeviceConnectType GetDeviceConnectType(const std::wstring& name) {
 	if (name.find(L"usb") != std::wstring::npos) {
-		return DeviceConnectType::USB;
+		return DeviceConnectType::CONNECT_TYPE_USB;
 	}
 	if (name.find(L"hdaudio") != std::wstring::npos) {
-		return DeviceConnectType::BUILT_IN;
+		return DeviceConnectType::CONNECT_TYPE_BUILT_IN;
 	}
 	if (name.find(L"bthenum") != std::wstring::npos) {
-		return DeviceConnectType::BLUE_TOOTH;
+		return DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH;
 	}
-	return DeviceConnectType::UKNOWN;
+	return DeviceConnectType::CONNECT_TYPE_UNKNOWN;
 }
 
 using ComString = CComHeapPtr<wchar_t>;
@@ -97,33 +97,33 @@ using ComString = CComHeapPtr<wchar_t>;
 * @return DeviceConnectType
 */
 static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
-#define IfFailedRetrunUknownType(hr) \
+#define IfFailedReturnUnknownType(hr) \
 	if (FAILED(hr)) {\
-	return DeviceConnectType::UKNOWN;\
+	return DeviceConnectType::CONNECT_TYPE_UNKNOWN;\
 	}
 
 	// Get device topology
 	CComPtr<IDeviceTopology> device_topology;
-	IfFailedRetrunUknownType(device->Activate(__uuidof(IDeviceTopology),
+	IfFailedReturnUnknownType(device->Activate(__uuidof(IDeviceTopology),
 		CLSCTX_ALL,
 		nullptr,
-		reinterpret_cast<void**>(&device_topology)));
+		reinterpret_cast<void**>(&device_topology)))
 
 	// Get connector
 	CComPtr<IConnector> connector;
-	IfFailedRetrunUknownType(device_topology->GetConnector(0, &connector));
+	IfFailedReturnUnknownType(device_topology->GetConnector(0, &connector))
 
 	// Get part
 	CComPtr<IPart> part;
-	IfFailedRetrunUknownType(connector->QueryInterface(IID_PPV_ARGS(&part)));
+	IfFailedReturnUnknownType(connector->QueryInterface(IID_PPV_ARGS(&part)))
 
 	// Get part id
 	UINT id = 0;
-	IfFailedRetrunUknownType(part->GetLocalId(&id));
+	IfFailedReturnUnknownType(part->GetLocalId(&id))
 
 	// Get part name
 	ComString part_name;
-	IfFailedRetrunUknownType(part->GetName(&part_name));
+	IfFailedReturnUnknownType(part->GetName(&part_name))
 
 	std::wstring name(part_name);
 	CComPtr<IPartsList> parts_list;
@@ -133,19 +133,19 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 	if (hr == E_NOTFOUND) {
 		// Enum parts outgoing
 		CComPtr<IConnector> part_connector;
-		IfFailedRetrunUknownType(part->QueryInterface(IID_PPV_ARGS(&part_connector)));
+		IfFailedReturnUnknownType(part->QueryInterface(IID_PPV_ARGS(&part_connector)))
 		// Get connected to
 		CComPtr<IConnector> otherside_connector;
-		IfFailedRetrunUknownType(part_connector->GetConnectedTo(&otherside_connector));
+		IfFailedReturnUnknownType(part_connector->GetConnectedTo(&otherside_connector))
 		// Get part
 		CComPtr<IPart> otherside_part;
-		IfFailedRetrunUknownType(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)));
+		IfFailedReturnUnknownType(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)))
 		// Get topology
 		CComPtr<IDeviceTopology> otherside_topology;
-		IfFailedRetrunUknownType(otherside_part->GetTopologyObject(&otherside_topology));
+		IfFailedReturnUnknownType(otherside_part->GetTopologyObject(&otherside_topology))
 		// Get device id
 		ComString device_name;
-		IfFailedRetrunUknownType(otherside_topology->GetDeviceId(&device_name));
+		IfFailedReturnUnknownType(otherside_topology->GetDeviceId(&device_name))
 		name = device_name;
 	}
 	name = String::ToLower(name);
@@ -212,7 +212,7 @@ static std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id) {
 	DeviceInfo info;
 	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
-
+	
 	CComHeapPtr<WCHAR> id;
 	HrIfFailledThrow(device->GetId(&id));
 	info.device_type_id = device_type_id;
@@ -229,6 +229,10 @@ double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
 		return 0.0;
 	}
 	return 1000.0 * (static_cast<double>(position) / device_frequency);
+}
+
+AudioFormat ToAudioFormat(const WAVEFORMATEX* format) {
+	return AudioFormat(DataFormat::FORMAT_PCM, format->nChannels, format->wBitsPerSample, format->nSamplesPerSec);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END

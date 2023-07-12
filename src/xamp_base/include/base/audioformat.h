@@ -76,7 +76,7 @@ XAMP_MAKE_ENUM(DataFormat,
 class XAMP_BASE_API AudioFormat final {
 public:
     static const AudioFormat kUnknownFormat;
-    static const uint32_t kMaxChannel = 2;
+    static constexpr uint32_t kMaxChannel = 2;
 
     DECLARE_AUDIO_FORMAT(PCM441Khz);
     DECLARE_AUDIO_FORMAT(PCM48Khz);
