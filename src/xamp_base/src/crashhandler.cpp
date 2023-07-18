@@ -16,6 +16,7 @@
 #include <execinfo.h>
 #endif
 
+#include <csignal>
 #include <mutex>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -61,16 +62,19 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
 };
 
-struct ExceptionPointer : public EXCEPTION_POINTERS {
-    ExceptionPointer() {
-        ContextRecord = new CONTEXT();
-        ExceptionRecord = new EXCEPTION_RECORD();
-    }
+struct ExceptionPointer : EXCEPTION_POINTERS {
+    ExceptionPointer();
+
     ~ExceptionPointer() {
         delete ContextRecord;
         delete ExceptionRecord;
     }
 };
+
+ExceptionPointer::ExceptionPointer() {
+    ContextRecord = new CONTEXT();
+    ExceptionRecord = new EXCEPTION_RECORD();
+}
 #endif
 
 class CrashHandler::CrashHandlerImpl {
@@ -80,13 +84,13 @@ public:
     }
 
 #ifdef XAMP_OS_WIN    
-    static void Dump(void* info) {
+    static void DumpStackInfo(void* info) {
         std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
         StackTrace stack_trace;
         const auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
 
-        auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
+        const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
             XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X}){}",
                 (*itr).second, (*itr).first, stack_trace.CaptureStack());
@@ -98,7 +102,7 @@ public:
             return;
         }
 
-        auto itr2 = kWellKnownExceptionCode.find(code);
+        const auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
             XAMP_LOG_D(logger_, "Uncaught exception: {}{}\r\n", (*itr2).second, stack_trace.CaptureStack());
         }
@@ -107,46 +111,81 @@ public:
         }
     }
 
-    static void StackDump() {
+    static void DumpCurrentExceptionStack() {
         ExceptionPointer exception_pointers;
         GetExceptionPointers(0, &exception_pointers);
-        Dump(&exception_pointers);
+        DumpStackInfo(&exception_pointers);
     }
 
     static LONG SehHandler(PEXCEPTION_POINTERS exception_pointers) {
-        Dump(exception_pointers);
+        DumpStackInfo(exception_pointers);
         return EXCEPTION_EXECUTE_HANDLER;
     }
 
     static LONG VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
-        Dump(exception_pointers);
+        DumpStackInfo(exception_pointers);
         return EXCEPTION_EXECUTE_HANDLER;
     }
 
     static void TerminateHandler() {
-        StackDump();
+        DumpCurrentExceptionStack();
     }
 
     static void UnexpectedHandler() {
-        StackDump();
+        DumpCurrentExceptionStack();
     }
 
     static void PureCallHandler() {
-        StackDump();
+        DumpCurrentExceptionStack();
     }
 
     static void InvalidParameterHandler(const wchar_t* expression,
         const wchar_t* function, const wchar_t* file,
         unsigned int line, uintptr_t reserved) {
-        StackDump();
+        DumpCurrentExceptionStack();
+    }
+
+    // CRT SIGABRT signal handler
+    static void SigabrtHandler(int32_t) {
+        // Caught SIGABRT C++ signal
+        DumpCurrentExceptionStack();
+    }
+
+    // CRT sigint signal handler
+    static void SigintHandler(int32_t) {
+        // Interruption (SIGINT)
+        DumpCurrentExceptionStack();
+    }
+
+    static void SigillHandler(int32_t) {
+        DumpCurrentExceptionStack();
+    }
+
+    // CRT SIGTERM signal handler
+    static void SigtermHandler(int32_t) {
+        // Termination request (SIGTERM)
+        DumpCurrentExceptionStack();
+    }
+
+    // CRT SIGFPE signal handler
+    static void SigfpeHandler(int32_t /*code*/, int32_t /*subcode*/) {
+        // Floating point exception (SIGFPE)
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
+        DumpStackInfo(exception_pointers);
+    }
+
+    // CRT SIGSEGV signal handler
+    static void SigsegvHandler(int32_t) {
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
+        DumpStackInfo(exception_pointers);
     }
 
     static int NewHandler(size_t) {
-        StackDump();
+        DumpCurrentExceptionStack();
         return 0;
     }
 
-    static void GetExceptionPointers(const DWORD exception_code, ExceptionPointer* exception_pointers) {
+    static void GetExceptionPointers(const DWORD exception_code, const ExceptionPointer* exception_pointers) {
         CONTEXT context_record{};
         ::RtlCaptureContext(&context_record);
 
@@ -158,16 +197,35 @@ public:
     }
 
     void SetProcessExceptionHandlers() {
-#ifdef XAMP_OS_WIN
+        XAMP_LOG_DEBUG("Install process exception handler.");
+
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
         ::AddVectoredExceptionHandler(0, VectoredHandler);
-#else
-        InstallSignalHandler();
+
+#if 1
+        // Catch new operator memory allocation exceptions
+        ::_set_new_handler(NewHandler);
+
+        // Catch invalid parameter exceptions.
+        ::_set_invalid_parameter_handler(InvalidParameterHandler);
+
+        // Set up C++ signal handlers
+        ::_set_abort_behavior(_CALL_REPORTFAULT, _CALL_REPORTFAULT);
+
+        // Catch an abnormal program termination
+        (void)::signal(SIGABRT, SigabrtHandler);
+
+        // Catch illegal instruction handler
+        (void)::signal(SIGINT, SigintHandler);
+
+        // Catch a termination request
+        (void)::signal(SIGTERM, SigtermHandler);
 #endif
     }
 
     void SetThreadExceptionHandlers() {
-#ifdef XAMP_OS_WIN
+        XAMP_LOG_DEBUG("Install thread exception handler.");
+#if 1
         // Catch terminate() calls. 
         // In a multithreaded environment, terminate functions are maintained 
         // separately for each thread. Each new thread needs to install its own 
@@ -182,11 +240,25 @@ public:
         // http://msdn.microsoft.com/en-us/library/h46t5b69.aspx  
         ::set_unexpected(UnexpectedHandler);
 
-#else
-        InstallSignalHandler();
+        (void)::signal(SIGFPE, reinterpret_cast<_crt_signal_t>(SigfpeHandler));
+
+        // Catch an illegal instruction
+        (void)::signal(SIGILL, SigillHandler);
+
+        // Catch illegal storage access errors
+        (void)::signal(SIGSEGV, SigsegvHandler);
 #endif
     }
+
 #else
+    void SetProcessExceptionHandlers() {
+        InstallSignalHandler();
+    }
+
+    void SetThreadExceptionHandlers() {
+        InstallSignalHandler();
+    }
+
     static bool HaveSiginfo(int signum) {
         struct sigaction old_action, new_action;
         MemorySet(&new_action, 0, sizeof(new_action));
@@ -281,23 +353,17 @@ std::recursive_mutex CrashHandler::CrashHandlerImpl::mutex_;
 LoggerPtr CrashHandler::CrashHandlerImpl::logger_;
 
 CrashHandler::CrashHandler()
-	: impl_(MakeAlign<CrashHandlerImpl>()) {
+	: impl_(MakePimpl<CrashHandlerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(CrashHandler)
 
 void CrashHandler::SetProcessExceptionHandlers() {
-#ifdef XAMP_OS_WIN
     impl_->SetProcessExceptionHandlers();
-#else
-    impl_->InstallSignalHandler();
-#endif
 }
 
 void CrashHandler::SetThreadExceptionHandlers() {
-#ifdef XAMP_OS_WIN
     impl_->SetThreadExceptionHandlers();
-#endif
 }
 
 XAMP_BASE_NAMESPACE_END

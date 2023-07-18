@@ -56,6 +56,8 @@ struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
     double durations{ 0 };
 };
 
+inline constexpr auto kMaxDatabasePoolSize = 8;
+
 inline constexpr int32_t kInvalidDatabaseId = -1;
 
 inline constexpr auto kDefaultPlaylistId = 1;
@@ -272,7 +274,6 @@ private:
     QString connection_name_;
     QSqlDatabase db_;
     LoggerPtr logger_;
-    static QReadWriteLock locker_;
 };
 
 class DatabaseFactory {
@@ -286,6 +287,6 @@ public:
 
 using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;
 
-PooledDatabasePtr GetPooledDatabase(int32_t pool_size = 32);
+PooledDatabasePtr GetPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
 #define qDatabase SharedSingleton<Database>::GetInstance()

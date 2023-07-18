@@ -2,6 +2,7 @@
 
 #include <QSharedPointer>
 #include <QDirIterator>
+#include <QElapsedTimer>
 
 #include <base/fastmutex.h>
 #include <base/google_siphash.h>
@@ -147,7 +148,6 @@ void ExtractFileWorker::ScanPathFiles(PooledDatabasePtr database_pool,
     for (const auto& pair : directory_files) {
         const auto& directory = pair.first;
         const auto& file_paths = pair.second;
-        Stopwatch sw;
         Executor::ParallelFor(GetScanPathThreadPool(), file_paths, [&](const auto& path) {
             if (is_stop_) {
                 return;
@@ -198,8 +198,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         XAMP_LOG_D(logger_, "Finish to read track info.");
     );
 
-    constexpr auto kMaxDatabasePoolSize = 8;
-    auto database_pool = GetPooledDatabase(kMaxDatabasePoolSize);
+    auto database_pool = GetPooledDatabase();
     const auto path_hash = hasher.GetHash();
 
     try {
@@ -215,13 +214,19 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         return;
     }
 
-    std::atomic<size_t> progress(0);
+    std::atomic<size_t> completed_work(0);
 
     emit ReadFileStart();
 
     auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
         });
+
+    const auto total_work = file_count_paths.size();
+
+    FastMutex mutex;
+    QElapsedTimer timer;
+    timer.start();
 
     Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path) {
         if (is_stop_) {
@@ -231,9 +236,19 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         HashMap<std::wstring, Vector<TrackInfo>> album_groups;
 
         XAMP_ON_SCOPE_EXIT(
-            auto value = progress.load();
-            emit ReadFileProgress((value * 100) / file_count_paths.size());
-            ++progress;
+            const auto value = completed_work.load();
+            emit ReadFileProgress((value * 100) / total_work);
+            ++completed_work;
+            
+            const auto remaining_work = total_work - completed_work;
+
+            qint64 elapsed_time = 0;
+			{
+                std::lock_guard<FastMutex> guard{ mutex };
+                elapsed_time = timer.elapsed();
+			}
+            const auto remaining_time = (elapsed_time * remaining_work) / completed_work;
+            emit CalculateEta(remaining_time);
         );
 
         try {

@@ -6,7 +6,9 @@
 #include <widget/databasefacade.h>
 #include <widget/imagecache.h>
 
-FindAlbumCoverWorker::FindAlbumCoverWorker() = default;
+FindAlbumCoverWorker::FindAlbumCoverWorker() {
+    database_ptr_ = GetPooledDatabase();
+}
 
 void FindAlbumCoverWorker::OnCancelRequested() {
     is_stop_ = true;
@@ -19,13 +21,13 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         return;
     }
 
-    /*const auto cover_id = qSharedDatabase.GetAlbumCoverId(album_id);
+    const auto cover_id = database_ptr_->Acquire()->GetAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
         return;
     }
 
     std::wstring find_file_path;
-    const auto first_file_path = qDatabase.GetAlbumFirstMusicFilePath(album_id);
+    const auto first_file_path = database_ptr_->Acquire()->GetAlbumFirstMusicFilePath(album_id);
     if (!first_file_path) {
         find_file_path = file_path;
     }
@@ -46,5 +48,5 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
     }
     else {
         emit SetAlbumCover(album_id, album, qPixmapCache.GetUnknownCoverId());
-    }*/
+    }
 }

@@ -458,7 +458,10 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        auto process_dialog = MakeProgressDialog(tr("Remove all album?"), QString(), tr("Cancel"));
+        auto process_dialog = MakeProgressDialog(
+            tr("Remove all album"), 
+            QString(), 
+            tr("Cancel"));
         qApp->processEvents();
 
         try {

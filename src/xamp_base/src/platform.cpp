@@ -231,10 +231,10 @@ void CpuAffinity::SetAffinity(JThread& thread) {
         }
 
         if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
-            XAMP_LOG_DEBUG("Fail to set SetThreadGroupAffinity");
+            XAMP_LOG_TRACE("Fail to set SetThreadGroupAffinity");
         }
         else {
-            XAMP_LOG_DEBUG("Success to set SetThreadGroupAffinity mask: {:#02X}", group_affinity.Mask);
+            XAMP_LOG_TRACE("Success to set SetThreadGroupAffinity mask: {:#02X}", group_affinity.Mask);
         }
 
         for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
@@ -244,10 +244,10 @@ void CpuAffinity::SetAffinity(JThread& thread) {
                 processor_number.Number = processor_index;
                 processor_number.Reserved = 0;
                 if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
-                    XAMP_LOG_DEBUG("Fail to set SetThreadIdealProcessorEx");
+                    XAMP_LOG_TRACE("Fail to set SetThreadIdealProcessorEx");
                 }
                 else {
-                    XAMP_LOG_DEBUG("Success to set SetThreadIdealProcessorEx group:{} processor index:{}", group_index, processor_index);
+                    XAMP_LOG_TRACE("Success to set SetThreadIdealProcessorEx group:{} processor index:{}", group_index, processor_index);
                 }
             }
         }

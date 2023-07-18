@@ -32,6 +32,8 @@ signals:
 
     void FoundFileCount(size_t file_count);
 
+    void CalculateEta(uint64_t ms);
+
     void ReadFileStart();
 
     void FromDatabase(int32_t playlist_id, const QList<PlayListEntity>& entity);

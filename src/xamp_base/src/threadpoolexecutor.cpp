@@ -6,6 +6,7 @@
 #include <base/platform.h>
 #include <base/stopwatch.h>
 #include <base/latch.h>
+#include <base/crashhandler.h>
 
 #include <algorithm>
 #include <sstream>
@@ -30,11 +31,11 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	, min_thread_(1)
 	, thread_priority_(priority)
 	, pool_name_(pool_name)
+	, task_execute_flags_(max_thread_)
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy))
 	, work_done_(max_thread_)
-	, start_clean_up_(1)
-	, task_execute_flags_(max_thread_) {
+	, start_clean_up_(1) {
 	logger_ = LoggerManager::GetInstance().GetLogger(pool_name);
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
@@ -191,6 +192,8 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](StopToken stop_token) mutable {
+		SharedCrashHandler.SetThreadExceptionHandlers();
+
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto L1_padding_buffer =
 			MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,

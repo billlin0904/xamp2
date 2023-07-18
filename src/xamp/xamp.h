@@ -240,6 +240,8 @@ private:
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
 
+	void OnCalculateEta(uint64_t ms);
+
 	void showEvent(QShowEvent* event) override;
 
 	bool is_seeking_;

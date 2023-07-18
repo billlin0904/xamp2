@@ -106,8 +106,7 @@ QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
         parent->setFocus();
     }
     auto* dialog = new XProgressDialog(text, cancel, 0, 100, parent);
-    dialog->setFont(qApp->font());
-    dialog->setWindowTitle(title);
+    dialog->SetTitle(title);
     dialog->setWindowModality(Qt::ApplicationModal);    
 	dialog->show();
     return QSharedPointer<XProgressDialog>(dialog);

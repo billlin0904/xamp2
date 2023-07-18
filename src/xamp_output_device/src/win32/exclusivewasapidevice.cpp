@@ -236,15 +236,14 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			// 不管是24/32或是32/32 format資料都是24/32.
 			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 				InitialDeviceFormat(output_format, 32);
-				is_2432_format_ = false;
 				XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
 			}
 			else {
 				constexpr uint32_t kValidBitPerSamples = 24;				
 				InitialDeviceFormat(output_format, kValidBitPerSamples);
-				is_2432_format_ = true;
 				XAMP_LOG_D(logger_, "Use valid output format: {}.", kValidBitPerSamples);
 			}
+			is_2432_format_ = true;
 		} else {
 			InitialDeviceFormat(output_format, 16);
 		}

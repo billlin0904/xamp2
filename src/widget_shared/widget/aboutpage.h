@@ -20,7 +20,7 @@ public slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
-    Ui::AboutDialog ui_;
     QString license_;
     QString credits_;
+    Ui::AboutDialog ui_;
 };

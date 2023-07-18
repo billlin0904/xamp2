@@ -588,6 +588,12 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
+        &ExtractFileWorker::CalculateEta,
+        this,
+        &Xamp::OnCalculateEta,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::ReadFilePath,
         this,
         &Xamp::OnReadFilePath,
@@ -708,7 +714,7 @@ void Xamp::InitialUi() {
     QToolTip::hideText();
 
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(qTheme.GetDefaultFontSize());
+    f.setPointSize(10);
     ui_.titleFrameLabel->setFont(f);
     ui_.titleFrameLabel->setText(kApplicationTitle);
     ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -993,9 +999,10 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.preferenceButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
-        dialog->SetContentWidget(preference_page);        
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        dialog->SetContentWidget(preference_page);
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
         preference_page->LoadSettings();
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
         preference_page->SaveAll();
         });
@@ -1003,11 +1010,9 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
-        dialog->SetContentWidget(page, true);   
-        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
+        dialog->SetContentWidget(page, true);
         dialog->SetTitle(tr("Pending playlist"));
-        //dialog->SetMoveable(false);
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
         (void)QObject::connect(page,
             &PendingPlaylistPage::PlayMusic,
             current_playlist_page_->playlist(),
@@ -1019,6 +1024,7 @@ void Xamp::InitialController() {
         center_pos = dialog->mapFromGlobal(center_pos);
         center_pos = dialog->mapToParent(center_pos);
         dialog->move(center_pos);
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
         });
 
@@ -2327,7 +2333,14 @@ void Xamp::OnFoundFileCount(size_t file_count) {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->SetTitle(qSTR("Found file count %1").arg(file_count));    
+    read_progress_dialog_->SetTitle(qSTR("Total number of files %1").arg(file_count));    
+}
+
+void Xamp::OnCalculateEta(uint64_t ms) {
+    if (!read_progress_dialog_) {
+        return;
+    }
+    read_progress_dialog_->SetTitle(qSTR("Estimated remaining time %1 secs").arg(ms / 1000));
 }
 
 void Xamp::OnReadFilePath(const QString& file_path) {

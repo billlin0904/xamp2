@@ -278,6 +278,11 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
     AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, false);
     AppSettings::SetDefaultValue(kAppSettingEnableSandboxMode, true);
+    AppSettings::SetDefaultValue(kAppSettingEnableDebugStackTrace, true);
+
+    AppSettings::SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 10"));
+    AppSettings::SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 10"));
+    AppSettings::SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 10"));
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
@@ -310,7 +315,8 @@ static void LoadLang() {
 static void SetWorkingSetSize() {
     auto memory_size = GetAvailablePhysicalMemory();
     XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
-    auto working_size = memory_size * 0.6;
+    //auto working_size = memory_size * 0.6;
+    auto working_size = 128UL * 1024UL * 1024UL;
     if (working_size > 0) {
         SetProcessWorkingSetSize(working_size);
         XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(working_size));
@@ -344,11 +350,11 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
 
 static std::vector<SharedLibraryHandle> PrefetchDll() {
     const std::vector<std::string_view> dll_file_names{
-        "mimalloc-override.dll",
-        "C:\\Program Files\\Topping\\USB Audio Device Driver\\x64\\ToppingUsbAudioasio_x64.dll",
-        "C:\\Program Files\\iFi\\USB_HD_Audio_Driver\\iFiHDUSBAudioasio_x64.dll",
-        "C:\\Program Files\\FiiO\\FiiO_Driver\\W10_x64\\fiio_usbaudioasio_x64.dll",
-        "C:\\Program Files\\Bonjour\\mdnsNSP.dll"
+        R"("mimalloc-override.dll)",
+        R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
+        R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
+        R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
+    	R"("C:\Program Files\Bonjour\mdnsNSP.dll")",
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
@@ -383,7 +389,8 @@ static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context,
     QTextStream stream(&str);
     stream.setCodec("UTF-8");
 
-    auto disable_stacktrace = true;
+    const auto disable_stacktrace = 
+        AppSettings::ValueAsBool(kAppSettingEnableDebugStackTrace);
 
     stream << context.file << ":" << context.line << ":"
         << context.function << ": " << msg;
@@ -391,7 +398,7 @@ static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context,
         stream << QString::fromStdString(StackTrace{}.CaptureStack());
     }
 
-    auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
+    const auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
 
     switch (type) {
     case QtDebugMsg:
@@ -413,7 +420,7 @@ static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context,
 #endif
 
 static void ApplyTheme() {
-    auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
+	const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
     qTheme.SetThemeColor(theme);
     qTheme.LoadAndApplyQssTheme();    
 }
@@ -538,7 +545,7 @@ int main() {
     XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
-    //SetWorkingSetSize();
+    SetWorkingSetSize();
 
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
@@ -556,11 +563,10 @@ int main() {
     LoadAppSettings();
     LoadSampleRateConverterConfig();
 
-    CrashHandler crash_handler;
-    crash_handler.SetProcessExceptionHandlers();    
+    SharedCrashHandler.SetProcessExceptionHandlers();
     XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
 
-    crash_handler.SetThreadExceptionHandlers();
+    SharedCrashHandler.SetThreadExceptionHandlers();
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(

@@ -7,7 +7,9 @@
 
 #include <base/logger.h>
 #include <base/base.h>
+#include <base/pimplptr.h>
 #include <base/align_ptr.h>
+#include <base/shared_singleton.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -24,7 +26,9 @@ public:
 	void SetThreadExceptionHandlers();
 private:
 	class CrashHandlerImpl;
-	AlignPtr<CrashHandlerImpl> impl_;
+	PimplPtr<CrashHandlerImpl> impl_;
 };
+
+#define SharedCrashHandler SharedSingleton<CrashHandler>::GetInstance()
 
 XAMP_BASE_NAMESPACE_END
