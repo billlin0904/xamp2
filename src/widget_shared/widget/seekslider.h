@@ -9,6 +9,7 @@
 #include <QPointer>
 #include <QMouseEvent>
 #include <QVariantAnimation>
+#include <QPropertyAnimation>
 
 #include <widget/widget_shared_global.h>
 
@@ -30,8 +31,15 @@ protected:
 	void leaveEvent(QEvent* event) override;
 
 	void wheelEvent(QWheelEvent* event) override;
+
 private:
+	void SetValue(int value, bool animate = true);
+
+	int target_ = 0;
+	int duration_ = 300;
 	int64_t min_ = 0;
 	int64_t max_ = 0;
+	QVariantAnimation* animation_;
+	QEasingCurve easing_curve_ = QEasingCurve(QEasingCurve::Type::InOutCirc);
 };
 

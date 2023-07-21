@@ -27,36 +27,12 @@ signals:
    void PreampValueChange(float value);
 
 public slots:
-    void OnFftResultChanged(const ComplexValarray & result);
 
 private:
-    void ApplySetting(QString const &name, EqSettings const &settings);
+    void ApplySetting(const QString &name, const EqSettings &settings);
 
-    void AddBand(uint32_t band);
-
-    void SetBandGain(uint32_t band, float gain);
-
-    void SaveBand(int32_t index);
-
-    void SetBand(uint32_t band, EQFilterTypes type, float frequency, float gain, float Q, float band_width);
-
-    void RemoveBand(uint32_t band) const;
-
-    void Save(uint32_t band);
-
-    struct FilterSetting {
-        QLabel* band;
-        //QComboBox* type;
-        QLineEdit* frequency;
-        QLineEdit* gain;
-        QLineEdit* Q;
-        QLineEdit* band_width;
-    };
-
-    int32_t num_band_ = 1;
-    ParametricEqView* parametric_eq_view_;
-    Vector<FilterSetting> filter_settings_;
-    QTimer timer_;
-    ComplexValarray fft_result_;
+    std::array<QLabel*, 10> freq_label_;
+    std::array<QLabel*, 10> bands_label_;
+    std::array<DoubleSlider*, 10> sliders_;
     Ui::EqualizerView ui_;
 };

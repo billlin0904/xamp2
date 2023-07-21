@@ -23,8 +23,6 @@ public:
     // note: return true (fetch more data).
     [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
 
-    [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, float* out) = 0;
-
     virtual void AddPreDSP(AlignPtr<IAudioProcessor> processor) = 0;
 
     virtual void AddPostDSP(AlignPtr<IAudioProcessor> processor) = 0;

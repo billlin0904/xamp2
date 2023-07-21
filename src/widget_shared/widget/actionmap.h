@@ -71,7 +71,7 @@ public:
 		QAction* AddAction(const QString& menu_name,
 			Callable&& callback,
 			bool checked = false,
-			bool add_eparator = false) {
+			bool add_separator = false) {
 			const auto action = new QAction(menu_name, nullptr);
 			action->setCheckable(true);
 
@@ -80,7 +80,7 @@ public:
 			action_map_[action] = callback;
 			submenu_->addAction(action);
 
-			if (add_eparator)
+			if (add_separator)
 				submenu_->addSeparator();
 
 			submenu_->addAction(action);

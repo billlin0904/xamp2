@@ -6,12 +6,27 @@
 
 SeekSlider::SeekSlider(QWidget* parent)
 	: QSlider(parent) {
+	animation_ = new QPropertyAnimation(this, "value");
 }
 
 void SeekSlider::SetRange(int64_t min, int64_t max) {
 	min_ = min;
 	max_ = max;
 	QSlider::setRange(static_cast<int>(min), static_cast<int>(max));
+}
+
+void SeekSlider::SetValue(int value, bool animate) {
+	target_ = value;
+	if (animate) {
+		animation_->stop();
+		animation_->setDuration(duration_);
+		animation_->setEasingCurve(easing_curve_);
+		animation_->setStartValue(QSlider::value());
+		animation_->setEndValue(value);
+		animation_->start();
+		return;
+	}
+	QSlider::setValue(value);
 }
 
 void SeekSlider::mousePressEvent(QMouseEvent* event) {
@@ -26,7 +41,7 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 			auto y = event->pos().y();
 			value = ((max_ - min_) * (height() - y) / height()) + min_;
 		}
-		setValue(value);
+		SetValue(value);
 		emit LeftButtonValueChanged(value);
 	}
 	return QSlider::mousePressEvent(event);

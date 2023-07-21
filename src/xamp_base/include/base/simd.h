@@ -70,7 +70,7 @@ public:
         return _mm256_cvtps_epi32(val);
     }
 
-    static XAMP_ALWAYS_INLINE void Store(void* dst, m256i val) {
+    static XAMP_ALWAYS_INLINE void Store(void* dst, const m256i &val) {
         _mm256_store_si256(static_cast<m256i*>(dst), val);
     }
 
@@ -79,7 +79,7 @@ public:
         return _mm256_slli_si256(src, N);
     }
 
-    static XAMP_ALWAYS_INLINE void F32ToS16(void* dst, m256 src) {
+    static XAMP_ALWAYS_INLINE void F32ToS16(void* dst, const m256 &src) {
         auto temp = Round(src);
         // todo: зяе╬ _mm256_extractf128_si256
         temp = _mm256_packs_epi32(temp, _mm256_setzero_si256());
@@ -88,7 +88,7 @@ public:
     }
 
     template <size_t N = 0>
-    static XAMP_ALWAYS_INLINE void F32ToS32(void* dst, m256 src) {
+    static XAMP_ALWAYS_INLINE void F32ToS32(void* dst, const m256 &src) {
         const auto rounded = Round(src);
         if constexpr (N > 0) {
             Store(dst, ShiftLeftBits<N>(rounded));

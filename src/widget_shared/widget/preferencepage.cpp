@@ -25,7 +25,7 @@ public:
 		layout->addWidget(namelbl, Qt::AlignLeft);
 		layout->addWidget(delete_button, Qt::AlignRight);
 		layout->setContentsMargins(0, 0, 0, 0);
-		QObject::connect(delete_button, &QPushButton::clicked, [=] {
+		(void)QObject::connect(delete_button, &QPushButton::clicked, [=] {
 			model->removeRow(index.row());
 			});
 	}
@@ -243,7 +243,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     settings_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
-    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Sample rate conversion"));
+    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
     settings_item->addChild(dsp_manager_item);
 
 	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM/DSD Convert"));
@@ -256,7 +256,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     (void)QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
         const OrderedMap<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
-            { tr("Sample rate conversion"), 1 },
+            { tr("Resampler"), 1 },
 			{ tr("PCM/DSD Convert"), 2 },
         };
 
@@ -378,6 +378,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 	Q_FOREACH(auto* w, r8brain_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
+
+	ui_.soxrPhaseSlider->SetRange(1, 100);
+	ui_.soxrPassbandSlider->SetRange(1, 100);
 
 	qTheme.SetSliderTheme(ui_.soxrPhaseSlider, true);
 	qTheme.SetSliderTheme(ui_.soxrPassbandSlider, true);

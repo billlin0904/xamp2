@@ -137,10 +137,6 @@ void DSPManager::Flush() {
     }
 }
 
-bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, float* out) {
-    return false;
-}
-
 bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
     return dispatch_(samples, num_samples, fifo);
 }

@@ -196,10 +196,6 @@ static void SetThemeIcon(Ui::XampWindow& ui) {
     ));
 }
 
-static void SetMuted(Ui::XampWindow& ui, bool is_muted) {
-    qTheme.SetMuted(ui.mutedButton, is_muted);
-}
-
 static void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
     switch (order) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
@@ -1043,12 +1039,6 @@ void Xamp::InitialController() {
         (void)QObject::connect(eq, &EqualizerView::PreampValueChange, [](auto) {
             AppSettings::save();
         });
-
-        (void)QObject::connect(state_adapter_.get(),
-            &UIPlayerStateAdapter::fftResultChanged,
-            eq,
-            &EqualizerView::OnFftResultChanged,
-            Qt::QueuedConnection);
 
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();

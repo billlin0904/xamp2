@@ -246,12 +246,11 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
     close_button_->setStyleSheet(qTEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
-                                         border-radius: 5px;        
-                                         background-color: gray;
+											border-radius: 10px;
+											background-color: gray;   
                                          }
 										 QPushButton#albumViewPageCloseButton:hover {
-                                         color: white;
-                                         background-color: darkgray;                                         
+											background-color: darkgray;                                         
                                          }
                                          )"));
     close_button_->setAttribute(Qt::WA_TranslucentBackground);

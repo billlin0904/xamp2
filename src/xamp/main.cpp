@@ -398,6 +398,10 @@ static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context,
         stream << QString::fromStdString(StackTrace{}.CaptureStack());
     }
 
+    constexpr auto skip_tag = qTEXT("image\\qpnghandler.cpp:525");
+    if (str.contains(skip_tag)) {
+        return;
+    }
     const auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
 
     switch (type) {

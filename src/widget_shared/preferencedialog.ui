@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>901</width>
-    <height>679</height>
+    <width>1024</width>
+    <height>822</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="focusPolicy">
    <enum>Qt::NoFocus</enum>
@@ -44,13 +50,13 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>200</width>
+         <width>220</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>200</width>
+         <width>220</width>
          <height>16777215</height>
         </size>
        </property>
@@ -70,7 +76,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="playbackPage">
         <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,0,0,0,0,0,0,0">
@@ -81,7 +87,6 @@
              <property name="font">
               <font>
                <pointsize>12</pointsize>
-               <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
               </font>
@@ -131,7 +136,6 @@
              <property name="font">
               <font>
                <pointsize>12</pointsize>
-               <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
               </font>
@@ -202,7 +206,6 @@
              <property name="font">
               <font>
                <pointsize>12</pointsize>
-               <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
               </font>
@@ -267,7 +270,6 @@
              <property name="font">
               <font>
                <pointsize>12</pointsize>
-               <weight>75</weight>
                <bold>true</bold>
                <kerning>false</kerning>
               </font>
@@ -689,7 +691,7 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QSlider" name="soxrPassbandSlider">
+               <widget class="SeekSlider" name="soxrPassbandSlider">
                 <property name="minimum">
                  <number>1</number>
                 </property>
@@ -761,7 +763,7 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QSlider" name="soxrPhaseSlider">
+               <widget class="SeekSlider" name="soxrPhaseSlider">
                 <property name="minimum">
                  <number>0</number>
                 </property>
@@ -1167,6 +1169,11 @@
    <class>SwitchButton</class>
    <extends>QPushButton</extends>
    <header location="global">widget/switchbutton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SeekSlider</class>
+   <extends>QSlider</extends>
+   <header>widget/seekslider.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

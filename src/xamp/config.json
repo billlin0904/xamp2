@@ -47,13 +47,13 @@
         "Pcm2DsdTimes": 5
     },
     "R8Brain": {
-        "resampleSampleRate": 176400
+        "resampleSampleRate": 88200
     },
     "Soxr": {
         "176.4K": {
             "passBand": 96,
             "phase": 46,
-            "quality": 3,
+            "quality": 4,
             "resampleSampleRate": 176400,
             "rolloffLevel": 2,
             "stopBand": 100

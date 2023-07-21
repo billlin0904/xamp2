@@ -232,18 +232,33 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HRESULT hr = S_OK;
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
 			hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
-			// note: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32.
-			// 不管是24/32或是32/32 format資料都是24/32.
-			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-				InitialDeviceFormat(output_format, 32);
-				XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
+
+			// todo: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32. 不管是24/32或是32/32 format資料都是24/32.
+			auto is_32bit_format = false;
+
+			if (mix_format_->wFormatTag == WAVE_FORMAT_EXTENSIBLE
+				&& mix_format_->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX)) {
+				const auto& driver_format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(mix_format_.m_pData);
+				XAMP_LOG_DEBUG("Driver report wBitsPerSample:{} wValidBitsPerSample:{}", 
+					driver_format.Format.wBitsPerSample, driver_format.Samples.wValidBitsPerSample);
+				if (driver_format.Format.wBitsPerSample == 32) {
+					is_32bit_format = driver_format.Format.wBitsPerSample == driver_format.Samples.wValidBitsPerSample;
+				}
 			}
-			else {
-				constexpr uint32_t kValidBitPerSamples = 24;				
-				InitialDeviceFormat(output_format, kValidBitPerSamples);
-				XAMP_LOG_D(logger_, "Use valid output format: {}.", kValidBitPerSamples);
+
+			if (FAILED(hr)) {
+				if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT && is_32bit_format) {
+					constexpr uint32_t kValidBitPerSamples = 24;
+					InitialDeviceFormat(output_format, kValidBitPerSamples);
+					XAMP_LOG_D(logger_, "Use valid output format: {}.", kValidBitPerSamples);
+					is_2432_format_ = true;
+				}
+				else {
+					InitialDeviceFormat(output_format, 32);
+					XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
+					is_2432_format_ = false;
+				}
 			}
-			is_2432_format_ = true;
 		} else {
 			InitialDeviceFormat(output_format, 16);
 		}

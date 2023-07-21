@@ -5,10 +5,12 @@
 
 #pragma once
 
+#include <QPropertyAnimation>
 #include <QSlider>
+
 #include <widget/widget_shared_global.h>
 
-class DoubleSlider : public QSlider {
+class XAMP_WIDGET_SHARED_EXPORT DoubleSlider : public QSlider {
     Q_OBJECT
 
 public:
@@ -25,6 +27,12 @@ public slots:
     void NotifyValueChanged(int value);
 
 private:
+    void mousePressEvent(QMouseEvent* event) override;
+
+    int target_ = 0;
+    int duration_ = 300;
     double ratio_{10};
+    QVariantAnimation* animation_;
+    QEasingCurve easing_curve_ = QEasingCurve(QEasingCurve::Type::InOutCirc);
 };
 
