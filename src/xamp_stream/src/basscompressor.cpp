@@ -49,7 +49,24 @@ public:
     }
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
-        return BassUtiltis::Process(stream_, samples, num_samples, out);
+        if (out.size() != num_samples) {
+            out.maybe_resize(num_samples);
+        }
+        MemoryCopy(out.data(), samples, num_samples * sizeof(float));
+
+        const auto bytes_read =
+            BASS.BASS_ChannelGetData(stream_.get(),
+                out.data(),
+                num_samples * sizeof(float));
+        if (bytes_read == kBassError) {
+            return false;
+        }
+        if (bytes_read == 0) {
+            return false;
+        }
+        const auto frames = bytes_read / sizeof(float);
+        out.maybe_resize(frames);
+        return true;
     }
 
     uint32_t Process(float const* samples, float* out, uint32_t num_samples) {

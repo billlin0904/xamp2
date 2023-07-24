@@ -36,7 +36,7 @@ private:
 	void SetValue(int value, bool animate = true);
 
 	int target_ = 0;
-	int duration_ = 300;
+	int duration_ = 100;
 	int64_t min_ = 0;
 	int64_t max_ = 0;
 	QVariantAnimation* animation_;

@@ -313,7 +313,7 @@ static void LoadLang() {
 
 #ifdef XAMP_OS_WIN
 static void SetWorkingSetSize() {
-    auto memory_size = GetAvailablePhysicalMemory();
+	const auto memory_size = GetAvailablePhysicalMemory();
     XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
     //auto working_size = memory_size * 0.6;
     auto working_size = 128UL * 1024UL * 1024UL;

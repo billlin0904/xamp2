@@ -35,7 +35,7 @@ void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
 }
 
 IDSPManager& DSPManager::AddEqualizer() {
-    AddPreDSP(StreamFactory::MakeEqualizer());
+    AddPostDSP(StreamFactory::MakeEqualizer());
     return *this;
 }
 
@@ -45,7 +45,7 @@ IDSPManager& DSPManager::RemoveCompressor() {
 }
 
 IDSPManager& DSPManager::AddCompressor() {
-    AddPreDSP(StreamFactory::MakeCompressor());
+    AddPostDSP(StreamFactory::MakeCompressor());
     return *this;
 }
 
@@ -73,8 +73,8 @@ IDSPManager& DSPManager::RemoveVolumeControl() {
 }
 
 IDSPManager& DSPManager::RemoveSampleRateConverter() {
-    RemovePreDSP<R8brainSampleRateConverter>();
-    RemovePreDSP<SoxrSampleRateConverter>();
+    RemovePostDSP<R8brainSampleRateConverter>();
+    RemovePostDSP<SoxrSampleRateConverter>();
     return *this;
 }
 

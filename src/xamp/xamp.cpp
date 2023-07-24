@@ -1410,7 +1410,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
     else {
         player_->GetDspManager()->RemoveEqualizer();
     }
-
+    
     if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = AppSettings::ValueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
@@ -1424,7 +1424,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
         }
     } else {
         player_->GetDspManager()->RemoveVolumeControl();
-    }    
+    }
 }
 
 QString Xamp::TranslateErrorCode(const Errors error) const {
@@ -1593,7 +1593,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
                     sample_rate_converter_factory();
                 }
             }           
-            
+            SetupDsp(entity);
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {                
                 CompressorParameters parameters;
                 if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
@@ -1602,8 +1602,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
                     }
                 }
                 player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
-                player_->GetDspManager()->AddCompressor();
-                SetupDsp(entity);
+                player_->GetDspManager()->AddCompressor();                
             }
         } else {
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
@@ -1659,8 +1658,9 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     const auto max_duration_ms = Round(player_->GetDuration()) * 1000;
     ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
     ui_.seekSlider->setValue(0);
-    ui_.startPosLabel->setText(FormatDuration(0));
+    /*ui_.startPosLabel->setText(FormatDuration(0));
     ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
+    ui_.endPosLabel->setText(qTEXT("Test"));*/
     
     current_playlist_page_->format()->setText(Format2String(playback_format, ext));
     current_playlist_page_->title()->setText(item.title);
