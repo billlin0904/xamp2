@@ -71,8 +71,8 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {
-	if (!enable_spectrum_) {
+	/*if (!enable_spectrum_) {
 		return;
 	}
-	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
+	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));*/
 }

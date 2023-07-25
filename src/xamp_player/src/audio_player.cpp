@@ -527,7 +527,7 @@ void AudioPlayer::CreateBuffer() {
     }
     else {
         auto max_ratio = (std::max)(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
-        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio);
+        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));
         num_read_buffer_size_ = get_buffer_sample(device_.get(), 1);
         allocate_size = std::min(kMaxPreAllocateBufferSize,
             num_write_buffer_size_

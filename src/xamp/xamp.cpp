@@ -931,6 +931,7 @@ void Xamp::InitialController() {
             player_->Stop(false);
             XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
         }
+        is_seeking_ = false;
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
