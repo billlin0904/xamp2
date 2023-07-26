@@ -30,7 +30,7 @@ public:
 
     void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
-    int32_t GetFftSize() const;
+    size_t GetFftSize() const;
 
     void OnSampleTime(double stream_time) override;
 
@@ -59,8 +59,8 @@ signals:
 
 private:
     bool enable_spectrum_;
-    int32_t band_size_;
-    int32_t fft_size_;
+    size_t band_size_;
+    size_t fft_size_;
     double desired_band_width_;
     AlignPtr<STFT> stft_;
 };

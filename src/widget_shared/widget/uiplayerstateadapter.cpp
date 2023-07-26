@@ -44,7 +44,7 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-int32_t UIPlayerStateAdapter::GetFftSize() const {
+size_t UIPlayerStateAdapter::GetFftSize() const {
 	return fft_size_;
 }
 
@@ -52,17 +52,13 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 	enable_spectrum_ = AppSettings::ValueAsBool(kAppSettingEnableSpectrum);
 	if (!enable_spectrum_) {
 		return;
-	}	
+	}
+	stft_.reset();
+	if (output_format.GetSampleRate() > 4800) {
+		return;
+	}
 	size_t fft_shift_size = buffer_size * 0.55;	
 	size_t frame_size = 0;
-	/*if (output_format.GetSampleRate() > 48000) {
-		frame_size = CalculateFFTSize(desired_band_width_, output_format.GetSampleRate(), band_size_);
-		fft_size_ = frame_size;
-	}
-	else {
-		fft_size_ = 8192;
-		frame_size = fft_size_ * AudioFormat::kMaxChannel;
-	}*/
 	fft_size_ = 4096;
 	frame_size = fft_size_ * AudioFormat::kMaxChannel;
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, fft_shift_size, buffer_size);
@@ -71,8 +67,8 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {
-	/*if (!enable_spectrum_) {
+	if (!enable_spectrum_ || !stft_) {
 		return;
 	}
-	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));*/
+	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
 }
