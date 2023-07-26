@@ -315,33 +315,33 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
 
     Reload();
 
-    model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
-    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IS.PLAYING"));
+    model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("Id"));
+    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IsPlaying"));
     model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("#"));
-    model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FILE.PATH"));
-    model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
-    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE.NAME"));
-    model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, tr("FILE.SIZE"));
-    model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("ALBUM"));
-    model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("ARTIST"));
-    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("DURATION"));
-    model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("BIT.RATE"));
-    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SAMPLE.RATE"));
-    model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
-    model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
-    model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
-    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST.UPDATE.TIME"));
-    model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
-    model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
-    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("LOUDNESS"));
-    model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
-    model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, tr("ALBUM.ID"));
-    model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PLAYLIST.ID"));
-    model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FILE.EXT"));
-    model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("PARENT.PATH"));
+    model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FilePath"));
+    model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("Title"));
+    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FileName"));
+    model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, tr("FileSize"));
+    model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("Album"));
+    model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("Artist"));
+    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duraion"));
+    model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("Bitrate"));
+    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("Samplerate"));
+    model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
+    model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("AlbumRG"));
+    model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("AlbumPK"));
+    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LastUpdateTime"));
+    model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TrackRG"));
+    model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TrackPK"));
+    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("Loudness"));
+    model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("Genre"));
+    model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, tr("AlbumId"));
+    model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PlaylistId"));
+    model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FileExt"));
+    model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("ParentPath"));
     model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
-    model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ARTIST.ID"));
-    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr("HEART"));
+    model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
+    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr("Heart"));
 
     auto column_list = AppSettings::ValueAsStringList(column_setting_name);
 

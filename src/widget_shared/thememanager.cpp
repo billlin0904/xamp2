@@ -225,8 +225,7 @@ QFont ThemeManager::LoadFonts() {
 
     InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
     InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    //InstallFileFonts(qTEXT("HelveticaNowText"), en_fonts);
-    InstallFileFonts(qTEXT("Segoe-UI-Variable-Static"), en_fonts);
+    InstallFileFonts(qTEXT("OpenSans"), en_fonts);
     InstallFileFonts(qTEXT("MiSans"), ui_fonts);
     InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
@@ -275,13 +274,15 @@ ThemeManager::ThemeManager() {
     cache_cover_size_ = QSize(350, 350);
     album_cover_size_ = QSize(206, 206);
     save_cover_art_size_ = QSize(350, 350);
-    base_size_ = QSize(1920, 1080);
     ui_font_ = LoadFonts();
-    //const auto* screen = qApp->screens()[0];
-    //width_ratio_ = screen->size().width() / static_cast<qreal>(base_size_.width());
-    //height_ratio_ = screen->size().height() / static_cast<qreal>(base_size_.height());
-    //font_ratio_ = qMin(width_ratio_, height_ratio_);
-    font_ratio_ = 1.0;
+    const auto* screen = qApp->screens()[0];
+    auto screen_size = screen->size();
+    if (screen_size.width() >= 1920 && screen_size.height() == 1080) {
+        font_ratio_ = 1.25;
+    }
+    else {
+        font_ratio_ = 1.0;
+    }
     ui_font_.setPointSize(GetDefaultFontSize());
 }
 

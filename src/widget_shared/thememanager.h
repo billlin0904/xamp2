@@ -174,10 +174,7 @@ private:
 
     ThemeManager();
     
-    qreal width_ratio_;
-    qreal height_ratio_;
     qreal font_ratio_;
-    QSize base_size_;
     ThemeColor theme_color_;
     QVariantMap font_icon_opts_;
     QSize album_cover_size_;
