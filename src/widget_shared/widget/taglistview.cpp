@@ -206,10 +206,10 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 
 void TagListView::ClearTag() {
 	for (auto i = 0; i < taglist_->count(); ++i) {
-		auto item = dynamic_cast<TagWidgetItem*>(taglist_->item(i));
+		const auto item = dynamic_cast<TagWidgetItem*>(taglist_->takeItem(i));
 		if (!item) {
 			continue;
 		}
-		item->SetEnable(false);
+		taglist_->removeItemWidget(item);
 	}
 }

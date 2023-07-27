@@ -3,6 +3,7 @@
 #include <base/exception.h>
 #include <base/platform.h>
 #include <base/exception.h>
+#include <base/logger_impl.h>
 #include <base/stl.h>
 #include <base/str_utilts.h>
 
@@ -28,6 +29,16 @@ bool IsFilePath(std::wstring const& file_path) noexcept {
 }
 
 Path GetTempFilePath() {
+#ifdef XAMP_OS_WIN
+	std::string tmp_prefix;
+	char char_path[MAX_PATH];
+	if (auto s = GetTempPathA(MAX_PATH, char_path)) {
+		tmp_prefix = std::string(char_path, s - 1);
+	}
+	std::replace(tmp_prefix.begin(), tmp_prefix.end(), '\\', '/');
+	Path path = Path(tmp_prefix) / Path(MakeTempFileName() + ".tmp");
+	return path;
+#else
 	// Short retry times to avoid cost too much time.
  	constexpr auto kMaxRetryCreateTempFile = 10;
 	const auto temp_path = Fs::temp_directory_path();
@@ -45,8 +56,10 @@ Path GetTempFilePath() {
 				return path;
 			}
 		}
+		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
+#endif
 }
 
 std::string MakeTempFileName() {

@@ -1,9 +1,8 @@
+#include <QCheckBox>
 #include <widget/preferencepage.h>
 
 #include <QInputDialog>
 #include <QStandardItemModel>
-
-#include <stream/dsd_times.h>
 
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
@@ -64,13 +63,11 @@ QMap<QString, QVariant> PreferencePage::CurrentSoxrSettings() const {
 }
 
 void PreferencePage::SaveSoxrResampler(const QString &name) const {
-	QMap<QString, QVariant> soxr_settings;
-	soxr_settings[name] = CurrentSoxrSettings();
+	auto soxr_config = JsonSettings::ValueAsMap(kSoxr);
 
-	auto soxr_config= JsonSettings::ValueAsMap(kSoxr);
-
-	JsonSettings::SetValue(kSoxr, soxr_settings);
-    AppSettings::SetValue(kAppSettingSoxrSettingName, name);
+	soxr_config[name] = CurrentSoxrSettings();
+	JsonSettings::SetValue(kSoxr, soxr_config);
+	AppSettings::SetValue(kAppSettingSoxrSettingName, name);
 
 	if (!soxr_config.contains(name)) {
 		ui_.soxrSettingCombo->addItem(name);
@@ -81,29 +78,6 @@ void PreferencePage::SaveR8BrainResampler() {
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
 	JsonSettings::SetValue(kR8Brain, settings);
-}
-
-void PreferencePage::SavePcm2Dsd() {
-	QMap<QString, QVariant> settings;
-	settings[kPCM2DSDDsdTimes] = ui_.dsdTimeComboBox->currentIndex() + 3;
-	JsonSettings::SetValue(kPCM2DSD, settings);
-	AppSettings::SetValue(kEnablePcm2Dsd, ui_.enablePcm2DsdCheckBox->checkState() == Qt::Checked);
-}
-
-void PreferencePage::InitPcm2Dsd() {
-	ui_.enablePcm2DsdCheckBox->setCheckState(AppSettings::ValueAsBool(kEnablePcm2Dsd) ? Qt::Checked : Qt::Unchecked);
-
-	auto config = JsonSettings::ValueAsMap(kPCM2DSD);
-	auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
-	ui_.dsdTimeComboBox->setCurrentIndex(config[kPCM2DSDDsdTimes].toInt() - 3);
-
-	(void)QObject::connect(ui_.dsdTimeComboBox, &QComboBox::textActivated, [this](auto) {
-		SavePcm2Dsd();
-		});
-
-	(void)QObject::connect(ui_.enablePcm2DsdCheckBox, &QCheckBox::stateChanged, [this](auto) {
-		SavePcm2Dsd();
-		});
 }
 
 void PreferencePage::InitR8BrainResampler() {
@@ -125,20 +99,11 @@ void PreferencePage::InitSoxResampler() {
     const auto soxr_settings = soxr_config[AppSettings::ValueAsString(kAppSettingSoxrSettingName)].toMap();
 	UpdateSoxrConfigUi(soxr_settings);
 
-	ui_.enableBlurCoverImagePushButton->SetSwitchOn(AppSettings::ValueAsBool(kEnableBlurCover));
-	(void)QObject::connect(ui_.enableBlurCoverImagePushButton, &SwitchButton::pressed, [this]() {
-		AppSettings::SetValue(kEnableBlurCover,
-			!AppSettings::ValueAsBool(kEnableBlurCover));
-		});
-
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
-	    const auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
-	                                                    tr("Setting name:"),
-	                                                    QLineEdit::Normal,
-	                                                    ui_.soxrSettingCombo->currentText());
-        if (setting_name.isEmpty()) {
-            return;
-        }
+		if (!ui_.soxrSettingCombo->count()) {
+			return;
+		}
+		auto setting_name = ui_.soxrSettingCombo->currentText();
         SaveSoxrResampler(setting_name);
 		});
 
@@ -218,7 +183,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	InitSoxResampler();
 	InitR8BrainResampler();
-	InitPcm2Dsd();
 	InitialLanguage();
 
 	switch (qTheme.GetThemeColor()) {
@@ -246,9 +210,6 @@ PreferencePage::PreferencePage(QWidget *parent)
     auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
     settings_item->addChild(dsp_manager_item);
 
-	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM/DSD Convert"));
-	settings_item->addChild(pcm2dsd_item);
-
     ui_.preferenceTreeWidget->addTopLevelItem(settings_item);
     ui_.preferenceTreeWidget->expandAll();
 	ui_.preferenceTreeWidget->setCurrentItem(settings_item);
@@ -257,7 +218,6 @@ PreferencePage::PreferencePage(QWidget *parent)
         const OrderedMap<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
             { tr("Resampler"), 1 },
-			{ tr("PCM/DSD Convert"), 2 },
         };
 
 	    const auto select_type = item->text(column);
@@ -316,6 +276,21 @@ PreferencePage::PreferencePage(QWidget *parent)
         SaveAll();
     });
 
+	(void)QObject::connect(ui_.newSoxrSettingBtn, &QRadioButton::clicked, [this](auto checked) {
+		const auto setting_name = QInputDialog::getText(this, tr("New soxr setting"),
+		tr("Setting name:"),
+		QLineEdit::Normal,
+		ui_.soxrSettingCombo->currentText());
+		if (setting_name.isEmpty()) {
+			return;
+		}
+		auto soxr_config = JsonSettings::ValueAsMap(kSoxr);
+		if (soxr_config.contains(setting_name)) {
+			return;
+		}
+		SaveSoxrResampler(setting_name);
+		});
+
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
 		JsonSettings::remove(kSoxr);
 		InitSoxResampler();
@@ -327,13 +302,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_.lightRadioButton,
 		ui_.lbThemeMode,
 		ui_.lbLang,
-		ui_.lbBlurCoverImage,
 		ui_.lbReplayGameMode,
-	};
-
-	const QList<QWidget*> pcm2dsd_page_widgets{
-		ui_.enablePcm2DsdCheckBox,
-		ui_.lbDsdTimes,
 	};
 
 	const QList<QWidget*> soxr_page_widgets{
@@ -367,10 +336,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
-	Q_FOREACH(auto* w, pcm2dsd_page_widgets) {
-		w->setStyleSheet(qTEXT("background: transparent;"));
-	}
-
 	Q_FOREACH(auto* w, soxr_page_widgets) {
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
@@ -386,7 +351,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	qTheme.SetSliderTheme(ui_.soxrPassbandSlider, true);
 
 	ui_.stackedWidget->setCurrentIndex(0);
-	setFixedSize(900, 700);		
+	setFixedSize(950, 700);		
 }
 
 void PreferencePage::LoadSettings() {

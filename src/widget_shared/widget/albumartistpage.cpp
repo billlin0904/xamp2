@@ -1,36 +1,28 @@
 #include <widget/albumartistpage.h>
 
 #include <QVBoxLayout>
-#include <QStackedWidget>
 #include <QStandardItemModel>
 #include <QGraphicsOpacityEffect>
 #include <QPainter>
 #include <QApplication>
 #include <QScrollBar>
 #include <QPainterPath>
-#include <QLabel>
 #include <QMouseEvent>
-#include <QLinearGradient>
-#include <QBitmap>
 #include <QLineEdit>
 #include <QComboBox>
 #include <QCompleter>
 #include <QToolButton>
 #include <QScrollArea>
-#include <QStackedWidget>
-#include <QListWidget>
 #include <QTimer>
 
 #include <widget/ui_utilts.h>
 #include <widget/artistview.h>
 #include <widget/genre_view.h>
-#include <widget/albumentity.h>
 #include <widget/clickablelabel.h>
 #include <widget/str_utilts.h>
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
-#include <widget/ui_utilts.h>
 #include <widget/processindicator.h>
 #include <widget/taglistview.h>
 #include <widget/genre_view_page.h>
@@ -169,11 +161,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	album_search_line_edit_ = new QLineEdit();
 	album_search_line_edit_->setObjectName(QString::fromUtf8("albumSearchLineEdit"));
-	QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	sizePolicy3.setHorizontalStretch(0);
-	sizePolicy3.setVerticalStretch(0);
-	sizePolicy3.setHeightForWidth(album_search_line_edit_->sizePolicy().hasHeightForWidth());
-	album_search_line_edit_->setSizePolicy(sizePolicy3);
+	QSizePolicy size_policy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	size_policy3.setHorizontalStretch(0);
+	size_policy3.setVerticalStretch(0);
+	size_policy3.setHeightForWidth(album_search_line_edit_->sizePolicy().hasHeightForWidth());
+	album_search_line_edit_->setSizePolicy(size_policy3);
 	album_search_line_edit_->setMinimumSize(QSize(180, 30));
 	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	album_search_line_edit_->setClearButtonEnabled(true);
@@ -187,9 +179,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_completer->setCompletionMode(QCompleter::PopupCompletion);
 	album_search_line_edit_->setCompleter(album_completer);
 
-	auto actionList = album_search_line_edit_->findChildren<QAction*>();
-	if (!actionList.isEmpty()) {
-		Q_FOREACH(auto * action, actionList) {
+	auto action_list = album_search_line_edit_->findChildren<QAction*>();
+	if (!action_list.isEmpty()) {
+		Q_FOREACH(auto * action, action_list) {
 			if (action) {
 				(void)QObject::connect(action, &QAction::triggered, [this]() {
 					album_view_->ShowAll();
@@ -279,20 +271,20 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	artist_search_line_edit_ = new QLineEdit();
 	artist_search_line_edit_->setObjectName(QString::fromUtf8("artistSearchLineEdit"));
-	QSizePolicy sizePolicy4(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	sizePolicy3.setHorizontalStretch(0);
-	sizePolicy3.setVerticalStretch(0);
-	sizePolicy3.setHeightForWidth(artist_search_line_edit_->sizePolicy().hasHeightForWidth());
-	artist_search_line_edit_->setSizePolicy(sizePolicy4);
+	QSizePolicy size_policy4(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	size_policy3.setHorizontalStretch(0);
+	size_policy3.setVerticalStretch(0);
+	size_policy3.setHeightForWidth(artist_search_line_edit_->sizePolicy().hasHeightForWidth());
+	artist_search_line_edit_->setSizePolicy(size_policy4);
 	artist_search_line_edit_->setMinimumSize(QSize(180, 30));
 	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	artist_search_line_edit_->setClearButtonEnabled(true);
 	artist_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
 	artist_search_line_edit_->setPlaceholderText(tr("Search Artist"));
 
-	actionList = artist_search_line_edit_->findChildren<QAction*>();
-	if (!actionList.isEmpty()) {
-		Q_FOREACH(auto * action, actionList) {
+	action_list = artist_search_line_edit_->findChildren<QAction*>();
+	if (!action_list.isEmpty()) {
+		Q_FOREACH(auto * action, action_list) {
 			if (action) {
 				(void)QObject::connect(action, &QAction::triggered, [this]() {
 					artist_view_->ShowAll();
@@ -361,15 +353,18 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	vertical_layout_2->addLayout(horizontal_layout_5);
 	vertical_layout_2->addLayout(default_layout, 1);
 
-	(void)QObject::connect(album_view_, &AlbumView::RemoveAll,
-		this, &AlbumArtistPage::Refresh);
+	(void)QObject::connect(album_view_, &AlbumView::RemoveAll, [this](){
+		album_tag_list_widget_->ClearTag();
+		year_tag_list_widget_->ClearTag();
+		Refresh();
+	});
 
 	(void)QObject::connect(album_view_, &AlbumView::LoadCompleted,
 		this, &AlbumArtistPage::Refresh);
 
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
 		artist_view_->FilterAritstName(tags);
-		artist_view_->Update();		
+		artist_view_->Update();
 		});
 
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagClear, [this]() {
@@ -382,13 +377,13 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_frame_->setFrameShape(QFrame::StyledPanel);
 	auto* year_frame_layout = new QVBoxLayout(year_frame_);
 	year_frame_layout->setSpacing(0);
-	QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	QSizePolicy size_policy_1(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	year_frame_layout->setObjectName(QString::fromUtf8("currentArtistViewFrameLayout"));
 	year_frame_layout->setContentsMargins(0, 0, 0, 0);	
 
 	year_view_ = new AlbumView();
 	year_tag_list_widget_ = new TagListView();
-	year_tag_list_widget_->setSizePolicy(sizePolicy);
+	year_tag_list_widget_->setSizePolicy(size_policy_1);
 	Q_FOREACH (auto year, qDatabase.GetYears()) {
 		year_tag_list_widget_->AddTag(year, true);
 	}	

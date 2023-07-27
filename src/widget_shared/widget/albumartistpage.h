@@ -7,10 +7,8 @@
 
 #include <QFrame>
 #include <QListView>
-#include <QSqlQueryModel>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-#include <QPropertyAnimation>
 
 #include <widget/widget_shared_global.h>
 #include <widget/themecolor.h>

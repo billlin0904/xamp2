@@ -14,7 +14,6 @@
 
 #include <widget/widget_shared.h>
 #include <base/encodingprofile.h>
-#include <stream/pcm2dsdsamplewriter.h>
 
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
@@ -230,10 +229,7 @@ private:
 
 	QString TranslateErrorCode(const Errors error) const;
 
-	void SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
-		DsdModes dsd_modes,
-		int32_t input_sample_rate,
-		ByteFormat byte_format,
+	void SetupSampleWriter(ByteFormat byte_format,
 		PlaybackFormat& playback_format) const;
 
 	void SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,

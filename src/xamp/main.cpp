@@ -5,13 +5,11 @@
 #include <base/dll.h>
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
-#include <base/int24.h>
 #include <base/encodingprofile.h>
 #include <base/stacktrace.h>
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
-#include <stream/pcm2dsdsamplewriter.h>
 
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
@@ -34,8 +32,6 @@
 #include <QProcess>
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
-
-#include <widget/databasefacade.h>
 
 #include <thememanager.h>
 #include <singleinstanceapplication.h>
@@ -103,17 +99,6 @@ static void LoadR8BrainSetting() {
     }
     if (!AppSettings::contains(kAppSettingResamplerType)) {
         AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
-    }
-}
-
-static void LoadPcm2DsdSetting() {
-    XAMP_LOG_DEBUG("LoadPcm2DsdSetting.");
-
-    if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
-        QMap<QString, QVariant> default_setting;
-        default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
-        JsonSettings::SetDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
-        AppSettings::SetValue(kEnablePcm2Dsd, false);
     }
 }
 
@@ -290,7 +275,6 @@ static void LoadSampleRateConverterConfig() {
     XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
     LoadSoxrSetting();
     LoadR8BrainSetting();
-    LoadPcm2DsdSetting();
     JsonSettings::save();
     XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }
@@ -431,6 +415,7 @@ static void ApplyTheme() {
 
 static int Execute(int argc, char* argv[]) {
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
     QApplication::setApplicationName(kApplicationName);
     QApplication::setApplicationVersion(kApplicationVersion);

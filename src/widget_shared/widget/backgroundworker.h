@@ -32,7 +32,7 @@ class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker : public QObject {
 public:
     BackgroundWorker();
 
-    void StopThreadPool();
+    void OnCancelRequested();
 
     virtual ~BackgroundWorker() override;
 

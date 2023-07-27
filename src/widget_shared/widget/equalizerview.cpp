@@ -2,7 +2,6 @@
 
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
-#include <widget/parametriceqview.h>
 #include <widget/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <stream/eqsettings.h>

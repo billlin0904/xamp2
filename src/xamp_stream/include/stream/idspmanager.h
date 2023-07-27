@@ -45,8 +45,6 @@ public:
 
     [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 
-    [[nodiscard]] virtual bool IsEnablePcm2DsdConverter() const = 0;
-
     [[nodiscard]] virtual bool CanProcess() const noexcept = 0;
 
     virtual void Flush() = 0;

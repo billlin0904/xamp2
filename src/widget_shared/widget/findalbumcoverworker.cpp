@@ -1,7 +1,5 @@
 #include <widget/findalbumcoverworker.h>
 
-#include <base/executor.h>
-
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 #include <widget/imagecache.h>

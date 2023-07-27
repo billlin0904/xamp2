@@ -2,27 +2,18 @@
 #include <widget/extractfileworker.h>
 
 #include <atomic>
-#include <utility>
 #include <execution>
-#include <forward_list>
 
-#include <QDirIterator>
 #include <qguiapplication.h>
-#include <QtConcurrent/qtconcurrentrun.h>
 
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
-#include <base/google_siphash.h>
-#include <base/scopeguard.h>
-#include <base/fastmutex.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadataextractadapter.h>
 #include <stream/avfilestream.h>
-
-#include <thememanager.h>
 
 #include <widget/widget_shared.h>
 #include <widget/http.h>

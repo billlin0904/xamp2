@@ -1,7 +1,6 @@
 #include <stream/dspmanager.h>
 
 #include <stream/api.h>
-#include <stream/pcm2dsdsamplewriter.h>
 #include <stream/bassequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
@@ -88,10 +87,6 @@ bool DSPManager::CanProcess() const noexcept {
         || dsd_mode == DsdModes::DSD_MODE_DSD2PCM) {
         return true;
     }
-
-    if (IsEnablePcm2DsdConverter()) {
-        return true;
-    }
     return false;
 }
 
@@ -115,17 +110,6 @@ bool DSPManager::IsEnableSampleRateConverter() const {
         return XAMP_UUID_OF(SoxrSampleRateConverter) == id || XAMP_UUID_OF(R8brainSampleRateConverter) == id;
     };
     return Contains(equal_id);
-}
-
-bool DSPManager::IsEnablePcm2DsdConverter() const {
-    if (!sample_writer_) {
-        return false;
-    }
-
-	if (auto* converter = dynamic_cast<Pcm2DsdSampleWriter*>(sample_writer_.get())) {
-        return true;
-	}
-    return false;
 }
 
 void DSPManager::Flush() {

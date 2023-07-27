@@ -91,6 +91,7 @@ XMessageBox::XMessageBox(const QString& title,
 	default_button_text_ = DefaultButton()->text();
 
 	HideCloseButton();
+	XAMP_LOG_DEBUG("XMessageBox width:{} height:{}", size().width(), size().height());
 }
 
 void XMessageBox::SetTextFont(const QFont& font) {

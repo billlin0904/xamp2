@@ -79,7 +79,7 @@
         <number>1</number>
        </property>
        <widget class="QWidget" name="playbackPage">
-        <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,0,0,0,0,0,0,0">
+        <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,0,0,0,0">
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_15">
            <item>
@@ -156,86 +156,6 @@
             <widget class="QRadioButton" name="darkRadioButton">
              <property name="text">
               <string>Dark</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_8">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>30</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>30</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_13">
-           <item>
-            <widget class="QLabel" name="lbBlurCoverImage">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <bold>true</bold>
-               <kerning>false</kerning>
-              </font>
-             </property>
-             <property name="text">
-              <string>Blur cover image</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="SwitchButton" name="enableBlurCoverImagePushButton">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>26</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>60</width>
-               <height>26</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <kerning>false</kerning>
-              </font>
-             </property>
-             <property name="text">
-              <string/>
              </property>
             </widget>
            </item>
@@ -374,6 +294,13 @@
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="QPushButton" name="newSoxrSettingBtn">
+                 <property name="text">
+                  <string>New</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QPushButton" name="saveSoxrSettingBtn">
                  <property name="text">
@@ -978,162 +905,6 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QWidget" name="pcm2dsdPage">
-        <widget class="QWidget" name="layoutWidget2">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>20</y>
-           <width>281</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_14">
-          <item>
-           <widget class="QCheckBox" name="enablePcm2DsdCheckBox">
-            <property name="text">
-             <string>Enable</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lbDsdTimes">
-            <property name="text">
-             <string>DSD Times:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="dsdTimeComboBox">
-            <item>
-             <property name="text">
-              <string>DSD 3X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 4X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 5X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 6X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 7X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 8X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 9X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 10X</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>DSD 11X</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="foobar2000DspPage">
-        <layout class="QVBoxLayout" name="verticalLayout_11">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_16">
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
-             <item>
-              <widget class="QLabel" name="label_17">
-               <property name="text">
-                <string>Active DSPs</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="activeDSPListView"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_9">
-             <item>
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>Available DSPs</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="availableDSPListView"/>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_10">
-           <item>
-            <widget class="QLabel" name="label_19">
-             <property name="text">
-              <string>DSP chain presets</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_17">
-             <item>
-              <widget class="QComboBox" name="comboBox"/>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_15">
-               <item>
-                <widget class="QPushButton" name="pushButton">
-                 <property name="text">
-                  <string>Load</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="pushButton_2">
-                 <property name="text">
-                  <string>Save</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="pushButton_3">
-                 <property name="text">
-                  <string>Delete</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
       </widget>
      </item>
     </layout>
@@ -1165,11 +936,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>SwitchButton</class>
-   <extends>QPushButton</extends>
-   <header location="global">widget/switchbutton.h</header>
-  </customwidget>
   <customwidget>
    <class>SeekSlider</class>
    <extends>QSlider</extends>

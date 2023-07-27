@@ -24,8 +24,6 @@ public:
 private:
     void UpdateSoxrConfigUi(const QVariantMap& soxr_settings);
 
-    void SavePcm2Dsd();
-
     void SaveSoxrResampler(const QString &name) const;
 
     void SaveR8BrainResampler();
@@ -33,8 +31,6 @@ private:
     void InitR8BrainResampler();
 
 	void InitSoxResampler();
-
-    void InitPcm2Dsd();
 
     void SetLanguage(int index);
 

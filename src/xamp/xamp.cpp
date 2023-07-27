@@ -2,6 +2,9 @@
 
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <QCloseEvent>
+#include <QShortcut>
+#include <QToolTip>
+#include <QWidgetAction>
 
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
@@ -9,8 +12,8 @@
 
 #include <stream/api.h>
 #include <stream/bassaacfileencoder.h>
+#include <stream/isameplewriter.h>
 #include <stream/idspmanager.h>
-#include <stream/pcm2dsdsamplewriter.h>
 #include <stream/r8brainresampler.h>
 #include <stream/compressorparameters.h>
 
@@ -30,7 +33,6 @@
 #include <widget/backgroundworker.h>
 #include <widget/database.h>
 #include <widget/equalizerview.h>
-#include <widget/parametriceqview.h>
 #include <widget/filesystemviewpage.h>
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
@@ -377,11 +379,10 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
     ui.currentViewFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
 }
 
-static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& device_info,
-                                                            const Path& file_path,
-                                                            uint32_t input_sample_rate,
-                                                            uint32_t target_sample_rate) {
-    auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_NONE;
+static DsdModes GetDsdModes(const DeviceInfo& device_info,
+                            const Path& file_path,
+                            uint32_t input_sample_rate,
+                            uint32_t target_sample_rate) {
     auto dsd_modes = DsdModes::DSD_MODE_AUTO;
     const auto is_enable_sample_rate_converter = target_sample_rate > 0;
     const auto is_dsd_file = IsDsdFile(file_path);
@@ -391,7 +392,6 @@ static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& de
         && !is_enable_sample_rate_converter
         && input_sample_rate % kPcmSampleRate441 == 0) {
         dsd_modes = DsdModes::DSD_MODE_AUTO;
-        convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
     }
 
     if (dsd_modes == DsdModes::DSD_MODE_AUTO) {
@@ -413,7 +413,7 @@ static std::pair<DsdModes, Pcm2DsdConvertModes> GetDsdModes(const DeviceInfo& de
         }
     }
 
-    return { dsd_modes, convert_mode };
+    return dsd_modes;
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -666,19 +666,24 @@ void Xamp::cleanup() {
     }
 
     if (background_worker_ != nullptr) {
-        background_worker_->StopThreadPool();
+        background_worker_->OnCancelRequested();
     }
 
-    auto quit_and_wait_thread = [](auto &thread) {
+    if (extract_file_worker_ != nullptr) {
+        extract_file_worker_->OnCancelRequested();
+    }
+
+    if (find_album_cover_worker_ != nullptr) {
+        find_album_cover_worker_->OnCancelRequested();
+    }
+
+    auto quit_and_wait_thread = [](auto& thread) {
         if (!thread.isFinished()) {
             thread.requestInterruption();
             thread.quit();
             thread.wait();
         }
     };
-
-    extract_file_worker_->OnCancelRequested();
-    find_album_cover_worker_->OnCancelRequested();
 
     quit_and_wait_thread(background_thread_);
     quit_and_wait_thread(find_album_cover_thread_);
@@ -723,7 +728,9 @@ void Xamp::InitialUi() {
 
     ui_.mutedButton->SetPlayer(player_);
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
-    qTheme.SetPlayOrPauseButton(ui_.playButton, false);    
+    qTheme.SetPlayOrPauseButton(ui_.playButton, false);
+
+    ui_.stopButton->hide();
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -1298,11 +1305,22 @@ void Xamp::StopPlay() {
 }
 
 void Xamp::PlayNext() {
-    PlayNextItem(1);
+    if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED 
+        || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
+        PlayNextItem(1);
+    } else {
+        StopPlay();
+    }
 }
 
 void Xamp::PlayPrevious() {
-    PlayNextItem(-1);
+    if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED 
+        || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
+        PlayNextItem(-1);
+    }
+    else {
+        StopPlay();
+    }
 }
 
 void Xamp::DeleteKeyPress() {
@@ -1432,46 +1450,11 @@ QString Xamp::TranslateErrorCode(const Errors error) const {
     return FromStdStringView(EnumToString(error));
 }
 
-void Xamp::SetupSampleWriter(Pcm2DsdConvertModes convert_mode,
-    DsdModes dsd_modes,
-    int32_t input_sample_rate,
-    ByteFormat byte_format,
+void Xamp::SetupSampleWriter(ByteFormat byte_format,
     PlaybackFormat& playback_format) const {
-
-	if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
-		uint32_t device_sample_rate = 0;
-
-		auto config = JsonSettings::ValueAsMap(kPCM2DSD);
-		auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
-		auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
-		auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
-
-		CpuAffinity affinity;
-        affinity.SetCpu(1);
-        affinity.SetCpu(2);
-		writer->Init(input_sample_rate, affinity, convert_mode);
-
-		if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
-			device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
-		} else {
-			device_sample_rate = writer->GetDsdSampleRate();
-		}
-
-		player_->GetDspManager()->SetSampleWriter(std::move(pcm2dsd_writer));
-
-		player_->PrepareToPlay(byte_format);
-		player_->SetReadSampleSize(writer->GetDataSize() * 2);
-
-		playback_format = GetPlaybackFormat(player_.get());
-		playback_format.is_dsd_file = true;
-		playback_format.dsd_mode = dsd_modes;
-		playback_format.dsd_speed = writer->GetDsdSpeed();
-		playback_format.output_format.SetSampleRate(device_sample_rate);
-	} else {
-		player_->GetDspManager()->SetSampleWriter();
-		player_->PrepareToPlay(byte_format);
-		playback_format = GetPlaybackFormat(player_.get());
-	}
+    player_->GetDspManager()->SetSampleWriter();
+    player_->PrepareToPlay(byte_format);
+    playback_format = GetPlaybackFormat(player_.get());
 }
 
 void Xamp::showEvent(QShowEvent* event) {
@@ -1574,7 +1557,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         byte_format = ByteFormat::SINT16;
     }
     
-    const auto [open_dsd_mode, convert_mode] = GetDsdModes(device_info_.value(),
+    const auto open_dsd_mode = GetDsdModes(device_info_.value(),
         entity.file_path.toStdWString(),
         entity.sample_rate,
         target_sample_rate);
@@ -1611,15 +1594,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
             }
         }
 
-        if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
-            sample_rate_converter_type = kEmptyString;
-        }
-
-        SetupSampleWriter(convert_mode,
-            open_dsd_mode,
-            entity.sample_rate,
-            byte_format,
-            playback_format);
+        SetupSampleWriter(byte_format, playback_format);
 
         playback_format.bit_rate = entity.bit_rate;
         if (sample_rate_converter_type == kR8Brain) {

@@ -44,7 +44,7 @@
         }
     },
     "Pcm2Dsd": {
-        "Pcm2DsdTimes": 5
+        "Pcm2DsdTimes": 8
     },
     "R8Brain": {
         "resampleSampleRate": 88200
@@ -55,6 +55,14 @@
             "phase": 46,
             "quality": 4,
             "resampleSampleRate": 176400,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        },
+        "192K": {
+            "passBand": 96,
+            "phase": 46,
+            "quality": 4,
+            "resampleSampleRate": 192000,
             "rolloffLevel": 2,
             "stopBand": 100
         }

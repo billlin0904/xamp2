@@ -150,7 +150,6 @@
     <QtMoc Include="widget\lrcpage.h" />
     <ClInclude Include="widget\lrcparser.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
-    <QtMoc Include="widget\parametriceqview.h" />
     <QtMoc Include="widget\pendingplaylistpage.h" />
     <ClInclude Include="widget\playerorder.h" />
     <ClInclude Include="widget\playlistentity.h" />
@@ -161,13 +160,11 @@
     <QtMoc Include="widget\playlisttableview.h" />
     <ClInclude Include="widget\podcast_uiltis.h" />
     <QtMoc Include="widget\processindicator.h" />
-    <QtMoc Include="widget\qcustomplot.h" />
     <ClInclude Include="widget\qdebugsink.h" />
     <ClInclude Include="widget\qetag.h" />
     <ClInclude Include="widget\read_utiltis.h" />
     <ClInclude Include="widget\scrolllabel.h" />
     <QtMoc Include="widget\seekslider.h" />
-    <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
     <QtMoc Include="widget\stardelegate.h" />
@@ -229,7 +226,6 @@
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
-    <ClCompile Include="widget\parametriceqview.cpp" />
     <ClCompile Include="widget\pendingplaylistpage.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
@@ -238,7 +234,6 @@
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\preferencepage.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
-    <ClCompile Include="widget\qcustomplot.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\read_utiltis.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />

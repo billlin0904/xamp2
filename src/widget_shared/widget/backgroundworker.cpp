@@ -6,7 +6,6 @@
 #include <widget/databasefacade.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
-#include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
@@ -21,7 +20,6 @@
 #include <base/google_siphash.h>
 #include <base/scopeguard.h>
 #include <base/fastmutex.h>
-#include <stream/avfilestream.h>
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
 #endif
@@ -31,8 +29,6 @@
 #include <QDirIterator>
 #include <QJsonValueRef>
 #include <QThread>
-
-#include <thememanager.h>
 
 XAMP_DECLARE_LOG_NAME(BackgroundWorker);
 
@@ -49,7 +45,7 @@ BackgroundWorker::~BackgroundWorker() {
     XAMP_LOG_DEBUG("BackgroundWorker destory!");
 }
 
-void BackgroundWorker::StopThreadPool() {
+void BackgroundWorker::OnCancelRequested() {
     is_stop_ = true;
 }
 

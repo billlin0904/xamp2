@@ -47,8 +47,6 @@ public:
 
     bool IsEnableSampleRateConverter() const override;
 
-    bool IsEnablePcm2DsdConverter() const override;
-
     bool CanProcess() const noexcept override;
 
     void Flush() override;
