@@ -72,6 +72,8 @@ protected:
     void SaveGeometry() override;
 
 private:
+    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
+
     void focusInEvent(QFocusEvent* event) override;
 
     void focusOutEvent(QFocusEvent* event) override;

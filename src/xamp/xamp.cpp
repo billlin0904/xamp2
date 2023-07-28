@@ -1678,7 +1678,7 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     const auto disc_id = QString::fromStdString(mb_disc_id_info.disc_id);
     const auto album = QString::fromStdWString(mb_disc_id_info.album);
     const auto artist = QString::fromStdWString(mb_disc_id_info.artist);
-
+    
     if (!album.isEmpty()) {
         qDatabase.UpdateAlbumByDiscId(disc_id, album);
     }

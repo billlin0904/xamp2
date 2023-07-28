@@ -77,6 +77,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
 
     setAcceptDrops(true);
     ReadDriveInfo();
+    installEventFilter(this);
 }
 
 // QScopedPointer require default destructor.
@@ -257,6 +258,53 @@ void XMainWindow::DrivesRemoved(char driver_letter) {
         exist_drives_.erase(itr);
     }
 #endif
+}
+
+bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
+#if defined(Q_OS_WIN)
+    const auto* msg = static_cast<MSG const*>(message);
+    switch (msg->message) {
+    case DBT_DEVICEARRIVAL: {
+        auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+        if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+            auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+            if (lpdbv->dbcv_flags & DBTF_MEDIA) {
+                ReadDriveInfo();
+            }
+        }
+        }
+        break;
+    case DBT_DEVICEREMOVECOMPLETE: {
+        constexpr auto firstDriveFromMask = [](ULONG unitmask) -> char {
+            char i = 0;
+            for (i = 0; i < 26; ++i) {
+                if (unitmask & 0x1)
+                    break;
+                unitmask = unitmask >> 1;
+            }
+            return i + 'A';
+        };
+
+        const auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+        if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+            const auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+            if (lpdbv->dbcv_flags & DBTF_MEDIA) {
+                const auto driver_letter = firstDriveFromMask(lpdbv->dbcv_unitmask);
+                DrivesRemoved(driver_letter);
+            }
+        }
+        }
+        break;
+    case WM_HOTKEY: {
+        const auto native_key = HIWORD(msg->lParam);
+        const auto native_mods = LOWORD(msg->lParam);
+        ShortcutsPressed(native_key, native_mods);
+        XAMP_LOG_DEBUG("Hot key press native_key:{} native_mods:{}", native_key, native_mods);
+        }
+        break;
+    }    
+#endif
+    return IXMainWindow::nativeEvent(event_type, message, result);
 }
 
 void XMainWindow::ReadDriveInfo() {

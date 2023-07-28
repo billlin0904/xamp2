@@ -218,7 +218,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
 
         if (!is_file_path) {
             continue;
-        }        
+        }
 
         if (!cover.isNull()) {
             qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
