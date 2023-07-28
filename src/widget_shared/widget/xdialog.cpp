@@ -111,6 +111,7 @@ void XDialog::SetContent(QWidget* content) {
     
     max_win_button_->hide();
     min_win_button_->hide();
+    // todo: close_button_ hide的時候會顯示會有問題.
 
     (void)QObject::connect(close_button_, &QToolButton::pressed, [this]() {
         close();
@@ -127,10 +128,6 @@ void XDialog::SetContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
 
     WaitForReady();    
-}
-
-void XDialog::HideCloseButton() {
-    close_button_->hide();
 }
 
 void XDialog::WaitForReady() {

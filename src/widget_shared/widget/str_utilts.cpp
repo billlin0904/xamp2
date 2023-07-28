@@ -18,11 +18,11 @@ QString BackgroundColorToString(QColor color) {
     return qTEXT("background-color: ") + ColorToString(color) + qTEXT(";");
 }
 
-QString FormatBitRate(uint32_t bitRate) {
-    if (bitRate > 10000) {
-        return QString::number(bitRate / 1000.0, 'f', 2) + qTEXT(" Mbps");
+QString FormatBitRate(uint32_t bit_rate) {
+    if (bit_rate > 10000) {
+        return QString::number(bit_rate / 1000.0, 'f', 2) + qTEXT(" Mbps");
     }
-    return QString::number(bitRate) + qTEXT(" kbps");
+    return QString::number(bit_rate) + qTEXT(" kbps");
 }
 
 QString FormatSampleRate(const uint32_t sample_rate) {

@@ -90,7 +90,6 @@ XMessageBox::XMessageBox(const QString& title,
 	timer_.setInterval(1000);
 	default_button_text_ = DefaultButton()->text();
 
-	HideCloseButton();
 	XAMP_LOG_DEBUG("XMessageBox width:{} height:{}", size().width(), size().height());
 }
 

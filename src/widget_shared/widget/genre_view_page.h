@@ -48,6 +48,8 @@ public:
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
 	void Refresh();
+
+	void Clear();
 private:
 	GenrePage* genre_page_;
 	QFrame* genre_frame_;

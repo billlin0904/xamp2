@@ -500,7 +500,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         background_worker_.get(), &BackgroundWorker::OnGetArtist);
 
     (void)QObject::connect(this, &Xamp::Translation,
-        background_worker_.get(), &BackgroundWorker::OnTanslation);
+        background_worker_.get(), &BackgroundWorker::OnTranslation);
 
     (void)QObject::connect(background_worker_.get(), &BackgroundWorker::TranslationCompleted,
         this, &Xamp::OnTranslationCompleted);
@@ -2320,6 +2320,7 @@ void Xamp::OnSetAlbumCover(int32_t album_id,
     const QString& album,
     const QString& cover_id) {
     qDatabase.SetAlbumCover(album_id, album, cover_id);
+    album_page_->Refresh();
 }
 
 void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result) {

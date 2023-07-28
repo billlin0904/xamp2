@@ -79,7 +79,7 @@ public Q_SLOT:
 
     void OnGetArtist(const QString& artist);
 
-    void OnTanslation(const QString& keyword, const QString& from, const QString& to);
+    void OnTranslation(const QString& keyword, const QString& from, const QString& to);
 
 private:
     bool is_stop_{false};    

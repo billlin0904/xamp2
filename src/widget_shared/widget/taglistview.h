@@ -15,6 +15,8 @@ class QLabel;
 class TagWidgetItem : public QListWidgetItem {
 public:
 	TagWidgetItem(const QString& tag, QColor color, QLabel* label, QListWidget* parent = nullptr);
+	
+	virtual ~TagWidgetItem();
 
 	QString GetTag() const;
 

@@ -258,8 +258,8 @@ void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, 
 }
 
 void HttpClient::HttpClientImpl::HandleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total) {
-    const auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    const auto status = statusCode.isValid() ? statusCode.toInt() : 200;
+    const auto status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    const auto status = status_code.isValid() ? status_code.toInt() : 200;
 
     if (total > 0) {
         XAMP_LOG_D(context.logger, "Download progress: {}%", Round(ready * 100.0 / total));
@@ -298,7 +298,7 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std:
         HandleFinish(context, reply, QString());
     });
 
-    QObject::connect(reply,
+    (void) QObject::connect(reply,
         &QNetworkReply::downloadProgress,
         [reply, context, d](auto ready, auto total) {
             HandleProgress(context, reply, ready, total);

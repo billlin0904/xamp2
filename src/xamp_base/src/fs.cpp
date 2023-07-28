@@ -29,25 +29,15 @@ bool IsFilePath(std::wstring const& file_path) noexcept {
 }
 
 Path GetTempFilePath() {
-#ifdef XAMP_OS_WIN
-	std::string tmp_prefix;
-	char char_path[MAX_PATH];
-	if (auto s = GetTempPathA(MAX_PATH, char_path)) {
-		tmp_prefix = std::string(char_path, s - 1);
-	}
-	std::replace(tmp_prefix.begin(), tmp_prefix.end(), '\\', '/');
-	Path path = Path(tmp_prefix) / Path(MakeTempFileName() + ".tmp");
-	return path;
-#else
 	// Short retry times to avoid cost too much time.
- 	constexpr auto kMaxRetryCreateTempFile = 10;
+	constexpr auto kMaxRetryCreateTempFile = 10;
 	const auto temp_path = Fs::temp_directory_path();
-	
+
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(MakeTempFileName() + ".tmp");
 		std::error_code ec;
 		// Create parent directory if not exist.
-		if (Fs::create_directories(path.parent_path(), ec) 
+		if (Fs::create_directories(path.parent_path(), ec)
 			&& Fs::status(path.parent_path(), ec).type() == Fs::file_type::directory) {
 			// Create temp file.
 			std::ofstream file(path.native());
@@ -59,7 +49,6 @@ Path GetTempFilePath() {
 		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
-#endif
 }
 
 std::string MakeTempFileName() {

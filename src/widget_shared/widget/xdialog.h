@@ -29,10 +29,7 @@ public:
 
     void SetTitle(const QString& title) const;
 
-    void SetIcon(const QIcon& icon) const;    
-
-    void HideCloseButton();
-
+    void SetIcon(const QIcon& icon) const;
 private slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
 

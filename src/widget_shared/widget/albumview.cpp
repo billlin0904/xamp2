@@ -556,7 +556,7 @@ void AlbumView::ShowMenu(const QPoint &pt) {
 
     action_map.AddSeparator();
 
-    auto remove_select_album_act = action_map.AddAction(tr("Remove select album"), [=]() {
+    auto remove_select_album_act = action_map.AddAction(tr("Remove select album"), [album_id, this]() {
         const auto button = XMessageBox::ShowYesOrNo(tr("Remove the album?"));
 		if (button == QDialogButtonBox::Yes) {
             qDatabase.RemoveAlbum(album_id);

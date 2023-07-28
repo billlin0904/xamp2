@@ -15,6 +15,9 @@ TagWidgetItem::TagWidgetItem(const QString& tag, QColor color, QLabel* label, QL
 	setFlags(Qt::NoItemFlags);
 }
 
+TagWidgetItem::~TagWidgetItem() {
+}
+
 QString TagWidgetItem::GetTag() const {
 	return tag_;
 }
@@ -205,11 +208,14 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 }
 
 void TagListView::ClearTag() {
-	for (auto i = 0; i < taglist_->count(); ++i) {
+	/*for (auto i = 0; i < taglist_->count(); ++i) {
 		const auto item = dynamic_cast<TagWidgetItem*>(taglist_->takeItem(i));
 		if (!item) {
 			continue;
-		}
+		}		
 		taglist_->removeItemWidget(item);
-	}
+		auto *iw = taglist_->itemWidget(item);
+		iw->deleteLater();
+	}*/
+	taglist_->clear();
 }

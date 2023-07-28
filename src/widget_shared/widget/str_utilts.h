@@ -63,7 +63,7 @@ XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
 
 XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(uint32_t sample_rate);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatBitRate(uint32_t bitRate);
+XAMP_WIDGET_SHARED_EXPORT QString FormatBitRate(uint32_t bit_rate);
 
 XAMP_WIDGET_SHARED_EXPORT QString ColorToString(QColor color);
 

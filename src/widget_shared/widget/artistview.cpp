@@ -10,8 +10,6 @@
 #include <QScrollBar>
 #include <QGraphicsOpacityEffect>
 #include <QPainter>
-#include <QSpacerItem>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QApplication>

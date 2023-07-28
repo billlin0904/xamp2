@@ -60,95 +60,10 @@ namespace lastfm {
 }
 
 void BackgroundWorker::OnGetArtist(const QString& artist) {
-    //ApiKey = "34f77350f3e23c3a8e0aefecf3ccfaf5";
-    //SharedSecret = "bdadfb76384d1d28b078d2ca22e04d95";
-
-    /*const QString searchUrl = qSTR(
-        "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=%1&api_key=%2&format=json"
-    ).arg(qTEXT(QUrl::toPercentEncoding(artist))).arg(qTEXT("34f77350f3e23c3a8e0aefecf3ccfaf5"));
-
-    http::HttpClient(searchUrl)
-        .success([this, artist](const auto& json) {
-        XAMP_LOG_DEBUG("Successfully!");
-        QJsonParseError error;
-        const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-        if (error.error != QJsonParseError::NoError) {
-            return;
-        }
-        lastfm::ArtistInfo artist_info;
-        artist_info.name = doc["artist"]["name"].toString();
-        artist_info.mbid = doc["artist"]["mbid"].toString();
-        artist_info.url = doc["artist"]["url"].toString();
-        for (auto image : doc["artist"]["image"].toArray()) {
-            if (image.toVariant().toMap()["size"].toString() == "mega") {
-				artist_info.image_url = image.toVariant().toMap()["#text"].toString();
-				break;
-			}
-		}
-		artist_info.summary = doc["artist"]["bio"]["summary"].toString();
-        http::HttpClient(artist_info.image_url).download([this, artist](const QByteArray& data) {
-            XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!",
-            QThread::currentThreadId(), String::FormatBytes(data.size()));
-            emit SearchArtistCompleted(artist, data);
-            });
-		}).get();*/
-
-    /*static const QString credentialFLowUrl = qTEXT("https://account.kkbox.com/oauth2/token");
-    const QString client_id = qTEXT("bd5cfe4143f918a3db24dcb388972054");
-    const QString client_secret = qTEXT("425cacb9f036585d34f7a2725c98e417");
-    const QString grant_type = qTEXT("client_credentials");
-
-    http::HttpClient(credentialFLowUrl)
-        .param(qTEXT("grant_type"), grant_type)
-        .param(qTEXT("client_id"), client_id)
-        .param(qTEXT("client_secret"), client_secret)
-        .success([this, artist](const auto& json) {
-            QJsonParseError error;
-            const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-            if (error.error != QJsonParseError::NoError) {
-                return;
-            }
-            
-            auto access_token = doc[qTEXT("access_token")].toString();
-            auto token_type = doc[qTEXT("token_type")].toString();
-            auto expires_in = doc[qTEXT("expires_in")].toString();
-            
-            kkbox::Credential credential;
-            credential.access_token = access_token;
-            credential.token_type = token_type;
-            credential.expires_in = expires_in;
-
-            auto keyword = artist;
-            auto type = qTEXT("artist");
-            auto territory = qTEXT("JP");
-
-            static const QString searchUrl = qTEXT("https://api.kkbox.com/v1.1/search");
-            http::HttpClient(searchUrl)
-                .param(qTEXT("q"), keyword)
-                .param(qTEXT("type"), type)
-                .param(qTEXT("territory"), territory)
-                .param(qTEXT("limit"), 15)
-                .header(qTEXT("Authorization"), QString(qTEXT("%1 %2").arg(credential.token_type).arg(credential.access_token)))
-                .success([this, artist](const auto& json) {
-                if (auto artist_data = kkbox::ParseArtistData(json, artist)) {
-                    if (artist_data.value().images.size() != 2) {
-					    return;
-				    }
-                    http::HttpClient(artist_data.value().images[1].url)
-                        .download([this, artist](const auto &content) {
-                        emit SearchArtistCompleted(artist, content);
-                        });
-                }
-                else {
-                    emit SearchArtistCompleted(artist, QByteArray());
-                }
-                }).get();
-        })
-        .post();*/
 }
 
 void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
-	/*const auto keywords = QString::fromStdString(
+	const auto keywords = QString::fromStdString(
         String::Format("{}{}", 
         QUrl::toPercentEncoding(artist),
         QUrl::toPercentEncoding(title)));
@@ -184,7 +99,7 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
                 emit SearchLyricsCompleted(music_id, lyrc, trlyrc);
             }).get();
 		})
-        .get();*/
+        .get();
 }
 
 void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
@@ -396,7 +311,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
     }
 }
 
-void BackgroundWorker::OnTanslation(const QString& keyword, const QString& from, const QString& to) {
+void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from, const QString& to) {
     const auto url =
         QString("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString(QUrl::toPercentEncoding(keyword)))

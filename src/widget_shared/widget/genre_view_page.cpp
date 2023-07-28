@@ -60,7 +60,7 @@ void GenrePage::SetGenre(const QString& genre) {
 GenreViewPage::GenreViewPage(QWidget* parent)
 	: QStackedWidget(parent) {
 	auto* container_frame = new QFrame();
-	auto genre_container_layout = new QVBoxLayout(container_frame);
+	auto* genre_container_layout = new QVBoxLayout(container_frame);
 
 	genre_page_ = new GenrePage();
 	(void)QObject::connect(genre_page_, &GenrePage::goBackPage, [this]() {
@@ -111,6 +111,10 @@ void GenreViewPage::Refresh() {
 		page.first->view()->Refresh();
 		page.second->Refresh();
 	}
+}
+
+void GenreViewPage::Clear() {
+	
 }
 
 void GenreViewPage::RemoveGenre(const QString& genre) {
