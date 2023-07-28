@@ -1718,7 +1718,6 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
 	const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
     qDatabase.SetAlbumCover(album_id, cover_id);
-    SetCover(cover_id, cd_page_->playlistPage());
 }
 
 void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos) {

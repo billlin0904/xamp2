@@ -338,7 +338,7 @@ static std::vector<SharedLibraryHandle> PrefetchDll() {
         R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
         R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
         R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
-    	R"("C:\Program Files\Bonjour\mdnsNSP.dll")",
+    	R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
