@@ -163,7 +163,7 @@ void Database::CreateTableIfNotExist() {
                        genre TEXT,
                        comment TEXT,                       
                        fileSize integer,
-                       parentPathHash integer,
+                       parentPathHash TEXT,
                        heart integer,
 					   lyrc TEXT,
 					   trLyrc TEXT,

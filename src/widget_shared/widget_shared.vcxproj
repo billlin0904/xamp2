@@ -115,7 +115,7 @@
     <QtMoc Include="widget\extractfileworker.h" />
     <QtMoc Include="widget\genre_view_page.h" />
     <ClInclude Include="widget\genre_view.h" />
-    <ClInclude Include="widget\kkbox_utilis.h" />
+    <ClInclude Include="widget\httpservice.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
@@ -221,7 +221,6 @@
     <ClCompile Include="widget\imagecache.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
-    <ClCompile Include="widget\kkbox_utilis.cpp" />
     <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />

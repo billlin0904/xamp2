@@ -24,13 +24,13 @@ public:
 	void fetchMore(const QModelIndex& parent = QModelIndex()) override {
 		QSqlQueryModel::fetchMore(parent);
 
-		int remainingRows = rowCount() - load_rows_;
-		int rowsToFetch = qMin(remainingRows, batch_size_);
-		if (rowsToFetch <= 0) {
+		const int remaining_rows = rowCount() - load_rows_;
+		const int rows_to_fetch = qMin(remaining_rows, batch_size_);
+		if (rows_to_fetch <= 0) {
 			return;
 		}
-		beginInsertRows(QModelIndex(), load_rows_, load_rows_ + rowsToFetch - 1);
-		load_rows_ += rowsToFetch;
+		beginInsertRows(QModelIndex(), load_rows_, load_rows_ + rows_to_fetch - 1);
+		load_rows_ += rows_to_fetch;
 		endInsertRows();
 	}
 

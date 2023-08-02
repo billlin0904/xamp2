@@ -496,9 +496,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     (void)QObject::connect(album_page_->album(), &AlbumView::LoadCompleted,
         this, &Xamp::ProcessTrackInfo);
 
-    (void)QObject::connect(album_page_->artist(), &ArtistView::GetArtist,
-        background_worker_.get(), &BackgroundWorker::OnGetArtist);
-
     (void)QObject::connect(this, &Xamp::Translation,
         background_worker_.get(), &BackgroundWorker::OnTranslation);
 

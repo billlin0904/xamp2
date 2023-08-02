@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/msvc/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/BLAKE3/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -127,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/msvc/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/BLAKE3/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -220,10 +220,19 @@
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
+    <ClInclude Include="include\base\blake3hash.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3.c" />
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3_avx2.c" />
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3_avx512.c" />
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3_dispatch.c" />
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3_portable.c" />
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3_sse2.c" />
+    <ClCompile Include="..\thirdparty\BLAKE3\blake3_sse41.c" />
     <ClCompile Include="src\align_ptr.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
+    <ClCompile Include="src\blake3hash.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />

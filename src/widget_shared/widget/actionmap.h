@@ -5,12 +5,9 @@
 
 #pragma once
 
-#include <map>
 #include <QPoint>
 #include <QScopedPointer>
-#include <QPropertyAnimation>
 #include <QMenu>
-#include <QEvent>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -24,16 +21,6 @@ public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
 	}
-
-//#if defined(Q_OS_WIN)
-//	bool event(QEvent* evt) override {
-//		if (evt->type() == QEvent::WinIdChange) {
-//			win32::SetAccentPolicy(winId());
-//			win32::AddDwmMenuShadow(winId());
-//		}
-//		return QMenu::event(evt);
-//	}
-//#endif
 };
 
 class XAMP_WIDGET_SHARED_EXPORT XAction : public QAction {

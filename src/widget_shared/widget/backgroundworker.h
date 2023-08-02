@@ -77,8 +77,6 @@ public Q_SLOT:
 
     void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
 
-    void OnGetArtist(const QString& artist);
-
     void OnTranslation(const QString& keyword, const QString& from, const QString& to);
 
 private:

@@ -1,9 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include <base/scopeguard.h>
 #include <base/trackinfo.h>
-#include <base/spmc_queue.h>
-#include <base/audiobuffer.h>
 #include <base/threadpoolexecutor.h>
 #include <base/spinlock.h>
 #include <base/memory.h>
@@ -20,15 +17,10 @@
 #include <base/executor.h>
 #include <base/rcu_ptr.h>
 #include <base/uuidof.h>
-#include <base/siphash.h>
 #include <base/google_siphash.h>
-#ifdef XAMP_USE_BENCHMAKR
-#include <base/chachaengine.h>
-#include <base/xoshiro.h>
-#endif
+#include <base/blake3hash.h>
 #include <base/sfc64.h>
 
-#include <stream/api.h>
 #include <stream/fft.h>
 
 #include <player/api.h>
@@ -91,11 +83,7 @@ static void BM_RcuPtrMutex(benchmark::State& state) {
 
 static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_LeastLoadPolicyThreadPoolLoggerName,
-        ThreadPriority::NORMAL,
-        kDefaultAffinityCpuCore,
-        std::thread::hardware_concurrency(),
-        TaskSchedulerPolicy::LEAST_LOAD_POLICY);
+        kBM_LeastLoadPolicyThreadPoolLoggerName);
 
     LoggerManager::GetInstance().GetLogger(kBM_LeastLoadPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
@@ -107,39 +95,14 @@ static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
 	    Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
-            }, 16);
-    }
-}
-
-static void BM_RobinStealPolicyThreadPool(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_RobinStealPolicyThreadPoolLoggerName,
-        ThreadPriority::NORMAL,
-        kDefaultAffinityCpuCore,
-        std::thread::hardware_concurrency(),
-        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
-
-    LoggerManager::GetInstance().GetLogger(kBM_RobinStealPolicyThreadPoolLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    const auto length = state.range(0);
-    std::vector<int> n(length);
-    std::iota(n.begin(), n.end(), 1);
-    std::atomic<int64_t> total;
-    for (auto _ : state) {
-        Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
-            total += item;
-            }, 16);
+            }, std::chrono::milliseconds(16));
     }
 }
 
 static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
-        ThreadPriority::NORMAL,
-        kDefaultAffinityCpuCore,
-        std::thread::hardware_concurrency(),
-        TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY);
+        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
@@ -151,29 +114,7 @@ static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
             total += item;
-            }, 16);
-    }
-}
-
-static void BM_RandomPolicyThreadPool(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_RandomPolicyThreadPoolLoggerName,
-        ThreadPriority::NORMAL,
-        kDefaultAffinityCpuCore,
-        std::thread::hardware_concurrency(),
-        TaskSchedulerPolicy::RANDOM_POLICY);
-
-    LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    const auto length = state.range(0);
-    std::vector<int> n(length);
-    std::iota(n.begin(), n.end(), 1);
-    std::atomic<int64_t> total;
-    for (auto _ : state) {
-        Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
-            total += item;
-            }, 16);
+            }, std::chrono::milliseconds(16));
     }
 }
 
@@ -228,44 +169,6 @@ static void BM_std_for_each_par(benchmark::State& state) {
 }
 #endif
 
-#ifdef XAMP_USE_BENCHMAKR
-//static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
-//    Xoshiro256StarStarEngine engine;
-//    for (auto _ : state) {
-//        size_t n = std::uniform_int_distribution<int64_t>(INT32_MIN, INT32_MAX)(engine);
-//        benchmark::DoNotOptimize(n);
-//    }
-//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-//}
-
-//static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
-//    Xoshiro256PlusEngine engine;
-//    for (auto _ : state) {
-//        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
-//        benchmark::DoNotOptimize(n);
-//    }
-//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-//}
-
-//static void BM_Xoshiro256PlusPlusRandom(benchmark::State& state) {
-//    Xoshiro256PlusPlusEngine engine;
-//    for (auto _ : state) {
-//        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
-//        benchmark::DoNotOptimize(n);
-//    }
-//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-//}
-
-static void BM_ChaCha20Random(benchmark::State& state) {
-    ChaChaEngine engine;
-    for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
-        benchmark::DoNotOptimize(n);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
-#endif
-
 static void BM_default_random_engine(benchmark::State& state) {
     std::random_device rd;
     std::default_random_engine engine(rd());
@@ -273,16 +176,16 @@ static void BM_default_random_engine(benchmark::State& state) {
         size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+    state.SetBytesProcessed(sizeof(int64_t) * static_cast<int64_t>(state.iterations()));
 }
 
 static void BM_Sfc64Random(benchmark::State& state) {
-    Sfc64Engine engine;
+	Sfc64Engine<> engine;
     for (auto _ : state) {
         size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+    state.SetBytesProcessed(sizeof(int64_t) * static_cast<int64_t>(state.iterations()));
 }
 
 static void BM_PRNG(benchmark::State& state) {
@@ -299,7 +202,7 @@ static void BM_PRNG_GetInstance(benchmark::State& state) {
         size_t n = Singleton<PRNG>::GetInstance().NextInt64();
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+    state.SetBytesProcessed(sizeof(int64_t) * static_cast<int64_t>(state.iterations()));
 }
 
 static void BM_PRNG_SharedGetInstance(benchmark::State& state) {
@@ -307,7 +210,7 @@ static void BM_PRNG_SharedGetInstance(benchmark::State& state) {
         size_t n = SharedSingleton<PRNG>::GetInstance().NextInt64();
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+    state.SetBytesProcessed(sizeof(int64_t) * static_cast<int64_t>(state.iterations()));
 }
 
 static void BM_ConvertToIntAvx(benchmark::State& state) {
@@ -329,7 +232,7 @@ static void BM_ConvertToIntAvx(benchmark::State& state) {
             Convert(output.data(), input.data(), ctx);
     }
 
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+    state.SetBytesProcessed(length * static_cast<int64_t>(state.iterations()) * sizeof(float));
 }
 
 static void BM_ConvertToShortAvx(benchmark::State& state) {
@@ -810,21 +713,19 @@ static void BM_Rotl(benchmark::State& state) {
     }
 }
 
-#ifdef XAMP_USE_BENCHMAKR
-static void BM_SipHash(benchmark::State& state) {
+static void BM_Blake3Hash(benchmark::State& state) {
     auto length = state.range(0);
     for (auto _ : state) {
         state.PauseTiming();
         auto random_string = Singleton<PRNG>::GetInstance().GetRandomString(length);
+        Blake3Hash hasher;
         state.ResumeTiming();
-        SipHash hasher;
         hasher.Update(random_string);
-        auto result = hasher.GetHash();
+        auto result = hasher.Get64bitHash();
         benchmark::DoNotOptimize(result);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
-#endif
 
 static void BM_GoogleSipHash(benchmark::State& state) {
     auto length = state.range(0);
@@ -840,8 +741,8 @@ static void BM_GoogleSipHash(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_Builtin_Rotl);
 //BENCHMARK(BM_Rotl);
@@ -853,16 +754,11 @@ BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_UuidCompilerTime);
 
-//BENCHMARK(BM_Xoshiro256StarStarRandom);
-//BENCHMARK(BM_Xoshiro256PlusRandom);
-//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-//BENCHMARK(BM_ChaCha20Random);
-//BENCHMARK(BM_PCG32Random);
 //BENCHMARK(BM_Sfc64Random);
 //BENCHMARK(BM_default_random_engine);
 
-//BENCHMARK(BM_SipHash)->RangeMultiplier(2)->Range(128, 8 << 10);
-BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);
+BENCHMARK(BM_Blake3Hash)->RangeMultiplier(2)->Range(128, 8 << 6);
+BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 6);
 
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
@@ -876,9 +772,9 @@ BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 10);
 //BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_LruCache_GetOrAdd)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_LruCache_GetOrAdd)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);

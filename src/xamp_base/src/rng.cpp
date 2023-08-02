@@ -17,7 +17,7 @@ void PRNG::SetSeed(uint64_t seed) {
 }
 
 std::string PRNG::GetRandomString(size_t size) {
-    static constexpr char alphanum[] =
+    static const std::string alphanum =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
@@ -26,7 +26,7 @@ std::string PRNG::GetRandomString(size_t size) {
     temp.reserve(size);
 
     for (size_t i = 0; i < size; ++i) {
-        temp += alphanum[NextInt32(0, sizeof(alphanum) - 1)];
+        temp += alphanum[NextInt32(0, alphanum.length())];
     }
     return temp;
 }

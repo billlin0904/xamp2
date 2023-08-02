@@ -13,20 +13,16 @@
 #include <widget/imagecache.h>
 #include <widget/spotify_utilis.h>
 #include <widget/albumview.h>
-#include <widget/kkbox_utilis.h>
 
 #include <player/ebur128reader.h>
 #include <base/logger_impl.h>
 #include <base/google_siphash.h>
-#include <base/scopeguard.h>
 #include <base/fastmutex.h>
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
 #endif
 
 #include <QJsonDocument>
-#include <QJsonArray>
-#include <QDirIterator>
 #include <QJsonValueRef>
 #include <QThread>
 
@@ -47,19 +43,6 @@ BackgroundWorker::~BackgroundWorker() {
 
 void BackgroundWorker::OnCancelRequested() {
     is_stop_ = true;
-}
-
-namespace lastfm {
-    struct ArtistInfo {
-        QString name;
-        QString mbid;
-        QString url;
-        QString image_url;
-        QString summary;
-    };
-}
-
-void BackgroundWorker::OnGetArtist(const QString& artist) {
 }
 
 void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
@@ -163,7 +146,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
             track_infos.push_back(metadata);
         }
 
-        std::sort(track_infos.begin(), track_infos.end(), [](const auto& first, const auto& last) {
+        std::ranges::sort(track_infos, [](const auto& first, const auto& last) {
             return first.track < last.track;
         });
 
@@ -280,10 +263,9 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
             replay_gain.track_gain.push_back(target_loudness - track_loudness);
         }
 
-        replay_gain.album_peak = *std::max_element(
-            replay_gain.track_peak.begin(),
-            replay_gain.track_peak.end(),
-            [](auto& a, auto& b) {return a < b; }
+        replay_gain.album_peak = *std::ranges::max_element(replay_gain.track_peak
+                                                           ,
+                                                           [](auto& a, auto& b) {return a < b; }
         );
 
         replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
