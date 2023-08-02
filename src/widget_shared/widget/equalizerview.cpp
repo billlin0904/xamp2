@@ -77,6 +77,18 @@ EqualizerView::EqualizerView(QWidget* parent)
         ++band;
     }
 
+    (void)QObject::connect(ui_.resetButton, &QPushButton::clicked, [this]() {
+        
+        });
+
+    (void)QObject::connect(ui_.deleteButton, &QPushButton::clicked, [this]() {
+
+        });
+
+    (void)QObject::connect(ui_.saveButton, &QPushButton::clicked, [this]() {
+
+        });
+
     (void)QObject::connect(ui_.preampSlider, &DoubleSlider::DoubleValueChanged, [this](auto value) {
         PreampValueChange(value);
         ui_.preampDbLabel->setText(FormatDb(value));
