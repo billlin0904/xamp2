@@ -85,37 +85,6 @@ void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, co
         .get();
 }
 
-void BackgroundWorker::OnFetchPodcast(int32_t playlist_id) {
-    XAMP_LOG_DEBUG("Current thread:{}", QThread::currentThreadId());
-
-    auto download_podcast_error = [this](const QString& msg) {
-        XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
-        emit FetchPodcastError(msg);
-    };
-
-    http::HttpClient(qTEXT("https://suisei-podcast.outv.im/meta.json"), this)
-		.error(download_podcast_error)
-        .success([this, download_podcast_error, playlist_id](const QString& json) {
-			XAMP_LOG_DEBUG("Thread:{} Download meta.json ({}) success!", 
-            QThread::currentThreadId(), String::FormatBytes(json.size()));
-
-        	std::string image_url("https://cdn.jsdelivr.net/gh/suisei-cn/suisei-podcast@0423b62/logo/logo-202108.jpg");
-
-			const Stopwatch watch;
-			auto const podcast_info = std::make_pair(image_url, ParseJson(json));
-            XAMP_LOG_DEBUG("Thread:{} Parse meta.json success! {:.2f} sesc",
-                QThread::currentThreadId(), watch.ElapsedSeconds());
-
-            http::HttpClient(QString::fromStdString(podcast_info.first), this)
-                .error(download_podcast_error)
-                .download([this, podcast_info, playlist_id](const QByteArray& data) {
-					XAMP_LOG_DEBUG("Thread:{} Download podcast image file ({}) success!", 
-                    QThread::currentThreadId(), String::FormatBytes(data.size()));
-					emit FetchPodcastCompleted(podcast_info.second, data);
-				});
-            }).get();
-}
-
 #if defined(Q_OS_WIN)
 void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
     MBDiscId mbdisc_id;

@@ -64,9 +64,8 @@ signals:
     void SearchArtistCompleted(const QString& artist, const QByteArray& image);
 
     void TranslationCompleted(const QString& keyword, const QString& result);
-public Q_SLOT:
-	void OnFetchPodcast(int32_t playlist_id);
 
+public Q_SLOT:
     void OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
 
     void OnBlurImage(const QString &cover_id, const QPixmap& image, QSize size);

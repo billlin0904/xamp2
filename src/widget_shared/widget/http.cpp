@@ -401,6 +401,7 @@ QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<Htt
 
     request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     return request;
 }
 
