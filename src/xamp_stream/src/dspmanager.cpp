@@ -62,7 +62,7 @@ void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
 }
 
 IDSPManager& DSPManager::RemoveEqualizer() {
-    RemovePreDSP<BassEqualizer>();
+    RemovePostDSP<BassEqualizer>();
     return *this;
 }
 
