@@ -102,6 +102,21 @@ static void LoadR8BrainSetting() {
     }
 }
 
+static QString GetLogLevelString(LogLevel level) {
+    const static QMap<LogLevel, QString> logs{
+        { LogLevel::LOG_LEVEL_INFO, qTEXT("info") },
+        { LogLevel::LOG_LEVEL_DEBUG, qTEXT("debug") },
+        { LogLevel::LOG_LEVEL_TRACE, qTEXT("trace") },
+        { LogLevel::LOG_LEVEL_WARN, qTEXT("warn") },
+        { LogLevel::LOG_LEVEL_ERROR, qTEXT("err") },
+        { LogLevel::LOG_LEVEL_CRITICAL, qTEXT("critical") },
+    };
+    if (!logs.contains(level)) {
+        return qTEXT("info");
+    }
+    return logs[level];
+}
+
 static LogLevel ParseLogLevel(const QString &str) {
     const static QMap<QString, LogLevel> logs{
     	{ qTEXT("info"), LogLevel::LOG_LEVEL_INFO},
@@ -112,7 +127,7 @@ static LogLevel ParseLogLevel(const QString &str) {
         { qTEXT("critical"), LogLevel::LOG_LEVEL_CRITICAL},
     };
     if (!logs.contains(str)) {
-        return LogLevel::LOG_LEVEL_INFO;
+        return LOG_LEVEL_INFO;
     }
     return logs[str];
 }
@@ -125,7 +140,7 @@ static void SaveLogConfig() {
 
     for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
         if (logger->GetName() != std::string(kXampLoggerName)) {
-            well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
+            well_known_log_name[FromStdStringView(logger->GetName())] = GetLogLevelString(logger->GetLevel());
         }
     }
 

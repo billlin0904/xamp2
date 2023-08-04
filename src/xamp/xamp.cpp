@@ -387,8 +387,7 @@ static DsdModes GetDsdModes(const DeviceInfo& device_info,
     const auto is_enable_sample_rate_converter = target_sample_rate > 0;
     const auto is_dsd_file = IsDsdFile(file_path);
 
-    if (AppSettings::ValueAsBool(kEnablePcm2Dsd)
-        && !is_dsd_file
+    if (!is_dsd_file
         && !is_enable_sample_rate_converter
         && input_sample_rate % kPcmSampleRate441 == 0) {
         dsd_modes = DsdModes::DSD_MODE_AUTO;
@@ -2231,11 +2230,6 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &ExtractFileWorker::OnExtractFile);
 
     if (playlist_page->playlist()->IsPodcastMode()) {
-        (void)QObject::connect(playlist_page->playlist(),
-            &PlayListTableView::FetchPodcast,
-            background_worker_.get(),
-            &BackgroundWorker::OnFetchPodcast);
-
         (void)QObject::connect(background_worker_.get(),
             &BackgroundWorker::FetchPodcastCompleted,
             playlist_page->playlist(),

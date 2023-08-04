@@ -75,10 +75,6 @@ IMPL_APP_SETTING_NAME(SoxrRollOffLevel, "rolloffLevel");
 
 IMPL_APP_SETTING_NAME(R8Brain, "R8Brain");
 
-IMPL_APP_SETTING_NAME(PCM2DSD, "Pcm2Dsd");
-IMPL_APP_SETTING_NAME(PCM2DSDDsdTimes, "Pcm2DsdTimes");
-IMPL_APP_SETTING_NAME(EnablePcm2Dsd, "AppSettings/enablePcm2Dsd");
-
 IMPL_APP_SETTING_NAME(Log, "Log");
 IMPL_APP_SETTING_NAME(LogMinimumLevel, "MinimumLevel");
 IMPL_APP_SETTING_NAME(LogDefault, "Default");
