@@ -242,7 +242,7 @@ void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, 
 
     LogHttpRequest(context.logger, RequestVerb(operation, request), request);
 
-    QObject::connect(reply,
+    (void) QObject::connect(reply,
         &QNetworkReply::downloadProgress,
         [reply, context, d](auto ready, auto total) {
             HandleProgress(context, reply, ready, total);
@@ -394,10 +394,10 @@ QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<Htt
     request.setRawHeader("X-Request-ID", request_id);
 
     // todo: Add GZIP support.
-    if (isLoadZib()) {
+    /*if (isLoadZib()) {
         request.setRawHeader("Accept-Encoding", "gzip");
         XAMP_LOG_D(d->logger_, "Use gzip compression.");
-    }
+    }*/
 
     request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);

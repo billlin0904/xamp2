@@ -14,16 +14,7 @@
 #include <widget/albumview.h>
 #include <widget/databasefacade.h>
 
-using DirPathHash = GoogleSipHash<>;
-
 XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
-
-static constexpr auto MakFilePathHash() noexcept -> DirPathHash {
-    constexpr uint64_t kDirHashKey1 = 0x7720796f726c694bUL;
-    constexpr uint64_t kDirHashKey2 = 0x2165726568207361UL;
-
-    return {kDirHashKey1, kDirHashKey2};
-}
 
 static size_t GetFileCount(const QString& dir, const QStringList& file_name_filters) {
     if (QFileInfo(dir).isFile()) {
@@ -98,7 +89,6 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
                                       int32_t playlist_id) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     FloatMap<std::wstring, Vector<Path>> directory_files;
-    //auto hasher = MakFilePathHash();
     Blake3Hash hasher;
 
     while (itr.hasNext()) {
@@ -108,7 +98,7 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
         if (!directory_files.contains(directory)) {
             directory_files[directory].reserve(kReserveSize);
         }
-        directory_files[directory].push_back(path);       
+        directory_files[directory].emplace_back(path);       
         hasher.Update(path);
     }
 
@@ -120,7 +110,7 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
         const auto next_path = ToNativeSeparators(dir);
         const auto path = next_path.toStdWString();
         const auto directory = QFileInfo(dir).dir().path().toStdWString();
-        directory_files[directory].push_back(path);
+        directory_files[directory].emplace_back(path);
         hasher.Update(path);
     }
 
@@ -176,7 +166,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, GetFileNameFilter(), filter);
-    auto hasher = MakFilePathHash();
+    Blake3Hash hasher;
 
     Vector<QString> paths;
     paths.reserve(kReserveSize);
@@ -199,7 +189,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     );
 
     auto database_pool = GetPooledDatabase();
-    const auto path_hash = hasher.GetHash();
+    const auto path_hash = hasher.Get64bitHash();
 
     try {
         const auto db_hash = database_pool->Acquire()->GetParentPathHash(ToNativeSeparators(file_path));

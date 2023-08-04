@@ -147,9 +147,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	}
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
-		//auto indicator = MakeProcessIndicator(this);
-		//indicator->StartAnimation();		
-		//Delay(1);
 		album_view_->FilterCategories(tags);
 		album_view_->Update();
 		});

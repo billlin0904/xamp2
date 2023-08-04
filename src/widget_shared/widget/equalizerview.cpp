@@ -77,6 +77,15 @@ EqualizerView::EqualizerView(QWidget* parent)
         ++band;
     }
 
+    (void)QObject::connect(ui_.resetButton, &QPushButton::clicked, [this]() {
+        auto [name, settings] = AppSettings::GetEqSettings();
+        for (auto &band : settings.bands) {
+            band.gain = 0;
+        }
+        settings.preamp = 0;
+        ApplySetting(name, settings);
+        });
+
     (void)QObject::connect(ui_.preampSlider, &DoubleSlider::DoubleValueChanged, [this](auto value) {
         PreampValueChange(value);
         ui_.preampDbLabel->setText(FormatDb(value));

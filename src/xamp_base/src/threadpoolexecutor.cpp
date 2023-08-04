@@ -18,23 +18,23 @@ inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxStealFailureSize = 500;
 inline constexpr auto kMaxWorkQueueSize = 65536;
+inline constexpr size_t kMaxThreadPoolSize = 8;
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, const CpuAffinity& affinity, ThreadPriority priority)
 	: TaskScheduler(TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
 }
 
 TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
-	, last_idle_thread_count_(max_thread - 1)
-	, max_thread_(max_thread)
+	, max_thread_(std::max(max_thread, kMaxThreadPoolSize))
 	, min_thread_(1)
 	, thread_priority_(priority)
 	, pool_name_(pool_name)
 	, task_execute_flags_(max_thread_)
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy))
-	, work_done_(max_thread_)
+	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1) {
 	logger_ = LoggerManager::GetInstance().GetLogger(pool_name);
 	try {

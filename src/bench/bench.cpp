@@ -93,9 +93,9 @@ static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-	    Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
+        Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            }, std::chrono::milliseconds(16));
+            });
     }
 }
 
@@ -112,9 +112,9 @@ static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        Executor::ParallelFor(*thread_pool, n, [&total](auto item) {
+        Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            }, std::chrono::milliseconds(16));
+            });
     }
 }
 
@@ -461,58 +461,6 @@ static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(int8_t));
 }
 
-static void BM_FastMemcpy(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto src = MakeAlignedArray<int8_t>(length);
-    auto dest = MakeAlignedArray<int8_t>(length);
-
-    for (auto _ : state) {
-        MemoryCopy(dest.get(), src.get(), length);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length);
-}
-
-static void BM_StdtMemcpy(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto src = MakeAlignedArray<int8_t>(length);
-    auto dest = MakeAlignedArray<int8_t>(length);
-
-    for (auto _ : state) {
-        std::memcpy(dest.get(), src.get(), length);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length);
-}
-
-static void BM_FastMemset(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto src = MakeAlignedArray<int8_t>(length);
-    auto dest = MakeAlignedArray<int8_t>(length);
-
-    for (auto _ : state) {
-        MemorySet(dest.get(), 0, length);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length);
-}
-
-static void BM_StdtMemset(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto src = MakeAlignedArray<int8_t>(length);
-    auto dest = MakeAlignedArray<int8_t>(length);
-
-    for (auto _ : state) {
-        std::memset(dest.get(), 0, length);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length);
-}
-
 static void BM_FindRobinHoodHashMap(benchmark::State& state) {
     HashMap<int64_t, int64_t> map;
     for (auto _ : state) {
@@ -687,32 +635,6 @@ static void BM_Spinlock(benchmark::State& state) {
     }
 }
 
-static void BM_BlockingQueue(benchmark::State& state) {
-}
-
-static void BM_SpmcQueue(benchmark::State& state) {
-}
-
-static void BM_Builtin_Rotl(benchmark::State& state) {
-    for (auto _ : state) {
-#ifdef XAMP_OS_WIN
-        auto result = _rotl64(0x76e15d3efefdcbbf, 7);
-#else
-        auto result = __builtin_rotateleft64(0x76e15d3efefdcbbf, 7);
-#endif
-        benchmark::DoNotOptimize(result);
-        benchmark::ClobberMemory();
-    }
-}
-
-static void BM_Rotl(benchmark::State& state) {
-    for (auto _ : state) {
-        auto result = Rotl64(0x76e15d3efefdcbbf, 7);
-        benchmark::DoNotOptimize(result);
-        benchmark::ClobberMemory();
-    }
-}
-
 static void BM_Blake3Hash(benchmark::State& state) {
     auto length = state.range(0);
     for (auto _ : state) {
@@ -757,8 +679,8 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_Sfc64Random);
 //BENCHMARK(BM_default_random_engine);
 
-BENCHMARK(BM_Blake3Hash)->RangeMultiplier(2)->Range(128, 8 << 6);
-BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 6);
+//BENCHMARK(BM_Blake3Hash)->RangeMultiplier(2)->Range(128, 8 << 6);
+//BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 6);
 
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);
@@ -777,7 +699,7 @@ BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 6);
 //BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
-//BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_StdMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
@@ -796,13 +718,13 @@ BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 6);
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
+
 //#ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#endif
-
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);

@@ -63,10 +63,13 @@ void PlaylistPage::Initial() {
 	f.setWeight(QFont::DemiBold);
 	f.setPointSize(qTheme.GetFontSize(20));
 
+	QFontMetrics metrics(f);
+	const auto font_height = metrics.height();
+
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->setMinimumSize(QSize(0, 40));
-	title_->setMaximumSize(QSize(16777215, 40));
+	title_->setMinimumSize(QSize(0, font_height));
+	title_->setMaximumSize(QSize(16777215, font_height));
 	title_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	heart_button_ = new QToolButton(this);

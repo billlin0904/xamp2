@@ -70,12 +70,12 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
 }
 
 QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
-    static const QString kJop = "jpop";
-    QStringList normalizedTags;
+    static constexpr auto kJop = qTEXT("jpop");
+    QStringList normalized_tags;
 
-    if (genre.isEmpty()) return normalizedTags;
+    if (genre.isEmpty()) return normalized_tags;
 
-    if (genre.length() == 1 && genre[0] == ' ') return normalizedTags;
+    if (genre.length() == 1 && genre[0] == ' ') return normalized_tags;
 
     auto tags = genre.split(QRegExp("\\s*,\\s*"), Qt::SkipEmptyParts);
 
@@ -91,7 +91,7 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
                 if (s == kJop) {
                     s = "j-pop";
                 }
-                normalizedTags.append(s);
+                normalized_tags.append(s);
             }            
         }
         else {
@@ -102,11 +102,11 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
             if (s == kJop) {
                 s = "j-pop";
             }
-            normalizedTags.append(s);
+            normalized_tags.append(s);
         }
     }
 
-    return normalizedTags;
+    return normalized_tags;
 }
 
 void NormalizeArtist(QString &artist, QStringList &artists) {
@@ -130,9 +130,9 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
     int32_t playlist_id,
     bool is_podcast) {
     const Stopwatch sw;
-    constexpr ConstLatin1String kHiRes("hires");    
-    constexpr ConstLatin1String kDsdCategory("dsd");
-    constexpr auto k24Bit96KhzBitRate = 4608;
+    static constexpr auto kHiRes = qTEXT("HiRes");
+    static constexpr auto kDsdCategory = qTEXT("DSD");
+    static constexpr auto k24Bit96KhzBitRate = 4608;
 
     const std::wstring kDffExtension(L".dff");
     const std::wstring kDsfExtension(L".dsf");
@@ -140,10 +140,11 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
     FloatMap<QString, int32_t> artist_id_cache;
     FloatMap<QString, int32_t> album_id_cache;
     FloatMap<int32_t, QString> cover_id_cache;
-    CoverArtReader reader;
-    
-    auto album_year = result.front().year;
-    auto album_genre = NormalizeGenre(QString::fromStdWString(result.front().genre)).join(",");
+    HashSet<bool> find_cover_state_cache;
+    const CoverArtReader reader;
+
+    const auto album_year = result.front().year;
+    const auto album_genre = NormalizeGenre(QString::fromStdWString(result.front().genre)).join(",");
     
 	for (const auto& track_info : result) {        
         auto file_path = QString::fromStdWString(track_info.file_path);
@@ -229,8 +230,13 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
             continue;
         }
 
+        if (find_cover_state_cache.contains(album_id)) {
+            continue;
+        }
+
         const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
+            find_cover_state_cache.insert(album_id);
             emit FindAlbumCover(album_id, album, track_info.file_path);
         }
         else {

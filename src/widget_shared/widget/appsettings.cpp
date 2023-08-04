@@ -57,7 +57,6 @@ void AppSettings::LoadEqPreset() {
         if (file.open(QIODevice::ReadOnly)) {
             QTextStream in(&file);
             EqSettings settings;
-            //settings.SetDefault();
             int i = 0;
             while (!in.atEnd()) {
                 auto line = in.readLine();
@@ -85,7 +84,9 @@ void AppSettings::LoadEqPreset() {
             eq_settings_[file_info.baseName()] = settings;
         }
     }
-    eq_settings_[qTEXT("Manual")] = EqSettings();
+    EqSettings default_settings;
+    default_settings.SetDefault();
+    eq_settings_[qTEXT("Manual")] = default_settings;
 }
 
 void AppSettings::save() {

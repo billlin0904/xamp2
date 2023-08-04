@@ -110,9 +110,9 @@ TagListView::TagListView(QWidget* parent)
 		}
 		});
 
-	auto* tagLayout = new QVBoxLayout();
-	tagLayout->addWidget(taglist_);
-	setLayout(tagLayout);
+	auto* tag_layout = new QVBoxLayout();
+	tag_layout->addWidget(taglist_);
+	setLayout(tag_layout);
 }
 
 void TagListView::SetListViewFixedHeight(int32_t height) {
@@ -168,12 +168,12 @@ void TagListView::EnableTag(const QString& tag) {
 }
 
 void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
-	auto items = taglist_->findItems(tag, Qt::MatchContains);
+	const auto items = taglist_->findItems(tag, Qt::MatchContains);
 	if (!items.isEmpty()) {
 		return;
 	}
-	
-	auto color = qTheme.GetHighlightColor();
+
+	const auto color = qTheme.GetHighlightColor();
 
 	auto f = font();
 	auto* layout = new QHBoxLayout();
@@ -182,11 +182,11 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 
 	auto* item = new TagWidgetItem(tag, color, tag_label, taglist_);
 	f.setBold(true);
-	f.setPointSize(qTheme.GetFontSize(8));
+	f.setPointSize(qTheme.GetFontSize(10));
 	tag_label->setFont(f);
 
 	if (!uniform_item_sizes) {
-		QFontMetrics metrics(f);
+		const QFontMetrics metrics(f);
 		auto width = metrics.horizontalAdvance(tag) * 1.25;
 		item->setSizeHint(QSize(width, 30));
 	}
@@ -208,14 +208,5 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 }
 
 void TagListView::ClearTag() {
-	/*for (auto i = 0; i < taglist_->count(); ++i) {
-		const auto item = dynamic_cast<TagWidgetItem*>(taglist_->takeItem(i));
-		if (!item) {
-			continue;
-		}		
-		taglist_->removeItemWidget(item);
-		auto *iw = taglist_->itemWidget(item);
-		iw->deleteLater();
-	}*/
 	taglist_->clear();
 }

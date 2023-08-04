@@ -42,7 +42,7 @@ public:
         eq.lChannel = BASS_BFX_CHANALL;
         BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handle, &eq));
         fx_handles_.push_back(fx_handle);
-        XAMP_LOG_D(logger_, "Add band {}Hz {}dB Q:{} successfully!", freq, gain, Q);
+        XAMP_LOG_D(logger_, "Add band {}Hz {}dB Q:{} Bandwidth:{} successfully!", freq, gain, Q, eq.fBandwidth);
     }
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {

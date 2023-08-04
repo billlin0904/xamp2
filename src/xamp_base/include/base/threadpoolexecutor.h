@@ -34,7 +34,7 @@ public:
     */
     TaskScheduler(const std::string_view & pool_name,
         size_t max_thread,
-        CpuAffinity affinity,
+        const CpuAffinity& affinity,
         ThreadPriority priority);
 
     /*
@@ -101,7 +101,6 @@ private:
 
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
-    std::atomic<size_t> last_idle_thread_count_;
     size_t max_thread_;
     size_t min_thread_;
     FastMutex mutex_;
