@@ -503,7 +503,7 @@ size_t GetAvailablePhysicalMemory() {
     MEMORYSTATUSEX memory_status{};
     memory_status.dwLength = sizeof(memory_status);
     ::GlobalMemoryStatusEx(&memory_status);
-    return memory_status.ullAvailPhys;;
+    return memory_status.ullAvailPhys;
 }
 
 bool SetFileLowIoPriority(int32_t handle) {
