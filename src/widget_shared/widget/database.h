@@ -289,4 +289,4 @@ using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>
 
 PooledDatabasePtr GetPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
-#define qDatabase SharedSingleton<Database>::GetInstance()
+#define qMainDb SharedSingleton<Database>::GetInstance()

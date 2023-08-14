@@ -82,7 +82,7 @@ void PlaylistPage::Initial() {
 	(void)QObject::connect(heart_button_, &QToolButton::pressed, [this]() {
 		if (album_id_) {
 			album_heart_ = ~album_heart_;
-			qDatabase.UpdateAlbumHeart(album_id_.value(), album_heart_);
+			qMainDb.UpdateAlbumHeart(album_id_.value(), album_heart_);
 			qTheme.SetHeartButton(heart_button_, album_heart_);
 		}
 		});

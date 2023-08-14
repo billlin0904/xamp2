@@ -133,7 +133,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 	f.setPointSize(qTheme.GetFontSize(10));
 
-	auto title_category_list = qDatabase.GetCategories();
+	auto title_category_list = qMainDb.GetCategories();
 
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->SetListViewFixedHeight(70);
@@ -251,7 +251,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_frame_layout->addWidget(album_view_, 1);
 
 	genre_stackwidget_ = new GenreViewPage(this);
-	auto genres_list = qDatabase.GetGenres();
+	auto genres_list = qMainDb.GetGenres();
 	std::sort(genres_list.begin(), genres_list.end());
 
 	Q_FOREACH(auto genre, genres_list) {
@@ -382,7 +382,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_view_ = new AlbumView();
 	year_tag_list_widget_ = new TagListView();
 	year_tag_list_widget_->setSizePolicy(size_policy_1);
-	Q_FOREACH (auto year, qDatabase.GetYears()) {
+	Q_FOREACH (auto year, qMainDb.GetYears()) {
 		year_tag_list_widget_->AddTag(year, true);
 	}	
 	year_frame_layout->addWidget(year_tag_list_widget_);
@@ -450,11 +450,11 @@ void AlbumArtistPage::Refresh() {
 	artist_view_->Refresh();	
 	genre_stackwidget_->Refresh();
 
-	Q_FOREACH(auto category, qDatabase.GetCategories()) {
+	Q_FOREACH(auto category, qMainDb.GetCategories()) {
 		album_tag_list_widget_->AddTag(category);
 	}
 
-	auto years = qDatabase.GetYears();
+	auto years = qMainDb.GetYears();
 	Q_FOREACH(auto year, years) {
 		year_tag_list_widget_->AddTag(year, true);
 	}
@@ -462,7 +462,7 @@ void AlbumArtistPage::Refresh() {
 		year_tag_list_widget_->EnableTag(years.first());
 	}	
 
-	auto genres_list = qDatabase.GetGenres();
+	auto genres_list = qMainDb.GetGenres();
 	std::sort(genres_list.begin(), genres_list.end());
 
 	Q_FOREACH(auto genre, genres_list) {

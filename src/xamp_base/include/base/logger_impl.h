@@ -67,11 +67,11 @@ public:
 
     void SetLevel(LogLevel level);
 
-    LogLevel GetLevel() const;
+    [[nodiscard]] LogLevel GetLevel() const;
 
-    const std::string & GetName() const;
+    [[nodiscard]] const std::string & GetName() const;
 
-    bool ShouldLog(LogLevel level) const;
+    [[nodiscard]] bool ShouldLog(LogLevel level) const;
 
     template <typename... Args>
     void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
@@ -105,7 +105,7 @@ public:
 
     LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    Logger* GetDefaultLogger() noexcept {
+    [[nodiscard]] Logger* GetDefaultLogger() const noexcept {
         return default_logger_.get();
     }
 

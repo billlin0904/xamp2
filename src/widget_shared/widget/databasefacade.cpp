@@ -171,10 +171,10 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
 			artist = tr("Unknown artist");
 		}
 
-        const auto music_id = qDatabase.AddOrUpdateMusic(track_info);
+        const auto music_id = qMainDb.AddOrUpdateMusic(track_info);
         int32_t artist_id = 0;
         if (!artist_id_cache.contains(artist)) {
-            artist_id = qDatabase.AddOrUpdateArtist(artist);
+            artist_id = qMainDb.AddOrUpdateArtist(artist);
             artist_id_cache[artist] = artist_id;
         } else {
             artist_id = artist_id_cache[artist];
@@ -182,9 +182,9 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
 
         XAMP_EXPECTS(artist_id != 0);
 
-        auto album_id = qDatabase.GetAlbumId(album);
+        auto album_id = qMainDb.GetAlbumId(album);
         if (album_id == kInvalidDatabaseId) {
-            album_id = qDatabase.AddOrUpdateAlbum(album,
+            album_id = qMainDb.AddOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
@@ -193,28 +193,28 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
                 album_genre);
             album_id_cache[album] = album_id;
             for (const auto &category : GetAlbumCategories(album)) {
-                qDatabase.AddOrUpdateAlbumCategory(album_id, category);
+                qMainDb.AddOrUpdateAlbumCategory(album_id, category);
             }
             
             if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
-                qDatabase.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
+                qMainDb.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-                qDatabase.AddOrUpdateAlbumCategory(album_id, kHiRes);
+                qMainDb.AddOrUpdateAlbumCategory(album_id, kHiRes);
 			}            
         }
 
         XAMP_EXPECTS(album_id != 0);
 
 		if (playlist_id != -1) {
-            qDatabase.AddMusicToPlaylist(music_id, playlist_id, album_id);
+            qMainDb.AddMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-        qDatabase.AddOrUpdateAlbumMusic(album_id, artist_id, music_id);
-        qDatabase.AddOrUpdateAlbumArtist(album_id, artist_id);
+        qMainDb.AddOrUpdateAlbumMusic(album_id, artist_id, music_id);
+        qMainDb.AddOrUpdateAlbumArtist(album_id, artist_id);
         for (const auto& multi_artist : artists) {
-            auto id = qDatabase.AddOrUpdateArtist(multi_artist);
-            qDatabase.AddOrUpdateAlbumArtist(album_id, id);
+            auto id = qMainDb.AddOrUpdateArtist(multi_artist);
+            qMainDb.AddOrUpdateAlbumArtist(album_id, id);
         }
 
         if (!is_file_path) {
@@ -222,7 +222,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
         }
 
         if (!cover.isNull()) {
-            qDatabase.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
+            qMainDb.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
             continue;
         }
 
@@ -234,7 +234,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
             continue;
         }
 
-        const auto cover_id = qDatabase.GetAlbumCoverId(album_id);
+        const auto cover_id = qMainDb.GetAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             find_cover_state_cache.insert(album_id);
             emit FindAlbumCover(album_id, album, track_info.file_path);
@@ -252,12 +252,12 @@ void DatabaseFacade::InsertTrackInfo(const Vector<TrackInfo>& result,
     int32_t playlist_id, 
     bool is_podcast_mode) {
     try {
-        if (!qDatabase.transaction()) {
+        if (!qMainDb.transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
             return;
         }
         AddTrackInfo(result, playlist_id, is_podcast_mode);       
-        if (!qDatabase.commit()) {
+        if (!qMainDb.commit()) {
             XAMP_LOG_DEBUG("Failed to commit!");
         }
         return;
@@ -271,7 +271,7 @@ void DatabaseFacade::InsertTrackInfo(const Vector<TrackInfo>& result,
     catch (...) {
         XAMP_LOG_DEBUG("Failed to add track info!");
     }
-    qDatabase.rollback();
+    qMainDb.rollback();
 }
 
 TrackInfo GetTrackInfo(QString const& file_path) {

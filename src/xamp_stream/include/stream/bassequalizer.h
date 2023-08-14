@@ -34,7 +34,7 @@ public:
 
     uint32_t Process(float const* samples, float* out, uint32_t num_samples) override;
 
-    Uuid GetTypeId() const override;
+    [[nodiscard]] Uuid GetTypeId() const override;
 
     void SetPreamp(float preamp);
 

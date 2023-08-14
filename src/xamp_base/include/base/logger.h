@@ -24,7 +24,7 @@ XAMP_DECLARE_LOG_NAME(CoreAudio);
 	
 XAMP_BASE_NAMESPACE_END
 
-#define XAMP_DEFAULT_LOG() xamp::base::LoggerManager::GetInstance()
+#define XAM_LOG_MANAGER() xamp::base::LoggerManager::GetInstance()
 
 #define XAMP_LOG(Level, Format, ...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->Log(Level, __FILE__, __LINE__, __FUNCTION__, Format, __VA_ARGS__)
 #define XAMP_LOG_DEBUG(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogDebug(__VA_ARGS__)

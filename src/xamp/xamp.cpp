@@ -870,7 +870,7 @@ void Xamp::SliderAnimation(bool enable) {
     auto* animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
     const auto slider_geometry = ui_.sliderFrame->geometry();
     constexpr auto kMaxSliderWidth = 175;
-    constexpr auto kMinSliderWidth = 50;
+    constexpr auto kMinSliderWidth = 40;
     QSize size;
     if (!enable) {
         ui_.searchFrame->hide();
@@ -912,7 +912,7 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.heartButton, &QToolButton::pressed, [this]() {
         if (current_entity_) {
             current_entity_.value().heart = ~current_entity_.value().heart;
-            qDatabase.UpdateMusicHeart(current_entity_.value().music_id, current_entity_.value().heart);
+            qMainDb.UpdateMusicHeart(current_entity_.value().music_id, current_entity_.value().heart);
             qTheme.SetHeartButton(ui_.heartButton, current_entity_.value().heart);
         }        
         });
@@ -1079,7 +1079,7 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.naviBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
-        qDatabase.SetTableName(table_id, name);
+        qMainDb.SetTableName(table_id, name);
     });
 
     QTimer::singleShot(500, [this]() {
@@ -1166,7 +1166,7 @@ void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
 void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& image) {
     QPixmap cover;
     if (cover.loadFromData(image)) {        
-        qDatabase.UpdateArtistCoverId(qDatabase.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
+        qMainDb.UpdateArtistCoverId(qMainDb.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
     }
     emit Translation(artist, qTEXT("ja"), qTEXT("en"));
     //emit Translation(artist, qTEXT("en"), qTEXT("ja"));
@@ -1175,7 +1175,7 @@ void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& imag
 
 void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
     lrc_page_->lyrics()->SetLrc(lyrics, trlyrics);
-    qDatabase.AddOrUpdateLyrc(music_id, lyrics, trlyrics);
+    qMainDb.AddOrUpdateLyrc(music_id, lyrics, trlyrics);
 }
 
 void Xamp::SetFullScreen() {
@@ -1249,7 +1249,7 @@ void Xamp::GetNextPage() {
 }
 
 void Xamp::SetTablePlaylistView(int table_id, ConstLatin1String column_setting_name) {
-	const auto playlist_id = qDatabase.FindTablePlaylistId(table_id);
+	const auto playlist_id = qMainDb.FindTablePlaylistId(table_id);
 
     auto found = false;
     Q_FOREACH(auto idx, stack_page_id_) {
@@ -1658,7 +1658,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     lrc_page_->spectrum()->SetFftSize(state_adapter_->GetFftSize());
     lrc_page_->spectrum()->SetSampleRate(playback_format.output_format.GetSampleRate());
 
-    auto lyrc_opt = qDatabase.GetLyrc(item.music_id);
+    auto lyrc_opt = qMainDb.GetLyrc(item.music_id);
     if (!lyrc_opt) {
         emit SearchLyrics(item.music_id, item.title, item.artist);
     } else {
@@ -1676,17 +1676,17 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     const auto artist = QString::fromStdWString(mb_disc_id_info.artist);
     
     if (!album.isEmpty()) {
-        qDatabase.UpdateAlbumByDiscId(disc_id, album);
+        qMainDb.UpdateAlbumByDiscId(disc_id, album);
     }
     if (!artist.isEmpty()) {
-        qDatabase.UpdateArtistByDiscId(disc_id, artist);
+        qMainDb.UpdateArtistByDiscId(disc_id, artist);
     }
 
-	const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
+	const auto album_id = qMainDb.GetAlbumIdByDiscId(disc_id);
 
     if (!mb_disc_id_info.tracks.empty()) {
         QList<PlayListEntity> entities;
-        qDatabase.ForEachAlbumMusic(album_id, [&entities](const auto& entity) {
+        qMainDb.ForEachAlbumMusic(album_id, [&entities](const auto& entity) {
             entities.append(entity);
             });
         std::sort(entities.begin(), entities.end(), [](const auto& a, const auto& b) {
@@ -1694,7 +1694,7 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
             });
         auto i = 0;
         Q_FOREACH(const auto track, mb_disc_id_info.tracks) {
-            qDatabase.UpdateMusicTitle(entities[i++].music_id, QString::fromStdWString(track.title));
+            qMainDb.UpdateMusicTitle(entities[i++].music_id, QString::fromStdWString(track.title));
         }
     }    
 
@@ -1703,7 +1703,7 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
         cd_page_->playlistPage()->playlist()->Reload();
     }
 
-    if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
+    if (const auto album_stats = qMainDb.GetAlbumStats(album_id)) {
         cd_page_->playlistPage()->format()->setText(tr("%1 Songs, %2, %3")
             .arg(QString::number(album_stats.value().songs))
             .arg(FormatDuration(album_stats.value().durations))
@@ -1712,13 +1712,13 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 }
 
 void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
-	const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
-    qDatabase.SetAlbumCover(album_id, cover_id);
+	const auto album_id = qMainDb.GetAlbumIdByDiscId(disc_id);
+    qMainDb.SetAlbumCover(album_id, cover_id);
 }
 
 void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos) {
-    const auto album_id = qDatabase.GetAlbumIdByDiscId(disc_id);
-    qDatabase.RemoveAlbum(album_id);
+    const auto album_id = qMainDb.GetAlbumIdByDiscId(disc_id);
+    qMainDb.RemoveAlbum(album_id);
     cd_page_->playlistPage()->playlist()->RemoveAll();
     DatabaseFacade facade;
     facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);    
@@ -1807,7 +1807,7 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 
 void Xamp::AddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
 	auto *playlist_view = playlist_page_->playlist();
-    qDatabase.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
+    qMainDb.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
     playlist_view->AddPendingPlayListFromModel(order_);    
 }
 
@@ -1854,7 +1854,7 @@ void Xamp::InitialPlaylist() {
     ui_.naviBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
 
-    qDatabase.ForEachTable([this](auto table_id,
+    qMainDb.ForEachTable([this](auto table_id,
         auto /*table_index*/,
         auto playlist_id,
         const auto& name) {
@@ -1877,8 +1877,8 @@ void Xamp::InitialPlaylist() {
 
     if (!playlist_page_) {
         auto playlist_id = kDefaultPlaylistId;
-        if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(kEmptyString, 0);
+        if (!qMainDb.IsPlaylistExist(playlist_id)) {
+            playlist_id = qMainDb.AddPlaylist(kEmptyString, 0);
         }
         playlist_page_.reset(NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName));
         ConnectPlaylistPageSignal(playlist_page_.get());
@@ -1895,8 +1895,8 @@ void Xamp::InitialPlaylist() {
     if (!file_system_view_page_) {
         file_system_view_page_.reset(new FileSystemViewPage(this));
         auto playlist_id = kDefaultFileExplorerPlaylistId;
-        if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(kEmptyString, 2);
+        if (!qMainDb.IsPlaylistExist(playlist_id)) {
+            playlist_id = qMainDb.AddPlaylist(kEmptyString, 2);
         }
         file_system_view_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
         file_system_view_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
@@ -1906,8 +1906,8 @@ void Xamp::InitialPlaylist() {
 
     if (!cd_page_) {
         auto playlist_id = kDefaultCdPlaylistId;
-        if (!qDatabase.IsPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.AddPlaylist(kEmptyString, 4);
+        if (!qMainDb.IsPlaylistExist(playlist_id)) {
+            playlist_id = qMainDb.AddPlaylist(kEmptyString, 4);
         }
         cd_page_.reset(new CdPage(this));
         cd_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
@@ -1956,8 +1956,8 @@ void Xamp::InitialPlaylist() {
         album_page_.get(),
         &AlbumArtistPage::OnThemeColorChanged);
 
-    if (!qDatabase.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
-        qDatabase.AddPlaylist(kEmptyString, 1);
+    if (!qMainDb.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
+        qMainDb.AddPlaylist(kEmptyString, 1);
     }
 
     // TODO:
@@ -2309,12 +2309,12 @@ void Xamp::OnReadFilePath(const QString& file_path) {
 void Xamp::OnSetAlbumCover(int32_t album_id,
     const QString& album,
     const QString& cover_id) {
-    qDatabase.SetAlbumCover(album_id, album, cover_id);
+    qMainDb.SetAlbumCover(album_id, album, cover_id);
     album_page_->Refresh();
 }
 
 void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result) {
-    qDatabase.UpdateArtistEnglishName(keyword, result);
+    qMainDb.UpdateArtistEnglishName(keyword, result);
 }
 
 void Xamp::OnReadFileProgress(int32_t progress) {

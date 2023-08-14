@@ -279,7 +279,7 @@ void PlayListTableView::Reload() {
         )");
     }
 
-    const QSqlQuery query(s.arg(playlist_id_), qDatabase.database());
+    const QSqlQuery query(s.arg(playlist_id_), qMainDb.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
@@ -311,7 +311,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     playlist_id_ = playlist_id;
     column_setting_name_ = column_setting_name;
 
-    qDatabase.ClearNowPlaying(playlist_id_);
+    qMainDb.ClearNowPlaying(playlist_id_);
 
     Reload();
 
@@ -498,7 +498,7 @@ void PlayListTableView::initial() {
         auto index = model()->index(start_editor->row(), PLAYLIST_RATING);
         auto item = GetEntity(index);
         item.rating = start_editor->starRating().starCount();
-        CATCH_DB_EXCEPTION(qDatabase.UpdateMusicRating(item.music_id, item.rating))
+        CATCH_DB_EXCEPTION(qMainDb.UpdateMusicRating(item.music_id, item.rating))
         FastReload();
     });
 
@@ -543,8 +543,8 @@ void PlayListTableView::initial() {
                 if (model_->rowCount() > 0) {
                     const auto button = XMessageBox::ShowYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
                     if (button == QDialogButtonBox::Yes) {
-                        qDatabase.ClearPendingPlaylist(GetPlaylistId());
-                        qDatabase.RemovePlaylistAllMusic(GetPlaylistId());
+                        qMainDb.ClearPendingPlaylist(GetPlaylistId());
+                        qMainDb.RemovePlaylistAllMusic(GetPlaylistId());
                         Reload();
                         RemovePlaying();
                     }
@@ -569,8 +569,8 @@ void PlayListTableView::initial() {
 
                 const auto button = XMessageBox::ShowYesOrNo(tr("Remove all items?"));
                 if (button == QDialogButtonBox::Yes) {
-                    qDatabase.ClearPendingPlaylist(GetPlaylistId());
-                    IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(GetPlaylistId()))
+                    qMainDb.ClearPendingPlaylist(GetPlaylistId());
+                    IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
                     Reload();
                     RemovePlaying();
                 }
@@ -654,7 +654,7 @@ void PlayListTableView::initial() {
 
         action_map.SetCallback(reload_track_info_act, [this, item]() {
             try {
-				qDatabase.AddOrUpdateMusic(GetTrackInfo(item.file_path));
+				qMainDb.AddOrUpdateMusic(GetTrackInfo(item.file_path));
 				FastReload();
 			}
 			catch (std::filesystem::filesystem_error& e) {
@@ -721,7 +721,7 @@ void PlayListTableView::initial() {
 
 void PlayListTableView::PauseItem(const QModelIndex& index) {
     const auto entity = item(index);
-    CATCH_DB_EXCEPTION(qDatabase.SetNowPlayingState(GetPlaylistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE))
+    CATCH_DB_EXCEPTION(qMainDb.SetNowPlayingState(GetPlaylistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE))
     update();
 }
 
@@ -733,7 +733,7 @@ void PlayListTableView::PlayItem(const QModelIndex& index) {
     SetNowPlaying(index);
     SetNowPlayState(PLAY_PLAYING);
     const auto play_item = item(index);
-    auto [music_id, pending_playlist_id] = qDatabase.GetFirstPendingPlaylistMusic(GetPlaylistId());
+    auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
     if (play_item.music_id != music_id) {
         AddPendingPlayListFromModel(AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder));
     }
@@ -766,14 +766,14 @@ void PlayListTableView::UpdateReplayGain(int32_t playlistId,
         return;
     }
 
-    CATCH_DB_EXCEPTION(qDatabase.UpdateReplayGain(
+    CATCH_DB_EXCEPTION(qMainDb.UpdateReplayGain(
         entity.music_id,
         album_rg_gain,
         album_peak, 
         track_rg_gain,
         track_peak))
 
-    CATCH_DB_EXCEPTION(qDatabase.AddOrUpdateTrackLoudness(entity.album_id,
+    CATCH_DB_EXCEPTION(qMainDb.AddOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
         track_loudness))
@@ -839,7 +839,7 @@ void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayLis
     }
 
     for (const auto& entity : entities) {
-        CATCH_DB_EXCEPTION(qDatabase.AddMusicToPlaylist(entity.music_id, GetPlaylistId(), entity.album_id))
+        CATCH_DB_EXCEPTION(qMainDb.AddMusicToPlaylist(entity.music_id, GetPlaylistId(), entity.album_id))
     }
     Reload();
     emit AddPlaylistItemFinished();
@@ -909,7 +909,7 @@ void PlayListTableView::OnFetchPodcastCompleted(const Vector<TrackInfo>& track_i
         const auto cover_id = qPixmapCache.AddImage(cover);
         const auto index = this->model()->index(0, 0);
         const auto entity = item(index);
-        CATCH_DB_EXCEPTION(qDatabase.SetAlbumCover(entity.album_id, entity.album, cover_id))
+        CATCH_DB_EXCEPTION(qMainDb.SetAlbumCover(entity.album_id, entity.album, cover_id))
         emit UpdateAlbumCover(cover_id);
     }
 }
@@ -969,7 +969,7 @@ QModelIndex PlayListTableView::GetFirstIndex() const {
 
 void PlayListTableView::DeletePendingPlaylist() {
     pending_playlist_.clear();
-    qDatabase.ClearPendingPlaylist();
+    qMainDb.ClearPendingPlaylist();
 }
 
 QList<QModelIndex> PlayListTableView::GetPendingPlayIndexes() const {
@@ -999,7 +999,7 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
         pending_playlist_.append(index);
         auto entity = GetEntity(index);
         try {
-            qDatabase.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
+            qMainDb.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
         }
         catch (...) {
         }
@@ -1033,8 +1033,8 @@ void PlayListTableView::SetNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = item(play_index_);
-    CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_))
-	CATCH_DB_EXCEPTION(qDatabase.SetNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
+    CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_))
+	CATCH_DB_EXCEPTION(qMainDb.SetNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
     FastReload();
 }
 
@@ -1046,7 +1046,7 @@ void PlayListTableView::SetNowPlayState(PlayingState playing_state) {
         return;
     }
     const auto entity = item(play_index_);
-    CATCH_DB_EXCEPTION(qDatabase.SetNowPlayingState(GetPlaylistId(), entity.playlist_music_id, playing_state))
+    CATCH_DB_EXCEPTION(qMainDb.SetNowPlayingState(GetPlaylistId(), entity.playlist_music_id, playing_state))
     FastReload();
     emit UpdatePlayingState(entity, playing_state);
 }
@@ -1081,7 +1081,7 @@ void PlayListTableView::Play(PlayerOrder order) {
     if (pending_playlist_.isEmpty()) {
         AddPendingPlayListFromModel(order);
     }
-    auto [music_id, pending_playlist_id] = qDatabase.GetFirstPendingPlaylistMusic(GetPlaylistId());
+    auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
     if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
         return;
     }
@@ -1089,7 +1089,7 @@ void PlayListTableView::Play(PlayerOrder order) {
     auto entity = item(index);
     pending_playlist_.pop_front();
     XAMP_EXPECTS(entity.music_id == music_id);
-    qDatabase.DeletePendingPlaylistMusic(pending_playlist_id);
+    qMainDb.DeletePendingPlaylistMusic(pending_playlist_id);
     PlayIndex(index);
 }
 
@@ -1101,13 +1101,13 @@ void PlayListTableView::PlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::RemovePlaying() {
-    CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_))
+    CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_))
     Reload();
 }
 
 void PlayListTableView::RemoveAll() {
-    qDatabase.ClearPendingPlaylist(GetPlaylistId());
-    IGNORE_DB_EXCEPTION(qDatabase.RemovePlaylistAllMusic(GetPlaylistId()))
+    qMainDb.ClearPendingPlaylist(GetPlaylistId());
+    IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
     FastReload();
 }
 
@@ -1122,16 +1122,16 @@ void PlayListTableView::RemoveSelectItems() {
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
         const auto it = item((*itr).second);
-        CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_, it.playlist_music_id))
+        CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_, it.playlist_music_id))
         remove_music_ids.push_back(it.music_id);
     }
 
     const auto count = model_->rowCount();
 	if (!count) {
-        CATCH_DB_EXCEPTION(qDatabase.ClearNowPlaying(playlist_id_))
+        CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_))
 	}
 
     DeletePendingPlaylist();
-    CATCH_DB_EXCEPTION(qDatabase.RemovePlaylistMusic(playlist_id_, remove_music_ids))
+    CATCH_DB_EXCEPTION(qMainDb.RemovePlaylistMusic(playlist_id_, remove_music_ids))
     Reload();
 }

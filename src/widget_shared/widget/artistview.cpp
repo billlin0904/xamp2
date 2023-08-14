@@ -309,7 +309,7 @@ void ArtistView::Update() {
 	if (last_query_.isEmpty()) {
 		ShowAll();
 	}
-	model_.setQuery(last_query_, qDatabase.database());
+	model_.setQuery(last_query_, qMainDb.database());
 	if (model_.lastError().type() != QSqlError::NoError) {
 		XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
 	}

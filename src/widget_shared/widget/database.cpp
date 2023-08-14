@@ -88,8 +88,10 @@ Database::~Database() {
 }
 
 void Database::close() {
-    XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());
-    db_.close();
+    if (db_.isOpen()) {
+        XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());
+        db_.close();
+    }
 }
 
 void Database::open() {

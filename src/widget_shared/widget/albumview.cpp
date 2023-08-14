@@ -307,12 +307,12 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
 
     page_->playlist()->RemoveAll();
 
-    qDatabase.ForEachAlbumMusic(album_id,
+    qMainDb.ForEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
             add_playlist_music_ids.push_back(entity.music_id);
         });
 
-    qDatabase.AddMusicToPlaylist(add_playlist_music_ids,
+    qMainDb.AddMusicToPlaylist(add_playlist_music_ids,
         page_->playlist()->GetPlaylistId());
 
     page_->SetAlbumId(album_id, album_heart);
@@ -320,7 +320,7 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
     page_->title()->setText(album);
     page_->SetCoverById(cover_id);
 
-    if (const auto album_stats = qDatabase.GetAlbumStats(album_id)) {
+    if (const auto album_stats = qMainDb.GetAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
             .arg(FormatDuration(album_stats.value().durations))
@@ -464,14 +464,14 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
         qApp->processEvents();
 
         try {
-            if (!qDatabase.transaction()) {
+            if (!qMainDb.transaction()) {
                 return;
             }
 
-            qDatabase.ClearPendingPlaylist();
+            qMainDb.ClearPendingPlaylist();
 
             QList<int32_t> albums;
-            qDatabase.ForEachAlbum([&albums](auto album_id) {
+            qMainDb.ForEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
                 qApp->processEvents();
             });
@@ -481,20 +481,20 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             int32_t count = 0;
 
             Q_FOREACH(auto album_id, albums) {
-                qDatabase.RemoveAlbum(album_id);
+                qMainDb.RemoveAlbum(album_id);
                 qApp->processEvents();
                 process_dialog->SetValue(count++ * 100 / albums.size() + 1);
             }
-            qDatabase.RemoveAllArtist();
+            qMainDb.RemoveAllArtist();
 
             process_dialog->SetValue(100);
-            qDatabase.commit();
+            qMainDb.commit();
             update();
             emit RemoveAll();
             qPixmapCache.Clear();
         }
         catch (...) {
-            qDatabase.rollback();
+            qMainDb.rollback();
         }
     };
 
@@ -534,7 +534,7 @@ void AlbumView::ShowMenu(const QPoint &pt) {
     auto* add_album_to_playlist_act = action_map.AddAction(tr("Add album to playlist"), [=]() {
         QList<PlayListEntity> entities;
         QList<int32_t> add_playlist_music_ids;
-        qDatabase.ForEachAlbumMusic(album_id,
+        qMainDb.ForEachAlbumMusic(album_id,
             [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                 if (entity.track_loudness == 0.0) {
                     entities.push_back(entity);
@@ -559,7 +559,7 @@ void AlbumView::ShowMenu(const QPoint &pt) {
     auto remove_select_album_act = action_map.AddAction(tr("Remove select album"), [album_id, this]() {
         const auto button = XMessageBox::ShowYesOrNo(tr("Remove the album?"));
 		if (button == QDialogButtonBox::Yes) {
-            qDatabase.RemoveAlbum(album_id);
+            qMainDb.RemoveAlbum(album_id);
             Refresh();
 		}
     });
@@ -794,7 +794,7 @@ void AlbumView::Update() {
     if (last_query_.isEmpty()) {
         ShowAll();
     }
-    model_.setQuery(last_query_, qDatabase.database());
+    model_.setQuery(last_query_, qMainDb.database());
     if (model_.lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
     }

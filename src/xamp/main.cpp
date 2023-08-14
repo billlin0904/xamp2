@@ -138,7 +138,7 @@ static void SaveLogConfig() {
     QMap<QString, QVariant> well_known_log_name;
     QMap<QString, QVariant> override_map;
 
-    for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
+    for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
         if (logger->GetName() != std::string(kXampLoggerName)) {
             well_known_log_name[FromStdStringView(logger->GetName())] = GetLogLevelString(logger->GetLevel());
         }
@@ -146,12 +146,12 @@ static void SaveLogConfig() {
 
     min_level[kLogDefault] = qTEXT("debug");
 
-    XAMP_DEFAULT_LOG().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
+    XAM_LOG_MANAGER().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
 
     for (auto itr = well_known_log_name.begin()
         ; itr != well_known_log_name.end(); ++itr) {
         override_map[itr.key()] = itr.value();
-        XAMP_DEFAULT_LOG().GetLogger(itr.key().toStdString())
+        XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
             ->SetLevel(ParseLogLevel(itr.value().toString()));
     }
 
@@ -170,7 +170,7 @@ static void LoadOrSaveLogConfig() {
 
     QMap<QString, QVariant> well_known_log_name;
 
-    for (const auto& logger : XAMP_DEFAULT_LOG().GetAllLogger()) {
+    for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
         if (logger->GetName() != std::string(kXampLoggerName)) {
             well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
         }
@@ -179,12 +179,12 @@ static void LoadOrSaveLogConfig() {
     if (JsonSettings::ValueAsMap(kLog).isEmpty()) {
         min_level[kLogDefault] = qTEXT("debug");
 
-        XAMP_DEFAULT_LOG().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
+        XAM_LOG_MANAGER().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
 
     	for (auto itr = well_known_log_name.begin()
             ; itr != well_known_log_name.end(); ++itr) {
             override_map[itr.key()] = itr.value();
-            XAMP_DEFAULT_LOG().GetLogger(itr.key().toStdString())
+            XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
                 ->SetLevel(ParseLogLevel(itr.value().toString()));
         }
 
@@ -197,7 +197,7 @@ static void LoadOrSaveLogConfig() {
         min_level = log[kLogMinimumLevel].toMap();
 
         const auto default_level = min_level[kLogDefault].toString();
-        XAMP_DEFAULT_LOG().SetLevel(ParseLogLevel(default_level));
+        XAM_LOG_MANAGER().SetLevel(ParseLogLevel(default_level));
 
         override_map = min_level[kLogOverride].toMap();
 
@@ -212,13 +212,13 @@ static void LoadOrSaveLogConfig() {
             ; itr != override_map.end(); ++itr) {
 	        const auto& log_name = itr.key();
             auto log_level = itr.value().toString();
-            XAMP_DEFAULT_LOG().GetLogger(log_name.toStdString())
+            XAM_LOG_MANAGER().GetLogger(log_name.toStdString())
         	->SetLevel(ParseLogLevel(log_level));
         }       
     }
 
 #ifdef _DEBUG
-    XAMP_DEFAULT_LOG().GetLogger(kCrashHandlerLoggerName)
+    XAM_LOG_MANAGER().GetLogger(kCrashHandlerLoggerName)
         ->SetLevel(LOG_LEVEL_DEBUG);
 #endif
 }
@@ -349,7 +349,7 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
 
 static std::vector<SharedLibraryHandle> PrefetchDll() {
     const std::vector<std::string_view> dll_file_names{
-        R"("mimalloc-override.dll)",
+        R"(mimalloc-override.dll)",
         R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
         R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
         R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
@@ -468,7 +468,7 @@ static int Execute(int argc, char* argv[]) {
     LoadLang();    
 
     try {
-        qDatabase.open();
+        qMainDb.open();
     }
     catch (const Exception& e) {        
         XMessageBox::ShowBug(e);
@@ -577,6 +577,7 @@ int main() {
         JsonSettings::save();
         AppSettings::save();
         SaveLogConfig();
+        qMainDb.close();
         LoggerManager::GetInstance().Shutdown();
     );
 

@@ -308,7 +308,7 @@ FROM
 WHERE
 	playlistMusics.playlistId = %1
     )");
-    const QSqlQuery query(s.arg(1), qDatabase.database());
+    const QSqlQuery query(s.arg(1), qMainDb.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());

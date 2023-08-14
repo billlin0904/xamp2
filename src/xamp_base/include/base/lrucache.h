@@ -7,7 +7,6 @@
 
 #include <base/base.h>
 #include <base/stl.h>
-#include <base/str_utilts.h>
 
 #include <functional>
 #include <shared_mutex>
