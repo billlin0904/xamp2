@@ -83,16 +83,6 @@ static void SortFontWeight(Iterator begin, Iterator end) {
     });
 }
 
-qreal ThemeManager::GetPixelRatio() {
-    auto* screen = QApplication::primaryScreen();
-#ifdef Q_OS_MAC
-    qreal pixel_ratio = screen->devicePixelRatio();
-#else
-    qreal pixel_ratio = screen->logicalDotsPerInch() / qreal(96);
-#endif
-    return pixel_ratio;
-}
-
 QString ThemeManager::GetCountryFlagFilePath(const QString& country_iso_code) {
     return
         qSTR("%1/flags/%2.png")
@@ -206,7 +196,8 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_HEART_PRESS,               0xF004 },
     { ICON_CHEVRON_RIGHT,             0xF054 },
     { ICON_CHEVRON_LEFT,              0xF053 },
-    { ICON_SORT_DOWN,                 0xF160 }
+    { ICON_SORT_DOWN,                 0xF160 },
+    { ICON_FILE_CIRCLE_PLUS,          0xE494 }
     };
     
     qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
@@ -356,6 +347,10 @@ void ThemeManager::SetMenuStyle(QWidget* menu) {
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
     menu->setStyle(new IconSizeStyle(12));
+}
+
+QIcon ThemeManager::GetFontIcon(const char32_t& code, QVariantMap options) {
+    return qFontIcon.GetIcon(code, options);
 }
 
 QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> theme_color) const {

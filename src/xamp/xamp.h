@@ -225,8 +225,6 @@ private:
 
 	void AppendToPlaylist(const QString& file_name);
 
-	void SliderAnimation(bool enable);
-
 	QString TranslateErrorCode(const Errors error) const;
 
 	void SetupSampleWriter(ByteFormat byte_format,

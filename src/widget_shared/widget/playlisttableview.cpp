@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QApplication>
 #include <QSqlError>
+#include <ranges>
 
 #include <base/logger_impl.h>
 #include <base/assert.h>
@@ -168,6 +169,21 @@ public:
         case PLAYLIST_LAST_UPDATE_TIME:
             opt.text = FormatTime(value.toULongLong());
             break;
+        case PLAYLIST_HEART:
+	        {
+            static constexpr auto kPlaylistHeartSize = QSize(16, 16);
+            auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_HEART)).toInt();
+        	if (is_heart_pressed) {
+                QVariantMap font_options;
+                font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
+                font_options.insert(FontIconOption::colorAttr, QColor(Qt::red));
+                opt.icon = qTheme.GetFontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
+                opt.features = QStyleOptionViewItem::HasDecoration;
+                opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+        	}
+	        }
+            break;
         case PLAYLIST_COVER_ID:
 	        {
 				static constexpr auto kPlaylistCoverSize = QSize(32, 32);
@@ -235,8 +251,7 @@ void PlayListTableView::Reload() {
     musics.title,
     musics.fileName,
     artists.artist,
-    albums.album,
-    musics.duration,
+    albums.album,    
     musics.bit_rate,
     musics.sample_rate,
     musics.rating,
@@ -252,7 +267,8 @@ void PlayListTableView::Reload() {
 	musics.track_peak,
 	musicLoudness.track_loudness,
 	musics.genre,
-    musics.heart
+    musics.heart,
+	musics.duration
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -579,8 +595,6 @@ void PlayListTableView::initial() {
 
         action_map.AddSeparator();
 
-        QAction* reload_track_info_act = nullptr;
-
         auto* read_select_item_replaygain_act = action_map.AddAction(tr("Read file ReplayGain"));
         read_select_item_replaygain_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_READ_REPLAY_GAIN));
 
@@ -641,9 +655,19 @@ void PlayListTableView::initial() {
             return;
         }
 
+        action_map.AddSeparator();
+
         auto item = GetEntity(index);
 
-        reload_track_info_act = action_map.AddAction(tr("Reload track information"));
+        auto* add_to_playlist_act = action_map.AddAction(tr("Add file to playlist"));
+        add_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
+        action_map.SetCallback(add_to_playlist_act, [this, item]() {
+            if (const auto other_playlist_id = other_playlist_id_) {
+                qMainDb.AddMusicToPlaylist(item.music_id, other_playlist_id.value(), item.album_id);
+            }
+            });
+
+        auto reload_track_info_act = action_map.AddAction(tr("Reload track information"));
         reload_track_info_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_RELOAD));
 
         auto* open_local_file_path_act = action_map.AddAction(tr("Open local file path"));
@@ -976,6 +1000,10 @@ QList<QModelIndex> PlayListTableView::GetPendingPlayIndexes() const {
     return pending_playlist_;
 }
 
+void PlayListTableView::SetOtherPlaylist(int32_t playlist_id) {
+    other_playlist_id_ = playlist_id;
+}
+
 void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
     Reload();
     DeletePendingPlaylist();
@@ -1120,8 +1148,8 @@ void PlayListTableView::RemoveSelectItems() {
 
     QVector<int> remove_music_ids;
 
-    for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
-        const auto it = item((*itr).second);
+    for (const auto& row : std::ranges::reverse_view(rows)) {
+        const auto it = item(row.second);
         CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_, it.playlist_music_id))
         remove_music_ids.push_back(it.music_id);
     }

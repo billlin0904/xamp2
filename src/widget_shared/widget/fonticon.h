@@ -73,11 +73,12 @@ enum Glyphs {
     ICON_CHEVRON_RIGHT,
     ICON_CHEVRON_LEFT,
     ICON_SORT_DOWN,
+    ICON_FILE_CIRCLE_PLUS,
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {
     static const QString rectAttr;
-    static const QString scaleFactorAttr;
+    static const QString scaleFactorAttr; 
     static const QString fontStyleAttr;
     static const QString colorAttr;
     static const QString onColorAttr;

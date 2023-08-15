@@ -22,6 +22,7 @@
 #include <widget/xmessagebox.h>
 #include <widget/http.h>
 #include <widget/databasefacade.h>
+
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
 #include <QLoggingCategory>
@@ -32,6 +33,7 @@
 #include <QProcess>
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
+#include <FramelessHelper/Core/private/framelessconfig_p.h>
 
 #include <thememanager.h>
 #include <singleinstanceapplication.h>
@@ -523,6 +525,8 @@ static int Execute(int argc, char* argv[]) {
 struct FramelessHelperRAII {
     FramelessHelperRAII() {
         FramelessHelper::Widgets::initialize();
+        FramelessHelper::Core::setApplicationOSThemeAware();
+        FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
     }
 
     ~FramelessHelperRAII() {

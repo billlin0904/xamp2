@@ -107,6 +107,8 @@ public:
 	void SetHeaderViewHidden(bool enable);
 
 	QList<QModelIndex> GetPendingPlayIndexes() const;
+
+	void SetOtherPlaylist(int32_t playlist_id);
 signals:
 	void UpdatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
@@ -173,6 +175,7 @@ protected:
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
 	int32_t playlist_id_{ -1 };
+	std::optional<int32_t> other_playlist_id_;
 	QModelIndex play_index_;
 	StarDelegate* start_delegate_;	
     PlayListSqlQueryTableModel* model_;

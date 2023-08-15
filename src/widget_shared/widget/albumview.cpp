@@ -268,6 +268,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     page_ = new PlaylistPage(this);
     page_->playlist()->SetPlaylistId(kDefaultAlbumPlaylistId, kAppSettingAlbumPlaylistColumnName);
+    page_->playlist()->SetOtherPlaylist(kDefaultPlaylistId);
 
     default_layout->addLayout(hbox_layout);
     default_layout->addWidget(page_);

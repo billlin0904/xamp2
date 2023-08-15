@@ -117,6 +117,8 @@ public:
 
     QIcon GetFontIcon(const char32_t code, std::optional<ThemeColor> theme_color = std::nullopt) const;
 
+    QIcon GetFontIcon(const char32_t& code, QVariantMap options);
+
     void SetTextSeparator(QFrame* frame);    
 
     void SetMuted(QAbstractButton* button, bool is_muted);
@@ -156,8 +158,6 @@ signals:
     void CurrentThemeChanged(ThemeColor theme_color);
 
 private:
-    static qreal GetPixelRatio();
-
     static QString GetFontNamePath(const QString& file_name);
 
     static int32_t GetTitleBarIconHeight();
