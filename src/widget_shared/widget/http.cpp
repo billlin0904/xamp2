@@ -56,6 +56,7 @@ static void LogHttpRequest(const LoggerPtr &logger,
 
     QString msg;
     QTextStream stream(&msg);
+    stream.setEncoding(QStringConverter::Utf8);
 
     if (!reply) {
         stream << "Request: ";
@@ -349,7 +350,7 @@ QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStrin
 
     QString result;
     result.reserve(content_length);
-    in->setCodec(charset.toUtf8());
+    in->setEncoding(QStringConverter::Utf8);
 
     while (!in->atEnd()) {
         result.append(in->readLine());

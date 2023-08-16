@@ -83,14 +83,13 @@ XMessageBox::XMessageBox(const QString& title,
 		OnButtonClicked(button);
 		});
 
+	default_button_text_ = DefaultButton()->text();
+
 	SetContentWidget(client_widget);
 	SetTitle(title);
 
 	connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
 	timer_.setInterval(1000);
-	default_button_text_ = DefaultButton()->text();
-
-	XAMP_LOG_DEBUG("XMessageBox width:{} height:{}", size().width(), size().height());
 }
 
 void XMessageBox::SetTextFont(const QFont& font) {

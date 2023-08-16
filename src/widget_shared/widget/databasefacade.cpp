@@ -4,6 +4,8 @@
 #include <atomic>
 #include <execution>
 
+#include <QRegExp>
+
 #include <qguiapplication.h>
 
 #include <base/base.h>
@@ -73,7 +75,7 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
     static constexpr auto kJop = qTEXT("jpop");
     QStringList normalized_tags;
 
-    if (genre.isEmpty()) return normalized_tags;
+    /*if (genre.isEmpty()) return normalized_tags;
 
     if (genre.length() == 1 && genre[0] == ' ') return normalized_tags;
 
@@ -104,7 +106,7 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
             }
             normalized_tags.append(s);
         }
-    }
+    }*/
 
     return normalized_tags;
 }

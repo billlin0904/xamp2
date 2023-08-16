@@ -229,7 +229,7 @@ static void RegisterMetaType() {
     XAMP_LOG_DEBUG("RegisterMetaType.");
 
     // For QSetting read
-    qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
+    //qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
 
     qRegisterMetaType<int64_t>("int64_t");
     qRegisterMetaType<QSharedPointer<DatabaseFacade>>("QSharedPointer<DatabaseFacade>");
@@ -324,16 +324,16 @@ static void SetWorkingSetSize() {
     }
 }
 
-static std::vector<SharedLibraryHandle> PinSystemDll() {
-    const std::vector<std::string_view> dll_file_names{
-        "psapi.dll",
-        "setupapi.dll",
-        "WinTypes.dll",
-        "AudioSes.dll",
-        "AUDIOKSE.dll",
-        "DWrite.dll",        
+static Vector<SharedLibraryHandle> PinSystemDll() {
+    const Vector<std::string_view> dll_file_names{
+        R"("psapi.dll")",
+        R"("setupapi.dll")",
+        R"("WinTypes.dll")",
+        R"("AudioSes.dll")",
+        R"("AUDIOKSE.dll")",
+    	R"("DWrite.dll")",
     };
-    std::vector<SharedLibraryHandle> pin_module;
+    Vector<SharedLibraryHandle> pin_module;
     for (const auto& file_name : dll_file_names) {
         try {
             auto module = PinSystemLibrary(file_name);
@@ -349,23 +349,15 @@ static std::vector<SharedLibraryHandle> PinSystemDll() {
     return pin_module;
 }
 
-static std::vector<SharedLibraryHandle> PrefetchDll() {
-    const std::vector<std::string_view> dll_file_names{
+static Vector<SharedLibraryHandle> PrefetchDll() {
+    const Vector<std::string_view> dll_file_names{
         R"(mimalloc-override.dll)",
         R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
         R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
         R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
     	R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
-    #ifndef _DEBUG
-        "Qt5Gui.dll",
-        "Qt5Core.dll",
-        "Qt5Widgets.dll",
-        "Qt5Sql.dll",
-        "Qt5Network.dll",
-        "Qt5WinExtras.dll"
-	#endif
     };
-    std::vector<SharedLibraryHandle> preload_module;
+    Vector<SharedLibraryHandle> preload_module;
     for (const auto& file_name : dll_file_names) {
         try {
             auto module = LoadSharedLibrary(file_name);
@@ -388,7 +380,7 @@ XAMP_DECLARE_LOG_NAME(Qt);
 static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
     QString str;
     QTextStream stream(&str);
-    stream.setCodec("UTF-8");
+    stream.setEncoding(QStringConverter::Utf8);
 
     const auto disable_stacktrace = 
         AppSettings::ValueAsBool(kAppSettingEnableDebugStackTrace);
@@ -431,9 +423,6 @@ static void ApplyTheme() {
 }
 
 static int Execute(int argc, char* argv[]) {
-	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
-
     QApplication::setApplicationName(kApplicationName);
     QApplication::setApplicationVersion(kApplicationVersion);
     QApplication::setOrganizationName(kApplicationName);

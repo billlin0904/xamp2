@@ -242,7 +242,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 			break;
 		case 2:
 			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
-			AppSettings::SetValue(kAppSettingEnableReplayGain, false);			
+			AppSettings::SetValue<bool>(kAppSettingEnableReplayGain, false);			
 			break;
 		}
 		});

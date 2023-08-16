@@ -256,40 +256,7 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>btnCredits</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>AboutDialog</receiver>
-   <slot>OnCreditsOrLicenseChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>50</x>
-     <y>326</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>224</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnLicense</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>AboutDialog</receiver>
-   <slot>OnCreditsOrLicenseChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>135</x>
-     <y>326</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>224</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>OnCreditsOrLicenceChecked(bool)</slot>
  </slots>

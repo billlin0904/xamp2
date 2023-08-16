@@ -30,7 +30,7 @@ void XDialog::SetContent(QWidget* content) {
 
     auto f = font();
     f.setBold(true);
-    f.setPointSize(qTheme.GetFontSize(10));
+    f.setPointSize(qTheme.GetFontSize(12));
     title_frame_label_ = new QLabel(title_frame);
     title_frame_label_->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -127,7 +127,8 @@ void XDialog::SetContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
 
-    WaitForReady();    
+    WaitForReady();
+    show();
 }
 
 void XDialog::WaitForReady() {

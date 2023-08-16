@@ -14,7 +14,6 @@
 #include <widget/iconsizestyle.h>
 
 #include <QDirIterator>
-#include <QDesktopWidget>
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
 #include <QResource>
@@ -370,7 +369,11 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
         return qFontIcon.GetIcon(code, temp);
     }
     case Glyphs::ICON_MINIMIZE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/minimize-active.ico").arg(GetThemeColorPath(color)));
+	    {
+        auto temp = font_icon_opts_;
+        temp.insert(FontIconOption::colorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::white) : QColor(Qt::gray)));
+        return qFontIcon.GetIcon(0xF2D1, temp);
+	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(GetThemeColorPath(color)));
     case Glyphs::ICON_CLOSE_WINDOW:
@@ -485,6 +488,9 @@ void ThemeManager::UpdateMaximumIcon(QToolButton *maxWinButton, bool is_maximum)
 }
 
 void ThemeManager::SetBitPerfectButton(QToolButton * bitPerfectButton, bool enable) {
+    auto f = bitPerfectButton->font();
+    f.setPointSize(GetFontSize(9));
+    bitPerfectButton->setFont(f);
     bitPerfectButton->setText(qSTR("Bit-Perfect"));
 
     if (enable) {        
@@ -560,6 +566,7 @@ void ThemeManager::LoadAndApplyQssTheme() {
     QFile f(filename);
     f.open(QFile::ReadOnly | QFile::Text);
     QTextStream ts(&f);
+    ts.setEncoding(QStringConverter::Utf8);
     qApp->setStyleSheet(ts.readAll());
     f.close();
 }
@@ -676,7 +683,8 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										  border-radius: 0px;				 
                                           }
                                           )").arg(ColorToString(hover_color)));
-    min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), 1));
+    //min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), 1));
+    min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
     min_win_button->setIcon(GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
     
     max_win_button->setStyleSheet(qSTR(R"(

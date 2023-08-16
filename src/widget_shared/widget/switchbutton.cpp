@@ -162,7 +162,7 @@ void SwitchButton::paintEvent(QPaintEvent *) {
     }
 
     QStyleOptionSlider slider_opt;
-    slider_opt.init(this);
+    //slider_opt.init(this);
     slider_opt.minimum = 0;
     slider_opt.maximum = slider_opt.rect.width();
     const auto position = static_cast<int>(progress_ * (slider_opt.rect.width()));

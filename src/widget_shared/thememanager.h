@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <QPixmap>
-#include <QIcon>
 #include <QMenu>
 #include <QFrame>
 
@@ -15,7 +13,6 @@
 #include <widget/str_utilts.h>
 #include <widget/fonticon.h>
 #include <widget/themecolor.h>
-#include <widget/playerorder.h>
 
 class QAbstractButton;
 class QPushButton;

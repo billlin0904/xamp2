@@ -10,13 +10,12 @@ LocaleLanguage::LocaleLanguage() {
 }
 
 LocaleLanguage::LocaleLanguage(const QString& name) {
-	QLocale locale;
-	locale = name;
+	const QLocale locale(name);
 	SetLanguageByLocale(locale);
 }
 
 void LocaleLanguage::SetDefaultLanguage() {
-	auto locale = QLocale::system();
+	const auto locale = QLocale::system();
 	SetLanguageByLocale(locale);
 }
 

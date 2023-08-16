@@ -1,11 +1,9 @@
 #include <widget/ui_utilts.h>
 
-#include <QDesktopWidget>
-#include <QProgressBar>
-#include <QCoreApplication>
 #include <QApplication>
 #include <QFileDialog>
 #include <QRandomGenerator>
+#include <QScreen>
 #include <QTime>
 
 #include <stream/soxresampler.h>
@@ -123,17 +121,17 @@ void CenterParent(QWidget* widget) {
         widget->move(host_rect.center() - widget->rect().center());
     }
     else {
-        QRect screenGeometry = QApplication::desktop()->screenGeometry();
-        int x = (screenGeometry.width() - widget->width()) / 2;
-        int y = (screenGeometry.height() - widget->height()) / 2;
+	    const auto screen_geometry = QGuiApplication::primaryScreen()->geometry();
+        const auto x = (screen_geometry.width() - widget->width()) / 2;
+        const auto y = (screen_geometry.height() - widget->height()) / 2;
         widget->move(x, y);
     }
 }
 
 void CenterDesktop(QWidget* widget) {
-	const auto screen_geometry = QApplication::desktop()->screenGeometry();
-    auto x = (screen_geometry.width() - widget->width()) / 2;
-    auto y = (screen_geometry.height() - widget->height()) / 2;
+	const auto screen_geometry = QGuiApplication::primaryScreen()->geometry();
+    const auto x = (screen_geometry.width() - widget->width()) / 2;
+    const auto y = (screen_geometry.height() - widget->height()) / 2;
     widget->move(x, y);
 }
 

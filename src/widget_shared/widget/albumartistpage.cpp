@@ -323,7 +323,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	QStringList artist_category_list;
 	for (auto i = 0; i < 26; ++i) {
-		artist_category_list.append(QString('A' + i));
+		artist_category_list.append(QString(QChar('A' + i)));
 	}
 
 	artist_tag_list_widget_ = new TagListView();

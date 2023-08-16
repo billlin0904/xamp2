@@ -57,7 +57,7 @@ public:
 
     void SetXWindow(IXMainWindow* main_window);
 
-    void SetThemeColor(QColor backgroundColor, QColor color);
+    void SetThemeColor(QColor background_color, QColor color);
 
 	void ShortcutsPressed(const QKeySequence& shortcut) override;
 

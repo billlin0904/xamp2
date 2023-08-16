@@ -73,7 +73,6 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     }
 
     task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
-    last_rect_ = win32::GetWindowRect(winId());
 
     setAcceptDrops(true);
     ReadDriveInfo();
@@ -86,17 +85,10 @@ XMainWindow::~XMainWindow() {
 }
 
 void XMainWindow::SaveGeometry() {
-#if defined(Q_OS_WIN) 
-    AppSettings::SetValue(kAppSettingGeometry, win32::GetWindowRect(winId()));
+    AppSettings::SetValue(kAppSettingGeometry, saveGeometry());
     AppSettings::SetValue(kAppSettingWindowState, isMaximized());
     AppSettings::SetValue(kAppSettingScreenNumber, screen_number_);
-    XAMP_LOG_INFO("restoreGeometry: ({}, {}, {}, {})",
-        last_rect_.x(),
-        last_rect_.y(),
-        last_rect_.width(),
-        last_rect_.height());
     XAMP_LOG_INFO("Screen number: {}", screen_number_);
-#endif
 }
 
 void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
@@ -154,24 +146,12 @@ void XMainWindow::RestoreGeometry() {
     }
 
     if (AppSettings::contains(kAppSettingGeometry)) {
-        last_rect_ = AppSettings::GetValue(kAppSettingGeometry).toRect();
         screen_number_ = AppSettings::GetValue(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
-            if (QGuiApplication::screens().size() <= screen_number_) {
-                const auto screen_index = screen_number_ - 1;
-                const auto screens = QGuiApplication::screens();
-                if (screens.size() < screen_index) {
-	                const auto screenres = screens.at(screen_index)->availableGeometry();
-                    move(QPoint(screenres.x() + 100, screenres.y() + 100));
-                    resize(last_rect_.width(), last_rect_.height());
-                }                
-            }
+            CenterDesktop(this);
         } else {
-            setGeometry(last_rect_);
+            restoreGeometry(AppSettings::GetValue(kAppSettingGeometry).toByteArray());
         }
-        XAMP_LOG_DEBUG("restoreGeometry: ({}, {}, {}, {})",
-            last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
-        XAMP_LOG_DEBUG("Screen number: {}", screen_number_);
     }
     else {
         CenterDesktop(this);
@@ -191,9 +171,9 @@ bool XMainWindow::eventFilter(QObject * object, QEvent * event) {
         }
     } else {
         if (event->type() == QEvent::FocusIn) {
-            focusInEvent(static_cast<QFocusEvent*>(event));
+            focusInEvent(dynamic_cast<QFocusEvent*>(event));
         } else if (event->type() == QEvent::FocusOut) {
-            focusOutEvent(static_cast<QFocusEvent*>(event));
+            focusOutEvent(dynamic_cast<QFocusEvent*>(event));
         }
     }
     return QWidget::eventFilter(object, event);
@@ -260,7 +240,7 @@ void XMainWindow::DrivesRemoved(char driver_letter) {
 #endif
 }
 
-bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, long* result) {
+bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintptr* result) {
 #if defined(Q_OS_WIN)
     const auto* msg = static_cast<MSG const*>(message);
     switch (msg->message) {

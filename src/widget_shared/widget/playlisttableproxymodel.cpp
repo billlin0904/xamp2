@@ -29,10 +29,10 @@ bool PlayListTableFilterProxyModel::filterAcceptsRow(int source_row, const QMode
         auto index = sourceModel()->index(source_row, filter, source_parent);
         if (index.isValid()) {
             auto text = sourceModel()->data(index).toString();
-            if (text.contains(filterRegExp())) {
+            /*if (text.contains(filterRegExp())) {
                 found = true;
                 break;
-            }
+            }*/
         }
     }
     return found;

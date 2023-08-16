@@ -33,7 +33,7 @@ QString ScrollLabel::text() const {
 void ScrollLabel::UpdateText() {
 	timer_.stop();
 
-	single_text_width_ = fontMetrics().width(text_);
+	single_text_width_ = fontMetrics().horizontalAdvance(text_);
     scroll_enabled_ = single_text_width_ > (width() - left_margin_);
 
 	if (scroll_enabled_) {
@@ -49,7 +49,7 @@ void ScrollLabel::UpdateText() {
 	}
 
     static_text_.prepare(QTransform(), font());
-    whole_text_size_ = QSize(fontMetrics().width(static_text_.text()), fontMetrics().height());
+    whole_text_size_ = QSize(fontMetrics().horizontalAdvance(static_text_.text()), fontMetrics().height());
 }
 
 void ScrollLabel::OnTimerTimeout() {

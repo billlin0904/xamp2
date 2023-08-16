@@ -962,27 +962,29 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.aboutButton, &QToolButton::pressed, [this]() {
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* about_page = new AboutPage(dialog);        
         dialog->SetContentWidget(about_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
-        dialog->SetTitle(tr("About"));        
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        dialog->SetTitle(tr("About"));
         dialog->exec();
         });
 
     (void)QObject::connect(ui_.preferenceButton, &QToolButton::pressed, [this]() {
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
+        preference_page->LoadSettings();
         dialog->SetContentWidget(preference_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
-        preference_page->LoadSettings();
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        dialog->SetTitle(tr("Preference"));
         dialog->exec();
         preference_page->SaveAll();
         });
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::pressed, [this]() {
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
         dialog->SetContentWidget(page, true);
@@ -999,11 +1001,11 @@ void Xamp::InitialController() {
         center_pos = dialog->mapFromGlobal(center_pos);
         center_pos = dialog->mapToParent(center_pos);
         dialog->move(center_pos);
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
         });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerView(dialog);
         dialog->SetContentWidget(eq, false);
@@ -1018,8 +1020,6 @@ void Xamp::InitialController() {
         (void)QObject::connect(eq, &EqualizerView::PreampValueChange, [](auto) {
             AppSettings::save();
         });
-
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
     });
 
@@ -1127,11 +1127,11 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
     SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 }
 
-void Xamp::SetThemeColor(QColor backgroundColor, QColor color) {
-    qTheme.SetBackgroundColor(backgroundColor);
+void Xamp::SetThemeColor(QColor background_color, QColor color) {
+    qTheme.SetBackgroundColor(background_color);
     SetWidgetStyle(ui_);
     UpdateButtonState();
-    emit ThemeChanged(backgroundColor, color);
+    emit ThemeChanged(background_color, color);
 }
 
 void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& image) {
@@ -1157,7 +1157,7 @@ void Xamp::SetFullScreen() {
         ui_.titleFrame->setHidden(true);
         ui_.verticalSpacer_3->changeSize(0, 0);
         lrc_page_->SetFullScreen(true);
-        AppSettings::SetValue(kAppSettingEnterFullScreen, false);
+        AppSettings::SetValue<bool>(kAppSettingEnterFullScreen, false);
     }
     else {
         ui_.bottomFrame->setHidden(false);
@@ -1165,7 +1165,7 @@ void Xamp::SetFullScreen() {
         ui_.titleFrame->setHidden(false);
         ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
         lrc_page_->SetFullScreen(false);
-        AppSettings::SetValue(kAppSettingEnterFullScreen, true);
+        AppSettings::SetValue<bool>(kAppSettingEnterFullScreen, true);
     }
 }
 
@@ -1660,7 +1660,7 @@ void Xamp::OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
         qMainDb.ForEachAlbumMusic(album_id, [&entities](const auto& entity) {
             entities.append(entity);
             });
-        std::sort(entities.begin(), entities.end(), [](const auto& a, const auto& b) {
+        std::ranges::sort(entities, [](const auto& a, const auto& b) {
             return b.track > a.track;
             });
         auto i = 0;
@@ -1933,7 +1933,6 @@ void Xamp::InitialPlaylist() {
         qMainDb.AddPlaylist(kEmptyString, 1);
     }
 
-    // TODO:
     ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
     ConnectPlaylistPageSignal(album_page_->year()->albumViewPage()->playlistPage());
 
@@ -2302,6 +2301,10 @@ void Xamp::OnReadCompleted() {
     playlist_page_->playlist()->Reload();
     current_playlist_page_->playlist()->Reload();
     file_system_view_page_->playlistPage()->playlist()->Reload();
+    if (!read_progress_dialog_) {
+        return;
+    }
+    read_progress_dialog_->close();
     read_progress_dialog_.reset();
 }
 

@@ -16,7 +16,6 @@
 #include <base/logger_impl.h>
 #include <base/assert.h>
 
-#include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
@@ -318,9 +317,10 @@ void PlayListTableView::DownloadPodcast() {
 }
 
 void PlayListTableView::FastReload() {
-    model_->query().exec();
-    model_->dataChanged(QModelIndex(), QModelIndex());
-    update();
+    //model_->query().exec();
+    //model_->dataChanged(QModelIndex(), QModelIndex());
+    //update();
+    Reload();
 }
 
 void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &column_setting_name) {
@@ -661,9 +661,13 @@ void PlayListTableView::initial() {
 
         auto* add_to_playlist_act = action_map.AddAction(tr("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
-        action_map.SetCallback(add_to_playlist_act, [this, item]() {
+        action_map.SetCallback(add_to_playlist_act, [this]() {
             if (const auto other_playlist_id = other_playlist_id_) {
-                qMainDb.AddMusicToPlaylist(item.music_id, other_playlist_id.value(), item.album_id);
+                const auto rows = SelectItemIndex();
+                for (const auto& row : rows) {
+	                const auto entity = this->item(row.second);
+                    qMainDb.AddMusicToPlaylist(entity.music_id, other_playlist_id.value(), entity.album_id);
+                }
             }
             });
 

@@ -72,7 +72,7 @@ protected:
     void SaveGeometry() override;
 
 private:
-    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
+    bool nativeEvent(const QByteArray& event_type, void* message, qintptr* result) override;
 
     void focusInEvent(QFocusEvent* event) override;
 
@@ -82,7 +82,6 @@ private:
 
     uint32_t screen_number_;
     QPoint last_pos_;
-    QRect last_rect_;
 #if defined(Q_OS_WIN)
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> task_bar_;

@@ -59,6 +59,12 @@ static Vector<QString> GetPathSortByFileCount(
         action(total_file_count);
         });
 
+    Vector<QString> sorted_paths;
+
+    if (total_file_count == 0) {
+        return sorted_paths;
+    }
+
     // Sort path_infos based on file count and depth
     std::ranges::sort(path_infos, [](const auto& p1, const auto& p2) {
         if (p1.file_count != p2.file_count) {
@@ -68,7 +74,7 @@ static Vector<QString> GetPathSortByFileCount(
         });
 
     // Extract sorted paths
-    Vector<QString> sorted_paths;
+    
     sorted_paths.reserve(path_infos.size());
     for (const auto& path_info : path_infos) {
         sorted_paths.push_back(path_info.path);
@@ -184,10 +190,6 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         paths.push_back(file_path);
     }
 
-    XAMP_ON_SCOPE_EXIT(
-        XAMP_LOG_D(logger_, "Finish to read track info.");
-    );
-
     auto database_pool = GetPooledDatabase();
     const auto path_hash = hasher.Get64bitHash();
 
@@ -206,13 +208,22 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
 
     std::atomic<size_t> completed_work(0);
 
-    emit ReadFileStart();
-
     auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
-        });
+    });
 
     const auto total_work = file_count_paths.size();
+    if (total_work == 0) {
+        XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
+        return;
+    }
+
+    emit ReadFileStart();
+
+    XAMP_ON_SCOPE_EXIT(
+        emit ReadCompleted();
+		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
+    );
 
     FastMutex mutex;
     QElapsedTimer timer;
@@ -259,9 +270,6 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
             emit InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);
             });
         });
-
-    emit ReadCompleted();
-    XAMP_LOG_DEBUG("Extract file ({} secs)", sw.ElapsedSeconds());
 }
 
 void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode) {

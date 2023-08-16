@@ -181,9 +181,9 @@ void LyricsShowWidget::PaintItem(QPainter* painter, const int32_t index, QRect& 
 	const QFontMetrics metrics(painter->font());
 	const auto text = QString::fromStdWString(lyric_.LineAt(index).lrc);
 
-	painter->drawText((rect.width() - metrics.width(text)) / 2,
+	painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
 		rect.y() + (rect.height() - metrics.height()) / 2,
-		metrics.width(text),
+		metrics.horizontalAdvance(text),
 		rect.height(),
 		Qt::AlignLeft, text);
 }
@@ -198,7 +198,7 @@ void LyricsShowWidget::PaintItemMask(QPainter* painter) {
 		painter->setPen(lrc_highlight_color_);
 
 		const QFontMetrics metrics(current_mask_font_);
-		painter->drawText((current_roll_rect_.width() - metrics.width(real_current_text_)) / 2,
+		painter->drawText((current_roll_rect_.width() - metrics.horizontalAdvance(real_current_text_)) / 2,
 			current_roll_rect_.y() + (current_roll_rect_.height() - metrics.height()) / 2,
 			mask_length_,
 			current_roll_rect_.height(),
@@ -333,11 +333,11 @@ void LyricsShowWidget::SetLrcTime(int32_t stream_time) {
 
 	if (item_percent_ == precent) {
 		const auto count = static_cast<double>(interval) / 25.0;
-		const float lrc_mask_mini_step = metrics.width(text) / count;
+		const float lrc_mask_mini_step = metrics.horizontalAdvance(text) / count;
 		mask_length_ += lrc_mask_mini_step;
 	}
 	else {
-		mask_length_ = metrics.width(real_current_text_) * precent;
+		mask_length_ = metrics.horizontalAdvance(real_current_text_) * precent;
 	}
 
 	item_percent_ = precent;

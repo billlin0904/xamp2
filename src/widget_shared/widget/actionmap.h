@@ -7,7 +7,7 @@
 
 #include <QPoint>
 #include <QScopedPointer>
-#include <QMenu>
+#include <QActionGroup>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>

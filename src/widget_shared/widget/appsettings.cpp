@@ -56,6 +56,7 @@ void AppSettings::LoadEqPreset() {
         QFile file(filepath);
         if (file.open(QIODevice::ReadOnly)) {
             QTextStream in(&file);
+            in.setEncoding(QStringConverter::Utf8);
             EqSettings settings;
             int i = 0;
             while (!in.atEnd()) {
@@ -66,7 +67,7 @@ void AppSettings::LoadEqPreset() {
                     swscanf(str.c_str(), L"%f dB",
                         &settings.preamp);
                 }
-                else if (result[0].indexOf(qTEXT("Filter") != -1)) {
+                else if (result[0].indexOf(qTEXT("Filter")) != -1) {
                     settings.bands.push_back(EqBandSetting());
                     auto pos = str.find(L"Fc");
                     swscanf(&str[pos], L"Fc %f Hz",

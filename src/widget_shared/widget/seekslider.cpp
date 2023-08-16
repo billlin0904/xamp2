@@ -47,7 +47,7 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 	return QSlider::mousePressEvent(event);
 }
 
-void SeekSlider::enterEvent(QEvent* event) {
+void SeekSlider::enterEvent(QEnterEvent* event) {
 	qTheme.SetSliderTheme(this, true);
 }
 

@@ -4,10 +4,10 @@
 
 #include <Windows.h>
 
-#include <QtWinExtras/QWinTaskbarButton>
-#include <QtWinExtras/QWinTaskbarProgress>
-#include <QtWinExtras/QWinThumbnailToolBar>
-#include <QtWinExtras/QWinThumbnailToolButton>
+//#include <QtWinExtras/QWinTaskbarButton>
+//#include <QtWinExtras/QWinTaskbarProgress>
+//#include <QtWinExtras/QWinThumbnailToolBar>
+//#include <QtWinExtras/QWinThumbnailToolButton>
 
 namespace win32 {
 
@@ -20,7 +20,7 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
 	seek_forward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD);
 	seek_backward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD);
 
-	thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
+	/*thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
 	thumbnail_tool_bar_->setWindow(window->windowHandle());
 
 	taskbar_button_.reset(new QWinTaskbarButton(window));
@@ -51,31 +51,31 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
 
 	thumbnail_tool_bar_->addButton(backward_tool_button);
 	thumbnail_tool_bar_->addButton(play_tool_button);
-	thumbnail_tool_bar_->addButton(forward_tool_button);
+	thumbnail_tool_bar_->addButton(forward_tool_button);*/
 }
 
 WinTaskbar::~WinTaskbar() = default;
 
 void WinTaskbar::SetTaskbarProgress(const int32_t percent) {
-	taskbar_progress_->setValue(percent);
+	//taskbar_progress_->setValue(percent);
 }
 
 void WinTaskbar::ResetTaskbarProgress() {
-	taskbar_progress_->reset();
+	/*taskbar_progress_->reset();
 	taskbar_progress_->setValue(0);
 	taskbar_progress_->setRange(0, 100);
 	taskbar_button_->setOverlayIcon(play_icon);
-	taskbar_progress_->show();
+	taskbar_progress_->show();*/
 }
 
 void WinTaskbar::SetTaskbarPlayingResume() {
-	taskbar_button_->setOverlayIcon(play_icon);
-	taskbar_progress_->resume();
+	/*taskbar_button_->setOverlayIcon(play_icon);
+	taskbar_progress_->resume();*/
 }
 
 void WinTaskbar::SetTaskbarPlayerPaused() {
-	taskbar_button_->setOverlayIcon(pause_icon);
-	taskbar_progress_->pause();
+	/*taskbar_button_->setOverlayIcon(pause_icon);
+	taskbar_progress_->pause();*/
 }
 
 void WinTaskbar::SetTaskbarPlayerPlaying() {
@@ -83,12 +83,12 @@ void WinTaskbar::SetTaskbarPlayerPlaying() {
 }
 
 void WinTaskbar::SetTaskbarPlayerStop() {
-	taskbar_button_->setOverlayIcon(stop_play_icon);
-	taskbar_progress_->hide();
+	/*taskbar_button_->setOverlayIcon(stop_play_icon);
+	taskbar_progress_->hide();*/
 }
 
 void WinTaskbar::showEvent() {
-	taskbar_button_->setWindow(window_->windowHandle());
+	//taskbar_button_->setWindow(window_->windowHandle());
 }
 
 QRect GetWindowRect(const WId window_id) {

@@ -12,9 +12,9 @@
 
 class IXFrame;
 class XMainWindow;
-class QWinThumbnailToolBar;
-class QWinTaskbarButton;
-class QWinTaskbarProgress;
+//class QWinThumbnailToolBar;
+//class QWinTaskbarButton;
+//class QWinTaskbarProgress;
 
 namespace win32 {
 
@@ -46,9 +46,9 @@ public:
 
 private:
     XMainWindow* window_;
-    QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
+    /*QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
     QScopedPointer<QWinTaskbarButton> taskbar_button_;
-    QWinTaskbarProgress* taskbar_progress_;
+    QWinTaskbarProgress* taskbar_progress_;*/
 };
 
 QRect GetWindowRect(const WId window_id);

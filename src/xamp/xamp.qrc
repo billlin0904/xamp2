@@ -24,6 +24,5 @@
         <file>Resource/Black/minimize-active.ico</file>
         <file>Resource/Black/minimize-inactive.ico</file>
         <file>Resource/Black/unknown_album.png</file>
-        <file>Resource/noise.png</file>
     </qresource>
 </RCC>

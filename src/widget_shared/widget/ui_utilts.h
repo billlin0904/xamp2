@@ -8,7 +8,9 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playerorder.h>
+
 #include <QSharedPointer>
+#include <QWidget>
 
 class XMainWindow;
 class XProgressDialog;

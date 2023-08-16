@@ -62,8 +62,8 @@
     <QtModules>core;sql;opengl;network;gui;widgets;printsupport;winextras;</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;sql;network;gui;widgets;winextras;</QtModules>
+    <QtInstall>6.5.2_msvc2019_64</QtInstall>
+    <QtModules>core;sql;network;gui;widgets;</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />
@@ -82,12 +82,12 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <IntelJCCErratum>false</IntelJCCErratum>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4819;4828;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zopfli/msvc/Debug/;../thirdparty/libimagequant/msvc/Debug/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;widget_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
