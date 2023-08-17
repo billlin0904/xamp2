@@ -1,4 +1,4 @@
-#include <widget/xdialog.h>
+ï»¿#include <widget/xdialog.h>
 
 #include <thememanager.h>
 #include <widget/str_utilts.h>
@@ -111,7 +111,7 @@ void XDialog::SetContent(QWidget* content) {
     
     max_win_button_->hide();
     min_win_button_->hide();
-    // todo: close_button_ hideªº®É­Ô·|Åã¥Ü·|¦³°İÃD.
+    // todo: close_button_ hideçš„æ™‚å€™æœƒé¡¯ç¤ºæœƒæœ‰å•é¡Œ.
 
     (void)QObject::connect(close_button_, &QToolButton::pressed, [this]() {
         close();

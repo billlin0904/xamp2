@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -45,6 +45,6 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString trlyrc;
 };
 
-// for QVariant�ഫ�ϥ�
+// for QVariant轉換使用
 Q_DECLARE_METATYPE(PlayListEntity)
 

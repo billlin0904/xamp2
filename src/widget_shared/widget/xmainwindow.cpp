@@ -16,10 +16,8 @@
 #include <QStorageInfo>
 #include <QApplication>
 #include <QLayout>
-#include <QFontDatabase>
 #include <QPainter>
 #include <QPainterPath>
-#include <QWindow>
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QScreen>
@@ -72,8 +70,6 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
         setLayout(default_layout);
     }
 
-    task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
-
     setAcceptDrops(true);
     ReadDriveInfo();
     installEventFilter(this);
@@ -82,6 +78,12 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
 // QScopedPointer require default destructor.
 XMainWindow::~XMainWindow() {
     XAMP_LOG_DEBUG("XMainWindow destory!");
+}
+
+void XMainWindow::ensureInitTaskbar() {
+    if (!task_bar_) {
+        task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
+    }
 }
 
 void XMainWindow::SaveGeometry() {
@@ -100,6 +102,7 @@ void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
 
 void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
+    ensureInitTaskbar();
     task_bar_->SetTaskbarProgress(percent);
 #else
     (void)percent;
@@ -108,30 +111,35 @@ void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 
 void XMainWindow::ResetTaskbarProgress() {
 #if defined(Q_OS_WIN)
+    ensureInitTaskbar();
     task_bar_->ResetTaskbarProgress();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayingResume() {
 #if defined(Q_OS_WIN)
+    ensureInitTaskbar();
     task_bar_->SetTaskbarPlayingResume();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerPaused() {
 #if defined(Q_OS_WIN)
+    ensureInitTaskbar();
     task_bar_->SetTaskbarPlayerPaused();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerPlaying() {
 #if defined(Q_OS_WIN)
+    ensureInitTaskbar();
     task_bar_->SetTaskbarPlayerPlaying();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
+    ensureInitTaskbar();
     task_bar_->SetTaskbarPlayerStop();
 #endif
 }
@@ -383,10 +391,14 @@ void XMainWindow::changeEvent(QEvent* event) {
 #endif
 }
 
-void XMainWindow::showEvent(QShowEvent* event) {    
-#ifdef Q_OS_WIN32
-    task_bar_->showEvent();
-#endif    
+void XMainWindow::showEvent(QShowEvent* event) {
+#if defined(Q_OS_WIN)
+    if (!task_bar_) {
+        return;
+    }
+    task_bar_->UpdateProgressIndicator();
+    task_bar_->UpdateOverlay();
+#endif
 }
 
 void XMainWindow::ShowWindow() {

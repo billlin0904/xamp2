@@ -1,4 +1,4 @@
-//=====================================================================================================================
+ï»¿//=====================================================================================================================
 // Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -34,7 +34,7 @@ protected:
     ITaskScheduler() = default;
 };
 
-// note: »´¶q¤Æ»P¨Ã¥B§Ö³t¤ÏÀ³ªºPlayback thread.
+// note: è¼•é‡åŒ–èˆ‡ä¸¦ä¸”å¿«é€Ÿåæ‡‰çš„Playback thread.
 class XAMP_BASE_API XAMP_NO_VTABLE IThreadPoolExecutor {
 public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExecutor)
@@ -69,7 +69,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
 
     auto future = task->get_future();
 
-    // note: unique_ptr·|¦bSubmitJobÂ÷¶}lambda¸Ñºc, ¦ý¬Oshared_ptr·|½T«Olambda¦b¸Ñºcªº®É­Ôtask¤~·|¸Ñºc.
+    // note: unique_ptræœƒåœ¨SubmitJobé›¢é–‹lambdaè§£æ§‹, ä½†æ˜¯shared_ptræœƒç¢ºä¿lambdaåœ¨è§£æ§‹çš„æ™‚å€™taskæ‰æœƒè§£æ§‹.
     scheduler_->SubmitJob([t = std::move(task)]() {
         (*t)();
     }, flags);
@@ -107,3 +107,4 @@ XAMP_BASE_API IThreadPoolExecutor& GetBackgroundThreadPool();
 XAMP_BASE_API IThreadPoolExecutor& GetScanPathThreadPool();
 
 XAMP_BASE_NAMESPACE_END
+

@@ -80,6 +80,8 @@ private:
 
     void showEvent(QShowEvent* event) override;
 
+    void ensureInitTaskbar();
+
     uint32_t screen_number_;
     QPoint last_pos_;
 #if defined(Q_OS_WIN)

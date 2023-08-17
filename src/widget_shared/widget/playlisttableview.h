@@ -18,7 +18,6 @@
 #include <base/rng.h>
 #include <base/encodingprofile.h>
 
-class StarDelegate;
 class ProcessIndicator;
 class PlayListSqlQueryTableModel;
 
@@ -177,7 +176,6 @@ protected:
 	int32_t playlist_id_{ -1 };
 	std::optional<int32_t> other_playlist_id_;
 	QModelIndex play_index_;
-	StarDelegate* start_delegate_;	
     PlayListSqlQueryTableModel* model_;
     QSet<QString> hidden_column_names_;
 	QList<QModelIndex> pending_playlist_;

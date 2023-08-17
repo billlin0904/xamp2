@@ -32,12 +32,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.5.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;network;widgets;opengl;printsupport;sql;core5compat;</QtModules>
+    <QtModules>core;gui;network;widgets;opengl;sql;core5compat;</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;sql;opengl;network;gui;widgets;printsupport;winextras;concurrent;</QtModules>
+    <QtInstall>6.5.2_msvc2019_64</QtInstall>
+    <QtModules>core;sql;opengl;network;gui;widgets;core5compat;</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -168,9 +168,6 @@
     <QtMoc Include="widget\seekslider.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <ClInclude Include="widget\spotify_utilis.h" />
-    <QtMoc Include="widget\stardelegate.h" />
-    <QtMoc Include="widget\stareditor.h" />
-    <ClInclude Include="widget\starrating.h" />
     <ClInclude Include="widget\str_utilts.h" />
     <QtMoc Include="widget\switchbutton.h" />
     <QtMoc Include="widget\tablistview.h" />
@@ -240,9 +237,6 @@
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\spotify_utilis.cpp" />
-    <ClCompile Include="widget\stardelegate.cpp" />
-    <ClCompile Include="widget\stareditor.cpp" />
-    <ClCompile Include="widget\starrating.cpp" />
     <ClCompile Include="widget\str_utilts.cpp" />
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />

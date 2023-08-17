@@ -5,26 +5,33 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QIcon>
+#include <atlcomcli.h>
 
+#include <QEvent>
 #include <thememanager.h>
 
 class IXFrame;
 class XMainWindow;
-//class QWinThumbnailToolBar;
-//class QWinTaskbarButton;
-//class QWinTaskbarProgress;
+
+class ITaskbarList4;
 
 namespace win32 {
 
-class WinTaskbar final {
+ enum TaskbarProgressState {
+    TASKBAR_PROCESS_STATE_NO_PROCESS, // Hidden
+    TASKBAR_PROCESS_STATE_INDETERMINATE, // Busy
+    TASKBAR_PROCESS_STATE_NORMAL,
+    TASKBAR_PROCESS_STATE_ERROR, // Stopped
+    TASKBAR_PROCESS_STATE_PAUSED,
+ };
+
+class WinTaskbar : public QObject {
 public:
     WinTaskbar(XMainWindow* window, IXFrame* player_frame);
 
     ~WinTaskbar();
 
-    void SetTaskbarProgress(const int32_t percent);
+    void SetTaskbarProgress(const int32_t process);
 
     void ResetTaskbarProgress();
 
@@ -36,7 +43,13 @@ public:
 
     void SetTaskbarPlayerStop();
 
-    void showEvent();
+    void SetOverlayAccessibleDescription(const QString& description);
+
+    void UpdateProgressIndicator();
+
+    void UpdateOverlay();
+
+    void SetRange(int progress_minimum, int progress_maximum);
 
     QIcon play_icon;
     QIcon pause_icon;
@@ -45,13 +58,20 @@ public:
     QIcon seek_backward_icon;
 
 private:
-    XMainWindow* window_;
-    /*QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
-    QScopedPointer<QWinTaskbarButton> taskbar_button_;
-    QWinTaskbarProgress* taskbar_progress_;*/
+    static inline const int MSG_TaskbarButtonCreated = QEvent::registerEventType();
+
+    bool eventFilter(QObject* object, QEvent* event) override;
+
+    void SetWindow(QWidget* window);
+
+    int process_max_{0};
+    int process_min_{0};
+    int process_value_{0};
+    QIcon overlay_icon_;
+    QWidget* window_;
+    TaskbarProgressState state_;
+    QString overlay_accessible_description_;
+    CComPtr<ITaskbarList4> taskbar_list_;
 };
 
-QRect GetWindowRect(const WId window_id);
-
 }
-

@@ -1269,6 +1269,7 @@ void Xamp::StopPlay() {
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
     qTheme.SetPlayOrPauseButton(ui_.playButton, true); // note: Stop play must set true.
     current_entity_ = std::nullopt;
+    main_window_->SetTaskbarPlayerStop();
 }
 
 void Xamp::PlayNext() {

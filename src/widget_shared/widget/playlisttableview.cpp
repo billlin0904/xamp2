@@ -10,7 +10,10 @@
 #include <QTimeEdit>
 #include <QLineEdit>
 #include <QApplication>
+#include <qevent.h>
+#include <QPainter>
 #include <QSqlError>
+#include <QStyledItemDelegate>
 #include <ranges>
 
 #include <base/logger_impl.h>
@@ -27,11 +30,9 @@
 #include <widget/xmessagebox.h>
 #include <widget/appsettings.h>
 #include <widget/imagecache.h>
-#include <widget/stardelegate.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
-#include <widget/stareditor.h>
 #include <widget/albumentity.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/ui_utilts.h>
@@ -305,7 +306,6 @@ void PlayListTableView::Reload() {
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
     , playlist_id_(playlist_id)
-    , start_delegate_(nullptr)
     , model_(new PlayListSqlQueryTableModel(this)) {
     initial();
 }
@@ -501,21 +501,6 @@ void PlayListTableView::initial() {
         while (model_->canFetchMore()) {
             model_->fetchMore();
         }
-    });
-
-    start_delegate_ = new StarDelegate(this);
-    setItemDelegateForColumn(PLAYLIST_RATING, start_delegate_);
-
-    (void)QObject::connect(start_delegate_, &StarDelegate::commitData, [this](auto editor) {
-        auto start_editor = qobject_cast<StarEditor*>(editor);
-        if (!start_editor) {
-            return;
-        }
-        auto index = model()->index(start_editor->row(), PLAYLIST_RATING);
-        auto item = GetEntity(index);
-        item.rating = start_editor->starRating().starCount();
-        CATCH_DB_EXCEPTION(qMainDb.UpdateMusicRating(item.music_id, item.rating))
-        FastReload();
     });
 
     setEditTriggers(DoubleClicked | SelectedClicked);

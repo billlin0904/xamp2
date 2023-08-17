@@ -1,4 +1,4 @@
-#include <widget/database.h>
+ï»¿#include <widget/database.h>
 
 #include <QSqlTableModel>
 #include <QSqlQuery>
@@ -27,7 +27,7 @@
     }\
     } while (false)
 
-// SQLite¤£¤ä´©uint64_t®æ¦¡¦ı¥i¥H¨Ï¥ÎQByteArray«O¦s.
+// SQLiteä¸æ”¯æ´uint64_tæ ¼å¼ä½†å¯ä»¥ä½¿ç”¨QByteArrayä¿å­˜.
 static uint64_t GetUlonglongValue(const SqlQuery & q, const int32_t index) {
     auto blob_size_t = q.value(index).toByteArray();
     XAMP_ASSERT(blob_size_t.size() == sizeof(uint64_t));
@@ -36,7 +36,7 @@ static uint64_t GetUlonglongValue(const SqlQuery & q, const int32_t index) {
     return result;
 }
 
-// SQLite¤£¤ä´©uint64_t®æ¦¡¦ı¥i¥H¨Ï¥ÎQByteArray«O¦s.
+// SQLiteä¸æ”¯æ´uint64_tæ ¼å¼ä½†å¯ä»¥ä½¿ç”¨QByteArrayä¿å­˜.
 static void BindUlonglongValue(SqlQuery & q, const ConstLatin1String placeholder, const uint64_t v) {
     QByteArray blob_size_t;
     blob_size_t.resize(sizeof(uint64_t));

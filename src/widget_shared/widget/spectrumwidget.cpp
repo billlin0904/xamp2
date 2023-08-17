@@ -1,4 +1,4 @@
-#include <widget/spectrumwidget.h>
+ï»¿#include <widget/spectrumwidget.h>
 
 #include <QPainter>
 #include <QPainterPath>
@@ -44,7 +44,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		int start_index = i * samples_per_band;
 		int end_index = (i + 1) * samples_per_band;
 
-		// ­pºâ·í«eÀW±aªº¯à¶q­È
+		// è¨ˆç®—ç•¶å‰é »å¸¶çš„èƒ½é‡å€¼
 		float band_energy = 0.0f;
 		for (int j = start_index; j < end_index; j++) {
 			band_energy += std::norm(fft_data_[j]);
@@ -53,15 +53,15 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		band_energies[i] = band_power;
 	}
 
-	// ­pºâ¨C­ÓÀW±aªº¯à¶q­Èªºdb­È
+	// è¨ˆç®—æ¯å€‹é »å¸¶çš„èƒ½é‡å€¼çš„dbå€¼
 	const std::valarray<float> band_db_values = 10.0f * std::log10(band_energies);
-	if (band_db_values.max() == -std::numeric_limits<float>::infinity()) {
+	if ((band_db_values.max)() == -std::numeric_limits<float>::infinity()) {
 		return;
 	}
 
-	// ±NÀWÃĞ¸ê®Æ«O¦s¨ì½w½Ä°Ï
+	// å°‡é »è­œè³‡æ–™ä¿å­˜åˆ°ç·©è¡å€
 	buffer_[buffer_ptr_] = band_db_values;
-	// §ó·s½w½Ä°Ï«ü¼Ğ
+	// æ›´æ–°ç·©è¡å€æŒ‡æ¨™
 	buffer_ptr_ = (buffer_ptr_ + 1) % kBufferSize;
 
 	std::valarray<float> average_spectrum(kMaxBands);
@@ -70,7 +70,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	}
 	average_spectrum /= kBufferSize;
 
-	float max_db_value = average_spectrum.max();
+	float max_db_value = (average_spectrum.max)();
 
 	float rect_width = static_cast<float>(width()) / static_cast<float>(kMaxBands);
 	float rect_height = static_cast<float>(height());
@@ -83,7 +83,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		QVector<QRectF> rects;
 		for (int i = 0; i < kMaxBands; i++) {
 			const float db_value = average_spectrum[i];
-			const float db_normalized = std::min(db_value / std::abs(max_db_value), 1.0f);
+			const float db_normalized = (std::min)(db_value / std::abs(max_db_value), 1.0f);
 			const float rect_x = static_cast<float>(i) * rect_width;
 			float rect_y = rect_height * (1.0f - db_normalized);
 			if (rect_y < kMinRectHeight) {
@@ -102,7 +102,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		path.moveTo(0, height());
 		for (int i = 0; i < kMaxBands; i++) {
 			const float db_value = average_spectrum[i];
-			const float db_normalized = std::min(db_value / std::abs(max_db_value), 1.0f);
+			const float db_normalized = (std::min)(db_value / std::abs(max_db_value), 1.0f);
 			const float rect_x = static_cast<float>(i) * rect_width;
 			float rect_y = rect_height * (1.0f - db_normalized);
 			if (rect_y < kMinRectHeight) {

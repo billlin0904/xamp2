@@ -1,4 +1,4 @@
-#include <widget/databasefacade.h>
+ï»¿#include <widget/databasefacade.h>
 #include <widget/extractfileworker.h>
 
 #include <atomic>
@@ -57,7 +57,7 @@ QPixmap CoverArtReader::GetEmbeddedCover(const Path& file_path) const {
     QPixmap pixmap;
     const auto& buffer = cover_reader_->GetEmbeddedCover(file_path);
     if (!buffer.empty()) {
-        pixmap.loadFromData(buffer.data(), static_cast<uint32_t>(buffer.size()));
+        pixmap.loadFromData(buffer.data(), buffer.size());
     }
     return pixmap;
 }
@@ -162,7 +162,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
         QPixmap cover;
 		if (is_file_path && album.isEmpty()) {
 			album = tr("Unknown album");
-			// todo: ¦pªG¦³¤º«Ø¹Ï¤ù´N§â·í§@¤@±i±M¿è.
+			// todo: å¦‚æžœæœ‰å…§å»ºåœ–ç‰‡å°±æŠŠç•¶ä½œä¸€å¼µå°ˆè¼¯.
 			cover = reader.GetEmbeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = QString::fromStdWString(track_info.file_name_no_ext);

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+ï»¿//=====================================================================================================================
 // Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -69,7 +69,7 @@ public:
         MemorySet(get(), value, GetByteSize());
     }
 
-    // ­Ý®eSTL®e¾¹¬ÛÃö¨ç¼Æ.
+    // å…¼å®¹STLå®¹å™¨ç›¸é—œå‡½æ•¸.
 
     T* data() noexcept {
         return ptr_.get();
@@ -163,5 +163,3 @@ XAMP_BASE_API_ONLY_EXPORT Buffer<T> MakeBuffer(size_t size) {
 }
 
 XAMP_BASE_NAMESPACE_END
-
-

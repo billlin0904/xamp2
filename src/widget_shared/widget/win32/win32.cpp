@@ -2,80 +2,151 @@
 #include <widget/xmainwindow.h>
 #include <xampplayer.h>
 
-#include <Windows.h>
+#include <QWindow>
 
-//#include <QtWinExtras/QWinTaskbarButton>
-//#include <QtWinExtras/QWinTaskbarProgress>
-//#include <QtWinExtras/QWinThumbnailToolBar>
-//#include <QtWinExtras/QWinThumbnailToolButton>
+#include <Windows.h>
+#include <shobjidl.h>
 
 namespace win32 {
 
-WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
-	window_ = window;
+static TBPFLAG GetWin32ProgressState(TaskbarProgressState state) {
+	static const QMap<TaskbarProgressState, TBPFLAG> state_lut{
+		{ TASKBAR_PROCESS_STATE_NO_PROCESS, TBPF_NOPROGRESS },
+		{ TASKBAR_PROCESS_STATE_INDETERMINATE, TBPF_INDETERMINATE },
+		{ TASKBAR_PROCESS_STATE_NORMAL, TBPF_NORMAL },
+		{ TASKBAR_PROCESS_STATE_ERROR, TBPF_ERROR },
+		{ TASKBAR_PROCESS_STATE_PAUSED, TBPF_PAUSED },
+	};
+	if (state_lut.contains(state)) {
+		return state_lut.value(state);
+	}
+	return TBPF_NOPROGRESS;
+}
 
+static int GetWin32IconSize() {
+	return ::GetSystemMetrics(SM_CXSMICON);
+}
+
+WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
 	play_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
 	pause_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
 	stop_play_icon = qTheme.GetFontIcon(Glyphs::ICON_STOP_PLAY);
 	seek_forward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD);
 	seek_backward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD);
 
-	/*thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
-	thumbnail_tool_bar_->setWindow(window->windowHandle());
+	::CoCreateInstance(CLSID_TaskbarList,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_ITaskbarList4,
+		reinterpret_cast<void**>(&taskbar_list_));
 
-	taskbar_button_.reset(new QWinTaskbarButton(window));
-	taskbar_button_->setWindow(window->windowHandle());
-	taskbar_progress_ = taskbar_button_->progress();
-	taskbar_progress_->setVisible(true);
+	SetWindow(window);
+}
 
-	auto* play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-	play_tool_button->setIcon(play_icon);
-	(void)QObject::connect(play_tool_button,
-		&QWinThumbnailToolButton::clicked,
-		content_widget,
-		&IXFrame::PlayOrPause);
+void WinTaskbar::SetWindow(QWidget* window) {
+	window->removeEventFilter(this);
+	window_ = window;
 
-	auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-	forward_tool_button->setIcon(seek_forward_icon);
-	(void)QObject::connect(forward_tool_button,
-		&QWinThumbnailToolButton::clicked,
-		content_widget,
-		&IXFrame::PlayNext);
+	window_->installEventFilter(this);
+	if (window_->isVisible()) {
+		UpdateProgressIndicator();
+		UpdateOverlay();
+	}
+}
 
-	auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-	backward_tool_button->setIcon(seek_backward_icon);
-	(void)QObject::connect(backward_tool_button,
-		&QWinThumbnailToolButton::clicked,
-		content_widget,
-		&IXFrame::PlayPrevious);
+void WinTaskbar::SetRange(int progress_minimum, int progress_maximum) {
+	const bool min_changed = progress_minimum != process_min_;
+	const bool max_changed = progress_maximum != process_max_;
 
-	thumbnail_tool_bar_->addButton(backward_tool_button);
-	thumbnail_tool_bar_->addButton(play_tool_button);
-	thumbnail_tool_bar_->addButton(forward_tool_button);*/
+	if (!min_changed && !max_changed)
+		return;
+
+	process_min_ = progress_minimum;
+	process_max_ = std::max(progress_minimum, progress_maximum);
+
+	if (process_value_ < process_min_ || process_value_ > process_max_)
+		ResetTaskbarProgress();
+
+	UpdateProgressIndicator();
+}
+
+void WinTaskbar::UpdateProgressIndicator() {
+	auto hwnd = reinterpret_cast<HWND>(window_->winId());
+
+	const auto progress_range = process_max_ - process_min_;
+	if (progress_range > 0) {
+		const int scaled_value = std::round(static_cast<double>(100) 
+			* static_cast<double>(process_value_ - process_min_) / static_cast<double>(progress_range));
+		
+		taskbar_list_->SetProgressValue(hwnd, static_cast<ULONGLONG>(scaled_value), 100);
+	} else if (state_ == TASKBAR_PROCESS_STATE_NORMAL) {
+		state_ = TASKBAR_PROCESS_STATE_INDETERMINATE;
+	}
+
+	taskbar_list_->SetProgressState(hwnd, GetWin32ProgressState(state_));
+}
+
+void WinTaskbar::UpdateOverlay() {
+	auto hwnd = reinterpret_cast<HWND>(window_->winId());
+
+	std::wstring description;
+	HICON icon_handle = nullptr;
+
+	if (!overlay_accessible_description_.isEmpty())
+		description = overlay_accessible_description_.toStdWString();
+
+	if (!overlay_icon_.isNull()) {
+		icon_handle = overlay_icon_.pixmap(GetWin32IconSize()).toImage().toHICON();
+
+		if (!icon_handle)
+			icon_handle = static_cast<HICON>(LoadImage(nullptr, IDI_APPLICATION, IMAGE_ICON, SM_CXSMICON, SM_CYSMICON, LR_SHARED));
+	}
+
+	taskbar_list_->SetOverlayIcon(hwnd, icon_handle, description.c_str());
+
+	if (icon_handle)
+		::DestroyIcon(icon_handle);
+}
+
+bool WinTaskbar::eventFilter(QObject* object, QEvent* event) {
+	if (object == window_ && event->type() == MSG_TaskbarButtonCreated) {
+		UpdateProgressIndicator();
+		UpdateOverlay();
+	}
+	return false;
 }
 
 WinTaskbar::~WinTaskbar() = default;
 
-void WinTaskbar::SetTaskbarProgress(const int32_t percent) {
-	//taskbar_progress_->setValue(percent);
+void WinTaskbar::SetTaskbarProgress(const int32_t process) {
+	if (process == process_value_ || process < process_min_ || process > process_max_)
+		return;
+
+	if (state_ == TASKBAR_PROCESS_STATE_INDETERMINATE)
+		state_ = TASKBAR_PROCESS_STATE_NORMAL;
+
+	process_value_ = process;
+	UpdateProgressIndicator();
 }
 
 void WinTaskbar::ResetTaskbarProgress() {
-	/*taskbar_progress_->reset();
-	taskbar_progress_->setValue(0);
-	taskbar_progress_->setRange(0, 100);
-	taskbar_button_->setOverlayIcon(play_icon);
-	taskbar_progress_->show();*/
+	SetRange(0, 100);
+	state_ = TASKBAR_PROCESS_STATE_NO_PROCESS;
+	SetTaskbarProgress(0);
+	SetTaskbarPlayingResume();
 }
 
 void WinTaskbar::SetTaskbarPlayingResume() {
-	/*taskbar_button_->setOverlayIcon(play_icon);
-	taskbar_progress_->resume();*/
+	overlay_icon_ = play_icon;
+	state_ = TASKBAR_PROCESS_STATE_NORMAL;
+	UpdateOverlay();
 }
 
 void WinTaskbar::SetTaskbarPlayerPaused() {
-	/*taskbar_button_->setOverlayIcon(pause_icon);
-	taskbar_progress_->pause();*/
+	overlay_icon_ = pause_icon;
+	state_ = TASKBAR_PROCESS_STATE_PAUSED;
+	UpdateProgressIndicator();
+	UpdateOverlay();
 }
 
 void WinTaskbar::SetTaskbarPlayerPlaying() {
@@ -83,21 +154,10 @@ void WinTaskbar::SetTaskbarPlayerPlaying() {
 }
 
 void WinTaskbar::SetTaskbarPlayerStop() {
-	/*taskbar_button_->setOverlayIcon(stop_play_icon);
-	taskbar_progress_->hide();*/
-}
-
-void WinTaskbar::showEvent() {
-	//taskbar_button_->setWindow(window_->windowHandle());
-}
-
-QRect GetWindowRect(const WId window_id) {
-	auto hwnd = reinterpret_cast<HWND>(window_id);
-	RECT rect{ 0 };
-	::GetWindowRect(hwnd, &rect);
-	auto width = rect.right - rect.left;
-	auto height = rect.bottom - rect.top;
-	return QRect(rect.left, rect.top, width, height);
+	overlay_icon_ = stop_play_icon;
+	state_ = TASKBAR_PROCESS_STATE_ERROR;
+	UpdateProgressIndicator();
+	UpdateOverlay();
 }
 
 }
