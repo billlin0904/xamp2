@@ -2,7 +2,7 @@
 
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
-#include <widget/albumentity.h>
+#include <widget/playlistentity.h>
 
 PlayListSqlQueryTableModel::PlayListSqlQueryTableModel(QObject *parent)
     : QSqlQueryModel(parent) {

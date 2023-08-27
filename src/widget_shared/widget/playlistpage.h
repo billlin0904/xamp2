@@ -7,6 +7,7 @@
 
 #include <QFrame>
 #include <QString>
+#include <QLineEdit>
 
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
@@ -20,6 +21,8 @@ class PlayListTableView;
 class XAMP_WIDGET_SHARED_EXPORT PlaylistPage : public QFrame {
 	Q_OBJECT
 public:
+	static constexpr auto kMaxCompletionCount = 10;
+
 	explicit PlaylistPage(QWidget *parent = nullptr);
 
 	PlayListTableView* playlist();
@@ -54,6 +57,7 @@ private:
 	QLabel* cover_;
     ScrollLabel* title_;
 	QLabel* format_;
+	QLineEdit* search_line_edit_;
 	QSpacerItem* vertical_spacer_;
 	QSpacerItem* horizontal_spacer_;
 	QSpacerItem* horizontalSpacer_4_;

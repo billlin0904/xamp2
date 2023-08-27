@@ -112,13 +112,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		}
 		path.lineTo(width(), height());
 		path.closeSubpath();
-
-		QLinearGradient gradient(0, 0, width(), 0);
-		for (int i = 0; i < kMaxBands; i++) {
-			gradient.setColorAt(static_cast<float>(i) / static_cast<float>(kMaxBands), 
-				QColor::fromHsvF(static_cast<float>(i) / static_cast<float>(kMaxBands), 1.0f, 1.0f));
-		}
-		const QBrush brush(gradient);
+		const QBrush brush(qTheme.GetHighlightColor());
 		painter.fillPath(path, brush);
 	}
 }

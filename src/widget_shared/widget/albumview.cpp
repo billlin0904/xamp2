@@ -15,7 +15,7 @@
 #include <widget/imagecache.h>
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
-#include <widget/albumentity.h>
+#include <widget/playlistentity.h>
 #include <base/scopeguard.h>
 
 #include <thememanager.h>
@@ -458,7 +458,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        auto process_dialog = MakeProgressDialog(
+        const auto process_dialog = MakeProgressDialog(
             tr("Remove all album"), 
             QString(), 
             tr("Cancel"));

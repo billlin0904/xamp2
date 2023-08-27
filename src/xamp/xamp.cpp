@@ -1,4 +1,5 @@
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+
 #include <QShortcut>
 #include <QToolTip>
 #include <QWidgetAction>
@@ -16,9 +17,8 @@
 
 #include <player/ebur128reader.h>
 
-#include <output_device/api.h>
 #include <output_device/iaudiodevicemanager.h>
-
+#include <output_device/api.h>
 #include <player/api.h>
 
 #include <widget/widget_shared.h>
@@ -566,12 +566,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         Qt::QueuedConnection);    
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::ReadFileStart,
-        this,
-        &Xamp::OnReadFileStart,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::ReadFileProgress,
         this,
         &Xamp::OnReadFileProgress,
@@ -599,6 +593,12 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &ExtractFileWorker::InsertDatabase,
         this,
         &Xamp::OnInsertDatabase,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(extract_file_worker_.get(),
+        &ExtractFileWorker::ReadFileStart,
+        this,
+        &Xamp::OnReadFileStart,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
@@ -2269,7 +2269,7 @@ void Xamp::OnCalculateEta(uint64_t ms) {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->SetTitle(qSTR("Estimated remaining time %1 secs").arg(ms / 1000));
+    read_progress_dialog_->SetTitle(qSTR("Estimated remaining time %1").arg(FormatDuration(ms / 1000.0)));
 }
 
 void Xamp::OnReadFilePath(const QString& file_path) {
@@ -2306,7 +2306,6 @@ void Xamp::OnReadCompleted() {
         return;
     }
     read_progress_dialog_->close();
-    read_progress_dialog_.reset();
 }
 
 void Xamp::OnReadFileStart() {

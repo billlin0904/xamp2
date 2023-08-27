@@ -54,7 +54,7 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 		return;
 	}
 	stft_.reset();
-	if (output_format.GetSampleRate() > 4800) {
+	if (output_format.GetSampleRate() > 48000) {
 		return;
 	}
 	size_t fft_shift_size = buffer_size * 0.55;	

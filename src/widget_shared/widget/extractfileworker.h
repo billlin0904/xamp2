@@ -24,6 +24,8 @@ signals:
         int32_t playlist_id,
         bool is_podcast_mode);
 
+    void ReadFileStart();
+
     void ReadCompleted();
 
     void ReadFilePath(const QString& file_path);
@@ -33,8 +35,6 @@ signals:
     void FoundFileCount(size_t file_count);
 
     void CalculateEta(uint64_t ms);
-
-    void ReadFileStart();
 
     void FromDatabase(int32_t playlist_id, const QList<PlayListEntity>& entity);
 

@@ -15,8 +15,7 @@ TagWidgetItem::TagWidgetItem(const QString& tag, QColor color, QLabel* label, QL
 	setFlags(Qt::NoItemFlags);
 }
 
-TagWidgetItem::~TagWidgetItem() {
-}
+TagWidgetItem::~TagWidgetItem() = default;
 
 QString TagWidgetItem::GetTag() const {
 	return tag_;

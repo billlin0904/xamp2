@@ -4,7 +4,6 @@
 #include <QElapsedTimer>
 
 #include <base/fastmutex.h>
-#include <base/google_siphash.h>
 #include <base/scopeguard.h>
 #include <base/blake3hash.h>
 
@@ -121,11 +120,12 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
     }
 
     const auto path_hash = hasher.Get64bitHash();
+    auto db = database_pool->Acquire();
 
-    const auto db_hash = database_pool->Acquire()->GetParentPathHash(dir);
+    const auto db_hash = db->GetParentPathHash(dir);
     if (db_hash == path_hash) {
         XAMP_LOG_DEBUG("Cache hit hash:{} path: {}", db_hash, String::ToString(dir.toStdWString()));
-        emit FromDatabase(playlist_id, database_pool->Acquire()->GetPlayListEntityFromPathHash(db_hash));
+        emit FromDatabase(playlist_id, db->GetPlayListEntityFromPathHash(db_hash));
         return;
     }
 
@@ -143,14 +143,15 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
 
     for (const auto& pair : directory_files) {
         const auto& directory = pair.first;
-        const auto& file_paths = pair.second;
-        Executor::ParallelFor(GetScanPathThreadPool(), file_paths, [&](const auto& path) {
+
+        for (const auto & path : pair.second) {
             if (is_stop_) {
                 return;
             }
             try {
-	            TaglibMetadataReader reader;
-	            auto track_info = reader.Extract(path);
+                TaglibMetadataReader reader;
+                XAMP_LOG_DEBUG("{}", String::ToString(path.wstring()));
+                auto track_info = reader.Extract(path);
                 track_info.parent_path_hash = path_hash;
                 std::lock_guard<FastMutex> guard{ mutex };
                 if (!album_groups.contains(track_info.album)) {
@@ -158,9 +159,8 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
                 }
                 album_groups[track_info.album].push_back(std::move(track_info));
             }
-            catch (...) {
-            }
-            });
+            catch (...) { }
+        }        
         ReadFilePath(StringFormat("Extract file {}", String::ToString(directory)));
     }
 }
@@ -207,7 +207,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     }
 
     std::atomic<size_t> completed_work(0);
-
+   
     auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
     });
@@ -216,14 +216,15 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     if (total_work == 0) {
         XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
         return;
-    }
+    }   
 
     emit ReadFileStart();
 
     XAMP_ON_SCOPE_EXIT(
         emit ReadCompleted();
-		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
+        XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
     );
+
 
     FastMutex mutex;
     QElapsedTimer timer;

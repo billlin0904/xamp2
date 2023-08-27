@@ -51,7 +51,7 @@ private:
 class XAMP_WIDGET_SHARED_EXPORT AlbumArtistPage final : public QFrame {
 	Q_OBJECT
 public:
-	static constexpr size_t kMaxCompletionCount = 10;
+	static constexpr auto kMaxCompletionCount = 10;
 
 	explicit AlbumArtistPage(QWidget* parent = nullptr);
 

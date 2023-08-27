@@ -33,7 +33,7 @@
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
-#include <widget/albumentity.h>
+#include <widget/playlistentity.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/ui_utilts.h>
 #include <widget/fonticon.h>
@@ -206,38 +206,6 @@ public:
     }
 };
 
-static PlayListEntity GetEntity(const QModelIndex& index) {
-    PlayListEntity entity;
-    entity.music_id          = GetIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
-    entity.playing           = GetIndexValue(index, PLAYLIST_PLAYING).toInt();
-    entity.track             = GetIndexValue(index, PLAYLIST_TRACK).toUInt();
-    entity.file_path         = GetIndexValue(index, PLAYLIST_FILE_PATH).toString();
-    entity.file_size         = GetIndexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
-    entity.title             = GetIndexValue(index, PLAYLIST_TITLE).toString();
-    entity.file_name         = GetIndexValue(index, PLAYLIST_FILE_NAME).toString();
-    entity.artist            = GetIndexValue(index, PLAYLIST_ARTIST).toString();
-    entity.album             = GetIndexValue(index, PLAYLIST_ALBUM).toString();
-    entity.duration          = GetIndexValue(index, PLAYLIST_DURATION).toDouble();
-    entity.bit_rate          = GetIndexValue(index, PLAYLIST_BIT_RATE).toUInt();
-    entity.sample_rate       = GetIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
-    entity.rating            = GetIndexValue(index, PLAYLIST_RATING).toUInt();
-    entity.album_id          = GetIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
-    entity.artist_id         = GetIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
-    entity.cover_id          = GetIndexValue(index, PLAYLIST_COVER_ID).toString();
-    entity.file_extension    = GetIndexValue(index, PLAYLIST_FILE_EXT).toString();
-    entity.parent_path       = GetIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
-    entity.timestamp         = GetIndexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
-    entity.playlist_music_id = GetIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    entity.album_replay_gain = GetIndexValue(index, PLAYLIST_ALBUM_RG).toDouble();
-    entity.album_peak        = GetIndexValue(index, PLAYLIST_ALBUM_PK).toDouble();
-    entity.track_replay_gain = GetIndexValue(index, PLAYLIST_TRACK_RG).toDouble();
-    entity.track_peak        = GetIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
-    entity.track_loudness    = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
-    entity.genre             = GetIndexValue(index, PLAYLIST_GENRE).toString();
-    entity.heart             = GetIndexValue(index, PLAYLIST_HEART).toUInt();
-    return entity;
-}
-
 void PlayListTableView::Reload() {
     // 呼叫此函數就會更新index, 會導致playing index失效    
     QString s = qTEXT(R"(
@@ -340,9 +308,9 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, tr("FileSize"));
     model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("Album"));
     model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("Artist"));
-    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duraion"));
-    model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("Bitrate"));
-    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("Samplerate"));
+    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duration"));
+    model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("BitRate"));
+    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
     model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
     model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("AlbumRG"));
     model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("AlbumPK"));

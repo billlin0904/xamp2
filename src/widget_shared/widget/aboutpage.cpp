@@ -48,6 +48,9 @@ AboutPage::AboutPage(QWidget* parent)
     ui_.lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.lblDomain->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
+
+    (void)QObject::connect(ui_.btnCredits, &QPushButton::clicked, this, &AboutPage::OnCreditsOrLicenseChecked);
+    (void)QObject::connect(ui_.btnLicense, &QPushButton::clicked, this, &AboutPage::OnCreditsOrLicenseChecked);
 }
 
 void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -55,11 +58,12 @@ void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
-    if (sender()->objectName() == qTEXT("btnLicense")) {
+    auto* sender_ptr = sender();
+    if (sender_ptr->objectName() == qTEXT("btnLicense")) {
         ui_.txtBws->setText(license_);
         ui_.btnCredits->setChecked(false);
     }
-    else if (sender()->objectName() == qTEXT("btnCredits")) {
+    else if (sender_ptr->objectName() == qTEXT("btnCredits")) {
         ui_.txtBws->setText(credits_);
         ui_.btnLicense->setChecked(false);
     }

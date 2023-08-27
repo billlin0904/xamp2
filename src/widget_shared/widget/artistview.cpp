@@ -1,7 +1,7 @@
 #include <widget/artistview.h>
 #include <widget/albumview.h>
 #include <widget/database.h>
-#include <widget/albumentity.h>
+#include <widget/playlistentity.h>
 #include <widget/taglistview.h>
 
 #include <thememanager.h>

@@ -1,9 +1,11 @@
+#include <QCompleter>
 #include <widget/playlistpage.h>
 
 #include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSpacerItem>
+#include <QStandardItemModel>
 
 #include <thememanager.h>
 #include <widget/image_utiltis.h>
@@ -87,8 +89,21 @@ void PlaylistPage::Initial() {
 		}
 		});
 
+	search_line_edit_ = new QLineEdit();
+	search_line_edit_->setObjectName(QString::fromUtf8("playlistSearchLineEdit"));
+	QSizePolicy size_policy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	size_policy3.setHorizontalStretch(0);
+	size_policy3.setVerticalStretch(0);
+	size_policy3.setHeightForWidth(search_line_edit_->sizePolicy().hasHeightForWidth());
+	search_line_edit_->setSizePolicy(size_policy3);
+	search_line_edit_->setMinimumSize(QSize(180, 30));
+	search_line_edit_->setFocusPolicy(Qt::ClickFocus);
+	search_line_edit_->setClearButtonEnabled(true);
+	search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+	search_line_edit_->setPlaceholderText(tr("Search ..."));
+
 	format_ = new QLabel(this);
-	QFont format_font(qTEXT("FormatFont"));
+	const QFont format_font(qTEXT("FormatFont"));
 	format_->setFont(format_font);
 
 	vertical_spacer_ = new QSpacerItem(20, 24, QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -108,7 +123,7 @@ void PlaylistPage::Initial() {
 	child_layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
 	album_title_layout->setContentsMargins(0, 10, 0, 0);
 
-	default_layout->addLayout(child_layout);	
+	default_layout->addLayout(child_layout);
 
 	default_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
@@ -125,21 +140,46 @@ void PlaylistPage::Initial() {
 	playlist_->setObjectName(QString::fromUtf8("tableView"));
 
 	horizontalLayout_8->addWidget(playlist_);
-
 	horizontalSpacer_5_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
 	horizontalLayout_8->addItem(horizontalSpacer_5_);
-
 	horizontalLayout_8->setStretch(1, 1);
 
-	default_layout->addLayout(horizontalLayout_8); 
+	auto* horizontal_layout_9 = new QHBoxLayout();
+	horizontal_layout_9->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+	horizontal_layout_9->addWidget(search_line_edit_, 1);
+	default_layout->addLayout(horizontal_layout_9);
 
-	default_layout->setStretch(2, 1);
+	default_layout->addLayout(horizontalLayout_8);
+	default_layout->setStretch(3, 1);
 
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::UpdateAlbumCover,
 		this,
 		&PlaylistPage::SetCoverById);
+
+	auto * search_playlist_model = new QStandardItemModel(0, 1, this);
+	auto* playlist_completer = new QCompleter(search_playlist_model, this);
+	playlist_completer->setCaseSensitivity(Qt::CaseInsensitive);
+	playlist_completer->setFilterMode(Qt::MatchContains);
+	playlist_completer->setCompletionMode(QCompleter::PopupCompletion);
+	search_line_edit_->setCompleter(playlist_completer);
+
+	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this, search_playlist_model, playlist_completer](const auto& text) {
+		const auto items = search_playlist_model->findItems(text, Qt::MatchExactly);
+		if (!items.isEmpty()) {
+			return;
+		}
+		if (search_playlist_model->rowCount() >= kMaxCompletionCount) {
+			search_playlist_model->removeRows(0, kMaxCompletionCount - search_playlist_model->rowCount() + 1);
+		}
+
+		search_playlist_model->appendRow(new QStandardItem(text));
+		playlist_completer->setModel(search_playlist_model);
+		playlist_completer->setCompletionPrefix(text);
+
+		/*album_view_->OnSearchTextChanged(text);
+		album_view_->Update();*/
+		});
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {

@@ -371,7 +371,7 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
     case Glyphs::ICON_MINIMIZE_WINDOW:
 	    {
         auto temp = font_icon_opts_;
-        temp.insert(FontIconOption::colorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::white) : QColor(Qt::gray)));
+        temp.insert(FontIconOption::colorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::black) : QColor(Qt::gray)));
         return qFontIcon.GetIcon(0xF2D1, temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
@@ -613,8 +613,7 @@ void ThemeManager::SetLinearGradient(QLinearGradient& gradient) const {
             gradient.setCoordinateMode(QGradient::StretchToDeviceMode);
             gradient.setStart(0, 0);
             gradient.setFinalStop(1, 1);
-            gradient.setColorAt(0, QColor(255, 254, 255));
-            //gradient.setColorAt(1, QColor(215, 255, 254));
+            gradient.setColorAt(0, QColor(Qt::white));
             gradient.setColorAt(1, QColor(Qt::lightGray));
             break;
     }
@@ -641,11 +640,10 @@ QColor ThemeManager::GetHoverColor() const {
 QColor ThemeManager::GetHighlightColor() const {
     switch (GetThemeColor()) {
     case ThemeColor::LIGHT_THEME:
-        return QColor(qTEXT("#9FCBFF"));
+        return {qTEXT("#9FCBFF")};
     case ThemeColor::DARK_THEME:
     default:
-        //return QColor(qTEXT("#a7c8ff"));
-        return QColor(qTEXT("#00b4d8"));
+        return {qTEXT("#1A72BB")};
     }
 }
 
@@ -655,7 +653,7 @@ int32_t ThemeManager::GetTitleBarIconHeight() {
 
 void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
     const QColor hover_color = GetHoverColor();
-    QColor color_hover_color(qTEXT("#dc3545"));
+    const QColor color_hover_color(qTEXT("#dc3545"));
 
     close_button->setStyleSheet(qSTR(R"(
                                          QToolButton#closeButton {
@@ -683,7 +681,6 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										  border-radius: 0px;				 
                                           }
                                           )").arg(ColorToString(hover_color)));
-    //min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), 1));
     min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
     min_win_button->setIcon(GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
     
@@ -722,7 +719,7 @@ int32_t ThemeManager::GetDefaultFontSize() const {
 }
 
 QSize ThemeManager::GetTitleButtonIconSize() {
-    return QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight());
+    return {GetTitleBarIconHeight(), GetTitleBarIconHeight()};
 }
 
 QFont ThemeManager::GetFormatFont() const {
@@ -809,7 +806,7 @@ void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_UP));
-        AppSettings::SetValue(kAppSettingIsMuted, false);
+        AppSettings::SetValue<bool>(kAppSettingIsMuted, false);
     }
     else {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_OFF));

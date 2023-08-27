@@ -126,7 +126,6 @@
     <QtMoc Include="widget\albumartistpage.h" />
     <QtMoc Include="thememanager.h" />
     <ClInclude Include="version.h" />
-    <ClInclude Include="widget\albumentity.h" />
     <QtMoc Include="widget\albumview.h" />
     <ClInclude Include="widget\appsettingnames.h" />
     <ClInclude Include="widget\appsettings.h" />
@@ -194,7 +193,6 @@
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
-    <ClCompile Include="widget\albumentity.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettingnames.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
@@ -224,6 +222,7 @@
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\pendingplaylistpage.cpp" />
+    <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />

@@ -7,7 +7,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
-inline constexpr auto kMaxBackgroundThreadPoolSize{ 32 };
+inline constexpr auto kMaxBackgroundThreadPoolSize{ 4 };
 inline constexpr auto kMaxScanPathThreadPoolSize{ 4 };
 
 AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
