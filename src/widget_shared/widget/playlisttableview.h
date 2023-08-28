@@ -39,7 +39,7 @@ public:
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
-	virtual ~PlayListTableView() override;
+	~PlayListTableView() override;
 
 	virtual void FastReload();
 
@@ -108,6 +108,8 @@ public:
 	QList<QModelIndex> GetPendingPlayIndexes() const;
 
 	void SetOtherPlaylist(int32_t playlist_id);
+
+	void Search(const QString& keyword);
 signals:
 	void UpdatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 

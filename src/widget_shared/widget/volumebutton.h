@@ -19,7 +19,7 @@ class XAMP_WIDGET_SHARED_EXPORT VolumeButton : public QToolButton {
 public:
 	explicit VolumeButton(QWidget *parent = nullptr);
 
-    virtual ~VolumeButton();
+	~VolumeButton() override;
 
 	void SetPlayer(std::shared_ptr<IAudioPlayer> player);
 

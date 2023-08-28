@@ -132,16 +132,16 @@ void PlaylistPage::Initial() {
 	auto* horizontalLayout_8 = new QHBoxLayout();
 	horizontalLayout_8->setSpacing(0);
 	horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
-	horizontalSpacer_4_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+	horizontal_spacer_4_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-	horizontalLayout_8->addItem(horizontalSpacer_4_);
+	horizontalLayout_8->addItem(horizontal_spacer_4_);
 
 	playlist_ = new PlayListTableView(this);
 	playlist_->setObjectName(QString::fromUtf8("tableView"));
 
 	horizontalLayout_8->addWidget(playlist_);
-	horizontalSpacer_5_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-	horizontalLayout_8->addItem(horizontalSpacer_5_);
+	horizontal_spacer_5_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+	horizontalLayout_8->addItem(horizontal_spacer_5_);
 	horizontalLayout_8->setStretch(1, 1);
 
 	auto* horizontal_layout_9 = new QHBoxLayout();
@@ -164,6 +164,13 @@ void PlaylistPage::Initial() {
 	playlist_completer->setCompletionMode(QCompleter::PopupCompletion);
 	search_line_edit_->setCompleter(playlist_completer);
 
+	auto actionList = search_line_edit_->findChildren<QAction*>();
+	if (!actionList.isEmpty()) {
+		(void)QObject::connect(actionList.first(), &QAction::triggered, this, [this]() {
+			playlist_->Reload();
+			});
+	}
+
 	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this, search_playlist_model, playlist_completer](const auto& text) {
 		const auto items = search_playlist_model->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
@@ -177,8 +184,11 @@ void PlaylistPage::Initial() {
 		playlist_completer->setModel(search_playlist_model);
 		playlist_completer->setCompletionPrefix(text);
 
-		/*album_view_->OnSearchTextChanged(text);
-		album_view_->Update();*/
+		if (!text.isEmpty()) {
+			playlist_->Search(text);
+		} else {
+			playlist_->Reload();
+		}
 		});
 }
 
@@ -210,8 +220,8 @@ void PlaylistPage::HidePlaybackInformation(bool hide) {
 		middle_spacer_->changeSize(0, 0);
 		right_spacer_->changeSize(0, 0);
 		default_spacer_->changeSize(0, 0);
-		horizontalSpacer_4_->changeSize(0, 0);
-		horizontalSpacer_5_->changeSize(0, 0);
+		horizontal_spacer_4_->changeSize(0, 0);
+		horizontal_spacer_5_->changeSize(0, 0);
 	}
 }
 

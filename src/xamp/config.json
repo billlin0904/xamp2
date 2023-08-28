@@ -7,7 +7,7 @@
                 "AudioPlayer": "info",
                 "AvFileStream": "info",
                 "BASS": "info",
-                "BackgroundThreadPool": "info",
+                "BackgroundThreadPool": "debug",
                 "BackgroundWorker": "info",
                 "BassCompressor": "info",
                 "BassEqualizer": "info",
@@ -53,7 +53,7 @@
         "176.4K": {
             "passBand": 96,
             "phase": 46,
-            "quality": 0,
+            "quality": 4,
             "resampleSampleRate": 192000,
             "rolloffLevel": 2,
             "stopBand": 100
@@ -63,6 +63,14 @@
             "phase": 46,
             "quality": 4,
             "resampleSampleRate": 192000,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        },
+        "Bluetooth": {
+            "passBand": 96,
+            "phase": 46,
+            "quality": 4,
+            "resampleSampleRate": 44100,
             "rolloffLevel": 2,
             "stopBand": 100
         }

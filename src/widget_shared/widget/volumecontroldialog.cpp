@@ -13,7 +13,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 
     setAttribute(Qt::WA_StyledBackground);
-	setFixedSize(30, 110);
+	setFixedSize(35, 110);
 
 	ui_.volumeSlider->SetRange(0, 100);
     ui_.volumeSlider->setFocusPolicy(Qt::NoFocus);

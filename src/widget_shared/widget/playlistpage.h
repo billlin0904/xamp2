@@ -60,8 +60,8 @@ private:
 	QLineEdit* search_line_edit_;
 	QSpacerItem* vertical_spacer_;
 	QSpacerItem* horizontal_spacer_;
-	QSpacerItem* horizontalSpacer_4_;
-	QSpacerItem* horizontalSpacer_5_;
+	QSpacerItem* horizontal_spacer_4_;
+	QSpacerItem* horizontal_spacer_5_;
 	QSpacerItem* middle_spacer_;
 	QSpacerItem* right_spacer_;
 	QSpacerItem* default_spacer_;

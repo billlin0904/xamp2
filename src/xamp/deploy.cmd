@@ -61,4 +61,4 @@ copy en_US.qm x64\Release\langs\
 copy ja_JP.qm x64\Release\langs\
 copy zh_TW.qm x64\Release\langs\
 
-C:\Qt\5.15.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release
+C:\Qt\6.5.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release

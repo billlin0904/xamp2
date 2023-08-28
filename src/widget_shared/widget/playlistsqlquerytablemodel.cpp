@@ -24,12 +24,11 @@ QVariant PlayListSqlQueryTableModel::headerData(int section, Qt::Orientation ori
     if (orientation == Qt::Horizontal) {
         if (role == Qt::TextAlignmentRole) {
             if (section == PLAYLIST_ARTIST || section == PLAYLIST_DURATION) {
-                return QVariant(Qt::AlignVCenter | Qt::AlignRight);
+                return {Qt::AlignVCenter | Qt::AlignRight};
             } else if (section == PLAYLIST_TRACK) {
-                return QVariant(Qt::AlignVCenter | Qt::AlignHCenter);
+                return {Qt::AlignVCenter | Qt::AlignHCenter};
             }
         }
     }
     return QSqlQueryModel::headerData(section, orientation, role);
 }
-
