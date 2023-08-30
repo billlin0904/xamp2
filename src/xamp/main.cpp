@@ -282,9 +282,9 @@ static void LoadAppSettings() {
     AppSettings::SetDefaultValue(kAppSettingEnableSandboxMode, true);
     AppSettings::SetDefaultValue(kAppSettingEnableDebugStackTrace, true);
 
-    AppSettings::SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 10"));
-    AppSettings::SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 10"));
-    AppSettings::SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 10"));
+    AppSettings::SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 26"));
+    AppSettings::SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 26"));
+    AppSettings::SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 26"));
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }
 
@@ -550,10 +550,10 @@ int main() {
         return -1;
     }
 
-    const auto prefetch_dll = PrefetchDll();
+    auto prefetch_dll = PrefetchDll();
     XAMP_LOG_DEBUG("Prefetch dll success.");
 
-    const auto pin_system_dll = PinSystemDll();
+    auto pin_system_dll = PinSystemDll();
     XAMP_LOG_DEBUG("Pin system dll success.");
 #endif
 
@@ -571,13 +571,15 @@ int main() {
         AppSettings::save();
         SaveLogConfig();
         qMainDb.close();
+        prefetch_dll.clear();
+        pin_system_dll.clear();
         LoggerManager::GetInstance().Shutdown();
     );
 
     auto exist_code = 0;
     try {
         static char app_name[] = "xamp2";
-        static const int argc = 1;
+        static constexpr int argc = 1;
         static char* argv[] = { app_name, nullptr };
 
         exist_code = Execute(argc, argv);
