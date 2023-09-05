@@ -16,130 +16,10 @@
 
 #include <thememanager.h>
 
-//#define USE_LIB_IMAGEQUANT
-
-#ifdef USE_LIB_IMAGEQUANT
-#include <libimagequant.h>
-#include <lodepng/lodepng.h>
-#endif
-
 Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius, bool quality,
 	bool alphaOnly, int transposed = 0);
 
 namespace image_utils {
-
-#ifdef USE_LIB_IMAGEQUANT
-
-namespace imagequant {
-	template <typename T>
-	struct LiqResourceDeleter;
-
-	template <typename T>
-	struct LodePNGResourceDeleter;
-
-	template <typename T>
-	using LiqPtr = std::unique_ptr<T, LiqResourceDeleter<T>>;
-
-	template <typename T>
-	using LodePNGPtr = std::unique_ptr<T, LodePNGResourceDeleter<T>>;
-
-	template <>
-	struct LiqResourceDeleter<liq_result> {
-		void operator()(liq_result* p) const {
-			liq_result_destroy(p);
-		}
-	};
-
-	template <>
-	struct LiqResourceDeleter<liq_attr> {
-		void operator()(liq_attr* p) const {
-			liq_attr_destroy(p);
-		}
-	};
-
-	template <>
-	struct LiqResourceDeleter<liq_image> {
-		void operator()(liq_image* p) const {
-			liq_image_destroy(p);
-		}
-	};
-
-	template <>
-	struct LodePNGResourceDeleter<LodePNGState> {
-		void operator()(LodePNGState* p) const {
-			lodepng_state_cleanup(p);
-		}
-	};
-
-	void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_png) {
-		unsigned int width, height;
-		unsigned char* raw_rgba_pixels;
-
-		if (lodepng_decode32(&raw_rgba_pixels, &width, &height,
-			reinterpret_cast<const uint8_t*>(original_png.data()), original_png.size())) {
-			return;
-		}
-
-		LiqPtr<liq_attr> handle(liq_attr_create());
-		LiqPtr<liq_image> input_image(liq_image_create_rgba(
-			handle.get(),
-			raw_rgba_pixels, width, height, 0));
-
-		liq_set_quality(handle.get(), 50, 60);
-
-		LiqPtr<liq_result> result(liq_quantize_image(handle.get(), input_image.get()));
-		if (!result) {
-			return;
-		}
-
-		const size_t pixels_size = width * height;
-
-		std::vector<uint8_t> raw_8bit_pixels(pixels_size);
-		liq_set_dithering_level(result.get(), 1.0);
-
-		liq_write_remapped_image(result.get(), input_image.get(), raw_8bit_pixels.data(), pixels_size);
-		const liq_palette* palette = liq_get_palette(result.get());
-
-		LodePNGState state;
-		lodepng_state_init(&state);
-		state.info_raw.colortype = LCT_PALETTE;
-		state.info_raw.bitdepth = 8;
-		state.info_png.color.colortype = LCT_PALETTE;
-		state.info_png.color.bitdepth = 8;
-
-		LodePNGPtr<LodePNGState> state_raii(&state);
-
-		for (auto i = 0; i < palette->count; i++) {
-			lodepng_palette_add(&state.info_png.color,
-				palette->entries[i].r,
-				palette->entries[i].g,
-				palette->entries[i].b,
-				palette->entries[i].a);
-			lodepng_palette_add(&state.info_raw,
-				palette->entries[i].r,
-				palette->entries[i].g,
-				palette->entries[i].b,
-				palette->entries[i].a);
-		}
-
-		unsigned char* output_file_data = nullptr;
-		size_t output_file_size = 0;
-		const auto out_status =
-			lodepng_encode(&output_file_data,
-				&output_file_size,
-				raw_8bit_pixels.data(),
-				width,
-				height,
-				&state);
-		if (out_status) {
-			return;
-		}
-
-		result_png.resize(output_file_size);
-		MemoryCopy(result_png.data(), output_file_data, output_file_size);
-	}
-}
-#endif
 
 template <typename OptimizeFunc>
 static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t> &result_png, OptimizeFunc func) {
@@ -165,59 +45,21 @@ static void OptimizePng(const QString& dest_file_path, const QByteArray& origina
 }
 
 static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t>& result_png) {
-#ifdef USE_LIB_IMAGEQUANT
-	OptimizePng(dest_file_path, original_png, result_png, imagequant::OptimizePng);
-#endif
 }
 
 void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_png) {
-#ifdef USE_LIB_IMAGEQUANT
-	imagequant::OptimizePng(original_png, result_png);
-#endif
 }
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
-#if 0 // defined(USE_LIB_IMAGEQUANT) && !defined(_DEBUG)
-	static auto buffer_pool = std::make_shared<ObjectPool<std::vector<uint8_t>>>(16);
-	auto result_png_ptr = buffer_pool->Acquire();
-	result_png_ptr->clear();
-	OptimizePng(dest_file_path, buffer, *result_png_ptr);
-	
-	/*std::vector<uint8_t> result_png;
-	OptimizePng(dest_file_path, buffer, result_png);*/
-	return true;
-#else
 	QSaveFile file(dest_file_path);	
 	file.open(QIODevice::WriteOnly);
 	file.write(buffer);
 	return file.commit();	
-#endif
 }
 
 bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
-#if defined(USE_LIB_IMAGEQUANT)
-	if (!QFile(src_file_path).exists()) {
-		return false;
-	}
-
-	auto exception_handler = [](const auto& ex) {
-		XAMP_LOG_DEBUG(ex.what());
-	};
-
-	ExceptedFile excepted(dest_file_path.toStdWString());
-	return excepted.Try([src_file_path](const auto & dest_file_path) {
-		std::vector<uint8_t> original_png;
-		std::vector<uint8_t> result_png;
-		if (lodepng::load_file(original_png, src_file_path.toLocal8Bit().data())) {
-			throw PlatformException();
-		}
-		const QByteArray buffer(reinterpret_cast<const char*>(original_png.data()), original_png.size());
-		OptimizePng(QString::fromStdWString(dest_file_path.wstring()), buffer, result_png);
-	}, exception_handler);
-#else
 	Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
     return true;
-#endif
 }
 
 QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {

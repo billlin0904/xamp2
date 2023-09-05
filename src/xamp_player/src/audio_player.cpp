@@ -27,9 +27,11 @@
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_player.h>
 
-XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
+#include "stream/avfilestream.h"
+#include "stream/bassfilestream.h"
 
-XAMP_DECLARE_LOG_NAME(AudioPlayer);
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
+	XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
 static constexpr int32_t kBufferStreamCount = 4;
 
@@ -249,7 +251,24 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
 
 void AudioPlayer::OpenStream(Path const& file_path, DsdModes dsd_mode) {
     stream_ = MakeFileStream(dsd_mode, file_path);
-    stream_->OpenFile(file_path);
+
+    for (auto i = 0; i < 1; ++i) {
+        try
+        {
+            stream_->OpenFile(file_path);
+        }
+        catch (Exception const&) {
+            // Fallback other stream
+            if (stream_->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
+                stream_ = MakeAlign<FileStream, BassFileStream>();
+            }
+            else {
+                stream_ = MakeAlign<FileStream, AvFileStream>();
+            }
+            stream_->OpenFile(file_path);
+        }
+    }
+
     ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
         stream_->GetDescription(),
@@ -522,6 +541,8 @@ void AudioPlayer::CreateBuffer() {
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         num_read_buffer_size_ = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
         fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
+        allocate_size = num_read_buffer_size_;
+        num_write_buffer_size_ = device_->GetBufferSize() * kMaxBufferSecs;
     }
     else {
         auto max_ratio = (std::max)(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);

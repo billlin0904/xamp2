@@ -244,19 +244,11 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     close_button_ = new QPushButton(this);
     close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
-    close_button_->setStyleSheet(qTEXT(R"(
-                                         QPushButton#albumViewPageCloseButton {
-											border-radius: 10px;
-											background-color: gray;   
-                                         }
-										 QPushButton#albumViewPageCloseButton:hover {
-											background-color: darkgray;                                         
-                                         }
-                                         )"));
+    close_button_->setCursor(Qt::PointingHandCursor);
     close_button_->setAttribute(Qt::WA_TranslucentBackground);
-    close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 2);
-    close_button_->setIconSize(qTheme.GetTitleButtonIconSize());
-    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+    close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 1.5);
+    close_button_->setIconSize(qTheme.GetTitleButtonIconSize() * 1.5);
+    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, qTheme.GetThemeColor()));
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -287,7 +279,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 }
 
 void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 }
 
 void AlbumViewPage::paintEvent(QPaintEvent* event) {
@@ -419,7 +411,7 @@ void AlbumView::SetPlayingAlbumId(int32_t album_id) {
 }
 
 void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
-    auto index = indexAt(pt);
+	const auto index = indexAt(pt);
 
     ActionMap<AlbumView> action_map(this);
 
@@ -441,14 +433,14 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
         action_map.exec(pt);
     );
 
-    auto show_mode = dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->GetShowModes();
+	const auto show_mode = dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->GetShowModes();
     if (show_mode == SHOW_NORMAL) {
         return;
     }
 
     action_map.AddSeparator();
 
-    auto removeAlbum = [=]() {
+    auto remove_album = [=]() {
         if (!model_.rowCount()) {
             return;
         }
@@ -516,7 +508,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
     load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FOLDER));
     action_map.AddSeparator();
     auto* remove_all_album_act = action_map.AddAction(tr("Remove all album"), [=]() {
-        removeAlbum();
+        remove_album();
         });
     remove_all_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));    
 }
@@ -557,7 +549,7 @@ void AlbumView::ShowMenu(const QPoint &pt) {
 
     action_map.AddSeparator();
 
-    auto remove_select_album_act = action_map.AddAction(tr("Remove select album"), [album_id, this]() {
+    const auto remove_select_album_act = action_map.AddAction(tr("Remove select album"), [album_id, this]() {
         const auto button = XMessageBox::ShowYesOrNo(tr("Remove the album?"));
 		if (button == QDialogButtonBox::Yes) {
             qMainDb.RemoveAlbum(album_id);

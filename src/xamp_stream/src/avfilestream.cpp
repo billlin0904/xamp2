@@ -136,7 +136,7 @@ public:
             }
         }
 
-        // note: Don't use multithreading for audio decode.
+        // note: Don't use multi threading for audio decode.
         codec_context_->thread_count = 1;
 
         AvIfFailedThrow(LIBAV_LIB.CodecLib->avcodec_open2(codec_context_.get(), codec, nullptr));
@@ -402,6 +402,10 @@ uint32_t AvFileStream::GetBitDepth() const {
 
 int64_t AvFileStream::GetBitRate() const {
     return impl_->GetBitRate();
+}
+
+Uuid AvFileStream::GetTypeId() const {
+    return XAMP_UUID_OF(AvFileStream);
 }
 
 XAMP_STREAM_NAMESPACE_END

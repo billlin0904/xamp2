@@ -11,7 +11,6 @@
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
-#include <widget/spotify_utilis.h>
 #include <widget/albumview.h>
 
 #include <player/ebur128reader.h>
@@ -45,43 +44,6 @@ void BackgroundWorker::OnCancelRequested() {
 }
 
 void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
-	const auto keywords = QString::fromStdString(
-        String::Format("{}{}", 
-        QUrl::toPercentEncoding(artist),
-        QUrl::toPercentEncoding(title)));
-
-    http::HttpClient(qTEXT("https://music.xianqiao.wang/neteaseapiv2/search"))
-        .param(qTEXT("limit"), qTEXT("10"))
-        .param(qTEXT("type"), qTEXT("1"))
-        .param(qTEXT("keywords"), keywords)
-        .success([this, music_id, title](const auto& response) {
-			if (response.isEmpty()) {
-                return;
-            }
-			QList<spotify::SearchLyricsResult> results;
-            if (!spotify::ParseSearchLyricsResult(response, results)) {
-                return;
-            }
-            auto song_id = 0;
-            Q_FOREACH(const auto &result, results) {
-                if (result.song != title) {
-                   continue;
-                }
-                song_id = result.id;
-                break;
-            }
-            if (!song_id) {
-                emit SearchLyricsCompleted(music_id, kEmptyString, kEmptyString);
-                XAMP_LOG_DEBUG("Not found any lyric!");
-                return;
-            }
-            http::HttpClient(qSTR("https://music.xianqiao.wang/neteaseapiv2/lyric?id=%1").arg(song_id))
-                .success([this, music_id, title](const auto& resp) {
-                const auto [lyrc, trlyrc] = spotify::ParseLyricsResponse(resp);
-                emit SearchLyricsCompleted(music_id, lyrc, trlyrc);
-            }).get();
-		})
-        .get();
 }
 
 #if defined(Q_OS_WIN)

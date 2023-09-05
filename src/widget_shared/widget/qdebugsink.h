@@ -2,6 +2,7 @@
 // Copyright (c) 2018-2019 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
+#pragma once
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>

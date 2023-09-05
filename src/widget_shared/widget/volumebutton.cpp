@@ -7,7 +7,7 @@
 #include <widget/volumecontroldialog.h>
 #include <widget/str_utilts.h>
 
-static constexpr auto kShowDelayMs = 500;
+static constexpr auto kShowDelayMs = 100;
 
 VolumeButton::VolumeButton(QWidget *parent)
 	: QToolButton(parent) {
@@ -29,6 +29,7 @@ void VolumeButton::SetPlayer(std::shared_ptr<IAudioPlayer> player) {
 		is_show_ = true;
 
 		dialog_->SetThemeColor();
+		dialog_->UpdateVolume();
 		MoveToTopWidget(dialog_.get(), this);
 		dialog_->show();
 		});

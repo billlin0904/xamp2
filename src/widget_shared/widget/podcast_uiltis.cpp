@@ -18,38 +18,6 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-Vector<TrackInfo> ParseJson(QString const& json) {
-    QJsonParseError error;
-    Vector<TrackInfo> track_infos;
-
-    auto track = 1;
-    const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-    if (error.error == QJsonParseError::NoError) {
-        auto result = doc.array();
-        for (const auto entry : result) {
-            auto object = entry.toVariant().toMap();
-            auto url = object.value(qTEXT("url")).toString();
-            auto artist = object.value(qTEXT("artist")).toString().toStdWString();
-            auto title = object.value(qTEXT("title")).toString();
-            auto performer = object.value(qTEXT("performer")).toString();
-            auto date_time = object.value(qTEXT("datetime")).toDateTime();
-            TrackInfo track_info;
-            track_info.file_path = url.toStdWString();
-            if (artist == performer.toStdWString()) {
-                track_info.title = title.toStdWString();
-            } else {
-                track_info.title = title.toStdWString() + L" (Ori. " + artist + L")";
-            }
-            track_info.last_write_time = date_time.toSecsSinceEpoch();
-            track_info.artist = performer.toStdWString();
-            track_info.album = L"Podcast";
-            track_info.track = track++;
-            track_infos.push_back(track_info);
-        }
-    }
-    return track_infos;
-}
-
 std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src) {
     auto str = src.toStdString();
 
@@ -75,9 +43,9 @@ std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src) {
         return std::make_pair("", mb_disc_id_info);
     }
 
-    auto realease_id_attr  = release->first_attribute("id");
-    std::string realease_id(realease_id_attr->value(), realease_id_attr->value_size());
-    std::string image_url = "http://coverartarchive.org/release/" + realease_id;
+    auto release_id_attr  = release->first_attribute("id");
+    std::string release_id(release_id_attr->value(), release_id_attr->value_size());
+    std::string image_url = "http://coverartarchive.org/release/" + release_id;
     
     std::wstring album;
     std::wstring artist;

@@ -35,8 +35,6 @@ CdPage::CdPage(QWidget* parent)
                                         )"));
     ui_.arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
     ui_.arrowButton->setIconSize(QSize(64, 64));
-
-    ui_.playlistPage->playlist()->SetPodcastMode(false);
     ui_.playlistPage->hide();
 
     ui_.tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));

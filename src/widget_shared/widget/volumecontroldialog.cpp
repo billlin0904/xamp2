@@ -50,7 +50,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     ui_.volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: white;"));
     ui_.volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
 
-    qTheme.SetSliderTheme(ui_.volumeSlider, true);    
+    qTheme.SetSliderTheme(ui_.volumeSlider, true);
 }
 
 void VolumeControlDialog::SetThemeColor() {
@@ -67,6 +67,10 @@ void VolumeControlDialog::SetThemeColor() {
 
 VolumeControlDialog::~VolumeControlDialog() {
     AppSettings::SetValue(kAppSettingVolume, ui_.volumeSlider->value());
+}
+
+void VolumeControlDialog::UpdateVolume() {
+    ui_.volumeSlider->setValue(player_->GetVolume());
 }
 
 void VolumeControlDialog::SetVolume(uint32_t volume, bool notify) {

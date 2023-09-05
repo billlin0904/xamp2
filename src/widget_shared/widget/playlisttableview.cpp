@@ -40,6 +40,9 @@
 
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
+    static constexpr auto kPlaylistHeartSize = QSize(16, 16);
+    static constexpr auto kPlaylistCoverSize = QSize(32, 32);
+
     using QStyledItemDelegate::QStyledItemDelegate;
 
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
@@ -171,7 +174,6 @@ public:
             break;
         case PLAYLIST_HEART:
 	        {
-            static constexpr auto kPlaylistHeartSize = QSize(16, 16);
             auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_HEART)).toInt();
         	if (is_heart_pressed) {
                 QVariantMap font_options;
@@ -186,7 +188,6 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-				static constexpr auto kPlaylistCoverSize = QSize(32, 32);
                 opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
@@ -307,20 +308,12 @@ void PlayListTableView::Reload() {
     WHERE
     playlistMusics.playlistId = %1)");
 
-    if (!IsPodcastMode()) {       
-        s += qTEXT(R"(
+    s += qTEXT(R"(
         GROUP BY
         musics.parentPath, musics.track
         ORDER BY
         musics.parentPath ASC, musics.track ASC;
         )");
-    }
-    else {
-        s += qTEXT(R"(
-        ORDER BY
-        musics.track DESC;
-        )");
-    }
 
     const QSqlQuery query(s.arg(playlist_id_), qMainDb.database());
     model_->setQuery(query);
@@ -338,10 +331,6 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 }
 
 PlayListTableView::~PlayListTableView() = default;
-
-void PlayListTableView::DownloadPodcast() {
-    emit FetchPodcast(GetPlaylistId());
-}
 
 void PlayListTableView::FastReload() {
     //model_->query().exec();
@@ -475,7 +464,6 @@ void PlayListTableView::SetHeaderViewHidden(bool enable) {
 }
 
 void PlayListTableView::initial() {
-    setStyleSheet(qTEXT("border : none;"));
     setModel(model_);
 
     auto f = font();
@@ -492,7 +480,7 @@ void PlayListTableView::initial() {
     setDragEnabled(true);
     setShowGrid(false);
     setMouseTracking(true);
-    setAlternatingRowColors(false);
+    setAlternatingRowColors(true);
 
     setDragDropMode(InternalMove);
     setFrameShape(NoFrame);
@@ -544,47 +532,21 @@ void PlayListTableView::initial() {
 		
         ActionMap<PlayListTableView> action_map(this);
 
-        if (!podcast_mode_) {
-            if (enable_load_file_) {
-                auto* load_file_act = action_map.AddAction(tr("Load local file"), [this]() {
-                    GetOpenMusicFileName(this, [this](const auto& file_name) {
-                        append(file_name);
-                    });
+        auto* load_file_act = action_map.AddAction(tr("Load local file"), [this]() {
+            GetOpenMusicFileName(this, [this](const auto& file_name) {
+                append(file_name);
                 });
-                load_file_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_FILE));
+            });
+        load_file_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_FILE));
 
-                auto* load_dir_act = action_map.AddAction(tr("Load file directory"), [this]() {
-                    const auto dir_name = GetExistingDirectory(this);
-                    if (dir_name.isEmpty()) {
-                        return;
-                    }
-                    append(dir_name);
-                });
-                load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_DIR));
+        auto* load_dir_act = action_map.AddAction(tr("Load file directory"), [this]() {
+            const auto dir_name = GetExistingDirectory(this);
+            if (dir_name.isEmpty()) {
+                return;
             }
-        }
-
-        if (podcast_mode_) {
-            auto* import_podcast_act = action_map.AddAction(tr("Download latest podcast"));
-            import_podcast_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DOWNLOAD));
-            action_map.SetCallback(import_podcast_act, [this]() {
-                if (model_->rowCount() > 0) {
-                    const auto button = XMessageBox::ShowYesOrNo(tr("Download latest podcast before must be remove all,\r\nRemove all items?"));
-                    if (button == QDialogButtonBox::Yes) {
-                        qMainDb.ClearPendingPlaylist(GetPlaylistId());
-                        qMainDb.RemovePlaylistAllMusic(GetPlaylistId());
-                        Reload();
-                        RemovePlaying();
-                    }
-                    else {
-                        return;
-                    }
-                }                
-                indicator_ = MakeProcessIndicator(this);
-				indicator_->StartAnimation();
-                DownloadPodcast();
-             });
-        }
+            append(dir_name);
+            });
+        load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_DIR));
 
         if (enable_delete_ && model()->rowCount() > 0) {
             auto* remove_all_act = action_map.AddAction(tr("Remove all"));
@@ -780,19 +742,9 @@ void PlayListTableView::PlayItem(const QModelIndex& index) {
     emit PlayMusic(play_item);
 }
 
-bool PlayListTableView::IsPodcastMode() const {
-    return podcast_mode_;
-}
-
-void PlayListTableView::SetPodcastMode(bool enable) {
-    podcast_mode_ = enable;
-    if (podcast_mode_) {
-        setColumnHidden(PLAYLIST_DURATION, true);
-        horizontalHeader()->setContextMenuPolicy(Qt::NoContextMenu);
-    }
-}
-
 void PlayListTableView::OnThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
+    setStyleSheet(qTEXT("border: none"));
+    horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
 }
 
 void PlayListTableView::UpdateReplayGain(int32_t playlistId,
@@ -870,7 +822,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-    emit ExtractFile(file_name, GetPlaylistId(), IsPodcastMode());
+    emit ExtractFile(file_name, GetPlaylistId(), false);
 }
 
 void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {
@@ -918,39 +870,6 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
             update(model()->index(i, hover_column_));
             update(model()->index(i, old_hover_column));
         }
-    }
-}
-
-void PlayListTableView::OnFetchPodcastError(const QString& msg) {
-    XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
-    XMessageBox::ShowError(qTEXT("Download podcast error!"));
-    OnFetchPodcastCompleted({}, {});
-}
-
-void PlayListTableView::OnFetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data) {
-    XAMP_LOG_DEBUG("Download podcast completed!");   
-    indicator_.reset();
-
-    if (track_infos.empty()) {
-        return;
-    }
-
-    DatabaseFacade facade;
-    facade.InsertTrackInfo(track_infos, GetPlaylistId(), true);
-    Reload();
-
-    if (!model()->rowCount()) {
-        XAMP_LOG_DEBUG("Fail to add the playlist!");
-        return;
-    }
-
-    QPixmap cover;
-    if (cover.loadFromData(cover_image_data)) {
-        const auto cover_id = qPixmapCache.AddImage(cover);
-        const auto index = this->model()->index(0, 0);
-        const auto entity = item(index);
-        CATCH_DB_EXCEPTION(qMainDb.SetAlbumCover(entity.album_id, entity.album, cover_id))
-        emit UpdateAlbumCover(cover_id);
     }
 }
 

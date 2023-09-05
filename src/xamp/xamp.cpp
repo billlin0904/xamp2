@@ -98,6 +98,8 @@ static void SetThemeIcon(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
 										)"));
+    constexpr auto kMaxTitleIcon = 20;
+    ui.logoButton->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
 
     ui.sliderBarButton->setStyleSheet(qSTR(R"(
                                             QToolButton#sliderBarButton {
@@ -308,7 +310,7 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
         ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
 				padding: 0px;
-				background-color: #080808;				
+				background-color: #121212;				
 				border-top-left-radius: 8px;
             }			
             )"));
@@ -443,15 +445,15 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     main_window_ = main_window;
 
-    (void)QObject::connect(ui_.minWinButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.minWinButton, &QToolButton::clicked, [this]() {
         main_window_->showMinimized();
         });
 
-    (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.maxWinButton, &QToolButton::clicked, [this]() {
         main_window_->UpdateMaximumState();
         });
 
-    (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.closeButton, &QToolButton::clicked, [this]() {
         QWidget::close();
         });
 
@@ -869,7 +871,7 @@ void Xamp::InitialDeviceList() {
 }
 
 void Xamp::InitialController() {    
-    (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.mutedButton, &QToolButton::clicked, [this]() {
         if (!player_->IsMute()) {
             SetVolume(0);
         } else {
@@ -880,7 +882,7 @@ void Xamp::InitialController() {
     qTheme.SetHeartButton(ui_.heartButton);
     qTheme.SetBitPerfectButton(ui_.bitPerfectButton, AppSettings::ValueAsBool(kEnableBitPerfect));
 
-    (void)QObject::connect(ui_.heartButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.heartButton, &QToolButton::clicked, [this]() {
         if (auto entity = current_entity_) {
             entity.value().heart = ~entity.value().heart;
             qMainDb.UpdateMusicHeart(entity.value().music_id, entity.value().heart);
@@ -892,7 +894,7 @@ void Xamp::InitialController() {
         playlist_page_->playlist()->Reload();
         });
 
-    (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::clicked, [this]() {
 	    const auto enable_or_disable = !AppSettings::ValueAsBool(kEnableBitPerfect);
         AppSettings::SetValue(kEnableBitPerfect, enable_or_disable);
         qTheme.SetBitPerfectButton(ui_.bitPerfectButton, enable_or_disable);
@@ -953,15 +955,15 @@ void Xamp::InitialController() {
         &Xamp::OnVolumeChanged,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(ui_.nextButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.nextButton, &QToolButton::clicked, [this]() {
         PlayNext();
     });
 
-    (void)QObject::connect(ui_.prevButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.prevButton, &QToolButton::clicked, [this]() {
         PlayPrevious();
     });
 
-    (void)QObject::connect(ui_.aboutButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.aboutButton, &QToolButton::clicked, [this]() {
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* about_page = new AboutPage(dialog);        
@@ -971,7 +973,8 @@ void Xamp::InitialController() {
         dialog->exec();
         });
 
-    (void)QObject::connect(ui_.preferenceButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.preferenceButton, &QToolButton::clicked, [this]() {
+        XAMP_LOG_DEBUG("Preference show");
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
@@ -983,7 +986,7 @@ void Xamp::InitialController() {
         preference_page->SaveAll();
         });
 
-    (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
@@ -1004,7 +1007,12 @@ void Xamp::InitialController() {
         dialog->exec();
         });
 
-    (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.eqButton, &QToolButton::clicked, [this]() {
+        if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
+            || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
+            return;
+        }
+
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerView(dialog);
@@ -1023,16 +1031,16 @@ void Xamp::InitialController() {
         dialog->exec();
     });
 
-    (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.repeatButton, &QToolButton::clicked, [this]() {
         order_ = GetNextOrder(order_);
         SetPlayerOrder();
     });
 
-    (void)QObject::connect(ui_.playButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.playButton, &QToolButton::clicked, [this]() {
         PlayOrPause();
     });
 
-    (void)QObject::connect(ui_.stopButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.stopButton, &QToolButton::clicked, [this]() {
         StopPlay();
     });
 
@@ -1554,7 +1562,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
                     }
                 }
                 player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
-                player_->GetDspManager()->AddCompressor();                
+                player_->GetDspManager()->AddCompressor();
             }
         } else {
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
@@ -1567,6 +1575,14 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         playback_format.bit_rate = entity.bit_rate;
         if (sample_rate_converter_type == kR8Brain) {
             player_->SetReadSampleSize(kR8brainBufferSize);
+        }
+
+        if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
+            || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
+            const auto message =
+                qSTR("Play DSD file need set 100% volume.");
+            ShowMeMessage(message);
+            player_->SetVolume(100);
         }
 
         player_->BufferStream();
@@ -2201,20 +2217,6 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlayListTableView::ExtractFile,
         extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile);
-
-    if (playlist_page->playlist()->IsPodcastMode()) {
-        (void)QObject::connect(background_worker_.get(),
-            &BackgroundWorker::FetchPodcastCompleted,
-            playlist_page->playlist(),
-            &PlayListTableView::OnFetchPodcastCompleted,
-            Qt::QueuedConnection);
-
-        (void)QObject::connect(background_worker_.get(),
-            &BackgroundWorker::FetchPodcastError,
-            playlist_page->playlist(),
-            &PlayListTableView::OnFetchPodcastError,
-            Qt::QueuedConnection);
-    }
     
     (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::ReadReplayGain,

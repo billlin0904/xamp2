@@ -22,6 +22,8 @@ public:
 
 	void SetThemeColor();
 
+	void UpdateVolume();
+
 signals:
     void VolumeChanged(uint32_t volume);
 

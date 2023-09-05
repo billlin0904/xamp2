@@ -1,4 +1,4 @@
-#include <widget/lrcparser.h>
+ï»¿#include <widget/lrcparser.h>
 #include <fstream>
 
 #include <base/fs.h>
@@ -244,7 +244,7 @@ const LyricEntry& LrcParser::GetLyrics(const std::chrono::milliseconds &time) co
 		if (itr == lyrics_.end()) {
 			return lyrics_.back();
 		}
-	    // ¤£¬O­Ë¼Æ³Ì«á¤@­Ó¿ï«e¤@­Ó
+	    // ä¸æ˜¯å€’æ•¸æœ€å¾Œä¸€å€‹é¸å‰ä¸€å€‹
 	    itr -= 1;
 	    return (*itr);
     }

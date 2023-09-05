@@ -12,7 +12,7 @@
 #include <base/logger_impl.h>
 #include <bass/bassdsd.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
 
@@ -438,4 +438,8 @@ bool BassFileStream::SupportNativeSD() const noexcept {
     return stream_->SupportNativeSD();
 }
 
+Uuid BassFileStream::GetTypeId() const {
+    return XAMP_UUID_OF(BassFileStream);
 }
+
+XAMP_STREAM_NAMESPACE_END

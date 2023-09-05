@@ -53,10 +53,6 @@ public:
 
 	void SetPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
-	void SetPodcastMode(bool enable = true);
-
-	bool IsPodcastMode() const;
-
 	int32_t GetPlaylistId() const;
 
 	void Reload();
@@ -127,8 +123,6 @@ signals:
 
 	void AddPlaylistItemFinished();
 
-	void FetchPodcast(int32_t playlist_id);
-
 	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
 public slots:
 	void PlayIndex(const QModelIndex& index);
@@ -146,10 +140,6 @@ public slots:
 		double album_peak,
 		double track_rg_gain,
 		double track_peak);
-
-	void OnFetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data);
-
-	void OnFetchPodcastError(const QString& msg);
 private:
 	PlayListEntity item(const QModelIndex& index);
 
@@ -168,9 +158,6 @@ private:
 	void initial();
 
 protected:
-    void DownloadPodcast();
-
-	bool podcast_mode_{ false };
 	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
 	int32_t hover_row_{ -1 };

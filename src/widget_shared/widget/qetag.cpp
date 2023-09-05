@@ -1,4 +1,4 @@
-#include <widget/qetag.h>
+ï»¿#include <widget/qetag.h>
 
 #include <QCryptographicHash>
 #include <QFileInfo>
@@ -20,11 +20,11 @@ static QString urlSafeBase64Encode(const QByteArray& data) noexcept {
 namespace QEtag {
 
 QString GetTagId(const QByteArray &buffer) noexcept {
-    // ¤C¤û¶³Àx¦setagºtºâªk
+    // ä¸ƒç‰›é›²å„²å­˜etagæ¼”ç®—æ³•
 	// https://github.com/qiniu/qetag
-	// ¦pªG§A¯à°÷½T»{¤å¥ó <= 4M¡A¨º»ò hash = UrlsafeBase64([0x16, sha1(FileContent)])
-	// ¦pªG¤å¥ó > 4M¡A«h hash = UrlsafeBase64([0x96, sha1([sha1(Block1), sha1(Block2), ...])])
-	// ¨ä¤¤ Block ¬O§â¤å¥ó¤º®e¤Á¤À¬° 4M ¬°³æ¦ìªº¤@­Ó­Ó¶ô¡A¤]´N¬O BlockI = FileContent[I * 4M:(I + 1) * 4M]
+	// å¦‚æœä½ èƒ½å¤ ç¢ºèªæ–‡ä»¶ <= 4Mï¼Œé‚£éº¼ hash = UrlsafeBase64([0x16, sha1(FileContent)])
+	// å¦‚æœæ–‡ä»¶ > 4Mï¼Œå‰‡ hash = UrlsafeBase64([0x96, sha1([sha1(Block1), sha1(Block2), ...])])
+	// å…¶ä¸­ Block æ˜¯æŠŠæ–‡ä»¶å…§å®¹åˆ‡åˆ†ç‚º 4M ç‚ºå–®ä½çš„ä¸€å€‹å€‹å¡Šï¼Œä¹Ÿå°±æ˜¯ BlockI = FileContent[I * 4M:(I + 1) * 4M]
 
     if (buffer.size() <= kTagIdChunkSize) {
         const auto sha1_data = sha1(buffer);

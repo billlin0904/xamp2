@@ -19,6 +19,10 @@ using namespace wangwenx190::FramelessHelper::Global;
 class XAMP_WIDGET_SHARED_EXPORT XDialog : public FramelessDialog {
     Q_OBJECT
 public:
+    static constexpr auto kMaxTitleHeight = 30;
+    static constexpr auto kMaxTitleIcon = 20;
+    static constexpr auto kTitleFontSize = 10;
+
     explicit XDialog(QWidget* parent = nullptr);
 
     void SetContentWidget(QWidget* content, bool transparent_frame = false, bool disable_resize = true);
@@ -39,8 +43,6 @@ private:
 #endif
 
     void SetContent(QWidget* content);
-
-    void WaitForReady();
 
     QLabel* title_frame_label_{ nullptr };
     QWidget* content_{ nullptr };

@@ -240,7 +240,6 @@ QString ImageCache::AddImage(const QPixmap& cover) const {
 }
 
 void ImageCache::OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const {
-	// Reduce PNG image file size and save file to disk and cache.
 	image_utils::OptimizePng(buffer, file_path);
 	cache_.AddOrUpdate(tag_name, GetFromFile(tag_name));
 }

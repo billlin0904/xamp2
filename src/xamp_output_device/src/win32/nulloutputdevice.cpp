@@ -20,6 +20,7 @@ NullOutputDevice::NullOutputDevice()
 	, raw_mode_(false)
 	, is_muted_(false)
 	, is_stopped_(true)
+	, volume_(0)
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, wait_time_(0)
@@ -72,7 +73,7 @@ bool NullOutputDevice::IsMuted() const {
 }
 
 uint32_t NullOutputDevice::GetVolume() const {
-	return 0;
+	return volume_;
 }
 
 void NullOutputDevice::SetMute(bool mute) const {
@@ -88,7 +89,7 @@ uint32_t NullOutputDevice::GetBufferSize() const noexcept {
 }
 
 void NullOutputDevice::SetVolume(uint32_t volume) const {
-	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
+	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 }
 
 void NullOutputDevice::SetStreamTime(double stream_time) noexcept {

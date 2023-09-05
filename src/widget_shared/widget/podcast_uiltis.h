@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+
 #include <base/stl.h>
 #include <base/trackinfo.h>
 
@@ -33,8 +34,6 @@ struct XAMP_WIDGET_SHARED_EXPORT MbDiscIdInfo {
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)
 
-Vector<TrackInfo> ParseJson(QString const& json);
-
 std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src);
 
-QString ParseCoverUrl(QString const& src);
+QString ParseCoverUrl(QString const& json);

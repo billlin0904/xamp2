@@ -13,7 +13,7 @@
 #include <base/uuidof.h>
 #include <base/pimplptr.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API BassFileStream final : public FileStream, public IDsdStream {
 	XAMP_DECLARE_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
@@ -64,10 +64,12 @@ public:
     bool SupportDOP_AA() const noexcept override;
 
     bool SupportNativeSD() const noexcept override;
+
+	Uuid GetTypeId() const override;
 private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
 };
 
-}
+XAMP_STREAM_NAMESPACE_END
 

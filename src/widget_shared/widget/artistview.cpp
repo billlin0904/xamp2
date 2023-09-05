@@ -106,24 +106,16 @@ const ConstLatin1String ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_
 
 ArtistViewPage::ArtistViewPage(QWidget* parent)
 	: QFrame(parent) {
-	setObjectName(QString::fromUtf8("artistView"));
+	setObjectName(QString::fromUtf8("artistViewPage"));
 	setFrameStyle(QFrame::StyledPanel);
 
 	close_button_ = new QPushButton(this);
 	close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
-	close_button_->setStyleSheet(qTEXT(R"(
-                                         QPushButton#albumViewPageCloseButton {
-                                         border-radius: 5px;        
-                                         background-color: gray;
-                                         }
-										 QPushButton#albumViewPageCloseButton:hover {
-                                         color: white;
-                                         background-color: darkgray;                                         
-                                         }
-                                         )"));
-	close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 2);
-	close_button_->setIconSize(qTheme.GetTitleButtonIconSize());
-	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+	close_button_->setCursor(Qt::PointingHandCursor);
+	close_button_->setAttribute(Qt::WA_TranslucentBackground);
+	close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 1.5);
+	close_button_->setIconSize(qTheme.GetTitleButtonIconSize() * 1.5);
+	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, qTheme.GetThemeColor()));
 
 	(void)QObject::connect(close_button_, &QPushButton::clicked, [this]() {
 		hide();
@@ -205,18 +197,6 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 
 void ArtistViewPage::paintEvent(QPaintEvent* event) {
 	QPainter painter(this);
-	QLinearGradient gradient(0, 0, 0, height());
-	qTheme.SetLinearGradient(gradient);
-	painter.fillRect(rect(), gradient);
-
-	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
-
-	if (!cover_.isNull()) {
-		auto cover = image_utils::ResizeImage(cover_, size(), false);
-		QPoint center = rect().center() - cover.rect().center();
-		painter.drawPixmap(center, cover);
-		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	}	
 }
 
 void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -224,6 +204,15 @@ void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
+	setStyleSheet(qSTR(
+		R"(
+           QFrame#artistViewPage {
+		        background-color: %1;
+                border-radius: 8px;
+           }
+        )"
+	).arg(qTheme.GetLinearGradientStyle()));
+
 	auto artist_cover = qPixmapCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 	auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);

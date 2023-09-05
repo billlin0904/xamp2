@@ -13,35 +13,12 @@
 #include <QGridLayout>
 #include <QScopedPointer>
 
-MaskWidget::MaskWidget(QWidget* parent)
-	: QWidget(parent) {
-	setWindowFlag(Qt::FramelessWindowHint);
-	setAttribute(Qt::WA_StyledBackground);
-	// 255 * 0.7 = 178.5
-	setStyleSheet(qTEXT("background-color: rgba(0, 0, 0, 179);"));
-	auto* animation = new QPropertyAnimation(this, "windowOpacity");
-	animation->setDuration(2000);
-	animation->setEasingCurve(QEasingCurve::OutBack);
-	animation->setStartValue(0.0);
-	animation->setEndValue(1.0);
-	animation->start(QAbstractAnimation::DeleteWhenStopped);
-	show();
-}
-
-void MaskWidget::showEvent(QShowEvent* event) {
-	if (!parent()) {
-		return;
-	}
-	const auto parent_rect = static_cast<QWidget*>(parent())->geometry();
-	setGeometry(0, 0, parent_rect.width(), parent_rect.height());
-}
-
 XMessageBox::XMessageBox(const QString& title,
 	const QString& text,
 	QWidget* parent,
 	const QFlags<QDialogButtonBox::StandardButton> buttons,
 	const QDialogButtonBox::StandardButton default_button,
-	bool enable_countdown)
+	const bool enable_countdown)
 	: XDialog(parent) {
 	enable_countdown_ = enable_countdown;
 
@@ -79,7 +56,7 @@ XMessageBox::XMessageBox(const QString& title,
 	grid_layout_->setVerticalSpacing(10);
 	grid_layout_->setContentsMargins(10, 10, 10, 10);	
 
-	QObject::connect(button_box_, &QDialogButtonBox::clicked, [this](auto* button) {
+	(void)QObject::connect(button_box_, &QDialogButtonBox::clicked, [this](auto* button) {
 		OnButtonClicked(button);
 		});
 
@@ -106,8 +83,7 @@ void XMessageBox::OnButtonClicked(QAbstractButton* button) {
 }
 
 int XMessageBox::ExecReturnCode(QAbstractButton* button) {
-	int nResult = button_box_->standardButton(button);
-	return nResult;
+	return button_box_->standardButton(button);
 }
 
 void XMessageBox::SetDefaultButton(QPushButton* button) {
@@ -178,7 +154,7 @@ void XMessageBox::showEvent(QShowEvent* event) {
 }
 
 void XMessageBox::UpdateTimeout() {
-	if (--timeout_ >= 0) {
+	if (--timeout_ >= 1) {
 		DefaultButton()->setText(default_button_text_ + qSTR(" (%1)").arg(timeout_));
 	} else {
 		timer_.stop();

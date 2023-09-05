@@ -119,6 +119,7 @@
     <ClInclude Include="widget\httpservice.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
+    <ClInclude Include="widget\maskwidget.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <ClInclude Include="widget\win32\win32.h" />
     <ClInclude Include="xampplayer.h" />
@@ -166,7 +167,6 @@
     <ClInclude Include="widget\scrolllabel.h" />
     <QtMoc Include="widget\seekslider.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
-    <ClInclude Include="widget\spotify_utilis.h" />
     <ClInclude Include="widget\str_utilts.h" />
     <QtMoc Include="widget\switchbutton.h" />
     <QtMoc Include="widget\tablistview.h" />
@@ -221,6 +221,7 @@
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
+    <ClCompile Include="widget\maskwidget.cpp" />
     <ClCompile Include="widget\pendingplaylistpage.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
@@ -235,7 +236,6 @@
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
-    <ClCompile Include="widget\spotify_utilis.cpp" />
     <ClCompile Include="widget\str_utilts.cpp" />
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />

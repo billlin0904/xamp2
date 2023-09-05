@@ -14,6 +14,7 @@
 #include <widget/widget_shared_global.h>
 #include <base/exception.h>
 #include <widget/xdialog.h>
+#include <widget/maskwidget.h>
 
 class QIcon;
 class QAbstractButton;
@@ -21,13 +22,6 @@ class QGridLayout;
 class QLabel;
 
 using xamp::base::Exception;
-
-class XAMP_WIDGET_SHARED_EXPORT MaskWidget : public QWidget {
-public:
-    explicit MaskWidget(QWidget* parent = nullptr);
-
-    void showEvent(QShowEvent* event) override;
-};
 
 class XAMP_WIDGET_SHARED_EXPORT XMessageBox : public XDialog {
 public:

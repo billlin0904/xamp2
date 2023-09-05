@@ -81,7 +81,7 @@ void PlaylistPage::Initial() {
 	heart_button_->setIconSize(QSize(24, 24));
 	qTheme.SetHeartButton(heart_button_);
 
-	(void)QObject::connect(heart_button_, &QToolButton::pressed, [this]() {
+	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
 			album_heart_ = ~album_heart_;
 			qMainDb.UpdateAlbumHeart(album_id_.value(), album_heart_);
@@ -190,6 +190,7 @@ void PlaylistPage::Initial() {
 			playlist_->Reload();
 		}
 		});
+	qTheme.SetLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {

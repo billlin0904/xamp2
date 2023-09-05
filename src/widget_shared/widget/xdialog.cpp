@@ -24,13 +24,13 @@ void XDialog::SetContent(QWidget* content) {
 
     auto* title_frame = new QFrame();
     title_frame->setObjectName(QString::fromUtf8("titleFrame"));
-    title_frame->setMinimumSize(QSize(0, 40));
+    title_frame->setMinimumSize(QSize(0, kMaxTitleHeight));
     title_frame->setFrameShape(QFrame::NoFrame);
     title_frame->setFrameShadow(QFrame::Plain);
 
     auto f = font();
     f.setBold(true);
-    f.setPointSize(qTheme.GetFontSize(12));
+    f.setPointSize(qTheme.GetFontSize(kTitleFontSize));
     title_frame_label_ = new QLabel(title_frame);
     title_frame_label_->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -60,33 +60,33 @@ void XDialog::SetContent(QWidget* content) {
 
     close_button_ = new QToolButton(title_frame);
     close_button_->setObjectName(QString::fromUtf8("closeButton"));
-    close_button_->setMinimumSize(QSize(40, 40));
-    close_button_->setMaximumSize(QSize(40, 40));
+    close_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+    close_button_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     close_button_->setFocusPolicy(Qt::NoFocus);
 
     max_win_button_ = new QToolButton(title_frame);
     max_win_button_->setObjectName(QString::fromUtf8("maxWinButton"));
-    max_win_button_->setMinimumSize(QSize(40, 40));
-    max_win_button_->setMaximumSize(QSize(40, 40));
+    max_win_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+    max_win_button_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     max_win_button_->setFocusPolicy(Qt::NoFocus);
 
     min_win_button_ = new QToolButton(title_frame);
     min_win_button_->setObjectName(QString::fromUtf8("minWinButton"));
-    min_win_button_->setMinimumSize(QSize(40, 40));
-    min_win_button_->setMaximumSize(QSize(40, 40));
+    min_win_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+    min_win_button_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     min_win_button_->setFocusPolicy(Qt::NoFocus);
     min_win_button_->setPopupMode(QToolButton::InstantPopup);
 
     icon_ = new QToolButton(title_frame);
     icon_->setObjectName(QString::fromUtf8("minWinButton"));
-    icon_->setMinimumSize(QSize(40, 40));
-    icon_->setMaximumSize(QSize(40, 40));
-    icon_->setIconSize(QSize(32, 32));
+    icon_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+    icon_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+    icon_->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
     icon_->setFocusPolicy(Qt::NoFocus);
     icon_->setStyleSheet(qTEXT("background: transparent; border: none;"));
     icon_->hide();
 
-    auto* horizontal_spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    auto* horizontal_spacer = new QSpacerItem(kMaxTitleHeight, kMaxTitleIcon, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     auto* horizontal_layout = new QHBoxLayout(title_frame);
     horizontal_layout->addWidget(icon_);
@@ -113,7 +113,7 @@ void XDialog::SetContent(QWidget* content) {
     min_win_button_->hide();
     // todo: close_button_ hide的時候會顯示會有問題.
 
-    (void)QObject::connect(close_button_, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(close_button_, &QToolButton::clicked, [this]() {
         close();
         });
 
@@ -127,12 +127,7 @@ void XDialog::SetContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
 
-    WaitForReady();
     show();
-}
-
-void XDialog::WaitForReady() {
-    FramelessWidgetsHelper::get(this)->waitForReady();
 }
 
 void XDialog::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -154,7 +149,7 @@ void XDialog::SetIcon(const QIcon& icon) const {
 }
 
 void XDialog::showEvent(QShowEvent* event) {
-    auto* opacity_effect = new QGraphicsOpacityEffect(this);
+    /*auto* opacity_effect = new QGraphicsOpacityEffect(this);
     setGraphicsEffect(opacity_effect);
     auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
     opacity_animation->setStartValue(0);
@@ -167,6 +162,6 @@ void XDialog::showEvent(QShowEvent* event) {
         &QGraphicsOpacityEffect::deleteLater);
     opacity_animation->start();
 
-    setAttribute(Qt::WA_Mapped);
+    setAttribute(Qt::WA_Mapped);*/
     QDialog::showEvent(event);
 }

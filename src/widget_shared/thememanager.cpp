@@ -17,13 +17,10 @@
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
 #include <QResource>
-#include <QPushButton>
 #include <QApplication>
 #include <QFontDatabase>
 #include <QTextStream>
 #include <QFileInfo>
-#include <QtMath>
-#include <QSlider>
 #include <QToolButton>
 #include <QLineEdit>
 #include <QListView>
@@ -594,12 +591,10 @@ QString ThemeManager::GetLinearGradientStyle() const {
     default:
     case ThemeColor::DARK_THEME:
         return qTEXT("qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e1d23, stop:0.74 #000000)");
-        break;
     case ThemeColor::LIGHT_THEME:
         return qTEXT("qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
             "stop: 0 rgba(255, 254, 255, 255),"
             "stop : 1 rgba(215, 255, 254, 255))");
-        break;
     }
 }
 
@@ -630,10 +625,10 @@ QSize ThemeManager::GetTabIconSize() const {
 QColor ThemeManager::GetHoverColor() const {
     switch (GetThemeColor()) {
     case ThemeColor::DARK_THEME:
-        return QColor(qTEXT("#43474e"));
+        return {qTEXT("#43474e")};
     case ThemeColor::LIGHT_THEME:
     default:
-        return QColor(qTEXT("#C9CDD0"));
+        return {qTEXT("#C9CDD0")};
     }
 }
 
@@ -648,7 +643,7 @@ QColor ThemeManager::GetHighlightColor() const {
 }
 
 int32_t ThemeManager::GetTitleBarIconHeight() {
-    return 10;
+    return 8;
 }
 
 void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
@@ -832,13 +827,10 @@ Glyphs ThemeManager::GetConnectTypeGlyphs(DeviceConnectType type) const {
     case DeviceConnectType::CONNECT_TYPE_UNKNOWN:
     case DeviceConnectType::CONNECT_TYPE_BUILT_IN:
         return Glyphs::ICON_BUILD_IN_SPEAKER;
-        break;
     case DeviceConnectType::CONNECT_TYPE_USB:
         return Glyphs::ICON_USB;
-        break;
     case DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH:
         return Glyphs::ICON_BLUE_TOOTH;
-        break;
     }
     return Glyphs::ICON_BUILD_IN_SPEAKER;
 }
@@ -848,13 +840,10 @@ QIcon ThemeManager::GetConnectTypeIcon(DeviceConnectType type) const {
     case DeviceConnectType::CONNECT_TYPE_UNKNOWN:
     case DeviceConnectType::CONNECT_TYPE_BUILT_IN:
         return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
-        break;
     case DeviceConnectType::CONNECT_TYPE_USB:
         return GetFontIcon(Glyphs::ICON_USB);
-        break;
     case DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH:
         return GetFontIcon(Glyphs::ICON_BLUE_TOOTH);
-        break;
     }
     return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
 }

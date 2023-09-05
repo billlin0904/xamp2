@@ -169,6 +169,7 @@ private:
 	bool raw_mode_;
 	mutable bool is_muted_;
 	std::atomic<bool> is_stopped_;
+	mutable uint32_t volume_;
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
 	IAudioCallback* callback_;

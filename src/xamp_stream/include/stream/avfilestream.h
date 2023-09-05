@@ -45,6 +45,8 @@ public:
 	uint32_t GetBitDepth() const override;
 
 	int64_t GetBitRate() const;
+
+	Uuid GetTypeId() const override;
 private:
 	class AvFileStreamImpl;
 	PimplPtr<AvFileStreamImpl> impl_;

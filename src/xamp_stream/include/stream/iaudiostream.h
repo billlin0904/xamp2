@@ -7,6 +7,7 @@
 
 #include <stream/stream.h>
 #include <base/audioformat.h>
+#include <base/uuid.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
@@ -84,6 +85,13 @@ public:
     * @return true if the stream is active, otherwise false.
     */
     [[nodiscard]] virtual bool IsActive() const noexcept = 0;
+
+    /*
+    * Get stream type id
+    *
+    * @return Uuid
+    */
+    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 protected:
     IAudioStream() = default;
 };
