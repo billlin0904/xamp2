@@ -514,7 +514,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 }
 
 void AlbumView::ShowMenu(const QPoint &pt) {
-    auto index = indexAt(pt);
+	const auto index = indexAt(pt);
 
     ActionMap<AlbumView> action_map(this);
 

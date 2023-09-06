@@ -9,10 +9,6 @@
 #include <QScopedPointer>
 #include <QActionGroup>
 
-#if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
-#endif
-
 #include <widget/widget_shared_global.h>
 #include <thememanager.h>
 

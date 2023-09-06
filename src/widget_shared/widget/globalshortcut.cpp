@@ -2,7 +2,7 @@
 
 #if defined(Q_OS_WIN)
 #include <windowsx.h>
-#include <widget/win32/win32.h>
+#include <widget/win32/wintaskbar.h>
 #include <base/platfrom_handle.h>
 #include <Dbt.h>
 #else

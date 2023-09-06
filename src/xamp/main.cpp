@@ -23,13 +23,8 @@
 #include <widget/http.h>
 #include <widget/databasefacade.h>
 
-#if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
 #include <QLoggingCategory>
-#endif
-
 #include <QOperatingSystemVersion>
-#include <QNetworkReply>
 #include <QProcess>
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
@@ -64,45 +59,6 @@ static std::string GetCompilerTime() {
         .arg(__clang_patchlevel__).toStdString()
 }
 #endif
-
-static void LoadSoxrSetting() {
-    XAMP_LOG_DEBUG("LoadSoxrSetting.");
-
-    QMap<QString, QVariant> default_setting;
-
-    default_setting[kResampleSampleRate] = 96000;
-    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
-    default_setting[kSoxrPhase] = 46;
-    default_setting[kSoxrStopBand] = 100;
-    default_setting[kSoxrPassBand] = 96;
-    default_setting[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
-
-    QMap<QString, QVariant> soxr_setting;
-    soxr_setting[kSoxrDefaultSettingName] = default_setting;
-
-    JsonSettings::SetDefaultValue(kSoxr, QVariant::fromValue(soxr_setting));
-
-    if (JsonSettings::ValueAsMap(kSoxr).isEmpty()) {     
-        JsonSettings::SetValue(kSoxr, QVariant::fromValue(soxr_setting));
-        AppSettings::SetValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
-        AppSettings::SetDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
-    }
-}
-
-static void LoadR8BrainSetting() {
-    XAMP_LOG_DEBUG("LoadR8BrainSetting.");
-
-    QMap<QString, QVariant> default_setting;
-
-    default_setting[kResampleSampleRate] = 96000;
-    JsonSettings::SetDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
-    if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
-        JsonSettings::SetValue(kR8Brain, QVariant::fromValue(default_setting));
-    }
-    if (!AppSettings::contains(kAppSettingResamplerType)) {
-        AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
-    }
-}
 
 static QString GetLogLevelString(LogLevel level) {
     const static QMap<LogLevel, QString> logs{
@@ -290,8 +246,8 @@ static void LoadAppSettings() {
 
 static void LoadSampleRateConverterConfig() {
     XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
-    LoadSoxrSetting();
-    LoadR8BrainSetting();
+    AppSettings::LoadSoxrSetting();
+    AppSettings::LoadR8BrainSetting();
     JsonSettings::save();
     XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }

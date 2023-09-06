@@ -138,16 +138,26 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->SetListViewFixedHeight(70);
 
-	std::sort(title_category_list.begin(), title_category_list.end(), [](const auto& left, const auto& right) {
+	std::ranges::sort(title_category_list, [](const auto& left, const auto& right) {
 		return left.length() < right.length();
 		});
 	
 	Q_FOREACH(auto category, title_category_list) {
 		album_tag_list_widget_->AddTag(category);
 	}
+	album_tag_list_widget_->AddTag(tr("All"), true);
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
-		album_view_->FilterCategories(tags);
+		if (tags.isEmpty()) {
+			return;
+		}
+		if (tags.contains(tr("All"))) {
+			album_view_->ShowAll();
+			album_tag_list_widget_->DisableAllTag(tr("All"));
+		}
+		else {
+			album_view_->FilterCategories(tags);
+		}
 		album_view_->Update();
 		});
 
@@ -252,7 +262,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	genre_stackwidget_ = new GenreViewPage(this);
 	auto genres_list = qMainDb.GetGenres();
-	std::sort(genres_list.begin(), genres_list.end());
+	std::ranges::sort(genres_list);
 
 	Q_FOREACH(auto genre, genres_list) {
 		genre_stackwidget_->AddGenre(genre);
@@ -325,6 +335,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	for (auto i = 0; i < 26; ++i) {
 		artist_category_list.append(QString(QChar('A' + i)));
 	}
+	artist_category_list.append(tr("All"));
 
 	artist_tag_list_widget_ = new TagListView();
 
@@ -361,7 +372,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		this, &AlbumArtistPage::Refresh);
 
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
-		artist_view_->FilterAritstName(tags);
+		if (tags.isEmpty()) {
+			return;
+		}
+		if (tags.contains(tr("All"))) {
+			artist_view_->ShowAll();
+			artist_tag_list_widget_->DisableAllTag(tr("All"));
+		}
+		else {
+			artist_view_->FilterAritstName(tags);
+		}
 		artist_view_->Update();
 		});
 
@@ -384,12 +404,21 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_tag_list_widget_->setSizePolicy(size_policy_1);
 	Q_FOREACH (auto year, qMainDb.GetYears()) {
 		year_tag_list_widget_->AddTag(year, true);
-	}	
+	}
+	year_tag_list_widget_->AddTag(tr("All"), true);
 	year_frame_layout->addWidget(year_tag_list_widget_);
 	year_frame_layout->addWidget(year_view_, 1);
 
-	(void)QObject::connect(year_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
-		year_view_->FilterYears(tags);
+	(void)QObject::connect(year_tag_list_widget_, &TagListView::TagChanged, [this](const QSet<QString>& tags) {
+		if (tags.isEmpty()) {
+			return;
+		}
+		if (tags.contains(tr("All"))) {
+			year_view_->ShowAll();
+			year_tag_list_widget_->DisableAllTag(tr("All"));
+		} else {
+			year_view_->FilterYears(tags);
+		}
 		year_view_->Update();
 		});
 
@@ -455,6 +484,7 @@ void AlbumArtistPage::Refresh() {
 	}
 
 	auto years = qMainDb.GetYears();
+	std::ranges::sort(years);
 	Q_FOREACH(auto year, years) {
 		year_tag_list_widget_->AddTag(year, true);
 	}
@@ -463,7 +493,7 @@ void AlbumArtistPage::Refresh() {
 	}	
 
 	auto genres_list = qMainDb.GetGenres();
-	std::sort(genres_list.begin(), genres_list.end());
+	std::ranges::sort(genres_list);
 
 	Q_FOREACH(auto genre, genres_list) {
 		genre_stackwidget_->AddGenre(genre);

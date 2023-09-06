@@ -153,8 +153,20 @@ void TagListView::OnCurrentThemeChanged(ThemeColor theme_color) {
 	}
 }
 
-void TagListView::OnThemeColorChanged(QColor backgroundColor, QColor color) {
+void TagListView::OnThemeColorChanged(QColor background_color, QColor color) {
 
+}
+
+void TagListView::DisableAllTag(const QString& skip_tag) {
+	for (auto i = 0; i < taglist_->count(); ++i) {
+		auto* item = dynamic_cast<TagWidgetItem*>(taglist_->item(i));
+		if (!item) {
+			continue;
+		}
+		if (item->GetTag() != skip_tag) {
+			item->SetEnable(false);
+		}
+	}
 }
 
 void TagListView::EnableTag(const QString& tag) {
@@ -162,7 +174,7 @@ void TagListView::EnableTag(const QString& tag) {
 	if (items.isEmpty()) {
 		return;
 	}
-	auto item = dynamic_cast<TagWidgetItem*>(items.first());
+	auto* item = dynamic_cast<TagWidgetItem*>(items.first());
 	emit taglist_->itemClicked(item);
 }
 
@@ -186,7 +198,7 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 
 	if (!uniform_item_sizes) {
 		const QFontMetrics metrics(f);
-		auto width = metrics.horizontalAdvance(tag) * 1.25;
+		const auto width = metrics.horizontalAdvance(tag) * 1.25;
 		item->setSizeHint(QSize(width, 30));
 	}
 	else {

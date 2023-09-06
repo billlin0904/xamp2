@@ -2,7 +2,7 @@
 
 #include <widget/image_utiltis.h>
 #if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
+#include <widget/win32/wintaskbar.h>
 #else
 #include <widget/osx/osx.h>
 #endif

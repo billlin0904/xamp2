@@ -1,4 +1,4 @@
-#include <widget/win32/win32.h>
+#include <widget/win32/wintaskbar.h>
 #include <widget/xmainwindow.h>
 #include <xampplayer.h>
 
@@ -71,6 +71,14 @@ void WinTaskbar::SetRange(int progress_minimum, int progress_maximum) {
 }
 
 void WinTaskbar::UpdateProgressIndicator() {
+	if (!window_) {
+		return;
+	}
+
+	if (!taskbar_list_) {
+		return;
+	}
+
 	auto hwnd = reinterpret_cast<HWND>(window_->winId());
 
 	const auto progress_range = process_max_ - process_min_;
@@ -87,6 +95,14 @@ void WinTaskbar::UpdateProgressIndicator() {
 }
 
 void WinTaskbar::UpdateOverlay() {
+	if (!window_) {
+		return;
+	}
+
+	if (!taskbar_list_) {
+		return;
+	}
+
 	auto hwnd = reinterpret_cast<HWND>(window_->winId());
 
 	std::wstring description;

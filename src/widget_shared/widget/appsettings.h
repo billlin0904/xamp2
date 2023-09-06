@@ -175,6 +175,10 @@ public:
     static bool DontShowMeAgain(const QString& text);
 
     static QLocale locale();
+
+    static void LoadSoxrSetting();
+
+    static void LoadR8BrainSetting();
 protected:
     AppSettings() = default;
 

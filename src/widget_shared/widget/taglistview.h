@@ -45,9 +45,11 @@ public:
 
 	void EnableTag(const QString& tag);
 
+	void DisableAllTag(const QString& skip_tag);
+
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
-	void OnThemeColorChanged(QColor backgroundColor, QColor color);
+	void OnThemeColorChanged(QColor background_color, QColor color);
 signals:
 	void TagChanged(const QSet<QString> &tags);
 

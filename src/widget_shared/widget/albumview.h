@@ -89,7 +89,7 @@ public:
 
 	void SetPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id, int32_t album_heart);
 
-	PlaylistPage* playlistPage() {
+	PlaylistPage* playlistPage() const {
 		return page_;
 	}
 

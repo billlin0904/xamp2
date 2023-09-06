@@ -67,8 +67,8 @@ private:
     int process_max_{0};
     int process_min_{0};
     int process_value_{0};
-    QIcon overlay_icon_;
-    QWidget* window_;
+    QWidget* window_{ nullptr };
+    QIcon overlay_icon_;    
     TaskbarProgressState state_;
     QString overlay_accessible_description_;
     CComPtr<ITaskbarList4> taskbar_list_;

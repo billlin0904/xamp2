@@ -5,6 +5,9 @@
 #include <QTextStream>
 
 #include <base/logger_impl.h>
+#include <stream/soxresampler.h>
+
+#include <widget/jsonsettings.h>
 #include <widget/appsettingnames.h>
 #include <widget/xmainwindow.h>
 
@@ -190,4 +193,43 @@ void AppSettings::LoadLanguage(const QString& lang) {
 
 QLocale AppSettings::locale() {
     return manager_.locale();
+}
+
+void AppSettings::LoadSoxrSetting() {
+    XAMP_LOG_DEBUG("LoadSoxrSetting.");
+
+    QMap<QString, QVariant> default_setting;
+
+    default_setting[kResampleSampleRate] = 96000;
+    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
+    default_setting[kSoxrPhase] = 46;
+    default_setting[kSoxrStopBand] = 100;
+    default_setting[kSoxrPassBand] = 96;
+    default_setting[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
+
+    QMap<QString, QVariant> soxr_setting;
+    soxr_setting[kSoxrDefaultSettingName] = default_setting;
+
+    JsonSettings::SetDefaultValue(kSoxr, QVariant::fromValue(soxr_setting));
+
+    if (JsonSettings::ValueAsMap(kSoxr).isEmpty()) {
+        JsonSettings::SetValue(kSoxr, QVariant::fromValue(soxr_setting));
+        AppSettings::SetValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+        AppSettings::SetDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+    }
+}
+
+void AppSettings::LoadR8BrainSetting() {
+    XAMP_LOG_DEBUG("LoadR8BrainSetting.");
+
+    QMap<QString, QVariant> default_setting;
+
+    default_setting[kResampleSampleRate] = 96000;
+    JsonSettings::SetDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
+    if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
+        JsonSettings::SetValue(kR8Brain, QVariant::fromValue(default_setting));
+    }
+    if (!AppSettings::contains(kAppSettingResamplerType)) {
+        AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
+    }
 }

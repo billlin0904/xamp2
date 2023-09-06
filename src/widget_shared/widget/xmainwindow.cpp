@@ -24,7 +24,7 @@
 #include <QTimer>
 
 #if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
+#include <widget/win32/wintaskbar.h>
 #include <base/platfrom_handle.h>
 #include <windowsx.h>
 #include <Dbt.h>
@@ -37,7 +37,6 @@ XMainWindow::XMainWindow()
     : IXMainWindow()
 #if defined(Q_OS_WIN)
 	, screen_number_(1)
-    , current_screen_(nullptr)
 #endif
 	, content_widget_(nullptr) {    
     setObjectName(qTEXT("framelessWindow"));

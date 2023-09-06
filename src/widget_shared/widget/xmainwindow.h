@@ -5,13 +5,12 @@
 
 #pragma once
 
-#include "xampplayer.h"
+#include <xampplayer.h>
 #include <thememanager.h>
 
 #include <widget/driveinfo.h>
 
 #if defined(Q_OS_WIN)
-class QScreen;
 namespace win32 {
     class WinTaskbar;
 }
@@ -85,7 +84,6 @@ private:
     uint32_t screen_number_;
     QPoint last_pos_;
 #if defined(Q_OS_WIN)
-    QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
 #endif
