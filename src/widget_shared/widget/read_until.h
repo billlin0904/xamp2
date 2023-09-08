@@ -18,7 +18,7 @@
 #include <base/audioformat.h>
 #include <stream/ifileencoder.h>
 
-namespace read_utiltis {
+namespace read_until {
 
 XAMP_WIDGET_SHARED_EXPORT double ReadAll(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,

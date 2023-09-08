@@ -35,7 +35,7 @@ XAMP_WIDGET_SHARED_EXPORT void CenterParent(QWidget* widget);
 
 void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
 
-XMainWindow* GetMainWindow();
+XAMP_WIDGET_SHARED_EXPORT XMainWindow* GetMainWindow();
 
 XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(const AudioFormat& format);
 

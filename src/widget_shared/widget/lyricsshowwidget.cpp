@@ -25,11 +25,11 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 void LyricsShowWidget::ResizeFontSize() {
 	auto font_size = 16;
 	QFontMetrics lrc_metrics(lrc_font_);
-	const auto itr = std::max_element(lyric_.begin(), lyric_.end(), 
-	                                  [&lrc_metrics](const auto &a, const auto &b) {
-		                                  return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
-			                                  < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
-	                                  });
+	const auto itr = std::ranges::max_element(lyric_, 
+	                                          [&lrc_metrics](const auto &a, const auto &b) {
+		                                          return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
+			                                          < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
+	                                          });
 	if (itr == lyric_.end()) {
 		lrc_font_.setPointSize(font_size);
 		return;

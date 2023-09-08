@@ -1,3 +1,7 @@
+#include <QSqlRecord>
+#include <QSqlDriver>
+#include <QSqlField>
+
 #include <widget/playlistsqlquerytablemodel.h>
 
 #include <thememanager.h>
@@ -26,9 +30,30 @@ QVariant PlayListSqlQueryTableModel::headerData(int section, Qt::Orientation ori
             if (section == PLAYLIST_ARTIST || section == PLAYLIST_DURATION) {
                 return {Qt::AlignVCenter | Qt::AlignRight};
             } else if (section == PLAYLIST_TRACK) {
-                return {Qt::AlignVCenter | Qt::AlignHCenter};
+                return {Qt::AlignCenter };
             }
         }
     }
     return QSqlQueryModel::headerData(section, orientation, role);
+}
+
+void PlayListSqlQueryTableModel::setFilterColumn(const QString& column) {
+}
+
+void PlayListSqlQueryTableModel::setFilterFlags(const Qt::MatchFlag flags) {
+}
+
+void PlayListSqlQueryTableModel::setFilter(const QString& filter) {
+}
+
+void PlayListSqlQueryTableModel::filter(const QString& filter) {
+}
+
+void PlayListSqlQueryTableModel::select() {
+}
+
+void PlayListSqlQueryTableModel::setSort(int column, Qt::SortOrder order) {
+}
+
+void PlayListSqlQueryTableModel::sort(int column, Qt::SortOrder order) {
 }

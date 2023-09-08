@@ -981,13 +981,13 @@
             <widget class="QLabel" name="endPosLabel">
              <property name="minimumSize">
               <size>
-               <width>50</width>
+               <width>70</width>
                <height>20</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>50</width>
+               <width>70</width>
                <height>20</height>
               </size>
              </property>
@@ -1025,13 +1025,13 @@
             <widget class="QLabel" name="startPosLabel">
              <property name="minimumSize">
               <size>
-               <width>50</width>
+               <width>70</width>
                <height>20</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>50</width>
+               <width>70</width>
                <height>20</height>
               </size>
              </property>

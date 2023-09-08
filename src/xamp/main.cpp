@@ -1,4 +1,6 @@
 #include <iostream>
+#include <QDir>
+#include <qlibraryinfo.h>
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
@@ -19,9 +21,9 @@
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/xmainwindow.h>
-#include <widget/xmessagebox.h>
 #include <widget/http.h>
 #include <widget/databasefacade.h>
+#include <widget/log_util.h>
 
 #include <QLoggingCategory>
 #include <QOperatingSystemVersion>
@@ -31,9 +33,11 @@
 #include <FramelessHelper/Core/private/framelessconfig_p.h>
 
 #include <thememanager.h>
+#include <xmessagebox.h>
 #include <singleinstanceapplication.h>
 #include <version.h>
 #include <xamp.h>
+#include <qmessagebox.h>
 
 #ifdef Q_OS_WIN32
 static ConstLatin1String VisualStudioVersion() {
@@ -60,190 +64,6 @@ static std::string GetCompilerTime() {
 }
 #endif
 
-static QString GetLogLevelString(LogLevel level) {
-    const static QMap<LogLevel, QString> logs{
-        { LogLevel::LOG_LEVEL_INFO, qTEXT("info") },
-        { LogLevel::LOG_LEVEL_DEBUG, qTEXT("debug") },
-        { LogLevel::LOG_LEVEL_TRACE, qTEXT("trace") },
-        { LogLevel::LOG_LEVEL_WARN, qTEXT("warn") },
-        { LogLevel::LOG_LEVEL_ERROR, qTEXT("err") },
-        { LogLevel::LOG_LEVEL_CRITICAL, qTEXT("critical") },
-    };
-    if (!logs.contains(level)) {
-        return qTEXT("info");
-    }
-    return logs[level];
-}
-
-static LogLevel ParseLogLevel(const QString &str) {
-    const static QMap<QString, LogLevel> logs{
-    	{ qTEXT("info"), LogLevel::LOG_LEVEL_INFO},
-        { qTEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},
-        { qTEXT("trace"), LogLevel::LOG_LEVEL_TRACE},
-        { qTEXT("warn"), LogLevel::LOG_LEVEL_WARN},
-        { qTEXT("err"), LogLevel::LOG_LEVEL_ERROR},
-        { qTEXT("critical"), LogLevel::LOG_LEVEL_CRITICAL},
-    };
-    if (!logs.contains(str)) {
-        return LOG_LEVEL_INFO;
-    }
-    return logs[str];
-}
-
-static void SaveLogConfig() {
-    QMap<QString, QVariant> log;
-    QMap<QString, QVariant> min_level;
-    QMap<QString, QVariant> well_known_log_name;
-    QMap<QString, QVariant> override_map;
-
-    for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
-        if (logger->GetName() != std::string(kXampLoggerName)) {
-            well_known_log_name[FromStdStringView(logger->GetName())] = GetLogLevelString(logger->GetLevel());
-        }
-    }
-
-    min_level[kLogDefault] = qTEXT("debug");
-
-    XAM_LOG_MANAGER().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
-
-    for (auto itr = well_known_log_name.begin()
-        ; itr != well_known_log_name.end(); ++itr) {
-        override_map[itr.key()] = itr.value();
-        XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
-            ->SetLevel(ParseLogLevel(itr.value().toString()));
-    }
-
-    min_level[kLogOverride] = override_map;
-    log[kLogMinimumLevel] = min_level;
-    JsonSettings::SetValue(kLog, QVariant::fromValue(log));
-    JsonSettings::SetDefaultValue(kLog, QVariant::fromValue(log));
-}
-
-static void LoadOrSaveLogConfig() {
-    XAMP_LOG_DEBUG("LoadOrSaveLogConfig.");
-
-    QMap<QString, QVariant> log;
-    QMap<QString, QVariant> min_level;
-    QMap<QString, QVariant> override_map;
-
-    QMap<QString, QVariant> well_known_log_name;
-
-    for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
-        if (logger->GetName() != std::string(kXampLoggerName)) {
-            well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
-        }
-    }
-
-    if (JsonSettings::ValueAsMap(kLog).isEmpty()) {
-        min_level[kLogDefault] = qTEXT("debug");
-
-        XAM_LOG_MANAGER().SetLevel(ParseLogLevel(min_level[kLogDefault].toString()));
-
-    	for (auto itr = well_known_log_name.begin()
-            ; itr != well_known_log_name.end(); ++itr) {
-            override_map[itr.key()] = itr.value();
-            XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
-                ->SetLevel(ParseLogLevel(itr.value().toString()));
-        }
-
-        min_level[kLogOverride] = override_map;
-        log[kLogMinimumLevel] = min_level;
-        JsonSettings::SetValue(kLog, QVariant::fromValue(log));
-        JsonSettings::SetDefaultValue(kLog, QVariant::fromValue(log));
-    } else {
-        log = JsonSettings::ValueAsMap(kLog);
-        min_level = log[kLogMinimumLevel].toMap();
-
-        const auto default_level = min_level[kLogDefault].toString();
-        XAM_LOG_MANAGER().SetLevel(ParseLogLevel(default_level));
-
-        override_map = min_level[kLogOverride].toMap();
-
-        for (auto itr = well_known_log_name.begin()
-            ; itr != well_known_log_name.end(); ++itr) {
-            if (!override_map.contains(itr.key())) {
-                override_map[itr.key()] = itr.value();
-            }
-        }
-
-        for (auto itr = override_map.begin()
-            ; itr != override_map.end(); ++itr) {
-	        const auto& log_name = itr.key();
-            auto log_level = itr.value().toString();
-            XAM_LOG_MANAGER().GetLogger(log_name.toStdString())
-        	->SetLevel(ParseLogLevel(log_level));
-        }       
-    }
-
-#ifdef _DEBUG
-    XAM_LOG_MANAGER().GetLogger(kCrashHandlerLoggerName)
-        ->SetLevel(LOG_LEVEL_DEBUG);
-#endif
-}
-
-static void RegisterMetaType() {
-    XAMP_LOG_DEBUG("RegisterMetaType.");
-
-    // For QSetting read
-    //qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
-
-    qRegisterMetaType<int64_t>("int64_t");
-    qRegisterMetaType<QSharedPointer<DatabaseFacade>>("QSharedPointer<DatabaseFacade>");
-    qRegisterMetaType<AppEQSettings>("AppEQSettings");
-    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
-    qRegisterMetaType<DeviceState>("DeviceState");
-    qRegisterMetaType<PlayerState>("PlayerState");
-    qRegisterMetaType<PlayListEntity>("PlayListEntity");
-    qRegisterMetaType<Errors>("Errors");
-    qRegisterMetaType<Vector<float>>("Vector<float>");
-    qRegisterMetaType<QList<PlayListEntity>>("QList<PlayListEntity>");
-    qRegisterMetaType<size_t>("size_t");
-    qRegisterMetaType<int32_t>("int32_t");
-    qRegisterMetaType<ComplexValarray>("ComplexValarray");
-    qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
-    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
-    qRegisterMetaType<DriveInfo>("DriveInfo");
-    qRegisterMetaType<EncodingProfile>("EncodingProfile");
-    qRegisterMetaType<std::wstring>("std::wstring");
-}
-
-static void LoadAppSettings() {
-    RegisterMetaType();
-
-    XAMP_LOG_DEBUG("LoadAppSettings.");
-
-	AppSettings::SetDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
-    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
-    AppSettings::SetDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
-
-    AppSettings::SetDefaultValue(kAppSettingDeviceType, kEmptyString);
-    AppSettings::SetDefaultValue(kAppSettingDeviceId, kEmptyString);
-    AppSettings::SetDefaultValue(kAppSettingVolume, 50);
-    AppSettings::SetDefaultValue(kAppSettingUseFramelessWindow, true);
-    AppSettings::SetDefaultValue(kLyricsFontSize, 12);
-    AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);
-    AppSettings::SetDefaultValue(kAppSettingDiscordNotify, false);
-    AppSettings::SetDefaultValue(kFlacEncodingLevel, 8);
-    AppSettings::SetDefaultValue(kAppSettingShowLeftList, true);
-    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
-    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
-    AppSettings::SetDefaultValue(kAppSettingEnableReplayGain, true);
-    AppSettings::SetDefaultValue(kEnableBitPerfect, true);
-    AppSettings::SetDefaultValue(kAppSettingWindowState, false);
-    AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
-    AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, true);
-    AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
-    AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, false);
-    AppSettings::SetDefaultValue(kAppSettingEnableSandboxMode, true);
-    AppSettings::SetDefaultValue(kAppSettingEnableDebugStackTrace, true);
-
-    AppSettings::SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 26"));
-    AppSettings::SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 26"));
-    AppSettings::SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 26"));
-    XAMP_LOG_DEBUG("loadAppSettings success.");
-}
-
 static void LoadSampleRateConverterConfig() {
     XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
     AppSettings::LoadSoxrSetting();
@@ -266,6 +86,18 @@ static void LoadLang() {
         XAMP_LOG_DEBUG("Load locale Language file: {}.",
             AppSettings::ValueAsString(kAppSettingLang).toStdString());
     }
+
+    /*auto path = QApplication::applicationDirPath();
+    path.append(qTEXT("/langs"));
+    QDir dir(path);
+
+    auto file_names = dir.entryList(QStringList(qTEXT("qt*")));
+    for (const auto& file_name : file_names) {
+        auto qm_path = path + qTEXT("/") + file_name;
+        QTranslator translator_qt;
+        auto result = translator_qt.load(qm_path);
+        QApplication::installTranslator(&translator_qt);
+    }*/
 }
 
 #ifdef XAMP_OS_WIN
@@ -390,14 +222,15 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
 
-    ApplyTheme();
-
 #ifdef _DEBUG    
 #ifdef XAMP_OS_WIN
     qInstallMessageHandler(LogMessageHandler);
     QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
 #endif
+
+    ApplyTheme();
+    LoadLang();
 
     XMainWindow main_window;
 
@@ -411,8 +244,6 @@ static int Execute(int argc, char* argv[]) {
         return -1;
     }
     XAMP_LOG_DEBUG("Load component shared library success.");
-
-    LoadLang();    
 
     try {
         qMainDb.open();
@@ -461,7 +292,7 @@ static int Execute(int argc, char* argv[]) {
 #endif
 
     main_window.SetContentWidget(&win);
-    //top_win.SetContentWidget(nullptr);
+    win.WaitForReady();
     main_window.RestoreGeometry();
     main_window.ShowWindow();
     return app.exec();
@@ -493,7 +324,7 @@ int main() {
     AppSettings::LoadIniFile(qTEXT("xamp.ini"));
     JsonSettings::LoadJsonFile(qTEXT("config.json"));
 
-	LoadOrSaveLogConfig();
+    AppSettings::LoadOrSaveLogConfig();
 
     XAMP_LOG_DEBUG(GetCompilerTime());
 
@@ -513,7 +344,7 @@ int main() {
     XAMP_LOG_DEBUG("Pin system dll success.");
 #endif
 
-    LoadAppSettings();
+    AppSettings::LoadAppSettings();
     LoadSampleRateConverterConfig();
 
     SharedCrashHandler.SetProcessExceptionHandlers();
@@ -525,7 +356,7 @@ int main() {
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
         AppSettings::save();
-        SaveLogConfig();
+        AppSettings::SaveLogConfig();
         qMainDb.close();
         prefetch_dll.clear();
         pin_system_dll.clear();

@@ -5,16 +5,12 @@
 
 #pragma once
 
-#include <QFrame>
 #include <QDialogButtonBox>
-#include <QMessageBox>
 #include <QTimer>
 
 #include <version.h>
-#include <widget/widget_shared_global.h>
 #include <base/exception.h>
 #include <widget/xdialog.h>
-#include <widget/maskwidget.h>
 
 class QIcon;
 class QAbstractButton;
@@ -23,7 +19,7 @@ class QLabel;
 
 using xamp::base::Exception;
 
-class XAMP_WIDGET_SHARED_EXPORT XMessageBox : public XDialog {
+class XMessageBox : public XDialog {
 public:
     static constexpr auto kDefaultTimeoutSecond = 8;
 

@@ -47,9 +47,9 @@ void TagWidgetItem::SetEnable(bool enable) {
 		QColor color;
 		switch (qTheme.GetThemeColor()) {
 		case ThemeColor::DARK_THEME:
-			color = QColor(qTEXT("#2e2f31"));
+			color = QColor(qTEXT("#4d4d4d"));
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 6px; border: 1px solid %1; background-color: #2f3233;").arg(color.name())
+				qSTR("border-radius: 6px; border: 1px solid %1; background-color: #424548;").arg(color.name())
 			);
 			label_->setStyleSheet(
 				qSTR("color: white;")
@@ -198,7 +198,7 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 
 	if (!uniform_item_sizes) {
 		const QFontMetrics metrics(f);
-		const auto width = metrics.horizontalAdvance(tag) * 1.25;
+		const auto width = metrics.horizontalAdvance(tag) * 1.5;
 		item->setSizeHint(QSize(width, 30));
 	}
 	else {

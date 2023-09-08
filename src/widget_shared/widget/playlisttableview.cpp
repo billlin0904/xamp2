@@ -27,7 +27,6 @@
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/http.h>
-#include <widget/xmessagebox.h>
 #include <widget/appsettings.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
@@ -121,16 +120,16 @@ public:
                 if (playing_state == PlayingState::PLAY_PLAYING) {
                     opt.icon = qTheme.GetPlaylistPlayingIcon(icon_size);
                     opt.features = QStyleOptionViewItem::HasDecoration;
-                    opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
-                    opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                    opt.decorationAlignment = Qt::AlignCenter;
+                    opt.displayAlignment = Qt::AlignCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
                     opt.icon = qTheme.PlaylistPauseIcon(icon_size);
                     opt.features = QStyleOptionViewItem::HasDecoration;
-                    opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
-                    opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                    opt.decorationAlignment = Qt::AlignCenter;
+                    opt.displayAlignment = Qt::AlignCenter;
                 } else {
-                    opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                    opt.displayAlignment = Qt::AlignCenter;
                     opt.text = value.toString();
                 }
 	        }
@@ -181,8 +180,8 @@ public:
                 font_options.insert(FontIconOption::colorAttr, QColor(Qt::red));
                 opt.icon = qTheme.GetFontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
                 opt.features = QStyleOptionViewItem::HasDecoration;
-                opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
-                opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                opt.decorationAlignment = Qt::AlignCenter;
+                opt.displayAlignment = Qt::AlignCenter;
         	}
 	        }
             break;
@@ -190,8 +189,8 @@ public:
 	        {
                 opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
 				opt.features = QStyleOptionViewItem::HasDecoration;
-				opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
-				opt.displayAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+				opt.decorationAlignment = Qt::AlignCenter;
+				opt.displayAlignment = Qt::AlignCenter;
 	        }
             break;
 		default:
@@ -209,7 +208,7 @@ public:
 
 
 void PlayListTableView::Search(const QString& keyword) {
-    QString s = qSTR(R"(
+    /*QString s = qSTR(R"(
     SELECT
 	albums.coverId,
     musics.musicId,
@@ -263,7 +262,7 @@ void PlayListTableView::Search(const QString& keyword) {
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
     }
-    model_->dataChanged(QModelIndex(), QModelIndex());
+    model_->dataChanged(QModelIndex(), QModelIndex());*/
 }
 
 void PlayListTableView::Reload() {
@@ -349,7 +348,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("Id"));
     model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IsPlaying"));
-    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("#"));
+    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("   #"));
     model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FilePath"));
     model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("Title"));
     model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FileName"));
@@ -557,13 +556,10 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-                const auto button = XMessageBox::ShowYesOrNo(tr("Remove all items?"));
-                if (button == QDialogButtonBox::Yes) {
-                    qMainDb.ClearPendingPlaylist(GetPlaylistId());
-                    IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
+                qMainDb.ClearPendingPlaylist(GetPlaylistId());
+                IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
                     Reload();
-                    RemovePlaying();
-                }
+                RemovePlaying();
             });
         }       
 
@@ -621,10 +617,8 @@ void PlayListTableView::initial() {
                 action_map.exec(pt);
             }
             catch (Exception const& e) {
-                XMessageBox::ShowBug(e);
             }
             catch (std::exception const& e) {
-                XMessageBox::ShowError(QString::fromStdString(e.what()));
             }
             return;
         }
@@ -706,9 +700,7 @@ void PlayListTableView::initial() {
             action_map.exec(pt);
         }
         catch (Exception const& e) {
-        	XMessageBox::ShowBug(e);
         } catch (std::exception const &e){
-            XMessageBox::ShowError(QString::fromStdString(e.what()));
         }
     });
 
@@ -1048,8 +1040,8 @@ void PlayListTableView::Play(PlayerOrder order) {
     if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
         return;
     }
-    auto index = pending_playlist_.front();
-    auto entity = item(index);
+    const auto index = pending_playlist_.front();
+    const auto entity = item(index);
     pending_playlist_.pop_front();
     XAMP_EXPECTS(entity.music_id == music_id);
     qMainDb.DeletePendingPlaylistMusic(pending_playlist_id);

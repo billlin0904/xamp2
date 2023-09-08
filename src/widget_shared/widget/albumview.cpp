@@ -8,7 +8,6 @@
 #include <widget/actionmap.h>
 #include <widget/playlistpage.h>
 #include <widget/appsettingnames.h>
-#include <widget/xmessagebox.h>
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
@@ -31,6 +30,7 @@
 #include <QPainterPath>
 #include <QSqlError>
 #include <QApplication>
+#include <QDialogButtonBox>
 
 enum {
     INDEX_ALBUM = 0,
@@ -440,13 +440,8 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 
     action_map.AddSeparator();
 
-    auto remove_album = [=]() {
+    auto remove_album = [this]() {
         if (!model_.rowCount()) {
-            return;
-        }
-
-        const auto button = XMessageBox::ShowYesOrNo(tr("Remove all album?"));
-        if (button != QDialogButtonBox::Yes) {
             return;
         }
 
@@ -550,11 +545,8 @@ void AlbumView::ShowMenu(const QPoint &pt) {
     action_map.AddSeparator();
 
     const auto remove_select_album_act = action_map.AddAction(tr("Remove select album"), [album_id, this]() {
-        const auto button = XMessageBox::ShowYesOrNo(tr("Remove the album?"));
-		if (button == QDialogButtonBox::Yes) {
-            qMainDb.RemoveAlbum(album_id);
-            Refresh();
-		}
+        qMainDb.RemoveAlbum(album_id);
+        Refresh();
     });
     remove_select_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));
 

@@ -36,7 +36,7 @@ void ScrollLabel::UpdateText() {
     scroll_enabled_ = single_text_width_ > (width() - left_margin_);
 
 	if (scroll_enabled_) {
-        static_text_.setText(text_ + seperator);
+        static_text_.setText(text_ + seperator_);
         if (!(window()->windowState() & Qt::WindowMinimized)) {
 			scroll_pos_ = 0;
 			wait_timer_.start();
@@ -79,11 +79,17 @@ QSize ScrollLabel::sizeHint() const {
 
 void ScrollLabel::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
+	painter.setRenderHints(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
 	if (scroll_enabled_) {
 		buffer_.fill(qRgba(0, 0, 0, 0));
 		QPainter pb(&buffer_);
 		pb.setPen(painter.pen());
+		pb.setRenderHints(QPainter::Antialiasing, true);
+		pb.setRenderHints(QPainter::SmoothPixmapTransform, true);
+		pb.setRenderHints(QPainter::TextAntialiasing, true);
 
 		pb.setRenderHint(QPainter::Antialiasing);
 		auto ui_font = font();
@@ -120,6 +126,10 @@ void ScrollLabel::resizeEvent(QResizeEvent*) {
 		grad.setColorAt(1, QColor(0, 0, 0, 255));
 
 		QPainter painter(&alpha_channel_);
+		painter.setRenderHints(QPainter::Antialiasing, true);
+		painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+		painter.setRenderHints(QPainter::TextAntialiasing, true);
+
 		painter.setBrush(grad);
 		painter.setPen(Qt::NoPen);
 		painter.drawRect(0, 0, 16, height());
@@ -138,10 +148,4 @@ void ScrollLabel::resizeEvent(QResizeEvent*) {
 	if (new_scroll_enabled != scroll_enabled_) {
 		UpdateText();
 	}
-}
-
-void ScrollLabel::hideEvent(QHideEvent*) {	
-}
-
-void ScrollLabel::showEvent(QShowEvent*) {
 }

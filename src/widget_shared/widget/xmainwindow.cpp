@@ -5,7 +5,6 @@
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <base/logger_impl.h>
 
-#include <version.h>
 #include <widget/ui_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
@@ -20,7 +19,6 @@
 #include <QPainterPath>
 #include <QDragEnterEvent>
 #include <QMimeData>
-#include <QScreen>
 #include <QTimer>
 
 #if defined(Q_OS_WIN)
@@ -79,7 +77,7 @@ XMainWindow::~XMainWindow() {
     XAMP_LOG_DEBUG("XMainWindow destory!");
 }
 
-void XMainWindow::ensureInitTaskbar() {
+void XMainWindow::EnsureInitTaskbar() {
     if (!task_bar_) {
         task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
     }
@@ -101,7 +99,7 @@ void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
 
 void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+    EnsureInitTaskbar();
     task_bar_->SetTaskbarProgress(percent);
 #else
     (void)percent;
@@ -110,35 +108,35 @@ void XMainWindow::SetTaskbarProgress(const int32_t percent) {
 
 void XMainWindow::ResetTaskbarProgress() {
 #if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+    EnsureInitTaskbar();
     task_bar_->ResetTaskbarProgress();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayingResume() {
 #if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+    EnsureInitTaskbar();
     task_bar_->SetTaskbarPlayingResume();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerPaused() {
 #if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+    EnsureInitTaskbar();
     task_bar_->SetTaskbarPlayerPaused();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerPlaying() {
 #if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+    EnsureInitTaskbar();
     task_bar_->SetTaskbarPlayerPlaying();
 #endif
 }
 
 void XMainWindow::SetTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+    EnsureInitTaskbar();
     task_bar_->SetTaskbarPlayerStop();
 #endif
 }
@@ -236,10 +234,9 @@ void XMainWindow::ShortcutsPressed(uint16_t native_key, uint16_t native_mods) {
 
 void XMainWindow::DrivesRemoved(char driver_letter) {
 #if defined(Q_OS_WIN)
-    auto itr = std::find_if(exist_drives_.begin(),
-        exist_drives_.end(), [driver_letter](auto drive) {
-            return drive.driver_letter == driver_letter;
-        });
+    auto itr = std::ranges::find_if(exist_drives_, [driver_letter](auto drive) {
+	                                    return drive.driver_letter == driver_letter;
+                                    });
     if (itr != exist_drives_.end()) {
         content_widget_->DrivesRemoved(*itr);
         exist_drives_.erase(itr);
@@ -254,7 +251,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
     case DBT_DEVICEARRIVAL: {
         auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
         if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-            auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+            auto* lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
             if (lpdbv->dbcv_flags & DBTF_MEDIA) {
                 ReadDriveInfo();
             }
@@ -262,7 +259,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
         }
         break;
     case DBT_DEVICEREMOVECOMPLETE: {
-        constexpr auto firstDriveFromMask = [](ULONG unitmask) -> char {
+        constexpr auto first_drive_from_mask = [](ULONG unitmask) -> char {
             char i = 0;
             for (i = 0; i < 26; ++i) {
                 if (unitmask & 0x1)
@@ -274,9 +271,9 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
 
         const auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
         if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-            const auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+            const auto* lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
             if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                const auto driver_letter = firstDriveFromMask(lpdbv->dbcv_unitmask);
+                const auto driver_letter = first_drive_from_mask(lpdbv->dbcv_unitmask);
                 DrivesRemoved(driver_letter);
             }
         }
@@ -289,6 +286,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
         XAMP_LOG_DEBUG("Hot key press native_key:{} native_mods:{}", native_key, native_mods);
         }
         break;
+default: ;
     }    
 #endif
     return IXMainWindow::nativeEvent(event_type, message, result);

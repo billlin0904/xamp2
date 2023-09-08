@@ -79,7 +79,7 @@ private:
 
     void showEvent(QShowEvent* event) override;
 
-    void ensureInitTaskbar();
+    void EnsureInitTaskbar();
 
     uint32_t screen_number_;
     QPoint last_pos_;

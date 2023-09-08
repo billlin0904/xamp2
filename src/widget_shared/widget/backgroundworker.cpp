@@ -7,7 +7,7 @@
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
 #include <widget/appsettingnames.h>
-#include <widget/read_utiltis.h>
+#include <widget/read_until.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
@@ -164,7 +164,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
                 }
                 scanner.Process(samples, sample_size);
             };
-            read_utiltis::ReadAll(entity.file_path.toStdWString(), progress, prepare, dps_process);
+            read_until::ReadAll(entity.file_path.toStdWString(), progress, prepare, dps_process);
             std::lock_guard<FastMutex> guard{ mutex };
             jobs.play_list_entities.push_back(entity);
             jobs.scanner.push_back(std::move(scanner));
@@ -224,16 +224,19 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
 }
 
 void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from, const QString& to) {
-    const auto url =
+    /*const auto url =
         QString("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString(QUrl::toPercentEncoding(keyword)))
         .arg(to)
         .arg(from);
     http::HttpClient(url)
         .success([keyword, this](const QString& content) {
+        if (content.isEmpty()) {
+            return;
+        }
         auto result = content;
         result = result.replace("[[[\"", "");
         result = result.mid(0, result.indexOf(",\"") - 1);
         emit TranslationCompleted(keyword, result);
-            }).get();
+            }).get();*/
 }

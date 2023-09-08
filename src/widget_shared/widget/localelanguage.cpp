@@ -56,6 +56,9 @@ QList<LocaleLanguage> LocaleLanguageManager::LanguageNames() {
 	auto file_names = dir.entryList(QStringList(qTEXT("*.qm")));
 	for (auto i = 0; i < file_names.size(); ++i) {
 		auto locale = file_names[i];
+		if (locale.contains("qt")) {
+			continue;
+		}
 		locale.truncate(locale.lastIndexOf(qTEXT(".")));
 		languages_list.append(LocaleLanguage(locale));
 	}

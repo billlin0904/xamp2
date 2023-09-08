@@ -49,8 +49,14 @@ AboutPage::AboutPage(QWidget* parent)
     ui_.lblDomain->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
 
-    (void)QObject::connect(ui_.btnCredits, &QPushButton::clicked, this, &AboutPage::OnCreditsOrLicenseChecked);
-    (void)QObject::connect(ui_.btnLicense, &QPushButton::clicked, this, &AboutPage::OnCreditsOrLicenseChecked);
+    (void)QObject::connect(ui_.btnCredits,
+        &QPushButton::clicked,
+        this, 
+        &AboutPage::OnCreditsOrLicenseChecked);
+    (void)QObject::connect(ui_.btnLicense,
+        &QPushButton::clicked,
+        this,
+        &AboutPage::OnCreditsOrLicenseChecked);
 }
 
 void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {

@@ -1,4 +1,4 @@
-#include <widget/read_utiltis.h>
+#include <widget/read_until.h>
 #include <widget/widget_shared.h>
 
 #include <base/align_ptr.h>
@@ -22,7 +22,7 @@
 #include <utility>
 #include <tuple>
 
-namespace read_utiltis {
+namespace read_until {
 
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 

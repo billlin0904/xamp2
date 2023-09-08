@@ -1,8 +1,8 @@
-#include <widget/xmessagebox.h>
-
+#include <xmessagebox.h>
 #include <widget/widget_shared.h>
 #include <widget/xmainwindow.h>
 #include <widget/ui_utilts.h>
+#include <widget/maskwidget.h>
 
 #include <QLabel>
 #include <QApplication>
@@ -14,11 +14,11 @@
 #include <QScopedPointer>
 
 XMessageBox::XMessageBox(const QString& title,
-	const QString& text,
-	QWidget* parent,
-	const QFlags<QDialogButtonBox::StandardButton> buttons,
-	const QDialogButtonBox::StandardButton default_button,
-	const bool enable_countdown)
+                         const QString& text,
+                         QWidget* parent,
+                         const QFlags<QDialogButtonBox::StandardButton> buttons,
+                         const QDialogButtonBox::StandardButton default_button,
+                         const bool enable_countdown)
 	: XDialog(parent) {
 	enable_countdown_ = enable_countdown;
 
@@ -65,7 +65,7 @@ XMessageBox::XMessageBox(const QString& title,
 	SetContentWidget(client_widget);
 	SetTitle(title);
 
-	connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
+	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
 	timer_.setInterval(1000);
 }
 

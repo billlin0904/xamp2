@@ -5,11 +5,17 @@
 #include <QTextStream>
 
 #include <base/logger_impl.h>
+#include <base/crashhandler.h>
+
 #include <stream/soxresampler.h>
 
 #include <widget/jsonsettings.h>
 #include <widget/appsettingnames.h>
 #include <widget/xmainwindow.h>
+
+#include <widget/databasefacade.h>
+#include <widget/log_util.h>
+#include <widget/playerorder.h>
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
@@ -36,13 +42,13 @@ void AppSettings::SetEqSettings(AppEQSettings const& eq_settings) {
 
 bool AppSettings::DontShowMeAgain(const QString& text) {
     const auto string_hash = QString::number(qHash(text));
-    auto dont_show_me_again_list = ValueAsStringList(kAppSettingDontShowMeAgainList);
+    const auto dont_show_me_again_list = ValueAsStringList(kAppSettingDontShowMeAgainList);
     return !dont_show_me_again_list.contains(string_hash);
 }
 
 void AppSettings::AddDontShowMeAgain(const QString& text) {
 	const auto string_hash = QString::number(qHash(text));
-    auto dont_show_me_again_list = ValueAsStringList(kAppSettingDontShowMeAgainList);
+	const auto dont_show_me_again_list = ValueAsStringList(kAppSettingDontShowMeAgainList);
     if (!dont_show_me_again_list.contains(string_hash)) {
         AddList(kAppSettingDontShowMeAgainList, string_hash);
     }
@@ -117,7 +123,7 @@ QString AppSettings::GetMyMusicFolderPath() {
 }
 
 Uuid AppSettings::ValueAsId(const QString& key) {
-	auto str = GetValue(key).toString();
+	const auto str = GetValue(key).toString();
 	if (str.isEmpty()) {
         return Uuid::kNullUuid;
 	}
@@ -125,21 +131,17 @@ Uuid AppSettings::ValueAsId(const QString& key) {
 }
 
 QList<QString> AppSettings::ValueAsStringList(QString const& key) {
-    auto setting_str = AppSettings::ValueAsString(key);
+	const auto setting_str = AppSettings::ValueAsString(key);
     if (setting_str.isEmpty()) {
         return {};
     }
-#if QT_VERSION > QT_VERSION_CHECK(5, 14, 1)
     return setting_str.split(qTEXT(","), Qt::SkipEmptyParts);
-#else
-    return setting_str.split(Q_UTF8(","), QString::SkipEmptyParts);
-#endif
 }
 
 void AppSettings::RemoveList(QString const& key, QString const & value) {
     auto values = ValueAsStringList(key);
 
-    auto itr = std::find(values.begin(), values.end(), value);
+    const auto itr = std::ranges::find(values, value);
     if (itr != values.end()) {
         values.erase(itr);
     }
@@ -154,7 +156,7 @@ void AppSettings::RemoveList(QString const& key, QString const & value) {
 void AppSettings::AddList(QString const& key, QString const & value) {
     auto values = ValueAsStringList(key);
 
-    auto itr = std::find(values.begin(), values.end(), value);
+    const auto itr = std::ranges::find(values, value);
     if (itr != values.end()) {
         return;
     }
@@ -232,4 +234,160 @@ void AppSettings::LoadR8BrainSetting() {
     if (!AppSettings::contains(kAppSettingResamplerType)) {
         AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
     }
+}
+
+void AppSettings::SaveLogConfig() {
+    QMap<QString, QVariant> log;
+    QMap<QString, QVariant> min_level;
+    QMap<QString, QVariant> well_known_log_name;
+    QMap<QString, QVariant> override_map;
+
+    for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
+        if (logger->GetName() != std::string(kXampLoggerName)) {
+            well_known_log_name[FromStdStringView(logger->GetName())] = log_util::GetLogLevelString(logger->GetLevel());
+        }
+    }
+
+    min_level[kLogDefault] = qTEXT("debug");
+
+    XAM_LOG_MANAGER().SetLevel(log_util::ParseLogLevel(min_level[kLogDefault].toString()));
+
+    for (auto itr = well_known_log_name.begin()
+        ; itr != well_known_log_name.end(); ++itr) {
+        override_map[itr.key()] = itr.value();
+        XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
+            ->SetLevel(log_util::ParseLogLevel(itr.value().toString()));
+    }
+
+    min_level[kLogOverride] = override_map;
+    log[kLogMinimumLevel] = min_level;
+    JsonSettings::SetValue(kLog, QVariant::fromValue(log));
+    JsonSettings::SetDefaultValue(kLog, QVariant::fromValue(log));
+}
+
+void AppSettings::LoadOrSaveLogConfig() {
+    XAMP_LOG_DEBUG("LoadOrSaveLogConfig.");
+
+    QMap<QString, QVariant> log;
+    QMap<QString, QVariant> min_level;
+    QMap<QString, QVariant> override_map;
+
+    QMap<QString, QVariant> well_known_log_name;
+
+    for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
+        if (logger->GetName() != std::string(kXampLoggerName)) {
+            well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
+        }
+    }
+
+    if (JsonSettings::ValueAsMap(kLog).isEmpty()) {
+        min_level[kLogDefault] = qTEXT("debug");
+
+        XAM_LOG_MANAGER().SetLevel(log_util::ParseLogLevel(min_level[kLogDefault].toString()));
+
+        for (auto itr = well_known_log_name.begin()
+            ; itr != well_known_log_name.end(); ++itr) {
+            override_map[itr.key()] = itr.value();
+            XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
+                ->SetLevel(log_util::ParseLogLevel(itr.value().toString()));
+        }
+
+        min_level[kLogOverride] = override_map;
+        log[kLogMinimumLevel] = min_level;
+        JsonSettings::SetValue(kLog, QVariant::fromValue(log));
+        JsonSettings::SetDefaultValue(kLog, QVariant::fromValue(log));
+    }
+    else {
+        log = JsonSettings::ValueAsMap(kLog);
+        min_level = log[kLogMinimumLevel].toMap();
+
+        const auto default_level = min_level[kLogDefault].toString();
+        XAM_LOG_MANAGER().SetLevel(log_util::ParseLogLevel(default_level));
+
+        override_map = min_level[kLogOverride].toMap();
+
+        for (auto itr = well_known_log_name.begin()
+            ; itr != well_known_log_name.end(); ++itr) {
+            if (!override_map.contains(itr.key())) {
+                override_map[itr.key()] = itr.value();
+            }
+        }
+
+        for (auto itr = override_map.begin()
+            ; itr != override_map.end(); ++itr) {
+            const auto& log_name = itr.key();
+            auto log_level = itr.value().toString();
+            XAM_LOG_MANAGER().GetLogger(log_name.toStdString())
+                ->SetLevel(log_util::ParseLogLevel(log_level));
+        }
+    }
+
+#ifdef _DEBUG
+    XAM_LOG_MANAGER().GetLogger(kCrashHandlerLoggerName)
+        ->SetLevel(LOG_LEVEL_DEBUG);
+#endif
+}
+
+
+void AppSettings::RegisterMetaType() {
+    XAMP_LOG_DEBUG("RegisterMetaType.");
+
+    // For QSetting read
+    //qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
+
+    qRegisterMetaType<int64_t>("int64_t");
+    qRegisterMetaType<QSharedPointer<DatabaseFacade>>("QSharedPointer<DatabaseFacade>");
+    qRegisterMetaType<AppEQSettings>("AppEQSettings");
+    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
+    qRegisterMetaType<DeviceState>("DeviceState");
+    qRegisterMetaType<PlayerState>("PlayerState");
+    qRegisterMetaType<PlayListEntity>("PlayListEntity");
+    qRegisterMetaType<Errors>("Errors");
+    qRegisterMetaType<Vector<float>>("Vector<float>");
+    qRegisterMetaType<QList<PlayListEntity>>("QList<PlayListEntity>");
+    qRegisterMetaType<size_t>("size_t");
+    qRegisterMetaType<int32_t>("int32_t");
+    qRegisterMetaType<ComplexValarray>("ComplexValarray");
+    qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
+    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
+    qRegisterMetaType<DriveInfo>("DriveInfo");
+    qRegisterMetaType<EncodingProfile>("EncodingProfile");
+    qRegisterMetaType<std::wstring>("std::wstring");
+}
+
+void AppSettings::LoadAppSettings() {
+    RegisterMetaType();
+
+    XAMP_LOG_DEBUG("LoadAppSettings.");
+
+    AppSettings::SetDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
+    AppSettings::SetDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
+
+    AppSettings::SetDefaultValue(kAppSettingDeviceType, kEmptyString);
+    AppSettings::SetDefaultValue(kAppSettingDeviceId, kEmptyString);
+    AppSettings::SetDefaultValue(kAppSettingVolume, 50);
+    AppSettings::SetDefaultValue(kAppSettingUseFramelessWindow, true);
+    AppSettings::SetDefaultValue(kLyricsFontSize, 12);
+    AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);
+    AppSettings::SetDefaultValue(kAppSettingDiscordNotify, false);
+    AppSettings::SetDefaultValue(kFlacEncodingLevel, 8);
+    AppSettings::SetDefaultValue(kAppSettingShowLeftList, true);
+    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
+    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
+    AppSettings::SetDefaultValue(kAppSettingEnableReplayGain, true);
+    AppSettings::SetDefaultValue(kEnableBitPerfect, true);
+    AppSettings::SetDefaultValue(kAppSettingWindowState, false);
+    AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
+    AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, true);
+    AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
+    AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, false);
+    AppSettings::SetDefaultValue(kAppSettingEnableSandboxMode, true);
+    AppSettings::SetDefaultValue(kAppSettingEnableDebugStackTrace, true);
+
+    AppSettings::SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 26"));
+    AppSettings::SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 26"));
+    AppSettings::SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 26"));
+    XAMP_LOG_DEBUG("loadAppSettings success.");
 }

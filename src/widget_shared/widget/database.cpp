@@ -163,7 +163,7 @@ void Database::CreateTableIfNotExist() {
                        track_replay_gain DOUBLE,
                        track_peak DOUBLE,
                        genre TEXT,
-                       comment TEXT,                       
+                       comment TEXT,
                        fileSize integer,
                        parentPathHash TEXT,
                        heart integer,

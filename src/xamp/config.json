@@ -4,7 +4,7 @@
             "Default": "debug",
             "Override": {
                 "AsioDevice": "info",
-                "AudioPlayer": "info",
+                "AudioPlayer": "debug",
                 "AvFileStream": "info",
                 "BASS": "info",
                 "BackgroundThreadPool": "debug",
@@ -53,24 +53,24 @@
         "176.4K": {
             "passBand": 96,
             "phase": 46,
-            "quality": 4,
+            "quality": 3,
             "resampleSampleRate": 176400,
             "rolloffLevel": 2,
             "stopBand": 100
         },
         "192K": {
             "passBand": 96,
-            "phase": 46,
+            "phase": 50,
             "quality": 4,
             "resampleSampleRate": 192000,
             "rolloffLevel": 2,
             "stopBand": 100
         },
-        "Bluetooth": {
+        "default": {
             "passBand": 96,
             "phase": 46,
-            "quality": 4,
-            "resampleSampleRate": 44100,
+            "quality": 3,
+            "resampleSampleRate": 96000,
             "rolloffLevel": 2,
             "stopBand": 100
         }

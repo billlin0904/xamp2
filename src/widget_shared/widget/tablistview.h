@@ -8,8 +8,9 @@
 #include <QMap>
 #include <QListView>
 #include <QStandardItemModel>
+
+#include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
-#include <thememanager.h>
 
 enum TabIndex {
     TAB_PLAYLIST,

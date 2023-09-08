@@ -1,4 +1,5 @@
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+#include <xamp.h>
 
 #include <QShortcut>
 #include <QToolTip>
@@ -38,7 +39,6 @@
 #include <widget/podcast_uiltis.h>
 #include <widget/spectrumwidget.h>
 #include <widget/xdialog.h>
-#include <widget/xmessagebox.h>
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 #include <widget/extractfileworker.h>
@@ -51,15 +51,15 @@
 #include <widget/actionmap.h>
 #include <widget/http.h>
 #include <widget/jsonsettings.h>
-#include <widget/read_utiltis.h>
+#include <widget/read_until.h>
 #include <widget/aboutpage.h>
 #include <widget/cdpage.h>
 #include <widget/preferencepage.h>
+#include <widget/maskwidget.h>
 
+#include <xmessagebox.h>
 #include <thememanager.h>
 #include <version.h>
-
-#include <xamp.h>
 
 static void ShowMeMessage(const QString& message) {
     if (AppSettings::DontShowMeAgain(message)) {
@@ -442,6 +442,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.closeButton, SystemButtonType::Close);
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.aboutButton);
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.preferenceButton);
+    //FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.titleFrame); // No moveable
 
     main_window_ = main_window;
 
@@ -776,6 +777,10 @@ QWidgetAction* Xamp::CreateDeviceMenuWidget(const QString& desc, const QIcon &ic
 
     device_type_frame_.push_back(device_type_frame);
     return separator;
+}
+
+void Xamp::WaitForReady() {
+    FramelessWidgetsHelper::get(this)->waitForReady();
 }
 
 void Xamp::InitialDeviceList() {    
@@ -1615,7 +1620,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 	
     qTheme.SetPlayOrPauseButton(ui_.playButton, open_done);
 
-    const auto max_duration_ms = Round(player_->GetDuration()) * 1000;
+    const int64_t max_duration_ms = Round(player_->GetDuration()) * 1000;
     ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
     ui_.seekSlider->setValue(0);
     /*ui_.startPosLabel->setText(FormatDuration(0));
@@ -2076,7 +2081,7 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 
             try {
                 auto encoder = StreamFactory::MakeAACEncoder();
-                read_utiltis::EncodeFile(config,
+                read_until::EncodeFile(config,
                     encoder,
                     [&](auto progress) -> bool {
                         dialog->SetValue(progress);
@@ -2116,7 +2121,7 @@ void Xamp::EncodeWavFile(const PlayListEntity& item) {
 
             try {
                 auto encoder = StreamFactory::MakeWaveEncoder();
-                read_utiltis::EncodeFile(item.file_path.toStdWString(),
+                read_until::EncodeFile(item.file_path.toStdWString(),
                     file_name.toStdWString(),
                     encoder,
                     command,
@@ -2158,7 +2163,7 @@ void Xamp::EncodeFlacFile(const PlayListEntity& item) {
 
             try {
                 auto encoder = StreamFactory::MakeFlacEncoder();
-                read_utiltis::EncodeFile(item.file_path.toStdWString(),
+                read_until::EncodeFile(item.file_path.toStdWString(),
                     file_name.toStdWString(),
                     encoder,
                     command,
@@ -2256,7 +2261,7 @@ void Xamp::OnInsertDatabase(const Vector<TrackInfo>& result,
         &FindAlbumCoverWorker::OnFindAlbumCover,
         Qt::QueuedConnection);
     facede.InsertTrackInfo(result, playlist_id, is_podcast_mode);    
-    //emit Translation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    emit Translation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
 }
 

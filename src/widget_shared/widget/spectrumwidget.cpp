@@ -41,8 +41,8 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 
 	std::valarray<float> band_energies(kMaxBands);
 	for (int i = 0; i < kMaxBands; i++) {
-		int start_index = i * samples_per_band;
-		int end_index = (i + 1) * samples_per_band;
+		const int start_index = i * samples_per_band;
+		const int end_index = (i + 1) * samples_per_band;
 
 		// 計算當前頻帶的能量值
 		float band_energy = 0.0f;
@@ -70,14 +70,14 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	}
 	average_spectrum /= kBufferSize;
 
-	float max_db_value = (average_spectrum.max)();
+	const float max_db_value = (average_spectrum.max)();
 
-	float rect_width = static_cast<float>(width()) / static_cast<float>(kMaxBands);
-	float rect_height = static_cast<float>(height());
+	const float rect_width = static_cast<float>(width()) / static_cast<float>(kMaxBands);
+	const float rect_height = static_cast<float>(height());
 
 	QVector<QColor> colors;
 
-	const float kMinRectHeight = 1.0f;
+	constexpr float kMinRectHeight = 1.0f;
 
 	if (style_ == SpectrumStyles::BAR_STYLE) {
 		QVector<QRectF> rects;

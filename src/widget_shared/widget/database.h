@@ -15,7 +15,6 @@
 #include <base/object_pool.h>
 
 #include <widget/widget_shared_global.h>
-#include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
@@ -40,7 +39,6 @@ public:
 		(expr);\
     }\
     catch (SqlException const& e) {\
-		XMessageBox::ShowBug(e, QString::fromStdString(e.what()));\
     }
 
 struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {

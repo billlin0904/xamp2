@@ -126,6 +126,8 @@ void XDialog::SetContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
+    //FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame); // No moveable
+    FramelessWidgetsHelper::get(this)->waitForReady();
 
     show();
 }

@@ -19,7 +19,6 @@
 
 #include <widget/widget_shared.h>
 #include <widget/http.h>
-#include <widget/xmessagebox.h>
 #include <widget/database.h>
 #include <widget/playlisttableview.h>
 #include <widget/imagecache.h>

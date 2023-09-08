@@ -4,7 +4,6 @@
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
-#include <widget/xmessagebox.h>
 
 VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent)
 	: QDialog(parent)
@@ -102,6 +101,5 @@ void VolumeControlDialog::SetVolume(uint32_t volume, bool notify) {
     }
     catch (const Exception& e) {
         player_->Stop(false);
-        XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
     }
 }

@@ -179,10 +179,18 @@ public:
     static void LoadSoxrSetting();
 
     static void LoadR8BrainSetting();
+
+    static void SaveLogConfig();
+
+    static void LoadOrSaveLogConfig();
+
+    static void LoadAppSettings();
 protected:
     AppSettings() = default;
 
 private:
+    static void RegisterMetaType();
+
     static void LoadEqPreset();
 
     static QScopedPointer<QSettings> settings_;

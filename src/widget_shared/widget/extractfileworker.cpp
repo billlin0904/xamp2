@@ -206,6 +206,13 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         return;
     }
 
+    emit ReadFileStart();
+
+    XAMP_ON_SCOPE_EXIT(
+        emit ReadCompleted();
+		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
+    );
+
     std::atomic<size_t> completed_work(0);
    
     auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
@@ -216,15 +223,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     if (total_work == 0) {
         XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
         return;
-    }   
-
-    emit ReadFileStart();
-
-    XAMP_ON_SCOPE_EXIT(
-        emit ReadCompleted();
-        XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
-    );
-
+    }
 
     FastMutex mutex;
     QElapsedTimer timer;

@@ -30,15 +30,11 @@ private:
 
 	void paintEvent(QPaintEvent* event) override;
 
-	void showEvent(QShowEvent* event) override;
-
-	void hideEvent(QHideEvent* event) override;
-
 	void resizeEvent(QResizeEvent* event) override;
 
 	void UpdateText();
 
-    const QLatin1String seperator = QLatin1String("   ");
+    const QLatin1String seperator_ = QLatin1String("   ");
 
 	bool scroll_enabled_;
 	bool waiting_;

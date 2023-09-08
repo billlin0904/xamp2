@@ -24,6 +24,8 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+struct PlaybackFormat;
+
 class LrcPage;
 class PlaylistPage;
 class AboutPage;
@@ -36,7 +38,6 @@ class PlaybackHistoryPage;
 class QWidgetAction;
 class QFileSystemWatcher;
 class FileSystemViewPage;
-struct PlaybackFormat;
 class QRadioButton;
 class BackgroundWorker;
 class CdPage;
@@ -65,6 +66,7 @@ public:
 
 	void InitialDeviceList();
 
+	void WaitForReady();
 signals:
 	void PayNextMusic();
 

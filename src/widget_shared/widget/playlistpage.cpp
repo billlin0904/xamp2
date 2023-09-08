@@ -2,7 +2,7 @@
 #include <widget/playlistpage.h>
 
 #include <QGraphicsOpacityEffect>
-#include <QHBoxLayout>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QSpacerItem>
 #include <QStandardItemModel>
@@ -100,7 +100,7 @@ void PlaylistPage::Initial() {
 	search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	search_line_edit_->setClearButtonEnabled(true);
 	search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-	search_line_edit_->setPlaceholderText(tr("Search ..."));
+	search_line_edit_->setPlaceholderText(tr("Search"));
 
 	format_ = new QLabel(this);
 	const QFont format_font(qTEXT("FormatFont"));
@@ -147,6 +147,7 @@ void PlaylistPage::Initial() {
 	auto* horizontal_layout_9 = new QHBoxLayout();
 	horizontal_layout_9->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 	horizontal_layout_9->addWidget(search_line_edit_, 1);
+	horizontal_layout_9->setContentsMargins(0, 0, 8, 10);
 	default_layout->addLayout(horizontal_layout_9);
 
 	default_layout->addLayout(horizontalLayout_8);
@@ -164,9 +165,9 @@ void PlaylistPage::Initial() {
 	playlist_completer->setCompletionMode(QCompleter::PopupCompletion);
 	search_line_edit_->setCompleter(playlist_completer);
 
-	auto actionList = search_line_edit_->findChildren<QAction*>();
-	if (!actionList.isEmpty()) {
-		(void)QObject::connect(actionList.first(), &QAction::triggered, this, [this]() {
+	auto action_list = search_line_edit_->findChildren<QAction*>();
+	if (!action_list.isEmpty()) {
+		(void)QObject::connect(action_list.first(), &QAction::triggered, this, [this]() {
 			playlist_->Reload();
 			});
 	}

@@ -103,7 +103,7 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 
 	// Find 'Scans' folder in the same level or in parent folders.
 	while (!scan_dir.isRoot()) {
-		if (std::any_of(target_folders.cbegin(), target_folders.cend(), [&](const QString& folder) {
+		if (std::ranges::any_of(target_folders, [&](const QString& folder) {
 			return scan_dir.entryList(QDir::Dirs).contains(folder, Qt::CaseInsensitive);
 			})) {
 			// Enter the first found target folder

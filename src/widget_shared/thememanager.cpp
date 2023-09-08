@@ -779,19 +779,19 @@ void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_
             line_edit->setStyleSheet(qSTR(R"(
                                             QLineEdit#%1 {
                                             background-color: %2;
-                                            border: gray;
+                                            border: 1px solid #4d4d4d;
                                             color: white;
-                                            border-radius: 10px;
+                                            border-radius: 8px;
                                             }
-                                            )").arg(object_name).arg(ColorToString(Qt::black)));
+                                            )").arg(object_name).arg("#3a3a3c"));
 			break;
         case ThemeColor::LIGHT_THEME:
             line_edit->setStyleSheet(qSTR(R"(
                                             QLineEdit#%1 {
                                             background-color: %2;
-                                            border: gray;
+                                            border: 1px solid gray;
                                             color: black;
-                                            border-radius: 10px;
+                                            border-radius: 8px;
                                             }
                                             )").arg(object_name).arg(ColorToString(Qt::white)));
             break;
