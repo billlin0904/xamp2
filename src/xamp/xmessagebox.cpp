@@ -39,6 +39,9 @@ XMessageBox::XMessageBox(const QString& title,
 	//message_text_label_->setFixedHeight(80);
 	//message_text_label_->setFixedWidth(80);
 	message_text_label_->setText(text);
+	QFont f;
+	f.setPointSize(qTheme.GetFontSize(10));
+	message_text_label_->setFont(f);
 	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
 
 	auto* line = new QFrame(this);
@@ -48,7 +51,7 @@ XMessageBox::XMessageBox(const QString& title,
 	auto* client_widget = new QWidget(this);
 	grid_layout_ = new QGridLayout(client_widget);
 	grid_layout_->addWidget(icon_label_, 0, 0, 2, 1, Qt::AlignTop);
-	grid_layout_->addWidget(message_text_label_, 0, 1, 2, 1);
+	grid_layout_->addWidget(message_text_label_, 0, 1, 3, 1);
 	grid_layout_->addWidget(line, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
 	grid_layout_->addWidget(button_box_, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
 	grid_layout_->setSizeConstraint(QLayout::SetNoConstraint);

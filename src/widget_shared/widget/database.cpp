@@ -27,21 +27,23 @@
     }\
     } while (false)
 
-// SQLite不支援uint64_t格式但可以使用QByteArray保存.
-static uint64_t GetUlonglongValue(const SqlQuery & q, const int32_t index) {
-    auto blob_size_t = q.value(index).toByteArray();
-    XAMP_ASSERT(blob_size_t.size() == sizeof(uint64_t));
-    uint64_t result = 0;
-    MemoryCopy(&result, blob_size_t.data(), blob_size_t.length());
-    return result;
-}
+namespace {
+    // SQLite不支援uint64_t格式但可以使用QByteArray保存.
+    uint64_t GetUlonglongValue(const SqlQuery& q, const int32_t index) {
+        auto blob_size_t = q.value(index).toByteArray();
+        XAMP_ASSERT(blob_size_t.size() == sizeof(uint64_t));
+        uint64_t result = 0;
+        MemoryCopy(&result, blob_size_t.data(), blob_size_t.length());
+        return result;
+    }
 
-// SQLite不支援uint64_t格式但可以使用QByteArray保存.
-static void BindUlonglongValue(SqlQuery & q, const ConstLatin1String placeholder, const uint64_t v) {
-    QByteArray blob_size_t;
-    blob_size_t.resize(sizeof(uint64_t));
-    MemoryCopy(blob_size_t.data(), &v, sizeof(uint64_t));
-    q.bindValue(placeholder, blob_size_t);
+    // SQLite不支援uint64_t格式但可以使用QByteArray保存.
+    void BindUlonglongValue(SqlQuery& q, const ConstLatin1String placeholder, const uint64_t v) {
+        QByteArray blob_size_t;
+        blob_size_t.resize(sizeof(uint64_t));
+        MemoryCopy(blob_size_t.data(), &v, sizeof(uint64_t));
+        q.bindValue(placeholder, blob_size_t);
+    }
 }
 
 QString GetDatabaseId() {
@@ -165,7 +167,6 @@ void Database::CreateTableIfNotExist() {
                        genre TEXT,
                        comment TEXT,
                        fileSize integer,
-                       parentPathHash TEXT,
                        heart integer,
 					   lyrc TEXT,
 					   trLyrc TEXT,
@@ -930,44 +931,6 @@ PlayListEntity Database::FromSqlQuery(const SqlQuery& query) {
     return entity;
 }
 
-QList<PlayListEntity> Database::GetPlayListEntityFromPathHash(size_t path_hash) const {
-    QList<PlayListEntity> track_infos;
-
-    QByteArray blob_size_t;
-    blob_size_t.resize(sizeof(uint64_t));
-    MemoryCopy(blob_size_t.data(), &path_hash, sizeof(uint64_t));
-
-    auto q = qSTR(R"(
-    SELECT
-        albumMusic.albumId,
-        albumMusic.artistId,
-        musicLoudness.track_loudness,
-        albums.album,
-        albums.coverId,
-        artists.artist,
-        musics.*
-    FROM
-        albumMusic
-        LEFT JOIN albums ON albums.albumId = albumMusic.albumId
-        LEFT JOIN artists ON artists.artistId = albumMusic.artistId
-        LEFT JOIN musics ON musics.musicId = albumMusic.musicId
-        LEFT JOIN musicLoudness ON musicLoudness.musicId = albumMusic.musicId
-    WHERE
-        hex(musics.parentPathHash) = '%1'
-    ORDER BY
-        musics.track DESC;
-    )").arg(qTEXT(blob_size_t.toHex().toUpper()));
-
-    SqlQuery query(q, db_);
-    THROW_IF_FAIL1(query);
-
-    while (query.next()) {
-        track_infos.push_back(FromSqlQuery(query));
-    }
-
-    return track_infos;
-}
-
 std::optional<std::tuple<QString, QString>> Database::GetLyrc(int32_t music_id) {
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
@@ -994,38 +957,13 @@ std::optional<std::tuple<QString, QString>> Database::GetLyrc(int32_t music_id) 
     return std::nullopt;
 }
 
-size_t Database::GetParentPathHash(const QString & parent_path) const {
-    SqlQuery query(db_);
-    query.prepare(qTEXT(R"(
-    SELECT
-        parentPathHash
-    FROM
-        musics
-    WHERE
-        parentPath = :parentPath
-    ORDER BY
-        ROWID ASC
-    LIMIT 1
-    )")
-    );
-
-    query.bindValue(qTEXT(":parentPath"), parent_path);
-    THROW_IF_FAIL1(query);
-
-    const auto index = query.record().indexOf(qTEXT("parentPathHash"));
-    if (query.next()) {
-        return GetUlonglongValue(query, index);
-    }
-    return 0;
-}
-
 int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bit_rate, sample_rate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, fileSize, parentPathHash)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bit_rate, :sample_rate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :fileSize, :parentPathHash)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bit_rate, sample_rate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, fileSize)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bit_rate, :sample_rate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :fileSize)
     )")
     );
 
@@ -1041,8 +979,6 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":sample_rate"), track_info.sample_rate);
     query.bindValue(qTEXT(":offset"), track_info.offset);
     query.bindValue(qTEXT(":fileSize"), track_info.file_size);
-
-    BindUlonglongValue(query, qTEXT(":parentPathHash"), track_info.parent_path_hash);
 
     if (track_info.replay_gain) {
         query.bindValue(qTEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);

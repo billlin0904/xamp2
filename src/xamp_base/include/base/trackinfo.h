@@ -29,7 +29,7 @@ struct XAMP_BASE_API TrackInfo final {
     uint32_t year;
     uint64_t file_size;
     int64_t last_write_time;
-    size_t parent_path_hash;
+    //size_t parent_path_hash;
 	double offset;
     double duration;
     std::string cover_id;

@@ -17,6 +17,8 @@
 #include <widget/log_util.h>
 #include <widget/playerorder.h>
 
+#include <widget/playlistentity.h>
+
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;

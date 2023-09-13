@@ -26,57 +26,59 @@
 #include <QListView>
 #include <QComboBox>
 
-template <typename Iterator>
-static void SortFontWeight(Iterator begin, Iterator end) {
-    std::sort(begin, end,
-        [](const auto& left_font_name, const auto& right_font_name) {
-            auto getFontWeight = [](auto name) {
-            if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
-                return 100 * 10;
-            }
-            if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
-                return 100 * 10;
-            }
-            if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
-                return 200 * 10;
-            }
-            if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
-                return 300 * 10;
-            }
-            if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
-                return 400;
-            }
-            if (name.contains(qTEXT("Regular"), Qt::CaseInsensitive)) {
-                return 400;
-            }
-            if (name.contains(qTEXT("Medium"), Qt::CaseInsensitive)) {
-                return 500;
-            }
-            if (name.contains(qTEXT("SemiBold"), Qt::CaseInsensitive)) {
-                return 600;
-            }
-            if (name.contains(qTEXT("DemiBold"), Qt::CaseInsensitive)) {
-                return 600;
-            }
-            if (name.contains(qTEXT("Bold"), Qt::CaseInsensitive)) {
-                return 700;
-            }
-            if (name.contains(qTEXT("ExtraBold"), Qt::CaseInsensitive)) {
-                return 800;
-            }
-            if (name.contains(qTEXT("UltraBold"), Qt::CaseInsensitive)) {
-                return 800;
-            }
-            if (name.contains(qTEXT("Black"), Qt::CaseInsensitive)) {
-                return 900;
-            }
-            if (name.contains(qTEXT("Heavy"), Qt::CaseInsensitive)) {
-                return 900;
-            }
-            return 100;
-        };
-		return getFontWeight(left_font_name) < getFontWeight(right_font_name);
-    });
+namespace {
+    template <typename Iterator>
+    void SortFontWeight(Iterator begin, Iterator end) {
+        std::sort(begin, end,
+            [](const auto& left_font_name, const auto& right_font_name) {
+                auto getFontWeight = [](auto name) {
+                    if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
+                        return 100 * 10;
+                    }
+                    if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
+                        return 100 * 10;
+                    }
+                    if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
+                        return 200 * 10;
+                    }
+                    if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
+                        return 300 * 10;
+                    }
+                    if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
+                        return 400;
+                    }
+                    if (name.contains(qTEXT("Regular"), Qt::CaseInsensitive)) {
+                        return 400;
+                    }
+                    if (name.contains(qTEXT("Medium"), Qt::CaseInsensitive)) {
+                        return 500;
+                    }
+                    if (name.contains(qTEXT("SemiBold"), Qt::CaseInsensitive)) {
+                        return 600;
+                    }
+                    if (name.contains(qTEXT("DemiBold"), Qt::CaseInsensitive)) {
+                        return 600;
+                    }
+                    if (name.contains(qTEXT("Bold"), Qt::CaseInsensitive)) {
+                        return 700;
+                    }
+                    if (name.contains(qTEXT("ExtraBold"), Qt::CaseInsensitive)) {
+                        return 800;
+                    }
+                    if (name.contains(qTEXT("UltraBold"), Qt::CaseInsensitive)) {
+                        return 800;
+                    }
+                    if (name.contains(qTEXT("Black"), Qt::CaseInsensitive)) {
+                        return 900;
+                    }
+                    if (name.contains(qTEXT("Heavy"), Qt::CaseInsensitive)) {
+                        return 900;
+                    }
+                    return 100;
+                    };
+                return getFontWeight(left_font_name) < getFontWeight(right_font_name);
+            });
+    }
 }
 
 QString ThemeManager::GetCountryFlagFilePath(const QString& country_iso_code) {
@@ -582,7 +584,7 @@ QColor ThemeManager::GetCoverShadowColor() const {
     case ThemeColor::DARK_THEME:
     case ThemeColor::LIGHT_THEME:
     default:
-        return QColor(qTEXT("#DCDCDC"));
+        return {qTEXT("#DCDCDC")};
     }
 }
 
@@ -590,7 +592,7 @@ QString ThemeManager::GetLinearGradientStyle() const {
     switch (GetThemeColor()) {
     default:
     case ThemeColor::DARK_THEME:
-        return qTEXT("qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e1d23, stop:0.74 #000000)");
+        return qTEXT("#2e2f31");
     case ThemeColor::LIGHT_THEME:
         return qTEXT("qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
             "stop: 0 rgba(255, 254, 255, 255),"
@@ -850,6 +852,7 @@ QIcon ThemeManager::GetConnectTypeIcon(DeviceConnectType type) const {
 
 void ThemeManager::SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type) {
     button->setIcon(GetConnectTypeIcon(type));
+    button->update();
 }
 
 void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
@@ -951,7 +954,7 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
     );
 }
 
-void ThemeManager::SetAlbumNaviBarTheme(QListView *tab) {
+void ThemeManager::SetAlbumNaviBarTheme(QListView *tab) const {
     QString tab_left_color;
 
     switch (GetThemeColor()) {

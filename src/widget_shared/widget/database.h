@@ -161,8 +161,6 @@ public:
         double track_rg_gain,
         double track_peak);
 
-    QList<PlayListEntity> GetPlayListEntityFromPathHash(size_t path_hash) const;
-
     void ClearPendingPlaylist();
 
     void ClearPendingPlaylist(int32_t playlist_id);
@@ -172,8 +170,6 @@ public:
     std::pair<int32_t, int32_t> GetFirstPendingPlaylistMusic(int32_t playlist_id);
 
     void DeletePendingPlaylistMusic(int32_t pending_playlist_id);
-
-    size_t GetParentPathHash(const QString& parent_path) const;
 
     int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast,
         const QString& disc_id = kEmptyString,

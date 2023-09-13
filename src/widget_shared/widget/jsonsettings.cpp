@@ -5,19 +5,21 @@
 
 #include <widget/str_utilts.h>
 
-static bool ReadJsonFile(QIODevice& device, QSettings::SettingsMap& map) {
-	QJsonParseError error;
-	map = QJsonDocument::fromJson(device.readAll(), &error).toVariant().toMap();
-	return error.error == QJsonParseError::NoError;
-}
-
-static bool WriteJsonFile(QIODevice& device, const QSettings::SettingsMap& map) {
-	bool ret = false;
-	const auto json_document = QJsonDocument::fromVariant(QVariant::fromValue(map));
-	if (device.write(json_document.toJson()) != -1) {
-		ret = true;
+namespace {
+	bool ReadJsonFile(QIODevice& device, QSettings::SettingsMap& map) {
+		QJsonParseError error;
+		map = QJsonDocument::fromJson(device.readAll(), &error).toVariant().toMap();
+		return error.error == QJsonParseError::NoError;
 	}
-	return ret;
+
+	bool WriteJsonFile(QIODevice& device, const QSettings::SettingsMap& map) {
+		bool ret = false;
+		const auto json_document = QJsonDocument::fromVariant(QVariant::fromValue(map));
+		if (device.write(json_document.toJson()) != -1) {
+			ret = true;
+		}
+		return ret;
+	}
 }
 
 QScopedPointer<QSettings> JsonSettings::settings_;

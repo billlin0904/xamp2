@@ -36,14 +36,13 @@
 #include <widget/playlistpage.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableview.h>
-#include <widget/podcast_uiltis.h>
+#include <widget/mbdiscid_uiltis.h>
 #include <widget/spectrumwidget.h>
 #include <widget/xdialog.h>
 #include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 #include <widget/extractfileworker.h>
 #include <widget/findalbumcoverworker.h>
-
 #include <widget/imagecache.h>
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
@@ -61,47 +60,48 @@
 #include <thememanager.h>
 #include <version.h>
 
-static void ShowMeMessage(const QString& message) {
-    if (AppSettings::DontShowMeAgain(message)) {
-        auto [button, checked] = XMessageBox::ShowCheckBoxInformation(
-            message,
-            qApp->tr("Ok, and don't show again."),
-            kApplicationTitle,
-            false);
-        if (checked) {
-            AppSettings::AddDontShowMeAgain(message);
+namespace {
+    void ShowMeMessage(const QString& message) {
+        if (AppSettings::DontShowMeAgain(message)) {
+            auto [button, checked] = XMessageBox::ShowCheckBoxInformation(
+                message,
+                qApp->tr("Ok, and don't show again."),
+                kApplicationTitle,
+                false);
+            if (checked) {
+                AppSettings::AddDontShowMeAgain(message);
+            }
         }
     }
-}
 
-static void SetShufflePlayOrder(Ui::XampWindow& ui) {
-    ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
-}
+    void SetShufflePlayOrder(Ui::XampWindow& ui) {
+        ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SHUFFLE_PLAY_ORDER));
+    }
 
-static void SetRepeatOnePlayOrder(Ui::XampWindow& ui) {
-    ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
-}
+    void SetRepeatOnePlayOrder(Ui::XampWindow& ui) {
+        ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONE_PLAY_ORDER));
+    }
 
-static void SetRepeatOncePlayOrder(Ui::XampWindow& ui) {
-    ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
-}
+    void SetRepeatOncePlayOrder(Ui::XampWindow& ui) {
+        ui.repeatButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
+    }
 
-static void SetThemeIcon(Ui::XampWindow& ui) {
-    qTheme.SetTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
+    void SetThemeIcon(Ui::XampWindow& ui) {
+        qTheme.SetTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
 
-    const QColor hover_color = qTheme.GetHoverColor();
+        const QColor hover_color = qTheme.GetHoverColor();
 
-    ui.logoButton->setStyleSheet(qSTR(R"(
+        ui.logoButton->setStyleSheet(qSTR(R"(
                                          QToolButton#logoButton {
                                          border: none;
                                          image: url(":/xamp/xamp.ico");
                                          background-color: transparent;
                                          }
 										)"));
-    constexpr auto kMaxTitleIcon = 20;
-    ui.logoButton->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
+        constexpr auto kMaxTitleIcon = 20;
+        ui.logoButton->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
 
-    ui.sliderBarButton->setStyleSheet(qSTR(R"(
+        ui.sliderBarButton->setStyleSheet(qSTR(R"(
                                             QToolButton#sliderBarButton {
                                             border: none;
                                             background-color: transparent;
@@ -115,42 +115,42 @@ static void SetThemeIcon(Ui::XampWindow& ui) {
                                             image: none;
                                             }
                                             )").arg(ColorToString(hover_color)));
-    ui.sliderBarButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SLIDER_BAR));
+        ui.sliderBarButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SLIDER_BAR));
 
-    ui.stopButton->setStyleSheet(qSTR(R"(
+        ui.stopButton->setStyleSheet(qSTR(R"(
                                          QToolButton#stopButton {
                                          border: none;
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.stopButton->setIcon(qTheme.GetFontIcon(ICON_STOP_PLAY));
+        ui.stopButton->setIcon(qTheme.GetFontIcon(ICON_STOP_PLAY));
 
-    ui.nextButton->setStyleSheet(qTEXT(R"(
+        ui.nextButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#nextButton {
                                         border: none;
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.nextButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD));
+        ui.nextButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD));
 
-    ui.prevButton->setStyleSheet(qTEXT(R"(
+        ui.prevButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#prevButton {
                                         border: none;
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.prevButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD));
+        ui.prevButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD));
 
-    ui.selectDeviceButton->setStyleSheet(qTEXT(R"(
+        ui.selectDeviceButton->setStyleSheet(qTEXT(R"(
                                                 QToolButton#selectDeviceButton {                                                
                                                 border: none;
                                                 background-color: transparent;                                                
                                                 }
                                                 QToolButton#selectDeviceButton::menu-indicator { image: none; }
                                                 )"));
-    ui.selectDeviceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SPEAKER));
+        ui.selectDeviceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SPEAKER));
 
-    ui.mutedButton->setStyleSheet(qSTR(R"(
+        ui.mutedButton->setStyleSheet(qSTR(R"(
                                          QToolButton#mutedButton {
                                          image: url(:/xamp/Resource/%1/volume_up.png);
                                          border: none;
@@ -158,76 +158,76 @@ static void SetThemeIcon(Ui::XampWindow& ui) {
                                          }
                                          )").arg(qTheme.GetThemeColorPath()));
 
-    ui.eqButton->setStyleSheet(qTEXT(R"(
+        ui.eqButton->setStyleSheet(qTEXT(R"(
                                          QToolButton#eqButton {
                                          border: none;
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.eqButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
+        ui.eqButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
 
-    ui.preferenceButton->setStyleSheet(qTEXT(R"(
+        ui.preferenceButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#preferenceButton {
                                             border: none;
                                             background-color: transparent;
                                             }
                                             )"));
-    ui.preferenceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
+        ui.preferenceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
 
-    ui.aboutButton->setStyleSheet(qTEXT(R"(
+        ui.aboutButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#aboutButton {
                                             border: none;
                                             background-color: transparent;
                                             }
                                             )"));
-    ui.aboutButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
+        ui.aboutButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
 
-    ui.pendingPlayButton->setStyleSheet(qTEXT(R"(
+        ui.pendingPlayButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#pendingPlayButton {
                                             border: none;
                                             background-color: transparent;
                                             }
                                             )"));
-    ui.pendingPlayButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
+        ui.pendingPlayButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
 
-    ui.repeatButton->setStyleSheet(qTEXT(R"(
+        ui.repeatButton->setStyleSheet(qTEXT(R"(
     QToolButton#repeatButton {
     border: none;
     background: transparent;
     }
     )"
-    ));
-}
-
-static void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
-    switch (order) {
-    case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        SetRepeatOncePlayOrder(ui);
-        break;
-    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-        SetRepeatOnePlayOrder(ui);
-        break;
-    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        SetShufflePlayOrder(ui);
-        break;
-    default:
-        break;
+        ));
     }
-}
 
-static void SetNaviBarTheme(TabListView *navi_bar) {
-	QString tab_left_color;
+    void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
+        switch (order) {
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+            SetRepeatOncePlayOrder(ui);
+            break;
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+            SetRepeatOnePlayOrder(ui);
+            break;
+        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+            SetShufflePlayOrder(ui);
+            break;
+        default:
+            break;
+        }
+    }
 
-	switch (qTheme.GetThemeColor()) {
-	case ThemeColor::DARK_THEME:
-		tab_left_color = qTEXT("42, 130, 218");
-		break;
-	case ThemeColor::LIGHT_THEME:
-		tab_left_color = qTEXT("42, 130, 218");
-		break;
-	}
+    void SetNaviBarTheme(TabListView* navi_bar) {
+        QString tab_left_color;
 
-    navi_bar->setStyleSheet(qSTR(R"(
+        switch (qTheme.GetThemeColor()) {
+        case ThemeColor::DARK_THEME:
+            tab_left_color = qTEXT("42, 130, 218");
+            break;
+        case ThemeColor::LIGHT_THEME:
+            tab_left_color = qTEXT("42, 130, 218");
+            break;
+        }
+
+        navi_bar->setStyleSheet(qSTR(R"(
 	QListView#naviBar {
 		border: none; 
 	}
@@ -245,46 +245,46 @@ static void SetNaviBarTheme(TabListView *navi_bar) {
 		border-left-color: rgb(%1);
 	}	
 	)").arg(tab_left_color));
-}
+    }
 
-static void SetWidgetStyle(Ui::XampWindow& ui) {
-    ui.selectDeviceButton->setIconSize(QSize(32, 32));
+    void SetWidgetStyle(Ui::XampWindow& ui) {
+        ui.selectDeviceButton->setIconSize(QSize(32, 32));
 
-    ui.playButton->setStyleSheet(qTEXT(R"(
+        ui.playButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#playButton {
                                             border: none;
                                             background-color: transparent;
                                             }
                                             )"));
 
-    QFont duration_font(qTEXT("MonoFont"));
-    duration_font.setPointSize(8);
-    duration_font.setWeight(QFont::Bold);
+        QFont duration_font(qTEXT("MonoFont"));
+        duration_font.setPointSize(8);
+        duration_font.setWeight(QFont::Bold);
 
-    ui.startPosLabel->setStyleSheet(qTEXT(R"(
+        ui.startPosLabel->setStyleSheet(qTEXT(R"(
                                            QLabel#startPosLabel {
                                            color: gray;
                                            background-color: transparent;
                                            }
                                            )"));
 
-    ui.endPosLabel->setStyleSheet(qTEXT(R"(
+        ui.endPosLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#endPosLabel {
                                          color: gray;
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.startPosLabel->setFont(duration_font);
-    ui.endPosLabel->setFont(duration_font);
+        ui.startPosLabel->setFont(duration_font);
+        ui.endPosLabel->setFont(duration_font);
 
-    ui.titleFrameLabel->setStyleSheet(qSTR(R"(
+        ui.titleFrameLabel->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;
     }
     )"));
 
-    ui.tableLabel->setStyleSheet(qSTR(R"(
+        ui.tableLabel->setStyleSheet(qSTR(R"(
     QLabel#tableLabel {
     border: none;
     background: transparent;
@@ -292,22 +292,22 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
     }
     )"));
 
-    if (qTheme.GetThemeColor() == ThemeColor::DARK_THEME) {
-        ui.titleLabel->setStyleSheet(qTEXT(R"(
+        if (qTheme.GetThemeColor() == ThemeColor::DARK_THEME) {
+            ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
                                          color: white;
                                          background-color: transparent;
                                          }
                                          )"));
 
-        ui.formatLabel->setStyleSheet(qTEXT(R"(
+            ui.formatLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#formatLabel {
                                          color: white;
                                          background-color: transparent;
                                          }
                                          )"));
 
-        ui.currentView->setStyleSheet(qSTR(R"(
+            ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
 				padding: 0px;
 				background-color: #121212;				
@@ -315,8 +315,8 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
             }			
             )"));
 
-        ui.bottomFrame->setStyleSheet(
-            qTEXT(R"(
+            ui.bottomFrame->setStyleSheet(
+                qTEXT(R"(
             QFrame#bottomFrame{
                 border-top: 1px solid black;
                 border-radius: 0px;
@@ -325,31 +325,31 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
 				border-right: none;
             }
             )"));
-    }
-    else {
-        ui.titleLabel->setStyleSheet(qTEXT(R"(
+        }
+        else {
+            ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
                                          color: black;
                                          background-color: transparent;
                                          }
                                          )"));
 
-        ui.formatLabel->setStyleSheet(qTEXT(R"(
+            ui.formatLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#formatLabel {
                                          color: black;
                                          background-color: transparent;
                                          }
                                          )"));
 
-        ui.currentView->setStyleSheet(qTEXT(R"(
+            ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
 				border-top-left-radius: 8px;
             }			
             )"));
-
-        ui.bottomFrame->setStyleSheet(
-            qTEXT(R"(
+            
+            ui.bottomFrame->setStyleSheet(
+                qTEXT(R"(
             QFrame#bottomFrame {
                 border-top: 1px solid #eaeaea;
                 border-radius: 0px;
@@ -358,61 +358,62 @@ static void SetWidgetStyle(Ui::XampWindow& ui) {
 				border-right: none;
             }
             )"));
-    }
+        }
 
-    ui.artistLabel->setStyleSheet(qTEXT(R"(
+        ui.artistLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#artistLabel {
                                          color: rgb(250, 88, 106);
                                          background-color: transparent;
                                          }
                                          )"));
 
-    SetNaviBarTheme(ui.naviBar);
-    qTheme.SetSliderTheme(ui.seekSlider);
+        SetNaviBarTheme(ui.naviBar);
+        qTheme.SetSliderTheme(ui.seekSlider);
 
-    ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
+        ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
 
-    SetThemeIcon(ui);
-    ui.sliderBarButton->setIconSize(qTheme.GetTabIconSize());
-    ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    ui.currentViewFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
-}
-
-static DsdModes GetDsdModes(const DeviceInfo& device_info,
-                            const Path& file_path,
-                            uint32_t input_sample_rate,
-                            uint32_t target_sample_rate) {
-    auto dsd_modes = DsdModes::DSD_MODE_AUTO;
-    const auto is_enable_sample_rate_converter = target_sample_rate > 0;
-    const auto is_dsd_file = IsDsdFile(file_path);
-
-    if (!is_dsd_file
-        && !is_enable_sample_rate_converter
-        && input_sample_rate % kPcmSampleRate441 == 0) {
-        dsd_modes = DsdModes::DSD_MODE_AUTO;
+        SetThemeIcon(ui);
+        ui.sliderBarButton->setIconSize(qTheme.GetTabIconSize());
+        ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
+        ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
+        ui.currentViewFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
     }
 
-    if (dsd_modes == DsdModes::DSD_MODE_AUTO) {
-        if (is_dsd_file) {
-            if (device_info.is_support_dsd && !is_enable_sample_rate_converter) {
-                if (IsAsioDevice(device_info.device_type_id)) {
-                    dsd_modes = DsdModes::DSD_MODE_NATIVE;
+    DsdModes GetDsdModes(const DeviceInfo& device_info,
+        const Path& file_path,
+        uint32_t input_sample_rate,
+        uint32_t target_sample_rate) {
+        auto dsd_modes = DsdModes::DSD_MODE_AUTO;
+        const auto is_enable_sample_rate_converter = target_sample_rate > 0;
+        const auto is_dsd_file = IsDsdFile(file_path);
+
+        if (!is_dsd_file
+            && !is_enable_sample_rate_converter
+            && input_sample_rate % kPcmSampleRate441 == 0) {
+            dsd_modes = DsdModes::DSD_MODE_AUTO;
+        }
+
+        if (dsd_modes == DsdModes::DSD_MODE_AUTO) {
+            if (is_dsd_file) {
+                if (device_info.is_support_dsd && !is_enable_sample_rate_converter) {
+                    if (IsAsioDevice(device_info.device_type_id)) {
+                        dsd_modes = DsdModes::DSD_MODE_NATIVE;
+                    }
+                    else {
+                        dsd_modes = DsdModes::DSD_MODE_DOP;
+                    }
                 }
                 else {
-                    dsd_modes = DsdModes::DSD_MODE_DOP;
+                    dsd_modes = DsdModes::DSD_MODE_DSD2PCM;
                 }
             }
             else {
-                dsd_modes = DsdModes::DSD_MODE_DSD2PCM;
+                dsd_modes = DsdModes::DSD_MODE_PCM;
             }
         }
-        else {
-            dsd_modes = DsdModes::DSD_MODE_PCM;
-        }
-    }
 
-    return dsd_modes;
+        return dsd_modes;
+    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -809,7 +810,7 @@ void Xamp::InitialDeviceList() {
     const QFontMetrics metrics(ui_.deviceDescLabel->font());
 
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
-	    const auto device_type = (*itr).second();
+	    const auto device_type = itr->second();
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
@@ -846,7 +847,10 @@ void Xamp::InitialDeviceList() {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
+                // BUG! not show current connect icon.
                 qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
+                ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
+                ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
             }
         }
 
@@ -868,11 +872,6 @@ void Xamp::InitialDeviceList() {
         AppSettings::SetValue(kAppSettingDeviceId, device_info_.value().device_id);
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.value().device_id);
     }
-
-    if (device_info_) {
-        ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
-        ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
-    }    
 }
 
 void Xamp::InitialController() {    
@@ -969,7 +968,7 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.aboutButton, &QToolButton::clicked, [this]() {
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* about_page = new AboutPage(dialog);        
         dialog->SetContentWidget(about_page);
@@ -980,7 +979,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.preferenceButton, &QToolButton::clicked, [this]() {
         XAMP_LOG_DEBUG("Preference show");
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
         preference_page->LoadSettings();
@@ -992,7 +991,7 @@ void Xamp::InitialController() {
         });
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
         dialog->SetContentWidget(page, true);
@@ -1018,7 +1017,7 @@ void Xamp::InitialController() {
             return;
         }
 
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerView(dialog);
         dialog->SetContentWidget(eq, false);
@@ -1264,6 +1263,7 @@ void Xamp::SetVolume(uint32_t volume) {
     AppSettings::SetValue(kAppSettingVolume, volume);
     qTheme.SetMuted(ui_.mutedButton, volume == 0);
     ui_.mutedButton->OnVolumeChanged(volume);
+    ui_.mutedButton->ShowDialog();
 }
 
 void Xamp::InitialShortcut() {
@@ -1409,6 +1409,17 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
     }
     else {
         player_->GetDspManager()->RemoveEqualizer();
+    }
+
+    if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
+        CompressorParameters parameters;
+        if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
+            if (item.track_loudness != 0.0) {
+                parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness, -1.0) * -1;
+            }
+        }
+        player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
+        player_->GetDspManager()->AddCompressor();
     }
     
     if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
@@ -1559,16 +1570,6 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
                 }
             }           
             SetupDsp(entity);
-            if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {                
-                CompressorParameters parameters;
-                if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
-                    if (entity.track_loudness != 0.0) {
-                        parameters.gain = Ebur128Reader::GetEbur128Gain(entity.track_loudness, -1.0) * -1;
-                    }
-                }
-                player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
-                player_->GetDspManager()->AddCompressor();
-            }
         } else {
             if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
                 byte_format = ByteFormat::SINT16;
@@ -1828,6 +1829,7 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         main_window_->ResetTaskbarProgress();
+        lrc_page_->spectrum()->Reset();
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(FormatDuration(0));
         PlayNextItem(1);
@@ -2056,7 +2058,7 @@ QWidget* Xamp::PopWidget() {
 }
 
 void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
-    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 	const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
@@ -2065,8 +2067,6 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
                 tr("Export progress dialog"),
                 tr("Export '") + item.title + tr("' to aac file"),
                 tr("Cancel"));
-
-            QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 
             TrackInfo track_info;
             track_info.album = item.album.toStdWString();
@@ -2101,7 +2101,7 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::EncodeWavFile(const PlayListEntity& item) {
-    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
     const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
@@ -2141,7 +2141,7 @@ void Xamp::EncodeWavFile(const PlayListEntity& item) {
 }
 
 void Xamp::EncodeFlacFile(const PlayListEntity& item) {
-    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
     const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
 
@@ -2276,7 +2276,7 @@ void Xamp::OnCalculateEta(uint64_t ms) {
     if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->SetTitle(qSTR("Estimated remaining time %1").arg(FormatDuration(ms / 1000.0)));
+    read_progress_dialog_->SetTitle(qSTR("ETA %1").arg(FormatDuration(ms / 1000.0, true)));
 }
 
 void Xamp::OnReadFilePath(const QString& file_path) {

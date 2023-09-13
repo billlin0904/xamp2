@@ -123,7 +123,7 @@ public:
 
     void SetSliderTheme(QSlider* slider, bool enter = false);    
 
-    void SetAlbumNaviBarTheme(QListView* tab);
+    void SetAlbumNaviBarTheme(QListView* tab) const;
 
     QIcon GetConnectTypeIcon(DeviceConnectType type) const;
 

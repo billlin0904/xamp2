@@ -33,7 +33,6 @@
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/playlistentity.h>
-#include <widget/podcast_uiltis.h>
 #include <widget/ui_utilts.h>
 #include <widget/fonticon.h>
 

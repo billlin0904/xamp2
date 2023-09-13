@@ -126,7 +126,7 @@ QPixmap ArtistInfoPage::GetArtistImage(QPixmap const* cover) const {
 }
 
 void ArtistInfoPage::SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
-	QFontMetrics artist_metrics(font());
+	const QFontMetrics artist_metrics(font());
 
 	artist_->setText(artist_metrics.elidedText(artist, Qt::ElideRight, 300));
 	album_view_->FilterByArtistId(artist_id);
@@ -138,7 +138,7 @@ void ArtistInfoPage::SetArtistId(const QString& artist, const QString& cover_id,
 	artist_id_ = artist_id;
 	cover_id_ = cover_id;
 
-	if (auto artist_stats = qMainDb.GetArtistStats(artist_id)) {
+	if (const auto artist_stats = qMainDb.GetArtistStats(artist_id)) {
 		SetAlbumCount(artist_stats.value().albums);
 		SetTracks(artist_stats.value().tracks);
 		SetTotalDuration(artist_stats.value().durations);

@@ -49,7 +49,7 @@ public:
 
 	ImageCacheEntity GetFromFile(const QString& tag_id) const;
 
-	void RemoveImage(const QString& tag_id);
+	void RemoveImage(const QString& tag_id) const;
 
 	size_t GetSize() const;
 
@@ -59,13 +59,13 @@ public:
 		return unknown_cover_id_;
 	}
 
-	void Clear();
+	void Clear() const;
 
-	void ClearCache();
+	void ClearCache() const;
 
 	QString AddImage(const QPixmap& cover) const;
 
-	QPixmap GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory);
+	QPixmap GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
 
 	QPixmap GetCover(const QString& tag, const QString& cover_id);
 protected:

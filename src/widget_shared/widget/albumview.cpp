@@ -31,6 +31,7 @@
 #include <QSqlError>
 #include <QApplication>
 #include <QDialogButtonBox>
+#include <QHeaderView>
 
 enum {
     INDEX_ALBUM = 0,
@@ -287,17 +288,20 @@ void AlbumViewPage::paintEvent(QPaintEvent* event) {
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
+    // border: 1px solid #4d4d4d;
     setStyleSheet(qSTR(
         R"(
            QFrame#albumViewPage {
 		        background-color: %1;
-                border-radius: 8px;
+                border-radius: 4px;
            }
         )"
     ).arg(qTheme.GetLinearGradientStyle()));
 
     QList<int32_t> add_playlist_music_ids;
 
+    page_->playlist()->horizontalHeader()->hide();
+    page_->playlist()->setAlternatingRowColors(false);
     page_->playlist()->RemoveAll();
 
     qMainDb.ForEachAlbumMusic(album_id,

@@ -7,7 +7,7 @@
                 "AudioPlayer": "debug",
                 "AvFileStream": "info",
                 "BASS": "info",
-                "BackgroundThreadPool": "debug",
+                "BackgroundThreadPool": "info",
                 "BackgroundWorker": "info",
                 "BassCompressor": "info",
                 "BassEqualizer": "info",
@@ -54,7 +54,7 @@
             "passBand": 96,
             "phase": 46,
             "quality": 3,
-            "resampleSampleRate": 176400,
+            "resampleSampleRate": 44100,
             "rolloffLevel": 2,
             "stopBand": 100
         },

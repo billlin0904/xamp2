@@ -53,14 +53,16 @@ QColor FontIconOption::activeColor(QColor::Invalid);
 QColor FontIconOption::activeOnColor(QColor::Invalid);
 double FontIconOption::opacity = 1.0;
 
-template <typename T>
-static T GetOrDefault(QVariantMap const & opt, const QString & s, T defaultValue) {
-	const auto var = opt.value(s);
-    if (!var.isValid()) {
-        return defaultValue;
-    }
-    else {
-        return var.value<T>();
+namespace {
+    template <typename T>
+    T GetOrDefault(QVariantMap const& opt, const QString& s, T defaultValue) {
+        const auto var = opt.value(s);
+        if (!var.isValid()) {
+            return defaultValue;
+        }
+        else {
+            return var.value<T>();
+        }
     }
 }
 

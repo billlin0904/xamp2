@@ -19,11 +19,11 @@
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
 #include <widget/driveinfo.h>
-#include <widget/podcast_uiltis.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+struct MbDiscIdInfo;
 struct PlaybackFormat;
 
 class LrcPage;

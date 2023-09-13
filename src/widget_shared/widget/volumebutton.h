@@ -23,6 +23,8 @@ public:
 
 	void SetPlayer(std::shared_ptr<IAudioPlayer> player);
 
+	void ShowDialog();
+
 public slots:
 	void OnVolumeChanged(uint32_t volume);
 

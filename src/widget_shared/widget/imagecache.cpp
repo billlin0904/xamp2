@@ -77,11 +77,11 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	const QList<QString> target_folders = { "scans", "artwork", "booklet" };
 	const QString cover_name = "Front";
 
-	QDir dir(file_path);
+	const QDir dir(file_path);
 	QDir scan_dir(dir);
 
 	auto findImage = [scan_dir](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
-		QFileInfo file_info(scan_dir.absolutePath());
+		const QFileInfo file_info(scan_dir.absolutePath());
 		for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
@@ -143,11 +143,11 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	return {};
 }
 
-void ImageCache::ClearCache() {
+void ImageCache::ClearCache() const {
 	cache_.Clear();
 }
 
-void ImageCache::Clear() {
+void ImageCache::Clear() const {
 	for (QDirIterator itr(cache_path_, QDir::Files);
 		itr.hasNext();) {
 		const auto path = itr.next();
@@ -161,7 +161,7 @@ QPixmap ImageCache::FindImageFromDir(const PlayListEntity& item) {
 	return ScanCoverFromDir(item.file_path);
 }
 
-void ImageCache::RemoveImage(const QString& tag_id) {
+void ImageCache::RemoveImage(const QString& tag_id) const {
 	QFile file(cache_path_ + tag_id + kCacheFileExtension);
 	file.remove();
 	cache_.Erase(tag_id);
@@ -192,15 +192,15 @@ QPixmap ImageCache::GetCover(const QString& tag, const QString& cover_id) {
 		});
 }
 
-QPixmap ImageCache::GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) {
+QPixmap ImageCache::GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const {
 	auto image = GetOrDefault(tag_id, false);
 	if (!image.isNull()) {
 		return image;
 	}
-	
-	auto buffer = buffer_pool_->Acquire();
 
-	auto cache_cover = value_factory();
+	const auto buffer = buffer_pool_->Acquire();
+
+	const auto cache_cover = value_factory();
 	if (cache_cover.save(buffer.get(), kImageFileFormat)) {
 		const auto file_path = cache_path_ + tag_id + kCacheFileExtension;
 		OptimizeImageFromBuffer(file_path, buffer->buffer(), tag_id);
@@ -216,7 +216,7 @@ QString ImageCache::AddImage(const QPixmap& cover) const {
 	Stopwatch sw;
 	const auto cover_size = qTheme.GetCacheCoverSize();
 
-	auto buffer = buffer_pool_->Acquire();
+	const auto buffer = buffer_pool_->Acquire();
 	// Resize PNG image size and save to QBuffer
 	buffer->open(QIODevice::WriteOnly);
 	image_utils::ResizeImage(cover, cover_size, true).save(buffer.get(), kImageFileFormat);

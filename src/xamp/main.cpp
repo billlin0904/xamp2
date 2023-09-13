@@ -39,263 +39,264 @@
 #include <xamp.h>
 #include <qmessagebox.h>
 
+namespace {
 #ifdef Q_OS_WIN32
-static ConstLatin1String VisualStudioVersion() {
-    if constexpr (_MSC_VER >= 1930) {
-        return "2022";
+    ConstLatin1String VisualStudioVersion() {
+        if constexpr (_MSC_VER >= 1930) {
+            return "2022";
+        }
+        return "2019";
     }
-    return "2019";
-}
-static std::string GetCompilerTime() {
-    return qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
-        .arg(kApplicationVersion)
-        .arg(VisualStudioVersion())
-        .arg((_MSC_FULL_VER / 100000) % 100)
-        .arg(_MSC_FULL_VER % 100000)
-        .arg(qTEXT(__DATE__))
-        .arg(qTEXT(__TIME__)).toStdString();
-}
+    std::string GetCompilerTime() {
+        return qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
+            .arg(kApplicationVersion)
+            .arg(VisualStudioVersion())
+            .arg((_MSC_FULL_VER / 100000) % 100)
+            .arg(_MSC_FULL_VER % 100000)
+            .arg(qTEXT(__DATE__))
+            .arg(qTEXT(__TIME__)).toStdString();
+    }
 #else
-static std::string GetCompilerTime() {
-    return qSTR("Build Clang %1.%2.%3")
-        .arg(__clang_major__)
-        .arg(__clang_minor__)
-        .arg(__clang_patchlevel__).toStdString()
-}
+    std::string GetCompilerTime() {
+        return qSTR("Build Clang %1.%2.%3")
+            .arg(__clang_major__)
+            .arg(__clang_minor__)
+            .arg(__clang_patchlevel__).toStdString()
+    }
 #endif
 
-static void LoadSampleRateConverterConfig() {
-    XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
-    AppSettings::LoadSoxrSetting();
-    AppSettings::LoadR8BrainSetting();
-    JsonSettings::save();
-    XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
-}
-
-static void LoadLang() {
-    XAMP_LOG_DEBUG("Load language file.");
-
-    if (AppSettings::ValueAsString(kAppSettingLang).isEmpty()) {
-        const LocaleLanguage lang;
-        XAMP_LOG_DEBUG("Load locale Language file: {}.", lang.GetIsoCode().toStdString());
-        AppSettings::LoadLanguage(lang.GetIsoCode());
-        AppSettings::SetValue(kAppSettingLang, lang.GetIsoCode());
-    }
-    else {
-        AppSettings::LoadLanguage(AppSettings::ValueAsString(kAppSettingLang));
-        XAMP_LOG_DEBUG("Load locale Language file: {}.",
-            AppSettings::ValueAsString(kAppSettingLang).toStdString());
+    void LoadSampleRateConverterConfig() {
+        XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
+        AppSettings::LoadSoxrSetting();
+        AppSettings::LoadR8BrainSetting();
+        JsonSettings::save();
+        XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
     }
 
-    /*auto path = QApplication::applicationDirPath();
-    path.append(qTEXT("/langs"));
-    QDir dir(path);
+    void LoadLang() {
+        XAMP_LOG_DEBUG("Load language file.");
 
-    auto file_names = dir.entryList(QStringList(qTEXT("qt*")));
-    for (const auto& file_name : file_names) {
-        auto qm_path = path + qTEXT("/") + file_name;
-        QTranslator translator_qt;
-        auto result = translator_qt.load(qm_path);
-        QApplication::installTranslator(&translator_qt);
-    }*/
-}
+        if (AppSettings::ValueAsString(kAppSettingLang).isEmpty()) {
+            const LocaleLanguage lang;
+            XAMP_LOG_DEBUG("Load locale Language file: {}.", lang.GetIsoCode().toStdString());
+            AppSettings::LoadLanguage(lang.GetIsoCode());
+            AppSettings::SetValue(kAppSettingLang, lang.GetIsoCode());
+        }
+        else {
+            AppSettings::LoadLanguage(AppSettings::ValueAsString(kAppSettingLang));
+            XAMP_LOG_DEBUG("Load locale Language file: {}.",
+                AppSettings::ValueAsString(kAppSettingLang).toStdString());
+        }
+
+        /*auto path = QApplication::applicationDirPath();
+        path.append(qTEXT("/langs"));
+        QDir dir(path);
+
+        auto file_names = dir.entryList(QStringList(qTEXT("qt*")));
+        for (const auto& file_name : file_names) {
+            auto qm_path = path + qTEXT("/") + file_name;
+            QTranslator translator_qt;
+            auto result = translator_qt.load(qm_path);
+            QApplication::installTranslator(&translator_qt);
+        }*/
+    }
 
 #ifdef XAMP_OS_WIN
-static void SetWorkingSetSize() {
-	const auto memory_size = GetAvailablePhysicalMemory();
-    XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
-    //auto working_size = memory_size * 0.6;
-    auto working_size = 128UL * 1024UL * 1024UL;
-    if (working_size > 0) {
-        SetProcessWorkingSetSize(working_size);
-        XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(working_size));
+    void SetWorkingSetSize() {
+        const auto memory_size = GetAvailablePhysicalMemory();
+        XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
+        //auto working_size = memory_size * 0.6;
+        auto working_size = 128UL * 1024UL * 1024UL;
+        if (working_size > 0) {
+            SetProcessWorkingSetSize(working_size);
+            XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(working_size));
+        }
     }
-}
 
-static Vector<SharedLibraryHandle> PinSystemDll() {
-    const Vector<std::string_view> dll_file_names{
-        R"("psapi.dll")",
-        R"("setupapi.dll")",
-        R"("WinTypes.dll")",
-        R"("AudioSes.dll")",
-        R"("AUDIOKSE.dll")",
-    	R"("DWrite.dll")",
-    };
-    Vector<SharedLibraryHandle> pin_module;
-    for (const auto& file_name : dll_file_names) {
-        try {
-            auto module = PinSystemLibrary(file_name);
-            if (PrefetchSharedLibrary(module)) {
-                pin_module.push_back(std::move(module));
-                XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
+    Vector<SharedLibraryHandle> PinSystemDll() {
+        constexpr std::array<std::string_view, 6> dll_file_names{
+            R"("psapi.dll")",
+            R"("setupapi.dll")",
+            R"("WinTypes.dll")",
+            R"("AudioSes.dll")",
+            R"("AUDIOKSE.dll")",
+            R"("DWrite.dll")",
+        };
+        Vector<SharedLibraryHandle> pin_module;
+        for (const auto& file_name : dll_file_names) {
+            try {
+                auto module = PinSystemLibrary(file_name);
+                if (PrefetchSharedLibrary(module)) {
+                    pin_module.push_back(std::move(module));
+                    XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
+                }
+            }
+            catch (Exception const& e) {
+                XAMP_LOG_DEBUG("Pin {} failure! {}.", file_name, e.GetErrorMessage());
             }
         }
-        catch (Exception const& e) {
-            XAMP_LOG_DEBUG("Pin {} failure! {}.", file_name, e.GetErrorMessage());
-        }
+        return pin_module;
     }
-    return pin_module;
-}
 
-static Vector<SharedLibraryHandle> PrefetchDll() {
-    const Vector<std::string_view> dll_file_names{
-        R"(mimalloc-override.dll)",
-        R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
-        R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
-        R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
-    	R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
-    };
-    Vector<SharedLibraryHandle> preload_module;
-    for (const auto& file_name : dll_file_names) {
-        try {
-            auto module = LoadSharedLibrary(file_name);
-            if (PrefetchSharedLibrary(module)) {
-                preload_module.push_back(std::move(module));
-                XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
+    Vector<SharedLibraryHandle> PrefetchDll() {
+        constexpr std::array<std::string_view, 5> dll_file_names{
+            R"(mimalloc-override.dll)",
+            R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
+            R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
+            R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
+            R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
+        };
+        Vector<SharedLibraryHandle> preload_module;
+        for (const auto& file_name : dll_file_names) {
+            try {
+                auto module = LoadSharedLibrary(file_name);
+                if (PrefetchSharedLibrary(module)) {
+                    preload_module.push_back(std::move(module));
+                    XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
+                }
+            }
+            catch (Exception const& e) {
+                XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
             }
         }
-        catch (Exception const& e) {
-            XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
-        }
+        return preload_module;
     }
-    return preload_module;
-}
 #endif 
 
 #ifdef _DEBUG
-XAMP_DECLARE_LOG_NAME(Qt);
+    XAMP_DECLARE_LOG_NAME(Qt);
 
-static void LogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
-    QString str;
-    QTextStream stream(&str);
-    stream.setEncoding(QStringConverter::Utf8);
+    void LogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+        QString str;
+        QTextStream stream(&str);
+        stream.setEncoding(QStringConverter::Utf8);
 
-    const auto disable_stacktrace = 
-        AppSettings::ValueAsBool(kAppSettingEnableDebugStackTrace);
+        const auto disable_stacktrace =
+            AppSettings::ValueAsBool(kAppSettingEnableDebugStackTrace);
 
-    stream << context.file << ":" << context.line << ":"
-        << context.function << ": " << msg;
-    if (!disable_stacktrace) {
-        stream << QString::fromStdString(StackTrace{}.CaptureStack());
+        stream << context.file << ":" << context.line << ":"
+            << context.function << ": " << msg;
+        if (!disable_stacktrace) {
+            stream << QString::fromStdString(StackTrace{}.CaptureStack());
+        }
+
+        constexpr auto skip_png_handler_tag = qTEXT("image\\qpnghandler.cpp:525");
+        if (str.contains(skip_png_handler_tag)) {
+            return;
+        }
+
+        const auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
+
+        switch (type) {
+        case QtDebugMsg:
+            XAMP_LOG_D(logger, str.toStdString());
+            break;
+        case QtWarningMsg:
+            XAMP_LOG_W(logger, str.toStdString());
+            break;
+        case QtCriticalMsg:
+            XAMP_LOG_C(logger, str.toStdString());
+            break;
+        case QtFatalMsg:
+            XAMP_LOG_C(logger, str.toStdString());
+            break;
+        default:
+            break;
+        }
     }
-
-    constexpr auto skip_tag = qTEXT("image\\qpnghandler.cpp:525");
-    if (str.contains(skip_tag)) {
-        return;
-    }
-    const auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
-
-    switch (type) {
-    case QtDebugMsg:
-        XAMP_LOG_D(logger, str.toStdString());
-        break;
-    case QtWarningMsg:
-        XAMP_LOG_W(logger, str.toStdString());
-        break;
-    case QtCriticalMsg:
-        XAMP_LOG_C(logger, str.toStdString());
-        break;
-    case QtFatalMsg:
-        XAMP_LOG_C(logger, str.toStdString());
-        break;
-    default: 
-        break;
-    }
-}
 #endif
 
-static void ApplyTheme() {
-	const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
-    qTheme.SetThemeColor(theme);
-    qTheme.LoadAndApplyQssTheme();    
-}
-
-static int Execute(int argc, char* argv[]) {
-    QApplication::setApplicationName(kApplicationName);
-    QApplication::setApplicationVersion(kApplicationVersion);
-    QApplication::setOrganizationName(kApplicationName);
-    QApplication::setOrganizationDomain(kApplicationName);
-
-    const SingleInstanceApplication app(argc, argv);
-    if (!app.IsAttach()) {
-        XAMP_LOG_DEBUG("Application already running!");
-        return -1;
+    void ApplyTheme() {
+        const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
+        qTheme.SetThemeColor(theme);
+        qTheme.LoadAndApplyQssTheme();
     }
+
+    int Execute(int argc, char* argv[]) {
+        QApplication::setApplicationName(kApplicationName);
+        QApplication::setApplicationVersion(kApplicationVersion);
+        QApplication::setOrganizationName(kApplicationName);
+        QApplication::setOrganizationDomain(kApplicationName);
+
+        const SingleInstanceApplication app(argc, argv);
+        if (!app.IsAttach()) {
+            XAMP_LOG_DEBUG("Application already running!");
+            return -1;
+        }
 
 #ifdef _DEBUG    
 #ifdef XAMP_OS_WIN
-    qInstallMessageHandler(LogMessageHandler);
-    QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
+        qInstallMessageHandler(LogMessageHandler);
+        QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
 #endif
 
-    ApplyTheme();
-    LoadLang();
+        ApplyTheme();
+        LoadLang();
 
-    XMainWindow main_window;
+        XMainWindow main_window;
+        try {
+            LoadComponentSharedLibrary();
+        }
+        catch (const Exception& e) {
+            XMessageBox::ShowBug(e);
+            return -1;
+        }
+        XAMP_LOG_DEBUG("Load component shared library success.");
 
-    XAMP_LOG_DEBUG("attach application success.");
+        try {
+            qMainDb.open();
+        }
+        catch (const Exception& e) {
+            XMessageBox::ShowBug(e);
+            return -1;
+        }
+        XAMP_LOG_DEBUG("Database init success.");
 
-    try {
-        LoadComponentSharedLibrary();
-    }
-    catch (const Exception& e) {
-        XMessageBox::ShowBug(e);
-        return -1;
-    }
-    XAMP_LOG_DEBUG("Load component shared library success.");
+        if (!QSslSocket::supportsSsl()) {
+            XMessageBox::ShowError(qTEXT("SSL initialization failed."));
+            return -1;
+        }
 
-    try {
-        qMainDb.open();
-    }
-    catch (const Exception& e) {        
-        XMessageBox::ShowBug(e);
-        return -1;
-    }
-    XAMP_LOG_DEBUG("Database init success.");    
-
-    if (!QSslSocket::supportsSsl()) {
-        XMessageBox::ShowError(qTEXT("SSL initialization failed."));
-        return -1;
-    }    
-    
-    if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
-        main_window.SetShortcut(QKeySequence(Qt::Key_MediaPlay));
-        main_window.SetShortcut(QKeySequence(Qt::Key_MediaStop));
-        main_window.SetShortcut(QKeySequence(Qt::Key_MediaPrevious));
-        main_window.SetShortcut(QKeySequence(Qt::Key_MediaNext));
-        main_window.SetShortcut(QKeySequence(Qt::Key_VolumeUp));
-        main_window.SetShortcut(QKeySequence(Qt::Key_VolumeDown));
-        main_window.SetShortcut(QKeySequence(Qt::Key_VolumeMute));
-        main_window.SetShortcut(QKeySequence(Qt::Key_F11));
-    }
-
-    Xamp win(&main_window, MakeAudioPlayer());    
-    win.SetXWindow(&main_window);
-    win.SetThemeColor(qTheme.GetBackgroundColor(),
-        qTheme.GetThemeTextColor());
+        Xamp win(&main_window, MakeAudioPlayer());
+        win.SetXWindow(&main_window);
+        win.SetThemeColor(qTheme.GetBackgroundColor(),
+            qTheme.GetThemeTextColor());
 
 #ifdef Q_OS_WIN32
-    const auto os_ver = QOperatingSystemVersion::current();
-    XAMP_LOG_DEBUG("Running {} {}.{}.{}",
-        os_ver.name().toStdString(),
-        os_ver.majorVersion(),
-        os_ver.minorVersion(),
-        os_ver.microVersion());
+        const auto os_ver = QOperatingSystemVersion::current();
+        XAMP_LOG_DEBUG("Running {} {}.{}.{}",
+            os_ver.name().toStdString(),
+            os_ver.majorVersion(),
+            os_ver.minorVersion(),
+            os_ver.microVersion());
 
-    if (AppSettings::ValueAsBool(kAppSettingEnableSandboxMode)) {
-        XAMP_LOG_DEBUG("Set process mitigation.");
-        SetProcessMitigation();
-    }
+        if (AppSettings::ValueAsBool(kAppSettingEnableSandboxMode)) {
+            XAMP_LOG_DEBUG("Set process mitigation.");
+            SetProcessMitigation();
+        }
 
-    XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
+        XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 #endif
 
-    main_window.SetContentWidget(&win);
-    win.WaitForReady();
-    main_window.RestoreGeometry();
-    main_window.ShowWindow();
-    return app.exec();
+        main_window.SetContentWidget(&win);
+        win.WaitForReady();
+        main_window.RestoreGeometry();
+        main_window.ShowWindow();
+
+        if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
+            main_window.SetShortcut(QKeySequence(Qt::Key_MediaPlay));
+            main_window.SetShortcut(QKeySequence(Qt::Key_MediaStop));
+            main_window.SetShortcut(QKeySequence(Qt::Key_MediaPrevious));
+            main_window.SetShortcut(QKeySequence(Qt::Key_MediaNext));
+            main_window.SetShortcut(QKeySequence(Qt::Key_VolumeUp));
+            main_window.SetShortcut(QKeySequence(Qt::Key_VolumeDown));
+            main_window.SetShortcut(QKeySequence(Qt::Key_VolumeMute));
+            main_window.SetShortcut(QKeySequence(Qt::Key_F11));
+        }
+
+        return app.exec();
+    }
 }
 
 struct FramelessHelperRAII {
@@ -325,6 +326,8 @@ int main() {
     JsonSettings::LoadJsonFile(qTEXT("config.json"));
 
     AppSettings::LoadOrSaveLogConfig();
+    AppSettings::LoadAppSettings();
+    LoadSampleRateConverterConfig();
 
     XAMP_LOG_DEBUG(GetCompilerTime());
 
@@ -343,9 +346,6 @@ int main() {
     auto pin_system_dll = PinSystemDll();
     XAMP_LOG_DEBUG("Pin system dll success.");
 #endif
-
-    AppSettings::LoadAppSettings();
-    LoadSampleRateConverterConfig();
 
     SharedCrashHandler.SetProcessExceptionHandlers();
     XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");

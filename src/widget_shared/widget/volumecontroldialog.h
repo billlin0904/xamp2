@@ -11,7 +11,7 @@
 #include <widget/widget_shared.h>
 #include <widget/xdialog.h>
 
-class VolumeControlDialog : public QDialog {
+class XAMP_WIDGET_SHARED_EXPORT VolumeControlDialog : public QDialog {
     Q_OBJECT
 public:
 	explicit VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent = nullptr);

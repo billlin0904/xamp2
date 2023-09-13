@@ -116,11 +116,11 @@
     <QtMoc Include="widget\extractfileworker.h" />
     <QtMoc Include="widget\genre_view_page.h" />
     <ClInclude Include="widget\genre_view.h" />
-    <ClInclude Include="widget\httpservice.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
     <ClInclude Include="widget\log_util.h" />
     <ClInclude Include="widget\maskwidget.h" />
+    <ClInclude Include="widget\mbdiscid_uiltis.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <ClInclude Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="xampplayer.h" />
@@ -160,7 +160,6 @@
     <ClInclude Include="widget\playlisttablemodel.h" />
     <QtMoc Include="widget\playlisttableproxymodel.h" />
     <QtMoc Include="widget\playlisttableview.h" />
-    <ClInclude Include="widget\podcast_uiltis.h" />
     <QtMoc Include="widget\processindicator.h" />
     <ClInclude Include="widget\qdebugsink.h" />
     <ClInclude Include="widget\qetag.h" />
@@ -229,7 +228,7 @@
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
-    <ClCompile Include="widget\podcast_uiltis.cpp" />
+    <ClCompile Include="widget\mbdiscid_uiltis.cpp" />
     <ClCompile Include="widget\preferencepage.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
     <ClCompile Include="widget\qetag.cpp" />

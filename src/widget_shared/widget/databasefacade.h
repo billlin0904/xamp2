@@ -6,16 +6,9 @@
 #pragma once
 
 #include <QObject>
-#include <QEventLoop>
-#include <QTimer>
-#include <QRegularExpression>
 
 #include <widget/widget_shared.h>
-#include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
-
-class ExtractFileWorker;
-class PlayListTableView;
 
 TrackInfo GetTrackInfo(QString const& file_path);
 

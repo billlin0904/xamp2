@@ -36,6 +36,10 @@ void VolumeButton::SetPlayer(std::shared_ptr<IAudioPlayer> player) {
 	setMouseTracking(true);
 }
 
+void VolumeButton::ShowDialog() {
+	show_timer_.start(kShowDelayMs);
+}
+
 void VolumeButton::OnCurrentThemeChanged(ThemeColor theme_color) {
 	dialog_->SetThemeColor();
 }

@@ -10,8 +10,8 @@
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
-#include <widget/podcast_uiltis.h>
 #include <widget/widget_shared_global.h>
+#include <widget/mbdiscid_uiltis.h>
 
 class DatabaseFacade;
 

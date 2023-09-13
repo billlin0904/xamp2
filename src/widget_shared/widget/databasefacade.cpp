@@ -1,7 +1,6 @@
 ﻿#include <widget/databasefacade.h>
 #include <widget/extractfileworker.h>
 
-#include <atomic>
 #include <execution>
 
 #include <QRegExp>
@@ -33,19 +32,38 @@ XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 		catch (...) {}\
     } while (false)
 
-static QSet<QString> GetAlbumCategories(const QString& album) {
-    QRegularExpression regex(
-        R"((final fantasy \b|piano|vocal|soundtrack|best|complete|collection|edition|version|the king of fighter)(?:(?: \[.*\])|(?: - .*))?)",
-        QRegularExpression::CaseInsensitiveOption);
+namespace {
+    QSet<QString> GetAlbumCategories(const QString& album) {
+	    const QRegularExpression regex(
+            R"((final fantasy \b|piano|vocal|soundtrack|best|complete|collection|edition|version|the king of fighter)(?:(?: \[.*\])|(?: - .*))?)",
+            QRegularExpression::CaseInsensitiveOption);
 
-    QSet<QString> categories;
-    auto it = regex.globalMatch(album);
-    while (it.hasNext()) {
-        QRegularExpressionMatch match = it.next();
-        QString category = match.captured(1).toLower().trimmed();
-        categories.insert(category);
+        QSet<QString> categories;
+        auto it = regex.globalMatch(album);
+        while (it.hasNext()) {
+            QRegularExpressionMatch match = it.next();
+            QString category = match.captured(1).toLower().trimmed();
+            categories.insert(category);
+        }
+        return categories;
     }
-    return categories;
+
+    void NormalizeArtist(QString& artist, QStringList& artists) {
+        if (artist.contains(' ')) {
+            if (!artist[0].isUpper()) {
+                artist = artist.remove(' ');
+            }
+            else {
+                artist = artist.trimmed();
+            }
+        }
+
+        artists = artist.split(QRegularExpression("[,/&]"), Qt::SkipEmptyParts);
+        if (!artists.isEmpty()) {
+            artist = artists.first();
+            artists.pop_front();
+        }
+    }
 }
 
 CoverArtReader::CoverArtReader()
@@ -72,18 +90,23 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
 
 QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
     static constexpr auto kJop = qTEXT("jpop");
+
     QStringList normalized_tags;
 
-    /*if (genre.isEmpty()) return normalized_tags;
+    if (genre.isEmpty()) {
+        return normalized_tags;
+    }
 
-    if (genre.length() == 1 && genre[0] == ' ') return normalized_tags;
+    if (genre.length() == 1 && genre[0] == ' ') {
+        return normalized_tags;
+    }
 
-    auto tags = genre.split(QRegExp("\\s*,\\s*"), Qt::SkipEmptyParts);
+    auto tags = genre.split(QRegularExpression("\\s*,\\s*"), Qt::SkipEmptyParts);
 
     for (auto tag : tags) {
         tag = tag.trimmed();
-        if (tag.contains(QRegExp("[/|()&]"))) {
-            QStringList subTags = tag.split(QRegExp("[/|()&]"), Qt::SkipEmptyParts);
+        if (tag.contains(QRegularExpression("[/|()&]"))) {
+            QStringList subTags = tag.split(QRegularExpression("[/|()&]"), Qt::SkipEmptyParts);
             for (auto s : subTags) {         
                 s = s.trimmed().toLower();
                 if (s.length() == 1) {
@@ -105,26 +128,9 @@ QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
             }
             normalized_tags.append(s);
         }
-    }*/
+    }
 
     return normalized_tags;
-}
-
-void NormalizeArtist(QString &artist, QStringList &artists) {
-    if (artist.contains(' ')) {
-        if (!artist[0].isUpper()) {
-            artist = artist.remove(' ');
-        }
-        else {
-            artist = artist.trimmed();
-        }
-    }
-
-    artists = artist.split(QRegularExpression("[,/&]"), Qt::SkipEmptyParts);
-    if (!artists.isEmpty()) {
-        artist = artists.first();
-        artists.pop_front();
-    }
 }
 
 void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
