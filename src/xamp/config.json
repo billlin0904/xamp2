@@ -51,11 +51,11 @@
     },
     "Soxr": {
         "176.4K": {
-            "passBand": 96,
-            "phase": 46,
-            "quality": 3,
+            "passBand": 1,
+            "phase": 1,
+            "quality": 0,
             "resampleSampleRate": 44100,
-            "rolloffLevel": 2,
+            "rolloffLevel": 0,
             "stopBand": 100
         },
         "192K": {

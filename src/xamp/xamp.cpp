@@ -4,6 +4,9 @@
 #include <QShortcut>
 #include <QToolTip>
 #include <QWidgetAction>
+#include <QMessageBox>
+
+#include <QSimpleUpdater.h>
 
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
@@ -610,6 +613,42 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         this,
         &Xamp::OnReadCompleted,
         Qt::QueuedConnection);
+
+    static const QString kSoftwareUpdateUrl =
+        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    auto* updater = QSimpleUpdater::getInstance();
+
+    (void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
+        auto change_log = updater->getChangelog(url);
+
+        auto html = qTEXT(R"(
+            <h3>Find New Version:</h3> 			
+			<br>
+            %1
+			</br>
+           )").arg(change_log);
+
+        QMessageBox::about(this,
+            qTEXT("Check For Updates"),
+            html);
+        });
+
+    (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
+        XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
+        });
+
+    (void)QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
+        XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
+        });
+
+    updater->setPlatformKey(kSoftwareUpdateUrl, qTEXT("windows"));
+    updater->setModuleVersion(kSoftwareUpdateUrl, kApplicationVersion);
+    updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
+    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
+    updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
+    updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
+    updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
+    updater->checkForUpdates(kSoftwareUpdateUrl);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
