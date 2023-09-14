@@ -64,6 +64,51 @@ namespace {
             artists.pop_front();
         }
     }
+
+    QStringList NormalizeGenre(const QString& genre) {
+        static constexpr auto kJop = qTEXT("jpop");
+
+        QStringList normalized_tags;
+
+        if (genre.isEmpty()) {
+            return normalized_tags;
+        }
+
+        if (genre.length() == 1 && genre[0] == ' ') {
+            return normalized_tags;
+        }
+
+        auto tags = genre.split(QRegularExpression("\\s*,\\s*"), Qt::SkipEmptyParts);
+
+        for (auto tag : tags) {
+            tag = tag.trimmed();
+            if (tag.contains(QRegularExpression("[/|()&]"))) {
+                QStringList subTags = tag.split(QRegularExpression("[/|()&]"), Qt::SkipEmptyParts);
+                for (auto s : subTags) {
+                    s = s.trimmed().toLower();
+                    if (s.length() == 1) {
+                        continue;
+                    }
+                    if (s == kJop) {
+                        s = "j-pop";
+                    }
+                    normalized_tags.append(s);
+                }
+            }
+            else {
+                auto s = tag.trimmed().toLower();
+                if (s.length() == 1) {
+                    continue;
+                }
+                if (s == kJop) {
+                    s = "j-pop";
+                }
+                normalized_tags.append(s);
+            }
+        }
+
+        return normalized_tags;
+    }
 }
 
 CoverArtReader::CoverArtReader()
@@ -88,54 +133,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);    
 }
 
-QStringList DatabaseFacade::NormalizeGenre(const QString& genre) {
-    static constexpr auto kJop = qTEXT("jpop");
-
-    QStringList normalized_tags;
-
-    if (genre.isEmpty()) {
-        return normalized_tags;
-    }
-
-    if (genre.length() == 1 && genre[0] == ' ') {
-        return normalized_tags;
-    }
-
-    auto tags = genre.split(QRegularExpression("\\s*,\\s*"), Qt::SkipEmptyParts);
-
-    for (auto tag : tags) {
-        tag = tag.trimmed();
-        if (tag.contains(QRegularExpression("[/|()&]"))) {
-            QStringList subTags = tag.split(QRegularExpression("[/|()&]"), Qt::SkipEmptyParts);
-            for (auto s : subTags) {         
-                s = s.trimmed().toLower();
-                if (s.length() == 1) {
-                    continue;
-                }                
-                if (s == kJop) {
-                    s = "j-pop";
-                }
-                normalized_tags.append(s);
-            }            
-        }
-        else {
-            auto s = tag.trimmed().toLower();
-            if (s.length() == 1) {
-                continue;
-            }
-            if (s == kJop) {
-                s = "j-pop";
-            }
-            normalized_tags.append(s);
-        }
-    }
-
-    return normalized_tags;
-}
-
-void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
-    int32_t playlist_id,
-    bool is_podcast) {
+void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result, int32_t playlist_id) {
     const Stopwatch sw;
     static constexpr auto kHiRes = qTEXT("HiRes");
     static constexpr auto kDsdCategory = qTEXT("DSD");
@@ -151,13 +149,13 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
     const CoverArtReader reader;
 
     const auto album_year = result.front().year;
-    const auto album_genre = NormalizeGenre(QString::fromStdWString(result.front().genre)).join(",");
+    const auto album_genre = NormalizeGenre(GetStringOrEmptyString(result.front().genre)).join(",");
     
 	for (const auto& track_info : result) {        
-        auto file_path = QString::fromStdWString(track_info.file_path);
-        auto album = QString::fromStdWString(track_info.album);
-        auto artist = QString::fromStdWString(track_info.artist);
-		auto disc_id = QString::fromStdString(track_info.disc_id);
+        auto file_path = GetStringOrEmptyString(track_info.file_path);
+        auto album = GetStringOrEmptyString(track_info.album);
+        auto artist = GetStringOrEmptyString(track_info.artist);
+		auto disc_id = GetStringOrEmptyString(track_info.disc_id);
 
         QStringList artists;
         NormalizeArtist(artist, artists);
@@ -170,11 +168,11 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
 			// todo: 如果有內建圖片就把當作一張專輯.
 			cover = reader.GetEmbeddedCover(track_info);
 			if (!cover.isNull()) {
-				album = QString::fromStdWString(track_info.file_name_no_ext);
+				album = GetStringOrEmptyString(track_info.file_name_no_ext);
 			}
 		}
 
-		if (artist.isEmpty() || is_podcast) {
+		if (artist.isEmpty()) {
 			artist = tr("Unknown artist");
 		}
 
@@ -195,7 +193,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
-                is_podcast,
+                false,
                 disc_id,
                 album_genre);
             album_id_cache[album] = album_id;
@@ -256,14 +254,14 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result,
 }
 
 void DatabaseFacade::InsertTrackInfo(const Vector<TrackInfo>& result,
-    int32_t playlist_id, 
+    int32_t playlist_id,
     bool is_podcast_mode) {
     try {
         if (!qMainDb.transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
             return;
         }
-        AddTrackInfo(result, playlist_id, is_podcast_mode);       
+        AddTrackInfo(result, playlist_id);       
         if (!qMainDb.commit()) {
             XAMP_LOG_DEBUG("Failed to commit!");
         }

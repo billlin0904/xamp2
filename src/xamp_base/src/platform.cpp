@@ -189,7 +189,7 @@ public:
         if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER) return;
         info_base_ptr_ =
             static_cast<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*>
-            (LocalAlloc(LMEM_FIXED, cb));
+            (::LocalAlloc(LMEM_FIXED, cb));
         if (!info_base_ptr_) return;
         if (!::GetLogicalProcessorInformationEx(relationship,
             info_base_ptr_, &cb)) return;

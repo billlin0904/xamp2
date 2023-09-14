@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
-    <ClCompile Include="src\blake3hash.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
@@ -33,27 +32,6 @@
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
     <ClCompile Include="src\windows_handle.cpp" />
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3_avx2.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3_avx512.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3_dispatch.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3_portable.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3_sse2.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\BLAKE3\blake3_sse41.c">
-      <Filter>BLAKE3</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -118,11 +96,5 @@
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
-    <ClInclude Include="include\base\blake3hash.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="BLAKE3">
-      <UniqueIdentifier>{c45e05bb-1a25-40c7-81d3-40ed27d326b3}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

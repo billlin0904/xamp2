@@ -1,6 +1,6 @@
 #include <base/windows_handle.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
@@ -62,4 +62,4 @@ void RegTraits::close(HKEY value) {
 
 #endif
 
-}
+XAMP_BASE_NAMESPACE_END

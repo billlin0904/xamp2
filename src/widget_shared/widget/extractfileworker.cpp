@@ -5,7 +5,6 @@
 
 #include <base/fastmutex.h>
 #include <base/scopeguard.h>
-#include <base/blake3hash.h>
 
 #include <metadata/taglibmetareader.h>
 
@@ -130,12 +129,13 @@ HashMap<std::wstring, Vector<TrackInfo>> ExtractFileWorker::ScanPathFiles(const 
             }
             try {
                 TaglibMetadataReader reader;
-                XAMP_LOG_DEBUG("{}", String::ToString(path.wstring()));
                 auto track_info = reader.Extract(path);
-                if (!album_groups.contains(track_info.album)) {
-                    album_groups[track_info.album].reserve(kReserveSize);
+                if (track_info.album) {
+                    if (!album_groups.contains(track_info.album.value())) {
+                        album_groups[track_info.album.value()].reserve(kReserveSize);
+                    }
+                    album_groups[track_info.album.value()].push_back(std::move(track_info));
                 }
-                album_groups[track_info.album].push_back(std::move(track_info));
             }
             catch (...) { }
         }        

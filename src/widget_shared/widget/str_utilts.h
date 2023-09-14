@@ -57,6 +57,20 @@ constexpr ConstLatin1String FromStdStringView(std::string_view const& s) noexcep
 	return { s.data(), static_cast<int>(s.length()) };
 }
 
+inline QString GetStringOrEmptyString(const std::optional<std::wstring>& s) {
+	if (s) {
+		return QString::fromStdWString(s.value());
+	}
+	return kEmptyString;
+}
+
+inline QString GetStringOrEmptyString(const std::optional<std::string>& s) {
+	if (s) {
+		return QString::fromStdString(s.value());
+	}
+	return kEmptyString;
+}
+
 XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }

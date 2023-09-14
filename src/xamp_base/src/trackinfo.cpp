@@ -1,7 +1,7 @@
 #include <base/stl.h>
 #include <base/trackinfo.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 TrackInfo::TrackInfo() noexcept
 	: track(0)
@@ -10,9 +10,8 @@ TrackInfo::TrackInfo() noexcept
 	, year(0)
 	, file_size(0)
 	, last_write_time(GetTime_t())
-	//, parent_path_hash(0)
 	, offset(0)
 	, duration(0) {
 }
 
-}
+XAMP_BASE_NAMESPACE_END

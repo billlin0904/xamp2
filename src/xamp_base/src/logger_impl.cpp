@@ -48,12 +48,14 @@ private:
 };
 #endif
 
-static bool CreateLogsDir() {
-	const Path log_path("logs");	
-	if (!Fs::exists(log_path)) {
-        return Fs::create_directory(log_path);
+namespace {
+	bool CreateLogsDir() {
+		const Path log_path("logs");
+		if (!Fs::exists(log_path)) {
+			return Fs::create_directory(log_path);
+		}
+		return false;
 	}
-	return false;
 }
 
 LoggerManager::LoggerManager() noexcept = default;

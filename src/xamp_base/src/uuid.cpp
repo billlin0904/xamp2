@@ -6,48 +6,50 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-static bool TryParseHex(const char a, const char b, uint8_t &data) noexcept {
-    const char buffer[] = { a, b, '\0' };
-    uint32_t result = 0;
-    auto [_, ec] = std::from_chars(std::cbegin(buffer), std::cend(buffer), result, 16);
-    if (ec != std::errc{}) {
-        return false;
-    }
-    data = static_cast<uint8_t>(result);
-    return true;
-}
-
-static bool TryParseUuid(std::string_view const & hex_string, UuidBuffer &result) noexcept {
-    if (hex_string.length() != kMaxUuidHexStringLength) {
-        return false;
+namespace {
+    bool TryParseHex(const char a, const char b, uint8_t& data) noexcept {
+        const char buffer[] = { a, b, '\0' };
+        uint32_t result = 0;
+        auto [_, ec] = std::from_chars(std::cbegin(buffer), std::cend(buffer), result, 16);
+        if (ec != std::errc{}) {
+            return false;
+        }
+        data = static_cast<uint8_t>(result);
+        return true;
     }
 
-    if (   hex_string[8]  != '-'
-        || hex_string[13] != '-'
-        || hex_string[18] != '-'
-        || hex_string[23] != '-') {
-        return false;
+    bool TryParseUuid(std::string_view const& hex_string, UuidBuffer& result) noexcept {
+        if (hex_string.length() != kMaxUuidHexStringLength) {
+            return false;
+        }
+
+        if (hex_string[8] != '-'
+            || hex_string[13] != '-'
+            || hex_string[18] != '-'
+            || hex_string[23] != '-') {
+            return false;
+        }
+
+        UuidBuffer uuid{};
+
+        for (size_t i = 0, j = 0; i < hex_string.length(); ++i) {
+            switch (i) {
+            case 8:
+            case 13:
+            case 18:
+            case 23:
+                continue;
+            default:
+                if (!TryParseHex(hex_string[i], hex_string[i + 1], uuid[j])) {
+                    return false;
+                }
+                ++j;
+                ++i;
+            }
+        }
+        result = uuid;
+        return true;
     }
-
-    UuidBuffer uuid{};
-
-    for (size_t i = 0, j = 0; i < hex_string.length(); ++i) {
-        switch (i) {
-        case 8:
-        case 13:
-        case 18:
-        case 23:
-            continue;
-        default: 
-            if (!TryParseHex(hex_string[i], hex_string[i + 1], uuid[j])) {
-                return false;
-			}
-            ++j;
-            ++i;
-        }		
-	}
-    result = uuid;
-    return true;
 }
 
 std::ostream &operator<<(std::ostream &s, Uuid const &id) {

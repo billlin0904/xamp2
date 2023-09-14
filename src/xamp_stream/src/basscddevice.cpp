@@ -9,17 +9,19 @@ namespace xamp::stream {
 
 inline constexpr auto kCDSpeedMultiplier = 176.4;
 
-static DWORD Drive2BassID(char driver_letter) {
-	for (DWORD i = 0; i < 25; i++) {
-		BASS_CD_INFO cdinfo{};
-		if (BASS.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
-			char letter = 'A' + cdinfo.letter;
-			if (letter == driver_letter) {
-				return i;
+namespace {
+	DWORD Drive2BassID(char driver_letter) {
+		for (DWORD i = 0; i < 25; i++) {
+			BASS_CD_INFO cdinfo{};
+			if (BASS.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
+				char letter = 'A' + cdinfo.letter;
+				if (letter == driver_letter) {
+					return i;
+				}
 			}
 		}
+		throw DeviceNotFoundException();
 	}
-	throw DeviceNotFoundException();
 }
 
 class BassCDDevice::BassCDDeviceImpl {
@@ -118,7 +120,7 @@ public:
 	}
 
 	double GetDuration(uint32_t track) const {
-		double kCDBytesPerSecond = 176400;
+		constexpr double kCDBytesPerSecond = 176400;
 		return BASS.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
 	}
 private:

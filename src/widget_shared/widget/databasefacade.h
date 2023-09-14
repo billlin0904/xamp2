@@ -33,25 +33,15 @@ public:
     
     explicit DatabaseFacade(QObject* parent = nullptr);
 
-signals:    
-    void InsertDatabase(const ForwardList<TrackInfo>& result,
-        int32_t playlist_id,
-        bool is_podcast_mode);
-    
+signals:
     void FindAlbumCover(int32_t album_id,
         const QString& album,
         const std::wstring& file_path);
 public:
-    static QStringList NormalizeGenre(const QString& genre);
-
-    void InsertTrackInfo(const Vector<TrackInfo>& result,
-        int32_t playlist_id, 
-        bool is_podcast_mode);
+    void InsertTrackInfo(const Vector<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode);
 
 private:   
-    void AddTrackInfo(const Vector<TrackInfo>& result,
-        int32_t playlist_id,
-        bool is_podcast);
+    void AddTrackInfo(const Vector<TrackInfo>& result, int32_t playlist_id);
 
     bool is_stop_{false};
     LoggerPtr logger_;

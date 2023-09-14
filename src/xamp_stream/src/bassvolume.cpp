@@ -8,7 +8,7 @@
 
 #include <stream/bassvolume.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassVolume);
 
@@ -84,6 +84,5 @@ std::string_view BassVolume::GetDescription() const noexcept {
 void BassVolume::Flush() {
 }
 
-
-}
+XAMP_STREAM_NAMESPACE_END
 

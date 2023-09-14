@@ -1716,7 +1716,7 @@ void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& 
     cd_page_->playlistPage()->playlist()->RemoveAll();
     DatabaseFacade facade;
     facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);    
-    emit Translation(QString::fromStdWString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
+    emit Translation(GetStringOrEmptyString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
     cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -2261,7 +2261,7 @@ void Xamp::OnInsertDatabase(const Vector<TrackInfo>& result,
         &FindAlbumCoverWorker::OnFindAlbumCover,
         Qt::QueuedConnection);
     facede.InsertTrackInfo(result, playlist_id, is_podcast_mode);    
-    emit Translation(QString::fromStdWString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    emit Translation(GetStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
 }
 

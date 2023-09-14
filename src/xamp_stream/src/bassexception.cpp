@@ -2,9 +2,12 @@
 #include <stream/basslib.h>
 #include <stream/bassexception.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
-static Errors TranslateBassError(int error) noexcept {
+namespace {
+	
+}
+Errors TranslateBassError(int error) noexcept {
     switch (error) {
     case BASS_ERROR_FORMAT:
         return Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT;
@@ -13,7 +16,7 @@ static Errors TranslateBassError(int error) noexcept {
     }
 }
 
-static std::string GetBassErrorMessage(int error) {
+std::string GetBassErrorMessage(int error) {
 #define BASS_ERROR_MP4_NOSTREAM 6000
 	
     switch (error) {
@@ -93,6 +96,7 @@ static std::string GetBassErrorMessage(int error) {
     default:
         return "Some other mystery problem";
     }
+
 }
 
 BassException::BassException()
@@ -107,4 +111,4 @@ BassException::BassException(int error)
     message_ = ostr.str();
 }
 
-}
+XAMP_STREAM_NAMESPACE_END

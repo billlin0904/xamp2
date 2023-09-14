@@ -7,7 +7,7 @@
 #include <base/buffer.h>
 #include <base/logger_impl.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassCompressor);
 
@@ -114,6 +114,5 @@ void BassCompressor::Flush() {
 	
 }
 
-
-}
+XAMP_STREAM_NAMESPACE_END
 

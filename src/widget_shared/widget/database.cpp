@@ -967,12 +967,12 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     )")
     );
 
-    query.bindValue(qTEXT(":title"), QString::fromStdWString(track_info.title));
+    query.bindValue(qTEXT(":title"), GetStringOrEmptyString(track_info.title));
     query.bindValue(qTEXT(":track"), track_info.track);
-    query.bindValue(qTEXT(":path"), QString::fromStdWString(track_info.file_path));
-    query.bindValue(qTEXT(":fileExt"), QString::fromStdWString(track_info.file_ext));
-    query.bindValue(qTEXT(":fileName"), QString::fromStdWString(track_info.file_name));
-    query.bindValue(qTEXT(":parentPath"), QString::fromStdWString(track_info.parent_path));
+    query.bindValue(qTEXT(":path"), GetStringOrEmptyString(track_info.file_path));
+    query.bindValue(qTEXT(":fileExt"), GetStringOrEmptyString(track_info.file_ext));
+    query.bindValue(qTEXT(":fileName"), GetStringOrEmptyString(track_info.file_name));
+    query.bindValue(qTEXT(":parentPath"), GetStringOrEmptyString(track_info.parent_path));
     query.bindValue(qTEXT(":duration"), track_info.duration);
     query.bindValue(qTEXT(":durationStr"), FormatDuration(track_info.duration));
     query.bindValue(qTEXT(":bit_rate"), track_info.bit_rate);
@@ -994,8 +994,8 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     }
 
     query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);
-    query.bindValue(qTEXT(":genre"), QString::fromStdWString(track_info.genre));
-    query.bindValue(qTEXT(":comment"), QString::fromStdWString(track_info.comment));
+    query.bindValue(qTEXT(":genre"), GetStringOrEmptyString(track_info.genre));
+    query.bindValue(qTEXT(":comment"), GetStringOrEmptyString(track_info.comment));
 
     THROW_IF_FAIL1(query);
 

@@ -17,8 +17,10 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-static size_t ComplexSize(size_t size) {
-	return (size / 2) + 1;
+namespace {
+	size_t ComplexSize(size_t size) {
+		return (size / 2) + 1;
+	}
 }
 
 class Window::WindowImpl {

@@ -23,7 +23,7 @@
 #include <Mfreadwrite.h>
 #include <mferror.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(MFEncoder);
 
@@ -394,5 +394,6 @@ void MFAACFileEncoder::SetEncodingProfile(const EncodingProfile& profile) {
     impl_->SetEncodingProfile(profile);
 }
 
-}
+XAMP_STREAM_NAMESPACE_END
+
 #endif

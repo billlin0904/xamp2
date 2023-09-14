@@ -40,31 +40,33 @@ namespace TagLib {
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-static bool ClearTxxTag(ID3v2::Tag* tag, 
-	TagLib::String const& tag_name,
-	double* old_content = nullptr) {
-	const auto& frame_list = tag->frameList("TXXX");
-	for (auto* it : frame_list) {
-		auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
-		if (fr && fr->description().upper() == tag_name) {
-			if (old_content) {
-				*old_content = std::stod(fr->fieldList().toString().to8Bit());
+namespace {
+	bool ClearTxxTag(ID3v2::Tag* tag,
+		TagLib::String const& tag_name,
+		double* old_content = nullptr) {
+		const auto& frame_list = tag->frameList("TXXX");
+		for (auto* it : frame_list) {
+			auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
+			if (fr && fr->description().upper() == tag_name) {
+				if (old_content) {
+					*old_content = std::stod(fr->fieldList().toString().to8Bit());
+				}
+				tag->removeFrame(fr);
+				return true;
 			}
-			tag->removeFrame(fr);
-			return true;
 		}
+		return false;
 	}
-	return false;
-}
 
-static void SetTxxTag(ID3v2::Tag* tag, std::string const& tag_name, std::string const& value) {
-	auto* txxx_frame = TagLib::ID3v2::UserTextIdentificationFrame::find(tag, tag_name);
-	if (!txxx_frame) {
-		txxx_frame = new TagLib::ID3v2::UserTextIdentificationFrame();
-		txxx_frame->setDescription(tag_name);
-		tag->addFrame(txxx_frame);
+	void SetTxxTag(ID3v2::Tag* tag, std::string const& tag_name, std::string const& value) {
+		auto* txxx_frame = TagLib::ID3v2::UserTextIdentificationFrame::find(tag, tag_name);
+		if (!txxx_frame) {
+			txxx_frame = new TagLib::ID3v2::UserTextIdentificationFrame();
+			txxx_frame->setDescription(tag_name);
+			tag->addFrame(txxx_frame);
+		}
+		txxx_frame->setText(value);
 	}
-	txxx_frame->setText(value);
 }
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
@@ -73,12 +75,18 @@ public:
 		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
 
-    void Write(Path const &path, TrackInfo const &trackinfo) const {
-        Write(path, [&metadata = std::as_const(trackinfo)](auto, auto tag) {
-			tag->setAlbum(metadata.album);
-			tag->setArtist(metadata.artist);
+    void Write(Path const &path, TrackInfo const &track_info) const {
+        Write(path, [&metadata = std::as_const(track_info)](auto, auto tag) {
+			if (metadata.album) {
+				tag->setAlbum(metadata.album.value());
+			}
+			if (metadata.artist) {
+				tag->setArtist(metadata.artist.value());
+			}
+			if (metadata.title) {
+				tag->setArtist(metadata.title.value());
+			}
 			tag->setTrack(metadata.track);
-			tag->setTitle(metadata.title);
 		});
     }
 
