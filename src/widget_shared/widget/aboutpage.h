@@ -15,7 +15,6 @@ public:
     explicit AboutPage(QWidget* parent = nullptr);
 
 signals:
-    void CheckUpdate();
 
 public slots:
     void OnCreditsOrLicenseChecked(bool checked);

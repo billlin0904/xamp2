@@ -88,7 +88,7 @@ private:
         auto miss_count = cache.GetMissCount();
         auto accesses = hit_count + miss_count;
         auto hit_percent = accesses != 0 ? (100 * hit_count / accesses) : 0;
-        ostr << "LruCache[size=" << size << ",hits=" << hit_count << ",miss=" << miss_count << ",hit-rate=" << hit_percent << "%]";
+        ostr << "[size=" << size << ",hits=" << hit_count << ",miss=" << miss_count << ",hit-rate=" << hit_percent << "%]";
         return ostr;
     }
 

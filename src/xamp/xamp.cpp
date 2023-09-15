@@ -202,6 +202,15 @@ namespace {
     }
     )"
         ));
+
+        ui.upgradeButton->setStyleSheet(qSTR(R"(
+                                         QToolButton#upgradeButton {
+                                         border: none;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
+        ui.upgradeButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_UP));
     }
 
     void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
@@ -423,7 +432,8 @@ namespace {
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
-	, is_seeking_(false)
+    , is_seeking_(false)
+    , trigger_upgrade_action_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , main_window_(nullptr)
     , current_playlist_page_(nullptr)
@@ -450,6 +460,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.closeButton, SystemButtonType::Close);
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.aboutButton);
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.preferenceButton);
+    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.upgradeButton);
     //FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.titleFrame); // No moveable
 
     main_window_ = main_window;
@@ -628,23 +639,27 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(updater,
         &QSimpleUpdater::appcastDownloaded,
-        [updater, platform_key](const QString& url, const QByteArray& reply)
-        {
+        [updater, platform_key, this](const QString& url, const QByteArray& reply) {       
+        if (trigger_upgrade_action_) {
             const auto document = QJsonDocument::fromJson(reply);
             const auto updates = document.object().value(qTEXT("updates")).toObject();
             const auto platform = updates.value(platform_key).toObject();
             auto changelog = platform.value(qTEXT("changelog")).toString();
             auto download_url = platform.value(qTEXT("download-url")).toString();
-
-            XMessageBox::ShowInformation(changelog, 
-                qTEXT("New version!"), false);
+            XMessageBox::ShowInformation(changelog, qTEXT("New version!"), false);
+        }
+        trigger_upgrade_action_ = true;
+        ui_.upgradeButton->show();
         });
 
-    OnCheckUpdate();
-}
-
-void Xamp::OnCheckUpdate() {
-    QSimpleUpdater::getInstance()->checkForUpdates(kSoftwareUpdateUrl);
+    (void)QObject::connect(ui_.upgradeButton, &QToolButton::clicked, [updater, this]() {
+        if (!trigger_upgrade_action_) {
+            return;
+        }
+        updater->checkForUpdates(kSoftwareUpdateUrl);
+        });
+    
+    updater->checkForUpdates(kSoftwareUpdateUrl);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -768,6 +783,7 @@ void Xamp::InitialUi() {
     qTheme.SetPlayOrPauseButton(ui_.playButton, false);
 
     ui_.stopButton->hide();
+    ui_.upgradeButton->hide();
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -1005,12 +1021,6 @@ void Xamp::InitialController() {
     (void)QObject::connect(ui_.aboutButton, &QToolButton::clicked, [this]() {
         auto* dialog = new XDialog(this);
         auto* about_page = new AboutPage(dialog);
-
-        (void)QObject::connect(about_page,
-            &AboutPage::CheckUpdate,
-            this,
-            &Xamp::OnCheckUpdate);
-
         dialog->SetContentWidget(about_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
         dialog->SetTitle(tr("About"));

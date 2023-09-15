@@ -136,7 +136,6 @@ public slots:
 
 	void OnTranslationCompleted(const QString& keyword, const QString& result);
 
-	void OnCheckUpdate();
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 
@@ -246,6 +245,7 @@ private:
 	void showEvent(QShowEvent* event) override;
 
 	bool is_seeking_;
+	bool trigger_upgrade_action_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	IXMainWindow* main_window_;

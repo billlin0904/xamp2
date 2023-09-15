@@ -185,17 +185,18 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_USB,                       0xF8E9 },
     { ICON_BUILD_IN_SPEAKER,          0xF8DF },
     { ICON_BLUE_TOOTH,                0xF293 },
-	{ ICON_MESSAGE_BOX_WARNING,       0xF071 },
+    { ICON_MESSAGE_BOX_WARNING,       0xF071 },
     { ICON_MESSAGE_BOX_INFORMATION,   0xF05A },
     { ICON_MESSAGE_BOX_ERROR,         0xF05E },
-	{ ICON_MESSAGE_BOX_QUESTION,      0xF059 },
+    { ICON_MESSAGE_BOX_QUESTION,      0xF059 },
     { ICON_MESSAGE_BOX_SUCCESS,       0xF058 },
     { ICON_HEART,                     0xF004 },
     { ICON_HEART_PRESS,               0xF004 },
     { ICON_CHEVRON_RIGHT,             0xF054 },
     { ICON_CHEVRON_LEFT,              0xF053 },
     { ICON_SORT_DOWN,                 0xF160 },
-    { ICON_FILE_CIRCLE_PLUS,          0xE494 }
+    { ICON_FILE_CIRCLE_PLUS,          0xE494 },
+    { ICON_UP,                        0xF357 }
     };
     
     qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));

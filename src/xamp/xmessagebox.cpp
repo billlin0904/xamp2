@@ -70,6 +70,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
 	timer_.setInterval(1000);
+	CenterParent(this);
 }
 
 void XMessageBox::SetTextFont(const QFont& font) {

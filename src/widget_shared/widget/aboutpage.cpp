@@ -60,10 +60,6 @@ AboutPage::AboutPage(QWidget* parent)
         &QPushButton::clicked,
         this,
         &AboutPage::OnCreditsOrLicenseChecked);
-    (void)QObject::connect(ui_.btnCheckUpdate,
-        &QPushButton::clicked,
-        this,
-        &AboutPage::CheckUpdate);
 }
 
 void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
