@@ -14,7 +14,7 @@ XProgressDialog::XProgressDialog(const QString& title,
                                  int minimum, 
 								 int maximum,
                                  QWidget* parent)
-	: XDialog(parent) {
+	: XDialog(parent, false) {
 	message_text_label_ = new QLabel(this);
 	sub_text_label_ = new QLabel(this);
 	progress_bar_ = new QProgressBar(this);
