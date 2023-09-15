@@ -8,7 +8,7 @@
       "mandatory-update": true
     },
     "osx": {
-      "open-url": "",s
+      "open-url": "",
       "latest-version": "1.0.0",
       "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
       "changelog": "<br>1.0.0 </br><p><ul><li>新增r8brain重採樣器.</li></ul></p>",
