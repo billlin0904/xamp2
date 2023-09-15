@@ -198,14 +198,12 @@ QDialogButtonBox::StandardButton XMessageBox::ShowButton(const QString& text,
 	QFlags<QDialogButtonBox::StandardButton> buttons,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
-	QScopedPointer<MaskWidget> mask_widget;
     if (!parent) {
 		parent = GetMainWindow();
 	}
 	if (parent != nullptr) {
 		parent->setFocus();
 	}
-	mask_widget.reset(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
 	// Note: Don't call centerParent(), centerDesktop()
 	box.SetIcon(icon);
@@ -307,7 +305,6 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::ShowCheckBox(con
     if (parent != nullptr) {
         parent->setFocus();
     }
-	QScopedPointer<MaskWidget> mask_widget(new MaskWidget(parent));
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
 	box.SetIcon(icon);
 	auto* check_box = new QCheckBox(&box);

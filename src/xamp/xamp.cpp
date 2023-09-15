@@ -639,17 +639,27 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(updater,
         &QSimpleUpdater::appcastDownloaded,
-        [updater, platform_key, this](const QString& url, const QByteArray& reply) {       
+        [updater, platform_key, this](const QString& url, const QByteArray& reply) {
+        const auto document = QJsonDocument::fromJson(reply);
+        const auto updates = document.object().value(qTEXT("updates")).toObject();
+        const auto platform = updates.value(platform_key).toObject();
+        const auto changelog = platform.value(qTEXT("changelog")).toString();
+        const auto latest_version = platform.value(qTEXT("latest-version")).toString();
+
+        Version latest_version_value;
+        if (!ParseVersion(latest_version, latest_version_value)) {
+            return;
+        }
+        
         if (trigger_upgrade_action_) {
-            const auto document = QJsonDocument::fromJson(reply);
-            const auto updates = document.object().value(qTEXT("updates")).toObject();
-            const auto platform = updates.value(platform_key).toObject();
-            auto changelog = platform.value(qTEXT("changelog")).toString();
-            auto download_url = platform.value(qTEXT("download-url")).toString();
+            const auto download_url = platform.value(qTEXT("download-url")).toString();
             XMessageBox::ShowInformation(changelog, qTEXT("New version!"), false);
         }
-        trigger_upgrade_action_ = true;
-        ui_.upgradeButton->show();
+
+        if (latest_version_value > kApplicationVersionValue) {
+            trigger_upgrade_action_ = true;
+            ui_.upgradeButton->show();
+        }
         });
 
     (void)QObject::connect(ui_.upgradeButton, &QToolButton::clicked, [updater, this]() {
@@ -2104,7 +2114,6 @@ QWidget* Xamp::PopWidget() {
 }
 
 void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
-    //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 	const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
@@ -2147,7 +2156,6 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::EncodeWavFile(const PlayListEntity& item) {
-    //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
     const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
@@ -2187,7 +2195,6 @@ void Xamp::EncodeWavFile(const PlayListEntity& item) {
 }
 
 void Xamp::EncodeFlacFile(const PlayListEntity& item) {
-    //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
     const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
 
