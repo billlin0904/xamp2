@@ -14,6 +14,9 @@ class XAMP_WIDGET_SHARED_EXPORT AboutPage final : public QFrame {
 public:
     explicit AboutPage(QWidget* parent = nullptr);
 
+signals:
+    void CheckUpdate();
+
 public slots:
     void OnCreditsOrLicenseChecked(bool checked);
 

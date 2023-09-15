@@ -17,6 +17,8 @@
 #include <widget/xmainwindow.h>
 #include <widget/str_utilts.h>
 
+#include <version.h>
+
 QString FormatSampleRate(const AudioFormat& format) {
     return FormatSampleRate(format.GetSampleRate());
 }
@@ -282,7 +284,7 @@ void GetOpenFileName(QWidget* parent,
 }
 
 void Delay(int32_t seconds) {
-    QTime dieTime = QTime::currentTime().addSecs(seconds);
-    while (QTime::currentTime() < dieTime)
+	const auto die_time = QTime::currentTime().addSecs(seconds);
+    while (QTime::currentTime() < die_time)
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }

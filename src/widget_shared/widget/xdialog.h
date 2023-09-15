@@ -23,7 +23,7 @@ public:
     static constexpr auto kMaxTitleIcon = 20;
     static constexpr auto kTitleFontSize = 10;
 
-    explicit XDialog(QWidget* parent = nullptr);
+    explicit XDialog(QWidget* parent = nullptr, bool modal = true);
 
     void SetContentWidget(QWidget* content, bool transparent_frame = false, bool disable_resize = true);
 

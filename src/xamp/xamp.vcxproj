@@ -71,7 +71,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;QCUSTOMPLOT_USE_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;QSU_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/framelesshelper/include/;../thirdparty/QSimpleUpdater/include/</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

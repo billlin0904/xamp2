@@ -1,7 +1,10 @@
 #include <widget/aboutpage.h>
 
 #include <QFile>
+
 #include <widget/str_utilts.h>
+#include <widget/ui_utilts.h>
+#include <version.h>
 #include <thememanager.h>
 
 AboutPage::AboutPage(QWidget* parent)
@@ -15,7 +18,7 @@ AboutPage::AboutPage(QWidget* parent)
     dp_font.setPointSizeF(qTheme.GetFontSize(26));
 
     ui_.lblProjectTitle->setFont(dp_font);
-    ui_.lblProjectTitle->setText(qTEXT("XAMP2"));
+    ui_.lblProjectTitle->setText(kApplicationName);
     ui_.lblProjectTitle->setStyleSheet(qTEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
     ui_.lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player."));
@@ -57,6 +60,10 @@ AboutPage::AboutPage(QWidget* parent)
         &QPushButton::clicked,
         this,
         &AboutPage::OnCreditsOrLicenseChecked);
+    (void)QObject::connect(ui_.btnCheckUpdate,
+        &QPushButton::clicked,
+        this,
+        &AboutPage::CheckUpdate);
 }
 
 void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -64,7 +71,7 @@ void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
-    auto* sender_ptr = sender();
+	const auto* sender_ptr = sender();
     if (sender_ptr->objectName() == qTEXT("btnLicense")) {
         ui_.txtBws->setText(license_);
         ui_.btnCredits->setChecked(false);

@@ -10,8 +10,9 @@
 #include <QGraphicsDropShadowEffect>
 #include <QPropertyAnimation>
 
-XDialog::XDialog(QWidget* parent)
+XDialog::XDialog(QWidget* parent, bool modal)
     : FramelessDialog(parent) {
+    setModal(modal);
 }
 
 void XDialog::SetContent(QWidget* content) {

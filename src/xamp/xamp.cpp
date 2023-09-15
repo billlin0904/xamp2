@@ -5,6 +5,8 @@
 #include <QToolTip>
 #include <QWidgetAction>
 #include <QMessageBox>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <QSimpleUpdater.h>
 
@@ -437,7 +439,9 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     ui_.setupUi(this);
 }
 
-Xamp::~Xamp() = default;
+Xamp::~Xamp() {
+    cleanup();
+}
 
 void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
@@ -614,41 +618,33 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &Xamp::OnReadCompleted,
         Qt::QueuedConnection);
 
-    static const QString kSoftwareUpdateUrl =
-        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    constexpr auto platform_key = qTEXT("windows");
+
     auto* updater = QSimpleUpdater::getInstance();
 
-    (void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
-        auto change_log = updater->getChangelog(url);
-
-        auto html = qTEXT(R"(
-            <h3>Find New Version:</h3> 			
-			<br>
-            %1
-			</br>
-           )").arg(change_log);
-
-        QMessageBox::about(this,
-            qTEXT("Check For Updates"),
-            html);
-        });
-
-    (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
-        XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
-        });
-
-    (void)QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
-        XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
-        });
-
-    updater->setPlatformKey(kSoftwareUpdateUrl, qTEXT("windows"));
+    updater->setPlatformKey(kSoftwareUpdateUrl, platform_key);
     updater->setModuleVersion(kSoftwareUpdateUrl, kApplicationVersion);
-    updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
-    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
-    updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
-    updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
-    updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
-    updater->checkForUpdates(kSoftwareUpdateUrl);
+    updater->setUseCustomAppcast(kSoftwareUpdateUrl, true);
+
+    (void)QObject::connect(updater,
+        &QSimpleUpdater::appcastDownloaded,
+        [updater, platform_key](const QString& url, const QByteArray& reply)
+        {
+            const auto document = QJsonDocument::fromJson(reply);
+            const auto updates = document.object().value(qTEXT("updates")).toObject();
+            const auto platform = updates.value(platform_key).toObject();
+            auto changelog = platform.value(qTEXT("changelog")).toString();
+            auto download_url = platform.value(qTEXT("download-url")).toString();
+
+            XMessageBox::ShowInformation(changelog, 
+                qTEXT("New version!"), false);
+        });
+
+    OnCheckUpdate();
+}
+
+void Xamp::OnCheckUpdate() {
+    QSimpleUpdater::getInstance()->checkForUpdates(kSoftwareUpdateUrl);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -1007,9 +1003,14 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.aboutButton, &QToolButton::clicked, [this]() {
-        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
-        auto* about_page = new AboutPage(dialog);        
+        auto* about_page = new AboutPage(dialog);
+
+        (void)QObject::connect(about_page,
+            &AboutPage::CheckUpdate,
+            this,
+            &Xamp::OnCheckUpdate);
+
         dialog->SetContentWidget(about_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
         dialog->SetTitle(tr("About"));
@@ -1017,8 +1018,6 @@ void Xamp::InitialController() {
         });
 
     (void)QObject::connect(ui_.preferenceButton, &QToolButton::clicked, [this]() {
-        XAMP_LOG_DEBUG("Preference show");
-        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* preference_page = new PreferencePage(dialog);
         preference_page->LoadSettings();
@@ -1030,7 +1029,6 @@ void Xamp::InitialController() {
         });
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
-        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
         dialog->SetContentWidget(page, true);
@@ -1056,7 +1054,6 @@ void Xamp::InitialController() {
             return;
         }
 
-        //QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerView(dialog);
         dialog->SetContentWidget(eq, false);

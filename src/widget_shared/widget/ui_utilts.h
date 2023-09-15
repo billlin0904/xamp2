@@ -31,9 +31,9 @@ QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget);
 
 void CenterDesktop(QWidget* widget);
 
-XAMP_WIDGET_SHARED_EXPORT void CenterParent(QWidget* widget);
-
 void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
+
+XAMP_WIDGET_SHARED_EXPORT void CenterParent(QWidget* widget);
 
 XAMP_WIDGET_SHARED_EXPORT XMainWindow* GetMainWindow();
 
@@ -75,3 +75,5 @@ XAMP_WIDGET_SHARED_EXPORT void GetSaveFileName(QWidget* parent,
     const QString& filter = QString());
 
 XAMP_WIDGET_SHARED_EXPORT void Delay(int32_t seconds);
+
+XAMP_WIDGET_SHARED_EXPORT void CheckUpdate();
