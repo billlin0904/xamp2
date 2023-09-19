@@ -3,8 +3,7 @@
         "MinimumLevel": {
             "Default": "debug",
             "Override": {
-                "AsioDevice": "info",
-                "AudioPlayer": "debug",
+                "AudioPlayer": "info",
                 "AvFileStream": "info",
                 "BASS": "info",
                 "BackgroundThreadPool": "info",
@@ -12,65 +11,36 @@
                 "BassCompressor": "info",
                 "BassEqualizer": "info",
                 "BassFader": "info",
-                "BassFileStream": "info",
-                "BassVolume": "info",
                 "CrashHandler": "debug",
-                "DSPThreadPool": "info",
                 "Database": "info",
                 "DatabaseFacade": "info",
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
                 "ExtractFileWorker": "info",
-                "Http": "debug",
-                "ImageCache": "debug",
+                "ImageCache": "info",
                 "LibAv": "info",
                 "LibSoxr": "info",
                 "MFEncoder": "info",
-                "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
-                "OptimizeImageThreadPool": "info",
-                "Pcm2DsdConverter": "info",
-                "PlaybackThreadPool": "info",
                 "Qt": "info",
                 "R8brainLib": "info",
-                "ScanPathThreadPool": "info",
                 "SharedWasapiDevice": "info",
-                "Soxr": "info",
                 "TagLib": "info",
                 "VirtualMemory": "info",
                 "WASAPIThreadPool": "info"
             }
         }
     },
-    "Pcm2Dsd": {
-        "Pcm2DsdTimes": 8
-    },
     "R8Brain": {
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 96000
     },
     "Soxr": {
-        "176.4K": {
+        "default": {
             "passBand": 1,
             "phase": 1,
             "quality": 0,
-            "resampleSampleRate": 176400,
-            "rolloffLevel": 0,
-            "stopBand": 100
-        },
-        "192K": {
-            "passBand": 96,
-            "phase": 50,
-            "quality": 4,
-            "resampleSampleRate": 192000,
-            "rolloffLevel": 2,
-            "stopBand": 100
-        },
-        "default": {
-            "passBand": 96,
-            "phase": 46,
-            "quality": 3,
-            "resampleSampleRate": 96000,
+            "resampleSampleRate": 44100,
             "rolloffLevel": 0,
             "stopBand": 100
         }

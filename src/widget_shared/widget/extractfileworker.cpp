@@ -172,6 +172,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
     emit ReadFileStart();
 
     XAMP_ON_SCOPE_EXIT(
+        emit ReadFileProgress(100);
         emit ReadCompleted();
 		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
     );

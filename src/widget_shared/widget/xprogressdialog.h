@@ -26,6 +26,8 @@ public:
 
 	void SetValue(int value);
 
+	int GetValue() const;
+
 	void SetLabelText(const QString& text);
 
 	void SetSubValue(int total, int current);

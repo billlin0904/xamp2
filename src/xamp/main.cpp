@@ -78,27 +78,15 @@ namespace {
 
         if (AppSettings::ValueAsString(kAppSettingLang).isEmpty()) {
             const LocaleLanguage lang;
-            XAMP_LOG_DEBUG("Load locale Language file: {}.", lang.GetIsoCode().toStdString());
+            XAMP_LOG_DEBUG("Load locale language file: {}.", lang.GetIsoCode().toStdString());
             AppSettings::LoadLanguage(lang.GetIsoCode());
             AppSettings::SetValue(kAppSettingLang, lang.GetIsoCode());
         }
         else {
             AppSettings::LoadLanguage(AppSettings::ValueAsString(kAppSettingLang));
-            XAMP_LOG_DEBUG("Load locale Language file: {}.",
+            XAMP_LOG_DEBUG("Load locale language file: {}.",
                 AppSettings::ValueAsString(kAppSettingLang).toStdString());
         }
-
-        /*auto path = QApplication::applicationDirPath();
-        path.append(qTEXT("/langs"));
-        QDir dir(path);
-
-        auto file_names = dir.entryList(QStringList(qTEXT("qt*")));
-        for (const auto& file_name : file_names) {
-            auto qm_path = path + qTEXT("/") + file_name;
-            QTranslator translator_qt;
-            auto result = translator_qt.load(qm_path);
-            QApplication::installTranslator(&translator_qt);
-        }*/
     }
 
 #ifdef XAMP_OS_WIN
@@ -263,7 +251,6 @@ namespace {
         win.SetThemeColor(qTheme.GetBackgroundColor(),
             qTheme.GetThemeTextColor());
 
-#ifdef Q_OS_WIN32
         const auto os_ver = QOperatingSystemVersion::current();
         XAMP_LOG_DEBUG("Running {} {}.{}.{}",
             os_ver.name().toStdString(),
@@ -277,7 +264,6 @@ namespace {
         }
 
         XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
-#endif
 
         main_window.SetContentWidget(&win);
         win.WaitForReady();
@@ -363,21 +349,22 @@ int main() {
         LoggerManager::GetInstance().Shutdown();
     );
 
+    static char app_name[] = "xamp2";
+    static constexpr int argc = 1;
+    static char* argv[] = { app_name, nullptr };
+
     auto exist_code = 0;
     try {
-        static char app_name[] = "xamp2";
-        static constexpr int argc = 1;
-        static char* argv[] = { app_name, nullptr };
-
-        exist_code = Execute(argc, argv);
-        if (exist_code == kRestartExistCode) {
-            QProcess::startDetached(qSTR(argv[0]), qApp->arguments());
-        }
+        exist_code = Execute(argc, argv);        
     }
     catch (Exception const& e) {
         exist_code = -1;
         XAMP_LOG_ERROR("message:{} {}", e.what(), e.GetStackTrace());
-    }    
+    }
+
+    if (exist_code == kRestartExistCode) {
+        QProcess::startDetached(qSTR(argv[0]), qApp->arguments());
+    }
     return exist_code;
 }
 

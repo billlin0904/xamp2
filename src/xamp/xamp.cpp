@@ -2327,9 +2327,6 @@ void Xamp::OnReadCompleted() {
     playlist_page_->playlist()->Reload();
     current_playlist_page_->playlist()->Reload();
     file_system_view_page_->playlistPage()->playlist()->Reload();
-    if (!read_progress_dialog_) {
-        return;
-    }
     read_progress_dialog_->close();
 }
 
@@ -2343,4 +2340,6 @@ void Xamp::OnReadFileStart() {
             extract_file_worker_->OnCancelRequested();
             find_album_cover_worker_->OnCancelRequested();
         });
+
+    read_progress_dialog_->exec();
 }

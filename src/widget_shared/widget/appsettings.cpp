@@ -283,7 +283,7 @@ void AppSettings::LoadOrSaveLogConfig() {
     }
 
     if (JsonSettings::ValueAsMap(kLog).isEmpty()) {
-        min_level[kLogDefault] = qTEXT("debug");
+        min_level[kLogDefault] = qTEXT("info");
 
         XAM_LOG_MANAGER().SetLevel(log_util::ParseLogLevel(min_level[kLogDefault].toString()));
 

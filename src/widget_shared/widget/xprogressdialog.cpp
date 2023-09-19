@@ -14,7 +14,7 @@ XProgressDialog::XProgressDialog(const QString& title,
                                  int minimum, 
 								 int maximum,
                                  QWidget* parent)
-	: XDialog(parent, false) {
+	: XDialog(parent, true) {
 	message_text_label_ = new QLabel(this);
 	sub_text_label_ = new QLabel(this);
 	progress_bar_ = new QProgressBar(this);
@@ -82,6 +82,10 @@ void XProgressDialog::SetRange(int minimum, int maximum) {
 
 void XProgressDialog::SetSubValue(int total, int current) {
 	sub_text_label_->setText(qSTR("%1 / %2").arg(current).arg(total));
+}
+
+int XProgressDialog::GetValue() const {
+	return progress_bar_->value();
 }
 
 void XProgressDialog::SetValue(int value) {

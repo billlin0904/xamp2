@@ -134,7 +134,7 @@ LoggerPtr LoggerManager::GetLogger(const std::string &name) {
 		std::begin(sinks_),
 		std::end(sinks_));
 
-    logger->set_level(spdlog::level::debug);
+    logger->set_level(spdlog::level::info);
 
 	auto formatter = std::make_unique<spdlog::pattern_formatter>();
 #ifdef XAMP_OS_WIN
