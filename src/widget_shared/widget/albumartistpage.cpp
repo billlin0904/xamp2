@@ -65,7 +65,7 @@ void AlbumTabListView::AddTab(const QString& name, int tab_id) {
     item->setSizeHint(QSize(90, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-    f.setPointSize(qTheme.GetFontSize(12));
+    f.setPointSize(qTheme.GetFontSize(10));
 	f.setBold(true);
 	item->setFont(f);
 	model_.appendRow(item);
@@ -97,17 +97,17 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_6);
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->AddTab(tr("Albums"), TAB_ALBUMS);
-	list_view_->AddTab(tr("Artists"), TAB_ARTISTS);
-	list_view_->AddTab(tr("Genre"), TAB_GENRE);
-	list_view_->AddTab(tr("Year"), TAB_YEAR);
+	list_view_->AddTab(tr("ALBUM"), TAB_ALBUMS);
+	list_view_->AddTab(tr("ARTISTS"), TAB_ARTISTS);
+	list_view_->AddTab(tr("GENRE"), TAB_GENRE);
+	list_view_->AddTab(tr("YEAR"), TAB_YEAR);
 
 	qTheme.SetAlbumNaviBarTheme(list_view_);
 
 	const QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
-	list_view_->setMinimumSize(500, 30);
-	list_view_->setMaximumHeight(50);
+	list_view_->setMinimumSize(500, 40);
+	list_view_->setMaximumHeight(40);
 	horizontal_layout_5->addWidget(list_view_);
 	auto* horizontal_spacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_7);

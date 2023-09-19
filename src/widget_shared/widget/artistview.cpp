@@ -35,10 +35,10 @@ void ArtistStyledItemDelegate::SetTextColor(QColor color) {
 void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
 	auto* style = option.widget ? option.widget->style() : QApplication::style();
 
-	auto artist = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST)).toString();
+	const auto artist = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST)).toString();
 	auto artist_id = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST_ID)).toString();
-	auto artist_cover_id = index.model()->data(index.model()->index(index.row(), INDEX_COVER_ID)).toString();
-	auto first_char = index.model()->data(index.model()->index(index.row(), INDEX_FIRST_CHAR)).toString();
+	const auto artist_cover_id = index.model()->data(index.model()->index(index.row(), INDEX_COVER_ID)).toString();
+	const auto first_char = index.model()->data(index.model()->index(index.row(), INDEX_FIRST_CHAR)).toString();
 
 	const auto default_cover_size = qTheme.GetDefaultCoverSize();
 	const QRect cover_rect(option.rect.left() + 10,
@@ -50,8 +50,8 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
 	painter->setRenderHints(QPainter::TextAntialiasing, true);
 
-	int size = cover_rect.height() - 4;
-	QRect rect(cover_rect.x() + 2, cover_rect.y() + 2, size, size);
+	const auto size = cover_rect.height() - 4;
+	const QRect rect(cover_rect.x() + 2, cover_rect.y() + 2, size, size);
 	painter->setPen(Qt::NoPen);
 	painter->setBrush(Qt::gray);
 	painter->drawEllipse(rect);
@@ -59,7 +59,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		auto artist_cover = qPixmapCache.GetCover(qTEXT("thumbnail_"), artist_cover_id);
+		const auto artist_cover = qPixmapCache.GetCover(qTEXT("thumbnail_"), artist_cover_id);
 		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
 	}
 	else {
@@ -74,12 +74,12 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	font.setBold(false);
 	font.setPointSize(qTheme.GetFontSize(8));
 	painter->setFont(font);
-	auto album_artist_text_width = default_cover_size.width();
-	QRect artist_text_rect(option.rect.left() + 10,
-		option.rect.top() + default_cover_size.height() + 15,
-		album_artist_text_width,
-		15);
-	QFontMetrics album_metrics(font);
+	const auto album_artist_text_width = default_cover_size.width();
+	const QRect artist_text_rect(option.rect.left() + 10,
+	                             option.rect.top() + default_cover_size.height() + 15,
+	                             album_artist_text_width,
+	                             15);
+	const QFontMetrics album_metrics(font);
 	painter->drawText(artist_text_rect, Qt::AlignVCenter,
 		album_metrics.elidedText(artist, Qt::ElideRight, album_artist_text_width));
 }
@@ -94,7 +94,7 @@ QSize ArtistStyledItemDelegate::sizeHint(const QStyleOptionViewItem& option, con
 
 bool ArtistStyledItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
 	if (event->type() == QEvent::MouseButtonPress) {
-		auto* mouse_event = static_cast<QMouseEvent*>(event);
+		const auto* mouse_event = dynamic_cast<QMouseEvent*>(event);
 		if (mouse_event->button() == Qt::LeftButton) {
 			emit EnterAlbumView(index);
 		}
@@ -213,8 +213,8 @@ void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const Q
         )"
 	).arg(qTheme.GetLinearGradientStyle()));
 
-	auto artist_cover = qPixmapCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
-	auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);	
+	const auto artist_cover = qPixmapCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+	const auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(round_image);
 	album_view_->FilterByArtistId(artist_id);

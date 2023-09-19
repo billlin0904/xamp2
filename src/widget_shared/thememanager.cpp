@@ -973,14 +973,14 @@ void ThemeManager::SetAlbumNaviBarTheme(QListView *tab) const {
 	}
 	QListView#albumTab::item {
 		border: 0px;
-		padding-left: 6px;       
+		padding: 2px;
 	}
 	QListView#albumTab::item:hover {
 		background-color: transparent;
 		border-radius: 2px;
 	}
 	QListView#albumTab::item:selected {
-		padding-left: 4px;
+		padding: 2px; 
 		background-color: transparent;
         color: rgb(%2);
 		border-bottom-width: 2px;

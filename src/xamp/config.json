@@ -26,6 +26,7 @@
                 "Qt": "info",
                 "R8brainLib": "info",
                 "SharedWasapiDevice": "info",
+                "Soxr": "debug",
                 "TagLib": "info",
                 "VirtualMemory": "info",
                 "WASAPIThreadPool": "info"
