@@ -46,6 +46,33 @@ QString FormatDsdSampleRate(uint32_t dsd_speed) {
     return QString::number(sample_rate, 'f', 2) + qTEXT("kHz");
 }
 
+bool ParseVersion(const QString& s, Version& version) {
+    const auto ver = s.split(qTEXT("."));
+    if (ver.length() != 3) {
+        return false;
+    }
+
+    for (auto i = 0; i < ver.length(); ++i) {
+        bool ok = false;
+        switch (i) {
+        case 0:
+            version.major_part = ver[i].toInt(&ok);
+            break;
+        case 1:
+            version.minor_part = ver[i].toInt(&ok);
+            break;
+        case 2:
+            version.revision_part = ver[i].toInt(&ok);
+            break;
+        default:;
+        }
+        if (!ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
 QString FormatDuration(const double stream_time, bool full_text) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);

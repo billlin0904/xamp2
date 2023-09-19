@@ -128,46 +128,43 @@ template
 class RcuPtr {
 public:
 	template <typename S>
-	using atomic_shared_ptr = typename Traits::template atomic_shared_ptr<S>;
+	using AtomicSharedPtr = typename Traits::template atomic_shared_ptr<S>;
 
 	template <typename W>
-	using shared_ptr = typename Traits::template shared_ptr<W>;
+	using SharedPtr = typename Traits::template shared_ptr<W>;
 
-	using element_type = typename shared_ptr<const T>::element_type;
-public:
+	using ElementType = typename SharedPtr<const T>::element_type;
+
 	RcuPtr() = default;
 
-	explicit RcuPtr(const shared_ptr<const T>& desired)
+	explicit RcuPtr(const SharedPtr<const T>& desired)
 		: ptr_(desired) {
 	}
 
-	explicit RcuPtr(shared_ptr<const T>&& desired)
+	explicit RcuPtr(SharedPtr<const T>&& desired)
 		: ptr_(std::move(desired)) {
 	}
 
 	~RcuPtr() = default;
 
-	RcuPtr(const RcuPtr&) = delete;
-	RcuPtr& operator=(const RcuPtr&) = delete;
-	RcuPtr(RcuPtr&&) = delete;
-	RcuPtr& operator=(RcuPtr&&) = delete;
+	XAMP_DISABLE_COPY_AND_MOVE(RcuPtr)
 
-	shared_ptr<const T> read() const noexcept {
+	SharedPtr<const T> read() const noexcept {
 		return ptr_.load(std::memory_order_consume);
 	}
 
-	void reset(const shared_ptr<T>& r) noexcept {
+	void reset(const SharedPtr<T>& r) noexcept {
 		ptr_.store(r, std::memory_order_release);
 	}
 
-	void reset(shared_ptr<T>&& r) noexcept {
+	void reset(SharedPtr<T>&& r) noexcept {
 		ptr_.store(std::move(r), std::memory_order_release);
 	}
 
 	template <typename F>
 	void copy_update(F&& fun) {
 		auto sp_ptr_copy = ptr_.load(std::memory_order_consume);
-		shared_ptr<T> r;
+		SharedPtr<T> r;
 		do {
 			if (sp_ptr_copy) {
 				r = Traits::template make_shared<T>(*sp_ptr_copy);
@@ -179,7 +176,7 @@ public:
 			std::memory_order_consume));
 	}
 private:
-	atomic_shared_ptr<const T> ptr_;
+	AtomicSharedPtr<const T> ptr_;
 };
 
 XAMP_BASE_NAMESPACE_END

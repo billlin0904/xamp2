@@ -106,22 +106,6 @@ namespace {
         constexpr auto kMaxTitleIcon = 20;
         ui.logoButton->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
 
-        ui.sliderBarButton->setStyleSheet(qSTR(R"(
-                                            QToolButton#sliderBarButton {
-                                            border: none;
-                                            background-color: transparent;
-											border-radius: 0px;
-                                            }
-											QToolButton#sliderBarButton:hover {												
-											background-color: %1;
-											border-radius: 0px;								 
-											}
-                                            QToolButton#sliderBarButton::menu-indicator {
-                                            image: none;
-                                            }
-                                            )").arg(ColorToString(hover_color)));
-        ui.sliderBarButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SLIDER_BAR));
-
         ui.stopButton->setStyleSheet(qSTR(R"(
                                          QToolButton#stopButton {
                                          border: none;
@@ -171,22 +155,6 @@ namespace {
                                          )"));
         ui.eqButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
 
-        ui.preferenceButton->setStyleSheet(qTEXT(R"(
-                                            QToolButton#preferenceButton {
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-                                            )"));
-        ui.preferenceButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
-
-        ui.aboutButton->setStyleSheet(qTEXT(R"(
-                                            QToolButton#aboutButton {
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-                                            )"));
-        ui.aboutButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
-
         ui.pendingPlayButton->setStyleSheet(qTEXT(R"(
                                             QToolButton#pendingPlayButton {
                                             border: none;
@@ -203,14 +171,19 @@ namespace {
     )"
         ));
 
-        ui.upgradeButton->setStyleSheet(qSTR(R"(
-                                         QToolButton#upgradeButton {
-                                         border: none;
-                                         background-color: transparent;
+        ui.menuButton->setStyleSheet(qSTR(R"(
+                                         QToolButton#menuButton {                                                
+                                                border: none;
+                                                background-color: transparent;                                                
                                          }
-                                         )"));
+                                         QToolButton#menuButton::menu-indicator { image: none; }
+										 QToolButton#menuButton:hover {												
+											background-color: %1;
+											border-radius: 10px;								 
+									     }
+                                         )").arg(ColorToString(qTheme.GetHoverColor())));
 
-        ui.upgradeButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_UP));
+        ui.menuButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_MORE));
     }
 
     void SetRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
@@ -387,7 +360,6 @@ namespace {
         ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
 
         SetThemeIcon(ui);
-        ui.sliderBarButton->setIconSize(qTheme.GetTabIconSize());
         ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
         ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
         ui.currentViewFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
@@ -458,9 +430,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.closeButton, SystemButtonType::Close);
-    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.aboutButton);
-    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.preferenceButton);
-    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.upgradeButton);
+    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.menuButton);
     //FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.titleFrame); // No moveable
 
     main_window_ = main_window;
@@ -658,18 +628,40 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
         if (latest_version_value > kApplicationVersionValue) {
             trigger_upgrade_action_ = true;
-            ui_.upgradeButton->show();
         }
-        });
-
-    (void)QObject::connect(ui_.upgradeButton, &QToolButton::clicked, [updater, this]() {
-        if (!trigger_upgrade_action_) {
-            return;
-        }
-        updater->checkForUpdates(kSoftwareUpdateUrl);
         });
     
     updater->checkForUpdates(kSoftwareUpdateUrl);
+
+    auto* menu = new XMenu();
+    qTheme.SetMenuStyle(menu);
+    const auto * preference_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
+    (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
+        auto* dialog = new XDialog(this);
+        auto* preference_page = new PreferencePage(dialog);
+        preference_page->LoadSettings();
+        dialog->SetContentWidget(preference_page);
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
+        dialog->SetTitle(tr("Preference"));
+        dialog->exec();
+        preference_page->SaveAll();
+        });
+    menu->addSeparator();
+    const auto* check_for_updates_action = menu->addAction(tr("Check For Updates"));
+    (void)QObject::connect(check_for_updates_action, &QAction::triggered, [updater, this]() {
+        updater->checkForUpdates(kSoftwareUpdateUrl);
+        });
+    const auto* about_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_ABOUT),tr("About"));
+    (void)QObject::connect(about_action, &QAction::triggered, [this]() {
+        auto* dialog = new XDialog(this);
+        auto* about_page = new AboutPage(dialog);
+        dialog->SetContentWidget(about_page);
+        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
+        dialog->SetTitle(tr("About"));
+        dialog->exec();
+        });
+    ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
+    ui_.menuButton->setMenu(menu);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -793,7 +785,6 @@ void Xamp::InitialUi() {
     qTheme.SetPlayOrPauseButton(ui_.playButton, false);
 
     ui_.stopButton->hide();
-    ui_.upgradeButton->hide();
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -1028,26 +1019,6 @@ void Xamp::InitialController() {
         PlayPrevious();
     });
 
-    (void)QObject::connect(ui_.aboutButton, &QToolButton::clicked, [this]() {
-        auto* dialog = new XDialog(this);
-        auto* about_page = new AboutPage(dialog);
-        dialog->SetContentWidget(about_page);
-        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
-        dialog->SetTitle(tr("About"));
-        dialog->exec();
-        });
-
-    (void)QObject::connect(ui_.preferenceButton, &QToolButton::clicked, [this]() {
-        auto* dialog = new XDialog(this);
-        auto* preference_page = new PreferencePage(dialog);
-        preference_page->LoadSettings();
-        dialog->SetContentWidget(preference_page);
-        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
-        dialog->SetTitle(tr("Preference"));
-        dialog->exec();
-        preference_page->SaveAll();
-        });
-
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
@@ -1125,12 +1096,6 @@ void Xamp::InitialController() {
         qMainDb.SetTableName(table_id, name);
     });
 
-    ui_.sliderBarButton->setIconSize(qTheme.GetTabIconSize());
-   (void)QObject::connect(ui_.sliderBarButton, &QToolButton::clicked, [this]() {
-	   const auto enable = !AppSettings::ValueAsBool(kAppSettingShowLeftList);
-       AppSettings::SetValue(kAppSettingShowLeftList, enable);
-   });   
-    
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(FormatDuration(0));
     ui_.endPosLabel->setText(FormatDuration(0));

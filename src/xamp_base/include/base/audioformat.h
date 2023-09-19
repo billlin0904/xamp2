@@ -139,11 +139,11 @@ public:
 
     static AudioFormat ToFloatFormat(AudioFormat const& source_format) noexcept;
 
-    std::string ToString() const;
+    [[nodiscard]] std::string ToString() const;
 
-    std::string ToShortString() const;
+    [[nodiscard]] std::string ToShortString() const;
 
-    size_t GetHash() const;
+    [[nodiscard]] size_t GetHash() const;
 
 private:
     XAMP_BASE_API friend bool operator>(const AudioFormat& format, const AudioFormat& other) noexcept;

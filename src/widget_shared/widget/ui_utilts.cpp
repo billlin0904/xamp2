@@ -277,7 +277,7 @@ void GetOpenFileName(QWidget* parent,
         return;
     }
 
-    QDir current_dir;
+    const QDir current_dir;
     AppSettings::SetValue(kAppSettingDefaultDir, current_dir.absoluteFilePath(file_name));
 
     action(file_name);    

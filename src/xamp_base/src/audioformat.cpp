@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #define DECLARE_AUDIO_FORMAT_IMPL(Name, SampleRate) \
 	const AudioFormat AudioFormat::k16Bit##Name(DataFormat::FORMAT_PCM,\
@@ -65,4 +65,4 @@ size_t AudioFormat::GetHash() const {
 	return std::hash<std::string>{}(ToString());
 }
 
-}
+XAMP_BASE_NAMESPACE_END

@@ -70,7 +70,7 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
         return true;
     }
 
-	const auto* ev = static_cast<QMouseEvent*> (event);
+	const auto* ev = dynamic_cast<QMouseEvent*> (event);
     mouse_point_ = ev->pos();
 	const auto current_cursor = QApplication::overrideCursor();
 

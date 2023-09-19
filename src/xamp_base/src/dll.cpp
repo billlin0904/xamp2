@@ -25,7 +25,7 @@ SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name) {
 }
 
 void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
-    auto func = ::GetProcAddress(dll.get(), MAKEINTRESOURCEA(flags));
+	auto func = ::GetProcAddress(dll.get(), MAKEINTRESOURCEA(flags));
     if (!func) {
         throw NotFoundDllExportFuncException(name);
     }
@@ -49,9 +49,9 @@ bool AddSharedLibrarySearchDirectory(const Path& path) {
 }
 
 SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name) {
-    auto module = ::LoadLibraryExA(file_name.data(),
-        nullptr,
-        LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+	const auto module = ::LoadLibraryExA(file_name.data(),
+	                                     nullptr,
+	                                     LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 	if (!module) {
 		throw LoadDllFailureException(file_name);
 	}

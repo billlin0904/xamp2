@@ -12,7 +12,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 /*
-* Allaocate aligned memory.
+* Allocate aligned memory.
 * 
 * @param[in] size
 * @param[in] aligned_size

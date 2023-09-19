@@ -47,6 +47,18 @@ namespace std {
 	};
 }
 
+struct XAMP_WIDGET_SHARED_EXPORT Version {
+	int32_t major_part{ -1 };
+	int32_t minor_part{ -1 };
+	int32_t revision_part{ -1 };
+
+	bool operator > (const Version& version) const noexcept {
+		return major_part > version.major_part
+			|| minor_part > version.minor_part
+			|| revision_part > version.revision_part;
+	}
+};
+
 inline constexpr ConstLatin1String kEmptyString{ "" };
 
 constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
@@ -86,6 +98,8 @@ XAMP_WIDGET_SHARED_EXPORT QString FormatDuration(const double stream_time, bool 
 XAMP_WIDGET_SHARED_EXPORT bool IsMoreThan1Hours(const double stream_time);
 
 XAMP_WIDGET_SHARED_EXPORT QString ToNativeSeparators(const QString& path);
+
+XAMP_WIDGET_SHARED_EXPORT bool ParseVersion(const QString& s, Version& version);
 
 QString FormatDsdSampleRate(uint32_t dsd_speed);
 
