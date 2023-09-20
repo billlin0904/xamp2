@@ -252,7 +252,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_frame_layout->addLayout(album_combox_layout_1);
 
 	auto* tags_label = new QLabel(tr("Category"));
-	f.setPointSize(qTheme.GetFontSize(12));
+	f.setPointSize(qTheme.GetFontSize(9));
 	tags_label->setFont(f);
 
 	album_frame_layout->addWidget(tags_label);

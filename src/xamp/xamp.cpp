@@ -1335,9 +1335,7 @@ void Xamp::DeleteKeyPress() {
 
 void Xamp::SetPlayerOrder() {
     SetRepeatButtonIcon(ui_, order_);
-    if (playlist_page_ != nullptr) {
-        playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
-    }    
+    emit ChangePlayerOrder(order_);
     AppSettings::SetEnumValue(kAppSettingOrder, order_);
 }
 
@@ -1823,7 +1821,7 @@ void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::AddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
 	auto *playlist_view = playlist_page_->playlist();
     qMainDb.AddMusicToPlaylist(music_ids, playlist_view->GetPlaylistId());
-    playlist_view->AddPendingPlayListFromModel(order_);    
+    emit ChangePlayerOrder(order_);
 }
 
 void Xamp::SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
@@ -1899,7 +1897,7 @@ void Xamp::InitialPlaylist() {
         playlist_page_.reset(NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName));
         ConnectPlaylistPageSignal(playlist_page_.get());
         playlist_page_->playlist()->SetHeaderViewHidden(false);
-        playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
+        //playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
 
         (void)QObject::connect(extract_file_worker_.get(),
             &ExtractFileWorker::FromDatabase,
@@ -2256,6 +2254,11 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::ThemeChanged,
         playlist_page,
         &PlaylistPage::OnThemeColorChanged);
+
+    (void)QObject::connect(this,
+        &Xamp::ChangePlayerOrder,
+        playlist_page->playlist(),
+        &PlayListTableView::AddPendingPlayListFromModel);
 }
 
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {

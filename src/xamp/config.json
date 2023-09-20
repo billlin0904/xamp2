@@ -11,6 +11,7 @@
                 "BassCompressor": "info",
                 "BassEqualizer": "info",
                 "BassFader": "info",
+                "BassFileStream": "info",
                 "CrashHandler": "debug",
                 "Database": "info",
                 "DatabaseFacade": "info",
@@ -22,6 +23,7 @@
                 "LibAv": "info",
                 "LibSoxr": "info",
                 "MFEncoder": "info",
+                "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
                 "Qt": "info",
                 "R8brainLib": "info",
@@ -37,12 +39,20 @@
         "resampleSampleRate": 96000
     },
     "Soxr": {
+        "DSD2PCM": {
+            "passBand": 96,
+            "phase": 46,
+            "quality": 3,
+            "resampleSampleRate": 176400,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        },
         "default": {
-            "passBand": 1,
-            "phase": 1,
-            "quality": 0,
-            "resampleSampleRate": 44100,
-            "rolloffLevel": 0,
+            "passBand": 96,
+            "phase": 46,
+            "quality": 3,
+            "resampleSampleRate": 96000,
+            "rolloffLevel": 2,
             "stopBand": 100
         }
     }

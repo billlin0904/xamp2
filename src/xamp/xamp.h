@@ -87,6 +87,7 @@ signals:
 
 	void Translation(const QString& keyword, const QString& from, const QString& to);	
 
+	void ChangePlayerOrder(PlayerOrder order);
 public slots:
     void PlayEntity(const PlayListEntity& entity);
 

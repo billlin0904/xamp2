@@ -283,19 +283,19 @@ namespace {
 
         return app.exec();
     }
+
+    struct FramelessHelperRAII {
+        FramelessHelperRAII() {
+            FramelessHelper::Widgets::initialize();
+            FramelessHelper::Core::setApplicationOSThemeAware();
+            FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
+        }
+
+        ~FramelessHelperRAII() {
+            FramelessHelper::Widgets::uninitialize();
+        }
+    };
 }
-
-struct FramelessHelperRAII {
-    FramelessHelperRAII() {
-        FramelessHelper::Widgets::initialize();
-        FramelessHelper::Core::setApplicationOSThemeAware();
-        FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
-    }
-
-    ~FramelessHelperRAII() {
-        FramelessHelper::Widgets::uninitialize();
-    }
-};
 
 int main() {
     LoggerManager::GetInstance()

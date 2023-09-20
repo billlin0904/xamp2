@@ -72,9 +72,7 @@ public:
 	QModelIndex GetShuffleIndex();
 
 	QModelIndex GetCurrentIndex() const;
-
-    void AddPendingPlayListFromModel(PlayerOrder order);
-
+    
     void DeletePendingPlaylist();
 
     void SetCurrentPlayIndex(const QModelIndex& index);
@@ -140,6 +138,8 @@ public slots:
 		double album_peak,
 		double track_rg_gain,
 		double track_peak);
+
+	void AddPendingPlayListFromModel(PlayerOrder order);
 private:
 	PlayListEntity item(const QModelIndex& index);
 
