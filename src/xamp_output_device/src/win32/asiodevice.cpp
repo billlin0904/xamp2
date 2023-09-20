@@ -23,64 +23,66 @@
 #include <output_device/win32/asioexception.h>
 #include <output_device/win32/asiodevice.h>
 
-namespace xamp::output_device::win32 {
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-/*
-* AsioDriver is the asio driver.
-* 
-*/
-struct AsioDriver {
-	bool is_xrun{ false };
-	bool post_output{ false };
-	AsioDevice* device{ nullptr };
-	AlignPtr<AsioDrivers> drivers{};
-	AudioConvertContext data_context{};
-	ASIOCallbacks asio_callbacks{};
-	Stopwatch buffer_switch_stopwatch;
-	std::array<ASIOBufferInfo, AudioFormat::kMaxChannel> buffer_infos{};
-	std::array<ASIOChannelInfo, AudioFormat::kMaxChannel> channel_infos{};
+namespace {
+	/*
+	* AsioDriver is the asio driver.
+	*
+	*/
+	struct AsioDriver {
+		bool is_xrun{ false };
+		bool post_output{ false };
+		AsioDevice* device{ nullptr };
+		AlignPtr<AsioDrivers> drivers{};
+		AudioConvertContext data_context{};
+		ASIOCallbacks asio_callbacks{};
+		Stopwatch buffer_switch_stopwatch;
+		std::array<ASIOBufferInfo, AudioFormat::kMaxChannel> buffer_infos{};
+		std::array<ASIOChannelInfo, AudioFormat::kMaxChannel> channel_infos{};
 
-	std::string GetDriverName() const {
-		char driver_name[MAX_PATH]{};
-		drivers->getCurrentDriverName(driver_name);
-		return driver_name;
-	}
-
-	void SetPostOutput() {
-		post_output = ::ASIOOutputReady() == ASE_OK;
-	}
-
-	void Post() noexcept {
-		if (post_output) {
-			::ASIOOutputReady();
+		std::string GetDriverName() const {
+			char driver_name[MAX_PATH]{};
+			drivers->getCurrentDriverName(driver_name);
+			return driver_name;
 		}
+
+		void SetPostOutput() {
+			post_output = ::ASIOOutputReady() == ASE_OK;
+		}
+
+		void Post() noexcept {
+			if (post_output) {
+				::ASIOOutputReady();
+			}
+		}
+	};
+
+	/*
+	* GetLatencyMs converts ASIO sample to ms.
+	*
+	* @param latency: ASIO sample
+	* @param sampleRate: sample rate
+	* @return ms
+	*/
+	XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
+		return latency * 1000 / sampleRate;
 	}
-};
 
-/*
-* GetLatencyMs converts ASIO sample to ms.
-* 
-* @param latency: ASIO sample
-* @param sampleRate: sample rate
-* @return ms
-*/
-static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
-	return latency * 1000 / sampleRate;
-}
-
-/*
-* ASIO64toDouble converts ASIOSamples to double.
-* 
-* @param a: ASIOSamples
-* @return double
-*/
-static XAMP_ALWAYS_INLINE int64_t ASIO64toDouble(const ASIOSamples &a) noexcept {
+	/*
+	* ASIO64toDouble converts ASIOSamples to double.
+	*
+	* @param a: ASIOSamples
+	* @return double
+	*/
+	XAMP_ALWAYS_INLINE int64_t ASIO64toDouble(const ASIOSamples& a) noexcept {
 #if NATIVE_INT64  
-	return a;
+		return a;
 #else
-	constexpr double kTwoRaisedTo32 = 4294967296.;
-	return (a).lo + (a).hi * kTwoRaisedTo32;
+		constexpr double kTwoRaisedTo32 = 4294967296.;
+		return (a).lo + (a).hi * kTwoRaisedTo32;
 #endif
+	}
 }
 
 #define ASIODriver Singleton<AsioDriver>::GetInstance()
@@ -802,7 +804,6 @@ void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	ASIODriver.device->callback_->OnError(SampleRateChangedException());
 }
 
-}
+XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
 #endif
-

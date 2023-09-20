@@ -21,81 +21,90 @@ XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDevice);
 
 using namespace helper;
 
-/*
-* Set WAVEFORMATEX from AudioFormat and valid bits samples
-* 
-* @param input_fromat: input format
-* @param audio_format: audio format
-*/
-static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) noexcept {
-	XAMP_EXPECTS(input_fromat != nullptr);
-	XAMP_EXPECTS(audio_format.GetChannels() == AudioFormat::kMaxChannel);
-	XAMP_EXPECTS(valid_bits_samples > 0);
+namespace {
+	/*
+	* Set WAVEFORMATEX from AudioFormat and valid bits samples
+	*
+	* @param input_fromat: input format
+	* @param audio_format: audio format
+	*/
+	void SetWaveformatEx(WAVEFORMATEX* input_fromat, const AudioFormat& audio_format, const int32_t valid_bits_samples) noexcept {
+		XAMP_EXPECTS(input_fromat != nullptr);
+		XAMP_EXPECTS(audio_format.GetChannels() == AudioFormat::kMaxChannel);
+		XAMP_EXPECTS(valid_bits_samples > 0);
 
-	// Check if this is correct	
-	XAMP_EXPECTS(input_fromat->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX));
-	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
+		// Check if this is correct	
+		XAMP_EXPECTS(input_fromat->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX));
+		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_fromat);
 
-	// Copy from AudioFormat
-	format.Format.nChannels = audio_format.GetChannels();
-    format.Format.nSamplesPerSec = audio_format.GetSampleRate();
-    format.Format.nAvgBytesPerSec = audio_format.GetAvgBytesPerSec();
-    format.Format.nBlockAlign = audio_format.GetBlockAlign();
-    format.Samples.wValidBitsPerSample = valid_bits_samples;    
-    	
-    if (audio_format.GetChannels() <= 2
-            && ((audio_format.GetBitsPerSample() == 16) || (audio_format.GetBitsPerSample() == 8))) {
-		// If this is a PCM format, we can set the wFormatTag to WAVE_FORMAT_PCM
-		// and the SubFormat to KSDATAFORMAT_SUBTYPE_PCM. Otherwise, we need to
-		// set the wFormatTag to WAVE_FORMAT_PCM.
-        format.Format.cbSize = 0;
-        format.Format.wFormatTag = WAVE_FORMAT_PCM;
-        format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
-		format.Format.wBitsPerSample = audio_format.GetBitsPerSample();
-    } else {
-		// This is 24/32 bit float format setting.
-		// If this is a PCM format, we can set the wFormatTag to WAVE_FORMAT_PCM
-		// and the SubFormat to KSDATAFORMAT_SUBTYPE_PCM. Otherwise, we need to
-	    // set the wFormatTag to WAVE_FORMAT_EXTENSIBLE and the SubFormat to
-		// KSDATAFORMAT_SUBTYPE_IEEE_FLOAT.
-        format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-        format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-        format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
-		format.Format.wBitsPerSample = 32;
-    }
-	format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
+		// Copy from AudioFormat
+		format.Format.nChannels = audio_format.GetChannels();
+		format.Format.nSamplesPerSec = audio_format.GetSampleRate();
+		format.Format.nAvgBytesPerSec = audio_format.GetAvgBytesPerSec();
+		format.Format.nBlockAlign = audio_format.GetBlockAlign();
+		format.Samples.wValidBitsPerSample = valid_bits_samples;
+
+		if (audio_format.GetChannels() <= 2
+			&& ((audio_format.GetBitsPerSample() == 16) || (audio_format.GetBitsPerSample() == 8))) {
+			// If this is a PCM format, we can set the wFormatTag to WAVE_FORMAT_PCM
+			// and the SubFormat to KSDATAFORMAT_SUBTYPE_PCM. Otherwise, we need to
+			// set the wFormatTag to WAVE_FORMAT_PCM.
+			format.Format.cbSize = 0;
+			format.Format.wFormatTag = WAVE_FORMAT_PCM;
+			format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+			format.Format.wBitsPerSample = audio_format.GetBitsPerSample();
+		}
+		else {
+			// This is 24/32 bit float format setting.
+			// If this is a PCM format, we can set the wFormatTag to WAVE_FORMAT_PCM
+			// and the SubFormat to KSDATAFORMAT_SUBTYPE_PCM. Otherwise, we need to
+			// set the wFormatTag to WAVE_FORMAT_EXTENSIBLE and the SubFormat to
+			// KSDATAFORMAT_SUBTYPE_IEEE_FLOAT.
+			format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+			format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+			format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+			format.Format.wBitsPerSample = 32;
+		}
+		format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
+	}
+
+	UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size) noexcept {
+		return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
+	}
+
+	template <typename Predicate>
+	int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
+		constexpr UINT32 kHdAudioPacketSize = 128;
+
+		const auto bytes_frame = frames * block_align;
+		auto new_bytes_frame = f(bytes_frame, kHdAudioPacketSize);
+		if (new_bytes_frame < kHdAudioPacketSize) {
+			new_bytes_frame = kHdAudioPacketSize;
+		}
+
+		auto new_frames = new_bytes_frame / block_align;
+		const UINT32 packets = new_bytes_frame / kHdAudioPacketSize;
+		new_bytes_frame = packets * kHdAudioPacketSize;
+		new_frames = new_bytes_frame / block_align;
+		return new_frames;
+	}
+
+	template <typename Predicate>
+	int32_t MakeAlignedPeriod(const AudioFormat& format, int32_t frames_per_latency, Predicate f) noexcept {
+		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
+	}
+
+	constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
+	constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+	constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
+	constexpr IID kAudioClockID = __uuidof(IAudioClock);
+
+	// A total typical delay of 35 ms contains three parts:
+	// 1. Audio endpoint device period (~10 ms).
+	// 2. Stream latency between the buffer and endpoint device (~5 ms).
+	// 3. Endpoint buffer (~20 ms to ensure glitch-free rendering).
+	constexpr REFERENCE_TIME kGlitchFreePeriod = 350000;
 }
-
-static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size) noexcept {
-    return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
-}
-
-template <typename Predicate>
-static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
-    constexpr UINT32 kHdAudioPacketSize = 128;
-
-    const auto bytes_frame = frames * block_align;
-	auto new_bytes_frame = f(bytes_frame, kHdAudioPacketSize);
-    if (new_bytes_frame < kHdAudioPacketSize) {
-        new_bytes_frame = kHdAudioPacketSize;
-    }
-
-	auto new_frames = new_bytes_frame / block_align;
-    const UINT32 packets = new_bytes_frame / kHdAudioPacketSize;
-    new_bytes_frame = packets * kHdAudioPacketSize;
-    new_frames = new_bytes_frame / block_align;
-    return new_frames;
-}
-
-template <typename Predicate>
-static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_latency, Predicate f) noexcept {
-    return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
-}
-
-static constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
-static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-static constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
-static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
@@ -139,12 +148,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	REFERENCE_TIME default_device_period = 0;
 	REFERENCE_TIME minimum_device_period = 0;
-
-	// A total typical delay of 35 ms contains three parts:
-	// 1. Audio endpoint device period (~10 ms).
-    // 2. Stream latency between the buffer and endpoint device (~5 ms).
-    // 3. Endpoint buffer (~20 ms to ensure glitch-free rendering).
-	constexpr REFERENCE_TIME kGlitchFreePeriod = 350000;
 
 	if (buffer_period_ == 0) {
 		// If buffer_period_ is not set, use default device period.

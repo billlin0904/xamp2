@@ -46,6 +46,8 @@ inline constexpr int32_t kWasapiReftimesPerMillisec = 10000;
 inline constexpr double kWasapiReftimesPerSec = 10000000;
 inline constexpr auto kMicrosecondsPerSecond =  1000000;
 
+using ComString = CComHeapPtr<wchar_t>;
+
 /*
 * Convert reference time to seconds.
 * 

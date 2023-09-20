@@ -13,41 +13,41 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     freq_label_ = std::array<QLabel*, 10>{
         ui_.band1FeqLabel,
-            ui_.band2FeqLabel,
-            ui_.band3FeqLabel,
-            ui_.band4FeqLabel,
-            ui_.band5FeqLabel,
-            ui_.band6FeqLabel,
-            ui_.band7FeqLabel,
-            ui_.band8FeqLabel,
-            ui_.band9FeqLabel,
-            ui_.band10FeqLabel,
+        ui_.band2FeqLabel,
+        ui_.band3FeqLabel,
+        ui_.band4FeqLabel,
+        ui_.band5FeqLabel,
+        ui_.band6FeqLabel,
+        ui_.band7FeqLabel,
+        ui_.band8FeqLabel,
+        ui_.band9FeqLabel,
+        ui_.band10FeqLabel,
     };
 
     sliders_ = std::array<DoubleSlider*, 10>{
         ui_.band1Slider,
-            ui_.band2Slider,
-            ui_.band3Slider,
-            ui_.band4Slider,
-            ui_.band5Slider,
-            ui_.band6Slider,
-            ui_.band7Slider,
-            ui_.band8Slider,
-            ui_.band9Slider,
-            ui_.band10Slider
+        ui_.band2Slider,
+        ui_.band3Slider,
+        ui_.band4Slider,
+        ui_.band5Slider,
+        ui_.band6Slider,
+        ui_.band7Slider,
+        ui_.band8Slider,
+        ui_.band9Slider,
+        ui_.band10Slider
     };
 
     bands_label_ = std::array<QLabel*, 10>{
         ui_.band1DbLabel,
-            ui_.band2DbLabel,
-            ui_.band3DbLabel,
-            ui_.band4DbLabel,
-            ui_.band5DbLabel,
-            ui_.band6DbLabel,
-            ui_.band7DbLabel,
-            ui_.band8DbLabel,
-            ui_.band9DbLabel,
-            ui_.band10DbLabel,
+        ui_.band2DbLabel,
+        ui_.band3DbLabel,
+        ui_.band4DbLabel,
+        ui_.band5DbLabel,
+        ui_.band6DbLabel,
+        ui_.band7DbLabel,
+        ui_.band8DbLabel,
+        ui_.band9DbLabel,
+        ui_.band10DbLabel,
     };
 
     auto f = qTheme.GetMonoFont();
@@ -143,7 +143,7 @@ void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings
 
     for (size_t i = 0; i < settings.bands.size(); ++i) {
         freq_label_[i]->setText(FormatSampleRate(settings.bands[i].frequency));
-        bands_label_[i]->setText(FormatDouble(settings.bands[i].gain, 2));
+        bands_label_[i]->setText(FormatDb(settings.bands[i].gain, 2));
         sliders_[i]->setValue(settings.bands[i].gain * 10);
 
         freq_label_[i]->show();

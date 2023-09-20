@@ -14,7 +14,7 @@
 #include <widget/widget_shared_global.h>
 #include <stream/bassparametriceq.h>
 
-class ParametricEqView;
+class DoubleSlider;
 
 class XAMP_WIDGET_SHARED_EXPORT EqualizerView : public QFrame {
     Q_OBJECT

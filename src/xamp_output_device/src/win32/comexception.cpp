@@ -11,16 +11,18 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-static std::string MakeErrorMessage(HRESULT hr) {
-    std::ostringstream ostr;
-    ostr << "Hr code: 0x" << std::uppercase << std::setfill('0') << std::setw(8) << std::hex << hr << " (" << GetPlatformErrorMessage(hr) << ")";
-    return ostr.str();
-}
+namespace {
+    std::string MakeErrorMessage(HRESULT hr) {
+        std::ostringstream ostr;
+        ostr << "Hr code: 0x" << std::uppercase << std::setfill('0') << std::setw(8) << std::hex << hr << " (" << GetPlatformErrorMessage(hr) << ")";
+        return ostr.str();
+    }
 
-static std::string MakeFileNameAndLine(const Path& file_path, int32_t line_number) {
-    std::ostringstream ostr;
-    ostr << file_path.filename() << ":" << std::dec << line_number;
-    return ostr.str();
+    std::string MakeFileNameAndLine(const Path& file_path, int32_t line_number) {
+        std::ostringstream ostr;
+        ostr << file_path.filename() << ":" << std::dec << line_number;
+        return ostr.str();
+    }
 }
 
 ComException::ComException(long hresult, std::string_view expr, const Path& file_path, int32_t line_number)
