@@ -135,7 +135,7 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
             catch (...) { }
         }        
         
-        std::sort(tracks.begin(), tracks.end(), [](const auto& first, const auto& last) {
+        std::ranges::sort(tracks, [](const auto& first, const auto& last) {
             return first.track < last.track;
             });
 
