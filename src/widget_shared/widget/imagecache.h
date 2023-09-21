@@ -38,6 +38,7 @@ class XAMP_WIDGET_SHARED_EXPORT ImageCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
 	static constexpr int kTrimImageSizeSeconds = 3 * 1000;
+	static constexpr QImage::Format kFormat = QImage::Format_RGB888;
 
     friend class SharedSingleton<ImageCache>;
 

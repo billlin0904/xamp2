@@ -20,6 +20,7 @@
 
 class ProcessIndicator;
 class PlayListSqlQueryTableModel;
+class PlayListTableFilterProxyModel;
 
 class XAMP_WIDGET_SHARED_EXPORT PlayListTableView : public QTableView {
 	Q_OBJECT
@@ -103,7 +104,7 @@ public:
 
 	void SetOtherPlaylist(int32_t playlist_id);
 
-	void Search(const QString& keyword);
+	void Search(const QString& keyword) const;
 signals:
 	void UpdatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
@@ -166,6 +167,7 @@ protected:
 	std::optional<int32_t> other_playlist_id_;
 	QModelIndex play_index_;
     PlayListSqlQueryTableModel* model_;
+	PlayListTableFilterProxyModel* proxy_model_;
     QSet<QString> hidden_column_names_;
 	QList<QModelIndex> pending_playlist_;
 	PRNG rng_;

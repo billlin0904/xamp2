@@ -23,16 +23,16 @@ void XDialog::SetContent(QWidget* content) {
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
     setLayout(default_layout);
 
-    auto* title_frame = new QFrame();
-    title_frame->setObjectName(QString::fromUtf8("titleFrame"));
-    title_frame->setMinimumSize(QSize(0, kMaxTitleHeight));
-    title_frame->setFrameShape(QFrame::NoFrame);
-    title_frame->setFrameShadow(QFrame::Plain);
+    title_frame_ = new QFrame();
+    title_frame_->setObjectName(QString::fromUtf8("titleFrame"));
+    title_frame_->setMinimumSize(QSize(0, kMaxTitleHeight));
+    title_frame_->setFrameShape(QFrame::NoFrame);
+    title_frame_->setFrameShadow(QFrame::Plain);
 
     auto f = font();
     f.setBold(true);
     f.setPointSize(qTheme.GetFontSize(kTitleFontSize));
-    title_frame_label_ = new QLabel(title_frame);
+    title_frame_label_ = new QLabel(title_frame_);
     title_frame_label_->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
     size_policy3.setHorizontalStretch(1);
@@ -59,26 +59,26 @@ void XDialog::SetContent(QWidget* content) {
     }
     )").arg(color));
 
-    close_button_ = new QToolButton(title_frame);
+    close_button_ = new QToolButton(title_frame_);
     close_button_->setObjectName(QString::fromUtf8("closeButton"));
     close_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     close_button_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     close_button_->setFocusPolicy(Qt::NoFocus);
 
-    max_win_button_ = new QToolButton(title_frame);
+    max_win_button_ = new QToolButton(title_frame_);
     max_win_button_->setObjectName(QString::fromUtf8("maxWinButton"));
     max_win_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     max_win_button_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     max_win_button_->setFocusPolicy(Qt::NoFocus);
 
-    min_win_button_ = new QToolButton(title_frame);
+    min_win_button_ = new QToolButton(title_frame_);
     min_win_button_->setObjectName(QString::fromUtf8("minWinButton"));
     min_win_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     min_win_button_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     min_win_button_->setFocusPolicy(Qt::NoFocus);
     min_win_button_->setPopupMode(QToolButton::InstantPopup);
 
-    icon_ = new QToolButton(title_frame);
+    icon_ = new QToolButton(title_frame_);
     icon_->setObjectName(QString::fromUtf8("minWinButton"));
     icon_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
     icon_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
@@ -89,7 +89,7 @@ void XDialog::SetContent(QWidget* content) {
 
     auto* horizontal_spacer = new QSpacerItem(kMaxTitleHeight, kMaxTitleIcon, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    auto* horizontal_layout = new QHBoxLayout(title_frame);
+    auto* horizontal_layout = new QHBoxLayout(title_frame_);
     horizontal_layout->addWidget(icon_);
     horizontal_layout->addItem(horizontal_spacer);
     horizontal_layout->addWidget(title_frame_label_);
@@ -101,7 +101,7 @@ void XDialog::SetContent(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    default_layout->addWidget(title_frame, 0);
+    default_layout->addWidget(title_frame_, 0);
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
@@ -123,11 +123,10 @@ void XDialog::SetContent(QWidget* content) {
         this,
         &XDialog::OnCurrentThemeChanged);
 
-    FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame);
+    FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame_);
     FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
-    //FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame); // No moveable
     FramelessWidgetsHelper::get(this)->waitForReady();
 
     show();
@@ -141,9 +140,12 @@ void XDialog::SetTitle(const QString& title) const {
     title_frame_label_->setText(title);
 }
 
-void XDialog::SetContentWidget(QWidget* content, bool transparent_frame, bool disable_resize) {
+void XDialog::SetContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {
     SetContent(content);
     FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
+    if (no_moveable) {
+        FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame_);
+    }
 }
 
 void XDialog::SetIcon(const QIcon& icon) const {

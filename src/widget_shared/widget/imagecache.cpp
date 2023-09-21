@@ -85,7 +85,7 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 		for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
-			QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB888);
+			QImage image(qTheme.GetCacheCoverSize(), kFormat);
 			QImageReader reader(image_file_path);
 			XAMP_LOG_DEBUG("Found {}", image_file_path.toStdString());
 			if (reader.read(&image)) {
@@ -126,7 +126,7 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 			continue;
 		}
 		QImageReader reader(scan_dir.filePath(image_file_path));
-		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB888);
+		QImage image(qTheme.GetCacheCoverSize(), kFormat);
 		XAMP_LOG_DEBUG("Found {}", image_file_path.toStdString());
 		if (reader.read(&image)) {
 			return QPixmap::fromImage(image);
@@ -136,7 +136,7 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	// If no file matches the 'Front' file name, return the first file that matches the name filters.
 	if (!image_files.empty()) {
 		QImageReader reader(scan_dir.filePath(image_files[0]));
-		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB888);
+		QImage image(qTheme.GetCacheCoverSize(), kFormat);
 		XAMP_LOG_DEBUG("Found {}", image_files[0].toStdString());
 		if (reader.read(&image)) {
 			return QPixmap::fromImage(image);
@@ -171,7 +171,7 @@ void ImageCache::RemoveImage(const QString& tag_id) const {
 }
 
 ImageCacheEntity ImageCache::GetFromFile(const QString& tag_id) const {
-	QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB888);
+	QImage image(qTheme.GetCacheCoverSize(), kFormat);
 	QImageReader reader(cache_path_ + tag_id + kCacheFileExtension);
 	if (reader.read(&image)) {
 		const auto file_info = GetImageFileInfo(tag_id);
@@ -256,7 +256,7 @@ void ImageCache::LoadCache() const {
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
 		const auto path = itr.next();
-		QImage image(qTheme.GetCacheCoverSize(), QImage::Format_RGB888);
+		QImage image(qTheme.GetCacheCoverSize(), kFormat);
 		QImageReader reader(path);
 		if (reader.read(&image)) {
 			const QFileInfo file_info(path);
@@ -291,7 +291,7 @@ QPixmap ImageCache::GetOrDefault(const QString& tag_id, bool not_found_use_defau
 	return image;
 }
 
-void ImageCache::SetMaxSize(size_t max_size) {
+void ImageCache::SetMaxSize(const size_t max_size) {
 	trim_target_size_ = max_size;
 }
 

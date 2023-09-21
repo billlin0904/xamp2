@@ -278,7 +278,7 @@ FROM
 WHERE
 	playlistMusics.playlistId = %1
     )");
-    const QSqlQuery query(s.arg(1), qMainDb.database());
+    const QSqlQuery query(s.arg(kDefaultPlaylistId), qMainDb.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
@@ -301,7 +301,7 @@ PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWid
     default_layout->addWidget(playlist_);
 
     default_layout->setContentsMargins(5, 5, 5, 5);
-    setFixedSize(500, 300);    
+    setFixedSize(800, 300);    
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const auto& index) {
         PlayMusic(indexes_[index.row()]);

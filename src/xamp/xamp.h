@@ -192,7 +192,7 @@ private:
 
     void SetTablePlaylistView(int table_id, ConstLatin1String column_setting_name);
 
-	void SetPlayerOrder();
+	void SetPlayerOrder(bool emit_order = false);
 
 	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 

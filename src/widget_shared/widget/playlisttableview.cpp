@@ -2,16 +2,15 @@
 
 #include <QHeaderView>
 #include <QDesktopServices>
-#include <QFileDialog>
 #include <QClipboard>
 #include <QScrollBar>
 #include <QShortcut>
 #include <QFormLayout>
-#include <QTimeEdit>
 #include <QLineEdit>
 #include <QApplication>
 #include <qevent.h>
 #include <QPainter>
+#include <QRegExp>
 #include <QSqlError>
 #include <QStyledItemDelegate>
 #include <ranges>
@@ -26,7 +25,7 @@
 
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
-#include <widget/http.h>
+#include <widget/playlisttableproxymodel.h>
 #include <widget/appsettings.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
@@ -206,62 +205,10 @@ public:
 };
 
 
-void PlayListTableView::Search(const QString& keyword) {
-    /*QString s = qSTR(R"(
-    SELECT
-	albums.coverId,
-    musics.musicId,
-    playlistMusics.playing,
-    musics.track,
-    musics.path,
-	musics.fileSize,
-    musics.title,
-    musics.fileName,
-    artists.artist,
-    albums.album,    
-    musics.bit_rate,
-    musics.sample_rate,
-    musics.rating,
-    albumMusic.albumId,
-    albumMusic.artistId,    
-	musics.fileExt,
-    musics.parentPath,
-    musics.dateTime,
-	playlistMusics.playlistMusicsId,
-    musics.album_replay_gain,
-    musics.album_peak,	
-    musics.track_replay_gain,
-	musics.track_peak,
-	musicLoudness.track_loudness,
-	musics.genre,
-    musics.heart,
-	musics.duration
-    FROM
-    playlistMusics
-    JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
-    JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
-    JOIN musics ON playlistMusics.musicId = musics.musicId
-    JOIN albums ON albumMusic.albumId = albums.albumId
-    JOIN artists ON albumMusic.artistId = artists.artistId
-    WHERE
-    playlistMusics.playlistId = %1 AND musics.title LIKE '%%2%')");
-
-    s += qTEXT(R"(
-        GROUP BY
-        musics.parentPath, musics.track
-        ORDER BY
-        musics.parentPath ASC, musics.track ASC;
-        )");
-
-    auto query_str = s.arg(playlist_id_).arg(keyword);
-
-    const QSqlQuery query(query_str, qMainDb.database());
-    model_->setQuery(query);
-    if (model_->lastError().type() != QSqlError::NoError) {
-        XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
-    }
-    model_->dataChanged(QModelIndex(), QModelIndex());*/
+void PlayListTableView::Search(const QString& keyword) const {
+	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
+    proxy_model_->AddFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
 void PlayListTableView::Reload() {
@@ -318,13 +265,15 @@ void PlayListTableView::Reload() {
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
     }
+    
     model_->dataChanged(QModelIndex(), QModelIndex());
 }
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
     , playlist_id_(playlist_id)
-    , model_(new PlayListSqlQueryTableModel(this)) {
+    , model_(new PlayListSqlQueryTableModel(this))
+	, proxy_model_(new PlayListTableFilterProxyModel(this)) {
     initial();
 }
 
@@ -462,7 +411,11 @@ void PlayListTableView::SetHeaderViewHidden(bool enable) {
 }
 
 void PlayListTableView::initial() {
-    setModel(model_);
+    //setModel(model_);
+
+    proxy_model_->AddFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->setSourceModel(model_);
+    setModel(proxy_model_);
 
     auto f = font();
 #ifdef Q_OS_WIN
@@ -795,7 +748,7 @@ void PlayListTableView::keyPressEvent(QKeyEvent *event) {
             edit(GetCurrentIndex());
         }
     } else {
-        // any other key was pressed, inform base class XAMP_WIDGET_SHARED_EXPORT
+        // any other key was pressed, inform base class
         QAbstractItemView::keyPressEvent(event);
     }
 }
@@ -931,7 +884,7 @@ void PlayListTableView::SetOtherPlaylist(int32_t playlist_id) {
 }
 
 void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
-    Reload();
+    /*Reload();
     DeletePendingPlaylist();
 
     QModelIndex index;
@@ -951,7 +904,35 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
             index = GetFirstIndex();
         }
         pending_playlist_.append(index);
-        auto entity = GetEntity(index);
+        const auto entity = GetEntity(index);
+        try {
+            qMainDb.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
+        }
+        catch (...) {
+        }
+    }*/
+
+    Reload();
+    DeletePendingPlaylist();
+
+    QModelIndex index;
+    for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
+        switch (order) {
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+            index = GetNextIndex(i);
+            break;
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+            index = play_index_;
+            break;
+        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+            index = GetShuffleIndex();
+            break;
+        }
+        if (!index.isValid()) {
+            index = GetFirstIndex();
+        }
+        pending_playlist_.append(index);
+        const auto entity = GetEntity(index);
         try {
             qMainDb.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
         }
@@ -961,7 +942,7 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
 }
 
 QModelIndex PlayListTableView::GetNextIndex(int forward) const {
-    const auto count = model_->rowCount();
+    const auto count = proxy_model_->rowCount();
     const auto play_index = GetCurrentIndex();
     const auto next_index = (play_index.row() + forward) % count;
     return model()->index(next_index, PLAYLIST_PLAYING);
@@ -972,7 +953,7 @@ QModelIndex PlayListTableView::GetShuffleIndex() {
     if (play_index_.isValid()) {
         current_playlist_music_id = GetIndexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     }
-    const auto count = model_->rowCount();
+    const auto count = proxy_model_->rowCount();
     if (current_playlist_music_id != 0) {
         rng_.SetSeed(current_playlist_music_id);
     }    

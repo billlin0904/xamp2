@@ -25,7 +25,7 @@ public:
 
     explicit XDialog(QWidget* parent = nullptr, bool modal = true);
 
-    void SetContentWidget(QWidget* content, bool transparent_frame = false, bool disable_resize = true);
+    void SetContentWidget(QWidget* content, bool no_moveable = false, bool disable_resize = true);
 
     QWidget* ContentWidget() const {
         return content_;
@@ -34,6 +34,7 @@ public:
     void SetTitle(const QString& title) const;
 
     void SetIcon(const QIcon& icon) const;
+
 private slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
 
@@ -50,6 +51,7 @@ private:
     QToolButton* close_button_{ nullptr };
     QToolButton* max_win_button_{ nullptr };
     QToolButton* min_win_button_{ nullptr };
+    QFrame* title_frame_{ nullptr };
     QGraphicsDropShadowEffect* shadow_{ nullptr };
 };
 

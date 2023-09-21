@@ -1,6 +1,3 @@
-icon
-https://www.flaticon.com/free-icon/play_7781770
-
 3rd library
 
 BASS audio library

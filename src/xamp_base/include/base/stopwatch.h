@@ -18,7 +18,7 @@ public:
 
 	template <typename Resolution = std::chrono::microseconds>
 	[[nodiscard]] Resolution Elapsed() const noexcept {
-		return std::chrono::duration_cast<Resolution>(clock_.now() - start_time_);
+		return std::chrono::duration_cast<Resolution>(Clock::now() - start_time_);
 	}
 
 	[[nodiscard]] double ElapsedSeconds() const noexcept {		

@@ -12,7 +12,7 @@
 
 class QSqlQueryModel;
 
-class PendingPlayTableView : public QTableView {
+class XAMP_WIDGET_SHARED_EXPORT PendingPlayTableView : public QTableView {
 	Q_OBJECT
 public:
 	explicit PendingPlayTableView(QWidget* parent = nullptr);
@@ -37,6 +37,9 @@ class XAMP_WIDGET_SHARED_EXPORT PendingPlaylistPage : public QFrame {
 public:
 	explicit PendingPlaylistPage(const QList<QModelIndex>& indexes, QWidget* parent = nullptr);
 
+	PendingPlayTableView* playlist() {
+		return playlist_;
+	}
 signals:
 	void PlayMusic(const QModelIndex& index);
 

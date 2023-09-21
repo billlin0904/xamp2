@@ -94,7 +94,7 @@ namespace {
         const auto memory_size = GetAvailablePhysicalMemory();
         XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
         //auto working_size = memory_size * 0.6;
-        auto working_size = 128UL * 1024UL * 1024UL;
+        const auto working_size = 128UL * 1024UL * 1024UL;
         if (working_size > 0) {
             SetProcessWorkingSetSize(working_size);
             XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(working_size));
@@ -251,13 +251,6 @@ namespace {
         win.SetThemeColor(qTheme.GetBackgroundColor(),
             qTheme.GetThemeTextColor());
 
-        const auto os_ver = QOperatingSystemVersion::current();
-        XAMP_LOG_DEBUG("Running {} {}.{}.{}",
-            os_ver.name().toStdString(),
-            os_ver.majorVersion(),
-            os_ver.minorVersion(),
-            os_ver.microVersion());
-
         if (AppSettings::ValueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");
             SetProcessMitigation();
@@ -306,6 +299,17 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
+    const auto os_ver = QOperatingSystemVersion::current();
+    if (os_ver >= QOperatingSystemVersion::Windows10
+        && os_ver < QOperatingSystemVersion::Windows11) {
+        SetWorkingSetSize();
+	}
+    XAMP_LOG_DEBUG("Running {} {}.{}.{}",
+        os_ver.name().toStdString(),
+        os_ver.majorVersion(),
+        os_ver.minorVersion(),
+        os_ver.microVersion());
+
     FramelessHelperRAII frameless_helper_raii;
 
     AppSettings::LoadIniFile(qTEXT("xamp.ini"));
@@ -318,8 +322,6 @@ int main() {
     XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
-    SetWorkingSetSize();
-
     const auto components_path = GetComponentsFilePath();
     if (!AddSharedLibrarySearchDirectory(components_path)) {
         XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());

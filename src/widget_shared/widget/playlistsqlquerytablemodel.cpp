@@ -1,6 +1,4 @@
-#include <QSqlRecord>
 #include <QSqlDriver>
-#include <QSqlField>
 
 #include <widget/playlistsqlquerytablemodel.h>
 

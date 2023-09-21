@@ -431,7 +431,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.closeButton, SystemButtonType::Close);
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.menuButton);
-    //FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.titleFrame); // No moveable
 
     main_window_ = main_window;
 
@@ -1020,6 +1019,7 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
+        SetPlayerOrder(true);
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
         dialog->SetContentWidget(page, true);
@@ -1029,6 +1029,7 @@ void Xamp::InitialController() {
             &PendingPlaylistPage::PlayMusic,
             current_playlist_page_->playlist(),
             &PlayListTableView::PlayIndex);
+        page->playlist()->Reload();
         auto center_pos = ui_.pendingPlayButton->mapToGlobal(ui_.pendingPlayButton->rect().topRight());
         const auto sz = dialog->size();
         center_pos.setX(center_pos.x() - sz.width());
@@ -1064,7 +1065,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::clicked, [this]() {
         order_ = GetNextOrder(order_);
-        SetPlayerOrder();
+        SetPlayerOrder(true);
     });
 
     (void)QObject::connect(ui_.playButton, &QToolButton::clicked, [this]() {
@@ -1333,9 +1334,11 @@ void Xamp::DeleteKeyPress() {
     playlist_view->RemoveSelectItems();
 }
 
-void Xamp::SetPlayerOrder() {
+void Xamp::SetPlayerOrder(bool emit_order) {
     SetRepeatButtonIcon(ui_, order_);
-    emit ChangePlayerOrder(order_);
+    if (emit_order) {
+        emit ChangePlayerOrder(order_);
+    }
     AppSettings::SetEnumValue(kAppSettingOrder, order_);
 }
 
@@ -1897,13 +1900,17 @@ void Xamp::InitialPlaylist() {
         playlist_page_.reset(NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName));
         ConnectPlaylistPageSignal(playlist_page_.get());
         playlist_page_->playlist()->SetHeaderViewHidden(false);
-        //playlist_page_->playlist()->AddPendingPlayListFromModel(order_);
-
+  
         (void)QObject::connect(extract_file_worker_.get(),
             &ExtractFileWorker::FromDatabase,
             playlist_page_->playlist(),
             &PlayListTableView::ProcessDatabase,
             Qt::QueuedConnection);
+
+        (void)QObject::connect(this,
+            &Xamp::ChangePlayerOrder,
+            playlist_page_->playlist(),
+            &PlayListTableView::AddPendingPlayListFromModel);
     }
 
     if (!file_system_view_page_) {
@@ -2254,11 +2261,6 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::ThemeChanged,
         playlist_page,
         &PlaylistPage::OnThemeColorChanged);
-
-    (void)QObject::connect(this,
-        &Xamp::ChangePlayerOrder,
-        playlist_page->playlist(),
-        &PlayListTableView::AddPendingPlayListFromModel);
 }
 
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {

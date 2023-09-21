@@ -38,14 +38,14 @@ private:
 public:
     using return_ptr_type = std::unique_ptr<T, deleter_type>;
 
-    explicit ObjectPool(size_t init_size)
+    explicit ObjectPool(const size_t init_size)
         : current_size_(0)
         , max_size_(2 * init_size)
         , init_size_(init_size) {
         Init();
     }
 
-    ObjectPool(size_t init_size, typename std::remove_reference<factory_type>::type &&factory)
+    ObjectPool(const size_t init_size, typename std::remove_reference<factory_type>::type &&factory)
         : current_size_(0)
         , max_size_(2 * init_size)
         , init_size_(init_size)
@@ -53,8 +53,8 @@ public:
         Init();
     }
 
-    ObjectPool(size_t init_size,
-               typename std::conditional<std::is_reference<factory_type>::value, factory_type, const factory_type &>::type factory)
+    ObjectPool(const size_t init_size,
+               std::conditional_t<std::is_reference_v<factory_type>, factory_type, const factory_type &> factory)
         : current_size_(0)
         , max_size_(2 * init_size)
         , init_size_(init_size)
@@ -115,9 +115,6 @@ private:
     }
 
     class ReturnToPool {
-    private:
-        std::weak_ptr<pool_type> pool_;
-
     public:
         explicit ReturnToPool(const std::shared_ptr<pool_type> &ptr)
             : pool_(ptr) {
@@ -132,6 +129,8 @@ private:
                 }
             }
         }
+    private:
+        std::weak_ptr<pool_type> pool_;
     };
 };
 

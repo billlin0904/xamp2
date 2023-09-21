@@ -168,13 +168,14 @@ void PlaylistPage::Initial() {
 	auto action_list = search_line_edit_->findChildren<QAction*>();
 	if (!action_list.isEmpty()) {
 		(void)QObject::connect(action_list.first(), &QAction::triggered, this, [this]() {
-			playlist_->Reload();
+			playlist_->Search(kEmptyString);
 			});
 	}
 
 	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this, search_playlist_model, playlist_completer](const auto& text) {
 		const auto items = search_playlist_model->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
+			playlist_->Search(kEmptyString);
 			return;
 		}
 		if (search_playlist_model->rowCount() >= kMaxCompletionCount) {
@@ -185,11 +186,7 @@ void PlaylistPage::Initial() {
 		playlist_completer->setModel(search_playlist_model);
 		playlist_completer->setCompletionPrefix(text);
 
-		if (!text.isEmpty()) {
-			playlist_->Search(text);
-		} else {
-			playlist_->Reload();
-		}
+		playlist_->Search(text);
 		});
 	qTheme.SetLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }

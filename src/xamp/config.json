@@ -3,6 +3,7 @@
         "MinimumLevel": {
             "Default": "debug",
             "Override": {
+                "AsioDevice": "info",
                 "AudioPlayer": "info",
                 "AvFileStream": "info",
                 "BASS": "info",
@@ -43,7 +44,7 @@
             "passBand": 96,
             "phase": 46,
             "quality": 3,
-            "resampleSampleRate": 176400,
+            "resampleSampleRate": 96000,
             "rolloffLevel": 2,
             "stopBand": 100
         },

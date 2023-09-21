@@ -213,7 +213,6 @@
   <ItemGroup>
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
-    <None Include="cpp.hint" />
     <None Include="ja_JP.ts" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />
