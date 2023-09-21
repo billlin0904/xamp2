@@ -88,14 +88,17 @@ ExtractFileWorker::ExtractFileWorker() {
     GetScanPathThreadPool();
 }
 
-HashMap<std::wstring, Vector<TrackInfo>> ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
+void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
                                       const QStringList& file_name_filters,
+                                      int32_t playlist_id,
                                       const QString& dir) {
-    HashMap<std::wstring, Vector<TrackInfo>> album_groups;
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     FloatMap<std::wstring, Vector<Path>> directory_files;
 
     while (itr.hasNext()) {
+        if (is_stop_) {
+            return;
+        }
         auto next_path = ToNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
         auto directory = QFileInfo(next_path).dir().path().toStdWString();
@@ -108,7 +111,7 @@ HashMap<std::wstring, Vector<TrackInfo>> ExtractFileWorker::ScanPathFiles(const 
     if (directory_files.empty()) {
         if (!QFileInfo(dir).isFile()) {
             XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
-            return album_groups;
+            return;
         }
         const auto next_path = ToNativeSeparators(dir);
         const auto path = next_path.toStdWString();
@@ -116,32 +119,29 @@ HashMap<std::wstring, Vector<TrackInfo>> ExtractFileWorker::ScanPathFiles(const 
         directory_files[directory].emplace_back(path);
     }
 
-    if (is_stop_) {
-        return album_groups;
-    }
-
     for (const auto& pair : directory_files) {
-        const auto& directory = pair.first;
+        if (is_stop_) {
+            return;
+        }
 
-        for (const auto & path : pair.second) {
-            if (is_stop_) {
-                return album_groups;
-            }
+        Vector<TrackInfo> tracks;
+        tracks.reserve(kReserveSize);
+
+        for (const auto & path : pair.second) {            
             try {
-                TaglibMetadataReader reader;
-                auto track_info = reader.Extract(path);
-                if (track_info.album) {
-                    if (!album_groups.contains(track_info.album.value())) {
-                        album_groups[track_info.album.value()].reserve(kReserveSize);
-                    }
-                    album_groups[track_info.album.value()].push_back(std::move(track_info));
-                }
+                TaglibMetadataReader reader;                
+                tracks.push_back(reader.Extract(path));
             }
             catch (...) { }
         }        
-        emit ReadFilePath(StringFormat("Extract directory {}", String::ToString(directory)));
+        
+        std::sort(tracks.begin(), tracks.end(), [](const auto& first, const auto& last) {
+            return first.track < last.track;
+            });
+
+        emit ReadFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(pair.first), pair.second.size()));
+        emit InsertDatabase(tracks, playlist_id, false);        
     }
-    return album_groups;
 }
 
 void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
@@ -215,16 +215,7 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         );
 
         try {
-            auto album_groups = ScanPathFiles(database_pool, GetFileNameFilter(), path);
-            std::for_each(album_groups.begin(), album_groups.end(), [&](auto& album_tracks) {
-                if (is_stop_) {
-                    return;
-                }
-                std::sort(album_tracks.second.begin(), album_tracks.second.end(), [](const auto& first, const auto& last) {
-                    return first.track < last.track;
-                    });
-                emit InsertDatabase(album_tracks.second, playlist_id, is_podcast_mode);
-                });
+            ScanPathFiles(database_pool, GetFileNameFilter(), playlist_id, path);
         }
         catch (Exception const& e) {
             XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());

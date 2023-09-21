@@ -40,9 +40,11 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	const auto artist_cover_id = index.model()->data(index.model()->index(index.row(), INDEX_COVER_ID)).toString();
 	const auto first_char = index.model()->data(index.model()->index(index.row(), INDEX_FIRST_CHAR)).toString();
 
+	constexpr auto kPaddingSize = 2;
+
 	const auto default_cover_size = qTheme.GetDefaultCoverSize();
-	const QRect cover_rect(option.rect.left() + 10,
-		option.rect.top() + 10,
+	const QRect cover_rect(option.rect.left() + kPaddingSize,
+		option.rect.top() + kPaddingSize,
 		default_cover_size.width(),
 		default_cover_size.height());
 

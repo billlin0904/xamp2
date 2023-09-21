@@ -65,7 +65,7 @@ void AlbumTabListView::AddTab(const QString& name, int tab_id) {
     item->setSizeHint(QSize(90, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-    f.setPointSize(qTheme.GetFontSize(10));
+    f.setPointSize(qTheme.GetFontSize(8));
 	f.setBold(true);
 	item->setFont(f);
 	model_.appendRow(item);

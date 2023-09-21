@@ -48,9 +48,10 @@ private:
         int32_t playlist_id,
         bool is_podcast_mode);
 
-    HashMap<std::wstring, Vector<TrackInfo>> ScanPathFiles(const PooledDatabasePtr& database_pool,
-                       const QStringList& file_name_filters,
-                       const QString& dir);
+    void ScanPathFiles(const PooledDatabasePtr& database_pool,
+        const QStringList& file_name_filters,
+        int32_t playlist_id,
+        const QString& dir);
 
     bool is_stop_{ true };
     LoggerPtr logger_;

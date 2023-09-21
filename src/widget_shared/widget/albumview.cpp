@@ -121,19 +121,21 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist = album_year <= 0 ? qTEXT("Unknown") : QString::number(album_year);
     }
 
+    constexpr auto kPaddingSize = 2;
+
     const auto default_cover_size = qTheme.GetDefaultCoverSize();
-    const QRect cover_rect(option.rect.left() + 10,
-        option.rect.top() + 10,
+    const QRect cover_rect(option.rect.left() + kPaddingSize,
+        option.rect.top() + kPaddingSize,
         default_cover_size.width(), 
         default_cover_size.height());
 
     auto album_artist_text_width = default_cover_size.width();
 
-    QRect album_text_rect(option.rect.left() + 10,
+    QRect album_text_rect(option.rect.left() + kPaddingSize,
         option.rect.top() + default_cover_size.height() + 15,
         album_artist_text_width,
         15);
-    QRect artist_text_rect(option.rect.left() + 10,
+    QRect artist_text_rect(option.rect.left() + kPaddingSize,
         option.rect.top() + default_cover_size.height() + 35,
         default_cover_size.width(),
         15);

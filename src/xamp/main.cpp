@@ -101,31 +101,6 @@ namespace {
         }
     }
 
-    Vector<SharedLibraryHandle> PinSystemDll() {
-        constexpr std::array<std::string_view, 6> dll_file_names{
-            R"("psapi.dll")",
-            R"("setupapi.dll")",
-            R"("WinTypes.dll")",
-            R"("AudioSes.dll")",
-            R"("AUDIOKSE.dll")",
-            R"("DWrite.dll")",
-        };
-        Vector<SharedLibraryHandle> pin_module;
-        for (const auto& file_name : dll_file_names) {
-            try {
-                auto module = PinSystemLibrary(file_name);
-                if (PrefetchSharedLibrary(module)) {
-                    pin_module.push_back(std::move(module));
-                    XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
-                }
-            }
-            catch (Exception const& e) {
-                XAMP_LOG_DEBUG("Pin {} failure! {}.", file_name, e.GetErrorMessage());
-            }
-        }
-        return pin_module;
-    }
-
     Vector<SharedLibraryHandle> PrefetchDll() {
         constexpr std::array<std::string_view, 5> dll_file_names{
             R"(mimalloc-override.dll)",
@@ -330,9 +305,6 @@ int main() {
 
     auto prefetch_dll = PrefetchDll();
     XAMP_LOG_DEBUG("Prefetch dll success.");
-
-    auto pin_system_dll = PinSystemDll();
-    XAMP_LOG_DEBUG("Pin system dll success.");
 #endif
 
     SharedCrashHandler.SetProcessExceptionHandlers();
@@ -347,7 +319,6 @@ int main() {
         AppSettings::SaveLogConfig();
         qMainDb.close();
         prefetch_dll.clear();
-        pin_system_dll.clear();
         LoggerManager::GetInstance().Shutdown();
     );
 
