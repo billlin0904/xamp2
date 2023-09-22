@@ -12,8 +12,6 @@
 
 TrackInfo GetTrackInfo(QString const& file_path);
 
-const QStringList& GetFileNameFilter();
-
 class CoverArtReader final {
 public:
     CoverArtReader();

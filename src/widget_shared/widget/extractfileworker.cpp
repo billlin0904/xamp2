@@ -8,13 +8,18 @@
 
 #include <metadata/taglibmetareader.h>
 
-#include <widget/database.h>
 #include <widget/albumview.h>
-#include <widget/databasefacade.h>
+#include <widget/ui_utilts.h>
 
 XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
 
 namespace {
+    struct PathInfo {
+        QString path;
+        size_t file_count;
+        size_t depth;
+    };
+
     size_t GetFileCount(const QString& dir, const QStringList& file_name_filters) {
         if (QFileInfo(dir).isFile()) {
             return 1;
@@ -30,18 +35,10 @@ namespace {
         return file_count;
     }
 
-    Vector<QString> GetPathSortByFileCount(
+    Vector<PathInfo> GetPathSortByFileCount(
         const Vector<QString>& paths,
         const QStringList& file_name_filters,
         std::function<void(size_t)>&& action) {
-        FastMutex mutex;
-
-        struct PathInfo {
-            QString path;
-            size_t file_count;
-            size_t depth;
-        };
-
         std::atomic<size_t> total_file_count = 0;
         Vector<PathInfo> path_infos;
         path_infos.reserve(paths.size());
@@ -61,10 +58,8 @@ namespace {
         std::erase_if(path_infos,
                       [](const auto& info) { return info.file_count == 0; });
 
-        Vector<QString> sorted_paths;
-
         if (total_file_count == 0) {
-            return sorted_paths;
+            return path_infos;
         }
 
         // Sort path_infos based on file count and depth
@@ -74,14 +69,7 @@ namespace {
             }
             return p1.depth < p2.depth;
             });
-
-        // Extract sorted paths
-        sorted_paths.reserve(path_infos.size());
-        for (const auto& path_info : path_infos) {
-            sorted_paths.push_back(path_info.path);
-        }
-
-        return sorted_paths;
+        return path_infos;
     }
 }
 
@@ -145,7 +133,7 @@ void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
 }
 
 void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id) {
-    Stopwatch sw;
+	const Stopwatch sw;
     is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, GetFileNameFilter(), filter);
@@ -189,7 +177,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
     QElapsedTimer timer;
     timer.start();
 
-    Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path) {
+    Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path_info) {
         if (is_stop_) {
             return;
         }
@@ -210,12 +198,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
             emit CalculateEta(remaining_time);
         );
 
-        try {
-            ScanPathFiles(GetFileNameFilter(), playlist_id, path);
-        }
-        catch (Exception const& e) {
-            XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());
-        }
+        ScanPathFiles(GetFileNameFilter(), playlist_id, path_info.path);
         });
 }
 

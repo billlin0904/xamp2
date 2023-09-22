@@ -273,15 +273,3 @@ TrackInfo GetTrackInfo(QString const& file_path) {
     const auto reader = MakeMetadataReader();
     return reader->Extract(path);
 }
-
-const QStringList& GetFileNameFilter() {
-    struct StaticGetFileNameFilter {
-        StaticGetFileNameFilter() {
-            for (auto& file_ext : GetSupportFileExtensions()) {
-                name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
-            }
-        }
-        QStringList name_filter;
-    };
-    return SharedSingleton<StaticGetFileNameFilter>::GetInstance().name_filter;
-}

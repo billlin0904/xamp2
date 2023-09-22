@@ -300,3 +300,15 @@ void Delay(int32_t seconds) {
     while (QTime::currentTime() < die_time)
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
+
+const QStringList& GetFileNameFilter() {
+    struct StaticGetFileNameFilter {
+        StaticGetFileNameFilter() {
+            for (auto& file_ext : GetSupportFileExtensions()) {
+                name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
+            }
+        }
+        QStringList name_filter;
+    };
+    return SharedSingleton<StaticGetFileNameFilter>::GetInstance().name_filter;
+}
