@@ -38,10 +38,10 @@ signals:
         const QString& album,
         const std::wstring& file_path);
 public:
-    void InsertTrackInfo(const Vector<TrackInfo>& result, int32_t playlist_id, bool is_podcast_mode);
+    void InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
 private:   
-    void AddTrackInfo(const Vector<TrackInfo>& result, int32_t playlist_id);
+    void AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
     bool is_stop_{false};
     LoggerPtr logger_;

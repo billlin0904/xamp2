@@ -58,6 +58,9 @@ namespace {
             action(total_file_count);
             });
 
+        std::erase_if(path_infos,
+                      [](const auto& info) { return info.file_count == 0; });
+
         Vector<QString> sorted_paths;
 
         if (total_file_count == 0) {
@@ -73,7 +76,6 @@ namespace {
             });
 
         // Extract sorted paths
-
         sorted_paths.reserve(path_infos.size());
         for (const auto& path_info : path_infos) {
             sorted_paths.push_back(path_info.path);
@@ -88,8 +90,7 @@ ExtractFileWorker::ExtractFileWorker() {
     GetScanPathThreadPool();
 }
 
-void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
-                                      const QStringList& file_name_filters,
+void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
                                       int32_t playlist_id,
                                       const QString& dir) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
@@ -119,34 +120,31 @@ void ExtractFileWorker::ScanPathFiles(const PooledDatabasePtr& database_pool,
         directory_files[directory].emplace_back(path);
     }
 
-    for (const auto& pair : directory_files) {
+    for (const auto& [fst, snd] : directory_files) {
         if (is_stop_) {
             return;
         }
 
-        Vector<TrackInfo> tracks;
-        tracks.reserve(kReserveSize);
+        ForwardList<TrackInfo> tracks;
 
-        for (const auto & path : pair.second) {            
+        for (const auto & path : snd) {            
             try {
                 TaglibMetadataReader reader;                
-                tracks.push_back(reader.Extract(path));
+                tracks.push_front(reader.Extract(path));
             }
             catch (...) { }
         }        
         
-        std::ranges::sort(tracks, [](const auto& first, const auto& last) {
+        tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
             });
 
-        emit ReadFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(pair.first), pair.second.size()));
-        emit InsertDatabase(tracks, playlist_id, false);        
+        emit ReadFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
+        emit InsertDatabase(tracks, playlist_id);        
     }
 }
 
-void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
-    int32_t playlist_id,
-    bool is_podcast_mode) {
+void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id) {
     Stopwatch sw;
     is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
@@ -167,21 +165,19 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
         paths.push_back(file_path);
     }
 
-    auto database_pool = GetPooledDatabase();
-
     emit ReadFileStart();
 
     XAMP_ON_SCOPE_EXIT(
         emit ReadFileProgress(100);
-        emit ReadCompleted();
+		emit ReadCompleted();
 		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
     );
 
     std::atomic<size_t> completed_work(0);
-   
+
     auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
-    });
+        });
 
     const auto total_work = file_count_paths.size();
     if (total_work == 0) {
@@ -204,27 +200,23 @@ void ExtractFileWorker::ReadTrackInfo(QString const& file_path,
             ++completed_work;
             
             const auto remaining_work = total_work - completed_work;
-
+            
             qint64 elapsed_time = 0;
-			{
+            {
                 std::lock_guard<FastMutex> guard{ mutex };
                 elapsed_time = timer.elapsed();
-			}
+            }
             const auto remaining_time = (elapsed_time * remaining_work) / completed_work;
             emit CalculateEta(remaining_time);
         );
 
         try {
-            ScanPathFiles(database_pool, GetFileNameFilter(), playlist_id, path);
+            ScanPathFiles(GetFileNameFilter(), playlist_id, path);
         }
         catch (Exception const& e) {
             XAMP_LOG_D(logger_, "Failed to scan path files! ", e.GetErrorMessage());
         }
         });
-}
-
-void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode) {
-    ReadTrackInfo(file_path, playlist_id, false);
 }
 
 void ExtractFileWorker::OnCancelRequested() {

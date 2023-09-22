@@ -24,15 +24,12 @@
 
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
-#define IGNORE_ANY_EXCEPTION(expr) \
-    do {\
-		try {\
-			expr;\
-		}\
-		catch (...) {}\
-    } while (false)
-
 namespace {
+    constexpr auto kJop = qTEXT("jpop");
+    constexpr auto kHiRes = qTEXT("HiRes");
+    constexpr auto kDsdCategory = qTEXT("DSD");
+    constexpr auto k24Bit96KhzBitRate = 4608;
+
     QSet<QString> GetAlbumCategories(const QString& album) {
 	    const QRegularExpression regex(
             R"((final fantasy \b|piano|vocal|soundtrack|best|complete|collection|edition|version|the king of fighter)(?:(?: \[.*\])|(?: - .*))?)",
@@ -66,8 +63,6 @@ namespace {
     }
 
     QStringList NormalizeGenre(const QString& genre) {
-        static constexpr auto kJop = qTEXT("jpop");
-
         QStringList normalized_tags;
 
         if (genre.isEmpty()) {
@@ -133,12 +128,8 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);    
 }
 
-void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result, int32_t playlist_id) {
+void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     const Stopwatch sw;
-    static constexpr auto kHiRes = qTEXT("HiRes");
-    static constexpr auto kDsdCategory = qTEXT("DSD");
-    static constexpr auto k24Bit96KhzBitRate = 4608;
-
     const std::wstring kDffExtension(L".dff");
     const std::wstring kDsfExtension(L".dsf");
 
@@ -146,7 +137,6 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result, int32_t playl
     FloatMap<QString, int32_t> album_id_cache;
     FloatMap<int32_t, QString> cover_id_cache;
     HashSet<bool> find_cover_state_cache;
-    const CoverArtReader reader;
 
     const auto album_year = result.front().year;
     const auto album_genre = NormalizeGenre(GetStringOrEmptyString(result.front().genre)).join(",");
@@ -164,6 +154,7 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result, int32_t playl
 
         QPixmap cover;
 		if (is_file_path && album.isEmpty()) {
+			const CoverArtReader reader;
 			album = tr("Unknown album");
 			// todo: 如果有內建圖片就把當作一張專輯.
 			cover = reader.GetEmbeddedCover(track_info);
@@ -249,13 +240,11 @@ void DatabaseFacade::AddTrackInfo(const Vector<TrackInfo>& result, int32_t playl
         }
 	}
     if (sw.ElapsedSeconds() > 1.0) {
-        XAMP_LOG_DEBUG("AddTrackInfo ({} secs, {} items)", sw.ElapsedSeconds(), result.size());
+        XAMP_LOG_DEBUG("AddTrackInfo ({} secs)", sw.ElapsedSeconds());
     }
 }
 
-void DatabaseFacade::InsertTrackInfo(const Vector<TrackInfo>& result,
-    int32_t playlist_id,
-    bool is_podcast_mode) {
+void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     try {
         if (!qMainDb.transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");

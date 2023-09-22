@@ -49,7 +49,7 @@ signals:
 
     void DominantColor(const QColor &color);
 
-    void OnReadCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos);
+    void OnReadCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
     void OnMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 

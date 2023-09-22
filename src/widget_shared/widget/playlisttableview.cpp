@@ -766,7 +766,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-    emit ExtractFile(file_name, GetPlaylistId(), false);
+    emit ExtractFile(file_name, GetPlaylistId());
 }
 
 void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {

@@ -61,22 +61,22 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
     }
 
     try {
-        Vector<TrackInfo> track_infos;
-	    auto cd = OpenCD(drive.driver_letter);
+        ForwardList<TrackInfo> track_infos;
+        const auto cd = OpenCD(drive.driver_letter);
         cd->SetMaxSpeed();
-        auto tracks = cd->GetTotalTracks();
+        const auto tracks = cd->GetTotalTracks();
 
         auto track_id = 0;
         for (const auto& track : tracks) {
-            auto metadata = GetTrackInfo(QString::fromStdWString(track));
-            metadata.file_path = tracks[track_id];
-            metadata.duration = cd->GetDuration(track_id++);
-            metadata.sample_rate = 44100;
-            metadata.disc_id = disc_id;
-            track_infos.push_back(metadata);
+            auto track_info = GetTrackInfo(QString::fromStdWString(track));
+            track_info.file_path = tracks[track_id];
+            track_info.duration = cd->GetDuration(track_id++);
+            track_info.sample_rate = 44100;
+            track_info.disc_id = disc_id;
+            track_infos.push_front(track_info);
         }
 
-        std::ranges::sort(track_infos, [](const auto& first, const auto& last) {
+        track_infos.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
         });
 
@@ -130,7 +130,7 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
 }
 
 void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {
-    auto writer = MakeMetadataWriter();
+	const auto writer = MakeMetadataWriter();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);

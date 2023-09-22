@@ -122,7 +122,7 @@ signals:
 
 	void AddPlaylistItemFinished();
 
-	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+	void ExtractFile(const QString& file_path, int32_t playlist_id);
 public slots:
 	void PlayIndex(const QModelIndex& index);
 

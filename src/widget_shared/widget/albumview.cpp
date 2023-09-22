@@ -30,7 +30,6 @@
 #include <QPainterPath>
 #include <QSqlError>
 #include <QApplication>
-#include <QDialogButtonBox>
 #include <QHeaderView>
 
 enum {
@@ -806,7 +805,7 @@ void AlbumView::append(const QString& file_name) {
 }
 
 void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
-    emit ExtractFile(file_name, -1, false);
+    emit ExtractFile(file_name, -1);
 }
 
 void AlbumView::HideWidget() {

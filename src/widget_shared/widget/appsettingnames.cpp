@@ -6,7 +6,6 @@
 IMPL_APP_SETTING_NAME(AppSettingAutoCheckForUpdate, "AppSettings/autoCheckForUpdate" );
 IMPL_APP_SETTING_NAME(AppSettingDontShowMeAgainList, "AppSettings/dontShowMeAgain");
 
-IMPL_APP_SETTING_NAME(AppSettingDefaultDir, "AppSettings/defaultDir");
 IMPL_APP_SETTING_NAME(AppSettingLastTabName, "AppSettings/lastTabName");
 IMPL_APP_SETTING_NAME(AppSettingLang, "AppSettings/lang");
 IMPL_APP_SETTING_NAME(AppSettingDeviceType, "AppSettings/deviceType");
@@ -28,6 +27,7 @@ IMPL_APP_SETTING_NAME(AppSettingCdPlaylistColumnName, "AppSettings/cdColumnName"
 IMPL_APP_SETTING_NAME(AppSettingIsMuted,"AppSettings/isMuted");
 IMPL_APP_SETTING_NAME(AppSettingMyMusicFolderPath, "AppSettings/myMusicFolderPath");
 IMPL_APP_SETTING_NAME(AppSettingEnterFullScreen, "AppSettings/enterFullScreen");
+IMPL_APP_SETTING_NAME(AppSettingLastOpenFolderPath, "AppSettings/lastOpenFolderPath");
 
 IMPL_APP_SETTING_NAME(AppSettingTheme, "AppSettings/theme/themeColor");
 IMPL_APP_SETTING_NAME(AppSettingMinimizeToTrayAsk, "AppSettings/minimizeToTrayAsk");

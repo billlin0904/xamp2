@@ -1732,12 +1732,12 @@ void Xamp::OnUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
     qMainDb.SetAlbumCover(album_id, cover_id);
 }
 
-void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const Vector<TrackInfo>& track_infos) {
+void Xamp::OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
     const auto album_id = qMainDb.GetAlbumIdByDiscId(disc_id);
     qMainDb.RemoveAlbum(album_id);
     cd_page_->playlistPage()->playlist()->RemoveAll();
     DatabaseFacade facade;
-    facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId, false);    
+    facade.InsertTrackInfo(track_infos, kDefaultCdPlaylistId);    
     emit Translation(GetStringOrEmptyString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
     cd_page_->playlistPage()->playlist()->Reload();
     cd_page_->showPlaylistPage(true);
@@ -2084,7 +2084,7 @@ QWidget* Xamp::PopWidget() {
 }
 
 void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
-	const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
+	const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
         [this, item, profile](const auto &file_name) {
@@ -2126,7 +2126,7 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::EncodeWavFile(const PlayListEntity& item) {
-    const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
+    const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
         [this, item](const auto& file_name) {
@@ -2165,7 +2165,7 @@ void Xamp::EncodeWavFile(const PlayListEntity& item) {
 }
 
 void Xamp::EncodeFlacFile(const PlayListEntity& item) {
-    const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
+    const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
 
     GetSaveFileName(this,
@@ -2274,16 +2274,14 @@ void Xamp::AddDropFileItem(const QUrl& url) {
     AddItem(url.toLocalFile());
 }
 
-void Xamp::OnInsertDatabase(const Vector<TrackInfo>& result,
-    int32_t playlist_id,
-    bool is_podcast_mode) {
+void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     DatabaseFacade facede;
     (void)QObject::connect(&facede,
         &DatabaseFacade::FindAlbumCover,
         find_album_cover_worker_.get(),
         &FindAlbumCoverWorker::OnFindAlbumCover,
         Qt::QueuedConnection);
-    facede.InsertTrackInfo(result, playlist_id, is_podcast_mode);    
+    facede.InsertTrackInfo(result, playlist_id);    
     emit Translation(GetStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
 }

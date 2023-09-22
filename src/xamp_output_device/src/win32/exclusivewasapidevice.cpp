@@ -250,7 +250,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			}
 
 			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-				if (is_32bit_format) {
+				if (!is_32bit_format) {
 					constexpr uint32_t kValidBitPerSamples = 24;
 					InitialDeviceFormat(output_format, kValidBitPerSamples);
 					XAMP_LOG_D(logger_, "Use valid output format: {}.", kValidBitPerSamples);

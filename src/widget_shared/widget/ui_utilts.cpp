@@ -213,28 +213,42 @@ XMainWindow* GetMainWindow() {
 }
 
 QString GetFileDialogFileExtensions() {
-    QString exts(qTEXT("("));
-    for (const auto& file_ext : GetSupportFileExtensions()) {
-        exts += qTEXT("*") + QString::fromStdString(file_ext);
-        exts += qTEXT(" ");
+    static QString file_extension;
+    if (file_extension.isEmpty()) {
+        QString exts(qTEXT("("));
+        for (const auto& file_ext : GetSupportFileExtensions()) {
+            exts += qTEXT("*") + QString::fromStdString(file_ext);
+            exts += qTEXT(" ");
+        }
+        exts += qTEXT(")");
+        file_extension = exts;
     }
-    exts += qTEXT(")");
-    return exts;
+    return file_extension;
 }
 
 QString GetExistingDirectory(QWidget* parent) {
-    return QFileDialog::getExistingDirectory(parent,
-        parent->tr("Select a directory"),
-        AppSettings::GetMyMusicFolderPath(),
+    auto last_open_folder =AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
+    if (last_open_folder.isEmpty()) {
+        last_open_folder = AppSettings::GetMyMusicFolderPath();
+    }
+    
+    const auto dir_name = QFileDialog::getExistingDirectory(parent,
+        QWidget::tr("Select a directory"),
+        last_open_folder,
         QFileDialog::ShowDirsOnly);
+    if (!dir_name.isEmpty()) {
+        const QDir current_dir;
+        AppSettings::SetValue(kAppSettingLastOpenFolderPath, current_dir.absoluteFilePath(dir_name));
+    }
+    return dir_name;
 }
 
 void GetOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action) {
     return GetOpenFileName(parent,
         std::move(action),
-        parent->tr("Open file"),
+        QWidget::tr("Open file"),
         AppSettings::GetMyMusicFolderPath(),
-        parent->tr("Music Files ") + GetFileDialogFileExtensions());
+        QWidget::tr("Music Files ") + GetFileDialogFileExtensions());
 }
 
 void GetSaveFileName(QWidget* parent, 
@@ -242,7 +256,7 @@ void GetSaveFileName(QWidget* parent,
     const QString& caption,
     const QString& dir,
     const QString& filter) {
-    const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
+    const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
     const auto file_name = QFileDialog::getSaveFileName(parent,
         caption,
         dir,
@@ -253,8 +267,8 @@ void GetSaveFileName(QWidget* parent,
         return;
     }
 
-    QDir current_dir;
-    AppSettings::SetValue(kAppSettingDefaultDir, current_dir.absoluteFilePath(file_name));
+    const QDir current_dir;
+    AppSettings::SetValue(kAppSettingLastOpenFolderPath, current_dir.absoluteFilePath(file_name));
 
     action(file_name);
 }
@@ -264,7 +278,7 @@ void GetOpenFileName(QWidget* parent,
     const QString& caption,
     const QString& dir, 
     const QString& filter) {
-    const auto last_dir = AppSettings::ValueAsString(kAppSettingDefaultDir);
+    const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
     const auto file_name = QFileDialog::getOpenFileName(parent,
         caption,
         dir,
@@ -276,7 +290,7 @@ void GetOpenFileName(QWidget* parent,
     }
 
     const QDir current_dir;
-    AppSettings::SetValue(kAppSettingDefaultDir, current_dir.absoluteFilePath(file_name));
+    AppSettings::SetValue(kAppSettingLastOpenFolderPath, current_dir.absoluteFilePath(file_name));
 
     action(file_name);    
 }

@@ -20,9 +20,7 @@ public:
     ExtractFileWorker();
 
 signals:
-    void InsertDatabase(const Vector<TrackInfo>& result,
-        int32_t playlist_id,
-        bool is_podcast_mode);
+    void InsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
     void ReadFileStart();
 
@@ -39,17 +37,12 @@ signals:
     void FromDatabase(int32_t playlist_id, const QList<PlayListEntity>& entity);
 
 public slots:
-    void OnExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);
+    void OnExtractFile(const QString& file_path, int32_t playlist_id);
 
     void OnCancelRequested();
 
 private:
-    void ReadTrackInfo(QString const& file_path,
-        int32_t playlist_id,
-        bool is_podcast_mode);
-
-    void ScanPathFiles(const PooledDatabasePtr& database_pool,
-        const QStringList& file_name_filters,
+    void ScanPathFiles(const QStringList& file_name_filters,
         int32_t playlist_id,
         const QString& dir);
 

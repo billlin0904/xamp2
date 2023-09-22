@@ -157,7 +157,7 @@ Uuid AppSettings::ValueAsId(const QString& key) {
 }
 
 QList<QString> AppSettings::ValueAsStringList(QString const& key) {
-	const auto setting_str = AppSettings::ValueAsString(key);
+	const auto setting_str = ValueAsString(key);
     if (setting_str.isEmpty()) {
         return {};
     }
