@@ -279,9 +279,9 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::FastReload() {
-    //model_->query().exec();
-    //model_->dataChanged(QModelIndex(), QModelIndex());
-    //update();
+    /*model_->query().executedQuery();    
+    model_->dataChanged(QModelIndex(), QModelIndex());
+    update();*/
     Reload();
 }
 
@@ -883,35 +883,6 @@ void PlayListTableView::SetOtherPlaylist(int32_t playlist_id) {
 }
 
 void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
-    /*Reload();
-    DeletePendingPlaylist();
-
-    QModelIndex index;
-    for (auto i = 0; i < model_->rowCount(); ++i) {
-        switch (order) {
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-            index = GetNextIndex(i);
-            break;
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-            index = play_index_;
-            break;
-        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-            index = GetShuffleIndex();
-            break;
-        }
-        if (!index.isValid()) {
-            index = GetFirstIndex();
-        }
-        pending_playlist_.append(index);
-        const auto entity = GetEntity(index);
-        try {
-            qMainDb.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
-        }
-        catch (...) {
-        }
-    }*/
-
-    Reload();
     DeletePendingPlaylist();
 
     QModelIndex index;
@@ -1012,9 +983,10 @@ void PlayListTableView::SetCurrentPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::Play(PlayerOrder order) {
-    if (pending_playlist_.isEmpty()) {
+    // note: 如果更新UI的話就要重取Index
+    //if (pending_playlist_.isEmpty()) {
         AddPendingPlayListFromModel(order);
-    }
+    //}
     auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
     if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
         return;
