@@ -2319,6 +2319,23 @@ void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result)
 }
 
 void Xamp::OnReadFileProgress(int32_t progress) {
+    constexpr auto kShowProgressDialogMsSecs = 50;
+
+    if (!read_progress_dialog_ 
+        && progress_timer_.elapsed() > kShowProgressDialogMsSecs) {
+        read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
+            tr("Read track information"),
+            tr("Cancel"));
+
+        (void)QObject::connect(read_progress_dialog_.get(),
+            &XProgressDialog::CancelRequested, [this]() {
+                extract_file_worker_->OnCancelRequested();
+                find_album_cover_worker_->OnCancelRequested();
+            });
+
+        read_progress_dialog_->exec();
+    }
+
     if (!read_progress_dialog_) {
         return;
     }
@@ -2330,19 +2347,14 @@ void Xamp::OnReadCompleted() {
     playlist_page_->playlist()->Reload();
     current_playlist_page_->playlist()->Reload();
     file_system_view_page_->playlistPage()->playlist()->Reload();
+    Delay(1);
+    if (!read_progress_dialog_) {
+        return;
+    }
     read_progress_dialog_->close();
+    read_progress_dialog_.reset();
 }
 
 void Xamp::OnReadFileStart() {
-    read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
-        tr("Read track information"),
-        tr("Cancel"));
-
-    (void)QObject::connect(read_progress_dialog_.get(),
-        &XProgressDialog::CancelRequested, [this]() {
-            extract_file_worker_->OnCancelRequested();
-            find_album_cover_worker_->OnCancelRequested();
-        });
-
-    read_progress_dialog_->exec();
+    progress_timer_.restart();    
 }

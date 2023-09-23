@@ -268,5 +268,6 @@ private:
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;
 	QSharedPointer<XProgressDialog> read_progress_dialog_;
+	QElapsedTimer progress_timer_;
     Ui::XampWindow ui_;
 };

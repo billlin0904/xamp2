@@ -595,9 +595,7 @@ QString ThemeManager::GetLinearGradientStyle() const {
     case ThemeColor::DARK_THEME:
         return qTEXT("#2e2f31");
     case ThemeColor::LIGHT_THEME:
-        return qTEXT("qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-            "stop: 0 rgba(255, 254, 255, 255),"
-            "stop : 1 rgba(215, 255, 254, 255))");
+        return qTEXT("#ffffff");
     }
 }
 

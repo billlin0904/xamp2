@@ -422,8 +422,8 @@ public:
         }
 
         // Tag not empty but title maybe empty!
-        if (track_info.title) {
-            if (track_info.title.value().empty()) {
+        if (tag) {
+            if (!track_info.title) {
                 ExtractTitleFromFileName(track_info);
             }
         }

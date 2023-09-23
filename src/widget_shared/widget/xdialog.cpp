@@ -127,7 +127,10 @@ void XDialog::SetContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
-    FramelessWidgetsHelper::get(this)->waitForReady();
+    
+    // 如果使用waitForReady就會一直接收到message,
+    // 會導致無法訊息一直出現並會遞迴.
+    //FramelessWidgetsHelper::get(this)->waitForReady();
 
     show();
 }
