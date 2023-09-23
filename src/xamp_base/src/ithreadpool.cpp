@@ -5,10 +5,20 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
-inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
-inline constexpr auto kMaxBackgroundThreadPoolSize{ 4 };
-inline constexpr auto kMaxScanPathThreadPoolSize{ 4 };
+namespace {
+    inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
+    inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
+    inline constexpr auto kMaxBackgroundThreadPoolSize{ 4 };
+
+    CpuAffinity GetBackgroundCpuAffinity() {
+        CpuAffinity affinity(-1, false);
+        affinity.SetCpu(1);
+        affinity.SetCpu(2);
+        affinity.SetCpu(3);
+        affinity.SetCpu(4);
+        return affinity;
+    }
+}
 
 AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
     ThreadPriority priority,
@@ -50,6 +60,7 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
 
 XAMP_DECLARE_LOG_NAME(WASAPIThreadPool);
 XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
+XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 
 IThreadPoolExecutor& GetWasapiThreadPool() {
     static const CpuAffinity wasapi_cpu_aff(0, false);
@@ -60,15 +71,6 @@ IThreadPoolExecutor& GetWasapiThreadPool() {
     return executor;
 }
 
-static CpuAffinity GetBackgroundCpuAffinity() {
-    CpuAffinity affinity(-1, false);
-    affinity.SetCpu(1);
-    affinity.SetCpu(2);
-    affinity.SetCpu(3);
-    affinity.SetCpu(4);
-    return affinity;
-}
-
 IThreadPoolExecutor& GetBackgroundThreadPool() {
     static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
         kMaxBackgroundThreadPoolSize,
@@ -77,12 +79,12 @@ IThreadPoolExecutor& GetBackgroundThreadPool() {
     return executor;
 }
 
-IThreadPoolExecutor& GetScanPathThreadPool() {
-    return GetBackgroundThreadPool();
-}
-
 IThreadPoolExecutor& GetPlaybackThreadPool() {
-    return GetBackgroundThreadPool();
+    static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
+        kMaxPlaybackThreadPoolSize,
+        GetBackgroundCpuAffinity(),
+        ThreadPriority::BACKGROUND);
+    return executor;
 }
 
 XAMP_BASE_NAMESPACE_END

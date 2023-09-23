@@ -175,13 +175,8 @@ public slots:
 
 	void ShowAlbumViewMenu(const QPoint& pt);
 
-private:	
-	void ShowPageAnimation();
-
-	void HidePageAnimation();
-
+private:
 	bool enable_page_{ true };
-	bool hide_page_{ false };
 
 protected:
 	QString last_query_;

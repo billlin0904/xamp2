@@ -120,7 +120,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist = album_year <= 0 ? qTEXT("Unknown") : QString::number(album_year);
     }
 
-    constexpr auto kPaddingSize = 2;
+    constexpr auto kPaddingSize = 10;
 
     const auto default_cover_size = qTheme.GetDefaultCoverSize();
     const QRect cover_rect(option.rect.left() + kPaddingSize,
@@ -276,8 +276,13 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     page_->playlist()->DisableDelete();
     page_->playlist()->DisableLoadFile();
 
-    auto * fade_effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(fade_effect);
+    if (qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
+        auto* shadow_effect = new QGraphicsDropShadowEffect();
+        shadow_effect->setOffset(0, 0);
+        shadow_effect->setColor(QColor(0, 0, 0, 80));
+        shadow_effect->setBlurRadius(15);
+        setGraphicsEffect(shadow_effect);
+    }
 }
 
 void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
@@ -289,15 +294,26 @@ void AlbumViewPage::paintEvent(QPaintEvent* event) {
 }
 
 void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
-    // border: 1px solid #4d4d4d;
-    setStyleSheet(qSTR(
-        R"(
+    if (qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
+        setStyleSheet(qSTR(
+            R"(
+           QFrame#albumViewPage {
+		        background-color: %1;
+                border-radius: 4px;
+				border: 1px solid #C9CDD0;
+           }
+        )"
+        ).arg(qTheme.GetLinearGradientStyle()));
+    } else {
+        setStyleSheet(qSTR(
+            R"(
            QFrame#albumViewPage {
 		        background-color: %1;
                 border-radius: 4px;
            }
         )"
-    ).arg(qTheme.GetLinearGradientStyle()));
+        ).arg(qTheme.GetLinearGradientStyle()));
+    }
 
     QList<int32_t> add_playlist_music_ids;
 
@@ -373,7 +389,6 @@ AlbumView::AlbumView(QWidget* parent)
         page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
 
         if (enable_page_) {
-            ShowPageAnimation();
             page_->show();
         }
 
@@ -391,24 +406,6 @@ AlbumView::AlbumView(QWidget* parent)
     verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));    
-}
-
-void AlbumView::HidePageAnimation() {
-    animation_->setStartValue(1.0);
-    animation_->setEndValue(0.0);
-    animation_->setDuration(kPageAnimationDurationMs);
-    animation_->setEasingCurve(QEasingCurve::OutCubic);
-    animation_->start();
-    hide_page_ = true;
-}
-
-void AlbumView::ShowPageAnimation() {
-    animation_->setStartValue(0.01);
-    animation_->setEndValue(1.0);
-    animation_->setDuration(kPageAnimationDurationMs);
-    animation_->setEasingCurve(QEasingCurve::OutCubic);
-    animation_->start();
-    hide_page_ = false;
 }
 
 void AlbumView::SetPlayingAlbumId(int32_t album_id) {
@@ -473,7 +470,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 
             int32_t count = 0;
 
-            Q_FOREACH(auto album_id, albums) {
+            Q_FOREACH(const auto album_id, albums) {
                 qMainDb.RemoveAlbum(album_id);
                 qApp->processEvents();
                 process_dialog->SetValue(count++ * 100 / albums.size() + 1);
@@ -524,7 +521,7 @@ void AlbumView::ShowMenu(const QPoint &pt) {
     auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = GetIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
-    auto* add_album_to_playlist_act = action_map.AddAction(tr("Add album to playlist"), [=]() {
+    auto* add_album_to_playlist_act = action_map.AddAction(tr("Add album to playlist"), [album_id, this]() {
         QList<PlayListEntity> entities;
         QList<int32_t> add_playlist_music_ids;
         qMainDb.ForEachAlbumMusic(album_id,
@@ -750,6 +747,10 @@ AlbumViewPage* AlbumView::albumViewPage() {
     if (!page_) {
         page_ = new AlbumViewPage(this);
         page_->hide();
+
+        const auto list_view_rect = this->rect();
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
+
         (void)QObject::connect(page_,
             &AlbumViewPage::ClickedArtist,
             this,
@@ -762,16 +763,9 @@ AlbumViewPage* AlbumView::albumViewPage() {
             });
         (void)QObject::connect(page_, &AlbumViewPage::LeaveAlbumView, [this]() {
             verticalScrollBar()->show();
-            HidePageAnimation();
+            page_->hide();
             });
-        auto* fade_effect = page_->graphicsEffect();
-        animation_ = new QPropertyAnimation(fade_effect, "opacity");
-        (void)QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
-            if (hide_page_) {
-                page_->hide();
-            }
-            });
-        (void)QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int value) {
+        (void)QObject::connect(verticalScrollBar(), &QAbstractSlider::valueChanged, [this](auto value) {
             if (value == verticalScrollBar()->maximum()) {
                 model_.fetchMore();
             }

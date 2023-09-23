@@ -35,7 +35,7 @@ namespace {
         return file_count;
     }
 
-    Vector<PathInfo> GetPathSortByFileCount(
+    std::pair<size_t, Vector<PathInfo>> GetPathSortByFileCount(
         const Vector<QString>& paths,
         const QStringList& file_name_filters,
         std::function<void(size_t)>&& action) {
@@ -48,7 +48,7 @@ namespace {
             path_infos.push_back({ path, 0, 0 });
         }
 
-        Executor::ParallelFor(GetScanPathThreadPool(), path_infos, [&](auto& path_info) {
+        Executor::ParallelFor(GetBackgroundThreadPool(), path_infos, [&](auto& path_info) {
             path_info.file_count = GetFileCount(path_info.path, file_name_filters);
             path_info.depth = path_info.path.count('/');
             total_file_count += path_info.file_count;
@@ -59,7 +59,7 @@ namespace {
                       [](const auto& info) { return info.file_count == 0; });
 
         if (total_file_count == 0) {
-            return path_infos;
+            return std::make_pair(total_file_count.load(), path_infos);
         }
 
         // Sort path_infos based on file count and depth
@@ -69,16 +69,16 @@ namespace {
             }
             return p1.depth < p2.depth;
             });
-        return path_infos;
+        return std::make_pair(total_file_count.load(), path_infos);
     }
 }
 
 ExtractFileWorker::ExtractFileWorker() {
     logger_ = LoggerManager::GetInstance().GetLogger(kExtractFileWorkerLoggerName);
-    GetScanPathThreadPool();
+    GetBackgroundThreadPool();
 }
 
-void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
+size_t ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
                                       int32_t playlist_id,
                                       const QString& dir) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
@@ -86,7 +86,7 @@ void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
 
     while (itr.hasNext()) {
         if (is_stop_) {
-            return;
+            return 0;
         }
         auto next_path = ToNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
@@ -100,7 +100,7 @@ void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
     if (directory_files.empty()) {
         if (!QFileInfo(dir).isFile()) {
             XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
-            return;
+            return 0;
         }
         const auto next_path = ToNativeSeparators(dir);
         const auto path = next_path.toStdWString();
@@ -108,9 +108,11 @@ void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
         directory_files[directory].emplace_back(path);
     }
 
+    size_t extract_file_count = 0;
+
     for (const auto& [fst, snd] : directory_files) {
         if (is_stop_) {
-            return;
+            return extract_file_count;
         }
 
         ForwardList<TrackInfo> tracks;
@@ -119,17 +121,19 @@ void ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
             try {
                 TaglibMetadataReader reader;                
                 tracks.push_front(reader.Extract(path));
+                ++extract_file_count;
             }
             catch (...) { }
-        }        
+        }
         
         tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
             });
 
         emit ReadFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
-        emit InsertDatabase(tracks, playlist_id);        
+        emit InsertDatabase(tracks, playlist_id);
     }
+    return extract_file_count;
 }
 
 void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id) {
@@ -163,11 +167,10 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
 
     std::atomic<size_t> completed_work(0);
 
-    auto file_count_paths = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
+    auto [total_work, file_count_paths] = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
         });
 
-    const auto total_work = file_count_paths.size();
     if (total_work == 0) {
         XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
         return;
@@ -177,6 +180,8 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
     QElapsedTimer timer;
     timer.start();
 
+    const auto &file_name_filter = GetFileNameFilter();
+
     Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path_info) {
         if (is_stop_) {
             return;
@@ -185,8 +190,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
         XAMP_ON_SCOPE_EXIT(
             const auto value = completed_work.load();
             emit ReadFileProgress((value * 100) / total_work);
-            ++completed_work;
-            
+     
             const auto remaining_work = total_work - completed_work;
             
             qint64 elapsed_time = 0;
@@ -198,7 +202,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
             emit CalculateEta(remaining_time);
         );
 
-        ScanPathFiles(GetFileNameFilter(), playlist_id, path_info.path);
+        completed_work += ScanPathFiles(file_name_filter, playlist_id, path_info.path);
         });
 }
 

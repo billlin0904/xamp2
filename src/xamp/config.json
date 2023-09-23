@@ -5,7 +5,7 @@
             "Override": {
                 "AsioDevice": "info",
                 "AudioPlayer": "info",
-                "AvFileStream": "info",
+                "AvFileStream": "debug",
                 "BASS": "info",
                 "BackgroundThreadPool": "info",
                 "BackgroundWorker": "info",
@@ -26,6 +26,7 @@
                 "MFEncoder": "info",
                 "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
+                "PlaybackThreadPool": "info",
                 "Qt": "info",
                 "R8brainLib": "info",
                 "SharedWasapiDevice": "info",
@@ -40,14 +41,6 @@
         "resampleSampleRate": 96000
     },
     "Soxr": {
-        "DSD2PCM": {
-            "passBand": 96,
-            "phase": 46,
-            "quality": 3,
-            "resampleSampleRate": 96000,
-            "rolloffLevel": 2,
-            "stopBand": 100
-        },
         "default": {
             "passBand": 96,
             "phase": 46,

@@ -42,7 +42,7 @@ public slots:
     void OnCancelRequested();
 
 private:
-    void ScanPathFiles(const QStringList& file_name_filters,
+    size_t ScanPathFiles(const QStringList& file_name_filters,
         int32_t playlist_id,
         const QString& dir);
 
