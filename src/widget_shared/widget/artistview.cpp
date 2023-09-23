@@ -230,8 +230,12 @@ void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const Q
 ArtistView::ArtistView(QWidget* parent)
 	: QListView(parent)
 	, page_(new ArtistViewPage(this))
-	, model_(this) {
-	setModel(&model_);
+	, model_(this)
+	, proxy_model_(new PlayListTableFilterProxyModel(this)) {
+	proxy_model_->AddFilterByColumn(INDEX_ARTIST);
+	proxy_model_->setSourceModel(&model_);
+	setModel(proxy_model_);
+
 	setUniformItemSizes(true);
 	setDragEnabled(false);
 	setSelectionRectVisible(false);
@@ -280,8 +284,8 @@ ArtistView::ArtistView(QWidget* parent)
 		});
 }
 
-void ArtistView::OnSearchTextChanged(const QString& text) {
-	last_query_ = qSTR(R"(
+void ArtistView::Search(const QString& keyword) {
+	/*last_query_ = qSTR(R"(
 SELECT
     artists.artist,
     artists.artistId,
@@ -293,7 +297,10 @@ WHERE
     (
     artists.artist LIKE '%%1%'
     )
-    )").arg(text);
+    )").arg(text);*/
+	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
+	proxy_model_->AddFilterByColumn(INDEX_ARTIST);
+	proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
 void ArtistView::Update() {	

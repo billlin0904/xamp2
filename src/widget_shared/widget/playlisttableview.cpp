@@ -252,12 +252,12 @@ FROM
 	JOIN artists ON albumMusic.artistId = artists.artistId 
 WHERE
 	playlistMusics.playlistId = %1 
---GROUP BY
---	musics.parentPath,
---	musics.track 
---ORDER BY
---	musics.parentPath ASC,
---	musics.track ASC)");
+GROUP BY
+	musics.parentPath,
+	musics.track 
+ORDER BY
+	musics.parentPath ASC,
+	musics.track ASC)");
 
     const QSqlQuery query(s.arg(playlist_id_), qMainDb.database());
     model_->setQuery(query);

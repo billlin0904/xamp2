@@ -83,7 +83,7 @@ public:
             throw NotSupportFormatException();
         }
 
-        // robe size: 50KB
+        // probe size: 50KB
         format_context->probesize = 50000;
         // max analyze duration: 5s
         format_context->max_analyze_duration = 5 * AV_TIME_BASE;
@@ -327,6 +327,8 @@ private:
     */
     uint32_t ConvertSamples(float* buffer, uint32_t length) const noexcept {
         if (audio_frame_->nb_samples > length) {
+            XAMP_LOG_ERROR("Convert sample failure! read buffer too small {} < {}", 
+                length, audio_frame_->nb_samples);
             return 0;
         }
         const auto frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_context_->channels);

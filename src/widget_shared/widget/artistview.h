@@ -13,6 +13,7 @@
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
+class PlayListTableFilterProxyModel;
 class AlbumView;
 class QLabel;
 class QPushButton;
@@ -84,7 +85,7 @@ signals:
 	void GetArtist(const QString& artist);
 
 public slots:
-	void OnSearchTextChanged(const QString& text);
+	void Search(const QString& text);
 
 private:	
 	void resizeEvent(QResizeEvent* event) override;
@@ -99,4 +100,5 @@ private:
 	ArtistViewPage* page_;
 	QPropertyAnimation* animation_;
 	QSqlQueryModel model_;
+	PlayListTableFilterProxyModel* proxy_model_;
 };

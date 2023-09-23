@@ -34,24 +34,3 @@ QVariant PlayListSqlQueryTableModel::headerData(int section, Qt::Orientation ori
     }
     return QSqlQueryModel::headerData(section, orientation, role);
 }
-
-void PlayListSqlQueryTableModel::setFilterColumn(const QString& column) {
-}
-
-void PlayListSqlQueryTableModel::setFilterFlags(const Qt::MatchFlag flags) {
-}
-
-void PlayListSqlQueryTableModel::setFilter(const QString& filter) {
-}
-
-void PlayListSqlQueryTableModel::filter(const QString& filter) {
-}
-
-void PlayListSqlQueryTableModel::select() {
-}
-
-void PlayListSqlQueryTableModel::setSort(int column, Qt::SortOrder order) {
-}
-
-void PlayListSqlQueryTableModel::sort(int column, Qt::SortOrder order) {
-}

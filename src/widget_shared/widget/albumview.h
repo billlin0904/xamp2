@@ -7,7 +7,6 @@
 
 #include <QListView>
 #include <QPropertyAnimation>
-#include <QSqlQueryModel>
 #include <QStyledItemDelegate>
 #include <QProgressDialog>
 #include <QPushButton>
@@ -19,6 +18,7 @@
 #include <widget/playlistentity.h>
 #include <widget/lazyloadingmodel.h>
 #include <widget/widget_shared_global.h>
+#include <widget/playlisttableproxymodel.h>
 
 class XProgressDialog;
 class DatabaseFacade;
@@ -165,7 +165,7 @@ public slots:
 
 	void HideWidget();
 
-	void OnSearchTextChanged(const QString& text);
+	void Search(const QString& keyword);
 
     void OnThemeChanged(QColor backgroundColor, QColor color);
 
@@ -186,5 +186,6 @@ private:
 	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;
 	LazyLoadingModel model_;
+	PlayListTableFilterProxyModel* proxy_model_;
 };
 

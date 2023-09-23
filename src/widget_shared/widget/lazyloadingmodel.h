@@ -7,9 +7,9 @@
 
 #include <QSqlQueryModel>
 
-class LazyLoadingModel : public QSqlQueryModel {
+class LazyLoadingModel final : public QSqlQueryModel {
 public:
-	static constexpr auto kMaxBatchSize = 64; // Max show 32 albums in one page
+	static constexpr auto kMaxBatchSize = 64; // Max show 64 albums in one page
 
 	explicit LazyLoadingModel(QObject* parent = nullptr)
 		: QSqlQueryModel(parent) {
@@ -17,7 +17,7 @@ public:
 		load_rows_ = 0;
 	}
 
-	bool canFetchMore(const QModelIndex& parent = QModelIndex()) const override {
+	[[nodiscard]] bool canFetchMore(const QModelIndex& parent = QModelIndex()) const override {
 		return load_rows_ < rowCount();
 	}
 

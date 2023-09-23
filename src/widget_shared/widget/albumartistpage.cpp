@@ -191,7 +191,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		Q_FOREACH(auto * action, action_list) {
 			if (action) {
 				(void)QObject::connect(action, &QAction::triggered, [this]() {
-					album_view_->ShowAll();
+					album_view_->Search(kEmptyString);
 					album_view_->Update();		
 					album_tag_list_widget_->ClearTag();
 					});
@@ -204,6 +204,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 		const auto items = album_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
+			album_view_->Search(kEmptyString);
 			return;
 		}
 		if (album_model_->rowCount() >= kMaxCompletionCount) {
@@ -214,7 +215,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_completer->setModel(album_model_);
 		album_completer->setCompletionPrefix(text);
 
-		album_view_->OnSearchTextChanged(text);
+		album_view_->Search(text);
 		album_view_->Update();
 		});
 
@@ -223,7 +224,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	album_combox_layout_1->addSpacerItem(horizontalSpacer);
 
-	auto* sort_by_button = new QToolButton();
+	/*auto* sort_by_button = new QToolButton();
 	sort_by_button->setText(tr("Sort by years"));
 	sort_by_button->setObjectName(QString::fromUtf8("sortByButton"));
 	sort_by_button->setFocusPolicy(Qt::NoFocus);
@@ -246,7 +247,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		sort_by_button->setText(tr("Sort By PlayCunt"));
 		album_tag_list_widget_->ClearTag();
 		});
-	sort_by_button->setMenu(sort_menu);
+	sort_by_button->setMenu(sort_menu);*/
 
 	album_combox_layout_1->addLayout(album_combox_layout);
 	album_frame_layout->addLayout(album_combox_layout_1);
@@ -294,7 +295,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		Q_FOREACH(auto * action, action_list) {
 			if (action) {
 				(void)QObject::connect(action, &QAction::triggered, [this]() {
-					artist_view_->ShowAll();
+					artist_view_->Search(kEmptyString);
 					artist_view_->Update();
 					});
 			}
@@ -310,6 +311,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(artist_search_line_edit_, &QLineEdit::textChanged, [artist_completer, this](const auto& text) {
 		const auto items = artist_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
+			artist_view_->Search(kEmptyString);
 			return;
 		}
 		if (artist_model_->rowCount() >= kMaxCompletionCount) {
@@ -320,7 +322,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		artist_completer->setModel(artist_model_);
 		artist_completer->setCompletionPrefix(text);
 
-		artist_view_->OnSearchTextChanged(text);
+		artist_view_->Search(text);
 		artist_view_->Update();
 		});
 

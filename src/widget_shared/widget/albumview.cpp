@@ -351,8 +351,12 @@ AlbumView::AlbumView(QWidget* parent)
     , page_(nullptr)
 	, styled_delegate_(new AlbumViewStyledDelegate(this))
     , animation_(nullptr)
-	, model_(this) {
-    setModel(&model_);    
+	, model_(this)
+    , proxy_model_(new PlayListTableFilterProxyModel(this)) {
+    proxy_model_->AddFilterByColumn(INDEX_ALBUM);
+    proxy_model_->setSourceModel(&model_);
+    setModel(proxy_model_);
+
     setUniformItemSizes(true);
     setDragEnabled(false);
     setSelectionRectVisible(false);
@@ -720,26 +724,10 @@ ORDER BY
     SetShowMode(SHOW_ARTIST);
 }
 
-void AlbumView::OnSearchTextChanged(const QString& text) {
-    last_query_ = qSTR(R"(
-SELECT
-    albums.album,
-    albums.coverId,
-    artists.artist,
-    albums.albumId,
-    artists.artistId,
-    artists.coverId,
-    albums.year
-FROM
-    albums
-LEFT JOIN artists ON artists.artistId = albums.artistId
-WHERE
-    (
-    albums.album LIKE '%%1%'
-    ) AND (albums.isPodcast = 0)
-ORDER BY
-    albums.album DESC
-    )").arg(text);
+void AlbumView::Search(const QString& keyword) {
+    const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
+    proxy_model_->AddFilterByColumn(INDEX_ALBUM);
+    proxy_model_->setFilterRegularExpression(reg_exp);
     SetShowMode(SHOW_ARTIST);
 }
 
