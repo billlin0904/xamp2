@@ -46,7 +46,7 @@ namespace {
     }
 }
 
-QString GetDatabaseId() {
+QString DatabaseFactory::GetDatabaseId() {
     return qTEXT("xamp_db_") + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
 }
 

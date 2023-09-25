@@ -11,9 +11,7 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QCompleter>
-#include <QToolButton>
 #include <QScrollArea>
-#include <QTimer>
 
 #include <widget/ui_utilts.h>
 #include <widget/artistview.h>
@@ -23,7 +21,6 @@
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
-#include <widget/processindicator.h>
 #include <widget/taglistview.h>
 #include <widget/genre_view_page.h>
 #include <thememanager.h>

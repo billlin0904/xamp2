@@ -86,8 +86,6 @@ public:
     }
 };
 
-QString GetDatabaseId();
-
 class XAMP_WIDGET_SHARED_EXPORT Database final {
 public:
     explicit Database(const QString& name);
@@ -277,6 +275,8 @@ public:
         database->open();
         return database;
     }
+private:
+    static QString GetDatabaseId();
 };
 
 using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;

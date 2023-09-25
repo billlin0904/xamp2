@@ -139,7 +139,8 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
     HashSet<bool> find_cover_state_cache;
 
     const auto album_year = result.front().year;
-    const auto album_genre = NormalizeGenre(GetStringOrEmptyString(result.front().genre)).join(",");
+    //const auto album_genre = NormalizeGenre(GetStringOrEmptyString(result.front().genre)).join(",");
+    constexpr auto album_genre = kEmptyString;
     
 	for (const auto& track_info : result) {        
         auto file_path = GetStringOrEmptyString(track_info.file_path);

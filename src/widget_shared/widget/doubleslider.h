@@ -29,8 +29,8 @@ public slots:
 private:
     void mousePressEvent(QMouseEvent* event) override;
 
-    int target_ = 0;
-    int duration_ = 100;
+    int target_{0};
+    int duration_{100};
     double ratio_{10};
     QVariantAnimation* animation_;
     QEasingCurve easing_curve_ = QEasingCurve(QEasingCurve::Type::InOutCirc);

@@ -15,8 +15,8 @@ void DoubleSlider::NotifyValueChanged(int value) {
 
 void DoubleSlider::mousePressEvent(QMouseEvent* event) {
 	if (event->button() == Qt::LeftButton) {
-		auto y = event->pos().y();
-		auto value = ((maximum() - minimum()) * (height() - y) / height()) + minimum();
+		const auto y = event->pos().y();
+		const auto value = ((maximum() - minimum()) * (height() - y) / height()) + minimum();
 
 		event->accept();
 		animation_->stop();

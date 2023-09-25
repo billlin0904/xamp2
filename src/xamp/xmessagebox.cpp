@@ -67,6 +67,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	SetContentWidget(client_widget);
 	SetTitle(title);
+	XDialog::SetIcon(qTheme.GetApplicationIcon());
 
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XMessageBox::UpdateTimeout);
 	timer_.setInterval(1000);
