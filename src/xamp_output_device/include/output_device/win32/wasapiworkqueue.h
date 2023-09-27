@@ -90,7 +90,7 @@ public:
 		static const QITAB qit[] = {
 			QITABENT(WasapiWorkQueue, IUnknown),
 			QITABENT(WasapiWorkQueue, IMFAsyncCallback),
-			{ 0 },
+			{ nullptr },
 		};
 		return QISearch(this, qit, riid, ppv);
 	}

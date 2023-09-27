@@ -338,6 +338,7 @@ private:
             const_cast<const uint8_t**>(audio_frame_->data),
             audio_frame_->nb_samples);
         if (result <= 0) {
+            XAMP_LOG_ERROR("swr_convert return failure({})!", result);
             return 0;
         }
         return frame_size;

@@ -44,12 +44,6 @@ static void OptimizePng(const QString& dest_file_path, const QByteArray& origina
 	file.write(QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
 }
 
-static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t>& result_png) {
-}
-
-void OptimizePng(const QByteArray& original_png, std::vector<uint8_t>& result_png) {
-}
-
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 	QSaveFile file(dest_file_path);	
 	file.open(QIODevice::WriteOnly);
@@ -58,7 +52,11 @@ bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 }
 
 bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
-	Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
+	try {
+		Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
+	} catch (...) {
+		return false;
+	}
     return true;
 }
 
@@ -72,7 +70,7 @@ QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 	return scaled_image;
 }
 
-QByteArray Pixmap2ByteArray(const QPixmap& source) {
+QByteArray Image2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
@@ -80,7 +78,7 @@ QByteArray Pixmap2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
-std::vector<uint8_t> Pixmap2ByteVector(const QPixmap& source) {
+std::vector<uint8_t> Image2ByteVector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);

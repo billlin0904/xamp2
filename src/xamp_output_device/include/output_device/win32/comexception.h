@@ -47,24 +47,24 @@ public:
 	/*
 	* Destructor.
 	*/
-	virtual ~ComException() = default;
+	virtual ~ComException() override = default;
 
 	/*
 	* Get HRESULT.
 	*/
-	long GetHResult() const;
+	[[nodiscard]] long GetHResult() const;
 
 	/*
 	* Get expression.
 	*/
-	const char* GetExpression() const noexcept override;
+	[[nodiscard]] const char* GetExpression() const noexcept override;
 
 	/*
 	* Get file name and line.
 	* 
 	* @return file name and line
 	*/
-	std::string GetFileNameAndLine() const;
+	[[nodiscard]] std::string GetFileNameAndLine() const;
 
 private:
 	long hr_;

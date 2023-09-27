@@ -180,6 +180,9 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 			throw DeviceUnSupportedFormatException(output_format);
 		}
+		if (hr == AUDCLNT_E_DEVICE_IN_USE) {
+			throw DeviceInUseException();
+		}
 		HrIfFailledThrow(hr);
 	}
 	

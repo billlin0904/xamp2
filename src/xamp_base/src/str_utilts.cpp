@@ -56,7 +56,7 @@ std::string FormatBytes(size_t bytes) {
 	auto uint = kFileSizeUnit.begin();	
 	auto num = static_cast<double>(bytes);
 	for (; num >= 1024 && uint != kFileSizeUnit.end(); num /= 1024.0, ++uint) {	}
-	return Format("{:.2f} {}", num, *uint);
+	return Format("{:.2f}{}", num, *uint);
 }
 
 }

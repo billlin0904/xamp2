@@ -20,6 +20,7 @@
 #include <thememanager.h>
 
 #include <QGraphicsOpacityEffect>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QScrollBar>
 #include <QVBoxLayout>
@@ -104,17 +105,22 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
-    auto* style = option.widget ? option.widget->style() : QApplication::style();
-
-    painter->setRenderHints(QPainter::Antialiasing, true);
-    painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
-    painter->setRenderHints(QPainter::TextAntialiasing, true);
-
     auto album = GetIndexValue(index, INDEX_ALBUM).toString();
     auto cover_id = GetIndexValue(index, INDEX_COVER).toString();
     auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
     auto album_id = GetIndexValue(index, INDEX_ALBUM_ID).toInt();
     auto album_year = GetIndexValue(index, INDEX_ALBUM_YEAR).toInt();
+
+    if (album_id == 0) {
+        // Note: Qt6 當沒有可以顯示的內容album_id為0
+        return;
+    }
+
+    auto* style = option.widget ? option.widget->style() : QApplication::style();
+
+    painter->setRenderHints(QPainter::Antialiasing, true);
+    painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
+    painter->setRenderHints(QPainter::TextAntialiasing, true);
 
     if (show_mode_ == SHOW_YEAR) {
         artist = album_year <= 0 ? qTEXT("Unknown") : QString::number(album_year);
@@ -331,6 +337,7 @@ void AlbumViewPage::SetPlaylistMusic(const QString& album, int32_t album_id, con
 
     page_->SetAlbumId(album_id, album_heart);
     page_->playlist()->Reload();
+    page_->playlist()->DisableDelete();
     page_->title()->setText(album);
     page_->SetCoverById(cover_id);
 
@@ -455,19 +462,17 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             tr("Remove all album"), 
             QString(), 
             tr("Cancel"));
-        qApp->processEvents();
+        
+        if (!qMainDb.transaction()) {
+            return;
+        }
 
         try {
-            if (!qMainDb.transaction()) {
-                return;
-            }
-
             qMainDb.ClearPendingPlaylist();
 
             QList<int32_t> albums;
             qMainDb.ForEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
-                qApp->processEvents();
             });
 
             process_dialog->SetRange(0, albums.size() + 1);
@@ -476,12 +481,12 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
 
             Q_FOREACH(const auto album_id, albums) {
                 qMainDb.RemoveAlbum(album_id);
-                qApp->processEvents();
                 process_dialog->SetValue(count++ * 100 / albums.size() + 1);
             }
             qMainDb.RemoveAllArtist();
 
             process_dialog->SetValue(100);
+            Delay(3);
             qMainDb.commit();
             update();
             emit RemoveAll();
@@ -580,7 +585,7 @@ void AlbumView::FilterByArtistId(int32_t artist_id) {
         artist,
         albums.albumId,
         artists.artistId,
-        artists.coverId,
+        artists.coverId as artistCover,
         albums.year,
         albums.heart
     FROM
@@ -607,7 +612,7 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId,
+    artists.coverId as artistCover,
     albums.year,
     albums.heart
 FROM
@@ -632,7 +637,7 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId,
+    artists.coverId as artistCover,
     albums.year,
     albums.heart
 FROM
@@ -657,7 +662,7 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId,
+    artists.coverId as artistCover,
     albums.year,
     albums.heart
 FROM
@@ -684,7 +689,7 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId,
+    artists.coverId as artistCover,
     albums.year,
     albums.heart
 FROM
@@ -709,7 +714,7 @@ SELECT
     artists.artist,
     albums.albumId,
     artists.artistId,
-    artists.coverId,
+    artists.coverId as artistCover,
     albums.year,
     albums.heart
 FROM
@@ -727,6 +732,7 @@ ORDER BY
 void AlbumView::Search(const QString& keyword) {
     const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
     proxy_model_->AddFilterByColumn(INDEX_ALBUM);
+    proxy_model_->AddFilterByColumn(INDEX_ARTIST);
     proxy_model_->setFilterRegularExpression(reg_exp);
     SetShowMode(SHOW_ARTIST);
 }

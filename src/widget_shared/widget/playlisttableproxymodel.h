@@ -20,8 +20,6 @@ public:
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
-    bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
-
 private:
-    HashSet<int32_t> filters_;
+    Vector<int32_t> filters_;
 };

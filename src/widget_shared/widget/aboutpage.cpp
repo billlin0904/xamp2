@@ -7,13 +7,37 @@
 #include <version.h>
 #include <thememanager.h>
 
+namespace {
+#ifdef Q_OS_WIN32
+    constexpr ConstLatin1String VisualStudioVersion() {
+        if constexpr (_MSC_VER >= 1930) {
+            return "2022";
+        }
+        return "2019";
+    }
+    QString GetCompileTime() {
+        return qSTR("Compile Visual Studio %1.%2.%3")
+            .arg(VisualStudioVersion())
+            .arg((_MSC_FULL_VER / 100000) % 100)
+            .arg(_MSC_FULL_VER % 100000);
+    }
+#else
+    QString GetCompileTime() {
+        return qSTR("Compile Clang %1.%2.%3")
+            .arg(__clang_major__)
+            .arg(__clang_minor__)
+            .arg(__clang_patchlevel__);
+    }
+#endif
+}
+
 AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
     ui_.lblLogo->setPixmap(qTheme.GetApplicationIcon().pixmap(128, 128));
 
-    QFont dp_font(qTEXT("DisplayFont"));
+    QFont dp_font(qTheme.GetDisplayFont());
     dp_font.setBold(true);
     dp_font.setPointSizeF(qTheme.GetFontSize(26));
 
@@ -28,7 +52,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui_.lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
     ui_.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
 
-    QFont font = qTheme.GetUiFont();
+    QFont font(qTheme.GetUiFont());
     font.setBold(false);
     font.setPointSize(qTheme.GetDefaultFontSize());
     ui_.txtBws->setFont(font);
@@ -51,6 +75,9 @@ AboutPage::AboutPage(QWidget* parent)
     ui_.lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.lblDomain->setStyleSheet(qTEXT("background-color: transparent"));
     ui_.wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_.lblAppBuild->setStyleSheet(qTEXT("background-color: transparent"));
+
+    ui_.lblAppBuild->setText(GetCompileTime());
 
     (void)QObject::connect(ui_.btnCredits,
         &QPushButton::clicked,

@@ -41,6 +41,22 @@
         "resampleSampleRate": 96000
     },
     "Soxr": {
+        "BlueTooth": {
+            "passBand": 96,
+            "phase": 46,
+            "quality": 3,
+            "resampleSampleRate": 96000,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        },
+        "CD 176Khz": {
+            "passBand": 96,
+            "phase": 46,
+            "quality": 3,
+            "resampleSampleRate": 176400,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        },
         "default": {
             "passBand": 96,
             "phase": 46,

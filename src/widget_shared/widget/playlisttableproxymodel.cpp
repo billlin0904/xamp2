@@ -5,11 +5,7 @@ PlayListTableFilterProxyModel::PlayListTableFilterProxyModel(QObject *parent)
 }
 
 void PlayListTableFilterProxyModel::AddFilterByColumn(int32_t column) {
-    filters_.insert(column);
-}
-
-bool PlayListTableFilterProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const {
-    return QSortFilterProxyModel::lessThan(left, right);
+    filters_.push_back(column);
 }
 
 bool PlayListTableFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const {

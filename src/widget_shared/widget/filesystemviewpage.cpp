@@ -10,7 +10,6 @@
 
 #include <QDateTime>
 #include <QFileDialog>
-#include <QToolTip>
 #include <QSortFilterProxyModel>
 
 class XAMP_WIDGET_SHARED_EXPORT FileSystemViewPage::DirFirstSortFilterProxyModel : public QSortFilterProxyModel {

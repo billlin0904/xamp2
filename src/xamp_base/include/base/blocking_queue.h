@@ -66,15 +66,7 @@ public:
     ~BlockingQueue() {
 		WakeupForShutdown();
 	}
-    
-    /*
-    * Enqueues a task to the queue.
-    * 
-    * If the queue is full, the function blocks until the queue is not full.
-    * 
-    * @param[in] task The task to enqueue.
-    * return true if the task was enqueued, false if the queue is shutting down.     
-    */
+
     template <typename U>
     bool TryEnqueue(U &&task) noexcept {
         {
@@ -198,7 +190,7 @@ public:
     }
 
     /*
-    * Weakup all threads waiting for the queue to be not empty.
+    * Weak up all threads waiting for the queue to be not empty.
     * 
     * This function is used to wake up all threads waiting for the queue to be
     * not empty. This is used to shutdown the queue.
@@ -233,7 +225,7 @@ public:
     }
 
     /*
-    * Get quque size.
+    * Get queue size.
     * 
     * @return The queue size.
     */

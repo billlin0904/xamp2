@@ -19,6 +19,7 @@
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
 #include <widget/driveinfo.h>
+#include <widget/str_utilts.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>

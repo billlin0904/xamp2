@@ -156,14 +156,14 @@ void Database::CreateTableIfNotExist() {
                        durationStr TEXT,
                        fileName TEXT,
                        fileExt TEXT,
-                       bit_rate integer,
-                       sample_rate integer,
+                       bitRate integer,
+                       sampleRate integer,
                        rating integer,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       album_replay_gain DOUBLE,
-                       album_peak DOUBLE,
-                       track_replay_gain DOUBLE,
-                       track_peak DOUBLE,
+                       albumReplayGain DOUBLE,
+                       albumPeak DOUBLE,
+                       trackReplayGain DOUBLE,
+                       trackPeak DOUBLE,
                        genre TEXT,
                        comment TEXT,
                        fileSize integer,
@@ -280,7 +280,7 @@ void Database::CreateTableIfNotExist() {
                        musicId integer,
                        artistId integer,
                        albumId integer,
-                       track_loudness DOUBLE,
+                       trackLoudness DOUBLE,
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
                        FOREIGN KEY(albumId) REFERENCES albums(albumId),
@@ -508,7 +508,7 @@ void Database::ForEachAlbumMusic(int32_t album_id, std::function<void(PlayListEn
 SELECT
     albumMusic.albumId,
     albumMusic.artistId,
-    musicLoudness.track_loudness,
+    musicLoudness.trackLoudness,
     albums.album,
     albums.coverId,
     artists.artist,
@@ -911,15 +911,15 @@ PlayListEntity Database::FromSqlQuery(const SqlQuery& query) {
     entity.file_extension = query.value(qTEXT("fileExt")).toString();
     entity.parent_path = query.value(qTEXT("parentPath")).toString();
     entity.duration = query.value(qTEXT("duration")).toDouble();
-    entity.bit_rate = query.value(qTEXT("bit_rate")).toUInt();
-    entity.sample_rate = query.value(qTEXT("sample_rate")).toUInt();
+    entity.bit_rate = query.value(qTEXT("bitRate")).toUInt();
+    entity.sample_rate = query.value(qTEXT("sampleRate")).toUInt();
     entity.cover_id = query.value(qTEXT("coverId")).toString();
     entity.rating = query.value(qTEXT("rating")).toUInt();
-    entity.album_replay_gain = query.value(qTEXT("album_replay_gain")).toDouble();
-    entity.album_peak = query.value(qTEXT("album_peak")).toDouble();
-    entity.track_replay_gain = query.value(qTEXT("track_replay_gain")).toDouble();
-    entity.track_peak = query.value(qTEXT("track_peak")).toDouble();
-    entity.track_loudness = query.value(qTEXT("track_loudness")).toDouble();
+    entity.album_replay_gain = query.value(qTEXT("albumReplayGain")).toDouble();
+    entity.album_peak = query.value(qTEXT("albumPeak")).toDouble();
+    entity.track_replay_gain = query.value(qTEXT("trackReplayGain")).toDouble();
+    entity.track_peak = query.value(qTEXT("trackPeak")).toDouble();
+    entity.track_loudness = query.value(qTEXT("trackLoudness")).toDouble();
 
     entity.genre = query.value(qTEXT("genre")).toString();
     entity.comment = query.value(qTEXT("comment")).toString();
@@ -962,8 +962,8 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
 
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bit_rate, sample_rate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, fileSize)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bit_rate, :sample_rate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :fileSize)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize)
     )")
     );
 
@@ -975,22 +975,22 @@ int32_t Database::AddOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":parentPath"), GetStringOrEmptyString(track_info.parent_path));
     query.bindValue(qTEXT(":duration"), track_info.duration);
     query.bindValue(qTEXT(":durationStr"), FormatDuration(track_info.duration));
-    query.bindValue(qTEXT(":bit_rate"), track_info.bit_rate);
-    query.bindValue(qTEXT(":sample_rate"), track_info.sample_rate);
+    query.bindValue(qTEXT(":bitRate"), track_info.bit_rate);
+    query.bindValue(qTEXT(":sampleRate"), track_info.sample_rate);
     query.bindValue(qTEXT(":offset"), track_info.offset);
     query.bindValue(qTEXT(":fileSize"), track_info.file_size);
 
     if (track_info.replay_gain) {
-        query.bindValue(qTEXT(":album_replay_gain"), track_info.replay_gain.value().album_gain);
-        query.bindValue(qTEXT(":track_replay_gain"), track_info.replay_gain.value().track_gain);
-        query.bindValue(qTEXT(":album_peak"), track_info.replay_gain.value().album_peak);
-        query.bindValue(qTEXT(":track_peak"), track_info.replay_gain.value().track_peak);
+        query.bindValue(qTEXT(":albumReplayGain"), track_info.replay_gain.value().album_gain);
+        query.bindValue(qTEXT(":trackReplayGain"), track_info.replay_gain.value().track_gain);
+        query.bindValue(qTEXT(":albumPeak"), track_info.replay_gain.value().album_peak);
+        query.bindValue(qTEXT(":trackPeak"), track_info.replay_gain.value().track_peak);
     }
     else {
-        query.bindValue(qTEXT(":album_replay_gain"), 0);
-        query.bindValue(qTEXT(":track_replay_gain"), 0);
-        query.bindValue(qTEXT(":album_peak"), 0);
-        query.bindValue(qTEXT(":track_peak"), 0);
+        query.bindValue(qTEXT(":albumReplayGain"), 0);
+        query.bindValue(qTEXT(":trackReplayGain"), 0);
+        query.bindValue(qTEXT(":albumPeak"), 0);
+        query.bindValue(qTEXT(":trackPeak"), 0);
     }
 
     query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);
@@ -1078,21 +1078,21 @@ void Database::AddOrUpdateTrackLoudness(int32_t album_id, int32_t artist_id, int
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO musicLoudness (musicLoudnessId, albumId, artistId, musicId, track_loudness)
+    INSERT OR REPLACE INTO musicLoudness (musicLoudnessId, albumId, artistId, musicId, trackLoudness)
     VALUES
     (
-    (SELECT musicLoudnessId FROM musicLoudness WHERE albumId = :albumId AND artistId = :artistId AND musicId = :musicId AND track_loudness = :track_loudness),
+    (SELECT musicLoudnessId FROM musicLoudness WHERE albumId = :albumId AND artistId = :artistId AND musicId = :musicId AND trackLoudness = :trackLoudness),
     :albumId,
     :artistId,
     :musicId,
-    :track_loudness
+    :trackLoudness
     )
     )"));
 
     query.bindValue(qTEXT(":albumId"), album_id);
     query.bindValue(qTEXT(":artistId"), artist_id);
     query.bindValue(qTEXT(":musicId"), music_id);
-    query.bindValue(qTEXT(":track_loudness"), track_loudness);
+    query.bindValue(qTEXT(":trackLoudness"), track_loudness);
 
     THROW_IF_FAIL1(query);
 }
@@ -1104,13 +1104,13 @@ void Database::UpdateReplayGain(int32_t music_id,
     double track_peak) {
     SqlQuery query(db_);
 
-    query.prepare(qTEXT("UPDATE musics SET album_replay_gain = :album_replay_gain, album_peak = :album_peak, track_replay_gain = :track_replay_gain, track_peak = :track_peak WHERE (musicId = :musicId)"));
+    query.prepare(qTEXT("UPDATE musics SET albumReplayGain = :albumReplayGain, albumPeak = :albumPeak, trackReplayGain = :trackReplayGain, trackPeak = :trackPeak WHERE (musicId = :musicId)"));
 
     query.bindValue(qTEXT(":musicId"), music_id);
-    query.bindValue(qTEXT(":album_replay_gain"), album_rg_gain);
-    query.bindValue(qTEXT(":album_peak"), album_peak);
-    query.bindValue(qTEXT(":track_replay_gain"), track_rg_gain);
-    query.bindValue(qTEXT(":track_peak"), track_peak);
+    query.bindValue(qTEXT(":albumReplayGain"), album_rg_gain);
+    query.bindValue(qTEXT(":albumPeak"), album_peak);
+    query.bindValue(qTEXT(":trackReplayGain"), track_rg_gain);
+    query.bindValue(qTEXT(":trackPeak"), track_peak);
 
     THROW_IF_FAIL1(query);
 }
@@ -1374,14 +1374,14 @@ void Database::AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO musicLoudness (albumMusicId, albumId, artistId, musicId, track_loudness)
-    VALUES ((SELECT albumMusicId from musicLoudness where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId, :track_loudness)
+    INSERT OR REPLACE INTO musicLoudness (albumMusicId, albumId, artistId, musicId, trackLoudness)
+    VALUES ((SELECT albumMusicId from musicLoudness where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId, :trackLoudness)
     )"));
 
     query.bindValue(qTEXT(":albumId"), album_id);
     query.bindValue(qTEXT(":artistId"), artist_id);
     query.bindValue(qTEXT(":musicId"), music_id);
-    query.bindValue(qTEXT(":track_loudness"), track_loudness);
+    query.bindValue(qTEXT(":trackLoudness"), track_loudness);
 
     THROW_IF_FAIL1(query);
 }

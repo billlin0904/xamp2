@@ -25,7 +25,6 @@
 
 #include <bitset>
 #include <thread>
-#include <set>
 
 #ifdef XAMP_OS_MAC
 extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,
@@ -41,55 +40,57 @@ static int MacOSFutexWake(std::atomic<T>& to_wake, bool notify_one) noexcept {
 }
 #endif
 
-static XAMP_ALWAYS_INLINE uint32_t ToMilliseconds(const timespec* ts) noexcept {
-    return ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
-}
-
 XAMP_BASE_NAMESPACE_BEGIN
 
-/*
-* Futex wait implementation.
-* 
-* @param[out] to_wait_on The atomic variable to wait on.
-* @param[in] expected The expected value of the atomic variable.
-* @param[in] milliseconds The number of milliseconds to wait for.
-* @return true if the atomic variable was woken up, false if the wait timed out.
-*/
-template <typename T>
-static XAMP_ALWAYS_INLINE bool PlatformFutexWait(std::atomic<T>& to_wait_on, uint32_t &expected, uint32_t milliseconds) noexcept {
+namespace {
+    XAMP_ALWAYS_INLINE uint32_t ToMilliseconds(const timespec* ts) noexcept {
+        return ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
+    }
+
+    /*
+     * Futex wait implementation.
+     *
+     * @param[out] to_wait_on The atomic variable to wait on.
+     * @param[in] expected The expected value of the atomic variable.
+     * @param[in] milliseconds The number of milliseconds to wait for.
+     * @return true if the atomic variable was woken up, false if the wait timed out.
+     */
+    template <typename T>
+    XAMP_ALWAYS_INLINE bool PlatformFutexWait(std::atomic<T>& to_wait_on, uint32_t& expected, uint32_t milliseconds) noexcept {
 #ifdef XAMP_OS_WIN    
-    return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds);
+        return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds);
 #elif defined(XAMP_OS_MAC)
-    return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, milliseconds * 1000) >= 0;
+        return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, milliseconds * 1000) >= 0;
 #endif
-}
+    }
 
-/*
-* Futex wake implementation.
-* 
-* @param[out] to_wake The atomic variable to wake up.
-*/
-template <typename T>
-static XAMP_ALWAYS_INLINE void PlatformFutexWakeSingle(std::atomic<T>& to_wake) noexcept {
+    /*
+    * Futex wake implementation.
+    *
+    * @param[out] to_wake The atomic variable to wake up.
+    */
+    template <typename T>
+    XAMP_ALWAYS_INLINE void PlatformFutexWakeSingle(std::atomic<T>& to_wake) noexcept {
 #ifdef XAMP_OS_WIN
-    ::WakeByAddressSingle(&to_wake);
+        ::WakeByAddressSingle(&to_wake);
 #elif defined (XAMP_OS_MAC)
-    MacOSFutexWake(to_wake, true);
+        MacOSFutexWake(to_wake, true);
 #endif
-}
+    }
 
-/*
-* Futex wake all implementation.
-* 
-* @param[out] to_wake The atomic variable to wake up.
-*/
-template <typename T>
-static XAMP_ALWAYS_INLINE void PlatformFutexWakeAll(std::atomic<T>& to_wake) noexcept {
+    /*
+    * Futex wake all implementation.
+    *
+    * @param[out] to_wake The atomic variable to wake up.
+    */
+    template <typename T>
+    XAMP_ALWAYS_INLINE void PlatformFutexWakeAll(std::atomic<T>& to_wake) noexcept {
 #ifdef XAMP_OS_WIN
-    ::WakeByAddressAll(&to_wake);
+        ::WakeByAddressAll(&to_wake);
 #elif defined (XAMP_OS_MAC)
-    MacOSFutexWake(to_wake, false);
+        MacOSFutexWake(to_wake, false);
 #endif
+    }
 }
 
 void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept {

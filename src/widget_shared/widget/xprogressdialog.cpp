@@ -74,6 +74,8 @@ XProgressDialog::XProgressDialog(const QString& title,
 		close();
 		emit CancelRequested();
 		});
+
+	CenterParent(this);
 }
 
 void XProgressDialog::SetRange(int minimum, int maximum) {
@@ -97,7 +99,7 @@ void XProgressDialog::SetValue(int value) {
 }
 
 void XProgressDialog::SetLabelText(const QString& text) {
-	QFontMetrics metrics(font());
+	const QFontMetrics metrics(font());
 	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, max_width_));
 	CenterParent(this);
 }

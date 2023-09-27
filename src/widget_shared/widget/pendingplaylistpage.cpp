@@ -250,8 +250,8 @@ SELECT
     musics.fileName,
     artists.artist,
     albums.album,    
-    musics.bit_rate,
-    musics.sample_rate,
+    musics.bitRate,
+    musics.sampleRate,
     musics.rating,
     albumMusic.albumId,
     albumMusic.artistId,    
@@ -259,11 +259,11 @@ SELECT
     musics.parentPath,
     musics.dateTime,
 	playlistMusics.playlistMusicsId,
-    musics.album_replay_gain,
-    musics.album_peak,	
-    musics.track_replay_gain,
-	musics.track_peak,
-	musicLoudness.track_loudness,
+    musics.albumReplayGain,
+    musics.albumPeak,	
+    musics.trackReplayGain,
+	musics.trackPeak,
+	musicLoudness.trackLoudness,
 	musics.genre,
     musics.heart,
 	musics.duration
@@ -301,7 +301,7 @@ PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWid
     default_layout->addWidget(playlist_);
 
     default_layout->setContentsMargins(5, 5, 5, 5);
-    setFixedSize(800, 300);    
+    setFixedSize(500, 300);    
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const auto& index) {
         PlayMusic(indexes_[index.row()]);

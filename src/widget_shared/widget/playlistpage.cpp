@@ -65,7 +65,7 @@ void PlaylistPage::Initial() {
 	f.setWeight(QFont::DemiBold);
 	f.setPointSize(qTheme.GetFontSize(20));
 
-	QFontMetrics metrics(f);
+	const QFontMetrics metrics(f);
 	const auto font_height = metrics.height();
 
 	title_->setFont(f);
@@ -99,8 +99,8 @@ void PlaylistPage::Initial() {
 	search_line_edit_->setMinimumSize(QSize(180, 30));
 	search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	search_line_edit_->setClearButtonEnabled(true);
-	search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-	search_line_edit_->setPlaceholderText(tr("Search"));
+	search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	search_line_edit_->setPlaceholderText(tr("Search Album/Title"));
 
 	format_ = new QLabel(this);
 	const QFont format_font(qTEXT("FormatFont"));

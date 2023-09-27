@@ -40,31 +40,6 @@
 #include <qmessagebox.h>
 
 namespace {
-#ifdef Q_OS_WIN32
-    ConstLatin1String VisualStudioVersion() {
-        if constexpr (_MSC_VER >= 1930) {
-            return "2022";
-        }
-        return "2019";
-    }
-    std::string GetCompilerTime() {
-        return qSTR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
-            .arg(kApplicationVersion)
-            .arg(VisualStudioVersion())
-            .arg((_MSC_FULL_VER / 100000) % 100)
-            .arg(_MSC_FULL_VER % 100000)
-            .arg(qTEXT(__DATE__))
-            .arg(qTEXT(__TIME__)).toStdString();
-    }
-#else
-    std::string GetCompilerTime() {
-        return qSTR("Build Clang %1.%2.%3")
-            .arg(__clang_major__)
-            .arg(__clang_minor__)
-            .arg(__clang_patchlevel__).toStdString()
-    }
-#endif
-
     void LoadSampleRateConverterConfig() {
         XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
         AppSettings::LoadSoxrSetting();
@@ -293,8 +268,6 @@ int main() {
     AppSettings::LoadOrSaveLogConfig();
     AppSettings::LoadAppSettings();
     LoadSampleRateConverterConfig();
-
-    XAMP_LOG_DEBUG(GetCompilerTime());
 
 #ifdef Q_OS_WIN32
     const auto components_path = GetComponentsFilePath();

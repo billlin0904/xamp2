@@ -12,7 +12,6 @@
 #include <vector>
 
 #include <base/base.h>
-#include <widget/widget_shared_global.h>
 
 struct LyricEntry {
     int32_t index{0};

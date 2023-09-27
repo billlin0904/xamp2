@@ -547,7 +547,8 @@ void AudioPlayer::CreateBuffer() {
     else {
         auto max_ratio = (std::max)(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
         num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));
-        num_read_buffer_size_ = get_buffer_sample(device_.get(), 2);
+        // TODO: 如果比讀取的緩衝區還要小的話就沒辦法正確撥放.
+        num_read_buffer_size_ = (std::max)(get_buffer_sample(device_.get(), kMaxReadRatio), 8192U);
         allocate_size = std::min(kMaxPreAllocateBufferSize,
             num_write_buffer_size_
             * stream_->GetSampleSize() 

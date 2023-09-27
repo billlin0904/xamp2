@@ -25,9 +25,9 @@ XAMP_WIDGET_SHARED_EXPORT QPixmap RoundDarkImage(QSize size, int32_t alpha = 80,
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-XAMP_WIDGET_SHARED_EXPORT std::vector<uint8_t> Pixmap2ByteVector(const QPixmap& source);
+XAMP_WIDGET_SHARED_EXPORT std::vector<uint8_t> Image2ByteVector(const QPixmap& source);
 
-XAMP_WIDGET_SHARED_EXPORT QByteArray Pixmap2ByteArray(const QPixmap& source);
+XAMP_WIDGET_SHARED_EXPORT QByteArray Image2ByteArray(const QPixmap& source);
 
 XAMP_WIDGET_SHARED_EXPORT QImage BlurImage(const QPixmap& source, QSize size);
 
@@ -36,7 +36,5 @@ XAMP_WIDGET_SHARED_EXPORT int SampleImageBlur(const QImage &image, int blur_alph
 XAMP_WIDGET_SHARED_EXPORT bool OptimizePng(const QString& src_file_path, const QString& dest_file_path);
 
 XAMP_WIDGET_SHARED_EXPORT bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path);
-
-XAMP_WIDGET_SHARED_EXPORT void OptimizePng(const QByteArray& buffer, std::vector<uint8_t>& result_png);
 
 }

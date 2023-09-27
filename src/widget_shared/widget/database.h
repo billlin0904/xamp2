@@ -8,9 +8,7 @@
 #include <optional>
 
 #include <QString>
-#include <QSqlDatabase>
 #include <QSqlQuery>
-#include <QReadWriteLock>
 
 #include <base/object_pool.h>
 

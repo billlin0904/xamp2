@@ -27,6 +27,7 @@ class XAMP_WIDGET_SHARED_EXPORT PlayListTableView : public QTableView {
 public:
 	static constexpr auto kMinimalEncodingBitRate = 128;
     static constexpr auto kMaxStretchedSize = 500;
+	static constexpr auto kMaxPendingPlayListSize = 100;
 
 	static constexpr auto kColumnPlayingWidth = 25;
 	static constexpr auto kColumnTrackWidth = 40;

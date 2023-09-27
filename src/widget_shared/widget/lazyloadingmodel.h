@@ -9,7 +9,7 @@
 
 class LazyLoadingModel final : public QSqlQueryModel {
 public:
-	static constexpr auto kMaxBatchSize = 64; // Max show 64 albums in one page
+	static constexpr auto kMaxBatchSize = 200; // Max show 64 albums in one page
 
 	explicit LazyLoadingModel(QObject* parent = nullptr)
 		: QSqlQueryModel(parent) {

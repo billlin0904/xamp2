@@ -6,10 +6,8 @@
 #pragma once
 
 #include <QStackedWidget>
-#include <QList>
 #include <QMap>
 #include <QFrame>
-#include <QColor>
 
 #include <thememanager.h>
 

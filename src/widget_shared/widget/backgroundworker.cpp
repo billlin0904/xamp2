@@ -119,10 +119,10 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 #endif
 
 void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
-    if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
+    /*if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
         emit BlurImage(QImage());
         return;
-    }
+    }*/
     //ColorThief thief;
     //thief.LoadImage(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
     //emit DominantColor(thief.GetDominantColor());

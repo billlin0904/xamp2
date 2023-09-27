@@ -101,7 +101,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	qTheme.SetAlbumNaviBarTheme(list_view_);
 
-	const QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	constexpr QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
 	list_view_->setMinimumSize(500, 40);
 	list_view_->setMaximumHeight(40);
@@ -173,8 +173,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_search_line_edit_->setMinimumSize(QSize(180, 30));
 	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	album_search_line_edit_->setClearButtonEnabled(true);
-	album_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
-	album_search_line_edit_->setPlaceholderText(tr("Search Album"));
+	album_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	album_search_line_edit_->setPlaceholderText(tr("Search Album/Artist"));
 	
 	album_model_ = new QStandardItemModel(0, 1 , this);
 	auto *album_completer = new QCompleter(album_model_, this);
@@ -213,38 +213,12 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_completer->setCompletionPrefix(text);
 
 		album_view_->Search(text);
-		album_view_->Update();
 		});
 
 	album_combox_layout->addWidget(album_search_line_edit_);	
 
 	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	album_combox_layout_1->addSpacerItem(horizontalSpacer);
-
-	/*auto* sort_by_button = new QToolButton();
-	sort_by_button->setText(tr("Sort by years"));
-	sort_by_button->setObjectName(QString::fromUtf8("sortByButton"));
-	sort_by_button->setFocusPolicy(Qt::NoFocus);
-	sort_by_button->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SORT_DOWN));
-	sort_by_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	sort_by_button->setAutoRaise(true);
-	sort_by_button->setPopupMode(QToolButton::MenuButtonPopup);
-
-	album_combox_layout_1->addWidget(sort_by_button, 1);
-	auto* sort_menu = new QMenu(this);
-	auto *sort_year_act = sort_menu->addAction(tr("Sort By Year"));
-	auto* sort_playback_count_act = sort_menu->addAction(tr("Sort By PlayCunt"));
-	(void)QObject::connect(sort_year_act, &QAction::triggered, [this, sort_by_button]() {
-		album_view_->SortYears();
-		album_view_->Update();
-		sort_by_button->setText(tr("Sort By Year"));
-		album_tag_list_widget_->ClearTag();
-		});
-	(void)QObject::connect(sort_playback_count_act, &QAction::triggered, [this, sort_by_button]() {
-		sort_by_button->setText(tr("Sort By PlayCunt"));
-		album_tag_list_widget_->ClearTag();
-		});
-	sort_by_button->setMenu(sort_menu);*/
 
 	album_combox_layout_1->addLayout(album_combox_layout);
 	album_frame_layout->addLayout(album_combox_layout_1);
@@ -284,7 +258,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_search_line_edit_->setMinimumSize(QSize(180, 30));
 	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	artist_search_line_edit_->setClearButtonEnabled(true);
-	artist_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::LeadingPosition);
+	artist_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	artist_search_line_edit_->setPlaceholderText(tr("Search Artist"));
 
 	action_list = artist_search_line_edit_->findChildren<QAction*>();

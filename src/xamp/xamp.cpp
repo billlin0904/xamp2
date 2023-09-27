@@ -2286,13 +2286,6 @@ void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
     playlist_page_->playlist()->Reload();
 }
 
-void Xamp::OnFoundFileCount(size_t file_count) {
-    if (!read_progress_dialog_) {
-        return;
-    }
-    read_progress_dialog_->SetTitle(qSTR("Total number of files %1").arg(file_count));    
-}
-
 void Xamp::OnCalculateEta(uint64_t ms) {
     if (!read_progress_dialog_) {
         return;
@@ -2319,23 +2312,6 @@ void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result)
 }
 
 void Xamp::OnReadFileProgress(int32_t progress) {
-    constexpr auto kShowProgressDialogMsSecs = 50;
-
-    if (!read_progress_dialog_ 
-        && progress_timer_.elapsed() > kShowProgressDialogMsSecs) {
-        read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
-            tr("Read track information"),
-            tr("Cancel"));
-
-        (void)QObject::connect(read_progress_dialog_.get(),
-            &XProgressDialog::CancelRequested, [this]() {
-                extract_file_worker_->OnCancelRequested();
-                find_album_cover_worker_->OnCancelRequested();
-            });
-
-        read_progress_dialog_->exec();
-    }
-
     if (!read_progress_dialog_) {
         return;
     }
@@ -2355,6 +2331,31 @@ void Xamp::OnReadCompleted() {
     read_progress_dialog_.reset();
 }
 
+void Xamp::OnFoundFileCount(size_t file_count) {
+    constexpr auto kShowProgressDialogMsSecs = 50;
+
+    if (!read_progress_dialog_
+        && progress_timer_.elapsed() > kShowProgressDialogMsSecs) {
+        read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,
+            tr("Read track information"),
+            tr("Cancel"));
+
+        (void)QObject::connect(read_progress_dialog_.get(),
+            &XProgressDialog::CancelRequested, [this]() {
+                extract_file_worker_->OnCancelRequested();
+                find_album_cover_worker_->OnCancelRequested();
+            });
+
+        read_progress_dialog_->exec();
+    }
+
+    if (!read_progress_dialog_) {
+        return;
+    }
+
+    read_progress_dialog_->SetTitle(qSTR("Total number of files %1").arg(file_count));
+}
+
 void Xamp::OnReadFileStart() {
-    progress_timer_.restart();    
+    progress_timer_.restart();
 }

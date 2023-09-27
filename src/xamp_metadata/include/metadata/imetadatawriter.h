@@ -31,9 +31,9 @@ public:
     * Write metadata to file.
     * 
     * @param[in] path file path.
-    * @param[in] trackinfo track info.
+    * @param[in] track_info track info.
     */
-    virtual void Write(Path const &path, TrackInfo const& trackinfo) = 0;
+    virtual void Write(Path const &path, TrackInfo const& track_info) = 0;
 
     /*
     * Write ReplayGain to file.

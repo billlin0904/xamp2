@@ -10,7 +10,6 @@
 #include <QApplication>
 #include <qevent.h>
 #include <QPainter>
-#include <QRegExp>
 #include <QSqlError>
 #include <QStyledItemDelegate>
 #include <ranges>
@@ -212,8 +211,8 @@ void PlayListTableView::Search(const QString& keyword) const {
 }
 
 void PlayListTableView::Reload() {
-    // 呼叫此函數就會更新index, 會導致playing index失效    
-    QString s = qTEXT(R"(
+    // NOTE: 呼叫此函數就會更新index, 會導致playing index失效    
+    const QString s = qTEXT(R"(
     SELECT
 	albums.coverId,
 	musics.musicId,
@@ -225,8 +224,8 @@ void PlayListTableView::Reload() {
 	musics.fileName,
 	artists.artist,
 	albums.album,
-	musics.bit_rate,
-	musics.sample_rate,
+	musics.bitRate,
+	musics.sampleRate,
 	musics.rating,
 	albumMusic.albumId,
 	albumMusic.artistId,
@@ -234,11 +233,11 @@ void PlayListTableView::Reload() {
 	musics.parentPath,
 	musics.dateTime,
 	playlistMusics.playlistMusicsId,
-	musics.album_replay_gain,
-	musics.album_peak,
-	musics.track_replay_gain,
-	musics.track_peak,
-	musicLoudness.track_loudness,
+	musics.albumReplayGain,
+	musics.albumPeak,
+	musics.trackReplayGain,
+	musics.trackPeak,
+	musicLoudness.trackLoudness,
 	musics.genre,
 	musics.heart,
 	musics.duration 
@@ -279,9 +278,6 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::FastReload() {
-    /*model_->query().executedQuery();    
-    model_->dataChanged(QModelIndex(), QModelIndex());
-    update();*/
     Reload();
 }
 
@@ -410,9 +406,8 @@ void PlayListTableView::SetHeaderViewHidden(bool enable) {
 }
 
 void PlayListTableView::initial() {
-    //setModel(model_);
-
     proxy_model_->AddFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->AddFilterByColumn(PLAYLIST_ALBUM);
     proxy_model_->setSourceModel(model_);
     setModel(proxy_model_);
 
@@ -729,34 +724,14 @@ void PlayListTableView::UpdateReplayGain(int32_t playlistId,
 }
 
 void PlayListTableView::keyPressEvent(QKeyEvent *event) {
-    if (event->key() == Qt::Key_Return) {
-        // we captured the Enter key press, now we need to move to the next row
-        auto n_next_row = GetCurrentIndex().row() + 1;
-        if (n_next_row + 1 > model()->rowCount(GetCurrentIndex())) {
-            // we are all the way down, we can't go any further
-            n_next_row = n_next_row - 1;
-        }
-
-        if (state() == QAbstractItemView::EditingState) {
-            // if we are editing, confirm and move to the row below
-            const auto o_next_index = model()->index(n_next_row, GetCurrentIndex().column());
-            setCurrentIndex(o_next_index);
-            selectionModel()->select(o_next_index, QItemSelectionModel::ClearAndSelect);
-        } else {
-            // if we're not editing, start editing
-            edit(GetCurrentIndex());
-        }
-    } else {
-        // any other key was pressed, inform base class
-        QAbstractItemView::keyPressEvent(event);
-    }
+    QAbstractItemView::keyPressEvent(event);
 }
 
 bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     const auto type = ev->type();
     if (this == obj && type == QEvent::KeyPress) {
 	    const auto* event = dynamic_cast<QKeyEvent*>(ev);
-        if (event->key() == Qt::Key_Delete) {
+        if (event->key() == Qt::Key_Delete && enable_delete_) {
             RemoveSelectItems();
             return true;
         }
@@ -886,7 +861,7 @@ void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
     DeletePendingPlaylist();
 
     QModelIndex index;
-    for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
+    for (auto i = 0; i < proxy_model_->rowCount() && i < kMaxPendingPlayListSize; ++i) {
         switch (order) {
         case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
             index = GetNextIndex(i);
