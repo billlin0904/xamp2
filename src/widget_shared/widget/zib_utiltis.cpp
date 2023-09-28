@@ -26,7 +26,7 @@ ZLibLib::ZLibLib()
 
 #define ZLIB_DLL Singleton<ZLibLib>::GetInstance()
 
-bool isLoadZib() {
+bool IsLoadZib() {
     try {
         Singleton<ZLibLib>::GetInstance();
         return true;
@@ -35,7 +35,7 @@ bool isLoadZib() {
     }
 }
 
-QByteArray gzipUncompress(const QByteArray& data) {
+QByteArray GzipDecompress(const QByteArray& data) {
 #define XAMP_inflateInit2(strm, windowBits) \
           ZLIB_DLL.inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
                         (int)sizeof(z_stream))
@@ -72,7 +72,7 @@ QByteArray gzipUncompress(const QByteArray& data) {
             ret = Z_DATA_ERROR;     // and fall through
         case Z_DATA_ERROR:
         case Z_MEM_ERROR:
-            return result;
+            throw std::exception("Date error");
         }
 
         result.append(output, kBufferSize - zlib_stream.avail_out);

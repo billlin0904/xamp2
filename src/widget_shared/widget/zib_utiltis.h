@@ -7,7 +7,7 @@
 
 #include <QByteArray>
 
-bool isLoadZib();
+bool IsLoadZib();
 
-QByteArray gzipUncompress(const QByteArray& data);
+QByteArray GzipDecompress(const QByteArray& data);
 

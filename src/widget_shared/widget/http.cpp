@@ -25,106 +25,108 @@ namespace http {
 
 XAMP_DECLARE_LOG_NAME(Http);
 
-static constexpr int32_t kHttpDefaultTimeout = 3000;
-static constexpr size_t kHttpBufferSize = 512 * 1024;
+namespace {
+    constexpr int32_t kHttpDefaultTimeout = 3000;
+    constexpr size_t kHttpBufferSize = 1024;
 
-static bool IsZipEncoding(QNetworkReply const *reply) {
-    bool is_gzipped = false;
-    Q_FOREACH (const auto &header_pair, reply->rawHeaderPairs()) {
-        if ((header_pair.first == "Content-Encoding") && (header_pair.second == "gzip")) {
-            is_gzipped = true;
+    bool IsZipEncoding(QNetworkReply const* reply) {
+        Q_FOREACH(const auto & header_pair, reply->rawHeaderPairs()) {
+            if ((header_pair.first == "Content-Encoding") && (header_pair.second == "gzip")) {
+                return true;
+            }
         }
-    }
-    return is_gzipped;
-}
-
-static ConstLatin1String NetworkErrorToString(QNetworkReply::NetworkError code) {
-    const auto* mo = &QNetworkReply::staticMetaObject;
-    const int index = mo->indexOfEnumerator("NetworkError");
-    if (index == -1)
-        return kEmptyString;
-    const auto qme = mo->enumerator(index);
-    return { qme.valueToKey(code) };
-}
-
-static void LogHttpRequest(const LoggerPtr &logger,
-    const ConstLatin1String& verb,
-    const QString& url,
-    const QNetworkRequest& request,
-    const QNetworkReply *reply) {
-    auto content_length = 0U;
-
-    QString msg;
-    QTextStream stream(&msg);
-    stream.setEncoding(QStringConverter::Utf8);
-
-    if (!reply) {
-        stream << "Request: ";
-    }
-    else {
-        stream << "Response: ";
+        return false;
     }
 
-    stream << verb;
-    if (reply) {
-        stream << " " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    ConstLatin1String NetworkErrorToString(QNetworkReply::NetworkError code) {
+        const auto* mo = &QNetworkReply::staticMetaObject;
+        const int index = mo->indexOfEnumerator("NetworkError");
+        if (index == -1)
+            return kEmptyString;
+        const auto qme = mo->enumerator(index);
+        return { qme.valueToKey(code) };
     }
 
-    stream << " " << url << " Header: { ";
+    void LogHttpRequest(const LoggerPtr& logger,
+        const ConstLatin1String& verb,
+        const QString& url,
+        const QNetworkRequest& request,
+        const QNetworkReply* reply) {
+        auto content_length = 0U;
 
-    QString content_type;
-    if (!reply) {
-        const auto header_list = request.rawHeaderList();
-        Q_FOREACH(const auto& head , header_list) {
-            stream << head << ": ";
-            stream << request.rawHeader(head);
-            stream << ", ";
+        QString msg;
+        QTextStream stream(&msg);
+        stream.setEncoding(QStringConverter::Utf8);
+
+        if (!reply) {
+            stream << "Request: ";
         }
-        content_length = request.header(QNetworkRequest::ContentLengthHeader).toUInt();
-        content_type = request.header(QNetworkRequest::ContentTypeHeader).toString();
-    } else {
-    	auto header_list = reply->rawHeaderList();
-        Q_FOREACH(const auto & head, header_list) {
-            stream << head << ": ";
-            stream << reply->rawHeader(head);
-            stream << ", ";
+        else {
+            stream << "Response: ";
         }
-        content_length = reply->header(QNetworkRequest::ContentLengthHeader).toUInt();
-        content_type = reply->header(QNetworkRequest::ContentTypeHeader).toString();
-    }
-    stream << "} Data: [";
-    if (content_length > 0) {
-        stream << FormatBytes(content_length) << " of " << content_type << " data";
-    }
-    stream << "]";
-    XAMP_LOG_D(logger, msg.toStdString());
-}
 
-static ConstLatin1String RequestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
-    switch (operation) {
-    case QNetworkAccessManager::HeadOperation:
-        return qTEXT("HEAD");
-    case QNetworkAccessManager::GetOperation:
-        return qTEXT("GET");
-    case QNetworkAccessManager::PutOperation:
-        return qTEXT("PUT");
-    case QNetworkAccessManager::PostOperation:
-        return qTEXT("POST");
-    case QNetworkAccessManager::DeleteOperation:
-        return qTEXT("DELETE");
-    case QNetworkAccessManager::CustomOperation:
-        return qTEXT(request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray());
-    case QNetworkAccessManager::UnknownOperation:
-        break;
-    }
-    Q_UNREACHABLE();
-}
+        stream << verb;
+        if (reply) {
+            stream << " " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        }
 
-static void LogHttpRequest(const LoggerPtr& logger,
-    const ConstLatin1String& verb,
-    const QNetworkRequest& request,
-    const QNetworkReply* reply = nullptr) {
-    LogHttpRequest(logger, verb, request.url().toString(), request, reply);
+        stream << " " << url << " Header: { ";
+
+        QString content_type;
+        if (!reply) {
+            const auto header_list = request.rawHeaderList();
+            Q_FOREACH(const auto & head, header_list) {
+                stream << head << ": ";
+                stream << request.rawHeader(head);
+                stream << ", ";
+            }
+            content_length = request.header(QNetworkRequest::ContentLengthHeader).toUInt();
+            content_type = request.header(QNetworkRequest::ContentTypeHeader).toString();
+        }
+        else {
+            auto header_list = reply->rawHeaderList();
+            Q_FOREACH(const auto & head, header_list) {
+                stream << head << ": ";
+                stream << reply->rawHeader(head);
+                stream << ", ";
+            }
+            content_length = reply->header(QNetworkRequest::ContentLengthHeader).toUInt();
+            content_type = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+        }
+        stream << "} Data: [";
+        if (content_length > 0) {
+            stream << FormatBytes(content_length) << " of " << content_type << " data";
+        }
+        stream << "]";
+        XAMP_LOG_D(logger, msg.toStdString());
+    }
+
+    ConstLatin1String RequestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
+        switch (operation) {
+        case QNetworkAccessManager::HeadOperation:
+            return qTEXT("HEAD");
+        case QNetworkAccessManager::GetOperation:
+            return qTEXT("GET");
+        case QNetworkAccessManager::PutOperation:
+            return qTEXT("PUT");
+        case QNetworkAccessManager::PostOperation:
+            return qTEXT("POST");
+        case QNetworkAccessManager::DeleteOperation:
+            return qTEXT("DELETE");
+        case QNetworkAccessManager::CustomOperation:
+            return qTEXT(request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray());
+        case QNetworkAccessManager::UnknownOperation:
+            break;
+        }
+        Q_UNREACHABLE();
+    }
+
+    void LogHttpRequest(const LoggerPtr& logger,
+        const ConstLatin1String& verb,
+        const QNetworkRequest& request,
+        const QNetworkReply* reply = nullptr) {
+        LogHttpRequest(logger, verb, request.url().toString(), request, reply);
+    }
 }
 
 struct HttpContext {
@@ -334,12 +336,19 @@ void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetwo
 
 QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QString &charset) {
     QScopedPointer<QTextStream> in;
-
-    if (IsZipEncoding(reply)) {
-        in.reset(new QTextStream(gzipUncompress(reply->readAll())));
+    const auto content = reply->readAll();
+    try
+    {
+        if (IsZipEncoding(reply)) {
+            in.reset(new QTextStream(GzipDecompress(content)));
+        }
+        else {
+            in.reset(new QTextStream(content));
+        }
     }
-    else {
-        in.reset(new QTextStream(reply));
+    catch (...)
+    {
+        in.reset(new QTextStream(content));
     }
 
     const auto content_length_var = reply->header(QNetworkRequest::ContentLengthHeader);

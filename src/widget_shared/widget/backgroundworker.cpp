@@ -112,20 +112,17 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
                         XAMP_LOG_D(logger_, "Download cover image completed.");
                         emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
                     }
-                    });				
+                    });
                 }).get();
             }).get();
 }
 #endif
 
 void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
-    /*if (!AppSettings::ValueAsBool(kEnableBlurCover)) {
+    if (image.isNull()) {
         emit BlurImage(QImage());
         return;
-    }*/
-    //ColorThief thief;
-    //thief.LoadImage(image_utils::ResizeImage(image, QSize(400, 400)).toImage());
-    //emit DominantColor(thief.GetDominantColor());
+    }
     emit BlurImage(image_utils::BlurImage(image, size));
 }
 
@@ -224,7 +221,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
 }
 
 void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from, const QString& to) {
-    /*const auto url =
+    const auto url =
         QString("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString(QUrl::toPercentEncoding(keyword)))
         .arg(to)
@@ -238,5 +235,5 @@ void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from
         result = result.replace("[[[\"", "");
         result = result.mid(0, result.indexOf(",\"") - 1);
         emit TranslationCompleted(keyword, result);
-            }).get();*/
+            }).get();
 }
