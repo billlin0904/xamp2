@@ -4,7 +4,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlRecord>
-#include <QDebug>
 #include <QDateTime>
 #include <QThread>
 
@@ -234,6 +233,7 @@ void Database::CreateTableIfNotExist() {
                        artistNameEn TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
                        firstChar TEXT,
+					   firstCharEn TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                        )
                        )"));
@@ -317,6 +317,19 @@ void Database::CreateTableIfNotExist() {
     Q_FOREACH (const auto& sql , create_table_sql) {
         THROW_IF_FAIL(query, sql);
     }
+}
+
+bool Database::DropAllTable() {
+    SqlQuery dropQuery(db_);
+
+    QString dropQueryString = "DROP TABLE IF EXISTS %1";
+    auto tableNames = db_.tables();
+
+    tableNames.removeAll("sqlite_sequence");
+    for (const auto& tableName : qAsConst(tableNames)) {
+        THROW_IF_FAIL(dropQuery, dropQueryString.arg(tableName));
+    }
+    return true;
 }
 
 void Database::ClearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id) {
@@ -1145,10 +1158,11 @@ void Database::AddMusicToPlaylist(const QList<int32_t>& music_id, int32_t playli
 void Database::UpdateArtistEnglishName(const QString& artist, const QString& en_name) {
     SqlQuery query(db_);
 
-    query.prepare(qTEXT("UPDATE artists SET artistNameEn = :artistNameEn WHERE (artist = :artist)"));
+    query.prepare(qTEXT("UPDATE artists SET artistNameEn = :artistNameEn, firstCharEn = :firstCharEn WHERE (artist = :artist AND firstCharEn IS NULL)"));
 
     query.bindValue(qTEXT(":artist"), artist);
     query.bindValue(qTEXT(":artistNameEn"), en_name);
+    query.bindValue(qTEXT(":firstCharEn"), en_name.left(1));
 
     THROW_IF_FAIL1(query);
 }

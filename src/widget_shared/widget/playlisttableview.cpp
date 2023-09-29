@@ -226,7 +226,6 @@ void PlayListTableView::Reload() {
 	albums.album,
 	musics.bitRate,
 	musics.sampleRate,
-	musics.rating,
 	albumMusic.albumId,
 	albumMusic.artistId,
 	musics.fileExt,
@@ -301,7 +300,6 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duration"));
     model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("BitRate"));
     model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
-    model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
     model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("AlbumRG"));
     model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("AlbumPK"));
     model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LastUpdateTime"));
@@ -330,7 +328,6 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_ARTIST,
             PLAYLIST_BIT_RATE,
             PLAYLIST_SAMPLE_RATE,
-            PLAYLIST_RATING,
             PLAYLIST_ALBUM_RG,
             PLAYLIST_ALBUM_PK,
             PLAYLIST_LAST_UPDATE_TIME,

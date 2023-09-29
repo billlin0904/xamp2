@@ -104,6 +104,8 @@ public:
 
     void rollback();
 
+    bool DropAllTable();
+
     QStringList GetGenres() const;
 
     QStringList GetCategories() const;

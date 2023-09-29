@@ -24,7 +24,6 @@ PlayListEntity GetEntity(const QModelIndex& index) {
     entity.duration = GetIndexValue(index, PLAYLIST_DURATION).toDouble();
     entity.bit_rate = GetIndexValue(index, PLAYLIST_BIT_RATE).toUInt();
     entity.sample_rate = GetIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
-    entity.rating = GetIndexValue(index, PLAYLIST_RATING).toUInt();
     entity.album_id = GetIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
     entity.artist_id = GetIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
     entity.cover_id = GetIndexValue(index, PLAYLIST_COVER_ID).toString();

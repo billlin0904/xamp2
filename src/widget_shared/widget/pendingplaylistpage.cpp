@@ -149,8 +149,7 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
     model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("ARTIST"));
     model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("DURATION"));
     model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("BIT.RATE"));
-    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SAMPLE.RATE"));
-    model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
+    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SAMPLE.RATE"));    
     model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
     model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
     model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST.UPDATE.TIME"));
@@ -176,7 +175,6 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
             PLAYLIST_ARTIST,
             PLAYLIST_BIT_RATE,
             PLAYLIST_SAMPLE_RATE,
-            PLAYLIST_RATING,
             PLAYLIST_ALBUM_RG,
             PLAYLIST_ALBUM_PK,
             PLAYLIST_LAST_UPDATE_TIME,

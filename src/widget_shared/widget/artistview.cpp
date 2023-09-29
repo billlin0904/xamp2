@@ -285,19 +285,6 @@ ArtistView::ArtistView(QWidget* parent)
 }
 
 void ArtistView::Search(const QString& keyword) {
-	/*last_query_ = qSTR(R"(
-SELECT
-    artists.artist,
-    artists.artistId,
-    artists.coverId,
-	artists.firstChar
-FROM
-    artists
-WHERE
-    (
-    artists.artist LIKE '%%1%'
-    )
-    )").arg(text);*/
 	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
 	proxy_model_->AddFilterByColumn(INDEX_ARTIST);
 	proxy_model_->setFilterRegularExpression(reg_exp);
@@ -350,7 +337,7 @@ void ArtistView::OnCurrentThemeChanged(ThemeColor theme_color) {
 	page_->OnCurrentThemeChanged(theme_color);
 }
 
-void ArtistView::FilterAritstName(const QSet<QString>& name) {
+void ArtistView::FilterArtistName(const QSet<QString>& name) {
 	QStringList names;
 	Q_FOREACH(auto & c, name) {
 		names.append(qSTR("'%1'").arg(c));
@@ -362,11 +349,11 @@ SELECT
     artists.artistId,
     artists.coverId,
 	artists.firstChar,
-	SUBSTR(artistNameEn, 1, 1) AS enNameFirstChar
+	artists.firstCharEn
 FROM
     artists
 WHERE
-	enNameFirstChar IN (%1)
+	firstCharEn IN (%1)
     )").arg(names.join(","));
 }
 

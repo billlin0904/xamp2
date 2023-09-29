@@ -1,10 +1,8 @@
 #include <widget/lrcpage.h>
 
-#include <QLabel>
 #include <QHBoxLayout>
 #include <QGraphicsDropShadowEffect>
 #include <QPainter>
-#include <QPropertyAnimation>
 
 #include <thememanager.h>
 
@@ -100,7 +98,7 @@ void LrcPage::SetFullScreen(bool enter) {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	//SetFullScreen(spectrum_->width() > 700);
+	SetFullScreen(spectrum_->width() > 700);
 }
 
 void LrcPage::SetBackground(const QImage& cover) {
@@ -111,14 +109,12 @@ void LrcPage::SetBackground(const QImage& cover) {
 		prev_bg_alpha_ = current_bg_alpha_;
 		prev_background_image_ = cover;
         background_image_ = cover;
-		constexpr int kBlurBackgroundAnimationMs = 1500;
 		StartBackgroundAnimation(kBlurBackgroundAnimationMs);
 	}
 	update();
 }
 
 void LrcPage::StartBackgroundAnimation(const int durationMs) {
-	constexpr auto kBlurAlpha = 200;
 	current_bg_alpha_ = image_utils::SampleImageBlur(background_image_, kBlurAlpha);
 
 	auto* fade_in_animation = new QPropertyAnimation(this, "appearBgProg");
@@ -151,10 +147,6 @@ void LrcPage::paintEvent(QPaintEvent*) {
 	if (background_image_.isNull()) {
 		return;
 	}
-
-	QLinearGradient gradient(0, 0, 0, height());
-	qTheme.SetLinearGradient(gradient);
-	painter.fillRect(rect(), gradient);
 
 	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
 

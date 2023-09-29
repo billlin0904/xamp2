@@ -10,6 +10,7 @@
 #include <QMetaEnum>
 
 #include <memory>
+#include <qstringconverter_base.h>
 
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -131,7 +132,7 @@ namespace {
 
 struct HttpContext {
     bool use_internal{false};
-    QString charset{ kDefaultCharset };
+    QStringConverter::Encoding charset{ QStringConverter::Encoding::Utf8 };
     QString user_agent{ kDefaultUserAgent };
     QNetworkAccessManager* manager{nullptr};
     std::function<void (const QString &)> success_handler;
@@ -156,7 +157,7 @@ public:
 
     static void download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read);
 
-    static QString ReadReply(QNetworkReply *reply, const QString &charset);
+    static QString ReadReply(QNetworkReply *reply, const QStringConverter::Encoding &charset);
 
     static void HandleFinish(const HttpContext& context, QNetworkReply *reply, const QString &success_message);
 
@@ -169,7 +170,7 @@ public:
     QUrlQuery params_;
     QHash<QString, QString> headers_;
     QString url_;
-    QString charset_;
+    QStringConverter::Encoding charset_;
     QString user_agent_;
     QNetworkAccessManager *manager_;
     std::function<void (const QString &)> success_handler_;
@@ -186,7 +187,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
     , use_internal_(true)
     , timeout_(kHttpDefaultTimeout)
     , url_(url)
-    , charset_(kDefaultCharset)
+    , charset_(QStringConverter::Encoding::Utf8)
     , manager_(new QNetworkAccessManager(parent)) {
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
 }
@@ -334,7 +335,7 @@ void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetwo
     XAMP_LOG_D(context.logger, "Request finished! error: {}", NetworkErrorToString(error).data());
 }
 
-QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QString &charset) {
+QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStringConverter::Encoding &charset) {
     QScopedPointer<QTextStream> in;
     const auto content = reply->readAll();
     try
@@ -359,7 +360,7 @@ QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStrin
 
     QString result;
     result.reserve(content_length);
-    in->setEncoding(QStringConverter::Utf8);
+    in->setEncoding(charset);
 
     while (!in->atEnd()) {
         result.append(in->readLine());
@@ -403,11 +404,10 @@ QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<Htt
 
     request.setRawHeader("X-Request-ID", request_id);
 
-    // todo: Add GZIP support.
-    /*if (isLoadZib()) {
+    if (IsLoadZib()) {
         request.setRawHeader("Accept-Encoding", "gzip");
         XAMP_LOG_D(d->logger_, "Use gzip compression.");
-    }*/
+    }
 
     request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);

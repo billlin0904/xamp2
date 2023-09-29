@@ -353,7 +353,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			artist_tag_list_widget_->DisableAllTag(tr("All"));
 		}
 		else {
-			artist_view_->FilterAritstName(tags);
+			artist_view_->FilterArtistName(tags);
 		}
 		artist_view_->Update();
 		});

@@ -484,9 +484,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
                 process_dialog->SetValue(count++ * 100 / albums.size() + 1);
             }
             qMainDb.RemoveAllArtist();
-
             process_dialog->SetValue(100);
-            Delay(3);
             qMainDb.commit();
             update();
             emit RemoveAll();

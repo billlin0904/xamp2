@@ -75,7 +75,7 @@ public:
 
 	void ShowAll();
 
-	void FilterAritstName(const QSet<QString>& name);
+	void FilterArtistName(const QSet<QString>& name);
 
 	void Refresh();
 
@@ -85,7 +85,7 @@ signals:
 	void GetArtist(const QString& artist);
 
 public slots:
-	void Search(const QString& text);
+	void Search(const QString& keyword);
 
 private:	
 	void resizeEvent(QResizeEvent* event) override;

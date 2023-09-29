@@ -23,6 +23,9 @@ class XAMP_WIDGET_SHARED_EXPORT LrcPage : public QFrame {
 	Q_PROPERTY(int disappearBgProg READ GetDisappearBgProgress WRITE SetDisappearBgProgress)
 	Q_PROPERTY(int appearBgProg READ GetAppearBgProgress WRITE SetAppearBgProgress)
 public:
+	static constexpr auto kBlurAlpha = 200;
+	static constexpr int kBlurBackgroundAnimationMs = 1500;
+
 	explicit LrcPage(QWidget* parent = nullptr);
 
 	LyricsShowWidget* lyrics();
