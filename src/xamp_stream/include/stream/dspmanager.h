@@ -31,11 +31,15 @@ public:
 
     IDSPManager& AddEqualizer() override;
 
+    IDSPManager& AddParametricEq() override;
+
     IDSPManager& AddCompressor() override;
 
     IDSPManager& AddVolumeControl() override;
 
     IDSPManager& RemoveEqualizer() override;
+
+    IDSPManager& RemoveParametricEq() override;
 
     IDSPManager& RemoveVolumeControl() override;
 

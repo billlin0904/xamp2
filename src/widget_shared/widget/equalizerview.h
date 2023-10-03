@@ -31,8 +31,8 @@ public slots:
 private:
     void ApplySetting(const QString &name, const EqSettings &settings);
 
-    std::array<QLabel*, 10> freq_label_;
-    std::array<QLabel*, 10> bands_label_;
-    std::array<DoubleSlider*, 10> sliders_;
+    std::vector<QLabel*> freq_label_;
+    std::vector<QLabel*> bands_label_;
+    std::vector<DoubleSlider*> sliders_;
     Ui::EqualizerView ui_;
 };

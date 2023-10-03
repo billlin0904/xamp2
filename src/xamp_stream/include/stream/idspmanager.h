@@ -29,11 +29,15 @@ public:
 
     virtual IDSPManager& AddEqualizer() = 0;
 
+    virtual IDSPManager& AddParametricEq() = 0;
+
     virtual IDSPManager& AddCompressor() = 0;
 
     virtual IDSPManager& AddVolumeControl() = 0;
 
     virtual IDSPManager& RemoveEqualizer() = 0;
+
+    virtual IDSPManager& RemoveParametricEq() = 0;
 
     virtual IDSPManager& RemoveVolumeControl() = 0;
 

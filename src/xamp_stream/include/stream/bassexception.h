@@ -8,9 +8,7 @@
 #include <base/exception.h>
 #include <stream/stream.h>
 
-namespace xamp::stream {
-
-using namespace base;
+XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API BassException final : public Exception {
 public:
@@ -22,4 +20,11 @@ private:
     int error_;
 };
 
-}
+#define BASS_IF_FAILED_THROW(cond) \
+	do {\
+        if (!(cond)) {\
+            throw BassException();\
+        }\
+    } while (false)
+
+XAMP_STREAM_NAMESPACE_END

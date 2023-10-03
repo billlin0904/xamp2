@@ -24,15 +24,18 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
+        BASS_IF_FAILED_THROW(stream_);
 
         preamp_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
+        BASS_IF_FAILED_THROW(preamp_);
     }
 
     void AddBand(uint32_t i, float freq, float band_width, float gain, float Q) {
-        auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
-        if (!fx_handle) {
-            throw BassException(BASS.BASS_ErrorGetCode());
-        }
+        const auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
+        BASS_IF_FAILED_THROW(fx_handle);
+
+        Q = 1.4;
+
         BASS_BFX_PEAKEQ eq{};
         eq.lBand = i;
         eq.fCenter = freq;
@@ -40,17 +43,17 @@ public:
         eq.fGain = gain;
         eq.fQ = Q;
         eq.lChannel = BASS_BFX_CHANALL;
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handle, &eq));
+        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(fx_handle, &eq));
         fx_handles_.push_back(fx_handle);
         XAMP_LOG_D(logger_, "Add band {}Hz {}dB Q:{} Bandwidth:{} successfully!", freq, gain, Q, eq.fBandwidth);
     }
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
-        return BassUtiltis::Process(stream_, samples, num_samples, out);
+        return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
 
     uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
-        return BassUtiltis::Process(stream_, samples, out, num_samples);
+        return bass_utiltis::Process(stream_, samples, out, num_samples);
     }
 
     void SetEq(EqSettings const &settings) {
@@ -67,17 +70,17 @@ public:
         }
 
         BASS_BFX_PEAKEQ eq{};
-        BassIfFailedThrow(BASS.BASS_FXGetParameters(fx_handles_[band], &eq));
+        BASS_IF_FAILED_THROW(BASS.BASS_FXGetParameters(fx_handles_[band], &eq));
         eq.fGain = gain;
         eq.fQ = Q;
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handles_[band], &eq));
+        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(fx_handles_[band], &eq));
     }
 
     void SetPreamp(float preamp_db) {
         BASS_BFX_VOLUME fv{};
         fv.lChannel = BASS_BFX_CHANALL;
         fv.fVolume = static_cast<float>(std::pow(10, (preamp_db / 20)));
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(preamp_, &fv));
+        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(preamp_, &fv));
         XAMP_LOG_D(logger_, "Add preamp {}dB successfully!", preamp_db);
     }
 

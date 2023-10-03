@@ -32,7 +32,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 * XAMP_ERROR_NOT_SUPPORT_FORMAT: Not support format
 * XAMP_ERROR_LOAD_DLL_FAILURE: Load dll failure
 * XAMP_ERROR_STOP_STREAM_TIMEOUT: Stop stream timeout
-* XAMP_ERROR_SAMPLERATE_CHANGED: Samplerate changed
+* XAMP_ERROR_SAMPLERATE_CHANGED: Sample rate changed
 * XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE: Not support resample samplerate
 * XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC: Not found dll export function
 * XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE: Not support exclusive mode

@@ -11,7 +11,7 @@ EqualizerView::EqualizerView(QWidget* parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
-    freq_label_ = std::array<QLabel*, 10>{
+    freq_label_ = std::vector<QLabel*>{
         ui_.band1FeqLabel,
         ui_.band2FeqLabel,
         ui_.band3FeqLabel,
@@ -24,7 +24,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         ui_.band10FeqLabel,
     };
 
-    sliders_ = std::array<DoubleSlider*, 10>{
+    sliders_ = std::vector<DoubleSlider*>{
         ui_.band1Slider,
         ui_.band2Slider,
         ui_.band3Slider,
@@ -37,7 +37,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         ui_.band10Slider
     };
 
-    bands_label_ = std::array<QLabel*, 10>{
+    bands_label_ = std::vector<QLabel*>{
         ui_.band1DbLabel,
         ui_.band2DbLabel,
         ui_.band3DbLabel,
@@ -141,7 +141,47 @@ void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings
         s->hide();
     }
 
-    for (size_t i = 0; i < settings.bands.size(); ++i) {
+    auto i = 0;
+    if (freq_label_.size() < settings.bands.size()) {
+	    const auto band_size = settings.bands.size() - freq_label_.size();
+
+	    for (; i < band_size; ++i) {
+            auto *vertical_layout = new QVBoxLayout();
+            vertical_layout->setSpacing(0);
+            vertical_layout->setObjectName(qSTR("verticalLayout_%1").arg(i));
+            vertical_layout->setContentsMargins(1, -1, -1, -1);
+
+            auto *band_db_label = new QLabel(this);
+            band_db_label->setObjectName(qSTR("band%1DbLabel").arg(i));
+            band_db_label->setAlignment(Qt::AlignCenter);
+
+            vertical_layout->addWidget(band_db_label);
+
+            auto* band_slider = new DoubleSlider(this);
+            band_slider->setObjectName(qSTR("band%1Slider").arg(i));
+            band_slider->setMinimum(-150);
+            band_slider->setMaximum(150);
+            band_slider->setOrientation(Qt::Vertical);
+            band_slider->setTickPosition(QSlider::TicksAbove);
+
+            vertical_layout->addWidget(band_slider);
+
+            auto* band_feq_label = new QLabel(this);
+            band_feq_label->setObjectName("band10FeqLabel");
+            band_feq_label->setAlignment(Qt::AlignCenter);
+
+            vertical_layout->addWidget(band_feq_label);
+
+            ui_.gridLayout->addLayout(vertical_layout, 0, 10 + i, 1, 1);
+
+            freq_label_.push_back(band_feq_label);
+            bands_label_.push_back(band_db_label);
+            sliders_.push_back(band_slider);
+            qTheme.SetSliderTheme(band_slider);
+	    }
+    }
+
+    for (i = 0; i < settings.bands.size(); ++i) {
         freq_label_[i]->setText(FormatSampleRate(settings.bands[i].frequency));
         bands_label_[i]->setText(FormatDb(settings.bands[i].gain, 2));
         sliders_[i]->setValue(settings.bands[i].gain * 10);

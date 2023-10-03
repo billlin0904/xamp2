@@ -80,6 +80,88 @@ void AppSettings::AddDontShowMeAgain(const QString& text) {
     }
 }
 
+void AppSettings::ParseGraphicEQ(const QFileInfo file_info, QFile& file) {
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+
+    if (in.atEnd()) {
+        return;
+    }
+
+    const auto line = in.readLine();
+    const QStringList parameter_list(line.split(":"));
+    if (parameter_list.count() < 2) {
+        return;
+    }
+
+	auto node_list = parameter_list.at(1).split(";");
+    EqSettings settings;
+
+    for (auto node_str : node_list) {
+	    auto values = node_str.trimmed().split(" ", Qt::SkipEmptyParts);
+        if (values.count() != 2) {
+            continue;
+        }
+
+        const auto freq = values.at(0).toDouble();
+        const auto gain = values.at(1).toDouble();
+
+        EqBandSetting setting;
+        setting.type = EQFilterTypes::FT_ALL_PEAKING_EQ;
+        setting.frequency = freq;
+        setting.gain = gain;
+        setting.Q = 1.4;
+        settings.bands.push_back(setting);
+    }
+    eq_settings_[file_info.baseName()] = settings;
+}
+
+void AppSettings::ParseFixedBandEQ(const QFileInfo file_info, QFile &file) {
+    const std::array<std::pair<std::wstring_view, EQFilterTypes>, 3> filter_types{
+      std::make_pair(L"LSC", EQFilterTypes::FT_LOW_SHELF),
+      std::make_pair(L"HSC", EQFilterTypes::FT_LOW_HIGH_SHELF),
+      std::make_pair(L"PK",  EQFilterTypes::FT_ALL_PEAKING_EQ),
+    };
+
+	QTextStream in(&file);
+	in.setEncoding(QStringConverter::Utf8);
+
+	EqSettings settings;
+	int i = 0;
+
+	while (!in.atEnd()) {
+		auto line = in.readLine();
+		auto result = line.split(qTEXT(":"));
+		auto str = result[1].toStdWString();
+		if (result[0] == qTEXT("Preamp")) {
+			swscanf(str.c_str(), L"%f dB",
+			        &settings.preamp);
+		}
+		else if (result[0].indexOf(qTEXT("Filter")) != -1) {
+			settings.bands.push_back(EqBandSetting());
+			auto pos = str.find(L"Fc");
+			swscanf(&str[pos], L"Fc %f Hz",
+			        &settings.bands[i].frequency);
+			for (auto filter_type : filter_types) {
+				pos = str.find(filter_type.first);
+				if (pos != std::wstring::npos) {
+					settings.bands[i].type = filter_type.second;
+					break;
+				}
+			}
+			pos = str.find(L"Gain");
+			if (pos == std::wstring::npos) {
+				continue;
+			}
+			swscanf(&str[pos], L"Gain %f dB Q %f",
+			        &settings.bands[i].gain, &settings.bands[i].Q);
+			++i;
+			XAMP_LOG_TRACE("Parse {}", line.toStdString());
+		}
+	}
+	eq_settings_[file_info.baseName()] = settings;
+}
+
 void AppSettings::LoadEqPreset() {
 	const auto path = QDir::currentPath() + qTEXT("/eqpresets/");
 	const auto file_ext = QStringList() << qTEXT("*.*");
@@ -90,34 +172,11 @@ void AppSettings::LoadEqPreset() {
         const QFileInfo file_info(filepath);
         QFile file(filepath);
         if (file.open(QIODevice::ReadOnly)) {
-            QTextStream in(&file);
-            in.setEncoding(QStringConverter::Utf8);
-            EqSettings settings;
-            int i = 0;
-            while (!in.atEnd()) {
-                auto line = in.readLine();
-                auto result = line.split(qTEXT(":"));
-                auto str = result[1].toStdWString();
-                if (result[0] == qTEXT("Preamp")) {
-                    swscanf(str.c_str(), L"%f dB",
-                        &settings.preamp);
-                }
-                else if (result[0].indexOf(qTEXT("Filter")) != -1) {
-                    settings.bands.push_back(EqBandSetting());
-                    auto pos = str.find(L"Fc");
-                    swscanf(&str[pos], L"Fc %f Hz",
-                        &settings.bands[i].frequency);
-	                pos = str.find(L"Gain");
-                    if (pos == std::wstring::npos) {
-                        continue;
-                    }
-                    swscanf(&str[pos], L"Gain %f dB Q %f",
-                        &settings.bands[i].gain, &settings.bands[i].Q);
-                    ++i;
-                    XAMP_LOG_TRACE("Parse {}", line.toStdString());
-                }
+            if (!file_info.baseName().contains(qTEXT("GraphicEQ"))) {
+                ParseFixedBandEQ(file_info, file);
+            } else {
+                ParseGraphicEQ(file_info, file);
             }
-            eq_settings_[file_info.baseName()] = settings;
         }
     }
     EqSettings default_settings;
@@ -384,7 +443,6 @@ void AppSettings::LoadAppSettings() {
     AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);
     AppSettings::SetDefaultValue(kAppSettingDiscordNotify, false);
     AppSettings::SetDefaultValue(kFlacEncodingLevel, 8);
-    AppSettings::SetDefaultValue(kAppSettingShowLeftList, true);
     AppSettings::SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
     AppSettings::SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
     AppSettings::SetDefaultValue(kAppSettingEnableReplayGain, true);

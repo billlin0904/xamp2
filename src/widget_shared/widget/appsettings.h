@@ -9,6 +9,7 @@
 
 #include <QColor>
 #include <QDataStream>
+#include <qfileinfo.h>
 #include <QSettings>
 #include <QScopedPointer>
 
@@ -27,7 +28,7 @@ struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
         arch << object.settings.preamp;
         arch << static_cast<quint32>(object.settings.bands.size());
         for (const auto& band : object.settings.bands) {
-            arch << band.frequency << band.gain << band.Q;
+            arch << band.type << band.frequency << band.gain << band.Q;
         }
         return arch;
     }
@@ -40,7 +41,7 @@ struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
         arch >> total;
         object.settings.bands.resize(total);
         for (auto i = 0; i < total; ++i) {
-            arch >> object.settings.bands[i].frequency >> object.settings.bands[i].gain >> object.settings.bands[i].Q;
+            arch >> object.settings.bands[i].type >> object.settings.bands[i].frequency >> object.settings.bands[i].gain >> object.settings.bands[i].Q;
         }
         return arch;
     }
@@ -171,6 +172,10 @@ public:
     static void SetEqSettings(AppEQSettings const &eq_settings);
 
     static void AddDontShowMeAgain(const QString &text);
+
+    static void ParseFixedBandEQ(const QFileInfo file_info, QFile& file);
+
+    static void ParseGraphicEQ(const QFileInfo file_info, QFile& file);
 
     static bool DontShowMeAgain(const QString& text);
 

@@ -32,13 +32,6 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 
-#define BassIfFailedThrow(result) \
-    do {\
-        if (!(result)) {\
-            throw BassException();\
-        }\
-    } while (false)
-
 struct XAMP_STREAM_API BassPluginLoadDeleter final {
     static HPLUGIN invalid() noexcept;
     static void close(HPLUGIN value);

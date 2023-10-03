@@ -33,8 +33,8 @@ public:
             stream_.get(),
             BASS_FX_VOLUME,
             0);
-        BassIfFailedThrow(fade_fx);
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(fade_fx, &volume_param));
+        BASS_IF_FAILED_THROW(fade_fx);
+        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(fade_fx, &volume_param));
         XAMP_LOG_D(logger_, "Fade current:{:.2f} target:{:.2f} time:{:.2f}",
             current,
             target,
@@ -42,11 +42,11 @@ public:
     }
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
-        return BassUtiltis::Process(stream_, samples, num_samples, out);
+        return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
 
     uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
-        return BassUtiltis::Process(stream_, samples, out, num_samples);
+        return bass_utiltis::Process(stream_, samples, out, num_samples);
     }
 private:
     BassStreamHandle stream_;

@@ -159,7 +159,7 @@ public:
 
         XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
-        BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
+        BASS_IF_FAILED_THROW(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
         const auto duration = GetDuration();
         if (duration < 1.0) {
@@ -178,7 +178,7 @@ public:
                 throw BassException();
             }
 
-            BassIfFailedThrow(BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
+            BASS_IF_FAILED_THROW(BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                 stream_.get(),
                 BASS_MIXER_BUFFER));
             XAMP_LOG_D(logger_, "Mix stream {} channel to 2 channel", info_.chans);
@@ -271,7 +271,7 @@ public:
 
     void Seek(double stream_time) const {
         const auto pos_bytes = BASS.BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
-        BassIfFailedThrow(BASS.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
+        BASS_IF_FAILED_THROW(BASS.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
     }
 
     double GetPosition() const {
@@ -280,7 +280,7 @@ public:
 
     [[nodiscard]] uint32_t GetDsdSampleRate() const {
         float rate = 0;
-        BassIfFailedThrow(BASS.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
+        BASS_IF_FAILED_THROW(BASS.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 

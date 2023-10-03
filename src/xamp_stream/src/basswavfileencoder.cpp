@@ -51,7 +51,7 @@ public:
     }
 
     void Encode(std::function<bool(uint32_t) > const& progress) {
-        BassUtiltis::Encode(stream_, progress);
+        bass_utiltis::Encode(stream_, progress);
     }
 
     BassFileStream stream_;

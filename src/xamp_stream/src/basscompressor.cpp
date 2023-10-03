@@ -23,7 +23,7 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
-        BassIfFailedThrow(stream_);
+        BASS_IF_FAILED_THROW(stream_);
     }
 
     void Init(CompressorParameters const& parameters) {
@@ -38,8 +38,8 @@ public:
             stream_.get(),
             BASS_FX_BFX_COMPRESSOR2,
             0);
-        BassIfFailedThrow(compressor_fx);
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
+        BASS_IF_FAILED_THROW(compressor_fx);
+        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
         XAMP_LOG_D(logger_, "Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
             compressord.fGain,
             compressord.fThreshold,
@@ -70,7 +70,7 @@ public:
     }
 
     uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
-        return BassUtiltis::Process(stream_, samples, out, num_samples);
+        return bass_utiltis::Process(stream_, samples, out, num_samples);
     }
 
 private:

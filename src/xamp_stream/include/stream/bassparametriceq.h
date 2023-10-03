@@ -28,15 +28,6 @@ public:
 
     void Init(const AnyMap& config) override;
 
-    /*
-     * @band_width: Bandwidth in octaves (0.1...4...n), Q is not in use (fBandwidth has priority over fQ). Default = 1 (0=not in use).
-     *              The bandwidth in octaves (between -3 dB frequencies for for BANDPASS and NOTCH or between midpoint (dBgain/2) gain frequencies for PEAKINGEQ).
-     * @center: Cut-off frequency (Center in PEAKINGEQ and Shelving filters) in Hz (1...info.freq/2). Default = 200Hz.
-     * @gain: Gain in dB (-15...0...+15). Default 0dB (used only for PEAKINGEQ and Shelving filters).
-     * @Q: The EE kinda definition (linear), if fBandwidth is not in use (0.1...1). Default = 0.0 (0=not in use).
-     * @S: A shelf slope parameter (linear, used only with Shelving filters) (0.1...1). Default = 0.0.
-     *     When fS=1, the shelf slope is as steep as you can get it and remain monotonically increasing or decreasing gain with frequency.
-     */
     void SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S);
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
@@ -49,6 +40,8 @@ public:
 
     void Flush() override;
 private:
+    void SetEq(EqSettings const& settings);
+
     class BassParametricEqImpl;
     PimplPtr<BassParametricEqImpl> impl_;
 };

@@ -13,6 +13,7 @@
 #include <stream/bassflacfileencoder.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/avfileencoder.h>
+#include <stream/bassparametriceq.h>
 #include <stream/mfaacencoder.h>
 #include <stream/bassfader.h>
 #include <stream/basscddevice.h>
@@ -28,8 +29,7 @@
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
-
-static bool IsDsdFileChunk(std::string_view const & file_chunks) noexcept {
+	static bool IsDsdFileChunk(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
         "DSD ", // .dsd file
         "FRM8"  // .dsdiff file
@@ -88,6 +88,10 @@ AlignPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
 
 AlignPtr<IFileEncoder> StreamFactory::MakeWaveEncoder() {
     return MakeAlign<IFileEncoder, BassWavFileEncoder>();
+}
+
+AlignPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
+    return MakeAlign<IAudioProcessor, BassParametricEq>();
 }
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {

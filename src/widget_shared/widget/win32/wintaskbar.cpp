@@ -79,19 +79,22 @@ void WinTaskbar::UpdateProgressIndicator() {
 		return;
 	}
 
-	auto hwnd = reinterpret_cast<HWND>(window_->winId());
+	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
+	HRESULT hr = S_OK;
 
 	const auto progress_range = process_max_ - process_min_;
 	if (progress_range > 0) {
 		const int scaled_value = std::round(static_cast<double>(100) 
 			* static_cast<double>(process_value_ - process_min_) / static_cast<double>(progress_range));
-		
-		taskbar_list_->SetProgressValue(hwnd, static_cast<ULONGLONG>(scaled_value), 100);
+		hr = taskbar_list_->SetProgressValue(hwnd, static_cast<ULONGLONG>(scaled_value), 100);
 	} else if (state_ == TASKBAR_PROCESS_STATE_NORMAL) {
 		state_ = TASKBAR_PROCESS_STATE_INDETERMINATE;
 	}
+	hr = taskbar_list_->SetProgressState(hwnd, GetWin32ProgressState(state_));
 
-	taskbar_list_->SetProgressState(hwnd, GetWin32ProgressState(state_));
+	if (FAILED(hr)) {
+		XAMP_LOG_DEBUG("UpdateProgressIndicator return failure! {}", GetPlatformErrorMessage(hr));
+	}
 }
 
 void WinTaskbar::UpdateOverlay() {
@@ -103,7 +106,7 @@ void WinTaskbar::UpdateOverlay() {
 		return;
 	}
 
-	auto hwnd = reinterpret_cast<HWND>(window_->winId());
+	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
 
 	std::wstring description;
 	HICON icon_handle = nullptr;
@@ -118,7 +121,10 @@ void WinTaskbar::UpdateOverlay() {
 			icon_handle = static_cast<HICON>(LoadImage(nullptr, IDI_APPLICATION, IMAGE_ICON, SM_CXSMICON, SM_CYSMICON, LR_SHARED));
 	}
 
-	taskbar_list_->SetOverlayIcon(hwnd, icon_handle, description.c_str());
+	auto hr = taskbar_list_->SetOverlayIcon(hwnd, icon_handle, description.c_str());
+	if (FAILED(hr)) {
+		XAMP_LOG_DEBUG("UpdateOverlay return failure! {}", GetPlatformErrorMessage(hr));
+	}
 
 	if (icon_handle)
 		::DestroyIcon(icon_handle);

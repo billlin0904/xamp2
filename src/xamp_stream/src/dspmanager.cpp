@@ -7,6 +7,7 @@
 #include <stream/bassvolume.h>
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/basscompressor.h>
+#include <stream/bassparametriceq.h>
 
 #include <base/exception.h>
 #include <base/logger_impl.h>
@@ -38,6 +39,11 @@ IDSPManager& DSPManager::AddEqualizer() {
     return *this;
 }
 
+IDSPManager& DSPManager::AddParametricEq() {
+    AddPostDSP(StreamFactory::MakeParametricEq());
+    return *this;
+}
+
 IDSPManager& DSPManager::RemoveCompressor() {
     RemovePostDSP<BassCompressor>();
     return *this;
@@ -63,6 +69,11 @@ void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
 
 IDSPManager& DSPManager::RemoveEqualizer() {
     RemovePostDSP<BassEqualizer>();
+    return *this;
+}
+
+IDSPManager& DSPManager::RemoveParametricEq() {
+    RemovePostDSP<BassParametricEq>();
     return *this;
 }
 
@@ -92,11 +103,10 @@ bool DSPManager::CanProcess() const noexcept {
 
 void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
-    const auto itr = std::find_if(dsp_chain.begin(),
-        dsp_chain.end(),
-        [id](auto const& processor) {
-            return processor->GetTypeId() == id;
-        });
+    const auto itr = std::ranges::find_if(dsp_chain,
+                                          [id](auto const& processor) {
+	                                          return processor->GetTypeId() == id;
+                                          });
     if (itr != dsp_chain.end()) {
         *itr = std::move(processor);
     }

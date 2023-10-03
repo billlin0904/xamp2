@@ -92,8 +92,8 @@ public:
 
         const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X}){}",
-                (*itr).second, (*itr).first, stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X})",
+                       itr->second, itr->first);
             return;
         }
 

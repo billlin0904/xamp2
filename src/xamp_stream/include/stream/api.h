@@ -30,6 +30,8 @@ public:
 
 	static AlignPtr<IAudioProcessor> MakeEqualizer();
 
+	static AlignPtr<IAudioProcessor> MakeParametricEq();
+
 	static AlignPtr<IAudioProcessor> MakeCompressor();
 
 	static AlignPtr<IAudioProcessor> MakeVolume();

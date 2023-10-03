@@ -25,7 +25,6 @@ DECLARE_APP_SETTING_NAME(AppSettingIsMuted);
 DECLARE_APP_SETTING_NAME(AppSettingOrder);
 DECLARE_APP_SETTING_NAME(AppSettingUseNativeDSDMode);
 DECLARE_APP_SETTING_NAME(AppSettingUseFramelessWindow);
-DECLARE_APP_SETTING_NAME(AppSettingShowLeftList);
 DECLARE_APP_SETTING_NAME(AppSettingDiscordNotify);
 DECLARE_APP_SETTING_NAME(AppSettingPlaylistColumnName);
 DECLARE_APP_SETTING_NAME(AppSettingPodcastPlaylistColumnName);

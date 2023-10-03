@@ -42,12 +42,12 @@ inline constexpr std::array<float, kEQMaxBand> kEqDefaultFrequencies{
     };
 
 struct XAMP_STREAM_API EqBandSetting final {
-    EQFilterTypes type{ EQFilterTypes::FT_ALL_PASS };
+    EQFilterTypes type{ EQFilterTypes::FT_ALL_PEAKING_EQ };
     float frequency{0};
     float gain{0};
     float band_width{0};
     float Q{0};
-    float S{0};
+    float shelf_slope{0};
 };
 
 struct XAMP_STREAM_API EqSettings final {

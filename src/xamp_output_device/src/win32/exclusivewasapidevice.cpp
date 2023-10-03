@@ -104,6 +104,7 @@ namespace {
 	// 2. Stream latency between the buffer and endpoint device (~5 ms).
 	// 3. Endpoint buffer (~20 ms to ensure glitch-free rendering).
 	constexpr REFERENCE_TIME kGlitchFreePeriod = 350000;
+	constexpr std::chrono::milliseconds kGlitchFreeDuration{35};
 }
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
@@ -462,10 +463,10 @@ void ExclusiveWasapiDevice::StartStream() {
 	XAMP_EXPECTS(close_request_);
 
 	// Calculate buffer duration.	
-	std::chrono::milliseconds glitch_time((buffer_frames_ *
+	const std::chrono::milliseconds buffer_duration((buffer_frames_ *
 		kMicrosecondsPerSecond /
 		mix_format_->nSamplesPerSec) / 1000);
-	glitch_time *= 10;
+	const std::chrono::milliseconds glitch_time = kGlitchFreeDuration + buffer_duration;
 
 	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", glitch_time.count());
 	// Reset event.
@@ -480,6 +481,7 @@ void ExclusiveWasapiDevice::StartStream() {
 		Stopwatch watch;
 		Mmcss mmcss;
 
+		ignore_wait_slow_ = true;
 		is_running_ = true;
 
 		// Boost thread priority.
@@ -516,7 +518,7 @@ void ExclusiveWasapiDevice::StartStream() {
 			// Check wait time.
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > glitch_time) {
-				XAMP_LOG_D(logger_, "WASAPI output got glitch! {}msec.", elapsed.count());
+				XAMP_LOG_D(logger_, "WASAPI output got glitch! {}msec > {}msec.", elapsed.count(), glitch_time.count());
 				if (!ignore_wait_slow_) {
 					thread_exit = true;
 					continue;
@@ -528,7 +530,9 @@ void ExclusiveWasapiDevice::StartStream() {
 				if (!GetSample(false)) {
 					thread_exit = true;
 				}
-				current_timeout = glitch_time.count();
+				if (!ignore_wait_slow_) {
+					current_timeout = glitch_time.count();
+				}
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;

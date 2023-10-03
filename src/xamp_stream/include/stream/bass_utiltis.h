@@ -16,7 +16,7 @@ namespace stream {
 }
 }
 
-namespace xamp::stream::BassUtiltis {
+namespace xamp::stream::bass_utiltis {
 
 uint32_t Process(BassStreamHandle& stream, float const* samples, float * out, uint32_t num_samples);
 bool Process(BassStreamHandle& stream, float const* samples, uint32_t num_samples, BufferRef<float>& out);

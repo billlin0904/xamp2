@@ -1427,10 +1427,12 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
                 AppSettings::GetEqSettings();
             player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
             player_->GetDspManager()->AddEqualizer();
+            //player_->GetDspManager()->AddParametricEq();
         }
     }
     else {
         player_->GetDspManager()->RemoveEqualizer();
+        //player_->GetDspManager()->RemoveParametricEq();
     }
 
     if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {

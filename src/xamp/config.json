@@ -10,16 +10,19 @@
                 "BackgroundThreadPool": "info",
                 "BackgroundWorker": "info",
                 "BassCompressor": "info",
-                "BassEqualizer": "info",
+                "BassEqualizer": "debug",
                 "BassFader": "info",
                 "BassFileStream": "info",
+                "BassParametricEq": "debug",
+                "BassVolume": "info",
                 "CrashHandler": "debug",
                 "Database": "info",
                 "DatabaseFacade": "info",
                 "DspManager": "info",
-                "ExclusiveWasapiDevice": "info",
+                "ExclusiveWasapiDevice": "debug",
                 "ExclusiveWasapiDeviceType": "info",
                 "ExtractFileWorker": "info",
+                "Http": "debug",
                 "ImageCache": "info",
                 "LibAv": "info",
                 "LibSoxr": "info",
@@ -41,22 +44,6 @@
         "resampleSampleRate": 96000
     },
     "Soxr": {
-        "BlueTooth": {
-            "passBand": 96,
-            "phase": 46,
-            "quality": 3,
-            "resampleSampleRate": 96000,
-            "rolloffLevel": 2,
-            "stopBand": 100
-        },
-        "CD 176Khz": {
-            "passBand": 96,
-            "phase": 46,
-            "quality": 3,
-            "resampleSampleRate": 176400,
-            "rolloffLevel": 2,
-            "stopBand": 100
-        },
         "default": {
             "passBand": 96,
             "phase": 46,
