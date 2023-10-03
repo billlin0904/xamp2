@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>720</width>
+    <width>823</width>
     <height>300</height>
    </rect>
   </property>
@@ -18,13 +18,13 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>720</width>
+    <width>0</width>
     <height>300</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>720</width>
+    <width>16777215</width>
     <height>300</height>
    </size>
   </property>
@@ -38,7 +38,6 @@
       <widget class="QLabel" name="label_23">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -93,7 +92,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
@@ -104,7 +103,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -130,7 +129,7 @@
             <string>8KHz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -142,7 +141,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="preampDbLabel">
@@ -150,7 +149,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -182,7 +181,7 @@
             <string>Preamp</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -194,7 +193,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band3DbLabel">
@@ -202,7 +201,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -240,7 +239,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band4DbLabel">
@@ -248,7 +247,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -274,7 +273,7 @@
             <string>125Hz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -286,7 +285,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band9DbLabel">
@@ -294,7 +293,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -320,7 +319,7 @@
             <string>4KHz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -332,7 +331,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band5DbLabel">
@@ -340,7 +339,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -366,7 +365,7 @@
             <string>250Hz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -378,7 +377,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band1DbLabel">
@@ -386,7 +385,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -412,7 +411,7 @@
             <string>31.1Hz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -424,7 +423,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band6DbLabel">
@@ -432,7 +431,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -458,7 +457,7 @@
             <string>500Hz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -470,7 +469,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band7DbLabel">
@@ -478,7 +477,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -504,7 +503,7 @@
             <string>1KHz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -516,7 +515,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band8DbLabel">
@@ -524,7 +523,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -550,7 +549,7 @@
             <string>2KHz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -562,7 +561,7 @@
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>13</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QLabel" name="band2DbLabel">
@@ -570,7 +569,7 @@
             <string>0db</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -596,7 +595,7 @@
             <string>62Hz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
