@@ -67,6 +67,7 @@ void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
     item->setIcon(icon);
     item->setSizeHint(QSize(35, 35));    
     auto f = item->font();
+    f.setBold(true);
     f.setPointSize(qTheme.GetFontSize(8));
     item->setFont(f);
     model_.appendRow(item);

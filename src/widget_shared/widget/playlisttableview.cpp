@@ -250,9 +250,9 @@ FROM
 	JOIN artists ON albumMusic.artistId = artists.artistId 
 WHERE
 	playlistMusics.playlistId = %1 
-GROUP BY
-	musics.parentPath,
-	musics.track 
+-- GROUP BY
+--	musics.parentPath,
+--	musics.track 
 ORDER BY
 	musics.parentPath ASC,
 	musics.track ASC)");

@@ -34,8 +34,6 @@ signals:
 
     void CalculateEta(uint64_t ms);
 
-    void FromDatabase(int32_t playlist_id, const QList<PlayListEntity>& entity);
-
 public slots:
     void OnExtractFile(const QString& file_path, int32_t playlist_id);
 

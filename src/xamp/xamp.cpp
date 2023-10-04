@@ -1902,12 +1902,6 @@ void Xamp::InitialPlaylist() {
         playlist_page_.reset(NewPlaylistPage(kDefaultPlaylistId, kAppSettingPlaylistColumnName));
         ConnectPlaylistPageSignal(playlist_page_.get());
         playlist_page_->playlist()->SetHeaderViewHidden(false);
-  
-        (void)QObject::connect(extract_file_worker_.get(),
-            &ExtractFileWorker::FromDatabase,
-            playlist_page_->playlist(),
-            &PlayListTableView::ProcessDatabase,
-            Qt::QueuedConnection);
 
         (void)QObject::connect(this,
             &Xamp::ChangePlayerOrder,
