@@ -220,12 +220,13 @@ public:
             HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 24000));
             HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, 160000));
         } else {
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, encoding_profile_.value().num_channels));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, encoding_profile_.value().bit_per_sample));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, encoding_profile_.value().sample_rate));
+            const auto& encoding_profile = encoding_profile_.value();
+            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, encoding_profile.num_channels));
+            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, encoding_profile.bit_per_sample));
+            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, encoding_profile.sample_rate));
             HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 1));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, encoding_profile_.value().bytes_per_second));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, encoding_profile_.value().bitrate));
+            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, encoding_profile.bytes_per_second));
+            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, encoding_profile.bitrate));
         }
         HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, (UINT32)AACProfileLevel::AAC_PROFILE_L2));
         HrIfFailledThrow(profile_->SetAudioAttributes(attrs_));
@@ -274,12 +275,12 @@ public:
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
         const auto encoding_profile = config.Get<EncodingProfile>(FileEncoderConfig::kEncodingProfile);
 
+        SetEncodingProfile(encoding_profile);
+
         encoder_.Open(input_file_path);
         encoder_.SetAudioFormat(MFAudioFormat_AAC);
         encoder_.SetContainer(MFTranscodeContainerType_MPEG4);
         encoder_.SetOutputFile(output_file_path);
-        
-        SetEncodingProfile(encoding_profile);
     }
 
     void Encode(std::function<bool(uint32_t) > const& progress) {
