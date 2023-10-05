@@ -28,23 +28,17 @@ bool IsFilePath(std::wstring const& file_path) noexcept {
 		|| lowcase_file_path.find(L"http") == std::string::npos;
 }
 
-Path GetTempFilePath() {
+Path GetTempFileNamePath() {
 	// Short retry times to avoid cost too much time.
 	constexpr auto kMaxRetryCreateTempFile = 10;
 	const auto temp_path = Fs::temp_directory_path();
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(MakeTempFileName() + ".tmp");
-		std::error_code ec;
-		// Create parent directory if not exist.
-		if (Fs::create_directories(path.parent_path(), ec)
-			&& Fs::status(path.parent_path(), ec).type() == Fs::file_type::directory) {
-			// Create temp file.
-			std::ofstream file(path.native());
-			if (file.is_open()) {
-				file.close();
-				return path;
-			}
+		std::ofstream file(path.native());
+		if (file.is_open()) {
+			file.close();
+			return path;
 		}
 		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
 	}

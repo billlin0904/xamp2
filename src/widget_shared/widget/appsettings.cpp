@@ -406,9 +406,7 @@ void AppSettings::RegisterMetaType() {
     //qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
 
     qRegisterMetaType<int64_t>("int64_t");
-    qRegisterMetaType<QSharedPointer<DatabaseFacade>>("QSharedPointer<DatabaseFacade>");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
-    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
     qRegisterMetaType<PlayListEntity>("PlayListEntity");

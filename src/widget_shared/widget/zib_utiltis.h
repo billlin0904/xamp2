@@ -7,7 +7,25 @@
 
 #include <QByteArray>
 
+#include <fstream>
+#include <vector>
+#include <map>
+
+#include <widget/widget_shared.h>
+
 bool IsLoadZib();
 
 QByteArray GzipDecompress(const QByteArray& data);
 
+class ZipFileReader {
+public:
+	ZipFileReader();
+
+	XAMP_PIMPL(ZipFileReader)
+
+	std::vector<std::wstring> OpenFile(const std::wstring& file);
+
+private:
+	class ZipFileReaderImpl;
+	PimplPtr<ZipFileReaderImpl> impl_;
+};

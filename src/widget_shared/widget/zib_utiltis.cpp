@@ -2,42 +2,208 @@
 #include <widget/widget_shared.h>
 #include <base/dll.h>
 #include <base/scopeguard.h>
+
 #include <zlib.h>
+#include <contrib/minizip/unzip.h>
 
-class ZLibLib final {
-public:
-    ZLibLib();
+namespace {
+    struct UzFileHandleTraits final {
+        static unzFile invalid() noexcept {
+            return nullptr;
+        }
 
-private:
-    SharedLibraryHandle module_;
+        static void close(unzFile value) noexcept {
+            unzClose(value);
+        }
+    };
 
-public:
-    XAMP_DECLARE_DLL_NAME(inflateInit2_);
-    XAMP_DECLARE_DLL_NAME(inflate);
-    XAMP_DECLARE_DLL_NAME(inflateEnd);
-};
+    voidpf fopen64_file_func(voidpf opaque, const void* filename, int mode) {
+        FILE* file = nullptr;
+        const wchar_t* mode_fopen = nullptr;
 
-ZLibLib::ZLibLib()
-    : module_(OpenSharedLibrary("zlib1"))
-    , XAMP_LOAD_DLL_API(inflateInit2_)
-    , XAMP_LOAD_DLL_API(inflate)
-    , XAMP_LOAD_DLL_API(inflateEnd) {
+        if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER) == ZLIB_FILEFUNC_MODE_READ)
+            mode_fopen = L"rb";
+        else
+            if (mode & ZLIB_FILEFUNC_MODE_EXISTING)
+                mode_fopen = L"r+b";
+            else
+                if (mode & ZLIB_FILEFUNC_MODE_CREATE)
+                    mode_fopen = L"wb";
+
+        if ((filename != nullptr) && (mode_fopen != nullptr))
+            _wfopen_s(&file, (const wchar_t*)filename, mode_fopen);
+        return file;
+    }
+
+
+    uLong fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size) {
+        uLong ret;
+        ret = (uLong)fread(buf, 1, (size_t)size, (FILE*)stream);
+        return ret;
+    }
+
+    uLong fwrite_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size) {
+        uLong ret;
+        ret = (uLong)fwrite(buf, 1, (size_t)size, (FILE*)stream);
+        return ret;
+    }
+
+    ZPOS64_T ftell64_file_func(voidpf opaque, voidpf stream) {
+        ZPOS64_T ret;
+        ret = _ftelli64((FILE*)stream);
+        return ret;
+    }
+
+    long fseek64_file_func(voidpf  opaque, voidpf stream, ZPOS64_T offset, int origin) {
+        int fseek_origin = 0;
+        long ret;
+
+        switch (origin)
+        {
+        case ZLIB_FILEFUNC_SEEK_CUR:
+            fseek_origin = SEEK_CUR;
+            break;
+        case ZLIB_FILEFUNC_SEEK_END:
+            fseek_origin = SEEK_END;
+            break;
+        case ZLIB_FILEFUNC_SEEK_SET:
+            fseek_origin = SEEK_SET;
+            break;
+        default: return -1;
+        }
+
+        ret = 0;
+
+        if (_fseeki64((FILE*)stream, offset, fseek_origin) != 0)
+            ret = -1;
+
+        return ret;
+    }
+
+    int fclose_file_func(voidpf opaque, voidpf stream) {
+        int ret;
+        ret = fclose((FILE*)stream);
+        return ret;
+    }
+
+    int ferror_file_func(voidpf opaque, voidpf stream) {
+        int ret;
+        ret = ferror((FILE*)stream);
+        return ret;
+    }
 }
 
-#define ZLIB_DLL Singleton<ZLibLib>::GetInstance()
+XAMP_PIMPL_IMPL(ZipFileReader)
+
+class ZipFileReader::ZipFileReaderImpl {
+public:
+    ZipFileReaderImpl() = default;
+    
+    std::vector<std::wstring> OpenFile(const std::wstring& file) {
+        zlib_filefunc64_def func_def{};
+        func_def.zopen64_file = fopen64_file_func;
+        func_def.zread_file = fread_file_func;
+        func_def.zwrite_file = fwrite_file_func;
+        func_def.ztell64_file = ftell64_file_func;
+        func_def.zseek64_file = fseek64_file_func;
+        func_def.zclose_file = fclose_file_func;
+        func_def.zerror_file = ferror_file_func;
+        func_def.opaque = nullptr;
+
+        handle_.reset(unzOpen2_64(file.c_str(), &func_def));
+
+        std::vector<std::wstring> track_infos;
+
+        unz_global_info zip_file_info{};
+        if (unzGetGlobalInfo(handle_.get(), &zip_file_info) != UNZ_OK) {
+            throw Exception();
+        }
+
+        for (uint32_t i = 0; i < zip_file_info.number_entry; i++) {
+            char file_name[MAX_PATH]{};
+            unz_file_info file_info{};
+            auto ret = unzGetCurrentFileInfo(handle_.get(), 
+                &file_info, 
+                file_name, 
+                MAX_PATH, 
+                nullptr, 
+                0,
+                nullptr,
+                0);
+            if (ret != UNZ_OK) {
+                throw Exception();
+            }
+            
+            const size_t filename_length = strlen(file_name);
+            if (file_name[filename_length - 1] != '/') {
+                XAMP_LOG_DEBUG("File {}", file_name);
+                Path filename_path(String::ToString(file_name));
+                auto ext = filename_path.extension().string();
+                if (GetSupportFileExtensions().contains(ext)) {
+                    track_infos.push_back(ExtractCurrentFile());
+                }                              
+            }
+            else {
+                XAMP_LOG_DEBUG("Directory {}", file_name);
+            }
+            unzGoToNextFile(handle_.get());
+        }
+
+        return track_infos;
+    }
+
+    std::wstring ExtractCurrentFile() {
+        if (unzOpenCurrentFile(handle_.get()) != UNZ_OK) {
+            throw Exception();
+        }
+
+        auto temp_file_path = GetTempFileNamePath();
+
+        XAMP_ON_SCOPE_FAIL(
+            unzCloseCurrentFile(handle_.get());            
+        );
+        
+        std::ofstream out(temp_file_path, std::ios::binary);        
+        if (!out.is_open()) {            
+            throw Exception();
+        }
+        
+        int error = UNZ_OK;
+        do {
+            constexpr auto kReadZipBufferSize = 4096;
+            char read_buffer[kReadZipBufferSize]{};
+            
+            error = unzReadCurrentFile(handle_.get(), read_buffer, kReadZipBufferSize);
+
+            if (error < 0) {
+                throw Exception();
+            }
+            out.write(read_buffer, error);
+        } while (error > 0);
+
+        out.close();
+        return temp_file_path.wstring();
+    }
+
+    using UzFileHandle = UniqueHandle<unzFile, UzFileHandleTraits>;
+    UzFileHandle handle_;
+};
+
+ZipFileReader::ZipFileReader()
+    : impl_(MakePimpl<ZipFileReaderImpl>()) {
+}
+
+std::vector<std::wstring> ZipFileReader::OpenFile(const std::wstring& file) {
+    return impl_->OpenFile(file);
+}
 
 bool IsLoadZib() {
-    try {
-        Singleton<ZLibLib>::GetInstance();
-        return true;
-    } catch (...) {
-        return false;
-    }
+    return true;
 }
 
 QByteArray GzipDecompress(const QByteArray& data) {
 #define XAMP_inflateInit2(strm, windowBits) \
-          ZLIB_DLL.inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
+          inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
                         (int)sizeof(z_stream))
     QByteArray result;
     z_stream zlib_stream;
@@ -54,7 +220,7 @@ QByteArray GzipDecompress(const QByteArray& data) {
     }
 
     XAMP_ON_SCOPE_EXIT(
-        ZLIB_DLL.inflateEnd(&zlib_stream);
+        inflateEnd(&zlib_stream);
         );
 
     static constexpr auto kBufferSize = 1024;
@@ -64,7 +230,7 @@ QByteArray GzipDecompress(const QByteArray& data) {
         zlib_stream.avail_out = kBufferSize;
         zlib_stream.next_out = reinterpret_cast<Bytef*>(output);
 
-        ret = ZLIB_DLL.inflate(&zlib_stream, Z_NO_FLUSH);
+        ret = inflate(&zlib_stream, Z_NO_FLUSH);
         Q_ASSERT(ret != Z_STREAM_ERROR);  // state not clobbered
 
         switch (ret) {

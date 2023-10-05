@@ -216,7 +216,9 @@ QString GetFileDialogFileExtensions() {
     static QString file_extension;
     if (file_extension.isEmpty()) {
         QString exts(qTEXT("("));
-        for (const auto& file_ext : GetSupportFileExtensions()) {
+        auto file_exts = GetSupportFileExtensions();
+        file_exts.insert(".zip");
+        for (const auto& file_ext : file_exts) {
             exts += qTEXT("*") + QString::fromStdString(file_ext);
             exts += qTEXT(" ");
         }

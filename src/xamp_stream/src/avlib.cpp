@@ -182,8 +182,8 @@ AvLib::AvLib() {
 	XAMP_LOG_D(logger, "Network init.");
 }
 
-Vector<std::string> AvLib::GetSupportFileExtensions() const {
-	Vector<std::string> result;
+HashSet<std::string> AvLib::GetSupportFileExtensions() const {
+	HashSet<std::string> result;
 	HashSet<const AVCodec*> audio_codecs;
 
 	const auto level = logger->GetLevel();
@@ -229,7 +229,7 @@ Vector<std::string> AvLib::GetSupportFileExtensions() const {
 	for(auto extension : ordered_extension) {
 		const auto file_extensions = String::Format(".{}", extension);
 		XAMP_LOG_T(logger, "Load Libav format extensions: {}", file_extensions);
-		result.push_back(file_extensions);
+		result.insert(file_extensions);
 	}
 
 	logger->SetLevel(level);

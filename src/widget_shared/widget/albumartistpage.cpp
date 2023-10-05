@@ -28,7 +28,6 @@
 enum {
 	TAB_ALBUMS,
 	TAB_ARTISTS,
-	TAB_GENRE,
 	TAB_YEAR,
 };
 
@@ -96,7 +95,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
 	list_view_->AddTab(tr("ALBUM"), TAB_ALBUMS);
 	list_view_->AddTab(tr("ARTISTS"), TAB_ARTISTS);
-	list_view_->AddTab(tr("GENRE"), TAB_GENRE);
 	list_view_->AddTab(tr("YEAR"), TAB_YEAR);
 
 	qTheme.SetAlbumNaviBarTheme(list_view_);
@@ -231,14 +229,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	album_frame_layout->addWidget(album_tag_list_widget_);
 	album_frame_layout->addWidget(album_view_, 1);
-
-	genre_stackwidget_ = new GenreViewPage(this);
-	auto genres_list = qMainDb.GetGenres();
-	std::ranges::sort(genres_list);
-
-	Q_FOREACH(auto genre, genres_list) {
-		genre_stackwidget_->AddGenre(genre);
-	}
 	
 	artist_frame_ = new QFrame();
 	artist_frame_->setObjectName(QString::fromUtf8("currentArtistViewFrame"));
@@ -323,7 +313,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->addWidget(album_frame_);
 	current_view->addWidget(artist_frame_);
-	current_view->addWidget(genre_stackwidget_);
 
 	auto* default_layout = new QHBoxLayout();
 	default_layout->setSpacing(0);
@@ -337,7 +326,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::RemoveAll, [this](){
 		album_tag_list_widget_->ClearTag();
 		year_tag_list_widget_->ClearTag();
-		genre_stackwidget_->Clear();
 		Refresh();
 	});
 
@@ -410,9 +398,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			case TAB_ARTISTS:
 				current_view->setCurrentWidget(artist_frame_);
 				break;
-			case TAB_GENRE:
-				current_view->setCurrentWidget(genre_stackwidget_);
-				break;
 			case TAB_YEAR:
 				current_view->setCurrentWidget(year_frame_);
 				break;
@@ -430,7 +415,6 @@ void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	artist_view_->OnCurrentThemeChanged(theme_color);
 	year_view_->OnCurrentThemeChanged(theme_color);
 
-	genre_stackwidget_->OnCurrentThemeChanged(theme_color);
 	album_tag_list_widget_->OnCurrentThemeChanged(theme_color);
 	artist_tag_list_widget_->OnCurrentThemeChanged(theme_color);
 
@@ -444,13 +428,11 @@ void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) 
 	year_view_->OnThemeChanged(backgroundColor, color);
 	album_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
 	artist_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
-	genre_stackwidget_->OnThemeColorChanged(backgroundColor, color);
 }
 
 void AlbumArtistPage::Refresh() {
 	album_view_->Refresh();
 	artist_view_->Refresh();	
-	genre_stackwidget_->Refresh();
 
 	Q_FOREACH(auto category, qMainDb.GetCategories()) {
 		album_tag_list_widget_->AddTag(category);
@@ -464,12 +446,5 @@ void AlbumArtistPage::Refresh() {
 	if (!years.empty()) {
 		year_tag_list_widget_->EnableTag(years.first());
 	}	
-
-	auto genres_list = qMainDb.GetGenres();
-	std::ranges::sort(genres_list);
-
-	Q_FOREACH(auto genre, genres_list) {
-		genre_stackwidget_->AddGenre(genre);
-	}
 }
 

@@ -15,6 +15,8 @@
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 #include <widget/playlistentity.h>
+#include <widget/zib_utiltis.h>
+
 #include <base/scopeguard.h>
 
 #include <thememanager.h>
@@ -787,11 +789,16 @@ void AlbumView::Refresh() {
 }
 
 void AlbumView::append(const QString& file_name) {
-    ReadSingleFileTrackInfo(file_name);
-}
+    auto file_ext = QFileInfo(file_name).completeSuffix();
 
-void AlbumView::ReadSingleFileTrackInfo(const QString& file_name) {
-    emit ExtractFile(file_name, -1);
+    if (!file_ext.contains(qTEXT("zip"))) {
+        emit ExtractFile(file_name, -1);
+    } else {
+        ZipFileReader reader;
+        for (auto filename : reader.OpenFile(file_name.toStdWString())) {
+            emit ExtractFile(QString::fromStdWString(filename), -1);
+        }
+    }    
 }
 
 void AlbumView::HideWidget() {

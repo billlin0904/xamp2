@@ -61,49 +61,6 @@ namespace {
             artists.pop_front();
         }
     }
-
-    QStringList NormalizeGenre(const QString& genre) {
-        QStringList normalized_tags;
-
-        if (genre.isEmpty()) {
-            return normalized_tags;
-        }
-
-        if (genre.length() == 1 && genre[0] == ' ') {
-            return normalized_tags;
-        }
-
-        auto tags = genre.split(QRegularExpression("\\s*,\\s*"), Qt::SkipEmptyParts);
-
-        for (auto tag : tags) {
-            tag = tag.trimmed();
-            if (tag.contains(QRegularExpression("[/|()&]"))) {
-                QStringList subTags = tag.split(QRegularExpression("[/|()&]"), Qt::SkipEmptyParts);
-                for (auto s : subTags) {
-                    s = s.trimmed().toLower();
-                    if (s.length() == 1) {
-                        continue;
-                    }
-                    if (s == kJop) {
-                        s = "j-pop";
-                    }
-                    normalized_tags.append(s);
-                }
-            }
-            else {
-                auto s = tag.trimmed().toLower();
-                if (s.length() == 1) {
-                    continue;
-                }
-                if (s == kJop) {
-                    s = "j-pop";
-                }
-                normalized_tags.append(s);
-            }
-        }
-
-        return normalized_tags;
-    }
 }
 
 CoverArtReader::CoverArtReader()
@@ -139,7 +96,6 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
     HashSet<bool> find_cover_state_cache;
 
     const auto album_year = result.front().year;
-    //const auto album_genre = NormalizeGenre(GetStringOrEmptyString(result.front().genre)).join(",");
     constexpr auto album_genre = kEmptyString;
     
 	for (const auto& track_info : result) {        

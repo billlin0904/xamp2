@@ -24,6 +24,7 @@
 #include <base/align_ptr.h>
 #include <base/lrucache.h>
 #include <base/rcu_ptr.h>
+#include <base/pimplptr.h>
 
 #include <metadata/api.h>
 #include <stream/api.h>

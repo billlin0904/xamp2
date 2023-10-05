@@ -80,9 +80,7 @@ private:
 	QStandardItemModel* artist_model_;
 	QFrame* album_frame_;
 	QFrame* artist_frame_;
-	QFrame* genre_frame_;
 	QFrame* year_frame_;
-	GenreViewPage* genre_stackwidget_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;
 	AlbumTabListView* list_view_;

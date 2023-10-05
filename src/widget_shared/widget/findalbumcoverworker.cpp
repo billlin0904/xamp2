@@ -33,6 +33,11 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         find_file_path = (*first_file_path).toStdWString();
     }
 
+    auto temp_path = Fs::temp_directory_path();
+    if (file_path.find(temp_path.wstring()) != std::wstring::npos) {
+        return;
+    }
+
     CoverArtReader reader;
     auto cover = reader.GetEmbeddedCover(find_file_path);
     if (!cover.isNull()) {

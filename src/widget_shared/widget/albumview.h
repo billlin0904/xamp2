@@ -121,8 +121,6 @@ public:
 
 	void EnablePage(bool enable);
 
-	void ReadSingleFileTrackInfo(const QString& file_name);
-
 	virtual void ShowAll();
 
 	void SetPlayingAlbumId(int32_t album_id);
@@ -149,11 +147,6 @@ signals:
 	void RemoveAll();
 
 	void LoadCompleted(int32_t total_album, int32_t total_tracks);
-
-	void ExecuteDatabase(const QSharedPointer<DatabaseFacade>& facade,
-		QString const& file_path,
-		int32_t playlist_id,
-		bool is_podcast_mode);
 
 	void ExtractFile(const QString& file_path, int32_t playlist_id);
 public slots:

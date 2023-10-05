@@ -40,7 +40,7 @@ XAMP_BASE_API std::string GetSharedLibraryName(const std::string_view &name);
 
 XAMP_BASE_API std::string MakeTempFileName();
 
-XAMP_BASE_API Path GetTempFilePath();
+XAMP_BASE_API Path GetTempFileNamePath();
 
 XAMP_BASE_API Path GetApplicationFilePath();
 

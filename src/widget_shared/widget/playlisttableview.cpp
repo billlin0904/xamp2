@@ -33,6 +33,7 @@
 #include <widget/playlistentity.h>
 #include <widget/ui_utilts.h>
 #include <widget/fonticon.h>
+#include <widget/zib_utiltis.h>
 
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
@@ -737,7 +738,17 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-    emit ExtractFile(file_name, GetPlaylistId());
+    auto file_ext = QFileInfo(file_name).completeSuffix();
+
+    if (!file_ext.contains(qTEXT("zip"))) {
+        emit ExtractFile(file_name, GetPlaylistId());
+    }
+    else {
+        ZipFileReader reader;
+        for (auto filename : reader.OpenFile(file_name.toStdWString())) {
+            emit ExtractFile(QString::fromStdWString(filename), GetPlaylistId());
+        }
+    }
 }
 
 void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {

@@ -51,7 +51,7 @@ XAMP_STREAM_API bool IsDsdFile(Path const& path);
 
 XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) noexcept;
 
-XAMP_STREAM_API const Vector<std::string>& GetSupportFileExtensions();
+XAMP_STREAM_API const HashSet<std::string>& GetSupportFileExtensions();
 
 XAMP_STREAM_API OrderedMap<std::string, std::string> GetBassDLLVersion();
 
