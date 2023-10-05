@@ -25,7 +25,7 @@ public:
 
     const Vector<uint8_t>& GetEmbeddedCover(Path const &path) override;
 
-    [[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const override;
+    static [[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions();
 
     [[nodiscard]] bool IsSupported(Path const & path) const override;
 private:

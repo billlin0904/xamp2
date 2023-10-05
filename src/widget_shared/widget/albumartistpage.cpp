@@ -287,11 +287,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		artist_view_->Update();
 		});
 
-	auto horizontalSpacer_1 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	auto horizontal_spacer_1 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	auto* artist_combox_layout_1 = new QHBoxLayout();
 	auto* artist_combox_layout = new QHBoxLayout();
 	artist_combox_layout->addWidget(artist_search_line_edit_);
-	artist_combox_layout_1->addSpacerItem(horizontalSpacer_1);
+	artist_combox_layout_1->addSpacerItem(horizontal_spacer_1);
 	artist_combox_layout_1->addLayout(artist_combox_layout);
 
 	QStringList artist_category_list;
@@ -322,12 +322,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	vertical_layout_2->addLayout(horizontal_layout_5);
 	vertical_layout_2->addLayout(default_layout, 1);
-
-	(void)QObject::connect(album_view_, &AlbumView::RemoveAll, [this](){
-		album_tag_list_widget_->ClearTag();
-		year_tag_list_widget_->ClearTag();
-		Refresh();
-	});
 
 	(void)QObject::connect(album_view_, &AlbumView::LoadCompleted,
 		this, &AlbumArtistPage::Refresh);
@@ -366,7 +360,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	Q_FOREACH (auto year, qMainDb.GetYears()) {
 		year_tag_list_widget_->AddTag(year, true);
 	}
-	year_tag_list_widget_->AddTag(tr("All"), true);
 	year_frame_layout->addWidget(year_tag_list_widget_);
 	year_frame_layout->addWidget(year_view_, 1);
 
@@ -406,6 +399,15 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->setCurrentIndex(0);
 	list_view_->SetCurrentTab(TAB_ALBUMS);
+
+	(void)QObject::connect(album_view_, &AlbumView::RemoveAll, [this]() {
+		album_tag_list_widget_->ClearTag();
+		year_tag_list_widget_->ClearTag();
+
+		artist_view_->Update();
+		year_view_->Update();
+		Refresh();
+		});
 
 	OnCurrentThemeChanged(qTheme.GetThemeColor());
 }

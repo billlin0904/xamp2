@@ -83,7 +83,8 @@ TagListView::TagListView(QWidget* parent)
 	taglist_->setFrameStyle(QFrame::StyledPanel);
 	taglist_->setViewMode(QListView::IconMode);
 	taglist_->setFixedHeight(120);
-	taglist_->setSpacing(5);	
+	taglist_->setSpacing(5);
+	taglist_->setSortingEnabled(true);
 
 	(void)QObject::connect(taglist_, &QListWidget::itemClicked, [this](auto* item) {
 		if (!item) {

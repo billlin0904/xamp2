@@ -80,7 +80,7 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	const QDir dir(file_path);
 	QDir scan_dir(dir);
 
-	auto findImage = [scan_dir](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
+	auto find_image = [scan_dir](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
 		const QFileInfo file_info(scan_dir.absolutePath());
 		for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
@@ -95,10 +95,10 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 		return std::nullopt;
 	};
 
-	if (auto image = findImage(QDirIterator::NoIteratorFlags)) {
+	if (auto image = find_image(QDirIterator::NoIteratorFlags)) {
 		return image.value();
 	}
-	if (auto image = findImage(QDirIterator::Subdirectories)) {
+	if (auto image = find_image(QDirIterator::Subdirectories)) {
 		return image.value();
 	}
 
@@ -185,7 +185,8 @@ QFileInfo ImageCache::GetImageFileInfo(const QString& tag_id) const {
 }
 
 QPixmap ImageCache::GetCover(const QString& tag, const QString& cover_id) {	
-	XAMP_LOG_T(logger_, "cache-size: {}, cover cache: {}, cache: {}",
+	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cover cache: {}, cache: {}", 
+		tag.toStdString(),
 		String::FormatBytes(cache_.GetSize()), cover_cache_, cache_);
 
 	return cover_cache_.GetOrAdd(tag + cover_id, [this, tag, cover_id]() {

@@ -17,4 +17,8 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 	return MakeAlign<IMetadataWriter, TaglibMetadataWriter>();
 }
 
+const HashSet<std::string>& GetSupportFileExtensions() {
+	return TaglibMetadataReader::GetSupportFileExtensions();
+}
+
 XAMP_METADATA_NAMESPACE_END

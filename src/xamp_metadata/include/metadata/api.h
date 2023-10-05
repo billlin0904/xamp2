@@ -18,5 +18,7 @@ XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
 
 XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
 
+XAMP_METADATA_API const HashSet<std::string>& GetSupportFileExtensions();
+
 XAMP_METADATA_NAMESPACE_END
 

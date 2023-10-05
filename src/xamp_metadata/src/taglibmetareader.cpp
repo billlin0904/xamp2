@@ -452,10 +452,6 @@ public:
         return cover_;
     }
 
-    HashSet<std::string> const & GetSupportFileExtensions() const {
-        return Singleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
-    }
-
     bool IsSupported(Path const & path) const noexcept {
 		return Singleton<TaglibHelper>::GetInstance().IsSupported(path);
     }
@@ -488,8 +484,8 @@ const Vector<uint8_t>& TaglibMetadataReader::GetEmbeddedCover(Path const & path)
     return reader_->ExtractCover(path);
 }
 
-const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
-    return reader_->GetSupportFileExtensions();
+const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() {
+    return Singleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
 }
 
 bool TaglibMetadataReader::IsSupported(Path const & path) const {

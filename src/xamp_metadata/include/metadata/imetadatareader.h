@@ -48,13 +48,6 @@ public:
     virtual const Vector<uint8_t>& GetEmbeddedCover(Path const &path) = 0;
 
     /*
-    * Get supported file extensions.
-    * 
-    * @return HashSet<std::string>
-    */
-    [[nodiscard]] virtual HashSet<std::string> const & GetSupportFileExtensions() const = 0;
-
-    /*
     * Check file is supported.
     * 
     * @param[in] path file path.

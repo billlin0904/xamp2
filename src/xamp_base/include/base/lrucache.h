@@ -295,7 +295,10 @@ template
     typename SharedMutex
 >
 void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Clear() noexcept {
-    Evict(-1);
+    std::unique_lock<SharedMutex> write_lock(mutex_);
+    size_ = 0;
+    keys_.clear();
+    cache_.clear();
 }
 
 template
