@@ -8,7 +8,6 @@
 #include <atlcomcli.h>
 #include <shobjidl_core.h>
 
-#include <QEvent>
 #include <QAbstractNativeEventFilter>
 
 #include <thememanager.h>
@@ -21,7 +20,7 @@ class ITaskbarList4;
 namespace win32 {
 
  enum TaskbarProgressState {
-    TASKBAR_PROCESS_STATE_NO_PROCESS, // Hidden
+ 	TASKBAR_PROCESS_STATE_NO_PROCESS, // Hidden
     TASKBAR_PROCESS_STATE_INDETERMINATE, // Busy
     TASKBAR_PROCESS_STATE_NORMAL,
     TASKBAR_PROCESS_STATE_ERROR, // Stopped
@@ -33,7 +32,7 @@ namespace win32 {
 class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
     Q_OBJECT
 public:    
-    WinTaskbar(XMainWindow* window, IXFrame* player_frame);
+    explicit WinTaskbar(XMainWindow* window);
 
     virtual ~WinTaskbar() override;
 

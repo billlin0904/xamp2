@@ -79,7 +79,7 @@ XMainWindow::~XMainWindow() {
 
 void XMainWindow::EnsureInitTaskbar() {
     if (!task_bar_) {
-        task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
+        task_bar_.reset(new win32::WinTaskbar(this));
 
         (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::PlayClicked, [this]() {
             content_widget_->PlayOrPause();

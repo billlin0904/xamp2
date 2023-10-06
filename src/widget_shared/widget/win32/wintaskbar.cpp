@@ -9,7 +9,6 @@
 #include <QWindow>
 #include <QCoreApplication>
 
-#include <qt_windows.h>
 #include <dwmapi.h>
 
 #include <Windows.h>
@@ -31,7 +30,8 @@ namespace win32 {
 				: module_(OpenSharedLibrary("dwmapi"))
 				, XAMP_LOAD_DLL_API(DwmInvalidateIconicBitmaps)
 				, XAMP_LOAD_DLL_API(DwmSetWindowAttribute)
-				, XAMP_LOAD_DLL_API(DwmSetIconicThumbnail) {
+				, XAMP_LOAD_DLL_API(DwmSetIconicThumbnail)
+				, XAMP_LOAD_DLL_API(DwmSetIconicLivePreviewBitmap) {
 			}
 
 			XAMP_DISABLE_COPY(DwmapiLib)
@@ -43,6 +43,7 @@ namespace win32 {
 			XAMP_DECLARE_DLL_NAME(DwmInvalidateIconicBitmaps);
 			XAMP_DECLARE_DLL_NAME(DwmSetWindowAttribute);
 			XAMP_DECLARE_DLL_NAME(DwmSetIconicThumbnail);
+			XAMP_DECLARE_DLL_NAME(DwmSetIconicLivePreviewBitmap);
 		};
 
 		class Comctl32Lib {
@@ -81,13 +82,13 @@ namespace win32 {
 
 		int GetWin32IconSize() {
 			return ::GetSystemMetrics(SM_CXSMICON);
-		}	
+		}
 
 #define DWM_DLL Singleton<DwmapiLib>::GetInstance()
 #define COMCTL32_DLL Singleton<Comctl32Lib>::GetInstance()
 #define IDTB_FIRST 3000
 		
-		static UINT MSG_TaskbarButtonCreated = WM_NULL;
+		UINT MSG_TaskbarButtonCreated = WM_NULL;
 
 		enum {
 			ToolButton_Backward = 0,
@@ -95,24 +96,52 @@ namespace win32 {
 			ToolButton_Forward,
 			ToolButton_Pause,
 		};
+
+		void UpdateLiveThumbnail(const MSG* msg, const QPixmap& thumbnail) {
+			RECT rect;
+			GetClientRect(msg->hwnd, &rect);
+			const QSize max_size(rect.right, rect.bottom);
+			POINT offset = { 0, 0 };
+			const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
+			const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap, &offset, 0);
+			if (FAILED(hr)) {
+				XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
+			}
+			::DeleteObject(bitmap);
+		}
+
+		void UpdateIconicThumbnail(const MSG* msg, const QPixmap& thumbnail) {
+			const QSize max_size(HIWORD(msg->lParam), LOWORD(msg->lParam));
+			XAMP_LOG_DEBUG("{} {}", HIWORD(msg->lParam), LOWORD(msg->lParam));
+			const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
+			const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap, 0);
+			if (FAILED(hr)) {
+				XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));
+			}
+			::DeleteObject(bitmap);
+		}
 	}
 
-WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
+WinTaskbar::WinTaskbar(XMainWindow* window) {
 	play_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
 	pause_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
 	stop_play_icon = qTheme.GetFontIcon(Glyphs::ICON_STOP_PLAY);
 	seek_forward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_FORWARD);
 	seek_backward_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_BACKWARD);
 
-	::CoCreateInstance(CLSID_TaskbarList,
+	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
 		IID_ITaskbarList4,
 		reinterpret_cast<void**>(&taskbar_list_));
 
-	auto hr = taskbar_list_->HrInit();
 	if (FAILED(hr)) {
-		XAMP_LOG_DEBUG("HrInit return failure! {}", GetPlatformErrorMessage(hr));
+		throw Exception();
+	}
+
+	hr = taskbar_list_->HrInit();
+	if (FAILED(hr)) {
+		throw Exception();
 	}
 
 	MSG_TaskbarButtonCreated = RegisterWindowMessage(L"TaskbarButtonCreated");
@@ -122,15 +151,19 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* content_widget) {
 WinTaskbar::~WinTaskbar() = default;
 
 void WinTaskbar::SetWindow(QWidget* window) {
-	window->removeEventFilter(this);
 	window_ = window;
-
 	QCoreApplication::instance()->installNativeEventFilter(this);
-
 	if (window_->isVisible()) {
 		UpdateProgressIndicator();
 		UpdateOverlay();
 	}
+
+	BOOL enable = TRUE;
+	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
+	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_HAS_ICONIC_BITMAP, &enable, sizeof(enable));
+	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &enable, sizeof(enable));
+	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_DISALLOW_PEEK, &enable, sizeof(enable));
+	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
 }
 
 void WinTaskbar::SetRange(int progress_minimum, int progress_maximum) {
@@ -172,7 +205,7 @@ void WinTaskbar::UpdateProgressIndicator() {
 	hr = taskbar_list_->SetProgressState(hwnd, GetWin32ProgressState(state_));
 
 	if (FAILED(hr)) {
-		XAMP_LOG_DEBUG("UpdateProgressIndicator return failure! {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("UpdateProgressIndicator return failure! {}", GetPlatformErrorMessage(hr));
 	}
 }
 
@@ -180,14 +213,14 @@ void WinTaskbar::InitialToolbarButtons() {
 	for (int index = 0; index < kWinThumbbarButtonSize; index++) {
 		buttons[index].iId = IDTB_FIRST + index;
 		buttons[index].iBitmap = index;
-		buttons[index].dwMask = (THUMBBUTTONMASK)(THB_BITMAP | THB_FLAGS | THB_TOOLTIP);
-		buttons[index].dwFlags = (THUMBBUTTONFLAGS)(THBF_ENABLED);
+		buttons[index].dwMask = THB_BITMAP | THB_FLAGS | THB_TOOLTIP;
+		buttons[index].dwFlags = THBF_ENABLED;
 	}
 
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
 	auto hr = taskbar_list_->ThumbBarAddButtons(hwnd, kWinThumbbarButtonSize, buttons.data());
 	if (FAILED(hr)) {
-		XAMP_LOG_DEBUG("ThumbBarAddButtons return failure! {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("ThumbBarAddButtons return failure! {}", GetPlatformErrorMessage(hr));
 	}
 }
 
@@ -195,7 +228,7 @@ void WinTaskbar::CreateToolbarImages() {
 	QPixmap img;
 	QBitmap mask;
 
-	HIMAGELIST himl = COMCTL32_DLL.ImageList_Create(20, 20, ILC_COLOR32, 4, 0);
+	const HIMAGELIST himl = COMCTL32_DLL.ImageList_Create(20, 20, ILC_COLOR32, 4, 0);
 
 	img = seek_backward_icon.pixmap(20);
 	mask = img.createMaskFromColor(Qt::transparent);
@@ -216,7 +249,7 @@ void WinTaskbar::CreateToolbarImages() {
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
 	auto hr = taskbar_list_->ThumbBarSetImageList(hwnd, himl);
 	if (FAILED(hr)) {
-		XAMP_LOG_DEBUG("ThumbBarSetImageList return failure! {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("ThumbBarSetImageList return failure! {}", GetPlatformErrorMessage(hr));
 	}
 
 	COMCTL32_DLL.ImageList_Destroy(himl);
@@ -226,7 +259,9 @@ void WinTaskbar::SetIconicThumbnail(const QPixmap& image) {
 	if (!window_) {
 		return;
 	}
-	thumbnail_ = image;	
+	thumbnail_ = image;
+	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
+	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
 }
 
 void WinTaskbar::UpdateOverlay() {
@@ -256,7 +291,7 @@ void WinTaskbar::UpdateOverlay() {
 	if (icon_handle != nullptr) {
 		auto hr = taskbar_list_->SetOverlayIcon(hwnd, icon_handle, description.c_str());
 		if (FAILED(hr)) {
-			XAMP_LOG_DEBUG("UpdateOverlay return failure! {}", GetPlatformErrorMessage(hr));
+			XAMP_LOG_ERROR("UpdateOverlay return failure! {}", GetPlatformErrorMessage(hr));
 		}
 	}	
 
@@ -265,7 +300,7 @@ void WinTaskbar::UpdateOverlay() {
 }
 
 bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
-	MSG* msg = reinterpret_cast<MSG*>(message);
+	auto* msg = reinterpret_cast<MSG*>(message);
 	if (msg->message == MSG_TaskbarButtonCreated) {
 		UpdateProgressIndicator();
 		UpdateOverlay();
@@ -274,12 +309,20 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, q
 	}
 	else {
 		switch (msg->message) {
+		case WM_DWMSENDICONICTHUMBNAIL:
+			if (!thumbnail_.isNull()) {
+				UpdateIconicThumbnail(msg, thumbnail_);
+			}
+			break;
+		case WM_DWMSENDICONICLIVEPREVIEWBITMAP:
+			UpdateLiveThumbnail(msg, window_->grab());
+			break;
 		case WM_COMMAND:
 		{
-			int buttonId = LOWORD(msg->wParam) - IDTB_FIRST;
+			const int button_id = LOWORD(msg->wParam) - IDTB_FIRST;
 
-			if ((buttonId >= 0) && (buttonId < kWinThumbbarButtonSize)) {
-				if (buttonId == ToolButton_Play) {
+			if ((button_id >= 0) && (button_id < kWinThumbbarButtonSize)) {
+				if (button_id == ToolButton_Play) {
 					if (buttons[1].iBitmap == ToolButton_Play) {
 						buttons[1].iBitmap = ToolButton_Pause;
 						emit PauseClicked();
@@ -292,14 +335,14 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, q
 					const auto hwnd = reinterpret_cast<HWND>(window_->winId());
 					auto hr = taskbar_list_->ThumbBarUpdateButtons(hwnd, kWinThumbbarButtonSize, buttons.data());
 					if (FAILED(hr)) {
-						XAMP_LOG_DEBUG("ThumbBarUpdateButtons return failure! {}", GetPlatformErrorMessage(hr));
+						XAMP_LOG_ERROR("ThumbBarUpdateButtons return failure! {}", GetPlatformErrorMessage(hr));
 					}
 				}
 				else {
-					if (buttonId == ToolButton_Forward) {
+					if (button_id == ToolButton_Forward) {
 						emit ForwardClicked();
 					}
-					if (buttonId == ToolButton_Backward) {
+					if (button_id == ToolButton_Backward) {
 						emit BackwardClicked();
 					}
 				}				
