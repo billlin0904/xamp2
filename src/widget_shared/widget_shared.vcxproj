@@ -122,7 +122,7 @@
     <ClInclude Include="widget\maskwidget.h" />
     <ClInclude Include="widget\mbdiscid_uiltis.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
-    <ClInclude Include="widget\win32\wintaskbar.h" />
+    <QtMoc Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />

@@ -42,6 +42,9 @@ public:
     virtual void SaveGeometry() = 0;
 
     virtual void RestoreGeometry() = 0;
+
+    virtual void SetIconicThumbnail(const QPixmap& image) = 0;
+
 protected:
     IXMainWindow() = default;
 };

@@ -1648,9 +1648,6 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     const int64_t max_duration_ms = Round(player_->GetDuration()) * 1000;
     ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
     ui_.seekSlider->setValue(0);
-    /*ui_.startPosLabel->setText(FormatDuration(0));
-    ui_.endPosLabel->setText(FormatDuration(player_->GetDuration()));
-    ui_.endPosLabel->setText(qTEXT("Test"));*/
     
     current_playlist_page_->format()->setText(Format2String(playback_format, ext));
     current_playlist_page_->title()->setText(item.title);
@@ -1775,8 +1772,10 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
     if (lrc_page_ != nullptr) {
         lrc_page_->ClearBackground();
         lrc_page_->SetCover(image_utils::ResizeImage(cover, lrc_page_->cover()->size(), true));
-        lrc_page_->AddCoverShadow(found_cover);
+        lrc_page_->AddCoverShadow(found_cover);        
     }
+
+    main_window_->SetIconicThumbnail(cover);
 }
 
 PlaylistPage* Xamp::CurrentPlaylistPage() {

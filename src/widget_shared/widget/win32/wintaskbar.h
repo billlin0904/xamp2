@@ -6,8 +6,11 @@
 #pragma once
 
 #include <atlcomcli.h>
+#include <shobjidl_core.h>
 
 #include <QEvent>
+#include <QAbstractNativeEventFilter>
+
 #include <thememanager.h>
 
 class IXFrame;
@@ -25,13 +28,18 @@ namespace win32 {
     TASKBAR_PROCESS_STATE_PAUSED,
  };
 
-class WinTaskbar : public QObject {
-public:
+ constexpr auto kWinThumbbarButtonSize = 3;
+
+class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
+    Q_OBJECT
+public:    
     WinTaskbar(XMainWindow* window, IXFrame* player_frame);
 
-    ~WinTaskbar();
+    virtual ~WinTaskbar() override;
 
     void SetTaskbarProgress(const int32_t process);
+
+    void SetIconicThumbnail(const QPixmap &image);
 
     void ResetTaskbarProgress();
 
@@ -43,24 +51,34 @@ public:
 
     void SetTaskbarPlayerStop();
 
-    void SetOverlayAccessibleDescription(const QString& description);
-
     void UpdateProgressIndicator();
 
     void UpdateOverlay();
 
     void SetRange(int progress_minimum, int progress_maximum);
 
+    bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
+
     QIcon play_icon;
     QIcon pause_icon;
     QIcon stop_play_icon;
     QIcon seek_forward_icon;
     QIcon seek_backward_icon;
+    std::array<THUMBBUTTON, kWinThumbbarButtonSize> buttons;
 
-private:
-    static inline const int MSG_TaskbarButtonCreated = QEvent::registerEventType();
+signals:
+    void PlayClicked();
 
-    bool eventFilter(QObject* object, QEvent* event) override;
+    void PauseClicked();
+
+    void ForwardClicked();
+
+    void BackwardClicked();
+
+private:    
+    void CreateToolbarImages();
+
+    void InitialToolbarButtons();
 
     void SetWindow(QWidget* window);
 
@@ -71,6 +89,7 @@ private:
     QIcon overlay_icon_;    
     TaskbarProgressState state_;
     QString overlay_accessible_description_;
+    QPixmap thumbnail_;
     CComPtr<ITaskbarList4> taskbar_list_;
 };
 

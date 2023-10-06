@@ -44,6 +44,8 @@ public:
 
     void UpdateMaximumState() override;
 
+    void SetIconicThumbnail(const QPixmap& image) override;
+
     void ReadDriveInfo();
 
     void DrivesRemoved(char driver_letter);
@@ -52,7 +54,7 @@ public:
 
     void ShortcutsPressed(uint16_t native_key, uint16_t native_mods);
 
-    void ShowWindow();
+    void ShowWindow();    
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 

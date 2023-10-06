@@ -80,6 +80,22 @@ XMainWindow::~XMainWindow() {
 void XMainWindow::EnsureInitTaskbar() {
     if (!task_bar_) {
         task_bar_.reset(new win32::WinTaskbar(this, content_widget_));
+
+        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::PlayClicked, [this]() {
+            content_widget_->PlayOrPause();
+            });
+
+        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::PauseClicked, [this]() {
+            content_widget_->PlayOrPause();
+            });
+
+        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::ForwardClicked, [this]() {
+            content_widget_->PlayNext();
+            });
+
+        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::BackwardClicked, [this]() {
+            content_widget_->PlayPrevious();
+            });
     }
 }
 
@@ -395,6 +411,13 @@ void XMainWindow::showEvent(QShowEvent* event) {
     }
     task_bar_->UpdateProgressIndicator();
     task_bar_->UpdateOverlay();
+#endif
+}
+
+void XMainWindow::SetIconicThumbnail(const QPixmap& image) {
+#if defined(Q_OS_WIN)
+    EnsureInitTaskbar();
+    task_bar_->SetIconicThumbnail(image);
 #endif
 }
 
