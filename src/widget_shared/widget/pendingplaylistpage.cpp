@@ -109,7 +109,7 @@ PendingPlayTableView::PendingPlayTableView(QWidget* parent)
     verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     verticalHeader()->setDefaultSectionSize(46);
 
-    horizontalScrollBar()->setDisabled(true);
+    //horizontalScrollBar()->setDisabled(true);
 
     horizontalHeader()->setVisible(false);
     horizontalHeader()->setHighlightSections(false);
@@ -187,6 +187,7 @@ void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
             PLAYLIST_COVER_ID,
             PLAYLIST_FILE_EXT,
             PLAYLIST_FILE_PARENT_PATH,
+			PLAYLIST_HEART,
             PLAYLIST_PLAYLIST_MUSIC_ID
     };
 
@@ -239,31 +240,30 @@ void PendingPlayTableView::Reload() {
     const QString s = qTEXT(R"(
 SELECT
 	albums.coverId,
-    musics.musicId,
-    playlistMusics.playing,
-    musics.track,
-    musics.path,
+	musics.musicId,
+	playlistMusics.playing,
+	musics.track,
+	musics.path,
 	musics.fileSize,
-    musics.title,
-    musics.fileName,
-    artists.artist,
-    albums.album,    
-    musics.bitRate,
-    musics.sampleRate,
-    musics.rating,
-    albumMusic.albumId,
-    albumMusic.artistId,    
+	musics.title,
+	musics.fileName,
+	artists.artist,
+	albums.album,
+	musics.bitRate,
+	musics.sampleRate,
+	albumMusic.albumId,
+	albumMusic.artistId,
 	musics.fileExt,
-    musics.parentPath,
-    musics.dateTime,
+	musics.parentPath,
+	musics.dateTime,
 	playlistMusics.playlistMusicsId,
-    musics.albumReplayGain,
-    musics.albumPeak,	
-    musics.trackReplayGain,
+	musics.albumReplayGain,
+	musics.albumPeak,
+	musics.trackReplayGain,
 	musics.trackPeak,
 	musicLoudness.trackLoudness,
 	musics.genre,
-    musics.heart,
+	musics.heart,
 	musics.duration
 FROM
 	pendingPlaylist
@@ -299,7 +299,7 @@ PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWid
     default_layout->addWidget(playlist_);
 
     default_layout->setContentsMargins(5, 5, 5, 5);
-    setFixedSize(500, 300);    
+    setFixedSize(650, 300);    
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const auto& index) {
         PlayMusic(indexes_[index.row()]);

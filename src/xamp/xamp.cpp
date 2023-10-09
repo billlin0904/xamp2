@@ -939,7 +939,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.heartButton, &QToolButton::clicked, [this]() {
         if (auto entity = current_entity_) {
-            entity.value().heart = ~entity.value().heart;
+            entity.value().heart = !(entity.value().heart);
             qMainDb.UpdateMusicHeart(entity.value().music_id, entity.value().heart);
             qTheme.SetHeartButton(ui_.heartButton, entity.value().heart);
         }

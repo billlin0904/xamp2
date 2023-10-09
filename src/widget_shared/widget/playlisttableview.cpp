@@ -46,6 +46,16 @@ public:
         : QStyledItemDelegate(parent) {
     }
 
+    static QIcon UniformIcon(QIcon icon, QSize size) {
+        QIcon result;
+        const auto base_pixmap = icon.pixmap(size);
+        for (const auto state : { QIcon::Off, QIcon::On }) {
+            for (const auto mode : { QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected })
+                result.addPixmap(base_pixmap, mode, state);
+        }
+        return result;
+    }
+
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         if (!index.isValid()) {
             return;
@@ -77,18 +87,6 @@ public:
         opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
         opt.font.setFamily(qTEXT("MonoFont"));
 
-#ifdef Q_OS_WIN
-        QFont::Weight weight = QFont::Weight::DemiBold;
-        switch (qTheme.GetThemeColor()) {
-        case ThemeColor::LIGHT_THEME:
-            weight = QFont::Weight::Medium;
-            break;
-        case ThemeColor::DARK_THEME:
-            weight = QFont::Weight::DemiBold;
-            break;
-        }
-        opt.font.setWeight(weight);
-#endif
         switch (index.column()) {
         case PLAYLIST_TITLE:
         case PLAYLIST_ALBUM:
@@ -172,11 +170,15 @@ public:
         case PLAYLIST_HEART:
 	        {
             auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_HEART)).toInt();
-        	if (is_heart_pressed) {
+        	if (is_heart_pressed > 0) {
                 QVariantMap font_options;
                 font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
                 font_options.insert(FontIconOption::colorAttr, QColor(Qt::red));
+
                 opt.icon = qTheme.GetFontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
+                // note: 解決圖示再選擇的時候會蓋掉顏色的問題
+                opt.icon = UniformIcon(opt.icon, opt.decorationSize);
+
                 opt.features = QStyleOptionViewItem::HasDecoration;
                 opt.decorationAlignment = Qt::AlignCenter;
                 opt.displayAlignment = Qt::AlignCenter;
@@ -186,6 +188,7 @@ public:
         case PLAYLIST_COVER_ID:
 	        {
                 opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
+                opt.icon = UniformIcon(opt.icon, opt.decorationSize);
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
 				opt.displayAlignment = Qt::AlignCenter;
@@ -214,7 +217,7 @@ void PlayListTableView::Search(const QString& keyword) const {
 void PlayListTableView::Reload() {
     // NOTE: 呼叫此函數就會更新index, 會導致playing index失效    
     const QString s = qTEXT(R"(
-    SELECT
+    SELECT	
 	albums.coverId,
 	musics.musicId,
 	playlistMusics.playing,
@@ -238,7 +241,7 @@ void PlayListTableView::Reload() {
 	musics.trackReplayGain,
 	musics.trackPeak,
 	musicLoudness.trackLoudness,
-	musics.genre,
+	musics.genre,	
 	musics.heart,
 	musics.duration 
 FROM
@@ -314,7 +317,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("ParentPath"));
     model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
-    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr("Heart"));
+    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr(""));
 
     auto column_list = AppSettings::ValueAsStringList(column_setting_name);
 
@@ -828,6 +831,7 @@ void PlayListTableView::ResizeColumn() {
         case PLAYLIST_ALBUM:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;
+        case PLAYLIST_HEART:
         case PLAYLIST_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, kColumnCoverIdWidth);

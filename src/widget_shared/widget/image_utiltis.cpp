@@ -1,7 +1,6 @@
 #include <widget/image_utiltis.h>
 
 #include <QPainter>
-#include <QBuffer>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsBlurEffect>
 #include <QSaveFile>
@@ -12,7 +11,6 @@
 #include <base/object_pool.h>
 #include <base/stopwatch.h>
 #include <base/fs.h>
-#include <base/logger_impl.h>
 
 #include <thememanager.h>
 
@@ -20,29 +18,6 @@ Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius,
 	bool alphaOnly, int transposed = 0);
 
 namespace image_utils {
-
-template <typename OptimizeFunc>
-static void OptimizePng(const QString& dest_file_path, const QByteArray& original_png, std::vector<uint8_t> &result_png, OptimizeFunc func) {
-	Stopwatch sw;
-
-	func(original_png, result_png);
-
-	XAMP_LOG_DEBUG("Optimize PNG {} => {} ({}%) {} secs",
-	               String::FormatBytes(original_png.size()),
-	               String::FormatBytes(result_png.size()),
-	               (result_png.size() * 100 / original_png.size()),
-	               sw.ElapsedSeconds());
-
-	QFile file(dest_file_path);
-	if (!file.open(QIODevice::WriteOnly)) {
-		throw PlatformException();
-	}
-
-#ifdef XAMP_OS_WIN
-	SetFileLowIoPriority(file.handle());
-#endif
-	file.write(QByteArray(reinterpret_cast<const char*>(result_png.data()), result_png.size()));
-}
 
 bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 	QSaveFile file(dest_file_path);	
