@@ -33,6 +33,8 @@ public:
 
 	QLabel* format();
 
+	void SetHeart(bool heart);
+
 	void SetCover(const QPixmap* cover);
 
 	void HidePlaybackInformation(bool hide);

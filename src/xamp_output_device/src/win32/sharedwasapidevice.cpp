@@ -222,21 +222,34 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 	XAMP_LOG_D(logger_, "Use latency: {:.2f}", buffer_time_ * msec_per_samples);
 }
 
-void SharedWasapiDevice::InitialRawMode(AudioFormat const& output_format) {
-	InitialDeviceFormat(output_format);
+void SharedWasapiDevice::InitialDevice(AudioFormat const& output_format) {
+	if (!is_low_latency_) {
+		InitialDeviceFormat(output_format);
+		auto hr = client_->Initialize(AUDCLNT_SHAREMODE_SHARED,
+			AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+			buffer_time_,
+			buffer_time_,
+			mix_format_,
+			nullptr);
+		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
+			throw DeviceInUseException();
+		}
+		HrIfFailledThrow(hr);
+	} else {
+		InitialDeviceFormat(output_format);
+		auto hr = client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+			buffer_time_,
+			mix_format_,
+			nullptr);
+		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
+			throw DeviceInUseException();
+		}
+		HrIfFailledThrow(hr);
 
-	auto hr = client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-		buffer_time_,
-		mix_format_,
-		nullptr);
-	if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
-		throw DeviceInUseException();
-	}
-	HrIfFailledThrow(hr);
-
-	BOOL offload_capable = FALSE;
-	if (SUCCEEDED(client_->IsOffloadCapable(AudioCategory_Media, &offload_capable))) {
-		XAMP_LOG_D(logger_, "Devive support offload: {}", offload_capable ? "yes" : "no");
+		BOOL offload_capable = FALSE;
+		if (SUCCEEDED(client_->IsOffloadCapable(AudioCategory_Media, &offload_capable))) {
+			XAMP_LOG_D(logger_, "Devive support offload: {}", offload_capable ? "yes" : "no");
+		}
 	}
 }
 
@@ -266,7 +279,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 			HrIfFailledThrow(client_->SetClientProperties(&device_props));
 		}
 
-		InitialRawMode(output_format);
+		InitialDevice(output_format);
 	}
 
 	RegisterDeviceVolumeChange();

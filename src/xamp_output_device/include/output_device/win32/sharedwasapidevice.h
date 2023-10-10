@@ -170,7 +170,7 @@ private:
 
 	void RegisterDeviceVolumeChange();
 
-	void InitialRawMode(AudioFormat const & output_format);
+	void InitialDevice(AudioFormat const & output_format);
 
 	void InitialDeviceFormat(AudioFormat const & output_format);
 
@@ -178,6 +178,7 @@ private:
 
 	class DeviceEventNotification;
 
+	bool is_low_latency_{ false };
 	std::atomic<bool> is_running_;
 	std::atomic<int64_t> stream_time_;	
 	uint32_t buffer_frames_;

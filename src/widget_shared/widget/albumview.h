@@ -149,6 +149,7 @@ signals:
 	void LoadCompleted(int32_t total_album, int32_t total_tracks);
 
 	void ExtractFile(const QString& file_path, int32_t playlist_id);
+
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 

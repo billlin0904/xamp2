@@ -5,11 +5,9 @@
 
 #pragma once
 
-#include <QSqlQueryModel>
+#include <widget/lazyloadingmodel.h>
 
-#include <widget/widget_shared_global.h>
-
-class PlayListSqlQueryTableModel : public QSqlQueryModel {
+class PlayListSqlQueryTableModel : public LazyLoadingModel {
 public:
     explicit PlayListSqlQueryTableModel(QObject *parent = nullptr);
 

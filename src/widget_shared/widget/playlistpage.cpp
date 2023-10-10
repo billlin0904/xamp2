@@ -83,7 +83,7 @@ void PlaylistPage::Initial() {
 
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
-			album_heart_ = ~album_heart_;
+			album_heart_ = !album_heart_;
 			qMainDb.UpdateAlbumHeart(album_id_.value(), album_heart_);
 			qTheme.SetHeartButton(heart_button_, album_heart_);
 		}
@@ -194,6 +194,10 @@ void PlaylistPage::Initial() {
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(qTEXT("QLabel { color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
 	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
+}
+
+void PlaylistPage::SetHeart(bool heart) {
+	qTheme.SetHeartButton(heart_button_, heart);
 }
 
 QLabel* PlaylistPage::format() {

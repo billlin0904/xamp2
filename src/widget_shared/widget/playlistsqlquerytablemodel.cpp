@@ -7,7 +7,7 @@
 #include <widget/playlistentity.h>
 
 PlayListSqlQueryTableModel::PlayListSqlQueryTableModel(QObject *parent)
-    : QSqlQueryModel(parent) {
+    : LazyLoadingModel(parent) {
 }
 
 Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const {

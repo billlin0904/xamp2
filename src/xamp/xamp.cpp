@@ -942,6 +942,7 @@ void Xamp::InitialController() {
             entity.value().heart = !(entity.value().heart);
             qMainDb.UpdateMusicHeart(entity.value().music_id, entity.value().heart);
             qTheme.SetHeartButton(ui_.heartButton, entity.value().heart);
+            playlist_page_->SetHeart(entity.value().heart);
         }
         if (!playlist_page_) {
             return;
@@ -1651,6 +1652,7 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     
     current_playlist_page_->format()->setText(Format2String(playback_format, ext));
     current_playlist_page_->title()->setText(item.title);
+    current_playlist_page_->SetHeart(item.heart);
 
     album_page_->album()->SetPlayingAlbumId(item.album_id);
     UpdateButtonState();
