@@ -28,6 +28,8 @@ namespace {
     constexpr auto kJop = qTEXT("jpop");
     constexpr auto kHiRes = qTEXT("HiRes");
     constexpr auto kDsdCategory = qTEXT("DSD");
+    const std::wstring kDffExtension(L".dff");
+    const std::wstring kDsfExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
 
     QSet<QString> GetAlbumCategories(const QString& album) {
@@ -87,9 +89,6 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
 
 void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     const Stopwatch sw;
-    const std::wstring kDffExtension(L".dff");
-    const std::wstring kDsfExtension(L".dsf");
-
     FloatMap<QString, int32_t> artist_id_cache;
     FloatMap<QString, int32_t> album_id_cache;
     FloatMap<int32_t, QString> cover_id_cache;
