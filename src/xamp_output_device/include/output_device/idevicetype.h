@@ -55,7 +55,7 @@ public:
 	* 
 	* @return AlignPtr<IOutputDevice>
 	*/
-    virtual AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) = 0;
+    virtual AlignPtr<IOutputDevice> MakeDevice(const std::string & device_id) = 0;
 
 	/*
 	* Get device count.

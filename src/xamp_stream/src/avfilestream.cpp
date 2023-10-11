@@ -51,7 +51,7 @@ public:
     * 
     * @param file_path File path.
     */
-    void LoadFromFile(Path const& file_path) {
+    void OpenFile(const Path & file_path) {
         AVFormatContext* format_context = nullptr;
         AVDictionary* options = nullptr;
         
@@ -363,8 +363,8 @@ AvFileStream::AvFileStream()
 
 XAMP_PIMPL_IMPL(AvFileStream)
 
-void AvFileStream::OpenFile(Path const& file_path) {
-    return impl_->LoadFromFile(file_path);
+void AvFileStream::OpenFile(const Path & file_path) {
+    return impl_->OpenFile(file_path);
 }
 
 void AvFileStream::Close() noexcept {

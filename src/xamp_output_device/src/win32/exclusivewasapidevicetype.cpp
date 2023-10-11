@@ -30,10 +30,10 @@ public:
 
 	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfo() const;
 
-	AlignPtr<IOutputDevice> MakeDevice(std::string const& device_id);
+	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 
 private:
-	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(std::wstring const& device_id) const;
+	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
 	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
 
@@ -68,13 +68,13 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	return device_list_;
 }
 
-CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceById(std::wstring const & device_id) const {
+CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceById(const std::wstring & device_id) const {
 	CComPtr<IMMDevice> device;
 	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
-AlignPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(std::string const & device_id) {
+AlignPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::string & device_id) {
 	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
@@ -172,10 +172,10 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	}
 
 	// Sort device list by name length
-	std::sort(device_list.begin(), device_list.end(), 
-		[](const auto& first, const auto& second) {
-		return first.name.length() > second.name.length();
-		});
+	std::ranges::sort(device_list, 
+	                  [](const auto& first, const auto& second) {
+		                  return first.name.length() > second.name.length();
+	                  });
 
 	return device_list;
 }

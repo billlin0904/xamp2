@@ -28,7 +28,7 @@ public:
 	 * 
 	 * @param callback: device state listener.
 	 */
-	explicit Win32DeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback);
+	explicit Win32DeviceStateNotification(const std::weak_ptr<IDeviceStateListener>& callback);
 
 	/*
 	* Destructor.

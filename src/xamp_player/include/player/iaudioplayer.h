@@ -44,7 +44,7 @@ public:
     virtual void Destroy() = 0;
 
     /*
-    * Opon a file.
+    * Open a file.
     *
     * @param[in] file_path The file path.
     * @param[in] device_id The device id.
@@ -52,7 +52,7 @@ public:
 	virtual void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) = 0;
 
     /*
-    * Opon a file.
+    * Open a file.
     *
     * @param[in] file_path The file path.
     * @param[in] device_info The device info.

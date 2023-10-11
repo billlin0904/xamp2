@@ -10,7 +10,7 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 static constexpr IID kMMNotificationClientID = __uuidof(IMMNotificationClient);
 
-Win32DeviceStateNotification::Win32DeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback)
+Win32DeviceStateNotification::Win32DeviceStateNotification(const std::weak_ptr<IDeviceStateListener> &callback)
 	: callback_(callback) {
 }
 
@@ -43,7 +43,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnPropertyValueChanged(LPCWSTR device
 }
 
 STDMETHODIMP Win32DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
-	if (auto callback = callback_.lock()) {
+	if (const auto callback = callback_.lock()) {
 		const auto utf8_device_id = String::ToUtf8String(device_id);
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, utf8_device_id);
 	}
@@ -51,7 +51,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
 }
 
 STDMETHODIMP Win32DeviceStateNotification::OnDeviceRemoved(LPCWSTR device_id) {
-	if (auto callback = callback_.lock()) {
+	if (const auto callback = callback_.lock()) {
 		const auto utf8_device_id = String::ToUtf8String(device_id);
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_REMOVED, utf8_device_id);
 	}
@@ -72,7 +72,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_i
 		return S_OK;
 	}
 
-	if (auto callback = callback_.lock()) {
+	if (const auto callback = callback_.lock()) {
 		const auto utf8_device_id = String::ToUtf8String(device_id);
 		callback->OnDeviceStateChange(state, utf8_device_id);
 	}
@@ -80,7 +80,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_i
 }
 
 STDMETHODIMP Win32DeviceStateNotification::OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR new_default_device_id) {
-	if (auto callback = callback_.lock()) {
+	if (const auto callback = callback_.lock()) {
 		if (flow != eRender) {
 			return S_OK;
 		}

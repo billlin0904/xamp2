@@ -66,7 +66,7 @@ public:
 	/*
 	* Destructor
 	*/
-	virtual ~DeviceEventNotification() = default;
+	virtual ~DeviceEventNotification() override = default;
 	
 	/*
 	* QueryInterface

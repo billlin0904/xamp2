@@ -29,7 +29,7 @@ public:
     * @param[in] path file path.
     * @return TrackInfo
     */
-    virtual TrackInfo Extract(Path const &path) = 0;
+    virtual TrackInfo Extract(const Path &path) = 0;
 
     /*
     * Get ReplayGain from file.
@@ -45,7 +45,7 @@ public:
     * @param[in] path file path.
     * @return Vector<uint8_t>
     */
-    virtual const Vector<uint8_t>& GetEmbeddedCover(Path const &path) = 0;
+    virtual const Vector<uint8_t>& GetEmbeddedCover(const Path &path) = 0;
 
     /*
     * Check file is supported.
@@ -53,7 +53,7 @@ public:
     * @param[in] path file path.
     * @return bool
     */
-    [[nodiscard]] virtual bool IsSupported(Path const & path) const = 0;
+    [[nodiscard]] virtual bool IsSupported(const Path & path) const = 0;
 protected:
     IMetadataReader() = default;
 };

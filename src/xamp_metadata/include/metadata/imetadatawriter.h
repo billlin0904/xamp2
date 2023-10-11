@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/fs.h>
+#include <base/stl.h>
 #include <base/trackinfo.h>
 #include <metadata/metadata.h>
 
@@ -25,7 +26,7 @@ public:
     * @param[in] path file path.
     * @return bool
     */
-    [[nodiscard]] virtual bool IsFileReadOnly(Path const & path) const = 0;
+    [[nodiscard]] virtual bool IsFileReadOnly(const Path & path) const = 0;
     
     /*
     * Write metadata to file.
@@ -33,7 +34,7 @@ public:
     * @param[in] path file path.
     * @param[in] track_info track info.
     */
-    virtual void Write(Path const &path, TrackInfo const& track_info) = 0;
+    virtual void Write(const Path &path, const TrackInfo& track_info) = 0;
 
     /*
     * Write ReplayGain to file.
@@ -41,7 +42,7 @@ public:
     * @param[in] path file path.
     * @param[in] replay_gain replay gain.
     */
-    virtual void WriteReplayGain(Path const& path, const ReplayGain& replay_gain) = 0;
+    virtual void WriteReplayGain(const Path& path, const ReplayGain& replay_gain) = 0;
 
     /*
     * Write embedded cover to file.
@@ -49,7 +50,7 @@ public:
     * @param[in] path file path.
     * @param[in] image image data.
     */
-    virtual void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const& image) const = 0;
+    virtual void WriteEmbeddedCover(const Path& path, const Vector<uint8_t> & image) const = 0;
 
 protected:
     IMetadataWriter() = default;

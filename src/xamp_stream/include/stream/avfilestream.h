@@ -24,7 +24,7 @@ public:
 
 	XAMP_PIMPL(AvFileStream)
 
-	void OpenFile(Path const& file_path) override;
+	void OpenFile(const Path & file_path) override;
 
 	void Close() noexcept override;
 

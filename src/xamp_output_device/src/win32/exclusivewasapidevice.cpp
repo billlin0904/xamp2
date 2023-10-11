@@ -68,12 +68,12 @@ namespace {
 		format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
 	}
 
-	UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size) noexcept {
+	uint32_t BackwardAligned(const uint32_t bytes_frame, const uint32_t align_size) noexcept {
 		return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
 	}
 
 	template <typename Predicate>
-	int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
+	uint32_t CalcAlignedFramePerBuffer(const uint32_t frames, const uint32_t block_align, Predicate f) noexcept {
 		constexpr UINT32 kHdAudioPacketSize = 128;
 
 		const auto bytes_frame = frames * block_align;
@@ -90,7 +90,7 @@ namespace {
 	}
 
 	template <typename Predicate>
-	int32_t MakeAlignedPeriod(const AudioFormat& format, int32_t frames_per_latency, Predicate f) noexcept {
+	int32_t MakeAlignedPeriod(const AudioFormat& format, uint32_t frames_per_latency, Predicate f) noexcept {
 		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 	}
 
@@ -107,7 +107,7 @@ namespace {
 	constexpr std::chrono::milliseconds kGlitchFreeDuration{35};
 }
 
-ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
+ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device)
 	: raw_mode_(false)
 	, ignore_wait_slow_(false)
 	, is_2432_format_(true)

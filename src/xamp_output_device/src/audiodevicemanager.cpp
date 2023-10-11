@@ -23,6 +23,7 @@
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
+#include <ranges>
 #include <base/base.h>
 #include <base/assert.h>
 #include <base/logger.h>
@@ -43,7 +44,7 @@ public:
 
     DeviceStateNotificationImpl() = default;
 
-    void SetCallback(std::weak_ptr<IDeviceStateListener> const& callback) {
+    void SetCallback(const std::weak_ptr<IDeviceStateListener> & callback) {
 #ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
 #else
@@ -105,7 +106,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #endif
 }
 
-AlignPtr<IDeviceType> AudioDeviceManager::Create(Uuid const& id) const {
+AlignPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
     auto itr = factory_.find(id);
     if (itr == factory_.end()) {
         throw DeviceNotFoundException();
@@ -131,14 +132,14 @@ DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
 
 Vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     Vector<Uuid> device_types;
-	for (auto [uuid, device_type] : factory_) {
+	for (const auto uuid : factory_ | std::views::keys) {
         device_types.push_back(uuid);
 	}
     return device_types;
 }
 
 bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
-    return factory_.find(id) != factory_.end();
+    return factory_.contains(id);
 }
 
 void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {

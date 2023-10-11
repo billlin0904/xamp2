@@ -38,7 +38,7 @@ public:
 	* 
 	* @param callback: device state listener
 	*/
-    void RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const & callback) override;
+    void RegisterDeviceListener(const std::weak_ptr<IDeviceStateListener> & callback) override;
 
     /*
     * Register device type

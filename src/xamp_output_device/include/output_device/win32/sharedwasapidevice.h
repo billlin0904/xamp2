@@ -31,7 +31,7 @@ public:
 	* 
 	* @param device IMMDevice
 	*/
-	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
+	explicit SharedWasapiDevice(const CComPtr<IMMDevice> & device);
 
 	/*
 	 * Destructor.
@@ -43,7 +43,7 @@ public:
 	* 
 	* @param output_format AudioFormat
 	*/
-	void OpenStream(AudioFormat const & output_format) override;
+	void OpenStream(const AudioFormat & output_format) override;
 
 	/*
 	* Set audio callback.
@@ -138,7 +138,7 @@ public:
 	* @param[in] mmcss_name: mmcss name
 	* @param[in] thread_priority: thread priority
 	*/
-	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
+	void SetSchedulerService(const std::wstring & mmcss_name, MmcssThreadPriority thread_priority);
 
 	/*
 	* Get device buffer size.
@@ -170,9 +170,9 @@ private:
 
 	void RegisterDeviceVolumeChange();
 
-	void InitialDevice(AudioFormat const & output_format);
+	void InitialDevice(const AudioFormat & output_format);
 
-	void InitialDeviceFormat(AudioFormat const & output_format);
+	void InitialDeviceFormat(const AudioFormat & output_format);
 
 	HRESULT OnInvoke(IMFAsyncResult* async_result);
 

@@ -25,7 +25,7 @@ public:
 	* @param output_format: output format
 	* @return void
 	*/	
-    virtual void OpenStream(AudioFormat const & output_format) = 0;
+    virtual void OpenStream(const AudioFormat & output_format) = 0;
 
 	/*
 	* Set audio callback.

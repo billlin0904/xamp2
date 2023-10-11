@@ -17,7 +17,7 @@
 XAMP_METADATA_NAMESPACE_BEGIN
 
 namespace {
-    double ParseStringList(std::string const& s, bool string_dummy = true) {
+    double ParseStringList(const std::string & s, bool string_dummy = true) {
         std::stringstream ss;
         ss << s;
         if (string_dummy) {
@@ -29,7 +29,7 @@ namespace {
         return d;
     }
 
-    bool GetID3V2TagCover(ID3v2::Tag* tag, Vector<uint8_t>& buffer) {
+    bool GetID3V2TagCover(const ID3v2::Tag* tag, Vector<uint8_t>& buffer) {
         if (!tag) {
             return false;
         }
@@ -47,7 +47,7 @@ namespace {
         return true;
     }
 
-    bool GetApeTagCover(APE::Tag* tag, Vector<uint8_t>& buffer) {
+    bool GetApeTagCover(const APE::Tag* tag, Vector<uint8_t>& buffer) {
         auto const& list_map = tag->itemListMap();
 
         if (!list_map.contains("COVER ART (FRONT)")) {
@@ -70,7 +70,7 @@ namespace {
         ReplayGain replay_gain;
         bool found = false;
         if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-            if (auto* tag = mp3_file->ID3v2Tag(false)) {
+            if (const auto* tag = mp3_file->ID3v2Tag(false)) {
                 const auto& frame_list = tag->frameList("TXXX");
                 for (auto* it : frame_list) {
                     auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
@@ -120,7 +120,7 @@ namespace {
         return found;
     }
 
-    bool GetDSFCover(File* file, Vector<uint8_t>& buffer) {
+    bool GetDsfCover(File* file, Vector<uint8_t>& buffer) {
         auto found = false;
         if (const auto* dsd_file = dynamic_cast<TagLib::DSF::File*>(file)) {
             if (dsd_file->tag()) {
@@ -130,7 +130,7 @@ namespace {
         return found;
     }
 
-    bool GetDSDIFFCover(File* file, Vector<uint8_t>& buffer) {
+    bool GetDsdiffCover(File* file, Vector<uint8_t>& buffer) {
         auto found = false;
         if (const auto* dsd_file = dynamic_cast<TagLib::DSDIFF::File*>(file)) {
             if (dsd_file->ID3v2Tag()) {
@@ -208,7 +208,7 @@ namespace {
         ReplayGain replay_gain;
         bool found = false;
         if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-            if (auto* xiph_comment = flac_file->xiphComment()) {
+            if (const auto* xiph_comment = flac_file->xiphComment()) {
                 auto field_map = xiph_comment->fieldListMap();
                 for (auto& field : field_map) {
                     if (field.first == String::AsStdString(kReplaygainAlbumGain)) {
@@ -298,7 +298,7 @@ namespace {
         }
     }
 
-    void ExtractTag(Path const& path, Tag const* tag, AudioProperties* audio_properties, TrackInfo& track_info) {
+    void ExtractTag(Path const& path, Tag const* tag, const AudioProperties* audio_properties, TrackInfo& track_info) {
         try {
             if (!tag->isEmpty()) {
                 if (!tag->artist().toWString().empty()) {
@@ -340,7 +340,7 @@ namespace {
         SetAudioProperties(audio_properties, track_info);
     }
 
-    std::optional<ReplayGain> GetReplayGainFromFile(std::string const& ext, File* file) {
+    std::optional<ReplayGain> GetReplayGainFromFile(const std::string & ext, File* file) {
         static const HashMap<std::string_view, std::function<std::optional<ReplayGain>(File*)>>
             parse_replay_gain_table{
             { ".flac", GetFlacReplayGain },
@@ -354,14 +354,14 @@ namespace {
         return std::nullopt;
     }
 
-    void GetCover(std::string const& ext, File* file, Vector<uint8_t>& cover) {
+    void GetCover(const std::string & ext, File* file, Vector<uint8_t>& cover) {
         static const HashMap<std::string_view, std::function<bool(File*, Vector<uint8_t>&)>>
             parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },
-            { ".dff", GetDSDIFFCover },
-            { ".dsf", GetDSFCover }
+            { ".dff", GetDsdiffCover },
+            { ".dsf", GetDsfCover }
         };
         auto itr = parse_cover_table.find(ext);
         if (itr != parse_cover_table.end()) {

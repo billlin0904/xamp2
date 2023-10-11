@@ -118,7 +118,7 @@ XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MsToPeriod(uint32_t ms) noexcept {
 * @param[in] device_type_id: device type id
 * @return DeviceInfo
 */
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id);
 
 /*
 * Create device enumerator.

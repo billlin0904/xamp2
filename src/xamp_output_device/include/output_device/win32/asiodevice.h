@@ -36,7 +36,7 @@ public:
 	* 
 	* @param device_id: device id
 	*/
-	explicit AsioDevice(std::string const & device_id);
+	explicit AsioDevice(const std::string & device_id);
 
 	/*
 	* Destructor
@@ -49,7 +49,7 @@ public:
 	* @param output_format: output format
 	* @return void
 	*/
-	void OpenStream(AudioFormat const & output_format) override;
+	void OpenStream(const AudioFormat & output_format) override;
 
 	/*
 	* Set audio callback

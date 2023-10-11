@@ -29,13 +29,16 @@
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
-	static bool IsDsdFileChunk(std::string_view const & file_chunks) noexcept {
-    static constexpr std::array<std::string_view, 2> knows_chunks{
-        "DSD ", // .dsd file
-        "FRM8"  // .dsdiff file
-    };	
-    return std::find(knows_chunks.begin(), knows_chunks.end(), file_chunks)
-        != knows_chunks.end();
+
+namespace {
+    bool IsDsdFileChunk(std::string_view const& file_chunks) noexcept {
+        static constexpr std::array<std::string_view, 2> knows_chunks{
+            "DSD ", // .dsd file
+            "FRM8"  // .dsdiff file
+        };
+        return std::find(knows_chunks.begin(), knows_chunks.end(), file_chunks)
+            != knows_chunks.end();
+    }
 }
 
 bool IsDsdFile(Path const& path) {

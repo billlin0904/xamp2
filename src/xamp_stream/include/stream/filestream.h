@@ -33,7 +33,7 @@ public:
     * 
     * @param file_path: the file path.
     */
-    virtual void OpenFile(Path const & file_path) = 0;
+    virtual void OpenFile(const Path & file_path) = 0;
 
     /*
     * Get file bit depth.

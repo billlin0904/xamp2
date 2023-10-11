@@ -91,7 +91,7 @@ public:
 	* @param device_id: device id
 	* @return AlignPtr<IOutputDevice>
 	*/
-	AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) override;
+	AlignPtr<IOutputDevice> MakeDevice(const std::string & device_id) override;
 
 private:
 	class ExclusiveWasapiDeviceTypeImpl;	

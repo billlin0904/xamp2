@@ -71,11 +71,11 @@ namespace {
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
-	[[nodiscard]] bool IsFileReadOnly(Path const & path) const {
+	[[nodiscard]] bool IsFileReadOnly(const Path & path) const {
 		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
 
-    void Write(Path const &path, TrackInfo const &track_info) const {
+    void Write(const Path &path, const TrackInfo &track_info) const {
         Write(path, [&metadata = std::as_const(track_info)](auto, auto tag) {
 			if (metadata.album) {
 				tag->setAlbum(metadata.album.value());
@@ -90,25 +90,25 @@ public:
 		});
     }
 
-    void WriteTitle(Path const& path, std::wstring const &title) const {
+    void WriteTitle(const Path & path, const std::wstring &title) const {
         Write(path, [&title = std::as_const(title)](auto, auto tag) {
 	        tag->setTitle(title);
 	    });
     }
 
-    void WriteArtist(Path const& path, std::wstring const &artist) const {
+    void WriteArtist(const Path & path, const std::wstring &artist) const {
         Write(path, [&artist = std::as_const(artist)](auto, auto tag) {
 	        tag->setArtist(artist);
 	    });
     }
 
-    void WriteAlbum(Path const& path, std::wstring const &album) const {
+    void WriteAlbum(const Path & path, const std::wstring &album) const {
         Write(path, [&album = std::as_const(album)](auto, auto tag) {
 	        tag->setAlbum(album);
 	    });
     }
 
-    void WriteTrack(Path const& path, int32_t track) const {
+    void WriteTrack(const Path & path, int32_t track) const {
         Write(path, [track](auto, auto tag) {
 	        tag->setTrack(track);
 	    });
@@ -171,7 +171,7 @@ public:
 		}
 	}
 
-	void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const & image) const {
+	void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> & image) const {
 		const auto ext = String::ToLower(path.extension().string());
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
 
@@ -223,7 +223,7 @@ public:
 
 private:
     template <typename Function>
-    static void Write(Path const& path, Function &&fun) {
+    static void Write(const Path & path, Function &&fun) {
 #ifdef XAMP_OS_WIN
         FileRef fileref(path.wstring().c_str());
 #else
@@ -250,35 +250,35 @@ TaglibMetadataWriter::TaglibMetadataWriter()
     : writer_(MakePimpl<TaglibMetadataWriterImpl>()) {
 }
 
-void TaglibMetadataWriter::WriteReplayGain(Path const& path, const ReplayGain& replay_gain) {
+void TaglibMetadataWriter::WriteReplayGain(const Path & path, const ReplayGain& replay_gain) {
 	return writer_->WriteReplayGain(path, replay_gain);
 }
 
-bool TaglibMetadataWriter::IsFileReadOnly(Path const & path) const {
+bool TaglibMetadataWriter::IsFileReadOnly(const Path & path) const {
 	return writer_->IsFileReadOnly(path);
 }
 
-void TaglibMetadataWriter::WriteTitle(Path const & path, std::wstring const & title) const {
+void TaglibMetadataWriter::WriteTitle(const Path & path, const std::wstring & title) const {
     writer_->WriteTitle(path, title);
 }
 
-void TaglibMetadataWriter::Write(Path const & path, TrackInfo const& trackinfo) {
+void TaglibMetadataWriter::Write(const Path & path, const TrackInfo & trackinfo) {
     writer_->Write(path, trackinfo);
 }
 
-void TaglibMetadataWriter::WriteArtist(Path const & path, std::wstring const & artist) const {
+void TaglibMetadataWriter::WriteArtist(const Path & path, const std::wstring & artist) const {
     writer_->WriteArtist(path, artist);
 }
 
-void TaglibMetadataWriter::WriteAlbum(Path const & path, std::wstring const & album) const {
+void TaglibMetadataWriter::WriteAlbum(const Path & path, const std::wstring & album) const {
     writer_->WriteAlbum(path, album);
 }
 
-void TaglibMetadataWriter::WriteTrack(Path const & path, int32_t track) const {
+void TaglibMetadataWriter::WriteTrack(const Path & path, int32_t track) const {
     writer_->WriteTrack(path, track);
 }
 
-void TaglibMetadataWriter::WriteEmbeddedCover(Path const & path, std::vector<uint8_t> const & image) const {
+void TaglibMetadataWriter::WriteEmbeddedCover(const Path & path, const Vector<uint8_t> & image) const {
 	writer_->WriteEmbeddedCover(path, image);
 }
 

@@ -30,14 +30,14 @@ public:
 	* 
 	* @param callback: device state listener.
 	*/
-	virtual void RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) = 0;
+	virtual void RegisterDeviceListener(const std::weak_ptr<IDeviceStateListener> & callback) = 0;
 
 	/*
 	* Register device type.
 	* 
 	* @param id: device type id.
 	*/
-	virtual void RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) = 0;
+	virtual void RegisterDevice(const Uuid& id, std::function<AlignPtr<IDeviceType>()> func) = 0;
 
 	/*
 	* Create default device type.
@@ -51,7 +51,7 @@ public:
 	* 
 	* @param id: device type id.
 	*/
-	[[nodiscard]] virtual AlignPtr<IDeviceType> Create(Uuid const& id) const = 0;
+	[[nodiscard]] virtual AlignPtr<IDeviceType> Create(const Uuid& id) const = 0;
 
 	/*
 	* Get available device type.

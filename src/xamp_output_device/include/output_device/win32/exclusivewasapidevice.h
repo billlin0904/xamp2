@@ -34,7 +34,7 @@ public:
 	* 
 	* @param device: device	 
 	*/
-	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
+	explicit ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device);
 
 	/*
 	* Destructor.
@@ -47,7 +47,7 @@ public:
 	* @param output_format: output format
 	* @return void
 	*/
-	void OpenStream(AudioFormat const & output_format) override;
+	void OpenStream(const AudioFormat & output_format) override;
 
 	/*
 	* Set audio callback.
@@ -142,7 +142,7 @@ public:
 	* @param[in] mmcss_name: mmcss name
 	* @param[in] thread_priority: thread priority
 	*/
-	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
+	void SetSchedulerService(const std::wstring & mmcss_name, MmcssThreadPriority thread_priority);
 
 	/*
 	* Get device buffer size.
@@ -183,7 +183,7 @@ private:
 	* @param[in] output_format: output format
 	* @param[in] valid_bits_samples: valid bits samples	
 	*/
-	void InitialDeviceFormat(AudioFormat const & output_format, const uint32_t valid_bits_samples);
+	void InitialDeviceFormat(const AudioFormat & output_format, uint32_t valid_bits_samples);
 
 	/*
 	* Set aligned period
@@ -191,7 +191,7 @@ private:
 	* @param[in] device_period: device period
 	* @param[in] output_format: output format
 	*/
-	void SetAlignedPeriod(REFERENCE_TIME device_period, AudioFormat const & output_format);
+	void SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat & output_format);
 
 	/*
 	* Report error

@@ -161,7 +161,7 @@ namespace {
 	 * @param[in] device device.
 	 * @return std::wstring
 	*/
-	std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComPtr<IMMDevice>& device) {
+	std::wstring GetDevicePropertyString(const PROPERTYKEY& key, VARTYPE type, CComPtr<IMMDevice>& device) {
 		std::wstring str;
 
 		CComPtr<IPropertyStore> property;
@@ -209,7 +209,7 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	return enumerator;
 }
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id) {
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id) {
 	DeviceInfo info;
 	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
 	
