@@ -22,105 +22,104 @@ enum HBitmapFormat {
 
 Q_GUI_EXPORT HBITMAP qt_pixmapToWinHBITMAP(const QPixmap& p, int hbitmapFormat = HBitmapFormat::HBitmapNoAlpha);
 
-namespace win32 {
-	namespace {		
-		class DwmapiLib {
-		public:
-			DwmapiLib()
-				: module_(OpenSharedLibrary("dwmapi"))
-				, XAMP_LOAD_DLL_API(DwmInvalidateIconicBitmaps)
-				, XAMP_LOAD_DLL_API(DwmSetWindowAttribute)
-				, XAMP_LOAD_DLL_API(DwmSetIconicThumbnail)
-				, XAMP_LOAD_DLL_API(DwmSetIconicLivePreviewBitmap) {
-			}
-
-			XAMP_DISABLE_COPY(DwmapiLib)
-
-		private:
-			SharedLibraryHandle module_;
-
-		public:
-			XAMP_DECLARE_DLL_NAME(DwmInvalidateIconicBitmaps);
-			XAMP_DECLARE_DLL_NAME(DwmSetWindowAttribute);
-			XAMP_DECLARE_DLL_NAME(DwmSetIconicThumbnail);
-			XAMP_DECLARE_DLL_NAME(DwmSetIconicLivePreviewBitmap);
-		};
-
-		class Comctl32Lib {
-		public:
-			Comctl32Lib()
-				: module_(OpenSharedLibrary("comctl32"))
-				, XAMP_LOAD_DLL_API(ImageList_Create)
-				, XAMP_LOAD_DLL_API(ImageList_Add)
-				, XAMP_LOAD_DLL_API(ImageList_Destroy) {
-			}
-
-			XAMP_DISABLE_COPY(Comctl32Lib)
-
-		private:
-			SharedLibraryHandle module_;
-
-		public:
-			XAMP_DECLARE_DLL_NAME(ImageList_Create);
-			XAMP_DECLARE_DLL_NAME(ImageList_Add);
-			XAMP_DECLARE_DLL_NAME(ImageList_Destroy);
-		};
-
-		TBPFLAG GetWin32ProgressState(TaskbarProgressState state) {
-			static const QMap<TaskbarProgressState, TBPFLAG> state_lut{
-				{ TASKBAR_PROCESS_STATE_NO_PROCESS, TBPF_NOPROGRESS },
-				{ TASKBAR_PROCESS_STATE_INDETERMINATE, TBPF_INDETERMINATE },
-				{ TASKBAR_PROCESS_STATE_NORMAL, TBPF_NORMAL },
-				{ TASKBAR_PROCESS_STATE_ERROR, TBPF_ERROR },
-				{ TASKBAR_PROCESS_STATE_PAUSED, TBPF_PAUSED },
-			};
-			if (state_lut.contains(state)) {
-				return state_lut.value(state);
-			}
-			return TBPF_NOPROGRESS;
+namespace {
+	class DwmapiLib {
+	public:
+		DwmapiLib()
+			: module_(OpenSharedLibrary("dwmapi"))
+			, XAMP_LOAD_DLL_API(DwmInvalidateIconicBitmaps)
+			, XAMP_LOAD_DLL_API(DwmSetWindowAttribute)
+			, XAMP_LOAD_DLL_API(DwmSetIconicThumbnail)
+			, XAMP_LOAD_DLL_API(DwmSetIconicLivePreviewBitmap) {
 		}
 
-		int GetWin32IconSize() {
-			return ::GetSystemMetrics(SM_CXSMICON);
+		XAMP_DISABLE_COPY(DwmapiLib)
+
+	private:
+		SharedLibraryHandle module_;
+
+	public:
+		XAMP_DECLARE_DLL_NAME(DwmInvalidateIconicBitmaps);
+		XAMP_DECLARE_DLL_NAME(DwmSetWindowAttribute);
+		XAMP_DECLARE_DLL_NAME(DwmSetIconicThumbnail);
+		XAMP_DECLARE_DLL_NAME(DwmSetIconicLivePreviewBitmap);
+	};
+
+	class Comctl32Lib {
+	public:
+		Comctl32Lib()
+			: module_(OpenSharedLibrary("comctl32"))
+			, XAMP_LOAD_DLL_API(ImageList_Create)
+			, XAMP_LOAD_DLL_API(ImageList_Add)
+			, XAMP_LOAD_DLL_API(ImageList_Destroy) {
 		}
+
+		XAMP_DISABLE_COPY(Comctl32Lib)
+
+	private:
+		SharedLibraryHandle module_;
+
+	public:
+		XAMP_DECLARE_DLL_NAME(ImageList_Create);
+		XAMP_DECLARE_DLL_NAME(ImageList_Add);
+		XAMP_DECLARE_DLL_NAME(ImageList_Destroy);
+	};
+
+	TBPFLAG GetWin32ProgressState(TaskbarProgressState state) {
+		static const QMap<TaskbarProgressState, TBPFLAG> state_lut{
+			{ TASKBAR_PROCESS_STATE_NO_PROCESS, TBPF_NOPROGRESS },
+			{ TASKBAR_PROCESS_STATE_INDETERMINATE, TBPF_INDETERMINATE },
+			{ TASKBAR_PROCESS_STATE_NORMAL, TBPF_NORMAL },
+			{ TASKBAR_PROCESS_STATE_ERROR, TBPF_ERROR },
+			{ TASKBAR_PROCESS_STATE_PAUSED, TBPF_PAUSED },
+		};
+		if (state_lut.contains(state)) {
+			return state_lut.value(state);
+		}
+		return TBPF_NOPROGRESS;
+	}
+
+	int GetWin32IconSize() {
+		return ::GetSystemMetrics(SM_CXSMICON);
+	}
 
 #define DWM_DLL Singleton<DwmapiLib>::GetInstance()
 #define COMCTL32_DLL Singleton<Comctl32Lib>::GetInstance()
 #define IDTB_FIRST 3000
-		
-		UINT MSG_TaskbarButtonCreated = WM_NULL;
 
-		enum {
-			ToolButton_Backward = 0,
-			ToolButton_Play,
-			ToolButton_Forward,
-			ToolButton_Pause,
-		};
+	UINT MSG_TaskbarButtonCreated = WM_NULL;
 
-		void UpdateLiveThumbnail(const MSG* msg, const QPixmap& thumbnail) {
-			RECT rect;
-			GetClientRect(msg->hwnd, &rect);
-			const QSize max_size(rect.right, rect.bottom);
-			POINT offset = { 0, 0 };
-			const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
-			const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap, &offset, 0);
-			if (FAILED(hr)) {
-				XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
-			}
-			::DeleteObject(bitmap);
+	enum {
+		ToolButton_Backward = 0,
+		ToolButton_Play,
+		ToolButton_Forward,
+		ToolButton_Pause,
+	};
+
+	void UpdateLiveThumbnail(const MSG* msg, const QPixmap& thumbnail) {
+		RECT rect;
+		GetClientRect(msg->hwnd, &rect);
+		const QSize max_size(rect.right, rect.bottom);
+		POINT offset = { 0, 0 };
+		const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
+		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap, &offset, 0);
+		if (FAILED(hr)) {
+			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
 		}
-
-		void UpdateIconicThumbnail(const MSG* msg, const QPixmap& thumbnail) {
-			const QSize max_size(HIWORD(msg->lParam), LOWORD(msg->lParam));
-			XAMP_LOG_DEBUG("{} {}", HIWORD(msg->lParam), LOWORD(msg->lParam));
-			const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
-			const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap, 0);
-			if (FAILED(hr)) {
-				XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));
-			}
-			::DeleteObject(bitmap);
-		}
+		::DeleteObject(bitmap);
 	}
+
+	void UpdateIconicThumbnail(const MSG* msg, const QPixmap& thumbnail) {
+		const QSize max_size(HIWORD(msg->lParam), LOWORD(msg->lParam));
+		XAMP_LOG_DEBUG("{} {}", HIWORD(msg->lParam), LOWORD(msg->lParam));
+		const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
+		const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap, 0);
+		if (FAILED(hr)) {
+			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));
+		}
+		::DeleteObject(bitmap);
+	}
+}
 
 WinTaskbar::WinTaskbar(XMainWindow* window) {
 	play_icon = qTheme.GetFontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
@@ -395,6 +394,3 @@ void WinTaskbar::SetTaskbarPlayerStop() {
 	UpdateProgressIndicator();
 	UpdateOverlay();
 }
-
-}
-

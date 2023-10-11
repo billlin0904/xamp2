@@ -17,28 +17,26 @@ class XMainWindow;
 
 class ITaskbarList4;
 
-namespace win32 {
-
- enum TaskbarProgressState {
- 	TASKBAR_PROCESS_STATE_NO_PROCESS, // Hidden
+enum TaskbarProgressState {
+    TASKBAR_PROCESS_STATE_NO_PROCESS, // Hidden
     TASKBAR_PROCESS_STATE_INDETERMINATE, // Busy
     TASKBAR_PROCESS_STATE_NORMAL,
     TASKBAR_PROCESS_STATE_ERROR, // Stopped
     TASKBAR_PROCESS_STATE_PAUSED,
- };
+};
 
- constexpr auto kWinThumbbarButtonSize = 3;
+constexpr auto kWinThumbbarButtonSize = 3;
 
 class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
     Q_OBJECT
-public:    
+public:
     explicit WinTaskbar(XMainWindow* window);
 
     virtual ~WinTaskbar() override;
 
     void SetTaskbarProgress(const int32_t process);
 
-    void SetIconicThumbnail(const QPixmap &image);
+    void SetIconicThumbnail(const QPixmap& image);
 
     void ResetTaskbarProgress();
 
@@ -74,22 +72,20 @@ signals:
 
     void BackwardClicked();
 
-private:    
+private:
     void CreateToolbarImages();
 
     void InitialToolbarButtons();
 
     void SetWindow(QWidget* window);
 
-    int process_max_{0};
-    int process_min_{0};
-    int process_value_{0};
+    int32_t process_max_{ 0 };
+    int32_t process_min_{ 0 };
+    int32_t process_value_{ 0 };
     QWidget* window_{ nullptr };
-    QIcon overlay_icon_;    
+    QIcon overlay_icon_;
     TaskbarProgressState state_;
     QString overlay_accessible_description_;
     QPixmap thumbnail_;
     CComPtr<ITaskbarList4> taskbar_list_;
 };
-
-}

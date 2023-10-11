@@ -79,21 +79,21 @@ XMainWindow::~XMainWindow() {
 
 void XMainWindow::EnsureInitTaskbar() {
     if (!task_bar_) {
-        task_bar_.reset(new win32::WinTaskbar(this));
+        task_bar_.reset(new WinTaskbar(this));
 
-        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::PlayClicked, [this]() {
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::PlayClicked, [this]() {
             content_widget_->PlayOrPause();
             });
 
-        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::PauseClicked, [this]() {
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::PauseClicked, [this]() {
             content_widget_->PlayOrPause();
             });
 
-        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::ForwardClicked, [this]() {
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::ForwardClicked, [this]() {
             content_widget_->PlayNext();
             });
 
-        (void)QObject::connect(task_bar_.get(), &win32::WinTaskbar::BackwardClicked, [this]() {
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::BackwardClicked, [this]() {
             content_widget_->PlayPrevious();
             });
     }

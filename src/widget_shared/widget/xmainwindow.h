@@ -11,9 +11,7 @@
 #include <widget/driveinfo.h>
 
 #if defined(Q_OS_WIN)
-namespace win32 {
-    class WinTaskbar;
-}
+class WinTaskbar;
 #endif
 
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
@@ -86,7 +84,7 @@ private:
     uint32_t screen_number_;
     QPoint last_pos_;
 #if defined(Q_OS_WIN)
-    QScopedPointer<win32::WinTaskbar> task_bar_;
+    QScopedPointer<WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
 #endif
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;

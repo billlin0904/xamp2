@@ -3,8 +3,6 @@
 
 #include <execution>
 
-#include <QRegExp>
-
 #include <qguiapplication.h>
 
 #include <base/base.h>

@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <stream/stream.h>
+
 #include <QTimer>
 #include <QFrame>
 

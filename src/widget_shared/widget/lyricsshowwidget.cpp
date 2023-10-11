@@ -45,7 +45,7 @@ void LyricsShowWidget::ResizeFontSize() {
 	lrc_font_.setPointSize(font_size);
 
 	lrc_metrics = QFontMetrics(lrc_font_);
-	while (lrc_metrics.horizontalAdvance(max_lrc) > size().width()) {		
+	while (lrc_metrics.horizontalAdvance(max_lrc) > size().width() - 30) {		
 		const auto max_width = lrc_metrics.horizontalAdvance(max_lrc);
 		font_size -= 5;
 		lrc_font_.setPointSize(font_size);

@@ -105,18 +105,19 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
-    }
+    }    
 
-    auto album = GetIndexValue(index, INDEX_ALBUM).toString();
-    auto cover_id = GetIndexValue(index, INDEX_COVER).toString();
-    auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
     auto album_id = GetIndexValue(index, INDEX_ALBUM_ID).toInt();
-    auto album_year = GetIndexValue(index, INDEX_ALBUM_YEAR).toInt();
 
     if (album_id == 0) {
         // Note: Qt6 當沒有可以顯示的內容album_id為0
         return;
     }
+
+    auto album = GetIndexValue(index, INDEX_ALBUM).toString();
+    auto cover_id = GetIndexValue(index, INDEX_COVER).toString();
+    auto artist = GetIndexValue(index, INDEX_ARTIST).toString();    
+    auto album_year = GetIndexValue(index, INDEX_ALBUM_YEAR).toInt();
 
     auto* style = option.widget ? option.widget->style() : QApplication::style();
 
