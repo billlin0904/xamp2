@@ -1054,7 +1054,7 @@ void Database::UpdateMusicRating(int32_t music_id, int32_t rating) {
     THROW_IF_FAIL1(query);
 }
 
-void Database::UpdateAlbumHeart(int32_t album_id, int32_t heart) {
+void Database::UpdateAlbumHeart(int32_t album_id, uint32_t heart) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE albums SET heart = :heart WHERE (albumId = :albumId)"));
@@ -1065,7 +1065,7 @@ void Database::UpdateAlbumHeart(int32_t album_id, int32_t heart) {
     THROW_IF_FAIL1(query);
 }
 
-void Database::UpdateMusicHeart(int32_t music_id, int32_t heart) {
+void Database::UpdateMusicHeart(int32_t music_id, uint32_t heart) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET heart = :heart WHERE (musicId = :musicId)"));

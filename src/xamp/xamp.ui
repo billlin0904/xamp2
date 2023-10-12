@@ -320,7 +320,7 @@
       <widget class="QFrame" name="sliderFrame2">
        <property name="maximumSize">
         <size>
-         <width>200</width>
+         <width>510</width>
          <height>16777215</height>
         </size>
        </property>

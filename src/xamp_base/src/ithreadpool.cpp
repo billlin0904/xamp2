@@ -8,7 +8,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace {
     inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
     inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
-    inline constexpr auto kMaxBackgroundThreadPoolSize{ 4 };
+    inline constexpr auto kMaxBackgroundThreadPoolSize{ 8 };
 
     CpuAffinity GetBackgroundCpuAffinity() {
         CpuAffinity affinity(-1, false);

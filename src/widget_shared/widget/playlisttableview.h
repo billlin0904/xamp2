@@ -81,7 +81,9 @@ public:
 
 	QModelIndex GetNextIndex(int forward) const;
 
-	std::optional<QModelIndex> GetSelectItem() const;	
+	std::optional<QModelIndex> GetSelectItem() const;
+
+	std::optional<PlayListEntity> GetSelectPlayListEntity() const;
 
     void Play(PlayerOrder order);
 
@@ -143,7 +145,7 @@ public slots:
 
 	void AddPendingPlayListFromModel(PlayerOrder order);
 private:
-	PlayListEntity item(const QModelIndex& index);
+	PlayListEntity item(const QModelIndex& index) const;
 
 	void PlayItem(const QModelIndex& index);
 

@@ -131,7 +131,6 @@ void XDialog::SetContent(QWidget* content) {
     // 如果使用waitForReady就會一直接收到message,
     // 會導致無法訊息一直出現並會遞迴.
     //FramelessWidgetsHelper::get(this)->waitForReady();
-
     show();
 }
 

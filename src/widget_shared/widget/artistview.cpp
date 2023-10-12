@@ -61,7 +61,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		const auto artist_cover = qPixmapCache.GetCover(qTEXT("thumbnail_"), artist_cover_id);
+		const auto artist_cover = qPixmapCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
 	}
 	else {
@@ -104,7 +104,7 @@ bool ArtistStyledItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* mo
 	return true;
 }
 
-const ConstLatin1String ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_thumbnail"));
+const ConstLatin1String ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_thumbnail_"));
 
 ArtistViewPage::ArtistViewPage(QWidget* parent)
 	: QFrame(parent) {

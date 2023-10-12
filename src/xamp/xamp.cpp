@@ -271,6 +271,9 @@ namespace {
     }
     )"));
 
+        auto f = ui.tableLabel->font();
+        f.setPointSize(11);
+        ui.tableLabel->setFont(f);
         ui.tableLabel->setStyleSheet(qSTR(R"(
     QLabel#tableLabel {
     border: none;
@@ -938,15 +941,19 @@ void Xamp::InitialController() {
     qTheme.SetBitPerfectButton(ui_.bitPerfectButton, AppSettings::ValueAsBool(kEnableBitPerfect));
 
     (void)QObject::connect(ui_.heartButton, &QToolButton::clicked, [this]() {
-        if (auto entity = current_entity_) {
-            entity.value().heart = !(entity.value().heart);
-            qMainDb.UpdateMusicHeart(entity.value().music_id, entity.value().heart);
-            qTheme.SetHeartButton(ui_.heartButton, entity.value().heart);
-            playlist_page_->SetHeart(entity.value().heart);
+        if (!current_entity_) {
+            return;
         }
+
         if (!playlist_page_) {
             return;
         }
+
+        current_entity_.value().heart = !(current_entity_.value().heart);
+
+        qMainDb.UpdateMusicHeart(current_entity_.value().music_id, current_entity_.value().heart);
+        qTheme.SetHeartButton(ui_.heartButton, current_entity_.value().heart);
+        playlist_page_->SetHeart(current_entity_.value().heart);
         playlist_page_->playlist()->Reload();
         });
 
@@ -1023,7 +1030,6 @@ void Xamp::InitialController() {
         SetPlayerOrder(true);
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
-        dialog->SetContentWidget(page, true);
         dialog->SetTitle(tr("Pending playlist"));
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
         (void)QObject::connect(page,
@@ -1038,6 +1044,7 @@ void Xamp::InitialController() {
         center_pos = dialog->mapFromGlobal(center_pos);
         center_pos = dialog->mapToParent(center_pos);
         dialog->move(center_pos);
+        dialog->SetContentWidget(page, true);
         dialog->exec();
         });
 
@@ -1768,7 +1775,7 @@ void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
         SetPlaylistPageCover(nullptr, page);
     } else {
         SetPlaylistPageCover(&cover, page);
-        emit BlurImage(cover_id, cover.copy(), size());
+        emit BlurImage(cover_id, cover, QSize(500, 500));
     }
 
     if (lrc_page_ != nullptr) {

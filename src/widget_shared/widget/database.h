@@ -142,9 +142,9 @@ public:
 
     void UpdateMusicRating(int32_t music_id, int32_t rating);
 
-    void UpdateAlbumHeart(int32_t album_id, int32_t rating);
+    void UpdateAlbumHeart(int32_t album_id, uint32_t heart);
 
-    void UpdateMusicHeart(int32_t music_id, int32_t heart);
+    void UpdateMusicHeart(int32_t music_id, uint32_t heart);
 
     void UpdateMusicTitle(int32_t music_id, const QString& title);
 

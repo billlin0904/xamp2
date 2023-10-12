@@ -37,7 +37,7 @@ template
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
     using KeyIterator = typename KeyList::iterator;
-    using CacheMap = HashMap<Key, KeyIterator>;
+    using CacheMap = OrderedMap<Key, KeyIterator>;
 
     explicit LruCache(int64_t capacity = kLruCacheSize) noexcept;
 

@@ -122,7 +122,7 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 	fade_in_animation->setEndValue(current_bg_alpha_);
 	fade_in_animation->setDuration(durationMs);
 	fade_in_animation->setEasingCurve(QEasingCurve::OutCubic);
-	(void)QObject::connect(fade_in_animation, &QPropertyAnimation::finished, this, [=] {
+	(void)QObject::connect(fade_in_animation, &QPropertyAnimation::finished, this, [fade_in_animation] {
 		fade_in_animation->deleteLater();
 		});
 	current_bg_alpha_ = 0;
@@ -133,7 +133,7 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 	fade_out_animation->setEndValue(0);
 	fade_out_animation->setDuration(durationMs);
 	fade_out_animation->setEasingCurve(QEasingCurve::OutCubic);
-	QObject::connect(fade_out_animation, &QPropertyAnimation::finished, this, [=] {
+	QObject::connect(fade_out_animation, &QPropertyAnimation::finished, this, [this, fade_out_animation] {
 		prev_background_image_ = QImage();
 		fade_out_animation->deleteLater();
 		update();

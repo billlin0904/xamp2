@@ -62,16 +62,6 @@ public:
     virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
 
     /*
-    * Process the audio samples.
-    * 
-    * @param samples: the input audio samples.
-    * @param num_samples: the number of input audio samples.
-    * 
-    * @return the number of output audio samples.
-    */
-    virtual uint32_t Process(float const* samples, float* out, uint32_t num_samples) = 0;
-
-    /*
     * Get the type id of the audio processor.
     * 
     * @return the type id of the audio processor.

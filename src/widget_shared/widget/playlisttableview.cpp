@@ -42,6 +42,8 @@ public:
 
     using QStyledItemDelegate::QStyledItemDelegate;
 
+    mutable LruCache<QString, QIcon> icon_cache_;
+
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
     }
@@ -187,8 +189,11 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-                opt.icon = QIcon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
-                opt.icon = UniformIcon(opt.icon, opt.decorationSize);
+				opt.icon = icon_cache_.GetOrAdd(value.toString(), [&value]() {
+                    constexpr QSize icon_size(42, 46);
+                    const QIcon icon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
+                    return UniformIcon(icon, icon_size);
+                });
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
 				opt.displayAlignment = Qt::AlignCenter;
@@ -666,7 +671,7 @@ void PlayListTableView::PauseItem(const QModelIndex& index) {
     update();
 }
 
-PlayListEntity PlayListTableView::item(const QModelIndex& index) {
+PlayListEntity PlayListTableView::item(const QModelIndex& index) const {
     return GetEntity(index);
 }
 
@@ -945,6 +950,13 @@ void PlayListTableView::SetNowPlayState(PlayingState playing_state) {
 
 void PlayListTableView::ScrollToIndex(const QModelIndex& index) {
     QTableView::scrollTo(index, PositionAtCenter);
+}
+
+std::optional<PlayListEntity> PlayListTableView::GetSelectPlayListEntity() const {
+    if (const auto select_item = GetSelectItem()) {
+        return item(select_item.value());
+	}
+    return std::nullopt;
 }
 
 std::optional<QModelIndex> PlayListTableView::GetSelectItem() const {

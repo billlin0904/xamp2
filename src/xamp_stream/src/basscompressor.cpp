@@ -69,10 +69,6 @@ public:
         return true;
     }
 
-    uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
-        return bass_utiltis::Process(stream_, samples, out, num_samples);
-    }
-
 private:
     BassStreamHandle stream_;
     LoggerPtr logger_;
@@ -96,10 +92,6 @@ void BassCompressor::Init(const AnyMap& config) {
 
 bool BassCompressor::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
-}
-
-uint32_t BassCompressor::Process(float const* samples, float* out, uint32_t num_samples) {
-    return impl_->Process(samples, out, num_samples);
 }
 
 Uuid BassCompressor::GetTypeId() const {

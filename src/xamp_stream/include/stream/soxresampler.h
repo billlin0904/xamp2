@@ -53,8 +53,6 @@ public:
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
 
-    uint32_t Process(float const* samples, float* out, uint32_t num_samples) override;
-
     [[nodiscard]] Uuid GetTypeId() const override;
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;

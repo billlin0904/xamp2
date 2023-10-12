@@ -10,7 +10,7 @@ TabListView::TabListView(QWidget *parent)
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSpacing(2);
-    setIconSize(qTheme.GetTabIconSize());
+    setIconSize(QSize(22, 22));
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
@@ -68,7 +68,7 @@ void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
     item->setSizeHint(QSize(35, 35));    
     auto f = item->font();
     f.setBold(true);
-    f.setPointSize(qTheme.GetFontSize(8));
+    f.setPointSize(qTheme.GetFontSize(11));
     item->setFont(f);
     model_.appendRow(item);
     names_[table_id] = name;

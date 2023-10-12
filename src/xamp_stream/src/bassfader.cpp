@@ -44,10 +44,6 @@ public:
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
         return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
-
-    uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
-        return bass_utiltis::Process(stream_, samples, out, num_samples);
-    }
 private:
     BassStreamHandle stream_;
     LoggerPtr logger_;
@@ -71,20 +67,16 @@ void BassFader::SetTime(float current, float target, float fdade_time) {
     impl_->SetTime(current, target, fdade_time);
 }
 
-bool BassFader::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
-    return impl_->Process(samples, num_samples, out);
-}
-
-uint32_t BassFader::Process(float const* samples, float* out, uint32_t num_samples) {
-    return impl_->Process(samples, out, num_samples);
-}
-
 Uuid BassFader::GetTypeId() const {
     return XAMP_UUID_OF(BassFader);
 }
 
 std::string_view BassFader::GetDescription() const noexcept {
     return "BassFader";
+}
+
+bool BassFader::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
+    return impl_->Process(samples, num_samples, out);
 }
 
 void BassFader::Flush() {

@@ -152,10 +152,6 @@ bool BassParametricEq::Process(float const* samples, uint32_t num_samples, Buffe
     return impl_->Process(samples, num_samples, out);
 }
 
-uint32_t BassParametricEq::Process(float const* samples, float* out, uint32_t num_samples) {
-    return impl_->Process(samples, out, num_samples);
-}
-
 Uuid BassParametricEq::GetTypeId() const {
     return XAMP_UUID_OF(BassParametricEq);
 }
