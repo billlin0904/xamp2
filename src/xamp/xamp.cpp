@@ -301,7 +301,7 @@ namespace {
 			QStackedWidget#currentView {
 				padding: 0px;
 				background-color: #121212;				
-				border-top-left-radius: 8px;
+				border-top-left-radius: 0px;
             }			
             )"));
 
@@ -334,7 +334,7 @@ namespace {
             ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
-				border-top-left-radius: 8px;
+				border-top-left-radius: 0px;
             }			
             )"));
             
@@ -1030,6 +1030,7 @@ void Xamp::InitialController() {
         SetPlayerOrder(true);
         auto* dialog = new XDialog(this);
         auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
+        dialog->SetContentWidget(page, true);
         dialog->SetTitle(tr("Pending playlist"));
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
         (void)QObject::connect(page,
@@ -1043,8 +1044,7 @@ void Xamp::InitialController() {
         center_pos.setY(center_pos.y() - sz.height());
         center_pos = dialog->mapFromGlobal(center_pos);
         center_pos = dialog->mapToParent(center_pos);
-        dialog->move(center_pos);
-        dialog->SetContentWidget(page, true);
+        dialog->move(center_pos);        
         dialog->exec();
         });
 

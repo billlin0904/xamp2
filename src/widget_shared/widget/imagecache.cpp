@@ -262,7 +262,7 @@ void ImageCache::LoadCache() const {
 		if (reader.read(&image)) {
 			const QFileInfo file_info(path);
 			const auto tag_name = file_info.baseName();
-			if (cache_.IsFulled(file_info.size())) {
+			if (cache_.IsFull(file_info.size())) {
 				break;
 			}
 			cache_.AddOrUpdate(tag_name, { file_info.size(), QPixmap::fromImage(image) });

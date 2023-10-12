@@ -71,7 +71,7 @@ public:
 
     void Evict(int64_t max_size);
 
-    bool IsFulled(size_t new_entry_size) const noexcept {
+    bool IsFull(size_t new_entry_size) const noexcept {
         std::shared_lock<SharedMutex> read_lock{ mutex_ };
         return size_ + new_entry_size >= capacity_;
     }

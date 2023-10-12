@@ -21,7 +21,7 @@ Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius,
 namespace image_utils {
 
 namespace {
-	constexpr uint16_t kStackblurMul[255] = {
+	inline constexpr uint16_t kStackblurMul[255] = {
 			512,512,456,512,328,456,335,512,405,328,271,456,388,335,292,512,
 			454,405,364,328,298,271,496,456,420,388,360,335,312,292,273,512,
 			482,454,428,405,383,364,345,328,312,298,284,271,259,496,475,456,
@@ -40,7 +40,7 @@ namespace {
 			289,287,285,282,280,278,275,273,271,269,267,265,263,261,259
 	};
 
-	constexpr uint8_t kStackblurShr[255] = {
+	inline constexpr uint8_t kStackblurShr[255] = {
 			9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17,
 			17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19,
 			19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20,
@@ -419,11 +419,11 @@ QPixmap RoundImage(const QPixmap& src, QSize size, int32_t radius) {
 
 QImage BlurImage(const QPixmap& source, QSize size) {
 	//const int radius = qMax(20, qMin(size.width(), size.height()) / 5);
-	const int radius = 10;
+	const int radius = 30;
 
-	/*const QSize scaled_size(size.width() + radius, size.height() + radius);
-	auto resize_pixmap = ResizeImage(source, scaled_size);*/
-	auto resize_pixmap = source;
+	const QSize scaled_size(size.width() + radius, size.height() + radius);
+	auto resize_pixmap = ResizeImage(source, scaled_size);
+	//auto resize_pixmap = source;
 	auto img = resize_pixmap.toImage();
 	StackblurJob(img, radius);
 	return img;
