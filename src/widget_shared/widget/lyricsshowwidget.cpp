@@ -41,7 +41,6 @@ void LyricsShowWidget::ResizeFontSize() {
 		return;
 	}
 
-	XAMP_LOG_DEBUG("Max length lrc: {}", String::ToString((*itr).lrc));
 	lrc_font_.setPointSize(font_size);
 
 	lrc_metrics = QFontMetrics(lrc_font_);

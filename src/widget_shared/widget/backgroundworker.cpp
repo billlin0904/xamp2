@@ -122,8 +122,10 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
     if (image.isNull()) {
         emit BlurImage(QImage());
         return;
-    }
-    emit BlurImage(image_utils::BlurImage(image, size));
+    }    
+    emit BlurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
+        return image_utils::BlurImage(image, size);
+        }));
 }
 
 void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {

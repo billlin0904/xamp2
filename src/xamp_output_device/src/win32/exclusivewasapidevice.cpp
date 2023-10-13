@@ -94,10 +94,10 @@ namespace {
 		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 	}
 
-	constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
-	constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-	constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
-	constexpr IID kAudioClockID = __uuidof(IAudioClock);
+	inline constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
+	inline constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+	inline constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
+	inline constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 	// A total typical delay of 35 ms contains three parts:
 	// 1. Audio endpoint device period (~10 ms).

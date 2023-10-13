@@ -2,65 +2,67 @@
 #include <fstream>
 
 #include <base/fs.h>
-#include <base/stl.h>
+#include <base/algorithm.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
 
-using namespace xamp::base;
+#include <widget/widget_shared.h>
 
-static std::chrono::milliseconds ParseTime(std::wstring const &str) {
-    auto minutes = 0;
-    auto seconds = 0;
-    auto milliseconds = 0;
+namespace {
+    std::chrono::milliseconds ParseTime(std::wstring const& str) {
+        auto minutes = 0;
+        auto seconds = 0;
+        auto milliseconds = 0;
 #ifdef Q_OS_WIN32
-    // todo: Support format: %u:%u
-    const auto res = swscanf_s(str.c_str(), L"%u:%u.%u",
-        &minutes,
-        &seconds,
-        &milliseconds);
-    if (res != 3) {
-        throw std::exception("Malformed lrc file");
-    }
+        // todo: Support format: %u:%u
+        const auto res = swscanf_s(str.c_str(), L"%u:%u.%u",
+            &minutes,
+            &seconds,
+            &milliseconds);
+        if (res != 3) {
+            throw std::exception("Malformed lrc file");
+        }
 #else
-    const auto res = swscanf(str.c_str(), L"%u:%u.%u",
-        &minutes,
-        &seconds,
-        &milliseconds);
-    if (res != 3) {
-        throw std::exception();
-    }
+        const auto res = swscanf(str.c_str(), L"%u:%u.%u",
+            &minutes,
+            &seconds,
+            &milliseconds);
+        if (res != 3) {
+            throw std::exception();
+        }
 #endif
-    return std::chrono::minutes(minutes)
-        + std::chrono::seconds(seconds)
-        + std::chrono::milliseconds(milliseconds);
+        return std::chrono::minutes(minutes)
+            + std::chrono::seconds(seconds)
+            + std::chrono::milliseconds(milliseconds);
+    }
+
+    template <typename ReturnType = std::wstring>
+    struct TagParser {
+        static ReturnType ParseIdTag(const std::wstring& tag_name, const std::wstring& line) {
+            const auto tag_prefix = L"[" + tag_name + L":";
+
+            auto pos = line.find(tag_prefix);
+            if (pos != std::wstring::npos) {
+                auto end = line.find(L"]", pos);
+                auto start = pos + tag_prefix.length();
+                return line.substr(start, end - start);
+            }
+            return L"";
+        }
+    };
+
+    template <>
+    struct TagParser<int> {
+        static int ParseIdTag(const std::wstring& tag_name, const std::wstring& line) {
+            auto str = TagParser<>::ParseIdTag(tag_name, line);
+            if (str.empty()) {
+                return 0;
+            }
+            return std::stoi(str);
+        }
+    };
 }
-
-template <typename ReturnType = std::wstring>
-struct TagParser {
-	static ReturnType ParseIdTag(const std::wstring &tag_name, const std::wstring &line) {
-		const auto tag_prefix = L"[" + tag_name + L":";
-
-		auto pos = line.find(tag_prefix);
-		if (pos != std::wstring::npos) {
-			auto end = line.find(L"]", pos);
-			auto start = pos + tag_prefix.length();
-			return line.substr(start, end - start);
-		}
-		return L"";
-	}
-};
-
-template <>
-struct TagParser<int> {
-	static int ParseIdTag(const std::wstring &tag_name, const std::wstring &line) {
-		auto str = TagParser<>::ParseIdTag(tag_name, line);
-		if (str.empty()) {
-			return 0;
-		}
-		return std::stoi(str);
-	}
-};
 
 LrcParser::LrcParser()
     : offset_(0)

@@ -13,6 +13,8 @@
 #include <widget/widget_shared_global.h>
 #include <widget/mbdiscid_uiltis.h>
 
+#include <widget/widget_shared.h>
+
 class DatabaseFacade;
 
 struct XAMP_WIDGET_SHARED_EXPORT ReplayGainResult final {
@@ -79,6 +81,7 @@ public Q_SLOT:
     void OnTranslation(const QString& keyword, const QString& from, const QString& to);
 
 private:
-    bool is_stop_{false};    
+    bool is_stop_{false};
+    LruCache<QString, QImage> blur_image_cache_;
     LoggerPtr logger_;
 };

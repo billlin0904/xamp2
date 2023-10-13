@@ -9,14 +9,13 @@
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 
+#include <base/executor.h>
+
 #include <base/object_pool.h>
 #include <base/stopwatch.h>
 #include <base/fs.h>
 
 #include <thememanager.h>
-
-Q_WIDGETS_EXPORT void qt_blurImage(QPainter* p, QImage& blurImage, qreal radius, bool quality,
-	bool alphaOnly, int transposed = 0);
 
 namespace image_utils {
 
@@ -312,18 +311,42 @@ namespace {
 
 	}
 
-	void StackblurJob(QImage &image, uint32_t radius = 10, uint32_t cores = 1) {
+	void StackblurJob(QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
 		XAMP_EXPECTS(radius > 0 && radius < 254);
 		XAMP_EXPECTS(cores > 0);
 
 		auto div = (radius * 2) + 1;
-		auto stack = MakeBuffer<uint8_t>(div * 4 * cores);
-		auto* src = image.bits();
+		auto stack = Vector<uint8_t>(div * 4 * cores);
+
 		const auto width = image.width();
 		const auto height = image.height();
+		auto* src = image.bits();		
 
-		StackblurJob(src, width, height, radius, 1, 0, 1, stack.get());
-		StackblurJob(src, width, height, radius, 1, 0, 2, stack.get());
+		if (cores == 1) {
+			StackblurJob(src, width, height, radius, 1, 0, 1, stack.data());
+			StackblurJob(src, width, height, radius, 1, 0, 2, stack.data());
+			return;
+		}
+		
+		auto blur_job = [&](auto step) {
+			Vector<Task<>> tasks;
+			tasks.reserve(cores);
+
+			for (auto i = 0; i < cores; i++) {
+				auto buffer = stack.data() + div * 4 * i;
+				tasks.push_back(Executor::Spawn(GetBackgroundThreadPool(),
+					[=]() {
+						StackblurJob(src, width, height, radius, cores, i, step, buffer);
+					}));
+			}
+
+			for (auto& task : tasks) {
+				task.get();
+			}
+			};
+
+		blur_job(1);
+		blur_job(2);
 	}
 }	
 

@@ -42,12 +42,12 @@ static void SetWaveformatEx(WAVEFORMATEX *input_fromat, uint32_t samplerate) noe
 	format.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 }
 
-static constexpr IID kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
-static constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
-static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-static constexpr IID kAudioRenderClientID =__uuidof(IAudioRenderClient);
-static constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
-static constexpr IID kAudioClockID = __uuidof(IAudioClock);
+inline constexpr IID kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
+inline constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
+inline constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+inline constexpr IID kAudioRenderClientID =__uuidof(IAudioRenderClient);
+inline constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
+inline constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 /*
 * DeviceEventNotification is a IAudioEndpointVolumeCallback implementation.

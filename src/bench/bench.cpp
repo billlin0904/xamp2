@@ -17,8 +17,6 @@
 #include <base/executor.h>
 #include <base/rcu_ptr.h>
 #include <base/uuidof.h>
-#include <base/google_siphash.h>
-#include <base/blake3hash.h>
 #include <base/sfc64.h>
 
 #include <stream/fft.h>
@@ -118,32 +116,31 @@ static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     }
 }
 
-template <typename C, typename Func>
-void StdAsyncParallelFor(C& items, Func&& f, size_t batches = 4) {
-    auto begin = std::begin(items);
-    auto size = std::distance(begin, std::end(items));
+static void BM_async_pool(benchmark::State& state) {    
+    auto std_async_parallel_for = [](auto& items, auto&& f, size_t batches = 4) {
+        auto begin = std::begin(items);
+        auto size = std::distance(begin, std::end(items));
 
-    for (size_t i = 0; i < size; ++i) {
-        std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
-        for (auto& ff : futures) {
-            ff = std::async(std::launch::async, [f, begin, i]() -> void {
-                f(*(begin + i));
-                });
-            ++i;
+        for (size_t i = 0; i < size; ++i) {
+            std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
+            for (auto& ff : futures) {
+                ff = std::async(std::launch::async, [f, begin, i]() -> void {
+                    f(*(begin + i));
+                    });
+                ++i;
+            }
+            for (auto& ff : futures) {
+                ff.wait();
+            }
         }
-        for (auto& ff : futures) {
-            ff.wait();
-        }
-    }
-}
+        };
 
-static void BM_async_pool(benchmark::State& state) {
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        StdAsyncParallelFor(n, [&total](auto item) {
+        std_async_parallel_for(n, [&total](auto item) {
             total += item;
             });
     }
@@ -395,101 +392,39 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
 
-static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
-    auto length = state.range(0);
-
-    /*auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
-    auto output = Vector<int8_t>(length * 2);*/
-
-    const Vector<int8_t> input{
-    	0, 1, 0, 2, 0, 3, 0, 4,
-        0, 5, 0, 6, 0, 7, 0, 8,
-        0, 9, 0, 10, 0, 11, 0, 12,
-        0, 13, 0, 14, 0, 15, 0, 16,
-        0, 17, 0, 18, 0, 19, 0, 20,
-        0, 21, 0, 22, 0, 23, 0, 24,
-        0, 25, 0, 26, 0, 27, 0, 28,
-        0, 29, 0, 30, 0, 31, 0, 32,
-    };
-
-    Vector<int8_t> output(input.size());
-
-    AudioFormat input_format;
-    AudioFormat output_format;
-
-    input_format.SetChannel(2);
-    output_format.SetChannel(2);
-
-    input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
-    output_format.SetPackedFormat(PackedFormat::PLANAR);
-
-    for (auto _ : state) {
-        InterleaveToPlanar<int8_t, int8_t>::Convert(input.data(),
-            output.data(),
-            output.data() + 32,
-            32);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(int8_t));
-}
-
-static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
-    auto output = Vector<int8_t>(length * 2);
-
-    AudioFormat input_format;
-    AudioFormat output_format;
-
-    input_format.SetChannel(2);
-    output_format.SetChannel(2);
-
-    input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
-    output_format.SetPackedFormat(PackedFormat::PLANAR);
-
-    const auto ctx = MakeConvert(input_format, output_format, length / 2);
-
-
-    for (auto _ : state) {
-        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(
-            output.data(),
-            input.data(),
-            ctx);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(int8_t));
-}
-
-static void BM_FindRobinHoodHashMap(benchmark::State& state) {
-    HashMap<int64_t, int64_t> map;
-    for (auto _ : state) {
-        map.emplace(std::make_pair(SharedSingleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
-        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
-    }
-}
-
-static void BM_unordered_map(benchmark::State& state) {
-    std::unordered_map<int64_t, int64_t> map;
-    for (auto _ : state) {
-        map.emplace(std::make_pair(SharedSingleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
-        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
-    }
-}
-
-static void BM_FindRobinHoodHashSet(benchmark::State& state) {
+static void BM_Find_RobinHoodHashSet(benchmark::State& state) {
     HashSet<int64_t> map;
+
+    while (map.size() < 1000000) {
+        auto value = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        if (!map.contains(value)) {
+            map.emplace(value);
+        }
+    }
+   
     for (auto _ : state) {
-        map.emplace(SharedSingleton<PRNG>::GetInstance().NextInt64());
-        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
+        auto val = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        state.PauseTiming();
+        (void)map.find(val);
+        state.ResumeTiming();
     }
 }
 
-static void BM_unordered_set(benchmark::State& state) {
+static void BM_Find_unordered_set(benchmark::State& state) {
     std::unordered_set<int64_t> map;
+
+    while (map.size() < 1000000) {
+        auto value = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        if (!map.contains(value)) {
+            map.emplace(value);
+        }
+    }
+
     for (auto _ : state) {
-        map.emplace(SharedSingleton<PRNG>::GetInstance().NextInt64());
-        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
+        auto val = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        state.PauseTiming();
+        (void)map.find(val);
+        state.ResumeTiming();
     }
 }
 
@@ -540,12 +475,12 @@ static void BM_LruCache_GetOrAdd(benchmark::State& state) {
     }
     
     for (auto _ : state) {
-        state.PauseTiming();
         auto key = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
-        state.ResumeTiming();
+        state.PauseTiming(); 
         cache.GetOrAdd(key, []() {
             return SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
-        });
+            });
+        state.ResumeTiming();        
     }
 }
 
@@ -555,11 +490,11 @@ static void BM_LruCache_Add(benchmark::State& state) {
     LruCache<int64_t, int64_t> cache(length / 2);
 
     for (auto _ : state) {
-        state.PauseTiming();
         auto key = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
         auto value = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
-        state.ResumeTiming();
+        state.PauseTiming();                
         cache.Add(key, value);
+        state.ResumeTiming();        
     }
 }
 
@@ -569,11 +504,11 @@ static void BM_LruCache_AddOrUpdate(benchmark::State& state) {
     LruCache<int64_t, int64_t> cache(length / 2);
 
     for (auto _ : state) {
-        state.PauseTiming();
         auto key = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
         auto value = SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000);
-        state.ResumeTiming();
+        state.PauseTiming();
         cache.AddOrUpdate(key, value);
+        state.ResumeTiming();        
     }
 }
 
@@ -635,40 +570,6 @@ static void BM_Spinlock(benchmark::State& state) {
     }
 }
 
-static void BM_Blake3Hash(benchmark::State& state) {
-    auto length = state.range(0);
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto random_string = Singleton<PRNG>::GetInstance().GetRandomString(length);
-        Blake3Hash hasher;
-        state.ResumeTiming();
-        hasher.Update(random_string);
-        auto result = hasher.Get64bitHash();
-        benchmark::DoNotOptimize(result);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
-
-static void BM_GoogleSipHash(benchmark::State& state) {
-    auto length = state.range(0);
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto random_string = Singleton<PRNG>::GetInstance().GetRandomString(length);
-        state.ResumeTiming();
-        GoogleSipHash<> hasher;
-        hasher.Update(random_string);
-        auto result = hasher.GetHash();
-        benchmark::DoNotOptimize(result);
-    }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
-}
-
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
-
-//BENCHMARK(BM_Builtin_Rotl);
-//BENCHMARK(BM_Rotl);
-
 //BENCHMARK(BM_FastMutex)->ThreadRange(1, 32);
 //BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
 
@@ -676,20 +577,15 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_UuidCompilerTime);
 
-//BENCHMARK(BM_Sfc64Random);
-//BENCHMARK(BM_default_random_engine);
+BENCHMARK(BM_Sfc64Random);
+BENCHMARK(BM_default_random_engine);
 
-//BENCHMARK(BM_Blake3Hash)->RangeMultiplier(2)->Range(128, 8 << 6);
-//BENCHMARK(BM_GoogleSipHash)->RangeMultiplier(2)->Range(128, 8 << 6);
+BENCHMARK(BM_PRNG);
+BENCHMARK(BM_PRNG_GetInstance);
+BENCHMARK(BM_PRNG_SharedGetInstance);
 
-//BENCHMARK(BM_PRNG);
-//BENCHMARK(BM_PRNG_GetInstance);
-//BENCHMARK(BM_PRNG_SharedGetInstance);
-
-//BENCHMARK(BM_unordered_set);
-//BENCHMARK(BM_FindRobinHoodHashSet);
-//BENCHMARK(BM_unordered_map);
-//BENCHMARK(BM_FindRobinHoodHashMap);
+BENCHMARK(BM_Find_unordered_set);
+BENCHMARK(BM_Find_RobinHoodHashSet);
 
 //BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
@@ -718,9 +614,9 @@ static void BM_GoogleSipHash(benchmark::State& state) {
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //#ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
