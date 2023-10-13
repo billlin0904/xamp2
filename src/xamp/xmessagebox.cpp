@@ -29,7 +29,7 @@ XMessageBox::XMessageBox(const QString& title,
 	icon_label_ = new QLabel(this);
 	message_text_label_ = new QLabel(this);
 
-	icon_label_->setFixedSize(35, 35);
+	icon_label_->setFixedSize(40, 40);
 	icon_label_->setScaledContents(true);
 	icon_label_->setStyleSheet(qTEXT("background: transparent;"));
 
@@ -39,6 +39,7 @@ XMessageBox::XMessageBox(const QString& title,
 	//message_text_label_->setFixedHeight(80);
 	//message_text_label_->setFixedWidth(80);
 	message_text_label_->setText(text);
+
 	QFont f;
 	f.setPointSize(qTheme.GetFontSize(10));
 	message_text_label_->setFont(f);
