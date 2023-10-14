@@ -67,7 +67,7 @@ void PreferencePage::SaveSoxrResampler(const QString &name) const {
 
 	soxr_config[name] = CurrentSoxrSettings();
 	JsonSettings::SetValue(kSoxr, soxr_config);
-	AppSettings::SetValue(kAppSettingSoxrSettingName, name);
+	qAppSettings.SetValue(kAppSettingSoxrSettingName, name);
 
 	if (!soxr_config.contains(name)) {
 		ui_.soxrSettingCombo->addItem(name);
@@ -96,7 +96,7 @@ void PreferencePage::InitSoxResampler() {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
 	
-    const auto soxr_settings = soxr_config[AppSettings::ValueAsString(kAppSettingSoxrSettingName)].toMap();
+    const auto soxr_settings = soxr_config[qAppSettings.ValueAsString(kAppSettingSoxrSettingName)].toMap();
 	UpdateSoxrConfigUi(soxr_settings);
 
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
@@ -135,13 +135,13 @@ void PreferencePage::InitSoxResampler() {
 void PreferencePage::SetLanguage(int index) {
 	const auto lang = LocaleLanguageManager::LanguageNames()[index];
 	ui_.langCombo->setCurrentIndex(index);
-	AppSettings::LoadLanguage(lang.GetIsoCode());
-	AppSettings::SetValue(kAppSettingLang, lang.GetIsoCode());
+	qAppSettings.LoadLanguage(lang.GetIsoCode());
+	qAppSettings.SetValue(kAppSettingLang, lang.GetIsoCode());
 	ui_.retranslateUi(this);
 }
 
 void PreferencePage::InitialLanguage() {
-	const LocaleLanguage current_lang(AppSettings::ValueAsString(kAppSettingLang));
+	const LocaleLanguage current_lang(qAppSettings.ValueAsString(kAppSettingLang));
 
 	auto current_index = 0;
 	auto index = 0;
@@ -233,32 +233,32 @@ PreferencePage::PreferencePage(QWidget *parent)
     (void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [](auto index) {
 		switch (index) {
 		case 0:
-			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
-			AppSettings::SetValue(kAppSettingEnableReplayGain, true);
+			qAppSettings.SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
+			qAppSettings.SetValue(kAppSettingEnableReplayGain, true);
 			break;
 		case 1:
-			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-			AppSettings::SetValue(kAppSettingEnableReplayGain, true);
+			qAppSettings.SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+			qAppSettings.SetValue(kAppSettingEnableReplayGain, true);
 			break;
 		case 2:
-			AppSettings::SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
-			AppSettings::SetValue<bool>(kAppSettingEnableReplayGain, false);			
+			qAppSettings.SetEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
+			qAppSettings.SetValue<bool>(kAppSettingEnableReplayGain, false);			
 			break;
 		}
 		});
 
-	ui_.replayGainModeCombo->setCurrentIndex(AppSettings::GetValue(kAppSettingReplayGainMode).toInt());
+	ui_.replayGainModeCombo->setCurrentIndex(qAppSettings.GetValue(kAppSettingReplayGainMode).toInt());
 
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		switch (index) {
 		case 1:
 			SaveSoxrResampler(ui_.soxrSettingCombo->currentText());
-			AppSettings::SetValue(kAppSettingResamplerType, kSoxr);
+			qAppSettings.SetValue(kAppSettingResamplerType, kSoxr);
 			break;
 		case 2:
 			SaveR8BrainResampler();
-			AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
+			qAppSettings.SetValue(kAppSettingResamplerType, kR8Brain);
 			break;
 		}		
         SaveAll();
@@ -355,13 +355,13 @@ PreferencePage::PreferencePage(QWidget *parent)
 }
 
 void PreferencePage::LoadSettings() {
-	const auto enable_resampler = AppSettings::ValueAsBool(kAppSettingResamplerEnable);
+	const auto enable_resampler = qAppSettings.ValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
 	}
 	else {
-		auto resampler_type = AppSettings::ValueAsString(kAppSettingResamplerType);
+		auto resampler_type = qAppSettings.ValueAsString(kAppSettingResamplerType);
 		if (resampler_type == kSoxr || resampler_type.isEmpty()) {
 				ui_.resamplerStackedWidget->setCurrentIndex(1);
 			ui_.selectResamplerComboBox->setCurrentIndex(1);
@@ -378,8 +378,8 @@ void PreferencePage::SaveAll() {
 	SaveR8BrainResampler();
 
 	auto index = ui_.resamplerStackedWidget->currentIndex();
-	AppSettings::SetValue(kAppSettingResamplerEnable, index > 0);
+	qAppSettings.SetValue(kAppSettingResamplerEnable, index > 0);
 
 	JsonSettings::save();
-	AppSettings::save();
+	qAppSettings.save();
 }

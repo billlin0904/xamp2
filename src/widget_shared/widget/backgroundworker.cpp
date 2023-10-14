@@ -134,8 +134,8 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
-    const auto target_loudness = AppSettings::GetValue(kAppSettingReplayGainTargetLoudnes).toDouble();
-    const auto scan_mode = AppSettings::ValueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
+    const auto target_loudness = qAppSettings.GetValue(kAppSettingReplayGainTargetLoudnes).toDouble();
+    const auto scan_mode = qAppSettings.ValueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     QMap<int32_t, Vector<PlayListEntity>> album_group_map;
     for (const auto& entity : entities) {

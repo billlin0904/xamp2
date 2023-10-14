@@ -78,7 +78,7 @@ EqualizerView::EqualizerView(QWidget* parent)
     }
 
     (void)QObject::connect(ui_.resetButton, &QPushButton::clicked, [this]() {
-        auto [name, settings] = AppSettings::GetEqSettings();
+        auto [name, settings] = qAppSettings.GetEqSettings();
         for (auto &band : settings.bands) {
             band.gain = 0;
         }
@@ -93,38 +93,38 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     ui_.enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
     (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        AppSettings::SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
+        qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
     (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        AppSettings::SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
+        qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
-    ui_.enableEqCheckBox->setCheckState(AppSettings::ValueAsBool(kAppSettingEnableEQ)
+    ui_.enableEqCheckBox->setCheckState(qAppSettings.ValueAsBool(kAppSettingEnableEQ)
         ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 
-    for (auto& name : AppSettings::GetEqPreset().keys()) {
+    for (auto& name : qAppSettings.GetEqPreset().keys()) {
         ui_.eqPresetComboBox->addItem(name);
     }
 
     (void)QObject::connect(ui_.eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         AppEQSettings settings;
         settings.name = index;
-        settings.settings = AppSettings::GetEqPreset()[index];
+        settings.settings = qAppSettings.GetEqPreset()[index];
         if (settings.settings.bands.empty()) {
             settings.settings.bands.push_back(EqBandSetting());
         }
-        AppSettings::SetEqSettings(settings);
-        AppSettings::save();
+        qAppSettings.SetEqSettings(settings);
+        qAppSettings.save();
         ApplySetting(index, settings.settings);
         });
 
-    if (AppSettings::contains(kAppSettingEQName)) {
-        auto [name, settings] = AppSettings::GetEqSettings();
+    if (qAppSettings.contains(kAppSettingEQName)) {
+        auto [name, settings] = qAppSettings.GetEqSettings();
         AppEQSettings app_settings;
         app_settings.name = name;
         app_settings.settings = settings;
-        AppSettings::SetEqSettings(app_settings);
+        qAppSettings.SetEqSettings(app_settings);
         ui_.eqPresetComboBox->setCurrentText(name);
         ApplySetting(name, settings);
     }

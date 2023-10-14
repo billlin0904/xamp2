@@ -324,7 +324,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
     model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr(""));
 
-    auto column_list = AppSettings::ValueAsStringList(column_setting_name);
+    auto column_list = qAppSettings.ValueAsStringList(column_setting_name);
 
     if (column_list.empty()) {
         const QList<int> hidden_columns{
@@ -359,7 +359,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
 
         for (auto column = 0; column < horizontalHeader()->count(); ++column) {
             if (!isColumnHidden(column)) {
-                AppSettings::AddList(column_setting_name_, QString::number(column));
+                qAppSettings.AddList(column_setting_name_, QString::number(column));
             } else {
                 setColumnHidden(column, true);
             }
@@ -391,7 +391,7 @@ void PlayListTableView::SetHeaderViewHidden(bool enable) {
     auto last_referred_logical_column = header_view->logicalIndexAt(pt);
     auto hide_this_column_act = action_map.AddAction(tr("Hide this column"), [last_referred_logical_column, this]() {
         setColumnHidden(last_referred_logical_column, true);
-    AppSettings::RemoveList(column_setting_name_, QString::number(last_referred_logical_column));
+    qAppSettings.RemoveList(column_setting_name_, QString::number(last_referred_logical_column));
         });
     hide_this_column_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_HIDE));
 
@@ -401,7 +401,7 @@ void PlayListTableView::SetHeaderViewHidden(bool enable) {
         auto header_name = model()->headerData(column, Qt::Horizontal).toString();
         action_map.AddAction(header_name, [this, column]() {
             setColumnHidden(column, false);
-        AppSettings::AddList(column_setting_name_, QString::number(column));
+        qAppSettings.AddList(column_setting_name_, QString::number(column));
             }, false, !isColumnHidden(column));
     }
     action_map.exec(pt);
@@ -681,7 +681,7 @@ void PlayListTableView::PlayItem(const QModelIndex& index) {
     const auto play_item = item(index);
     auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
     if (play_item.music_id != music_id) {
-        AddPendingPlayListFromModel(AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder));
+        AddPendingPlayListFromModel(qAppSettings.ValueAsEnum<PlayerOrder>(kAppSettingOrder));
     }
     emit PlayMusic(play_item);
 }

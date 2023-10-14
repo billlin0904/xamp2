@@ -28,7 +28,6 @@ public:
 		const int remaining_rows = rowCount() - load_rows_;
 		const int rows_to_fetch = qMin(remaining_rows, batch_size_);
 		if (rows_to_fetch <= 0) {
-			XAMP_LOG_DEBUG("No more fetch row!");
 			return;
 		}
 		beginInsertRows(QModelIndex(), load_rows_, load_rows_ + rows_to_fetch - 1);

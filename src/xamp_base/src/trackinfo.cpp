@@ -1,5 +1,6 @@
 #include <base/stl.h>
 #include <base/trackinfo.h>
+#include <base/algorithm.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

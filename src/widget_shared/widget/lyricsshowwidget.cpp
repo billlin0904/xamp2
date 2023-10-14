@@ -59,13 +59,13 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 
 void LyricsShowWidget::Initial() {
     lrc_font_ = font();
-	lrc_font_.setPointSize(AppSettings::ValueAsInt(kLyricsFontSize));
+	lrc_font_.setPointSize(qAppSettings.ValueAsInt(kLyricsFontSize));
 
 	ResizeFontSize();
 	SetDefaultLrc();
 
-	SetLrcColor(AppSettings::ValueAsColor(kLyricsTextColor));
-	SetLrcHighLight(AppSettings::ValueAsColor(kLyricsHighLightTextColor));
+	SetLrcColor(qAppSettings.ValueAsColor(kLyricsTextColor));
+	SetLrcHighLight(qAppSettings.ValueAsColor(kLyricsHighLightTextColor));
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
@@ -83,36 +83,36 @@ void LyricsShowWidget::Initial() {
 		});
 #if 0
 		(void)action_map.AddAction(tr("Set font size(small)"), [this]() {
-			AppSettings::SetValue(kLyricsFontSize, 12);
+			qAppSettings.SetValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(qTheme.GetFontSize(12));
 			});
 
 		(void)action_map.AddAction(tr("Set font size(middle)"), [this]() {
-			AppSettings::SetValue(kLyricsFontSize, 16);
+			qAppSettings.SetValue(kLyricsFontSize, 16);
 			lrc_font_.setPointSize(qTheme.GetFontSize(16));
 			});
 
 		(void)action_map.AddAction(tr("Set font size(big)"), [this]() {
-			AppSettings::SetValue(kLyricsFontSize, 24);
+			qAppSettings.SetValue(kLyricsFontSize, 24);
 			lrc_font_.setPointSize(qTheme.GetFontSize(24));
 			});
 		(void)action_map.AddAction(tr("Change high light color"), [this]() {
-			auto text_color = AppSettings::ValueAsColor(kLyricsHighLightTextColor);
+			auto text_color = qAppSettings.ValueAsColor(kLyricsHighLightTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
 				SetLrcHighLight(color);
-				AppSettings::SetValue(kLyricsHighLightTextColor, color);
+				qAppSettings.SetValue(kLyricsHighLightTextColor, color);
 			});
 			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
 			dlg.exec();
 			});
 
 		(void)action_map.AddAction(tr("Change text color"), [this]() {
-			auto text_color = AppSettings::ValueAsColor(kLyricsTextColor);
+			auto text_color = qAppSettings.ValueAsColor(kLyricsTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
 				SetLrcColor(color);
-				AppSettings::SetValue(kLyricsTextColor, color);
+				qAppSettings.SetValue(kLyricsTextColor, color);
 				});
 			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
 			dlg.exec();

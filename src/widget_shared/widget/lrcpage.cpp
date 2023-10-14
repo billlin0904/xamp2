@@ -195,14 +195,14 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	case ThemeColor::DARK_THEME:
 		lyrics_widget_->SetLrcColor(Qt::lightGray);
 		lyrics_widget_->SetLrcHighLight(Qt::white);
-		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
+		qAppSettings.SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+		qAppSettings.SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
 		break;
 	case ThemeColor::LIGHT_THEME:
 		lyrics_widget_->SetLrcColor(Qt::white);
 		lyrics_widget_->SetLrcHighLight(Qt::black);
-		AppSettings::SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-		AppSettings::SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
+		qAppSettings.SetValue(kLyricsTextColor, QColor(Qt::lightGray));
+		qAppSettings.SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
 		break;
 	}
 }

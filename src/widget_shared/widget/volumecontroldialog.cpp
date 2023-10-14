@@ -19,11 +19,11 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     ui_.volumeSlider->setInvertedAppearance(false);
     ui_.volumeSlider->setInvertedControls(false);
 
-    if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
+    if (qAppSettings.ValueAsBool(kAppSettingIsMuted)) {
         SetVolume(0);
     }
     else {
-        const auto vol = AppSettings::GetValue(kAppSettingVolume).toUInt();
+        const auto vol = qAppSettings.GetValue(kAppSettingVolume).toUInt();
         SetVolume(vol);
         ui_.volumeSlider->setValue(vol);
     }
@@ -41,7 +41,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 
     SetThemeColor();
 
-    SetVolume(AppSettings::ValueAsInt(kAppSettingVolume));
+    SetVolume(qAppSettings.ValueAsInt(kAppSettingVolume));
 
     auto f = font();
     f.setFamily(qTEXT("MonoFont"));
@@ -65,7 +65,7 @@ void VolumeControlDialog::SetThemeColor() {
 }
 
 VolumeControlDialog::~VolumeControlDialog() {
-    AppSettings::SetValue(kAppSettingVolume, ui_.volumeSlider->value());
+    qAppSettings.SetValue(kAppSettingVolume, ui_.volumeSlider->value());
 }
 
 void VolumeControlDialog::UpdateVolume() {

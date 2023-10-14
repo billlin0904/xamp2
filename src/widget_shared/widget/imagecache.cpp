@@ -47,9 +47,9 @@ ImageCache::ImageCache()
 }
 
 void ImageCache::InitCachePath() {
-	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
+	if (!qAppSettings.contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
-			AppSettings::DefaultCachePath() + qTEXT("/caches/"),
+			qAppSettings.DefaultCachePath() + qTEXT("/caches/"),
 			QDir::currentPath() + qTEXT("/caches/")
 		};
 
@@ -67,10 +67,10 @@ void ImageCache::InitCachePath() {
 		}
 	}
 	else {
-		cache_path_ = AppSettings::ValueAsString(kAppSettingAlbumImageCachePath);
+		cache_path_ = qAppSettings.ValueAsString(kAppSettingAlbumImageCachePath);
 	}
 	cache_path_ = ToNativeSeparators(cache_path_);
-	AppSettings::SetValue(kAppSettingAlbumImageCachePath, cache_path_);
+	qAppSettings.SetValue(kAppSettingAlbumImageCachePath, cache_path_);
 }
 
 QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {

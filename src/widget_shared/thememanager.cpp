@@ -290,7 +290,7 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
 
     SetPalette();
-    AppSettings::SetEnumValue(kAppSettingTheme, theme_color_);
+    qAppSettings.SetEnumValue(kAppSettingTheme, theme_color_);
 
     font_icon_opts_.clear();
 
@@ -583,7 +583,7 @@ void ThemeManager::LoadAndApplyQssTheme() {
 
 void ThemeManager::SetBackgroundColor(QColor color) {
     background_color_ = color;
-    AppSettings::SetValue(kAppSettingBackgroundColor, color);
+    qAppSettings.SetValue(kAppSettingBackgroundColor, color);
 }
 
 QColor ThemeManager::GetTitleBarColor() const {
@@ -812,11 +812,11 @@ void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_UP));
-        AppSettings::SetValue<bool>(kAppSettingIsMuted, false);
+        qAppSettings.SetValue<bool>(kAppSettingIsMuted, false);
     }
     else {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_OFF));
-        AppSettings::SetValue(kAppSettingIsMuted, true);
+        qAppSettings.SetValue(kAppSettingIsMuted, true);
     }
 }
 

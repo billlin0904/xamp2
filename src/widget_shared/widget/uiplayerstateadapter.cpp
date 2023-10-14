@@ -49,7 +49,7 @@ size_t UIPlayerStateAdapter::GetFftSize() const {
 }
 
 void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
-	enable_spectrum_ = AppSettings::ValueAsBool(kAppSettingEnableSpectrum);
+	enable_spectrum_ = qAppSettings.ValueAsBool(kAppSettingEnableSpectrum);
 	if (!enable_spectrum_) {
 		return;
 	}

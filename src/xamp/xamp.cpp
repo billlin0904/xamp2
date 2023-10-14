@@ -67,14 +67,14 @@
 
 namespace {
     void ShowMeMessage(const QString& message) {
-        if (AppSettings::DontShowMeAgain(message)) {
+        if (qAppSettings.DontShowMeAgain(message)) {
             auto [button, checked] = XMessageBox::ShowCheckBoxInformation(
                 message,
                 qApp->tr("Ok, and don't show again."),
                 kApplicationTitle,
                 false);
             if (checked) {
-                AppSettings::AddDontShowMeAgain(message);
+                qAppSettings.AddDontShowMeAgain(message);
             }
         }
     }
@@ -477,7 +477,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     cd_page_->playlistPage()->HidePlaybackInformation(true);
     file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
 
-    const auto tab_name = AppSettings::ValueAsString(kAppSettingLastTabName);
+    const auto tab_name = qAppSettings.ValueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.naviBar->GetTabId(tab_name);
     if (tab_id != -1) {
         ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(tab_id, 0));
@@ -537,7 +537,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         album_page_.get(),
         &AlbumArtistPage::OnCurrentThemeChanged);
 
-    order_ = AppSettings::ValueAsEnum<PlayerOrder>(kAppSettingOrder);
+    order_ = qAppSettings.ValueAsEnum<PlayerOrder>(kAppSettingOrder);
     SetPlayerOrder();
     InitialDeviceList();
 
@@ -685,7 +685,7 @@ void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 void Xamp::InitialSpectrum() {
-    if (!AppSettings::ValueAsBool(kAppSettingEnableSpectrum)) {
+    if (!qAppSettings.ValueAsBool(kAppSettingEnableSpectrum)) {
         return;
     }
 
@@ -856,8 +856,8 @@ void Xamp::InitialDeviceList() {
 
     OrderedMap<std::string, QAction*> device_id_action;
 
-    const auto device_type_id = AppSettings::ValueAsId(kAppSettingDeviceType);
-    const auto device_id = AppSettings::ValueAsString(kAppSettingDeviceId).toStdString();
+    const auto device_type_id = qAppSettings.ValueAsId(kAppSettingDeviceType);
+    const auto device_id = qAppSettings.ValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
     auto max_width = 0;
@@ -890,8 +890,8 @@ void Xamp::InitialDeviceList() {
                 qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
                 device_info_ = device_info;
                 ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
-                AppSettings::SetValue(kAppSettingDeviceType, device_info_.value().device_type_id);
-                AppSettings::SetValue(kAppSettingDeviceId, device_info_.value().device_id);
+                qAppSettings.SetValue(kAppSettingDeviceType, device_info_.value().device_type_id);
+                qAppSettings.SetValue(kAppSettingDeviceId, device_info_.value().device_id);
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
@@ -922,8 +922,8 @@ void Xamp::InitialDeviceList() {
         device_info_ = init_device_info;
         qTheme.SetDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.value().connect_type);
         device_id_action[device_info_.value().device_id]->setChecked(true);
-        AppSettings::SetValue(kAppSettingDeviceType, device_info_.value().device_type_id);
-        AppSettings::SetValue(kAppSettingDeviceId, device_info_.value().device_id);
+        qAppSettings.SetValue(kAppSettingDeviceType, device_info_.value().device_type_id);
+        qAppSettings.SetValue(kAppSettingDeviceId, device_info_.value().device_id);
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.value().device_id);
     }
 }
@@ -938,7 +938,7 @@ void Xamp::InitialController() {
     });
 
     qTheme.SetHeartButton(ui_.heartButton);
-    qTheme.SetBitPerfectButton(ui_.bitPerfectButton, AppSettings::ValueAsBool(kEnableBitPerfect));
+    qTheme.SetBitPerfectButton(ui_.bitPerfectButton, qAppSettings.ValueAsBool(kEnableBitPerfect));
 
     (void)QObject::connect(ui_.heartButton, &QToolButton::clicked, [this]() {
         if (!current_entity_) {
@@ -958,8 +958,8 @@ void Xamp::InitialController() {
         });
 
     (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::clicked, [this]() {
-	    const auto enable_or_disable = !AppSettings::ValueAsBool(kEnableBitPerfect);
-        AppSettings::SetValue(kEnableBitPerfect, enable_or_disable);
+	    const auto enable_or_disable = !qAppSettings.ValueAsBool(kEnableBitPerfect);
+        qAppSettings.SetValue(kEnableBitPerfect, enable_or_disable);
         qTheme.SetBitPerfectButton(ui_.bitPerfectButton, enable_or_disable);
     });
 
@@ -987,7 +987,7 @@ void Xamp::InitialController() {
         XAMP_LOG_DEBUG("sliderPressed pressed!");
     });    
 
-    if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
+    if (qAppSettings.ValueAsBool(kAppSettingIsMuted)) {
         qTheme.SetMuted(ui_.mutedButton, true);
     }
     else {
@@ -1062,11 +1062,11 @@ void Xamp::InitialController() {
         eq->setMinimumWidth(800);
 
         (void)QObject::connect(eq, &EqualizerView::BandValueChange, [](auto, auto, auto) {
-            AppSettings::save();
+            qAppSettings.save();
         });
 
         (void)QObject::connect(eq, &EqualizerView::PreampValueChange, [](auto) {
-            AppSettings::save();
+            qAppSettings.save();
         });
         dialog->exec();
     });
@@ -1098,7 +1098,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.naviBar, &TabListView::ClickedTable, [this](auto table_id) {
         SetCurrentTab(table_id);
-        AppSettings::SetValue(kAppSettingLastTabName, ui_.naviBar->GetTabName(table_id));
+        qAppSettings.SetValue(kAppSettingLastTabName, ui_.naviBar->GetTabName(table_id));
     });
 
     (void)QObject::connect(ui_.naviBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
@@ -1150,7 +1150,7 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
         qTheme.SetTextSeparator(frame);
 	}
 
-    if (AppSettings::ValueAsBool(kAppSettingIsMuted)) {
+    if (qAppSettings.ValueAsBool(kAppSettingIsMuted)) {
         qTheme.SetMuted(ui_.mutedButton, true);
     }
     else {
@@ -1192,14 +1192,14 @@ void Xamp::OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, cons
 }
 
 void Xamp::SetFullScreen() {
-    if (AppSettings::ValueAsBool(kAppSettingEnterFullScreen)) {
+    if (qAppSettings.ValueAsBool(kAppSettingEnterFullScreen)) {
         SetCurrentTab(TAB_LYRICS);
         ui_.bottomFrame->setHidden(true);
         ui_.sliderFrame->setHidden(true);
         ui_.titleFrame->setHidden(true);
         ui_.verticalSpacer_3->changeSize(0, 0);
         lrc_page_->SetFullScreen(true);
-        AppSettings::SetValue<bool>(kAppSettingEnterFullScreen, false);
+        qAppSettings.SetValue<bool>(kAppSettingEnterFullScreen, false);
     }
     else {
         ui_.bottomFrame->setHidden(false);
@@ -1207,7 +1207,7 @@ void Xamp::SetFullScreen() {
         ui_.titleFrame->setHidden(false);
         ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
         lrc_page_->SetFullScreen(false);
-        AppSettings::SetValue<bool>(kAppSettingEnterFullScreen, true);
+        qAppSettings.SetValue<bool>(kAppSettingEnterFullScreen, true);
     }
 }
 
@@ -1290,7 +1290,7 @@ void Xamp::GoBackPage() {
 }
 
 void Xamp::SetVolume(uint32_t volume) {
-    AppSettings::SetValue(kAppSettingVolume, volume);
+    qAppSettings.SetValue(kAppSettingVolume, volume);
     qTheme.SetMuted(ui_.mutedButton, volume == 0);
     ui_.mutedButton->OnVolumeChanged(volume);
     ui_.mutedButton->ShowDialog();
@@ -1347,7 +1347,7 @@ void Xamp::SetPlayerOrder(bool emit_order) {
     if (emit_order) {
         emit ChangePlayerOrder(order_);
     }
-    AppSettings::SetEnumValue(kAppSettingOrder, order_);
+    qAppSettings.SetEnumValue(kAppSettingOrder, order_);
 }
 
 void Xamp::OnSampleTimeChanged(double stream_time) {
@@ -1429,10 +1429,10 @@ void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
 }
 
 void Xamp::SetupDsp(const PlayListEntity& item) const {
-    if (AppSettings::ValueAsBool(kAppSettingEnableEQ)) {
-        if (AppSettings::contains(kAppSettingEQName)) {
+    if (qAppSettings.ValueAsBool(kAppSettingEnableEQ)) {
+        if (qAppSettings.contains(kAppSettingEQName)) {
             const auto [name, settings] =
-                AppSettings::GetEqSettings();
+                qAppSettings.GetEqSettings();
             player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
             player_->GetDspManager()->AddEqualizer();
             //player_->GetDspManager()->AddParametricEq();
@@ -1445,7 +1445,7 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
 
     if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
         CompressorParameters parameters;
-        if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
+        if (qAppSettings.ValueAsBool(kAppSettingEnableReplayGain)) {
             if (item.track_loudness != 0.0) {
                 parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness, -1.0) * -1;
             }
@@ -1454,8 +1454,8 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
         player_->GetDspManager()->AddCompressor();
     }
     
-    if (AppSettings::ValueAsBool(kAppSettingEnableReplayGain)) {
-        const auto mode = AppSettings::ValueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
+    if (qAppSettings.ValueAsBool(kAppSettingEnableReplayGain)) {
+        const auto mode = qAppSettings.ValueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
             player_->GetDspManager()->AddVolumeControl();
             player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain);
@@ -1488,19 +1488,19 @@ void Xamp::showEvent(QShowEvent* event) {
 void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
     uint32_t &target_sample_rate,
     QString& sample_rate_converter_type) {
-    sample_rate_converter_type = AppSettings::ValueAsString(kAppSettingResamplerType);
+    sample_rate_converter_type = qAppSettings.ValueAsString(kAppSettingResamplerType);
 
-    if (AppSettings::ValueAsBool(kEnableBitPerfect)) {
+    if (qAppSettings.ValueAsBool(kEnableBitPerfect)) {
         return;
 	}
 
-    if (!AppSettings::ValueAsBool(kAppSettingResamplerEnable)) {
+    if (!qAppSettings.ValueAsBool(kAppSettingResamplerEnable)) {
         return;
     }
 
     if (sample_rate_converter_type == kSoxr || sample_rate_converter_type.isEmpty()) {
         QMap<QString, QVariant> soxr_settings;
-        const auto setting_name = AppSettings::ValueAsString(kAppSettingSoxrSettingName);
+        const auto setting_name = qAppSettings.ValueAsString(kAppSettingSoxrSettingName);
         soxr_settings = JsonSettings::GetValue(kSoxr).toMap()[setting_name].toMap();
         target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
 
@@ -1545,7 +1545,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
     uint32_t target_sample_rate = 0;
     auto byte_format = ByteFormat::SINT32;
     std::function<void()> sample_rate_converter_factory;
-    const auto enable_bit_perfect = AppSettings::ValueAsBool(kEnableBitPerfect);
+    const auto enable_bit_perfect = qAppSettings.ValueAsBool(kEnableBitPerfect);
 
     player_->Stop();
 
@@ -2088,7 +2088,7 @@ QWidget* Xamp::PopWidget() {
 }
 
 void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
-	const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
+	const auto last_dir = qAppSettings.ValueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
         [this, item, profile](const auto &file_name) {
@@ -2130,7 +2130,7 @@ void Xamp::EncodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::EncodeWavFile(const PlayListEntity& item) {
-    const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
+    const auto last_dir = qAppSettings.ValueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
     GetSaveFileName(this,
         [this, item](const auto& file_name) {
@@ -2169,7 +2169,7 @@ void Xamp::EncodeWavFile(const PlayListEntity& item) {
 }
 
 void Xamp::EncodeFlacFile(const PlayListEntity& item) {
-    const auto last_dir = AppSettings::ValueAsString(kAppSettingLastOpenFolderPath);
+    const auto last_dir = qAppSettings.ValueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
 
     GetSaveFileName(this,
@@ -2186,7 +2186,7 @@ void Xamp::EncodeFlacFile(const PlayListEntity& item) {
             track_info.track = item.track;
 
             const auto command
-                = qSTR("-%1 -V").arg(AppSettings::GetValue(kFlacEncodingLevel).toInt()).toStdWString();
+                = qSTR("-%1 -V").arg(qAppSettings.GetValue(kFlacEncodingLevel).toInt()).toStdWString();
 
             try {
                 auto encoder = StreamFactory::MakeFlacEncoder();
@@ -2307,6 +2307,7 @@ void Xamp::OnReadFilePath(const QString& file_path) {
 void Xamp::OnSetAlbumCover(int32_t album_id,
     const QString& album,
     const QString& cover_id) {
+    XAMP_LOG_DEBUG("{} => {}", album.toStdString(), cover_id.toStdString());
     qMainDb.SetAlbumCover(album_id, album, cover_id);
     album_page_->Refresh();
 }

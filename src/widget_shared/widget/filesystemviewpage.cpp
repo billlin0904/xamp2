@@ -58,7 +58,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
     dir_model_ = new FileSystemModel(this);
     dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
-    dir_model_->setRootPath(AppSettings::GetMyMusicFolderPath());
+    dir_model_->setRootPath(qAppSettings.GetMyMusicFolderPath());
     dir_model_->setNameFilters(GetFileNameFilter());
     dir_model_->setNameFilterDisables(false);
 
@@ -67,7 +67,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_first_sort_filter_->setFilterKeyColumn(0);
 
     ui.dirTree->setModel(dir_first_sort_filter_);
-    ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::GetMyMusicFolderPath())));
+    ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(qAppSettings.GetMyMusicFolderPath())));
     ui.dirTree->setStyleSheet(qTEXT("background-color: transparent"));
     ui.dirTree->setSortingEnabled(true);
 
@@ -107,8 +107,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             if (dir_name.isEmpty()) {
                 return;
             }
-            AppSettings::SetValue(kAppSettingMyMusicFolderPath, dir_name);
-            ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(AppSettings::GetMyMusicFolderPath())));
+            qAppSettings.SetValue(kAppSettingMyMusicFolderPath, dir_name);
+            ui.dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(qAppSettings.GetMyMusicFolderPath())));
         });
         load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FOLDER));
 

@@ -42,8 +42,8 @@
 namespace {
     void LoadSampleRateConverterConfig() {
         XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
-        AppSettings::LoadSoxrSetting();
-        AppSettings::LoadR8BrainSetting();
+        qAppSettings.LoadSoxrSetting();
+        qAppSettings.LoadR8BrainSetting();
         JsonSettings::save();
         XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
     }
@@ -51,16 +51,16 @@ namespace {
     void LoadLang() {
         XAMP_LOG_DEBUG("Load language file.");
 
-        if (AppSettings::ValueAsString(kAppSettingLang).isEmpty()) {
+        if (qAppSettings.ValueAsString(kAppSettingLang).isEmpty()) {
             const LocaleLanguage lang;
             XAMP_LOG_DEBUG("Load locale language file: {}.", lang.GetIsoCode().toStdString());
-            AppSettings::LoadLanguage(lang.GetIsoCode());
-            AppSettings::SetValue(kAppSettingLang, lang.GetIsoCode());
+            qAppSettings.LoadLanguage(lang.GetIsoCode());
+            qAppSettings.SetValue(kAppSettingLang, lang.GetIsoCode());
         }
         else {
-            AppSettings::LoadLanguage(AppSettings::ValueAsString(kAppSettingLang));
+            qAppSettings.LoadLanguage(qAppSettings.ValueAsString(kAppSettingLang));
             XAMP_LOG_DEBUG("Load locale language file: {}.",
-                AppSettings::ValueAsString(kAppSettingLang).toStdString());
+                qAppSettings.ValueAsString(kAppSettingLang).toStdString());
         }
     }
 
@@ -110,7 +110,7 @@ namespace {
         stream.setEncoding(QStringConverter::Utf8);
 
         const auto disable_stacktrace =
-            AppSettings::ValueAsBool(kAppSettingEnableDebugStackTrace);
+            qAppSettings.ValueAsBool(kAppSettingEnableDebugStackTrace);
 
         stream << context.file << ":" << context.line << ":"
             << context.function << ": " << msg;
@@ -145,7 +145,7 @@ namespace {
 #endif
 
     void ApplyTheme() {
-        const auto theme = AppSettings::ValueAsEnum<ThemeColor>(kAppSettingTheme);
+        const auto theme = qAppSettings.ValueAsEnum<ThemeColor>(kAppSettingTheme);
         qTheme.SetThemeColor(theme);
         qTheme.LoadAndApplyQssTheme();
     }
@@ -201,7 +201,7 @@ namespace {
         win.SetThemeColor(qTheme.GetBackgroundColor(),
             qTheme.GetThemeTextColor());
 
-        if (AppSettings::ValueAsBool(kAppSettingEnableSandboxMode)) {
+        if (qAppSettings.ValueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");
             SetProcessMitigation();
         }
@@ -213,7 +213,7 @@ namespace {
         main_window.RestoreGeometry();
         main_window.ShowWindow();
 
-        if (AppSettings::ValueAsBool(kAppSettingEnableShortcut)) {
+        if (qAppSettings.ValueAsBool(kAppSettingEnableShortcut)) {
             main_window.SetShortcut(QKeySequence(Qt::Key_MediaPlay));
             main_window.SetShortcut(QKeySequence(Qt::Key_MediaStop));
             main_window.SetShortcut(QKeySequence(Qt::Key_MediaPrevious));
@@ -249,11 +249,15 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
+    qAppSettings.LoadIniFile(qTEXT("xamp.ini"));
+    JsonSettings::LoadJsonFile(qTEXT("config.json"));
+
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver >= QOperatingSystemVersion::Windows10
         && os_ver < QOperatingSystemVersion::Windows11) {
         SetWorkingSetSize();
 	}
+
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
         os_ver.name().toStdString(),
         os_ver.majorVersion(),
@@ -262,11 +266,8 @@ int main() {
 
     FramelessHelperRAII frameless_helper_raii;
 
-    AppSettings::LoadIniFile(qTEXT("xamp.ini"));
-    JsonSettings::LoadJsonFile(qTEXT("config.json"));
-
-    AppSettings::LoadOrSaveLogConfig();
-    AppSettings::LoadAppSettings();
+    qAppSettings.LoadOrSaveLogConfig();
+    qAppSettings.LoadAppSettings();
     LoadSampleRateConverterConfig();
 
 #ifdef Q_OS_WIN32
@@ -288,8 +289,8 @@ int main() {
 
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
-        AppSettings::save();
-        AppSettings::SaveLogConfig();
+        qAppSettings.save();
+        qAppSettings.SaveLogConfig();
         qMainDb.close();
         prefetch_dll.clear();
         LoggerManager::GetInstance().Shutdown();

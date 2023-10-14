@@ -100,9 +100,9 @@ void XMainWindow::EnsureInitTaskbar() {
 }
 
 void XMainWindow::SaveGeometry() {
-    AppSettings::SetValue(kAppSettingGeometry, saveGeometry());
-    AppSettings::SetValue(kAppSettingWindowState, isMaximized());
-    AppSettings::SetValue(kAppSettingScreenNumber, screen_number_);
+    qAppSettings.SetValue(kAppSettingGeometry, saveGeometry());
+    qAppSettings.SetValue(kAppSettingWindowState, isMaximized());
+    qAppSettings.SetValue(kAppSettingScreenNumber, screen_number_);
     XAMP_LOG_INFO("Screen number: {}", screen_number_);
 }
 
@@ -159,19 +159,19 @@ void XMainWindow::SetTaskbarPlayerStop() {
 
 void XMainWindow::RestoreGeometry() {
 #if defined(Q_OS_WIN)
-    if (AppSettings::contains(kAppSettingWindowState)) {
-        if (AppSettings::GetValue(kAppSettingWindowState).toBool()) {
+    if (qAppSettings.contains(kAppSettingWindowState)) {
+        if (qAppSettings.GetValue(kAppSettingWindowState).toBool()) {
             showMaximized();
             return;
         }
     }
 
-    if (AppSettings::contains(kAppSettingGeometry)) {
-        screen_number_ = AppSettings::GetValue(kAppSettingScreenNumber).toUInt();
+    if (qAppSettings.contains(kAppSettingGeometry)) {
+        screen_number_ = qAppSettings.GetValue(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
             CenterDesktop(this);
         } else {
-            restoreGeometry(AppSettings::GetValue(kAppSettingGeometry).toByteArray());
+            restoreGeometry(qAppSettings.GetValue(kAppSettingGeometry).toByteArray());
         }
     }
     else {

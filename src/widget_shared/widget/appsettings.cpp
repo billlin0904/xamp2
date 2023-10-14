@@ -43,13 +43,9 @@ namespace {
     }
 }
 
-QScopedPointer<QSettings> AppSettings::settings_;
-QMap<QString, QVariant> AppSettings::default_settings_;
-LocaleLanguageManager AppSettings::manager_;
-QMap<QString, EqSettings> AppSettings::eq_settings_;
-
 void AppSettings::LoadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
+    XAMP_ENSURES(settings_ != nullptr);
     LoadEqPreset();
 }
 

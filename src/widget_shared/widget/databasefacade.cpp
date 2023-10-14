@@ -89,8 +89,6 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
     const Stopwatch sw;
     FloatMap<QString, int32_t> artist_id_cache;
     FloatMap<QString, int32_t> album_id_cache;
-    FloatMap<int32_t, QString> cover_id_cache;
-    HashSet<bool> find_cover_state_cache;
 
     const auto album_year = result.front().year;
     constexpr auto album_genre = kEmptyString;
@@ -176,21 +174,10 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
             continue;
         }
 
-        if (cover_id_cache.contains(album_id)) {
-            continue;
-        }
-
-        if (find_cover_state_cache.contains(album_id)) {
-            continue;
-        }
-
         const auto cover_id = qMainDb.GetAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
-            find_cover_state_cache.insert(album_id);
+            //XAMP_LOG_DEBUG("Found album {} cover", album.toStdString());
             emit FindAlbumCover(album_id, album, track_info.file_path);
-        }
-        else {
-            cover_id_cache[album_id] = cover_id;
         }
 	}
     if (sw.ElapsedSeconds() > 1.0) {
