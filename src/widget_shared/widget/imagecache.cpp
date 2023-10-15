@@ -47,7 +47,7 @@ ImageCache::ImageCache()
 }
 
 void ImageCache::InitCachePath() {
-	if (!qAppSettings.contains(kAppSettingAlbumImageCachePath)) {
+	if (!qAppSettings.Contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
 			qAppSettings.DefaultCachePath() + qTEXT("/caches/"),
 			QDir::currentPath() + qTEXT("/caches/")

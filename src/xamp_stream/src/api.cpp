@@ -36,7 +36,7 @@ namespace {
             "DSD ", // .dsd file
             "FRM8"  // .dsdiff file
         };
-        return std::find(knows_chunks.begin(), knows_chunks.end(), file_chunks)
+        return std::ranges::find(knows_chunks, file_chunks)
             != knows_chunks.end();
     }
 }

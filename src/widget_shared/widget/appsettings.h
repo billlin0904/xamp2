@@ -81,31 +81,31 @@ public:
         SetValue<int32_t>(key, static_cast<int32_t>(value));
     }
 
-    void SetValue(QString const& key, QColor value) {
+    void SetValue(QString const& key, QColor value) const {
         settings_->setValue(key, value.name(QColor::HexArgb));
     }
 
-    void SetValue(QString const & key, QByteArray value) {
+    void SetValue(QString const & key, QByteArray value) const {
         settings_->setValue(key, value);
     }
 
-    void SetValue(QString const & key, QVariant value) {
+    void SetValue(QString const & key, QVariant value) const {
         settings_->setValue(key, value);
     }
 
-    void SetValue(QString const & key, const std::string value) {
+    void SetValue(QString const & key, const std::string value) const {
         settings_->setValue(key, QString::fromStdString(value));
     }
 
-    void SetValue(QString const & key, const std::wstring value) {
+    void SetValue(QString const & key, const std::wstring value) const {
         settings_->setValue(key, QString::fromStdWString(value));
     }
 
-    void SetValue(QString const & key, QString const & value) {
+    void SetValue(QString const & key, QString const & value) const {
         settings_->setValue(key, value);
     }
 
-    void SetValue(QLatin1String const & key, QLatin1String const & value) {
+    void SetValue(QLatin1String const & key, QLatin1String const & value) const {
         settings_->setValue(key, value);
     }
 
@@ -121,7 +121,7 @@ public:
     }
 
     QColor ValueAsColor(QString const& key, QColor default_color = Qt::white) {
-        if (!contains(key)) {
+        if (!Contains(key)) {
             return default_color;
         }
         return QColor(ValueAsString(key));
@@ -149,7 +149,7 @@ public:
         return GetValue(key).toString();
     }
 
-    bool contains(QString const& key) {
+    [[nodiscard]] bool Contains(QString const& key) const {
         XAMP_EXPECTS(settings_ != nullptr);
         return settings_->contains(key);
     }

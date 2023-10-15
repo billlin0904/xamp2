@@ -159,14 +159,14 @@ void XMainWindow::SetTaskbarPlayerStop() {
 
 void XMainWindow::RestoreGeometry() {
 #if defined(Q_OS_WIN)
-    if (qAppSettings.contains(kAppSettingWindowState)) {
+    if (qAppSettings.Contains(kAppSettingWindowState)) {
         if (qAppSettings.GetValue(kAppSettingWindowState).toBool()) {
             showMaximized();
             return;
         }
     }
 
-    if (qAppSettings.contains(kAppSettingGeometry)) {
+    if (qAppSettings.Contains(kAppSettingGeometry)) {
         screen_number_ = qAppSettings.GetValue(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
             CenterDesktop(this);

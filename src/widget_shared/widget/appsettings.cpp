@@ -193,7 +193,7 @@ QString AppSettings::DefaultCachePath() {
 }
 
 QString AppSettings::GetMyMusicFolderPath() {
-    if (!contains(kAppSettingMyMusicFolderPath)) {
+    if (!Contains(kAppSettingMyMusicFolderPath)) {
         auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
         if (folder_path.isEmpty()) {
             return kEmptyString;
@@ -231,7 +231,7 @@ void AppSettings::RemoveList(QString const& key, QString const & value) {
     Q_FOREACH(auto id, values) {
         all << id;
     }
-    AppSettings::SetValue(key, all.join(qTEXT(",")));
+    SetValue(key, all.join(qTEXT(",")));
 }
 
 void AppSettings::AddList(QString const& key, QString const & value) {
@@ -283,8 +283,8 @@ void AppSettings::LoadSoxrSetting() {
 
     SaveSoxrSetting(kSoxrDefaultSettingName, 96000);
 
-    AppSettings::SetValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
-    AppSettings::SetDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+    SetValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+    SetDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
 }
 
 void AppSettings::LoadR8BrainSetting() {
@@ -297,8 +297,8 @@ void AppSettings::LoadR8BrainSetting() {
     if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
         JsonSettings::SetValue(kR8Brain, QVariant::fromValue(default_setting));
     }
-    if (!AppSettings::contains(kAppSettingResamplerType)) {
-        AppSettings::SetValue(kAppSettingResamplerType, kR8Brain);
+    if (!Contains(kAppSettingResamplerType)) {
+	    SetValue(kAppSettingResamplerType, kR8Brain);
     }
 }
 
@@ -424,33 +424,33 @@ void AppSettings::LoadAppSettings() {
 
     XAMP_LOG_DEBUG("LoadAppSettings.");
 
-    AppSettings::SetDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
-    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-    AppSettings::SetDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
-    AppSettings::SetDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
+    SetDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    SetDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+    SetDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
+    SetDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
 
-    AppSettings::SetDefaultValue(kAppSettingDeviceType, kEmptyString);
-    AppSettings::SetDefaultValue(kAppSettingDeviceId, kEmptyString);
-    AppSettings::SetDefaultValue(kAppSettingVolume, 50);
-    AppSettings::SetDefaultValue(kAppSettingUseFramelessWindow, true);
-    AppSettings::SetDefaultValue(kLyricsFontSize, 12);
-    AppSettings::SetDefaultValue(kAppSettingMinimizeToTray, true);
-    AppSettings::SetDefaultValue(kAppSettingDiscordNotify, false);
-    AppSettings::SetDefaultValue(kFlacEncodingLevel, 8);
-    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
-    AppSettings::SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
-    AppSettings::SetDefaultValue(kAppSettingEnableReplayGain, true);
-    AppSettings::SetDefaultValue(kEnableBitPerfect, true);
-    AppSettings::SetDefaultValue(kAppSettingWindowState, false);
-    AppSettings::SetDefaultValue(kAppSettingScreenNumber, 1);
-    AppSettings::SetDefaultValue(kAppSettingEnableSpectrum, true);
-    AppSettings::SetDefaultValue(kAppSettingEnableShortcut, true);
-    AppSettings::SetDefaultValue(kAppSettingEnterFullScreen, false);
-    AppSettings::SetDefaultValue(kAppSettingEnableSandboxMode, true);
-    AppSettings::SetDefaultValue(kAppSettingEnableDebugStackTrace, true);
+    SetDefaultValue(kAppSettingDeviceType, kEmptyString);
+    SetDefaultValue(kAppSettingDeviceId, kEmptyString);
+    SetDefaultValue(kAppSettingVolume, 50);
+    SetDefaultValue(kAppSettingUseFramelessWindow, true);
+    SetDefaultValue(kLyricsFontSize, 12);
+    SetDefaultValue(kAppSettingMinimizeToTray, true);
+    SetDefaultValue(kAppSettingDiscordNotify, false);
+    SetDefaultValue(kFlacEncodingLevel, 8);
+    SetDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
+    SetDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
+    SetDefaultValue(kAppSettingEnableReplayGain, true);
+    SetDefaultValue(kEnableBitPerfect, true);
+    SetDefaultValue(kAppSettingWindowState, false);
+    SetDefaultValue(kAppSettingScreenNumber, 1);
+    SetDefaultValue(kAppSettingEnableSpectrum, true);
+    SetDefaultValue(kAppSettingEnableShortcut, true);
+    SetDefaultValue(kAppSettingEnterFullScreen, false);
+    SetDefaultValue(kAppSettingEnableSandboxMode, true);
+    SetDefaultValue(kAppSettingEnableDebugStackTrace, true);
 
-    AppSettings::SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 26"));
-    AppSettings::SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 26"));
-    AppSettings::SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 26"));
+    SetDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 26"));
+    SetDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 26"));
+    SetDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 26"));
     XAMP_LOG_DEBUG("loadAppSettings success.");
 }

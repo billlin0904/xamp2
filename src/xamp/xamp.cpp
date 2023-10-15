@@ -1430,7 +1430,7 @@ void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
 
 void Xamp::SetupDsp(const PlayListEntity& item) const {
     if (qAppSettings.ValueAsBool(kAppSettingEnableEQ)) {
-        if (qAppSettings.contains(kAppSettingEQName)) {
+        if (qAppSettings.Contains(kAppSettingEQName)) {
             const auto [name, settings] =
                 qAppSettings.GetEqSettings();
             player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);

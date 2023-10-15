@@ -88,8 +88,7 @@ public:
 		: std::allocator<T>(other) {
 	}
 
-	~AlignedAllocator() {
-	}
+	~AlignedAllocator() = default;
 
 	template <typename C, typename... Args>
 	void construct(C* c, Args&&... args) {

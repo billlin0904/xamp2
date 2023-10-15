@@ -119,7 +119,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         ApplySetting(index, settings.settings);
         });
 
-    if (qAppSettings.contains(kAppSettingEQName)) {
+    if (qAppSettings.Contains(kAppSettingEQName)) {
         auto [name, settings] = qAppSettings.GetEqSettings();
         AppEQSettings app_settings;
         app_settings.name = name;
