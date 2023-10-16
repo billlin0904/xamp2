@@ -136,6 +136,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
 
     const auto target_loudness = qAppSettings.GetValue(kAppSettingReplayGainTargetLoudnes).toDouble();
     const auto scan_mode = qAppSettings.ValueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
+    const auto enable_write_tag = qAppSettings.ValueAsBool(kAppSettingEnableReplayGainWriteTag);
 
     QMap<int32_t, Vector<PlayListEntity>> album_group_map;
     for (const auto& entity : entities) {
@@ -202,14 +203,16 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
         replay_gain.play_list_entities = jobs.play_list_entities;
 
         for (size_t i = 0; i < album.size(); ++i) {
-            ReplayGain rg;
-            rg.album_gain = replay_gain.album_gain;
-            rg.track_gain = replay_gain.track_gain[i];
-            rg.album_peak = replay_gain.album_peak;
-            rg.track_peak = replay_gain.track_peak[i];
-            rg.ref_loudness = target_loudness;
+            if (enable_write_tag) {
+                ReplayGain rg;
+                rg.album_gain = replay_gain.album_gain;
+                rg.track_gain = replay_gain.track_gain[i];
+                rg.album_peak = replay_gain.album_peak;
+                rg.track_peak = replay_gain.track_peak[i];
+                rg.ref_loudness = target_loudness;
+                writer->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
+            }
 
-            writer->WriteReplayGain(replay_gain.play_list_entities[i].file_path.toStdWString(), rg);
             emit ReadReplayGain(playlistId,
                 replay_gain.play_list_entities[i],
                 replay_gain.track_loudness[i],

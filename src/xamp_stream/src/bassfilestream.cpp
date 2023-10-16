@@ -304,7 +304,7 @@ public:
         return mode_;       
     }
 
-    [[nodiscard]] uint8_t GetSampleSize() const noexcept {
+    [[nodiscard]] uint32_t GetSampleSize() const noexcept {
         return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
     }
 
@@ -398,7 +398,7 @@ uint32_t BassFileStream::GetDsdSampleRate() const {
     return stream_->GetDsdSampleRate();
 }
 
-uint8_t BassFileStream::GetSampleSize() const noexcept {
+uint32_t BassFileStream::GetSampleSize() const noexcept {
     return stream_->GetSampleSize();
 }
 

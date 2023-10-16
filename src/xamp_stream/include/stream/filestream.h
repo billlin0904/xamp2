@@ -35,13 +35,6 @@ public:
     */
     virtual void OpenFile(const Path & file_path) = 0;
 
-    /*
-    * Get file bit depth.
-    * 
-    * @return: the file bit depth.
-    */
-    [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
-
 protected:
     FileStream() = default;
 };

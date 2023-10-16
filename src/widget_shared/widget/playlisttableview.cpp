@@ -1,4 +1,4 @@
-#include <widget/playlisttableview.h>
+ï»¿#include <widget/playlisttableview.h>
 
 #include <QHeaderView>
 #include <QDesktopServices>
@@ -178,7 +178,7 @@ public:
                 font_options.insert(FontIconOption::colorAttr, QColor(Qt::red));
 
                 opt.icon = qTheme.GetFontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
-                // note: ¸Ñ¨M¹Ï¥Ü¦A¿ï¾Üªº®É­Ô·|»\±¼ÃC¦âªº°İÃD
+                // note: è§£æ±ºåœ–ç¤ºå†é¸æ“‡çš„æ™‚å€™æœƒè“‹æ‰é¡è‰²çš„å•é¡Œ
                 opt.icon = UniformIcon(opt.icon, opt.decorationSize);
 
                 opt.features = QStyleOptionViewItem::HasDecoration;
@@ -220,7 +220,7 @@ void PlayListTableView::Search(const QString& keyword) const {
 }
 
 void PlayListTableView::Reload() {
-    // NOTE: ©I¥s¦¹¨ç¼Æ´N·|§ó·sindex, ·|¾É­Pplaying index¥¢®Ä    
+    // NOTE: å‘¼å«æ­¤å‡½æ•¸å°±æœƒæ›´æ–°index, æœƒå°è‡´playing indexå¤±æ•ˆ    
     const QString s = qTEXT(R"(
     SELECT	
 	albums.coverId,
@@ -982,7 +982,7 @@ void PlayListTableView::SetCurrentPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::Play(PlayerOrder order) {
-    // note: ¦pªG§ó·sUIªº¸Ü´N­n­«¨úIndex
+    // note: å¦‚æœæ›´æ–°UIçš„è©±å°±è¦é‡å–Index
     //if (pending_playlist_.isEmpty()) {
         AddPendingPlayListFromModel(order);
     //}

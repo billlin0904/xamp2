@@ -184,7 +184,7 @@ void DSPManager::Init(const AnyMap& config) {
     config_ = config;
 
     if (!sample_writer_) {
-        auto sample_size = config_.Get<uint8_t>(DspConfig::kSampleSize);
+        auto sample_size = config_.Get<uint32_t>(DspConfig::kSampleSize);
         auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
         sample_writer_ = MakeAlign<ISampleWriter, DsdModeSampleWriter>(dsd_mode, sample_size);
     }

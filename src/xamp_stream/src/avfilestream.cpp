@@ -269,7 +269,7 @@ public:
         return duration_;
     }
 
-    uint8_t GetSampleSize() const noexcept {
+    uint32_t GetSampleSize() const noexcept {
         return sizeof(float);
     }
 
@@ -391,7 +391,7 @@ std::string_view AvFileStream::GetDescription() const noexcept {
     return "AvFileStream";
 }
 
-uint8_t AvFileStream::GetSampleSize() const noexcept {
+uint32_t AvFileStream::GetSampleSize() const noexcept {
     return impl_->GetSampleSize();
 }
 

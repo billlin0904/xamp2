@@ -77,7 +77,7 @@ public:
     * 
     * @return The size of a sample.
     */
-    [[nodiscard]] virtual uint8_t GetSampleSize() const noexcept = 0;
+    [[nodiscard]] virtual uint32_t GetSampleSize() const noexcept = 0;
 
     /*
     * Check if the stream is active.
@@ -92,6 +92,14 @@ public:
     * @return Uuid
     */
     [[nodiscard]] virtual Uuid GetTypeId() const = 0;
+
+    /*
+    * Get file bit depth.
+    *
+    * @return: the file bit depth.
+    */
+    [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
+
 protected:
     IAudioStream() = default;
 };

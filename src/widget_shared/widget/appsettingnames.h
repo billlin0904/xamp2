@@ -39,6 +39,7 @@ DECLARE_APP_SETTING_NAME(AppSettingMinimizeToTray);
 DECLARE_APP_SETTING_NAME(AppSettingBackgroundColor);
 DECLARE_APP_SETTING_NAME(AppSettingPodcastCachePath);
 DECLARE_APP_SETTING_NAME(AppSettingEnableReplayGain);
+DECLARE_APP_SETTING_NAME(AppSettingEnableReplayGainWriteTag);
 DECLARE_APP_SETTING_NAME(AppSettingReplayGainMode);
 DECLARE_APP_SETTING_NAME(AppSettingReplayGainTargetGain);
 DECLARE_APP_SETTING_NAME(AppSettingReplayGainTargetLoudnes);
