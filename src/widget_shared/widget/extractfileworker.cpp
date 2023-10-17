@@ -1,9 +1,7 @@
 #include <widget/extractfileworker.h>
 
 #include <QDirIterator>
-#include <QElapsedTimer>
 
-#include <base/fastmutex.h>
 #include <base/scopeguard.h>
 
 #include <metadata/taglibmetareader.h>
@@ -176,32 +174,16 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
         return;
     }
 
-    FastMutex mutex;
-    QElapsedTimer timer;
-    timer.start();
-
     const auto &file_name_filter = GetFileNameFilter();
 
     Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path_info) {
         if (is_stop_) {
             return;
         }
-
         XAMP_ON_SCOPE_EXIT(
             const auto value = completed_work.load();
             emit ReadFileProgress((value * 100) / total_work);
-     
-            const auto remaining_work = total_work - completed_work;
-            
-            qint64 elapsed_time = 0;
-            {
-                std::lock_guard<FastMutex> guard{ mutex };
-                elapsed_time = timer.elapsed();
-            }
-            const auto remaining_time = (elapsed_time * remaining_work) / completed_work;
-            emit CalculateEta(remaining_time);
         );
-
         completed_work += ScanPathFiles(file_name_filter, playlist_id, path_info.path);
         });
 }

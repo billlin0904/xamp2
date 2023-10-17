@@ -154,7 +154,7 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_RELOAD,                    0xF2F9 },
     { ICON_REMOVE_ALL,                0xE2AE },
     { ICON_OPEN_FILE_PATH,            0xF07C },
-    { ICON_READ_REPLAY_GAIN,          0xF5F0 },
+    { ICON_SCAN_REPLAY_GAIN,          0xF5F0 },
     { ICON_EXPORT_FILE,               0xF56E },
     { ICON_COPY,                      0xF0C5 },
     { ICON_DOWNLOAD,                  0xF0ED },

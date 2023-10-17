@@ -19,45 +19,45 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 		} \
 	} while (false)
 
-static double Power2loudness(double power) {
-	return 10 * log10(power) - 0.691;
-}
+	namespace {
 
-static double Loudness2power(double loudness) {
-	return pow(10, (loudness + 0.691) / 10.);
-}
+	class Ebur128Lib final {
+	public:
+		Ebur128Lib();
 
-class Ebur128Lib final {
-public:
-	Ebur128Lib();
+	private:
+		SharedLibraryHandle module_;
 
-private:
-    SharedLibraryHandle module_;
+	public:
+		XAMP_DECLARE_DLL_NAME(ebur128_init);
+		XAMP_DECLARE_DLL_NAME(ebur128_destroy);
+		XAMP_DECLARE_DLL_NAME(ebur128_set_channel);
+		XAMP_DECLARE_DLL_NAME(ebur128_add_frames_float);
+		XAMP_DECLARE_DLL_NAME(ebur128_true_peak);
+		XAMP_DECLARE_DLL_NAME(ebur128_sample_peak);
+		XAMP_DECLARE_DLL_NAME(ebur128_loudness_global);
+		XAMP_DECLARE_DLL_NAME(ebur128_loudness_global_multiple);
+		XAMP_DECLARE_DLL_NAME(ebur128_prev_true_peak);
+		XAMP_DECLARE_DLL_NAME(ebur128_prev_sample_peak);
+	};
 
-public:
-	XAMP_DECLARE_DLL(ebur128_init) ebur128_init;
-	XAMP_DECLARE_DLL(ebur128_destroy) ebur128_destroy;
-	XAMP_DECLARE_DLL(ebur128_set_channel) ebur128_set_channel;
-	XAMP_DECLARE_DLL(ebur128_add_frames_float) ebur128_add_frames_float;
-	XAMP_DECLARE_DLL(ebur128_true_peak) ebur128_true_peak;
-	XAMP_DECLARE_DLL(ebur128_sample_peak) ebur128_sample_peak;
-	XAMP_DECLARE_DLL(ebur128_loudness_global) ebur128_loudness_global;
-	XAMP_DECLARE_DLL(ebur128_loudness_global_multiple) ebur128_loudness_global_multiple;
-};
-
-Ebur128Lib::Ebur128Lib()
-	: module_(OpenSharedLibrary("ebur128"))
-	, XAMP_LOAD_DLL_API(ebur128_init)
-	, XAMP_LOAD_DLL_API(ebur128_destroy)
-	, XAMP_LOAD_DLL_API(ebur128_set_channel)
-	, XAMP_LOAD_DLL_API(ebur128_add_frames_float)
-	, XAMP_LOAD_DLL_API(ebur128_true_peak)
-	, XAMP_LOAD_DLL_API(ebur128_sample_peak)
-	, XAMP_LOAD_DLL_API(ebur128_loudness_global)
-	, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple) {
-}
+	Ebur128Lib::Ebur128Lib()
+		: module_(OpenSharedLibrary("ebur128"))
+		, XAMP_LOAD_DLL_API(ebur128_init)
+		, XAMP_LOAD_DLL_API(ebur128_destroy)
+		, XAMP_LOAD_DLL_API(ebur128_set_channel)
+		, XAMP_LOAD_DLL_API(ebur128_add_frames_float)
+		, XAMP_LOAD_DLL_API(ebur128_true_peak)
+		, XAMP_LOAD_DLL_API(ebur128_sample_peak)
+		, XAMP_LOAD_DLL_API(ebur128_loudness_global)
+		, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple)
+		, XAMP_LOAD_DLL_API(ebur128_prev_true_peak)
+		, XAMP_LOAD_DLL_API(ebur128_prev_sample_peak) {
+	}
 
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()
+
+	}
 
 class Ebur128Reader::Ebur128ReaderImpl {
 public:
@@ -80,7 +80,22 @@ public:
         double right_true_peek = 0;		
 		IfFailThrow(EBUR128_LIB.ebur128_true_peak(state_.get(), 0, &left_true_peek));
 		IfFailThrow(EBUR128_LIB.ebur128_true_peak(state_.get(), 1, &right_true_peek));
-		return Round((left_true_peek + right_true_peek) / 2.0, 2);
+		const auto true_peak = (std::max)(left_true_peek, right_true_peek);
+		return Round(true_peak, 6);
+		/*double prev_peak = 0.0;
+		double max_peak = 0.0;
+		for (auto i = 0; i < state_.get()->channels; ++i) {
+			double peak = 0;
+			auto result = EBUR128_LIB.ebur128_true_peak(state_.get(), i, &peak);
+			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > max_peak) {
+				max_peak = peak;
+			}
+			result = EBUR128_LIB.ebur128_prev_true_peak(state_.get(), i, &peak);
+			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > prev_peak) {
+				prev_peak = peak;
+			}
+		}
+		return Round(prev_peak, 6);*/
 	}
 
     [[nodiscard]] double GetSamplePeak() const {
@@ -89,6 +104,20 @@ public:
 		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
 		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
         return Round((std::max)(left_sample_peek, right_sample_peek), 2);
+		/*double prev_peak = 0.0;
+		double max_peak = 0.0;
+		for (auto i = 0; i < state_.get()->channels; ++i) {
+			double peak = 0;
+			auto result = EBUR128_LIB.ebur128_sample_peak(state_.get(), i, &peak);
+			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > max_peak) {
+				max_peak = peak;
+			}
+			result = EBUR128_LIB.ebur128_prev_sample_peak(state_.get(), i, &peak);
+			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > prev_peak) {
+				prev_peak = peak;
+			}
+		}
+		return Round(prev_peak, 2);*/
 	}
 
 	[[nodiscard]] double GetLoudness() const {
@@ -109,7 +138,7 @@ public:
         }
         double loudness = 0;
         IfFailThrow(EBUR128_LIB.ebur128_loudness_global_multiple(handles.data(), handles.size(), &loudness));
-        return Round(loudness, 2);
+        return Round(loudness, 6);
     }
 
 private:

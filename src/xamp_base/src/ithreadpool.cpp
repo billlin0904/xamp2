@@ -75,7 +75,7 @@ IThreadPoolExecutor& GetBackgroundThreadPool() {
     static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
         kMaxBackgroundThreadPoolSize,
         GetBackgroundCpuAffinity(),
-        ThreadPriority::BACKGROUND);
+        ThreadPriority::NORMAL);
     return executor;
 }
 
@@ -83,7 +83,7 @@ IThreadPoolExecutor& GetPlaybackThreadPool() {
     static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,
         GetBackgroundCpuAffinity(),
-        ThreadPriority::BACKGROUND);
+        ThreadPriority::NORMAL);
     return executor;
 }
 

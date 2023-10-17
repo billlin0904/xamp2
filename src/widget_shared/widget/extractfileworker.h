@@ -28,11 +28,9 @@ signals:
 
     void ReadFilePath(const QString& file_path);
 
-    void ReadFileProgress(int progress);
+    void ReadFileProgress(int32_t progress);
 
     void FoundFileCount(size_t file_count);
-
-    void CalculateEta(uint64_t ms);
 
 public slots:
     void OnExtractFile(const QString& file_path, int32_t playlist_id);

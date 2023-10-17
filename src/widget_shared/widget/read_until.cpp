@@ -56,13 +56,14 @@ double ReadAll(Path const& file_path,
 		max_duration = static_cast<uint64_t>(file_stream->GetDurationAsSeconds());
 	}
 
+	uint32_t percent = 0;
     while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
 		const auto read_size = file_stream->GetSamples(buffer.get(),
 			kReadSampleSize) / input_format.GetChannels();
 
 		num_samples += read_size;
 		if (progress != nullptr) {
-			const auto percent = static_cast<uint32_t>((num_samples / input_format.GetSampleRate() * 100) / max_duration);
+			percent = static_cast<uint32_t>((num_samples / input_format.GetSampleRate() * 100) / max_duration);
 			if (!progress(percent)) {
 				break;
 			}

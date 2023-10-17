@@ -26,7 +26,6 @@ struct XAMP_WIDGET_SHARED_EXPORT ReplayGainResult final {
     Vector<double> track_peak;
     Vector<double> track_gain;
     Vector<double> track_peak_gain;
-    Vector<PlayListEntity> play_list_entities;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker : public QObject {
@@ -39,6 +38,16 @@ public:
     virtual ~BackgroundWorker() override;
 
 signals:
+    void ReadFileStart();
+
+    void ReadCompleted();
+
+    void ReadFilePath(const QString& file_path);
+
+    void ReadFileProgress(int32_t progress);
+
+    void FoundFileCount(size_t file_count);
+
     void ReadReplayGain(int32_t playlistId,
         const PlayListEntity &entity,
         double track_loudness,

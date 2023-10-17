@@ -147,7 +147,7 @@ public:
             case PLAYLIST_ALBUM_PK:
             case PLAYLIST_TRACK_PK:
                 opt.text = qSTR("%1")
-            		.arg(value.toDouble(), 4, 'f', 2, QLatin1Char('0'));
+            		.arg(value.toDouble(), 4, 'f', 6, QLatin1Char('0'));
                 break;
             case PLAYLIST_ALBUM_RG:
             case PLAYLIST_TRACK_RG:
@@ -517,8 +517,8 @@ void PlayListTableView::initial() {
 
         action_map.AddSeparator();
 
-        auto* read_select_item_replaygain_act = action_map.AddAction(tr("Read file ReplayGain"));
-        read_select_item_replaygain_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_READ_REPLAY_GAIN));
+        auto* scan_select_item_replaygain_act = action_map.AddAction(tr("Scan file ReplayGain"));
+        scan_select_item_replaygain_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SCAN_REPLAY_GAIN));
 
         action_map.AddSeparator();
         auto* export_flac_file_act = action_map.AddAction(tr("Export FLAC file"));
@@ -623,7 +623,7 @@ void PlayListTableView::initial() {
             QApplication::clipboard()->setText(item.title);
         });
 
-        action_map.SetCallback(read_select_item_replaygain_act, [this]() {
+        action_map.SetCallback(scan_select_item_replaygain_act, [this]() {
             const auto rows = SelectItemIndex();
             QList<PlayListEntity> items;
             for (const auto& row : rows) {

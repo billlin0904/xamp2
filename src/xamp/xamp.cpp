@@ -557,13 +557,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &AlbumView::ExtractFile,
         extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile,
-        Qt::QueuedConnection);    
+        Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::ReadFileProgress,
-        this,
-        &Xamp::OnReadFileProgress,
-        Qt::QueuedConnection);   
+    // ExtractFileWorker
 
     (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::FoundFileCount,
@@ -572,21 +568,15 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::CalculateEta,
+        &ExtractFileWorker::InsertDatabase,
         this,
-        &Xamp::OnCalculateEta,
+        &Xamp::OnInsertDatabase,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::ReadFilePath,
         this,
         &Xamp::OnReadFilePath,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::InsertDatabase,
-        this,
-        &Xamp::OnInsertDatabase,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
@@ -599,6 +589,44 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         &ExtractFileWorker::ReadCompleted,
         this,
         &Xamp::OnReadCompleted,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(extract_file_worker_.get(),
+        &ExtractFileWorker::ReadFileProgress,
+        this,
+        &Xamp::OnReadFileProgress,
+        Qt::QueuedConnection);
+
+    // BackgroundWorker
+
+    (void)QObject::connect(background_worker_.get(),
+        &BackgroundWorker::FoundFileCount,
+        this,
+        &Xamp::OnFoundFileCount,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_.get(),
+        &BackgroundWorker::ReadFilePath,
+        this,
+        &Xamp::OnReadFilePath,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_.get(),
+        &BackgroundWorker::ReadFileStart,
+        this,
+        &Xamp::OnReadFileStart,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_.get(),
+        &BackgroundWorker::ReadCompleted,
+        this,
+        &Xamp::OnReadCompleted,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_.get(),
+        &BackgroundWorker::ReadFileProgress,
+        this,
+        &Xamp::OnReadFileProgress,
         Qt::QueuedConnection);
 
     constexpr auto platform_key = qTEXT("windows");
@@ -2288,13 +2316,6 @@ void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
     facede.InsertTrackInfo(result, playlist_id);    
     emit Translation(GetStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     playlist_page_->playlist()->Reload();
-}
-
-void Xamp::OnCalculateEta(uint64_t ms) {
-    if (!read_progress_dialog_) {
-        return;
-    }
-    read_progress_dialog_->SetTitle(qSTR("ETA %1").arg(FormatDuration(ms / 1000.0, true)));
 }
 
 void Xamp::OnReadFilePath(const QString& file_path) {
