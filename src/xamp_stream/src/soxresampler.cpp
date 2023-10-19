@@ -190,13 +190,14 @@ public:
 		return true;
 	}
 
-	void MaybeResizeBuffer(BufferRef<float>& output, size_t required_size) {
+	void MaybeResizeBuffer(BufferRef<float>& output, size_t required_size) const {
 		if (required_size > output.size()) {
 			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
 		}
 		output.maybe_resize(required_size);
 	}
 
+private:
 	struct SoxrHandleTraits final {
 		static soxr_t invalid() noexcept {
 			return nullptr;

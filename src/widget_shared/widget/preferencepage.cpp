@@ -382,18 +382,18 @@ void PreferencePage::LoadSettings() {
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
 	}
 	else {
-		auto resampler_type = qAppSettings.ValueAsString(kAppSettingResamplerType);
+		const auto resampler_type = qAppSettings.ValueAsString(kAppSettingResamplerType);
 		if (resampler_type == kSoxr || resampler_type.isEmpty()) {
-				ui_.resamplerStackedWidget->setCurrentIndex(1);
+			ui_.resamplerStackedWidget->setCurrentIndex(1);
 			ui_.selectResamplerComboBox->setCurrentIndex(1);
 		}
 		else if (resampler_type == kR8Brain) {
-			ui_.resamplerStackedWidget->setCurrentIndex(2);
-			ui_.selectResamplerComboBox->setCurrentIndex(2);
-		}
-		else if (resampler_type == kSrc) {
 			ui_.resamplerStackedWidget->setCurrentIndex(3);
 			ui_.selectResamplerComboBox->setCurrentIndex(3);
+		}
+		else if (resampler_type == kSrc) {
+			ui_.resamplerStackedWidget->setCurrentIndex(2);
+			ui_.selectResamplerComboBox->setCurrentIndex(2);
 		}
 	}
 }

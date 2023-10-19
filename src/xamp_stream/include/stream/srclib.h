@@ -27,7 +27,7 @@ public:
     XAMP_DECLARE_DLL_NAME(src_callback_new);
     XAMP_DECLARE_DLL_NAME(src_delete);
     XAMP_DECLARE_DLL_NAME(src_process);
-    XAMP_DECLARE_DLL_NAME(src_callback_read);
+    XAMP_DECLARE_DLL_NAME(src_is_valid_ratio);
     XAMP_DECLARE_DLL_NAME(src_get_version);
 };
 
@@ -38,7 +38,7 @@ inline SrcLib::SrcLib()
     , XAMP_LOAD_DLL_API(src_callback_new)
     , XAMP_LOAD_DLL_API(src_delete)
     , XAMP_LOAD_DLL_API(src_process)
-    , XAMP_LOAD_DLL_API(src_callback_read)
+    , XAMP_LOAD_DLL_API(src_is_valid_ratio)
     , XAMP_LOAD_DLL_API(src_get_version) {
 }
 

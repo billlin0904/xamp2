@@ -28,38 +28,58 @@ public:
 		int32_t error = 0;
 		handle_.reset(LIBSRC_DLL.src_new(SRC_SINC_BEST_QUALITY, AudioFormat::kMaxChannel, &error));
 		ratio_ = static_cast<double>(output_sample_rate_) / static_cast<double>(input_sample_rate_);
+		if (!LIBSRC_DLL.src_is_valid_ratio(ratio_)) {
+			throw LibraryException("Sample rate change out of valid range.");
+		}
 	}
 
 	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
-		auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
+		const auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
 		MaybeResizeBuffer(output, required_size);
 
-		LIBSRC_DLL.src_reset(handle_.get());
+		SRC_DATA src_data{};
 
-		SRC_DATA src_data;
 		src_data.data_in = samples;
 		src_data.input_frames = num_samples;
-
-		src_data.data_out = output.data();
-		src_data.output_frames = output.size();
-
 		src_data.src_ratio = ratio_;
 
-		auto result = LIBSRC_DLL.src_process(handle_.get(), &src_data);
-		if (result > 0) {
-			return false;
+		while (!src_data.end_of_input) {
+			LIBSRC_DLL.src_reset(handle_.get());
+
+			if (src_data.input_frames == 0) {
+				return true;
+			}
+
+			if (src_data.input_frames < 8) {
+				src_data.end_of_input = true;
+			}
+
+			src_data.data_out = output.data() + src_data.output_frames_gen;
+			src_data.output_frames = output.size() / AudioFormat::kMaxChannel;
+
+			const auto result = LIBSRC_DLL.src_process(handle_.get(), &src_data);
+			if (result > 0) {
+				return false;
+			}
+
+			if (src_data.output_frames_gen == 0) {
+				return false;
+			}
+
+			if (src_data.end_of_input && src_data.output_frames_gen == 0) {
+				break;
+			}
+
+			src_data.data_in += src_data.input_frames_used * AudioFormat::kMaxChannel;
+			src_data.input_frames -= src_data.input_frames_used;
 		}
-
-		src_data.data_in += src_data.input_frames_used * AudioFormat::kMaxChannel;
-		src_data.input_frames -= src_data.input_frames_used;
-
 		return true;
 	}
 
 	void Flush() {
 	}
 
-	void MaybeResizeBuffer(BufferRef<float>& output, size_t required_size) {
+	void MaybeResizeBuffer(BufferRef<float>& output, size_t required_size) const {
 		if (required_size > output.size()) {
 			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
 		}
