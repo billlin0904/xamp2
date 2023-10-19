@@ -68,6 +68,8 @@ XAMP_STREAM_API void LoadAvLib();
 
 XAMP_STREAM_API void LoadSoxrLib();
 
+XAMP_STREAM_API void LoadSrcLib();
+
 XAMP_STREAM_API void LoadBassLib();
 
 XAMP_STREAM_NAMESPACE_END

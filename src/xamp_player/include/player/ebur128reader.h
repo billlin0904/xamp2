@@ -28,7 +28,7 @@ public:
 
     [[nodiscard]] double GetSamplePeak() const;
 
-    void* GetNativeHandle() const;
+	[[nodiscard]] void* GetNativeHandle() const;
 
 	static double GetEbur128Gain(double lufs, double targetdb);
 

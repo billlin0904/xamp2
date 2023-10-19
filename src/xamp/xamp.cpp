@@ -1544,6 +1544,14 @@ void Xamp::SetupSampleRateConverter(std::function<void()>& initial_sample_rate_c
             player_->GetDspManager()->AddPreDSP(MakeR8BrainSampleRateConverter());
         };
     }
+    else if (sample_rate_converter_type == kSrc) {
+        auto config = JsonSettings::ValueAsMap(kSrc);
+        target_sample_rate = config[kResampleSampleRate].toUInt();
+
+        initial_sample_rate_converter = [=]() {
+            player_->GetDspManager()->AddPreDSP(MakeSrcSampleRateConverter());
+            };
+    }
 }
 
 void Xamp::PlayEntity(const PlayListEntity& entity) {
@@ -1655,7 +1663,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         open_done = true;
     }
     catch (const Exception & e) {        
-        XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
+        XMessageBox::ShowError(QString::fromUtf8(e.GetErrorMessage()));
         XAMP_LOG_DEBUG(e.GetStackTrace());
     }
     catch (const std::exception & e) {

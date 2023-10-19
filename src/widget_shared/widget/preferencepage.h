@@ -28,6 +28,10 @@ private:
 
     void SaveR8BrainResampler();
 
+    void SaveSrcResampler();
+
+    void InitSrcResampler();
+
     void InitR8BrainResampler();
 
 	void InitSoxResampler();

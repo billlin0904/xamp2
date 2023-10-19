@@ -126,6 +126,8 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
 		, ref_(buf) {
     }
 
+    XAMP_DISABLE_COPY_AND_MOVE(BufferRef)
+
     void maybe_resize(size_t size) noexcept {
         if (size > ref_.size()) {
             ref_.resize(size);

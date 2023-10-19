@@ -8,6 +8,7 @@
 
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
+#include <stream/srcresampler.h>
 #include <stream/idspmanager.h>
 
 #include <widget/appsettings.h>
@@ -153,6 +154,10 @@ PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
 
 AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter() {
     return MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
+}
+
+AlignPtr<IAudioProcessor> MakeSrcSampleRateConverter() {
+    return MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
 }
 
 AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings) {

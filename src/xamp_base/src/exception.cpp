@@ -123,7 +123,7 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
-	ostr << "Load dll " << dll_name << " failure. " << GetLastErrorMessage();
+	ostr << "Load dll " << dll_name << " failure. (" << GetLastErrorMessage() << ")";
 	message_ = ostr.str();
 }
 
@@ -131,7 +131,7 @@ NotFoundDllExportFuncException::NotFoundDllExportFuncException(std::string_view 
     : Exception(Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC)
     , func_name_(func_name) {
     std::ostringstream ostr;
-    ostr << "Load dll function " << func_name << " failure. " << GetLastErrorMessage();
+    ostr << "Load dll function " << func_name << " failure. (" << GetLastErrorMessage() << ")";
     message_ = ostr.str();
 }
 

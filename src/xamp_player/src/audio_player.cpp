@@ -31,7 +31,8 @@
 #include "stream/bassfilestream.h"
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
-	XAMP_DECLARE_LOG_NAME(AudioPlayer);
+
+XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
 static constexpr int32_t kBufferStreamCount = 4;
 

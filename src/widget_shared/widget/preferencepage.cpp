@@ -74,10 +74,25 @@ void PreferencePage::SaveSoxrResampler(const QString &name) const {
 	}
 }
 
+void PreferencePage::SaveSrcResampler() {
+	QMap<QString, QVariant> settings;
+	settings[kResampleSampleRate] = ui_.srcTargetSampleRateComboBox->currentText().toInt();
+	JsonSettings::SetValue(kSrc, settings);
+}
+
 void PreferencePage::SaveR8BrainResampler() {
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
 	JsonSettings::SetValue(kR8Brain, settings);
+}
+
+void PreferencePage::InitSrcResampler() {
+	auto config = JsonSettings::ValueAsMap(kSrc);
+	ui_.srcTargetSampleRateComboBox->setCurrentText(QString::number(config[kResampleSampleRate].toInt()));
+
+	(void)QObject::connect(ui_.srcTargetSampleRateComboBox, &QComboBox::textActivated, [this](auto) {
+		SaveSrcResampler();
+		});
 }
 
 void PreferencePage::InitR8BrainResampler() {
@@ -183,6 +198,8 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	InitSoxResampler();
 	InitR8BrainResampler();
+	InitSrcResampler();
+
 	InitialLanguage();
 
 	switch (qTheme.GetThemeColor()) {
@@ -257,6 +274,10 @@ PreferencePage::PreferencePage(QWidget *parent)
 			qAppSettings.SetValue(kAppSettingResamplerType, kSoxr);
 			break;
 		case 2:
+			SaveSrcResampler();
+			qAppSettings.SetValue(kAppSettingResamplerType, kSrc);
+			break;
+		case 3:
 			SaveR8BrainResampler();
 			qAppSettings.SetValue(kAppSettingResamplerType, kR8Brain);
 			break;
@@ -370,12 +391,17 @@ void PreferencePage::LoadSettings() {
 			ui_.resamplerStackedWidget->setCurrentIndex(2);
 			ui_.selectResamplerComboBox->setCurrentIndex(2);
 		}
+		else if (resampler_type == kSrc) {
+			ui_.resamplerStackedWidget->setCurrentIndex(3);
+			ui_.selectResamplerComboBox->setCurrentIndex(3);
+		}
 	}
 }
 
 void PreferencePage::SaveAll() {
 	SaveSoxrResampler(ui_.soxrSettingCombo->currentText());
 	SaveR8BrainResampler();
+	SaveSrcResampler();
 
 	auto index = ui_.resamplerStackedWidget->currentIndex();
 	qAppSettings.SetValue(kAppSettingResamplerEnable, index > 0);

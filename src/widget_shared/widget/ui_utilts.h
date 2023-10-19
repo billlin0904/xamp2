@@ -50,6 +50,8 @@ XAMP_WIDGET_SHARED_EXPORT PlayerOrder GetNextOrder(PlayerOrder cur) noexcept;
 
 XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter();
 
+XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSrcSampleRateConverter();
+
 XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
 
 XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSampleRateConverter(uint32_t sample_rate);

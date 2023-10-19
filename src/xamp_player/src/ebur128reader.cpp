@@ -7,6 +7,8 @@
 #include <base/math.h>
 #include <base/audioformat.h>
 #include <base/dll.h>
+#include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/trackinfo.h>
 #include <player/ebur128reader.h>
 
@@ -20,6 +22,14 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 	} while (false)
 
 	namespace {
+
+	float Power2Loudness(float power) {
+		return 10 * log10(power) - 0.691;
+	}
+
+	float Loudness2Power(float loudness) {
+		return pow(10, (loudness + 0.691) / 10.0);
+	}
 
 	class Ebur128Lib final {
 	public:
@@ -39,6 +49,7 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 		XAMP_DECLARE_DLL_NAME(ebur128_loudness_global_multiple);
 		XAMP_DECLARE_DLL_NAME(ebur128_prev_true_peak);
 		XAMP_DECLARE_DLL_NAME(ebur128_prev_sample_peak);
+		XAMP_DECLARE_DLL_NAME(ebur128_get_version);
 	};
 
 	Ebur128Lib::Ebur128Lib()
@@ -52,18 +63,28 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 		, XAMP_LOAD_DLL_API(ebur128_loudness_global)
 		, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple)
 		, XAMP_LOAD_DLL_API(ebur128_prev_true_peak)
-		, XAMP_LOAD_DLL_API(ebur128_prev_sample_peak) {
+		, XAMP_LOAD_DLL_API(ebur128_prev_sample_peak)
+		, XAMP_LOAD_DLL_API(ebur128_get_version) {
 	}
 
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()
 
-	}
+	XAMP_DECLARE_LOG_NAME(Ebur128Reader);
+}
 
 class Ebur128Reader::Ebur128ReaderImpl {
 public:
-	Ebur128ReaderImpl() = default;
+	Ebur128ReaderImpl() {
+		logger_ = LoggerManager::GetInstance().GetLogger(kEbur128ReaderLoggerName);
+	}
 
 	void SetSampleRate(uint32_t sample_rate) {
+		int32_t lib_major{ 0 };
+		int32_t lib_minor{ 0 };
+		int32_t lib_patch{ 0 };
+		EBUR128_LIB.ebur128_get_version(&lib_major, &lib_minor, &lib_patch);
+		XAMP_LOG_D(logger_, "Library version: {}.{}.{}", lib_major, lib_minor, lib_patch);
+
 		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel, sample_rate,
 			EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
 		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
@@ -82,20 +103,6 @@ public:
 		IfFailThrow(EBUR128_LIB.ebur128_true_peak(state_.get(), 1, &right_true_peek));
 		const auto true_peak = (std::max)(left_true_peek, right_true_peek);
 		return Round(true_peak, 6);
-		/*double prev_peak = 0.0;
-		double max_peak = 0.0;
-		for (auto i = 0; i < state_.get()->channels; ++i) {
-			double peak = 0;
-			auto result = EBUR128_LIB.ebur128_true_peak(state_.get(), i, &peak);
-			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > max_peak) {
-				max_peak = peak;
-			}
-			result = EBUR128_LIB.ebur128_prev_true_peak(state_.get(), i, &peak);
-			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > prev_peak) {
-				prev_peak = peak;
-			}
-		}
-		return Round(prev_peak, 6);*/
 	}
 
     [[nodiscard]] double GetSamplePeak() const {
@@ -104,20 +111,6 @@ public:
 		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
 		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
         return Round((std::max)(left_sample_peek, right_sample_peek), 2);
-		/*double prev_peak = 0.0;
-		double max_peak = 0.0;
-		for (auto i = 0; i < state_.get()->channels; ++i) {
-			double peak = 0;
-			auto result = EBUR128_LIB.ebur128_sample_peak(state_.get(), i, &peak);
-			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > max_peak) {
-				max_peak = peak;
-			}
-			result = EBUR128_LIB.ebur128_prev_sample_peak(state_.get(), i, &peak);
-			if (result == EBUR128_SUCCESS && peak != HUGE_VAL && peak > prev_peak) {
-				prev_peak = peak;
-			}
-		}
-		return Round(prev_peak, 2);*/
 	}
 
 	[[nodiscard]] double GetLoudness() const {
@@ -126,7 +119,7 @@ public:
         return Round(loudness, 2);
 	}
 
-    void* GetNativeHandle() const {
+	[[nodiscard]] void* GetNativeHandle() const {
         return state_.get();
     }
 
@@ -152,6 +145,7 @@ private:
 	};
 
 	UniqueHandle<ebur128_state*, Ebur128Deleter> state_;
+	LoggerPtr logger_;
 };
 
 Ebur128Reader::Ebur128Reader()

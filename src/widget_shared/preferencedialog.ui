@@ -250,10 +250,10 @@
         <widget class="QStackedWidget" name="resamplerStackedWidget">
          <property name="geometry">
           <rect>
-           <x>12</x>
-           <y>54</y>
-           <width>651</width>
-           <height>551</height>
+           <x>10</x>
+           <y>50</y>
+           <width>591</width>
+           <height>701</height>
           </rect>
          </property>
          <widget class="QWidget" name="noneResamplerPage"/>
@@ -739,6 +739,120 @@
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="srcResamplerPage">
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="lbSrcTargetSampleRate">
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Target samplerate:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="srcTargetSampleRateComboBox">
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <item>
+                <property name="text">
+                 <string>44100</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>48000</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>88200</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>96000</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>176400</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>192000</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>352800</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>384000</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>768000</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbSrcHz">
+               <property name="text">
+                <string>Hz</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>675</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="r8brainResamplerPage">
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <property name="spacing">
@@ -893,6 +1007,11 @@
             <item>
              <property name="text">
               <string>Soxr</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Src</string>
              </property>
             </item>
             <item>

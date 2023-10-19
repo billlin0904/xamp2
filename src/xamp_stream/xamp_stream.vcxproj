@@ -78,15 +78,15 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/;../thirdparty/foobar_sdk/foobar2000/;../thirdparty/foobar_sdk/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/;../thirdparty/foobar_sdk/foobar2000/;../thirdparty/foobar_sdk/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/libsamplerate/lib/</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;samplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/;../thirdparty/foobar_sdk/foobar2000/;../thirdparty/foobar_sdk/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/;../thirdparty/foobar_sdk/foobar2000/;../thirdparty/foobar_sdk/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -194,6 +194,8 @@
     <ClInclude Include="include\stream\dsdmodesamplewriter.h" />
     <ClInclude Include="include\stream\soxresampler.h" />
     <ClInclude Include="include\stream\soxrlib.h" />
+    <ClInclude Include="include\stream\srclib.h" />
+    <ClInclude Include="include\stream\srcresampler.h" />
     <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
@@ -228,6 +230,7 @@
     <ClCompile Include="src\r8brainresampler.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
     <ClCompile Include="src\soxrlib.cpp" />
+    <ClCompile Include="src\srcresampler.cpp" />
     <ClCompile Include="src\stft.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>

@@ -77,7 +77,7 @@ namespace {
     }
 
     Vector<SharedLibraryHandle> PrefetchDll() {
-        constexpr std::array<std::string_view, 5> dll_file_names{
+        Vector<std::string_view> dll_file_names{
             R"(mimalloc-override.dll)",
             R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
             R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
@@ -173,6 +173,8 @@ namespace {
         LoadLang();
 
         XMainWindow main_window;
+
+        //*** ╰参更DLLゲ斗ㄧ计い, 狦ぇ更DLL穦岿 ***//
         try {
             LoadComponentSharedLibrary();
         }

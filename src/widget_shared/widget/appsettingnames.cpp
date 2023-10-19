@@ -74,6 +74,7 @@ IMPL_APP_SETTING_NAME(SoxrPhase, "phase");
 IMPL_APP_SETTING_NAME(SoxrRollOffLevel, "rolloffLevel");
 
 IMPL_APP_SETTING_NAME(R8Brain, "R8Brain");
+IMPL_APP_SETTING_NAME(Src, "Src");
 
 IMPL_APP_SETTING_NAME(Log, "Log");
 IMPL_APP_SETTING_NAME(LogMinimumLevel, "MinimumLevel");

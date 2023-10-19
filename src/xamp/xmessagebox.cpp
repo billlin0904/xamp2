@@ -74,7 +74,8 @@ XMessageBox::XMessageBox(const QString& title,
 	timer_.setInterval(1000);
 	CenterParent(this);
 
-	setMinimumSize(QSize(300, 100));
+	const auto metrics = DefaultButton()->fontMetrics();
+	setMinimumSize(QSize(metrics.horizontalAdvance(default_button_text_) * 1.5, 100));
 }
 
 void XMessageBox::SetTextFont(const QFont& font) {

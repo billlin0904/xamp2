@@ -20,6 +20,9 @@ void LoadComponentSharedLibrary() {
     LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr lib success.");
 
+    LoadSrcLib();
+    XAMP_LOG_DEBUG("Load Src lib success.");
+
     LoadFFTLib();
     XAMP_LOG_DEBUG("Load FFT lib success.");
 

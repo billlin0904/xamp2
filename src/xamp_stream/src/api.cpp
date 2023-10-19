@@ -24,6 +24,7 @@
 #include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
+#include <stream/srclib.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
@@ -87,7 +88,6 @@ AlignPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
     return MakeAlign<IFileEncoder, BassAACFileEncoder>();
 #endif
 }
-
 
 AlignPtr<IFileEncoder> StreamFactory::MakeWaveEncoder() {
     return MakeAlign<IFileEncoder, BassWavFileEncoder>();
@@ -193,6 +193,10 @@ void LoadAvLib() {
 
 void LoadSoxrLib() {
     Singleton<SoxrLib>::GetInstance();
+}
+
+void LoadSrcLib() {
+    Singleton<SrcLib>::GetInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END
