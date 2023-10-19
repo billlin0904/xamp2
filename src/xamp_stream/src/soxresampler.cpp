@@ -13,7 +13,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-XAMP_DECLARE_LOG_NAME(Soxr);
+XAMP_DECLARE_LOG_NAME(SoxrSampleRateConverter);
 
 const std::string_view VERSION = "Soxr " SOXR_THIS_VERSION_STR;
 #define LISOXR_LIB Singleton<SoxrLib>::GetInstance()
@@ -35,7 +35,7 @@ public:
         , ratio_(0)
 		, pass_band_(kDefaultPassBand)
         , stop_band_(kDefaultStopBand) {
-		logger_ = LoggerManager::GetInstance().GetLogger(kSoxrLoggerName);
+		logger_ = LoggerManager::GetInstance().GetLogger(kSoxrSampleRateConverterLoggerName);
 	}
 
 	~SoxrSampleRateConverterImpl() noexcept {
