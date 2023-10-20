@@ -7,9 +7,10 @@
 
 #include <stream/srclib.h>
 
-#include "stream/soxresampler.h"
+#include <stream/soxresampler.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
+
 #define LIBSRC_DLL Singleton<SrcLib>::GetInstance()
 
 XAMP_DECLARE_LOG_NAME(SrcSampleRateConverter);

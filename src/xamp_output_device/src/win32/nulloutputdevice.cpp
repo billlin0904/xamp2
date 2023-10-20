@@ -42,10 +42,14 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 		return;
 	}
 
+	XAMP_LOG_DEBUG("NullOutputDevice stop stream start.");
+
 	is_stopped_ = true;
 	if (render_task_.valid()) {
 		render_task_.get();
 	}
+
+	XAMP_LOG_DEBUG("NullOutputDevice stop stream done.");
 	is_running_ = false;
 }
 
@@ -123,6 +127,8 @@ void NullOutputDevice::StartStream() {
 		}
 
 		mmcss.RevertPriority();
+		XAMP_LOG_DEBUG("NullOutputDevice stop render.");
+
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 }
 

@@ -11,9 +11,12 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+//
 // Extremely fast random number generator that also produces very high quality random.
-// The algorithm is based on the paper "SFC64: a fast 64-bit random number generator" by Sebastiano Vigna.//     
+// The algorithm is based on the paper "SFC64: a fast 64-bit random number generator" by Sebastiano Vigna.
+//      
 // see PractRand: http://pracrand.sourceforge.net/PractRand.txt
+//
 template <int32_t TRotation = 24, int32_t TRightShift = 11, int32_t TLeftShift = 3>
 class XAMP_BASE_API_ONLY_EXPORT Sfc64Engine final {
 public:
@@ -28,17 +31,21 @@ public:
 	    seed(init_seed);
     }
 
+    Sfc64Engine(uint64_t seed1, uint64_t seed2, uint64_t seed3, int32_t warmup_round = 12) noexcept {
+        seed(seed1, seed2, seed3, warmup_round);
+    }
+
     void seed(uint64_t init_seed) noexcept {
         seed(init_seed, init_seed, init_seed);
     }
 
-    void seed(uint64_t seed1, uint64_t seed2, uint64_t seed3) noexcept {
-        a_ = seed3;
-        c_ = seed2;
+    void seed(uint64_t seed1, uint64_t seed2, uint64_t seed3, int32_t warmup_round = 12) noexcept {
+        c_ = seed3;
+        b_ = seed2;
         a_ = seed1;
         inc_ = 1;
 
-        for (auto i = 0; i < 12; ++i)
+        for (auto i = 0; i < warmup_round; ++i)
             operator()();
     }
 

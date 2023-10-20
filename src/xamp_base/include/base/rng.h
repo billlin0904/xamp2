@@ -75,8 +75,6 @@ public:
 		return output;
 	}
 
-    void SetSeed();
-
     void SetSeed(uint64_t seed);
 
     Sfc64Engine<>& engine() {
@@ -84,6 +82,8 @@ public:
     }
 
     std::string GetRandomString(size_t size);
+
+    static Sfc64Engine<> MakeRandomEngine();
 private:
     Sfc64Engine<> engine_;
 };
