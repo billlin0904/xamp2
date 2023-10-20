@@ -49,7 +49,7 @@ public:
 	Uuid GetTypeId() const override;
 private:
 	class AvFileStreamImpl;
-	PimplPtr<AvFileStreamImpl> impl_;
+	AlignPtr<AvFileStreamImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

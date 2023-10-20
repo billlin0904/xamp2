@@ -104,7 +104,7 @@ private:
 };
 
 BassEqualizer::BassEqualizer()
-    : impl_(MakePimpl<BassEqualizerImpl>()) {
+    : impl_(MakeAlign<BassEqualizerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(BassEqualizer)

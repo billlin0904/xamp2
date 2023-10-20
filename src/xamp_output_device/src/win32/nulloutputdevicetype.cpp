@@ -67,7 +67,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDef
 }
 
 NullOutputDeviceType::NullOutputDeviceType() noexcept
-	: impl_(MakePimpl<NullOutputDeviceTypeImpl>()) {
+	: impl_(MakeAlign<NullOutputDeviceTypeImpl>()) {
 }
 
 void NullOutputDeviceType::ScanNewDevice() {

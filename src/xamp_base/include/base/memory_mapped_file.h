@@ -29,7 +29,7 @@ public:
 
 private:
 	class MemoryMappedFileImpl;
-	PimplPtr<MemoryMappedFileImpl> impl_;
+	AlignPtr<MemoryMappedFileImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END

@@ -5,24 +5,25 @@
             "Override": {
                 "AsioDevice": "info",
                 "AudioPlayer": "info",
-                "AvFileStream": "debug",
+                "AvFileStream": "info",
                 "BASS": "info",
                 "BackgroundThreadPool": "info",
                 "BackgroundWorker": "info",
                 "BassCompressor": "info",
-                "BassEqualizer": "debug",
+                "BassEqualizer": "info",
                 "BassFader": "info",
                 "BassFileStream": "info",
-                "BassParametricEq": "debug",
+                "BassParametricEq": "info",
                 "BassVolume": "info",
                 "CrashHandler": "debug",
                 "Database": "info",
                 "DatabaseFacade": "info",
                 "DspManager": "info",
-                "ExclusiveWasapiDevice": "debug",
+                "Ebur128Reader": "debug",
+                "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
                 "ExtractFileWorker": "info",
-                "Http": "debug",
+                "Http": "info",
                 "ImageCache": "info",
                 "LibAv": "info",
                 "LibSoxr": "info",
@@ -34,6 +35,8 @@
                 "R8brainLib": "info",
                 "SharedWasapiDevice": "info",
                 "Soxr": "debug",
+                "SoxrSampleRateConverter": "info",
+                "SrcSampleRateConverter": "info",
                 "TagLib": "info",
                 "VirtualMemory": "info",
                 "WASAPIThreadPool": "info"
@@ -41,9 +44,17 @@
         }
     },
     "R8Brain": {
-        "resampleSampleRate": 96000
+        "resampleSampleRate": 352800
     },
     "Soxr": {
+        "Line": {
+            "passBand": 100,
+            "phase": 100,
+            "quality": 4,
+            "resampleSampleRate": 192000,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        },
         "default": {
             "passBand": 96,
             "phase": 46,
@@ -52,5 +63,8 @@
             "rolloffLevel": 2,
             "stopBand": 100
         }
+    },
+    "Src": {
+        "resampleSampleRate": 192000
     }
 }

@@ -38,7 +38,7 @@ public:
 
 private:
     class R8brainSampleRateConverterImpl;
-    PimplPtr<R8brainSampleRateConverterImpl> impl_;
+    AlignPtr<R8brainSampleRateConverterImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

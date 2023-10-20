@@ -14,6 +14,11 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
+XAMP_MAKE_ENUM(SrcQuality,
+    SINC_LQ,
+    SINC_MQ,
+    SINC_HQ)
+
 class XAMP_STREAM_API SrcSampleRateConverter final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(SrcSampleRateConverter, "00DA7FC2-3033-461A-B9AE-41A1AA80747D")
 
@@ -21,6 +26,8 @@ public:
     XAMP_PIMPL(SrcSampleRateConverter)
 
 	SrcSampleRateConverter();
+
+    void SetQuality(SrcQuality quality);
 
     void Start(const AnyMap& config) override;
 
@@ -36,7 +43,7 @@ public:
 
 private:
     class SrcSampleRateConverterImpl;
-    PimplPtr<SrcSampleRateConverterImpl> impl_;
+    AlignPtr<SrcSampleRateConverterImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

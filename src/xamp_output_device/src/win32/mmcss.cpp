@@ -51,7 +51,7 @@ private:
 };
 
 Mmcss::Mmcss()
-	: impl_(MakePimpl<MmcssImpl>()) {
+	: impl_(MakeAlign<MmcssImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(Mmcss)

@@ -104,7 +104,7 @@ public:
     [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
 private:
     class DeviceStateNotificationImpl;
-    PimplPtr<DeviceStateNotificationImpl> impl_;    
+    AlignPtr<DeviceStateNotificationImpl> impl_;    
     DeviceTypeFactoryMap factory_;
 };
 

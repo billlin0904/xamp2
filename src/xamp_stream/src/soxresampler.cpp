@@ -26,7 +26,7 @@ public:
 
 	SoxrSampleRateConverterImpl() noexcept
 		: enable_dither_(true)
-		, quality_(SoxrQuality::VHQ)
+		, quality_(SoxrQuality::SINC_VHQ)
 		, input_sample_rate_(0)
 		, output_sample_rate_(0)
 		, num_channels_(0)
@@ -45,22 +45,22 @@ public:
 	void Init(uint32_t input_sample_rate) {
 		Close();
 
-		unsigned long quality_spec = SOXR_VHQ;
+		unsigned long quality_spec = 0;
 
 		switch (quality_) {
-		case SoxrQuality::UHQ:
+		case SoxrQuality::SINC_UHQ:
 			quality_spec |= SOXR_32_BITQ;
 			break;
-		case SoxrQuality::VHQ:
+		case SoxrQuality::SINC_VHQ:
 			quality_spec |= SOXR_VHQ;
 			break;
-		case SoxrQuality::HQ:
+		case SoxrQuality::SINC_HQ:
 			quality_spec |= SOXR_HQ;
 			break;
-		case SoxrQuality::MQ:
+		case SoxrQuality::SINC_MQ:
 			quality_spec |= SOXR_MQ;
 			break;
-		case SoxrQuality::LOW:
+		case SoxrQuality::SINC_LOW:
 			quality_spec |= SOXR_LQ;
 			break;
 		}
@@ -224,7 +224,7 @@ private:
 };
 
 SoxrSampleRateConverter::SoxrSampleRateConverter()
-    : impl_(MakePimpl<SoxrSampleRateConverterImpl>()) {
+    : impl_(MakeAlign<SoxrSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)

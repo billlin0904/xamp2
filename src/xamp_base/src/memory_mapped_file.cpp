@@ -125,7 +125,7 @@ private:
 #endif
 
 MemoryMappedFile::MemoryMappedFile()
-    : impl_(MakePimpl<MemoryMappedFileImpl>()) {
+    : impl_(MakeAlign<MemoryMappedFileImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)

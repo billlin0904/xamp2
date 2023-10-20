@@ -125,7 +125,7 @@ private:
 };
 
 BassParametricEq::BassParametricEq()
-    : impl_(MakePimpl<BassParametricEqImpl>()) {
+    : impl_(MakeAlign<BassParametricEqImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(BassParametricEq)

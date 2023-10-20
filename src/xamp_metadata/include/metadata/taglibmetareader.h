@@ -30,7 +30,7 @@ public:
     [[nodiscard]] bool IsSupported(Path const & path) const override;
 private:
     class TaglibMetadataReaderImpl;
-    PimplPtr<TaglibMetadataReaderImpl> reader_;
+    AlignPtr<TaglibMetadataReaderImpl> reader_;
 };
 
 XAMP_METADATA_NAMESPACE_END

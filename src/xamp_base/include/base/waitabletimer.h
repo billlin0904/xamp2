@@ -23,7 +23,7 @@ public:
 	void Wait();
 private:
 	class WaitableTimerImpl;
-	PimplPtr<WaitableTimerImpl> impl_;
+	AlignPtr<WaitableTimerImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END

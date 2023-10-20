@@ -353,7 +353,7 @@ std::recursive_mutex CrashHandler::CrashHandlerImpl::mutex_;
 LoggerPtr CrashHandler::CrashHandlerImpl::logger_;
 
 CrashHandler::CrashHandler()
-	: impl_(MakePimpl<CrashHandlerImpl>()) {
+	: impl_(MakeAlign<CrashHandlerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(CrashHandler)

@@ -181,7 +181,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 }
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept
-	: impl_(MakePimpl<ExclusiveWasapiDeviceTypeImpl>()) {
+	: impl_(MakeAlign<ExclusiveWasapiDeviceTypeImpl>()) {
 }
 
 void ExclusiveWasapiDeviceType::ScanNewDevice() {

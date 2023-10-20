@@ -37,7 +37,7 @@ public:
 	static void LoadEbur128Lib();
 private:
 	class Ebur128ReaderImpl;
-	PimplPtr<Ebur128ReaderImpl> impl_;
+	AlignPtr<Ebur128ReaderImpl> impl_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

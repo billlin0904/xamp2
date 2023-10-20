@@ -34,7 +34,7 @@ public:
     void Flush() override;
 private:
     class BassCompressorImpl;
-    PimplPtr<BassCompressorImpl> impl_;
+    AlignPtr<BassCompressorImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

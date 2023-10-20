@@ -146,7 +146,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 }
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept
-	: impl_(MakePimpl<SharedWasapiDeviceTypeImpl>()) {
+	: impl_(MakeAlign<SharedWasapiDeviceTypeImpl>()) {
 }
 
 void SharedWasapiDeviceType::ScanNewDevice() {

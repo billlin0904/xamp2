@@ -149,7 +149,7 @@ private:
 };
 
 Ebur128Reader::Ebur128Reader()
-    : impl_(MakePimpl<Ebur128ReaderImpl>()) {
+    : impl_(MakeAlign<Ebur128ReaderImpl>()) {
 }
 
 void Ebur128Reader::SetSampleRate(uint32_t sample_rate) {

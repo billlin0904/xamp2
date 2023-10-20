@@ -112,7 +112,16 @@ namespace {
         const auto disable_stacktrace =
             qAppSettings.ValueAsBool(kAppSettingEnableDebugStackTrace);
 
-        stream << context.file << ":" << context.line << ":"
+        auto get_file_name = [&context]() {
+            const std::string str(context.file);
+            const auto pos = str.rfind("\\");
+            if (pos != std::string::npos) {
+                return str.substr(pos + 1);
+            }
+            return str;
+            };
+
+        stream << QString::fromStdString(get_file_name()) << ":" << context.line << ": \r\n"
             << context.function << ": " << msg;
         if (!disable_stacktrace) {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());

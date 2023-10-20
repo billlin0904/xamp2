@@ -27,5 +27,5 @@ public:
 
 private:
 	class ZipFileReaderImpl;
-	PimplPtr<ZipFileReaderImpl> impl_;
+	AlignPtr<ZipFileReaderImpl> impl_;
 };

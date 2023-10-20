@@ -95,7 +95,7 @@ public:
 	
 private:
 	class SharedWasapiDeviceTypeImpl;
-	PimplPtr<SharedWasapiDeviceTypeImpl> impl_;
+	AlignPtr<SharedWasapiDeviceTypeImpl> impl_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

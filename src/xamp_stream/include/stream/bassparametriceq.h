@@ -41,7 +41,7 @@ private:
     void SetEq(EqSettings const& settings);
 
     class BassParametricEqImpl;
-    PimplPtr<BassParametricEqImpl> impl_;
+    AlignPtr<BassParametricEqImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

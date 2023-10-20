@@ -22,17 +22,17 @@ public:
 	XAMP_DISABLE_COPY(DiscIdLib)
 
 private:
-	base::SharedLibraryHandle module_;
+	SharedLibraryHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(discid_new) discid_new;
-	XAMP_DECLARE_DLL(discid_free) discid_free;
-	XAMP_DECLARE_DLL(discid_read) discid_read;
-	XAMP_DECLARE_DLL(discid_get_id) discid_get_id;
-	XAMP_DECLARE_DLL(discid_get_freedb_id) discid_get_freedb_id;
-	XAMP_DECLARE_DLL(discid_get_submission_url) discid_get_submission_url;
-	XAMP_DECLARE_DLL(discid_get_default_device) discid_get_default_device;
-	XAMP_DECLARE_DLL(discid_get_error_msg) discid_get_error_msg;
+	XAMP_DECLARE_DLL_NAME(discid_new);
+	XAMP_DECLARE_DLL_NAME(discid_free);
+	XAMP_DECLARE_DLL_NAME(discid_read);
+	XAMP_DECLARE_DLL_NAME(discid_get_id);
+	XAMP_DECLARE_DLL_NAME(discid_get_freedb_id);
+	XAMP_DECLARE_DLL_NAME(discid_get_submission_url);
+	XAMP_DECLARE_DLL_NAME(discid_get_default_device);
+	XAMP_DECLARE_DLL_NAME(discid_get_error_msg);
 };
 
 XAMP_STREAM_NAMESPACE_END

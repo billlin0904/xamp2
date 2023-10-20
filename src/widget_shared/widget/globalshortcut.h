@@ -29,7 +29,7 @@ public:
     quint32 NativeKeycode(Qt::Key key);
 private:
     class GlobalShortcutImpl;
-    PimplPtr<GlobalShortcutImpl> impl_;
+    AlignPtr<GlobalShortcutImpl> impl_;
 };
 
 #define qGlobalShortcut SharedSingleton<GlobalShortcut>::GetInstance()

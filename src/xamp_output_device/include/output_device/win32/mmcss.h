@@ -46,7 +46,7 @@ public:
 	void RevertPriority() noexcept;
 private:
 	class MmcssImpl;
-	PimplPtr<MmcssImpl> impl_;
+	AlignPtr<MmcssImpl> impl_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

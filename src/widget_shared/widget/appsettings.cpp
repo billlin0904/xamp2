@@ -24,7 +24,7 @@ namespace {
         QMap<QString, QVariant> default_setting;
 
         default_setting[kResampleSampleRate] = sample_rate;
-        default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
+        default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::SINC_VHQ);
         default_setting[kSoxrPhase] = 46;
         default_setting[kSoxrStopBand] = 100;
         default_setting[kSoxrPassBand] = 96;

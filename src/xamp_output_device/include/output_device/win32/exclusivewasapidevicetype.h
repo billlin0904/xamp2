@@ -95,7 +95,7 @@ public:
 
 private:
 	class ExclusiveWasapiDeviceTypeImpl;	
-	PimplPtr<ExclusiveWasapiDeviceTypeImpl> impl_;
+	AlignPtr<ExclusiveWasapiDeviceTypeImpl> impl_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

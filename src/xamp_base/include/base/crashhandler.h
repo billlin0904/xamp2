@@ -26,7 +26,7 @@ public:
 	void SetThreadExceptionHandlers();
 private:
 	class CrashHandlerImpl;
-	PimplPtr<CrashHandlerImpl> impl_;
+	AlignPtr<CrashHandlerImpl> impl_;
 };
 
 #define SharedCrashHandler SharedSingleton<CrashHandler>::GetInstance()

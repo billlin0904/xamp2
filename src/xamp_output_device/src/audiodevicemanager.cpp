@@ -67,7 +67,7 @@ private:
 	})
 
 AudioDeviceManager::AudioDeviceManager()
-	: impl_(MakePimpl<DeviceStateNotificationImpl>()) {
+	: impl_(MakeAlign<DeviceStateNotificationImpl>()) {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     XAMP_LOG_DEBUG("LoadAvrtLib success");

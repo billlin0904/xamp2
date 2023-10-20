@@ -46,7 +46,7 @@ private:
 };
 
 BassVolume::BassVolume()
-    : impl_(MakePimpl<BassVolumeImpl>()) {
+    : impl_(MakeAlign<BassVolumeImpl>()) {
 }
 
 void BassVolume::Start(const AnyMap& config) {

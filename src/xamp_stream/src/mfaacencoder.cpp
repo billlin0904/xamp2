@@ -374,7 +374,7 @@ private:
 };
 
 MFAACFileEncoder::MFAACFileEncoder()
-	: impl_(MakePimpl<MFAACFileEncoderImpl>()) {
+	: impl_(MakeAlign<MFAACFileEncoderImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MFAACFileEncoder)

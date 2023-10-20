@@ -36,7 +36,7 @@ public:
 
 private:
     class BassVolumeImpl;
-    PimplPtr<BassVolumeImpl> impl_;
+    AlignPtr<BassVolumeImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

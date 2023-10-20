@@ -77,7 +77,7 @@ public:
 };
 
 R8brainSampleRateConverter::R8brainSampleRateConverter()
-    : impl_(MakePimpl<R8brainSampleRateConverterImpl>()) {
+    : impl_(MakeAlign<R8brainSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(R8brainSampleRateConverter)

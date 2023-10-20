@@ -18,6 +18,8 @@ class SrcLib final {
 public:
     SrcLib();
 
+    XAMP_DISABLE_COPY(SrcLib)
+
 private:
     SharedLibraryHandle module_;
 

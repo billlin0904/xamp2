@@ -75,7 +75,7 @@ private:
 };
 
 BassCompressor::BassCompressor()
-    : impl_(MakePimpl<BassCompressorImpl>()) {
+    : impl_(MakeAlign<BassCompressorImpl>()) {
 }
 
 void BassCompressor::Start(const AnyMap& config) {

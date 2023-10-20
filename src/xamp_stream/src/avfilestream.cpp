@@ -358,7 +358,7 @@ private:
 
 
 AvFileStream::AvFileStream()
-    : impl_(MakePimpl<AvFileStreamImpl>()) {
+    : impl_(MakeAlign<AvFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(AvFileStream)

@@ -41,7 +41,7 @@ public:
     void Flush() override;
 private:
     class BassEqualizerImpl;
-    PimplPtr<BassEqualizerImpl> impl_;
+    AlignPtr<BassEqualizerImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

@@ -30,7 +30,7 @@ public:
 	std::string GetDiscIdLookupUrl(const std::string& drive) const;
 private:
 	class MBDiscIdImpl;
-	PimplPtr<MBDiscIdImpl> impl_;
+	AlignPtr<MBDiscIdImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

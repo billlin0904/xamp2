@@ -98,7 +98,7 @@ public:
 	
 private:
 	class NullOutputDeviceTypeImpl;
-	PimplPtr<NullOutputDeviceTypeImpl> impl_;
+	AlignPtr<NullOutputDeviceTypeImpl> impl_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

@@ -37,7 +37,7 @@ public:
     void Flush() override;
 private:
     class BassFaderImpl;
-    PimplPtr<BassFaderImpl> impl_;
+    AlignPtr<BassFaderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

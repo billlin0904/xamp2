@@ -182,7 +182,7 @@ AlignPtr<IAudioProcessor> MakeSampleRateConverter(uint32_t sample_rate) {
     QMap<QString, QVariant> soxr_settings;
 
     soxr_settings[kResampleSampleRate] = sample_rate;
-    soxr_settings[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
+    soxr_settings[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::SINC_UHQ);
     soxr_settings[kSoxrPhase] = 46;
     soxr_settings[kSoxrStopBand] = 100;
     soxr_settings[kSoxrPassBand] = 96;

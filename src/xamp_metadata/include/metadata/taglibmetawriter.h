@@ -35,7 +35,7 @@ public:
     void WriteEmbeddedCover(Path const & path, Vector<uint8_t> const &image) const override;
 private:
     class TaglibMetadataWriterImpl;
-    PimplPtr<TaglibMetadataWriterImpl> writer_;
+    AlignPtr<TaglibMetadataWriterImpl> writer_;
 };
 
 XAMP_METADATA_NAMESPACE_END
