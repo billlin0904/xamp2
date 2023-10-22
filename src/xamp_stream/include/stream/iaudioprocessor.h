@@ -59,7 +59,7 @@ public:
     * 
     * @return: true if success, otherwise false.
     */
-    virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
+    [[nodiscard]] virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
 
     /*
     * Get the type id of the audio processor.

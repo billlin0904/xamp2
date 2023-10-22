@@ -12,7 +12,6 @@
 #include <stream/basswavfileencoder.h>
 #include <stream/bassflacfileencoder.h>
 #include <stream/bassaacfileencoder.h>
-#include <stream/avfileencoder.h>
 #include <stream/bassparametriceq.h>
 #include <stream/mfaacencoder.h>
 #include <stream/bassfader.h>

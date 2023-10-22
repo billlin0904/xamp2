@@ -8,6 +8,7 @@
 #include <base/base.h>
 #include <base/dll.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 
 #include <stream/stream.h>
 #include <r8bsrc.h>
@@ -18,11 +19,8 @@ class R8brainLib {
 public:
 	R8brainLib();
 
-	~R8brainLib();
-
 	XAMP_DISABLE_COPY(R8brainLib)
 private:
-	LoggerPtr logger_;
 	SharedLibraryHandle module_;
 
 public:
@@ -31,5 +29,16 @@ public:
 	XAMP_DECLARE_DLL_NAME(r8b_clear);
 	XAMP_DECLARE_DLL_NAME(r8b_process);
 };
+
+inline R8brainLib::R8brainLib() try
+	: module_(OpenSharedLibrary("r8bsrc"))
+	, XAMP_LOAD_DLL_API(r8b_create)
+	, XAMP_LOAD_DLL_API(r8b_delete)
+	, XAMP_LOAD_DLL_API(r8b_clear)
+	, XAMP_LOAD_DLL_API(r8b_process) {
+}
+catch (const Exception& e) {
+	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
 
 XAMP_STREAM_NAMESPACE_END

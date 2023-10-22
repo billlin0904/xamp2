@@ -154,7 +154,7 @@ using AlignArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 * 
 * @param[in] args
 * @return AlignPtr<Type>
-* @note Type must be default constructible.
+* @note Type must be default constructor.
 */
 template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
@@ -178,7 +178,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 * 
 * @param[in] args
 * @return AlignPtr<Type>
-* @note Type must be default constructible.
+* @note Type must be default constructor.
 */
 template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {

@@ -8,7 +8,7 @@
 #include <malloc.h>
 #endif
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 #ifndef XAMP_OS_WIN
 void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
@@ -51,4 +51,4 @@ void StackFree(void* p) {
 }
 #endif
 
-}
+XAMP_BASE_NAMESPACE_END

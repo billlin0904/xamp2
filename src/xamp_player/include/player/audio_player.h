@@ -309,7 +309,7 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
+    void ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock);
 
     void CopySamples(void * samples, size_t num_buffer_frames) const;
 
@@ -317,7 +317,7 @@ private:
 
     void UpdatePlayerStreamTime(int32_t stream_time_sec_unit = 0) noexcept;
 
-    void ResizeReadBuffer(uint32_t read_size);
+    void ResizeReadBuffer(uint32_t allocate_size);
 
     void ResizeFifo(uint32_t fifo_size);
 

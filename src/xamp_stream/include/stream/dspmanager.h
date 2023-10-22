@@ -49,9 +49,9 @@ public:
 
     void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
 
-    bool IsEnableSampleRateConverter() const override;
+    [[nodiscard]] bool IsEnableSampleRateConverter() const override;
 
-    bool CanProcess() const noexcept override;
+    [[nodiscard]] bool CanProcess() const noexcept override;
 
     void Flush() override;
 

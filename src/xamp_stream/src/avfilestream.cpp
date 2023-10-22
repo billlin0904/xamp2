@@ -165,7 +165,7 @@ public:
         }
 
         auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
-
+       
         swr_context_.reset(LIBAV_LIB.SwrLib->swr_alloc_set_opts(swr_context_.get(),
             AV_CH_LAYOUT_STEREO,
             AV_SAMPLE_FMT_FLT,
@@ -331,10 +331,11 @@ private:
                 length, audio_frame_->nb_samples);
             return 0;
         }
-        const auto frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_context_->channels);
+        // 輸出Channel都是立體聲, 所以要將nb_samples * 2
+        const int32_t frame_size = audio_frame_->nb_samples * AudioFormat::kMaxChannel;
         const auto result = LIBAV_LIB.SwrLib->swr_convert(swr_context_.get(),
             reinterpret_cast<uint8_t**>(&buffer),
-            audio_frame_->nb_samples,
+            frame_size,
             const_cast<const uint8_t**>(audio_frame_->data),
             audio_frame_->nb_samples);
         if (result <= 0) {

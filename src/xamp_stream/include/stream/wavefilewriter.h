@@ -24,7 +24,7 @@ public:
 
 	void Close();
 
-	bool TryWrite(float const* sample, size_t num_samples);
+	[[nodiscard]] bool TryWrite(float const* sample, size_t num_samples);
 
 	void Write(float const* sample, size_t num_samples);
 	

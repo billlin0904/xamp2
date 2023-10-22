@@ -34,7 +34,7 @@ public:
     XAMP_DECLARE_DLL_NAME(src_strerror);
 };
 
-inline SrcLib::SrcLib()
+inline SrcLib::SrcLib() try
     : module_(OpenSharedLibrary("samplerate"))
     , XAMP_LOAD_DLL_API(src_new)
     , XAMP_LOAD_DLL_API(src_reset)
@@ -44,6 +44,9 @@ inline SrcLib::SrcLib()
     , XAMP_LOAD_DLL_API(src_is_valid_ratio)
     , XAMP_LOAD_DLL_API(src_get_version)
 	, XAMP_LOAD_DLL_API(src_strerror) {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
 XAMP_STREAM_NAMESPACE_END

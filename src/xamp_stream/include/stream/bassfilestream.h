@@ -27,45 +27,45 @@ public:
 
 	void Close() noexcept override;
 
-	double GetDurationAsSeconds() const override;
+	[[nodiscard]] double GetDurationAsSeconds() const override;
 
-	AudioFormat GetFormat() const override;
+	[[nodiscard]] AudioFormat GetFormat() const override;
 
-    uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
+	[[nodiscard]] uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
 	void SeekAsSeconds(double stream_time) const override;
 
-	std::string_view GetDescription() const noexcept override;
+	[[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-	uint32_t GetSampleSize() const noexcept override;
+	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
 
-	bool IsDsdFile() const noexcept override;
+	[[nodiscard]] bool IsDsdFile() const noexcept override;
 
 	void SetDSDMode(DsdModes mode) noexcept override;
 
-	DsdModes GetDsdMode() const noexcept override;
+	[[nodiscard]] DsdModes GetDsdMode() const noexcept override;
 
-    uint32_t GetDsdSampleRate() const override;
+	[[nodiscard]] uint32_t GetDsdSampleRate() const override;
 
-	DsdFormat GetDsdFormat() const noexcept override;
+	[[nodiscard]] DsdFormat GetDsdFormat() const noexcept override;
 
     void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
 
-    uint32_t GetDsdSpeed() const override;
+	[[nodiscard]] uint32_t GetDsdSpeed() const override;
 
-	uint32_t GetBitDepth() const override;
+	[[nodiscard]] uint32_t GetBitDepth() const override;
 
-	uint32_t GetHStream() const noexcept;
+	[[nodiscard]] uint32_t GetHStream() const noexcept;
 
-    bool IsActive() const noexcept override;
+	[[nodiscard]] bool IsActive() const noexcept override;
 
-    bool SupportDOP() const noexcept override;
+	[[nodiscard]] bool SupportDOP() const noexcept override;
 
-    bool SupportDOP_AA() const noexcept override;
+	[[nodiscard]] bool SupportDOP_AA() const noexcept override;
 
-    bool SupportNativeSD() const noexcept override;
+	[[nodiscard]] bool SupportNativeSD() const noexcept override;
 
-	Uuid GetTypeId() const override;
+	[[nodiscard]] Uuid GetTypeId() const override;
 private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

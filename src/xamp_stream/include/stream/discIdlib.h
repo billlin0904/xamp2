@@ -35,6 +35,21 @@ public:
 	XAMP_DECLARE_DLL_NAME(discid_get_error_msg);
 };
 
+inline DiscIdLib::DiscIdLib() try
+	: module_(OpenSharedLibrary("discid"))
+	, XAMP_LOAD_DLL_API(discid_new)
+	, XAMP_LOAD_DLL_API(discid_free)
+	, XAMP_LOAD_DLL_API(discid_read)
+	, XAMP_LOAD_DLL_API(discid_get_id)
+	, XAMP_LOAD_DLL_API(discid_get_freedb_id)
+	, XAMP_LOAD_DLL_API(discid_get_submission_url)
+	, XAMP_LOAD_DLL_API(discid_get_default_device)
+	, XAMP_LOAD_DLL_API(discid_get_error_msg) {
+}
+catch (const Exception& e) {
+	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
 XAMP_STREAM_NAMESPACE_END
 
 #endif

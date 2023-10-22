@@ -14,7 +14,8 @@ XAMP_DECLARE_LOG_NAME(BassVolume);
 
 class BassVolume::BassVolumeImpl {
 public:
-    BassVolumeImpl() {
+    BassVolumeImpl()
+        : volume_handle_(0) {
         logger_ = LoggerManager::GetInstance().GetLogger(kBassVolumeLoggerName);
     }
 

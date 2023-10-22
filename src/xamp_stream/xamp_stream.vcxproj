@@ -157,7 +157,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\stream\anymap.h" />
-    <ClInclude Include="include\stream\avfileencoder.h" />
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
     <ClInclude Include="include\stream\bassaacfileencoder.h" />
@@ -202,7 +201,6 @@
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="include\stream\avfileencoder.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
@@ -218,7 +216,6 @@
     <ClCompile Include="src\basswavfileencoder.cpp" />
     <ClCompile Include="src\basslib.cpp" />
     <ClCompile Include="src\bass_utiltis.cpp" />
-    <ClCompile Include="src\discIdlib.cpp" />
     <ClCompile Include="src\dspmanager.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />
@@ -226,10 +223,8 @@
     <ClCompile Include="src\mfaacencoder.cpp" />
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\dsdmodesamplewriter.cpp" />
-    <ClCompile Include="src\r8brainlib.cpp" />
     <ClCompile Include="src\r8brainresampler.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
-    <ClCompile Include="src\soxrlib.cpp" />
     <ClCompile Include="src\srcresampler.cpp" />
     <ClCompile Include="src\stft.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />

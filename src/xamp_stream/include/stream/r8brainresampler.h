@@ -28,7 +28,7 @@ public:
 
     void Init(const AnyMap& config) override;
 
-    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
+    [[nodiscard]] bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 
