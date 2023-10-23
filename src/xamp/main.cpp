@@ -121,15 +121,19 @@ namespace {
             return str;
             };
 
-        stream << QString::fromStdString(get_file_name()) << ":" << context.line << ": \r\n"
+        stream << QString::fromStdString(get_file_name()) << ":" << context.line << " (" << QString::fromStdString(GetLastErrorMessage()) << ") \r\n"
             << context.function << ": " << msg;
         if (!disable_stacktrace) {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
-        constexpr auto skip_png_handler_tag = qTEXT("image\\qpnghandler.cpp:525");
-        if (str.contains(skip_png_handler_tag)) {
+        // Skip PNG image error
+        if (str.contains(qTEXT("image\\qpnghandler.cpp"))) {
             return;
+        }
+
+        if (str.contains(qTEXT("qwindowswindow.cpp"))) {
+            stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
         const auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
@@ -220,6 +224,7 @@ namespace {
         XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 
         main_window.SetContentWidget(&win);
+        win.adjustSize();
         win.WaitForReady();
         main_window.RestoreGeometry();
         main_window.ShowWindow();

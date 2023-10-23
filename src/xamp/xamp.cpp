@@ -683,7 +683,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         });
     const auto* about_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
-        auto* dialog = new XDialog(this);
+        auto* dialog = new XDialog(this);        
         auto* about_page = new AboutPage(dialog);
         dialog->SetContentWidget(about_page);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
