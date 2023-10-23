@@ -71,10 +71,6 @@ public:
 
     virtual void UpdateMaximumState(bool is_maximum) = 0;
 
-    virtual void FocusIn() = 0;
-
-    virtual void FocusOut() = 0;
-
     virtual void ShortcutsPressed(const QKeySequence& shortcut) = 0;
 
 protected:

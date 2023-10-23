@@ -47,7 +47,8 @@ void LrcPage::AddCoverShadow(bool found_cover) {
 
 void LrcPage::SetCover(const QPixmap& src) {
     cover_ = src.copy();
-    SetFullScreen(spectrum_->width() > 700);
+    //SetFullScreen(spectrum_->width() > 700);
+	SetFullScreen(false);
 }
 
 QSize LrcPage::CoverSize() const {
@@ -98,7 +99,8 @@ void LrcPage::SetFullScreen(bool enter) {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	SetFullScreen(spectrum_->width() > 700);
+	//SetFullScreen(spectrum_->width() > 700);
+	SetFullScreen(false);
 }
 
 void LrcPage::SetBackground(const QImage& cover) {
@@ -133,7 +135,7 @@ void LrcPage::StartBackgroundAnimation(const int durationMs) {
 	fade_out_animation->setEndValue(0);
 	fade_out_animation->setDuration(durationMs);
 	fade_out_animation->setEasingCurve(QEasingCurve::OutCubic);
-	QObject::connect(fade_out_animation, &QPropertyAnimation::finished, this, [this, fade_out_animation] {
+	(void)QObject::connect(fade_out_animation, &QPropertyAnimation::finished, this, [this, fade_out_animation] {
 		prev_background_image_ = QImage();
 		fade_out_animation->deleteLater();
 		update();

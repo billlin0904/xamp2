@@ -436,6 +436,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.menuButton);
 
     main_window_ = main_window;
+    order_ = qAppSettings.ValueAsEnum<PlayerOrder>(kAppSettingOrder);
 
     (void)QObject::connect(ui_.minWinButton, &QToolButton::clicked, [this]() {
         main_window_->showMinimized();
@@ -537,7 +538,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         album_page_.get(),
         &AlbumArtistPage::OnCurrentThemeChanged);
 
-    order_ = qAppSettings.ValueAsEnum<PlayerOrder>(kAppSettingOrder);
     SetPlayerOrder();
     InitialDeviceList();
 
@@ -727,12 +727,6 @@ void Xamp::InitialSpectrum() {
 void Xamp::UpdateMaximumState(bool is_maximum) {
     lrc_page_->SetFullScreen(is_maximum);
     qTheme.UpdateMaximumIcon(ui_.maxWinButton, is_maximum);
-}
-
-void Xamp::FocusIn() {
-}
-
-void Xamp::FocusOut() {
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {

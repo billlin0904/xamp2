@@ -190,28 +190,8 @@ bool XMainWindow::eventFilter(QObject * object, QEvent * event) {
         if (key_event->key() == Qt::Key_Delete) {
             content_widget_->DeleteKeyPress();
         }
-    } else {
-        if (event->type() == QEvent::FocusIn) {
-            focusInEvent(dynamic_cast<QFocusEvent*>(event));
-        } else if (event->type() == QEvent::FocusOut) {
-            focusOutEvent(dynamic_cast<QFocusEvent*>(event));
-        }
     }
     return QWidget::eventFilter(object, event);
-}
-
-void XMainWindow::focusInEvent(QFocusEvent* event) {
-    if (!content_widget_) {
-        return;
-    }
-    content_widget_->FocusIn();
-}
-
-void XMainWindow::focusOutEvent(QFocusEvent* event) {
-    if (!content_widget_) {
-        return;
-    }
-    content_widget_->FocusOut();
 }
 
 void XMainWindow::dragEnterEvent(QDragEnterEvent* event) {
@@ -265,9 +245,9 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
     const auto* msg = static_cast<MSG const*>(message);
     switch (msg->message) {
     case DBT_DEVICEARRIVAL: {
-        auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+	    auto* lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
         if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-            auto* lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+	        auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
             if (lpdbv->dbcv_flags & DBTF_MEDIA) {
                 ReadDriveInfo();
             }
@@ -285,9 +265,9 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
             return i + 'A';
         };
 
-        const auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+        auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
         if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-            const auto* lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+            auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
             if (lpdbv->dbcv_flags & DBTF_MEDIA) {
                 const auto driver_letter = first_drive_from_mask(lpdbv->dbcv_unitmask);
                 DrivesRemoved(driver_letter);
@@ -385,24 +365,24 @@ void XMainWindow::UpdateMaximumState() {
     }
 }
 
-void XMainWindow::changeEvent(QEvent* event) {
-#if defined(Q_OS_MAC)
-    if (content_widget_ != nullptr) {
-        osx::hideTitleBar(content_widget_);
-    }
-#else
-    if (event->type() == QEvent::WindowStateChange) {
-        if (isMinimized()) {
-            setUpdatesEnabled(false);
-        }
-        else if (windowState() == Qt::WindowNoState) {
-            setAttribute(Qt::WA_Mapped);
-            setUpdatesEnabled(true);
-            update();
-        }
-    }
-#endif
-}
+//void XMainWindow::changeEvent(QEvent* event) {
+//#if defined(Q_OS_MAC)
+//    if (content_widget_ != nullptr) {
+//        osx::hideTitleBar(content_widget_);
+//    }
+//#else
+//    if (event->type() == QEvent::WindowStateChange) {
+//        if (isMinimized()) {
+//            setUpdatesEnabled(false);
+//        }
+//        else if (windowState() == Qt::WindowNoState) {
+//            setAttribute(Qt::WA_Mapped);
+//            setUpdatesEnabled(true);
+//            update();
+//        }
+//    }
+//#endif
+//}
 
 void XMainWindow::showEvent(QShowEvent* event) {
 #if defined(Q_OS_WIN)

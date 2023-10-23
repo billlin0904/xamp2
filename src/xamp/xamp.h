@@ -157,10 +157,6 @@ private:
 
 	void UpdateMaximumState(bool is_maximum) override;
 
-    void FocusIn() override;
-
-    void FocusOut() override;
-
 	void SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
 	QWidgetAction* CreateDeviceMenuWidget(const QString& desc, const QIcon& icon = QIcon());

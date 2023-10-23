@@ -64,7 +64,7 @@ protected:
 
     void dropEvent(QDropEvent *event) override;
 
-    void changeEvent(QEvent * event) override;
+    //void changeEvent(QEvent * event) override;
 
     void closeEvent(QCloseEvent* event) override;
 
@@ -72,10 +72,6 @@ protected:
 
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, qintptr* result) override;
-
-    void focusInEvent(QFocusEvent* event) override;
-
-    void focusOutEvent(QFocusEvent* event) override;
 
     void showEvent(QShowEvent* event) override;
 
