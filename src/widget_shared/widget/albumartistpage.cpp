@@ -298,7 +298,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	for (auto i = 0; i < 26; ++i) {
 		artist_category_list.append(QString(QChar('A' + i)));
 	}
-	artist_category_list.append(tr("All"));
 
 	artist_tag_list_widget_ = new TagListView();
 
