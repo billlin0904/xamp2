@@ -85,12 +85,15 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 		for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
-			QImage image(qTheme.GetCacheCoverSize(), kFormat);
+			/*QImage image(qTheme.GetCacheCoverSize(), kFormat);
 			QImageReader reader(image_file_path);
 			XAMP_LOG_DEBUG("Found {}", image_file_path.toStdString());
 			if (reader.read(&image)) {
 				return QPixmap::fromImage(image);				
-			}			
+			}*/
+			return image_utils::ReadFileImage(image_file_path, 
+				qTheme.GetCacheCoverSize(), 
+				kFormat);
 		}
 		return std::nullopt;
 	};
@@ -125,22 +128,28 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 		if (!image_file_path.toLower().contains(cover_name.toLower())) {
 			continue;
 		}
-		QImageReader reader(scan_dir.filePath(image_file_path));
+		/*QImageReader reader(scan_dir.filePath(image_file_path));
 		QImage image(qTheme.GetCacheCoverSize(), kFormat);
 		XAMP_LOG_DEBUG("Found {}", image_file_path.toStdString());
 		if (reader.read(&image)) {
 			return QPixmap::fromImage(image);
-		}		
+		}*/
+		return image_utils::ReadFileImage(scan_dir.filePath(image_file_path),
+			qTheme.GetCacheCoverSize(),
+			kFormat);
 	}
 
 	// If no file matches the 'Front' file name, return the first file that matches the name filters.
 	if (!image_files.empty()) {
-		QImageReader reader(scan_dir.filePath(image_files[0]));
+		/*QImageReader reader(scan_dir.filePath(image_files[0]));
 		QImage image(qTheme.GetCacheCoverSize(), kFormat);
 		XAMP_LOG_DEBUG("Found {}", image_files[0].toStdString());
 		if (reader.read(&image)) {
 			return QPixmap::fromImage(image);
-		}		
+		}*/
+		return image_utils::ReadFileImage(scan_dir.filePath(image_files[0]),
+			qTheme.GetCacheCoverSize(),
+			kFormat);
 	}
 
 	return {};

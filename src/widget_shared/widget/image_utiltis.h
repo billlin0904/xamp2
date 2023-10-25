@@ -35,6 +35,8 @@ XAMP_WIDGET_SHARED_EXPORT QImage BlurImage(const QPixmap& source, QSize size);
 
 XAMP_WIDGET_SHARED_EXPORT int SampleImageBlur(const QImage &image, int blur_alpha);
 
+XAMP_WIDGET_SHARED_EXPORT QPixmap ReadFileImage(const QString& file_path, QSize size, QImage::Format format);
+
 XAMP_WIDGET_SHARED_EXPORT bool OptimizePng(const QString& src_file_path, const QString& dest_file_path);
 
 XAMP_WIDGET_SHARED_EXPORT bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path);

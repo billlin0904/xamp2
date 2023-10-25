@@ -1,7 +1,9 @@
 #include <widget/databasefacade.h>
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
+#include <widget/ui_utilts.h>
 #include <widget/tageditpage.h>
+#include <widget/imagecache.h>
 
 TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	: QFrame(parent)
@@ -33,7 +35,27 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		});
 
 	(void)QObject::connect(ui_.addImageFileButton, &QPushButton::clicked, [=] {
+		const auto index = ui_.titleComboBox->currentIndex();
+		const auto dir = entities_[index].parent_path;
+		constexpr auto file_ext = qTEXT("(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)");
 
+		auto action = [this](auto file_path) {
+			const auto image = image_utils::ReadFileImage(file_path,
+				kCoverSize,
+				ImageCache::kFormat);
+			if (image.isNull()) {
+				return;
+			}
+			const auto image_size = image.size();
+			ui_.coverLabel->setPixmap(image_utils::ResizeImage(image, ui_.coverLabel->size()));
+			ui_.coverSizeLabel->setText(StringFormat("{} x {}", image_size.width(), image_size.height()));
+			};
+
+		GetOpenFileName(parent,
+			action,
+			QWidget::tr("Open image file"),
+			dir,
+			QWidget::tr("Image Files ") + file_ext);
 		});
 
 	ui_.trackComboBox->setCurrentIndex(0);
@@ -50,8 +72,8 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {
 	CoverArtReader cover_reader;
-	QPixmap image = cover_reader.GetEmbeddedCover(entity.file_path.toStdWString());
-	auto image_size = image.size();
+	const QPixmap image = cover_reader.GetEmbeddedCover(entity.file_path.toStdWString());
+	const auto image_size = image.size();
 	if (!image.isNull()) {
 		ui_.coverLabel->setPixmap(image_utils::ResizeImage(image, ui_.coverLabel->size()));
 	}

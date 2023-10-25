@@ -14,6 +14,8 @@
 class XAMP_WIDGET_SHARED_EXPORT TagEditPage : public QFrame {
 	Q_OBJECT
 public:
+	static constexpr QSize kCoverSize{ 600, 600 };
+
 	TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities);
 
 signals:

@@ -5,6 +5,7 @@
 #include <QGraphicsBlurEffect>
 #include <QSaveFile>
 #include <QGraphicsScene>
+#include <QImageReader>
 
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
@@ -450,6 +451,15 @@ QImage BlurImage(const QPixmap& source, QSize size) {
 	auto img = resize_pixmap.toImage();
 	StackblurJob(img, radius);
 	return img;
+}
+
+QPixmap ReadFileImage(const QString& file_path, QSize size, QImage::Format format) {
+	QImage image(size, format);
+	QImageReader reader(file_path);
+	if (reader.read(&image)) {
+		return QPixmap::fromImage(image);
+	}
+	return {};
 }
 
 int SampleImageBlur(const QImage& image, int blur_alpha) {
