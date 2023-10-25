@@ -206,7 +206,8 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_CHEVRON_LEFT,              0xF053 },
     { ICON_SORT_DOWN,                 0xF160 },
     { ICON_FILE_CIRCLE_PLUS,          0xE494 },
-    { ICON_UP,                        0xF357 }
+    { ICON_UP,                        0xF357 },
+    { ICON_EDIT,                      0xF044 }
     };
     
     qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));

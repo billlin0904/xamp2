@@ -1,6 +1,6 @@
 #include <output_device/win32/asioexception.h>
 
-#if ENABLE_ASIO && XAMP_OS_WIN
+#if defined(XAMP_OS_WIN)
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
@@ -45,4 +45,4 @@ AsioException::AsioException(ASIOError error)
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#endif // ENABLE_ASIO && XAMP_OS_WIN
+#endif

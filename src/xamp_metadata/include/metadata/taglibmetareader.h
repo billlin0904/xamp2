@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -23,7 +23,7 @@ public:
     
     TrackInfo Extract(Path const &path) override;
 
-    const Vector<uint8_t>& GetEmbeddedCover(Path const &path) override;
+    const Vector<uint8_t>& ReadEmbeddedCover(Path const &path) override;
 
     static [[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions();
 

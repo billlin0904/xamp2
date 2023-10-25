@@ -221,6 +221,9 @@ public:
 		}
     }
 
+	void RemoveEmbeddedCover(const Path& path) {
+	}
+
 private:
     template <typename Function>
     static void Write(const Path & path, Function &&fun) {
@@ -280,6 +283,10 @@ void TaglibMetadataWriter::WriteTrack(const Path & path, int32_t track) const {
 
 void TaglibMetadataWriter::WriteEmbeddedCover(const Path & path, const Vector<uint8_t> & image) const {
 	writer_->WriteEmbeddedCover(path, image);
+}
+
+void TaglibMetadataWriter::RemoveEmbeddedCover(const Path& path) {
+	writer_->RemoveEmbeddedCover(path);
 }
 
 XAMP_METADATA_NAMESPACE_END

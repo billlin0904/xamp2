@@ -136,6 +136,7 @@ public slots:
 
 	void OnTranslationCompleted(const QString& keyword, const QString& result);
 
+	void OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 

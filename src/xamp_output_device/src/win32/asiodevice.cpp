@@ -1,4 +1,6 @@
-#if ENABLE_ASIO
+#include <base/base.h>
+
+#if XAMP_OS_WIN
 
 #include <asiodrivers.h>
 #include <iasiodrv.h>
@@ -15,13 +17,10 @@
 #include <base/stopwatch.h>
 #include <base/simd.h>
 
-#ifdef XAMP_OS_WIN
 #include <output_device/win32/mmcss.h>
-#endif
-
+#include <output_device/win32/asiodevice.h>
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/asioexception.h>
-#include <output_device/win32/asiodevice.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 

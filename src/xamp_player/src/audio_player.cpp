@@ -86,7 +86,7 @@ static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, Path const& file_p
     return file_stream;
 }
 
-#ifdef ENABLE_ASIO
+#if defined(XAMP_OS_WIN)
 IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
     return dynamic_cast<IDsdDevice*>(device.get());
 }
@@ -130,7 +130,7 @@ void AudioPlayer::Destroy() {
     Stop(false, true);
     stream_.reset();
     read_buffer_.reset();
-#ifdef ENABLE_ASIO
+#if defined(XAMP_OS_WIN)
     ResetAsioDriver();
 #endif
 
@@ -423,7 +423,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
-#ifdef ENABLE_ASIO
+#if defined(XAMP_OS_WIN)
         if (device_type_->GetTypeId() == XAMP_UUID_OF(win32::AsioDeviceType)) {
             return is_muted_;
         }
@@ -627,7 +627,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 }
 
 void AudioPlayer::OpenDevice(double stream_time) {
-#ifdef ENABLE_ASIO
+#if defined(XAMP_OS_WIN)
     if (auto* dsd_output = AsDsdDevice(device_)) {
         if (dsd_mode_ == DsdModes::DSD_MODE_AUTO 
             || dsd_mode_ == DsdModes::DSD_MODE_PCM 

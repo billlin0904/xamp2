@@ -384,7 +384,7 @@ QByteArray Image2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
-std::vector<uint8_t> Image2ByteVector(const QPixmap& source) {
+Vector<uint8_t> Image2ByteVector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);

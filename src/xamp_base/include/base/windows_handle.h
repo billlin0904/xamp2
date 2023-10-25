@@ -60,13 +60,13 @@ struct XAMP_BASE_API MappingMemoryAddressTraits final {
 struct XAMP_BASE_API TimerQueueTraits final {
 	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value);
+	static void close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API RegTraits final {
 	static HKEY invalid() noexcept;
 
-	static void close(HKEY value);
+	static void close(HKEY value) noexcept;
 };
 
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;

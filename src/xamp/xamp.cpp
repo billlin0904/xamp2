@@ -60,6 +60,7 @@
 #include <widget/cdpage.h>
 #include <widget/preferencepage.h>
 #include <widget/maskwidget.h>
+#include <widget/tageditpage.h>
 
 #include <xmessagebox.h>
 #include <thememanager.h>
@@ -667,10 +668,10 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     qTheme.SetMenuStyle(menu);
     const auto * preference_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
-        auto* dialog = new XDialog(this);
-        auto* preference_page = new PreferencePage(dialog);
+        QScopedPointer<XDialog> dialog(new XDialog(this));
+        QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
         preference_page->LoadSettings();
-        dialog->SetContentWidget(preference_page);
+        dialog->SetContentWidget(preference_page.get());
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS));
         dialog->SetTitle(tr("Preference"));
         dialog->exec();
@@ -683,9 +684,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         });
     const auto* about_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
-        auto* dialog = new XDialog(this);        
-        auto* about_page = new AboutPage(dialog);
-        dialog->SetContentWidget(about_page);
+        QScopedPointer<XDialog> dialog(new XDialog(this));
+        QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
+        dialog->SetContentWidget(about_page.get());
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
         dialog->SetTitle(tr("About"));
         dialog->exec();
@@ -1050,12 +1051,12 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
         SetPlayerOrder(true);
-        auto* dialog = new XDialog(this);
-        auto* page = new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog);
-        dialog->SetContentWidget(page, true);
+        QScopedPointer<XDialog> dialog(new XDialog(this));
+        QScopedPointer<PendingPlaylistPage> page(new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog.get()));
+        dialog->SetContentWidget(page.get(), true);
         dialog->SetTitle(tr("Pending playlist"));
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
-        (void)QObject::connect(page,
+        (void)QObject::connect(page.get(),
             &PendingPlaylistPage::PlayMusic,
             current_playlist_page_->playlist(),
             &PlayListTableView::PlayIndex);
@@ -1076,18 +1077,18 @@ void Xamp::InitialController() {
             return;
         }
 
-        auto* dialog = new XDialog(this);
-        auto* eq = new EqualizerView(dialog);
-        dialog->SetContentWidget(eq, false);
+        QScopedPointer<XDialog> dialog(new XDialog(this));
+        QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        dialog->SetContentWidget(eq.get(), false);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
         dialog->SetTitle(tr("EQ"));
         eq->setMinimumWidth(800);
 
-        (void)QObject::connect(eq, &EqualizerView::BandValueChange, [](auto, auto, auto) {
+        (void)QObject::connect(eq.get(), &EqualizerView::BandValueChange, [](auto, auto, auto) {
             qAppSettings.save();
         });
 
-        (void)QObject::connect(eq, &EqualizerView::PreampValueChange, [](auto) {
+        (void)QObject::connect(eq.get(), &EqualizerView::PreampValueChange, [](auto) {
             qAppSettings.save();
         });
         dialog->exec();
@@ -2276,6 +2277,11 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &BackgroundWorker::OnReadReplayGain);
 
     (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::EditTags,
+        this,
+        &Xamp::OnEditTags);
+
+    (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::ExtractFile,
         extract_file_worker_.get(),
         &ExtractFileWorker::OnExtractFile);
@@ -2337,6 +2343,15 @@ void Xamp::OnSetAlbumCover(int32_t album_id,
 
 void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result) {
     qMainDb.UpdateArtistEnglishName(keyword, result);
+}
+
+void Xamp::OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities) {
+    QScopedPointer<XDialog> dialog(new XDialog(this));
+    QScopedPointer<TagEditPage> tag_edit_page(new TagEditPage(dialog.get(), entities));
+    dialog->SetContentWidget(tag_edit_page.get());
+    dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EDIT));
+    dialog->SetTitle(tr("Edit track information"));
+    dialog->exec();
 }
 
 void Xamp::OnReadFileProgress(int32_t progress) {

@@ -20,8 +20,13 @@ public:
 
     QPixmap GetEmbeddedCover(const Path& file_path) const;
 
+    void RemoveEmbeddedCover(const Path& file_path);
+
+    void AddEmbeddedCover(const Path& file_path, const QPixmap &image);
+
 private:
     AlignPtr<IMetadataReader> cover_reader_;
+    AlignPtr<IMetadataWriter> cover_writer_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {

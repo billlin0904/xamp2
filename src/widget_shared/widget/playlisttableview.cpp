@@ -517,6 +517,9 @@ void PlayListTableView::initial() {
 
         action_map.AddSeparator();
 
+        auto* select_item_edit_tag_act = action_map.AddAction(tr("Edit tag"));
+        select_item_edit_tag_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EDIT));
+
         auto* scan_select_item_replaygain_act = action_map.AddAction(tr("Scan file ReplayGain"));
         scan_select_item_replaygain_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SCAN_REPLAY_GAIN));
 
@@ -621,6 +624,15 @@ void PlayListTableView::initial() {
         });
         action_map.SetCallback(copy_title_act, [item]() {
             QApplication::clipboard()->setText(item.title);
+        });
+
+        action_map.SetCallback(select_item_edit_tag_act, [this]() {
+            const auto rows = SelectItemIndex();
+            QList<PlayListEntity> items;
+            for (const auto& row : rows) {
+                items.push_front(this->item(row.second));
+            }
+            emit EditTags(GetPlaylistId(), items);
         });
 
         action_map.SetCallback(scan_select_item_replaygain_act, [this]() {

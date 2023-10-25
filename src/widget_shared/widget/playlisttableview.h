@@ -121,6 +121,8 @@ signals:
 
     void ReadReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
 
+	void EditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
+
 	void UpdateAlbumCover(const QString &cover_id);
 
 	void AddPlaylistItemFinished();

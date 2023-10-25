@@ -64,9 +64,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 #ifdef XAMP_OS_WIN
     Uuid const device_type_id(info.device_type_id);
     return device_type_id == XAMP_UUID_OF(win32::ExclusiveWasapiDeviceType)
-#if ENABLE_ASIO
         || device_type_id == XAMP_UUID_OF(win32::AsioDeviceType)
-#endif
         ;
 #else
     (void)info;
@@ -75,7 +73,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 }
 
 bool IsAsioDevice(Uuid const& id) noexcept {
-#if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
+#if defined(XAMP_OS_WIN)
     return id == XAMP_UUID_OF(win32::AsioDeviceType);
 #else
     (void)id;
@@ -84,7 +82,7 @@ bool IsAsioDevice(Uuid const& id) noexcept {
 }
 
 void ResetAsioDriver() {
-#if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
+#if defined(XAMP_OS_WIN)
     win32::AsioDevice::ResetCurrentDriver();
 #endif
 }

@@ -64,16 +64,30 @@ namespace {
 }
 
 CoverArtReader::CoverArtReader()
-    : cover_reader_(MakeMetadataReader()) {
+    : cover_reader_(MakeMetadataReader())
+    , cover_writer_(MakeMetadataWriter()) {
 }
 
 QPixmap CoverArtReader::GetEmbeddedCover(const Path& file_path) const {
     QPixmap pixmap;
-    const auto& buffer = cover_reader_->GetEmbeddedCover(file_path);
+    const auto& buffer = cover_reader_->ReadEmbeddedCover(file_path);
     if (!buffer.empty()) {
         pixmap.loadFromData(buffer.data(), buffer.size());
     }
     return pixmap;
+}
+
+void CoverArtReader::RemoveEmbeddedCover(const Path& file_path) {
+    cover_writer_->RemoveEmbeddedCover(file_path);
+}
+
+void CoverArtReader::AddEmbeddedCover(const Path& file_path, const QPixmap& image) {
+    if (image.isNull()) {
+        return;
+    }
+
+    auto buffer = image_utils::Image2ByteVector(image);
+    cover_writer_->WriteEmbeddedCover(file_path, buffer);
 }
 
 QPixmap CoverArtReader::GetEmbeddedCover(const TrackInfo& track_info) const {

@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -24,15 +24,17 @@ public:
    
     void Write(Path const & path, TrackInfo const& trackinfo) override;
 
-    void WriteTitle(Path const & path, std::wstring const & title) const;
+    void WriteTitle(const Path & path, const std::wstring & title) const;
 
-    void WriteArtist(Path const & path, std::wstring const & artist) const;
+    void WriteArtist(const Path & path, const std::wstring & artist) const;
 
-    void WriteAlbum(Path const & path, std::wstring const & album) const;
+    void WriteAlbum(const Path & path, const std::wstring & album) const;
 
-    void WriteTrack(Path const & path, int32_t track) const;
+    void WriteTrack(const Path & path, int32_t track) const;
 
-    void WriteEmbeddedCover(Path const & path, Vector<uint8_t> const &image) const override;
+    void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> &image) const override;
+
+    void RemoveEmbeddedCover(const Path& path) override;
 private:
     class TaglibMetadataWriterImpl;
     AlignPtr<TaglibMetadataWriterImpl> writer_;

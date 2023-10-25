@@ -5,25 +5,23 @@
 
 #pragma once
 
-#include <chrono>
-#include <base/base.h>
-#include <base/align_ptr.h>
-#include <base/pimplptr.h>
+#include <QFrame>
 
-XAMP_BASE_NAMESPACE_BEGIN
+#include <ui_tageditpage.h>
+#include <widget/widget_shared_global.h>
+#include <widget/playlistentity.h>
 
-class XAMP_BASE_API WaitableTimer final {
+class XAMP_WIDGET_SHARED_EXPORT TagEditPage : public QFrame {
+	Q_OBJECT
 public:
-	WaitableTimer() noexcept;
+	TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities);
 
-	XAMP_PIMPL(WaitableTimer)
+signals:
+	
 
-	void SetTimeout(std::chrono::milliseconds timeout) noexcept;
-
-	void Wait();
 private:
-	class WaitableTimerImpl;
-	AlignPtr<WaitableTimerImpl> impl_;
-};
+	void ReadEmbeddedCover(const PlayListEntity &entity);
 
-XAMP_BASE_NAMESPACE_END
+	Ui::TagEditPage ui_;
+	QList<PlayListEntity> entities_;
+};

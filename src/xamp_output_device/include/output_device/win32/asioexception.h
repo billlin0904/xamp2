@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2022 xamp project. All rights reserved.
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 
-#if ENABLE_ASIO && XAMP_OS_WIN
+#if XAMP_OS_WIN
 
 #include <asiosys.h>
 #include <asio.h>
@@ -74,4 +74,4 @@ public:
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#endif // ENABLE_ASIO && XAMP_OS_WIN
+#endif

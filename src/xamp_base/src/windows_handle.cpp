@@ -48,15 +48,15 @@ HANDLE TimerQueueTraits::invalid() noexcept {
 	return nullptr;
 }
 
-void TimerQueueTraits::close(HANDLE value) {
-	::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
+void TimerQueueTraits::close(HANDLE value) noexcept {
+	(void) ::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
 }
 
 HKEY RegTraits::invalid() noexcept {
 	return nullptr;
 }
 
-void RegTraits::close(HKEY value) {
+void RegTraits::close(HKEY value) noexcept {
 	::RegCloseKey(value);
 }
 

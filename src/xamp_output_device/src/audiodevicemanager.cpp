@@ -10,11 +10,9 @@
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>
 #include <output_device/win32/nulloutputdevicetype.h>
-#if ENABLE_ASIO
 #include <output_device/win32/mmcss.h>
 #include <output_device/win32/asiodevice.h>
 #include <output_device/win32/asiodevicetype.h>
-#endif
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <output_device/osx/osx_utitl.h>
@@ -76,9 +74,7 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
-#if ENABLE_ASIO
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
-#endif
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
@@ -115,7 +111,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
 }
 
 bool AudioDeviceManager::IsSupportAsio() const noexcept {
-#if ENABLE_ASIO && defined(XAMP_OS_WIN)
+#if defined(XAMP_OS_WIN)
     return IsDeviceTypeExist(XAMP_UUID_OF(win32::AsioDeviceType));
 #else
     return false;

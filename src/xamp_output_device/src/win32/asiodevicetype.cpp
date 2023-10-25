@@ -1,6 +1,6 @@
 #include <output_device/win32/asiodevicetype.h>
 
-#if ENABLE_ASIO && XAMP_OS_WIN
+#if defined(XAMP_OS_WIN)
 
 #include <output_device/win32/asiodevice.h>
 

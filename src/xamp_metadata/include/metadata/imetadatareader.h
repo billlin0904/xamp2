@@ -45,7 +45,7 @@ public:
     * @param[in] path file path.
     * @return Vector<uint8_t>
     */
-    virtual const Vector<uint8_t>& GetEmbeddedCover(const Path &path) = 0;
+    virtual const Vector<uint8_t>& ReadEmbeddedCover(const Path &path) = 0;
 
     /*
     * Check file is supported.

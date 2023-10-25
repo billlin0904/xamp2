@@ -433,7 +433,7 @@ public:
         return track_info;
     }
 
-    Vector<uint8_t> const & ExtractCover(Path const & path) {
+    Vector<uint8_t> const & ReadEmbeddedCover(const Path & path) {
         cover_.clear();
 
 		if (!IsSupported(path)) {
@@ -480,8 +480,8 @@ std::optional<ReplayGain> TaglibMetadataReader::GetReplayGain(const Path& path) 
     return reader_->GetReplayGain(path);
 }
 
-const Vector<uint8_t>& TaglibMetadataReader::GetEmbeddedCover(Path const & path) {
-    return reader_->ExtractCover(path);
+const Vector<uint8_t>& TaglibMetadataReader::ReadEmbeddedCover(Path const & path) {
+    return reader_->ReadEmbeddedCover(path);
 }
 
 const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() {

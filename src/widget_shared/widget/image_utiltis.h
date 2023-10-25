@@ -9,6 +9,8 @@
 
 #include <QPixmap>
 #include <QImage>
+
+#include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
 namespace image_utils {
@@ -25,7 +27,7 @@ XAMP_WIDGET_SHARED_EXPORT QPixmap RoundDarkImage(QSize size, int32_t alpha = 80,
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-XAMP_WIDGET_SHARED_EXPORT std::vector<uint8_t> Image2ByteVector(const QPixmap& source);
+XAMP_WIDGET_SHARED_EXPORT Vector<uint8_t> Image2ByteVector(const QPixmap& source);
 
 XAMP_WIDGET_SHARED_EXPORT QByteArray Image2ByteArray(const QPixmap& source);
 
