@@ -114,7 +114,6 @@ public:
         }
          
         auto value = std::move(queue_.top());
-        queue_.pop();
         return value;
 	}
 
@@ -185,7 +184,6 @@ public:
         }
 
         task = std::move(queue_.top());
-        queue_.pop();
         return true;
     }
 

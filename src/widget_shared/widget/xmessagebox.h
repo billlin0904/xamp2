@@ -10,6 +10,8 @@
 
 #include <version.h>
 #include <base/exception.h>
+
+#include <widget/widget_shared_global.h>
 #include <widget/xdialog.h>
 
 class QIcon;
@@ -19,7 +21,7 @@ class QLabel;
 
 using xamp::base::Exception;
 
-class XMessageBox : public XDialog {
+class XAMP_WIDGET_SHARED_EXPORT XMessageBox : public XDialog {
 public:
     static constexpr auto kDefaultTimeoutSecond = 8;
 

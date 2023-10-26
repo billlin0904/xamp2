@@ -24,6 +24,8 @@ signals:
 private:
 	void ReadEmbeddedCover(const PlayListEntity &entity);
 
+	void SetImageLabel(const QPixmap &image, QSize image_size, size_t image_file_size);
+
 	Ui::TagEditPage ui_;
 	QList<PlayListEntity> entities_;
 };

@@ -31,6 +31,8 @@ XAMP_WIDGET_SHARED_EXPORT Vector<uint8_t> Image2ByteVector(const QPixmap& source
 
 XAMP_WIDGET_SHARED_EXPORT QByteArray Image2ByteArray(const QPixmap& source);
 
+XAMP_WIDGET_SHARED_EXPORT QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality = 100);
+
 XAMP_WIDGET_SHARED_EXPORT QImage BlurImage(const QPixmap& source, QSize size);
 
 XAMP_WIDGET_SHARED_EXPORT int SampleImageBlur(const QImage &image, int blur_alpha);

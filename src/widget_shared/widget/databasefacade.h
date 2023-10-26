@@ -20,9 +20,11 @@ public:
 
     QPixmap GetEmbeddedCover(const Path& file_path) const;
 
+    bool GetEmbeddedCover(const Path& file_path, QPixmap &image, size_t &image_size) const;
+
     void RemoveEmbeddedCover(const Path& file_path);
 
-    void AddEmbeddedCover(const Path& file_path, const QPixmap &image);
+    void WriteEmbeddedCover(const Path& file_path, const QPixmap &image);
 
 private:
     AlignPtr<IMetadataReader> cover_reader_;

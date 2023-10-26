@@ -1,4 +1,4 @@
-#include <xmessagebox.h>
+#include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
 #include <widget/xmainwindow.h>
 #include <widget/ui_utilts.h>

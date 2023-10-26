@@ -181,7 +181,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
     <ClCompile Include="xamp.cpp" />
-    <ClCompile Include="xmessagebox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="..\widget_shared\cdpage.ui" />
@@ -202,7 +201,6 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="xmessagebox.h" />
     <QtMoc Include="singleinstanceapplication.h" />
     <ClInclude Include="resource.h" />
     <QtMoc Include="xamp.h">

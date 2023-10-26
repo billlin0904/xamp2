@@ -126,6 +126,7 @@
     <QtMoc Include="widget\tageditpage.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
+    <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="widget\win32\wintaskbar.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
+    <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\zib_utiltis.cpp" />
   </ItemGroup>

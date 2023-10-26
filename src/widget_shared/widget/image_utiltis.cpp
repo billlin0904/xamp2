@@ -385,6 +385,26 @@ QByteArray Image2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
+QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality) {
+	QByteArray bytes;
+	QBuffer buffer(&bytes);
+
+	auto image = source.toImage();
+
+	QImage temp(image.size(), QImage::Format_ARGB32);
+	temp.fill(QColor(Qt::white).rgb());
+
+	QPainter painter(&temp);
+	painter.drawImage(0, 0, image);
+
+	temp.save(&buffer, "JPG", quality);
+
+	QPixmap pixmap;
+	pixmap.loadFromData(bytes);
+
+	return pixmap;
+}
+
 Vector<uint8_t> Image2ByteVector(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);

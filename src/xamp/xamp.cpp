@@ -61,8 +61,8 @@
 #include <widget/preferencepage.h>
 #include <widget/maskwidget.h>
 #include <widget/tageditpage.h>
+#include <widget/xmessagebox.h>
 
-#include <xmessagebox.h>
 #include <thememanager.h>
 #include <version.h>
 

@@ -68,6 +68,17 @@ CoverArtReader::CoverArtReader()
     , cover_writer_(MakeMetadataWriter()) {
 }
 
+bool CoverArtReader::GetEmbeddedCover(const Path& file_path, QPixmap& image, size_t& image_size) const {
+    const auto& buffer = cover_reader_->ReadEmbeddedCover(file_path);
+    image_size = 0;
+    if (!buffer.empty()) {
+        image.loadFromData(buffer.data(), buffer.size());
+        image_size = buffer.size();
+        return true;
+    }    
+    return false;
+}
+
 QPixmap CoverArtReader::GetEmbeddedCover(const Path& file_path) const {
     QPixmap pixmap;
     const auto& buffer = cover_reader_->ReadEmbeddedCover(file_path);
@@ -81,7 +92,7 @@ void CoverArtReader::RemoveEmbeddedCover(const Path& file_path) {
     cover_writer_->RemoveEmbeddedCover(file_path);
 }
 
-void CoverArtReader::AddEmbeddedCover(const Path& file_path, const QPixmap& image) {
+void CoverArtReader::WriteEmbeddedCover(const Path& file_path, const QPixmap& image) {
     if (image.isNull()) {
         return;
     }

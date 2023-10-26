@@ -171,30 +171,30 @@ public:
 		}
 	}
 
-	void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> & image) const {
+	void WriteEmbeddedCover(const Path& path, const uint8_t *image, size_t image_size) const {
 		const auto ext = String::ToLower(path.extension().string());
-		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
+		const TagLib::ByteVector imagedata(reinterpret_cast<const char*>(image), image_size);
 
 		if (ext == ".m4a") {
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
-            Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
+			Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
 				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
-					auto &items_list_map = mp4_tag->itemListMap();
+					auto& items_list_map = mp4_tag->itemListMap();
 					TagLib::MP4::CoverArtList cover_art_list;
 					cover_art_list.append(cover_art);
 					const TagLib::MP4::Item cover_item(cover_art_list);
 					items_list_map.insert("covr", cover_item);
 				}
-			});
+				});
 		}
 		else if (ext == ".mp3") {
-            Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
+			Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
 				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
 					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
 						const auto frame_list = mp3_tag->frameList("APIC");
 						for (auto* it : frame_list) {
-							auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(it);
+							auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(it);
 							if (frame != nullptr) {
 								mp3_tag->removeFrame(frame, true);
 							}
@@ -204,11 +204,12 @@ public:
 						frame->setMimeType("image/jpeg");
 						frame->setPicture(imagedata);
 						mp3_tag->addFrame(frame);
-					}					
+					}
 				}
-			});
-		} else if (ext == ".flac") {
-            Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
+				});
+		}
+		else if (ext == ".flac") {
+			Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
 				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					flac_file->removePictures();
 					auto* picture = new TagLib::FLAC::Picture();
@@ -217,8 +218,12 @@ public:
 					picture->setType(TagLib::FLAC::Picture::FrontCover);
 					flac_file->addPicture(picture);
 				}
-			});
+				});
 		}
+	}
+
+	void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> & image) const {		
+		WriteEmbeddedCover(path, image.data(), image.size());
     }
 
 	void RemoveEmbeddedCover(const Path& path) {

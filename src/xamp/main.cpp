@@ -24,6 +24,7 @@
 #include <widget/http.h>
 #include <widget/databasefacade.h>
 #include <widget/log_util.h>
+#include <widget/xmessagebox.h>
 
 #include <QLoggingCategory>
 #include <QOperatingSystemVersion>
@@ -33,7 +34,6 @@
 #include <FramelessHelper/Core/private/framelessconfig_p.h>
 
 #include <thememanager.h>
-#include <xmessagebox.h>
 #include <singleinstanceapplication.h>
 #include <version.h>
 #include <xamp.h>

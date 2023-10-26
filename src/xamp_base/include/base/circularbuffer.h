@@ -228,17 +228,6 @@ public:
     }
 
     /*
-    * Remove the first item in the buffer.
-    */
-    void pop() {
-        /*if (empty()) {
-			throw std::runtime_error("empty buffer");
-		}
-		auto pos = first_pos();
-		size_--;*/
-    }
-
-    /*
     * Begin iterator.
     * 
     * @return The begin iterator.
