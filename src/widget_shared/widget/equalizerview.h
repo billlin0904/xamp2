@@ -8,18 +8,24 @@
 #include <QLineEdit>
 #include <QList>
 #include <QTimer>
+#include <QLabel>
 
-#include <ui_equalizerdialog.h>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <stream/bassparametriceq.h>
 
 class DoubleSlider;
 
+namespace Ui {
+    class EqualizerView;
+}
+
 class XAMP_WIDGET_SHARED_EXPORT EqualizerView : public QFrame {
     Q_OBJECT
 public:
     explicit EqualizerView(QWidget *parent = nullptr);
+
+    virtual ~EqualizerView() override;
 
 signals:
    void BandValueChange(int band, float value, float Q);
@@ -34,5 +40,5 @@ private:
     std::vector<QLabel*> freq_label_;
     std::vector<QLabel*> bands_label_;
     std::vector<DoubleSlider*> sliders_;
-    Ui::EqualizerView ui_;
+    Ui::EqualizerView *ui_;
 };

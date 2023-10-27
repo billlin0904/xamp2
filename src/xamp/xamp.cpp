@@ -632,37 +632,33 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     constexpr auto platform_key = qTEXT("windows");
 
-    auto* updater = QSimpleUpdater::getInstance();
-
-    updater->setPlatformKey(kSoftwareUpdateUrl, platform_key);
-    updater->setModuleVersion(kSoftwareUpdateUrl, kApplicationVersion);
-    updater->setUseCustomAppcast(kSoftwareUpdateUrl, true);
+    auto* updater = QSimpleUpdater::getInstance();    
 
     (void)QObject::connect(updater,
         &QSimpleUpdater::appcastDownloaded,
         [updater, platform_key, this](const QString& url, const QByteArray& reply) {
-        const auto document = QJsonDocument::fromJson(reply);
-        const auto updates = document.object().value(qTEXT("updates")).toObject();
-        const auto platform = updates.value(platform_key).toObject();
-        const auto changelog = platform.value(qTEXT("changelog")).toString();
-        const auto latest_version = platform.value(qTEXT("latest-version")).toString();
+            const auto document = QJsonDocument::fromJson(reply);
+            const auto updates = document.object().value(qTEXT("updates")).toObject();
+            const auto platform = updates.value(platform_key).toObject();
+            const auto changelog = platform.value(qTEXT("changelog")).toString();
+            const auto latest_version = platform.value(qTEXT("latest-version")).toString();
 
-        Version latest_version_value;
-        if (!ParseVersion(latest_version, latest_version_value)) {
-            return;
-        }
-        
-        if (trigger_upgrade_action_) {
-            const auto download_url = platform.value(qTEXT("download-url")).toString();
-            XMessageBox::ShowInformation(changelog, qTEXT("New version!"), false);
-        }
+            Version latest_version_value;
+            if (!ParseVersion(latest_version, latest_version_value)) {
+                return;
+            }
 
-        if (latest_version_value > kApplicationVersionValue) {
-            trigger_upgrade_action_ = true;
-        }
+            if (trigger_upgrade_action_) {
+                //const auto download_url = platform.value(qTEXT("download-url")).toString();
+                //XMessageBox::ShowInformation(changelog, qTEXT("New version!"), false);
+            }
+
+            if (latest_version_value > kApplicationVersionValue) {
+                trigger_upgrade_action_ = true;
+            }
+
+            emit UpdateNewVersion(latest_version_value);
         });
-    
-    updater->checkForUpdates(kSoftwareUpdateUrl);
 
     auto* menu = new XMenu();
     qTheme.SetMenuStyle(menu);
@@ -677,22 +673,33 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         dialog->exec();
         preference_page->SaveAll();
         });
-    menu->addSeparator();
-    const auto* check_for_updates_action = menu->addAction(tr("Check For Updates"));
-    (void)QObject::connect(check_for_updates_action, &QAction::triggered, [updater, this]() {
-        updater->checkForUpdates(kSoftwareUpdateUrl);
-        });
+   
     const auto* about_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
+        (void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::OnCheckForUpdate);
+        (void)QObject::connect(this, &Xamp::UpdateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
         dialog->SetContentWidget(about_page.get());
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
         dialog->SetTitle(tr("About"));
+        emit about_page->CheckForUpdate();
         dialog->exec();
         });
     ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
     ui_.menuButton->setMenu(menu);
+
+    OnCheckForUpdate();
+}
+
+void Xamp::OnCheckForUpdate() {
+    auto* updater = QSimpleUpdater::getInstance();
+
+    constexpr auto platform_key = qTEXT("windows");
+    updater->setPlatformKey(kSoftwareUpdateUrl, platform_key);
+    updater->setModuleVersion(kSoftwareUpdateUrl, kApplicationVersion);
+    updater->setUseCustomAppcast(kSoftwareUpdateUrl, true);
+    updater->checkForUpdates(kSoftwareUpdateUrl);
 }
 
 void Xamp::OnActivated(QSystemTrayIcon::ActivationReason reason) {

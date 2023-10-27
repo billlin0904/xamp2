@@ -1,5 +1,5 @@
 #include <widget/volumecontroldialog.h>
-
+#include <ui_volumecontroldialog.h>
 #include <thememanager.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
@@ -8,16 +8,17 @@
 VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent)
 	: QDialog(parent)
 	, player_(player) {
-	ui_.setupUi(this);
+    ui_ = new Ui::VolumeControlDialog();
+	ui_->setupUi(this);
     setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 
     setAttribute(Qt::WA_StyledBackground);
 	setFixedSize(35, 110);
 
-	ui_.volumeSlider->SetRange(0, 100);
-    ui_.volumeSlider->setFocusPolicy(Qt::NoFocus);
-    ui_.volumeSlider->setInvertedAppearance(false);
-    ui_.volumeSlider->setInvertedControls(false);
+	ui_->volumeSlider->SetRange(0, 100);
+    ui_->volumeSlider->setFocusPolicy(Qt::NoFocus);
+    ui_->volumeSlider->setInvertedAppearance(false);
+    ui_->volumeSlider->setInvertedControls(false);
 
     if (qAppSettings.ValueAsBool(kAppSettingIsMuted)) {
         SetVolume(0);
@@ -25,18 +26,18 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     else {
         const auto vol = qAppSettings.GetValue(kAppSettingVolume).toUInt();
         SetVolume(vol);
-        ui_.volumeSlider->setValue(vol);
+        ui_->volumeSlider->setValue(vol);
     }
 
-    (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
+    (void)QObject::connect(ui_->volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         SetVolume(volume);
         });
 
-    (void)QObject::connect(ui_.volumeSlider, &SeekSlider::LeftButtonValueChanged, [this](auto volume) {
+    (void)QObject::connect(ui_->volumeSlider, &SeekSlider::LeftButtonValueChanged, [this](auto volume) {
 		SetVolume(volume);
         });
 
-    (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
+    (void)QObject::connect(ui_->volumeSlider, &QSlider::sliderMoved, [](auto volume) {
         });
 
     SetThemeColor();
@@ -45,11 +46,11 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 
     auto f = font();
     f.setFamily(qTEXT("MonoFont"));
-    ui_.volumeLabel->setFont(f);
-    ui_.volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: white;"));
-    ui_.volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_->volumeLabel->setFont(f);
+    ui_->volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: white;"));
+    ui_->volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
 
-    qTheme.SetSliderTheme(ui_.volumeSlider, true);
+    qTheme.SetSliderTheme(ui_->volumeSlider, true);
 }
 
 void VolumeControlDialog::SetThemeColor() {
@@ -61,15 +62,16 @@ void VolumeControlDialog::SetThemeColor() {
         setStyleSheet(qTEXT(R"(QDialog#VolumeControlDialog { background-color: gray; border: none; })"));
         break;
     }
-    qTheme.SetSliderTheme(ui_.volumeSlider, true);
+    qTheme.SetSliderTheme(ui_->volumeSlider, true);
 }
 
 VolumeControlDialog::~VolumeControlDialog() {
-    qAppSettings.SetValue(kAppSettingVolume, ui_.volumeSlider->value());
+    qAppSettings.SetValue(kAppSettingVolume, ui_->volumeSlider->value());
+    delete ui_;
 }
 
 void VolumeControlDialog::UpdateVolume() {
-    ui_.volumeSlider->setValue(player_->GetVolume());
+    ui_->volumeSlider->setValue(player_->GetVolume());
 }
 
 void VolumeControlDialog::SetVolume(uint32_t volume, bool notify) {
@@ -88,16 +90,16 @@ void VolumeControlDialog::SetVolume(uint32_t volume, bool notify) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
-                ui_.volumeSlider->setDisabled(false);
+                ui_->volumeSlider->setDisabled(false);
             }
         }
         else {
-            ui_.volumeSlider->setDisabled(true);
+            ui_->volumeSlider->setDisabled(true);
         }
         if (notify) {
             emit VolumeChanged(volume);
         }
-        ui_.volumeLabel->setText(QString::number(volume));
+        ui_->volumeLabel->setText(QString::number(volume));
     }
     catch (const Exception& e) {
         player_->Stop(false);

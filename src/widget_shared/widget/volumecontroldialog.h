@@ -7,9 +7,12 @@
 
 #include <QDialog>
 
-#include <ui_volumecontroldialog.h>
 #include <widget/widget_shared.h>
 #include <widget/xdialog.h>
+
+namespace Ui {
+	class VolumeControlDialog;
+}
 
 class XAMP_WIDGET_SHARED_EXPORT VolumeControlDialog : public QDialog {
     Q_OBJECT
@@ -28,6 +31,6 @@ signals:
     void VolumeChanged(uint32_t volume);
 
 private:
-	Ui::VolumeControlDialog ui_;
+	Ui::VolumeControlDialog* ui_;
 	std::shared_ptr<IAudioPlayer> player_;
 };

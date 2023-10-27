@@ -5,27 +5,29 @@
 
 #pragma once
 
-#include <ui_cdpage.h>
 #include <thememanager.h>
-
 #include <widget/widget_shared_global.h>
 
 class PlaylistPage;
+
+namespace Ui {
+    class CDPage;
+}
 
 class XAMP_WIDGET_SHARED_EXPORT CdPage final : public QFrame {
     Q_OBJECT
 public:
     explicit CdPage(QWidget* parent = nullptr);
 
+    virtual ~CdPage() override;
+
     void showPlaylistPage(bool show);
 
-    PlaylistPage* playlistPage() const {
-        return ui_.playlistPage;
-    }
+    PlaylistPage* playlistPage() const;
 
 public slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
 
 private:
-    Ui::CDPage ui_;
+    Ui::CDPage* ui_;
 };

@@ -101,6 +101,8 @@ XAMP_WIDGET_SHARED_EXPORT QString ToNativeSeparators(const QString& path);
 
 XAMP_WIDGET_SHARED_EXPORT bool ParseVersion(const QString& s, Version& version);
 
+XAMP_WIDGET_SHARED_EXPORT QString FormatVersion(const Version& version);
+
 QString FormatDsdSampleRate(uint32_t dsd_speed);
 
 QString BackgroundColorToString(QColor color);

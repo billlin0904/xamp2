@@ -111,6 +111,12 @@ QString FormatTime(quint64 time) {
     return date_time.toString(qTEXT("yyyy-MM-dd"));
 }
 
+QString FormatVersion(const Version& version) {
+    return qSTR("%1.%2.%3").arg(version.major_part)
+        .arg(version.minor_part)
+        .arg(version.revision_part);
+}
+
 QString FormatDb(double value, int prec) {
     return qSTR("%1 dB").arg(FormatDouble(value, prec));
 }

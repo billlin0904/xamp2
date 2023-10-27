@@ -1,5 +1,6 @@
 #include <widget/databasefacade.h>
 #include <widget/str_utilts.h>
+#include <ui_tageditpage.h>
 #include <widget/image_utiltis.h>
 #include <widget/ui_utilts.h>
 #include <widget/tageditpage.h>
@@ -9,7 +10,8 @@
 TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	: QFrame(parent)
 	, entities_(entities) {
-	ui_.setupUi(this);
+	ui_ = new Ui::TagEditPage();
+	ui_->setupUi(this);
 
 	const CoverArtReader cover_reader;
 
@@ -17,36 +19,36 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		if (!cover_reader.CanWriteEmbeddedCover(entity.file_path.toStdWString())) {
 			continue;
 		}
-		ui_.titleComboBox->addItem(entity.title);
+		ui_->titleComboBox->addItem(entity.title);
 	}
 
 	Q_FOREACH(const auto entity, entities_) {
 		if (!cover_reader.CanWriteEmbeddedCover(entity.file_path.toStdWString())) {
 			continue;
 		}
-		ui_.trackComboBox->addItem(QString::number(entity.track));
+		ui_->trackComboBox->addItem(QString::number(entity.track));
 	}	
 
-	(void)QObject::connect(ui_.titleComboBox, &QComboBox::activated, [this](auto index) {
-		ui_.artistLineEdit->setText(entities_[index].artist);
-		ui_.albumLineEdit->setText(entities_[index].album);
-		ui_.commentLineEdit->setText(entities_[index].comment);
-		ui_.trackComboBox->setCurrentIndex(index);
+	(void)QObject::connect(ui_->titleComboBox, &QComboBox::activated, [this](auto index) {
+		ui_->artistLineEdit->setText(entities_[index].artist);
+		ui_->albumLineEdit->setText(entities_[index].album);
+		ui_->commentLineEdit->setText(entities_[index].comment);
+		ui_->trackComboBox->setCurrentIndex(index);
 		ReadEmbeddedCover(entities_[index]);
 		});
 
-	(void)QObject::connect(ui_.trackComboBox, &QComboBox::activated, [this](auto index) {
-		ui_.artistLineEdit->setText(entities_[index].artist);
-		ui_.albumLineEdit->setText(entities_[index].album);
-		ui_.commentLineEdit->setText(entities_[index].comment);
-		ui_.titleComboBox->setCurrentIndex(index);
+	(void)QObject::connect(ui_->trackComboBox, &QComboBox::activated, [this](auto index) {
+		ui_->artistLineEdit->setText(entities_[index].artist);
+		ui_->albumLineEdit->setText(entities_[index].album);
+		ui_->commentLineEdit->setText(entities_[index].comment);
+		ui_->titleComboBox->setCurrentIndex(index);
 		ReadEmbeddedCover(entities_[index]);
 		});
 
-	(void)QObject::connect(ui_.removeCoverButton, &QPushButton::clicked, [this] {
+	(void)QObject::connect(ui_->removeCoverButton, &QPushButton::clicked, [this] {
 		});
 
-	(void)QObject::connect(ui_.saveToFileButton, &QPushButton::clicked, [this] {
+	(void)QObject::connect(ui_->saveToFileButton, &QPushButton::clicked, [this] {
 		if (XMessageBox::ShowYesOrNo(qApp->tr("Do you want write cover image?")) != QDialogButtonBox::Yes) {
 			return;
 		}
@@ -59,14 +61,14 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			return;
 		}
 
-		const auto index = ui_.titleComboBox->currentIndex();
+		const auto index = ui_->titleComboBox->currentIndex();
 
 		CoverArtReader cover_reader;
 		cover_reader.WriteEmbeddedCover(entities_[index].file_path.toStdWString(), temp_image_);
 		});
 
-	(void)QObject::connect(ui_.addImageFileButton, &QPushButton::clicked, [=] {
-		const auto index = ui_.titleComboBox->currentIndex();
+	(void)QObject::connect(ui_->addImageFileButton, &QPushButton::clicked, [=] {
+		const auto index = ui_->titleComboBox->currentIndex();
 		const auto dir = entities_[index].parent_path;
 		constexpr auto file_ext = qTEXT("(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)");
 
@@ -95,7 +97,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 			const auto image_file_size = QFileInfo(temp_file_path_).size();
 			const auto image_size = temp_image_.size();
-			const auto resize_image = image_utils::ResizeImage(temp_image_, ui_.coverLabel->size());
+			const auto resize_image = image_utils::ResizeImage(temp_image_, ui_->coverLabel->size());
 
 			SetImageLabel(resize_image, image_size, image_file_size);
 			};
@@ -107,16 +109,20 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			QWidget::tr("Image Files ") + file_ext);
 		});
 
-	ui_.trackComboBox->setCurrentIndex(0);
-	ui_.titleComboBox->setCurrentIndex(0);
+	ui_->trackComboBox->setCurrentIndex(0);
+	ui_->titleComboBox->setCurrentIndex(0);
 
-	ui_.artistLineEdit->setText(entities_[0].artist);
-	ui_.albumLineEdit->setText(entities_[0].album);
-	ui_.commentLineEdit->setText(entities_[0].comment);
+	ui_->artistLineEdit->setText(entities_[0].artist);
+	ui_->albumLineEdit->setText(entities_[0].album);
+	ui_->commentLineEdit->setText(entities_[0].comment);
 
-	ui_.coverSizeLabel->setText(StringFormat("{} x {} (0 B)", 0, 0));
+	ui_->coverSizeLabel->setText(StringFormat("{} x {} (0 B)", 0, 0));
 
 	ReadEmbeddedCover(entities_[0]);
+}
+
+TagEditPage::~TagEditPage() {
+	delete ui_;
 }
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {
@@ -127,15 +133,15 @@ void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {
 
 	if (cover_reader.GetEmbeddedCover(entity.file_path.toStdWString(), image, image_file_size)) {
 		image_size = image.size();
-		image = image_utils::ResizeImage(image, ui_.coverLabel->size());		
+		image = image_utils::ResizeImage(image, ui_->coverLabel->size());		
 	}
 
 	SetImageLabel(image, image_size, image_file_size);
 }
 
 void TagEditPage::SetImageLabel(const QPixmap& image, QSize image_size, size_t image_file_size) {	
-	ui_.coverLabel->setPixmap(image);
-	ui_.coverSizeLabel->setText(StringFormat("{} x {} ({})",
+	ui_->coverLabel->setPixmap(image);
+	ui_->coverSizeLabel->setText(StringFormat("{} x {} ({})",
 		image_size.width(),
 		image_size.height(),
 		String::FormatBytes(image_file_size)));

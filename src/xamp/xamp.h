@@ -89,6 +89,8 @@ signals:
 	void Translation(const QString& keyword, const QString& from, const QString& to);	
 
 	void ChangePlayerOrder(PlayerOrder order);
+
+	void UpdateNewVersion(const Version &version);
 public slots:
     void PlayEntity(const PlayListEntity& entity);
 
@@ -137,6 +139,9 @@ public slots:
 	void OnTranslationCompleted(const QString& keyword, const QString& result);
 
 	void OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
+
+	void OnCheckForUpdate();
+	
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 

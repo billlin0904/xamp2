@@ -7,9 +7,12 @@
 
 #include <QFrame>
 
-#include <ui_tageditpage.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playlistentity.h>
+
+namespace Ui {
+	class TagEditPage;
+}
 
 class XAMP_WIDGET_SHARED_EXPORT TagEditPage : public QFrame {
 	Q_OBJECT
@@ -17,6 +20,8 @@ public:
 	static constexpr QSize kCoverSize{ 600, 600 };
 
 	TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities);
+
+	virtual ~TagEditPage() override;
 
 signals:
 	
@@ -29,5 +34,5 @@ private:
 	QString temp_file_path_;
 	QPixmap temp_image_;
 	QList<PlayListEntity> entities_;
-	Ui::TagEditPage ui_;
+	Ui::TagEditPage *ui_;
 };

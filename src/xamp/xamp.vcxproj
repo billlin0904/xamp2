@@ -183,12 +183,6 @@
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="..\widget_shared\cdpage.ui" />
-    <QtUic Include="..\widget_shared\equalizerdialog.ui" />
-    <QtUic Include="..\widget_shared\filesystemviewpage.ui" />
-    <QtUic Include="..\widget_shared\preferencedialog.ui" />
-    <QtUic Include="..\widget_shared\tageditpage.ui" />
-    <QtUic Include="..\widget_shared\volumecontroldialog.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
   <ItemGroup>

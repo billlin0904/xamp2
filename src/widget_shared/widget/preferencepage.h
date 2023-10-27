@@ -6,16 +6,21 @@
 #pragma once
 
 #include <QMap>
-
-#include "ui_preferencedialog.h"
+#include <QFrame>
 
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
+
+namespace Ui {
+    class PreferenceDialog;
+}
 
 class XAMP_WIDGET_SHARED_EXPORT PreferencePage final : public QFrame {
     Q_OBJECT
 public:
     explicit PreferencePage(QWidget *parent = nullptr);
+
+    virtual ~PreferencePage() override;
 
     void LoadSettings();
 
@@ -44,5 +49,5 @@ private:
 
     void SetPhasePercentText(int32_t value);
 
-    Ui::PreferenceDialog ui_;
+    Ui::PreferenceDialog* ui_;
 };

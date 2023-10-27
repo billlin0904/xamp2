@@ -1,7 +1,7 @@
 #include <widget/volumebutton.h>
 
 #include <thememanager.h>
-
+#include <QMouseEvent>
 #include <base/logger_impl.h>
 #include <widget/ui_utilts.h>
 #include <widget/volumecontroldialog.h>

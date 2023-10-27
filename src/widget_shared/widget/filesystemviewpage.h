@@ -5,16 +5,22 @@
 
 #pragma once
 
-#include <ui_filesystemviewpage.h>
 #include <widget/widget_shared_global.h>
+#include <QFrame>
 
 class PlaylistPage;
 class FileSystemModel;
+
+namespace Ui {
+	class FileSystemViewPage;
+}
 
 class XAMP_WIDGET_SHARED_EXPORT FileSystemViewPage : public QFrame {
 	Q_OBJECT
 public:
 	explicit FileSystemViewPage(QWidget* parent = nullptr);
+
+	virtual ~FileSystemViewPage() override;
 
 	PlaylistPage* playlistPage();
 
@@ -26,7 +32,7 @@ signals:
 private:
 	class XAMP_WIDGET_SHARED_EXPORT DirFirstSortFilterProxyModel;
 
-	Ui::FileSystemViewPage ui;
+	Ui::FileSystemViewPage* ui_;
 	FileSystemModel* dir_model_;
 	DirFirstSortFilterProxyModel* dir_first_sort_filter_;
 };

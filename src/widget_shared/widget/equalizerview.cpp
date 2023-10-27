@@ -5,55 +5,57 @@
 #include <widget/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <stream/eqsettings.h>
+#include <ui_equalizerdialog.h>
 #include <thememanager.h>
 
 EqualizerView::EqualizerView(QWidget* parent)
     : QFrame(parent) {
-    ui_.setupUi(this);
+    ui_ = new Ui::EqualizerView();
+    ui_->setupUi(this);
 
     freq_label_ = std::vector<QLabel*>{
-        ui_.band1FeqLabel,
-        ui_.band2FeqLabel,
-        ui_.band3FeqLabel,
-        ui_.band4FeqLabel,
-        ui_.band5FeqLabel,
-        ui_.band6FeqLabel,
-        ui_.band7FeqLabel,
-        ui_.band8FeqLabel,
-        ui_.band9FeqLabel,
-        ui_.band10FeqLabel,
+        ui_->band1FeqLabel,
+        ui_->band2FeqLabel,
+        ui_->band3FeqLabel,
+        ui_->band4FeqLabel,
+        ui_->band5FeqLabel,
+        ui_->band6FeqLabel,
+        ui_->band7FeqLabel,
+        ui_->band8FeqLabel,
+        ui_->band9FeqLabel,
+        ui_->band10FeqLabel,
     };
 
     sliders_ = std::vector<DoubleSlider*>{
-        ui_.band1Slider,
-        ui_.band2Slider,
-        ui_.band3Slider,
-        ui_.band4Slider,
-        ui_.band5Slider,
-        ui_.band6Slider,
-        ui_.band7Slider,
-        ui_.band8Slider,
-        ui_.band9Slider,
-        ui_.band10Slider
+        ui_->band1Slider,
+        ui_->band2Slider,
+        ui_->band3Slider,
+        ui_->band4Slider,
+        ui_->band5Slider,
+        ui_->band6Slider,
+        ui_->band7Slider,
+        ui_->band8Slider,
+        ui_->band9Slider,
+        ui_->band10Slider
     };
 
     bands_label_ = std::vector<QLabel*>{
-        ui_.band1DbLabel,
-        ui_.band2DbLabel,
-        ui_.band3DbLabel,
-        ui_.band4DbLabel,
-        ui_.band5DbLabel,
-        ui_.band6DbLabel,
-        ui_.band7DbLabel,
-        ui_.band8DbLabel,
-        ui_.band9DbLabel,
-        ui_.band10DbLabel,
+        ui_->band1DbLabel,
+        ui_->band2DbLabel,
+        ui_->band3DbLabel,
+        ui_->band4DbLabel,
+        ui_->band5DbLabel,
+        ui_->band6DbLabel,
+        ui_->band7DbLabel,
+        ui_->band8DbLabel,
+        ui_->band9DbLabel,
+        ui_->band10DbLabel,
     };
 
     auto f = qTheme.GetMonoFont();
     f.setPointSize(qTheme.GetFontSize(8));
 
-    ui_.preampLabel->setFont(f);
+    ui_->preampLabel->setFont(f);
 
     for (auto& l : bands_label_) {
         l->setStyleSheet(qTEXT("background-color: transparent;"));
@@ -65,7 +67,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         l->setFont(f);
     }
 
-    qTheme.SetSliderTheme(ui_.preampSlider);
+    qTheme.SetSliderTheme(ui_->preampSlider);
 
     auto band = 0;
     for (auto slider : sliders_) {
@@ -77,7 +79,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         ++band;
     }
 
-    (void)QObject::connect(ui_.resetButton, &QPushButton::clicked, [this]() {
+    (void)QObject::connect(ui_->resetButton, &QPushButton::clicked, [this]() {
         auto [name, settings] = qAppSettings.GetEqSettings();
         for (auto &band : settings.bands) {
             band.gain = 0;
@@ -86,28 +88,28 @@ EqualizerView::EqualizerView(QWidget* parent)
         ApplySetting(name, settings);
         });
 
-    (void)QObject::connect(ui_.preampSlider, &DoubleSlider::DoubleValueChanged, [this](auto value) {
+    (void)QObject::connect(ui_->preampSlider, &DoubleSlider::DoubleValueChanged, [this](auto value) {
         PreampValueChange(value);
-        ui_.preampDbLabel->setText(FormatDb(value));
+        ui_->preampDbLabel->setText(FormatDb(value));
         });
 
-    ui_.enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
-    (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
+    ui_->enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
+    (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
         qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
-    (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
+    (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
         qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
-    ui_.enableEqCheckBox->setCheckState(qAppSettings.ValueAsBool(kAppSettingEnableEQ)
+    ui_->enableEqCheckBox->setCheckState(qAppSettings.ValueAsBool(kAppSettingEnableEQ)
         ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 
     for (auto& name : qAppSettings.GetEqPreset().keys()) {
-        ui_.eqPresetComboBox->addItem(name);
+        ui_->eqPresetComboBox->addItem(name);
     }
 
-    (void)QObject::connect(ui_.eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
+    (void)QObject::connect(ui_->eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         AppEQSettings settings;
         settings.name = index;
         settings.settings = qAppSettings.GetEqPreset()[index];
@@ -125,9 +127,13 @@ EqualizerView::EqualizerView(QWidget* parent)
         app_settings.name = name;
         app_settings.settings = settings;
         qAppSettings.SetEqSettings(app_settings);
-        ui_.eqPresetComboBox->setCurrentText(name);
+        ui_->eqPresetComboBox->setCurrentText(name);
         ApplySetting(name, settings);
     }
+}
+
+EqualizerView::~EqualizerView() {
+    delete ui_;
 }
 
 void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings) {
@@ -172,7 +178,7 @@ void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings
 
             vertical_layout->addWidget(band_feq_label);
 
-            ui_.gridLayout->addLayout(vertical_layout, 0, 10 + i, 1, 1);
+            ui_->gridLayout->addLayout(vertical_layout, 0, 10 + i, 1, 1);
 
             freq_label_.push_back(band_feq_label);
             bands_label_.push_back(band_db_label);
@@ -191,6 +197,6 @@ void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings
         sliders_[i]->show();
     }
 
-    ui_.preampSlider->setValue(settings.preamp * 10);
-    ui_.preampDbLabel->setText(FormatDb(settings.preamp));
+    ui_->preampSlider->setValue(settings.preamp * 10);
+    ui_->preampDbLabel->setText(FormatDb(settings.preamp));
 }
