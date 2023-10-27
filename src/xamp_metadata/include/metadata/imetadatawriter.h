@@ -53,6 +53,8 @@ public:
     virtual void WriteEmbeddedCover(const Path& path, const Vector<uint8_t> & image) const = 0;
 
     virtual void RemoveEmbeddedCover(const Path& path) = 0;
+
+    [[nodiscard]] virtual bool CanWriteEmbeddedCover(const Path& path) const = 0;
 protected:
     IMetadataWriter() = default;
 };

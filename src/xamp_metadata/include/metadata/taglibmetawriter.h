@@ -22,7 +22,7 @@ public:
 
     void WriteReplayGain(Path const& path, const ReplayGain& replay_gain) override;
    
-    void Write(Path const & path, TrackInfo const& trackinfo) override;
+    void Write(Path const & path, TrackInfo const& track_info) override;
 
     void WriteTitle(const Path & path, const std::wstring & title) const;
 
@@ -35,6 +35,8 @@ public:
     void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> &image) const override;
 
     void RemoveEmbeddedCover(const Path& path) override;
+
+    [[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const override;
 private:
     class TaglibMetadataWriterImpl;
     AlignPtr<TaglibMetadataWriterImpl> writer_;

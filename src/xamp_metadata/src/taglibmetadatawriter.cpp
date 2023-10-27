@@ -71,6 +71,8 @@ namespace {
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
+	TaglibMetadataWriterImpl() = default;
+
 	[[nodiscard]] bool IsFileReadOnly(const Path & path) const {
 		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
@@ -229,6 +231,12 @@ public:
 	void RemoveEmbeddedCover(const Path& path) {
 	}
 
+	bool CanWriteEmbeddedCover(const Path& path) const {
+		const auto ext = String::ToLower(path.extension().string());
+		return ext == ".m4a"
+			|| ext == ".mp3"
+			|| ext == ".flac";
+	}
 private:
     template <typename Function>
     static void Write(const Path & path, Function &&fun) {
@@ -270,8 +278,8 @@ void TaglibMetadataWriter::WriteTitle(const Path & path, const std::wstring & ti
     writer_->WriteTitle(path, title);
 }
 
-void TaglibMetadataWriter::Write(const Path & path, const TrackInfo & trackinfo) {
-    writer_->Write(path, trackinfo);
+void TaglibMetadataWriter::Write(const Path & path, const TrackInfo & track_info) {
+    writer_->Write(path, track_info);
 }
 
 void TaglibMetadataWriter::WriteArtist(const Path & path, const std::wstring & artist) const {
@@ -292,6 +300,10 @@ void TaglibMetadataWriter::WriteEmbeddedCover(const Path & path, const Vector<ui
 
 void TaglibMetadataWriter::RemoveEmbeddedCover(const Path& path) {
 	writer_->RemoveEmbeddedCover(path);
+}
+
+bool TaglibMetadataWriter::CanWriteEmbeddedCover(const Path& path) const {
+	return writer_->CanWriteEmbeddedCover(path);
 }
 
 XAMP_METADATA_NAMESPACE_END

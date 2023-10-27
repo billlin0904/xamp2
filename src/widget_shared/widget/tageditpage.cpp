@@ -10,12 +10,20 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	: QFrame(parent)
 	, entities_(entities) {
 	ui_.setupUi(this);
-	
+
+	const CoverArtReader cover_reader;
+
 	Q_FOREACH (const auto entity, entities_) {
+		if (!cover_reader.CanWriteEmbeddedCover(entity.file_path.toStdWString())) {
+			continue;
+		}
 		ui_.titleComboBox->addItem(entity.title);
 	}
 
 	Q_FOREACH(const auto entity, entities_) {
+		if (!cover_reader.CanWriteEmbeddedCover(entity.file_path.toStdWString())) {
+			continue;
+		}
 		ui_.trackComboBox->addItem(QString::number(entity.track));
 	}	
 
@@ -35,6 +43,28 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		ReadEmbeddedCover(entities_[index]);
 		});
 
+	(void)QObject::connect(ui_.removeCoverButton, &QPushButton::clicked, [this] {
+		});
+
+	(void)QObject::connect(ui_.saveToFileButton, &QPushButton::clicked, [this] {
+		if (XMessageBox::ShowYesOrNo(qApp->tr("Do you want write cover image?")) != QDialogButtonBox::Yes) {
+			return;
+		}
+
+		if (temp_image_.isNull()) {
+			return;
+		}
+
+		if (!QFileInfo(temp_file_path_).exists()) {
+			return;
+		}
+
+		const auto index = ui_.titleComboBox->currentIndex();
+
+		CoverArtReader cover_reader;
+		cover_reader.WriteEmbeddedCover(entities_[index].file_path.toStdWString(), temp_image_);
+		});
+
 	(void)QObject::connect(ui_.addImageFileButton, &QPushButton::clicked, [=] {
 		const auto index = ui_.titleComboBox->currentIndex();
 		const auto dir = entities_[index].parent_path;
@@ -48,29 +78,26 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 				return;
 			}
 
-			if (XMessageBox::ShowYesOrNo(qApp->tr("Do you want write cover image?")) != QDialogButtonBox::Ok) {
+			auto temp_image = image_utils::ResizeImage(image_utils::ConvertToImageFormat(image), kCoverSize);
+			const auto std_temp_file_path = GetTempFileNamePath();
+			const auto temp_file_path = QString::fromStdWString(std_temp_file_path.wstring());
+			if (!temp_image.save(temp_file_path, "JPG")) {
 				return;
 			}
-
-			auto jpeg_image = image_utils::ResizeImage(image_utils::ConvertToImageFormat(image), kCoverSize);
-			auto std_temp_file_path = GetTempFileNamePath();
-			auto temp_file_path = QString::fromStdWString(std_temp_file_path.wstring());
-			if (!jpeg_image.save(temp_file_path, "JPG")) {
-				return;
-			}
-		
-			auto image_file_size = QFileInfo(temp_file_path).size();
-			const auto image_size = jpeg_image.size();
-			auto resize_image = image_utils::ResizeImage(jpeg_image, ui_.coverLabel->size());
-
-			SetImageLabel(resize_image, image_size, image_file_size);
-
-			CoverArtReader cover_reader;
-			cover_reader.WriteEmbeddedCover(entities_[index].file_path.toStdWString(), jpeg_image);
 
 			try {
-				Fs::remove(std_temp_file_path);
-			} catch (...) {}
+				Fs::remove(temp_file_path_.toStdWString());
+			}
+			catch (...) {}
+
+			temp_image_ = temp_image;
+			temp_file_path_ = temp_file_path;
+
+			const auto image_file_size = QFileInfo(temp_file_path_).size();
+			const auto image_size = temp_image_.size();
+			const auto resize_image = image_utils::ResizeImage(temp_image_, ui_.coverLabel->size());
+
+			SetImageLabel(resize_image, image_size, image_file_size);
 			};
 
 		GetOpenFileName(parent,
@@ -93,7 +120,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 }
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {
-	CoverArtReader cover_reader;
+	const CoverArtReader cover_reader;
 	QSize image_size(0, 0);
 	size_t image_file_size = 0;
 	QPixmap image;

@@ -26,6 +26,8 @@ public:
 
     void WriteEmbeddedCover(const Path& file_path, const QPixmap &image);
 
+    bool CanWriteEmbeddedCover(const Path& path) const;
+
 private:
     AlignPtr<IMetadataReader> cover_reader_;
     AlignPtr<IMetadataWriter> cover_writer_;

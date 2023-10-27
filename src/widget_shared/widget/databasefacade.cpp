@@ -92,12 +92,16 @@ void CoverArtReader::RemoveEmbeddedCover(const Path& file_path) {
     cover_writer_->RemoveEmbeddedCover(file_path);
 }
 
+bool CoverArtReader::CanWriteEmbeddedCover(const Path& path) const {
+    return cover_writer_->CanWriteEmbeddedCover(path);
+}
+
 void CoverArtReader::WriteEmbeddedCover(const Path& file_path, const QPixmap& image) {
     if (image.isNull()) {
         return;
     }
 
-    auto buffer = image_utils::Image2ByteVector(image);
+    const auto buffer = image_utils::Image2ByteVector(image);
     cover_writer_->WriteEmbeddedCover(file_path, buffer);
 }
 
