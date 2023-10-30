@@ -141,6 +141,8 @@ public slots:
 	void OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 	void OnCheckForUpdate();
+
+	void OnRestartApp();
 	
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
@@ -246,6 +248,7 @@ private:
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
+	bool trigger_upgrade_restart_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	IXMainWindow* main_window_;

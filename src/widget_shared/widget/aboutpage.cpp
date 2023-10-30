@@ -69,15 +69,6 @@ AboutPage::AboutPage(QWidget* parent)
         credits_ = QLatin1String(credits_file.readAll());
     }
 
-    setStyleSheet(qTEXT("QFrame#AboutDialog { background-color: transparent }"));
-    ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblCopying->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblDomain->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->wdtContent->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblAppBuild->setStyleSheet(qTEXT("background-color: transparent"));
-
     ui_->lblAppBuild->setText(qApp->tr("Version ")
         + FormatVersion(kApplicationVersionValue));
 
@@ -89,6 +80,13 @@ AboutPage::AboutPage(QWidget* parent)
         &QPushButton::clicked,
         this,
         &AboutPage::OnCreditsOrLicenseChecked);
+
+    (void)QObject::connect(ui_->restartAppButton,
+        &QPushButton::clicked, [this]() {
+            emit RestartApp();
+        });
+
+    ui_->restartAppButton->hide();
 
     ui_->lblAppBuild->setText(qApp->tr("Version ")
         + FormatVersion(kApplicationVersionValue));
@@ -122,4 +120,5 @@ void AboutPage::OnUpdateNewVersion(const Version& version) {
         + FormatVersion(version));
     Delay(1);
     ui_->waitForUpdateProcessIndicator->StopAnimation();
+    ui_->restartAppButton->show();
 }

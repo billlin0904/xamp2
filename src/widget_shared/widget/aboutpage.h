@@ -23,6 +23,8 @@ public:
 signals:
     void CheckForUpdate();
 
+    void RestartApp();
+
 public slots:
     void OnCreditsOrLicenseChecked(bool checked);
 

@@ -410,6 +410,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
     , is_seeking_(false)
     , trigger_upgrade_action_(false)
+    , trigger_upgrade_restart_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , main_window_(nullptr)
     , current_playlist_page_(nullptr)
@@ -679,6 +680,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
         (void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::OnCheckForUpdate);
+        (void)QObject::connect(about_page.get(), &AboutPage::RestartApp, this, &Xamp::OnRestartApp);
         (void)QObject::connect(this, &Xamp::UpdateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
         dialog->SetContentWidget(about_page.get());
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_ABOUT));
@@ -690,6 +692,11 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     ui_.menuButton->setMenu(menu);
 
     OnCheckForUpdate();
+}
+
+void Xamp::OnRestartApp() {
+    trigger_upgrade_restart_ = true;
+    qApp->exit(kRestartExistCode);
 }
 
 void Xamp::OnCheckForUpdate() {
@@ -738,7 +745,8 @@ void Xamp::UpdateMaximumState(bool is_maximum) {
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-    if (XMessageBox::ShowYesOrNo(tr("Do you want to exit the app ?")) == QDialogButtonBox::No) {
+    if (!trigger_upgrade_restart_ 
+        && XMessageBox::ShowYesOrNo(tr("Do you want to exit the app ?")) == QDialogButtonBox::No) {
         event->ignore();
         return;
     }

@@ -163,7 +163,7 @@ namespace {
         qTheme.LoadAndApplyQssTheme();
     }
 
-    int Execute(int argc, char* argv[]) {
+    int Execute(int argc, char* argv[], QStringList &args) {
         QApplication::setApplicationName(kApplicationName);
         QApplication::setApplicationVersion(kApplicationVersion);
         QApplication::setOrganizationName(kApplicationName);
@@ -174,6 +174,8 @@ namespace {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
         }
+
+        args = qApp->arguments();
 
 #ifdef _DEBUG    
 #ifdef XAMP_OS_WIN
@@ -316,9 +318,10 @@ int main() {
     static constexpr int argc = 1;
     static char* argv[] = { app_name, nullptr };
 
+    QStringList args;
     auto exist_code = 0;
     try {
-        exist_code = Execute(argc, argv);        
+        exist_code = Execute(argc, argv, args);        
     }
     catch (Exception const& e) {
         exist_code = -1;
@@ -326,7 +329,7 @@ int main() {
     }
 
     if (exist_code == kRestartExistCode) {
-        QProcess::startDetached(qSTR(argv[0]), qApp->arguments());
+        QProcess::startDetached(qSTR(argv[0]), args);
     }
     return exist_code;
 }
