@@ -68,7 +68,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 
         auto track_id = 0;
         for (const auto& track : tracks) {
-            auto track_info = GetTrackInfo(QString::fromStdWString(track));
+            auto track_info = TagIO::GetTrackInfo(track);
             track_info.file_path = tracks[track_id];
             track_info.duration = cd->GetDuration(track_id++);
             track_info.sample_rate = 44100;

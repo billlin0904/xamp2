@@ -29,12 +29,26 @@ public:
     [[nodiscard]] virtual bool IsFileReadOnly(const Path & path) const = 0;
     
     /*
-    * Write metadata to file.
+    * Write track information to file.
     * 
     * @param[in] path file path.
     * @param[in] track_info track info.
     */
     virtual void Write(const Path &path, const TrackInfo& track_info) = 0;
+
+    virtual void WriteArtist(const Path& path, const std::wstring& artist) = 0;
+
+    virtual void WriteAlbum(const Path& path, const std::wstring& album) = 0;
+
+    virtual void WriteTitle(const Path& path, const std::wstring& title) = 0;
+
+    virtual void WriteTrack(const Path& path, uint32_t track) = 0;
+
+    virtual void WriteGenre(const Path& path, const std::wstring& genre) = 0;
+
+    virtual void WriteComment(const Path& path, const std::wstring& comment) = 0;
+
+    virtual void WriteYear(const Path& path, uint32_t year) = 0;
 
     /*
     * Write ReplayGain to file.

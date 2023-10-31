@@ -794,12 +794,12 @@ void AlbumView::append(const QString& file_name) {
 
     if (!file_ext.contains(qTEXT("zip"))) {
         emit ExtractFile(file_name, -1);
-    } else {
+    } /*else {
         ZipFileReader reader;
         for (auto filename : reader.OpenFile(file_name.toStdWString())) {
             emit ExtractFile(QString::fromStdWString(filename), -1);
         }
-    }    
+    }*/
 }
 
 void AlbumView::HideWidget() {

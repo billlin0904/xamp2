@@ -38,5 +38,6 @@ PlayListEntity GetEntity(const QModelIndex& index) {
     entity.track_loudness = GetIndexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
     entity.genre = GetIndexValue(index, PLAYLIST_GENRE).toString();
     entity.heart = GetIndexValue(index, PLAYLIST_HEART).toUInt();
+    entity.comment = GetIndexValue(index, PLAYLIST_COMMENT).toString();
     return entity;
 }

@@ -38,7 +38,7 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         return;
     }
 
-    const CoverArtReader reader;
+    const TagIO reader;
     auto cover = reader.GetEmbeddedCover(find_file_path);
     if (!cover.isNull()) {
         emit SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));

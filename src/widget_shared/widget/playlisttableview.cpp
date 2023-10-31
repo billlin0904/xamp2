@@ -248,7 +248,8 @@ void PlayListTableView::Reload() {
 	musicLoudness.trackLoudness,
 	musics.genre,	
 	musics.heart,
-	musics.duration 
+	musics.duration,
+	musics.comment
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -323,6 +324,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
     model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr(""));
+    model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
 
     auto column_list = qAppSettings.ValueAsStringList(column_setting_name);
 
@@ -350,6 +352,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_FILE_EXT,
             PLAYLIST_FILE_PARENT_PATH,
             PLAYLIST_PLAYLIST_MUSIC_ID,
+            PLAYLIST_COMMENT,
             PLAYLIST_HEART,
         };
 
@@ -517,9 +520,6 @@ void PlayListTableView::initial() {
 
         action_map.AddSeparator();
 
-        auto* select_item_edit_tag_act = action_map.AddAction(tr("Edit tag"));
-        select_item_edit_tag_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EDIT));
-
         auto* scan_select_item_replaygain_act = action_map.AddAction(tr("Scan file ReplayGain"));
         scan_select_item_replaygain_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SCAN_REPLAY_GAIN));
 
@@ -594,6 +594,9 @@ void PlayListTableView::initial() {
             }
             });
 
+        auto* select_item_edit_track_info_act = action_map.AddAction(tr("Edit track information"));
+        select_item_edit_track_info_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EDIT));
+
         auto reload_track_info_act = action_map.AddAction(tr("Reload track information"));
         reload_track_info_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_RELOAD));
 
@@ -605,7 +608,7 @@ void PlayListTableView::initial() {
 
         action_map.SetCallback(reload_track_info_act, [this, item]() {
             try {
-				qMainDb.AddOrUpdateMusic(GetTrackInfo(item.file_path));
+				qMainDb.AddOrUpdateMusic(TagIO::GetTrackInfo(item.file_path.toStdWString()));
 				FastReload();
 			}
 			catch (std::filesystem::filesystem_error& e) {
@@ -626,7 +629,7 @@ void PlayListTableView::initial() {
             QApplication::clipboard()->setText(item.title);
         });
 
-        action_map.SetCallback(select_item_edit_tag_act, [this]() {
+        action_map.SetCallback(select_item_edit_track_info_act, [this]() {
             const auto rows = SelectItemIndex();
             QList<PlayListEntity> items;
             for (const auto& row : rows) {
@@ -763,12 +766,12 @@ void PlayListTableView::append(const QString& file_name) {
     if (!file_ext.contains(qTEXT("zip"))) {
         emit ExtractFile(file_name, GetPlaylistId());
     }
-    else {
+    /*else {
         ZipFileReader reader;
         for (auto filename : reader.OpenFile(file_name.toStdWString())) {
             emit ExtractFile(QString::fromStdWString(filename), GetPlaylistId());
         }
-    }
+    }*/
 }
 
 void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {

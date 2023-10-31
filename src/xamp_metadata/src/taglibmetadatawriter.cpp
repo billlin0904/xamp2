@@ -6,22 +6,22 @@
 #include <base/platfrom_handle.h>
 #include <base/str_utilts.h>
 
-#include <functional>
-
 XAMP_DECLARE_LOG_NAME(TagLib);
 
-class DebugListener : public TagLib::DebugListener {
-public:
-	void printMessage(const TagLib::String& msg) override {
-		using namespace xamp::base;
-		std::string temp(msg.toCString());
-		String::Remove(temp, "\n");
-		static auto logger = LoggerManager::GetInstance().GetLogger(kTagLibLoggerName);
-		XAMP_LOG_D(logger, temp);
-	}
-};
+namespace {
+	class DebugListener : public TagLib::DebugListener {
+	public:
+		void printMessage(const TagLib::String& msg) override {
+			using namespace xamp::base;
+			std::string temp(msg.toCString());
+			String::Remove(temp, "\n");
+			static auto logger = LoggerManager::GetInstance().GetLogger(kTagLibLoggerName);
+			XAMP_LOG_D(logger, temp);
+		}
+	};
 
-static DebugListener debug_listener;
+	DebugListener debug_listener;
+}
 
 namespace TagLib {
 	DebugListener* debugListener = &debug_listener;
@@ -79,42 +79,75 @@ public:
 
     void Write(const Path &path, const TrackInfo &track_info) const {
         Write(path, [&metadata = std::as_const(track_info)](auto, auto tag) {
+			tag->setTrack(metadata.track);
+
 			if (metadata.album) {
 				tag->setAlbum(metadata.album.value());
+			} else {
+				tag->setAlbum("");
 			}
+
 			if (metadata.artist) {
 				tag->setArtist(metadata.artist.value());
+			} else {
+				tag->setArtist("");
 			}
+
 			if (metadata.title) {
-				tag->setArtist(metadata.title.value());
+				tag->setTitle(metadata.title.value());
+			} else {
+				tag->setTitle("");
 			}
-			tag->setTrack(metadata.track);
+
+			if (metadata.comment) {
+				tag->setComment(metadata.comment.value());
+			} else {
+				tag->setComment("");
+			}
 		});
     }
 
-    void WriteTitle(const Path & path, const std::wstring &title) const {
+    void WriteTitle(const Path & path, const std::wstring &title) {
         Write(path, [&title = std::as_const(title)](auto, auto tag) {
-	        tag->setTitle(title);
+	        tag->setTitle(title.empty() ? TagLib::String() : title);
 	    });
     }
 
-    void WriteArtist(const Path & path, const std::wstring &artist) const {
+    void WriteArtist(const Path & path, const std::wstring &artist) {
         Write(path, [&artist = std::as_const(artist)](auto, auto tag) {
-	        tag->setArtist(artist);
+	        tag->setArtist(artist.empty() ? TagLib::String() : artist);
 	    });
     }
 
-    void WriteAlbum(const Path & path, const std::wstring &album) const {
+    void WriteAlbum(const Path & path, const std::wstring &album) {
         Write(path, [&album = std::as_const(album)](auto, auto tag) {
-	        tag->setAlbum(album);
+	        tag->setAlbum(album.empty() ? TagLib::String() : album);
 	    });
     }
 
-    void WriteTrack(const Path & path, int32_t track) const {
+    void WriteTrack(const Path & path, uint32_t track) {
         Write(path, [track](auto, auto tag) {
 	        tag->setTrack(track);
 	    });
     }
+
+	void WriteComment(const Path& path, const std::wstring& comment) {
+		Write(path, [&comment = std::as_const(comment)](auto, auto tag) {
+			tag->setComment(comment.empty() ? TagLib::String() : comment);
+			});
+	}
+
+	void WriteGenre(const Path& path, const std::wstring& genre) {
+		Write(path, [&genre = std::as_const(genre)](auto, auto tag) {
+			tag->setGenre(genre.empty() ? TagLib::String() : genre);
+			});
+	}
+
+	void WriteYear(const Path& path, uint32_t year) {
+		Write(path, [year](auto, auto tag) {
+			tag->setYear(year);
+			});
+	}
 
 	void WriteReplayGain(Path const& path, const ReplayGain & replay_gain) {
 		const auto ext = String::ToLower(path.extension().string());
@@ -231,7 +264,7 @@ public:
 	void RemoveEmbeddedCover(const Path& path) {
 	}
 
-	bool CanWriteEmbeddedCover(const Path& path) const {
+	[[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const {
 		const auto ext = String::ToLower(path.extension().string());
 		return ext == ".m4a"
 			|| ext == ".mp3"
@@ -274,24 +307,36 @@ bool TaglibMetadataWriter::IsFileReadOnly(const Path & path) const {
 	return writer_->IsFileReadOnly(path);
 }
 
-void TaglibMetadataWriter::WriteTitle(const Path & path, const std::wstring & title) const {
+void TaglibMetadataWriter::Write(const Path& path, const TrackInfo& track_info) {
+	writer_->Write(path, track_info);
+}
+
+void TaglibMetadataWriter::WriteTitle(const Path & path, const std::wstring & title) {
     writer_->WriteTitle(path, title);
 }
 
-void TaglibMetadataWriter::Write(const Path & path, const TrackInfo & track_info) {
-    writer_->Write(path, track_info);
+void TaglibMetadataWriter::WriteArtist(const Path& path, const std::wstring& artist) {
+	writer_->WriteArtist(path, artist);
 }
 
-void TaglibMetadataWriter::WriteArtist(const Path & path, const std::wstring & artist) const {
-    writer_->WriteArtist(path, artist);
+void TaglibMetadataWriter::WriteTrack(const Path& path, uint32_t track) {
+	writer_->WriteTrack(path, track);
 }
 
-void TaglibMetadataWriter::WriteAlbum(const Path & path, const std::wstring & album) const {
+void TaglibMetadataWriter::WriteComment(const Path& path, const std::wstring& comment) {
+	writer_->WriteComment(path, comment);
+}
+
+void TaglibMetadataWriter::WriteGenre(const Path& path, const std::wstring& genre) {
+	writer_->WriteGenre(path, genre);
+}
+
+void TaglibMetadataWriter::WriteYear(const Path& path, uint32_t year) {
+	writer_->WriteYear(path, year);
+}
+
+void TaglibMetadataWriter::WriteAlbum(const Path & path, const std::wstring & album) {
     writer_->WriteAlbum(path, album);
-}
-
-void TaglibMetadataWriter::WriteTrack(const Path & path, int32_t track) const {
-    writer_->WriteTrack(path, track);
 }
 
 void TaglibMetadataWriter::WriteEmbeddedCover(const Path & path, const Vector<uint8_t> & image) const {

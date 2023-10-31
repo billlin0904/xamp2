@@ -24,13 +24,19 @@ public:
    
     void Write(Path const & path, TrackInfo const& track_info) override;
 
-    void WriteTitle(const Path & path, const std::wstring & title) const;
+    void WriteTitle(const Path & path, const std::wstring & title) override;
 
-    void WriteArtist(const Path & path, const std::wstring & artist) const;
+    void WriteArtist(const Path & path, const std::wstring & artist) override;
 
-    void WriteAlbum(const Path & path, const std::wstring & album) const;
+    void WriteAlbum(const Path & path, const std::wstring & album) override;
 
-    void WriteTrack(const Path & path, int32_t track) const;
+    void WriteTrack(const Path & path, uint32_t track) override;
+
+    void WriteComment(const Path& path, const std::wstring& comment) override;
+
+    void WriteGenre(const Path& path, const std::wstring& genre) override;
+
+    void WriteYear(const Path& path, uint32_t year) override;
 
     void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> &image) const override;
 
