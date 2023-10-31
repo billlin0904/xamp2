@@ -137,6 +137,8 @@ public slots:
 
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
+	void ReloadEntity(const PlayListEntity& item);
+
 	void UpdateReplayGain(int32_t playlistId, 
 		const PlayListEntity& entity,
 		double track_loudness,

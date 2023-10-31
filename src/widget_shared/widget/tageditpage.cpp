@@ -16,6 +16,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	const TagIO tag_io;
 
 	const QStringList genre_list{
+		"",
 		"Blues",
 		"Classic Rock",
 		"Country",

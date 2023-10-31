@@ -513,7 +513,7 @@ void PlayListTableView::initial() {
 
                 qMainDb.ClearPendingPlaylist(GetPlaylistId());
                 IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
-                    Reload();
+                Reload();
                 RemovePlaying();
             });
         }       
@@ -607,15 +607,7 @@ void PlayListTableView::initial() {
         });
 
         action_map.SetCallback(reload_track_info_act, [this, item]() {
-            try {
-				qMainDb.AddOrUpdateMusic(TagIO::GetTrackInfo(item.file_path.toStdWString()));
-				FastReload();
-			}
-			catch (std::filesystem::filesystem_error& e) {
-				XAMP_LOG_DEBUG("Reload track information error: {}", String::LocaleStringToUTF8(e.what()));
-			}
-			catch (...) {
-			}
+            ReloadEntity(item);
         });
     	
         action_map.AddSeparator();
@@ -636,6 +628,9 @@ void PlayListTableView::initial() {
                 items.push_front(this->item(row.second));
             }
             emit EditTags(GetPlaylistId(), items);
+            Q_FOREACH(auto entity, items) {
+                ReloadEntity(entity);
+            }
         });
 
         action_map.SetCallback(scan_select_item_replaygain_act, [this]() {
@@ -678,6 +673,18 @@ void PlayListTableView::initial() {
 
     // note: Fix QTableView select color issue.
     setFocusPolicy(Qt::StrongFocus);
+}
+
+void PlayListTableView::ReloadEntity(const PlayListEntity& item) {
+    try {
+        qMainDb.AddOrUpdateMusic(TagIO::GetTrackInfo(item.file_path.toStdWString()));
+        FastReload();
+    }
+    catch (std::filesystem::filesystem_error& e) {
+        XAMP_LOG_DEBUG("Reload track information error: {}", String::LocaleStringToUTF8(e.what()));
+    }
+    catch (...) {
+    }
 }
 
 void PlayListTableView::PauseItem(const QModelIndex& index) {
