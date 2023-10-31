@@ -31,6 +31,8 @@ private:
 
 	void SetImageLabel(const QPixmap &image, QSize image_size, size_t image_file_size);
 
+	void SetCurrentInfo(int32_t index);
+
 	QString temp_file_path_;
 	QPixmap temp_image_;
 	QList<PlayListEntity> entities_;

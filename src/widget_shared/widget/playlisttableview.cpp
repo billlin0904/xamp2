@@ -249,7 +249,8 @@ void PlayListTableView::Reload() {
 	musics.genre,	
 	musics.heart,
 	musics.duration,
-	musics.comment
+	musics.comment,
+	albums.year
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -325,6 +326,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
     model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
+    model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("Year"));
 
     auto column_list = qAppSettings.ValueAsStringList(column_setting_name);
 
@@ -354,6 +356,7 @@ void PlayListTableView::SetPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_PLAYLIST_MUSIC_ID,
             PLAYLIST_COMMENT,
             PLAYLIST_HEART,
+            PLAYLIST_YEAR
         };
 
         for (auto column : qAsConst(hidden_columns)) {

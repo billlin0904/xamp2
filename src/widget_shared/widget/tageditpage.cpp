@@ -76,33 +76,45 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		const auto index = ui_->titleComboBox->currentIndex();
 		const Path path = entities_[index].file_path.toStdWString();
 
-		TagIO tag_io;
-		tag_io.WriteArtist(path, ui_->artistLineEdit->text());
-		tag_io.WriteTitle(path, ui_->titleComboBox->currentText());
-		tag_io.WriteAlbum(path, ui_->albumLineEdit->text());
-		tag_io.WriteComment(path, ui_->commentLineEdit->text());
-		tag_io.WriteGenre(path, ui_->genreComboBox->currentText());
-		tag_io.WriteTrack(path, ui_->trackComboBox->currentText().toUInt());
-		tag_io.WriteYear(path, ui_->yearLineEdit->text().toUInt());
+		try {
+			TagIO tag_io;
+			tag_io.WriteArtist(path, ui_->artistLineEdit->text());
+			tag_io.WriteTitle(path, ui_->titleComboBox->currentText());
+			tag_io.WriteAlbum(path, ui_->albumLineEdit->text());
+			tag_io.WriteComment(path, ui_->commentLineEdit->text());
+			tag_io.WriteGenre(path, ui_->genreComboBox->currentText());
+			tag_io.WriteTrack(path, ui_->trackComboBox->currentText().toUInt());
+			tag_io.WriteYear(path, ui_->yearLineEdit->text().toUInt());
+		} catch (...) {
+			return;
+		}
+
+		auto next_index = (index + 1) % entities_.size();
+		ui_->titleComboBox->setCurrentIndex(next_index);
+		ui_->trackComboBox->setCurrentIndex(next_index);
+		SetCurrentInfo(next_index);
+
+		XMessageBox::ShowInformation(qApp->tr("Write tag successfully!"));
 	});
 
 	(void)QObject::connect(ui_->titleComboBox, &QComboBox::activated, [this](auto index) {
-		ui_->artistLineEdit->setText(entities_[index].artist);
-		ui_->albumLineEdit->setText(entities_[index].album);
-		ui_->commentLineEdit->setText(entities_[index].comment);
-		ui_->trackComboBox->setCurrentIndex(index);
+		SetCurrentInfo(index);
 		ReadEmbeddedCover(entities_[index]);
 		});
 
 	(void)QObject::connect(ui_->trackComboBox, &QComboBox::activated, [this](auto index) {
-		ui_->artistLineEdit->setText(entities_[index].artist);
-		ui_->albumLineEdit->setText(entities_[index].album);
-		ui_->commentLineEdit->setText(entities_[index].comment);
-		ui_->titleComboBox->setCurrentIndex(index);
+		SetCurrentInfo(index);
 		ReadEmbeddedCover(entities_[index]);
 		});
 
+	(void)QObject::connect(ui_->clearCommentButton, &QPushButton::clicked, [this] {
+		ui_->commentLineEdit->setText("");
+		});
+
 	(void)QObject::connect(ui_->removeCoverButton, &QPushButton::clicked, [this] {
+		TagIO tag_io;
+		const auto index = ui_->titleComboBox->currentIndex();
+		tag_io.RemoveEmbeddedCover(entities_[index].file_path.toStdWString());
 		});
 
 	(void)QObject::connect(ui_->saveToFileButton, &QPushButton::clicked, [this] {
@@ -169,18 +181,30 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->trackComboBox->setCurrentIndex(0);
 	ui_->titleComboBox->setCurrentIndex(0);
 
-	ui_->artistLineEdit->setText(entities_[0].artist);
-	ui_->albumLineEdit->setText(entities_[0].album);
-	ui_->commentLineEdit->setText(entities_[0].comment);
+	SetCurrentInfo(0);
 
 	ui_->coverSizeLabel->setText(StringFormat("{} x {} (0 B)", 0, 0));
-
 	ui_->yearLineEdit->setValidator(new QIntValidator(1, 999));
+
 	ReadEmbeddedCover(entities_[0]);
 }
 
 TagEditPage::~TagEditPage() {
 	delete ui_;
+}
+
+void TagEditPage::SetCurrentInfo(int32_t index) {
+	ui_->artistLineEdit->setText(entities_[index].artist);
+	ui_->albumLineEdit->setText(entities_[index].album);
+	ui_->commentLineEdit->setText(entities_[index].comment);
+	ui_->yearLineEdit->setText(QString::number(entities_[index].year));
+	ui_->albumPeakLineEdit->setText(FormatDb(entities_[index].album_peak));
+	ui_->albumReplayGainLineEdit->setText(FormatDb(entities_[index].album_replay_gain));
+	ui_->trackPeakLineEdit->setText(FormatDb(entities_[index].track_peak));
+	ui_->trackReplayGainLineEdit->setText(FormatDb(entities_[index].track_replay_gain));
+
+	ui_->titleComboBox->setCurrentIndex(index);
+	ui_->trackComboBox->setCurrentIndex(index);
 }
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {

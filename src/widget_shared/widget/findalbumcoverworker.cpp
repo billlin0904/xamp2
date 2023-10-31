@@ -5,7 +5,7 @@
 #include <widget/imagecache.h>
 
 FindAlbumCoverWorker::FindAlbumCoverWorker() {
-    database_ptr_ = GetPooledDatabase();
+    database_ptr_ = GetPooledDatabase(1);
 }
 
 void FindAlbumCoverWorker::OnCancelRequested() {
