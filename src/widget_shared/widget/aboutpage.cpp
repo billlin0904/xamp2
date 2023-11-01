@@ -16,14 +16,14 @@ namespace {
         return "2019";
     }
     QString GetCompileTime() {
-        return qSTR("Compile Visual Studio %1.%2.%3")
+        return qSTR("Visual Studio %1.%2.%3")
             .arg(VisualStudioVersion())
             .arg((_MSC_FULL_VER / 100000) % 100)
             .arg(_MSC_FULL_VER % 100000);
     }
 #else
     QString GetCompileTime() {
-        return qSTR("Compile Clang %1.%2.%3")
+        return qSTR("Clang %1.%2.%3")
             .arg(__clang_major__)
             .arg(__clang_minor__)
             .arg(__clang_patchlevel__);
@@ -88,6 +88,7 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui_->restartAppButton->hide();
 
+    ui_->lblAppBuild->setStyleSheet(qTEXT("color: gray;"));
     ui_->lblAppBuild->setText(qApp->tr("Version ")
         + FormatVersion(kApplicationVersionValue));
     ui_->waitForUpdateProcessIndicator->StartAnimation();

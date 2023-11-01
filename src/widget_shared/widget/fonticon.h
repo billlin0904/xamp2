@@ -75,7 +75,8 @@ enum Glyphs {
     ICON_SORT_DOWN,
     ICON_FILE_CIRCLE_PLUS,
     ICON_UP,
-    ICON_EDIT
+    ICON_EDIT,
+    ICON_CIRCLE_CHECK
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {

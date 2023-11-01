@@ -25,6 +25,7 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
         break;
     }
 
+    stopped_icon_ = qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_CHECK);
     show();
 }
 
@@ -78,18 +79,28 @@ int ProcessIndicator::heightForWidth(int w) const {
     return w;
 }
 
+void ProcessIndicator::SetStoppedIcon(const QIcon& icon) {
+    stopped_icon_ = icon;
+}
+
 void ProcessIndicator::timerEvent(QTimerEvent* /*event*/) {
     angle_ = (angle_ + 30) % 360;
     update();
 }
 
 void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {
-    if (!displayed_when_stopped_ && !IsAnimated())
-        return;
+    QPainter p(this);
 
     const auto width = qMin(this->width(), this->height());
 
-    QPainter p(this);
+    if (!displayed_when_stopped_ && !IsAnimated()) {
+        if (!stopped_icon_.isNull()) {
+            auto pixmap = stopped_icon_.pixmap(QSize(32, 32));
+            p.drawPixmap(0, 0, pixmap);
+        }        
+        return;
+    }
+
     p.setRenderHints(QPainter::Antialiasing, true);
     p.setRenderHints(QPainter::SmoothPixmapTransform, true);
     p.setRenderHints(QPainter::TextAntialiasing, true);

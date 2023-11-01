@@ -806,9 +806,6 @@ void PlayListTableView::ProcessTrackInfo(int32_t total_album, int32_t total_trac
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     ResizeColumn();
-    if (indicator_ != nullptr) {
-        CenterParent(indicator_.get());
-    }
 }
 
 void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {

@@ -18,7 +18,6 @@
 #include <base/rng.h>
 #include <base/encodingprofile.h>
 
-class ProcessIndicator;
 class PlayListSqlQueryTableModel;
 class PlayListTableFilterProxyModel;
 
@@ -179,7 +178,6 @@ protected:
 	QList<QModelIndex> pending_playlist_;
 	PRNG rng_;
 	QString column_setting_name_;
-	QSharedPointer<ProcessIndicator> indicator_;
 };
 
 

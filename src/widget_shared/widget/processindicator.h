@@ -29,6 +29,8 @@ public:
 
     int heightForWidth(int w) const override;
 
+    void SetStoppedIcon(const QIcon &icon);
+
 public slots:
     void StartAnimation();
 
@@ -51,4 +53,5 @@ private:
     int delay_;
     bool displayed_when_stopped_;
     QColor color_;
+    QIcon stopped_icon_;
 };
