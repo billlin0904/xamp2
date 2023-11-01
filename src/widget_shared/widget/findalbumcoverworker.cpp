@@ -1,7 +1,6 @@
 #include <widget/findalbumcoverworker.h>
-
+#include <widget/tagio.h>
 #include <widget/database.h>
-#include <widget/databasefacade.h>
 #include <widget/imagecache.h>
 
 FindAlbumCoverWorker::FindAlbumCoverWorker() {

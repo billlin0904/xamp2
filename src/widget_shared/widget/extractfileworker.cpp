@@ -138,7 +138,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
 	const Stopwatch sw;
     is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-    QDirIterator itr(file_path, GetFileNameFilter(), filter);
+    QDirIterator itr(file_path, GetTrackInfoFileNameFilter(), filter);
 
     Vector<QString> paths;
     paths.reserve(kReserveSize);
@@ -165,7 +165,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
 
     std::atomic<size_t> completed_work(0);
 
-    auto [total_work, file_count_paths] = GetPathSortByFileCount(paths, GetFileNameFilter(), [this](auto total_file_count) {
+    auto [total_work, file_count_paths] = GetPathSortByFileCount(paths, GetTrackInfoFileNameFilter(), [this](auto total_file_count) {
         emit FoundFileCount(total_file_count);
         });
 
@@ -174,7 +174,7 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
         return;
     }
 
-    const auto &file_name_filter = GetFileNameFilter();
+    const auto &file_name_filter = GetTrackInfoFileNameFilter();
 
     Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path_info) {
         if (is_stop_) {

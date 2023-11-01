@@ -5,6 +5,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
+#include <widget/tagio.h>
 #include <widget/imagecache.h>
 
 TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)

@@ -78,4 +78,4 @@ XAMP_WIDGET_SHARED_EXPORT void GetSaveFileName(QWidget* parent,
 
 XAMP_WIDGET_SHARED_EXPORT void Delay(int32_t seconds);
 
-XAMP_WIDGET_SHARED_EXPORT const QStringList& GetFileNameFilter();
+XAMP_WIDGET_SHARED_EXPORT const QStringList& GetTrackInfoFileNameFilter();

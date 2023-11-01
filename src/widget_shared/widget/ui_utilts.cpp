@@ -308,7 +308,7 @@ void Delay(int32_t seconds) {
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
 
-const QStringList& GetFileNameFilter() {
+const QStringList& GetTrackInfoFileNameFilter() {
     struct StaticGetFileNameFilter {
         StaticGetFileNameFilter() {
             for (auto& file_ext : GetSupportFileExtensions()) {

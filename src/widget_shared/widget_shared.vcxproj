@@ -124,6 +124,7 @@
     <ClInclude Include="widget\maskwidget.h" />
     <ClInclude Include="widget\mbdiscid_uiltis.h" />
     <QtMoc Include="widget\tageditpage.h" />
+    <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="widget\xmessagebox.h" />
@@ -244,6 +245,7 @@
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\tageditpage.cpp" />
+    <ClCompile Include="widget\tagio.cpp" />
     <ClCompile Include="widget\taglistview.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\ui_utilts.cpp" />

@@ -34,6 +34,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/fonticon.h>
 #include <widget/zib_utiltis.h>
+#include <widget/tagio.h>
 
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:

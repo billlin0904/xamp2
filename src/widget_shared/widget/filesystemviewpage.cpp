@@ -61,7 +61,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_model_ = new FileSystemModel(this);
     dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
     dir_model_->setRootPath(qAppSettings.GetMyMusicFolderPath());
-    dir_model_->setNameFilters(GetFileNameFilter());
+    dir_model_->setNameFilters(GetTrackInfoFileNameFilter());
     dir_model_->setNameFilterDisables(false);
 
     dir_first_sort_filter_ = new DirFirstSortFilterProxyModel(this);

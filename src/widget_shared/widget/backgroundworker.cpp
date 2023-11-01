@@ -12,10 +12,10 @@
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/albumview.h>
+#include <widget/tagio.h>
 
 #include <player/ebur128reader.h>
 #include <base/logger_impl.h>
-#include <base/fastmutex.h>
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
 #endif

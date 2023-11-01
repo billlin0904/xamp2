@@ -8,8 +8,6 @@
 #include <QWidget>
 #include <QColor>
 
-#include <widget/widget_shared_global.h>
-
 class ProcessIndicator : public QWidget {
     Q_OBJECT
     Q_PROPERTY(int delay READ AnimationDelay WRITE SetAnimationDelay)
