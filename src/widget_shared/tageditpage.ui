@@ -124,6 +124,28 @@
          </spacer>
         </item>
         <item>
+         <widget class="QLabel" name="notFoundImageLabel">
+          <property name="minimumSize">
+           <size>
+            <width>250</width>
+            <height>250</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>250</width>
+            <height>250</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Not found image</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="coverLabel">
           <property name="minimumSize">
            <size>
