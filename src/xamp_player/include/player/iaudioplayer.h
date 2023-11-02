@@ -239,6 +239,8 @@ public:
     * @return The dsp config.
     */
     virtual AnyMap& GetDspConfig() = 0;
+
+    virtual void SetDelayCallback(std::function<void(uint32_t)> delay_callback) = 0;
 protected:
     /*
     * Constructor.

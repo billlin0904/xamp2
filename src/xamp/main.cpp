@@ -7,7 +7,6 @@
 #include <base/dll.h>
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
-#include <base/encodingprofile.h>
 #include <base/stacktrace.h>
 
 #include <player/api.h>
@@ -22,8 +21,6 @@
 #include <widget/ui_utilts.h>
 #include <widget/xmainwindow.h>
 #include <widget/http.h>
-#include <widget/databasefacade.h>
-#include <widget/log_util.h>
 #include <widget/xmessagebox.h>
 
 #include <QLoggingCategory>
@@ -175,6 +172,11 @@ namespace {
             return -1;
         }
 
+        if (!QSslSocket::supportsSsl()) {
+            XMessageBox::ShowError(qTEXT("SSL initialization failed."));
+            return -1;
+        }
+
         args = qApp->arguments();
 
 #ifdef _DEBUG    
@@ -207,11 +209,6 @@ namespace {
             return -1;
         }
         XAMP_LOG_DEBUG("Database init success.");
-
-        if (!QSslSocket::supportsSsl()) {
-            XMessageBox::ShowError(qTEXT("SSL initialization failed."));
-            return -1;
-        }
 
         Xamp win(&main_window, MakeAudioPlayer());
         win.SetXWindow(&main_window);

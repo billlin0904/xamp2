@@ -23,12 +23,11 @@
 #include <stream/filestream.h>
 #include <stream/bassfader.h>
 #include <stream/iaudioprocessor.h>
+#include <stream/avfilestream.h>
+#include <stream/bassfilestream.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_player.h>
-
-#include "stream/avfilestream.h"
-#include "stream/bassfilestream.h"
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
@@ -95,7 +94,7 @@ IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
 AudioPlayer::AudioPlayer()
     : is_muted_(false)
 	, is_dsd_file_(false)
-    , enable_fadeout_(false)
+    , enable_fadeout_(true)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , sample_size_(0)
     , target_sample_rate_(0)
@@ -109,10 +108,10 @@ AudioPlayer::AudioPlayer()
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_end_time_(0)
     , stream_duration_(0)
-    , device_manager_(MakeAudioDeviceManager())
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
-    , dsp_manager_(StreamFactory::MakeDSPManager()) {
+    , dsp_manager_(StreamFactory::MakeDSPManager())
+    , device_manager_(MakeAudioDeviceManager()) {
     logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
@@ -340,7 +339,6 @@ void AudioPlayer::Resume() {
 }
 
 void AudioPlayer::FadeOut() {
-	const float kFadeTimeSeconds = 1.0;
     const auto sample_count = output_format_.GetSecondsSize(kFadeTimeSeconds) / sizeof(float);
 
     Buffer<float> buffer(sample_count);
@@ -353,7 +351,9 @@ void AudioPlayer::FadeOut() {
 
     Buffer<float> fade_buf(sample_count);
     BufferRef<float> buf_ref(fade_buf);
-    fader_->Process(buffer.data(), buffer.size(), buf_ref);
+    if (!fader_->Process(buffer.data(), buffer.size(), buf_ref)) {
+        XAMP_LOG_W(logger_, "Fade out audio process failure!");
+    }
 
     fifo_.Clear();
     fifo_.TryWrite(reinterpret_cast<int8_t*>(buf_ref.data()), buf_ref.GetByteSize());
@@ -367,7 +367,7 @@ void AudioPlayer::ProcessFadeOut() {
         || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM) {
         XAMP_LOG_D(logger_, "Process fadeout.");
         is_fade_out_ = true;
-        MSleep(std::chrono::milliseconds(1000));
+        delay_callback_(kFadeTimeSeconds);
     }
 }
 
@@ -869,7 +869,7 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
     // sample_time: 指的是設備撥放時間, 會被stop重置為0
-    // stream time: 依據sample大小累計從開始撥放到結束的時間
+    // stream time: 依據sample大小累計從開始撥放到結束的時間.
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
@@ -935,6 +935,10 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
 
 AnyMap& AudioPlayer::GetDspConfig() {
     return config_;
+}
+
+void AudioPlayer::SetDelayCallback(const std::function<void(uint32_t)> delay_callback) {
+    delay_callback_ = delay_callback;
 }
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

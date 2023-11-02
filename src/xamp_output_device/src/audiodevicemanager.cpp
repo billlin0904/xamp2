@@ -84,7 +84,7 @@ AudioDeviceManager::AudioDeviceManager()
 
 AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN	
-    ::MFShutdown();
+    ::MFShutdown();    
 #else
     PreventSleep(false);
 #endif
@@ -128,7 +128,7 @@ DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
 
 Vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     Vector<Uuid> device_types;
-	for (const auto uuid : factory_ | std::views::keys) {
+    for (const auto& uuid : factory_ | std::views::keys) {
         device_types.push_back(uuid);
 	}
     return device_types;

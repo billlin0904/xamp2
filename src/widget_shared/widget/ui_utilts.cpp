@@ -305,7 +305,7 @@ void GetOpenFileName(QWidget* parent,
 void Delay(int32_t seconds) {
 	const auto die_time = QTime::currentTime().addSecs(seconds);
     while (QTime::currentTime() < die_time)
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 100);
 }
 
 const QStringList& GetTrackInfoFileNameFilter() {

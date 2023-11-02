@@ -465,6 +465,9 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     extract_file_thread_.start(QThread::LowestPriority);
 
     player_->Startup(state_adapter_);
+    player_->SetDelayCallback([this](auto seconds) {
+        Delay(seconds);
+        });
 
     InitialUi();
     InitialController();

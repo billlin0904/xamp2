@@ -21,8 +21,6 @@
 #include <base/fastconditionvariable.h>
 #include <base/task.h>
 
-#include <stream/stream.h>
-
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>
 #include <output_device/deviceinfo.h>
@@ -56,6 +54,8 @@ class AudioPlayer final :
     public IAudioPlayer,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
+    static constexpr auto kFadeTimeSeconds = 1;
+
     /*
     * Constructor.
     */
@@ -82,7 +82,7 @@ public:
 	void Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
 
     /*
-    * Opon a file.
+    * Open a file.
     * 
     * @param[in] file_path The file path.
     * @param[in] device_id The device id.
@@ -90,7 +90,7 @@ public:
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
 
     /*
-    * Opon a file.
+    * Open a file.
     * 
     * @param[in] file_path The file path.
     * @param[in] device_info The device info.
@@ -278,6 +278,7 @@ public:
     */
     AnyMap& GetDspConfig() override;
 
+    void SetDelayCallback(std::function<void(uint32_t)> delay_callback) override;
 private:
     DataCallbackResult OnGetSamples(void* samples,
         size_t num_buffer_frames, 
@@ -359,7 +360,6 @@ private:
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;
-    AlignPtr<IAudioDeviceManager> device_manager_;
     AlignPtr<FileStream> stream_;
     AlignPtr<IDeviceType> device_type_;
     AlignPtr<IOutputDevice> device_;
@@ -373,6 +373,8 @@ private:
     AlignPtr<IAudioProcessor> fader_;
     AnyMap config_;
     LoggerPtr logger_;
+    AlignPtr<IAudioDeviceManager> device_manager_;
+    std::function<void(uint32_t)> delay_callback_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END
