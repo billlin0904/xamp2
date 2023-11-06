@@ -95,7 +95,7 @@ void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {
 
     if (!displayed_when_stopped_ && !IsAnimated()) {
         if (!stopped_icon_.isNull()) {
-            auto pixmap = stopped_icon_.pixmap(QSize(32, 32));
+            auto pixmap = stopped_icon_.pixmap(QSize(24, 24));
             p.drawPixmap(0, 0, pixmap);
         }        
         return;

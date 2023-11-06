@@ -1198,7 +1198,7 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
         qTheme.SetMuted(ui_.mutedButton, false);
     }
 
-    qTheme.LoadAndApplyQssTheme();
+    qTheme.LoadAndApplyTheme();
     SetThemeIcon(ui_);
     SetRepeatButtonIcon(ui_, order_);
     SetThemeColor(qTheme.GetBackgroundColor(), qTheme.GetThemeTextColor());

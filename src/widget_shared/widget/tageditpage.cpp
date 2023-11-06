@@ -1,3 +1,5 @@
+#include <QCloseEvent>
+
 #include <widget/databasefacade.h>
 #include <widget/str_utilts.h>
 #include <ui_tageditpage.h>
@@ -215,6 +217,13 @@ void TagEditPage::SetCurrentInfo(int32_t index) {
 
 	ui_->titleComboBox->setCurrentIndex(index);
 	ui_->trackComboBox->setCurrentIndex(index);
+}
+
+void TagEditPage::closeEvent(QCloseEvent* event) {
+	if (XMessageBox::ShowYesOrNo(tr("Do you give up write tag ?")) == QDialogButtonBox::No) {
+		event->ignore();
+		return;
+	}
 }
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {

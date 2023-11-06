@@ -1,4 +1,6 @@
-﻿#include <widget/xdialog.h>
+﻿#include <QCloseEvent>
+
+#include <widget/xdialog.h>
 
 #include <thememanager.h>
 #include <widget/str_utilts.h>
@@ -173,4 +175,12 @@ void XDialog::showEvent(QShowEvent* event) {
 
     setAttribute(Qt::WA_Mapped);*/
     QDialog::showEvent(event);
+}
+
+void XDialog::closeEvent(QCloseEvent* event) {
+    if (!content_->close()) {
+        event->ignore();
+        return;
+    }
+	FramelessDialog::closeEvent(event);
 }

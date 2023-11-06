@@ -88,10 +88,15 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui_->restartAppButton->hide();
 
-    ui_->lblAppBuild->setStyleSheet(qTEXT("color: gray;"));
     ui_->lblAppBuild->setText(qApp->tr("Version ")
         + FormatVersion(kApplicationVersionValue));
     ui_->waitForUpdateProcessIndicator->StartAnimation();
+
+    ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_->lblCopying->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_->lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_->lblAppBuild->setStyleSheet(qTEXT("background-color: transparent; color: gray;"));
 }
 
 AboutPage::~AboutPage() {

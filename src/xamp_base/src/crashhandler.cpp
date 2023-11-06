@@ -63,18 +63,16 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
 };
 
 struct ExceptionPointer : EXCEPTION_POINTERS {
-    ExceptionPointer();
+    ExceptionPointer() {
+        ContextRecord = new CONTEXT();
+        ExceptionRecord = new EXCEPTION_RECORD();
+    }
 
     ~ExceptionPointer() {
         delete ContextRecord;
         delete ExceptionRecord;
     }
 };
-
-ExceptionPointer::ExceptionPointer() {
-    ContextRecord = new CONTEXT();
-    ExceptionRecord = new EXCEPTION_RECORD();
-}
 #endif
 
 class CrashHandler::CrashHandlerImpl {
@@ -104,10 +102,12 @@ public:
 
         const auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_D(logger_, "Uncaught exception: {}{}\r\n", (*itr2).second, stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Uncaught exception: {}{}\r\n",
+                (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X}{}\r\n", code, stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X}({}){}\r\n", 
+                GetPlatformErrorMessage(code), stack_trace.CaptureStack());
         }
     }
 

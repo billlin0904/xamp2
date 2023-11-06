@@ -75,7 +75,7 @@ public:
 
     void SetThemeColor(ThemeColor theme_color);    
 
-    void LoadAndApplyQssTheme();
+    void LoadAndApplyTheme();
 
     void SetBackgroundColor(QWidget* widget);
 

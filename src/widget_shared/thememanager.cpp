@@ -422,6 +422,12 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
 			temp.insert(FontIconOption::colorAttr, QVariant(QColor(0, 249, 0)));
 			return qFontIcon.GetIcon(code, temp);
 		}
+    case Glyphs::ICON_CIRCLE_CHECK:
+		{
+			auto temp = font_icon_opts_;
+			temp.insert(FontIconOption::colorAttr, QVariant(GetHighlightColor()));
+			return qFontIcon.GetIcon(code, temp);
+		}
     }
     return qFontIcon.GetIcon(code, font_icon_opts_);
 }
@@ -564,7 +570,7 @@ void ThemeManager::SetBackgroundColor(QWidget* widget) {
     widget->setStyleSheet(BackgroundColorToString(color));
 }
 
-void ThemeManager::LoadAndApplyQssTheme() {
+void ThemeManager::LoadAndApplyTheme() {
     qApp->setFont(GetDefaultFont());
 
     QString filename;

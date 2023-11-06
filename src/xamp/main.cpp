@@ -157,7 +157,7 @@ namespace {
     void ApplyTheme() {
         const auto theme = qAppSettings.ValueAsEnum<ThemeColor>(kAppSettingTheme);
         qTheme.SetThemeColor(theme);
-        qTheme.LoadAndApplyQssTheme();
+        qTheme.LoadAndApplyTheme();
     }
 
     int Execute(int argc, char* argv[], QStringList &args) {

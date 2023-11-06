@@ -43,6 +43,8 @@ private:
     void showEvent(QShowEvent* event) override;
 #endif
 
+    void closeEvent(QCloseEvent* event) override;
+
     void SetContent(QWidget* content);
 
     QLabel* title_frame_label_{ nullptr };

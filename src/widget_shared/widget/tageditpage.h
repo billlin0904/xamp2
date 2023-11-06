@@ -33,6 +33,8 @@ private:
 
 	void SetCurrentInfo(int32_t index);
 
+	void closeEvent(QCloseEvent* event) override;
+
 	QString temp_file_path_;
 	QPixmap temp_image_;
 	QList<PlayListEntity> entities_;

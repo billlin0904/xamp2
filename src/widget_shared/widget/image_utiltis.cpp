@@ -358,7 +358,7 @@ bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 	return file.commit();	
 }
 
-bool OptimizePng(const QString& src_file_path, const QString& dest_file_path) {
+bool MoveFile(const QString& src_file_path, const QString& dest_file_path) {
 	try {
 		Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
 	} catch (...) {
@@ -385,6 +385,14 @@ QByteArray Image2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
+Vector<uint8_t> Image2Buffer(const QPixmap& source) {
+	QByteArray bytes;
+	QBuffer buffer(&bytes);
+	buffer.open(QIODevice::WriteOnly);
+	source.save(&buffer, ImageCache::kImageFileFormat);
+	return { bytes.constData(), bytes.constData() + bytes.size() };
+}
+
 QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
@@ -403,14 +411,6 @@ QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality) {
 	pixmap.loadFromData(bytes);
 
 	return pixmap;
-}
-
-Vector<uint8_t> Image2ByteVector(const QPixmap& source) {
-	QByteArray bytes;
-	QBuffer buffer(&bytes);
-	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, ImageCache::kImageFileFormat);
-	return { bytes.constData(), bytes.constData() + bytes.size() };
 }
 
 QPixmap RoundImage(const QPixmap& src, int32_t radius) {
