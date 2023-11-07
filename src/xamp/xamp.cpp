@@ -668,6 +668,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     qTheme.SetMenuStyle(menu);
     const auto * preference_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
+        MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
         preference_page->LoadSettings();
@@ -680,6 +681,7 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
    
     const auto* about_action = menu->addAction(qTheme.GetFontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
+        MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
         (void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::OnCheckForUpdate);
@@ -1069,6 +1071,7 @@ void Xamp::InitialController() {
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
         SetPlayerOrder(true);
+        MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<PendingPlaylistPage> page(new PendingPlaylistPage(current_playlist_page_->playlist()->GetPendingPlayIndexes(), dialog.get()));
         dialog->SetContentWidget(page.get(), true);
@@ -1094,7 +1097,7 @@ void Xamp::InitialController() {
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
-
+        MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
         dialog->SetContentWidget(eq.get(), false);
@@ -1666,9 +1669,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
 
         if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
-            const auto message =
-                qSTR("Play DSD file need set 100% volume.");
-            ShowMeMessage(message);
+            ShowMeMessage(tr("Play DSD file need set 100% volume."));
             player_->SetVolume(100);
         }
 
@@ -2364,6 +2365,7 @@ void Xamp::OnTranslationCompleted(const QString& keyword, const QString& result)
 }
 
 void Xamp::OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities) {
+    MaskWidget mask_widget(this);
     QScopedPointer<XDialog> dialog(new XDialog(this));
     QScopedPointer<TagEditPage> tag_edit_page(new TagEditPage(dialog.get(), entities));
     dialog->SetContentWidget(tag_edit_page.get());
