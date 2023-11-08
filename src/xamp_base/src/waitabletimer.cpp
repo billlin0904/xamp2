@@ -10,7 +10,7 @@
 
 #include <thread>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 inline constexpr uint32_t kDesiredSchedulerMS = 1;
 
@@ -146,4 +146,4 @@ void WaitableTimer::Wait() {
 	impl_->Wait();
 }
 
-}
+XAMP_BASE_NAMESPACE_END

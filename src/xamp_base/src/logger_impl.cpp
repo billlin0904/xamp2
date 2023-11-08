@@ -26,7 +26,7 @@ public:
 		dest.append(upper_logger_level.data(), upper_logger_level.data() + upper_logger_level.size());
 	}
 
-	std::unique_ptr<custom_flag_formatter> clone() const override {
+	[[nodiscard]] std::unique_ptr<custom_flag_formatter> clone() const override {
 		return spdlog::details::make_unique<LogFlagFormatrer>();
 	}
 };

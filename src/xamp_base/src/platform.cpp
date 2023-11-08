@@ -815,8 +815,8 @@ bool ExecutionStopwatch::IsRunning() const noexcept {
     return is_running_;
 }
 
-namespace detail {
-    static void GetThreadTimes(ULARGE_INTEGER& kernel_time_value, ULARGE_INTEGER user_time_value) {
+namespace {
+    void GePlatformThreadTimes(ULARGE_INTEGER& kernel_time_value, ULARGE_INTEGER user_time_value) {
         FILETIME creation_time, exit_time, kernel_time, user_time;
         if (!::GetThreadTimes(::GetCurrentThread(), &creation_time, &exit_time, &kernel_time, &user_time))
             throw std::runtime_error("Failed to get thread times.");
@@ -830,7 +830,7 @@ namespace detail {
 
 int64_t ExecutionStopwatch::GetThreadTimes() {
     ULARGE_INTEGER kernel_time_value{}, user_time_value{};
-    detail::GetThreadTimes(kernel_time_value, user_time_value);
+    GePlatformThreadTimes(kernel_time_value, user_time_value);
 
     return kernel_time_value.QuadPart + user_time_value.QuadPart;
 }
@@ -844,7 +844,7 @@ double ExecutionStopwatch::GetCpuUsage() const {
     }
 
     ULARGE_INTEGER kernel_time_value{}, user_time_value{};
-    detail::GetThreadTimes(kernel_time_value, user_time_value);
+    GePlatformThreadTimes(kernel_time_value, user_time_value);
 
     double kernel_time_seconds = kernel_time_value.QuadPart / 10000000.0;  // 锣传计
     double user_time_seconds = user_time_value.QuadPart / 10000000.0;  // 锣传计    
