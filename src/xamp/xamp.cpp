@@ -2370,8 +2370,9 @@ void Xamp::OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities
     QScopedPointer<TagEditPage> tag_edit_page(new TagEditPage(dialog.get(), entities));
     dialog->SetContentWidget(tag_edit_page.get());
     dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EDIT));
-    dialog->SetTitle(tr("Edit track information"));
+    dialog->SetTitle(tr("Edit track information"));    
     dialog->exec();
+    current_playlist_page_->playlist()->Reload();
 }
 
 void Xamp::OnReadFileProgress(int32_t progress) {

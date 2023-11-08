@@ -125,7 +125,7 @@ namespace {
         }
 
         // Skip PNG image error
-        if (str.contains(qTEXT("image\\qpnghandler.cpp"))) {
+        if (str.contains(qTEXT("qpnghandler.cpp"))) {
             return;
         }
 

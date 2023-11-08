@@ -187,6 +187,10 @@ public:
 
     void UpdateArtistByDiscId(const QString& disc_id, const QString& artist);
 
+    void UpdateAlbum(int32_t album_id, const QString& album);
+
+    void UpdateArtist(int32_t artist_id, const QString& artist);
+
     QString GetAlbumCoverId(int32_t album_id) const;
 
     int32_t GetAlbumId(const QString& album) const;

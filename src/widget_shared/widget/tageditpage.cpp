@@ -1,8 +1,10 @@
 #include <QCloseEvent>
 
+#include <ui_tageditpage.h>
+
 #include <widget/databasefacade.h>
 #include <widget/str_utilts.h>
-#include <ui_tageditpage.h>
+#include <widget/database.h>
 #include <widget/image_utiltis.h>
 #include <widget/ui_utilts.h>
 #include <widget/tageditpage.h>
@@ -91,11 +93,19 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			entity.comment = ui_->commentLineEdit->text();
 			entity.track = ui_->trackComboBox->currentText().toUInt();
 			entity.year = ui_->yearLineEdit->text().toUInt();
+
+			qMainDb.UpdateAlbum(entity.album_id, entity.album);
+			qMainDb.UpdateArtist(entity.artist_id, entity.artist);
 		} catch (...) {
+			XMessageBox::ShowError(qApp->tr("Write tag failure!"));
+			return;
+		}		
+
+		auto next_index = (index + 1) % entities_.size();
+		if (next_index == entities_.size() - 1) {
 			return;
 		}
 
-		auto next_index = (index + 1) % entities_.size();
 		ui_->titleComboBox->setCurrentIndex(next_index);
 		ui_->trackComboBox->setCurrentIndex(next_index);
 		SetCurrentInfo(next_index);
@@ -126,7 +136,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	(void)QObject::connect(ui_->saveToFileButton, &QPushButton::clicked, [this] {
 		if (XMessageBox::ShowYesOrNo(qApp->tr("Do you want write cover image?")) != QDialogButtonBox::Yes) {
 			return;
-		}		
+		}
 
 		if (temp_image_.isNull()) {
 			return;
@@ -220,10 +230,10 @@ void TagEditPage::SetCurrentInfo(int32_t index) {
 }
 
 void TagEditPage::closeEvent(QCloseEvent* event) {
-	if (XMessageBox::ShowYesOrNo(tr("Do you give up write tag ?")) == QDialogButtonBox::No) {
+	/*if (XMessageBox::ShowYesOrNo(tr("Do you give up write tag ?")) == QDialogButtonBox::No) {
 		event->ignore();
 		return;
-	}
+	}*/
 }
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {

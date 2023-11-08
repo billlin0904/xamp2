@@ -1054,6 +1054,21 @@ void Database::UpdateMusicRating(int32_t music_id, int32_t rating) {
     THROW_IF_FAIL1(query);
 }
 
+void Database::UpdateAlbum(int32_t album_id, const QString& album) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE albums SET album = :album WHERE (albumId = :albumId)"));
+
+    query.bindValue(qTEXT(":albumId"), album_id);
+    query.bindValue(qTEXT(":album"), album);
+
+    THROW_IF_FAIL1(query);
+}
+
+void Database::UpdateArtist(int32_t artist_id, const QString& artist) {
+    
+}
+
 void Database::UpdateAlbumHeart(int32_t album_id, uint32_t heart) {
     SqlQuery query(db_);
 

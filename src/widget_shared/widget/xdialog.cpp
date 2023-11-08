@@ -130,8 +130,9 @@ void XDialog::SetContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
     
-    // 如果使用waitForReady就會一直接收到message,
+    // 1. 如果使用waitForReady就會一直接收到message,
     // 會導致無法訊息一直出現並會遞迴.
+    // 2. 無法將視窗置中.
     //FramelessWidgetsHelper::get(this)->waitForReady();
 
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
