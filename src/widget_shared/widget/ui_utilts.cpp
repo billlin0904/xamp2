@@ -222,7 +222,7 @@ QString GetFileDialogFileExtensions() {
     if (file_extension.isEmpty()) {
         QString exts(qTEXT("("));
         auto file_exts = GetSupportFileExtensions();
-        file_exts.insert(".zip");
+        //file_exts.insert(".zip");
         for (const auto& file_ext : file_exts) {
             exts += qTEXT("*") + QString::fromStdString(file_ext);
             exts += qTEXT(" ");
