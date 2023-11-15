@@ -1600,6 +1600,7 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
     const auto enable_bit_perfect = qAppSettings.ValueAsBool(kEnableBitPerfect);
 
     player_->Stop();
+    player_->EnableFadeOut(qAppSettings.ValueAsBool(kAppSettingEnableFadeOut));
 
     if (enable_bit_perfect) {
         player_->GetDspManager()->RemoveSampleRateConverter();
