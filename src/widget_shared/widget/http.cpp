@@ -420,7 +420,7 @@ HttpClient::HttpClient(const QUrl& url, QObject* parent)
 }
 
 HttpClient::HttpClient(const QString &url, QObject* parent)
-    : impl_(new HttpClientImpl(url, parent)) {
+    : impl_(QSharedPointer<HttpClientImpl>::create(url, parent)) {
 }
 
 HttpClient::~HttpClient() = default;
