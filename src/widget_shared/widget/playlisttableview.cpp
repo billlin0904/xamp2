@@ -900,13 +900,20 @@ void PlayListTableView::SetOtherPlaylist(int32_t playlist_id) {
 void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
     DeletePendingPlaylist();
 
+    if (proxy_model_->rowCount() > 0) {
+        if (pending_playlist_.isEmpty()) {
+            // 清空PendingPlaylist會導致play_index_失效
+            play_index_ = GetNextIndex(1);
+        }        
+    }    
+
     QModelIndex index;
     for (auto i = 0; i < proxy_model_->rowCount() && i < kMaxPendingPlayListSize; ++i) {
         switch (order) {
         case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
             index = GetNextIndex(i);
             break;
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:            
             index = play_index_;
             break;
         case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:

@@ -23,6 +23,18 @@ enum HBitmapFormat {
 Q_GUI_EXPORT HBITMAP qt_pixmapToWinHBITMAP(const QPixmap& p, int hbitmapFormat = HBitmapFormat::HBitmapNoAlpha);
 
 namespace {
+	struct GdiDeleter final {
+		static HBITMAP invalid() noexcept {
+			return nullptr;
+		}
+
+		static void close(HBITMAP value) {
+			::DeleteObject(value);
+		}
+	};
+
+	using GdiHandle = UniqueHandle<HBITMAP, GdiDeleter>;
+
 	class DwmapiLib {
 	public:
 		DwmapiLib()
@@ -79,7 +91,7 @@ namespace {
 		return TBPF_NOPROGRESS;
 	}
 
-	int GetWin32IconSize() {
+	int32_t GetWin32IconSize() {
 		return ::GetSystemMetrics(SM_CXSMICON);
 	}
 
@@ -97,27 +109,29 @@ namespace {
 	};
 
 	void UpdateLiveThumbnail(const MSG* msg, const QPixmap& thumbnail) {
-		RECT rect;
-		GetClientRect(msg->hwnd, &rect);
+		RECT rect{};
+		if (!::GetClientRect(msg->hwnd, &rect)) {
+			XAMP_LOG_ERROR("GetClientRect return failure! {}", GetLastErrorMessage());
+		}
+
 		const QSize max_size(rect.right, rect.bottom);
-		POINT offset = { 0, 0 };
-		const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
-		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap, &offset, 0);
+		POINT offset = { 0, 0 };		
+		GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap.get(), &offset, 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
-		}
-		::DeleteObject(bitmap);
+		}		
 	}
 
 	void UpdateIconicThumbnail(const MSG* msg, const QPixmap& thumbnail) {
 		const QSize max_size(HIWORD(msg->lParam), LOWORD(msg->lParam));
 		XAMP_LOG_DEBUG("{} {}", HIWORD(msg->lParam), LOWORD(msg->lParam));
-		const HBITMAP bitmap = qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true));
-		const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap, 0);
+
+		GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap.get(), 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));
 		}
-		::DeleteObject(bitmap);
 	}
 }
 
@@ -143,7 +157,7 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 		throw Exception();
 	}
 
-	MSG_TaskbarButtonCreated = RegisterWindowMessage(L"TaskbarButtonCreated");
+	MSG_TaskbarButtonCreated = RegisterWindowMessageW(L"TaskbarButtonCreated");
 	SetWindow(window);
 }
 

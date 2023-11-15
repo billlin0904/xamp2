@@ -80,6 +80,7 @@ void PlaylistPage::Initial() {
 	heart_button_->setMaximumSize(QSize(24, 24));
 	heart_button_->setIconSize(QSize(24, 24));
 	qTheme.SetHeartButton(heart_button_);
+	heart_button_->hide();
 
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
@@ -197,6 +198,7 @@ void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 }
 
 void PlaylistPage::SetHeart(bool heart) {
+	heart_button_->show();
 	qTheme.SetHeartButton(heart_button_, heart);
 }
 

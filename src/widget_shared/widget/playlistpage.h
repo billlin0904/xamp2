@@ -8,6 +8,7 @@
 #include <QFrame>
 #include <QString>
 #include <QLineEdit>
+#include <QTabWidget>
 
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
@@ -66,5 +67,5 @@ private:
 	QSpacerItem* horizontal_spacer_5_{ nullptr };
 	QSpacerItem* middle_spacer_{ nullptr };
 	QSpacerItem* right_spacer_{ nullptr };
-	QSpacerItem* default_spacer_{ nullptr };
+	QSpacerItem* default_spacer_{ nullptr };	
 };

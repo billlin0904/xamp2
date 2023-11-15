@@ -48,6 +48,7 @@ class XMessage;
 class XProgressDialog;
 class FindAlbumCoverWorker;
 class ExtractFileWorker;
+class PlaylistTabWidget;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -246,6 +247,8 @@ private:
 
 	void showEvent(QShowEvent* event) override;
 
+	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString &name, bool add_db);
+
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;
@@ -255,12 +258,13 @@ private:
 	PlaylistPage* current_playlist_page_;
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;
+	QScopedPointer<PlaylistTabWidget> tab_widget_;
 	QScopedPointer<LrcPage> lrc_page_;
 	QScopedPointer<PlaylistPage> playlist_page_;
 	QScopedPointer<PlaylistPage> music_page_;
-	QScopedPointer<CdPage> cd_page_;
+	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> album_page_;
-	QScopedPointer<FileSystemViewPage> file_system_view_page_;
+	QScopedPointer<FileSystemViewPage> file_system_view_page_;	
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<ExtractFileWorker> extract_file_worker_;
@@ -273,5 +277,5 @@ private:
 	QVector<QFrame*> device_type_frame_;
 	QSharedPointer<XProgressDialog> read_progress_dialog_;
 	QElapsedTimer progress_timer_;
-    Ui::XampWindow ui_;
+    Ui::XampWindow ui_;	
 };

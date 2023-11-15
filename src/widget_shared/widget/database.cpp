@@ -499,8 +499,7 @@ LIMIT
     }
 }
 
-void Database::ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun) {
-    
+void Database::ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun) {    
     QSqlTableModel model(nullptr, db_);
 
     model.setTable(qTEXT("tables"));

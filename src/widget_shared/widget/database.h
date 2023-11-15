@@ -57,10 +57,10 @@ inline constexpr auto kMaxDatabasePoolSize = 8;
 inline constexpr int32_t kInvalidDatabaseId = -1;
 
 inline constexpr auto kDefaultPlaylistId = 1;
-inline constexpr auto kDefaultPodcastPlaylistId = 2;
-inline constexpr auto kDefaultFileExplorerPlaylistId = 3;
-inline constexpr auto kDefaultAlbumPlaylistId = 4;
-inline constexpr auto kDefaultCdPlaylistId = 5;
+inline constexpr auto kDefaultPodcastPlaylistId = 200;
+inline constexpr auto kDefaultFileExplorerPlaylistId = 300;
+inline constexpr auto kDefaultAlbumPlaylistId = 400;
+inline constexpr auto kDefaultCdPlaylistId = 500;
 
 enum PlayingState {
 	PLAY_CLEAR = 0,

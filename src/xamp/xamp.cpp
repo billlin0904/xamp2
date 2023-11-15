@@ -62,6 +62,7 @@
 #include <widget/maskwidget.h>
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
+#include <widget/playlisttabwidget.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -829,7 +830,7 @@ void Xamp::InitialUi() {
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
     qTheme.SetPlayOrPauseButton(ui_.playButton, false);
 
-    ui_.stopButton->hide();
+    ui_.stopButton->hide();    
 }
 
 void Xamp::OnVolumeChanged(float volume) {
@@ -1164,7 +1165,9 @@ void Xamp::SetCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
     case TAB_PLAYLIST:
-        ui_.currentView->setCurrentWidget(playlist_page_.get());
+        //ui_.currentView->setCurrentWidget(playlist_page_.get());
+        //playlist_page_->playlist()->Reload();
+        ui_.currentView->setCurrentWidget(tab_widget_.get());
         playlist_page_->playlist()->Reload();
         break;
     case TAB_LYRICS:
@@ -1920,10 +1923,34 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
+PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bool add_db) {
+    auto* playlist_page = NewPlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
+    ConnectPlaylistPageSignal(playlist_page);
+    playlist_page->playlist()->SetHeaderViewHidden(false);
+
+    (void)QObject::connect(this,
+        &Xamp::ChangePlayerOrder,
+        playlist_page->playlist(),
+        &PlayListTableView::AddPendingPlayListFromModel);
+
+    if (add_db) {
+        qMainDb.AddTable(name, 0, playlist_id);
+    }
+
+    if (!playlist_page_) {
+        playlist_page_.reset(playlist_page);
+    }
+
+    tab_widget_->addTab(playlist_page, name);
+    return playlist_page;
+}
+
 void Xamp::InitialPlaylist() {
     lrc_page_.reset(new LrcPage(this));
     album_page_.reset(new AlbumArtistPage(this));
 
+    tab_widget_.reset(new PlaylistTabWidget(this));
+    
     ui_.naviBar->AddSeparator();
     ui_.naviBar->AddTab(tr("Playlist"), TAB_PLAYLIST, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->AddTab(tr("File explorer"), TAB_FILE_EXPLORER, qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
@@ -1933,24 +1960,10 @@ void Xamp::InitialPlaylist() {
     ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
 
     qMainDb.ForEachTable([this](auto table_id,
-        auto /*table_index*/,
+        auto table_index,
         auto playlist_id,
         const auto& name) {
-            if (name.isEmpty()) {
-                return;
-            }
-
-            ui_.naviBar->AddTab(name, table_id, qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
-
-            if (!playlist_page_) {
-                playlist_page_.reset(NewPlaylistPage(playlist_id, kEmptyString));
-                playlist_page_->playlist()->SetPlaylistId(playlist_id, name);
-            }
-
-            if (playlist_page_->playlist()->GetPlaylistId() != playlist_id) {
-                playlist_page_.reset(NewPlaylistPage(playlist_id, kEmptyString));
-                playlist_page_->playlist()->SetPlaylistId(playlist_id, name);                
-            }
+            NewPlaylistPage(playlist_id, name, false);
         });
 
     if (!playlist_page_) {
@@ -1966,7 +1979,20 @@ void Xamp::InitialPlaylist() {
             &Xamp::ChangePlayerOrder,
             playlist_page_->playlist(),
             &PlayListTableView::AddPendingPlayListFromModel);
-    }
+
+        qMainDb.AddTable(tr("Playlist"), 0, playlist_id);
+        tab_widget_->addTab(playlist_page_.get(), tr("Playlist"));
+    }   
+
+    (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::CreateNewPlaylist,
+        [this]() {
+        auto tab_index = tab_widget_->count();
+        auto playlist_id = kDefaultPlaylistId + tab_index;
+        /*auto playlist_page = NewPlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
+        tab_widget_->addTab(playlist_page, tr("Playlist"));
+        qMainDb.AddTable(tr("Playlist"), tab_index, playlist_id);*/
+        NewPlaylistPage(playlist_id, qSTR("Playlist %1").arg(tab_index), true);
+        });    
 
     if (!file_system_view_page_) {
         file_system_view_page_.reset(new FileSystemViewPage(this));
@@ -2056,7 +2082,8 @@ void Xamp::InitialPlaylist() {
         this,
         &Xamp::OnSearchArtistCompleted);
 
-    PushWidget(playlist_page_.get());
+    //PushWidget(playlist_page_.get());
+    PushWidget(tab_widget_.get());
     PushWidget(lrc_page_.get());
     PushWidget(album_page_.get());
     PushWidget(file_system_view_page_.get());
@@ -2324,8 +2351,9 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
 }
 
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
-	auto* playlist_page = new PlaylistPage(this);
-    ui_.currentView->addWidget(playlist_page);    
+    /*auto* playlist_page = new PlaylistPage(this);
+    ui_.currentView->addWidget(playlist_page);*/
+    auto* playlist_page = new PlaylistPage(tab_widget_.get());    
     playlist_page->playlist()->SetPlaylistId(playlist_id, column_setting_name);
     return playlist_page;
 }
@@ -2356,7 +2384,7 @@ void Xamp::OnReadFilePath(const QString& file_path) {
 void Xamp::OnSetAlbumCover(int32_t album_id,
     const QString& album,
     const QString& cover_id) {
-    XAMP_LOG_DEBUG("{} => {}", album.toStdString(), cover_id.toStdString());
+    //XAMP_LOG_DEBUG("{} => {}", album.toStdString(), cover_id.toStdString());
     qMainDb.SetAlbumCover(album_id, album, cover_id);
     album_page_->Refresh();
 }

@@ -161,6 +161,8 @@ namespace {
     }
 
     int Execute(int argc, char* argv[], QStringList &args) {
+        qAppSettings;
+
         QApplication::setApplicationName(kApplicationName);
         QApplication::setApplicationVersion(kApplicationVersion);
         QApplication::setOrganizationName(kApplicationName);

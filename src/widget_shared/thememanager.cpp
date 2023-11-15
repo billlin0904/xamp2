@@ -211,7 +211,15 @@ void ThemeManager::SetFontAwesomeIcons() {
     { ICON_CIRCLE_CHECK,              0xF058 }
     };
     
-    qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
+    switch (theme_color_) {
+    case ThemeColor::LIGHT_THEME:
+        qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
+        break;
+    case ThemeColor::DARK_THEME:
+        qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
+        break;
+    }   
+
     qFontIcon.SetGlyphs(glyphs);
 }
 
@@ -221,15 +229,13 @@ QFont ThemeManager::LoadFonts() {
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
     QList<QString> en_fonts;
-    QList<QString> debug_fonts;
+    QList<QString> debug_fonts;    
 
-    SetFontAwesomeIcons();
-
-    InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-    InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    InstallFileFonts(qTEXT("OpenSans"), en_fonts);
-    InstallFileFonts(qTEXT("MiSans"), ui_fonts);
-    InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
+    InstallFileFonts(qTEXT("HarmonyOS_Sans"), format_font);
+    InstallFileFonts(qTEXT("HarmonyOS_Sans_TC"), ui_fonts);
+    InstallFileFonts(qTEXT("HarmonyOS_Sans"), en_fonts);
+    InstallFileFonts(qTEXT("HarmonyOS_Sans"), mono_fonts);
+    InstallFileFonts(qTEXT("HarmonyOS_Sans"), debug_fonts);
 
     SortFontWeight(ui_fonts.begin(), ui_fonts.end());
     ui_fonts.insert(0, en_fonts[0]);
@@ -291,7 +297,9 @@ ThemeManager::ThemeManager() {
 void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
 
+    SetFontAwesomeIcons();
     SetPalette();
+
     qAppSettings.SetEnumValue(kAppSettingTheme, theme_color_);
 
     font_icon_opts_.clear();

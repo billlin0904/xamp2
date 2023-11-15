@@ -15,6 +15,8 @@ IMPL_APP_SETTING_NAME(AppSettingScreenNumber, "AppSettings/screenNumber");
 IMPL_APP_SETTING_NAME(AppSettingWindowState, "AppSettings/windowState");
 IMPL_APP_SETTING_NAME(AppSettingVolume, "AppSettings/volume");
 IMPL_APP_SETTING_NAME(AppSettingOrder, "AppSettings/order");
+IMPL_APP_SETTING_NAME(AppSettingEnableFadeOut, "AppSettings/enableFadeOut");
+
 IMPL_APP_SETTING_NAME(AppSettingUseNativeDSDMode, "AppSettings/useNativeDSDMode");
 IMPL_APP_SETTING_NAME(AppSettingUseFramelessWindow, "AppSettings/useFramelessWindow");
 IMPL_APP_SETTING_NAME(AppSettingDiscordNotify, "AppSettings/discordNotify");
