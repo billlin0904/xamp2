@@ -118,9 +118,9 @@ QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
     if (parent != nullptr) {
         parent->setFocus();
     }
-    auto* dialog = new XProgressDialog(text, cancel, 0, 100, parent);
+    auto dialog = QSharedPointer<XProgressDialog>::create(text, cancel, 0, 100, parent);
     dialog->SetTitle(title);
-    return QSharedPointer<XProgressDialog>(dialog);
+    return dialog;
 }
 
 void CenterParent(QWidget* widget) {
