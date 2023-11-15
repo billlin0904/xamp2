@@ -21,14 +21,15 @@
 #include <version.h>
 
 namespace {
-	void SaveLastOpenFolderPath(const QString & file_name) {
+    void SaveLastOpenFolderPath(const QString& file_name) {
         if (QFileInfo(file_name).isDir()) {
             const QDir current_dir;
             qAppSettings.SetValue(kAppSettingLastOpenFolderPath, current_dir.absoluteFilePath(file_name));
-        } else {
+        }
+        else {
             qAppSettings.SetValue(kAppSettingLastOpenFolderPath, qAppSettings.GetMyMusicFolderPath());
         }
-	}
+    }
 }
 
 QString FormatSampleRate(const AudioFormat& format) {
@@ -254,7 +255,9 @@ QString GetExistingDirectory(QWidget* parent) {
         QWidget::tr("Select a directory"),
         last_open_folder,
         QFileDialog::ShowDirsOnly);
+
     SaveLastOpenFolderPath(dir_name);
+
     return dir_name;
 }
 
@@ -283,6 +286,7 @@ void GetSaveFileName(QWidget* parent,
     }
 
     SaveLastOpenFolderPath(file_name);
+
     action(file_name);
 }
 
@@ -303,6 +307,7 @@ void GetOpenFileName(QWidget* parent,
     }
 
     SaveLastOpenFolderPath(file_name);
+    
     action(file_name);    
 }
 
