@@ -651,6 +651,13 @@ ORDER BY count DESC;
     return genres;
 }
 
+void Database::RemoveTable(int32_t playlist_id) {
+    SqlQuery query(db_);
+    query.prepare(qTEXT("DELETE FROM tables WHERE playlistId=:playlistId"));
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
+    THROW_IF_FAIL1(query);
+}
+
 int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t playlist_id) {
     QSqlTableModel model(nullptr, db_);
 

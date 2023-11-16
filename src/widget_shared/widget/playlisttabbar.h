@@ -1,0 +1,29 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2023 XAMP project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <QLineEdit>
+#include <QTabBar>
+
+class PlaylistTabBar : public QTabBar {
+	Q_OBJECT
+public:
+	explicit PlaylistTabBar(QWidget* parent = nullptr);
+
+signals:
+	void TextChanged(int32_t index, const QString &text);
+
+public slots:
+	void OnRename();
+
+private:
+	bool eventFilter(QObject* watched, QEvent* event) override;
+
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+	int32_t edited_index_{0};
+	QLineEdit* line_edit_{nullptr};
+};

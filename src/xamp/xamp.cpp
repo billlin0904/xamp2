@@ -1933,15 +1933,13 @@ PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bo
         playlist_page->playlist(),
         &PlayListTableView::AddPendingPlayListFromModel);
 
-    if (add_db) {
-        qMainDb.AddTable(name, 0, playlist_id);
-    }
-
     if (!playlist_page_) {
         playlist_page_.reset(playlist_page);
     }
 
-    tab_widget_->addTab(playlist_page, name);
+    SetCover(kEmptyString, playlist_page);
+
+    tab_widget_->AddTab(playlist_id, name, playlist_page, add_db);
     return playlist_page;
 }
 
@@ -1987,7 +1985,7 @@ void Xamp::InitialPlaylist() {
     (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::CreateNewPlaylist,
         [this]() {
         auto tab_index = tab_widget_->count();
-        auto playlist_id = kDefaultPlaylistId + tab_index;
+        auto playlist_id = kMaxExistPlaylist + tab_index;
         /*auto playlist_page = NewPlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
         tab_widget_->addTab(playlist_page, tr("Playlist"));
         qMainDb.AddTable(tr("Playlist"), tab_index, playlist_id);*/

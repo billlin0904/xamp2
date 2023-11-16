@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QTabWidget>
+#include <QMap>
 #include <widget/widget_shared_global.h>
 
 class QMouseEvent;
@@ -15,10 +16,16 @@ class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget : public QTabWidget {
 public:
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
+	void AddTab(int32_t playlist_id, const QString &name, QWidget *widget, bool add_db);
 signals:
 	void CreateNewPlaylist();
 
+	void ClosePlaylist(int32_t playlist_id);
+
 private:
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
+
+	QMap<QString, int32_t> playlist_map_;
+	QMap<QString, QWidget*> widget_map_;
 };
 

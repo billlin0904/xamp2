@@ -231,11 +231,11 @@ QFont ThemeManager::LoadFonts() {
     QList<QString> en_fonts;
     QList<QString> debug_fonts;    
 
-    InstallFileFonts(qTEXT("HarmonyOS_Sans"), format_font);
-    InstallFileFonts(qTEXT("HarmonyOS_Sans_TC"), ui_fonts);
-    InstallFileFonts(qTEXT("HarmonyOS_Sans"), en_fonts);
-    InstallFileFonts(qTEXT("HarmonyOS_Sans"), mono_fonts);
-    InstallFileFonts(qTEXT("HarmonyOS_Sans"), debug_fonts);
+    InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
+    InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
+    InstallFileFonts(qTEXT("Poppins"), en_fonts);
+    InstallFileFonts(qTEXT("MiSans"), ui_fonts);
+    InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
     SortFontWeight(ui_fonts.begin(), ui_fonts.end());
     ui_fonts.insert(0, en_fonts[0]);

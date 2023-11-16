@@ -125,6 +125,7 @@
     <ClInclude Include="widget\mbdiscid_uiltis.h" />
     <QtMoc Include="widget\tageditpage.h" />
     <QtMoc Include="widget\playlisttabwidget.h" />
+    <QtMoc Include="widget\playlisttabbar.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
+    <ClCompile Include="widget\playlisttabbar.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
     <ClCompile Include="widget\mbdiscid_uiltis.cpp" />
