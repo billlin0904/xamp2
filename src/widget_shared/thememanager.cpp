@@ -233,7 +233,7 @@ QFont ThemeManager::LoadFonts() {
 
     InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
     InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    InstallFileFonts(qTEXT("Poppins"), en_fonts);
+    InstallFileFonts(qTEXT("OpenSans"), en_fonts);
     InstallFileFonts(qTEXT("MiSans"), ui_fonts);
     InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 

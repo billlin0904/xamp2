@@ -225,8 +225,6 @@ private:
     void UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
 	void UpdateButtonState();
-	
-	PlaylistPage* CurrentPlaylistPage();
 
 	void cleanup();
 
@@ -249,18 +247,18 @@ private:
 
 	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString &name, bool add_db);
 
+	PlaylistPage* GetCurrentPlaylistPage() const;
+
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
-	IXMainWindow* main_window_;
-	PlaylistPage* current_playlist_page_;
+	IXMainWindow* main_window_;	
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;
 	QScopedPointer<PlaylistTabWidget> tab_widget_;
-	QScopedPointer<LrcPage> lrc_page_;
-	QScopedPointer<PlaylistPage> playlist_page_;
+	QScopedPointer<LrcPage> lrc_page_;	
 	QScopedPointer<PlaylistPage> music_page_;
 	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> album_page_;

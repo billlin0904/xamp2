@@ -33,7 +33,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             removeTab(tab_index);
             widget_map_[name]->deleteLater();
             widget_map_.remove(name);
-            qMainDb.RemovePlaylistAllMusic(itr.value());
+            qMainDb.RemovePendingListMusic(itr.value());
+            qMainDb.RemovePlaylistAllMusic(itr.value());            
             qMainDb.RemoveTable(itr.value());
         }
         });
