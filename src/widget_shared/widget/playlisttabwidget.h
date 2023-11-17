@@ -26,8 +26,5 @@ signals:
 
 private:
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
-
-	QMap<QString, int32_t> playlist_map_;
-	QMap<QString, QWidget*> widget_map_;
 };
 

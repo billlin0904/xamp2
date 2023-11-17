@@ -3,10 +3,9 @@
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/playlisttabbar.h>
+#include <widget/playlistpage.h>
+#include <widget/playlisttableview.h>
 #include <widget/playlisttabwidget.h>
-
-#include "playlistpage.h"
-#include "playlisttableview.h"
 
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	: QTabWidget(parent) {
@@ -29,17 +28,14 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
-        auto name = tabText(tab_index);
-        auto itr = playlist_map_.find(name);
-        if (itr != playlist_map_.end()) {
-            ClosePlaylist(itr.value());
-            removeTab(tab_index);
-            widget_map_[name]->deleteLater();
-            widget_map_.remove(name);
-            qMainDb.RemovePendingListMusic(itr.value());
-            qMainDb.RemovePlaylistAllMusic(itr.value());            
-            qMainDb.RemoveTable(itr.value());
-        }
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+        auto* playlist = playlist_page->playlist();
+        ClosePlaylist(playlist->GetPlaylistId());
+        removeTab(tab_index);
+        qMainDb.RemovePendingListMusic(playlist->GetPlaylistId());
+        qMainDb.RemovePlaylistAllMusic(playlist->GetPlaylistId());
+        qMainDb.RemoveTable(playlist->GetPlaylistId());
+        playlist_page->deleteLater();
         });
 
     (void)QObject::connect(tabBar(), &QTabBar::tabBarDoubleClicked,
@@ -53,9 +49,6 @@ int32_t PlaylistTabWidget::GetCurrentPlaylistId() const {
 
 void PlaylistTabWidget::AddTab(int32_t playlist_id, const QString& name, QWidget* widget, bool add_db) {
     addTab(widget, name);
-
-    playlist_map_.insert(name, playlist_id);
-    widget_map_.insert(name, widget);
 
     if (add_db) {
         auto index = count();
