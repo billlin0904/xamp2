@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>823</width>
+    <width>778</width>
     <height>300</height>
    </rect>
   </property>
@@ -80,25 +80,38 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
      <property name="spacing">
       <number>0</number>
      </property>
      <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="10">
-        <layout class="QVBoxLayout" name="verticalLayout_10">
+       <item row="0" column="4">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
           <number>0</number>
          </property>
          <property name="leftMargin">
           <number>1</number>
          </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
          <item>
-          <widget class="QLabel" name="band10DbLabel">
+          <widget class="QLabel" name="band3DbLabel">
            <property name="text">
             <string>0db</string>
            </property>
@@ -108,7 +121,7 @@
           </widget>
          </item>
          <item>
-          <widget class="DoubleSlider" name="band10Slider">
+          <widget class="DoubleSlider" name="band3Slider">
            <property name="minimum">
             <number>-150</number>
            </property>
@@ -124,12 +137,12 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="band10FeqLabel">
+          <widget class="QLabel" name="band3FeqLabel">
            <property name="text">
-            <string>8KHz</string>
+            <string>125Hz</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -187,99 +200,7 @@
          </item>
         </layout>
        </item>
-       <item row="0" column="3">
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="band3DbLabel">
-           <property name="text">
-            <string>0db</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="DoubleSlider" name="band3Slider">
-           <property name="minimum">
-            <number>-150</number>
-           </property>
-           <property name="maximum">
-            <number>150</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="band3FeqLabel">
-           <property name="text">
-            <string>125Hz</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="4">
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="band4DbLabel">
-           <property name="text">
-            <string>0db</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="DoubleSlider" name="band4Slider">
-           <property name="minimum">
-            <number>-150</number>
-           </property>
-           <property name="maximum">
-            <number>150</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="band4FeqLabel">
-           <property name="text">
-            <string>125Hz</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="9">
+       <item row="0" column="10">
         <layout class="QVBoxLayout" name="verticalLayout_9">
          <property name="spacing">
           <number>0</number>
@@ -325,191 +246,7 @@
          </item>
         </layout>
        </item>
-       <item row="0" column="5">
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="band5DbLabel">
-           <property name="text">
-            <string>0db</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="DoubleSlider" name="band5Slider">
-           <property name="minimum">
-            <number>-150</number>
-           </property>
-           <property name="maximum">
-            <number>150</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="band5FeqLabel">
-           <property name="text">
-            <string>250Hz</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="band1DbLabel">
-           <property name="text">
-            <string>0db</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="DoubleSlider" name="band1Slider">
-           <property name="minimum">
-            <number>-150</number>
-           </property>
-           <property name="maximum">
-            <number>150</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="band1FeqLabel">
-           <property name="text">
-            <string>31.1Hz</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="6">
-        <layout class="QVBoxLayout" name="verticalLayout_6">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="band6DbLabel">
-           <property name="text">
-            <string>0db</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="DoubleSlider" name="band6Slider">
-           <property name="minimum">
-            <number>-150</number>
-           </property>
-           <property name="maximum">
-            <number>150</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="band6FeqLabel">
-           <property name="text">
-            <string>500Hz</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="7">
-        <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="band7DbLabel">
-           <property name="text">
-            <string>0db</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="DoubleSlider" name="band7Slider">
-           <property name="minimum">
-            <number>-150</number>
-           </property>
-           <property name="maximum">
-            <number>150</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="band7FeqLabel">
-           <property name="text">
-            <string>1KHz</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="8">
+       <item row="0" column="9">
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <property name="spacing">
           <number>0</number>
@@ -555,7 +292,118 @@
          </item>
         </layout>
        </item>
-       <item row="0" column="2">
+       <item row="0" column="8">
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="band7DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band7Slider">
+           <property name="minimum">
+            <number>-150</number>
+           </property>
+           <property name="maximum">
+            <number>150</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="band7FeqLabel">
+           <property name="text">
+            <string>1KHz</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="1">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="11">
+        <layout class="QVBoxLayout" name="verticalLayout_10">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="band10DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band10Slider">
+           <property name="minimum">
+            <number>-150</number>
+           </property>
+           <property name="maximum">
+            <number>150</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="band10FeqLabel">
+           <property name="text">
+            <string>8KHz</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="3">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
           <number>0</number>
@@ -600,6 +448,206 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="0" column="7">
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="band6DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band6Slider">
+           <property name="minimum">
+            <number>-150</number>
+           </property>
+           <property name="maximum">
+            <number>150</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="band6FeqLabel">
+           <property name="text">
+            <string>500Hz</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="2">
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="band1DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band1Slider">
+           <property name="minimum">
+            <number>-150</number>
+           </property>
+           <property name="maximum">
+            <number>150</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="band1FeqLabel">
+           <property name="text">
+            <string>31.1Hz</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="5">
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="band4DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band4Slider">
+           <property name="minimum">
+            <number>-150</number>
+           </property>
+           <property name="maximum">
+            <number>150</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="band4FeqLabel">
+           <property name="text">
+            <string>125Hz</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="6">
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="band5DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band5Slider">
+           <property name="minimum">
+            <number>-150</number>
+           </property>
+           <property name="maximum">
+            <number>150</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="band5FeqLabel">
+           <property name="text">
+            <string>250Hz</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="12">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>

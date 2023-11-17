@@ -29,13 +29,14 @@ public:
 private:
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
+	int32_t playlist_id_{ -1 };
 	QSqlQueryModel* model_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT PendingPlaylistPage : public QFrame {
 	Q_OBJECT
 public:
-	explicit PendingPlaylistPage(const QList<QModelIndex>& indexes, QWidget* parent = nullptr);
+	PendingPlaylistPage(const QList<QModelIndex>& indexes, int32_t playlist_id, QWidget* parent);
 
 	PendingPlayTableView* playlist() {
 		return playlist_;

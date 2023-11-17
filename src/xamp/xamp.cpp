@@ -1063,10 +1063,14 @@ void Xamp::InitialController() {
     });
 
     (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
-        SetPlayerOrder(true);
+        //SetPlayerOrder(true);
         //MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));
-        QScopedPointer<PendingPlaylistPage> page(new PendingPlaylistPage(GetCurrentPlaylistPage()->playlist()->GetPendingPlayIndexes(), dialog.get()));
+        GetCurrentPlaylistPage()->playlist()->AddPendingPlayListFromModel(order_);
+        QScopedPointer<PendingPlaylistPage> page(new PendingPlaylistPage(
+            GetCurrentPlaylistPage()->playlist()->GetPendingPlayIndexes(),
+            GetCurrentPlaylistPage()->playlist()->GetPlaylistId(),
+            dialog.get()));
         dialog->SetContentWidget(page.get(), true);
         dialog->SetTitle(tr("Pending playlist"));
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
@@ -1074,7 +1078,6 @@ void Xamp::InitialController() {
             &PendingPlaylistPage::PlayMusic,
             GetCurrentPlaylistPage()->playlist(),
             &PlayListTableView::PlayIndex);
-        page->playlist()->Reload();
         auto center_pos = ui_.pendingPlayButton->mapToGlobal(ui_.pendingPlayButton->rect().topRight());
         const auto sz = dialog->size();
         center_pos.setX(center_pos.x() - sz.width());

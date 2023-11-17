@@ -17,6 +17,8 @@ public:
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
 	void AddTab(int32_t playlist_id, const QString &name, QWidget *widget, bool add_db);
+
+	int32_t GetCurrentPlaylistId() const;
 signals:
 	void CreateNewPlaylist();
 

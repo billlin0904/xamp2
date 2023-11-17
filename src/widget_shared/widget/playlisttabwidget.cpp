@@ -5,6 +5,9 @@
 #include <widget/playlisttabbar.h>
 #include <widget/playlisttabwidget.h>
 
+#include "playlistpage.h"
+#include "playlisttableview.h"
+
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	: QTabWidget(parent) {
     setObjectName("playlistTab");
@@ -42,6 +45,10 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(tabBar(), &QTabBar::tabBarDoubleClicked,
         [this](auto tab_index) {
         });
+}
+
+int32_t PlaylistTabWidget::GetCurrentPlaylistId() const {
+    return dynamic_cast<PlaylistPage*>(currentWidget())->playlist()->GetPlaylistId();
 }
 
 void PlaylistTabWidget::AddTab(int32_t playlist_id, const QString& name, QWidget* widget, bool add_db) {

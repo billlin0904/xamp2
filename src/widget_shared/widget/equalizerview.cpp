@@ -67,10 +67,13 @@ EqualizerView::EqualizerView(QWidget* parent)
         l->setFont(f);
     }
 
+    ui_->preampDbLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_->preampLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+
     qTheme.SetSliderTheme(ui_->preampSlider);
 
     auto band = 0;
-    for (auto slider : sliders_) {
+    for (auto* slider : sliders_) {
         qTheme.SetSliderTheme(slider);
 
         (void)QObject::connect(slider, &DoubleSlider::DoubleValueChanged, [band, this](auto value) {
@@ -114,7 +117,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         settings.name = index;
         settings.settings = qAppSettings.GetEqPreset()[index];
         if (settings.settings.bands.empty()) {
-            settings.settings.bands.push_back(EqBandSetting());
+            settings.settings.bands.emplace_back();
         }
         qAppSettings.SetEqSettings(settings);
         qAppSettings.save();
@@ -137,13 +140,13 @@ EqualizerView::~EqualizerView() {
 }
 
 void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings) {
-    for (auto& l : bands_label_) {
+    for (const auto& l : bands_label_) {
         l->hide();
     }
-    for (auto& l : freq_label_) {
+    for (const auto& l : freq_label_) {
         l->hide();
     }
-    for (auto& s : sliders_) {
+    for (const auto& s : sliders_) {
         s->hide();
     }
 

@@ -136,6 +136,8 @@ PendingPlayTableView::PendingPlayTableView(QWidget* parent)
 }
 
 void PendingPlayTableView::SetPlaylistId(int32_t playlist_id) {
+    playlist_id_ = playlist_id;
+
 	Reload();
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
@@ -276,7 +278,7 @@ FROM
 WHERE
 	playlistMusics.playlistId = %1
     )");
-    const QSqlQuery query(s.arg(kDefaultPlaylistId), qMainDb.database());
+    const QSqlQuery query(s.arg(playlist_id_), qMainDb.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
@@ -284,7 +286,7 @@ WHERE
     model_->dataChanged(QModelIndex(), QModelIndex());
 }
 
-PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWidget* parent)
+PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, int32_t playlist_id, QWidget* parent)
 	: QFrame(parent)
     , indexes_(indexes) {
     setFrameStyle(QFrame::StyledPanel);
@@ -294,7 +296,7 @@ PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, QWid
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
 
     playlist_ = new PendingPlayTableView(this);
-    playlist_->SetPlaylistId(1);
+    playlist_->SetPlaylistId(playlist_id);
     playlist_->setObjectName(QString::fromUtf8("tableView"));
     default_layout->addWidget(playlist_);
 
