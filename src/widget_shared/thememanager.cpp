@@ -737,7 +737,7 @@ int32_t ThemeManager::GetFontSize(int32_t base_size) const {
 }
 
 int32_t ThemeManager::GetDefaultFontSize() const {
-    return GetFontSize(8);
+    return GetFontSize(9);
 }
 
 QSize ThemeManager::GetTitleButtonIconSize() {

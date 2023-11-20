@@ -1,4 +1,5 @@
 #include <QCloseEvent>
+#include <QCryptographicHash>
 
 #include <ui_tageditpage.h>
 
@@ -12,11 +13,44 @@
 #include <widget/tagio.h>
 #include <widget/imagecache.h>
 
+namespace {
+	QString GetFileChecksum(const QString& file_name, 
+		const QCryptographicHash::Algorithm hash_algorithm) {
+		QFile f(file_name);
+		if (f.open(QFile::ReadOnly)) {
+			QCryptographicHash hash(hash_algorithm);
+			if (hash.addData(&f)) {
+				return hash.result().toHex().toUpper();
+			}
+		}
+		return {};
+	}
+}
+
 TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	: QFrame(parent)
 	, entities_(entities) {
 	ui_ = new Ui::TagEditPage();
 	ui_->setupUi(this);
+
+	const auto labels = std::vector<QLabel*>{
+		ui_->titleLabel,
+		ui_->artistLabel,
+		ui_->audioMd5Label,
+		ui_->trackPeakLabel,
+		ui_->trackReplayGainLabel,
+		ui_->albumPeakLabel,
+		ui_->trackLabel,
+		ui_->genreLabel,
+		ui_->commentLabel,
+		ui_->albumLabel,
+		ui_->yearLabel,
+		ui_->albumReplayGainLabel,
+	};
+
+	for (auto& l : labels) {
+		l->setStyleSheet(qTEXT("background-color: transparent;"));
+	}
 
 	const TagIO tag_io;
 
@@ -227,6 +261,9 @@ void TagEditPage::SetCurrentInfo(int32_t index) {
 
 	ui_->titleComboBox->setCurrentIndex(index);
 	ui_->trackComboBox->setCurrentIndex(index);
+
+	const auto check_sum = GetFileChecksum(entities_[index].file_path, QCryptographicHash::Md5);
+	ui_->audioMD5LineEdit->setText(check_sum);
 }
 
 void TagEditPage::closeEvent(QCloseEvent* event) {

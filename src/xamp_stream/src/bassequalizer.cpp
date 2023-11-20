@@ -34,7 +34,7 @@ public:
         const auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
         BASS_IF_FAILED_THROW(fx_handle);
 
-        Q = 1.4;
+        //Q = 1.4;
 
         BASS_BFX_PEAKEQ eq{};
         eq.lBand = i;
