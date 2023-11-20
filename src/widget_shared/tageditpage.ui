@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>858</width>
-    <height>646</height>
+    <width>804</width>
+    <height>693</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Frame</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
    <item row="8" column="2">
     <widget class="QLineEdit" name="albumPeakLineEdit">
      <property name="readOnly">
@@ -90,7 +90,7 @@
    <item row="6" column="2">
     <widget class="QComboBox" name="trackComboBox">
      <property name="editable">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -179,18 +179,12 @@
    </item>
    <item row="0" column="2" colspan="4">
     <widget class="QGroupBox" name="groupBox">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>200</height>
-      </size>
-     </property>
      <property name="title">
       <string>Embedded Cover</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,1,0">
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
@@ -322,7 +316,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Clear</string>
+           <string>Add</string>
           </property>
          </widget>
         </item>

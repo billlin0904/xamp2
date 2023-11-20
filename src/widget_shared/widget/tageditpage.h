@@ -7,6 +7,7 @@
 
 #include <QFrame>
 
+#include <widget/str_utilts.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playlistentity.h>
 
@@ -17,6 +18,7 @@ namespace Ui {
 class XAMP_WIDGET_SHARED_EXPORT TagEditPage : public QFrame {
 	Q_OBJECT
 public:
+	static constexpr ConstLatin1String kCoverImageFileExt = qTEXT("(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)");
 	static constexpr QSize kCoverSize{ 600, 600 };
 
 	TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities);

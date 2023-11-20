@@ -1160,6 +1160,9 @@ void Xamp::SetCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
     case TAB_PLAYLIST:
+        if (tab_widget_->count() == 0) {
+            NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
+        }
         ui_.currentView->setCurrentWidget(tab_widget_.get());
         GetCurrentPlaylistPage()->playlist()->Reload();
         break;
@@ -2074,6 +2077,10 @@ void Xamp::InitialPlaylist() {
 }
 
 void Xamp::AppendToPlaylist(const QString& file_name) {
+    if (tab_widget_->count() == 0) {
+        NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
+    }
+
     try {
         GetCurrentPlaylistPage()->playlist()->append(file_name);
         album_page_->Refresh();
@@ -2373,9 +2380,7 @@ void Xamp::OnReadCompleted() {
     read_progress_dialog_.reset();
 }
 
-void Xamp::OnFoundFileCount(size_t file_count) {
-    constexpr auto kShowProgressDialogMsSecs = 50;
-
+void Xamp::OnFoundFileCount(size_t file_count) {    
     if (!read_progress_dialog_
         && progress_timer_.elapsed() > kShowProgressDialogMsSecs) {
         read_progress_dialog_ = MakeProgressDialog(kApplicationTitle,

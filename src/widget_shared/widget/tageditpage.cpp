@@ -46,7 +46,17 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		ui_->albumLabel,
 		ui_->yearLabel,
 		ui_->albumReplayGainLabel,
+		ui_->coverSizeLabel,
 	};
+
+	auto font = qTheme.GetFormatFont();
+	font.setPointSize(qTheme.GetFontSize(9));
+	ui_->coverSizeLabel->setFont(font);
+	ui_->albumPeakLineEdit->setFont(font);
+	ui_->albumReplayGainLineEdit->setFont(font);
+	ui_->trackPeakLineEdit->setFont(font);
+	ui_->trackReplayGainLineEdit->setFont(font);
+	ui_->audioMD5LineEdit->setFont(font);
 
 	for (auto& l : labels) {
 		l->setStyleSheet(qTEXT("background-color: transparent;"));
@@ -194,8 +204,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	(void)QObject::connect(ui_->addImageFileButton, &QPushButton::clicked, [=] {
 		const auto index = ui_->titleComboBox->currentIndex();
 		const auto dir = entities_[index].parent_path;
-		constexpr auto file_ext = qTEXT("(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)");
-
+		
 		const auto action = [this, index](auto file_path) {
 			const auto image = image_utils::ReadFileImage(file_path,
 				kCoverSize,
@@ -230,7 +239,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			action,
 			QWidget::tr("Open image file"),
 			dir,
-			QWidget::tr("Image Files ") + file_ext);
+			QWidget::tr("Image Files ") + kCoverImageFileExt);
 		});
 
 	ui_->notFoundImageLabel->hide();
