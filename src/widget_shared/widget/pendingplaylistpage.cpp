@@ -304,6 +304,6 @@ PendingPlaylistPage::PendingPlaylistPage(const QList<QModelIndex>& indexes, int3
     setFixedSize(650, 300);    
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const auto& index) {
-        PlayMusic(indexes_[index.row()]);
+        //PlayMusic(indexes_[index.row()]);
         });
 }

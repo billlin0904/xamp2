@@ -24,7 +24,7 @@ signals:
 
 	void ClosePlaylist(int32_t playlist_id);
 
-private:
+private:	
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 };
 

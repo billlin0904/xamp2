@@ -1,5 +1,7 @@
 #include <QTabBar>
+#include <QMouseEvent>
 
+#include <widget/xmessagebox.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/playlisttabbar.h>
@@ -24,10 +26,13 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	}	
     )"));
 
-    //setTabBar(new PlaylistTabBar(this));
+    setTabBar(new PlaylistTabBar(this));
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
+        if (XMessageBox::ShowYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
+            return;
+        }
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
         auto* playlist = playlist_page->playlist();
         ClosePlaylist(playlist->GetPlaylistId());
@@ -36,10 +41,6 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         qMainDb.RemovePlaylistAllMusic(playlist->GetPlaylistId());
         qMainDb.RemoveTable(playlist->GetPlaylistId());
         playlist_page->deleteLater();
-        });
-
-    (void)QObject::connect(tabBar(), &QTabBar::tabBarDoubleClicked,
-        [this](auto tab_index) {
         });
 }
 

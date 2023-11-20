@@ -103,7 +103,7 @@ public slots:
 
 	void OnArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const;
+	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 
 	void OnActivated(QSystemTrayIcon::ActivationReason reason);
 
@@ -249,7 +249,7 @@ private:
 
 	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString &name, bool add_db);
 
-	PlaylistPage* GetCurrentPlaylistPage() const;
+	PlaylistPage* GetCurrentPlaylistPage();
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

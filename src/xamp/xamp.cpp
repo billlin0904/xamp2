@@ -1159,10 +1159,7 @@ void Xamp::SetCurrentTab(int32_t table_id) {
     case TAB_FILE_EXPLORER:
         ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
-    case TAB_PLAYLIST:
-        if (tab_widget_->count() == 0) {
-            NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
-        }
+    case TAB_PLAYLIST:        
         ui_.currentView->setCurrentWidget(tab_widget_.get());
         GetCurrentPlaylistPage()->playlist()->Reload();
         break;
@@ -1466,7 +1463,7 @@ void Xamp::ResetSeekPosValue() {
     ui_.startPosLabel->setText(FormatDuration(0));
 }
 
-void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) const {
+void Xamp::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) {
     album_page_->album()->Refresh();
     GetCurrentPlaylistPage()->playlist()->Reload();
 }
@@ -1953,7 +1950,7 @@ void Xamp::InitialPlaylist() {
         [this]() {
         auto tab_index = tab_widget_->count();
         auto playlist_id = kMaxExistPlaylist + tab_index;
-        NewPlaylistPage(playlist_id, qSTR("Playlist %1").arg(tab_index), true);
+        NewPlaylistPage(playlist_id, tr("Playlist"), true);
         });    
 
     if (!file_system_view_page_) {
@@ -2077,10 +2074,6 @@ void Xamp::InitialPlaylist() {
 }
 
 void Xamp::AppendToPlaylist(const QString& file_name) {
-    if (tab_widget_->count() == 0) {
-        NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
-    }
-
     try {
         GetCurrentPlaylistPage()->playlist()->append(file_name);
         album_page_->Refresh();
@@ -2315,7 +2308,10 @@ void Xamp::AddDropFileItem(const QUrl& url) {
     AddItem(url.toLocalFile());
 }
 
-PlaylistPage* Xamp::GetCurrentPlaylistPage() const {
+PlaylistPage* Xamp::GetCurrentPlaylistPage() {
+    if (tab_widget_->count() == 0) {
+        NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
+    }
     return dynamic_cast<PlaylistPage*>(tab_widget_->currentWidget());
 }
 
