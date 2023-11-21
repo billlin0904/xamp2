@@ -6,12 +6,10 @@
 #pragma once
 
 #include <widget/widget_shared.h>
-#include <widget/widget_shared_global.h>
 
 #include <qwindowdefs.h>
 
 #include <base/align_ptr.h>
-#include <base/pimplptr.h>
 #include <base/base.h>
 
 class GlobalShortcut {

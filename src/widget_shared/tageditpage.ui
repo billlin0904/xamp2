@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>804</width>
-    <height>693</height>
+    <width>858</width>
+    <height>646</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Frame</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
+  <layout class="QGridLayout" name="gridLayout">
    <item row="8" column="2">
     <widget class="QLineEdit" name="albumPeakLineEdit">
      <property name="readOnly">
@@ -21,7 +21,7 @@
      </property>
     </widget>
    </item>
-   <item row="14" column="5">
+   <item row="15" column="5">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
@@ -90,7 +90,7 @@
    <item row="6" column="2">
     <widget class="QComboBox" name="trackComboBox">
      <property name="editable">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -98,6 +98,13 @@
     <widget class="QLabel" name="albumPeakLabel">
      <property name="text">
       <string>Album Peak:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2" colspan="4">
+    <widget class="QLineEdit" name="audioMD5LineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -118,7 +125,7 @@
    <item row="4" column="2" colspan="3">
     <widget class="QLineEdit" name="commentLineEdit"/>
    </item>
-   <item row="12" column="0">
+   <item row="13" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -177,14 +184,27 @@
      </property>
     </widget>
    </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="audioMd5Label">
+     <property name="text">
+      <string>Audio MD5:</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="2" colspan="4">
     <widget class="QGroupBox" name="groupBox">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>200</height>
+      </size>
+     </property>
      <property name="title">
       <string>Embedded Cover</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,1,0">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
@@ -316,7 +336,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Add</string>
+           <string>Clear</string>
           </property>
          </widget>
         </item>
@@ -339,7 +359,7 @@
      </layout>
     </widget>
    </item>
-   <item row="13" column="0" colspan="6">
+   <item row="14" column="0" colspan="6">
     <widget class="QFrame" name="frame">
      <property name="frameShape">
       <enum>QFrame::HLine</enum>
@@ -356,15 +376,15 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="audioMd5Label">
+   <item row="12" column="0">
+    <widget class="QLabel" name="audioMd5Label_2">
      <property name="text">
-      <string>Audio MD5:</string>
+      <string>File Size:</string>
      </property>
     </widget>
    </item>
-   <item row="11" column="2" colspan="4">
-    <widget class="QLineEdit" name="audioMD5LineEdit">
+   <item row="12" column="2" colspan="2">
+    <widget class="QLineEdit" name="fileSizeLineEdit">
      <property name="readOnly">
       <bool>true</bool>
      </property>

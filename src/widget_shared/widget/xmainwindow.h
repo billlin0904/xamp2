@@ -64,8 +64,6 @@ protected:
 
     void dropEvent(QDropEvent *event) override;
 
-    //void changeEvent(QEvent * event) override;
-
     void closeEvent(QCloseEvent* event) override;
 
     void SaveGeometry() override;

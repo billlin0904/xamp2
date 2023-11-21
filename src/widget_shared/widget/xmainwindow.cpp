@@ -365,25 +365,6 @@ void XMainWindow::UpdateMaximumState() {
     }
 }
 
-//void XMainWindow::changeEvent(QEvent* event) {
-//#if defined(Q_OS_MAC)
-//    if (content_widget_ != nullptr) {
-//        osx::hideTitleBar(content_widget_);
-//    }
-//#else
-//    if (event->type() == QEvent::WindowStateChange) {
-//        if (isMinimized()) {
-//            setUpdatesEnabled(false);
-//        }
-//        else if (windowState() == Qt::WindowNoState) {
-//            setAttribute(Qt::WA_Mapped);
-//            setUpdatesEnabled(true);
-//            update();
-//        }
-//    }
-//#endif
-//}
-
 void XMainWindow::showEvent(QShowEvent* event) {
 #if defined(Q_OS_WIN)
     if (!task_bar_) {

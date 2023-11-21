@@ -5,17 +5,19 @@
 
 #pragma once
 
+#include <QAbstractNativeEventFilter>
+
+#if defined(Q_OS_WIN)
+
 #include <atlcomcli.h>
 #include <shobjidl_core.h>
-
-#include <QAbstractNativeEventFilter>
 
 #include <thememanager.h>
 
 class IXFrame;
 class XMainWindow;
 
-class ITaskbarList4;
+struct ITaskbarList4;
 
 enum TaskbarProgressState {
     TASKBAR_PROCESS_STATE_NO_PROCESS, // Hidden
@@ -89,3 +91,5 @@ private:
     QPixmap thumbnail_;
     CComPtr<ITaskbarList4> taskbar_list_;
 };
+
+#endif

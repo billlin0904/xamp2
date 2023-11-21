@@ -147,20 +147,20 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
 
     std::atomic<size_t> completed_work(0);
     size_t total_work = 0;
-    for (const auto& entities : album_group_map) {
-        total_work += entities.size();
+    for (const auto& album_entities : album_group_map) {
+        total_work += album_entities.size();
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
     emit FoundFileCount(total_work);
 
-    for (const auto& entities : album_group_map) {
+    for (const auto& album_entities : album_group_map) {
         Vector<ReplayGainJob> jobs;
         jobs.resize(entities.size());
 
         for (size_t i = 0; i < entities.size(); ++i) {
-            jobs[i].entity = entities[i];
+            jobs[i].entity = album_entities[i];
         }
 
         //std::this_thread::sleep_for(std::chrono::seconds(1));

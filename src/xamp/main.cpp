@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <QDir>
 #include <qlibraryinfo.h>
 
@@ -193,7 +193,7 @@ namespace {
 
         XMainWindow main_window;
 
-        //*** ¨t²Î¸ü¤JDLL¥²¶·¦b¦¹¨ç¼Æ¤¤, ¦pªG¤§«á¦A¸ü¤JDLL·|¥X¿ù ***//
+        //*** ç³»çµ±è¼‰å…¥DLLå¿…é ˆåœ¨æ­¤å‡½æ•¸ä¸­, å¦‚æœä¹‹å¾Œå†è¼‰å…¥DLLæœƒå‡ºéŒ¯ ***//
         try {
             LoadComponentSharedLibrary();
         }

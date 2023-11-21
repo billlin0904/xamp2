@@ -57,6 +57,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->trackPeakLineEdit->setFont(font);
 	ui_->trackReplayGainLineEdit->setFont(font);
 	ui_->audioMD5LineEdit->setFont(font);
+	ui_->fileSizeLineEdit->setFont(font);
 
 	for (auto& l : labels) {
 		l->setStyleSheet(qTEXT("background-color: transparent;"));
@@ -267,7 +268,9 @@ void TagEditPage::SetCurrentInfo(int32_t index) {
 	ui_->albumReplayGainLineEdit->setText(FormatDb(entities_[index].album_replay_gain));
 	ui_->trackPeakLineEdit->setText(FormatDb(entities_[index].track_peak));
 	ui_->trackReplayGainLineEdit->setText(FormatDb(entities_[index].track_replay_gain));
-
+	ui_->fileSizeLineEdit->setText(StringFormat("{} ({})",
+		entities_[index].file_size,
+		String::FormatBytes(entities_[index].file_size)));
 	ui_->titleComboBox->setCurrentIndex(index);
 	ui_->trackComboBox->setCurrentIndex(index);
 

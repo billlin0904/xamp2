@@ -15,11 +15,11 @@ XAMP_PIMPL_IMPL(GlobalShortcut)
 
 #if defined(Q_OS_WIN)
 
-class XAMP_WIDGET_SHARED_EXPORT GlobalShortcut::GlobalShortcutImpl {
+class GlobalShortcut::GlobalShortcutImpl {
 public:
     GlobalShortcutImpl() = default;
 
-    quint32 nativeKeycode(Qt::Key key) {
+    quint32 NativeKeycode(Qt::Key key) {
         // Here is list of keys that presumably work on most keyboard layouts.
         // Default branch is for keys that can change with keyboard layout.
         switch (key) {
@@ -147,7 +147,7 @@ public:
         }
     }
 
-    quint32 nativeModifiers(Qt::KeyboardModifiers modifiers) {
+    quint32 NativeModifiers(Qt::KeyboardModifiers modifiers) {
         // MOD_ALT, MOD_CONTROL, (MOD_KEYUP), MOD_SHIFT, MOD_WIN
         quint32 native = 0;
         if (modifiers & Qt::ShiftModifier)
@@ -164,14 +164,14 @@ public:
         return native;
     }
 
-    bool registerShortcut(const WId wid, quint32 nativeKey, quint32 nativeMods) {
+    bool RegisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
         auto hwnd = reinterpret_cast<HWND>(wid);
-        return ::RegisterHotKey(hwnd, nativeMods ^ nativeKey, nativeMods, nativeKey);
+        return ::RegisterHotKey(hwnd, native_mods ^ native_key, native_mods, native_key);
     }
 
-    bool unregisterShortcut(const WId wid, quint32 nativeKey, quint32 nativeMods) {
+    bool UnregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
         auto hwnd = reinterpret_cast<HWND>(wid);
-        return ::UnregisterHotKey(hwnd, nativeMods ^ nativeKey);
+        return ::UnregisterHotKey(hwnd, native_mods ^ native_key);
     }
 };
 
@@ -517,18 +517,18 @@ GlobalShortcut::GlobalShortcut()
 }
 
 bool GlobalShortcut::RegisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
-    return impl_->registerShortcut(wid, native_key, native_mods);
+    return impl_->RegisterShortcut(wid, native_key, native_mods);
 }
 
 bool GlobalShortcut::UnregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
-    return impl_->unregisterShortcut(wid, native_key, native_mods);
+    return impl_->UnregisterShortcut(wid, native_key, native_mods);
 }
 
 quint32 GlobalShortcut::NativeModifiers(Qt::KeyboardModifiers modifiers) {
-    return impl_->nativeModifiers(modifiers);
+    return impl_->NativeModifiers(modifiers);
 }
 
 quint32 GlobalShortcut::NativeKeycode(Qt::Key key) {
-    return impl_->nativeKeycode(key);
+    return impl_->NativeKeycode(key);
 }
 

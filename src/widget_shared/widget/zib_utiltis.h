@@ -6,10 +6,7 @@
 #pragma once
 
 #include <QByteArray>
-
-#include <fstream>
 #include <vector>
-#include <map>
 
 #include <widget/widget_shared.h>
 

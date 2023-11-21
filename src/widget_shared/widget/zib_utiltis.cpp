@@ -3,6 +3,8 @@
 #include <base/dll.h>
 #include <base/scopeguard.h>
 
+#include <fstream>
+
 #include <zlib.h>
 #include <contrib/minizip/unzip.h>
 
@@ -31,26 +33,26 @@ namespace {
                     mode_fopen = L"wb";
 
         if ((filename != nullptr) && (mode_fopen != nullptr))
-            _wfopen_s(&file, (const wchar_t*)filename, mode_fopen);
+            _wfopen_s(&file, static_cast<const wchar_t*>(filename), mode_fopen);
         return file;
     }
 
 
     uLong fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size) {
         uLong ret;
-        ret = (uLong)fread(buf, 1, (size_t)size, (FILE*)stream);
+        ret = static_cast<uLong>(fread(buf, 1, (size_t)size, (FILE*)stream));
         return ret;
     }
 
     uLong fwrite_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size) {
         uLong ret;
-        ret = (uLong)fwrite(buf, 1, (size_t)size, (FILE*)stream);
+        ret = static_cast<uLong>(fwrite(buf, 1, (size_t)size, (FILE*)stream));
         return ret;
     }
 
     ZPOS64_T ftell64_file_func(voidpf opaque, voidpf stream) {
         ZPOS64_T ret;
-        ret = _ftelli64((FILE*)stream);
+        ret = _ftelli64(static_cast<FILE*>(stream));
         return ret;
     }
 
@@ -74,7 +76,7 @@ namespace {
 
         ret = 0;
 
-        if (_fseeki64((FILE*)stream, offset, fseek_origin) != 0)
+        if (_fseeki64(static_cast<FILE*>(stream), offset, fseek_origin) != 0)
             ret = -1;
 
         return ret;
@@ -82,13 +84,13 @@ namespace {
 
     int fclose_file_func(voidpf opaque, voidpf stream) {
         int ret;
-        ret = fclose((FILE*)stream);
+        ret = fclose(static_cast<FILE*>(stream));
         return ret;
     }
 
     int ferror_file_func(voidpf opaque, voidpf stream) {
         int ret;
-        ret = ferror((FILE*)stream);
+        ret = ferror(static_cast<FILE*>(stream));
         return ret;
     }
 }
@@ -97,6 +99,8 @@ XAMP_PIMPL_IMPL(ZipFileReader)
 
 class ZipFileReader::ZipFileReaderImpl {
 public:
+    static constexpr auto kReadZipBufferSize = 4096;
+
     ZipFileReaderImpl() = default;
     
     std::vector<std::wstring> OpenFile(const std::wstring& file) {
@@ -115,21 +119,21 @@ public:
         std::vector<std::wstring> track_infos;
 
         unz_global_info zip_file_info{};
-        if (unzGetGlobalInfo(handle_.get(), &zip_file_info) != UNZ_OK) {
+        if (::unzGetGlobalInfo(handle_.get(), &zip_file_info) != UNZ_OK) {
             throw Exception();
         }
 
         for (uint32_t i = 0; i < zip_file_info.number_entry; i++) {
             char file_name[MAX_PATH]{};
             unz_file_info file_info{};
-            auto ret = unzGetCurrentFileInfo(handle_.get(), 
-                &file_info, 
-                file_name, 
-                MAX_PATH, 
-                nullptr, 
-                0,
-                nullptr,
-                0);
+            const auto ret = ::unzGetCurrentFileInfo(handle_.get(),
+                                                   &file_info, 
+                                                   file_name, 
+                                                   MAX_PATH, 
+                                                   nullptr, 
+                                                   0,
+                                                   nullptr,
+                                                   0);
             if (ret != UNZ_OK) {
                 throw Exception();
             }
@@ -153,11 +157,11 @@ public:
     }
 
     std::wstring ExtractCurrentFile() {
-        if (unzOpenCurrentFile(handle_.get()) != UNZ_OK) {
+        if (::unzOpenCurrentFile(handle_.get()) != UNZ_OK) {
             throw Exception();
         }
 
-        auto temp_file_path = GetTempFileNamePath();
+        const auto temp_file_path = GetTempFileNamePath();
 
         XAMP_ON_SCOPE_FAIL(
             unzCloseCurrentFile(handle_.get());            
@@ -170,10 +174,9 @@ public:
         
         int error = UNZ_OK;
         do {
-            constexpr auto kReadZipBufferSize = 4096;
             char read_buffer[kReadZipBufferSize]{};
             
-            error = unzReadCurrentFile(handle_.get(), read_buffer, kReadZipBufferSize);
+            error = ::unzReadCurrentFile(handle_.get(), read_buffer, kReadZipBufferSize);
 
             if (error < 0) {
                 throw Exception();
