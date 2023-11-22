@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/;../thirdparty/foobar_sdk/foobar2000/;../thirdparty/foobar_sdk/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/;../thirdparty/foobar_sdk/foobar2000/;../thirdparty/foobar_sdk/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -156,6 +156,10 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\thirdparty\supereq\fft.h" />
+    <ClInclude Include="..\thirdparty\supereq\mem_block.h" />
+    <ClInclude Include="..\thirdparty\supereq\paramlist.h" />
+    <ClInclude Include="..\thirdparty\supereq\supereq.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
@@ -198,9 +202,12 @@
     <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
+    <ClInclude Include="include\stream\supereqequalizer.h" />
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\thirdparty\supereq\mem_block.cpp" />
+    <ClCompile Include="..\thirdparty\supereq\supereq.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
@@ -227,6 +234,7 @@
     <ClCompile Include="src\soxresampler.cpp" />
     <ClCompile Include="src\srcresampler.cpp" />
     <ClCompile Include="src\stft.cpp" />
+    <ClCompile Include="src\supereqequalizer.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

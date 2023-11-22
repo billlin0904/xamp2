@@ -37,6 +37,7 @@
                 "Soxr": "debug",
                 "SoxrSampleRateConverter": "info",
                 "SrcSampleRateConverter": "info",
+                "SuperEqEqualizer": "info",
                 "TagLib": "info",
                 "VirtualMemory": "info",
                 "WASAPIThreadPool": "info"

@@ -13,6 +13,7 @@
 #include <stream/bassflacfileencoder.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
+#include <stream/supereqequalizer.h>
 #include <stream/mfaacencoder.h>
 #include <stream/bassfader.h>
 #include <stream/basscddevice.h>
@@ -31,7 +32,7 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace {
-    bool IsDsdFileChunk(std::string_view const& file_chunks) noexcept {
+    bool IsDsdFileChunk(const std::string_view & file_chunks) noexcept {
         static constexpr std::array<std::string_view, 2> knows_chunks{
             "DSD ", // .dsd file
             "FRM8"  // .dsdiff file
@@ -41,12 +42,8 @@ namespace {
     }
 }
 
-bool IsDsdFile(Path const& path) {
-#ifdef XAMP_OS_WIN
+bool IsDsdFile(const Path & path) {
     std::ifstream file(path, std::ios_base::binary);
-#else
-    std::ifstream file(path, std::ios_base::binary);
-#endif
     if (!file.is_open()) {
         return false;
     }
@@ -97,7 +94,8 @@ AlignPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
 }
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {
-    return MakeAlign<IAudioProcessor, BassEqualizer>();
+    //return MakeAlign<IAudioProcessor, BassEqualizer>();
+    return MakeAlign<IAudioProcessor, SuperEqEqualizer>();
 }
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeCompressor() {

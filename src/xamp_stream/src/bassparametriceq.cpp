@@ -11,8 +11,9 @@ XAMP_DECLARE_LOG_NAME(BassParametricEq);
 
 class BassParametricEq::BassParametricEqImpl {
 public:
-    BassParametricEqImpl() {
-        logger_ = LoggerManager::GetInstance().GetLogger(kBassParametricEqLoggerName);
+    BassParametricEqImpl()
+		: preamp_(0) {
+	    logger_ = LoggerManager::GetInstance().GetLogger(kBassParametricEqLoggerName);
     }
 
     void Start(uint32_t sample_rate) {

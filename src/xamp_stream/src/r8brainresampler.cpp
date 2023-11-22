@@ -70,7 +70,7 @@ public:
 	};
 
 	using CR8BResamplerHandle = UniqueHandle<CR8BResampler, CR8BResamplerHandleTraits>;
-	Vector<double> input_data_;
+	std::vector<double> input_data_;
 	uint32_t input_sample_rate_;
 	uint32_t output_sample_rate_;
 	CR8BResamplerHandle handle_;

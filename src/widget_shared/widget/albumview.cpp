@@ -479,12 +479,12 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             });
 
             process_dialog->SetRange(0, albums.size() + 1);
-
             int32_t count = 0;
-
+            process_dialog->show();
             Q_FOREACH(const auto album_id, albums) {
                 qMainDb.RemoveAlbum(album_id);
                 process_dialog->SetValue(count++ * 100 / albums.size() + 1);
+                qApp->processEvents();
             }
             qMainDb.RemoveAllArtist();
             process_dialog->SetValue(100);
