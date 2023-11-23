@@ -12,6 +12,42 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(SuperEqEqualizer);
 
+namespace {
+    EqSettings GetDefaultEqSettings() {
+        constexpr std::array<float, kMaxSuperEqBand> kFreqs{
+            55,
+            77,
+            110,
+            156,
+            220,
+            311,
+            440,
+            622,
+            880,
+            1200,
+            1800,
+            2500,
+            3500,
+            5000,
+            7000,
+            10000,
+            14000,
+            20000
+        };
+
+        EqSettings settings;
+        for (const auto freq : kFreqs) {
+            EqBandSetting band;
+            band.frequency = freq;
+            band.band_width = freq / 2;
+            band.gain = 20;
+            band.Q = kDefaultQ;
+            settings.bands.push_back(band);
+        }
+        return settings;
+    }
+}
+
 class SuperEqEqualizer::SuperEqEqualizerImpl {
 public:
     SuperEqEqualizerImpl() {
@@ -91,6 +127,7 @@ private:
             bands[i] = std::pow(10.0, (band_gain - 20) / -20.0);
         }
     }
+
     uint32_t sample_rate_{ 0 };
     paramlist paramlist_;
     std::vector<float> buffer_;
@@ -128,40 +165,6 @@ std::string_view SuperEqEqualizer::GetDescription() const noexcept {
 
 void SuperEqEqualizer::Flush() {
     impl_->Flush();
-}
-
-EqSettings SuperEqEqualizer::GetDefaultEqSettings() {
-    constexpr std::array<float, kMaxSuperEqBand> freqs{
-    	55,
-    	77,
-    	110,
-    	156,
-    	220,
-    	311,
-    	440,
-    	622,
-    	880,
-    	1200,
-    	1800,
-    	2500,
-    	3500,
-    	5000,
-    	7000,
-    	10000,
-    	14000,
-    	20000
-    };
-
-    EqSettings settings;
-    for (const auto freq : freqs) {
-        EqBandSetting band;
-        band.frequency = freq;
-        band.frequency = freq / 2;
-        band.gain = 20;
-        band.Q = kDefaultQ;
-        settings.bands.push_back(band);
-    }
-    return settings;
 }
 
 XAMP_STREAM_NAMESPACE_END

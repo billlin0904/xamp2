@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>858</width>
-    <height>646</height>
+    <width>746</width>
+    <height>745</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -193,12 +193,6 @@
    </item>
    <item row="0" column="2" colspan="4">
     <widget class="QGroupBox" name="groupBox">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>200</height>
-      </size>
-     </property>
      <property name="title">
       <string>Embedded Cover</string>
      </property>

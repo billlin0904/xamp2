@@ -14,7 +14,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-static constexpr auto kMaxSuperEqBand = 18;
+inline constexpr auto kMaxSuperEqBand = 18;
 
 class SuperEqEqualizer final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(SuperEqEqualizer, "3A8DE658-B3B6-0D06-13AA-AEB71B3C314E")
@@ -36,7 +36,6 @@ public:
 
     void Flush() override;
 
-    static EqSettings GetDefaultEqSettings();
 private:
     class SuperEqEqualizerImpl;
     AlignPtr<SuperEqEqualizerImpl> impl_;

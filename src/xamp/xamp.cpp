@@ -1095,12 +1095,12 @@ void Xamp::InitialController() {
             return;
         }
         //MaskWidget mask_widget(this);
-        QScopedPointer<XDialog> dialog(new XDialog(this));
-        //QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        QScopedPointer<XDialog> dialog(new XDialog(this));        
         QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
         dialog->SetContentWidget(eq.get(), false);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
         dialog->SetTitle(tr("SuperEQ"));
+        //QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
         /*dialog->SetTitle(tr("EQ"));
         eq->setMinimumWidth(800);
 
