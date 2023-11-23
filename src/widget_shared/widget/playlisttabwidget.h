@@ -22,8 +22,6 @@ public:
 signals:
 	void CreateNewPlaylist();
 
-	void ClosePlaylist(int32_t playlist_id);
-
 private:	
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 };

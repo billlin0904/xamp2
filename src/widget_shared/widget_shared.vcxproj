@@ -126,6 +126,7 @@
     <QtMoc Include="widget\tageditpage.h" />
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
+    <QtMoc Include="widget\supereqview.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
@@ -246,6 +247,7 @@
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\str_utilts.cpp" />
+    <ClCompile Include="widget\supereqview.cpp" />
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\tageditpage.cpp" />
@@ -269,6 +271,7 @@
     <QtUic Include="equalizerdialog.ui" />
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
+    <QtUic Include="supereqdialog.ui" />
     <QtUic Include="tageditpage.ui" />
     <QtUic Include="volumecontroldialog.ui" />
   </ItemGroup>

@@ -1,6 +1,9 @@
 ﻿#include <iostream>
 #include <QDir>
 #include <qlibraryinfo.h>
+#include <QLoggingCategory>
+#include <QOperatingSystemVersion>
+#include <QProcess>
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
@@ -22,10 +25,6 @@
 #include <widget/xmainwindow.h>
 #include <widget/http.h>
 #include <widget/xmessagebox.h>
-
-#include <QLoggingCategory>
-#include <QOperatingSystemVersion>
-#include <QProcess>
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
 #include <FramelessHelper/Core/private/framelessconfig_p.h>

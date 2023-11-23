@@ -20,10 +20,6 @@ public:
 
     void Start(uint32_t sample_rate) {
         sample_rate_ = sample_rate;
-        eqs_.clear();
-        for (auto i = 0; i < AudioFormat::kMaxChannel; ++i) {
-            eqs_.push_back(MakeAlign<supereq<float>>());
-        }
         const auto settings = GetDefaultEqSettings();
         SetEq(settings);
     }
@@ -32,25 +28,25 @@ public:
 	    const int32_t channel_samples = num_samples * AudioFormat::kMaxChannel;
         buffer_.resize(channel_samples);
 
-        for (auto i = 0; i < AudioFormat::kMaxChannel; ++i) {
+        for (auto ch = 0; ch < AudioFormat::kMaxChannel; ++ch) {
             for (auto s = 0; s < channel_samples; s++) {
-                buffer_[s] = samples[s * AudioFormat::kMaxChannel + i];
+                buffer_[s] = samples[s * AudioFormat::kMaxChannel + ch];
             }
-            eqs_[i]->write_samples(buffer_.data(), channel_samples);
+            eqs_[ch]->write_samples(buffer_.data(), channel_samples);
         }
 
         int32_t read_samples = 0;
 
-        for (auto i = 0; i < AudioFormat::kMaxChannel; ++i) {
+        for (auto ch = 0; ch < AudioFormat::kMaxChannel; ++ch) {
             int32_t samples_out = 0;
-            const auto *output = eqs_[i]->get_output(&samples_out);
+            const auto *output = eqs_[ch]->get_output(&samples_out);
             const auto excepted_size = (samples_out * AudioFormat::kMaxChannel) + read_samples;
             if (excepted_size > buffer_.size()) {
                 buffer_.resize(excepted_size);
             }
 
-            for (auto s = 0; s < samples_out; s++) {
-                buffer_[s * AudioFormat::kMaxChannel + i] = output[s];
+            for (auto i = 0; i < samples_out; i++) {
+                buffer_[i * AudioFormat::kMaxChannel + ch] = output[i];
             }
             read_samples += samples_out;
         }
@@ -68,12 +64,18 @@ public:
     }
 
     void SetEq(const EqSettings & settings) {
-        /*std::array<double, kMaxSuperEqBand> bands;
+        eqs_.clear();
+        for (auto i = 0; i < AudioFormat::kMaxChannel; ++i) {
+            eqs_.push_back(MakeAlign<supereq<float>>());
+        }
+
+    	std::array<double, kMaxSuperEqBand> bands;
+        bands.fill(0);
     	SetupBand(settings, bands);
 
         for (auto i = 0; i < AudioFormat::kMaxChannel; ++i) {
-            eqs_[i]->equ_makeTable(bands.data(), &paramroot_, sample_rate_);
-        }*/
+            eqs_[i]->equ_makeTable(bands.data(), &paramlist_, sample_rate_);
+        }
     }
 
     void Flush() {
@@ -85,11 +87,12 @@ public:
 private:
     void SetupBand(const EqSettings& settings, std::array<double, kMaxSuperEqBand> &bands) {
         for (auto i = 0; i < settings.bands.size(); ++i) {
-            bands[i] = std::pow(10.0, (settings.bands[i].gain - 20) / -20.0);
+            auto band_gain = 20 - settings.bands[i].gain;
+            bands[i] = std::pow(10.0, (band_gain - 20) / -20.0);
         }
     }
     uint32_t sample_rate_{ 0 };
-    paramlist paramroot_;
+    paramlist paramlist_;
     std::vector<float> buffer_;
     Vector<AlignPtr<supereq<float>>> eqs_;
     LoggerPtr logger_;
@@ -124,10 +127,11 @@ std::string_view SuperEqEqualizer::GetDescription() const noexcept {
 }
 
 void SuperEqEqualizer::Flush() {
+    impl_->Flush();
 }
 
 EqSettings SuperEqEqualizer::GetDefaultEqSettings() {
-    constexpr std::array<float, 18> band_freq{
+    constexpr std::array<float, kMaxSuperEqBand> freqs{
     	55,
     	77,
     	110,
@@ -148,17 +152,12 @@ EqSettings SuperEqEqualizer::GetDefaultEqSettings() {
     	20000
     };
 
-    constexpr std::array<float, 18> band_gain{
-        2,1,0,0,0,-2,0,-2,0,0,0,0,2,0,0,3,0,0
-    };
-
-    auto i = 0;
     EqSettings settings;
-    for (const auto freq : band_freq) {
+    for (const auto freq : freqs) {
         EqBandSetting band;
         band.frequency = freq;
         band.frequency = freq / 2;
-        band.gain = band_gain[i++];
+        band.gain = 20;
         band.Q = kDefaultQ;
         settings.bands.push_back(band);
     }

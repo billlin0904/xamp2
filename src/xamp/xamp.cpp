@@ -38,6 +38,7 @@
 #include <widget/filesystemviewpage.h>
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
+#include <widget/supereqview.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableview.h>
@@ -1095,10 +1096,12 @@ void Xamp::InitialController() {
         }
         //MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));
-        QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        //QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
         dialog->SetContentWidget(eq.get(), false);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
-        dialog->SetTitle(tr("EQ"));
+        dialog->SetTitle(tr("SuperEQ"));
+        /*dialog->SetTitle(tr("EQ"));
         eq->setMinimumWidth(800);
 
         (void)QObject::connect(eq.get(), &EqualizerView::BandValueChange, [](auto, auto, auto) {
@@ -1107,7 +1110,7 @@ void Xamp::InitialController() {
 
         (void)QObject::connect(eq.get(), &EqualizerView::PreampValueChange, [](auto) {
             qAppSettings.save();
-        });
+        });*/
         dialog->exec();
     });
 

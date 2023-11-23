@@ -284,7 +284,7 @@ ThemeManager::ThemeManager() {
     save_cover_art_size_ = QSize(350, 350);
     ui_font_ = LoadFonts();
     const auto* screen = qApp->screens()[0];
-    auto screen_size = screen->size();
+    const auto screen_size = screen->size();
     if (screen_size.width() >= 1920 && screen_size.height() == 1080) {
         font_ratio_ = 1.25;
     }

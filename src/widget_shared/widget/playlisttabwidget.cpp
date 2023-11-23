@@ -35,12 +35,19 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
         auto* playlist = playlist_page->playlist();
-        ClosePlaylist(playlist->GetPlaylistId());
         removeTab(tab_index);
-        qMainDb.RemovePendingListMusic(playlist->GetPlaylistId());
-        qMainDb.RemovePlaylistAllMusic(playlist->GetPlaylistId());
-        qMainDb.RemoveTable(playlist->GetPlaylistId());
-        playlist_page->deleteLater();
+        if (!qMainDb.transaction()) {
+            return;
+        }
+        try {
+            qMainDb.RemovePendingListMusic(playlist->GetPlaylistId());
+            qMainDb.RemovePlaylistAllMusic(playlist->GetPlaylistId());
+            qMainDb.RemoveTable(playlist->GetPlaylistId());
+            qMainDb.commit();
+            playlist_page->deleteLater();
+        } catch (...) {
+            qMainDb.rollback();
+        }
         });
 }
 
