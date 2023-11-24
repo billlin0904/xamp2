@@ -89,7 +89,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             }
             auto src_index = dir_first_sort_filter_->mapToSource(index);
             auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
-            emit ExtractFile(path, -1, false);
+            emit AddPathToPlaylist(path, false);
             });
 
         auto add_file_to_playlist_act = action_map.AddAction(tr("Add file directory to playlist"), [this](auto pt) {
@@ -99,8 +99,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             }
             auto src_index = dir_first_sort_filter_->mapToSource(index);
             auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
-            ui_->playlistPage->playlist()->append(path);
-            ui_->playlistPage->playlist()->Reload();
+            emit AddPathToPlaylist(path, true);
         });
         add_file_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
 
@@ -118,14 +117,14 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         });
 
     setStyleSheet(qTEXT("background-color: transparent"));
-    playlistPage()->playlist()->DisableDelete();
-    playlistPage()->playlist()->DisableLoadFile();
+    /*playlistPage()->playlist()->DisableDelete();
+    playlistPage()->playlist()->DisableLoadFile();*/
 }
 
 FileSystemViewPage::~FileSystemViewPage() {
     delete ui_;
 }
 
-PlaylistPage* FileSystemViewPage::playlistPage() {
-    return ui_->playlistPage;
-}
+//PlaylistPage* FileSystemViewPage::playlistPage() {
+//    return ui_->playlistPage;
+//}

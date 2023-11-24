@@ -4,6 +4,9 @@
 #include <cstring>
 #include <cstdlib>
 
+#include "port.h"
+
+
 template<class T>
 class mem_ops
 {
@@ -32,7 +35,7 @@ public:
 	inline static void swap(T& item1,T& item2) {T temp; temp=item1; item1=item2; item2=temp;}
 };
 
-class mem_block
+class SUPEREQ_API mem_block
 {
 public:
 	enum mem_logic_t {ALLOC_DEFAULT,ALLOC_FAST,ALLOC_FAST_DONTGODOWN};

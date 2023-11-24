@@ -57,11 +57,9 @@ inline constexpr auto kMaxDatabasePoolSize = 8;
 inline constexpr int32_t kInvalidDatabaseId = -1;
 
 inline constexpr auto kDefaultPlaylistId = 1;
-inline constexpr auto kDefaultPodcastPlaylistId = 2;
-inline constexpr auto kDefaultFileExplorerPlaylistId = 3;
-inline constexpr auto kDefaultAlbumPlaylistId = 4;
-inline constexpr auto kDefaultCdPlaylistId = 5;
-inline constexpr auto kMaxExistPlaylist = 6;
+inline constexpr auto kDefaultAlbumPlaylistId = 2;
+inline constexpr auto kDefaultCdPlaylistId = 3;
+inline constexpr auto kMaxExistPlaylist = 4;
 
 enum PlayingState {
 	PLAY_CLEAR = 0,
@@ -115,9 +113,9 @@ public:
 
     QStringList GetYears() const;
 
-    int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
+    //int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
-    void RemoveTable(int32_t playlist_id);
+    //void RemoveTable(int32_t playlist_id);
 
     int32_t AddPlaylist(const QString& name, int32_t playlist_index);
 
@@ -129,7 +127,7 @@ public:
 
     std::optional<ArtistStats> GetArtistStats(int32_t artist_id) const;
 
-    void AddTablePlaylist(int32_t table_id, int32_t playlist_id);
+    //void AddTablePlaylist(int32_t table_id, int32_t playlist_id);
 
     int32_t AddOrUpdateMusic(const TrackInfo& track_info);
 
@@ -204,13 +202,15 @@ public:
 
     QString GetArtistCoverId(int32_t artist_id) const;
 
-    void SetTableName(int32_t table_id, const QString &name);
+    void SetPlaylistName(int32_t playlist_id, const QString& name);
+
+    //void SetTableName(int32_t table_id, const QString &name);
 
     void RemoveAlbum(int32_t album_id);
 
     void ForEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
 
-    void ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
+    //void ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
 
     void ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 
@@ -230,13 +230,15 @@ public:
 
     void RemoveMusic(QString const& file_path);
 
+    void RemovePlaylist(int32_t playlist_id);
+
     void RemovePlaylistAllMusic(int32_t playlist_id);
 
     void RemovePendingListMusic(int32_t playlist_id);
 	
     void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
-    int32_t FindTablePlaylistId(int32_t table_id) const;
+    //int32_t FindTablePlaylistId(int32_t table_id) const;
 
     bool IsPlaylistExist(int32_t playlist_id) const;
 

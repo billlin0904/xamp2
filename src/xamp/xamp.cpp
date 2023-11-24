@@ -476,10 +476,8 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
     InitialSpectrum();
 
     SetPlaylistPageCover(nullptr, cd_page_->playlistPage());
-    SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 
     cd_page_->playlistPage()->HidePlaybackInformation(true);
-    file_system_view_page_->playlistPage()->HidePlaybackInformation(false);
 
     const auto tab_name = qAppSettings.ValueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.naviBar->GetTabId(tab_name);
@@ -543,12 +541,6 @@ void Xamp::SetXWindow(IXMainWindow* main_window) {
 
     SetPlayerOrder();
     InitialDeviceList();
-
-    (void)QObject::connect(file_system_view_page_.get(),
-        &FileSystemViewPage::ExtractFile,
-        extract_file_worker_.get(),
-        &ExtractFileWorker::OnExtractFile,
-        Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::ExtractFile,
@@ -1144,9 +1136,9 @@ void Xamp::InitialController() {
         qAppSettings.SetValue(kAppSettingLastTabName, ui_.naviBar->GetTabName(table_id));
     });
 
-    (void)QObject::connect(ui_.naviBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
+    /*(void)QObject::connect(ui_.naviBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
         qMainDb.SetTableName(table_id, name);
-    });
+    });*/
 
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(FormatDuration(0));
@@ -1164,6 +1156,10 @@ void Xamp::SetCurrentTab(int32_t table_id) {
         break;
     case TAB_PLAYLIST:        
         ui_.currentView->setCurrentWidget(tab_widget_.get());
+        if (tab_widget_->count() == 0) {
+            const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
+            NewPlaylistPage(playlist_id, tr("Playlist"), false);
+        }
         GetCurrentPlaylistPage()->playlist()->Reload();
         break;
     case TAB_LYRICS:
@@ -1209,7 +1205,6 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
 
     SetPlaylistPageCover(nullptr, GetCurrentPlaylistPage());
     SetPlaylistPageCover(nullptr, cd_page_->playlistPage());
-    SetPlaylistPageCover(nullptr, file_system_view_page_->playlistPage());
 }
 
 void Xamp::SetThemeColor(QColor background_color, QColor color) {
@@ -1302,26 +1297,6 @@ void Xamp::GetNextPage() {
     }
     const auto idx = ui_.currentView->currentIndex();
     ui_.currentView->setCurrentIndex(idx + 1);
-}
-
-void Xamp::SetTablePlaylistView(int table_id, ConstLatin1String column_setting_name) {
-	const auto playlist_id = qMainDb.FindTablePlaylistId(table_id);
-
-    auto found = false;
-    Q_FOREACH(auto idx, stack_page_id_) {
-        if (auto* page = dynamic_cast<PlaylistPage*>(ui_.currentView->widget(idx))) {
-            if (page->playlist()->GetPlaylistId() == playlist_id) {
-                ui_.currentView->setCurrentIndex(idx);
-                found = true;
-                break;
-            }
-        }
-    }
-
-    if (!found) {
-        auto* playlist_page = NewPlaylistPage(playlist_id, column_setting_name);
-        PushWidget(playlist_page);
-    }
 }
 
 void Xamp::GoBackPage() {
@@ -1919,14 +1894,13 @@ PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bo
 
     SetCover(kEmptyString, playlist_page);
 
-    tab_widget_->AddTab(playlist_id, name, playlist_page, add_db);
+    tab_widget_->addTab(playlist_page, name);
     return playlist_page;
 }
 
 void Xamp::InitialPlaylist() {
     lrc_page_.reset(new LrcPage(this));
     album_page_.reset(new AlbumArtistPage(this));
-
     tab_widget_.reset(new PlaylistTabWidget(this));
     
     ui_.naviBar->AddSeparator();
@@ -1937,45 +1911,41 @@ void Xamp::InitialPlaylist() {
     ui_.naviBar->AddTab(tr("CD"), TAB_CD, qTheme.GetFontIcon(Glyphs::ICON_CD));
     ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
 
-    qMainDb.ForEachTable([this](auto table_id,
-        auto table_index,
-        auto playlist_id,
+    qMainDb.ForEachPlaylist([this](auto playlist_id,
+        auto index,
         const auto& name) {
-            NewPlaylistPage(playlist_id, name, false);
-        });    
+        if (playlist_id == kDefaultAlbumPlaylistId
+            || playlist_id == kDefaultCdPlaylistId) {
+            return;
+        }
+    	NewPlaylistPage(playlist_id, name, false);
+        });
 
-    auto playlist_page = GetCurrentPlaylistPage();
-    if (!playlist_page) {
-        NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
-    }   
+    if (tab_widget_->count() == 0) {
+	    const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
+        NewPlaylistPage(playlist_id, tr("Playlist"), false);
+    }
+    if (!qMainDb.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
+        qMainDb.AddPlaylist(tr("Playlist"), -1);
+    }
+    if (!qMainDb.IsPlaylistExist(kDefaultCdPlaylistId)) {
+        qMainDb.AddPlaylist(tr("Playlist"), -1);
+    }
 
     (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::CreateNewPlaylist,
         [this]() {
-        auto tab_index = tab_widget_->count();
-        auto playlist_id = kMaxExistPlaylist + tab_index;
+        const auto tab_index = tab_widget_->count();
+        const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), tab_index);
         NewPlaylistPage(playlist_id, tr("Playlist"), true);
         });    
 
     if (!file_system_view_page_) {
         file_system_view_page_.reset(new FileSystemViewPage(this));
-        auto playlist_id = kDefaultFileExplorerPlaylistId;
-        if (!qMainDb.IsPlaylistExist(playlist_id)) {
-            playlist_id = qMainDb.AddPlaylist(kEmptyString, 2);
-        }
-        file_system_view_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingFileSystemPlaylistColumnName);
-        file_system_view_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
-        file_system_view_page_->playlistPage()->playlist()->SetOtherPlaylist(kDefaultPlaylistId);
-        SetCover(kEmptyString, file_system_view_page_->playlistPage());
-        ConnectPlaylistPageSignal(file_system_view_page_->playlistPage());
     }
 
     if (!cd_page_) {
-        auto playlist_id = kDefaultCdPlaylistId;
-        if (!qMainDb.IsPlaylistExist(playlist_id)) {
-            playlist_id = qMainDb.AddPlaylist(kEmptyString, 4);
-        }
         cd_page_.reset(new CdPage(this));
-        cd_page_->playlistPage()->playlist()->SetPlaylistId(playlist_id, kAppSettingCdPlaylistColumnName);
+        cd_page_->playlistPage()->playlist()->SetPlaylistId(kDefaultCdPlaylistId, kAppSettingCdPlaylistColumnName);
         cd_page_->playlistPage()->playlist()->SetHeaderViewHidden(false);
         cd_page_->playlistPage()->playlist()->SetOtherPlaylist(kDefaultPlaylistId);
         SetCover(kEmptyString, cd_page_->playlistPage());
@@ -2011,7 +1981,7 @@ void Xamp::InitialPlaylist() {
         Qt::QueuedConnection);
 
     (void)QObject::connect(file_system_view_page_.get(),
-        &FileSystemViewPage::addDirToPlaylist,
+        &FileSystemViewPage::AddPathToPlaylist,
         this,
         &Xamp::AppendToPlaylist);    
 
@@ -2019,10 +1989,6 @@ void Xamp::InitialPlaylist() {
         &Xamp::ThemeChanged,
         album_page_.get(),
         &AlbumArtistPage::OnThemeColorChanged);
-
-    if (!qMainDb.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
-        qMainDb.AddPlaylist(kEmptyString, 1);
-    }
 
     ConnectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
     ConnectPlaylistPageSignal(album_page_->year()->albumViewPage()->playlistPage());
@@ -2076,10 +2042,15 @@ void Xamp::InitialPlaylist() {
         &Xamp::AddPlaylistItem);
 }
 
-void Xamp::AppendToPlaylist(const QString& file_name) {
+void Xamp::AppendToPlaylist(const QString& file_name, bool append_to_playlist) {
+    if (!append_to_playlist) {
+        emit ExtractFile(file_name, GetCurrentPlaylistPage()->playlist()->GetPlaylistId(), false);
+        album_page_->Refresh();
+        return;
+    }
+
     try {
         GetCurrentPlaylistPage()->playlist()->append(file_name);
-        album_page_->Refresh();
     }
     catch (const Exception& e) {
         XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
@@ -2087,7 +2058,12 @@ void Xamp::AppendToPlaylist(const QString& file_name) {
 }
 
 void Xamp::AddItem(const QString& file_name) {
-    AppendToPlaylist(file_name);
+    if (tab_widget_->count() == 0) {
+        const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
+        NewPlaylistPage(playlist_id, tr("Playlist"), false);
+    }
+
+    AppendToPlaylist(file_name, true);
 }
 
 void Xamp::PushWidget(QWidget* widget) {
@@ -2313,7 +2289,7 @@ void Xamp::AddDropFileItem(const QUrl& url) {
 
 PlaylistPage* Xamp::GetCurrentPlaylistPage() {
     if (tab_widget_->count() == 0) {
-        NewPlaylistPage(kDefaultPlaylistId, tr("Playlist"), true);
+        return nullptr;
     }
     return dynamic_cast<PlaylistPage*>(tab_widget_->currentWidget());
 }
@@ -2370,7 +2346,7 @@ void Xamp::OnReadFileProgress(int32_t progress) {
 void Xamp::OnReadCompleted() {    
     album_page_->Refresh();
     GetCurrentPlaylistPage()->playlist()->Reload();    
-    file_system_view_page_->playlistPage()->playlist()->Reload();
+    //file_system_view_page_->playlistPage()->playlist()->Reload();
     Delay(1);
     if (!read_progress_dialog_) {
         return;

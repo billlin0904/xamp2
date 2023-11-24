@@ -1,5 +1,6 @@
 #include <QMouseEvent>
 
+#include <thememanager.h>
 #include <widget/str_utilts.h>
 #include <widget/playlisttabbar.h>
 
@@ -35,11 +36,25 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	const auto rect = tabRect(edited_index_);
 
 	line_edit_ = new QLineEdit(this);
-	line_edit_->setStyleSheet(qSTR(R"(
+
+	switch (qTheme.GetThemeColor()) {
+	case ThemeColor::LIGHT_THEME:
+		line_edit_->setStyleSheet(qSTR(R"(
 	QLineEdit {
 		background-color: white;
 	}	
-    )"));	
+    )"));
+		break;
+	case ThemeColor::DARK_THEME:
+		line_edit_->setStyleSheet(qSTR(R"(
+	QLineEdit {
+		background-color: lightgray;
+		color: black;
+	}	
+    )"));
+		break;
+	}
+
 	line_edit_->setText(tabText(edited_index_));
 	line_edit_->move(rect.left() + left_margin, rect.top() + top_margin);
 	line_edit_->resize(rect.width() - 2 * left_margin, rect.height() - 2 * top_margin);

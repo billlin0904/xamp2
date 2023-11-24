@@ -19,6 +19,9 @@ s*******************************************************/
 
 #include <cstdlib>
 #include <cstring>
+#include <memory>
+
+#include "port.h"
 
 #include "mem_block.h"
 #include "paramlist.h"
@@ -27,13 +30,7 @@ s*******************************************************/
 typedef float audio_sample;
 typedef audio_sample REAL_inout;
 
-#ifdef _MSC_VER
-#define NOVTABLE _declspec(novtable)
-#else
-#define NOVTABLE
-#endif
-
-class NOVTABLE supereq_base
+class SUPEREQ_API SUPEREQ_NOVTABLE supereq_base
 {
 public:
 	virtual void equ_makeTable(double *bc,class paramlist *param,double fs) = 0;
@@ -43,6 +40,8 @@ public:
 	virtual audio_sample * get_output(int *nsamples) = 0;
 	virtual int samples_buffered() = 0;
 	virtual ~supereq_base() = default;
+protected:
+	supereq_base() = default;
 };
 
 template<class REAL>
@@ -441,7 +440,7 @@ public:
 		nbufsamples += nsamples;
 	}
 
-  audio_sample* get_output(int* nsamples) override
+    audio_sample* get_output(int* nsamples) override
 	{
 		*nsamples = samples_done;
 		samples_done = 0;
@@ -450,7 +449,7 @@ public:
 
 	int samples_buffered() override {return nbufsamples;}
 
-	~supereq() override {
+	virtual ~supereq() override {
 		if (lires1) free(lires1);
 		if (lires2) free(lires2);
 		if (irest) free(irest);
@@ -458,5 +457,7 @@ public:
 		rfft(0,0,nullptr);
 	}
 };
+
+SUPEREQ_API std::unique_ptr<supereq_base> make_supereq();
 
 #endif

@@ -189,26 +189,6 @@ void Database::CreateTableIfNotExist() {
 
     create_table_sql.push_back(
         qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS tables (
-                       tableId integer PRIMARY KEY AUTOINCREMENT,
-                       tableIndex integer,
-                       playlistId integer,
-                       name TEXT NOT NULL
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS tablePlaylist (
-                       playlistId integer,
-                       tableId integer,
-                       FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
-                       FOREIGN KEY(tableId) REFERENCES tables(tableId)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
                        CREATE TABLE IF NOT EXISTS albums (
                        albumId integer PRIMARY KEY AUTOINCREMENT,
                        artistId integer,
@@ -499,22 +479,6 @@ LIMIT
     }
 }
 
-void Database::ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun) {    
-    QSqlTableModel model(nullptr, db_);
-
-    model.setTable(qTEXT("tables"));
-    model.setSort(1, Qt::AscendingOrder);
-    model.select();
-
-    for (auto i = 0; i < model.rowCount(); ++i) {
-        auto record = model.record(i);
-        fun(record.value(qTEXT("tableId")).toInt(),
-            record.value(qTEXT("tableIndex")).toInt(),
-            record.value(qTEXT("playlistId")).toInt(),
-            record.value(qTEXT("name")).toString());
-    }
-}
-
 void Database::ForEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const&)>&& fun) {
     SqlQuery query(qTEXT(R"(
 SELECT
@@ -651,37 +615,6 @@ ORDER BY count DESC;
     return genres;
 }
 
-void Database::RemoveTable(int32_t playlist_id) {
-    SqlQuery query(db_);
-    query.prepare(qTEXT("DELETE FROM tables WHERE playlistId=:playlistId"));
-    query.bindValue(qTEXT(":playlistId"), playlist_id);
-    THROW_IF_FAIL1(query);
-}
-
-int32_t Database::AddTable(const QString& name, int32_t table_index, int32_t playlist_id) {
-    QSqlTableModel model(nullptr, db_);
-
-    model.setEditStrategy(QSqlTableModel::OnManualSubmit);
-    model.setTable(qTEXT("tables"));
-    model.select();
-
-    if (!model.insertRows(0, 1)) {
-        return kInvalidDatabaseId;
-    }
-
-    model.setData(model.index(0, 0), QVariant());
-    model.setData(model.index(0, 1), table_index);
-    model.setData(model.index(0, 2), playlist_id);
-    model.setData(model.index(0, 3), name);
-
-    if (!model.submitAll()) {
-        return kInvalidDatabaseId;
-    }
-
-    model.database().commit();
-    return model.query().lastInsertId().toInt();
-}
-
 int32_t Database::AddPlaylist(const QString& name, int32_t playlist_index) {
     QSqlTableModel model(nullptr, db_);
 
@@ -705,12 +638,12 @@ int32_t Database::AddPlaylist(const QString& name, int32_t playlist_index) {
     return model.query().lastInsertId().toInt();
 }
 
-void Database::SetTableName(int32_t table_id, const QString& name) {
+void Database::SetPlaylistName(int32_t playlist_id, const QString& name) {
     SqlQuery query(db_);
-
-    query.prepare(qTEXT("UPDATE tables SET name = :name WHERE (tableId = :tableId)"));
-
-    query.bindValue(qTEXT(":tableId"), table_id);
+    
+    query.prepare(qTEXT("UPDATE playlist SET name = :name WHERE (playlistId = :playlistId)"));
+    
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
     query.bindValue(qTEXT(":name"), name);
     THROW_IF_FAIL1(query);
 }
@@ -829,32 +762,6 @@ QStringList Database::GetCategories() const {
     }
 
     return categories;
-}
-
-int32_t Database::FindTablePlaylistId(int32_t table_id) const {
-    SqlQuery query(db_);
-
-    query.prepare(qTEXT("SELECT playlistId FROM tablePlaylist WHERE tableId = (:tableId)"));
-    query.bindValue(qTEXT(":tableId"), table_id);
-
-    THROW_IF_FAIL1(query);
-    while (query.next()) {
-        return query.value(qTEXT("playlistId")).toInt();
-    }
-    return kInvalidDatabaseId;
-}
-
-void Database::AddTablePlaylist(int32_t table_id, int32_t playlist_id) {
-    SqlQuery query(db_);
-
-    query.prepare(qTEXT(R"(
-    INSERT INTO tablePlaylist (playlistId, tableId) VALUES (:playlistId, :tableId)
-    )"));
-
-    query.bindValue(qTEXT(":playlistId"), playlist_id);
-    query.bindValue(qTEXT(":tableId"), table_id);
-
-    THROW_IF_FAIL1(query);
 }
 
 QString Database::GetArtistCoverId(int32_t artist_id) const {
@@ -1438,6 +1345,13 @@ void Database::AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
     query.bindValue(qTEXT(":musicId"), music_id);
 
     THROW_IF_FAIL1(query);    
+}
+
+void Database::RemovePlaylist(int32_t playlist_id) {
+    SqlQuery query(db_);
+    query.prepare(qTEXT("DELETE FROM playlist WHERE playlistId=:playlistId"));
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
+    THROW_IF_FAIL1(query);
 }
 
 void Database::RemovePlaylistAllMusic(int32_t playlist_id) {

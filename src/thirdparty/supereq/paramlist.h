@@ -17,18 +17,11 @@ public:
 		left = right = 1;
 		lower = upper = gain = 0;
 		next = nullptr;
-	};
+	}
 
 	~paramlistelm() {
 		delete next;
 		next = nullptr;
-	};
-
-	char *getString(void) {
-		static char str[64];
-		sprintf(str,"%gHz to %gHz, %gdB %c%c",
-			(double)lower,(double)upper,(double)gain,left?'L':' ',right?'R':' ');
-		return str;
 	}
 };
 

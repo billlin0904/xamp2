@@ -10,7 +10,7 @@
 #include <widget/playlisttabwidget.h>
 
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
-	: QTabWidget(parent) {
+    : QTabWidget(parent) {
     setObjectName("playlistTab");
     setTabsClosable(true);
     setMouseTracking(true);
@@ -26,7 +26,12 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	}	
     )"));
 
-    setTabBar(new PlaylistTabBar(this));
+    auto* tab_bar = new PlaylistTabBar(this);
+    setTabBar(tab_bar);
+
+    (void)QObject::connect(tab_bar, &PlaylistTabBar::TextChanged, [this](auto index, const auto &name) {
+        qMainDb.SetPlaylistName(GetCurrentPlaylistId(), name);
+    });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
@@ -34,7 +39,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             return;
         }
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
-        auto* playlist = playlist_page->playlist();
+        const auto* playlist = playlist_page->playlist();
         removeTab(tab_index);
         if (!qMainDb.transaction()) {
             return;
@@ -42,7 +47,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         try {
             qMainDb.RemovePendingListMusic(playlist->GetPlaylistId());
             qMainDb.RemovePlaylistAllMusic(playlist->GetPlaylistId());
-            qMainDb.RemoveTable(playlist->GetPlaylistId());
+            qMainDb.RemovePlaylist(playlist->GetPlaylistId());
             qMainDb.commit();
             playlist_page->deleteLater();
         } catch (...) {
@@ -53,15 +58,6 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
 int32_t PlaylistTabWidget::GetCurrentPlaylistId() const {
     return dynamic_cast<PlaylistPage*>(currentWidget())->playlist()->GetPlaylistId();
-}
-
-void PlaylistTabWidget::AddTab(int32_t playlist_id, const QString& name, QWidget* widget, bool add_db) {
-    addTab(widget, name);
-
-    if (add_db) {
-        auto index = count();
-        qMainDb.AddTable(name, index, playlist_id);
-    }
 }
 
 void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {

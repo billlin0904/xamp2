@@ -772,17 +772,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-    auto file_ext = QFileInfo(file_name).completeSuffix();
-
-    if (!file_ext.contains(qTEXT("zip"))) {
-        emit ExtractFile(file_name, GetPlaylistId());
-    }
-    /*else {
-        ZipFileReader reader;
-        for (auto filename : reader.OpenFile(file_name.toStdWString())) {
-            emit ExtractFile(QString::fromStdWString(filename), GetPlaylistId());
-        }
-    }*/
+    emit ExtractFile(file_name, GetPlaylistId());
 }
 
 void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {

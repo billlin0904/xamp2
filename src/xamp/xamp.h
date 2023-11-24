@@ -196,8 +196,6 @@ private:
 
 	void PlayNextItem(int32_t forward);
 
-    void SetTablePlaylistView(int table_id, ConstLatin1String column_setting_name);
-
 	void SetPlayerOrder(bool emit_order = false);
 
 	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
@@ -234,7 +232,7 @@ private:
 
 	void ConnectPlaylistPageSignal(PlaylistPage* playlist_page);
 
-	void AppendToPlaylist(const QString& file_name);
+	void AppendToPlaylist(const QString& file_name, bool append_to_playlist);
 
 	QString TranslateErrorCode(const Errors error) const;
 
