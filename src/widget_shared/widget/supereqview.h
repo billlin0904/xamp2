@@ -43,6 +43,7 @@ private:
     Ui::SuperEqView* ui_;
     EqSettings current_settings_;
     QMap<QString, EqSettings> settingses_;
+    std::vector<QLabel*> freq_label_;
     std::vector<QLabel*> bands_label_;
     std::vector<QSlider*> sliders_;
 };

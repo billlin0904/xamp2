@@ -46,6 +46,27 @@ SuperEqView::SuperEqView(QWidget* parent)
     ui_ = new Ui::SuperEqView();
     ui_->setupUi(this);
 
+    freq_label_ = std::vector<QLabel*>{
+       ui_->band1FeqLabel,
+       ui_->band2FeqLabel,
+       ui_->band3FeqLabel,
+       ui_->band4FeqLabel,
+       ui_->band5FeqLabel,
+       ui_->band6FeqLabel,
+       ui_->band7FeqLabel,
+       ui_->band8FeqLabel,
+       ui_->band9FeqLabel,
+       ui_->band10FeqLabel,
+       ui_->band11FeqLabel,
+       ui_->band12FeqLabel,
+       ui_->band13FeqLabel,
+       ui_->band14FeqLabel,
+       ui_->band15FeqLabel,
+       ui_->band16FeqLabel,
+       ui_->band17FeqLabel,
+       ui_->band18FeqLabel,
+    };
+
     sliders_ = std::vector<QSlider*>{
         ui_->band1Slider,
         ui_->band2Slider,
@@ -90,6 +111,11 @@ SuperEqView::SuperEqView(QWidget* parent)
 
     auto f = qTheme.GetMonoFont();
     f.setPointSize(qTheme.GetFontSize(8));
+
+    for (auto& l : freq_label_) {
+        l->setStyleSheet(qTEXT("background-color: transparent;"));
+        l->setFont(f);
+    }
 
     for (auto& l : bands_label_) {
         l->setStyleSheet(qTEXT("background-color: transparent;"));
