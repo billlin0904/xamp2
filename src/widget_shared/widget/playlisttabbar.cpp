@@ -41,15 +41,14 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	case ThemeColor::LIGHT_THEME:
 		line_edit_->setStyleSheet(qSTR(R"(
 	QLineEdit {
-		background-color: white;
+		background-color: #C9CDD0;
 	}	
     )"));
 		break;
 	case ThemeColor::DARK_THEME:
 		line_edit_->setStyleSheet(qSTR(R"(
 	QLineEdit {
-		background-color: lightgray;
-		color: black;
+		background-color: #455364;
 	}	
     )"));
 		break;

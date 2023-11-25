@@ -198,7 +198,7 @@ private:
 
 	void SetPlayerOrder(bool emit_order = false);
 
-	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
+	PlaylistPage* CreatePlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 
 	void PushWidget(QWidget* widget);
 

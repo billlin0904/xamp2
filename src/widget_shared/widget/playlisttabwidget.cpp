@@ -7,6 +7,7 @@
 #include <widget/playlisttabbar.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttableview.h>
+#include <widget/actionmap.h>
 #include <widget/playlisttabwidget.h>
 
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
@@ -29,6 +30,57 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
 
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(this, &PlaylistTabBar::customContextMenuRequested, [this](auto pt) {
+        ActionMap<PlaylistTabWidget> action_map(this);
+
+        auto* close_all_tab_act = action_map.AddAction(tr("Close all tab"), [this]() {
+            QList<PlaylistPage*> playlist_pages;
+            for (auto i = 0; i < count(); ++i) {
+                auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+                playlist_pages.append(playlist_page);
+            }
+
+            Q_FOREACH(auto *page, playlist_pages) {
+                RemovePlaylist(page->playlist()->GetPlaylistId());
+                page->deleteLater();
+            }
+
+            clear();
+            });
+
+        auto* close_other_tab_act = action_map.AddAction(tr("Close other tab"), [pt, this]() {
+            auto index = tabBar()->tabAt(pt);
+            if (index == -1) {
+                return;
+            }
+
+            const auto* exclude_page = widget(index);
+
+            QList<QWidget*> playlist_pages;
+            for (auto i = 0; i < count(); ++i) {
+                auto* playlist_page = widget(i);
+                playlist_pages.append(playlist_page);
+            }
+
+            Q_FOREACH(auto * playlist_page, playlist_pages) {
+                if (playlist_page == exclude_page) {
+                    continue;
+                }
+                const auto tab_index = indexOf(playlist_page);
+                CloseTab(tab_index);
+            }
+
+            });
+        try {
+            action_map.exec(pt);
+        }
+        catch (Exception const& e) {
+        }
+        catch (std::exception const& e) {
+        }
+    });
+
     (void)QObject::connect(tab_bar, &PlaylistTabBar::TextChanged, [this](auto index, const auto &name) {
         qMainDb.SetPlaylistName(GetCurrentPlaylistId(), name);
     });
@@ -38,22 +90,34 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         if (XMessageBox::ShowYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
             return;
         }
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
-        const auto* playlist = playlist_page->playlist();
-        removeTab(tab_index);
-        if (!qMainDb.transaction()) {
-            return;
-        }
-        try {
-            qMainDb.RemovePendingListMusic(playlist->GetPlaylistId());
-            qMainDb.RemovePlaylistAllMusic(playlist->GetPlaylistId());
-            qMainDb.RemovePlaylist(playlist->GetPlaylistId());
-            qMainDb.commit();
-            playlist_page->deleteLater();
-        } catch (...) {
-            qMainDb.rollback();
-        }
+        CloseTab(tab_index);
         });
+}
+
+bool PlaylistTabWidget::RemovePlaylist(int32_t playlist_id) {
+    if (!qMainDb.transaction()) {
+        return false;
+    }
+    try {
+        qMainDb.RemovePendingListMusic(playlist_id);
+        qMainDb.RemovePlaylistAllMusic(playlist_id);
+        qMainDb.RemovePlaylist(playlist_id);
+        qMainDb.commit();
+        return true;
+    }
+    catch (...) {
+        qMainDb.rollback();
+    }
+    return false;
+}
+
+void PlaylistTabWidget::CloseTab(int32_t tab_index) {
+    auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+    const auto* playlist = playlist_page->playlist();
+    if (RemovePlaylist(playlist->GetPlaylistId())) {
+        removeTab(tab_index);
+        playlist_page->deleteLater();
+    }
 }
 
 int32_t PlaylistTabWidget::GetCurrentPlaylistId() const {

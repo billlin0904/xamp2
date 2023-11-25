@@ -17,10 +17,15 @@ public:
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
 	int32_t GetCurrentPlaylistId() const;
+
 signals:
 	void CreateNewPlaylist();
 
-private:	
+private:
+	void CloseTab(int32_t tab_index);
+
+	bool RemovePlaylist(int32_t playlist_id);
+
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 };
 

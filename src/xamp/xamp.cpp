@@ -1883,7 +1883,7 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
 }
 
 PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bool add_db) {
-    auto* playlist_page = NewPlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
+    auto* playlist_page = CreatePlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
     ConnectPlaylistPageSignal(playlist_page);
     playlist_page->playlist()->SetHeaderViewHidden(false);
 
@@ -2277,7 +2277,7 @@ void Xamp::ConnectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistPage::OnThemeColorChanged);
 }
 
-PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
+PlaylistPage* Xamp::CreatePlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
     auto* playlist_page = new PlaylistPage(tab_widget_.get());    
     playlist_page->playlist()->SetPlaylistId(playlist_id, column_setting_name);
     return playlist_page;
