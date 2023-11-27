@@ -74,8 +74,5 @@ std::string_view BassVolume::GetDescription() const noexcept {
     return "BassVolume";
 }
 
-void BassVolume::Flush() {
-}
-
 XAMP_STREAM_NAMESPACE_END
 

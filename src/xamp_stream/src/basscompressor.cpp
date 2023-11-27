@@ -102,9 +102,5 @@ std::string_view BassCompressor::GetDescription() const noexcept {
     return "BassCompressor";
 }
 
-void BassCompressor::Flush() {
-	
-}
-
 XAMP_STREAM_NAMESPACE_END
 

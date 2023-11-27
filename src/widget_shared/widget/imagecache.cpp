@@ -28,16 +28,15 @@ inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat
 
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
-QStringList ImageCache::cover_ext_ =
-    QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
-
-QStringList ImageCache::cache_ext_ =
-    QStringList() << (qTEXT("*") + kCacheFileExtension);
-
 ImageCache::ImageCache()
 	: logger_(LoggerManager::GetInstance().GetLogger(kImageCacheLoggerName))
 	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = qTEXT("unknown_album");
+	cache_ext_ =
+		QStringList() << (qTEXT("*") + kCacheFileExtension);
+	cover_ext_ =
+		QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
+
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 	buffer_pool_ = std::make_shared<ObjectPool<QBuffer>>(kDefaultCacheSize);
 	cache_.Add(unknown_cover_id_, { 1, qTheme.GetUnknownCover() });
@@ -80,9 +79,10 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	const QDir dir(file_path);
 	QDir scan_dir(dir);
 
-	auto find_image = [scan_dir](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
+	auto find_image = [scan_dir, this](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
 		const QFileInfo file_info(scan_dir.absolutePath());
-		for (QDirIterator itr(file_info.absolutePath(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
+		const auto path = file_info.absolutePath();
+		for (QDirIterator itr(path, QStringList() << "*.*", QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
 			return image_utils::ReadFileImage(image_file_path, 
@@ -95,9 +95,9 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	if (auto image = find_image(QDirIterator::NoIteratorFlags)) {
 		return image.value();
 	}
-	if (auto image = find_image(QDirIterator::Subdirectories)) {
+	/*if (auto image = find_image(QDirIterator::Subdirectories)) {
 		return image.value();
-	}
+	}*/
 
 	// Find 'Scans' folder in the same level or in parent folders.
 	while (!scan_dir.isRoot()) {

@@ -79,9 +79,5 @@ bool BassFader::Process(float const* samples, uint32_t num_samples, BufferRef<fl
     return impl_->Process(samples, num_samples, out);
 }
 
-void BassFader::Flush() {
-	
-}
-
 XAMP_STREAM_NAMESPACE_END
 

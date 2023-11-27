@@ -96,9 +96,6 @@ public:
 		return true;
 	}
 
-	void Flush() {
-	}
-
 	void SetQuality(SrcQuality quality) {
 		quality_ = quality;
 	}
@@ -156,10 +153,6 @@ void SrcSampleRateConverter::Init(const AnyMap& config) {
 
 Uuid SrcSampleRateConverter::GetTypeId() const {
 	return XAMP_UUID_OF(SrcSampleRateConverter);
-}
-
-void SrcSampleRateConverter::Flush() {
-	impl_->Flush();
 }
 
 std::string_view SrcSampleRateConverter::GetDescription() const noexcept {

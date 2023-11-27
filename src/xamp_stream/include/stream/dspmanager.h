@@ -53,8 +53,6 @@ public:
 
     [[nodiscard]] bool CanProcess() const noexcept override;
 
-    void Flush() override;
-
 private:
     void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 

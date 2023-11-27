@@ -163,9 +163,5 @@ std::string_view SuperEqEqualizer::GetDescription() const noexcept {
     return "SuperEq";
 }
 
-void SuperEqEqualizer::Flush() {
-    impl_->Flush();
-}
-
 XAMP_STREAM_NAMESPACE_END
 

@@ -38,7 +38,6 @@ public:
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-    void Flush() override;
 private:
     class BassEqualizerImpl;
     AlignPtr<BassEqualizerImpl> impl_;

@@ -161,8 +161,4 @@ std::string_view BassParametricEq::GetDescription() const noexcept {
     return "BassParametricEq";
 }
 
-void BassParametricEq::Flush() {
-	
-}
-
 XAMP_STREAM_NAMESPACE_END

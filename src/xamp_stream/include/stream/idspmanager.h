@@ -51,7 +51,6 @@ public:
 
     [[nodiscard]] virtual bool CanProcess() const noexcept = 0;
 
-    virtual void Flush() = 0;
 protected:
     IDSPManager() = default;
 };

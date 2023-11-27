@@ -143,9 +143,5 @@ std::string_view BassEqualizer::GetDescription() const noexcept {
     return "BassEqualizer";
 }
 
-void BassEqualizer::Flush() {
-	
-}
-
 XAMP_STREAM_NAMESPACE_END
 

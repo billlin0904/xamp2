@@ -1092,17 +1092,6 @@ void Xamp::InitialController() {
         dialog->SetContentWidget(eq.get(), false);
         dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
         dialog->SetTitle(tr("SuperEQ"));
-        //QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
-        /*dialog->SetTitle(tr("EQ"));
-        eq->setMinimumWidth(800);
-
-        (void)QObject::connect(eq.get(), &EqualizerView::BandValueChange, [](auto, auto, auto) {
-            qAppSettings.save();
-        });
-
-        (void)QObject::connect(eq.get(), &EqualizerView::PreampValueChange, [](auto) {
-            qAppSettings.save();
-        });*/
         dialog->exec();
     });
 
@@ -1135,10 +1124,6 @@ void Xamp::InitialController() {
         SetCurrentTab(table_id);
         qAppSettings.SetValue(kAppSettingLastTabName, ui_.naviBar->GetTabName(table_id));
     });
-
-    /*(void)QObject::connect(ui_.naviBar, &TabListView::TableNameChanged, [](auto table_id, const auto &name) {
-        qMainDb.SetTableName(table_id, name);
-    });*/
 
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(FormatDuration(0));
@@ -1453,12 +1438,10 @@ void Xamp::SetupDsp(const PlayListEntity& item) const {
                 qAppSettings.GetEqSettings();
             player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
             player_->GetDspManager()->AddEqualizer();
-            //player_->GetDspManager()->AddParametricEq();
         }
     }
     else {
         player_->GetDspManager()->RemoveEqualizer();
-        //player_->GetDspManager()->RemoveParametricEq();
     }
 
     if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {

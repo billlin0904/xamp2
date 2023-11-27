@@ -34,8 +34,6 @@ public:
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-    void Flush() override;
-
 private:
     class R8brainSampleRateConverterImpl;
     AlignPtr<R8brainSampleRateConverterImpl> impl_;

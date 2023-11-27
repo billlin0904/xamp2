@@ -42,9 +42,9 @@ public:
 
     friend class SharedSingleton<ImageCache>;
 
-	static QPixmap ScanCoverFromDir(const QString& file_path);
+	QPixmap ScanCoverFromDir(const QString& file_path);
 
-	static QPixmap FindImageFromDir(const PlayListEntity& item);
+	QPixmap FindImageFromDir(const PlayListEntity& item);
 
     QPixmap GetOrDefault(const QString& tag_id, bool not_found_use_default = true) const;
 
@@ -83,8 +83,8 @@ private:
 
 	QFileInfo GetImageFileInfo(const QString& tag_id) const;
 
-	static QStringList cover_ext_;
-	static QStringList cache_ext_;
+	QStringList cover_ext_;
+	QStringList cache_ext_;
 
 	int32_t trim_target_size_;
 	QString unknown_cover_id_;

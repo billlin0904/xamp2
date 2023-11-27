@@ -75,11 +75,6 @@ public:
     */
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
-    /*
-    * Flush the audio processor.
-    * 
-    */
-    virtual void Flush() = 0;
 protected:
 	IAudioProcessor() = default;
 };

@@ -39,8 +39,6 @@ public:
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-    void Flush() override;
-
 private:
     class SrcSampleRateConverterImpl;
     AlignPtr<SrcSampleRateConverterImpl> impl_;

@@ -122,15 +122,6 @@ bool DSPManager::IsEnableSampleRateConverter() const {
     return Contains(equal_id);
 }
 
-void DSPManager::Flush() {
-    for (const auto& pre_dsp : pre_dsp_) {
-        pre_dsp->Flush();
-    }
-    for (const auto& post_dsp : post_dsp_) {
-        post_dsp->Flush();
-    }
-}
-
 bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
     return dispatch_(samples, num_samples, fifo);
 }

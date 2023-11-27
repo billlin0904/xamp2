@@ -44,7 +44,7 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         return;
     }
 
-    cover = ImageCache::ScanCoverFromDir(QString::fromStdWString(file_path));
+    cover = qPixmapCache.ScanCoverFromDir(QString::fromStdWString(file_path));
     if (!cover.isNull()) {
         emit SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
     }

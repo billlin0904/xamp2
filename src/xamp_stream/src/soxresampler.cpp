@@ -271,10 +271,6 @@ Uuid SoxrSampleRateConverter::GetTypeId() const {
 	return XAMP_UUID_OF(SoxrSampleRateConverter);
 }
 
-void SoxrSampleRateConverter::Flush() {
-    impl_->Flush();
-}
-
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
 	return VERSION;
 }
