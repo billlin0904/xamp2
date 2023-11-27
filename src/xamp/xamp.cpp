@@ -1894,7 +1894,8 @@ PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bo
 
     SetCover(kEmptyString, playlist_page);
 
-    tab_widget_->addTab(playlist_page, name);
+    const auto index = tab_widget_->addTab(playlist_page, name);
+    tab_widget_->setCurrentIndex(index);
     return playlist_page;
 }
 

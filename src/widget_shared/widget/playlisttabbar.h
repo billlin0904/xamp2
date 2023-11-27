@@ -20,8 +20,6 @@ public slots:
 	void OnRename();
 
 private:
-	bool eventFilter(QObject* watched, QEvent* event) override;
-
 	void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 	int32_t edited_index_{0};

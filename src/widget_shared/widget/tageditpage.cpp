@@ -214,7 +214,8 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 				return;
 			}
 
-			auto temp_image = image_utils::ResizeImage(image_utils::ConvertToImageFormat(image), kCoverSize);
+			//auto temp_image = image_utils::ResizeImage(image_utils::ConvertToImageFormat(image), kCoverSize);
+			auto temp_image = image;
 			const auto std_temp_file_path = GetTempFileNamePath();
 			const auto temp_file_path = QString::fromStdWString(std_temp_file_path.wstring());
 			if (!temp_image.save(temp_file_path, "JPG")) {

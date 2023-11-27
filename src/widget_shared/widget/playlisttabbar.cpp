@@ -18,10 +18,6 @@ void PlaylistTabBar::OnRename() {
 	line_edit_->deleteLater();
 }
 
-bool PlaylistTabBar::eventFilter(QObject* watched, QEvent* event) {
-	return QTabBar::eventFilter(watched, event);
-}
-
 void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	if (event->button() != Qt::LeftButton) {
 		QTabBar::mouseDoubleClickEvent(event);
