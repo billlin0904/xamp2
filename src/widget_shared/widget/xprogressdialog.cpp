@@ -26,6 +26,7 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	progress_bar_->setFont(QFont(qTEXT("FormatFont")));
 	progress_bar_->setFixedHeight(15);
+	progress_bar_->setRange(minimum, maximum);
 
 	message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	message_text_label_->setObjectName(qTEXT("messageTextLabel"));

@@ -113,10 +113,6 @@ public:
 
     QStringList GetYears() const;
 
-    //int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
-
-    //void RemoveTable(int32_t playlist_id);
-
     int32_t AddPlaylist(const QString& name, int32_t playlist_index);
 
     void SetAlbumCover(int32_t album_id, const QString& cover_id);
@@ -126,8 +122,6 @@ public:
     std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;
 
     std::optional<ArtistStats> GetArtistStats(int32_t artist_id) const;
-
-    //void AddTablePlaylist(int32_t table_id, int32_t playlist_id);
 
     int32_t AddOrUpdateMusic(const TrackInfo& track_info);
 
@@ -162,16 +156,6 @@ public:
         double track_rg_gain,
         double track_peak);
 
-    void ClearPendingPlaylist();
-
-    void ClearPendingPlaylist(int32_t playlist_id);
-
-    void AddPendingPlaylist(int32_t playlist_musics_id, int32_t playlist_id) const;
-
-    std::pair<int32_t, int32_t> GetFirstPendingPlaylistMusic(int32_t playlist_id);
-
-    void DeletePendingPlaylistMusic(int32_t pending_playlist_id);
-
     int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast,
         const QString& disc_id = kEmptyString,
         const QString& album_genre = kEmptyString);
@@ -204,13 +188,9 @@ public:
 
     void SetPlaylistName(int32_t playlist_id, const QString& name);
 
-    //void SetTableName(int32_t table_id, const QString &name);
-
     void RemoveAlbum(int32_t album_id);
 
     void ForEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
-
-    //void ForEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
 
     void ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 
@@ -234,11 +214,7 @@ public:
 
     void RemovePlaylistAllMusic(int32_t playlist_id);
 
-    void RemovePendingListMusic(int32_t playlist_id);
-	
     void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
-
-    //int32_t FindTablePlaylistId(int32_t table_id) const;
 
     bool IsPlaylistExist(int32_t playlist_id) const;
 

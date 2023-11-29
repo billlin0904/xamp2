@@ -84,7 +84,7 @@ public:
     }
 
     /*
-    * Enqueues a task to the queue.
+    * Enqueue a task to the queue.
     * 
     * @param[in] task The task to enqueue.
     */

@@ -99,7 +99,6 @@ bool PlaylistTabWidget::RemovePlaylist(int32_t playlist_id) {
         return false;
     }
     try {
-        qMainDb.RemovePendingListMusic(playlist_id);
         qMainDb.RemovePlaylistAllMusic(playlist_id);
         qMainDb.RemovePlaylist(playlist_id);
         qMainDb.commit();

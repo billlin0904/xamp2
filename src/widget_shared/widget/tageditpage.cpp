@@ -251,7 +251,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	SetCurrentInfo(0);
 
 	ui_->coverSizeLabel->setText(StringFormat("{} x {} (0 B)", 0, 0));
-	ui_->yearLineEdit->setValidator(new QIntValidator(1, 999));
+	ui_->yearLineEdit->setValidator(new QIntValidator(1, 9999));
 
 	ReadEmbeddedCover(entities_[0]);
 }

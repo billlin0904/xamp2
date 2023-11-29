@@ -82,7 +82,7 @@ QPixmap ImageCache::ScanCoverFromDir(const QString& file_path) {
 	auto find_image = [scan_dir, this](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
 		const QFileInfo file_info(scan_dir.absolutePath());
 		const auto path = file_info.absolutePath();
-		for (QDirIterator itr(path, QStringList() << "*.*", QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
+		for (QDirIterator itr(path, cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
 			return image_utils::ReadFileImage(image_file_path, 

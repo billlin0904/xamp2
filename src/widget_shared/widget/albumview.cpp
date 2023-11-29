@@ -471,7 +471,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
         }
 
         try {
-            qMainDb.ClearPendingPlaylist();
+            //qMainDb.ClearPendingPlaylist();
 
             QList<int32_t> albums;
             qMainDb.ForEachAlbum([&albums](auto album_id) {

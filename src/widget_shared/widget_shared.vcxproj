@@ -160,7 +160,6 @@
     <QtMoc Include="widget\lrcpage.h" />
     <ClInclude Include="widget\lrcparser.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
-    <QtMoc Include="widget\pendingplaylistpage.h" />
     <ClInclude Include="widget\playerorder.h" />
     <ClInclude Include="widget\playlistentity.h" />
     <QtMoc Include="widget\playlistpage.h" />
@@ -176,7 +175,6 @@
     <QtMoc Include="widget\seekslider.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <ClInclude Include="widget\str_utilts.h" />
-    <QtMoc Include="widget\switchbutton.h" />
     <QtMoc Include="widget\tablistview.h" />
     <ClInclude Include="widget\themecolor.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h" />
@@ -230,7 +228,6 @@
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
-    <ClCompile Include="widget\pendingplaylistpage.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
@@ -248,7 +245,6 @@
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\str_utilts.cpp" />
     <ClCompile Include="widget\supereqview.cpp" />
-    <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\tageditpage.cpp" />
     <ClCompile Include="widget\tagio.cpp" />

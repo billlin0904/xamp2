@@ -446,6 +446,7 @@ void AlbumArtistPage::Refresh() {
 	}
 	if (!years.empty()) {
 		year_tag_list_widget_->EnableTag(years.first());
-	}	
+	}
+	year_tag_list_widget_->Sort();
 }
 

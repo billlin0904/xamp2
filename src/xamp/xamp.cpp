@@ -45,7 +45,6 @@
 #include <widget/mbdiscid_uiltis.h>
 #include <widget/spectrumwidget.h>
 #include <widget/xdialog.h>
-#include <widget/pendingplaylistpage.h>
 #include <widget/xprogressdialog.h>
 #include <widget/extractfileworker.h>
 #include <widget/findalbumcoverworker.h>
@@ -157,14 +156,6 @@ namespace {
                                          }
                                          )"));
         ui.eqButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_EQUALIZER));
-
-        ui.pendingPlayButton->setStyleSheet(qTEXT(R"(
-                                            QToolButton#pendingPlayButton {
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-                                            )"));
-        ui.pendingPlayButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
 
         ui.repeatButton->setStyleSheet(qTEXT(R"(
     QToolButton#repeatButton {
@@ -1055,32 +1046,6 @@ void Xamp::InitialController() {
         PlayPrevious();
     });
 
-    (void)QObject::connect(ui_.pendingPlayButton, &QToolButton::clicked, [this]() {
-        //SetPlayerOrder(true);
-        //MaskWidget mask_widget(this);
-        QScopedPointer<XDialog> dialog(new XDialog(this));
-        GetCurrentPlaylistPage()->playlist()->AddPendingPlayListFromModel(order_);
-        QScopedPointer<PendingPlaylistPage> page(new PendingPlaylistPage(
-            GetCurrentPlaylistPage()->playlist()->GetPendingPlayIndexes(),
-            GetCurrentPlaylistPage()->playlist()->GetPlaylistId(),
-            dialog.get()));
-        dialog->SetContentWidget(page.get(), true);
-        dialog->SetTitle(tr("Pending playlist"));
-        dialog->SetIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST_ORDER));
-        (void)QObject::connect(page.get(),
-            &PendingPlaylistPage::PlayMusic,
-            GetCurrentPlaylistPage()->playlist(),
-            &PlayListTableView::PlayIndex);
-        auto center_pos = ui_.pendingPlayButton->mapToGlobal(ui_.pendingPlayButton->rect().topRight());
-        const auto sz = dialog->size();
-        center_pos.setX(center_pos.x() - sz.width());
-        center_pos.setY(center_pos.y() - sz.height());
-        center_pos = dialog->mapFromGlobal(center_pos);
-        center_pos = dialog->mapToParent(center_pos);
-        dialog->move(center_pos);        
-        dialog->exec();
-        });
-
     (void)QObject::connect(ui_.eqButton, &QToolButton::clicked, [this]() {
         if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
@@ -1870,10 +1835,10 @@ PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bo
     ConnectPlaylistPageSignal(playlist_page);
     playlist_page->playlist()->SetHeaderViewHidden(false);
 
-    (void)QObject::connect(this,
+    /*(void)QObject::connect(this,
         &Xamp::ChangePlayerOrder,
         playlist_page->playlist(),
-        &PlayListTableView::AddPendingPlayListFromModel);
+        &PlayListTableView::AddPendingPlayListFromModel);*/
 
     SetCover(kEmptyString, playlist_page);
 

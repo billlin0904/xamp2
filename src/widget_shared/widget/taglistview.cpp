@@ -158,6 +158,10 @@ void TagListView::OnThemeColorChanged(QColor background_color, QColor color) {
 
 }
 
+void TagListView::Sort() {
+	taglist_->sortItems();
+}
+
 void TagListView::DisableAllTag(const QString& skip_tag) {
 	for (auto i = 0; i < taglist_->count(); ++i) {
 		auto* item = dynamic_cast<TagWidgetItem*>(taglist_->item(i));

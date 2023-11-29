@@ -50,6 +50,8 @@ public:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
 	void OnThemeColorChanged(QColor background_color, QColor color);
+
+	void Sort();
 signals:
 	void TagChanged(const QSet<QString> &tags);
 

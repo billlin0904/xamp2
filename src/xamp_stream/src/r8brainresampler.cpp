@@ -55,9 +55,6 @@ public:
 		return true;
 	}
 
-	void Flush() {
-	}
-
 	struct CR8BResamplerHandleTraits final {
 		static CR8BResampler invalid() noexcept {
 			return nullptr;
@@ -98,10 +95,6 @@ void R8brainSampleRateConverter::Init(const AnyMap& config) {
 
 Uuid R8brainSampleRateConverter::GetTypeId() const {
 	return XAMP_UUID_OF(R8brainSampleRateConverter);
-}
-
-void R8brainSampleRateConverter::Flush() {
-    impl_->Flush();
 }
 
 std::string_view R8brainSampleRateConverter::GetDescription() const noexcept {

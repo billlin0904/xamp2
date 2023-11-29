@@ -515,7 +515,7 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-                qMainDb.ClearPendingPlaylist(GetPlaylistId());
+                //qMainDb.ClearPendingPlaylist(GetPlaylistId());
                 IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
                 Reload();
                 RemovePlaying();
@@ -705,10 +705,7 @@ void PlayListTableView::PlayItem(const QModelIndex& index) {
     SetNowPlaying(index);
     SetNowPlayState(PLAY_PLAYING);
     const auto play_item = item(index);
-    auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
-    if (play_item.music_id != music_id) {
-        AddPendingPlayListFromModel(qAppSettings.ValueAsEnum<PlayerOrder>(kAppSettingOrder));
-    }
+    //auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
     emit PlayMusic(play_item);
 }
 
@@ -785,7 +782,6 @@ void PlayListTableView::ProcessDatabase(int32_t playlist_id, const QList<PlayLis
     }
     Reload();
     emit AddPlaylistItemFinished();
-    DeletePendingPlaylist();
 }
 
 void PlayListTableView::ProcessTrackInfo(int32_t total_album, int32_t total_tracks) {
@@ -874,53 +870,8 @@ QModelIndex PlayListTableView::GetFirstIndex() const {
     return model()->index(0, 0);
 }
 
-void PlayListTableView::DeletePendingPlaylist() {
-    pending_playlist_.clear();
-    qMainDb.ClearPendingPlaylist();
-}
-
-QList<QModelIndex> PlayListTableView::GetPendingPlayIndexes() const {
-    return pending_playlist_;
-}
-
 void PlayListTableView::SetOtherPlaylist(int32_t playlist_id) {
     other_playlist_id_ = playlist_id;
-}
-
-void PlayListTableView::AddPendingPlayListFromModel(PlayerOrder order) {
-    DeletePendingPlaylist();
-
-    if (proxy_model_->rowCount() > 0) {
-        if (pending_playlist_.isEmpty()) {
-            // 清空PendingPlaylist會導致play_index_失效
-            play_index_ = GetNextIndex(1);
-        }        
-    }    
-
-    QModelIndex index;
-    for (auto i = 0; i < proxy_model_->rowCount() && i < kMaxPendingPlayListSize; ++i) {
-        switch (order) {
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-            index = GetNextIndex(i);
-            break;
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:            
-            index = play_index_;
-            break;
-        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-            index = GetShuffleIndex();
-            break;
-        }
-        if (!index.isValid()) {
-            index = GetFirstIndex();
-        }
-        pending_playlist_.append(index);
-        const auto entity = GetEntity(index);
-        try {
-            qMainDb.AddPendingPlaylist(entity.playlist_music_id, GetPlaylistId());
-        }
-        catch (...) {
-        }
-    }
 }
 
 QModelIndex PlayListTableView::GetNextIndex(int forward) const {
@@ -1002,19 +953,31 @@ void PlayListTableView::SetCurrentPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::Play(PlayerOrder order) {
-    // note: 如果更新UI的話就要重取Index
-    //if (pending_playlist_.isEmpty()) {
-        AddPendingPlayListFromModel(order);
+    //auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
+    //if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
+    //    return;
     //}
-    auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
-    if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
-        return;
+
+    QModelIndex index;
+
+    switch (order) {
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        index = GetNextIndex(1);
+        break;
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:            
+        index = play_index_;
+        break;
+    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+        index = GetShuffleIndex();
+        break;
     }
-    const auto index = pending_playlist_.front();
+    if (!index.isValid()) {
+        index = GetFirstIndex();
+    }
+
     const auto entity = item(index);
-    pending_playlist_.pop_front();
-    XAMP_EXPECTS(entity.music_id == music_id);
-    qMainDb.DeletePendingPlaylistMusic(pending_playlist_id);
+    //XAMP_EXPECTS(entity.music_id == music_id);
+    //qMainDb.DeletePendingPlaylistMusic(pending_playlist_id);
     PlayIndex(index);
 }
 
@@ -1031,7 +994,7 @@ void PlayListTableView::RemovePlaying() {
 }
 
 void PlayListTableView::RemoveAll() {
-    qMainDb.ClearPendingPlaylist(GetPlaylistId());
+    //qMainDb.ClearPendingPlaylist(GetPlaylistId());
     IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
     FastReload();
 }
@@ -1056,7 +1019,6 @@ void PlayListTableView::RemoveSelectItems() {
         CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_))
 	}
 
-    DeletePendingPlaylist();
     CATCH_DB_EXCEPTION(qMainDb.RemovePlaylistMusic(playlist_id_, remove_music_ids))
     Reload();
 }
