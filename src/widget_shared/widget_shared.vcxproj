@@ -117,6 +117,7 @@
     <QtMoc Include="widget\findalbumcoverworker.h" />
     <QtMoc Include="widget\extractfileworker.h" />
     <QtMoc Include="widget\genre_view_page.h" />
+    <ClInclude Include="widget\cover_searcher\musicbraincoversearcher.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
@@ -127,6 +128,7 @@
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
+    <ClInclude Include="widget\networkdiskcache.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
@@ -228,6 +230,7 @@
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
+    <ClCompile Include="widget\networkdiskcache.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />

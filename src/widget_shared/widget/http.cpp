@@ -17,6 +17,7 @@
 #include <base/dll.h>
 
 #include <version.h>
+#include <widget/networkdiskcache.h>
 #include <widget/str_utilts.h>
 #include <widget/zib_utiltis.h>
 #include <widget/widget_shared.h>
@@ -190,6 +191,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
     , charset_(QStringConverter::Encoding::Utf8)
     , manager_(new QNetworkAccessManager(parent)) {
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
+    manager_->setCache(new NetworkDiskCache(parent));
 }
 
 HttpContext HttpClient::HttpClientImpl::CreateHttpContext() const {
