@@ -90,7 +90,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
     XAMP_LOG_D(logger_, "Start fetch cd information form musicbrainz.");
 
     http::HttpClient(QString::fromStdString(url))
-        .success([this, disc_id](const QString& content) {
+        .success([this, disc_id](const auto& url, const auto& content) {
         auto [image_url, mb_disc_id_info] = ParseMbDiscIdXml(content);
 
         mb_disc_id_info.disc_id = disc_id;
@@ -103,12 +103,12 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
         XAMP_LOG_D(logger_, "Start fetch cd cover image.");
 
         http::HttpClient(QString::fromStdString(image_url))
-            .success([this, disc_id](const QString& content) {
+            .success([this, disc_id](const auto& url, const auto& content) {
 	            const auto cover_url = ParseCoverUrl(content);
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
                     QPixmap cover;
                     if (cover.loadFromData(content)) {
-	                    const auto cover_id = qPixmapCache.AddImage(cover);
+	                    const auto cover_id = qImageCache.AddImage(cover);
                         XAMP_LOG_D(logger_, "Download cover image completed.");
                         emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
                     }
@@ -254,7 +254,7 @@ void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from
         .arg(to)
         .arg(from);
     http::HttpClient(url)
-        .success([keyword, this](const QString& content) {
+        .success([keyword, this](const auto& url, const auto& content) {
         if (content.isEmpty()) {
             return;
         }

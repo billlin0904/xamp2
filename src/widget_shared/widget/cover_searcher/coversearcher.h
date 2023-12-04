@@ -5,22 +5,19 @@
 
 #pragma once
 
-#include <QByteArray>
-#include <vector>
+#include <QMultiMap>
+#include <QObject>
+#include <QUrl>
+#include <QImage>
 
-#include <widget/widget_shared.h>
-
-QByteArray GzipDecompress(const QByteArray& data);
-
-class ZipFileReader {
+class ICoverSearcher : public QObject {
+	Q_OBJECT
 public:
-	ZipFileReader();
+	virtual void Search(const QString& artist, const QString& album, int id) = 0;
 
-	XAMP_PIMPL(ZipFileReader)
-
-	std::vector<std::wstring> OpenFile(const std::wstring& file);
-
-private:
-	class ZipFileReaderImpl;
-	AlignPtr<ZipFileReaderImpl> impl_;
+protected:
+	explicit ICoverSearcher(QObject* parent = nullptr)
+		: QObject(parent) {
+	}
 };
+

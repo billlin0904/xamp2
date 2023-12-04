@@ -88,11 +88,10 @@ private:
 
 	int32_t trim_target_size_;
 	QString unknown_cover_id_;
-	QString cache_path_;
 	LoggerPtr logger_;
 	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> cache_;
 	mutable std::shared_ptr<ObjectPool<QBuffer>> buffer_pool_;
 	LruCache<QString, QPixmap> cover_cache_;
 };
 
-#define qPixmapCache SharedSingleton<ImageCache>::GetInstance()
+#define qImageCache SharedSingleton<ImageCache>::GetInstance()

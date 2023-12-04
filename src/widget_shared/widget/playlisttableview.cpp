@@ -192,7 +192,7 @@ public:
 	        {
 				opt.icon = icon_cache_.GetOrAdd(value.toString(), [&value]() {
                     constexpr QSize icon_size(42, 46);
-                    const QIcon icon(image_utils::RoundImage(qPixmapCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
+                    const QIcon icon(image_utils::RoundImage(qImageCache.GetOrDefault(value.toString()), kPlaylistCoverSize));
                     return UniformIcon(icon, icon_size);
                 });
 				opt.features = QStyleOptionViewItem::HasDecoration;

@@ -14,6 +14,7 @@
 #include <spdlog/fmt/ostr.h>
 
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace spdlog {

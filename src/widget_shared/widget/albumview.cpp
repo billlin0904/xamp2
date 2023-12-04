@@ -177,7 +177,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
-    painter->drawPixmap(cover_rect, qPixmapCache.GetCover(kAlbumCacheTag, cover_id));
+    painter->drawPixmap(cover_rect, qImageCache.GetCover(kAlbumCacheTag, cover_id));
 
     bool hit_play_button = false;
     if (enable_album_view_
@@ -491,7 +491,7 @@ void AlbumView::ShowAlbumViewMenu(const QPoint& pt) {
             qMainDb.commit();
             update();
             emit RemoveAll();
-            qPixmapCache.Clear();
+            qImageCache.Clear();
         }
         catch (...) {
             qMainDb.rollback();

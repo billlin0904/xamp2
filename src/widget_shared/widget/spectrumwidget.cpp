@@ -73,7 +73,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	const float max_db_value = (average_spectrum.max)();
 
 	const float rect_width = static_cast<float>(width()) / static_cast<float>(kMaxBands);
-	const float rect_height = static_cast<float>(height());
+	const auto rect_height = static_cast<float>(height());
 
 	QVector<QColor> colors;
 

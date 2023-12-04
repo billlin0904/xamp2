@@ -117,8 +117,6 @@ public:
 
     void SetAlbumCover(int32_t album_id, const QString& cover_id);
 
-    void SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
-
     std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;
 
     std::optional<ArtistStats> GetArtistStats(int32_t artist_id) const;

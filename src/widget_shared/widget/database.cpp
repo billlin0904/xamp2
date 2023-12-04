@@ -631,21 +631,6 @@ void Database::SetAlbumCover(int32_t album_id, const QString& cover_id) {
     XAMP_LOG_D(logger_, "setAlbumCover albumId: {} coverId: {}", album_id, cover_id.toStdString());
 }
 
-void Database::SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
-    XAMP_ENSURES(!cover_id.isEmpty());
-
-    SqlQuery query(db_);
-
-    query.prepare(qTEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) AND (album = :album)"));
-
-    query.bindValue(qTEXT(":albumId"), album_id);
-    query.bindValue(qTEXT(":album"), album);
-    query.bindValue(qTEXT(":coverId"), cover_id);
-
-    THROW_IF_FAIL1(query);
-    XAMP_LOG_D(logger_, "setAlbumCover albumId: {} coverId: {}", album_id, cover_id.toStdString());
-}
-
 std::optional<ArtistStats> Database::GetArtistStats(int32_t artist_id) const {    
     SqlQuery query(db_);
 

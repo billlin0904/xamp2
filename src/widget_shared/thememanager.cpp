@@ -79,16 +79,6 @@ namespace {
                 return getFontWeight(left_font_name) < getFontWeight(right_font_name);
             });
     }
-
-    QIcon UniformIcon(QIcon icon, QSize size) {
-        QIcon result;
-        const auto base_pixmap = icon.pixmap(size);
-        for (const auto state : { QIcon::Off, QIcon::On }) {
-            for (const auto mode : { QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected })
-                result.addPixmap(base_pixmap, mode, state);
-        }
-        return result;
-    }
 }
 
 QString ThemeManager::GetCountryFlagFilePath(const QString& country_iso_code) {

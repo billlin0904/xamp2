@@ -20,6 +20,7 @@ public:
 signals:
     void FindAlbumCover(int32_t album_id,
         const QString& album,
+        const QString& artist,
         const std::wstring& file_path);
 public:
     void InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);

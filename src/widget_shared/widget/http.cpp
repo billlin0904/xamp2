@@ -136,8 +136,8 @@ struct HttpContext {
     QStringConverter::Encoding charset{ QStringConverter::Encoding::Utf8 };
     QString user_agent{ kDefaultUserAgent };
     QNetworkAccessManager* manager{nullptr};
-    std::function<void (const QString &)> success_handler;
-    std::function<void(const QString&)> error_handler;
+    std::function<void(const QUrl &, const QString &)> success_handler;
+    std::function<void(const QUrl&, const QString&)> error_handler;
     std::function<void(qint64, qint64)> progress_handler;
     LoggerPtr logger;
 };
@@ -154,7 +154,7 @@ public:
 
     static QNetworkRequest CreateHttpRequest(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
-    static void ExecuteQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method);
+    static QNetworkReply* ExecuteQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
     static void download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read);
 
@@ -174,9 +174,9 @@ public:
     QStringConverter::Encoding charset_;
     QString user_agent_;
     QNetworkAccessManager *manager_;
-    std::function<void (const QString &)> success_handler_;
-    std::function<void(const QString&)> error_handler_;
-    std::function<void (const QByteArray &)> download_handler_;
+    std::function<void(const QUrl&, const QString&)> success_handler_;
+    std::function<void(const QUrl&, const QString&)> error_handler_;
+    std::function<void(const QByteArray&)> download_handler_;
     std::function<void(qint64, qint64)> progress_handler_;
     LoggerPtr logger_;
 };
@@ -211,7 +211,7 @@ void HttpClient::HttpClientImpl::SetTimeout(int timeout) {
     timeout_ = timeout;
 }
 
-void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
+QNetworkReply* HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method) {
 	auto context = d->CreateHttpContext();
 
     context.manager->setProxy(QNetworkProxy::NoProxy);
@@ -244,6 +244,10 @@ void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, 
         reply = context.manager->deleteResource(request);
         operation = QNetworkAccessManager::DeleteOperation;
         break;
+    case HttpMethod::HTTP_HEAD:
+        reply = context.manager->head(request);
+        operation = QNetworkAccessManager::HeadOperation;
+        break;
     }
 
     LogHttpRequest(context.logger, RequestVerb(operation, request), request);
@@ -251,8 +255,8 @@ void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, 
     (void) QObject::connect(reply,
         &QNetworkReply::downloadProgress,
         [reply, context, d](auto ready, auto total) {
-            HandleProgress(context, reply, ready, total);
-        });
+        HandleProgress(context, reply, ready, total);
+    });
 
     (void) QObject::connect(reply,
         &QNetworkReply::finished,
@@ -261,6 +265,8 @@ void HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClientImpl> d, 
 	    const auto success_message = ReadReply(reply, context.charset);
 	    HandleFinish(context, reply, success_message);
     });
+
+    return reply;
 }
 
 void HttpClient::HttpClientImpl::HandleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total) {
@@ -276,7 +282,8 @@ void HttpClient::HttpClientImpl::HandleProgress(const HttpContext& context, QNet
     }
 
     if (status != 200 && status != 206 && status != 416) {
-        HandleFinish(context, reply, kEmptyString);
+        // 這樣有可能多呼叫一次handler.
+        //HandleFinish(context, reply, kEmptyString);
         return;
     }
 
@@ -307,8 +314,8 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std:
     (void) QObject::connect(reply,
         &QNetworkReply::downloadProgress,
         [reply, context, d](auto ready, auto total) {
-            HandleProgress(context, reply, ready, total);
-        });
+        HandleProgress(context, reply, ready, total);
+    });
 }
 
 void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetworkReply *reply, const QString &success_message) {
@@ -316,11 +323,11 @@ void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetwo
 
     if (error == QNetworkReply::NoError) {
         if (context.success_handler != nullptr) {
-            context.success_handler(success_message);
+            context.success_handler(reply->url(), success_message);
         }
     } else {
         if (context.error_handler != nullptr) {
-            context.error_handler(NetworkErrorToString(error));
+            context.error_handler(reply->url(), NetworkErrorToString(error));
         }
     }
 
@@ -333,8 +340,6 @@ void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetwo
             context.manager->deleteLater();
         }
     }
-
-    XAMP_LOG_D(context.logger, "Request finished! error: {}", NetworkErrorToString(error).data());
 }
 
 QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStringConverter::Encoding &charset) {
@@ -343,7 +348,9 @@ QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStrin
     try
     {
         if (IsZipEncoding(reply)) {
-            in.reset(new QTextStream(GzipDecompress(content)));
+            const auto data = GzipDecompress(content);
+            in.reset(new QTextStream(data));
+            XAMP_LOG_DEBUG("Compress ratio:{} %", content.size() * 100 / data.size());
         }
         else {
             in.reset(new QTextStream(content));
@@ -390,7 +397,7 @@ QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<Htt
         d->headers_[qTEXT("User-Agent")] = kDefaultUserAgent;
     }
 
-    XAMP_LOG_D(d->logger_, "Request url: {}", QUrl(d->url_).toEncoded().toStdString());
+    //XAMP_LOG_D(d->logger_, "Request url: {}", QUrl(d->url_).toEncoded().toStdString());
 
     QNetworkRequest request(QUrl(d->url_));
     for (auto i = d->headers_.cbegin(); i != d->headers_.cend(); ++i) {
@@ -405,12 +412,8 @@ QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<Htt
     const auto request_id = GenerateUuid();
 
     request.setRawHeader("X-Request-ID", request_id);
-
-    if (IsLoadZib()) {
-        request.setRawHeader("Accept-Encoding", "gzip");
-        XAMP_LOG_D(d->logger_, "Use gzip compression.");
-    }
-
+    request.setRawHeader("Accept-Encoding", "gzip");
+    
     request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
@@ -454,37 +457,43 @@ HttpClient& HttpClient::header(const QString &name, const QString &value) {
     return *this;
 }
 
-HttpClient& HttpClient::headers(const QMap<QString, QString> name_values) {
+HttpClient& HttpClient::headers(const QMap<QString, QString>& name_values) {
     for (auto i = name_values.cbegin(); i != name_values.cend(); ++i) {
         impl_->headers_[i.key()] = i.value();
     }
     return *this;
 }
 
-HttpClient& HttpClient::success(std::function<void (const QString &)> success_handler) {
+HttpClient& HttpClient::success(std::function<void (const QUrl&, const QString &)> success_handler) {
     impl_->success_handler_ = std::move(success_handler);
     return *this;
 }
 
-HttpClient& HttpClient::error(std::function<void(const QString&)> error_handler) {
+HttpClient& HttpClient::error(std::function<void(const QUrl&, const QString&)> error_handler) {
     impl_->error_handler_ = std::move(error_handler);
     return *this;
 }
 
-HttpClient& HttpClient::progress(std::function<void(qint64, qint64)> progressHandler) {
-    impl_->progress_handler_ = std::move(progressHandler);
+HttpClient& HttpClient::progress(std::function<void(qint64, qint64)> progress_handler) {
+    impl_->progress_handler_ = std::move(progress_handler);
     return *this;
 }
 
-void HttpClient::get() {
-    HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_GET);
+QNetworkReply* HttpClient::get() {
+    return HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_GET);
 }
 
-void HttpClient::post() {
-    HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_POST);
+QNetworkReply* HttpClient::post() {
+    return HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_POST);
 }
 
-void HttpClient::downloadFile(const QString& file_name, std::function<void(const QString&)> download_handler, std::function<void(const QString&)> error_handler) {
+QNetworkReply* HttpClient::head() {
+    return HttpClientImpl::ExecuteQuery(impl_, HttpMethod::HTTP_HEAD);
+}
+
+void HttpClient::downloadFile(const QString& file_name, 
+    const std::function<void(const QString&)>& download_handler,
+    std::function<void(const QUrl&, const QString&)> error_handler) {
     QSharedPointer<QTemporaryFile> tempfile(new QTemporaryFile());
     if (!tempfile->open()) {
         return;
@@ -492,7 +501,7 @@ void HttpClient::downloadFile(const QString& file_name, std::function<void(const
 
     tempfile->setAutoRemove(false);
 
-    success([=](auto) {
+    success([=](auto, auto) {
         tempfile->rename(file_name);
         download_handler(file_name);
         });
@@ -504,10 +513,11 @@ void HttpClient::downloadFile(const QString& file_name, std::function<void(const
         });
 }
 
-void HttpClient::download(std::function<void (const QByteArray &)> download_handler, std::function<void(const QString&)> error_handler) {
+void HttpClient::download(std::function<void (const QByteArray &)> download_handler,
+    std::function<void(const QUrl&, const QString&)> error_handler) {
     auto data = std::make_shared<QByteArray>();
 
-    success([handler = std::move(download_handler), data](auto) {
+    success([handler = std::move(download_handler), data](auto, auto) {
         handler(*data);
     });
 

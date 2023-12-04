@@ -1,4 +1,6 @@
 #include <widget/networkdiskcache.h>
+#include <widget/appsettings.h>
+
 #include <QMutexLocker>
 #include <QNetworkDiskCache>
 
@@ -10,6 +12,7 @@ NetworkDiskCache::NetworkDiskCache(QObject* parent)
 	QMutexLocker l(&mutex_);
 	if (!cache_) {
 		cache_ = new QNetworkDiskCache();
+		cache_->setCacheDirectory(qAppSettings.GetCachePath());
 	}	
 }
 

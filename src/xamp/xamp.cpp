@@ -1167,7 +1167,7 @@ void Xamp::SetThemeColor(QColor background_color, QColor color) {
 void Xamp::OnSearchArtistCompleted(const QString& artist, const QByteArray& image) {
     QPixmap cover;
     if (cover.loadFromData(image)) {        
-        qMainDb.UpdateArtistCoverId(qMainDb.AddOrUpdateArtist(artist), qPixmapCache.AddImage(cover));
+        qMainDb.UpdateArtistCoverId(qMainDb.AddOrUpdateArtist(artist), qImageCache.AddImage(cover));
     }
     emit Translation(artist, qTEXT("ja"), qTEXT("en"));
     //emit Translation(artist, qTEXT("en"), qTEXT("ja"));
@@ -1738,9 +1738,9 @@ void Xamp::DrivesRemoved(const DriveInfo& /*drive_info*/) {
 
 void Xamp::SetCover(const QString& cover_id, PlaylistPage* page) {
     auto found_cover = false;
-    const auto cover = qPixmapCache.GetOrDefault(cover_id, true);
+    const auto cover = qImageCache.GetOrDefault(cover_id, true);
 
-    if (!cover_id.isEmpty() && cover_id != qPixmapCache.GetUnknownCoverId()) {
+    if (!cover_id.isEmpty() && cover_id != qImageCache.GetUnknownCoverId()) {
         found_cover = true;
     }
 
@@ -2252,6 +2252,10 @@ void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
         Qt::QueuedConnection);
     facede.InsertTrackInfo(result, playlist_id);    
     emit Translation(GetStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    if (tab_widget_->count() == 0) {
+        const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
+        NewPlaylistPage(playlist_id, tr("Playlist"), false);
+    }
     GetCurrentPlaylistPage()->playlist()->Reload();
 }
 
@@ -2262,11 +2266,9 @@ void Xamp::OnReadFilePath(const QString& file_path) {
     read_progress_dialog_->SetLabelText(file_path);
 }
 
-void Xamp::OnSetAlbumCover(int32_t album_id,
-    const QString& album,
-    const QString& cover_id) {
+void Xamp::OnSetAlbumCover(int32_t album_id, const QString& cover_id) {
     //XAMP_LOG_DEBUG("{} => {}", album.toStdString(), cover_id.toStdString());
-    qMainDb.SetAlbumCover(album_id, album, cover_id);
+    qMainDb.SetAlbumCover(album_id, cover_id);
     album_page_->Refresh();
 }
 

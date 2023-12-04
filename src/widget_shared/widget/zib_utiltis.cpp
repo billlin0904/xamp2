@@ -9,6 +9,8 @@
 #include <contrib/minizip/unzip.h>
 
 namespace {
+    inline constexpr auto kReadZipBufferSize = 4096;
+
     struct UzFileHandleTraits final {
         static unzFile invalid() noexcept {
             return nullptr;
@@ -40,13 +42,13 @@ namespace {
 
     uLong fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size) {
         uLong ret;
-        ret = static_cast<uLong>(fread(buf, 1, (size_t)size, (FILE*)stream));
+        ret = static_cast<uLong>(fread(buf, 1, (size_t)size, static_cast<FILE*>(stream)));
         return ret;
     }
 
     uLong fwrite_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size) {
         uLong ret;
-        ret = static_cast<uLong>(fwrite(buf, 1, (size_t)size, (FILE*)stream));
+        ret = static_cast<uLong>(fwrite(buf, 1, (size_t)size, static_cast<FILE*>(stream)));
         return ret;
     }
 
@@ -56,7 +58,7 @@ namespace {
         return ret;
     }
 
-    long fseek64_file_func(voidpf  opaque, voidpf stream, ZPOS64_T offset, int origin) {
+    long fseek64_file_func(voidpf opaque, voidpf stream, ZPOS64_T offset, int origin) {
         int fseek_origin = 0;
         long ret;
 
@@ -99,8 +101,6 @@ XAMP_PIMPL_IMPL(ZipFileReader)
 
 class ZipFileReader::ZipFileReaderImpl {
 public:
-    static constexpr auto kReadZipBufferSize = 4096;
-
     ZipFileReaderImpl() = default;
     
     std::vector<std::wstring> OpenFile(const std::wstring& file) {
@@ -114,7 +114,7 @@ public:
         func_def.zerror_file = ferror_file_func;
         func_def.opaque = nullptr;
 
-        handle_.reset(unzOpen2_64(file.c_str(), &func_def));
+        handle_.reset(::unzOpen2_64(file.c_str(), &func_def));
 
         std::vector<std::wstring> track_infos;
 
@@ -156,7 +156,7 @@ public:
         return track_infos;
     }
 
-    std::wstring ExtractCurrentFile() {
+    std::wstring ExtractCurrentFile() const {
         if (::unzOpenCurrentFile(handle_.get()) != UNZ_OK) {
             throw Exception();
         }
@@ -164,7 +164,7 @@ public:
         const auto temp_file_path = GetTempFileNamePath();
 
         XAMP_ON_SCOPE_FAIL(
-            unzCloseCurrentFile(handle_.get());            
+            ::unzCloseCurrentFile(handle_.get());            
         );
         
         std::ofstream out(temp_file_path, std::ios::binary);        
@@ -174,14 +174,14 @@ public:
         
         int error = UNZ_OK;
         do {
-            char read_buffer[kReadZipBufferSize]{};
+            char output[kReadZipBufferSize]{};
             
-            error = ::unzReadCurrentFile(handle_.get(), read_buffer, kReadZipBufferSize);
+            error = ::unzReadCurrentFile(handle_.get(), output, kReadZipBufferSize);
 
             if (error < 0) {
                 throw Exception();
             }
-            out.write(read_buffer, error);
+            out.write(output, error);
         } while (error > 0);
 
         out.close();
@@ -200,13 +200,9 @@ std::vector<std::wstring> ZipFileReader::OpenFile(const std::wstring& file) {
     return impl_->OpenFile(file);
 }
 
-bool IsLoadZib() {
-    return true;
-}
-
 QByteArray GzipDecompress(const QByteArray& data) {
 #define XAMP_inflateInit2(strm, windowBits) \
-          inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
+          ::inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
                         (int)sizeof(z_stream))
     QByteArray result;
     z_stream zlib_stream;
@@ -223,17 +219,15 @@ QByteArray GzipDecompress(const QByteArray& data) {
     }
 
     XAMP_ON_SCOPE_EXIT(
-        inflateEnd(&zlib_stream);
+        ::inflateEnd(&zlib_stream);
         );
 
-    static constexpr auto kBufferSize = 1024;
-
     do {
-        char output[kBufferSize]{ };
-        zlib_stream.avail_out = kBufferSize;
+        char output[kReadZipBufferSize]{ };
+        zlib_stream.avail_out = kReadZipBufferSize;
         zlib_stream.next_out = reinterpret_cast<Bytef*>(output);
 
-        ret = inflate(&zlib_stream, Z_NO_FLUSH);
+        ret = ::inflate(&zlib_stream, Z_NO_FLUSH);
         Q_ASSERT(ret != Z_STREAM_ERROR);  // state not clobbered
 
         switch (ret) {
@@ -244,7 +238,7 @@ QByteArray GzipDecompress(const QByteArray& data) {
             throw std::exception("Date error");
         }
 
-        result.append(output, kBufferSize - zlib_stream.avail_out);
+        result.append(output, kReadZipBufferSize - zlib_stream.avail_out);
     } while (zlib_stream.avail_out == 0);
 
     return result;

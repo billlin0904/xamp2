@@ -10,24 +10,28 @@
 #include <widget/database.h>
 #include <widget/widget_shared_global.h>
 
+#include <widget/cover_searcher/discogscoversearcher.h>
+//#include <widget/cover_searcher/musicbraincoversearcher.h>
+
 class XAMP_WIDGET_SHARED_EXPORT FindAlbumCoverWorker : public QObject {
 	Q_OBJECT
 public:
 	FindAlbumCoverWorker();
 
 signals:
-	void SetAlbumCover(int32_t album_id,
-		const QString& album, 
-		const QString& cover_id);
+	void SetAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
 	void OnFindAlbumCover(int32_t album_id,
 		const QString& album,
+		const QString& artist,
 		const std::wstring& file_path);
 
 	void OnCancelRequested();
 private:
 	bool is_stop_{ false };
 	PooledDatabasePtr database_ptr_;
+	//MusicbrainzCoverSearcher searcher_;
+	DiscogsCoverSearcher searcher_;
 };
 

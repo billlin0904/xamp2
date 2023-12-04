@@ -134,7 +134,7 @@ void AppSettings::ParseFixedBandEQ(const QFileInfo file_info, QFile &file) {
 			        &settings.preamp);
 		}
 		else if (result[0].indexOf(qTEXT("Filter")) != -1) {
-			settings.bands.push_back(EqBandSetting());
+			settings.bands.emplace_back();
 			auto pos = str.find(L"Fc");
 			swscanf(&str[pos], L"Fc %f Hz",
 			        &settings.bands[i].frequency);
@@ -187,9 +187,36 @@ void AppSettings::save() {
     settings_->sync();
 }
 
-QString AppSettings::DefaultCachePath() {
-    auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
-    return folder_path[0];
+QString AppSettings::GetCachePath() {
+    QString cache_path;
+
+    if (!qAppSettings.Contains(kAppSettingCachePath)) {
+        auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
+
+        const List<QString> paths{
+            QDir::currentPath() + qTEXT("/Cache/"),
+            folder_path[0],
+        };
+
+        Q_FOREACH(const auto path, paths) {
+            cache_path = path;
+            const QDir dir(cache_path);
+            if (!dir.exists()) {
+                if (!dir.mkdir(cache_path)) {
+                    XAMP_LOG_ERROR("Create cache dir failure!");
+                }
+                else {
+                    break;
+                }
+            }
+        }
+
+        cache_path = ToNativeSeparators(cache_path);
+        qAppSettings.SetValue(kAppSettingCachePath, cache_path);
+    } else {
+        cache_path = qAppSettings.ValueAsString(kAppSettingCachePath);
+    }
+    return cache_path;
 }
 
 QString AppSettings::GetMyMusicFolderPath() {

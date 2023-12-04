@@ -244,7 +244,7 @@ void PlaylistPage::SetCover(const QPixmap * cover) {
 }
 
 void PlaylistPage::SetCoverById(const QString& cover_id) {
-	const auto cover = qPixmapCache.GetOrDefault(cover_id);
+	const auto cover = qImageCache.GetOrDefault(cover_id);
 	SetCover(&cover);
 }
 

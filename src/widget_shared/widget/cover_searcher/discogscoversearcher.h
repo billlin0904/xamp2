@@ -12,20 +12,18 @@
 
 #include <widget/cover_searcher/coversearcher.h>
 
-class MusicbrainzCoverSearcher : public ICoverSearcher {
+class DiscogsCoverSearcher : public ICoverSearcher {
 	Q_OBJECT
 public:
-	explicit MusicbrainzCoverSearcher(QObject* parent = nullptr);
+	explicit DiscogsCoverSearcher(QObject* parent = nullptr);
 
 	void Search(const QString& artist, const QString& album, int id) override;
 
 signals:
-	void SearchFinished(int32_t id, const QPixmap &cover);
+	void SearchFinished(int32_t id, const QPixmap& cover);
 
 private:
-	void FetchFinished(int id, qsizetype total_size, const QImage& image);
+	void RequestRelease(int32_t id, const QString & resource_url);
 
-	QMultiMap<int, QUrl> image_checks_;
-	QMultiMap<int, QImage> image_list_;
-	QList<QUrl> download_url_list_;
+	QMap<int, QString> requests_search_;
 };

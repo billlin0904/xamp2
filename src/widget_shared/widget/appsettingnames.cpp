@@ -36,7 +36,7 @@ IMPL_APP_SETTING_NAME(AppSettingMinimizeToTray, "AppSettings/minimizeToTray");
 IMPL_APP_SETTING_NAME(AppSettingBackgroundColor, "AppSettings/theme/backgroundColor");
 
 IMPL_APP_SETTING_NAME(AppSettingPodcastCachePath, "AppSettings/podcastCachePath");
-IMPL_APP_SETTING_NAME(AppSettingAlbumImageCachePath, "AppSettings/albumImageCacheSPath");
+IMPL_APP_SETTING_NAME(AppSettingCachePath, "AppSettings/cachePath");
 IMPL_APP_SETTING_NAME(AppSettingEnableReplayGain, "AppSettings/enableReplayGain");
 IMPL_APP_SETTING_NAME(AppSettingEnableReplayGainWriteTag, "AppSettings/enableReplayGainWriteTag");
 IMPL_APP_SETTING_NAME(AppSettingReplayGainMode, "AppSettings/replayGainMode");

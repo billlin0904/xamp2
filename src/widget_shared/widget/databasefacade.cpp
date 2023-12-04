@@ -152,14 +152,14 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
         }
 
         if (!cover.isNull()) {
-            qMainDb.SetAlbumCover(album_id, album, qPixmapCache.AddImage(cover));
+            qMainDb.SetAlbumCover(album_id, qImageCache.AddImage(cover));
             continue;
         }
 
         const auto cover_id = qMainDb.GetAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             //XAMP_LOG_DEBUG("Found album {} cover", album.toStdString());
-            emit FindAlbumCover(album_id, album, track_info.file_path);
+            emit FindAlbumCover(album_id, album, artist, track_info.file_path);
         }
 	}
     if (sw.ElapsedSeconds() > 1.0) {

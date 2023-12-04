@@ -17,6 +17,7 @@ enum class HttpMethod {
     HTTP_GET,
     HTTP_POST,
     HTTP_PUT,
+    HTTP_HEAD,
     HTTP_DELETE
 };
 
@@ -38,21 +39,26 @@ public:
 
     HttpClient& header(const QString &name, const QString &value);
 
-    HttpClient& headers(const QMap<QString, QString> nameValues);
+    HttpClient& headers(const QMap<QString, QString>& name_values);
 
-    HttpClient& success(std::function<void (const QString &)> successHandler);
+    HttpClient& success(std::function<void(const QUrl&, const QString &)> success_handler);
 
-    HttpClient& error(std::function<void(const QString&)> errorHandler);
+    HttpClient& error(std::function<void(const QUrl&, const QString&)> error_handler);
 
-    HttpClient& progress(std::function<void(qint64, qint64)> progressHandler);
+    HttpClient& progress(std::function<void(qint64, qint64)> progress_handler);
 
-    void download(std::function<void (const QByteArray &)> downloadHandler, std::function<void(const QString&)> errorHandler = nullptr);
+    void download(std::function<void(const QByteArray &)> download_handler,
+        std::function<void(const QUrl&, const QString&)> error_handler = nullptr);
 
-    void downloadFile(const QString &file_name, std::function<void(const QString&)> downloadHandler, std::function<void(const QString&)> errorHandler = nullptr);
+    void downloadFile(const QString &file_name, 
+        const std::function<void(const QString&)>& download_handler,
+        std::function<void(const QUrl&, const QString&)> error_handler = nullptr);
 
-    void get();
+    QNetworkReply* get();
 
-    void post();
+    QNetworkReply* post();
+
+    QNetworkReply* head();
 
     void setUserAgent(const QString &user_agent);
 

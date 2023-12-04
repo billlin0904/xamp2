@@ -14,6 +14,8 @@ class TagIO final {
 public:
     TagIO();
 
+    XAMP_DISABLE_COPY_AND_MOVE(TagIO)
+
     static TrackInfo GetTrackInfo(const Path& path);
 
     void WriteArtist(const Path& path, const QString& artist);

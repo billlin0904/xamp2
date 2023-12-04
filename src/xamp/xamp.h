@@ -136,7 +136,6 @@ public slots:
 	void OnFoundFileCount(size_t file_count);
 
 	void OnSetAlbumCover(int32_t album_id,
-		const QString& album,
 		const QString& cover_id);
 
 	void OnTranslationCompleted(const QString& keyword, const QString& result);
