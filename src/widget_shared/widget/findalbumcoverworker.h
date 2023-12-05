@@ -11,7 +11,7 @@
 #include <widget/widget_shared_global.h>
 
 #include <widget/cover_searcher/discogscoversearcher.h>
-//#include <widget/cover_searcher/musicbraincoversearcher.h>
+#include <widget/cover_searcher/musicbraincoversearcher.h>
 
 class XAMP_WIDGET_SHARED_EXPORT FindAlbumCoverWorker : public QObject {
 	Q_OBJECT
@@ -31,7 +31,7 @@ public slots:
 private:
 	bool is_stop_{ false };
 	PooledDatabasePtr database_ptr_;
-	//MusicbrainzCoverSearcher searcher_;
-	DiscogsCoverSearcher searcher_;
+	MusicbrainzCoverSearcher searcher_;
+	//DiscogsCoverSearcher searcher_;
 };
 

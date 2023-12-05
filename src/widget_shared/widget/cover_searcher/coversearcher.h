@@ -13,6 +13,8 @@
 class ICoverSearcher : public QObject {
 	Q_OBJECT
 public:
+	virtual ~ICoverSearcher() override = default;
+
 	virtual void Search(const QString& artist, const QString& album, int id) = 0;
 
 protected:

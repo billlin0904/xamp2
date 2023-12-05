@@ -15,6 +15,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/dll.h>
+#include <base/str_utilts.h>
 
 #include <version.h>
 #include <widget/networkdiskcache.h>
@@ -158,7 +159,7 @@ public:
 
     static void download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read);
 
-    static QString ReadReply(QNetworkReply *reply, const QStringConverter::Encoding &charset);
+    static QString ReadReply(QNetworkReply *reply, const HttpContext& context);
 
     static void HandleFinish(const HttpContext& context, QNetworkReply *reply, const QString &success_message);
 
@@ -262,7 +263,7 @@ QNetworkReply* HttpClient::HttpClientImpl::ExecuteQuery(QSharedPointer<HttpClien
         &QNetworkReply::finished,
         [reply, context, request, operation, d] {
         LogHttpRequest(context.logger, RequestVerb(operation, request), request, reply);
-	    const auto success_message = ReadReply(reply, context.charset);
+	    const auto success_message = ReadReply(reply, context);
 	    HandleFinish(context, reply, success_message);
     });
 
@@ -342,7 +343,7 @@ void HttpClient::HttpClientImpl::HandleFinish(const HttpContext &context, QNetwo
     }
 }
 
-QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStringConverter::Encoding &charset) {
+QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const HttpContext& context) {
     QScopedPointer<QTextStream> in;
     const auto content = reply->readAll();
     try
@@ -350,7 +351,10 @@ QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStrin
         if (IsZipEncoding(reply)) {
             const auto data = GzipDecompress(content);
             in.reset(new QTextStream(data));
-            XAMP_LOG_DEBUG("Compress ratio:{} %", content.size() * 100 / data.size());
+            XAMP_LOG_D(context.logger, "Compress ratio: ({}/{}) {}%",
+                String::FormatBytes(content.size()),
+                String::FormatBytes(data.size()),
+                content.size() * 100 / data.size());
         }
         else {
             in.reset(new QTextStream(content));
@@ -369,7 +373,7 @@ QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const QStrin
 
     QString result;
     result.reserve(content_length);
-    in->setEncoding(charset);
+    in->setEncoding(context.charset);
 
     while (!in->atEnd()) {
         result.append(in->readLine());
@@ -396,8 +400,6 @@ QNetworkRequest HttpClient::HttpClientImpl::CreateHttpRequest(QSharedPointer<Htt
     if (d->user_agent_.isEmpty()) {
         d->headers_[qTEXT("User-Agent")] = kDefaultUserAgent;
     }
-
-    //XAMP_LOG_D(d->logger_, "Request url: {}", QUrl(d->url_).toEncoded().toStdString());
 
     QNetworkRequest request(QUrl(d->url_));
     for (auto i = d->headers_.cbegin(); i != d->headers_.cend(); ++i) {

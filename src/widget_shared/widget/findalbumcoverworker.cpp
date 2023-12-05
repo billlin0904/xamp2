@@ -9,7 +9,7 @@
 FindAlbumCoverWorker::FindAlbumCoverWorker()
 	: database_ptr_(GetPooledDatabase(1))
 	, searcher_(this) {
-    (void)QObject::connect(&searcher_, &DiscogsCoverSearcher::SearchFinished,
+    (void)QObject::connect(&searcher_, &MusicbrainzCoverSearcher::SearchFinished,
         [this](auto id, const auto& cover) {
         emit SetAlbumCover(id, qImageCache.AddImage(cover));
         });
@@ -32,7 +32,7 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         return;
     }
 
-    /*std::wstring find_file_path;
+	/*std::wstring find_file_path;
     const auto first_file_path = database_ptr_->Acquire()->GetAlbumFirstMusicFilePath(album_id);
     if (!first_file_path) {
         find_file_path = file_path;
@@ -58,8 +58,8 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         emit SetAlbumCover(album_id, qImageCache.AddImage(cover));
     }
     else {
-        searcher_.Search(artist, album, album_id);
         emit SetAlbumCover(album_id, qImageCache.GetUnknownCoverId());
     }*/
+
     searcher_.Search(artist, album, album_id);
 }

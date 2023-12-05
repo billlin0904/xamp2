@@ -1,5 +1,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QBuffer>
+#include <QImageReader>
+#include <QPixmap>
+#include <QUrl>
+#include <QImage>
 
 #include <widget/cover_searcher/discogscoversearcher.h>
 #include <widget/http.h>
@@ -7,13 +12,12 @@
 
 namespace {
 	using ByteArrayPair = QPair<QByteArray, QByteArray>;
-	using EncodedList = QList<ByteArrayPair>;
+	using ByteArrayPairList = QList<ByteArrayPair>;
 
 	constexpr ConstLatin1String kUrlSearch = "https://api.discogs.com/database/search";
-	constexpr ConstLatin1String kUrlReleases = "https://api.discogs.com/releases";
 
-	constexpr const char kAccessKeyB64[] = "YVR4Yk5JTnlmUkhFY0pTaldid2c=";
-	constexpr const char kSecretKeyB64[] = "QkJNb2tMVXVUVFhSRWRUVmZDc0ZGamZmSWRjdHZRVno=";
+	constexpr char kAccessKeyB64[] = "YVR4Yk5JTnlmUkhFY0pTaldid2c=";
+	constexpr char kSecretKeyB64[] = "QkJNb2tMVXVUVFhSRWRUVmZDc0ZGamZmSWRjdHZRVno=";
 
 	enum HashFunction {
 		HASH_MD5,
@@ -23,7 +27,7 @@ namespace {
 
 	QByteArray Hmac(const QByteArray& key, const QByteArray& data,
 		HashFunction method) {
-		const int kBlockSize = 64;  // bytes
+		constexpr int kBlockSize = 64;  // bytes
 		Q_ASSERT(key.length() <= kBlockSize);
 
 		QByteArray inner_padding(kBlockSize, static_cast<char>(0x36));
@@ -34,13 +38,13 @@ namespace {
 			outer_padding[i] = outer_padding[i] ^ key[i];
 		}
 
-		if (HASH_MD5 == method) {
+		if (method == HASH_MD5) {
 			return QCryptographicHash::hash(
 				outer_padding + QCryptographicHash::hash(inner_padding + data,
 					QCryptographicHash::Md5),
 				QCryptographicHash::Md5);
 		}
-		else if (HashFunction::HASH_SHA1 == method) {
+		else if (method == HASH_SHA1) {
 			return QCryptographicHash::hash(
 				outer_padding + QCryptographicHash::hash(inner_padding + data,
 					QCryptographicHash::Sha1),
@@ -58,16 +62,13 @@ namespace {
 		return Hmac(key, data, HASH_SHA256);
 	}
 
-	void MakeHttpParams(http::HttpClient & http_client, std::function<void(EncodedList &)> func) {
+	void MakeHttpParams(http::HttpClient & http_client, std::function<void(ByteArrayPairList &)> func) {
 		const QUrl url(kUrlSearch);
-		EncodedList args;
+		ByteArrayPairList args;
 
 		args.push_back(qMakePair<QByteArray, QByteArray>("key", QByteArray::fromBase64(kAccessKeyB64)));
 		args.push_back(qMakePair<QByteArray, QByteArray>("secret", QByteArray::fromBase64(kSecretKeyB64)));
 
-		/*args.push_back(qMakePair<QByteArray, QByteArray>("type", "release"));
-		args.push_back(qMakePair<QByteArray, QByteArray>("artist", artist.toLower()));
-		args.push_back(qMakePair<QByteArray, QByteArray>("release_title", album.toLower()));*/
 		func(args);
 
 		for (auto& arg : args) {
@@ -129,16 +130,72 @@ void DiscogsCoverSearcher::Search(const QString& artist, const QString& album, i
 			auto result_map = result.toMap();
 			if ((result_map.contains("id")) 
 				&& (result_map.contains("resource_url"))) {
-				int r_id = result_map["id"].toInt();
+				const int release_id = result_map["id"].toInt();
 				auto title = result_map["title"].toString();
 				auto resource_url = result_map["resource_url"].toString();
 				if (resource_url.isEmpty()) continue;
-				RequestRelease(r_id, resource_url);
+				RequestRelease(id, release_id, resource_url);
+				requests_search_.insert(release_id, resource_url);
 			}
 		}
 		}).get();
 }
 
-void DiscogsCoverSearcher::RequestRelease(int32_t id, const QString& resource_url) {
-	QUrl url(resource_url);
+void DiscogsCoverSearcher::RequestRelease(int id, int release_id, const QString& resource_url) {
+	const QUrl url(resource_url);
+	http::HttpClient http_client(url);
+	MakeHttpParams(http_client, [](auto& args) {});
+
+	http_client.success([id, release_id, this](const auto& url, const auto& content) {
+		requests_search_.remove(release_id);
+
+		auto json_doc = QJsonDocument::fromJson(content.toUtf8());
+		if ((json_doc.isNull()) || (!json_doc.isObject())) {
+			return;
+		}
+
+		auto json_obj = json_doc.object();
+		if (json_obj.isEmpty()) {
+			return;
+		}
+
+		auto reply_map = json_obj.toVariantMap();
+		if (!reply_map.contains("images")) {
+			return;
+		}
+
+		QUrl image_url;
+		auto results = reply_map["images"].toList();
+
+		for (const auto& result : results) {
+			auto result_map = result.toMap();
+			if (result_map.contains("type")) {
+				auto type = result_map["type"].toString();
+				if (type != "primary") {
+					continue;
+				}
+			}
+
+			if (result_map.contains("resource_url")) {
+				image_url = QUrl(result_map["resource_url"].toString());
+				break;
+			}
+		}
+
+		if (image_url.isEmpty()) {
+			return;
+		}
+
+		http::HttpClient(image_url)
+			.download([id, this](const auto& content) {
+			QBuffer buffer;
+			buffer.setData(content);
+			buffer.open(QIODevice::ReadOnly);
+			QImageReader reader(&buffer, "JPG");
+			const auto image = reader.read();
+			emit SearchFinished(id, QPixmap::fromImage(image));
+		});
+
+		});
+	http_client.get();
 }

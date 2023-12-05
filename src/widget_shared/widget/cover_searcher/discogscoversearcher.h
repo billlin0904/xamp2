@@ -7,8 +7,6 @@
 
 #include <QMultiMap>
 #include <QObject>
-#include <QUrl>
-#include <QImage>
 
 #include <widget/cover_searcher/coversearcher.h>
 
@@ -23,7 +21,7 @@ signals:
 	void SearchFinished(int32_t id, const QPixmap& cover);
 
 private:
-	void RequestRelease(int32_t id, const QString & resource_url);
+	void RequestRelease(int id, int release_id, const QString & resource_url);
 
 	QMap<int, QString> requests_search_;
 };
