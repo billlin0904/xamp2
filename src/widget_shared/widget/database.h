@@ -115,6 +115,8 @@ public:
 
     int32_t AddPlaylist(const QString& name, int32_t playlist_index);
 
+    void SetPlaylistIndex(int32_t playlist_id, int32_t playlist_index);
+
     void SetAlbumCover(int32_t album_id, const QString& cover_id);
 
     std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;

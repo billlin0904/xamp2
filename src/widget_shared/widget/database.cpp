@@ -607,6 +607,16 @@ int32_t Database::AddPlaylist(const QString& name, int32_t playlist_index) {
     return model.query().lastInsertId().toInt();
 }
 
+void Database::SetPlaylistIndex(int32_t playlist_id, int32_t playlist_index) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE playlist SET playlistIndex = :playlistIndex WHERE (playlistId = :playlistId)"));
+
+    query.bindValue(qTEXT(":playlistId"), playlist_id);
+    query.bindValue(qTEXT(":playlistIndex"), playlist_index);
+    THROW_IF_FAIL1(query);
+}
+
 void Database::SetPlaylistName(int32_t playlist_id, const QString& name) {
     SqlQuery query(db_);
     

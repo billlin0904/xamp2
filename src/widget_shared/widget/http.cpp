@@ -351,10 +351,6 @@ QString HttpClient::HttpClientImpl::ReadReply(QNetworkReply *reply, const HttpCo
         if (IsZipEncoding(reply)) {
             const auto data = GzipDecompress(content);
             in.reset(new QTextStream(data));
-            XAMP_LOG_D(context.logger, "Compress ratio: ({}/{}) {}%",
-                String::FormatBytes(content.size()),
-                String::FormatBytes(data.size()),
-                content.size() * 100 / data.size());
         }
         else {
             in.reset(new QTextStream(content));

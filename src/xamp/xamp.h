@@ -244,7 +244,7 @@ private:
 
 	void showEvent(QShowEvent* event) override;
 
-	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString &name, bool add_db);
+	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString &name);
 
 	PlaylistPage* GetCurrentPlaylistPage();
 

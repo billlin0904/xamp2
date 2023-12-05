@@ -15,17 +15,40 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setObjectName("playlistTab");
     setTabsClosable(true);
     setMouseTracking(true);
-    setMovable(false);
+    setMovable(true);
     setAttribute(Qt::WA_StyledBackground);
-    setStyleSheet(qSTR(R"(
+   
+
+    switch (qTheme.GetThemeColor()) {
+    case ThemeColor::DARK_THEME:
+        setStyleSheet(qSTR(R"(
     QTabWidget::pane { 
 		border: 0; 
 	}
 
-	QTabWidget::tab {
-		background-color: black;
-	}	
+	QTabWidget QTabBar::tab {
+		min-width: 100px;
+		min-height: 30px;
+		color: white;
+	}
     )"));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        setStyleSheet(qSTR(R"(
+    QTabWidget::pane { 
+		border: 0; 
+	}
+
+	QTabWidget QTabBar::tab {
+		min-width: 100px;
+		min-height: 30px;
+		color: black;
+	}
+    )"));
+        break;
+    default: 
+        break;
+    }
 
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
@@ -41,7 +64,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 playlist_pages.append(playlist_page);
             }
 
-            Q_FOREACH(auto *page, playlist_pages) {
+            Q_FOREACH(auto * page, playlist_pages) {
                 RemovePlaylist(page->playlist()->GetPlaylistId());
                 page->deleteLater();
             }
@@ -79,11 +102,19 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         catch (std::exception const& e) {
         }
-    });
+        });
 
-    (void)QObject::connect(tab_bar, &PlaylistTabBar::TextChanged, [this](auto index, const auto &name) {
+    (void)QObject::connect(tab_bar, &PlaylistTabBar::TextChanged, [this](auto index, const auto& name) {
         qMainDb.SetPlaylistName(GetCurrentPlaylistId(), name);
-    });
+        });
+
+    (void)QObject::connect(tab_bar, &PlaylistTabBar::tabMoved, [this](auto from, auto to) {
+        auto from_text = tabBar()->tabText(from);
+        auto to_text = tabBar()->tabText(to);
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(from));
+        const auto* playlist = playlist_page->playlist();
+        qMainDb.SetPlaylistIndex(playlist->GetPlaylistId(), to);
+        });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {

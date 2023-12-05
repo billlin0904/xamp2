@@ -9,13 +9,21 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setExpanding(true);
 	setTabsClosable(true);
 	setUsesScrollButtons(true);
+	setMovable(true);
 	installEventFilter(this);
+	auto f = font();
+	f.setPointSize(qTheme.GetFontSize(8));
+	setFont(f);
 }
 
 void PlaylistTabBar::OnRename() {
+	if (!line_edit_) {
+		return;
+	}
 	setTabText(edited_index_, line_edit_->text());
 	emit TextChanged(edited_index_, line_edit_->text());
 	line_edit_->deleteLater();
+	line_edit_ = nullptr;
 }
 
 void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {

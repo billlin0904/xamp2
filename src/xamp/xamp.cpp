@@ -1108,7 +1108,7 @@ void Xamp::SetCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(tab_widget_.get());
         if (tab_widget_->count() == 0) {
             const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
-            NewPlaylistPage(playlist_id, tr("Playlist"), false);
+            NewPlaylistPage(playlist_id, tr("Playlist"));
         }
         GetCurrentPlaylistPage()->playlist()->Reload();
         break;
@@ -1830,18 +1830,11 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
-PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name, bool add_db) {
+PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name) {
     auto* playlist_page = CreatePlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
-    ConnectPlaylistPageSignal(playlist_page);
     playlist_page->playlist()->SetHeaderViewHidden(false);
-
-    /*(void)QObject::connect(this,
-        &Xamp::ChangePlayerOrder,
-        playlist_page->playlist(),
-        &PlayListTableView::AddPendingPlayListFromModel);*/
-
+    ConnectPlaylistPageSignal(playlist_page);
     SetCover(kEmptyString, playlist_page);
-
     const auto index = tab_widget_->addTab(playlist_page, name);
     tab_widget_->setCurrentIndex(index);
     return playlist_page;
@@ -1867,12 +1860,12 @@ void Xamp::InitialPlaylist() {
             || playlist_id == kDefaultCdPlaylistId) {
             return;
         }
-    	NewPlaylistPage(playlist_id, name, false);
+    	NewPlaylistPage(playlist_id, name);
         });
 
     if (tab_widget_->count() == 0) {
 	    const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
-        NewPlaylistPage(playlist_id, tr("Playlist"), false);
+        NewPlaylistPage(playlist_id, tr("Playlist"));
     }
     if (!qMainDb.IsPlaylistExist(kDefaultAlbumPlaylistId)) {
         qMainDb.AddPlaylist(tr("Playlist"), -1);
@@ -1885,7 +1878,7 @@ void Xamp::InitialPlaylist() {
         [this]() {
         const auto tab_index = tab_widget_->count();
         const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), tab_index);
-        NewPlaylistPage(playlist_id, tr("Playlist"), true);
+        NewPlaylistPage(playlist_id, tr("Playlist"));
         });    
 
     if (!file_system_view_page_) {
@@ -2009,7 +2002,7 @@ void Xamp::AppendToPlaylist(const QString& file_name, bool append_to_playlist) {
 void Xamp::AddItem(const QString& file_name) {
     if (tab_widget_->count() == 0) {
         const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
-        NewPlaylistPage(playlist_id, tr("Playlist"), false);
+        NewPlaylistPage(playlist_id, tr("Playlist"));
     }
 
     AppendToPlaylist(file_name, true);
@@ -2254,7 +2247,7 @@ void Xamp::OnInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
     emit Translation(GetStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     if (tab_widget_->count() == 0) {
         const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);
-        NewPlaylistPage(playlist_id, tr("Playlist"), false);
+        NewPlaylistPage(playlist_id, tr("Playlist"));
     }
     GetCurrentPlaylistPage()->playlist()->Reload();
 }
@@ -2296,8 +2289,7 @@ void Xamp::OnReadFileProgress(int32_t progress) {
 
 void Xamp::OnReadCompleted() {    
     album_page_->Refresh();
-    GetCurrentPlaylistPage()->playlist()->Reload();    
-    //file_system_view_page_->playlistPage()->playlist()->Reload();
+    GetCurrentPlaylistPage()->playlist()->Reload();
     Delay(1);
     if (!read_progress_dialog_) {
         return;

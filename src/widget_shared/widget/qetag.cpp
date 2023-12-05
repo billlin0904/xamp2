@@ -63,7 +63,7 @@ QString GetTagId(const QByteArray &buffer) noexcept {
 
 QString GetTagId(const QString& file_name) noexcept {
 	QString etag;
-    QFileInfo fi(file_name);
+	const QFileInfo fi(file_name);
 
     if (fi.exists() && fi.permission(QFile::ReadUser)) {
         QFile fh(file_name);
