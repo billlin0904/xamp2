@@ -16,8 +16,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setTabsClosable(true);
     setMouseTracking(true);
     setMovable(true);
-    setAttribute(Qt::WA_StyledBackground);
-   
+    setAttribute(Qt::WA_StyledBackground);   
 
     switch (qTheme.GetThemeColor()) {
     case ThemeColor::DARK_THEME:
@@ -27,7 +26,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	}
 
 	QTabWidget QTabBar::tab {
-		min-width: 100px;
+		max-width: 120px;
+		min-width: 120px;
 		min-height: 30px;
 	}
     )"));
@@ -39,7 +39,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	}
 
 	QTabWidget QTabBar::tab {
-		min-width: 100px;
+		max-width: 120px;
+		min-width: 120px;
 		min-height: 30px;
 		color: black;
 	}
@@ -107,14 +108,6 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         qMainDb.SetPlaylistName(GetCurrentPlaylistId(), name);
         });
 
-    (void)QObject::connect(tab_bar, &PlaylistTabBar::tabMoved, [this](auto from, auto to) {
-        auto from_text = tabBar()->tabText(from);
-        auto to_text = tabBar()->tabText(to);
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(from));
-        const auto* playlist = playlist_page->playlist();
-        qMainDb.SetPlaylistIndex(playlist->GetPlaylistId(), to);
-        });
-
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
         if (XMessageBox::ShowYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
@@ -151,6 +144,52 @@ void PlaylistTabWidget::CloseTab(int32_t tab_index) {
 
 int32_t PlaylistTabWidget::GetCurrentPlaylistId() const {
     return dynamic_cast<PlaylistPage*>(currentWidget())->playlist()->GetPlaylistId();
+}
+
+void PlaylistTabWidget::SaveTabOrder() const {
+    for (int i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        const auto* playlist = playlist_page->playlist();
+        qMainDb.SetPlaylistIndex(playlist->GetPlaylistId(), i);
+    }
+}
+
+void PlaylistTabWidget::RestoreTabOrder() {
+	const auto playlist_index = qMainDb.GetPlaylistIndex();
+
+    QList<QWidget*> widgets;
+    QList<QString> texts;
+
+    for (int i = 0; i < count(); ++i) {
+        const auto playlist_id = playlist_index.find(i)->second;
+        for (int j = 0; j < count(); ++j) {
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+            const auto* playlist = playlist_page->playlist();
+            if (playlist->GetPlaylistId() == playlist_id) {
+                widgets.append(playlist_page);
+                texts.append(tabText(i));
+            }
+        }
+    }
+
+    this->clear();
+
+    auto i = 0;
+    for (auto* widget : widgets) {
+        addTab(widget, texts[i]);
+        ++i;
+    }
+}
+
+void PlaylistTabWidget::SetTabIcon(const QIcon& icon) {
+    for (int i = 0; i < count(); ++i) {
+        setTabIcon(i, QIcon());
+    }
+
+    auto tab_index = currentIndex();
+    if (tab_index != -1) {
+        setTabIcon(tab_index, icon);
+    }
 }
 
 void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {

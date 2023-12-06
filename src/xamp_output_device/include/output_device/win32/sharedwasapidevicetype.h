@@ -35,7 +35,7 @@ public:
 	/*
 	 * Destructor
 	 */
-	virtual ~SharedWasapiDeviceType() = default;
+	virtual ~SharedWasapiDeviceType() override = default;
 
 	/*
 	* Scan new device

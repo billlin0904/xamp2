@@ -59,7 +59,7 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 }
 
 AlignPtr<IOutputDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::MakeDevice(std::string const & device_id) {
-	return MakeAlign<IOutputDevice, SharedWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
+	return MakeAlign<IOutputDevice, SharedWasapiDevice>(false, GetDeviceById(String::ToStdWString(device_id)));
 }
 
 DeviceInfo SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
@@ -137,10 +137,10 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 		}
 	}
 
-	std::sort(device_list.begin(), device_list.end(),
-		[](const auto& first, const auto& second) {
-		return first.name.length() > second.name.length();
-		});
+	std::ranges::sort(device_list,
+	                  [](const auto& first, const auto& second) {
+		                  return first.name.length() > second.name.length();
+	                  });
 
 	return device_list;
 }

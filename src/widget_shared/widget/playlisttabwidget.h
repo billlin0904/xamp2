@@ -14,9 +14,17 @@ class QMouseEvent;
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget : public QTabWidget {
 	Q_OBJECT
 public:
+	static constexpr QSize kTabIconSize = QSize(32, 32);
+
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
 	int32_t GetCurrentPlaylistId() const;
+
+	void SaveTabOrder() const;
+
+	void RestoreTabOrder();
+
+	void SetTabIcon(const QIcon &icon);
 
 signals:
 	void CreateNewPlaylist();

@@ -773,6 +773,8 @@ void Xamp::cleanup() {
         main_window_->SaveGeometry();
     }
 
+    tab_widget_->SaveTabOrder();
+
     XAMP_LOG_DEBUG("Xamp cleanup!");
 }
 
@@ -1350,12 +1352,14 @@ void Xamp::PlayOrPause() {
             qTheme.SetPlayOrPauseButton(ui_.playButton, false);
             player_->Pause();
             GetCurrentPlaylistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_PAUSE);
+            tab_widget_->SetTabIcon(qTheme.PlaylistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0));
             main_window_->SetTaskbarPlayerPaused();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
             qTheme.SetPlayOrPauseButton(ui_.playButton, true);
             player_->Resume();
             GetCurrentPlaylistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_PLAYING);
+            tab_widget_->SetTabIcon(qTheme.GetPlaylistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
             main_window_->SetTaskbarPlayingResume();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
@@ -1629,7 +1633,12 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     const int64_t max_duration_ms = Round(player_->GetDuration()) * 1000;
     ui_.seekSlider->SetRange(0, max_duration_ms - 1000);
     ui_.seekSlider->setValue(0);
-    
+
+    if (last_play_list_ != nullptr) {
+        last_play_list_->RemovePlaying();
+    }
+
+    last_play_list_ = GetCurrentPlaylistPage()->playlist();
     GetCurrentPlaylistPage()->format()->setText(Format2String(playback_format, ext));
     GetCurrentPlaylistPage()->title()->setText(item.title);
     GetCurrentPlaylistPage()->SetHeart(item.heart);
@@ -1663,6 +1672,8 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     }
 
     qTheme.SetHeartButton(ui_.heartButton, current_entity_.value().heart);
+
+    tab_widget_->SetTabIcon(qTheme.GetPlaylistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
 
     player_->Play();
 }
@@ -1862,6 +1873,8 @@ void Xamp::InitialPlaylist() {
         }
     	NewPlaylistPage(playlist_id, name);
         });
+
+    tab_widget_->RestoreTabOrder();
 
     if (tab_widget_->count() == 0) {
 	    const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), -1);

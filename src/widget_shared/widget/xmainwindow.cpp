@@ -103,7 +103,6 @@ void XMainWindow::SaveGeometry() {
     qAppSettings.SetValue(kAppSettingGeometry, saveGeometry());
     qAppSettings.SetValue(kAppSettingWindowState, isMaximized());
     qAppSettings.SetValue(kAppSettingScreenNumber, screen_number_);
-    XAMP_LOG_INFO("Screen number: {}", screen_number_);
 }
 
 void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {

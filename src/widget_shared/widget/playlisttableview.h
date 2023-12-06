@@ -73,8 +73,6 @@ public:
 	QModelIndex GetShuffleIndex();
 
 	QModelIndex GetCurrentIndex() const;
-    
-    //void DeletePendingPlaylist();
 
     void SetCurrentPlayIndex(const QModelIndex& index);
 
@@ -101,8 +99,6 @@ public:
 	}
 
 	void SetHeaderViewHidden(bool enable);
-
-	//QList<QModelIndex> GetPendingPlayIndexes() const;
 
 	void SetOtherPlaylist(int32_t playlist_id);
 

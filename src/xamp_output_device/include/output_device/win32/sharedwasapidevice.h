@@ -31,7 +31,7 @@ public:
 	* 
 	* @param device IMMDevice
 	*/
-	explicit SharedWasapiDevice(const CComPtr<IMMDevice> & device);
+	SharedWasapiDevice(bool is_low_latency, const CComPtr<IMMDevice> & device);
 
 	/*
 	 * Destructor.
@@ -178,7 +178,7 @@ private:
 
 	class DeviceEventNotification;
 
-	bool is_low_latency_{ false };
+	bool is_low_latency_{ true };
 	std::atomic<bool> is_running_;
 	std::atomic<int64_t> stream_time_;	
 	uint32_t buffer_frames_;

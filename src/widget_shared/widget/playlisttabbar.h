@@ -17,10 +17,12 @@ signals:
 	void TextChanged(int32_t index, const QString &text);
 
 public slots:
-	void OnRename();
+	void OnFinishRename();
 
 private:
 	void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+	void focusOutEvent(QFocusEvent* event) override;
 
 	int32_t edited_index_{0};
 	QLineEdit* line_edit_{nullptr};

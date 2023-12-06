@@ -62,7 +62,9 @@
     <ClCompile>
       <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <DisableSpecificWarnings>4828</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
+      <WarningVersion>
+      </WarningVersion>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

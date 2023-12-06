@@ -976,8 +976,6 @@ void PlayListTableView::Play(PlayerOrder order) {
     }
 
     const auto entity = item(index);
-    //XAMP_EXPECTS(entity.music_id == music_id);
-    //qMainDb.DeletePendingPlaylistMusic(pending_playlist_id);
     PlayIndex(index);
 }
 
@@ -994,7 +992,6 @@ void PlayListTableView::RemovePlaying() {
 }
 
 void PlayListTableView::RemoveAll() {
-    //qMainDb.ClearPendingPlaylist(GetPlaylistId());
     IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
     FastReload();
 }

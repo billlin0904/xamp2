@@ -438,9 +438,9 @@ QIcon ThemeManager::GetPlayCircleIcon() const {
     return QIcon(qTEXT(":/xamp/Resource/Black/play_circle.png"));
 }
 
-QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size) const {
+QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size, double scale_factor) const {
     QVariantMap font_options;
-    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
+    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(scale_factor));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
 
@@ -452,9 +452,9 @@ QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size) const {
     return icon;
 }
 
-QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size) const {
+QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size, double scale_factor) const {
     QVariantMap font_options;
-    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.3));
+    font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(scale_factor));
     font_options.insert(FontIconOption::colorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::selectedColorAttr, QColor(250, 88, 106));
     auto icon = qFontIcon.GetIcon(Glyphs::ICON_PLAY_LIST_PLAY, font_options);

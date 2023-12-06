@@ -617,6 +617,15 @@ void Database::SetPlaylistIndex(int32_t playlist_id, int32_t playlist_index) {
     THROW_IF_FAIL1(query);
 }
 
+std::map<int32_t, int32_t> Database::GetPlaylistIndex() {
+    std::map<int32_t, int32_t> playlist_index;
+
+    ForEachPlaylist([&playlist_index](auto id, auto index, auto name) {
+        playlist_index.insert(std::make_pair(index, id));
+        });
+    return playlist_index;
+}
+
 void Database::SetPlaylistName(int32_t playlist_id, const QString& name) {
     SqlQuery query(db_);
     

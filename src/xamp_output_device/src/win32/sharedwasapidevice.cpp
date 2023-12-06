@@ -109,8 +109,9 @@ private:
 	IAudioCallback* callback_;
 };
 
-SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
-	: is_running_(false)
+SharedWasapiDevice::SharedWasapiDevice(bool is_low_latency, CComPtr<IMMDevice> const & device)
+	: is_low_latency_(is_low_latency)
+	, is_running_(false)
 	, stream_time_(0)
 	, buffer_frames_(0)
 	, buffer_time_(0)

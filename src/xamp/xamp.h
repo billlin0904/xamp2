@@ -49,6 +49,7 @@ class XProgressDialog;
 class FindAlbumCoverWorker;
 class ExtractFileWorker;
 class PlaylistTabWidget;
+class PlayListTableView;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -253,7 +254,8 @@ private:
 	bool trigger_upgrade_restart_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
-	IXMainWindow* main_window_;	
+	IXMainWindow* main_window_;
+	PlayListTableView* last_play_list_{ nullptr };
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;
 	QScopedPointer<PlaylistTabWidget> tab_widget_;

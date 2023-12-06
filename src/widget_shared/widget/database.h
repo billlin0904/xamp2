@@ -6,6 +6,7 @@
 #pragma once
 
 #include <optional>
+#include <map>
 
 #include <QString>
 #include <QSqlQuery>
@@ -116,6 +117,8 @@ public:
     int32_t AddPlaylist(const QString& name, int32_t playlist_index);
 
     void SetPlaylistIndex(int32_t playlist_id, int32_t playlist_index);
+
+    std::map<int32_t, int32_t> GetPlaylistIndex();
 
     void SetAlbumCover(int32_t album_id, const QString& cover_id);
 
