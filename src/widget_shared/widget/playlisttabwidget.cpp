@@ -29,7 +29,6 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 	QTabWidget QTabBar::tab {
 		min-width: 100px;
 		min-height: 30px;
-		color: white;
 	}
     )"));
         break;

@@ -225,7 +225,7 @@ private:
 	AudioConvertContext data_convert_;
 	REFERENCE_TIME aligned_period_;
 	CComPtr<IMMDevice> device_;
-	CComPtr<IAudioClient2> client_;
+	CComPtr<IAudioClient3> client_;
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	CComPtr<IAudioClock> clock_;

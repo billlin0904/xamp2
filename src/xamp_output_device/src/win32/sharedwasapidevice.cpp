@@ -175,7 +175,7 @@ void SharedWasapiDevice::CloseStream() {
 	device_volume_notification_.Release();
 
 	// We don't close sample ready event immediately,
-	// WASAPI can be in same samplerate payback to reset and reuse sample ready event.
+	// WASAPI can be in same sample rate payback to reset and reuse sample ready event.
 	//sample_ready_.close();
 	render_client_.Release();
 	clock_.Release();

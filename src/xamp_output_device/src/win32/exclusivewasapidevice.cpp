@@ -96,7 +96,7 @@ namespace {
 
 	inline constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
 	inline constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-	inline constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
+	inline constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
 	inline constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 	// A total typical delay of 35 ms contains three parts:
@@ -224,7 +224,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	if (!client_) {
 		XAMP_LOG_D(logger_, "Active device format: {}.", output_format);
 
-        HrIfFailledThrow(device_->Activate(kAudioClient2ID,
+        HrIfFailledThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
