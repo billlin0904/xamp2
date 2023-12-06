@@ -146,7 +146,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     QRect artist_text_rect(option.rect.left() + kPaddingSize,
         option.rect.top() + default_cover_size.height() + 35,
         default_cover_size.width(),
-        15);
+        20);
 
     painter->setPen(QPen(album_text_color_));
 
@@ -240,7 +240,7 @@ QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, cons
     auto result = QStyledItemDelegate::sizeHint(option, index);
     const auto default_cover = qTheme.GetDefaultCoverSize();
     result.setWidth(default_cover.width() + 30);
-    result.setHeight(default_cover.height() + 80);
+    result.setHeight(default_cover.height() + 85);
     return result;
 }
 
