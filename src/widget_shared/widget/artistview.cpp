@@ -80,7 +80,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	const QRect artist_text_rect(option.rect.left() + 10,
 	                             option.rect.top() + default_cover_size.height() + 15,
 	                             album_artist_text_width,
-	                             15);
+	                             20);
 	const QFontMetrics album_metrics(font);
 	painter->drawText(artist_text_rect, Qt::AlignVCenter,
 		album_metrics.elidedText(artist, Qt::ElideRight, album_artist_text_width));

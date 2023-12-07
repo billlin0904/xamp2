@@ -161,7 +161,11 @@ void PlaylistTabWidget::RestoreTabOrder() {
     QList<QString> texts;
 
     for (int i = 0; i < count(); ++i) {
-        const auto playlist_id = playlist_index.find(i)->second;
+        auto itr = playlist_index.find(i);
+        if (itr == playlist_index.end()) {
+            continue;
+        }
+        const auto playlist_id = itr->second;
         for (int j = 0; j < count(); ++j) {
             auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
             const auto* playlist = playlist_page->playlist();
