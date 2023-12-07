@@ -83,6 +83,8 @@ inline QString GetStringOrEmptyString(const std::optional<std::string>& s) {
 	return kEmptyString;
 }
 
+#define Tr(str) qApp->tr(str)
+
 XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }

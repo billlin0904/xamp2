@@ -168,6 +168,8 @@ public:
 
     void save();
 
+    QLocale locale() const;
+
     const QMap<QString, EqSettings>& GetEqPreset();
 
     AppEQSettings GetEqSettings();

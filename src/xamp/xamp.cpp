@@ -1635,7 +1635,9 @@ void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
     ui_.seekSlider->setValue(0);
 
     if (last_play_list_ != nullptr) {
-        last_play_list_->RemovePlaying();
+        if (last_play_list_ != GetCurrentPlaylistPage()->playlist()) {
+            last_play_list_->RemovePlaying();
+        }
     }
 
     last_play_list_ = GetCurrentPlaylistPage()->playlist();

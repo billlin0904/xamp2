@@ -187,6 +187,10 @@ void AppSettings::save() {
     settings_->sync();
 }
 
+QLocale AppSettings::locale() const {
+    return manager_.locale();
+}
+
 QString AppSettings::GetCachePath() {
     QString cache_path;
 

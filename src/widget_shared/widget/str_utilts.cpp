@@ -81,9 +81,9 @@ QString FormatDuration(const double stream_time, bool full_text) {
     const auto s = (secs % 3600) % 60;
     const QTime t(h, m, s, ms);
     if (h > 0 || full_text) {
-        return QLocale().toString(t, qTEXT("HH:mm:ss"));
+        return t.toString(qTEXT("HH:mm:ss"));
     }
-    return QLocale().toString(t, qTEXT("mm:ss"));
+    return t.toString(qTEXT("mm:ss"));
 }
 
 bool IsMoreThan1Hours(const double stream_time) {
