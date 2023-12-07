@@ -9,11 +9,36 @@
 #include <widget/filesystemmodel.h>
 #include <widget/ui_utilts.h>
 
+#include <QHelpEvent>
 #include <QDateTime>
 #include <QFileDialog>
 #include <QSortFilterProxyModel>
+#include <QStyledItemDelegate>
+#include <QToolTip>
 
-class XAMP_WIDGET_SHARED_EXPORT FileSystemViewPage::DirFirstSortFilterProxyModel : public QSortFilterProxyModel {
+class FileSystemViewPage::DisableToolTipStyledItemDelegate : public QStyledItemDelegate {
+public:
+    explicit DisableToolTipStyledItemDelegate(QObject* parent)
+        : QStyledItemDelegate(parent) {
+    }
+
+    bool helpEvent(QHelpEvent* e, QAbstractItemView* view, const QStyleOptionViewItem& option,
+        const QModelIndex& index) override;
+};
+
+bool FileSystemViewPage::DisableToolTipStyledItemDelegate::helpEvent(QHelpEvent* e,
+    QAbstractItemView* view, const QStyleOptionViewItem& option, const QModelIndex& index) {
+    if (!e || !view) {
+        return false;
+    }
+
+    if (e->type() == QEvent::ToolTip) {        
+        return true;
+    }
+    return QStyledItemDelegate::helpEvent(e, view, option, index);
+}
+
+class FileSystemViewPage::DirFirstSortFilterProxyModel : public QSortFilterProxyModel {
 public:
     explicit DirFirstSortFilterProxyModel(QObject* parent)
 	    : QSortFilterProxyModel(parent) {
@@ -69,6 +94,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_first_sort_filter_->setFilterKeyColumn(0);
 
     ui_->dirTree->setModel(dir_first_sort_filter_);
+    ui_->dirTree->setItemDelegate(new DisableToolTipStyledItemDelegate(this));
     ui_->dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(qAppSettings.GetMyMusicFolderPath())));
     ui_->dirTree->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->dirTree->setSortingEnabled(true);
@@ -76,7 +102,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->header()->hide();
     ui_->dirTree->hideColumn(1);
     ui_->dirTree->hideColumn(2);
-    ui_->dirTree->hideColumn(3);    
+    ui_->dirTree->hideColumn(3);      
 
     ui_->dirTree->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(ui_->dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
@@ -117,14 +143,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         });
 
     setStyleSheet(qTEXT("background-color: transparent"));
-    /*playlistPage()->playlist()->DisableDelete();
-    playlistPage()->playlist()->DisableLoadFile();*/
 }
 
 FileSystemViewPage::~FileSystemViewPage() {
     delete ui_;
 }
-
-//PlaylistPage* FileSystemViewPage::playlistPage() {
-//    return ui_->playlistPage;
-//}

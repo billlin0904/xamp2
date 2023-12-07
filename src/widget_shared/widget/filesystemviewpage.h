@@ -26,7 +26,8 @@ signals:
 	void AddPathToPlaylist(const QString& path, bool append_to_playlist);
 
 private:
-	class XAMP_WIDGET_SHARED_EXPORT DirFirstSortFilterProxyModel;
+	class DirFirstSortFilterProxyModel;
+	class DisableToolTipStyledItemDelegate;
 
 	Ui::FileSystemViewPage* ui_;
 	FileSystemModel* dir_model_;
