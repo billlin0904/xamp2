@@ -114,6 +114,8 @@ XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) noexcept;
 
 XAMP_BASE_API uint64_t GenRandomSeed() noexcept;
 
+XAMP_BASE_API uint64_t GetSystemEntropy() noexcept;
+
 XAMP_BASE_API void CpuRelax() noexcept;
 
 XAMP_BASE_API void Assert(const char* message, const char* file, uint32_t line);

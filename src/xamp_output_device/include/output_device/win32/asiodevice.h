@@ -322,7 +322,7 @@ private:
 	Buffer<int8_t> buffer_;
 	Buffer<int8_t> device_buffer_;	
 	IAudioCallback* callback_;
-	win32::Mmcss mmcss_;
+	Mmcss mmcss_;
 	ProcessDispatch process_;
 	LoggerPtr logger_;
 };

@@ -4,6 +4,8 @@
 #include <widget/ui_utilts.h>
 #include <widget/maskwidget.h>
 
+#include <base/exception.h>
+
 #include <QLabel>
 #include <QApplication>
 #include <QCheckBox>

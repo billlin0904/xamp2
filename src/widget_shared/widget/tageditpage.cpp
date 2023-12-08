@@ -284,6 +284,7 @@ void TagEditPage::closeEvent(QCloseEvent* event) {
 		event->ignore();
 		return;
 	}*/
+	QFrame::closeEvent(event);
 }
 
 void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {

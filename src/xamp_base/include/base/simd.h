@@ -145,28 +145,6 @@ struct UnpackU8<1> {
 };
 
 template <>
-struct Converter<int8_t> {
-    static XAMP_ALWAYS_INLINE m256i Shuffle(m256i v, m256i mask) {
-        return _mm256_permutevar8x32_epi32(v, mask);
-    }
-
-    static XAMP_ALWAYS_INLINE std::pair<m256, m256> ToInterleave(m256 hi, m256 low) {
-        auto perm1 = _mm256_unpacklo_epi32(_mm256_castps_si256(hi), _mm256_castps_si256(low));
-        auto perm2 = _mm256_unpackhi_epi32(_mm256_castps_si256(hi), _mm256_castps_si256(low));
-        auto lo_ps = _mm256_castsi256_ps(perm1);
-        auto hi_ps = _mm256_castsi256_ps(perm2);
-        return std::make_pair(
-            _mm256_permute2f128_ps(lo_ps, hi_ps, 0x20),
-            _mm256_permute2f128_ps(lo_ps, hi_ps, 0x31)
-        );
-    }
-
-    static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i hi, m256i low) {
-        return std::make_pair(hi, low);
-    }
-};
-
-template <>
 struct Converter<float> {
     static XAMP_ALWAYS_INLINE m256 Shuffle(m256 v, m256i indexes) {
         return _mm256_permutevar8x32_ps(v, indexes);
@@ -192,6 +170,22 @@ struct Converter<float> {
     }
 };
 
+template <>
+struct Converter<int8_t> {
+    static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i src) {
+        m256i left_vec = _mm256_shuffle_epi8(src, _mm256_set_epi8(
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2));
+        m256i right_vec = _mm256_shuffle_epi8(src, _mm256_set_epi8(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+        return std::make_pair(
+            left_vec,
+            right_vec
+        );
+    }
+};
+
 template <typename InputT, typename OutputT>
 struct InterleaveToPlanar;
 
@@ -204,8 +198,7 @@ struct InterleaveToPlanar<int8_t, int8_t> {
         int8_t* XAMP_RESTRICT out_low,
         float mul = 1.0) {
         const auto [fst, snd] = Converter<int8_t>::ToPlanar(
-            SIMD::LoadPs(in_hi),
-            SIMD::LoadPs(in_low)
+            SIMD::LoadPs(in_hi)
         );
         SIMD::Store(out_hi, fst);
         SIMD::Store(out_low, snd);
@@ -218,7 +211,7 @@ struct InterleaveToPlanar<int8_t, int8_t> {
         size_t len,
         float mul = 1.0) {
         constexpr auto offset = 32;
-        XAMP_ASSERT(len % offset == 0);
+        XAMP_EXPECTS(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;
@@ -259,7 +252,7 @@ struct InterleaveToPlanar<float, int32_t> {
         size_t len,
         float mul = 1.0) {
         constexpr auto offset = kSimdAlignedSize * 2;
-        XAMP_ASSERT(len % offset == 0);
+        XAMP_EXPECTS(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;

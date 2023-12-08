@@ -4,14 +4,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-namespace {
-    uint64_t GetSystemEntropy() {
-        const auto r0{ static_cast<uint64_t>(GenRandomSeed()) };
-        const auto r1{ static_cast<uint64_t>(GenRandomSeed()) };
-        return (r1 << 32) | (r0 & UINT64_C(0xffffffff));
-    }    
-}
-
 PRNG::PRNG() noexcept
     : engine_(MakeRandomEngine()) {
 }

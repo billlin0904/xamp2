@@ -741,6 +741,12 @@ void MSleep(std::chrono::milliseconds timeout) {
     timer.Wait();
 }
 
+uint64_t GetSystemEntropy() noexcept {
+    const auto r0{ (GenRandomSeed()) };
+    const auto r1{ (GenRandomSeed()) };
+    return (r1 << 32) | (r0 & UINT64_C(0xffffffff));
+}
+
 uint64_t GenRandomSeed() noexcept {
     uint64_t seed = 0;
 #ifdef XAMP_OS_WIN

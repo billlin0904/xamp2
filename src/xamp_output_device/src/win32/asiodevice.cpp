@@ -523,7 +523,7 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	output_bytes_ = cache_played_bytes;	
 
 	size_t num_filled_frame = 0;
-	const auto got_samples = (*this.*process_)(index, sample_time, num_filled_frame);
+	const auto got_samples = (this->*process_)(index, sample_time, num_filled_frame);
 	
 	if (got_samples) {
 		ASIODriver.Post();
@@ -601,10 +601,10 @@ void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
 
 	auto is_current_source_set = false;
 	if (num_clock_source > 0) {
-		const auto itr = std::find_if(clock_source_.begin(), clock_source_.end(),
-			[](const auto& source) {
-				return source.isCurrentSource;
-			});
+		const auto itr = std::ranges::find_if(clock_source_,
+		                                      [](const auto& source) {
+			                                      return source.isCurrentSource;
+		                                      });
 		is_current_source_set = itr != clock_source_.end();
 	}
 

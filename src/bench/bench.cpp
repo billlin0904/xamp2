@@ -12,7 +12,7 @@
 #include <base/uuid.h>
 #include <base/shared_singleton.h>
 #include <base/singleton.h>
-#include <base/logger.h>
+//#include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/executor.h>
 #include <base/rcu_ptr.h>
@@ -344,6 +344,54 @@ static void BM_ConvertToShort(benchmark::State& state) {
 }
 #endif
 
+static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
+    auto length = state.range(0);
+
+    const auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
+    auto left_ch = Vector<int8_t>(length);
+    auto right_ch = Vector<int8_t>(length);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    for (auto _ : state) {
+        InterleaveToPlanar<int8_t, int8_t>::Convert(input.data(),
+            left_ch.data(),
+            right_ch.data(),
+            length);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+}
+
+static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
+    auto length = state.range(0);
+
+    const auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
+    auto output = Vector<int8_t>(length);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    const auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::INTERLEAVED,
+            PackedFormat::PLANAR>::Convert(
+                output.data(),
+                input.data(),
+                ctx);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+}
+
 static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
     auto length = state.range(0);
 
@@ -434,7 +482,7 @@ static void BM_FowardListSort(benchmark::State& state) {
 
     for (auto i = 0; i < length; ++i) {
         TrackInfo metadata;
-        metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        metadata.track = SharedSingleton<PRNG>::GetInstance().Next((std::numeric_limits<uint32_t>::max)());
         list.push_front(metadata);
     }
 
@@ -451,15 +499,15 @@ static void BM_VectorSort(benchmark::State& state) {
 
     for (auto i = 0; i < length; ++i) {
         TrackInfo metadata;
-        metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        metadata.track = SharedSingleton<PRNG>::GetInstance().Next((std::numeric_limits<uint32_t>::max)());
         list.push_back(metadata);
     }
 
     for (auto _ : state) {
-        std::stable_sort(list.begin(), list.end(),
-            [](const auto& first, const auto& last) {
-                return first.track < last.track;
-            });
+        std::ranges::stable_sort(list,
+                                 [](const auto& first, const auto& last) {
+	                                 return first.track < last.track;
+                                 });
     }
 }
 
@@ -552,18 +600,16 @@ static void BM_UuidCompilerTime(benchmark::State& state) {
     }
 }
 
-FastMutex m;
-
 static void BM_FastMutex(benchmark::State& state) {
+    static FastMutex m;
     for (auto _ : state) {
         m.lock();
         m.unlock();
     }
 }
 
-Spinlock l;
-
 static void BM_Spinlock(benchmark::State& state) {
+    static Spinlock l;
     for (auto _ : state) {
         l.lock();
         l.unlock();
@@ -577,15 +623,15 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_UuidCompilerTime);
 
-BENCHMARK(BM_Sfc64Random);
-BENCHMARK(BM_default_random_engine);
+//BENCHMARK(BM_Sfc64Random);
+//BENCHMARK(BM_default_random_engine);
 
-BENCHMARK(BM_PRNG);
-BENCHMARK(BM_PRNG_GetInstance);
-BENCHMARK(BM_PRNG_SharedGetInstance);
+//BENCHMARK(BM_PRNG);
+//BENCHMARK(BM_PRNG_GetInstance);
+//BENCHMARK(BM_PRNG_SharedGetInstance);
 
-BENCHMARK(BM_Find_unordered_set);
-BENCHMARK(BM_Find_RobinHoodHashSet);
+//BENCHMARK(BM_Find_unordered_set);
+//BENCHMARK(BM_Find_RobinHoodHashSet);
 
 //BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
@@ -606,6 +652,8 @@ BENCHMARK(BM_Find_RobinHoodHashSet);
 //BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);

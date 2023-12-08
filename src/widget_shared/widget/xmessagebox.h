@@ -9,7 +9,6 @@
 #include <QTimer>
 
 #include <version.h>
-#include <base/exception.h>
 
 #include <widget/widget_shared_global.h>
 #include <widget/xdialog.h>
@@ -20,6 +19,10 @@ class QGridLayout;
 class QLabel;
 
 using xamp::base::Exception;
+
+namespace xamp::base {
+    class Exception;
+}
 
 class XAMP_WIDGET_SHARED_EXPORT XMessageBox : public XDialog {
 public:

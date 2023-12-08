@@ -11,6 +11,7 @@
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
 #include <base/stacktrace.h>
+#include <base/simd.h>
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
@@ -257,6 +258,15 @@ namespace {
 }
 
 int main() {
+    int8_t interleaved[] = {
+		33, 2, 33, 2, 33, 2, 33, 2, 33, 2, 33, 2, 33, 2, 33, 2,
+		33, 2, 33, 2, 33, 2, 33, 2, 33, 2, 33, 2, 33, 2, 33, 2,
+    };
+    const int size = std::size(interleaved);
+    int8_t planar_l[size];
+    int8_t planar_r[size];
+    InterleaveToPlanar<int8_t, int8_t>::Convert(interleaved, planar_l, planar_r, size);
+
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC

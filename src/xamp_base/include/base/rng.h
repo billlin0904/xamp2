@@ -57,7 +57,7 @@ public:
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
         Vector<int8_t> output(size);
         const auto gen = [this, min, max]() noexcept {
-            return static_cast<int8_t>((*this)(min, max));
+            return static_cast<int8_t>(NextInt32(min, max));
         };
         std::generate_n(output.begin(), size, gen);
         return output;
