@@ -29,11 +29,22 @@ public:
     }
 
     MoveOnlyFunction() = default;
-	
+
+    template <typename Func>
+    MoveOnlyFunction(MoveOnlyFunction&& other) noexcept(std::is_nothrow_move_constructible_v<Func>)
+        : impl_(std::move(other.impl_)) {
+    }
+
+    template <typename Func>
+    MoveOnlyFunction& operator=(MoveOnlyFunction&& other) noexcept(std::is_nothrow_move_assignable_v<Func>) {
+        impl_ = std::move(other.impl_);
+        return *this;
+    }
+
     MoveOnlyFunction(MoveOnlyFunction&& other) noexcept
 		: impl_(std::move(other.impl_)) {	    
     }
-	
+
     MoveOnlyFunction& operator=(MoveOnlyFunction&& other) noexcept {
         impl_ = std::move(other.impl_);
         return *this;

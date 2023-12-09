@@ -44,7 +44,7 @@ constexpr std::array<uint64_t, N> Splitmix64(uint64_t state) noexcept {
 * @return T
 */
 template <typename T>
-static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
+T FromUnaligned(const void* address) {
 	static_assert(std::is_trivially_copyable_v<T>);
 	T res{};
 	MemoryCopy(&res, address, sizeof(res));
@@ -72,19 +72,12 @@ uint64_t Rotl64(const uint64_t x) noexcept {
 * @param[in] shift
 * @return uint64_t
 */
-static XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
+XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
+#ifdef XAMP_OS_WIN
+	return _rotl64(x, shift);
+#else
     return (x << shift) | (x >> (64 - shift));
-}
-
-/*
-* Rotates bits to the left.
-*
-* @param[in] x
-* @param[in] shift
-* @return uint32_t
-*/
-static XAMP_ALWAYS_INLINE uint32_t Rotl32(const uint32_t x, uint32_t shift) noexcept {
-	return (x << shift) | (x >> (32 - shift));
+#endif
 }
 
 /*
@@ -93,7 +86,7 @@ static XAMP_ALWAYS_INLINE uint32_t Rotl32(const uint32_t x, uint32_t shift) noex
 * @param[in] v
 * @return int32_t
 */
-static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
+XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
 	v--;
 	v |= v >> 1;
 	v |= v >> 2;
@@ -110,7 +103,7 @@ static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
 * @param[in] v
 * @return int32_t
 */
-static XAMP_ALWAYS_INLINE int32_t IsPowerOfTwo(int32_t v) noexcept {
+XAMP_ALWAYS_INLINE int32_t IsPowerOfTwo(int32_t v) noexcept {
 	return v > 0 && !(v & (v - 1));
 }
 
@@ -148,7 +141,7 @@ XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
 XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
 	return x;
 }
-static XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
+XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
 	return x;
 }
 XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
@@ -157,16 +150,16 @@ XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
 #elif !XAMP_IS_BIG_ENDIAN
 #  error "Unsupported byte order."
 #elif defined(XAMP_OS_WIN)
-static XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
+XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
 	return _byteswap_ulong(x);
 }
-static XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
+XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
 	return _byteswap_ulong(x);
 }
-static XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
+XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
 	return _byteswap_uint64(x);
 }
-static XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
+XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
 	return _byteswap_uint64(x);
 }
 #else

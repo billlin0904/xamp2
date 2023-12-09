@@ -12,7 +12,7 @@
 #include <base/uuid.h>
 #include <base/shared_singleton.h>
 #include <base/singleton.h>
-//#include <base/logger.h>
+
 #include <base/logger_impl.h>
 #include <base/executor.h>
 #include <base/rcu_ptr.h>
@@ -652,8 +652,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
@@ -662,9 +662,9 @@ BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->RangeMultiplier(2)->Range(4096, 
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-//BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //#ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);

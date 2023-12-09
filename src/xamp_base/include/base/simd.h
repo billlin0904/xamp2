@@ -172,7 +172,7 @@ struct Converter<float> {
 
 template <>
 struct Converter<int8_t> {
-    static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i src) {
+    static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(const m256i &src) {
         m256i left_vec = _mm256_shuffle_epi8(src, _mm256_set_epi8(
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2));

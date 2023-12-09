@@ -134,6 +134,9 @@ public:
 	* 
 	*/
 	void WaitAsync(HANDLE event) {
+		if (!IsValid()) {
+			return;
+		}
 		workitem_key_ = 0;
 		HrIfFailledThrow(::MFPutWaitingWorkItem(event, 1, async_result_, &workitem_key_));
 	}

@@ -813,7 +813,7 @@ void ExecutionStopwatch::Reset() {
 }
 
 std::chrono::milliseconds ExecutionStopwatch::Elapsed() const {
-    int64_t elapsed = end_timestamp_ - start_timestamp_;
+	const int64_t elapsed = end_timestamp_ - start_timestamp_;
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::nanoseconds(elapsed));
 }
 
@@ -822,28 +822,30 @@ bool ExecutionStopwatch::IsRunning() const noexcept {
 }
 
 namespace {
-    void GePlatformThreadTimes(ULARGE_INTEGER& kernel_time_value, ULARGE_INTEGER user_time_value) {
+    bool GePlatformThreadTimes(ULARGE_INTEGER& kernel_time_value, ULARGE_INTEGER user_time_value) {
         FILETIME creation_time, exit_time, kernel_time, user_time;
         if (!::GetThreadTimes(::GetCurrentThread(), &creation_time, &exit_time, &kernel_time, &user_time))
-            throw std::runtime_error("Failed to get thread times.");
+            return false;
 
         kernel_time_value.HighPart = kernel_time.dwHighDateTime;
         kernel_time_value.LowPart = kernel_time.dwLowDateTime;
         user_time_value.HighPart = user_time.dwHighDateTime;
         user_time_value.LowPart = user_time.dwLowDateTime;
+        return true;
     }
 }
 
 int64_t ExecutionStopwatch::GetThreadTimes() {
     ULARGE_INTEGER kernel_time_value{}, user_time_value{};
-    GePlatformThreadTimes(kernel_time_value, user_time_value);
-
+    if (!GePlatformThreadTimes(kernel_time_value, user_time_value)) {
+        return 0;
+    }
     return kernel_time_value.QuadPart + user_time_value.QuadPart;
 }
 
-double ExecutionStopwatch::GetCpuUsage() const {    
-    std::chrono::milliseconds elapsed = Elapsed();
-    double elapsed_seconds = elapsed.count() / 1000.0;
+double ExecutionStopwatch::GetCpuUsage() const {
+	const std::chrono::milliseconds elapsed = Elapsed();
+	const double elapsed_seconds = elapsed.count() / 1000.0;
 
     if (elapsed_seconds == 0) {
         return 0;

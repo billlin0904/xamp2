@@ -160,7 +160,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue
 	return std::nullopt;
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(StopToken const& stop_token, size_t i) {
+std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t i) {
 	// Try to steal a task from another thread's queue
 	// Note: The order in which we try the queues is important to prevent
 	//       all threads from trying to steal from the same thread
@@ -191,7 +191,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 }
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
-    threads_.emplace_back([i, this, priority](StopToken stop_token) mutable {
+    threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
 		SharedCrashHandler.SetThreadExceptionHandlers();
 
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)

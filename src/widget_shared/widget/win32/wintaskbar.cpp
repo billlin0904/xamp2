@@ -117,8 +117,13 @@ namespace {
 		}
 
 		const QSize max_size(rect.right, rect.bottom);
-		POINT offset = { 0, 0 };		
-		GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		POINT offset = { 0, 0 };
+
+		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		if (!bitmap) {
+			return;
+		}
+
 		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap.get(), &offset, 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
@@ -329,8 +334,12 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, q
 				UpdateIconicThumbnail(msg, thumbnail_);
 			}
 			break;
-		case WM_DWMSENDICONICLIVEPREVIEWBITMAP:
-			UpdateLiveThumbnail(msg, window_->grab());
+		case WM_DWMSENDICONICLIVEPREVIEWBITMAP: {
+				const auto live_thumbnail = window_->grab();
+				if (!live_thumbnail.isNull()) {
+					UpdateLiveThumbnail(msg, live_thumbnail);
+				}
+			}
 			break;
 		case WM_COMMAND:
 		{

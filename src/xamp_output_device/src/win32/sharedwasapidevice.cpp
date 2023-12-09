@@ -382,9 +382,9 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	XAMP_EXPECTS(callback_ != nullptr);
 
 	// Calculate stream time.
-	double stream_time = stream_time_ + frame_available;
+	const double stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
-	auto stream_time_float = stream_time / static_cast<double>(mix_format_->nSamplesPerSec);
+	const auto stream_time_float = stream_time / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
@@ -395,7 +395,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	}
 
 	// Calculate sample time.
-	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
+	const auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
 
 	size_t num_filled_frames = 0;
 

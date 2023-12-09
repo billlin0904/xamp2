@@ -82,12 +82,12 @@ private:
     /*
     * Try steal task from other thread.
     */
-    std::optional<MoveOnlyFunction> TrySteal(StopToken const & stop_token, size_t i);
+    std::optional<MoveOnlyFunction> TrySteal(const StopToken & stop_token, size_t i);
 
     /*
     * Try dequeue task from local queue.
     */
-    std::optional<MoveOnlyFunction> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
+    std::optional<MoveOnlyFunction> TryLocalPop(WorkStealingTaskQueue* local_queue) const;
 
     /*
     * Try dequeue task from shared queue.
