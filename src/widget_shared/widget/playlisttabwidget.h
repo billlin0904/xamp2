@@ -29,6 +29,8 @@ public:
 signals:
 	void CreateNewPlaylist();
 
+	void RemoveAllPlaylist();
+
 private:
 	void CloseTab(int32_t tab_index);
 

@@ -183,7 +183,7 @@ void SharedWasapiDevice::CloseStream() {
 	rt_work_queue_.Release();
 }
 
-void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) {
+void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 	uint32_t fundamental_period_in_frame = 0;
 	uint32_t current_period_in_frame = 0;
 	uint32_t default_period_in_frame = 0;
@@ -212,18 +212,19 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 	auto msec_per_samples = 1000.0 / static_cast<double>(output_format.GetSampleRate());
 
 	XAMP_LOG_D(logger_,
-		"Initital device format fundamental:{:.2f} msec, current:{:.2f} msec, min:{:.2f} msec max:{:.2f} msec.",
+		"Initial device format fundamental:{:.2f} msec, current:{:.2f} msec, min:{:.2f} msec max:{:.2f} msec.",
 		fundamental_period_in_frame * msec_per_samples,
 		default_period_in_frame * msec_per_samples,
 		min_period_in_frame * msec_per_samples,
 		max_period_in_frame * msec_per_samples);
 
 	buffer_time_ = default_period_in_frame;
+	//buffer_time_ = current_period_in_frame;
 
 	XAMP_LOG_D(logger_, "Use latency: {:.2f}", buffer_time_ * msec_per_samples);
 }
 
-void SharedWasapiDevice::InitialDevice(AudioFormat const& output_format) {
+void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 	if (!is_low_latency_) {
 		InitialDeviceFormat(output_format);
 		auto hr = client_->Initialize(AUDCLNT_SHAREMODE_SHARED,
@@ -235,6 +236,10 @@ void SharedWasapiDevice::InitialDevice(AudioFormat const& output_format) {
 		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
 			throw DeviceInUseException();
 		}
+		if (hr == AUDCLNT_E_ENGINE_PERIODICITY_LOCKED) {
+			// 會出現這個錯誤, 代表音效設備不支援同時多個sample rate, 所以需要進行重採樣轉換.			
+			throw DeviceNeedSetMatchFormatException();
+		}
 		HrIfFailledThrow(hr);
 	} else {
 		InitialDeviceFormat(output_format);
@@ -245,12 +250,7 @@ void SharedWasapiDevice::InitialDevice(AudioFormat const& output_format) {
 		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
 			throw DeviceInUseException();
 		}
-		HrIfFailledThrow(hr);
-
-		BOOL offload_capable = FALSE;
-		if (SUCCEEDED(client_->IsOffloadCapable(AudioCategory_Media, &offload_capable))) {
-			XAMP_LOG_D(logger_, "Devive support offload: {}", offload_capable ? "yes" : "no");
-		}
+		HrIfFailledThrow(hr);		
 	}
 }
 

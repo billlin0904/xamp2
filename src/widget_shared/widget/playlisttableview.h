@@ -40,7 +40,7 @@ public:
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
-	~PlayListTableView() override;
+	virtual ~PlayListTableView() override;
 
 	virtual void FastReload();
 
@@ -123,6 +123,7 @@ signals:
 	void AddPlaylistItemFinished();
 
 	void ExtractFile(const QString& file_path, int32_t playlist_id);
+	
 public slots:
 	void PlayIndex(const QModelIndex& index);
 
@@ -142,7 +143,6 @@ public slots:
 		double track_rg_gain,
 		double track_peak);
 
-	//void AddPendingPlayListFromModel(PlayerOrder order);
 private:
 	PlayListEntity item(const QModelIndex& index) const;
 
@@ -171,7 +171,6 @@ protected:
     PlayListSqlQueryTableModel* model_;
 	PlayListTableFilterProxyModel* proxy_model_;
     QSet<QString> hidden_column_names_;
-	//QList<QModelIndex> pending_playlist_;
 	PRNG rng_;
 	QString column_setting_name_;
 };

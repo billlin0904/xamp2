@@ -11,7 +11,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 #define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
-ExceptionClassName::ExceptionClassName(std::string const& message)\
+ExceptionClassName::ExceptionClassName(const std::string& message)\
 	: Exception(error, message) {\
 }\
 ExceptionClassName::ExceptionClassName()\
@@ -92,6 +92,7 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Library spec error." },
         { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, "Failed to create the audio endpoint." },
         { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, "Device unsupported format." },
+        { Errors::XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT, "Device need set match format." },
         { Errors::XAMP_ERROR_DEVICE_IN_USE, "Device in use." },
         { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, "Device not found." },
         { Errors::XAMP_ERROR_FILE_NOT_FOUND, "File not found." },
@@ -165,12 +166,13 @@ PlatformException::PlatformException(std::string_view what, int32_t err)
 
 IMP_EXCEPTION_CLASS(DeviceCreateFailureException, Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE)
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
+IMP_EXCEPTION_CLASS(DeviceNeedSetMatchFormatException, Errors::XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT)
 IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
 IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
 IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT)
-IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED);
-IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE);
+IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED)
+IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE)
 IMP_EXCEPTION_CLASS(NotSupportExclusiveModeException, Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
 IMP_EXCEPTION_CLASS(BufferOverflowException, Errors::XAMP_ERROR_NOT_BUFFER_OVERFLOW)
 

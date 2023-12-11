@@ -514,8 +514,7 @@ void PlayListTableView::initial() {
                 if (!model_->rowCount()) {
                     return;
                 }
-
-                //qMainDb.ClearPendingPlaylist(GetPlaylistId());
+                
                 IGNORE_DB_EXCEPTION(qMainDb.RemovePlaylistAllMusic(GetPlaylistId()))
                 Reload();
                 RemovePlaying();

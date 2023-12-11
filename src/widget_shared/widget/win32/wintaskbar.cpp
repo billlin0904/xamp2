@@ -135,6 +135,10 @@ namespace {
 		XAMP_LOG_DEBUG("{} {}", HIWORD(msg->lParam), LOWORD(msg->lParam));
 
 		GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		if (!bitmap) {
+			return;
+		}
+
 		const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap.get(), 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));

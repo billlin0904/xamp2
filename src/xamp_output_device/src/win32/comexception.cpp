@@ -44,6 +44,8 @@ namespace {
             return "AUDCLNT_E_EVENTHANDLE_NOT_SET";
         case AUDCLNT_E_BUFFER_OPERATION_PENDING:
             return "AUDCLNT_E_BUFFER_OPERATION_PENDING";
+        case AUDCLNT_E_ENGINE_PERIODICITY_LOCKED:
+            return "AUDCLNT_E_ENGINE_PERIODICITY_LOCKED";
 
         case E_POINTER:
             return "E_POINTER";

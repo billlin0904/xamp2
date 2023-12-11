@@ -70,6 +70,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             }
 
             clear();
+            emit RemoveAllPlaylist();
             });
 
         auto* close_other_tab_act = action_map.AddAction(tr("Close other tab"), [pt, this]() {
@@ -93,7 +94,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 const auto tab_index = indexOf(playlist_page);
                 CloseTab(tab_index);
             }
-
+            emit RemoveAllPlaylist();
             });
         try {
             action_map.exec(pt);
