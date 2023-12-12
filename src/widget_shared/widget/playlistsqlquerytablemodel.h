@@ -7,7 +7,7 @@
 
 #include <widget/lazyloadingmodel.h>
 
-class PlayListSqlQueryTableModel : public LazyLoadingModel {
+class PlayListSqlQueryTableModel : public QSqlQueryModel {
 public:
     explicit PlayListSqlQueryTableModel(QObject *parent = nullptr);
 

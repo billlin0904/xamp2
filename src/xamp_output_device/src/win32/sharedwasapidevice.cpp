@@ -237,7 +237,7 @@ void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 			throw DeviceInUseException();
 		}
 		if (hr == AUDCLNT_E_ENGINE_PERIODICITY_LOCKED) {
-			// 會出現這個錯誤, 代表音效設備不支援同時多個sample rate, 所以需要進行重採樣轉換.			
+			// 會出現這個錯誤, 代表音效設備不支援同時多個 sample rate, 所以需要進行重採樣轉換.			
 			throw DeviceNeedSetMatchFormatException();
 		}
 		HrIfFailledThrow(hr);

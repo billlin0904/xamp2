@@ -146,7 +146,7 @@ public slots:
 	void OnCheckForUpdate();
 
 	void OnRestartApp();
-	
+
 private:
 	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
 

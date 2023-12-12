@@ -682,6 +682,7 @@ void PlayListTableView::ReloadEntity(const PlayListEntity& item) {
     try {
         qMainDb.AddOrUpdateMusic(TagIO::GetTrackInfo(item.file_path.toStdWString()));
         FastReload();
+        play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
     }
     catch (std::filesystem::filesystem_error& e) {
         XAMP_LOG_DEBUG("Reload track information error: {}", String::LocaleStringToUTF8(e.what()));
@@ -702,9 +703,7 @@ PlayListEntity PlayListTableView::item(const QModelIndex& index) const {
 
 void PlayListTableView::PlayItem(const QModelIndex& index) {
     SetNowPlaying(index);
-    SetNowPlayState(PLAY_PLAYING);
-    const auto play_item = item(index);
-    //auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
+    const auto play_item = item(play_index_);
     emit PlayMusic(play_item);
 }
 
@@ -749,6 +748,8 @@ void PlayListTableView::UpdateReplayGain(int32_t playlistId,
         track_peak);
 
     FastReload();
+
+    play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
 void PlayListTableView::keyPressEvent(QKeyEvent *event) {
@@ -903,6 +904,7 @@ void PlayListTableView::SetNowPlaying(const QModelIndex& index, bool is_scroll_t
     CATCH_DB_EXCEPTION(qMainDb.ClearNowPlaying(playlist_id_))
 	CATCH_DB_EXCEPTION(qMainDb.SetNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
     FastReload();
+    play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
 void PlayListTableView::SetNowPlayState(PlayingState playing_state) {
@@ -915,6 +917,7 @@ void PlayListTableView::SetNowPlayState(PlayingState playing_state) {
     const auto entity = item(play_index_);
     CATCH_DB_EXCEPTION(qMainDb.SetNowPlayingState(GetPlaylistId(), entity.playlist_music_id, playing_state))
     FastReload();
+    play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
     emit UpdatePlayingState(entity, playing_state);
 }
 
@@ -952,11 +955,6 @@ void PlayListTableView::SetCurrentPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::Play(PlayerOrder order) {
-    //auto [music_id, pending_playlist_id] = qMainDb.GetFirstPendingPlaylistMusic(GetPlaylistId());
-    //if (music_id == kInvalidDatabaseId || pending_playlist_id == kInvalidDatabaseId) {
-    //    return;
-    //}
-
     QModelIndex index;
 
     switch (order) {

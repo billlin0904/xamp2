@@ -1375,6 +1375,7 @@ void Xamp::PlayOrPause() {
                 XMessageBox::ShowInformation(tr("Not found any playing item."));
                 return;
             }
+            tab_widget_->SetTabIcon(QIcon());
             GetCurrentPlaylistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
             GetCurrentPlaylistPage()->playlist()->SetNowPlaying(play_index_, true);
             GetCurrentPlaylistPage()->playlist()->PlayIndex(play_index_);
@@ -1796,9 +1797,7 @@ void Xamp::PlayNextItem(int32_t forward) {
     }
     catch (Exception const& e) {
         XMessageBox::ShowError(qTEXT(e.GetErrorMessage()));
-        return;
     }
-    playlist_view->FastReload();
 }
 
 void Xamp::OnArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {    
@@ -1833,11 +1832,14 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
     if (!player_) {
         return;
     }
+    if (play_state == PlayerState::PLAYER_STATE_USER_STOPPED) {
+        tab_widget_->SetTabIcon(QIcon());
+    }
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         main_window_->ResetTaskbarProgress();
         lrc_page_->spectrum()->Reset();
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(FormatDuration(0));
+        ui_.startPosLabel->setText(FormatDuration(0));        
         PlayNextItem(1);
         PayNextMusic();
     }
@@ -1891,9 +1893,14 @@ void Xamp::InitialPlaylist() {
 
     (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::CreateNewPlaylist,
         [this]() {
-        const auto tab_index = tab_widget_->count();
-        const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), tab_index);
-        NewPlaylistPage(playlist_id, tr("Playlist"));
+            const auto tab_index = tab_widget_->count();
+            const auto playlist_id = qMainDb.AddPlaylist(tr("Playlist"), tab_index);
+            NewPlaylistPage(playlist_id, tr("Playlist"));
+        });
+
+    (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::RemoveAllPlaylist,
+        [this]() {
+            last_play_list_ = nullptr;
         });    
 
     if (!file_system_view_page_) {
