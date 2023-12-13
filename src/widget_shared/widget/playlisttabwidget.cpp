@@ -185,7 +185,7 @@ void PlaylistTabWidget::RestoreTabOrder() {
         ++i;
     }
     for (i = 0; i < count(); ++i) {
-        setTabIcon(i, qTheme.GetApplicationIcon());
+        setTabIcon(i, qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_NOTCH));
     }
 }
 
@@ -197,9 +197,15 @@ void PlaylistTabWidget::SetTabIcon(const QIcon& icon) {
             if (i == tab_index) {
                 continue;
             }
-            setTabIcon(i, qTheme.GetApplicationIcon());
+            setTabIcon(i, qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_NOTCH));
         }
     }
+}
+
+void PlaylistTabWidget::CreateNewTab(const QString& name, QWidget* widget) {
+    const auto index = addTab(widget, name);
+    setTabIcon(index, qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_NOTCH));
+    setCurrentIndex(index);
 }
 
 void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {

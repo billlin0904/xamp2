@@ -1847,8 +1847,7 @@ PlaylistPage* Xamp::NewPlaylistPage(int32_t playlist_id, const QString& name) {
     playlist_page->playlist()->SetHeaderViewHidden(false);
     ConnectPlaylistPageSignal(playlist_page);
     SetCover(kEmptyString, playlist_page);
-    const auto index = tab_widget_->addTab(playlist_page, name);
-    tab_widget_->setCurrentIndex(index);
+    tab_widget_->CreateNewTab(name, playlist_page);
     return playlist_page;
 }
 

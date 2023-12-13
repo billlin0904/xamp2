@@ -12,7 +12,7 @@ class PlaylistTabBar : public QTabBar {
 	Q_OBJECT
 public:
 	explicit PlaylistTabBar(QWidget* parent = nullptr);
-
+	
 signals:
 	void TextChanged(int32_t index, const QString &text);
 

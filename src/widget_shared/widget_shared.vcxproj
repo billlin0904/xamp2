@@ -122,6 +122,7 @@
     <QtMoc Include="widget\cover_searcher\musicbraincoversearcher.h" />
     <QtMoc Include="widget\cover_searcher\discogscoversearcher.h" />
     <QtMoc Include="widget\cover_searcher\coversearcher.h" />
+    <QtMoc Include="widget\fonticonanimation.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
@@ -223,6 +224,7 @@
     <ClCompile Include="widget\filesystemviewpage.cpp" />
     <ClCompile Include="widget\findalbumcoverworker.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
+    <ClCompile Include="widget\fonticonanimation.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\genre_view_page.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />

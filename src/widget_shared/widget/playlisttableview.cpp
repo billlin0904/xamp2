@@ -175,8 +175,8 @@ public:
             auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_HEART)).toInt();
         	if (is_heart_pressed > 0) {
                 QVariantMap font_options;
-                font_options.insert(FontIconOption::scaleFactorAttr, QVariant::fromValue(0.4));
-                font_options.insert(FontIconOption::colorAttr, QColor(Qt::red));
+                font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(0.4));
+                font_options.insert(FontIconOption::kColorAttr, QColor(Qt::red));
 
                 opt.icon = qTheme.GetFontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
                 // note: 解決圖示再選擇的時候會蓋掉顏色的問題

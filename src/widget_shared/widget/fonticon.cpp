@@ -7,6 +7,7 @@
 #include <QtCore>
 #include <QPalette>
 
+#include <widget/fonticonanimation.h>
 #include <widget/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <utility>
@@ -31,19 +32,20 @@ private:
     QVariantMap options_;
 };
 
-const QString FontIconOption::rectAttr(qTEXT("rect"));
-const QString FontIconOption::scaleFactorAttr(qTEXT("scaleFactor"));
-const QString FontIconOption::fontStyleAttr(qTEXT("fontStyle"));
-const QString FontIconOption::colorAttr(qTEXT("color"));
-const QString FontIconOption::onColorAttr(qTEXT("onColor"));
-const QString FontIconOption::activeColorAttr(qTEXT("activeColor"));
-const QString FontIconOption::activeOnColorAttr(qTEXT("activeOnColor"));
-const QString FontIconOption::disabledColorAttr(qTEXT("disabledColor"));
-const QString FontIconOption::selectedColorAttr(qTEXT("selectedColor"));
-const QString FontIconOption::flipLeftRightAttr(qTEXT("flipLeftRight"));
-const QString FontIconOption::rotateAngleAttr(qTEXT("rotateAngle"));
-const QString FontIconOption::flipTopBottomAttr(qTEXT("flipTopBottom"));
-const QString FontIconOption::opacityAttr(qTEXT("opacity"));
+const QString FontIconOption::kRectAttr(qTEXT("rect"));
+const QString FontIconOption::kScaleFactorAttr(qTEXT("scaleFactor"));
+const QString FontIconOption::kFontStyleAttr(qTEXT("fontStyle"));
+const QString FontIconOption::kColorAttr(qTEXT("color"));
+const QString FontIconOption::kOnColorAttr(qTEXT("onColor"));
+const QString FontIconOption::kActiveColorAttr(qTEXT("activeColor"));
+const QString FontIconOption::kActiveOnColorAttr(qTEXT("activeOnColor"));
+const QString FontIconOption::kDisabledColorAttr(qTEXT("disabledColor"));
+const QString FontIconOption::kSelectedColorAttr(qTEXT("selectedColor"));
+const QString FontIconOption::kFlipLeftRightAttr(qTEXT("flipLeftRight"));
+const QString FontIconOption::kRotateAngleAttr(qTEXT("rotateAngle"));
+const QString FontIconOption::kFlipTopBottomAttr(qTEXT("flipTopBottom"));
+const QString FontIconOption::kOpacityAttr(qTEXT("opacity"));
+const QString FontIconOption::kAnimation(qTEXT("animation"));
 
 QColor FontIconOption::color = QApplication::palette().color(QPalette::Normal, QPalette::ButtonText);
 QColor FontIconOption::disabledColor = QApplication::palette().color(QPalette::Disabled, QPalette::ButtonText);
@@ -77,15 +79,23 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 
 	auto paint_rect = rect;
 
+    if (options_.contains(FontIconOption::kAnimation)) {
+        auto var = options_.value(FontIconOption::kAnimation);
+        auto* animation = var.value<FontIconAnimation*>();
+        if (animation) {
+            animation->paint(*painter, rect);
+        }
+    }
+
     QFont font(font_family_);
     font.setStyleStrategy(QFont::PreferAntialias);
 
-    auto var = options_.value(FontIconOption::rectAttr);
+    auto var = options_.value(FontIconOption::kRectAttr);
     if (var.isValid()) {
         paint_rect = var.value<QRect>();
     }
 
-    var = options_.value(FontIconOption::scaleFactorAttr);
+    var = options_.value(FontIconOption::kScaleFactorAttr);
 
     // A 16 pixel-high icon yields a font size of 14, which is pixel perfect
     // for font-awesome. 16 * 0.875 = 14
@@ -98,11 +108,11 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
         draw_size = qRound(paint_rect.height() * kRatio * var.value<qreal>());
     }
 
-    var = options_.value(FontIconOption::fontStyleAttr);
+    var = options_.value(FontIconOption::kFontStyleAttr);
     if (var.isValid()) {
         font.setStyleName(var.value<QString>());
     }
-    font.setPixelSize(draw_size);
+    font.setPixelSize(draw_size);    
 
     QColor pen_color;
 
@@ -110,33 +120,33 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     case QIcon::Normal:
         switch (state) {
         case QIcon::On:
-            pen_color = GetOrDefault<QColor>(options_, FontIconOption::onColorAttr, FontIconOption::onColor);
+            pen_color = GetOrDefault<QColor>(options_, FontIconOption::kOnColorAttr, FontIconOption::onColor);
             break;
         }
         break;
     case QIcon::Active:
         switch (state) {
 		case QIcon::Off:
-            pen_color = GetOrDefault<QColor>(options_, FontIconOption::activeColorAttr, FontIconOption::activeColor);
+            pen_color = GetOrDefault<QColor>(options_, FontIconOption::kActiveColorAttr, FontIconOption::activeColor);
 			break;
 		case QIcon::On:
-            pen_color = GetOrDefault<QColor>(options_, FontIconOption::activeOnColorAttr, FontIconOption::activeOnColor);
+            pen_color = GetOrDefault<QColor>(options_, FontIconOption::kActiveOnColorAttr, FontIconOption::activeOnColor);
             if (!pen_color.isValid()) {
-                pen_color = GetOrDefault<QColor>(options_, FontIconOption::onColorAttr, FontIconOption::onColor);
+                pen_color = GetOrDefault<QColor>(options_, FontIconOption::kOnColorAttr, FontIconOption::onColor);
             }
             break;
         }
         break;
     case QIcon::Disabled:
-        pen_color = GetOrDefault<QColor>(options_, FontIconOption::disabledColorAttr, FontIconOption::disabledColor);
+        pen_color = GetOrDefault<QColor>(options_, FontIconOption::kDisabledColorAttr, FontIconOption::disabledColor);
         break;
     case QIcon::Selected:
-        pen_color = GetOrDefault<QColor>(options_, FontIconOption::selectedColorAttr, FontIconOption::selectedColor);
+        pen_color = GetOrDefault<QColor>(options_, FontIconOption::kSelectedColorAttr, FontIconOption::selectedColor);
         break;
     }
 
     if (!pen_color.isValid()) {
-        pen_color = GetOrDefault<QColor>(options_, FontIconOption::colorAttr, FontIconOption::color);
+        pen_color = GetOrDefault<QColor>(options_, FontIconOption::kColorAttr, FontIconOption::color);
     }
 
     painter->save();
@@ -144,24 +154,24 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     painter->translate(rect.center() + QPoint(1, 1));
 
-    var = options_.value(FontIconOption::opacityAttr);
+    var = options_.value(FontIconOption::kOpacityAttr);
     if (var.isValid()) {
         painter->setOpacity(var.value<qreal>());
     } else {
         painter->setOpacity(FontIconOption::opacity);
     }
 
-    var = options_.value(FontIconOption::rotateAngleAttr);
+    var = options_.value(FontIconOption::kRotateAngleAttr);
     if (var.isValid()) {
         painter->rotate(var.value<qreal>());
     }
 
-    var = options_.value(FontIconOption::flipLeftRightAttr);
+    var = options_.value(FontIconOption::kFlipLeftRightAttr);
     if (var.isValid()) {
         painter->scale(-1.0, 1.0);
     }
 
-    var = options_.value(FontIconOption::flipTopBottomAttr);
+    var = options_.value(FontIconOption::kFlipTopBottomAttr);
     if (var.isValid()) {
         painter->scale(1.0, -1.0);
     }

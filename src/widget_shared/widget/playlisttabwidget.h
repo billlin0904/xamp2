@@ -26,6 +26,8 @@ public:
 
 	void SetTabIcon(const QIcon &icon);
 
+	void CreateNewTab(const QString& name, QWidget* widget);
+
 signals:
 	void CreateNewPlaylist();
 

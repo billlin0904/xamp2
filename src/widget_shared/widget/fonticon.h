@@ -76,23 +76,25 @@ enum Glyphs {
     ICON_FILE_CIRCLE_PLUS,
     ICON_UP,
     ICON_EDIT,
-    ICON_CIRCLE_CHECK
+    ICON_CIRCLE_CHECK,
+    ICON_CIRCLE_NOTCH
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {
-    static const QString rectAttr;
-    static const QString scaleFactorAttr; 
-    static const QString fontStyleAttr;
-    static const QString colorAttr;
-    static const QString onColorAttr;
-    static const QString activeColorAttr;
-    static const QString activeOnColorAttr;
-    static const QString disabledColorAttr;
-    static const QString selectedColorAttr;
-    static const QString flipLeftRightAttr;
-    static const QString rotateAngleAttr;
-    static const QString flipTopBottomAttr;
-    static const QString opacityAttr;
+    static const QString kRectAttr;
+    static const QString kScaleFactorAttr; 
+    static const QString kFontStyleAttr;
+    static const QString kColorAttr;
+    static const QString kOnColorAttr;
+    static const QString kActiveColorAttr;
+    static const QString kActiveOnColorAttr;
+    static const QString kDisabledColorAttr;
+    static const QString kSelectedColorAttr;
+    static const QString kFlipLeftRightAttr;
+    static const QString kRotateAngleAttr;
+    static const QString kFlipTopBottomAttr;
+    static const QString kOpacityAttr;
+    static const QString kAnimation;
 
 	static QColor color;
     static QColor onColor;
