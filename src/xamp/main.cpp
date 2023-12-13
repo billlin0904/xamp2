@@ -65,12 +65,9 @@ namespace {
     void SetWorkingSetSize() {
         const auto memory_size = GetAvailablePhysicalMemory();
         XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
-        //auto working_size = memory_size * 0.6;
-        const auto working_size = 128UL * 1024UL * 1024UL;
-        if (working_size > 0) {
-            SetProcessWorkingSetSize(working_size);
-            XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(working_size));
-        }
+        constexpr auto kWorkingSize = 512UL * 1024UL * 1024UL;
+        SetProcessWorkingSetSize(kWorkingSize);
+        XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSize));
     }
 
     Vector<SharedLibraryHandle> PrefetchDll() {
@@ -279,8 +276,7 @@ int main() {
     JsonSettings::LoadJsonFile(qTEXT("config.json"));
 
     const auto os_ver = QOperatingSystemVersion::current();
-    if (os_ver >= QOperatingSystemVersion::Windows10
-        && os_ver < QOperatingSystemVersion::Windows11) {
+    if (os_ver >= QOperatingSystemVersion::Windows10) {
         SetWorkingSetSize();
 	}
 

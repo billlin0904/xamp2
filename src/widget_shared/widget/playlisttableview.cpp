@@ -918,11 +918,12 @@ void PlayListTableView::SetNowPlayState(PlayingState playing_state) {
     CATCH_DB_EXCEPTION(qMainDb.SetNowPlayingState(GetPlaylistId(), entity.playlist_music_id, playing_state))
     FastReload();
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+    ScrollToIndex(play_index_);
     emit UpdatePlayingState(entity, playing_state);
 }
 
 void PlayListTableView::ScrollToIndex(const QModelIndex& index) {
-    QTableView::scrollTo(index, PositionAtCenter);
+    QTableView::scrollTo(index, PositionAtTop);
 }
 
 std::optional<PlayListEntity> PlayListTableView::GetSelectPlayListEntity() const {

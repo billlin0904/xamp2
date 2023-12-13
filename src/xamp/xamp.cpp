@@ -1375,7 +1375,6 @@ void Xamp::PlayOrPause() {
                 XMessageBox::ShowInformation(tr("Not found any playing item."));
                 return;
             }
-            tab_widget_->SetTabIcon(QIcon());
             GetCurrentPlaylistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
             GetCurrentPlaylistPage()->playlist()->SetNowPlaying(play_index_, true);
             GetCurrentPlaylistPage()->playlist()->PlayIndex(play_index_);
@@ -1619,8 +1618,8 @@ void Xamp::PlayEntity(const PlayListEntity& entity) {
         UpdateUi(entity, playback_format, open_done);
     }
     else {
-        GetCurrentPlaylistPage()->playlist()->Reload();
-    }    
+        GetCurrentPlaylistPage()->playlist()->SetNowPlayState(PlayingState::PLAY_CLEAR);
+    }
 }
 
 void Xamp::UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done) {
@@ -1832,9 +1831,7 @@ void Xamp::OnPlayerStateChanged(xamp::player::PlayerState play_state) {
     if (!player_) {
         return;
     }
-    if (play_state == PlayerState::PLAYER_STATE_USER_STOPPED) {
-        tab_widget_->SetTabIcon(QIcon());
-    }
+
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         main_window_->ResetTaskbarProgress();
         lrc_page_->spectrum()->Reset();

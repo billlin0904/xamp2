@@ -184,16 +184,21 @@ void PlaylistTabWidget::RestoreTabOrder() {
         addTab(widget, texts[i]);
         ++i;
     }
+    for (i = 0; i < count(); ++i) {
+        setTabIcon(i, qTheme.GetApplicationIcon());
+    }
 }
 
 void PlaylistTabWidget::SetTabIcon(const QIcon& icon) {
-    for (int i = 0; i < count(); ++i) {
-        setTabIcon(i, QIcon());
-    }
-
     auto tab_index = currentIndex();
     if (tab_index != -1) {
         setTabIcon(tab_index, icon);
+        for (int i = 0; i < count(); ++i) {
+            if (i == tab_index) {
+                continue;
+            }
+            setTabIcon(i, qTheme.GetApplicationIcon());
+        }
     }
 }
 

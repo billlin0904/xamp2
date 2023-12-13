@@ -106,6 +106,9 @@ public:
         }
 
         const auto stream = format_context_->streams[audio_stream_id_];
+        if (stream->duration == AV_NOPTS_VALUE) {
+            throw NotSupportFormatException();
+        }
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
     }
 
