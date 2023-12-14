@@ -18,15 +18,15 @@ public:
     explicit DatabaseFacade(QObject* parent = nullptr);
 
 signals:
-    void FindAlbumCover(int32_t album_id,
+    void findAlbumCover(int32_t album_id,
         const QString& album,
         const QString& artist,
         const std::wstring& file_path);
 public:
-    void InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+    void insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
 private:   
-    void AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+    void addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
     bool is_stop_{false};
     LoggerPtr logger_;

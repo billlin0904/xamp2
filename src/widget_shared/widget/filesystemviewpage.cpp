@@ -127,7 +127,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
             emit addPathToPlaylist(path, true);
         });
-        add_file_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+        add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
             const auto dir_name = GetExistingDirectory(this);
@@ -137,7 +137,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             qAppSettings.setValue(kAppSettingMyMusicFolderPath, dir_name);
             ui_->dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(qAppSettings.myMusicFolderPath())));
         });
-        load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FOLDER));
+        load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
 
         action_map.exec(pt, pt);
         });

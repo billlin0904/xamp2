@@ -67,7 +67,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);    
 }
 
-void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
+void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     const Stopwatch sw;
     FloatMap<QString, int32_t> artist_id_cache;
     FloatMap<QString, int32_t> album_id_cache;
@@ -91,7 +91,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 			const TagIO reader;
 			album = tr("Unknown album");
 			// todo: 如果有內建圖片就把當作一張專輯.
-			cover = reader.GetEmbeddedCover(track_info);
+			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = GetStringOrEmptyString(track_info.file_name_no_ext);
 			}
@@ -159,7 +159,7 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
         const auto cover_id = qMainDb.getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             //XAMP_LOG_DEBUG("Found album {} cover", album.toStdString());
-            emit FindAlbumCover(album_id, album, artist, track_info.file_path);
+            emit findAlbumCover(album_id, album, artist, track_info.file_path);
         }
 	}
     if (sw.ElapsedSeconds() > 1.0) {
@@ -167,13 +167,13 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
     }
 }
 
-void DatabaseFacade::InsertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
+void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     try {
         if (!qMainDb.transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
             return;
         }
-        AddTrackInfo(result, playlist_id);       
+        addTrackInfo(result, playlist_id);       
         if (!qMainDb.commit()) {
             XAMP_LOG_DEBUG("Failed to commit!");
         }

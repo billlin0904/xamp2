@@ -18,7 +18,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setMovable(true);
     setAttribute(Qt::WA_StyledBackground);   
 
-    switch (qTheme.GetThemeColor()) {
+    switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qSTR(R"(
     QTabWidget::pane { 
@@ -185,7 +185,7 @@ void PlaylistTabWidget::restoreTabOrder() {
         ++i;
     }
     for (i = 0; i < count(); ++i) {
-        setTabIcon(i, qTheme.GetApplicationIcon());
+        setTabIcon(i, qTheme.applicationIcon());
     }
 }
 
@@ -197,14 +197,14 @@ void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
             if (i == tab_index) {
                 continue;
             }
-            setTabIcon(i, qTheme.GetApplicationIcon());
+            setTabIcon(i, qTheme.applicationIcon());
         }
     }
 }
 
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
     const auto index = addTab(widget, name);
-    setTabIcon(index, qTheme.GetApplicationIcon());
+    setTabIcon(index, qTheme.applicationIcon());
     setCurrentIndex(index);
 }
 

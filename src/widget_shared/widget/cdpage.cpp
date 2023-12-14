@@ -17,7 +17,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui_->pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+    ui_->pcButton->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
     ui_->pcButton->setIconSize(QSize(64, 64));
 
     ui_->cdButton->setStyleSheet(qTEXT(R"(
@@ -26,7 +26,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui_->cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+    ui_->cdButton->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
     ui_->cdButton->setIconSize(QSize(64, 64));
 
     ui_->arrowButton->setStyleSheet(qTEXT(R"(
@@ -35,7 +35,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui_->arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
+    ui_->arrowButton->setIcon(qTheme.fontIcon(Glyphs::ICON_LEFT_ARROW));
     ui_->arrowButton->setIconSize(QSize(64, 64));
     ui_->playlistPage->hide();
 
@@ -47,10 +47,10 @@ CdPage::~CdPage() {
     delete ui_;
 }
 
-void CdPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    ui_->pcButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
-    ui_->arrowButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LEFT_ARROW));
-    ui_->cdButton->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+void CdPage::onCurrentThemeChanged(ThemeColor theme_color) {
+    ui_->pcButton->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+    ui_->arrowButton->setIcon(qTheme.fontIcon(Glyphs::ICON_LEFT_ARROW));
+    ui_->cdButton->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
 }
 
 PlaylistPage* CdPage::playlistPage() const {

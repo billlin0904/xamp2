@@ -17,15 +17,15 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 	timer_.start(15);
 }
 
-void SpectrumWidget::SetSampleRate(int32_t sample_rate) {
+void SpectrumWidget::setSampleRate(int32_t sample_rate) {
 	sample_rate_ = sample_rate;
 }
 
-void SpectrumWidget::SetFftSize(int32_t fft_size) {
+void SpectrumWidget::setFftSize(int32_t fft_size) {
 	fft_size_ = fft_size;
 }
 
-void SpectrumWidget::OnFftResultChanged(ComplexValarray const& fft_data) {
+void SpectrumWidget::onFftResultChanged(ComplexValarray const& fft_data) {
 	fft_data_ = fft_data;
 }
 
@@ -112,12 +112,12 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		}
 		path.lineTo(width(), height());
 		path.closeSubpath();
-		const QBrush brush(qTheme.GetHighlightColor());
+		const QBrush brush(qTheme.highlightColor());
 		painter.fillPath(path, brush);
 	}
 }
 
-void SpectrumWidget::Reset() {
+void SpectrumWidget::reset() {
 	fft_data_ = 0;
 	for (auto &buffer : buffer_) {
 		buffer = 0;

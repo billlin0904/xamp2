@@ -33,7 +33,7 @@ void XDialog::setContent(QWidget* content) {
 
     auto f = font();
     f.setBold(true);
-    f.setPointSize(qTheme.GetFontSize(kTitleFontSize));
+    f.setPointSize(qTheme.fontSize(kTitleFontSize));
     title_frame_label_ = new QLabel(title_frame_);
     title_frame_label_->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -45,7 +45,7 @@ void XDialog::setContent(QWidget* content) {
     title_frame_label_->setAlignment(Qt::AlignCenter);
 
     QString color;
-    switch (qTheme.GetThemeColor()) {
+    switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
         color = qTEXT("white");
         break;
@@ -107,7 +107,7 @@ void XDialog::setContent(QWidget* content) {
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    qTheme.SetTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
+    qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
 
     max_win_button_->setDisabled(true);
     min_win_button_->setDisabled(true);
@@ -121,7 +121,7 @@ void XDialog::setContent(QWidget* content) {
         });
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::CurrentThemeChanged,
+        &ThemeManager::currentThemeChanged,
         this,
         &XDialog::OnCurrentThemeChanged);
 
@@ -140,7 +140,7 @@ void XDialog::setContent(QWidget* content) {
 }
 
 void XDialog::OnCurrentThemeChanged(ThemeColor theme_color) {
-    qTheme.SetTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
+    qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
 }
 
 void XDialog::setTitle(const QString& title) const {

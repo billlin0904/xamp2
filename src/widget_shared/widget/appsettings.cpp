@@ -32,11 +32,11 @@ namespace {
 
 		QMap<QString, QVariant> soxr_setting;
 
-		if (JsonSettings::ValueAsMap(kSoxr).isEmpty()) {
+		if (JsonSettings::valueAsMap(kSoxr).isEmpty()) {
 			soxr_setting[setting_name] = default_setting;
 		}
 		else {
-			soxr_setting = JsonSettings::ValueAsMap(kSoxr);
+			soxr_setting = JsonSettings::valueAsMap(kSoxr);
 			soxr_setting[setting_name] = default_setting;
 		}
 		JsonSettings::setValue(kSoxr, QVariant::fromValue(soxr_setting));
@@ -307,7 +307,7 @@ int32_t AppSettings::valueAsInt(const QString& key) {
 }
 
 void AppSettings::loadLanguage(const QString& lang) {
-	manager_.LoadLanguage(lang);
+	manager_.loadLanguage(lang);
 }
 
 QLocale AppSettings::locale() {
@@ -330,7 +330,7 @@ void AppSettings::LoadR8BrainSetting() {
 
 	default_setting[kResampleSampleRate] = 96000;
 	JsonSettings::setDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
-	if (JsonSettings::ValueAsMap(kR8Brain).isEmpty()) {
+	if (JsonSettings::valueAsMap(kR8Brain).isEmpty()) {
 		JsonSettings::setValue(kR8Brain, QVariant::fromValue(default_setting));
 	}
 	if (!contains(kAppSettingResamplerType)) {
@@ -382,7 +382,7 @@ void AppSettings::loadOrSaveLogConfig() {
 		}
 	}
 
-	if (JsonSettings::ValueAsMap(kLog).isEmpty()) {
+	if (JsonSettings::valueAsMap(kLog).isEmpty()) {
 		min_level[kLogDefault] = qTEXT("info");
 
 		XAM_LOG_MANAGER().SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
@@ -400,7 +400,7 @@ void AppSettings::loadOrSaveLogConfig() {
 		JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
 	}
 	else {
-		log = JsonSettings::ValueAsMap(kLog);
+		log = JsonSettings::valueAsMap(kLog);
 		min_level = log[kLogMinimumLevel].toMap();
 
 		const auto default_level = min_level[kLogDefault].toString();

@@ -41,9 +41,9 @@ public:
 
 	void removeGenre(const QString& genre);
 
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
-	void OnThemeColorChanged(QColor backgroundColor, QColor color);
+	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
 	void refresh();
 

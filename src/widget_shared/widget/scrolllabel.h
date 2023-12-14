@@ -11,7 +11,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT ScrollLabel : public QLabel {
+class XAMP_WIDGET_SHARED_EXPORT ScrollLabel final : public QLabel {
 public:
 	explicit ScrollLabel(QWidget *parent = nullptr);
 
@@ -20,7 +20,7 @@ public:
 	QString text() const;
 
 public slots:
-	void OnTimerTimeout();
+	void onTimerTimeout();
 
 private:
 	QSize sizeHint() const override;

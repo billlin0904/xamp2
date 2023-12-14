@@ -82,12 +82,12 @@ void LrcPage::setFullScreen(bool enter) {
 	if (!enter) {
 		cover_label_->setMinimumSize(QSize(411, 411));
 		cover_label_->setMaximumSize(QSize(411, 411));
-		f.setPointSize(qTheme.GetFontSize(12));
+		f.setPointSize(qTheme.fontSize(12));
 		format_label_->setFont(f);
 	} else {
 		cover_label_->setMinimumSize(QSize(822, 822));
 		cover_label_->setMaximumSize(QSize(822, 822));
-		f.setPointSize(qTheme.GetFontSize(16));
+		f.setPointSize(qTheme.fontSize(16));
 		format_label_->setFont(f);
 	}
 
@@ -188,7 +188,7 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	if (theme_color == ThemeColor::LIGHT_THEME) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(10, 20);
-		effect->setColor(qTheme.GetCoverShadowColor());
+		effect->setColor(qTheme.coverShadowColor());
 		effect->setBlurRadius(50);
 		cover_label_->setGraphicsEffect(effect);
 	}
@@ -210,7 +210,7 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {	
-	OnCurrentThemeChanged(qTheme.GetThemeColor());
+	OnCurrentThemeChanged(qTheme.themeColor());
 }
 
 void LrcPage::initial() {
@@ -231,7 +231,7 @@ void LrcPage::initial() {
 	format_label_->setMaximumHeight(40);
 	format_label_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	QFont format_font(qTEXT("FormatFont"));
-	format_font.setPointSize(qTheme.GetFontSize(12));
+	format_font.setPointSize(qTheme.fontSize(12));
 	format_label_->setFont(format_font);
 
     cover_label_ = new QLabel(this);
@@ -291,7 +291,7 @@ void LrcPage::initial() {
 	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto f = font();
-	f.setPointSize(qTheme.GetFontSize(12));
+	f.setPointSize(qTheme.fontSize(12));
 	f.setBold(true);
 
     title_ = new ScrollLabel(this);
@@ -300,7 +300,7 @@ void LrcPage::initial() {
 	title_->setText(tr("Title:"));
 	title_->setFont(f);
     title_->setMinimumHeight(40);
-	f.setPointSize(qTheme.GetFontSize(15));
+	f.setPointSize(qTheme.fontSize(15));
     f.setBold(false);
     title_->setFont(f);
 

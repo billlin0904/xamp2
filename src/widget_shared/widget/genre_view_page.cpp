@@ -17,12 +17,12 @@ GenrePage::GenrePage(QWidget* parent)
 
 	auto f = font();
 	genre_label_ = new ClickableLabel();
-	f.setPointSize(qTheme.GetFontSize(15));
+	f.setPointSize(qTheme.fontSize(15));
 	f.setBold(true);
 	genre_label_->setFont(f);
 
 	auto* cevron_right = new QToolButton();
-	cevron_right->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CHEVRON_LEFT));
+	cevron_right->setIcon(qTheme.fontIcon(Glyphs::ICON_CHEVRON_LEFT));
 
 	auto* genre_combox_layout = new QHBoxLayout();
 	auto horizontalSpacer_3 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -92,14 +92,14 @@ GenreViewPage::GenreViewPage(QWidget* parent)
 	genre_container_layout->addWidget(scroll_area);
 }
 
-void GenreViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+void GenreViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
 	Q_FOREACH(auto page, genre_view_) {
 		page.first->view()->OnCurrentThemeChanged(theme_color);
 		page.second->OnCurrentThemeChanged(theme_color);
 	}
 }
 
-void GenreViewPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
+void GenreViewPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
 	Q_FOREACH(auto page, genre_view_) {
 		page.first->view()->OnThemeChanged(backgroundColor, color);
 		page.second->OnThemeChanged(backgroundColor, color);
@@ -131,12 +131,12 @@ void GenreViewPage::addGenre(const QString& genre) {
 	auto genre_label_text = genre;
 	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
 	auto* genre_label = new ClickableLabel(genre_label_text);
-	f.setPointSize(qTheme.GetFontSize(15));
+	f.setPointSize(qTheme.fontSize(15));
 	f.setBold(true);
 	genre_label->setFont(f);
 
 	auto* cevron_right = new QToolButton();
-	cevron_right->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CHEVRON_RIGHT));
+	cevron_right->setIcon(qTheme.fontIcon(Glyphs::ICON_CHEVRON_RIGHT));
 
 	auto* genre_combox_layout = new QHBoxLayout();
 	auto horizontalSpacer_3 = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);

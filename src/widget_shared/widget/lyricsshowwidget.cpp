@@ -84,17 +84,17 @@ void LyricsShowWidget::initial() {
 #if 0
 		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
 			qAppSettings.SetValue(kLyricsFontSize, 12);
-			lrc_font_.setPointSize(qTheme.GetFontSize(12));
+			lrc_font_.setPointSize(qTheme.fontSize(12));
 			});
 
 		(void)action_map.addAction(tr("Set font size(middle)"), [this]() {
 			qAppSettings.SetValue(kLyricsFontSize, 16);
-			lrc_font_.setPointSize(qTheme.GetFontSize(16));
+			lrc_font_.setPointSize(qTheme.fontSize(16));
 			});
 
 		(void)action_map.addAction(tr("Set font size(big)"), [this]() {
 			qAppSettings.SetValue(kLyricsFontSize, 24);
-			lrc_font_.setPointSize(qTheme.GetFontSize(24));
+			lrc_font_.setPointSize(qTheme.fontSize(24));
 			});
 		(void)action_map.addAction(tr("Change high light color"), [this]() {
 			auto text_color = qAppSettings.valueAsColor(kLyricsHighLightTextColor);

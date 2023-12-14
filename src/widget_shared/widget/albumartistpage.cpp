@@ -40,34 +40,34 @@ AlbumTabListView::AlbumTabListView(QWidget* parent)
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setHorizontalScrollMode(QListView::ScrollPerPixel);
 	setSpacing(2);
-	setIconSize(qTheme.GetTabIconSize());
+	setIconSize(qTheme.tabIconSize());
 	setFlow(QListView::Flow::LeftToRight);
 
 	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
 		auto table_id = index.data(Qt::UserRole + 1).toInt();
-		emit ClickedTable(table_id);
+		emit clickedTable(table_id);
 		});
 
 	(void)QObject::connect(&model_, &QStandardItemModel::itemChanged, [this](auto item) {
 		auto table_id = item->data(Qt::UserRole + 1).toInt();
 		auto table_name = item->data(Qt::DisplayRole).toString();
-		emit TableNameChanged(table_id, table_name);
+		emit tableNameChanged(table_id, table_name);
 		});
 }
 
-void AlbumTabListView::AddTab(const QString& name, int tab_id) {
+void AlbumTabListView::addTab(const QString& name, int tab_id) {
 	auto* item = new QStandardItem(name);
 	item->setData(tab_id);
     item->setSizeHint(QSize(90, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-    f.setPointSize(qTheme.GetFontSize(8));
+    f.setPointSize(qTheme.fontSize(8));
 	f.setBold(true);
 	item->setFont(f);
 	model_.appendRow(item);
 }
 
-void AlbumTabListView::SetCurrentTab(int tab_id) {
+void AlbumTabListView::setCurrentTab(int tab_id) {
 	setCurrentIndex(model_.index(tab_id, 0));
 }
 
@@ -93,11 +93,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_6);
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->AddTab(tr("ALBUM"), TAB_ALBUMS);
-	list_view_->AddTab(tr("ARTISTS"), TAB_ARTISTS);
-	list_view_->AddTab(tr("YEAR"), TAB_YEAR);
+	list_view_->addTab(tr("ALBUM"), TAB_ALBUMS);
+	list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
+	list_view_->addTab(tr("YEAR"), TAB_YEAR);
 
-	qTheme.SetAlbumNaviBarTheme(list_view_);
+	qTheme.setAlbumNaviBarTheme(list_view_);
 
 	constexpr QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	list_view_->setSizePolicy(size_policy);
@@ -126,29 +126,29 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	auto f = font();
 	f.setBold(true);
-	f.setPointSize(qTheme.GetFontSize(10));
+	f.setPointSize(qTheme.fontSize(10));
 
 	auto title_category_list = qMainDb.getCategories();
 
 	album_tag_list_widget_ = new TagListView();
-	album_tag_list_widget_->SetListViewFixedHeight(70);
+	album_tag_list_widget_->setListViewFixedHeight(70);
 
 	std::ranges::sort(title_category_list, [](const auto& left, const auto& right) {
 		return left.length() < right.length();
 		});
 	
 	Q_FOREACH(auto category, title_category_list) {
-		album_tag_list_widget_->AddTag(category);
+		album_tag_list_widget_->addTag(category);
 	}
-	album_tag_list_widget_->AddTag(tr("All"), true);
+	album_tag_list_widget_->addTag(tr("All"), true);
 
-	(void)QObject::connect(album_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
+	(void)QObject::connect(album_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
 			return;
 		}
 		if (tags.contains(tr("All"))) {
 			album_view_->showAll();
-			album_tag_list_widget_->DisableAllTag(tr("All"));
+			album_tag_list_widget_->disableAllTag(tr("All"));
 		}
 		else {
 			album_view_->filterCategories(tags);
@@ -156,7 +156,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_view_->reload();
 		});
 
-	(void)QObject::connect(album_tag_list_widget_, &TagListView::TagClear, [this]() {
+	(void)QObject::connect(album_tag_list_widget_, &TagListView::tagClear, [this]() {
 		album_view_->showAll();
 		album_view_->reload();
 		});
@@ -171,7 +171,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_search_line_edit_->setMinimumSize(QSize(180, 30));
 	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	album_search_line_edit_->setClearButtonEnabled(true);
-	album_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	album_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	album_search_line_edit_->setPlaceholderText(tr("search Album/Artist"));
 	
 	album_model_ = new QStandardItemModel(0, 1 , this);
@@ -188,14 +188,14 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 				(void)QObject::connect(action, &QAction::triggered, [this]() {
 					album_view_->search(kEmptyString);
 					album_view_->reload();		
-					album_tag_list_widget_->ClearTag();
+					album_tag_list_widget_->clearTag();
 					});
 			}
 		}
 	}
 
 	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, album_completer](const auto& text) {
-		album_tag_list_widget_->ClearTag();
+		album_tag_list_widget_->clearTag();
 
 		const auto items = album_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
@@ -222,7 +222,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_frame_layout->addLayout(album_combox_layout_1);
 
 	auto* tags_label = new QLabel(tr("Category"));
-	f.setPointSize(qTheme.GetFontSize(9));
+	f.setPointSize(qTheme.fontSize(9));
 	tags_label->setFont(f);
 
 	album_frame_layout->addWidget(tags_label);
@@ -248,7 +248,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_search_line_edit_->setMinimumSize(QSize(180, 30));
 	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	artist_search_line_edit_->setClearButtonEnabled(true);
-	artist_search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	artist_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	artist_search_line_edit_->setPlaceholderText(tr("search Artist"));
 
 	action_list = artist_search_line_edit_->findChildren<QAction*>();
@@ -302,7 +302,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_tag_list_widget_ = new TagListView();
 
 	Q_FOREACH(auto category, artist_category_list) {
-		artist_tag_list_widget_->AddTag(category, true);
+		artist_tag_list_widget_->addTag(category, true);
 	}
 
 	artist_frame_layout->addLayout(artist_combox_layout_1);
@@ -325,13 +325,13 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::loadCompleted,
 		this, &AlbumArtistPage::refresh);
 
-	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagChanged, [this](const auto& tags) {
+	(void)QObject::connect(artist_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
 			return;
 		}
 		if (tags.contains(tr("All"))) {
 			artist_view_->showAll();
-			artist_tag_list_widget_->DisableAllTag(tr("All"));
+			artist_tag_list_widget_->disableAllTag(tr("All"));
 		}
 		else {
 			artist_view_->filterArtistName(tags);
@@ -339,7 +339,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		artist_view_->reload();
 		});
 
-	(void)QObject::connect(artist_tag_list_widget_, &TagListView::TagClear, [this]() {
+	(void)QObject::connect(artist_tag_list_widget_, &TagListView::tagClear, [this]() {
 		artist_view_->showAll();
 		artist_view_->reload();
 		});
@@ -357,32 +357,32 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_tag_list_widget_ = new TagListView();
 	year_tag_list_widget_->setSizePolicy(size_policy_1);
 	Q_FOREACH (auto year, qMainDb.getYears()) {
-		year_tag_list_widget_->AddTag(year, true);
+		year_tag_list_widget_->addTag(year, true);
 	}
 	year_frame_layout->addWidget(year_tag_list_widget_);
 	year_frame_layout->addWidget(year_view_, 1);
 
-	(void)QObject::connect(year_tag_list_widget_, &TagListView::TagChanged, [this](const QSet<QString>& tags) {
+	(void)QObject::connect(year_tag_list_widget_, &TagListView::tagChanged, [this](const QSet<QString>& tags) {
 		if (tags.isEmpty()) {
 			return;
 		}
 		if (tags.contains(tr("All"))) {
 			year_view_->showAll();
-			year_tag_list_widget_->DisableAllTag(tr("All"));
+			year_tag_list_widget_->disableAllTag(tr("All"));
 		} else {
 			year_view_->filterYears(tags);
 		}
 		year_view_->reload();
 		});
 
-	(void)QObject::connect(year_tag_list_widget_, &TagListView::TagClear, [this]() {
+	(void)QObject::connect(year_tag_list_widget_, &TagListView::tagClear, [this]() {
 		year_view_->showAll();
 		year_view_->reload();
 		});
 
 	current_view->addWidget(year_frame_);
 
-	(void)QObject::connect(list_view_, &AlbumTabListView::ClickedTable, [this, current_view](auto table_id) {
+	(void)QObject::connect(list_view_, &AlbumTabListView::clickedTable, [this, current_view](auto table_id) {
 		switch (table_id) {
 			case TAB_ALBUMS:
 				current_view->setCurrentWidget(album_frame_);
@@ -397,38 +397,38 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		});
 
 	current_view->setCurrentIndex(0);
-	list_view_->SetCurrentTab(TAB_ALBUMS);
+	list_view_->setCurrentTab(TAB_ALBUMS);
 
 	(void)QObject::connect(album_view_, &AlbumView::removeAll, [this]() {
-		album_tag_list_widget_->ClearTag();
-		year_tag_list_widget_->ClearTag();
+		album_tag_list_widget_->clearTag();
+		year_tag_list_widget_->clearTag();
 
 		artist_view_->reload();
 		year_view_->reload();
 		refresh();
 		});
 
-	OnCurrentThemeChanged(qTheme.GetThemeColor());
+	onCurrentThemeChanged(qTheme.themeColor());
 }
 
-void AlbumArtistPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+void AlbumArtistPage::onCurrentThemeChanged(ThemeColor theme_color) {
 	album_view_->OnCurrentThemeChanged(theme_color);
-	artist_view_->OnCurrentThemeChanged(theme_color);
+	artist_view_->onCurrentThemeChanged(theme_color);
 	year_view_->OnCurrentThemeChanged(theme_color);
 
-	album_tag_list_widget_->OnCurrentThemeChanged(theme_color);
-	artist_tag_list_widget_->OnCurrentThemeChanged(theme_color);
+	album_tag_list_widget_->onCurrentThemeChanged(theme_color);
+	artist_tag_list_widget_->onCurrentThemeChanged(theme_color);
 
-	qTheme.SetLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
-	qTheme.SetLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
+	qTheme.setLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
+	qTheme.setLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
 }
 
-void AlbumArtistPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
+void AlbumArtistPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
 	album_view_->OnThemeChanged(backgroundColor, color);
-	artist_view_->OnThemeChanged(backgroundColor, color);
+	artist_view_->onThemeChanged(backgroundColor, color);
 	year_view_->OnThemeChanged(backgroundColor, color);
-	album_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
-	artist_tag_list_widget_->OnThemeColorChanged(backgroundColor, color);
+	album_tag_list_widget_->onThemeColorChanged(backgroundColor, color);
+	artist_tag_list_widget_->onThemeColorChanged(backgroundColor, color);
 }
 
 void AlbumArtistPage::refresh() {
@@ -436,17 +436,17 @@ void AlbumArtistPage::refresh() {
 	artist_view_->reload();
 
 	Q_FOREACH(auto category, qMainDb.getCategories()) {
-		album_tag_list_widget_->AddTag(category);
+		album_tag_list_widget_->addTag(category);
 	}
 
 	auto years = qMainDb.getYears();
 	std::ranges::sort(years);
 	Q_FOREACH(auto year, years) {
-		year_tag_list_widget_->AddTag(year, true);
+		year_tag_list_widget_->addTag(year, true);
 	}
 	if (!years.empty()) {
-		year_tag_list_widget_->EnableTag(years.first());
+		year_tag_list_widget_->enableTag(years.first());
 	}
-	year_tag_list_widget_->Sort();
+	year_tag_list_widget_->sort();
 }
 

@@ -70,6 +70,7 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     setAcceptDrops(true);
     readDriveInfo();
     installEventFilter(this);
+    ensureInitTaskbar();
 }
 
 // QScopedPointer require default destructor.
@@ -109,7 +110,7 @@ void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
     if (!content_widget_) {
         return;
     }
-    emit qTheme.CurrentThemeChanged(theme_color);
+    emit qTheme.currentThemeChanged(theme_color);
 }
 
 void XMainWindow::setTaskbarProgress(const int32_t percent) {

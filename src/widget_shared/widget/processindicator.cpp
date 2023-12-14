@@ -16,7 +16,7 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
     setFocusPolicy(Qt::NoFocus);
     CenterParent(this);
 
-    switch (qTheme.GetThemeColor()) {
+    switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
         setColor(Qt::white);
         break;
@@ -25,7 +25,7 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
         break;
     }
 
-    stopped_icon_ = qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_CHECK);
+    stopped_icon_ = qTheme.fontIcon(Glyphs::ICON_CIRCLE_CHECK);
     show();
 }
 

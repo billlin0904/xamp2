@@ -19,25 +19,25 @@ namespace {
 }
 
 LocaleLanguage::LocaleLanguage() {
-	SetDefaultLanguage();
+	setDefaultLanguage();
 }
 
 LocaleLanguage::LocaleLanguage(const QString& name) {
 	const QLocale locale(name);
-	SetLanguageByLocale(locale);
+	setLanguageByLocale(locale);
 }
 
-void LocaleLanguage::SetDefaultLanguage() {
+void LocaleLanguage::setDefaultLanguage() {
 	const auto locale = QLocale::system();
-	SetLanguageByLocale(locale);
+	setLanguageByLocale(locale);
 }
 
 void LocaleLanguage::SetLanguage(QLocale::Language lang, QLocale::Country country) {
 	const QLocale locale(lang, country);
-	SetLanguageByLocale(locale);
+	setLanguageByLocale(locale);
 }
 
-void LocaleLanguage::SetLanguageByLocale(const QLocale& locale) {
+void LocaleLanguage::setLanguageByLocale(const QLocale& locale) {
 	lang_ = locale.language();
 	country_ = locale.country();
 	native_name_lang_ = locale.nativeLanguageName();
@@ -48,7 +48,7 @@ void LocaleLanguage::SetLanguageByLocale(const QLocale& locale) {
 
 LocaleLanguageManager::LocaleLanguageManager() = default;
 
-QList<LocaleLanguage> LocaleLanguageManager::LanguageNames() {
+QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	QList<LocaleLanguage> languages_list;
 
 	auto path = QApplication::applicationDirPath();
@@ -67,7 +67,7 @@ QList<LocaleLanguage> LocaleLanguageManager::LanguageNames() {
 	return languages_list;
 }
 
-void LocaleLanguageManager::LoadLanguage(const QString& lang) {
+void LocaleLanguageManager::loadLanguage(const QString& lang) {
 	if (current_lang_ != lang) {
 		current_lang_ = lang;
 		locale_ = QLocale(lang);

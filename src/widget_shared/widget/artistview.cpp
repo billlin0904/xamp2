@@ -42,7 +42,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
 	constexpr auto kPaddingSize = 2;
 
-	const auto default_cover_size = qTheme.GetDefaultCoverSize();
+	const auto default_cover_size = qTheme.defaultCoverSize();
 	const QRect cover_rect(option.rect.left() + kPaddingSize,
 		option.rect.top() + kPaddingSize,
 		default_cover_size.width(),
@@ -66,7 +66,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	}
 	else {
 		painter->setPen(Qt::white);
-		font.setPointSize(qTheme.GetFontSize(70));
+		font.setPointSize(qTheme.fontSize(70));
 		font.setBold(true);
 		painter->setFont(font);
 		painter->drawText(rect, Qt::AlignCenter, first_char);
@@ -74,7 +74,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
 	painter->setPen(text_color_);
 	font.setBold(false);
-	font.setPointSize(qTheme.GetFontSize(8));
+	font.setPointSize(qTheme.fontSize(8));
 	painter->setFont(font);
 	const auto album_artist_text_width = default_cover_size.width();
 	const QRect artist_text_rect(option.rect.left() + 10,
@@ -88,7 +88,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
 QSize ArtistStyledItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
 	auto result = QStyledItemDelegate::sizeHint(option, index);
-	const auto default_cover = qTheme.GetDefaultCoverSize();
+	const auto default_cover = qTheme.defaultCoverSize();
 	result.setWidth(default_cover.width() + 30);
 	result.setHeight(default_cover.height() + 80);
 	return result;
@@ -115,9 +115,9 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
 	close_button_->setCursor(Qt::PointingHandCursor);
 	close_button_->setAttribute(Qt::WA_TranslucentBackground);
-	close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 1.5);
-	close_button_->setIconSize(qTheme.GetTitleButtonIconSize() * 1.5);
-	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, qTheme.GetThemeColor()));
+	close_button_->setFixedSize(qTheme.titleButtonIconSize() * 1.5);
+	close_button_->setIconSize(qTheme.titleButtonIconSize() * 1.5);
+	close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, qTheme.themeColor()));
 
 	(void)QObject::connect(close_button_, &QPushButton::clicked, [this]() {
 		hide();
@@ -148,13 +148,13 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	auto artist = new QLabel(this);
 	auto f = font();
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(qTheme.GetFontSize(15));
+	f.setPointSize(qTheme.fontSize(15));
 	artist->setFont(f);
 	artist->setText(tr("ARTIST"));
 
 	artist_name_ = new QLabel(this);
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(qTheme.GetFontSize(30));
+	f.setPointSize(qTheme.fontSize(30));
 	artist_name_->setFont(f);
 	artist_name_->setObjectName(QString::fromUtf8("artistNameLabel"));
 	artist_name_->setMinimumSize(QSize(0, 80));
@@ -177,7 +177,7 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 
 	auto all_album = new QLabel(this);
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(qTheme.GetFontSize(20));
+	f.setPointSize(qTheme.fontSize(20));
 	all_album->setFont(f);
 	all_album->setText(tr("ALL ALBUMS"));
 
@@ -201,8 +201,8 @@ void ArtistViewPage::paintEvent(QPaintEvent* event) {
 	QPainter painter(this);
 }
 
-void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+void ArtistViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
+	close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
 }
 
 void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
@@ -213,7 +213,7 @@ void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const Q
                 border-radius: 8px;
            }
         )"
-	).arg(qTheme.GetLinearGradientStyle()));
+	).arg(qTheme.linearGradientStyle()));
 
 	const auto artist_cover = qImageCache.cover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 	const auto round_image = image_utils::roundImage(artist_cover, artist_cover.width() / 2);	
@@ -328,13 +328,13 @@ void ArtistView::hidePageAnimation() {
 	hide_page_ = true;
 }
 
-void ArtistView::OnThemeChanged(QColor backgroundColor, QColor color) {
+void ArtistView::onThemeChanged(QColor backgroundColor, QColor color) {
 	dynamic_cast<ArtistStyledItemDelegate*>(itemDelegate())->setTextColor(color);
 	page_->album()->OnThemeChanged(backgroundColor, color);
 }
 
-void ArtistView::OnCurrentThemeChanged(ThemeColor theme_color) {
-	page_->OnCurrentThemeChanged(theme_color);
+void ArtistView::onCurrentThemeChanged(ThemeColor theme_color) {
+	page_->onCurrentThemeChanged(theme_color);
 }
 
 void ArtistView::filterArtistName(const QSet<QString>& name) {

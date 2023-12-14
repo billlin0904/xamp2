@@ -29,7 +29,7 @@
 
 namespace {
     template <typename Iterator>
-    void SortFontWeight(Iterator begin, Iterator end) {
+    void sortFontWeight(Iterator begin, Iterator end) {
         std::sort(begin, end,
             [](const auto& left_font_name, const auto& right_font_name) {
                 auto getFontWeight = [](auto name) {
@@ -82,21 +82,21 @@ namespace {
     }
 }
 
-QString ThemeManager::GetCountryFlagFilePath(const QString& country_iso_code) {
+QString ThemeManager::countryFlagFilePath(const QString& country_iso_code) {
     return
         qSTR("%1/flags/%2.png")
         .arg(QCoreApplication::applicationDirPath())
         .arg(country_iso_code);
 }
 
-QString ThemeManager::GetFontNamePath(const QString& file_name) {
+QString ThemeManager::fontNamePath(const QString& file_name) {
 	return
 		qSTR("%1/fonts/%2")
 		.arg(QCoreApplication::applicationDirPath())
 		.arg(file_name);
 }
 
-void ThemeManager::InstallFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts) {
+void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts) {
 	const auto font_path = qSTR("%1/fonts/").arg(QCoreApplication::applicationDirPath());
 
     QMap<int32_t, QString> font_weight_map;
@@ -111,15 +111,15 @@ void ThemeManager::InstallFileFonts(const QString& font_name_prefix, QList<QStri
         }
     }
 
-    SortFontWeight(file_paths.begin(), file_paths.end());
+    sortFontWeight(file_paths.begin(), file_paths.end());
 
     Q_FOREACH(auto file_path, file_paths) {
-        InstallFileFont(file_path, ui_fallback_fonts);
+        installFileFont(file_path, ui_fallback_fonts);
     }
 }
 
-void ThemeManager::InstallFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
-	const auto font_path = GetFontNamePath(file_name);
+void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
+	const auto font_path = fontNamePath(file_name);
 	const QFileInfo info(font_path);
     if (!info.exists()) {
         XAMP_LOG_ERROR("Not found font file name: {}", file_name.toStdString());
@@ -133,7 +133,7 @@ void ThemeManager::InstallFileFont(const QString& file_name, QList<QString> &ui_
     }
 }
 
-void ThemeManager::SetFontAwesomeIcons() {
+void ThemeManager::setFontAwesomeIcons() {
     const HashMap<char32_t, uint32_t> glyphs{
     { ICON_VOLUME_UP ,                0xF6A8 },
     { ICON_VOLUME_OFF,                0xF6A9 },
@@ -205,17 +205,17 @@ void ThemeManager::SetFontAwesomeIcons() {
     
     switch (theme_color_) {
     case ThemeColor::LIGHT_THEME:
-        qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-regular-400.ttf")));
+        qFontIcon.AddFont(fontNamePath(qTEXT("fa-regular-400.ttf")));
         break;
     case ThemeColor::DARK_THEME:
-        qFontIcon.AddFont(GetFontNamePath(qTEXT("fa-solid-900.ttf")));
+        qFontIcon.AddFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
         break;
     }   
 
     qFontIcon.SetGlyphs(glyphs);
 }
 
-QFont ThemeManager::LoadFonts() {
+QFont ThemeManager::loadFonts() {
     QList<QString> format_font;
     QList<QString> mono_fonts;
     QList<QString> display_fonts;
@@ -223,13 +223,13 @@ QFont ThemeManager::LoadFonts() {
     QList<QString> en_fonts;
     QList<QString> debug_fonts;    
 
-    InstallFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-    InstallFileFonts(qTEXT("NotoSans"), mono_fonts);
-    InstallFileFonts(qTEXT("OpenSans"), en_fonts);
-    InstallFileFonts(qTEXT("MiSans"), ui_fonts);
-    InstallFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
+    installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
+    installFileFonts(qTEXT("NotoSans"), mono_fonts);
+    installFileFonts(qTEXT("OpenSans"), en_fonts);
+    installFileFonts(qTEXT("MiSans"), ui_fonts);
+    installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
-    SortFontWeight(ui_fonts.begin(), ui_fonts.end());
+    sortFontWeight(ui_fonts.begin(), ui_fonts.end());
     ui_fonts.insert(0, en_fonts[0]);
     ui_fonts.insert(1, en_fonts[1]);
     
@@ -246,7 +246,7 @@ QFont ThemeManager::LoadFonts() {
     QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
     QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
 
-    auto ui_font = GetUiFont();
+    auto ui_font = uiFont();
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #ifdef Q_OS_WIN
     ui_font.setWeight(QFont::Weight::Medium);
@@ -258,7 +258,7 @@ QFont ThemeManager::LoadFonts() {
     return ui_font;
 }
 
-void ThemeManager::SetPalette() {
+void ThemeManager::setPalette() {
     palette_ = QPalette();
     if (theme_color_ == ThemeColor::LIGHT_THEME) {
         palette_.setColor(QPalette::WindowText, QColor(250, 250, 250));
@@ -274,7 +274,7 @@ ThemeManager::ThemeManager() {
     cache_cover_size_ = QSize(350, 350);
     album_cover_size_ = QSize(206, 206);
     save_cover_art_size_ = QSize(350, 350);
-    ui_font_ = LoadFonts();
+    ui_font_ = loadFonts();
     const auto* screen = qApp->screens()[0];
     const auto screen_size = screen->size();
     if (screen_size.width() >= 1920 && screen_size.height() == 1080) {
@@ -283,14 +283,14 @@ ThemeManager::ThemeManager() {
     else {
         font_ratio_ = 1.0;
     }
-    ui_font_.setPointSize(GetDefaultFontSize());
+    ui_font_.setPointSize(defaultFontSize());
 }
 
-void ThemeManager::SetThemeColor(ThemeColor theme_color) {
+void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
 
-    SetFontAwesomeIcons();
-    SetPalette();
+    setFontAwesomeIcons();
+    setPalette();
 
     qAppSettings.setEnumValue(kAppSettingTheme, theme_color_);
 
@@ -311,20 +311,20 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     default_size_unknown_cover_ = image_utils::resizeImage(unknown_cover_, album_cover_size_, true);
 }
 
-QLatin1String ThemeManager::GetThemeColorPath() const {
-    return GetThemeColorPath(theme_color_);
+QLatin1String ThemeManager::themeColorPath() const {
+    return themeColorPath(theme_color_);
 }
 
-QLatin1String ThemeManager::GetThemeColorPath(ThemeColor theme_color) const {
+QLatin1String ThemeManager::themeColorPath(ThemeColor theme_color) const {
     if (theme_color == ThemeColor::DARK_THEME) {
 		return qTEXT("Black");
 	}
 	return qTEXT("White");
 }
 
-QColor ThemeManager::GetThemeTextColor() const {
+QColor ThemeManager::themeTextColor() const {
     auto color = Qt::black;
-    switch (GetThemeColor()) {
+    switch (themeColor()) {
     case ThemeColor::DARK_THEME:
         color = Qt::white;
         break;
@@ -335,14 +335,14 @@ QColor ThemeManager::GetThemeTextColor() const {
     return color;
 }
 
-QColor ThemeManager::GetBackgroundColor() const noexcept {
+QColor ThemeManager::backgroundColor() const noexcept {
     return background_color_;
 }
 
-QString ThemeManager::GetBackgroundColorString() const {
+QString ThemeManager::backgroundColorString() const {
     QString color;
 
-    switch (GetThemeColor()) {
+    switch (themeColor()) {
     case ThemeColor::DARK_THEME:
         color = qTEXT("#19232D");
         break;
@@ -353,19 +353,19 @@ QString ThemeManager::GetBackgroundColorString() const {
     return color;
 }
 
-void ThemeManager::SetMenuStyle(QWidget* menu) {
+void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
     menu->setStyle(new IconSizeStyle(12));
 }
 
-QIcon ThemeManager::GetFontIcon(const char32_t& code, QVariantMap options) {
+QIcon ThemeManager::fontIcon(const char32_t& code, QVariantMap options) {
     return qFontIcon.GetIcon(code, options);
 }
 
-QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> theme_color) const {
-    auto color = theme_color ? *theme_color : GetThemeColor();
+QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> theme_color) const {
+    auto color = theme_color ? *theme_color : themeColor();
 
     switch (code) {
     case Glyphs::ICON_HEART_PRESS:
@@ -387,11 +387,11 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
         return qFontIcon.GetIcon(0xF2D1, temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(GetThemeColorPath(color)));
+        return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(themeColorPath(color)));
     case Glyphs::ICON_CLOSE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(GetThemeColorPath(color)));
+        return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(themeColorPath(color)));
     case Glyphs::ICON_RESTORE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(GetThemeColorPath(color)));
+        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(themeColorPath(color)));
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
 	    {
 			auto temp = font_icon_opts_;
@@ -425,7 +425,7 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
     case Glyphs::ICON_CIRCLE_CHECK:
 		{
 			auto temp = font_icon_opts_;
-			temp.insert(FontIconOption::kColorAttr, QVariant(GetHighlightColor()));
+			temp.insert(FontIconOption::kColorAttr, QVariant(highlightColor()));
 			return qFontIcon.GetIcon(code, temp);
 		}
     case Glyphs::ICON_CIRCLE_NOTCH:
@@ -440,15 +440,15 @@ QIcon ThemeManager::GetFontIcon(const char32_t code, std::optional<ThemeColor> t
     return qFontIcon.GetIcon(code, font_icon_opts_);
 }
 
-QIcon ThemeManager::GetApplicationIcon() const {
+QIcon ThemeManager::applicationIcon() const {
     return QIcon(qTEXT(":/xamp/xamp.ico"));
 }
 
-QIcon ThemeManager::GetPlayCircleIcon() const {
+QIcon ThemeManager::playCircleIcon() const {
     return QIcon(qTEXT(":/xamp/Resource/Black/play_circle.png"));
 }
 
-QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size, double scale_factor) const {
+QIcon ThemeManager::playlistPauseIcon(QSize icon_size, double scale_factor) const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(scale_factor));
     font_options.insert(FontIconOption::kColorAttr, QColor(250, 88, 106));
@@ -462,7 +462,7 @@ QIcon ThemeManager::PlaylistPauseIcon(QSize icon_size, double scale_factor) cons
     return icon;
 }
 
-QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size, double scale_factor) const {
+QIcon ThemeManager::playlistPlayingIcon(QSize icon_size, double scale_factor) const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(scale_factor));
     font_options.insert(FontIconOption::kColorAttr, QColor(250, 88, 106));
@@ -476,46 +476,46 @@ QIcon ThemeManager::GetPlaylistPlayingIcon(QSize icon_size, double scale_factor)
     return icon;
 }
 
-QIcon ThemeManager::GetPlayingIcon() const {
+QIcon ThemeManager::playingIcon() const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kColorAttr, QColor(252, 215, 75));
     return qFontIcon.GetIcon(0xF8F2, font_options);
 }
 
-QIcon ThemeManager::GetHiResIcon() const {
+QIcon ThemeManager::hiResIcon() const {
     QVariantMap options;
     options.insert(FontIconOption::kColorAttr, QColor(250, 197, 24));
     options.insert(FontIconOption::kScaleFactorAttr, 0.8);
     return QIcon(qFontIcon.GetIcon(0xE1AE, options));
 }
 
-QPixmap ThemeManager::GetGithubIcon() const {
-    if (GetThemeColor() == ThemeColor::DARK_THEME) {
+QPixmap ThemeManager::githubIcon() const {
+    if (themeColor() == ThemeColor::DARK_THEME) {
         return QPixmap(qTEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
 	} else {
         return QPixmap(qTEXT(":/xamp/Resource/White/GitHub-Mark.png"));
 	}
 }
 
-const QPixmap& ThemeManager::GetUnknownCover() const noexcept {
+const QPixmap& ThemeManager::unknownCover() const noexcept {
     return unknown_cover_;
 }
 
-const QPixmap& ThemeManager::DefaultSizeUnknownCover() const noexcept {
+const QPixmap& ThemeManager::defaultSizeUnknownCover() const noexcept {
     return default_size_unknown_cover_;
 }
 
-void ThemeManager::UpdateMaximumIcon(QToolButton *maxWinButton, bool is_maximum) const {
+void ThemeManager::updateMaximumIcon(QToolButton *maxWinButton, bool is_maximum) const {
     if (is_maximum) {
-        maxWinButton->setIcon(GetFontIcon(Glyphs::ICON_RESTORE_WINDOW));        
+        maxWinButton->setIcon(fontIcon(Glyphs::ICON_RESTORE_WINDOW));        
     } else {
-        maxWinButton->setIcon(GetFontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
+        maxWinButton->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
     }
 }
 
-void ThemeManager::SetBitPerfectButton(QToolButton * bitPerfectButton, bool enable) {
+void ThemeManager::setBitPerfectButton(QToolButton * bitPerfectButton, bool enable) {
     auto f = bitPerfectButton->font();
-    f.setPointSize(GetFontSize(9));
+    f.setPointSize(fontSize(9));
     bitPerfectButton->setFont(f);
     bitPerfectButton->setText(qSTR("Bit-Perfect"));
 
@@ -547,43 +547,43 @@ void ThemeManager::SetBitPerfectButton(QToolButton * bitPerfectButton, bool enab
     }
 }
 
-void ThemeManager::SetHeartButton(QToolButton* heartButton, bool press) {
-    heartButton->setIcon(GetFontIcon(press ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART));
+void ThemeManager::setHeartButton(QToolButton* heartButton, bool press) {
+    heartButton->setIcon(fontIcon(press ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART));
     heartButton->setStyleSheet(qTEXT("background: transparent;"));
 }
 
-void ThemeManager::SetPlayOrPauseButton(QToolButton *playButton, bool is_playing) {
+void ThemeManager::setPlayOrPauseButton(QToolButton *playButton, bool is_playing) {
     if (is_playing) {
-        playButton->setIcon(GetFontIcon(Glyphs::ICON_PAUSE));
+        playButton->setIcon(fontIcon(Glyphs::ICON_PAUSE));
     }
     else {
-        playButton->setIcon(GetFontIcon(Glyphs::ICON_PLAY));
+        playButton->setIcon(fontIcon(Glyphs::ICON_PLAY));
     }
 }
 
-const QSize& ThemeManager::GetDefaultCoverSize() const noexcept {
+const QSize& ThemeManager::defaultCoverSize() const noexcept {
     return cover_size_;
 }
 
-QSize ThemeManager::GetCacheCoverSize() const noexcept {
+QSize ThemeManager::cacheCoverSize() const noexcept {
     return cache_cover_size_;
 }
 
-QSize ThemeManager::GetAlbumCoverSize() const noexcept {
+QSize ThemeManager::albumCoverSize() const noexcept {
     return album_cover_size_;
 }
 
-void ThemeManager::SetBackgroundColor(QWidget* widget) {
-    auto color = GetPalette().color(QPalette::WindowText);
+void ThemeManager::setBackgroundColor(QWidget* widget) {
+    auto color = palette().color(QPalette::WindowText);
     widget->setStyleSheet(BackgroundColorToString(color));
 }
 
-void ThemeManager::LoadAndApplyTheme() {
-    qApp->setFont(GetDefaultFont());
+void ThemeManager::loadAndApplyTheme() {
+    qApp->setFont(defaultFont());
 
     QString filename;
 
-    if (GetThemeColor() == ThemeColor::LIGHT_THEME) {
+    if (themeColor() == ThemeColor::LIGHT_THEME) {
         filename = qTEXT(":/xamp/Resource/Theme/light/style.qss");
     } else {
         filename = qTEXT(":/xamp/Resource/Theme/dark/style.qss");
@@ -597,17 +597,17 @@ void ThemeManager::LoadAndApplyTheme() {
     f.close();
 }
 
-void ThemeManager::SetBackgroundColor(QColor color) {
+void ThemeManager::setBackgroundColor(QColor color) {
     background_color_ = color;
     qAppSettings.setValue(kAppSettingBackgroundColor, color);
 }
 
-QColor ThemeManager::GetTitleBarColor() const {
-    return QColor(GetBackgroundColor());
+QColor ThemeManager::titleBarColor() const {
+    return QColor(backgroundColor());
 }
 
-QColor ThemeManager::GetCoverShadowColor() const {
-    switch (GetThemeColor()) {
+QColor ThemeManager::coverShadowColor() const {
+    switch (themeColor()) {
     case ThemeColor::DARK_THEME:
     case ThemeColor::LIGHT_THEME:
     default:
@@ -615,8 +615,8 @@ QColor ThemeManager::GetCoverShadowColor() const {
     }
 }
 
-QString ThemeManager::GetLinearGradientStyle() const {
-    switch (GetThemeColor()) {
+QString ThemeManager::linearGradientStyle() const {
+    switch (themeColor()) {
     default:
     case ThemeColor::DARK_THEME:
         return qTEXT("#2e2f31");
@@ -625,8 +625,8 @@ QString ThemeManager::GetLinearGradientStyle() const {
     }
 }
 
-void ThemeManager::SetLinearGradient(QLinearGradient& gradient) const {
-    switch (GetThemeColor()) {
+void ThemeManager::setLinearGradient(QLinearGradient& gradient) const {
+    switch (themeColor()) {
         case ThemeColor::DARK_THEME:
             gradient.setColorAt(0, QColor("#1e1d23"));
             gradient.setColorAt(0.74, QColor("#000000"));
@@ -641,7 +641,7 @@ void ThemeManager::SetLinearGradient(QLinearGradient& gradient) const {
     }
 }
 
-QSize ThemeManager::GetTabIconSize() const {
+QSize ThemeManager::tabIconSize() const {
 #ifdef XAMP_OS_MAC
     return QSize(20, 20);
 #else
@@ -649,8 +649,8 @@ QSize ThemeManager::GetTabIconSize() const {
 #endif
 }
 
-QColor ThemeManager::GetHoverColor() const {
-    switch (GetThemeColor()) {
+QColor ThemeManager::hoverColor() const {
+    switch (themeColor()) {
     case ThemeColor::DARK_THEME:
         return {qTEXT("#43474e")};
     case ThemeColor::LIGHT_THEME:
@@ -659,8 +659,8 @@ QColor ThemeManager::GetHoverColor() const {
     }
 }
 
-QColor ThemeManager::GetHighlightColor() const {
-    switch (GetThemeColor()) {
+QColor ThemeManager::highlightColor() const {
+    switch (themeColor()) {
     case ThemeColor::LIGHT_THEME:
         return {qTEXT("#9FCBFF")};
     case ThemeColor::DARK_THEME:
@@ -669,12 +669,12 @@ QColor ThemeManager::GetHighlightColor() const {
     }
 }
 
-int32_t ThemeManager::GetTitleBarIconHeight() {
+int32_t ThemeManager::titleBarIconHeight() {
     return 8;
 }
 
-void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
-    const QColor hover_color = GetHoverColor();
+void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
+    const QColor hover_color = hoverColor();
     const QColor color_hover_color(qTEXT("#dc3545"));
 
     close_button->setStyleSheet(qSTR(R"(
@@ -689,8 +689,8 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										 border-radius: 0px;
                                          }
                                          )").arg(ColorToString(color_hover_color)));
-    close_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
-    close_button->setIcon(GetFontIcon(Glyphs::ICON_CLOSE_WINDOW));
+    close_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
+    close_button->setIcon(fontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
     min_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#minWinButton {
@@ -703,8 +703,8 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										  border-radius: 0px;				 
                                           }
                                           )").arg(ColorToString(hover_color)));
-    min_win_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
-    min_win_button->setIcon(GetFontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
+    min_win_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
+    min_win_button->setIcon(fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
     
     max_win_button->setStyleSheet(qSTR(R"(
                                           QToolButton#maxWinButton {
@@ -717,12 +717,12 @@ void ThemeManager::SetTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										  border-radius: 0px;								 
                                           }
                                           )").arg(ColorToString(hover_color)));
-    max_win_button->setIconSize(QSize(GetTitleBarIconHeight(), GetTitleBarIconHeight()));
-    max_win_button->setIcon(GetFontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
+    max_win_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
+    max_win_button->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
 }
 
-void ThemeManager::SetTextSeparator(QFrame *frame) {
-    switch (GetThemeColor()) {
+void ThemeManager::setTextSeparator(QFrame *frame) {
+    switch (themeColor()) {
     case ThemeColor::DARK_THEME:
         frame->setStyleSheet(qTEXT("background-color: #37414F;"));
         break;
@@ -732,44 +732,44 @@ void ThemeManager::SetTextSeparator(QFrame *frame) {
     }
 }
 
-int32_t ThemeManager::GetFontSize(int32_t base_size) const {
+int32_t ThemeManager::fontSize(int32_t base_size) const {
     return base_size * font_ratio_;
 }
 
-int32_t ThemeManager::GetDefaultFontSize() const {
-    return GetFontSize(8);
+int32_t ThemeManager::defaultFontSize() const {
+    return fontSize(8);
 }
 
-QSize ThemeManager::GetTitleButtonIconSize() {
-    return {GetTitleBarIconHeight(), GetTitleBarIconHeight()};
+QSize ThemeManager::titleButtonIconSize() {
+    return {titleBarIconHeight(), titleBarIconHeight()};
 }
 
-QFont ThemeManager::GetFormatFont() const {
+QFont ThemeManager::formatFont() const {
     return QFont(qTEXT("FormatFont"));
 }
 
-QFont ThemeManager::GetUiFont() const {
+QFont ThemeManager::uiFont() const {
     return QFont(qTEXT("UIFont"));
 }
 
-QFont ThemeManager::GetDisplayFont() const {
+QFont ThemeManager::displayFont() const {
     return QFont(qTEXT("DisplayFont"));
 }
 
-QFont ThemeManager::GetMonoFont() const {
+QFont ThemeManager::monoFont() const {
     return QFont(qTEXT("MonoFont"));
 }
 
-QFont ThemeManager::GetDebugFont() const {
+QFont ThemeManager::debugFont() const {
     return QFont(qTEXT("DebugFont"));
 }
 
-void ThemeManager::SetComboBoxStyle(QComboBox* combo_box, const QString& object_name) {
+void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_name) {
     QString border_color;
     QString selection_background_color;
     QString on_selection_background_color;
 
-    switch (GetThemeColor()) {
+    switch (themeColor()) {
     case ThemeColor::LIGHT_THEME:
         border_color = "#C9CDD0";
         selection_background_color = "#FAFAFA";
@@ -800,8 +800,8 @@ void ThemeManager::SetComboBoxStyle(QComboBox* combo_box, const QString& object_
     );
 }
 
-void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_name) {
-    switch (GetThemeColor()) {
+void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_name) {
+    switch (themeColor()) {
         case ThemeColor::DARK_THEME:
             line_edit->setStyleSheet(qSTR(R"(
                                             QLineEdit#%1 {
@@ -825,31 +825,31 @@ void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_
     }
 }
 
-void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
+void ThemeManager::setMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
-        button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_UP));
+        button->setIcon(fontIcon(Glyphs::ICON_VOLUME_UP));
         qAppSettings.setValue<bool>(kAppSettingIsMuted, false);
     }
     else {
-        button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_OFF));
+        button->setIcon(fontIcon(Glyphs::ICON_VOLUME_OFF));
         qAppSettings.setValue(kAppSettingIsMuted, true);
     }
 }
 
-void ThemeManager::SetVolume(QSlider *slider, QAbstractButton* button, uint32_t volume) {
+void ThemeManager::setVolume(QSlider *slider, QAbstractButton* button, uint32_t volume) {
     if (!slider->isEnabled()) {
         return;
     }
     if (volume == 0) {
-        SetMuted(button, true);
+        setMuted(button, true);
     }
     else {
-        SetMuted(button, false);
+        setMuted(button, false);
     }
     slider->setValue(volume);
 }
 
-Glyphs ThemeManager::GetConnectTypeGlyphs(DeviceConnectType type) const {
+Glyphs ThemeManager::connectTypeGlyphs(DeviceConnectType type) const {
     switch (type) {
     case DeviceConnectType::CONNECT_TYPE_UNKNOWN:
     case DeviceConnectType::CONNECT_TYPE_BUILT_IN:
@@ -862,29 +862,29 @@ Glyphs ThemeManager::GetConnectTypeGlyphs(DeviceConnectType type) const {
     return Glyphs::ICON_BUILD_IN_SPEAKER;
 }
 
-QIcon ThemeManager::GetConnectTypeIcon(DeviceConnectType type) const {
+QIcon ThemeManager::connectTypeIcon(DeviceConnectType type) const {
     switch (type) {
     case DeviceConnectType::CONNECT_TYPE_UNKNOWN:
     case DeviceConnectType::CONNECT_TYPE_BUILT_IN:
-        return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
+        return fontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
     case DeviceConnectType::CONNECT_TYPE_USB:
-        return GetFontIcon(Glyphs::ICON_USB);
+        return fontIcon(Glyphs::ICON_USB);
     case DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH:
-        return GetFontIcon(Glyphs::ICON_BLUE_TOOTH);
+        return fontIcon(Glyphs::ICON_BLUE_TOOTH);
     }
-    return GetFontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
+    return fontIcon(Glyphs::ICON_BUILD_IN_SPEAKER);
 }
 
-void ThemeManager::SetDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type) {
-    button->setIcon(GetConnectTypeIcon(type));
+void ThemeManager::setDeviceConnectTypeIcon(QAbstractButton* button, DeviceConnectType type) {
+    button->setIcon(connectTypeIcon(type));
     button->update();
 }
 
-void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
+void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
     QString slider_background_color;
     QString slider_border_color;
 
-	switch (GetThemeColor()) {
+	switch (themeColor()) {
 	case ThemeColor::LIGHT_THEME:
        slider_background_color = qTEXT("#9FCBFF");
        slider_border_color = qTEXT("#C9CDD0");
@@ -979,10 +979,10 @@ void ThemeManager::SetSliderTheme(QSlider* slider, bool enter) {
     );
 }
 
-void ThemeManager::SetAlbumNaviBarTheme(QListView *tab) const {
+void ThemeManager::setAlbumNaviBarTheme(QListView *tab) const {
     QString tab_left_color;
 
-    switch (GetThemeColor()) {
+    switch (themeColor()) {
     case ThemeColor::DARK_THEME:
         tab_left_color = qTEXT("42, 130, 218");
         break;

@@ -43,11 +43,11 @@ void BackgroundWorker::cancelRequested() {
     is_stop_ = true;
 }
 
-void BackgroundWorker::OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
+void BackgroundWorker::onSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
 }
 
 #if defined(Q_OS_WIN)
-void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
+void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
     MBDiscId mbdisc_id;
     std::string disc_id;
     std::string url;
@@ -68,7 +68,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 
         auto track_id = 0;
         for (const auto& track : tracks) {
-            auto track_info = TagIO::GetTrackInfo(track);
+            auto track_info = TagIO::getTrackInfo(track);
             track_info.file_path = tracks[track_id];
             track_info.duration = cd->GetDuration(track_id++);
             track_info.sample_rate = 44100;
@@ -118,7 +118,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 }
 #endif
 
-void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
+void BackgroundWorker::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (image.isNull()) {
         emit blurImage(QImage());
         return;
@@ -128,7 +128,7 @@ void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image
         }));
 }
 
-void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {
+void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {
 	const auto writer = MakeMetadataWriter();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
@@ -247,7 +247,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
     emit readCompleted();
 }
 
-void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from, const QString& to) {
+void BackgroundWorker::onTranslation(const QString& keyword, const QString& from, const QString& to) {
     const auto url =
         QString("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString(QUrl::toPercentEncoding(keyword)))

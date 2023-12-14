@@ -43,19 +43,19 @@ void TabListView::OnCurrentThemeChanged(ThemeColor theme_color) {
         auto* item = model_.item(column_index);
         switch (column_index) {
         case TAB_PLAYLIST:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
             break;
         case TAB_FILE_EXPLORER:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_DESKTOP));
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
             break;
         case TAB_LYRICS:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_SUBTITLE));
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
             break;
         case TAB_MUSIC_LIBRARY:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_MUSIC_LIBRARY));
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
             break;        
         case TAB_CD:
-            item->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CD));
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             break;
         }
     }
@@ -68,7 +68,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     item->setSizeHint(QSize(35, 35));    
     auto f = item->font();
     f.setBold(true);
-    f.setPointSize(qTheme.GetFontSize(11));
+    f.setPointSize(qTheme.fontSize(11));
     item->setFont(f);
     model_.appendRow(item);
     names_[table_id] = name;

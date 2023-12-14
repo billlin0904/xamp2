@@ -50,9 +50,9 @@ namespace {
 
         if (qAppSettings.valueAsString(kAppSettingLang).isEmpty()) {
             const LocaleLanguage lang;
-            XAMP_LOG_DEBUG("Load locale language file: {}.", lang.GetIsoCode().toStdString());
-            qAppSettings.loadLanguage(lang.GetIsoCode());
-            qAppSettings.setValue(kAppSettingLang, lang.GetIsoCode());
+            XAMP_LOG_DEBUG("Load locale language file: {}.", lang.isoCode().toStdString());
+            qAppSettings.loadLanguage(lang.isoCode());
+            qAppSettings.setValue(kAppSettingLang, lang.isoCode());
         }
         else {
             qAppSettings.loadLanguage(qAppSettings.valueAsString(kAppSettingLang));
@@ -153,8 +153,8 @@ namespace {
 
     void ApplyTheme() {
         const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
-        qTheme.SetThemeColor(theme);
-        qTheme.LoadAndApplyTheme();
+        qTheme.setThemeColor(theme);
+        qTheme.loadAndApplyTheme();
     }
 
     int Execute(int argc, char* argv[], QStringList &args) {
@@ -211,8 +211,8 @@ namespace {
 
         Xamp win(&main_window, MakeAudioPlayer());
         win.setXWindow(&main_window);
-        win.setThemeColor(qTheme.GetBackgroundColor(),
-            qTheme.GetThemeTextColor());
+        win.setThemeColor(qTheme.backgroundColor(),
+            qTheme.themeTextColor());
 
         if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");

@@ -109,8 +109,8 @@ SuperEqView::SuperEqView(QWidget* parent)
         ui_->band18DbLabel,
     };
 
-    auto f = qTheme.GetMonoFont();
-    f.setPointSize(qTheme.GetFontSize(8));
+    auto f = qTheme.monoFont();
+    f.setPointSize(qTheme.fontSize(8));
 
     for (auto& l : freq_label_) {
         l->setStyleSheet(qTEXT("background-color: transparent;"));

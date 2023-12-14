@@ -36,11 +36,11 @@ AboutPage::AboutPage(QWidget* parent)
     ui_ = new Ui::AboutDialog();
     ui_->setupUi(this);
 
-    ui_->lblLogo->setPixmap(qTheme.GetApplicationIcon().pixmap(128, 128));
+    ui_->lblLogo->setPixmap(qTheme.applicationIcon().pixmap(128, 128));
 
-    QFont dp_font(qTheme.GetDisplayFont());
+    QFont dp_font(qTheme.displayFont());
     dp_font.setBold(true);
-    dp_font.setPointSizeF(qTheme.GetFontSize(26));
+    dp_font.setPointSizeF(qTheme.fontSize(26));
 
     ui_->lblProjectTitle->setFont(dp_font);
     ui_->lblProjectTitle->setText(kApplicationName);
@@ -50,12 +50,12 @@ AboutPage::AboutPage(QWidget* parent)
 
     QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
     ui_->lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));
-    ui_->lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
+    ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
     ui_->lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
 
-    QFont font(qTheme.GetUiFont());
+    QFont font(qTheme.uiFont());
     font.setBold(false);
-    font.setPointSize(qTheme.GetDefaultFontSize());
+    font.setPointSize(qTheme.defaultFontSize());
     ui_->txtBws->setFont(font);
     ui_->txtBws->setVisible(false);
 
@@ -104,7 +104,7 @@ AboutPage::~AboutPage() {
 }
 
 void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    ui_->lbIGithubIcon->setPixmap(qTheme.GetGithubIcon());
+    ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
 }
 
 void AboutPage::OnCreditsOrLicenseChecked(bool checked) {

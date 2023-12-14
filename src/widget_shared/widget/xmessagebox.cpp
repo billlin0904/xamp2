@@ -43,7 +43,7 @@ XMessageBox::XMessageBox(const QString& title,
 	message_text_label_->setText(text);
 
 	QFont f;
-	f.setPointSize(qTheme.GetFontSize(10));
+	f.setPointSize(qTheme.fontSize(10));
 	message_text_label_->setFont(f);
 	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
 
@@ -70,7 +70,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	setContentWidget(client_widget);
 	setTitle(title);
-	XDialog::setIcon(qTheme.GetApplicationIcon());
+	XDialog::setIcon(qTheme.applicationIcon());
 
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XMessageBox::onUpdate);
 	timer_.setInterval(1000);
@@ -112,12 +112,12 @@ void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 
 	QColor text_color;
 
-	switch (qTheme.GetThemeColor()) {
+	switch (qTheme.themeColor()) {
 	case ThemeColor::LIGHT_THEME:
 		text_color = Qt::white;
 		break;
 	default:
-		text_color = qTheme.GetThemeTextColor();
+		text_color = qTheme.themeTextColor();
 		break;
 	}
 
@@ -128,7 +128,7 @@ void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 		 color: %2;
       }
 	)"
-	).arg(ColorToString(qTheme.GetHighlightColor())).arg(ColorToString(text_color)));
+	).arg(ColorToString(qTheme.highlightColor())).arg(ColorToString(text_color)));
 	setDefaultButton(default_button);
 }
 
@@ -181,7 +181,7 @@ void XMessageBox::showBug(const Exception& exception,
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,
 		false);
-	box.setIcon(qTheme.GetFontIcon(0xF188));
+	box.setIcon(qTheme.fontIcon(0xF188));
 	box.setTextFont(QFont(qTEXT("DebugFont")));
 	box.exec();
 }
@@ -228,7 +228,7 @@ QDialogButtonBox::StandardButton XMessageBox::showInformation(const QString& tex
 	return showButton(text, 
 		title, 
 		enable_countdown,
-		qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION),
+		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION),
 		buttons,
 		default_button,
 		parent);
@@ -243,7 +243,7 @@ QDialogButtonBox::StandardButton XMessageBox::showError(const QString& text,
 	return showButton(text, 
 		title,
 		enable_countdown, 
-		qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_ERROR),
+		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_ERROR),
 		buttons, 
 		default_button, 
 		parent);
@@ -258,7 +258,7 @@ QDialogButtonBox::StandardButton XMessageBox::showWarning(const QString& text,
 	return showButton(text,
 		title,
 		enable_countdown,
-		qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_WARNING),
+		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_WARNING),
 		buttons,
 		default_button,
 		parent);
@@ -275,7 +275,7 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxQues
 		check_box_text,
 		title, 
 		enable_countdown,
-		qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_QUESTION),
+		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_QUESTION),
 		buttons,
 		default_button,
 		parent);
@@ -292,7 +292,7 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBoxInfo
 		check_box_text,
 		title, 
 		enable_countdown,
-		qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION),
+		qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION),
 		buttons,
 		default_button,
 		parent);

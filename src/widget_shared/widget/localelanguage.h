@@ -18,31 +18,31 @@ public:
 
 	explicit LocaleLanguage(const QString& name);
 
-	void SetDefaultLanguage();
+	void setDefaultLanguage();
 	
 	void SetLanguage(QLocale::Language lang, QLocale::Country country);
 
-	QString Language() const {
+	QString language() const {
 		return lang_;
 	}
 
-	QString LangIsoCode() const {
+	QString langIsoCode() const {
 		return lang_iso_code_;
 	}
 
-	QString CountryIsoCode() const {
+	QString countryIsoCode() const {
 		return country_iso_code_;
 	}
 
-	QString GetIsoCode() const {
-		return LangIsoCode() + qTEXT("_") + CountryIsoCode();
+	QString isoCode() const {
+		return langIsoCode() + qTEXT("_") + countryIsoCode();
 	}
 
-	QString NativeNameLang() const {
+	QString nativeNameLang() const {
 		return native_name_lang_;
 	}
 private:
-	void SetLanguageByLocale(const QLocale& locale);
+	void setLanguageByLocale(const QLocale& locale);
 
 	QString lang_;
 	QString country_;
@@ -56,9 +56,9 @@ class XAMP_WIDGET_SHARED_EXPORT LocaleLanguageManager {
 public:
 	LocaleLanguageManager();
 
-	static QList<LocaleLanguage> LanguageNames();
+	static QList<LocaleLanguage> languageNames();
 
-	void LoadLanguage(const QString& lang);
+	void loadLanguage(const QString& lang);
 
 	QLocale locale() const;
 private:

@@ -36,13 +36,13 @@ class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
 public:
 	explicit AlbumTabListView(QWidget* parent = nullptr);
 
-	void AddTab(const QString& name, int tab_id);
+	void addTab(const QString& name, int tab_id);
 
-	void SetCurrentTab(int tab_id);
+	void setCurrentTab(int tab_id);
 signals:
-	void ClickedTable(int table_id);
+	void clickedTable(int table_id);
 
-	void TableNameChanged(int table_id, const QString& name);
+	void tableNameChanged(int table_id, const QString& name);
 
 private:
 	QStandardItemModel model_;
@@ -70,9 +70,9 @@ public:
 public slots:
 	void refresh();
 
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
-	void OnThemeColorChanged(QColor backgroundColor, QColor color);
+	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
 	QVBoxLayout* genre_frame_layout_;

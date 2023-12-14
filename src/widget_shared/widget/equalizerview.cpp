@@ -52,8 +52,8 @@ EqualizerView::EqualizerView(QWidget* parent)
         ui_->band10DbLabel,
     };
 
-    auto f = qTheme.GetMonoFont();
-    f.setPointSize(qTheme.GetFontSize(8));
+    auto f = qTheme.monoFont();
+    f.setPointSize(qTheme.fontSize(8));
 
     ui_->preampLabel->setFont(f);
 
@@ -70,11 +70,11 @@ EqualizerView::EqualizerView(QWidget* parent)
     ui_->preampDbLabel->setStyleSheet(qTEXT("background-color: transparent;"));
     ui_->preampLabel->setStyleSheet(qTEXT("background-color: transparent;"));
 
-    qTheme.SetSliderTheme(ui_->preampSlider);
+    qTheme.setSliderTheme(ui_->preampSlider);
 
     auto band = 0;
     for (auto* slider : sliders_) {
-        qTheme.SetSliderTheme(slider);
+        qTheme.setSliderTheme(slider);
 
         (void)QObject::connect(slider, &DoubleSlider::doubleValueChanged, [band, this](auto value) {
             bands_label_[band]->setText(FormatDb(value));
@@ -186,7 +186,7 @@ void EqualizerView::applySetting(const QString& name, const EqSettings& settings
             freq_label_.push_back(band_feq_label);
             bands_label_.push_back(band_db_label);
             sliders_.push_back(band_slider);
-            qTheme.SetSliderTheme(band_slider);
+            qTheme.setSliderTheme(band_slider);
 	    }
     }
 

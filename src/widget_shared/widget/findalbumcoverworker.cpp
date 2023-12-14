@@ -42,7 +42,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t album_id,
     }
 
     const TagIO reader;
-    auto cover = reader.GetEmbeddedCover(find_file_path);
+    auto cover = reader.embeddedCover(find_file_path);
     if (!cover.isNull()) {
         emit setAlbumCover(album_id, qImageCache.addImage(cover));
         return;

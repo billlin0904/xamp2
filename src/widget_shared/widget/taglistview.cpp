@@ -17,18 +17,18 @@ TagWidgetItem::TagWidgetItem(const QString& tag, QColor color, QLabel* label, QL
 
 TagWidgetItem::~TagWidgetItem() = default;
 
-QString TagWidgetItem::GetTag() const {
+QString TagWidgetItem::getTag() const {
 	return tag_;
 }
 
-bool TagWidgetItem::IsEnable() const {
+bool TagWidgetItem::isEnable() const {
 	return enabled_;
 }
 
-void TagWidgetItem::SetEnable(bool enable) {
+void TagWidgetItem::setEnable(bool enable) {
 	enabled_ = enable;
 	if (enabled_) {
-		switch (qTheme.GetThemeColor()) {
+		switch (qTheme.themeColor()) {
 		case ThemeColor::DARK_THEME:
 			listWidget()->itemWidget(this)->setStyleSheet(
 				qSTR("border-radius: 6px; border: 1px solid %1; background-color: #171818;").arg(color_.name())
@@ -45,7 +45,7 @@ void TagWidgetItem::SetEnable(bool enable) {
 	}
 	else {
 		QColor color;
-		switch (qTheme.GetThemeColor()) {
+		switch (qTheme.themeColor()) {
 		case ThemeColor::DARK_THEME:
 			color = QColor(qTEXT("#4d4d4d"));
 			listWidget()->itemWidget(this)->setStyleSheet(
@@ -69,8 +69,8 @@ void TagWidgetItem::SetEnable(bool enable) {
 	listWidget()->update();
 }
 
-void TagWidgetItem::Enable() {
-	SetEnable(!IsEnable());
+void TagWidgetItem::enable() {
+	setEnable(!isEnable());
 }
 
 TagListView::TagListView(QWidget* parent)
@@ -95,18 +95,18 @@ TagListView::TagListView(QWidget* parent)
 		if (!tag_item) {
 			return;
 		}
-		tag_item->Enable();
-		if (!tag_item->IsEnable()) {
-			tags_.remove(tag_item->GetTag());
+		tag_item->enable();
+		if (!tag_item->isEnable()) {
+			tags_.remove(tag_item->getTag());
 		}
 		else {
-			tags_.insert(tag_item->GetTag());
+			tags_.insert(tag_item->getTag());
 		}
 		if (!tags_.isEmpty()) {
-			emit TagChanged(tags_);
+			emit tagChanged(tags_);
 		}
 		else {
-			emit TagClear();
+			emit tagClear();
 		}
 		});
 
@@ -115,11 +115,11 @@ TagListView::TagListView(QWidget* parent)
 	setLayout(tag_layout);
 }
 
-void TagListView::SetListViewFixedHeight(int32_t height) {
+void TagListView::setListViewFixedHeight(int32_t height) {
 	taglist_->setFixedHeight(height);
 }
 
-void TagListView::OnCurrentThemeChanged(ThemeColor theme_color) {
+void TagListView::onCurrentThemeChanged(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
 		taglist_->setStyleSheet(qTEXT(
@@ -154,27 +154,27 @@ void TagListView::OnCurrentThemeChanged(ThemeColor theme_color) {
 	}
 }
 
-void TagListView::OnThemeColorChanged(QColor background_color, QColor color) {
+void TagListView::onThemeColorChanged(QColor background_color, QColor color) {
 
 }
 
-void TagListView::Sort() {
+void TagListView::sort() {
 	taglist_->sortItems();
 }
 
-void TagListView::DisableAllTag(const QString& skip_tag) {
+void TagListView::disableAllTag(const QString& skip_tag) {
 	for (auto i = 0; i < taglist_->count(); ++i) {
 		auto* item = dynamic_cast<TagWidgetItem*>(taglist_->item(i));
 		if (!item) {
 			continue;
 		}
-		if (item->GetTag() != skip_tag) {
-			item->SetEnable(false);
+		if (item->getTag() != skip_tag) {
+			item->setEnable(false);
 		}
 	}
 }
 
-void TagListView::EnableTag(const QString& tag) {
+void TagListView::enableTag(const QString& tag) {
 	auto items = taglist_->findItems(tag, Qt::MatchContains);
 	if (items.isEmpty()) {
 		return;
@@ -183,13 +183,13 @@ void TagListView::EnableTag(const QString& tag) {
 	emit taglist_->itemClicked(item);
 }
 
-void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
+void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
 	const auto items = taglist_->findItems(tag, Qt::MatchContains);
 	if (!items.isEmpty()) {
 		return;
 	}
 
-	const auto color = qTheme.GetHighlightColor();
+	const auto color = qTheme.highlightColor();
 
 	auto f = font();
 	auto* layout = new QHBoxLayout();
@@ -198,7 +198,7 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 
 	auto* item = new TagWidgetItem(tag, color, tag_label, taglist_);
 	f.setBold(true);
-	f.setPointSize(qTheme.GetFontSize(8));
+	f.setPointSize(qTheme.fontSize(8));
 	tag_label->setFont(f);
 
 	if (!uniform_item_sizes) {
@@ -220,9 +220,9 @@ void TagListView::AddTag(const QString& tag, bool uniform_item_sizes) {
 		qSTR("border-radius: 6px; border: 1px solid transparent;")
 	);
 	taglist_->setItemWidget(item, widget);
-	item->Enable();	
+	item->enable();	
 }
 
-void TagListView::ClearTag() {
+void TagListView::clearTag() {
 	taglist_->clear();
 }

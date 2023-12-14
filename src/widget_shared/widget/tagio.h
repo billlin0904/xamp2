@@ -16,33 +16,33 @@ public:
 
     XAMP_DISABLE_COPY_AND_MOVE(TagIO)
 
-    static TrackInfo GetTrackInfo(const Path& path);
+    static TrackInfo getTrackInfo(const Path& path);
 
-    void WriteArtist(const Path& path, const QString& artist);
+    void writeArtist(const Path& path, const QString& artist);
 
-    void WriteAlbum(const Path& path, const QString& album);
+    void writeAlbum(const Path& path, const QString& album);
 
-    void WriteTitle(const Path& path, const QString& title);
+    void writeTitle(const Path& path, const QString& title);
 
-    void WriteTrack(const Path& path, uint32_t track);
+    void writeTrack(const Path& path, uint32_t track);
 
-    void WriteGenre(const Path& path, const QString& genre);
+    void writeGenre(const Path& path, const QString& genre);
 
-    void WriteComment(const Path& path, const QString& comment);
+    void writeComment(const Path& path, const QString& comment);
 
-    void WriteYear(const Path& path, uint32_t year);
+    void writeYear(const Path& path, uint32_t year);
 
-    QPixmap GetEmbeddedCover(const TrackInfo& track_info) const;
+    QPixmap embeddedCover(const TrackInfo& track_info) const;
 
-    QPixmap GetEmbeddedCover(const Path& file_path) const;
+    QPixmap embeddedCover(const Path& file_path) const;
 
-    bool GetEmbeddedCover(const Path& file_path, QPixmap& image, size_t& image_size) const;
+    bool embeddedCover(const Path& file_path, QPixmap& image, size_t& image_size) const;
 
-    void RemoveEmbeddedCover(const Path& file_path);
+    void removeEmbeddedCover(const Path& file_path);
 
-    void WriteEmbeddedCover(const Path& file_path, const QPixmap& image);
+    void writeEmbeddedCover(const Path& file_path, const QPixmap& image);
 
-    [[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const;
+    [[nodiscard]] bool canWriteEmbeddedCover(const Path& path) const;
 
 private:
     AlignPtr<IMetadataReader> reader_;

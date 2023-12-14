@@ -29,11 +29,11 @@ signals:
 	
 
 private:
-	void ReadEmbeddedCover(const PlayListEntity &entity);
+	void readEmbeddedCover(const PlayListEntity &entity);
 
-	void SetImageLabel(const QPixmap &image, QSize image_size, size_t image_file_size);
+	void setImageLabel(const QPixmap &image, QSize image_size, size_t image_file_size);
 
-	void SetCurrentInfo(int32_t index);
+	void setCurrentInfo(int32_t index);
 
 	void closeEvent(QCloseEvent* event) override;
 

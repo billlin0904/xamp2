@@ -28,14 +28,14 @@ public:
 
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
-	void SetSampleRate(int32_t sample_rate);
+	void setSampleRate(int32_t sample_rate);
 
-	void SetFftSize(int32_t fft_size);
+	void setFftSize(int32_t fft_size);
 
-	void Reset();
+	void reset();
 
 public slots:
-	void OnFftResultChanged(ComplexValarray const& result);
+	void onFftResultChanged(ComplexValarray const& result);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;

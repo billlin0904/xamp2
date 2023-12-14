@@ -79,8 +79,6 @@ private:
 
 	void loadCache() const;
 
-	void initCachePath();
-
 	QFileInfo getImageFileInfo(const QString& tag_id) const;
 
 	QStringList cover_ext_;

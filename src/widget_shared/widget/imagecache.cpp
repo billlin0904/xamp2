@@ -38,7 +38,7 @@ ImageCache::ImageCache()
 		QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 	buffer_pool_ = std::make_shared<ObjectPool<QBuffer>>(kDefaultCacheSize);
-	cache_.Add(unknown_cover_id_, { 1, qTheme.GetUnknownCover() });
+	cache_.Add(unknown_cover_id_, { 1, qTheme.unknownCover() });
 	loadCache();
 	startTimer(kTrimImageSizeSeconds);	
 }
@@ -57,7 +57,7 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
 			return image_utils::readFileImage(image_file_path, 
-				qTheme.GetCacheCoverSize(), 
+				qTheme.cacheCoverSize(), 
 				kFormat);
 		}
 		return std::nullopt;
@@ -95,14 +95,14 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 		}
 
 		return image_utils::readFileImage(scan_dir.filePath(image_file_path),
-			qTheme.GetCacheCoverSize(),
+			qTheme.cacheCoverSize(),
 			kFormat);
 	}
 
 	// If no file matches the 'Front' file name, return the first file that matches the name filters.
 	if (!image_files.empty()) {
 		return image_utils::readFileImage(scan_dir.filePath(image_files[0]),
-			qTheme.GetCacheCoverSize(),
+			qTheme.cacheCoverSize(),
 			kFormat);
 	}
 
@@ -134,7 +134,7 @@ void ImageCache::removeImage(const QString& tag_id) const {
 }
 
 ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
-	QImage image(qTheme.GetCacheCoverSize(), kFormat);
+	QImage image(qTheme.cacheCoverSize(), kFormat);
 	QImageReader reader(qAppSettings.cachePath() + tag_id + kCacheFileExtension);
 	if (reader.read(&image)) {
 		const auto file_info = getImageFileInfo(tag_id);
@@ -155,7 +155,7 @@ QPixmap ImageCache::cover(const QString& tag, const QString& cover_id) {
 	return cover_cache_.GetOrAdd(tag + cover_id, [this, tag, cover_id]() {
 		return getOrAdd(tag + cover_id, [cover_id, this]() {
 			return image_utils::roundImage(
-				image_utils::resizeImage(getOrDefault(cover_id), qTheme.GetDefaultCoverSize(), true),
+				image_utils::resizeImage(getOrDefault(cover_id), qTheme.defaultCoverSize(), true),
 				image_utils::kSmallImageRadius);
 			});
 		});
@@ -183,7 +183,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 
 QString ImageCache::addImage(const QPixmap& cover) const {
 	Stopwatch sw;
-	const auto cover_size = qTheme.GetCacheCoverSize();
+	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();
 	// Resize PNG image size and save to QBuffer
@@ -220,7 +220,7 @@ void ImageCache::loadCache() const {
 	for (QDirIterator itr(qAppSettings.cachePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
 		const auto path = itr.next();
-		QImage image(qTheme.GetCacheCoverSize(), kFormat);
+		QImage image(qTheme.cacheCoverSize(), kFormat);
 		QImageReader reader(path);
 		if (reader.read(&image)) {
 			const QFileInfo file_info(path);
@@ -250,7 +250,7 @@ QPixmap ImageCache::getOrDefault(const QString& tag_id, bool not_found_use_defau
 	}
 
 	if (image.isNull() && not_found_use_default) {
-		return qTheme.DefaultSizeUnknownCover();
+		return qTheme.defaultSizeUnknownCover();
 	}
 	return image;
 }

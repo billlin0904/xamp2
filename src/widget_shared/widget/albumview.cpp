@@ -55,7 +55,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	, play_button_(new QPushButton()) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    mask_image_ = image_utils::roundDarkImage(qTheme.GetDefaultCoverSize(), 
+    mask_image_ = image_utils::roundDarkImage(qTheme.defaultCoverSize(), 
         80, image_utils::kSmallImageRadius);
 }
 
@@ -76,7 +76,7 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     mouse_point_ = ev->pos();
 	const auto current_cursor = QApplication::overrideCursor();
 
-    const auto default_cover_size = qTheme.GetDefaultCoverSize();
+    const auto default_cover_size = qTheme.defaultCoverSize();
     constexpr auto icon_size = 24;
     const QRect more_button_rect(
         option.rect.left() + default_cover_size.width() - 10,
@@ -131,7 +131,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     constexpr auto kPaddingSize = 10;
 
-    const auto default_cover_size = qTheme.GetDefaultCoverSize();
+    const auto default_cover_size = qTheme.defaultCoverSize();
     const QRect cover_rect(option.rect.left() + kPaddingSize,
         option.rect.top() + kPaddingSize,
         default_cover_size.width(), 
@@ -151,7 +151,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setPen(QPen(album_text_color_));
 
     auto f = painter->font();
-    f.setPointSize(qTheme.GetFontSize(8));
+    f.setPointSize(qTheme.fontSize(8));
     f.setBold(true);
     painter->setFont(f);
 
@@ -162,7 +162,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             kMoreIconSize, kMoreIconSize);
 
         album_artist_text_width -= kMoreIconSize;
-        painter->drawPixmap(playing_state_icon_rect, qTheme.GetPlayingIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+        painter->drawPixmap(playing_state_icon_rect, qTheme.playingIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
     }
 
     QFontMetrics album_metrics(painter->font());
@@ -194,7 +194,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
         QStyleOptionButton button;
         button.rect = button_rect;
-        button.icon = qTheme.GetPlayCircleIcon();
+        button.icon = qTheme.playCircleIcon();
         button.state |= QStyle::State_Enabled;
         button.iconSize = QSize(kIconSize, kIconSize);
         style->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
@@ -216,12 +216,12 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             kMoreIconSize, kMoreIconSize);
         more_option_button.initFrom(more_album_opt_button_.get());
         more_option_button.rect = more_button_rect;
-        more_option_button.icon = qTheme.GetFontIcon(Glyphs::ICON_MORE);
+        more_option_button.icon = qTheme.fontIcon(Glyphs::ICON_MORE);
         more_option_button.state |= QStyle::State_Enabled;
         if (more_button_rect.contains(mouse_point_)) {
             more_option_button.state |= QStyle::State_Sunken;
-            painter->setPen(qTheme.GetHoverColor());
-            painter->setBrush(QBrush(qTheme.GetHoverColor()));
+            painter->setPen(qTheme.hoverColor());
+            painter->setBrush(QBrush(qTheme.hoverColor()));
             painter->drawEllipse(more_button_rect);
         }
     }    
@@ -238,7 +238,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    const auto default_cover = qTheme.GetDefaultCoverSize();
+    const auto default_cover = qTheme.defaultCoverSize();
     result.setWidth(default_cover.width() + 30);
     result.setHeight(default_cover.height() + 85);
     return result;
@@ -257,9 +257,9 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
     close_button_->setCursor(Qt::PointingHandCursor);
     close_button_->setAttribute(Qt::WA_TranslucentBackground);
-    close_button_->setFixedSize(qTheme.GetTitleButtonIconSize() * 1.5);
-    close_button_->setIconSize(qTheme.GetTitleButtonIconSize() * 1.5);
-    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, qTheme.GetThemeColor()));
+    close_button_->setFixedSize(qTheme.titleButtonIconSize() * 1.5);
+    close_button_->setIconSize(qTheme.titleButtonIconSize() * 1.5);
+    close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, qTheme.themeColor()));
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -285,7 +285,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     page_->playlist()->disableDelete();
     page_->playlist()->disableLoadFile();
 
-    if (qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
+    if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         auto* shadow_effect = new QGraphicsDropShadowEffect();
         shadow_effect->setOffset(0, 0);
         shadow_effect->setColor(QColor(0, 0, 0, 80));
@@ -295,7 +295,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 }
 
 void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
-    close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
+    close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 }
 
 void AlbumViewPage::paintEvent(QPaintEvent* event) {
@@ -303,7 +303,7 @@ void AlbumViewPage::paintEvent(QPaintEvent* event) {
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
-    if (qTheme.GetThemeColor() == ThemeColor::LIGHT_THEME) {
+    if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         setStyleSheet(qSTR(
             R"(
            QFrame#albumViewPage {
@@ -312,7 +312,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
 				border: 1px solid #C9CDD0;
            }
         )"
-        ).arg(qTheme.GetLinearGradientStyle()));
+        ).arg(qTheme.linearGradientStyle()));
     } else {
         setStyleSheet(qSTR(
             R"(
@@ -321,7 +321,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
                 border-radius: 4px;
            }
         )"
-        ).arg(qTheme.GetLinearGradientStyle()));
+        ).arg(qTheme.linearGradientStyle()));
     }
 
     QList<int32_t> add_playlist_music_ids;
@@ -438,7 +438,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
             QApplication::clipboard()->setText(album);
             });
-        copy_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_COPY));
+        copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
         action_map.addAction(tr("Copy artist"), [artist]() {
             QApplication::clipboard()->setText(artist);
@@ -503,7 +503,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             append(file_name);
             });
         });
-    load_file_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_LOAD_FILE));
+    load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
 
     auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
         const auto dir_name = GetExistingDirectory(this);
@@ -512,12 +512,12 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(dir_name);
         });
-    load_dir_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_FOLDER));
+    load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
     action_map.addSeparator();
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         remove_album();
         });
-    remove_all_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));    
+    remove_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));    
 }
 
 void AlbumView::showMenu(const QPoint &pt) {
@@ -543,12 +543,12 @@ void AlbumView::showMenu(const QPoint &pt) {
             });
         emit addPlaylist(add_playlist_music_ids, entities);
         });
-    add_album_to_playlist_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_PLAYLIST));
+    add_album_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
     });
-    copy_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_COPY));
+    copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
     action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
@@ -560,7 +560,7 @@ void AlbumView::showMenu(const QPoint &pt) {
         qMainDb.removeAlbum(album_id);
         reload();
     });
-    remove_select_album_act->setIcon(qTheme.GetFontIcon(Glyphs::ICON_REMOVE_ALL));
+    remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
     action_map.exec(pt);
 }

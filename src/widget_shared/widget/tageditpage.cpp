@@ -49,8 +49,8 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		ui_->coverSizeLabel,
 	};
 
-	auto font = qTheme.GetFormatFont();
-	font.setPointSize(qTheme.GetFontSize(9));
+	auto font = qTheme.formatFont();
+	font.setPointSize(qTheme.fontSize(9));
 	ui_->coverSizeLabel->setFont(font);
 	ui_->albumPeakLineEdit->setFont(font);
 	ui_->albumReplayGainLineEdit->setFont(font);
@@ -124,13 +124,13 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		try {
 			TagIO tag_io;
-			tag_io.WriteArtist(path, ui_->artistLineEdit->text());
-			tag_io.WriteTitle(path, ui_->titleComboBox->currentText());
-			tag_io.WriteAlbum(path, ui_->albumLineEdit->text());
-			tag_io.WriteComment(path, ui_->commentLineEdit->text());
-			tag_io.WriteGenre(path, ui_->genreComboBox->currentText());
-			tag_io.WriteTrack(path, ui_->trackComboBox->currentText().toUInt());
-			tag_io.WriteYear(path, ui_->yearLineEdit->text().toUInt());
+			tag_io.writeArtist(path, ui_->artistLineEdit->text());
+			tag_io.writeTitle(path, ui_->titleComboBox->currentText());
+			tag_io.writeAlbum(path, ui_->albumLineEdit->text());
+			tag_io.writeComment(path, ui_->commentLineEdit->text());
+			tag_io.writeGenre(path, ui_->genreComboBox->currentText());
+			tag_io.writeTrack(path, ui_->trackComboBox->currentText().toUInt());
+			tag_io.writeYear(path, ui_->yearLineEdit->text().toUInt());
 
 			entity.artist = ui_->artistLineEdit->text();
 			entity.title = ui_->titleComboBox->currentText();
@@ -153,19 +153,19 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		ui_->titleComboBox->setCurrentIndex(next_index);
 		ui_->trackComboBox->setCurrentIndex(next_index);
-		SetCurrentInfo(next_index);
+		setCurrentInfo(next_index);
 
 		XMessageBox::showInformation(qApp->tr("Write tag successfully!"));
 	});
 
 	(void)QObject::connect(ui_->titleComboBox, &QComboBox::activated, [this](auto index) {
-		SetCurrentInfo(index);
-		ReadEmbeddedCover(entities_[index]);
+		setCurrentInfo(index);
+		readEmbeddedCover(entities_[index]);
 		});
 
 	(void)QObject::connect(ui_->trackComboBox, &QComboBox::activated, [this](auto index) {
-		SetCurrentInfo(index);
-		ReadEmbeddedCover(entities_[index]);
+		setCurrentInfo(index);
+		readEmbeddedCover(entities_[index]);
 		});
 
 	(void)QObject::connect(ui_->clearCommentButton, &QPushButton::clicked, [this] {
@@ -175,7 +175,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	(void)QObject::connect(ui_->removeCoverButton, &QPushButton::clicked, [this] {
 		TagIO tag_io;
 		const auto index = ui_->titleComboBox->currentIndex();
-		tag_io.RemoveEmbeddedCover(entities_[index].file_path.toStdWString());
+		tag_io.removeEmbeddedCover(entities_[index].file_path.toStdWString());
 		});
 
 	(void)QObject::connect(ui_->saveToFileButton, &QPushButton::clicked, [this] {
@@ -195,11 +195,11 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		TagIO tag_io;
 
-		if (!tag_io.CanWriteEmbeddedCover(entities_[index].file_path.toStdWString())) {
+		if (!tag_io.canWriteEmbeddedCover(entities_[index].file_path.toStdWString())) {
 			return;
 		}
 
-		tag_io.WriteEmbeddedCover(entities_[index].file_path.toStdWString(), temp_image_);
+		tag_io.writeEmbeddedCover(entities_[index].file_path.toStdWString(), temp_image_);
 		});
 
 	(void)QObject::connect(ui_->addImageFileButton, &QPushButton::clicked, [=] {
@@ -234,7 +234,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			const auto image_size = temp_image_.size();
 			const auto resize_image = image_utils::resizeImage(temp_image_, ui_->coverLabel->size());
 
-			SetImageLabel(resize_image, image_size, image_file_size);
+			setImageLabel(resize_image, image_size, image_file_size);
 			};
 
 		GetOpenFileName(parent,
@@ -248,19 +248,19 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->trackComboBox->setCurrentIndex(0);
 	ui_->titleComboBox->setCurrentIndex(0);
 
-	SetCurrentInfo(0);
+	setCurrentInfo(0);
 
 	ui_->coverSizeLabel->setText(StringFormat("{} x {} (0 B)", 0, 0));
 	ui_->yearLineEdit->setValidator(new QIntValidator(1, 9999));
 
-	ReadEmbeddedCover(entities_[0]);
+	readEmbeddedCover(entities_[0]);
 }
 
 TagEditPage::~TagEditPage() {
 	delete ui_;
 }
 
-void TagEditPage::SetCurrentInfo(int32_t index) {
+void TagEditPage::setCurrentInfo(int32_t index) {
 	ui_->artistLineEdit->setText(entities_[index].artist);
 	ui_->albumLineEdit->setText(entities_[index].album);
 	ui_->commentLineEdit->setText(entities_[index].comment);
@@ -287,13 +287,13 @@ void TagEditPage::closeEvent(QCloseEvent* event) {
 	QFrame::closeEvent(event);
 }
 
-void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {
+void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
 	const TagIO tag_io;
 	QSize image_size(0, 0);
 	size_t image_file_size = 0;
 	QPixmap image;
 
-	if (tag_io.GetEmbeddedCover(entity.file_path.toStdWString(), image, image_file_size)) {
+	if (tag_io.embeddedCover(entity.file_path.toStdWString(), image, image_file_size)) {
 		image_size = image.size();
 		image = image_utils::resizeImage(image, ui_->coverLabel->size());
 		ui_->notFoundImageLabel->hide();
@@ -304,11 +304,11 @@ void TagEditPage::ReadEmbeddedCover(const PlayListEntity& entity) {
 		ui_->coverLabel->hide();
 	}
 
-	SetImageLabel(image, image_size, image_file_size);
+	setImageLabel(image, image_size, image_file_size);
 	adjustSize();
 }
 
-void TagEditPage::SetImageLabel(const QPixmap& image, QSize image_size, size_t image_file_size) {	
+void TagEditPage::setImageLabel(const QPixmap& image, QSize image_size, size_t image_file_size) {	
 	ui_->coverLabel->setPixmap(image);
 	ui_->coverSizeLabel->setText(StringFormat("{} x {} ({})",
 		image_size.width(),

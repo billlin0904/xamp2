@@ -14,21 +14,21 @@ namespace Ui {
 	class VolumeControlDialog;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT VolumeControlDialog : public QDialog {
+class XAMP_WIDGET_SHARED_EXPORT VolumeControlDialog final : public QDialog {
     Q_OBJECT
 public:
 	explicit VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent = nullptr);
 
 	virtual ~VolumeControlDialog() override;
 
-	void SetVolume(uint32_t volume, bool notify = true);
+	void setVolume(uint32_t volume, bool notify = true);
 
-	void SetThemeColor();
+	void setThemeColor();
 
-	void UpdateVolume();
+	void updateVolume();
 
 signals:
-    void VolumeChanged(uint32_t volume);
+    void volumeChanged(uint32_t volume);
 
 private:
 	Ui::VolumeControlDialog* ui_;

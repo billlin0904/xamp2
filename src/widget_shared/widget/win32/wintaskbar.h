@@ -56,7 +56,7 @@ public:
 
     void setRange(int progress_minimum, int progress_maximum);
 
-    bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
+    bool nativeEventFilter(const QByteArray& event_type, void* message, qintptr* result) override;
 
     QIcon play_icon;
     QIcon pause_icon;

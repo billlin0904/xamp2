@@ -50,7 +50,7 @@ int32_t JsonSettings::valueAsInt(const QString& key) {
 	return valueAs(key).toInt();
 }
 
-QMap<QString, QVariant> JsonSettings::ValueAsMap(QString const& key) {
+QMap<QString, QVariant> JsonSettings::valueAsMap(QString const& key) {
 	return QVariant::fromValue(valueAs(key)).toMap();
 }
 

@@ -13,15 +13,15 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SeekSlider : public QSlider {
+class XAMP_WIDGET_SHARED_EXPORT SeekSlider final : public QSlider {
 	Q_OBJECT
 public:
     explicit SeekSlider(QWidget* parent = nullptr);
 
-	void SetRange(int64_t min, int64_t max);
+	void setRange(int64_t min, int64_t max);
 
 signals:
-	void LeftButtonValueChanged(int64_t value);
+	void leftButtonValueChanged(int64_t value);
 
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
@@ -33,7 +33,7 @@ protected:
 	void wheelEvent(QWheelEvent* event) override;
 
 private:
-	void SetValue(int value, bool animate = true);
+	void setValueAnimation(int value, bool animate);
 
 	int target_ = 0;
 	int duration_ = 100;

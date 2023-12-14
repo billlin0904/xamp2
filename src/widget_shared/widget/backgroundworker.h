@@ -26,7 +26,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ReplayGainResult final {
 	Vector<double> track_peak_gain;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker final : public QObject {
 	Q_OBJECT
 
 public:
@@ -72,17 +72,17 @@ signals:
 public Q_SLOT:
 	void cancelRequested();
 
-	void OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
+	void onReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
 
-	void OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
+	void onBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
 #if defined(Q_OS_WIN)
-	void OnFetchCdInfo(const DriveInfo& drive);
+	void onFetchCdInfo(const DriveInfo& drive);
 #endif
 
-	void OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist);
+	void onSearchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
-	void OnTranslation(const QString& keyword, const QString& from, const QString& to);
+	void onTranslation(const QString& keyword, const QString& from, const QString& to);
 
 private:
 	bool is_stop_{false};

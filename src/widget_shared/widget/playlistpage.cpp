@@ -63,7 +63,7 @@ void PlaylistPage::initial() {
     title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(qTheme.GetFontSize(20));
+	f.setPointSize(qTheme.fontSize(20));
 
 	const QFontMetrics metrics(f);
 	const auto font_height = metrics.height();
@@ -79,14 +79,14 @@ void PlaylistPage::initial() {
 	heart_button_->setMinimumSize(QSize(24, 24));
 	heart_button_->setMaximumSize(QSize(24, 24));
 	heart_button_->setIconSize(QSize(24, 24));
-	qTheme.SetHeartButton(heart_button_);
+	qTheme.setHeartButton(heart_button_);
 	heart_button_->hide();
 
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
 			album_heart_ = !album_heart_;
 			qMainDb.updateAlbumHeart(album_id_.value(), album_heart_);
-			qTheme.SetHeartButton(heart_button_, album_heart_);
+			qTheme.setHeartButton(heart_button_, album_heart_);
 		}
 		});
 
@@ -100,7 +100,7 @@ void PlaylistPage::initial() {
 	search_line_edit_->setMinimumSize(QSize(180, 30));
 	search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	search_line_edit_->setClearButtonEnabled(true);
-	search_line_edit_->addAction(qTheme.GetFontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	search_line_edit_->setPlaceholderText(tr("Search Album/Title"));
 
 	format_ = new QLabel(this);
@@ -189,7 +189,7 @@ void PlaylistPage::initial() {
 
 		playlist_->search(text);
 		});
-	qTheme.SetLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
+	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
@@ -199,7 +199,7 @@ void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 
 void PlaylistPage::setHeart(bool heart) {
 	heart_button_->show();
-	qTheme.SetHeartButton(heart_button_, heart);
+	qTheme.setHeartButton(heart_button_, heart);
 }
 
 QLabel* PlaylistPage::format() {
@@ -233,7 +233,7 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 void PlaylistPage::setAlbumId(int32_t album_id, int32_t heart) {
 	album_id_ = album_id;
 	album_heart_ = heart;
-	qTheme.SetHeartButton(heart_button_, album_heart_);
+	qTheme.setHeartButton(heart_button_, album_heart_);
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {

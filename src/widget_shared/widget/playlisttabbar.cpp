@@ -12,7 +12,7 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setMovable(true);
 	setElideMode(Qt::ElideRight);
 	auto f = font();
-	f.setPointSize(qTheme.GetFontSize(8));
+	f.setPointSize(qTheme.fontSize(8));
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
 }
@@ -45,7 +45,7 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 
 	line_edit_ = new QLineEdit(this);
 
-	switch (qTheme.GetThemeColor()) {
+	switch (qTheme.themeColor()) {
 	case ThemeColor::LIGHT_THEME:
 		line_edit_->setStyleSheet(qSTR(R"(
 	QLineEdit {

@@ -9,13 +9,13 @@ SeekSlider::SeekSlider(QWidget* parent)
 	animation_ = new QPropertyAnimation(this, "value");
 }
 
-void SeekSlider::SetRange(int64_t min, int64_t max) {
+void SeekSlider::setRange(int64_t min, int64_t max) {
 	min_ = min;
 	max_ = max;
 	QSlider::setRange(static_cast<int>(min), static_cast<int>(max));
 }
 
-void SeekSlider::SetValue(int value, bool animate) {
+void SeekSlider::setValueAnimation(int value, bool animate) {
 	target_ = value;
 	if (animate) {
 		animation_->stop();
@@ -41,22 +41,22 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 			auto y = event->pos().y();
 			value = ((max_ - min_) * (height() - y) / height()) + min_;
 		}
-		SetValue(value);
-		emit LeftButtonValueChanged(value);
+		setValueAnimation(value, true);
+		emit leftButtonValueChanged(value);
 	}
 	return QSlider::mousePressEvent(event);
 }
 
 void SeekSlider::enterEvent(QEnterEvent* event) {
-	qTheme.SetSliderTheme(this, true);
+	qTheme.setSliderTheme(this, true);
 }
 
 void SeekSlider::leaveEvent(QEvent* event) {
-	qTheme.SetSliderTheme(this, false);
+	qTheme.setSliderTheme(this, false);
 }
 
 void SeekSlider::wheelEvent(QWheelEvent* event) {
 	constexpr int kVolumeSensitivity = 30;
 	const uint step = event->angleDelta().y() / kVolumeSensitivity;
-	setValue(value() + step);
+	setValueAnimation(value() + step, true);
 }

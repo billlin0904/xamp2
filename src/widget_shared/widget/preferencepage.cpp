@@ -63,7 +63,7 @@ QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
 }
 
 void PreferencePage::saveSoxrResampler(const QString &name) const {
-	auto soxr_config = JsonSettings::ValueAsMap(kSoxr);
+	auto soxr_config = JsonSettings::valueAsMap(kSoxr);
 
 	soxr_config[name] = currentSoxrSettings();
 	JsonSettings::setValue(kSoxr, soxr_config);
@@ -87,7 +87,7 @@ void PreferencePage::saveR8BrainResampler() {
 }
 
 void PreferencePage::initSrcResampler() {
-	auto config = JsonSettings::ValueAsMap(kSrc);
+	auto config = JsonSettings::valueAsMap(kSrc);
 	ui_->srcTargetSampleRateComboBox->setCurrentText(QString::number(config[kResampleSampleRate].toInt()));
 
 	(void)QObject::connect(ui_->srcTargetSampleRateComboBox, &QComboBox::textActivated, [this](auto) {
@@ -96,7 +96,7 @@ void PreferencePage::initSrcResampler() {
 }
 
 void PreferencePage::initR8BrainResampler() {
-	auto config = JsonSettings::ValueAsMap(kR8Brain);
+	auto config = JsonSettings::valueAsMap(kR8Brain);
 	ui_->r8brainTargetSampleRateComboBox->setCurrentText(QString::number(config[kResampleSampleRate].toInt()));
 
 	(void)QObject::connect(ui_->r8brainTargetSampleRateComboBox, &QComboBox::textActivated, [this](auto) {
@@ -105,7 +105,7 @@ void PreferencePage::initR8BrainResampler() {
 }
 
 void PreferencePage::initSoxResampler() {
-	auto soxr_config = JsonSettings::ValueAsMap(kSoxr);
+	auto soxr_config = JsonSettings::valueAsMap(kSoxr);
 
     Q_FOREACH (const auto &soxr_setting_name, soxr_config.keys()) {
 		ui_->soxrSettingCombo->addItem(soxr_setting_name);
@@ -141,17 +141,17 @@ void PreferencePage::initSoxResampler() {
     });
 
     (void)QObject::connect(ui_->soxrSettingCombo, &QComboBox::textActivated, [this](auto index) {
-		const auto soxr_settings = JsonSettings::ValueAsMap(kSoxr);
+		const auto soxr_settings = JsonSettings::valueAsMap(kSoxr);
 		const auto settings = soxr_settings[index].toMap();
 		updateSoxrConfigUi(settings);
 		});
 }
 
 void PreferencePage::setLanguage(int index) {
-	const auto lang = LocaleLanguageManager::LanguageNames()[index];
+	const auto lang = LocaleLanguageManager::languageNames()[index];
 	ui_->langCombo->setCurrentIndex(index);
-	qAppSettings.loadLanguage(lang.GetIsoCode());
-	qAppSettings.setValue(kAppSettingLang, lang.GetIsoCode());
+	qAppSettings.loadLanguage(lang.isoCode());
+	qAppSettings.setValue(kAppSettingLang, lang.isoCode());
 	ui_->retranslateUi(this);
 }
 
@@ -161,10 +161,10 @@ void PreferencePage::initialLanguage() {
 	auto current_index = 0;
 	auto index = 0;
 
-    Q_FOREACH (auto lang, LocaleLanguageManager::LanguageNames()) {
-        QIcon ico(qTheme.GetCountryFlagFilePath(lang.CountryIsoCode().toUpper()));
-		ui_->langCombo->addItem(ico, lang.NativeNameLang());
-		if (current_lang.GetIsoCode() == lang.GetIsoCode()) {
+    Q_FOREACH (auto lang, LocaleLanguageManager::languageNames()) {
+        QIcon ico(qTheme.countryFlagFilePath(lang.countryIsoCode().toUpper()));
+		ui_->langCombo->addItem(ico, lang.nativeNameLang());
+		if (current_lang.isoCode() == lang.isoCode()) {
 			current_index = index;
 		}
 		index++;
@@ -203,7 +203,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	initialLanguage();
 
-	switch (qTheme.GetThemeColor()) {
+	switch (qTheme.themeColor()) {
 	case ThemeColor::LIGHT_THEME:
 		ui_->lightRadioButton->setChecked(true);
 		break;
@@ -213,11 +213,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 	}
 
 	(void)QObject::connect(ui_->lightRadioButton, &QRadioButton::clicked, [](auto checked) {
-		emit qTheme.CurrentThemeChanged(ThemeColor::LIGHT_THEME);
+		emit qTheme.currentThemeChanged(ThemeColor::LIGHT_THEME);
 		});
 
 	(void)QObject::connect(ui_->darkRadioButton, &QRadioButton::clicked, [](auto checked) {
-		emit qTheme.CurrentThemeChanged(ThemeColor::DARK_THEME);
+		emit qTheme.currentThemeChanged(ThemeColor::DARK_THEME);
 		});
 
     ui_->preferenceTreeWidget->header()->hide();
@@ -306,7 +306,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		if (setting_name.isEmpty()) {
 			return;
 		}
-		auto soxr_config = JsonSettings::ValueAsMap(kSoxr);
+		auto soxr_config = JsonSettings::valueAsMap(kSoxr);
 		if (soxr_config.contains(setting_name)) {
 			return;
 		}
@@ -343,14 +343,14 @@ PreferencePage::PreferencePage(QWidget *parent)
 		ui_->lbR8BrainHz,
 	};
 
-	auto f = qTheme.GetUiFont();
-	f.setPointSize(qTheme.GetFontSize(9));
+	auto f = qTheme.uiFont();
+	f.setPointSize(qTheme.fontSize(9));
 	setFont(f);
 
 	Q_FOREACH(auto *w, widgets) {
-		auto df = qTheme.GetDisplayFont();
+		auto df = qTheme.displayFont();
 		df.setWeight(QFont::DemiBold);
-		df.setPointSize(qTheme.GetFontSize(14));
+		df.setPointSize(qTheme.fontSize(14));
 
 		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
 			w->setFont(f);
@@ -366,11 +366,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 		w->setStyleSheet(qTEXT("background: transparent;"));
 	}
 
-	ui_->soxrPhaseSlider->SetRange(1, 100);
-	ui_->soxrPassbandSlider->SetRange(1, 100);
+	ui_->soxrPhaseSlider->setRange(1, 100);
+	ui_->soxrPassbandSlider->setRange(1, 100);
 
-	qTheme.SetSliderTheme(ui_->soxrPhaseSlider, true);
-	qTheme.SetSliderTheme(ui_->soxrPassbandSlider, true);
+	qTheme.setSliderTheme(ui_->soxrPhaseSlider, true);
+	qTheme.setSliderTheme(ui_->soxrPassbandSlider, true);
 
 	ui_->stackedWidget->setCurrentIndex(0);
 	setFixedSize(950, 700);		

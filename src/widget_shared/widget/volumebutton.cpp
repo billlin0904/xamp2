@@ -19,7 +19,7 @@ VolumeButton::~VolumeButton() = default;
 void VolumeButton::setPlayer(std::shared_ptr<IAudioPlayer> player) {
 	dialog_.reset(new VolumeControlDialog(player, this));
 	(void)QObject::connect(dialog_.get(),
-		&VolumeControlDialog::VolumeChanged,
+		&VolumeControlDialog::volumeChanged,
 		this,
 		&VolumeButton::onVolumeChanged);
 	(void)QObject::connect(&show_timer_,
@@ -28,8 +28,8 @@ void VolumeButton::setPlayer(std::shared_ptr<IAudioPlayer> player) {
 		show_timer_.stop();
 		is_show_ = true;
 
-		dialog_->SetThemeColor();
-		dialog_->UpdateVolume();
+		dialog_->setThemeColor();
+		dialog_->updateVolume();
 		MoveToTopWidget(dialog_.get(), this);
 		dialog_->show();
 		});
@@ -41,12 +41,12 @@ void VolumeButton::showDialog() {
 }
 
 void VolumeButton::onCurrentThemeChanged(ThemeColor theme_color) {
-	dialog_->SetThemeColor();
+	dialog_->setThemeColor();
 }
 
 void VolumeButton::onVolumeChanged(uint32_t volume) {
-	qTheme.SetMuted(this, volume == 0);
-	dialog_->SetVolume(volume, false);
+	qTheme.setMuted(this, volume == 0);
+	dialog_->setVolume(volume, false);
 }
 
 void VolumeButton::mouseMoveEvent(QMouseEvent* event) {

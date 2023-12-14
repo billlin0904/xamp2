@@ -18,13 +18,13 @@ public:
 
 	~TagWidgetItem() override;
 
-	QString GetTag() const;
+	QString getTag() const;
 
-	bool IsEnable() const;
+	bool isEnable() const;
 
-	void SetEnable(bool enable);
+	void setEnable(bool enable);
 
-	void Enable();
+	void enable();
 private:
 	bool enabled_ = true;
 	QColor color_;
@@ -37,25 +37,25 @@ class TagListView : public QFrame {
 public:
 	explicit TagListView(QWidget* parent = nullptr);
 
-	void AddTag(const QString &tag, bool uniform_item_sizes = false);
+	void addTag(const QString &tag, bool uniform_item_sizes = false);
 
-	void ClearTag();
+	void clearTag();
 
-	void SetListViewFixedHeight(int32_t height);
+	void setListViewFixedHeight(int32_t height);
 
-	void EnableTag(const QString& tag);
+	void enableTag(const QString& tag);
 
-	void DisableAllTag(const QString& skip_tag);
+	void disableAllTag(const QString& skip_tag);
 
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
-	void OnThemeColorChanged(QColor background_color, QColor color);
+	void onThemeColorChanged(QColor background_color, QColor color);
 
-	void Sort();
+	void sort();
 signals:
-	void TagChanged(const QSet<QString> &tags);
+	void tagChanged(const QSet<QString> &tags);
 
-	void TagClear();
+	void tagClear();
 
 private:
 	QListWidget* taglist_;

@@ -23,13 +23,13 @@ class XAMP_WIDGET_SHARED_EXPORT XAction : public QAction {
 	Q_OBJECT
 public:
 	explicit XAction(Glyphs glyphs, const QString& text, QObject* parent = nullptr)
-		: QAction(qTheme.GetFontIcon(glyphs), text, parent)
+		: QAction(qTheme.fontIcon(glyphs), text, parent)
 		, glyphs_(glyphs){
 	}
 
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color) {
-		setIcon(qTheme.GetFontIcon(glyphs_));
+		setIcon(qTheme.fontIcon(glyphs_));
 	}
 
 private:
@@ -47,7 +47,7 @@ public:
 			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
 			submenu_.reset(menu->addMenu(menu_name));
-            qTheme.SetMenuStyle(submenu_.get());
+            qTheme.setMenuStyle(submenu_.get());
 		}
 
 		template <typename Callable>
@@ -80,7 +80,7 @@ public:
 	explicit ActionMap(Type* object)
 		: object_(object)
 		, menu_(object) {
-		qTheme.SetMenuStyle(&menu_);
+		qTheme.setMenuStyle(&menu_);
 	}
 
 	QAction* addAction(const QString& menu_name) {

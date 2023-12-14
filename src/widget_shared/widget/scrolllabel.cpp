@@ -7,9 +7,9 @@ ScrollLabel::ScrollLabel(QWidget* parent)
     static_text_.setTextFormat(Qt::PlainText);
 	timer_.setInterval(30);
 	timer_.setTimerType(Qt::PreciseTimer);
-	(void)QObject::connect(&timer_, &QTimer::timeout, this, &ScrollLabel::OnTimerTimeout);
+	(void)QObject::connect(&timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
     wait_timer_.setInterval(100);
-	(void)QObject::connect(&wait_timer_, &QTimer::timeout, this, &ScrollLabel::OnTimerTimeout);
+	(void)QObject::connect(&wait_timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
 	left_margin_ = 2;
 	scroll_pos_ = 0;
 	scroll_enabled_ = false;
@@ -51,7 +51,7 @@ void ScrollLabel::UpdateText() {
     whole_text_size_ = QSize(fontMetrics().horizontalAdvance(static_text_.text()), fontMetrics().height());
 }
 
-void ScrollLabel::OnTimerTimeout() {
+void ScrollLabel::onTimerTimeout() {
 	if (whole_text_size_.width() == 0) {
 		return;
 	}
