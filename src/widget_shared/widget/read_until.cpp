@@ -26,7 +26,7 @@ namespace read_until {
 
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
-double ReadAll(Path const& file_path,
+double readAll(Path const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
@@ -75,12 +75,12 @@ double ReadAll(Path const& file_path,
 	return file_stream->GetDurationAsSeconds();
 }
 
-std::tuple<double, double> ReadFileLufs(Path const& file_path,
+std::tuple<double, double> readFileLufs(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration) {
 	Ebur128Reader scanner;
 
-    ReadAll(file_path, progress,
+    readAll(file_path, progress,
 		[&scanner](AudioFormat const& input_format)
 		{
 			scanner.SetSampleRate(input_format.GetSampleRate());
@@ -93,7 +93,7 @@ std::tuple<double, double> ReadFileLufs(Path const& file_path,
                            scanner.GetTruePeek());
 }
 
-void EncodeFile(AnyMap const& config,
+void encodeFile(AnyMap const& config,
 	AlignPtr<IFileEncoder>& encoder,
 	std::function<bool(uint32_t)> const& progress,
 	TrackInfo const& track_info) {
@@ -112,7 +112,7 @@ void EncodeFile(AnyMap const& config,
 	}
 }
 
-void EncodeFile(Path const& file_path,
+void encodeFile(Path const& file_path,
 	Path const& output_file_path,
 	AlignPtr<IFileEncoder>& encoder,
     std::wstring const& command,
@@ -123,7 +123,7 @@ void EncodeFile(Path const& file_path,
 	config.AddOrReplace(FileEncoderConfig::kInputFilePath, file_path);
 	config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_file_path);
 	config.AddOrReplace(FileEncoderConfig::kCommand, command);
-	EncodeFile(config, encoder, progress, track_info);
+	encodeFile(config, encoder, progress, track_info);
 }
 
 }

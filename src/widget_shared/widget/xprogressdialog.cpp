@@ -57,8 +57,8 @@ XProgressDialog::XProgressDialog(const QString& title,
 	layout_->setSpacing(5);
 	layout_->setContentsMargins(10, 10, 10, 10);
 
-	SetContentWidget(client_widget);
-	SetTitle(title);
+	setContentWidget(client_widget);
+	setTitle(title);
 
 	if (parent) {
 		max_width_ = parent->width() * 0.8;
@@ -73,25 +73,25 @@ XProgressDialog::XProgressDialog(const QString& title,
 		[this]() {
 		progress_bar_->reset();
 		close();
-		emit CancelRequested();
+		emit cancelRequested();
 		});
 
 	CenterParent(this);
 }
 
-void XProgressDialog::SetRange(int minimum, int maximum) {
+void XProgressDialog::setRange(int minimum, int maximum) {
 	progress_bar_->setRange(minimum, maximum);
 }
 
-void XProgressDialog::SetSubValue(int total, int current) {
+void XProgressDialog::setSubValue(int total, int current) {
 	sub_text_label_->setText(qSTR("%1 / %2").arg(current).arg(total));
 }
 
-int XProgressDialog::GetValue() const {
+int XProgressDialog::value() const {
 	return progress_bar_->value();
 }
 
-void XProgressDialog::SetValue(int value) {
+void XProgressDialog::setValue(int value) {
 	if (size_ != size()) {
 		CenterParent(this);
 		size_ = size();
@@ -99,12 +99,12 @@ void XProgressDialog::SetValue(int value) {
 	progress_bar_->setValue(value);
 }
 
-void XProgressDialog::SetLabelText(const QString& text) {
+void XProgressDialog::setLabelText(const QString& text) {
 	const QFontMetrics metrics(font());
 	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, max_width_));
 	CenterParent(this);
 }
 
-bool XProgressDialog::WasCanceled() const {
+bool XProgressDialog::wasCanceled() const {
 	return default_button_->isChecked();
 }

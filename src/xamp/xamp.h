@@ -64,190 +64,190 @@ public:
 
     virtual ~Xamp() override;
 
-    void SetXWindow(IXMainWindow* main_window);
+    void setXWindow(IXMainWindow* main_window);
 
-    void SetThemeColor(QColor background_color, QColor color);
+    void setThemeColor(QColor background_color, QColor color);
 
-	void ShortcutsPressed(const QKeySequence& shortcut) override;
+	void shortcutsPressed(const QKeySequence& shortcut) override;
 
-	void SetFullScreen();
+	void setFullScreen();
 
-	void InitialDeviceList();
+	void initialDeviceList();
 
-	void WaitForReady();
+	void waitForReady();
 signals:
-	void PayNextMusic();
+	void payNextMusic();
 
-    void ThemeChanged(QColor background_color, QColor color);
+    void themeChanged(QColor background_color, QColor color);
 
-	void NowPlaying(QString const& artist, QString const& title);
+	void nowPlaying(QString const& artist, QString const& title);
 
-	void BlurImage(const QString& cover_id, const QPixmap& image, QSize size);
+	void blurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
-	void FetchCdInfo(const DriveInfo& drive);
+	void fetchCdInfo(const DriveInfo& drive);
 
-	void SearchLyrics(int32_t music_id, const QString& title, const QString& artist);
+	void searchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
-	void ExtractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
+	void extractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
 
-	void Translation(const QString& keyword, const QString& from, const QString& to);	
+	void translation(const QString& keyword, const QString& from, const QString& to);	
 
-	void ChangePlayerOrder(PlayerOrder order);
+	void changePlayerOrder(PlayerOrder order);
 
-	void UpdateNewVersion(const Version &version);
+	void updateNewVersion(const Version &version);
 public slots:
-    void PlayEntity(const PlayListEntity& entity);
+    void onPlayEntity(const PlayListEntity& entity);
 
-	void PlayPlayListEntity(const PlayListEntity& entity);
+	void onPlayPlayListEntity(const PlayListEntity& entity);
 
-    void AddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
+    void onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
 
-	void OnArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks);
+	void onProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 
-	void OnActivated(QSystemTrayIcon::ActivationReason reason);
+	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
-	void OnVolumeChanged(float volume);
+	void onVolumeChanged(float volume);
 
-	void SetCover(const QString& cover_id, PlaylistPage* page);
+	void onSetCover(const QString& cover_id, PlaylistPage* page);
 
-	void OnUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+	void onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
-	void OnUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
+	void onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
-	void OnUpdateDiscCover(const QString& disc_id, const QString& cover_id);
+	void onUpdateDiscCover(const QString& disc_id, const QString& cover_id);
 
-	void OnSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
+	void onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
 
-	void OnSearchArtistCompleted(const QString& artist, const QByteArray& image);
+	void onSearchArtistCompleted(const QString& artist, const QByteArray& image);
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
-	void OnInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+	void onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
-	void OnReadFileProgress(int32_t progress);
+	void onReadFileProgress(int32_t progress);
 
-	void OnReadCompleted();
+	void onReadCompleted();
 
-	void OnReadFileStart();
+	void onReadFileStart();
 
-	void OnReadFilePath(const QString& file_path);
+	void onReadFilePath(const QString& file_path);
 
-	void OnFoundFileCount(size_t file_count);
+	void onFoundFileCount(size_t file_count);
 
-	void OnSetAlbumCover(int32_t album_id,
+	void onSetAlbumCover(int32_t album_id,
 		const QString& cover_id);
 
-	void OnTranslationCompleted(const QString& keyword, const QString& result);
+	void onTranslationCompleted(const QString& keyword, const QString& result);
 
-	void OnEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
+	void onEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
-	void OnCheckForUpdate();
+	void onCheckForUpdate();
 
-	void OnRestartApp();
+	void onRestartApp();
 
 private:
-	void DrivesChanges(const QList<DriveInfo>& drive_infos) override;
+	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 
-	void DrivesRemoved(const DriveInfo& drive_info) override;
+	void drivesRemoved(const DriveInfo& drive_info) override;
 
-    void StopPlay() override;
+    void stopPlay() override;
 
-    void PlayNext() override;
+    void playNext() override;
 
-    void PlayPrevious() override;
+    void playPrevious() override;
 
-    void PlayOrPause() override;
+    void playOrPause() override;
 
-    void DeleteKeyPress() override;
+    void deleteKeyPress() override;
 
-    void AddDropFileItem(const QUrl& url) override;
+    void addDropFileItem(const QUrl& url) override;
 
 	void closeEvent(QCloseEvent* event) override;
 
-	void UpdateMaximumState(bool is_maximum) override;
+	void updateMaximumState(bool is_maximum) override;
 
-	void SetPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
+	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
-	QWidgetAction* CreateDeviceMenuWidget(const QString& desc, const QIcon& icon = QIcon());
+	QWidgetAction* createDeviceMenuWidget(const QString& desc, const QIcon& icon = QIcon());
 
-	void OnSampleTimeChanged(double stream_time);
+	void onSampleTimeChanged(double stream_time);
 
-	void PlayLocalFile(const PlayListEntity& item);
+	void playLocalFile(const PlayListEntity& item);
 
-	void OnPlayerStateChanged(PlayerState play_state);
+	void onPlayerStateChanged(PlayerState play_state);
 
-	void AddItem(const QString& file_name);
+	void addItem(const QString& file_name);
 
-    void SetVolume(uint32_t volume);
+    void setVolume(uint32_t volume);
 
-	void SetCurrentTab(int32_t table_id);
+	void setCurrentTab(int32_t table_id);
 
-	void InitialUi();
+	void initialUi();
 
-	void InitialPlaylist();
+	void initialPlaylist();
 
-	void InitialController();
+	void initialController();
 
-	void InitialShortcut();
+	void initialShortcut();
 
-	void InitialSpectrum();
+	void initialSpectrum();
 
-	void PlayNextItem(int32_t forward);
+	void playNextItem(int32_t forward);
 
-	void SetPlayerOrder(bool emit_order = false);
+	void setPlayerOrder(bool emit_order = false);
 
-	PlaylistPage* CreatePlaylistPage(int32_t playlist_id, const QString& column_setting_name);
+	PlaylistPage* createPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 
-	void PushWidget(QWidget* widget);
+	void pushWidget(QWidget* widget);
 
-	QWidget* PopWidget();
+	QWidget* popWidget();
 
-	QWidget* TopWidget();
+	QWidget* topWidget();
 
-	void GoBackPage();
+	void goBackPage();
 
-	void GetNextPage();
+	void getNextPage();
 
-	void SetSeekPosValue(double stream_time_as_ms);
+	void setSeekPosValue(double stream_time_as_ms);
 
-	void ResetSeekPosValue();
+	void resetSeekPosValue();
 
-    void OnDeviceStateChanged(DeviceState state);
+    void onDeviceStateChanged(DeviceState state);
 
-    void EncodeFlacFile(const PlayListEntity& item);
+    void encodeFlacFile(const PlayListEntity& item);
 
-	void EncodeAacFile(const PlayListEntity& item, const EncodingProfile & profile);
+	void encodeAacFile(const PlayListEntity& item, const EncodingProfile & profile);
 
-	void EncodeWavFile(const PlayListEntity& item);
+	void encodeWavFile(const PlayListEntity& item);
 
-    void UpdateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
+    void updateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
-	void UpdateButtonState();
+	void updateButtonState();
 
 	void cleanup();
 
-    void SetupDsp(const PlayListEntity& item) const;
+    void setupDsp(const PlayListEntity& item) const;
 
-	void ConnectPlaylistPageSignal(PlaylistPage* playlist_page);
+	void connectPlaylistPageSignal(PlaylistPage* playlist_page);
 
-	void AppendToPlaylist(const QString& file_name, bool append_to_playlist);
+	void appendToPlaylist(const QString& file_name, bool append_to_playlist);
 
-	QString TranslateErrorCode(const Errors error) const;
+	QString translateErrorCode(const Errors error) const;
 
 	void SetupSampleWriter(ByteFormat byte_format,
 		PlaybackFormat& playback_format) const;
 
-	void SetupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
+	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type);
 
 	void showEvent(QShowEvent* event) override;
 
-	PlaylistPage* NewPlaylistPage(int32_t playlist_id, const QString &name);
+	PlaylistPage* newPlaylistPage(int32_t playlist_id, const QString &name);
 
-	PlaylistPage* GetCurrentPlaylistPage();
+	PlaylistPage* getCurrentPlaylistPage();
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

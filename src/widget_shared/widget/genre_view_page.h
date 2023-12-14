@@ -20,7 +20,7 @@ class GenrePage : public QFrame {
 public:
 	explicit GenrePage(QWidget* parent = nullptr);
 
-	void SetGenre(const QString& genre);
+	void setGenre(const QString& genre);
 
 	GenreView* view() {
 		return genre_view_;
@@ -37,17 +37,17 @@ class GenreViewPage : public QStackedWidget {
 public:
 	explicit GenreViewPage(QWidget* parent = nullptr);
 
-	void AddGenre(const QString& genre);
+	void addGenre(const QString& genre);
 
-	void RemoveGenre(const QString& genre);
+	void removeGenre(const QString& genre);
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
-	void Refresh();
+	void refresh();
 
-	void Clear();
+	void clear();
 private:
 	GenrePage* genre_page_;
 	QFrame* genre_frame_;

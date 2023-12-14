@@ -126,15 +126,15 @@ SuperEqView::SuperEqView(QWidget* parent)
         s->setRange(-20, 20);
     }
 
-    ui_->enableEqCheckBox->setCheckState(qAppSettings.ValueAsBool(kAppSettingEnableEQ)
+    ui_->enableEqCheckBox->setCheckState(qAppSettings.valueAsBool(kAppSettingEnableEQ)
         ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 
     (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
+        qAppSettings.setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
     (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
+        qAppSettings.setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
     (void)QObject::connect(ui_->eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
@@ -147,8 +147,8 @@ SuperEqView::SuperEqView(QWidget* parent)
         ui_->eqPresetComboBox->addItem(name);
     }
 
-    if (qAppSettings.Contains(kAppSettingEQName)) {
-        auto [name, settings] = qAppSettings.GetEqSettings();
+    if (qAppSettings.contains(kAppSettingEQName)) {
+        auto [name, settings] = qAppSettings.eqSettings();
         ApplySetting(name, settings);
     } else {
         ApplySetting(settingses_.firstKey(), settingses_.first());
@@ -173,7 +173,7 @@ void SuperEqView::ApplySetting(const QString& name, const EqSettings& settings) 
     AppEQSettings app_settings;
     app_settings.name = name;
     app_settings.settings = settings;
-    qAppSettings.SetEqSettings(app_settings);
+    qAppSettings.setEqSettings(app_settings);
     qAppSettings.save();
     ui_->eqPresetComboBox->setCurrentText(name);
 }

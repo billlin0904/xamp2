@@ -4,11 +4,11 @@ GenreView::GenreView(QWidget* parent)
 	: AlbumView(parent) {
 }
 
-void GenreView::SetGenre(const QString& genre) {
+void GenreView::setGenre(const QString& genre) {
     genre_ = genre;
 }
 
-void GenreView::ShowAllAlbum(int32_t limit) {
+void GenreView::showAllAlbum(int32_t limit) {
     last_query_ = qSTR(R"(
 SELECT
     albums.album,
@@ -32,17 +32,17 @@ LIMIT %2
     show_all_ = limit == kMaxShowAlbum;
 }
 
-void GenreView::ShowAll() {
+void GenreView::showAll() {
     auto album_count = this->width() / kAlbumViewCoverSize;
     album_count = (std::max)(album_count, 6);
-    ShowAllAlbum(album_count);
+    showAllAlbum(album_count);
 }
 
 void GenreView::resizeEvent(QResizeEvent* event) {
     if (!show_all_) {
         auto album_count = this->width() / kAlbumViewCoverSize;
-        ShowAllAlbum(album_count);
+        showAllAlbum(album_count);
     }    
     AlbumView::resizeEvent(event);
-    Update();
+    reload();
 }

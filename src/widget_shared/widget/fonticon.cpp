@@ -79,13 +79,13 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 
 	auto paint_rect = rect;
 
-    if (options_.contains(FontIconOption::kAnimation)) {
+    /*if (options_.contains(FontIconOption::kAnimation)) {
         auto var = options_.value(FontIconOption::kAnimation);
         auto* animation = var.value<FontIconAnimation*>();
         if (animation) {
             animation->paint(*painter, rect);
         }
-    }
+    }*/
 
     QFont font(font_family_);
     font.setStyleStrategy(QFont::PreferAntialias);

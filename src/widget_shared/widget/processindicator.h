@@ -10,18 +10,18 @@
 
 class ProcessIndicator : public QWidget {
     Q_OBJECT
-    Q_PROPERTY(int delay READ AnimationDelay WRITE SetAnimationDelay)
-    Q_PROPERTY(bool displayedWhenStopped READ IsDisplayedWhenStopped WRITE SetDisplayedWhenStopped)
-    Q_PROPERTY(QColor color READ color WRITE SetColor)
+    Q_PROPERTY(int delay READ animationDelay WRITE setAnimationDelay)
+    Q_PROPERTY(bool displayedWhenStopped READ isDisplayedWhenStopped WRITE setDisplayedWhenStopped)
+    Q_PROPERTY(QColor color READ color WRITE setColor)
 
 public:
     explicit ProcessIndicator(QWidget* parent = nullptr);
 
-    int AnimationDelay() const { return delay_; }
+    int animationDelay() const { return delay_; }
 
-    bool IsAnimated() const;
+    bool isAnimated() const;
 
-    bool IsDisplayedWhenStopped() const;
+    bool isDisplayedWhenStopped() const;
 
     const QColor& color() const { return color_; }
 
@@ -29,18 +29,19 @@ public:
 
     int heightForWidth(int w) const override;
 
-    void SetStoppedIcon(const QIcon &icon);
+    void setStoppedIcon(const QIcon &icon);
+
+    void startAnimation();
+
+    void stopAnimation();
+
+    void setAnimationDelay(int delay);
+
+    void setDisplayedWhenStopped(bool state);
+
+    void setColor(const QColor& color);
 
 public slots:
-    void StartAnimation();
-
-    void StopAnimation();
-
-    void SetAnimationDelay(int delay);
-
-    void SetDisplayedWhenStopped(bool state);
-
-    void SetColor(const QColor& color);
 
 protected:
     void timerEvent(QTimerEvent* event) override;

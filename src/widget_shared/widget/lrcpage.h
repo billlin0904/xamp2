@@ -20,8 +20,9 @@ class QPaintEvent;
 
 class XAMP_WIDGET_SHARED_EXPORT LrcPage : public QFrame {
 	Q_OBJECT
-	Q_PROPERTY(int disappearBgProg READ GetDisappearBgProgress WRITE SetDisappearBgProgress)
-	Q_PROPERTY(int appearBgProg READ GetAppearBgProgress WRITE SetAppearBgProgress)
+	Q_PROPERTY(int disappearBgProg READ getDisappearBgProgress WRITE setDisappearBgProgress)
+	Q_PROPERTY(int appearBgProg READ getAppearBgProgress WRITE setAppearBgProgress)
+
 public:
 	static constexpr auto kBlurAlpha = 200;
 	static constexpr int kBlurBackgroundAnimationMs = 1500;
@@ -30,9 +31,9 @@ public:
 
 	LyricsShowWidget* lyrics();
 
-	void SetCover(const QPixmap& cover);
+	void setCover(const QPixmap& cover);
 
-	void AddCoverShadow(bool is_dark = false);
+	void addCoverShadow(bool is_dark = false);
 
 	QLabel* format();
 
@@ -40,35 +41,35 @@ public:
 
 	ScrollLabel* artist();
 
-    ScrollLabel* title();
+	ScrollLabel* title();
 
 	QLabel* cover();
 
-	QSize CoverSize() const;
+	QSize coverSize() const;
 
 	SpectrumWidget* spectrum();
 
-	void SetFullScreen(bool enter);
+	void setFullScreen(bool enter);
 
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
-    void OnThemeChanged(QColor backgroundColor, QColor color);
+	void OnThemeChanged(QColor backgroundColor, QColor color);
 
-	void SetBackground(const QImage& cover);
+	void setBackground(const QImage& cover);
 
-	void ClearBackground();
+	void clearBackground();
 
 private:
-	void SetAppearBgProgress(int x);
+	void setAppearBgProgress(int x);
 
-	int GetAppearBgProgress() const;
+	int getAppearBgProgress() const;
 
-	void SetDisappearBgProgress(int x);
+	void setDisappearBgProgress(int x);
 
-	int GetDisappearBgProgress() const;
+	int getDisappearBgProgress() const;
 
-	void StartBackgroundAnimation(int durationMs);
+	void startBackgroundAnimation(int durationMs);
 
 	void paintEvent(QPaintEvent*) override;
 
@@ -79,11 +80,11 @@ private:
 	int current_bg_alpha_ = 255;
 	int prev_bg_alpha_ = 0;
 	LyricsShowWidget* lyrics_widget_;
-    QLabel* cover_label_;
+	QLabel* cover_label_;
 	QLabel* format_label_;
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
-    ScrollLabel* title_;
+	ScrollLabel* title_;
 	SpectrumWidget* spectrum_;
 	QPixmap cover_;
 	QImage background_image_;

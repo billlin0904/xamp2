@@ -17,10 +17,10 @@
 
 PlaylistPage::PlaylistPage(QWidget* parent)
 	: QFrame(parent) {
-	Initial();
+	initial();
 }
 
-void PlaylistPage::Initial() {
+void PlaylistPage::initial() {
 	setFrameStyle(QFrame::StyledPanel);
 
 	auto* default_layout = new QVBoxLayout(this);
@@ -85,7 +85,7 @@ void PlaylistPage::Initial() {
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
 			album_heart_ = !album_heart_;
-			qMainDb.UpdateAlbumHeart(album_id_.value(), album_heart_);
+			qMainDb.updateAlbumHeart(album_id_.value(), album_heart_);
 			qTheme.SetHeartButton(heart_button_, album_heart_);
 		}
 		});
@@ -155,9 +155,9 @@ void PlaylistPage::Initial() {
 	default_layout->setStretch(3, 1);
 
 	(void)QObject::connect(playlist_,
-		&PlayListTableView::UpdateAlbumCover,
+		&PlayListTableView::updateAlbumCover,
 		this,
-		&PlaylistPage::SetCoverById);
+		&PlaylistPage::onSetCoverById);
 
 	auto * search_playlist_model = new QStandardItemModel(0, 1, this);
 	auto* playlist_completer = new QCompleter(search_playlist_model, this);
@@ -169,14 +169,14 @@ void PlaylistPage::Initial() {
 	auto action_list = search_line_edit_->findChildren<QAction*>();
 	if (!action_list.isEmpty()) {
 		(void)QObject::connect(action_list.first(), &QAction::triggered, this, [this]() {
-			playlist_->Search(kEmptyString);
+			playlist_->search(kEmptyString);
 			});
 	}
 
 	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this, search_playlist_model, playlist_completer](const auto& text) {
 		const auto items = search_playlist_model->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
-			playlist_->Search(kEmptyString);
+			playlist_->search(kEmptyString);
 			return;
 		}
 		if (search_playlist_model->rowCount() >= kMaxCompletionCount) {
@@ -187,7 +187,7 @@ void PlaylistPage::Initial() {
 		playlist_completer->setModel(search_playlist_model);
 		playlist_completer->setCompletionPrefix(text);
 
-		playlist_->Search(text);
+		playlist_->search(text);
 		});
 	qTheme.SetLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
@@ -197,7 +197,7 @@ void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
 }
 
-void PlaylistPage::SetHeart(bool heart) {
+void PlaylistPage::setHeart(bool heart) {
 	heart_button_->show();
 	qTheme.SetHeartButton(heart_button_, heart);
 }
@@ -214,7 +214,7 @@ QLabel* PlaylistPage::cover() {
 	return cover_;
 }
 
-void PlaylistPage::HidePlaybackInformation(bool hide) {
+void PlaylistPage::hidePlaybackInformation(bool hide) {
 	if (hide) {
 		format_->hide();
 		title_->hide();
@@ -230,22 +230,22 @@ void PlaylistPage::HidePlaybackInformation(bool hide) {
 	}
 }
 
-void PlaylistPage::SetAlbumId(int32_t album_id, int32_t heart) {
+void PlaylistPage::setAlbumId(int32_t album_id, int32_t heart) {
 	album_id_ = album_id;
 	album_heart_ = heart;
 	qTheme.SetHeartButton(heart_button_, album_heart_);
 }
 
-void PlaylistPage::SetCover(const QPixmap * cover) {
-	const auto playlist_cover = image_utils::RoundImage(
-		image_utils::ResizeImage(*cover, QSize(165, 165), false),
+void PlaylistPage::setCover(const QPixmap * cover) {
+	const auto playlist_cover = image_utils::roundImage(
+		image_utils::resizeImage(*cover, QSize(165, 165), false),
 		image_utils::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
 }
 
-void PlaylistPage::SetCoverById(const QString& cover_id) {
-	const auto cover = qImageCache.GetOrDefault(cover_id);
-	SetCover(&cover);
+void PlaylistPage::onSetCoverById(const QString& cover_id) {
+	const auto cover = qImageCache.getOrDefault(cover_id);
+	setCover(&cover);
 }
 
 PlayListTableView* PlaylistPage::playlist() {

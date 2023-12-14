@@ -72,7 +72,7 @@ void TagIO::WriteEmbeddedCover(const Path& file_path, const QPixmap& image) {
         return;
     }
 
-    const auto buffer = image_utils::Image2Buffer(image);
+    const auto buffer = image_utils::image2Buffer(image);
     writer_->WriteEmbeddedCover(file_path, buffer);
 }
 

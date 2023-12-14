@@ -119,7 +119,7 @@ namespace {
 		const QSize max_size(rect.right, rect.bottom);
 		POINT offset = { 0, 0 };
 
-		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::resizeImage(thumbnail, max_size, true)));
 		if (!bitmap) {
 			return;
 		}
@@ -134,7 +134,7 @@ namespace {
 		const QSize max_size(HIWORD(msg->lParam), LOWORD(msg->lParam));
 		XAMP_LOG_DEBUG("{} {}", HIWORD(msg->lParam), LOWORD(msg->lParam));
 
-		GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::ResizeImage(thumbnail, max_size, true)));
+		GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::resizeImage(thumbnail, max_size, true)));
 		if (!bitmap) {
 			return;
 		}
@@ -169,17 +169,17 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 	}
 
 	MSG_TaskbarButtonCreated = RegisterWindowMessageW(L"TaskbarButtonCreated");
-	SetWindow(window);
+	setWindow(window);
 }
 
 WinTaskbar::~WinTaskbar() = default;
 
-void WinTaskbar::SetWindow(QWidget* window) {
+void WinTaskbar::setWindow(QWidget* window) {
 	window_ = window;
 	QCoreApplication::instance()->installNativeEventFilter(this);
 	if (window_->isVisible()) {
-		UpdateProgressIndicator();
-		UpdateOverlay();
+		updateProgressIndicator();
+		updateOverlay();
 	}
 
 	const BOOL enable = TRUE;
@@ -190,7 +190,7 @@ void WinTaskbar::SetWindow(QWidget* window) {
 	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
 }
 
-void WinTaskbar::SetRange(int progress_minimum, int progress_maximum) {
+void WinTaskbar::setRange(int progress_minimum, int progress_maximum) {
 	const bool min_changed = progress_minimum != process_min_;
 	const bool max_changed = progress_maximum != process_max_;
 
@@ -201,12 +201,12 @@ void WinTaskbar::SetRange(int progress_minimum, int progress_maximum) {
 	process_max_ = (std::max)(progress_minimum, progress_maximum);
 
 	if (process_value_ < process_min_ || process_value_ > process_max_)
-		ResetTaskbarProgress();
+		resetTaskbarProgress();
 
-	UpdateProgressIndicator();
+	updateProgressIndicator();
 }
 
-void WinTaskbar::UpdateProgressIndicator() {
+void WinTaskbar::updateProgressIndicator() {
 	if (!window_) {
 		return;
 	}
@@ -233,7 +233,7 @@ void WinTaskbar::UpdateProgressIndicator() {
 	}
 }
 
-void WinTaskbar::InitialToolbarButtons() {
+void WinTaskbar::initialToolbarButtons() {
 	for (int index = 0; index < kWinThumbbarButtonSize; index++) {
 		buttons[index].iId = IDTB_FIRST + index;
 		buttons[index].iBitmap = index;
@@ -248,7 +248,7 @@ void WinTaskbar::InitialToolbarButtons() {
 	}
 }
 
-void WinTaskbar::CreateToolbarImages() {
+void WinTaskbar::createToolbarImages() {
 	QPixmap img;
 	QBitmap mask;
 
@@ -279,7 +279,7 @@ void WinTaskbar::CreateToolbarImages() {
 	COMCTL32_DLL.ImageList_Destroy(himl);
 }
 
-void WinTaskbar::SetIconicThumbnail(const QPixmap& image) {
+void WinTaskbar::setIconicThumbnail(const QPixmap& image) {
 	if (!window_) {
 		return;
 	}
@@ -288,7 +288,7 @@ void WinTaskbar::SetIconicThumbnail(const QPixmap& image) {
 	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
 }
 
-void WinTaskbar::UpdateOverlay() {
+void WinTaskbar::updateOverlay() {
 	if (!window_) {
 		return;
 	}
@@ -326,10 +326,10 @@ void WinTaskbar::UpdateOverlay() {
 bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
 	const auto* msg = static_cast<MSG*>(message);
 	if (msg->message == MSG_TaskbarButtonCreated) {
-		UpdateProgressIndicator();
-		UpdateOverlay();
-		CreateToolbarImages();
-		InitialToolbarButtons();
+		updateProgressIndicator();
+		updateOverlay();
+		createToolbarImages();
+		initialToolbarButtons();
 	}
 	else {
 		switch (msg->message) {
@@ -353,11 +353,11 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, q
 				if (button_id == ToolButton_Play) {
 					if (buttons[1].iBitmap == ToolButton_Play) {
 						buttons[1].iBitmap = ToolButton_Pause;
-						emit PauseClicked();
+						emit pauseClicked();
 					}
 					else {
 						buttons[1].iBitmap = ToolButton_Play;
-						emit PlayClicked();
+						emit playClicked();
 					}
 
 					const auto hwnd = reinterpret_cast<HWND>(window_->winId());
@@ -368,10 +368,10 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, q
 				}
 				else {
 					if (button_id == ToolButton_Forward) {
-						emit ForwardClicked();
+						emit forwardClicked();
 					}
 					if (button_id == ToolButton_Backward) {
-						emit BackwardClicked();
+						emit backwardClicked();
 					}
 				}				
 			}
@@ -384,7 +384,7 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& eventType, void* message, q
 	return false;
 }
 
-void WinTaskbar::SetTaskbarProgress(const int32_t process) {
+void WinTaskbar::setTaskbarProgress(const int32_t process) {
 	if (process == process_value_ || process < process_min_ || process > process_max_)
 		return;
 
@@ -392,37 +392,37 @@ void WinTaskbar::SetTaskbarProgress(const int32_t process) {
 		state_ = TASKBAR_PROCESS_STATE_NORMAL;
 
 	process_value_ = process;
-	UpdateProgressIndicator();
+	updateProgressIndicator();
 }
 
-void WinTaskbar::ResetTaskbarProgress() {
-	SetRange(0, 100);
+void WinTaskbar::resetTaskbarProgress() {
+	setRange(0, 100);
 	state_ = TASKBAR_PROCESS_STATE_NO_PROCESS;
-	SetTaskbarProgress(0);
-	SetTaskbarPlayingResume();
+	setTaskbarProgress(0);
+	setTaskbarPlayingResume();
 }
 
-void WinTaskbar::SetTaskbarPlayingResume() {
+void WinTaskbar::setTaskbarPlayingResume() {
 	overlay_icon_ = play_icon;
 	state_ = TASKBAR_PROCESS_STATE_NORMAL;
-	UpdateOverlay();
+	updateOverlay();
 }
 
-void WinTaskbar::SetTaskbarPlayerPaused() {
+void WinTaskbar::setTaskbarPlayerPaused() {
 	overlay_icon_ = pause_icon;
 	state_ = TASKBAR_PROCESS_STATE_PAUSED;
-	UpdateProgressIndicator();
-	UpdateOverlay();
+	updateProgressIndicator();
+	updateOverlay();
 }
 
-void WinTaskbar::SetTaskbarPlayerPlaying() {
-	ResetTaskbarProgress();
+void WinTaskbar::setTaskbarPlayerPlaying() {
+	resetTaskbarProgress();
 }
 
-void WinTaskbar::SetTaskbarPlayerStop() {
+void WinTaskbar::setTaskbarPlayerStop() {
 	overlay_icon_ = stop_play_icon;
 	state_ = TASKBAR_PROCESS_STATE_ERROR;
-	UpdateProgressIndicator();
-	UpdateOverlay();
+	updateProgressIndicator();
+	updateOverlay();
 }
 #endif

@@ -196,7 +196,7 @@ ZipFileReader::ZipFileReader()
     : impl_(MakeAlign<ZipFileReaderImpl>()) {
 }
 
-std::vector<std::wstring> ZipFileReader::OpenFile(const std::wstring& file) {
+std::vector<std::wstring> ZipFileReader::openFile(const std::wstring& file) {
     return impl_->OpenFile(file);
 }
 

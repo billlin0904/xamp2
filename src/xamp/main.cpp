@@ -39,7 +39,7 @@
 namespace {
     void LoadSampleRateConverterConfig() {
         XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
-        qAppSettings.LoadSoxrSetting();
+        qAppSettings.loadSoxrSetting();
         qAppSettings.LoadR8BrainSetting();
         JsonSettings::save();
         XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
@@ -48,16 +48,16 @@ namespace {
     void LoadLang() {
         XAMP_LOG_DEBUG("Load language file.");
 
-        if (qAppSettings.ValueAsString(kAppSettingLang).isEmpty()) {
+        if (qAppSettings.valueAsString(kAppSettingLang).isEmpty()) {
             const LocaleLanguage lang;
             XAMP_LOG_DEBUG("Load locale language file: {}.", lang.GetIsoCode().toStdString());
-            qAppSettings.LoadLanguage(lang.GetIsoCode());
-            qAppSettings.SetValue(kAppSettingLang, lang.GetIsoCode());
+            qAppSettings.loadLanguage(lang.GetIsoCode());
+            qAppSettings.setValue(kAppSettingLang, lang.GetIsoCode());
         }
         else {
-            qAppSettings.LoadLanguage(qAppSettings.ValueAsString(kAppSettingLang));
+            qAppSettings.loadLanguage(qAppSettings.valueAsString(kAppSettingLang));
             XAMP_LOG_DEBUG("Load locale language file: {}.",
-                qAppSettings.ValueAsString(kAppSettingLang).toStdString());
+                qAppSettings.valueAsString(kAppSettingLang).toStdString());
         }
     }
 
@@ -104,7 +104,7 @@ namespace {
         stream.setEncoding(QStringConverter::Utf8);
 
         const auto disable_stacktrace =
-            qAppSettings.ValueAsBool(kAppSettingEnableDebugStackTrace);
+            qAppSettings.valueAsBool(kAppSettingEnableDebugStackTrace);
 
         auto get_file_name = [&context]() {
             const std::string str(context.file);
@@ -152,7 +152,7 @@ namespace {
 #endif
 
     void ApplyTheme() {
-        const auto theme = qAppSettings.ValueAsEnum<ThemeColor>(kAppSettingTheme);
+        const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
         qTheme.SetThemeColor(theme);
         qTheme.LoadAndApplyTheme();
     }
@@ -172,7 +172,7 @@ namespace {
         }
 
         if (!QSslSocket::supportsSsl()) {
-            XMessageBox::ShowError(qTEXT("SSL initialization failed."));
+            XMessageBox::showError(qTEXT("SSL initialization failed."));
             return -1;
         }
 
@@ -195,7 +195,7 @@ namespace {
             LoadComponentSharedLibrary();
         }
         catch (const Exception& e) {
-            XMessageBox::ShowBug(e);
+            XMessageBox::showBug(e);
             return -1;
         }
         XAMP_LOG_DEBUG("Load component shared library success.");
@@ -204,38 +204,38 @@ namespace {
             qMainDb.open();
         }
         catch (const Exception& e) {
-            XMessageBox::ShowBug(e);
+            XMessageBox::showBug(e);
             return -1;
         }
         XAMP_LOG_DEBUG("Database init success.");
 
         Xamp win(&main_window, MakeAudioPlayer());
-        win.SetXWindow(&main_window);
-        win.SetThemeColor(qTheme.GetBackgroundColor(),
+        win.setXWindow(&main_window);
+        win.setThemeColor(qTheme.GetBackgroundColor(),
             qTheme.GetThemeTextColor());
 
-        if (qAppSettings.ValueAsBool(kAppSettingEnableSandboxMode)) {
+        if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");
             SetProcessMitigation();
         }
 
         XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 
-        main_window.SetContentWidget(&win);
+        main_window.setContentWidget(&win);
         win.adjustSize();
-        win.WaitForReady();
-        main_window.RestoreGeometry();
-        main_window.ShowWindow();
+        win.waitForReady();
+        main_window.restoreAppGeometry();
+        main_window.showWindow();
 
-        if (qAppSettings.ValueAsBool(kAppSettingEnableShortcut)) {
-            main_window.SetShortcut(QKeySequence(Qt::Key_MediaPlay));
-            main_window.SetShortcut(QKeySequence(Qt::Key_MediaStop));
-            main_window.SetShortcut(QKeySequence(Qt::Key_MediaPrevious));
-            main_window.SetShortcut(QKeySequence(Qt::Key_MediaNext));
-            main_window.SetShortcut(QKeySequence(Qt::Key_VolumeUp));
-            main_window.SetShortcut(QKeySequence(Qt::Key_VolumeDown));
-            main_window.SetShortcut(QKeySequence(Qt::Key_VolumeMute));
-            main_window.SetShortcut(QKeySequence(Qt::Key_F11));
+        if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
+            main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
+            main_window.setShortcut(QKeySequence(Qt::Key_MediaStop));
+            main_window.setShortcut(QKeySequence(Qt::Key_MediaPrevious));
+            main_window.setShortcut(QKeySequence(Qt::Key_MediaNext));
+            main_window.setShortcut(QKeySequence(Qt::Key_VolumeUp));
+            main_window.setShortcut(QKeySequence(Qt::Key_VolumeDown));
+            main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
+            main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
 
         return app.exec();
@@ -288,8 +288,8 @@ int main() {
 
     FramelessHelperRAII frameless_helper_raii;
 
-    qAppSettings.LoadOrSaveLogConfig();
-    qAppSettings.LoadAppSettings();
+    qAppSettings.loadOrSaveLogConfig();
+    qAppSettings.loadAppSettings();
     LoadSampleRateConverterConfig();
 
 #ifdef Q_OS_WIN32
@@ -312,7 +312,7 @@ int main() {
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
         qAppSettings.save();
-        qAppSettings.SaveLogConfig();
+        qAppSettings.saveLogConfig();
         qMainDb.close();
         prefetch_dll.clear();
         LoggerManager::GetInstance().Shutdown();

@@ -4,13 +4,13 @@
 DoubleSlider::DoubleSlider(QWidget *parent)
     : QSlider(parent) {
     (void)QObject::connect(this, SIGNAL(valueChanged(int)),
-            this, SLOT(NotifyValueChanged(int)));
+            this, SLOT(onNotifyValueChanged(int)));
 	animation_ = new QPropertyAnimation(this, "value");
 }
 
-void DoubleSlider::NotifyValueChanged(int value) {
+void DoubleSlider::onNotifyValueChanged(int value) {
 	const double double_value = value / ratio_;
-    emit DoubleValueChanged(double_value);
+    emit doubleValueChanged(double_value);
 }
 
 void DoubleSlider::mousePressEvent(QMouseEvent* event) {

@@ -17,11 +17,11 @@ class XAMP_WIDGET_SHARED_EXPORT GenreView final : public AlbumView {
 public:
 	explicit GenreView(QWidget* parent = nullptr);
 
-	void SetGenre(const QString& genre);
+	void setGenre(const QString& genre);
 
-	void ShowAll() override;
+	void showAll() override;
 
-	void ShowAllAlbum(int32_t limit = kMaxShowAlbum);
+	void showAllAlbum(int32_t limit = kMaxShowAlbum);
 private:
 	void resizeEvent(QResizeEvent* event) override;
 

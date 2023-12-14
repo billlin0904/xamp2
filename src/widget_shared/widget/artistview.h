@@ -26,7 +26,7 @@ public:
 
 	explicit ArtistStyledItemDelegate(QObject* parent = nullptr);
 
-	void SetTextColor(QColor color);
+	void setTextColor(QColor color);
 
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
@@ -34,7 +34,7 @@ public:
 
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 signals:
-	void EnterAlbumView(const QModelIndex& index) const;
+	void enterAlbumView(const QModelIndex& index) const;
 
 private:
 	QColor text_color_;
@@ -45,7 +45,7 @@ class ArtistViewPage final : public QFrame {
 public:	
 	explicit ArtistViewPage(QWidget* parent = nullptr);
 
-	void SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id);
+	void setArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id);
 
 	void paintEvent(QPaintEvent* event) override;
 
@@ -73,26 +73,24 @@ public:
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
-	void ShowAll();
+	void showAll();
 
-	void FilterArtistName(const QSet<QString>& name);
+	void filterArtistName(const QSet<QString>& name);
 
-	void Refresh();
-
-	void Update();
+	void reload();
 
 signals:
-	void GetArtist(const QString& artist);
+	void getArtist(const QString& artist);
 
 public slots:
-	void Search(const QString& keyword);
+	void search(const QString& keyword);
 
 private:	
 	void resizeEvent(QResizeEvent* event) override;
 
-	void ShowPageAnimation();
+	void showPageAnimation();
 
-	void HidePageAnimation();
+	void hidePageAnimation();
 
 	bool enable_page_{ true };
 	bool hide_page_{ false };

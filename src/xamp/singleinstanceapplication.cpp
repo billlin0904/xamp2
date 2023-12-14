@@ -31,7 +31,7 @@ SingleInstanceApplication::SingleInstanceApplication(int& argc, char* argv[])
 			if (!window) {
 				return;
 			}
-			window->ShowWindow();
+			window->showWindow();
 		}
 	});
 

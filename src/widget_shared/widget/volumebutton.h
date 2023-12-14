@@ -21,14 +21,14 @@ public:
 
 	~VolumeButton() override;
 
-	void SetPlayer(std::shared_ptr<IAudioPlayer> player);
+	void setPlayer(std::shared_ptr<IAudioPlayer> player);
 
-	void ShowDialog();
+	void showDialog();
 
 public slots:
-	void OnVolumeChanged(uint32_t volume);
+	void onVolumeChanged(uint32_t volume);
 
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
 private:
 	void mouseMoveEvent(QMouseEvent* event) override;

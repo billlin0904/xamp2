@@ -17,12 +17,12 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setFocusPolicy(Qt::StrongFocus);
 }
 
-void PlaylistTabBar::OnFinishRename() {
+void PlaylistTabBar::onFinishRename() {
 	if (!line_edit_) {
 		return;
 	}
 	setTabText(edited_index_, line_edit_->text());
-	emit TextChanged(edited_index_, line_edit_->text());
+	emit textChanged(edited_index_, line_edit_->text());
 	line_edit_->deleteLater();
 	line_edit_ = nullptr;
 }
@@ -68,7 +68,7 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	line_edit_->selectAll();
 	line_edit_->setFocus();
 	(void)QObject::connect(line_edit_, &QLineEdit::editingFinished,
-		this, &PlaylistTabBar::OnFinishRename);
+		this, &PlaylistTabBar::onFinishRename);
 	line_edit_->show();
 }
 
@@ -76,6 +76,6 @@ void PlaylistTabBar::focusOutEvent(QFocusEvent* event) {
 	QTabBar::focusOutEvent(event);
 
 	if (line_edit_ && !line_edit_->hasFocus()) {
-		OnFinishRename();
+		onFinishRename();
 	}
 }

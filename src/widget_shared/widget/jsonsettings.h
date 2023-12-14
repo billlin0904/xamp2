@@ -18,18 +18,18 @@ public:
 
     static QMap<QString, QVariant> ValueAsMap(QString const& key);
 
-    static QVariant GetValue(QString const& key);
+    static QVariant valueAs(QString const& key);
 
-    static int32_t GetAsInt(QString const& key);
+    static int32_t valueAsInt(QString const& key);
 
     static void remove(const QString& key);
 
     template <typename T>
-    static void SetDefaultValue(QString const& key, T const & value) {
+    static void setDefaultValue(QString const& key, T const & value) {
         default_settings_[key] = value;
     }
 
-    static void SetValue(QString const & key, QVariant const & value) {
+    static void setValue(QString const & key, QVariant const & value) {
         settings_->setValue(key, value);
     }
 

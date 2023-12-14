@@ -50,8 +50,8 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
 // for QVariant轉換使用
 Q_DECLARE_METATYPE(PlayListEntity)
 
-QVariant GetIndexValue(const QModelIndex& index, const QModelIndex& src, int i);
+QVariant indexValue(const QModelIndex& index, const QModelIndex& src, int i);
 
-QVariant GetIndexValue(const QModelIndex& index, int i);
+QVariant indexValue(const QModelIndex& index, int i);
 
-PlayListEntity GetEntity(const QModelIndex& index);
+PlayListEntity getEntity(const QModelIndex& index);

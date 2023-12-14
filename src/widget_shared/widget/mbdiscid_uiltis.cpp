@@ -18,7 +18,7 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src) {
+std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src) {
     auto str = src.toStdString();
 
     MbDiscIdInfo mb_disc_id_info;
@@ -116,7 +116,7 @@ std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src) {
     return std::make_pair(image_url, mb_disc_id_info);
 }
 
-QString ParseCoverUrl(QString const& json) {
+QString parseCoverUrl(QString const& json) {
     QJsonParseError error;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error != QJsonParseError::NoError) {

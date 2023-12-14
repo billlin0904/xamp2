@@ -18,7 +18,7 @@ public:
 
 	XAMP_PIMPL(ZipFileReader)
 
-	std::vector<std::wstring> OpenFile(const std::wstring& file);
+	std::vector<std::wstring> openFile(const std::wstring& file);
 
 private:
 	class ZipFileReaderImpl;

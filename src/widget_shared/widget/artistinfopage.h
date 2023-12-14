@@ -13,6 +13,7 @@ class QLabel;
 
 class XAMP_WIDGET_SHARED_EXPORT ArtistInfoPage final : public QFrame {
 	Q_OBJECT
+
 public:
 	explicit ArtistInfoPage(QWidget* parent = nullptr);
 
@@ -21,18 +22,18 @@ public:
 	}
 
 public slots:
-    void OnThemeChanged(QColor backgroundColor, QColor color);
+	void OnThemeChanged(QColor backgroundColor, QColor color);
 
-	void SetArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void SetAlbumCount(int32_t album_count);
+	void setAlbumCount(int32_t album_count);
 
-	void SetTracks(int32_t tracks);
+	void setTracks(int32_t tracks);
 
-	void SetTotalDuration(double durations);
+	void setTotalDuration(double durations);
 
 private:
-	QPixmap GetArtistImage(QPixmap const* cover) const;
+	QPixmap getArtistImage(const QPixmap* cover) const;
 
 	int32_t artist_id_{-1};
 	QLabel* cover_;

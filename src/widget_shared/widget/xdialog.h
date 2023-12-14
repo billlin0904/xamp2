@@ -25,15 +25,15 @@ public:
 
     explicit XDialog(QWidget* parent = nullptr, bool modal = true);
 
-    void SetContentWidget(QWidget* content, bool no_moveable = false, bool disable_resize = true);
+    void setContentWidget(QWidget* content, bool no_moveable = false, bool disable_resize = true);
 
-    QWidget* ContentWidget() const {
+    QWidget* contentWidget() const {
         return content_;
     }
 
-    void SetTitle(const QString& title) const;
+    void setTitle(const QString& title) const;
 
-    void SetIcon(const QIcon& icon) const;
+    void setIcon(const QIcon& icon) const;
 
 private slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);
@@ -45,7 +45,7 @@ private:
 
     void closeEvent(QCloseEvent* event) override;
 
-    void SetContent(QWidget* content);
+    void setContent(QWidget* content);
 
     QLabel* title_frame_label_{ nullptr };
     QWidget* content_{ nullptr };

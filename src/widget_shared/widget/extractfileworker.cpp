@@ -76,7 +76,7 @@ ExtractFileWorker::ExtractFileWorker() {
     GetBackgroundThreadPool();
 }
 
-size_t ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
+size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
                                       int32_t playlist_id,
                                       const QString& dir) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
@@ -128,13 +128,13 @@ size_t ExtractFileWorker::ScanPathFiles(const QStringList& file_name_filters,
             return first.track < last.track;
             });
 
-        emit ReadFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
-        emit InsertDatabase(tracks, playlist_id);
+        emit readFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
+        emit insertDatabase(tracks, playlist_id);
     }
     return extract_file_count;
 }
 
-void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist_id) {
+void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	const Stopwatch sw;
     is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
@@ -155,18 +155,18 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
         paths.push_back(file_path);
     }
 
-    emit ReadFileStart();
+    emit readFileStart();
 
     XAMP_ON_SCOPE_EXIT(
-        emit ReadFileProgress(100);
-		emit ReadCompleted();
+        emit readFileProgress(100);
+		emit readCompleted();
 		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
     );
 
     std::atomic<size_t> completed_work(0);
 
     auto [total_work, file_count_paths] = GetPathSortByFileCount(paths, GetTrackInfoFileNameFilter(), [this](auto total_file_count) {
-        emit FoundFileCount(total_file_count);
+        emit foundFileCount(total_file_count);
         });
 
     if (total_work == 0) {
@@ -182,12 +182,12 @@ void ExtractFileWorker::OnExtractFile(const QString& file_path, int32_t playlist
         }
         XAMP_ON_SCOPE_EXIT(
             const auto value = completed_work.load();
-            emit ReadFileProgress((value * 100) / total_work);
+            emit readFileProgress((value * 100) / total_work);
         );
-        completed_work += ScanPathFiles(file_name_filter, playlist_id, path_info.path);
+        completed_work += scanPathFiles(file_name_filter, playlist_id, path_info.path);
         });
 }
 
-void ExtractFileWorker::OnCancelRequested() {
+void ExtractFileWorker::cancelRequested() {
     is_stop_ = true;
 }

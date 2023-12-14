@@ -18,10 +18,10 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
 
     switch (qTheme.GetThemeColor()) {
     case ThemeColor::DARK_THEME:
-        SetColor(Qt::white);
+        setColor(Qt::white);
         break;
     case ThemeColor::LIGHT_THEME:
-        SetColor(Qt::black);
+        setColor(Qt::black);
         break;
     }
 
@@ -29,27 +29,27 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
     show();
 }
 
-bool ProcessIndicator::IsAnimated() const {
+bool ProcessIndicator::isAnimated() const {
 	return (timer_id_ != -1);
 }
 
-void ProcessIndicator::SetDisplayedWhenStopped(bool state) {
+void ProcessIndicator::setDisplayedWhenStopped(bool state) {
 	displayed_when_stopped_ = state;
 	update();
 }
 
-bool ProcessIndicator::IsDisplayedWhenStopped() const {
+bool ProcessIndicator::isDisplayedWhenStopped() const {
 	return displayed_when_stopped_;
 }
 
-void ProcessIndicator::StartAnimation() {
+void ProcessIndicator::startAnimation() {
 	angle_ = 0;
 
 	if (timer_id_ == -1)
 		timer_id_ = startTimer(delay_);
 }
 
-void ProcessIndicator::StopAnimation() {
+void ProcessIndicator::stopAnimation() {
     if (timer_id_ != -1)
         killTimer(timer_id_);
 
@@ -57,7 +57,7 @@ void ProcessIndicator::StopAnimation() {
     update();
 }
 
-void ProcessIndicator::SetAnimationDelay(int delay) {
+void ProcessIndicator::setAnimationDelay(int delay) {
     if (timer_id_ != -1)
         killTimer(timer_id_);
 
@@ -66,7 +66,7 @@ void ProcessIndicator::SetAnimationDelay(int delay) {
         timer_id_ = startTimer(delay_);
 }
 
-void ProcessIndicator::SetColor(const QColor& color) {
+void ProcessIndicator::setColor(const QColor& color) {
     color_ = color;
     update();
 }
@@ -79,7 +79,7 @@ int ProcessIndicator::heightForWidth(int w) const {
     return w;
 }
 
-void ProcessIndicator::SetStoppedIcon(const QIcon& icon) {
+void ProcessIndicator::setStoppedIcon(const QIcon& icon) {
     stopped_icon_ = icon;
 }
 
@@ -93,7 +93,7 @@ void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {
 
     const auto width = qMin(this->width(), this->height());
 
-    if (!displayed_when_stopped_ && !IsAnimated()) {
+    if (!displayed_when_stopped_ && !isAnimated()) {
         if (!stopped_icon_.isNull()) {
             auto pixmap = stopped_icon_.pixmap(QSize(24, 24));
             p.drawPixmap(0, 0, pixmap);

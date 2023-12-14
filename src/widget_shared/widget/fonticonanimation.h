@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QTransform>
+#include <map>
 
 class QPainter;
 class QTimer;
@@ -17,12 +18,25 @@ class FontIconAnimation : public QObject {
 public:
     explicit FontIconAnimation(QWidget* parent = nullptr);
 
+    void start();
+
     void paint(QPainter& painter, const QRect& rect);
 
     virtual void transform(QPainter& painter, QSize size) = 0;
 
+    [[nodiscard]] int currentFrame() const noexcept {
+        return frame_;
+    }
+
+    [[nodiscard]] int (max)() const noexcept {
+        return max_frame_;
+    }
+
+    [[nodiscard]] int (min)() const noexcept {
+        return min_frame_;
+    }
 public slots:
-    void frame();
+    void incrementFrame();
 
 protected:
     int min_frame_{ 0 };
@@ -51,11 +65,13 @@ class PixmapGenerator : public QObject {
 public:
     explicit PixmapGenerator(FontIconAnimation* animation, QWidget* parent = nullptr);
 
+    void init(QSize size);
+
     QPixmap pixmap(QSize size);
 
 private:
     FontIconAnimation* animation_;
-    QMap<int, QPixmap> pixmap_cache_;
+    std::map<int, QPixmap> pixmap_cache_;
 };
 
 Q_DECLARE_METATYPE(FontIconSpinAnimation*)

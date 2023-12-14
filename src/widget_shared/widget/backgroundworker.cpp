@@ -39,7 +39,7 @@ BackgroundWorker::~BackgroundWorker() {
     XAMP_LOG_DEBUG("BackgroundWorker destory!");
 }
 
-void BackgroundWorker::OnCancelRequested() {
+void BackgroundWorker::cancelRequested() {
     is_stop_ = true;
 }
 
@@ -80,7 +80,7 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
             return first.track < last.track;
         });
 
-        emit OnReadCdTrackInfo(QString::fromStdString(disc_id), track_infos);
+        emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
     }
     catch (Exception const& e) {
         XAMP_LOG_DEBUG(e.GetErrorMessage());
@@ -91,26 +91,26 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 
     http::HttpClient(QString::fromStdString(url))
         .success([this, disc_id](const auto& url, const auto& content) {
-        auto [image_url, mb_disc_id_info] = ParseMbDiscIdXml(content);
+        auto [image_url, mb_disc_id_info] = parseMbDiscIdXml(content);
 
         mb_disc_id_info.disc_id = disc_id;
         mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
         });
 
-        emit OnMbDiscInfo(mb_disc_id_info);
+        emit fetchMbDiscInfoCompleted(mb_disc_id_info);
 
         XAMP_LOG_D(logger_, "Start fetch cd cover image.");
 
         http::HttpClient(QString::fromStdString(image_url))
             .success([this, disc_id](const auto& url, const auto& content) {
-	            const auto cover_url = ParseCoverUrl(content);
+	            const auto cover_url = parseCoverUrl(content);
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
                     QPixmap cover;
                     if (cover.loadFromData(content)) {
-	                    const auto cover_id = qImageCache.AddImage(cover);
+	                    const auto cover_id = qImageCache.addImage(cover);
                         XAMP_LOG_D(logger_, "Download cover image completed.");
-                        emit OnDiscCover(QString::fromStdString(disc_id), cover_id);
+                        emit fetchDiscCoverCompleted(QString::fromStdString(disc_id), cover_id);
                     }
                     });
                 }).get();
@@ -120,11 +120,11 @@ void BackgroundWorker::OnFetchCdInfo(const DriveInfo& drive) {
 
 void BackgroundWorker::OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (image.isNull()) {
-        emit BlurImage(QImage());
+        emit blurImage(QImage());
         return;
     }    
-    emit BlurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
-        return image_utils::BlurImage(image, size);
+    emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
+        return image_utils::blurImage(image, size);
         }));
 }
 
@@ -134,16 +134,16 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
-    const auto target_loudness = qAppSettings.GetValue(kAppSettingReplayGainTargetLoudnes).toDouble();
-    const auto scan_mode = qAppSettings.ValueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
-    const auto enable_write_tag = qAppSettings.ValueAsBool(kAppSettingEnableReplayGainWriteTag);
+    const auto target_loudness = qAppSettings.valueAs(kAppSettingReplayGainTargetLoudnes).toDouble();
+    const auto scan_mode = qAppSettings.valueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
+    const auto enable_write_tag = qAppSettings.valueAsBool(kAppSettingEnableReplayGainWriteTag);
 
     QMap<int32_t, Vector<PlayListEntity>> album_group_map;
     for (const auto& entity : entities) {
         album_group_map[entity.album_id].push_back(entity);
     }
 
-    emit ReadFileStart();
+    emit readFileStart();
 
     std::atomic<size_t> completed_work(0);
     size_t total_work = 0;
@@ -153,7 +153,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    emit FoundFileCount(total_work);
+    emit foundFileCount(total_work);
 
     for (const auto& album_entities : album_group_map) {
         Vector<ReplayGainJob> jobs;
@@ -183,12 +183,12 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
                 }
                 job.reader.Process(samples, sample_size);
             };
-            read_until::ReadAll(job.entity.file_path.toStdWString(), progress, prepare, dps_process);
+            read_until::readAll(job.entity.file_path.toStdWString(), progress, prepare, dps_process);
 
-        	emit ReadFilePath(job.entity.file_path);
+        	emit readFilePath(job.entity.file_path);
 
             const auto value = completed_work.load();
-            emit ReadFileProgress((value * 100) / total_work);
+            emit readFileProgress((value * 100) / total_work);
             ++completed_work;
             });
 
@@ -233,7 +233,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
                 writer->WriteReplayGain(entities[i].file_path.toStdWString(), rg);
             }
 
-            emit ReadReplayGain(playlistId,
+            emit readReplayGain(playlistId,
                 entities[i],
                 replay_gain.track_loudness[i],
                 replay_gain.album_gain,
@@ -244,7 +244,7 @@ void BackgroundWorker::OnReadReplayGain(int32_t playlistId, const QList<PlayList
         }
     }
 
-    emit ReadCompleted();
+    emit readCompleted();
 }
 
 void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from, const QString& to) {
@@ -261,6 +261,6 @@ void BackgroundWorker::OnTranslation(const QString& keyword, const QString& from
         auto result = content;
         result = result.replace("[[[\"", "");
         result = result.mid(0, result.indexOf(",\"") - 1);
-        emit TranslationCompleted(keyword, result);
+        emit translationCompleted(keyword, result);
             }).get();
 }

@@ -22,32 +22,32 @@ public:
 
     virtual ~PreferencePage() override;
 
-    void LoadSettings();
+    void loadSettings();
 
-    void SaveAll();
+    void saveAll();
 
 private:
-    void UpdateSoxrConfigUi(const QVariantMap& soxr_settings);
+    void updateSoxrConfigUi(const QVariantMap& soxr_settings);
 
-    void SaveSoxrResampler(const QString &name) const;
+    void saveSoxrResampler(const QString &name) const;
 
-    void SaveR8BrainResampler();
+    void saveR8BrainResampler();
 
-    void SaveSrcResampler();
+    void saveSrcResampler();
 
-    void InitSrcResampler();
+    void initSrcResampler();
 
-    void InitR8BrainResampler();
+    void initR8BrainResampler();
 
-	void InitSoxResampler();
+	void initSoxResampler();
 
-    void SetLanguage(int index);
+    void setLanguage(int index);
 
-    void InitialLanguage();    
+    void initialLanguage();    
 
-    QMap<QString, QVariant> CurrentSoxrSettings() const;
+    QMap<QString, QVariant> currentSoxrSettings() const;
 
-    void SetPhasePercentText(int32_t value);
+    void setPhasePercentText(int32_t value);
 
     Ui::PreferenceDialog* ui_;
 };

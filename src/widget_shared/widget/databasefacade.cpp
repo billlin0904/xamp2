@@ -101,10 +101,10 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 			artist = tr("Unknown artist");
 		}
 
-        const auto music_id = qMainDb.AddOrUpdateMusic(track_info);
+        const auto music_id = qMainDb.addOrUpdateMusic(track_info);
         int32_t artist_id = 0;
         if (!artist_id_cache.contains(artist)) {
-            artist_id = qMainDb.AddOrUpdateArtist(artist);
+            artist_id = qMainDb.addOrUpdateArtist(artist);
             artist_id_cache[artist] = artist_id;
         } else {
             artist_id = artist_id_cache[artist];
@@ -112,9 +112,9 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 
         XAMP_EXPECTS(artist_id != 0);
 
-        auto album_id = qMainDb.GetAlbumId(album);
+        auto album_id = qMainDb.getAlbumId(album);
         if (album_id == kInvalidDatabaseId) {
-            album_id = qMainDb.AddOrUpdateAlbum(album,
+            album_id = qMainDb.addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
@@ -123,28 +123,28 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
                 album_genre);
             album_id_cache[album] = album_id;
             for (const auto &category : GetAlbumCategories(album)) {
-                qMainDb.AddOrUpdateAlbumCategory(album_id, category);
+                qMainDb.addOrUpdateAlbumCategory(album_id, category);
             }
             
             if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
-                qMainDb.AddOrUpdateAlbumCategory(album_id, kDsdCategory);
+                qMainDb.addOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-                qMainDb.AddOrUpdateAlbumCategory(album_id, kHiRes);
+                qMainDb.addOrUpdateAlbumCategory(album_id, kHiRes);
 			}            
         }
 
         XAMP_EXPECTS(album_id != 0);
 
 		if (playlist_id != -1) {
-            qMainDb.AddMusicToPlaylist(music_id, playlist_id, album_id);
+            qMainDb.addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-        qMainDb.AddOrUpdateAlbumMusic(album_id, artist_id, music_id);
-        qMainDb.AddOrUpdateAlbumArtist(album_id, artist_id);
+        qMainDb.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
+        qMainDb.addOrUpdateAlbumArtist(album_id, artist_id);
         for (const auto& multi_artist : artists) {
-            auto id = qMainDb.AddOrUpdateArtist(multi_artist);
-            qMainDb.AddOrUpdateAlbumArtist(album_id, id);
+            auto id = qMainDb.addOrUpdateArtist(multi_artist);
+            qMainDb.addOrUpdateAlbumArtist(album_id, id);
         }
 
         if (!is_file_path) {
@@ -152,11 +152,11 @@ void DatabaseFacade::AddTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
         }
 
         if (!cover.isNull()) {
-            qMainDb.SetAlbumCover(album_id, qImageCache.AddImage(cover));
+            qMainDb.setAlbumCover(album_id, qImageCache.addImage(cover));
             continue;
         }
 
-        const auto cover_id = qMainDb.GetAlbumCoverId(album_id);
+        const auto cover_id = qMainDb.getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             //XAMP_LOG_DEBUG("Found album {} cover", album.toStdString());
             emit FindAlbumCover(album_id, album, artist, track_info.file_path);

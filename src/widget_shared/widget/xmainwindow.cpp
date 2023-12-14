@@ -40,7 +40,7 @@ XMainWindow::XMainWindow()
     setObjectName(qTEXT("framelessWindow"));
 }
 
-void XMainWindow::SetShortcut(const QKeySequence& shortcut) {
+void XMainWindow::setShortcut(const QKeySequence& shortcut) {
     constexpr auto all_mods =
         Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier;
     const auto xkey_code = static_cast<uint>(shortcut.isEmpty() ? 0 : shortcut[0]);
@@ -50,15 +50,15 @@ void XMainWindow::SetShortcut(const QKeySequence& shortcut) {
     const auto key = static_cast<Qt::Key>(key_code);
     const auto mods = Qt::KeyboardModifiers(xkey_code & all_mods);
 
-    const auto native_key = qGlobalShortcut.NativeKeycode(key);
-    const auto native_mods = qGlobalShortcut.NativeModifiers(mods);
+    const auto native_key = qGlobalShortcut.nativeKeycode(key);
+    const auto native_mods = qGlobalShortcut.nativeModifiers(mods);
 
-    if (qGlobalShortcut.RegisterShortcut(winId(), native_key, native_mods)) {
+    if (qGlobalShortcut.registerShortcut(winId(), native_key, native_mods)) {
         shortcuts_.insert(qMakePair(native_key, native_mods), shortcut);
     }
 }
 
-void XMainWindow::SetContentWidget(IXFrame *content_widget) {
+void XMainWindow::setContentWidget(IXFrame *content_widget) {
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
         auto* default_layout = new QVBoxLayout(this);
@@ -68,7 +68,7 @@ void XMainWindow::SetContentWidget(IXFrame *content_widget) {
     }
 
     setAcceptDrops(true);
-    ReadDriveInfo();
+    readDriveInfo();
     installEventFilter(this);
 }
 
@@ -77,100 +77,100 @@ XMainWindow::~XMainWindow() {
     XAMP_LOG_DEBUG("XMainWindow destory!");
 }
 
-void XMainWindow::EnsureInitTaskbar() {
+void XMainWindow::ensureInitTaskbar() {
     if (!task_bar_) {
         task_bar_.reset(new WinTaskbar(this));
 
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::PlayClicked, [this]() {
-            content_widget_->PlayOrPause();
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::playClicked, [this]() {
+            content_widget_->playOrPause();
             });
 
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::PauseClicked, [this]() {
-            content_widget_->PlayOrPause();
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::pauseClicked, [this]() {
+            content_widget_->playOrPause();
             });
 
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::ForwardClicked, [this]() {
-            content_widget_->PlayNext();
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::forwardClicked, [this]() {
+            content_widget_->playNext();
             });
 
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::BackwardClicked, [this]() {
-            content_widget_->PlayPrevious();
+        (void)QObject::connect(task_bar_.get(), &WinTaskbar::backwardClicked, [this]() {
+            content_widget_->playPrevious();
             });
     }
 }
 
-void XMainWindow::SaveGeometry() {
-    qAppSettings.SetValue(kAppSettingGeometry, saveGeometry());
-    qAppSettings.SetValue(kAppSettingWindowState, isMaximized());
-    qAppSettings.SetValue(kAppSettingScreenNumber, screen_number_);
+void XMainWindow::saveAppGeometry() {
+    qAppSettings.setValue(kAppSettingGeometry, saveGeometry());
+    qAppSettings.setValue(kAppSettingWindowState, isMaximized());
+    qAppSettings.setValue(kAppSettingScreenNumber, screen_number_);
 }
 
-void XMainWindow::SystemThemeChanged(ThemeColor theme_color) {
+void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
     if (!content_widget_) {
         return;
     }
     emit qTheme.CurrentThemeChanged(theme_color);
 }
 
-void XMainWindow::SetTaskbarProgress(const int32_t percent) {
+void XMainWindow::setTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->SetTaskbarProgress(percent);
+    ensureInitTaskbar();
+    task_bar_->setTaskbarProgress(percent);
 #else
     (void)percent;
 #endif
 }
 
-void XMainWindow::ResetTaskbarProgress() {
+void XMainWindow::resetTaskbarProgress() {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->ResetTaskbarProgress();
+    ensureInitTaskbar();
+    task_bar_->resetTaskbarProgress();
 #endif
 }
 
-void XMainWindow::SetTaskbarPlayingResume() {
+void XMainWindow::setTaskbarPlayingResume() {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->SetTaskbarPlayingResume();
+    ensureInitTaskbar();
+    task_bar_->setTaskbarPlayingResume();
 #endif
 }
 
-void XMainWindow::SetTaskbarPlayerPaused() {
+void XMainWindow::setTaskbarPlayerPaused() {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->SetTaskbarPlayerPaused();
+    ensureInitTaskbar();
+    task_bar_->setTaskbarPlayerPaused();
 #endif
 }
 
-void XMainWindow::SetTaskbarPlayerPlaying() {
+void XMainWindow::setTaskbarPlayerPlaying() {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->SetTaskbarPlayerPlaying();
+    ensureInitTaskbar();
+    task_bar_->setTaskbarPlayerPlaying();
 #endif
 }
 
-void XMainWindow::SetTaskbarPlayerStop() {
+void XMainWindow::setTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->SetTaskbarPlayerStop();
+    ensureInitTaskbar();
+    task_bar_->setTaskbarPlayerStop();
 #endif
 }
 
-void XMainWindow::RestoreGeometry() {
+void XMainWindow::restoreAppGeometry() {
 #if defined(Q_OS_WIN)
-    if (qAppSettings.Contains(kAppSettingWindowState)) {
-        if (qAppSettings.GetValue(kAppSettingWindowState).toBool()) {
+    if (qAppSettings.contains(kAppSettingWindowState)) {
+        if (qAppSettings.valueAs(kAppSettingWindowState).toBool()) {
             showMaximized();
             return;
         }
     }
 
-    if (qAppSettings.Contains(kAppSettingGeometry)) {
-        screen_number_ = qAppSettings.GetValue(kAppSettingScreenNumber).toUInt();
+    if (qAppSettings.contains(kAppSettingGeometry)) {
+        screen_number_ = qAppSettings.valueAs(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
             CenterDesktop(this);
         } else {
-            restoreGeometry(qAppSettings.GetValue(kAppSettingGeometry).toByteArray());
+            restoreGeometry(qAppSettings.valueAs(kAppSettingGeometry).toByteArray());
         }
     }
     else {
@@ -187,7 +187,7 @@ bool XMainWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto* key_event = dynamic_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            content_widget_->DeleteKeyPress();
+            content_widget_->deleteKeyPress();
         }
     }
     return QWidget::eventFilter(object, event);
@@ -214,26 +214,26 @@ void XMainWindow::dropEvent(QDropEvent* event) {
 
     if (mime_data->hasUrls()) {
         for (auto const& url : mime_data->urls()) {
-            content_widget_->AddDropFileItem(url);
+            content_widget_->addDropFileItem(url);
         }
         event->acceptProposedAction();
     }
 }
 
-void XMainWindow::ShortcutsPressed(uint16_t native_key, uint16_t native_mods) {
+void XMainWindow::shortcutsPressed(uint16_t native_key, uint16_t native_mods) {
     const auto shortcut = shortcuts_.value(qMakePair(native_key, native_mods));
     if (!shortcut.isEmpty()) {
-        content_widget_->ShortcutsPressed(shortcut);
+        content_widget_->shortcutsPressed(shortcut);
     }
 }
 
-void XMainWindow::DrivesRemoved(char driver_letter) {
+void XMainWindow::drivesRemoved(char driver_letter) {
 #if defined(Q_OS_WIN)
     auto itr = std::ranges::find_if(exist_drives_, [driver_letter](auto drive) {
 	                                    return drive.driver_letter == driver_letter;
                                     });
     if (itr != exist_drives_.end()) {
-        content_widget_->DrivesRemoved(*itr);
+        content_widget_->drivesRemoved(*itr);
         exist_drives_.erase(itr);
     }
 #endif
@@ -248,7 +248,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
         if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
 	        auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
             if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                ReadDriveInfo();
+                readDriveInfo();
             }
         }
         }
@@ -269,7 +269,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
             auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
             if (lpdbv->dbcv_flags & DBTF_MEDIA) {
                 const auto driver_letter = first_drive_from_mask(lpdbv->dbcv_unitmask);
-                DrivesRemoved(driver_letter);
+                drivesRemoved(driver_letter);
             }
         }
         }
@@ -277,7 +277,7 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
     case WM_HOTKEY: {
         const auto native_key = HIWORD(msg->lParam);
         const auto native_mods = LOWORD(msg->lParam);
-        ShortcutsPressed(native_key, native_mods);
+        shortcutsPressed(native_key, native_mods);
         XAMP_LOG_DEBUG("Hot key press native_key:{} native_mods:{}", native_key, native_mods);
         }
         break;
@@ -287,7 +287,7 @@ default: ;
     return IXMainWindow::nativeEvent(event_type, message, result);
 }
 
-void XMainWindow::ReadDriveInfo() {
+void XMainWindow::readDriveInfo() {
 #if defined(Q_OS_WIN)
     static const QSet<QByteArray> kCDFileSystemType = {
         "CDFS",
@@ -326,7 +326,7 @@ void XMainWindow::ReadDriveInfo() {
         return;
     }
     if (content_widget_ != nullptr) {
-        content_widget_->DrivesChanges(drives);
+        content_widget_->drivesChanges(drives);
     }
 #endif
 }
@@ -341,14 +341,14 @@ void XMainWindow::closeEvent(QCloseEvent* event) {
     QWidget::closeEvent(event);
 }
 
-void XMainWindow::InitMaximumState() {
+void XMainWindow::initMaximumState() {
     if (!content_widget_) {
         return;
     }
-    content_widget_->UpdateMaximumState(isMaximized());
+    content_widget_->updateMaximumState(isMaximized());
 }
 
-void XMainWindow::UpdateMaximumState() {
+void XMainWindow::updateMaximumState() {
     if (!content_widget_) {
         return;
     }
@@ -356,11 +356,11 @@ void XMainWindow::UpdateMaximumState() {
     if (isMaximized()) {
         setWindowState(windowState() & ~Qt::WindowMinimized);
         showNormal();
-        content_widget_->UpdateMaximumState(false);
+        content_widget_->updateMaximumState(false);
     }
     else {
         showMaximized();
-        content_widget_->UpdateMaximumState(true);
+        content_widget_->updateMaximumState(true);
     }
 }
 
@@ -369,19 +369,19 @@ void XMainWindow::showEvent(QShowEvent* event) {
     if (!task_bar_) {
         return;
     }
-    task_bar_->UpdateProgressIndicator();
-    task_bar_->UpdateOverlay();
+    task_bar_->updateProgressIndicator();
+    task_bar_->updateOverlay();
 #endif
 }
 
-void XMainWindow::SetIconicThumbnail(const QPixmap& image) {
+void XMainWindow::setIconicThumbnail(const QPixmap& image) {
 #if defined(Q_OS_WIN)
-    EnsureInitTaskbar();
-    task_bar_->SetIconicThumbnail(image);
+    ensureInitTaskbar();
+    task_bar_->setIconicThumbnail(image);
 #endif
 }
 
-void XMainWindow::ShowWindow() {
+void XMainWindow::showWindow() {
     show();
 
     auto state = windowState();

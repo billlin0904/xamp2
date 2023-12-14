@@ -12,7 +12,7 @@ NetworkDiskCache::NetworkDiskCache(QObject* parent)
 	QMutexLocker l(&mutex_);
 	if (!cache_) {
 		cache_ = new QNetworkDiskCache();
-		cache_->setCacheDirectory(qAppSettings.GetCachePath());
+		cache_->setCacheDirectory(qAppSettings.cachePath());
 	}	
 }
 

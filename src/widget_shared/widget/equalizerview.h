@@ -28,14 +28,14 @@ public:
     virtual ~EqualizerView() override;
 
 signals:
-   void BandValueChange(int band, float value, float Q);
+   void bandValueChanged(int band, float value, float Q);
 
-   void PreampValueChange(float value);
+   void preampValueChanged(float value);
 
 public slots:
 
 private:
-    void ApplySetting(const QString &name, const EqSettings &settings);
+    void applySetting(const QString &name, const EqSettings &settings);
 
     std::vector<QLabel*> freq_label_;
     std::vector<QLabel*> bands_label_;

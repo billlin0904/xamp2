@@ -8,16 +8,16 @@
 #include <QLineEdit>
 #include <QTabBar>
 
-class PlaylistTabBar : public QTabBar {
+class PlaylistTabBar final : public QTabBar {
 	Q_OBJECT
 public:
 	explicit PlaylistTabBar(QWidget* parent = nullptr);
 	
 signals:
-	void TextChanged(int32_t index, const QString &text);
+	void textChanged(int32_t index, const QString &text);
 
 public slots:
-	void OnFinishRename();
+	void onFinishRename();
 
 private:
 	void mouseDoubleClickEvent(QMouseEvent* event) override;

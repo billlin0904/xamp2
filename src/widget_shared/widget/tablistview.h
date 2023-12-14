@@ -25,18 +25,18 @@ class XAMP_WIDGET_SHARED_EXPORT TabListView : public QListView {
 public:
     explicit TabListView(QWidget *parent = nullptr);
 
-    void AddTab(const QString& name, int table_id, const QIcon &icon);
+    void addTab(const QString& name, int table_id, const QIcon &icon);
 
-    void AddSeparator();
+    void addSeparator();
 
-    QString GetTabName(int table_id) const;
+    QString tabName(int table_id) const;
 
-    int32_t GetTabId(const QString &name) const;
+    int32_t tabId(const QString &name) const;
 
 signals:
-    void ClickedTable(int table_id);
+    void clickedTable(int table_id);
 
-    void TableNameChanged(int table_id, const QString &name);
+    void tableNameChanged(int table_id, const QString &name);
 
 public slots:
     void OnCurrentThemeChanged(ThemeColor theme_color);

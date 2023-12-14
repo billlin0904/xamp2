@@ -15,7 +15,7 @@ class PlayListTableFilterProxyModel final : public QSortFilterProxyModel {
 public:
     explicit PlayListTableFilterProxyModel(QObject *parent = nullptr);
 
-    void AddFilterByColumn(int32_t column);
+    void addFilterByColumn(int32_t column);
 
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;

@@ -32,8 +32,8 @@ GenrePage::GenrePage(QWidget* parent)
 
 	genre_view_ = new GenreView(this);
 
-	genre_view_->ShowAll();
-	genre_view_->Refresh();
+	genre_view_->showAll();
+	genre_view_->reload();
 
 	genre_container_layout->addLayout(genre_combox_layout);
 	genre_container_layout->addWidget(genre_view_, 1);
@@ -47,14 +47,14 @@ GenrePage::GenrePage(QWidget* parent)
 		});
 }
 
-void GenrePage::SetGenre(const QString& genre) {
-	genre_view_->SetGenre(genre);
+void GenrePage::setGenre(const QString& genre) {
+	genre_view_->setGenre(genre);
 	auto genre_label_text = genre;
 	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
 	genre_label_->setText(genre_label_text);
-	genre_view_->ShowAllAlbum();
-	genre_view_->SetShowMode(SHOW_NORMAL);
-	genre_view_->Refresh();
+	genre_view_->showAllAlbum();
+	genre_view_->setShowMode(SHOW_NORMAL);
+	genre_view_->reload();
 }
 
 GenreViewPage::GenreViewPage(QWidget* parent)
@@ -106,22 +106,22 @@ void GenreViewPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
 	}
 }
 
-void GenreViewPage::Refresh() {
+void GenreViewPage::refresh() {
 	Q_FOREACH(auto page, genre_view_) {
-		page.first->view()->Refresh();
-		page.second->Refresh();
+		page.first->view()->reload();
+		page.second->reload();
 	}
 }
 
-void GenreViewPage::Clear() {
+void GenreViewPage::clear() {
 	
 }
 
-void GenreViewPage::RemoveGenre(const QString& genre) {
+void GenreViewPage::removeGenre(const QString& genre) {
 	genre_view_.remove(genre);
 }
 
-void GenreViewPage::AddGenre(const QString& genre) {
+void GenreViewPage::addGenre(const QString& genre) {
 	if (genre_view_.contains(genre)) {
 		return;
 	}
@@ -145,20 +145,20 @@ void GenreViewPage::AddGenre(const QString& genre) {
 	genre_combox_layout->addSpacerItem(horizontalSpacer_3);
 
 	auto* genre_view = new GenreView(this);
-	genre_view->SetGenre(genre);
-	genre_view->ShowAll();
-	genre_view->Refresh();
+	genre_view->setGenre(genre);
+	genre_view->showAll();
+	genre_view->reload();
 	genre_view->verticalScrollBar()->hide();
 	genre_view->setFixedHeight(275);
-	genre_view->SetShowMode(SHOW_NORMAL);
+	genre_view->setShowMode(SHOW_NORMAL);
 
 	(void)QObject::connect(genre_label, &ClickableLabel::clicked, [genre, this]() {
-		genre_page_->SetGenre(genre);
+		genre_page_->setGenre(genre);
 		setCurrentIndex(1);
 		});
 
 	(void)QObject::connect(cevron_right, &QToolButton::clicked, [genre, this]() {
-		genre_page_->SetGenre(genre);
+		genre_page_->setGenre(genre);
 		setCurrentIndex(1);
 		});
 

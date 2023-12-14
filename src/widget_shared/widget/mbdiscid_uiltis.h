@@ -34,6 +34,6 @@ struct XAMP_WIDGET_SHARED_EXPORT MbDiscIdInfo {
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)
 
-std::pair<std::string, MbDiscIdInfo> ParseMbDiscIdXml(QString const& src);
+std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src);
 
-QString ParseCoverUrl(QString const& json);
+QString parseCoverUrl(QString const& json);

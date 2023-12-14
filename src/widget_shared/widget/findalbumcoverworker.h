@@ -16,15 +16,16 @@ public:
 	FindAlbumCoverWorker();
 
 signals:
-	void SetAlbumCover(int32_t album_id, const QString& cover_id);
+	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
-	void OnFindAlbumCover(int32_t album_id,
+	void onFindAlbumCover(int32_t album_id,
 		const QString& album,
 		const QString& artist,
 		const std::wstring& file_path);
 
-	void OnCancelRequested();
+	void cancelRequested();
+
 private:
 	bool is_stop_{ false };
 	PooledDatabasePtr database_ptr_;

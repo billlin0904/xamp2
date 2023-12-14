@@ -28,7 +28,7 @@ ArtistStyledItemDelegate::ArtistStyledItemDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
 }
 
-void ArtistStyledItemDelegate::SetTextColor(QColor color) {
+void ArtistStyledItemDelegate::setTextColor(QColor color) {
 	text_color_ = color;
 }
 
@@ -61,8 +61,8 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		const auto artist_cover = qImageCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
-		painter->drawPixmap(rect, image_utils::RoundImage(artist_cover, size / 2));
+		const auto artist_cover = qImageCache.cover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+		painter->drawPixmap(rect, image_utils::roundImage(artist_cover, size / 2));
 	}
 	else {
 		painter->setPen(Qt::white);
@@ -98,7 +98,7 @@ bool ArtistStyledItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* mo
 	if (event->type() == QEvent::MouseButtonPress) {
 		const auto* mouse_event = dynamic_cast<QMouseEvent*>(event);
 		if (mouse_event->button() == Qt::LeftButton) {
-			emit EnterAlbumView(index);
+			emit enterAlbumView(index);
 		}
 	}
 	return true;
@@ -205,7 +205,7 @@ void ArtistViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	close_button_->setIcon(qTheme.GetFontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
 }
 
-void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
+void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
 	setStyleSheet(qSTR(
 		R"(
            QFrame#artistViewPage {
@@ -215,15 +215,15 @@ void ArtistViewPage::SetArtist(const QString& artist, int32_t artist_id, const Q
         )"
 	).arg(qTheme.GetLinearGradientStyle()));
 
-	const auto artist_cover = qImageCache.GetCover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
-	const auto round_image = image_utils::RoundImage(artist_cover, artist_cover.width() / 2);	
+	const auto artist_cover = qImageCache.cover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+	const auto round_image = image_utils::roundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(round_image);
-	album_view_->FilterByArtistId(artist_id);
-	album_view_->Update();
-	cover_ = qImageCache.GetOrDefault(artist_cover_id, false);
+	album_view_->filterByArtistId(artist_id);
+	album_view_->reload();
+	cover_ = qImageCache.getOrDefault(artist_cover_id, false);
 	if (!cover_.isNull()) {
-		cover_ = QPixmap::fromImage(image_utils::BlurImage(cover_, size()));
+		cover_ = QPixmap::fromImage(image_utils::blurImage(cover_, size()));
 	}
 }
 
@@ -232,7 +232,7 @@ ArtistView::ArtistView(QWidget* parent)
 	, page_(new ArtistViewPage(this))
 	, model_(this)
 	, proxy_model_(new PlayListTableFilterProxyModel(this)) {
-	proxy_model_->AddFilterByColumn(INDEX_ARTIST);
+	proxy_model_->addFilterByColumn(INDEX_ARTIST);
 	proxy_model_->setSourceModel(&model_);
 	setModel(proxy_model_);
 
@@ -255,22 +255,22 @@ ArtistView::ArtistView(QWidget* parent)
 	verticalScrollBar()->setStyleSheet(qTEXT(
 		"QScrollBar:vertical { width: 6px; }"
 	));
-	Refresh();
+	reload();
 	page_->hide();
 
-	(void)QObject::connect(styled_delegate, &ArtistStyledItemDelegate::EnterAlbumView, [this](auto index) {
+	(void)QObject::connect(styled_delegate, &ArtistStyledItemDelegate::enterAlbumView, [this](auto index) {
 		const auto list_view_rect = this->rect();
-		auto artist = GetIndexValue(index, INDEX_ARTIST).toString();
-		auto artist_id = GetIndexValue(index, INDEX_ARTIST_ID).toInt();
-		auto artist_cover_id = GetIndexValue(index, INDEX_COVER_ID).toString();
+		auto artist = indexValue(index, INDEX_ARTIST).toString();
+		auto artist_id = indexValue(index, INDEX_ARTIST_ID).toInt();
+		auto artist_cover_id = indexValue(index, INDEX_COVER_ID).toString();
 		
 		if (enable_page_) {
-			ShowPageAnimation();
+			showPageAnimation();
 			page_->show();
 		}
 
-		emit GetArtist(artist);
-		page_->SetArtist(artist, artist_id, artist_cover_id);
+		emit getArtist(artist);
+		page_->setArtist(artist, artist_id, artist_cover_id);
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
 		page_->show();
 		});
@@ -284,15 +284,15 @@ ArtistView::ArtistView(QWidget* parent)
 		});
 }
 
-void ArtistView::Search(const QString& keyword) {
+void ArtistView::search(const QString& keyword) {
 	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
-	proxy_model_->AddFilterByColumn(INDEX_ARTIST);
+	proxy_model_->addFilterByColumn(INDEX_ARTIST);
 	proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
-void ArtistView::Update() {	
+void ArtistView::reload() {	
 	if (last_query_.isEmpty()) {
-		ShowAll();
+		showAll();
 	}
 	model_.setQuery(last_query_, qMainDb.database());
 	if (model_.lastError().type() != QSqlError::NoError) {
@@ -310,7 +310,7 @@ void ArtistView::resizeEvent(QResizeEvent* event) {
 	QListView::resizeEvent(event);
 }
 
-void ArtistView::ShowPageAnimation() {
+void ArtistView::showPageAnimation() {
 	animation_->setStartValue(0.01);
 	animation_->setEndValue(1.0);
 	animation_->setDuration(kPageAnimationDurationMs);
@@ -319,7 +319,7 @@ void ArtistView::ShowPageAnimation() {
 	hide_page_ = false;
 }
 
-void ArtistView::HidePageAnimation() {
+void ArtistView::hidePageAnimation() {
 	animation_->setStartValue(1.0);
 	animation_->setEndValue(0.0);
 	animation_->setDuration(kPageAnimationDurationMs);
@@ -329,7 +329,7 @@ void ArtistView::HidePageAnimation() {
 }
 
 void ArtistView::OnThemeChanged(QColor backgroundColor, QColor color) {
-	dynamic_cast<ArtistStyledItemDelegate*>(itemDelegate())->SetTextColor(color);
+	dynamic_cast<ArtistStyledItemDelegate*>(itemDelegate())->setTextColor(color);
 	page_->album()->OnThemeChanged(backgroundColor, color);
 }
 
@@ -337,7 +337,7 @@ void ArtistView::OnCurrentThemeChanged(ThemeColor theme_color) {
 	page_->OnCurrentThemeChanged(theme_color);
 }
 
-void ArtistView::FilterArtistName(const QSet<QString>& name) {
+void ArtistView::filterArtistName(const QSet<QString>& name) {
 	QStringList names;
 	Q_FOREACH(auto & c, name) {
 		names.append(qSTR("'%1'").arg(c));
@@ -357,7 +357,7 @@ WHERE
     )").arg(names.join(","));
 }
 
-void ArtistView::ShowAll() {
+void ArtistView::showAll() {
 	last_query_ = qTEXT(R"(
 SELECT
     artists.artist,
@@ -367,8 +367,4 @@ SELECT
 FROM
     artists
     )");
-}
-
-void ArtistView::Refresh() {
-	Update();
 }

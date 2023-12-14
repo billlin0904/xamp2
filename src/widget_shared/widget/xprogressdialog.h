@@ -22,20 +22,20 @@ public:
 		int maximum = 100,
 		QWidget* parent = nullptr);
 
-	void SetRange(int minimum, int maximum);
+	void setRange(int minimum, int maximum);
 
-	void SetValue(int value);
+	void setValue(int value);
 
-	int GetValue() const;
+	int value() const;
 
-	void SetLabelText(const QString& text);
+	void setLabelText(const QString& text);
 
-	void SetSubValue(int total, int current);
+	void setSubValue(int total, int current);
 
-	bool WasCanceled() const;
+	bool wasCanceled() const;
 
 signals:
-	void CancelRequested();
+	void cancelRequested();
 
 private:
 	int max_width_ = 800;

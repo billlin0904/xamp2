@@ -4,7 +4,7 @@ PlayListTableFilterProxyModel::PlayListTableFilterProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent) {
 }
 
-void PlayListTableFilterProxyModel::AddFilterByColumn(int32_t column) {
+void PlayListTableFilterProxyModel::addFilterByColumn(int32_t column) {
     filters_.push_back(column);
 }
 

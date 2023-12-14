@@ -25,38 +25,38 @@ public:
 
     XAMP_DISABLE_COPY(LrcParser)
 
-    bool ParseFile(const std::wstring &file_path);
+    bool parseFile(const std::wstring &file_path);
 
-    bool Parse(std::wistream &istr);
+    bool parse(std::wistream &istr);
 
-    void Clear();
+    void clear();
 
-    std::wstring GetMaxLengthLrc() const;
+    std::wstring maxLengthLrc() const;
 
     std::vector<LyricEntry>::iterator end();
 
     std::vector<LyricEntry>::iterator begin();
 
-    LyricEntry Last() const;
+    LyricEntry last() const;
 
-    LyricEntry LineAt(int32_t index) const;
+    LyricEntry lineAt(int32_t index) const;
 
-    std::chrono::milliseconds GetDuration() const;
+    std::chrono::milliseconds getDuration() const;
 
-    void AddLrc(const LyricEntry &lrc);
+    void addLrc(const LyricEntry &lrc);
 
-    int32_t GetInterval() const;
+    int32_t getInterval() const;
 
-    const LyricEntry& GetLyrics(const std::chrono::milliseconds &time) const noexcept;
+    const LyricEntry& getLyrics(const std::chrono::milliseconds &time) const noexcept;
 
-    int32_t GetSize() const;
+    int32_t getSize() const;
 
 private:
-    void ParseLrc(std::wstring const & line);
+    void parseLrc(std::wstring const & line);
 
-    void ParseMultiLrc(std::wstring const & line);
+    void parseMultiLrc(std::wstring const & line);
 
-    bool ParseStream(std::wistream &istr);
+    bool parseStream(std::wistream &istr);
 
 	int32_t offset_;
     std::wstring title_;

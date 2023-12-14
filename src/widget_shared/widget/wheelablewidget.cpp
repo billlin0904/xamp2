@@ -16,12 +16,12 @@ WheelableWidget::WheelableWidget(const bool touch, QWidget* parent)
 	QScroller::grabGesture(this, touch ? QScroller::TouchGesture : QScroller::LeftMouseButtonGesture);
 }
 
-int32_t WheelableWidget::CurrentIndex() const {
+int32_t WheelableWidget::currentIndex() const {
 	return item_;
 }
 
-void WheelableWidget::SetCurrentIndex(const int32_t index) {
-	if (index >= 0 && index < ItemCount()) {
+void WheelableWidget::setCurrentIndex(const int32_t index) {
+	if (index >= 0 && index < itemCount()) {
 		item_ = index;
 		item_offset_ = 0;
 		update();
@@ -38,8 +38,8 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 	const auto w = width();
 	const auto h = height();
 
-	const auto iH = ItemHeight();
-	const auto iC = ItemCount();
+	const auto iH = itemHeight();
+	const auto iC = itemCount();
 
 	if (iC > 0) {
 		for (auto i = -h / 2 / iH; i <= h / 2 / iH; i++) {
@@ -60,12 +60,12 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 
 				painter.setPen(QColor(255, 255, 255, t));
 				QRect rect(0, h / 2 + i * iH - item_offset_, w, iH);
-				PaintItem(&painter, item_num, rect);
+				paintItem(&painter, item_num, rect);
 			}
 		}
 	}
 
-	PaintItemMask(&painter);
+	paintItemMask(&painter);
 }
 
 void WheelableWidget::mousePressEvent(QMouseEvent* event) {
@@ -80,10 +80,10 @@ void WheelableWidget::mouseReleaseEvent(QMouseEvent* event) {
 	QWidget::mouseReleaseEvent(event);
 }
 
-void WheelableWidget::ScrollTo(const int32_t index) {
+void WheelableWidget::onScrollTo(const int32_t index) {
 	do_signal_ = false;
 	auto* scroller = QScroller::scroller(this);
-	scroller->scrollTo(QPointF(0, kWheelScrollOffset + index * ItemHeight()), kScrollTime);
+	scroller->scrollTo(QPointF(0, kWheelScrollOffset + index * itemHeight()), kScrollTime);
 }
 
 bool WheelableWidget::event(QEvent* event) {
@@ -92,7 +92,7 @@ bool WheelableWidget::event(QEvent* event) {
 			auto* scroll_prepare_event = dynamic_cast<QScrollPrepareEvent *>(event);
 			scroll_prepare_event->setViewportSize(QSizeF(size()));
 			scroll_prepare_event->setContentPosRange(QRectF(0.0, 0.0, 0.0, kWheelScrollOffset * 2));
-			scroll_prepare_event->setContentPos(QPointF(0.0, kWheelScrollOffset + item_ * ItemHeight() + item_offset_));
+			scroll_prepare_event->setContentPos(QPointF(0.0, kWheelScrollOffset + item_ * itemHeight() + item_offset_));
 			event->accept();
 			return true;
 		}
@@ -101,8 +101,8 @@ bool WheelableWidget::event(QEvent* event) {
 			const auto scroll_event = dynamic_cast<QScrollEvent *>(event);
 			const auto y = scroll_event->contentPos().y();
 			const int32_t iy = y - kWheelScrollOffset;
-			const auto ih = ItemHeight();
-			const auto ic = ItemCount();
+			const auto ih = itemHeight();
+			const auto ic = itemCount();
 			if (ic > 0) {
 				item_ = iy / ih;
 				item_offset_ = iy % ih;
@@ -121,7 +121,7 @@ bool WheelableWidget::event(QEvent* event) {
 			if (scroll_event->scrollState() == QScrollEvent::ScrollFinished) {
 				if (do_signal_) {
 					if (item_>1)
-						emit ChangeTo(item_ + 1);
+						emit changeTo(item_ + 1);
 					mask_length_ = 0;
 					real_current_text_.clear();
 				}

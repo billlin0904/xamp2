@@ -23,7 +23,7 @@ public:
 	virtual ~FileSystemViewPage() override;
 
 signals:
-	void AddPathToPlaylist(const QString& path, bool append_to_playlist);
+	void addPathToPlaylist(const QString& path, bool append_to_playlist);
 
 private:
 	class DirFirstSortFilterProxyModel;

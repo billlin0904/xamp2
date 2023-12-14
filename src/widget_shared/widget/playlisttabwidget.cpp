@@ -57,7 +57,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(this, &PlaylistTabBar::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlaylistTabWidget> action_map(this);
 
-        auto* close_all_tab_act = action_map.AddAction(tr("Close all tab"), [this]() {
+        auto* close_all_tab_act = action_map.addAction(tr("Close all tab"), [this]() {
             QList<PlaylistPage*> playlist_pages;
             for (auto i = 0; i < count(); ++i) {
                 auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
@@ -65,15 +65,15 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             }
 
             Q_FOREACH(auto * page, playlist_pages) {
-                RemovePlaylist(page->playlist()->GetPlaylistId());
+                removePlaylist(page->playlist()->playlistId());
                 page->deleteLater();
             }
 
             clear();
-            emit RemoveAllPlaylist();
+            emit removeAllPlaylist();
             });
 
-        auto* close_other_tab_act = action_map.AddAction(tr("Close other tab"), [pt, this]() {
+        auto* close_other_tab_act = action_map.addAction(tr("Close other tab"), [pt, this]() {
             auto index = tabBar()->tabAt(pt);
             if (index == -1) {
                 return;
@@ -92,9 +92,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                     continue;
                 }
                 const auto tab_index = indexOf(playlist_page);
-                CloseTab(tab_index);
+                closeTab(tab_index);
             }
-            emit RemoveAllPlaylist();
+            emit removeAllPlaylist();
             });
         try {
             action_map.exec(pt);
@@ -105,26 +105,26 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         });
 
-    (void)QObject::connect(tab_bar, &PlaylistTabBar::TextChanged, [this](auto index, const auto& name) {
-        qMainDb.SetPlaylistName(GetCurrentPlaylistId(), name);
+    (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
+        qMainDb.setPlaylistName(currentPlaylistId(), name);
         });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
-        if (XMessageBox::ShowYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
+        if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
             return;
         }
-        CloseTab(tab_index);
+        closeTab(tab_index);
         });
 }
 
-bool PlaylistTabWidget::RemovePlaylist(int32_t playlist_id) {
+bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
     if (!qMainDb.transaction()) {
         return false;
     }
     try {
-        qMainDb.RemovePlaylistAllMusic(playlist_id);
-        qMainDb.RemovePlaylist(playlist_id);
+        qMainDb.removePlaylistAllMusic(playlist_id);
+        qMainDb.removePlaylist(playlist_id);
         qMainDb.commit();
         return true;
     }
@@ -134,29 +134,29 @@ bool PlaylistTabWidget::RemovePlaylist(int32_t playlist_id) {
     return false;
 }
 
-void PlaylistTabWidget::CloseTab(int32_t tab_index) {
+void PlaylistTabWidget::closeTab(int32_t tab_index) {
     auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
     const auto* playlist = playlist_page->playlist();
-    if (RemovePlaylist(playlist->GetPlaylistId())) {
+    if (removePlaylist(playlist->playlistId())) {
         removeTab(tab_index);
         playlist_page->deleteLater();
     }
 }
 
-int32_t PlaylistTabWidget::GetCurrentPlaylistId() const {
-    return dynamic_cast<PlaylistPage*>(currentWidget())->playlist()->GetPlaylistId();
+int32_t PlaylistTabWidget::currentPlaylistId() const {
+    return dynamic_cast<PlaylistPage*>(currentWidget())->playlist()->playlistId();
 }
 
-void PlaylistTabWidget::SaveTabOrder() const {
+void PlaylistTabWidget::saveTabOrder() const {
     for (int i = 0; i < count(); ++i) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         const auto* playlist = playlist_page->playlist();
-        qMainDb.SetPlaylistIndex(playlist->GetPlaylistId(), i);
+        qMainDb.setPlaylistIndex(playlist->playlistId(), i);
     }
 }
 
-void PlaylistTabWidget::RestoreTabOrder() {
-	const auto playlist_index = qMainDb.GetPlaylistIndex();
+void PlaylistTabWidget::restoreTabOrder() {
+	const auto playlist_index = qMainDb.getPlaylistIndex();
 
     QList<QWidget*> widgets;
     QList<QString> texts;
@@ -170,7 +170,7 @@ void PlaylistTabWidget::RestoreTabOrder() {
         for (int j = 0; j < count(); ++j) {
             auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
             const auto* playlist = playlist_page->playlist();
-            if (playlist->GetPlaylistId() == playlist_id) {
+            if (playlist->playlistId() == playlist_id) {
                 widgets.append(playlist_page);
                 texts.append(tabText(i));
             }
@@ -185,11 +185,11 @@ void PlaylistTabWidget::RestoreTabOrder() {
         ++i;
     }
     for (i = 0; i < count(); ++i) {
-        setTabIcon(i, qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_NOTCH));
+        setTabIcon(i, qTheme.GetApplicationIcon());
     }
 }
 
-void PlaylistTabWidget::SetTabIcon(const QIcon& icon) {
+void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
     auto tab_index = currentIndex();
     if (tab_index != -1) {
         setTabIcon(tab_index, icon);
@@ -197,17 +197,17 @@ void PlaylistTabWidget::SetTabIcon(const QIcon& icon) {
             if (i == tab_index) {
                 continue;
             }
-            setTabIcon(i, qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_NOTCH));
+            setTabIcon(i, qTheme.GetApplicationIcon());
         }
     }
 }
 
-void PlaylistTabWidget::CreateNewTab(const QString& name, QWidget* widget) {
+void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
     const auto index = addTab(widget, name);
-    setTabIcon(index, qTheme.GetFontIcon(Glyphs::ICON_CIRCLE_NOTCH));
+    setTabIcon(index, qTheme.GetApplicationIcon());
     setCurrentIndex(index);
 }
 
 void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
-    emit CreateNewPlaylist();
+    emit createNewPlaylist();
 }

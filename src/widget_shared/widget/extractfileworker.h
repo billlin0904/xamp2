@@ -19,26 +19,26 @@ public:
 
     ExtractFileWorker();
 
+    void cancelRequested();
+
 signals:
-    void InsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+    void insertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
-    void ReadFileStart();
+    void readFileStart();
 
-    void ReadCompleted();
+    void readCompleted();
 
-    void ReadFilePath(const QString& file_path);
+    void readFilePath(const QString& file_path);
 
-    void ReadFileProgress(int32_t progress);
+    void readFileProgress(int32_t progress);
 
-    void FoundFileCount(size_t file_count);
+    void foundFileCount(size_t file_count);
 
 public slots:
-    void OnExtractFile(const QString& file_path, int32_t playlist_id);
-
-    void OnCancelRequested();
+    void onExtractFile(const QString& file_path, int32_t playlist_id);
 
 private:
-    size_t ScanPathFiles(const QStringList& file_name_filters,
+    size_t scanPathFiles(const QStringList& file_name_filters,
         int32_t playlist_id,
         const QString& dir);
 

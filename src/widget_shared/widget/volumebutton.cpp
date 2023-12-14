@@ -16,12 +16,12 @@ VolumeButton::VolumeButton(QWidget *parent)
 
 VolumeButton::~VolumeButton() = default;
 
-void VolumeButton::SetPlayer(std::shared_ptr<IAudioPlayer> player) {
+void VolumeButton::setPlayer(std::shared_ptr<IAudioPlayer> player) {
 	dialog_.reset(new VolumeControlDialog(player, this));
 	(void)QObject::connect(dialog_.get(),
 		&VolumeControlDialog::VolumeChanged,
 		this,
-		&VolumeButton::OnVolumeChanged);
+		&VolumeButton::onVolumeChanged);
 	(void)QObject::connect(&show_timer_,
 		&QTimer::timeout,
 		[this]() {
@@ -36,15 +36,15 @@ void VolumeButton::SetPlayer(std::shared_ptr<IAudioPlayer> player) {
 	setMouseTracking(true);
 }
 
-void VolumeButton::ShowDialog() {
+void VolumeButton::showDialog() {
 	show_timer_.start(kShowDelayMs);
 }
 
-void VolumeButton::OnCurrentThemeChanged(ThemeColor theme_color) {
+void VolumeButton::onCurrentThemeChanged(ThemeColor theme_color) {
 	dialog_->SetThemeColor();
 }
 
-void VolumeButton::OnVolumeChanged(uint32_t volume) {
+void VolumeButton::onVolumeChanged(uint32_t volume) {
 	qTheme.SetMuted(this, volume == 0);
 	dialog_->SetVolume(volume, false);
 }

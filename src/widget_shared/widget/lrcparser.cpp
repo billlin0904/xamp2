@@ -69,15 +69,15 @@ LrcParser::LrcParser()
 	, pattern_(L"\\[\\d*:\\d{2}\\.\\d{1,3}\\][^\\[]*") {
 }
 
-bool LrcParser::Parse(std::wistream &istr) {
-    return ParseStream(istr);
+bool LrcParser::parse(std::wistream &istr) {
+    return parseStream(istr);
 }
 
-void LrcParser::Clear() {
+void LrcParser::clear() {
     lyrics_.clear();
 }
 
-bool LrcParser::ParseFile(const std::wstring &file_path) {
+bool LrcParser::parseFile(const std::wstring &file_path) {
     std::wifstream file;
     file.open(file_path);
 
@@ -86,10 +86,10 @@ bool LrcParser::ParseFile(const std::wstring &file_path) {
     }
 
     ImbueFileFromBom(file);
-    return ParseStream(file);
+    return parseStream(file);
 }
 
-void LrcParser::ParseLrc(const std::wstring & line) {
+void LrcParser::parseLrc(const std::wstring & line) {
 	std::wsregex_iterator itr(line.begin(), line.end(), pattern_);
 
     for (; itr != std::wsregex_iterator(); ++itr) {
@@ -106,7 +106,7 @@ void LrcParser::ParseLrc(const std::wstring & line) {
     }
 }
 
-void LrcParser::ParseMultiLrc(std::wstring const & line) {
+void LrcParser::parseMultiLrc(std::wstring const & line) {
     std::vector<std::wstring> times;
     std::wstring time;
 
@@ -132,7 +132,7 @@ void LrcParser::ParseMultiLrc(std::wstring const & line) {
     }
 }
 
-bool LrcParser::ParseStream(std::wistream &istr) {
+bool LrcParser::parseStream(std::wistream &istr) {
 	lyrics_.clear();
 
     bool start_read_lrc = false;
@@ -164,15 +164,15 @@ bool LrcParser::ParseStream(std::wistream &istr) {
 			}
 		}		
 		if (istr.eof()) {
-			ParseLrc(line);
+			parseLrc(line);
 			break;
 		}
         auto count = std::count(line.begin(), line.end(), L']');
         if (count == 1) {
-            ParseLrc(line);
+            parseLrc(line);
 			start_read_lrc = true;
         } else {
-            ParseMultiLrc(line);
+            parseMultiLrc(line);
 			start_read_lrc = true;
         }        
 	}
@@ -198,7 +198,7 @@ bool LrcParser::ParseStream(std::wistream &istr) {
     return true;
 }
 
-std::wstring LrcParser::GetMaxLengthLrc() const {
+std::wstring LrcParser::maxLengthLrc() const {
     const auto itr = std::max_element(lyrics_.begin(), lyrics_.end(), [](const LyricEntry& a, const LyricEntry& b) {
         return a.lrc.length() < b.lrc.length();
         });
@@ -217,27 +217,27 @@ std::vector<LyricEntry>::iterator LrcParser::begin() {
     return lyrics_.begin();
 }
 
-LyricEntry LrcParser::Last() const {
+LyricEntry LrcParser::last() const {
     return lyrics_.back();
 }
 
-LyricEntry LrcParser::LineAt(const int32_t index) const {
+LyricEntry LrcParser::lineAt(const int32_t index) const {
     return lyrics_[index];
 }
 
-std::chrono::milliseconds LrcParser::GetDuration() const {
+std::chrono::milliseconds LrcParser::getDuration() const {
     return lyrics_.back().timestamp;
 }
 
-int32_t LrcParser::GetInterval() const {
-    return GetDuration().count() / lyrics_.size();
+int32_t LrcParser::getInterval() const {
+    return getDuration().count() / lyrics_.size();
 }
 
-void LrcParser::AddLrc(const LyricEntry &lrc) {
+void LrcParser::addLrc(const LyricEntry &lrc) {
     lyrics_.push_back(lrc);
 }
 
-const LyricEntry& LrcParser::GetLyrics(const std::chrono::milliseconds &time) const noexcept {
+const LyricEntry& LrcParser::getLyrics(const std::chrono::milliseconds &time) const noexcept {
     auto itr = BinarySearch(lyrics_.cbegin(), lyrics_.cend(), time, [](const LyricEntry &l, auto time) {
         return l.timestamp < time;
     });
@@ -253,6 +253,6 @@ const LyricEntry& LrcParser::GetLyrics(const std::chrono::milliseconds &time) co
     return *lyrics_.cbegin();
 }
 
-int32_t LrcParser::GetSize() const {
+int32_t LrcParser::getSize() const {
     return static_cast<int32_t>(lyrics_.size());
 }

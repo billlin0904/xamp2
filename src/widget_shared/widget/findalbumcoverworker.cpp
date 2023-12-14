@@ -10,11 +10,11 @@ FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(GetPooledDatabase(1)) {
 }
 
-void FindAlbumCoverWorker::OnCancelRequested() {
+void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
 }
 
-void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
+void FindAlbumCoverWorker::onFindAlbumCover(int32_t album_id,
     const QString& album,
     const QString& artist,
     const std::wstring& file_path) {
@@ -22,13 +22,13 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
         return;
     }
 
-    const auto cover_id = database_ptr_->Acquire()->GetAlbumCoverId(album_id);
+    const auto cover_id = database_ptr_->Acquire()->getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
         return;
     }
 
 	std::wstring find_file_path;
-    const auto first_file_path = database_ptr_->Acquire()->GetAlbumFirstMusicFilePath(album_id);
+    const auto first_file_path = database_ptr_->Acquire()->getAlbumFirstMusicFilePath(album_id);
     if (!first_file_path) {
         find_file_path = file_path;
     }
@@ -44,15 +44,15 @@ void FindAlbumCoverWorker::OnFindAlbumCover(int32_t album_id,
     const TagIO reader;
     auto cover = reader.GetEmbeddedCover(find_file_path);
     if (!cover.isNull()) {
-        emit SetAlbumCover(album_id, qImageCache.AddImage(cover));
+        emit setAlbumCover(album_id, qImageCache.addImage(cover));
         return;
     }
 
-    cover = qImageCache.ScanCoverFromDir(QString::fromStdWString(file_path));
+    cover = qImageCache.scanCoverFromDir(QString::fromStdWString(file_path));
     if (!cover.isNull()) {
-        emit SetAlbumCover(album_id, qImageCache.AddImage(cover));
+        emit setAlbumCover(album_id, qImageCache.addImage(cover));
     }
     else {
-        emit SetAlbumCover(album_id, qImageCache.GetUnknownCoverId());
+        emit setAlbumCover(album_id, qImageCache.unknownCoverId());
     }
 }

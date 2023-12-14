@@ -21,7 +21,7 @@ namespace {
 
 namespace QEtag {
 
-QString GetTagId(const QByteArray &buffer) noexcept {
+QString getTagId(const QByteArray &buffer) noexcept {
     // 七牛雲儲存etag演算法
 	// https://github.com/qiniu/qetag
 	// 如果你能夠確認文件 <= 4M，那麼 hash = UrlsafeBase64([0x16, sha1(FileContent)])
@@ -61,7 +61,7 @@ QString GetTagId(const QByteArray &buffer) noexcept {
     }
 }
 
-QString GetTagId(const QString& file_name) noexcept {
+QString getTagId(const QString& file_name) noexcept {
 	QString etag;
 	const QFileInfo fi(file_name);
 

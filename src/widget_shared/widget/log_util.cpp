@@ -4,7 +4,7 @@
 
 namespace log_util {
 
-QString GetLogLevelString(LogLevel level) {
+QString getLogLevelString(LogLevel level) {
     static const QMap<LogLevel, QString> logs{
         { LogLevel::LOG_LEVEL_INFO, qTEXT("info") },
         { LogLevel::LOG_LEVEL_DEBUG, qTEXT("debug") },
@@ -19,7 +19,7 @@ QString GetLogLevelString(LogLevel level) {
     return logs[level];
 }
 
-LogLevel ParseLogLevel(const QString &str) {
+LogLevel parseLogLevel(const QString &str) {
     static const QMap<QString, LogLevel> logs{
     	{ qTEXT("info"), LogLevel::LOG_LEVEL_INFO},
         { qTEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},

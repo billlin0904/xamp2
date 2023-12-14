@@ -18,13 +18,13 @@ public:
 
     XAMP_PIMPL(GlobalShortcut)
 
-	bool RegisterShortcut(const WId wid, quint32 native_key, quint32 native_mods);
+	bool registerShortcut(const WId wid, quint32 native_key, quint32 native_mods);
 
-    bool UnregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods);
+    bool unregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods);
 
-    quint32 NativeModifiers(Qt::KeyboardModifiers modifiers);
+    quint32 nativeModifiers(Qt::KeyboardModifiers modifiers);
 
-    quint32 NativeKeycode(Qt::Key key);
+    quint32 nativeKeycode(Qt::Key key);
 private:
     class GlobalShortcutImpl;
     AlignPtr<GlobalShortcutImpl> impl_;

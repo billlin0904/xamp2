@@ -18,25 +18,25 @@ public:
 
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
-	int32_t GetCurrentPlaylistId() const;
+	int32_t currentPlaylistId() const;
 
-	void SaveTabOrder() const;
+	void saveTabOrder() const;
 
-	void RestoreTabOrder();
+	void restoreTabOrder();
 
-	void SetTabIcon(const QIcon &icon);
+	void setPlaylistTabIcon(const QIcon &icon);
 
-	void CreateNewTab(const QString& name, QWidget* widget);
+	void createNewTab(const QString& name, QWidget* widget);
 
 signals:
-	void CreateNewPlaylist();
+	void createNewPlaylist();
 
-	void RemoveAllPlaylist();
+	void removeAllPlaylist();
 
 private:
-	void CloseTab(int32_t tab_index);
+	void closeTab(int32_t tab_index);
 
-	bool RemovePlaylist(int32_t playlist_id);
+	bool removePlaylist(int32_t playlist_id);
 
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 };

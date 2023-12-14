@@ -292,7 +292,7 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
     SetFontAwesomeIcons();
     SetPalette();
 
-    qAppSettings.SetEnumValue(kAppSettingTheme, theme_color_);
+    qAppSettings.setEnumValue(kAppSettingTheme, theme_color_);
 
     font_icon_opts_.clear();
 
@@ -308,7 +308,7 @@ void ThemeManager::SetThemeColor(ThemeColor theme_color) {
         unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
         break;
     }
-    default_size_unknown_cover_ = image_utils::ResizeImage(unknown_cover_, album_cover_size_, true);
+    default_size_unknown_cover_ = image_utils::resizeImage(unknown_cover_, album_cover_size_, true);
 }
 
 QLatin1String ThemeManager::GetThemeColorPath() const {
@@ -599,7 +599,7 @@ void ThemeManager::LoadAndApplyTheme() {
 
 void ThemeManager::SetBackgroundColor(QColor color) {
     background_color_ = color;
-    qAppSettings.SetValue(kAppSettingBackgroundColor, color);
+    qAppSettings.setValue(kAppSettingBackgroundColor, color);
 }
 
 QColor ThemeManager::GetTitleBarColor() const {
@@ -828,11 +828,11 @@ void ThemeManager::SetLineEditStyle(QLineEdit* line_edit, const QString& object_
 void ThemeManager::SetMuted(QAbstractButton *button, bool is_muted) {
     if (!is_muted) {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_UP));
-        qAppSettings.SetValue<bool>(kAppSettingIsMuted, false);
+        qAppSettings.setValue<bool>(kAppSettingIsMuted, false);
     }
     else {
         button->setIcon(GetFontIcon(Glyphs::ICON_VOLUME_OFF));
-        qAppSettings.SetValue(kAppSettingIsMuted, true);
+        qAppSettings.setValue(kAppSettingIsMuted, true);
     }
 }
 

@@ -17,7 +17,7 @@ XDialog::XDialog(QWidget* parent, bool modal)
     setModal(modal);
 }
 
-void XDialog::SetContent(QWidget* content) {
+void XDialog::setContent(QWidget* content) {
     content_ = content;
 
     auto* default_layout = new QVBoxLayout(this);
@@ -143,19 +143,19 @@ void XDialog::OnCurrentThemeChanged(ThemeColor theme_color) {
     qTheme.SetTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
 }
 
-void XDialog::SetTitle(const QString& title) const {
+void XDialog::setTitle(const QString& title) const {
     title_frame_label_->setText(title);
 }
 
-void XDialog::SetContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {
-    SetContent(content);
+void XDialog::setContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {
+    setContent(content);
     FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
     if (no_moveable) {
         FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame_);
     }
 }
 
-void XDialog::SetIcon(const QIcon& icon) const {
+void XDialog::setIcon(const QIcon& icon) const {
     icon_->setIcon(icon);
     icon_->setHidden(false);
 }

@@ -42,100 +42,96 @@ public:
 
 	virtual ~PlayListTableView() override;
 
-	virtual void FastReload();
+	virtual void fastReload();
 
-	void DisableDelete(bool enable = false) {
+	void disableDelete(bool enable = false) {
 		enable_delete_ = enable;
 	}
 
-	void DisableLoadFile(bool enable = false) {
+	void disableLoadFile(bool enable = false) {
 		enable_load_file_ = enable;
 	}
 
-	void SetPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
+	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
-	int32_t GetPlaylistId() const;
+	int32_t playlistId() const;
 
-	void Reload();
+	void reload();
 
-	void RemovePlaying();
+	void removePlaying();
 
-	void RemoveAll();
+	void removeAll();
 
-	void RemoveItem(const QModelIndex& index);
+	void removeItem(const QModelIndex& index);
 
-	void RemoveSelectItems();
+	void removeSelectItems();
 
-	void SetNowPlaying(const QModelIndex& index, bool is_scroll_to = false);
+	void setNowPlaying(const QModelIndex& index, bool is_scroll_to = false);
 
-	QModelIndex GetFirstIndex() const;
+	QModelIndex firstIndex() const;
 
-	QModelIndex GetShuffleIndex();
+	QModelIndex shuffleIndex();
 
-	QModelIndex GetCurrentIndex() const;
+	QModelIndex nextIndex(int forward) const;
 
-    void SetCurrentPlayIndex(const QModelIndex& index);
+	std::optional<QModelIndex> selectItem() const;
 
-	QModelIndex GetNextIndex(int forward) const;
+	std::optional<PlayListEntity> selectPlayListEntity() const;
 
-	std::optional<QModelIndex> GetSelectItem() const;
+    void play(PlayerOrder order);
 
-	std::optional<PlayListEntity> GetSelectPlayListEntity() const;
+	void setNowPlayState(PlayingState playing_state);
 
-    void Play(PlayerOrder order);
+    void scrollToIndex(const QModelIndex& index);
 
-	void SetNowPlayState(PlayingState playing_state);
+	void resizeColumn();
 
-    void ScrollToIndex(const QModelIndex& index);
-
-	void ResizeColumn();
-
-	OrderedMap<int32_t, QModelIndex> SelectItemIndex() const;
+	OrderedMap<int32_t, QModelIndex> selectItemIndex() const;
 
 	void append(const QString& file_name);
 
-	QModelIndex GetHoverIndex() const {
+	QModelIndex hoverIndex() const {
 		return model()->index(hover_row_, hover_column_);
 	}
 
-	void SetHeaderViewHidden(bool enable);
+	void setHeaderViewHidden(bool enable);
 
-	void SetOtherPlaylist(int32_t playlist_id);
+	void setOtherPlaylist(int32_t playlist_id);
 
-	void Search(const QString& keyword) const;
+	void search(const QString& keyword) const;
 signals:
-	void UpdatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
+	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
-	void PlayMusic(const PlayListEntity& item);
+	void playMusic(const PlayListEntity& item);
 
-    void EncodeFlacFile(const PlayListEntity& item);
+    void encodeFlacFile(const PlayListEntity& item);
 
-	void EncodeAacFile(const PlayListEntity& item, const EncodingProfile& profile);
+	void encodeAacFile(const PlayListEntity& item, const EncodingProfile& profile);
 
-	void EncodeWavFile(const PlayListEntity& item);
+	void encodeWavFile(const PlayListEntity& item);
 
-    void ReadReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
+    void readReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
 
-	void EditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
+	void editTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
-	void UpdateAlbumCover(const QString &cover_id);
+	void updateAlbumCover(const QString &cover_id);
 
-	void AddPlaylistItemFinished();
+	void addPlaylistItemFinished();
 
-	void ExtractFile(const QString& file_path, int32_t playlist_id);
+	void extractFile(const QString& file_path, int32_t playlist_id);
 	
 public slots:
-	void PlayIndex(const QModelIndex& index);
+	void onPlayIndex(const QModelIndex& index);
 
-	void ProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities);
+	void onProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
-	void ProcessTrackInfo(int32_t total_album, int32_t total_tracks);
+	void onProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 
 	void OnThemeColorChanged(QColor backgroundColor, QColor color);
 
-	void ReloadEntity(const PlayListEntity& item);
+	void onReloadEntity(const PlayListEntity& item);
 
-	void UpdateReplayGain(int32_t playlistId, 
+	void onUpdateReplayGain(int32_t playlistId, 
 		const PlayListEntity& entity,
 		double track_loudness,
 		double album_rg_gain,
@@ -146,9 +142,9 @@ public slots:
 private:
 	PlayListEntity item(const QModelIndex& index) const;
 
-	void PlayItem(const QModelIndex& index);
+	void playItem(const QModelIndex& index);
 
-	void PauseItem(const QModelIndex& index);
+	void pauseItem(const QModelIndex& index);
 
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 

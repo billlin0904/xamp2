@@ -34,24 +34,24 @@ public:
 
 	QLabel* format();
 
-	void SetHeart(bool heart);
+	void setHeart(bool heart);
 
-	void SetCover(const QPixmap* cover);
+	void setCover(const QPixmap* cover);
 
-	void HidePlaybackInformation(bool hide);
+	void hidePlaybackInformation(bool hide);
 
-	void SetAlbumId(int32_t album_id, int32_t heart);
+	void setAlbumId(int32_t album_id, int32_t heart);
 
 signals:
-	void PlayMusic(const PlayListEntity& item);
+	void playMusic(const PlayListEntity& item);
 
 public slots:
     void OnThemeColorChanged(QColor theme_color, QColor color);
 
-	void SetCoverById(const QString& cover_id);
+	void onSetCoverById(const QString& cover_id);
 
 private:
-	void Initial();
+	void initial();
 	
 	std::optional<int32_t> album_id_;
 	int32_t album_heart_{ 0 };

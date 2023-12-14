@@ -9,8 +9,8 @@
 
 namespace QEtag {
 
-QString GetTagId(const QByteArray& buffer) noexcept;
-QString GetTagId(const QString& file_name) noexcept;
+QString getTagId(const QByteArray& buffer) noexcept;
+QString getTagId(const QString& file_name) noexcept;
 
 }
 

@@ -14,24 +14,24 @@ TabListView::TabListView(QWidget *parent)
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
-        emit ClickedTable(table_id);
+        emit clickedTable(table_id);
     });
 
     (void)QObject::connect(&model_, &QStandardItemModel::itemChanged, [this](auto item) {
         auto table_id = item->data(Qt::UserRole + 1).toInt();
         auto table_name = item->data(Qt::DisplayRole).toString();
-        emit TableNameChanged(table_id, table_name);
+        emit tableNameChanged(table_id, table_name);
     });
 }
 
-QString TabListView::GetTabName(int table_id) const {
+QString TabListView::tabName(int table_id) const {
 	if (!names_.contains(table_id)) {
         return kEmptyString;
 	}
     return names_[table_id];
 }
 
-int32_t TabListView::GetTabId(const QString& name) const {
+int32_t TabListView::tabId(const QString& name) const {
     if (!ids_.contains(name)) {
         return -1;
     }
@@ -61,7 +61,7 @@ void TabListView::OnCurrentThemeChanged(ThemeColor theme_color) {
     }
 }
 
-void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
+void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
@@ -75,7 +75,7 @@ void TabListView::AddTab(const QString& name, int table_id, const QIcon& icon) {
     ids_[name] = table_id;
 }
 
-void TabListView::AddSeparator() {
+void TabListView::addSeparator() {
     auto* item = new QStandardItem();
     item->setFlags(Qt::NoItemFlags);
     auto* hline = new QFrame(this);

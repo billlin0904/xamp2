@@ -46,15 +46,15 @@ void JsonSettings::save() {
 	settings_->sync();
 }
 
-int32_t JsonSettings::GetAsInt(const QString& key) {
-	return GetValue(key).toInt();
+int32_t JsonSettings::valueAsInt(const QString& key) {
+	return valueAs(key).toInt();
 }
 
 QMap<QString, QVariant> JsonSettings::ValueAsMap(QString const& key) {
-	return QVariant::fromValue(GetValue(key)).toMap();
+	return QVariant::fromValue(valueAs(key)).toMap();
 }
 
-QVariant JsonSettings::GetValue(const QString& key) {
+QVariant JsonSettings::valueAs(const QString& key) {
 	if (key.isEmpty()) {
 		return{};
 	}

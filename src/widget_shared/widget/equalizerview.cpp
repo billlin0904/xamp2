@@ -76,62 +76,62 @@ EqualizerView::EqualizerView(QWidget* parent)
     for (auto* slider : sliders_) {
         qTheme.SetSliderTheme(slider);
 
-        (void)QObject::connect(slider, &DoubleSlider::DoubleValueChanged, [band, this](auto value) {
+        (void)QObject::connect(slider, &DoubleSlider::doubleValueChanged, [band, this](auto value) {
             bands_label_[band]->setText(FormatDb(value));
             });
         ++band;
     }
 
     (void)QObject::connect(ui_->resetButton, &QPushButton::clicked, [this]() {
-        auto [name, settings] = qAppSettings.GetEqSettings();
+        auto [name, settings] = qAppSettings.eqSettings();
         for (auto &band : settings.bands) {
             band.gain = 0;
         }
         settings.preamp = 0;
-        ApplySetting(name, settings);
+        applySetting(name, settings);
         });
 
-    (void)QObject::connect(ui_->preampSlider, &DoubleSlider::DoubleValueChanged, [this](auto value) {
-        PreampValueChange(value);
+    (void)QObject::connect(ui_->preampSlider, &DoubleSlider::doubleValueChanged, [this](auto value) {
+        preampValueChanged(value);
         ui_->preampDbLabel->setText(FormatDb(value));
         });
 
     ui_->enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
     (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
+        qAppSettings.setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
     (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        qAppSettings.SetValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
+        qAppSettings.setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });
 
-    ui_->enableEqCheckBox->setCheckState(qAppSettings.ValueAsBool(kAppSettingEnableEQ)
+    ui_->enableEqCheckBox->setCheckState(qAppSettings.valueAsBool(kAppSettingEnableEQ)
         ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 
-    for (auto& name : qAppSettings.GetEqPreset().keys()) {
+    for (auto& name : qAppSettings.eqPreset().keys()) {
         ui_->eqPresetComboBox->addItem(name);
     }
 
     (void)QObject::connect(ui_->eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         AppEQSettings settings;
         settings.name = index;
-        settings.settings = qAppSettings.GetEqPreset()[index];
+        settings.settings = qAppSettings.eqPreset()[index];
         if (settings.settings.bands.empty()) {
             settings.settings.bands.emplace_back();
         }
-        qAppSettings.SetEqSettings(settings);
+        qAppSettings.setEqSettings(settings);
         qAppSettings.save();
-        ApplySetting(index, settings.settings);
+        applySetting(index, settings.settings);
         });
 
-    if (qAppSettings.Contains(kAppSettingEQName)) {
-        auto [name, settings] = qAppSettings.GetEqSettings();
+    if (qAppSettings.contains(kAppSettingEQName)) {
+        auto [name, settings] = qAppSettings.eqSettings();
         AppEQSettings app_settings;
         app_settings.name = name;
         app_settings.settings = settings;
-        qAppSettings.SetEqSettings(app_settings);
+        qAppSettings.setEqSettings(app_settings);
         ui_->eqPresetComboBox->setCurrentText(name);
-        ApplySetting(name, settings);
+        applySetting(name, settings);
     }
 }
 
@@ -139,7 +139,7 @@ EqualizerView::~EqualizerView() {
     delete ui_;
 }
 
-void EqualizerView::ApplySetting(const QString& name, const EqSettings& settings) {
+void EqualizerView::applySetting(const QString& name, const EqSettings& settings) {
     for (const auto& l : bands_label_) {
         l->hide();
     }

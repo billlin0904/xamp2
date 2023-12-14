@@ -21,10 +21,10 @@ public:
     }
 
 signals:
-    void DoubleValueChanged(double value);
+    void doubleValueChanged(double value);
 
 public slots:
-    void NotifyValueChanged(int value);
+    void onNotifyValueChanged(int value);
 
 private:
     void mousePressEvent(QMouseEvent* event) override;

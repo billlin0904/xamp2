@@ -20,39 +20,39 @@ public:
 
 	virtual ~XMainWindow() override;
 
-    void SetShortcut(const QKeySequence& shortcut) override;
+    void setShortcut(const QKeySequence& shortcut) override;
 
-    void SetContentWidget(IXFrame *content_widget);
+    void setContentWidget(IXFrame *content_widget);
 
-    void SetTaskbarProgress(int32_t percent) override;
+    void setTaskbarProgress(int32_t percent) override;
 
-    void ResetTaskbarProgress() override;
+    void resetTaskbarProgress() override;
 
-    void SetTaskbarPlayingResume() override;
+    void setTaskbarPlayingResume() override;
 
-    void SetTaskbarPlayerPaused() override;
+    void setTaskbarPlayerPaused() override;
 
-    void SetTaskbarPlayerPlaying() override;
+    void setTaskbarPlayerPlaying() override;
 
-    void SetTaskbarPlayerStop() override;
+    void setTaskbarPlayerStop() override;
 
-    void RestoreGeometry() override;
+    void restoreAppGeometry() override;
 
-    void InitMaximumState() override;
+    void initMaximumState() override;
 
-    void UpdateMaximumState() override;
+    void updateMaximumState() override;
 
-    void SetIconicThumbnail(const QPixmap& image) override;
+    void setIconicThumbnail(const QPixmap& image) override;
 
-    void ReadDriveInfo();
+    void readDriveInfo();
 
-    void DrivesRemoved(char driver_letter);
+    void drivesRemoved(char driver_letter);
 
-    void SystemThemeChanged(ThemeColor theme_color);
+    void systemThemeChanged(ThemeColor theme_color);
 
-    void ShortcutsPressed(uint16_t native_key, uint16_t native_mods);
+    void shortcutsPressed(uint16_t native_key, uint16_t native_mods);
 
-    void ShowWindow();    
+    void showWindow();    
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -66,14 +66,14 @@ protected:
 
     void closeEvent(QCloseEvent* event) override;
 
-    void SaveGeometry() override;
+    void saveAppGeometry() override;
 
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, qintptr* result) override;
 
     void showEvent(QShowEvent* event) override;
 
-    void EnsureInitTaskbar();
+    void ensureInitTaskbar();
 
     uint32_t screen_number_;
     QPoint last_pos_;

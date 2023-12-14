@@ -33,7 +33,7 @@ SpectrumWidget* LrcPage::spectrum() {
 	return spectrum_;
 }
 
-void LrcPage::AddCoverShadow(bool found_cover) {
+void LrcPage::addCoverShadow(bool found_cover) {
 	cover_label_->setGraphicsEffect(nullptr);
 
 	if (found_cover) {
@@ -45,13 +45,13 @@ void LrcPage::AddCoverShadow(bool found_cover) {
 	}
 }
 
-void LrcPage::SetCover(const QPixmap& src) {
+void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
     //SetFullScreen(spectrum_->width() > 700);
-	SetFullScreen(false);
+	setFullScreen(false);
 }
 
-QSize LrcPage::CoverSize() const {
+QSize LrcPage::coverSize() const {
 	return cover_label_->size();
 }
 
@@ -71,12 +71,12 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
-void LrcPage::ClearBackground() {
+void LrcPage::clearBackground() {
 	background_image_ = QImage();
 	update();
 }
 
-void LrcPage::SetFullScreen(bool enter) {
+void LrcPage::setFullScreen(bool enter) {
 	auto f = font();
 
 	if (!enter) {
@@ -94,16 +94,16 @@ void LrcPage::SetFullScreen(bool enter) {
 	const QSize cover_size(cover_label_->size().width() - image_utils::kSmallImageRadius,
 		cover_label_->size().height() - image_utils::kSmallImageRadius);
     cover_label_->setPixmap(
-		image_utils::RoundImage(image_utils::ResizeImage(cover_, 	cover_size, false),
+		image_utils::roundImage(image_utils::resizeImage(cover_, 	cover_size, false),
 		image_utils::kSmallImageRadius));
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
 	//SetFullScreen(spectrum_->width() > 700);
-	SetFullScreen(false);
+	setFullScreen(false);
 }
 
-void LrcPage::SetBackground(const QImage& cover) {
+void LrcPage::setBackground(const QImage& cover) {
 	if (cover.isNull()) {
 		background_image_ = QImage();
 	}
@@ -111,13 +111,13 @@ void LrcPage::SetBackground(const QImage& cover) {
 		prev_bg_alpha_ = current_bg_alpha_;
 		prev_background_image_ = cover;
         background_image_ = cover;
-		StartBackgroundAnimation(kBlurBackgroundAnimationMs);
+		startBackgroundAnimation(kBlurBackgroundAnimationMs);
 	}
 	update();
 }
 
-void LrcPage::StartBackgroundAnimation(const int durationMs) {
-	current_bg_alpha_ = image_utils::SampleImageBlur(background_image_, kBlurAlpha);
+void LrcPage::startBackgroundAnimation(const int durationMs) {
+	current_bg_alpha_ = image_utils::sampleImageBlur(background_image_, kBlurAlpha);
 
 	auto* fade_in_animation = new QPropertyAnimation(this, "appearBgProg");
 	fade_in_animation->setStartValue(0);
@@ -164,21 +164,21 @@ void LrcPage::paintEvent(QPaintEvent*) {
 	}
 }
 
-void LrcPage::SetAppearBgProgress(int x) {
+void LrcPage::setAppearBgProgress(int x) {
 	current_bg_alpha_ = x;
 	update();
 }
 
-int LrcPage::GetAppearBgProgress() const {
+int LrcPage::getAppearBgProgress() const {
 	return current_bg_alpha_;
 }
 
-void LrcPage::SetDisappearBgProgress(int x) {
+void LrcPage::setDisappearBgProgress(int x) {
 	prev_bg_alpha_ = x;
 	update();
 }
 
-int LrcPage::GetDisappearBgProgress() const {
+int LrcPage::getDisappearBgProgress() const {
 	return prev_bg_alpha_;
 }
 
@@ -195,16 +195,16 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		lyrics_widget_->SetLrcColor(Qt::lightGray);
-		lyrics_widget_->SetLrcHighLight(Qt::white);
-		qAppSettings.SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-		qAppSettings.SetValue(kLyricsHighLightTextColor, QColor(Qt::white));
+		lyrics_widget_->onSetLrcColor(Qt::lightGray);
+		lyrics_widget_->onSetLrcHighLight(Qt::white);
+		qAppSettings.setValue(kLyricsTextColor, QColor(Qt::lightGray));
+		qAppSettings.setValue(kLyricsHighLightTextColor, QColor(Qt::white));
 		break;
 	case ThemeColor::LIGHT_THEME:
-		lyrics_widget_->SetLrcColor(Qt::white);
-		lyrics_widget_->SetLrcHighLight(Qt::black);
-		qAppSettings.SetValue(kLyricsTextColor, QColor(Qt::lightGray));
-		qAppSettings.SetValue(kLyricsHighLightTextColor, QColor(Qt::black));
+		lyrics_widget_->onSetLrcColor(Qt::white);
+		lyrics_widget_->onSetLrcHighLight(Qt::black);
+		qAppSettings.setValue(kLyricsTextColor, QColor(Qt::lightGray));
+		qAppSettings.setValue(kLyricsHighLightTextColor, QColor(Qt::black));
 		break;
 	}
 }

@@ -19,28 +19,28 @@ inline constexpr int32_t kImageRadius = 4;
 inline constexpr int32_t kSmallImageRadius = 4;
 inline constexpr int32_t kPlaylistImageRadius = 4;
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap RoundImage(const QPixmap& src, int32_t radius = kImageRadius);
+XAMP_WIDGET_SHARED_EXPORT QPixmap roundImage(const QPixmap& src, int32_t radius = kImageRadius);
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap RoundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius);
+XAMP_WIDGET_SHARED_EXPORT QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius);
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap RoundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRadius);
+XAMP_WIDGET_SHARED_EXPORT QPixmap roundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRadius);
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
+XAMP_WIDGET_SHARED_EXPORT QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-XAMP_WIDGET_SHARED_EXPORT Vector<uint8_t> Image2Buffer(const QPixmap& source);
+XAMP_WIDGET_SHARED_EXPORT Vector<uint8_t> image2Buffer(const QPixmap& source);
 
-XAMP_WIDGET_SHARED_EXPORT QByteArray Image2ByteArray(const QPixmap& source);
+XAMP_WIDGET_SHARED_EXPORT QByteArray image2ByteArray(const QPixmap& source);
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality = 100);
+XAMP_WIDGET_SHARED_EXPORT QPixmap convertToImageFormat(const QPixmap& source, int32_t quality = 100);
 
-XAMP_WIDGET_SHARED_EXPORT QImage BlurImage(const QPixmap& source, QSize size);
+XAMP_WIDGET_SHARED_EXPORT QImage blurImage(const QPixmap& source, QSize size);
 
-XAMP_WIDGET_SHARED_EXPORT int SampleImageBlur(const QImage &image, int blur_alpha);
+XAMP_WIDGET_SHARED_EXPORT int sampleImageBlur(const QImage &image, int blur_alpha);
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap ReadFileImage(const QString& file_path, QSize size, QImage::Format format);
+XAMP_WIDGET_SHARED_EXPORT QPixmap readFileImage(const QString& file_path, QSize size, QImage::Format format);
 
-XAMP_WIDGET_SHARED_EXPORT bool MoveFile(const QString& src_file_path, const QString& dest_file_path);
+XAMP_WIDGET_SHARED_EXPORT bool moveFile(const QString& src_file_path, const QString& dest_file_path);
 
-XAMP_WIDGET_SHARED_EXPORT bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path);
+XAMP_WIDGET_SHARED_EXPORT bool optimizePng(const QByteArray& buffer, const QString& dest_file_path);
 
 }

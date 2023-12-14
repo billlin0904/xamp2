@@ -20,9 +20,9 @@
 
 class SqlException final : public Exception {
 public:
-    explicit SqlException(QSqlError error);
+	explicit SqlException(QSqlError error);
 
-    virtual const char* what() const noexcept override;
+	const char* what() const noexcept override;
 };
 
 #define IGNORE_DB_EXCEPTION(expr) \
@@ -41,16 +41,16 @@ public:
     }
 
 struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
-    int32_t songs{ 0 };
-    double durations{ 0 };
-    int32_t year{ 0 };
-    size_t file_size{ 0 };
+	int32_t songs{0};
+	double durations{0};
+	int32_t year{0};
+	size_t file_size{0};
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
-    int32_t albums{ 0 };
-    int32_t tracks{ 0 };
-    double durations{ 0 };
+	int32_t albums{0};
+	int32_t tracks{0};
+	double durations{0};
 };
 
 inline constexpr auto kMaxDatabasePoolSize = 8;
@@ -64,209 +64,213 @@ inline constexpr auto kMaxExistPlaylist = 4;
 
 enum PlayingState {
 	PLAY_CLEAR = 0,
-    PLAY_PLAYING,
-    PLAY_PAUSE,
+	PLAY_PLAYING,
+	PLAY_PAUSE,
 };
 
 class SqlQuery : public QSqlQuery {
 public:
-    explicit SqlQuery(const QString& query = QString(), QSqlDatabase db = QSqlDatabase())
-        : QSqlQuery(query, db) {
-    }
+	explicit SqlQuery(const QString& query = QString(), QSqlDatabase db = QSqlDatabase())
+		: QSqlQuery(query, db) {
+	}
 
-    explicit SqlQuery(QSqlDatabase db)
-	    : QSqlQuery(db) {
-    }
+	explicit SqlQuery(QSqlDatabase db)
+		: QSqlQuery(db) {
+	}
 
-    ~SqlQuery() {
-        QSqlQuery::finish();
-        QSqlQuery::clear();
-    }
+	~SqlQuery() {
+		QSqlQuery::finish();
+		QSqlQuery::clear();
+	}
 };
 
 class XAMP_WIDGET_SHARED_EXPORT Database final {
 public:
-    explicit Database(const QString& name);
+	explicit Database(const QString& name);
 
-    Database();
+	Database();
 
-    ~Database();
+	~Database();
 
-    Q_DISABLE_COPY(Database)
+	Q_DISABLE_COPY(Database)
 
-    QSqlDatabase& database();
+	QSqlDatabase& database();
 
-    void close();
+	void close();
 
-    void open();
+	void open();
 
-    bool transaction();
+	bool transaction();
 
-    bool commit();
+	bool commit();
 
-    void rollback();
+	void rollback();
 
-    bool DropAllTable();
+	bool DropAllTable();
 
-    QStringList GetGenres() const;
+	QStringList getGenres() const;
 
-    QStringList GetCategories() const;
+	QStringList getCategories() const;
 
-    QStringList GetYears() const;
+	QStringList getYears() const;
 
-    int32_t AddPlaylist(const QString& name, int32_t playlist_index);
+	int32_t addPlaylist(const QString& name, int32_t playlist_index);
 
-    void SetPlaylistIndex(int32_t playlist_id, int32_t playlist_index);
+	void setPlaylistIndex(int32_t playlist_id, int32_t playlist_index);
 
-    std::map<int32_t, int32_t> GetPlaylistIndex();
+	std::map<int32_t, int32_t> getPlaylistIndex();
 
-    void SetAlbumCover(int32_t album_id, const QString& cover_id);
+	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
-    std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;
+	std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
 
-    std::optional<ArtistStats> GetArtistStats(int32_t artist_id) const;
+	std::optional<ArtistStats> getArtistStats(int32_t artist_id) const;
 
-    int32_t AddOrUpdateMusic(const TrackInfo& track_info);
+	int32_t addOrUpdateMusic(const TrackInfo& track_info);
 
-    int32_t AddOrUpdateArtist(const QString& artist);
+	int32_t addOrUpdateArtist(const QString& artist);
 
-    void UpdateArtistEnglishName(const QString& artist, const QString& en_name);
+	void updateArtistEnglishName(const QString& artist, const QString& en_name);
 
-    void UpdateArtistCoverId(int32_t artist_id, const QString& cover_id);
+	void updateArtistCoverId(int32_t artist_id, const QString& cover_id);
 
-    void UpdateMusicFilePath(int32_t music_id, const QString& file_path);
+	void updateMusicFilePath(int32_t music_id, const QString& file_path);
 
-    void AddOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc);
+	void addOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc);
 
-    std::optional<std::tuple<QString, QString>> GetLyrc(int32_t music_id);
+	std::optional<std::tuple<QString, QString>> getLyrc(int32_t music_id);
 
-    void UpdateMusicRating(int32_t music_id, int32_t rating);
+	void updateMusicRating(int32_t music_id, int32_t rating);
 
-    void UpdateAlbumHeart(int32_t album_id, uint32_t heart);
+	void updateAlbumHeart(int32_t album_id, uint32_t heart);
 
-    void UpdateMusicHeart(int32_t music_id, uint32_t heart);
+	void updateMusicHeart(int32_t music_id, uint32_t heart);
 
-    void UpdateMusicTitle(int32_t music_id, const QString& title);
+	void updateMusicTitle(int32_t music_id, const QString& title);
 
-    void AddOrUpdateTrackLoudness(int32_t album_id,
-        int32_t artist_id,
-        int32_t music_id, 
-        double track_loudness);
+	void addOrUpdateTrackLoudness(int32_t album_id,
+	                              int32_t artist_id,
+	                              int32_t music_id,
+	                              double track_loudness);
 
-    void UpdateReplayGain(int32_t music_id,
-        double album_rg_gain,
-        double album_peak,
-        double track_rg_gain,
-        double track_peak);
+	void updateReplayGain(int32_t music_id,
+	                      double album_rg_gain,
+	                      double album_peak,
+	                      double track_rg_gain,
+	                      double track_peak);
 
-    int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast,
-        const QString& disc_id = kEmptyString,
-        const QString& album_genre = kEmptyString);
+	int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year,
+	                         bool is_podcast,
+	                         const QString& disc_id = kEmptyString,
+	                         const QString& album_genre = kEmptyString);
 
-    void AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
+	void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
-    void AddOrUpdateAlbumCategory(int32_t album_id, const QString & category) const;
+	void addOrUpdateAlbumCategory(int32_t album_id, const QString& category) const;
 
-    void AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
+	void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
-    void AddOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness = 0) const;
+	void addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id,
+	                              double track_loudness = 0) const;
 
-    int32_t GetAlbumIdByDiscId(const QString& disc_id) const;
+	int32_t getAlbumIdByDiscId(const QString& disc_id) const;
 
-    void UpdateAlbumByDiscId(const QString& disc_id, const QString& album);
+	void updateAlbumByDiscId(const QString& disc_id, const QString& album);
 
-    void UpdateArtistByDiscId(const QString& disc_id, const QString& artist);
+	void updateArtistByDiscId(const QString& disc_id, const QString& artist);
 
-    void UpdateAlbum(int32_t album_id, const QString& album);
+	void updateAlbum(int32_t album_id, const QString& album);
 
-    void UpdateArtist(int32_t artist_id, const QString& artist);
+	void updateArtist(int32_t artist_id, const QString& artist);
 
-    QString GetAlbumCoverId(int32_t album_id) const;
+	QString getAlbumCoverId(int32_t album_id) const;
 
-    int32_t GetAlbumId(const QString& album) const;
+	int32_t getAlbumId(const QString& album) const;
 
-    QString GetAlbumCoverId(const QString& album) const;
+	QString getAlbumCoverId(const QString& album) const;
 
-    QString GetArtistCoverId(int32_t artist_id) const;
+	QString getArtistCoverId(int32_t artist_id) const;
 
-    void SetPlaylistName(int32_t playlist_id, const QString& name);
+	void setPlaylistName(int32_t playlist_id, const QString& name);
 
-    void RemoveAlbum(int32_t album_id);
+	void removeAlbum(int32_t album_id);
 
-    void ForEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
+	void forEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
 
-    void ForEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
+	void forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 
-    void ForEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const &)> &&fun);
+	void forEachAlbumMusic(int32_t album_id, std::function<void(const PlayListEntity&)>&& fun);
 
-    void ForEachAlbum(std::function<void(int32_t)>&& fun);
+	void forEachAlbum(std::function<void(int32_t)>&& fun);
 
-    std::optional<QString> GetAlbumFirstMusicFilePath(int32_t album_id);
+	std::optional<QString> getAlbumFirstMusicFilePath(int32_t album_id);
 
-    void RemoveAllArtist();
+	void removeAllArtist();
 
-    void RemoveArtistId(int32_t artist_id);
+	void removeArtistId(int32_t artist_id);
 
-    void RemoveMusic(int32_t music_id);
+	void removeMusic(int32_t music_id);
 
-    void RemoveTrackLoudnessMusicId(int32_t music_id);
+	void removeTrackLoudnessMusicId(int32_t music_id);
 
-    void RemoveMusic(QString const& file_path);
+	void removeMusic(const QString& file_path);
 
-    void RemovePlaylist(int32_t playlist_id);
+	void removePlaylist(int32_t playlist_id);
 
-    void RemovePlaylistAllMusic(int32_t playlist_id);
+	void removePlaylistAllMusic(int32_t playlist_id);
 
-    void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
+	void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
-    bool IsPlaylistExist(int32_t playlist_id) const;
+	bool isPlaylistExist(int32_t playlist_id) const;
 
-    void AddMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
+	void addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
 
-    void AddMusicToPlaylist(const QList<int32_t> & music_id, int32_t playlist_id) const;
+	void addMusicToPlaylist(const QList<int32_t>& music_id, int32_t playlist_id) const;
 
-    void SetNowPlaying(int32_t playlist_id, int32_t music_id);
+	void setNowPlaying(int32_t playlist_id, int32_t music_id);
 
-    void ClearNowPlaying(int32_t playlist_id);
+	void clearNowPlaying(int32_t playlist_id);
 
-    void ClearNowPlaying(int32_t playlist_id, int32_t music_id);
+	void clearNowPlaying(int32_t playlist_id, int32_t music_id);
 
-    void ClearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id);
+	void clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id);
 
-    void SetNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
+	void setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
+
 private:
-    static PlayListEntity FromSqlQuery(const SqlQuery& query);
+	static PlayListEntity fromSqlQuery(const SqlQuery& query);
 
-    void RemoveAlbumArtist(int32_t album_id);
+	void removeAlbumArtist(int32_t album_id);
 
-    void RemoveAlbumMusicAlbum(int32_t album_id);
+	void removeAlbumMusicAlbum(int32_t album_id);
 
-    void RemoveAlbumCategory(int32_t album_id);
+	void removeAlbumCategory(int32_t album_id);
 
-    void RemoveAlbumMusicId(int32_t music_id);
+	void removeAlbumMusicId(int32_t music_id);
 
-    void RemovePlaylistMusics(int32_t music_id);
+	void removePlaylistMusics(int32_t music_id);
 
-    void RemoveAlbumArtistId(int32_t artist_id);
+	void removeAlbumArtistId(int32_t artist_id);
 
-    void CreateTableIfNotExist();
+	void createTableIfNotExist();
 
-    QString GetVersion() const;
+	QString GetVersion() const;
 
-    QString connection_name_;
-    QSqlDatabase db_;
-    LoggerPtr logger_;
+	QString connection_name_;
+	QSqlDatabase db_;
+	LoggerPtr logger_;
 };
 
 class DatabaseFactory {
 public:
-    Database* Create() {
-        auto* database = new Database(GetDatabaseId());
-        database->open();
-        return database;
-    }
+	Database* Create() {
+		auto* database = new Database(getDatabaseId());
+		database->open();
+		return database;
+	}
+
 private:
-    static QString GetDatabaseId();
+	static QString getDatabaseId();
 };
 
 using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;

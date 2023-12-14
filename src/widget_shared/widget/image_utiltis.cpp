@@ -59,7 +59,7 @@ namespace {
 			24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
 	};
 
-	void StackblurJob(uint8_t* src,
+	void stackblurJob(uint8_t* src,
 		uint32_t w,
 		uint32_t h,
 		uint32_t radius,
@@ -312,7 +312,7 @@ namespace {
 
 	}
 
-	void StackblurJob(QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
+	void stackblurJob(QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
 		XAMP_EXPECTS(radius > 0 && radius < 254);
 		XAMP_EXPECTS(cores > 0);
 
@@ -324,8 +324,8 @@ namespace {
 		auto* src = image.bits();		
 
 		if (cores == 1) {
-			StackblurJob(src, width, height, radius, 1, 0, 1, stack.data());
-			StackblurJob(src, width, height, radius, 1, 0, 2, stack.data());
+			stackblurJob(src, width, height, radius, 1, 0, 1, stack.data());
+			stackblurJob(src, width, height, radius, 1, 0, 2, stack.data());
 			return;
 		}
 		
@@ -337,7 +337,7 @@ namespace {
 				auto buffer = stack.data() + div * 4 * i;
 				tasks.push_back(Executor::Spawn(GetBackgroundThreadPool(),
 					[=]() {
-						StackblurJob(src, width, height, radius, cores, i, step, buffer);
+						stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));
 			}
 
@@ -351,14 +351,14 @@ namespace {
 	}
 }	
 
-bool OptimizePng(const QByteArray& buffer, const QString& dest_file_path) {
+bool optimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 	QSaveFile file(dest_file_path);	
 	file.open(QIODevice::WriteOnly);
 	file.write(buffer);
 	return file.commit();	
 }
 
-bool MoveFile(const QString& src_file_path, const QString& dest_file_path) {
+bool moveFile(const QString& src_file_path, const QString& dest_file_path) {
 	try {
 		Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
 	} catch (...) {
@@ -367,7 +367,7 @@ bool MoveFile(const QString& src_file_path, const QString& dest_file_path) {
     return true;
 }
 
-QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
+QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
 	const auto scaled_size = source.size() * 2;
 	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatio
 		                  : Qt::IgnoreAspectRatio;
@@ -377,7 +377,7 @@ QPixmap ResizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 	return scaled_image;
 }
 
-QByteArray Image2ByteArray(const QPixmap& source) {
+QByteArray image2ByteArray(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
@@ -385,7 +385,7 @@ QByteArray Image2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
-Vector<uint8_t> Image2Buffer(const QPixmap& source) {
+Vector<uint8_t> image2Buffer(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);
@@ -393,7 +393,7 @@ Vector<uint8_t> Image2Buffer(const QPixmap& source) {
 	return { bytes.constData(), bytes.constData() + bytes.size() };
 }
 
-QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality) {
+QPixmap convertToImageFormat(const QPixmap& source, int32_t quality) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 
@@ -413,11 +413,11 @@ QPixmap ConvertToImageFormat(const QPixmap& source, int32_t quality) {
 	return pixmap;
 }
 
-QPixmap RoundImage(const QPixmap& src, int32_t radius) {
-	return RoundImage(src, src.size(), radius);
+QPixmap roundImage(const QPixmap& src, int32_t radius) {
+	return roundImage(src, src.size(), radius);
 }
 
-QPixmap RoundDarkImage(QSize size, int32_t alpha, int32_t radius) {
+QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	QColor color = Qt::black;
 	color.setAlpha(alpha);
 	const QRect darker_rect(0, 0, size.width(), size.height());
@@ -437,7 +437,7 @@ QPixmap RoundDarkImage(QSize size, int32_t alpha, int32_t radius) {
 	return result;
 }
 
-QPixmap RoundImage(const QPixmap& src, QSize size, int32_t radius) {
+QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	QPixmap result(size);
 	const QPixmap pixmap(src);
 
@@ -454,26 +454,26 @@ QPixmap RoundImage(const QPixmap& src, QSize size, int32_t radius) {
 	painter.setClipPath(painter_path);
 	painter.setBrush(QBrush(QColor(249, 249, 249)));
 	if (src.size() != size) {
-		painter.drawPixmap(rect, ResizeImage(pixmap, size, true));
+		painter.drawPixmap(rect, resizeImage(pixmap, size, true));
 	} else {
 		painter.drawPixmap(rect, pixmap);
 	}
 	return result;
 }
 
-QImage BlurImage(const QPixmap& source, QSize size) {
+QImage blurImage(const QPixmap& source, QSize size) {
 	//const int radius = qMax(20, qMin(size.width(), size.height()) / 5);
 	const int radius = 30;
 
 	const QSize scaled_size(size.width() + radius, size.height() + radius);
-	auto resize_pixmap = ResizeImage(source, scaled_size);
+	auto resize_pixmap = resizeImage(source, scaled_size);
 	//auto resize_pixmap = source;
 	auto img = resize_pixmap.toImage();
-	StackblurJob(img, radius);
+	stackblurJob(img, radius);
 	return img;
 }
 
-QPixmap ReadFileImage(const QString& file_path, QSize size, QImage::Format format) {
+QPixmap readFileImage(const QString& file_path, QSize size, QImage::Format format) {
 	QImage image(size, format);
 	QImageReader reader(file_path);
 	if (reader.read(&image)) {
@@ -482,7 +482,7 @@ QPixmap ReadFileImage(const QString& file_path, QSize size, QImage::Format forma
 	return {};
 }
 
-int SampleImageBlur(const QImage& image, int blur_alpha) {
+int sampleImageBlur(const QImage& image, int blur_alpha) {
 	const auto w = image.width();
 	const auto h = image.height();
 

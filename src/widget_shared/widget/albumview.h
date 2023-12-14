@@ -44,25 +44,25 @@ public:
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
-	void SetAlbumTextColor(QColor color);
+	void setAlbumTextColor(QColor color);
 
-	void EnableAlbumView(bool enable);
+	void enableAlbumView(bool enable);
 
-	void SetPlayingAlbumId(int32_t album_id) {
+	void setPlayingAlbumId(int32_t album_id) {
 		playing_album_id_ = album_id;
 	}
 
-	void SetShowMode(ShowModes mode) {
+	void setShowMode(ShowModes mode) {
 		show_mode_ = mode;
 	}
 
-	ShowModes GetShowModes() const {
+	ShowModes showModes() const {
 		return show_mode_;
 	}	
 signals:
-	void EnterAlbumView(const QModelIndex& index) const;
+	void enterAlbumView(const QModelIndex& index) const;
 
-	void ShowAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
+	void showAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
 
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
@@ -87,16 +87,16 @@ class AlbumViewPage final : public QFrame {
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
 
-	void SetPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id, int32_t album_heart);
+	void setPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id, int32_t album_heart);
 
 	PlaylistPage* playlistPage() const {
 		return page_;
 	}
 
 signals:
-	void ClickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void LeaveAlbumView() const;
+	void leaveAlbumView() const;
 
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
@@ -115,59 +115,57 @@ public:
 	
 	explicit AlbumView(QWidget* parent = nullptr);
 
-	void Update();
-
 	AlbumViewPage* albumViewPage();
 
-	void EnablePage(bool enable);
+	void enablePage(bool enable);
 
-	virtual void ShowAll();
+	virtual void showAll();
 
-	void SetPlayingAlbumId(int32_t album_id);
+	void setPlayingAlbumId(int32_t album_id);
 
-	void FilterCategories(const QString& category);
+	void filterCategories(const QString& category);
 
-	void FilterCategories(const QSet<QString>& category);
+	void filterCategories(const QSet<QString>& category);
 
-	void FilterYears(const QSet<QString>& years);
+	void filterYears(const QSet<QString>& years);
 
-	void SortYears();
+	void sortYears();
 
-	void SetShowMode(ShowModes mode);
+	void setShowMode(ShowModes mode);
 
 	void resizeEvent(QResizeEvent* event) override;
 
 signals:
-    void AddPlaylist(const QList<int32_t> &music_ids, const QList<PlayListEntity> &entities);
+    void addPlaylist(const QList<int32_t> &music_ids, const QList<PlayListEntity> &entities);
 
-	void ClickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
+	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void ClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
+	void clickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
-	void RemoveAll();
+	void removeAll();
 
-	void LoadCompleted(int32_t total_album, int32_t total_tracks);
+	void loadCompleted(int32_t total_album, int32_t total_tracks);
 
-	void ExtractFile(const QString& file_path, int32_t playlist_id);
+	void extractFile(const QString& file_path, int32_t playlist_id);
 
 public slots:
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 
-	void Refresh();
+	void reload();
 
-	void FilterByArtistId(int32_t artist_id);
+	void filterByArtistId(int32_t artist_id);
 
-	void HideWidget();
+	void hideWidget();
 
-	void Search(const QString& keyword);
+	void search(const QString& keyword);
 
     void OnThemeChanged(QColor backgroundColor, QColor color);
 
     void append(const QString& file_name);
 
-	void ShowMenu(const QPoint& pt);
+	void showMenu(const QPoint& pt);
 
-	void ShowAlbumViewMenu(const QPoint& pt);
+	void showAlbumViewMenu(const QPoint& pt);
 
 private:
 	bool enable_page_{ true };

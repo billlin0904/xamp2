@@ -42,46 +42,46 @@ public:
 
     friend class SharedSingleton<ImageCache>;
 
-	QPixmap ScanCoverFromDir(const QString& file_path);
+	QPixmap scanCoverFromDir(const QString& file_path);
 
-	QPixmap FindImageFromDir(const PlayListEntity& item);
+	QPixmap findImageFromDir(const PlayListEntity& item);
 
-    QPixmap GetOrDefault(const QString& tag_id, bool not_found_use_default = true) const;
+    QPixmap getOrDefault(const QString& tag_id, bool not_found_use_default = true) const;
 
-	ImageCacheEntity GetFromFile(const QString& tag_id) const;
+	ImageCacheEntity getFromFile(const QString& tag_id) const;
 
-	void RemoveImage(const QString& tag_id) const;
+	void removeImage(const QString& tag_id) const;
 
-	size_t GetSize() const;
+	size_t size() const;
 
-    void SetMaxSize(size_t max_size);
+    void setMaxSize(size_t max_size);
 
-	QString GetUnknownCoverId() const {
+	QString unknownCoverId() const {
 		return unknown_cover_id_;
 	}
 
-	void Clear() const;
+	void clear() const;
 
-	void ClearCache() const;
+	void clearCache() const;
 
-	QString AddImage(const QPixmap& cover) const;
+	QString addImage(const QPixmap& cover) const;
 
-	QPixmap GetOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
+	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
 
-	QPixmap GetCover(const QString& tag, const QString& cover_id);
+	QPixmap cover(const QString& tag, const QString& cover_id);
 protected:
 	ImageCache();
 
 private:
-	void OptimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const;
+	void optimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const;
 
 	void timerEvent(QTimerEvent*) override;
 
-	void LoadCache() const;
+	void loadCache() const;
 
-	void InitCachePath();
+	void initCachePath();
 
-	QFileInfo GetImageFileInfo(const QString& tag_id) const;
+	QFileInfo getImageFileInfo(const QString& tag_id) const;
 
 	QStringList cover_ext_;
 	QStringList cache_ext_;

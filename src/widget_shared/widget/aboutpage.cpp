@@ -9,20 +9,20 @@
 
 namespace {
 #ifdef Q_OS_WIN32
-    constexpr ConstLatin1String VisualStudioVersion() {
+    constexpr ConstLatin1String visualStudioVersion() {
         if constexpr (_MSC_VER >= 1930) {
             return "2022";
         }
         return "2019";
     }
-    QString GetCompileTime() {
+    QString getCompileTime() {
         return qSTR("Visual Studio %1.%2.%3")
-            .arg(VisualStudioVersion())
+            .arg(visualStudioVersion())
             .arg((_MSC_FULL_VER / 100000) % 100)
             .arg(_MSC_FULL_VER % 100000);
     }
 #else
-    QString GetCompileTime() {
+    QString getCompileTime() {
         return qSTR("Clang %1.%2.%3")
             .arg(__clang_major__)
             .arg(__clang_minor__)
@@ -90,7 +90,7 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui_->lblAppBuild->setText(qApp->tr("Version ")
         + FormatVersion(kApplicationVersionValue));
-    ui_->waitForUpdateProcessIndicator->StartAnimation();
+    ui_->waitForUpdateProcessIndicator->startAnimation();
 
     ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
@@ -125,6 +125,6 @@ void AboutPage::OnUpdateNewVersion(const Version& version) {
     ui_->lblAppBuild->setText(qApp->tr("Version ")
         + FormatVersion(version));
     Delay(1);
-    ui_->waitForUpdateProcessIndicator->StopAnimation();
+    ui_->waitForUpdateProcessIndicator->stopAnimation();
     ui_->restartAppButton->show();
 }

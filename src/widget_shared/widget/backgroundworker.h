@@ -15,82 +15,77 @@
 
 #include <widget/widget_shared.h>
 
-class DatabaseFacade;
-
 struct XAMP_WIDGET_SHARED_EXPORT ReplayGainResult final {
-    double album_loudness{0};
-    double album_peak{0};
-    double album_gain{0};
-    double album_peak_gain{0};
-    Vector<double> track_loudness;
-    Vector<double> track_peak;
-    Vector<double> track_gain;
-    Vector<double> track_peak_gain;
+	double album_loudness{0};
+	double album_peak{0};
+	double album_gain{0};
+	double album_peak_gain{0};
+	Vector<double> track_loudness;
+	Vector<double> track_peak;
+	Vector<double> track_gain;
+	Vector<double> track_peak_gain;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker : public QObject {
-    Q_OBJECT
+	Q_OBJECT
+
 public:
-    BackgroundWorker();
+	BackgroundWorker();
 
-    void OnCancelRequested();
-
-    virtual ~BackgroundWorker() override;
+	~BackgroundWorker() override;
 
 signals:
-    void ReadFileStart();
+	void readFileStart();
 
-    void ReadCompleted();
+	void readCompleted();
 
-    void ReadFilePath(const QString& file_path);
+	void readFilePath(const QString& file_path);
 
-    void ReadFileProgress(int32_t progress);
+	void readFileProgress(int32_t progress);
 
-    void FoundFileCount(size_t file_count);
+	void foundFileCount(size_t file_count);
 
-    void ReadReplayGain(int32_t playlistId,
-        const PlayListEntity &entity,
-        double track_loudness,
-        double album_rg_gain,
-        double album_peak,
-        double track_rg_gain,
-        double track_peak);
+	void readReplayGain(int32_t playlistId,
+	                    const PlayListEntity& entity,
+	                    double track_loudness,
+	                    double album_rg_gain,
+	                    double album_peak,
+	                    double track_rg_gain,
+	                    double track_peak);
 
-    void BlurImage(const QImage& image);
+	void blurImage(const QImage& image);
 
-    void DominantColor(const QColor &color);
+	void dominantColor(const QColor& color);
 
-    void OnReadCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+	void readCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
-    void OnMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
+	void fetchMbDiscInfoCompleted(const MbDiscIdInfo& mb_disc_id_info);
 
-    void OnDiscCover(const QString& disc_id, const QString& cover_id);
+	void fetchDiscCoverCompleted(const QString& disc_id, const QString& cover_id);
 
-    void FetchPodcastCompleted(const Vector<TrackInfo>& track_infos, const QByteArray& cover_image_data);
+	void fetchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
 
-    void FetchPodcastError(const QString& msg);    
+	void fetchArtistCompleted(const QString& artist, const QByteArray& image);
 
-    void SearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
-
-    void SearchArtistCompleted(const QString& artist, const QByteArray& image);
-
-    void TranslationCompleted(const QString& keyword, const QString& result);
+	void translationCompleted(const QString& keyword, const QString& result);
 
 public Q_SLOT:
-    void OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
+	void cancelRequested();
 
-    void OnBlurImage(const QString &cover_id, const QPixmap& image, QSize size);
+	void OnReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
+
+	void OnBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
 #if defined(Q_OS_WIN)
-    void OnFetchCdInfo(const DriveInfo &drive);
+	void OnFetchCdInfo(const DriveInfo& drive);
 #endif
 
-    void OnSearchLyrics(int32_t music_id, const QString &title, const QString &artist);
+	void OnSearchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
-    void OnTranslation(const QString& keyword, const QString& from, const QString& to);
+	void OnTranslation(const QString& keyword, const QString& from, const QString& to);
 
 private:
-    bool is_stop_{false};
-    LruCache<QString, QImage> blur_image_cache_;
-    LoggerPtr logger_;
+	bool is_stop_{false};
+	LruCache<QString, QImage> blur_image_cache_;
+	LoggerPtr logger_;
 };

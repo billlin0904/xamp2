@@ -68,7 +68,7 @@ public:
 	}
 
 public slots:
-	void Refresh();
+	void refresh();
 
 	void OnCurrentThemeChanged(ThemeColor theme_color);
 

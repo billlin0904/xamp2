@@ -36,25 +36,25 @@ public:
 
     virtual ~WinTaskbar() override;
 
-    void SetTaskbarProgress(const int32_t process);
+    void setTaskbarProgress(const int32_t process);
 
-    void SetIconicThumbnail(const QPixmap& image);
+    void setIconicThumbnail(const QPixmap& image);
 
-    void ResetTaskbarProgress();
+    void resetTaskbarProgress();
 
-    void SetTaskbarPlayingResume();
+    void setTaskbarPlayingResume();
 
-    void SetTaskbarPlayerPaused();
+    void setTaskbarPlayerPaused();
 
-    void SetTaskbarPlayerPlaying();
+    void setTaskbarPlayerPlaying();
 
-    void SetTaskbarPlayerStop();
+    void setTaskbarPlayerStop();
 
-    void UpdateProgressIndicator();
+    void updateProgressIndicator();
 
-    void UpdateOverlay();
+    void updateOverlay();
 
-    void SetRange(int progress_minimum, int progress_maximum);
+    void setRange(int progress_minimum, int progress_maximum);
 
     bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
 
@@ -66,20 +66,20 @@ public:
     std::array<THUMBBUTTON, kWinThumbbarButtonSize> buttons;
 
 signals:
-    void PlayClicked();
+    void playClicked();
 
-    void PauseClicked();
+    void pauseClicked();
 
-    void ForwardClicked();
+    void forwardClicked();
 
-    void BackwardClicked();
+    void backwardClicked();
 
 private:
-    void CreateToolbarImages();
+    void createToolbarImages();
 
-    void InitialToolbarButtons();
+    void initialToolbarButtons();
 
-    void SetWindow(QWidget* window);
+    void setWindow(QWidget* window);
 
     int32_t process_max_{ 0 };
     int32_t process_min_{ 0 };

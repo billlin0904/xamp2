@@ -19,191 +19,194 @@
 #include <widget/localelanguage.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
-    QString name;
-    EqSettings settings;
+	QString name;
+	EqSettings settings;
 
-    friend QDataStream& operator << (QDataStream& arch, const AppEQSettings& object) {
-        arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
-        arch << object.name;
-        arch << object.settings.preamp;
-        arch << static_cast<quint32>(object.settings.bands.size());
-        for (const auto& band : object.settings.bands) {
-            arch << band.type << band.frequency << band.gain << band.Q;
-        }
-        return arch;
-    }
+	friend QDataStream& operator <<(QDataStream& arch, const AppEQSettings& object) {
+		arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		arch << object.name;
+		arch << object.settings.preamp;
+		arch << static_cast<quint32>(object.settings.bands.size());
+		for (const auto& band : object.settings.bands) {
+			arch << band.type << band.frequency << band.gain << band.Q;
+		}
+		return arch;
+	}
 
-    friend QDataStream& operator >> (QDataStream& arch, AppEQSettings& object) {
-        arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
-        arch >> object.name;
-        arch >> object.settings.preamp;
-        int total = 0;
-        arch >> total;
-        object.settings.bands.resize(total);
-        for (auto i = 0; i < total; ++i) {
-            arch >> object.settings.bands[i].type >> object.settings.bands[i].frequency >> object.settings.bands[i].gain >> object.settings.bands[i].Q;
-        }
-        return arch;
-    }
+	friend QDataStream& operator >>(QDataStream& arch, AppEQSettings& object) {
+		arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		arch >> object.name;
+		arch >> object.settings.preamp;
+		int total = 0;
+		arch >> total;
+		object.settings.bands.resize(total);
+		for (auto i = 0; i < total; ++i) {
+			arch >> object.settings.bands[i].type >> object.settings.bands[i].frequency >> object.settings.bands[i].gain
+				>> object.settings.bands[i].Q;
+		}
+		return arch;
+	}
 };
+
 Q_DECLARE_METATYPE(AppEQSettings);
 
 enum class ReplayGainMode {
 	RG_ALBUM_MODE,
-    RG_TRACK_MODE,
-    RG_NONE_MODE,
+	RG_TRACK_MODE,
+	RG_NONE_MODE,
 };
 
 enum class ReplayGainScanMode {
-    RG_SCAN_MODE_FAST,
-    RG_SCAN_MODE_FULL,
+	RG_SCAN_MODE_FAST,
+	RG_SCAN_MODE_FULL,
 };
 
 class XAMP_WIDGET_SHARED_EXPORT AppSettings final {
 public:
-    AppSettings() = default;
+	AppSettings() = default;
 
-    void LoadIniFile(QString const & file_name);
+	void LoadIniFile(const QString& file_name);
 
-    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-    void SetValue(QString const& key, T value) {
-        SetValue(key, std::to_string(value));
-    }
+	template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
+	void setValue(const QString& key, T value) {
+		setValue(key, std::to_string(value));
+	}
 
-    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-     void SetValue(char const *key, T value) {
-        SetValue(QLatin1String(key), std::to_string(value));
-    }
+	template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
+	void setValue(const char* key, T value) {
+		SetValue(QLatin1String(key), std::to_string(value));
+	}
 
-    template <typename T>
-    void SetEnumValue(const QString& key, T value) {
-        static_assert(std::is_enum_v<T>, "T must be enum value");
-        SetValue<int32_t>(key, static_cast<int32_t>(value));
-    }
+	template <typename T>
+	void setEnumValue(const QString& key, T value) {
+		static_assert(std::is_enum_v<T>, "T must be enum value");
+		setValue<int32_t>(key, static_cast<int32_t>(value));
+	}
 
-    void SetValue(QString const& key, QColor value) const {
-        settings_->setValue(key, value.name(QColor::HexArgb));
-    }
+	void setValue(const QString& key, QColor value) const {
+		settings_->setValue(key, value.name(QColor::HexArgb));
+	}
 
-    void SetValue(QString const & key, QByteArray value) const {
-        settings_->setValue(key, value);
-    }
+	void setValue(const QString& key, QByteArray value) const {
+		settings_->setValue(key, value);
+	}
 
-    void SetValue(QString const & key, QVariant value) const {
-        settings_->setValue(key, value);
-    }
+	void setValue(const QString& key, QVariant value) const {
+		settings_->setValue(key, value);
+	}
 
-    void SetValue(QString const & key, const std::string value) const {
-        settings_->setValue(key, QString::fromStdString(value));
-    }
+	void setValue(const QString& key, const std::string value) const {
+		settings_->setValue(key, QString::fromStdString(value));
+	}
 
-    void SetValue(QString const & key, const std::wstring value) const {
-        settings_->setValue(key, QString::fromStdWString(value));
-    }
+	void setValue(const QString& key, const std::wstring value) const {
+		settings_->setValue(key, QString::fromStdWString(value));
+	}
 
-    void SetValue(QString const & key, QString const & value) const {
-        settings_->setValue(key, value);
-    }
+	void setValue(const QString& key, const QString& value) const {
+		settings_->setValue(key, value);
+	}
 
-    void SetValue(QLatin1String const & key, QLatin1String const & value) const {
-        settings_->setValue(key, value);
-    }
+	void setValue(const QLatin1String& key, const QLatin1String& value) const {
+		settings_->setValue(key, value);
+	}
 
-    template <typename T>
-    void SetDefaultValue(const QString& key, T value) {
-        default_settings_[key] = value;
-    }
+	template <typename T>
+	void setDefaultValue(const QString& key, T value) {
+		default_settings_[key] = value;
+	}
 
-    template <typename T>
-    void SetDefaultEnumValue(const QString& key, T value) {
-        static_assert(std::is_enum_v<T>, "T must be enum value");
-        SetDefaultValue<int32_t>(key, static_cast<int32_t>(value));
-    }
+	template <typename T>
+	void setDefaultEnumValue(const QString& key, T value) {
+		static_assert(std::is_enum_v<T>, "T must be enum value");
+		setDefaultValue<int32_t>(key, static_cast<int32_t>(value));
+	}
 
-    QColor ValueAsColor(QString const& key, QColor default_color = Qt::white) {
-        if (!Contains(key)) {
-            return default_color;
-        }
-        return QColor(ValueAsString(key));
-    }
+	QColor valueAsColor(const QString& key, QColor default_color = Qt::white) {
+		if (!contains(key)) {
+			return default_color;
+		}
+		return QColor(valueAsString(key));
+	}
 
-    Uuid ValueAsId(QString const & key);
+	Uuid valueAsId(const QString& key);
 
-    QSize ValueAsSize(QString const& width_key, QString const& height_key);
+	QSize valueAsSize(const QString& width_key, const QString& height_key);
 
-    QVariant GetValue(QString const& key);
+	QVariant valueAs(const QString& key);
 
-    int32_t ValueAsInt(QString const& key);
+	int32_t valueAsInt(const QString& key);
 
-    template <typename T>
-    T ValueAsEnum(QString const& key) {
-        static_assert(std::is_enum_v<T>, "T must be enum value");
-        return static_cast<T>(ValueAsInt(key));
-    }
+	template <typename T>
+	T valueAsEnum(const QString& key) {
+		static_assert(std::is_enum_v<T>, "T must be enum value");
+		return static_cast<T>(valueAsInt(key));
+	}
 
-    bool ValueAsBool(QString const& key) {
-        return GetValue(key).toBool();
-    }
+	bool valueAsBool(const QString& key) {
+		return valueAs(key).toBool();
+	}
 
-    QString ValueAsString(QString const& key) {
-        return GetValue(key).toString();
-    }
+	QString valueAsString(const QString& key) {
+		return valueAs(key).toString();
+	}
 
-    [[nodiscard]] bool Contains(QString const& key) const {
-        XAMP_EXPECTS(settings_ != nullptr);
-        return settings_->contains(key);
-    }
+	[[nodiscard]] bool contains(const QString& key) const {
+		XAMP_EXPECTS(settings_ != nullptr);
+		return settings_->contains(key);
+	}
 
-    QList<QString> ValueAsStringList(QString const& key);
+	QList<QString> valueAsStringList(const QString& key);
 
-    void RemoveList(QString const& key, QString const & value);
+	void removeList(const QString& key, const QString& value);
 
-    void AddList(QString const& key, QString const & value);
+	void addList(const QString& key, const QString& value);
 
-    void LoadLanguage(QString const& lang);
+	void loadLanguage(const QString& lang);
 
-    QString GetMyMusicFolderPath();
+	QString myMusicFolderPath();
 
-    QString GetCachePath();
+	QString cachePath();
 
-    void save();
+	void save();
 
-    QLocale locale() const;
+	QLocale locale() const;
 
-    const QMap<QString, EqSettings>& GetEqPreset();
+	const QMap<QString, EqSettings>& eqPreset();
 
-    AppEQSettings GetEqSettings();
+	AppEQSettings eqSettings();
 
-    void SetEqSettings(AppEQSettings const &eq_settings);
+	void setEqSettings(const AppEQSettings& eq_settings);
 
-    void AddDontShowMeAgain(const QString &text);
+	void addDontShowMeAgain(const QString& text);
 
-    void ParseFixedBandEQ(const QFileInfo file_info, QFile& file);
+	void parseFixedBandEq(QFileInfo file_info, QFile& file);
 
-    void ParseGraphicEQ(const QFileInfo file_info, QFile& file);
+	void parseGraphicEq(QFileInfo file_info, QFile& file);
 
-    bool DontShowMeAgain(const QString& text);
+	bool dontShowMeAgain(const QString& text);
 
-    QLocale locale();
+	QLocale locale();
 
-    void LoadSoxrSetting();
+	void loadSoxrSetting();
 
-    void LoadR8BrainSetting();
+	void LoadR8BrainSetting();
 
-    void SaveLogConfig();
+	void saveLogConfig();
 
-    void LoadOrSaveLogConfig();
+	void loadOrSaveLogConfig();
 
-    void LoadAppSettings();
+	void loadAppSettings();
+
 private:
-    void RegisterMetaType();
+	void RegisterMetaType();
 
-    void LoadEqPreset();
+	void LoadEqPreset();
 
-    QScopedPointer<QSettings> settings_;
-    QMap<QString, QVariant> default_settings_;
-    LocaleLanguageManager manager_;
-    QMap<QString, EqSettings> eq_settings_;
+	QScopedPointer<QSettings> settings_;
+	QMap<QString, QVariant> default_settings_;
+	LocaleLanguageManager manager_;
+	QMap<QString, EqSettings> eq_settings_;
 };
 
 #define qAppSettings SharedSingleton<AppSettings>::GetInstance()
