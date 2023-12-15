@@ -19,8 +19,6 @@ inline constexpr int32_t kImageRadius = 4;
 inline constexpr int32_t kSmallImageRadius = 4;
 inline constexpr int32_t kPlaylistImageRadius = 4;
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap resizeImageWithAlpha(const QPixmap& source, const QSize& background_size, const QSize& size);
-
 XAMP_WIDGET_SHARED_EXPORT QPixmap roundImage(const QPixmap& src, int32_t radius = kImageRadius);
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius);
