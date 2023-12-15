@@ -367,14 +367,29 @@ bool moveFile(const QString& src_file_path, const QString& dest_file_path) {
     return true;
 }
 
+QPixmap resizeImageWithAlpha(const QPixmap& source, const QSize& background_size, const QSize& size) {
+	QImage image(background_size, QImage::Format_ARGB32_Premultiplied);
+	image.fill(Qt::transparent);
+	const QPixmap scaled_pixmap = source.scaled(size,
+		Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	const QPoint center(background_size.width() / 4, 0);
+	QPainter painter(&image);
+	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter.drawPixmap(center, scaled_pixmap);
+	painter.end();
+	return QPixmap::fromImage(image);
+}
+
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
-	const auto scaled_size = source.size() * 2;
+	/*const auto scaled_size = source.size() * 2;
 	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatio
 		                  : Qt::IgnoreAspectRatio;
 
 	const auto temp = source.scaled(scaled_size, mode);
 	auto scaled_image = temp.scaled(size, mode, Qt::SmoothTransformation);
-	return scaled_image;
+	return scaled_image;*/
+	const auto mode = is_aspect_ratio ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio;
+	return source.scaled(size, mode, Qt::SmoothTransformation);
 }
 
 QByteArray image2ByteArray(const QPixmap& source) {

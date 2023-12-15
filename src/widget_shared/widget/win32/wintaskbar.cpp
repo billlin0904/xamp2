@@ -1,3 +1,4 @@
+#include <QTimer>
 #include <widget/win32/wintaskbar.h>
 
 #if defined(Q_OS_WIN)
@@ -135,9 +136,9 @@ namespace {
 
 	UINT MSG_TaskbarButtonCreated = WM_NULL;
 
-	void updateLiveThumbnail(const MSG* msg, const QPixmap& thumbnail) {
+	void updateLiveThumbnail(HWND hwnd, const QPixmap& thumbnail) {
 		RECT rect{};
-		if (!::GetClientRect(msg->hwnd, &rect)) {
+		if (!::GetClientRect(hwnd, &rect)) {
 			XAMP_LOG_ERROR("GetClientRect return failure! {}", GetLastErrorMessage());
 			return;
 		}
@@ -152,21 +153,29 @@ namespace {
 			return;
 		}
 
-		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(msg->hwnd, bitmap.get(), &offset, 0);
+		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(hwnd, bitmap.get(), &offset, 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
 		}		
 	}
 
-	void updateIconicThumbnail(const MSG* msg, const QPixmap& thumbnail) {
-		const QSize aero_peak_size(HIWORD(msg->lParam), LOWORD(msg->lParam));
-		const auto resize_thumbnail = image_utils::resizeImage(thumbnail, aero_peak_size, true);
+	void updateIconicThumbnail(const QSize aero_peak_size, HWND hwnd, const QPixmap& thumbnail) {
+		const auto src_width = thumbnail.width();
+		const auto src_height = thumbnail.height();
+		auto width_ratio = static_cast<float>(aero_peak_size.width()) / src_width;
+		auto height_ratio = static_cast<float>(aero_peak_size.height()) / src_height;
+		width_ratio = (std::min)(width_ratio, height_ratio);
+		height_ratio = width_ratio;
+
+		const QSize resize_size(width_ratio * src_width, height_ratio * src_height);
+		const auto resize_thumbnail = image_utils::resizeImage(thumbnail, resize_size);
+
 		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_thumbnail));
 		if (!bitmap) {
 			return;
 		}
 
-		const auto hr = DWM_DLL.DwmSetIconicThumbnail(msg->hwnd, bitmap.get(), 0);
+		const auto hr = DWM_DLL.DwmSetIconicThumbnail(hwnd, bitmap.get(), 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));
 		}
@@ -195,7 +204,7 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 		throw Exception();
 	}
 
-	if (MSG_TaskbarButtonCreated != WM_NULL) {
+	if (MSG_TaskbarButtonCreated == WM_NULL) {
 		MSG_TaskbarButtonCreated = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 	}
 	setWindow(window);
@@ -355,14 +364,15 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 		updateOverlay();
 		createToolbarImages();
 		initialToolbarButtons();
+		return true;
 	}
 
 	switch (msg->message) {
 	case WM_DWMSENDICONICTHUMBNAIL:
-		updateIconicThumbnail(msg, thumbnail_);
+		updateIconicThumbnail(QSize(HIWORD(msg->lParam), LOWORD(msg->lParam)), msg->hwnd, thumbnail_);
 		return true;
-	case WM_DWMSENDICONICLIVEPREVIEWBITMAP:
-		updateLiveThumbnail(msg, window_->grab());
+	case WM_DWMSENDICONICLIVEPREVIEWBITMAP: 
+		updateLiveThumbnail(msg->hwnd, window_->grab());
 		return true;
 	case WM_COMMAND:
 	{
