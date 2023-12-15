@@ -192,7 +192,7 @@ void PlaylistPage::initial() {
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 
-void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
+void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(qTEXT("QLabel { color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
 	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + ColorToString(color) + qTEXT("; background-color: transparent; }"));
 }
@@ -241,6 +241,10 @@ void PlaylistPage::setCover(const QPixmap * cover) {
 		image_utils::resizeImage(*cover, QSize(165, 165), false),
 		image_utils::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
+}
+
+void PlaylistPage::onCurrentThemeChanged(ThemeColor theme_color) {
+	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 
 void PlaylistPage::onSetCoverById(const QString& cover_id) {

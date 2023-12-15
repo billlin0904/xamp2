@@ -123,7 +123,7 @@ void XDialog::setContent(QWidget* content) {
     (void)QObject::connect(&qTheme,
         &ThemeManager::currentThemeChanged,
         this,
-        &XDialog::OnCurrentThemeChanged);
+        &XDialog::onCurrentThemeChanged);
 
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame_);
     FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
@@ -139,7 +139,7 @@ void XDialog::setContent(QWidget* content) {
     adjustSize();
 }
 
-void XDialog::OnCurrentThemeChanged(ThemeColor theme_color) {
+void XDialog::onCurrentThemeChanged(ThemeColor theme_color) {
     qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
 }
 

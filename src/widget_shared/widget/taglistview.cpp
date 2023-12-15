@@ -75,18 +75,18 @@ void TagWidgetItem::enable() {
 
 TagListView::TagListView(QWidget* parent)
 	: QFrame(parent) {
-	taglist_ = new QListWidget();
-	taglist_->setDragEnabled(false);
-	taglist_->setUniformItemSizes(false);
-	taglist_->setFlow(QListView::LeftToRight);
-	taglist_->setResizeMode(QListView::Adjust);
-	taglist_->setFrameStyle(QFrame::StyledPanel);
-	taglist_->setViewMode(QListView::IconMode);
-	taglist_->setFixedHeight(120);
-	taglist_->setSpacing(5);
-	taglist_->setSortingEnabled(true);
+	list_ = new QListWidget();
+	list_->setDragEnabled(false);
+	list_->setUniformItemSizes(false);
+	list_->setFlow(QListView::LeftToRight);
+	list_->setResizeMode(QListView::Adjust);
+	list_->setFrameStyle(QFrame::StyledPanel);
+	list_->setViewMode(QListView::IconMode);
+	list_->setFixedHeight(120);
+	list_->setSpacing(5);
+	list_->setSortingEnabled(true);
 
-	(void)QObject::connect(taglist_, &QListWidget::itemClicked, [this](auto* item) {
+	(void)QObject::connect(list_, &QListWidget::itemClicked, [this](auto* item) {
 		if (!item) {
 			return;
 		}
@@ -111,18 +111,18 @@ TagListView::TagListView(QWidget* parent)
 		});
 
 	auto* tag_layout = new QVBoxLayout();
-	tag_layout->addWidget(taglist_);
+	tag_layout->addWidget(list_);
 	setLayout(tag_layout);
 }
 
 void TagListView::setListViewFixedHeight(int32_t height) {
-	taglist_->setFixedHeight(height);
+	list_->setFixedHeight(height);
 }
 
 void TagListView::onCurrentThemeChanged(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		taglist_->setStyleSheet(qTEXT(
+		list_->setStyleSheet(qTEXT(
 		"QListWidget {"
 		"  border: none;"
 		"}"
@@ -137,7 +137,7 @@ void TagListView::onCurrentThemeChanged(ThemeColor theme_color) {
 		));	
 		break;
 	case ThemeColor::LIGHT_THEME:
-		taglist_->setStyleSheet(qTEXT(
+		list_->setStyleSheet(qTEXT(
 			"QListWidget {"
 			"  border: none;"
 			"}"
@@ -152,6 +152,13 @@ void TagListView::onCurrentThemeChanged(ThemeColor theme_color) {
 		));
 		break;
 	}
+
+	for (auto i = 0; i < list_->count(); ++i) {
+		auto* item = dynamic_cast<TagWidgetItem*>(list_->item(i));
+		if (!item) {
+			continue;
+		}
+	}
 }
 
 void TagListView::onThemeColorChanged(QColor background_color, QColor color) {
@@ -159,12 +166,12 @@ void TagListView::onThemeColorChanged(QColor background_color, QColor color) {
 }
 
 void TagListView::sort() {
-	taglist_->sortItems();
+	list_->sortItems();
 }
 
 void TagListView::disableAllTag(const QString& skip_tag) {
-	for (auto i = 0; i < taglist_->count(); ++i) {
-		auto* item = dynamic_cast<TagWidgetItem*>(taglist_->item(i));
+	for (auto i = 0; i < list_->count(); ++i) {
+		auto* item = dynamic_cast<TagWidgetItem*>(list_->item(i));
 		if (!item) {
 			continue;
 		}
@@ -175,16 +182,16 @@ void TagListView::disableAllTag(const QString& skip_tag) {
 }
 
 void TagListView::enableTag(const QString& tag) {
-	auto items = taglist_->findItems(tag, Qt::MatchContains);
+	auto items = list_->findItems(tag, Qt::MatchContains);
 	if (items.isEmpty()) {
 		return;
 	}
 	auto* item = dynamic_cast<TagWidgetItem*>(items.first());
-	emit taglist_->itemClicked(item);
+	emit list_->itemClicked(item);
 }
 
 void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
-	const auto items = taglist_->findItems(tag, Qt::MatchContains);
+	const auto items = list_->findItems(tag, Qt::MatchContains);
 	if (!items.isEmpty()) {
 		return;
 	}
@@ -196,7 +203,7 @@ void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
 	auto* tag_label = new QLabel(tag);	
 	tag_label->setAlignment(Qt::AlignCenter);	
 
-	auto* item = new TagWidgetItem(tag, color, tag_label, taglist_);
+	auto* item = new TagWidgetItem(tag, color, tag_label, list_);
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(8));
 	tag_label->setFont(f);
@@ -219,10 +226,10 @@ void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
 	widget->setStyleSheet(
 		qSTR("border-radius: 6px; border: 1px solid transparent;")
 	);
-	taglist_->setItemWidget(item, widget);
+	list_->setItemWidget(item, widget);
 	item->enable();	
 }
 
 void TagListView::clearTag() {
-	taglist_->clear();
+	list_->clear();
 }

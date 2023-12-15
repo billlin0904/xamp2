@@ -706,7 +706,7 @@ void PlayListTableView::playItem(const QModelIndex& index) {
     emit playMusic(play_item);
 }
 
-void PlayListTableView::OnThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
+void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
     setStyleSheet(qTEXT("border: none"));
     horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
 }

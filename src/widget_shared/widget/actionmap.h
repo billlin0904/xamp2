@@ -28,7 +28,7 @@ public:
 	}
 
 public slots:
-	void OnCurrentThemeChanged(ThemeColor theme_color) {
+	void onCurrentThemeChanged(ThemeColor theme_color) {
 		setIcon(qTheme.fontIcon(glyphs_));
 	}
 

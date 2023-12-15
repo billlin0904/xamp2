@@ -99,7 +99,7 @@ signals:
 	void leaveAlbumView() const;
 
 public slots:
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
 private:
 	void paintEvent(QPaintEvent* event) override;
@@ -149,7 +149,7 @@ signals:
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
 public slots:
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
 	void reload();
 
@@ -159,7 +159,7 @@ public slots:
 
 	void search(const QString& keyword);
 
-    void OnThemeChanged(QColor backgroundColor, QColor color);
+    void onThemeColorChanged(QColor backgroundColor, QColor color);
 
     void append(const QString& file_name);
 

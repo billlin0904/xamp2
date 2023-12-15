@@ -39,7 +39,7 @@ signals:
     void tableNameChanged(int table_id, const QString &name);
 
 public slots:
-    void OnCurrentThemeChanged(ThemeColor theme_color);
+    void onCurrentThemeChanged(ThemeColor theme_color);
 
 private:
     QStandardItemModel model_;

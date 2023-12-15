@@ -12,6 +12,7 @@
 
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
+#include <widget/themecolor.h>
 
 class QSpacerItem;
 class QLabel;
@@ -46,7 +47,9 @@ signals:
 	void playMusic(const PlayListEntity& item);
 
 public slots:
-    void OnThemeColorChanged(QColor theme_color, QColor color);
+    void onThemeColorChanged(QColor theme_color, QColor color);
+
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
 	void onSetCoverById(const QString& cover_id);
 

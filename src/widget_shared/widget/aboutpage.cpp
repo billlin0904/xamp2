@@ -103,7 +103,7 @@ AboutPage::~AboutPage() {
     delete ui_;
 }
 
-void AboutPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+void AboutPage::onCurrentThemeChanged(ThemeColor theme_color) {
     ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
 }
 

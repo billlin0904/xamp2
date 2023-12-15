@@ -498,17 +498,17 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     (void)QObject::connect(&qTheme, 
         &ThemeManager::currentThemeChanged, 
         this, 
-        &Xamp::OnCurrentThemeChanged);
+        &Xamp::onCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::currentThemeChanged,
         ui_.naviBar,
-        &TabListView::OnCurrentThemeChanged);
+        &TabListView::onCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::currentThemeChanged,
         album_page_->album(),
-        &AlbumView::OnCurrentThemeChanged);
+        &AlbumView::onCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::currentThemeChanged,
@@ -523,7 +523,7 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     (void)QObject::connect(&qTheme,
         &ThemeManager::currentThemeChanged,
         lrc_page_.get(),
-        &LrcPage::OnCurrentThemeChanged);
+        &LrcPage::onCurrentThemeChanged);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::currentThemeChanged,
@@ -1127,7 +1127,7 @@ void Xamp::updateButtonState() {
     qTheme.setPlayOrPauseButton(ui_.playButton, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
 }
 
-void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
+void Xamp::onCurrentThemeChanged(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
         qTheme.setThemeColor(ThemeColor::DARK_THEME);		
@@ -1154,9 +1154,13 @@ void Xamp::OnCurrentThemeChanged(ThemeColor theme_color) {
     setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
 
     lrc_page_->setCover(qTheme.unknownCover());
+    tab_widget_->onCurrentThemeChanged(theme_color);
+    tab_widget_->setPlaylistCover(qTheme.unknownCover());
 
     setPlaylistPageCover(nullptr, getCurrentPlaylistPage());
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
+
+    emit currentThemeChanged(theme_color);
 }
 
 void Xamp::setThemeColor(QColor background_color, QColor color) {
@@ -1844,7 +1848,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 
 PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id, const QString& name) {
     auto* playlist_page = createPlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
-    playlist_page->playlist()->setHeaderViewHidden(false);
+    playlist_page->playlist()->setHeaderViewHidden(false);    
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
     tab_widget_->createNewTab(name, playlist_page);
@@ -1984,7 +1988,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(this,
         &Xamp::themeChanged,
         lrc_page_.get(),
-        &LrcPage::OnThemeChanged);
+        &LrcPage::onThemeColorChanged);
 
     (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::blurImage,
@@ -2229,12 +2233,12 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(this,
         &Xamp::themeChanged,
         playlist_page->playlist(),
-        &PlayListTableView::OnThemeColorChanged);
+        &PlayListTableView::onThemeColorChanged);
 
     (void)QObject::connect(this,
-        &Xamp::themeChanged,
+        &Xamp::currentThemeChanged,
         playlist_page,
-        &PlaylistPage::OnThemeColorChanged);
+        &PlaylistPage::onCurrentThemeChanged);
 }
 
 PlaylistPage* Xamp::createPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {

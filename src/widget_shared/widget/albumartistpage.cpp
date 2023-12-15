@@ -412,9 +412,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 }
 
 void AlbumArtistPage::onCurrentThemeChanged(ThemeColor theme_color) {
-	album_view_->OnCurrentThemeChanged(theme_color);
+	album_view_->onCurrentThemeChanged(theme_color);
 	artist_view_->onCurrentThemeChanged(theme_color);
-	year_view_->OnCurrentThemeChanged(theme_color);
+	year_view_->onCurrentThemeChanged(theme_color);
 
 	album_tag_list_widget_->onCurrentThemeChanged(theme_color);
 	artist_tag_list_widget_->onCurrentThemeChanged(theme_color);
@@ -424,9 +424,9 @@ void AlbumArtistPage::onCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void AlbumArtistPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
-	album_view_->OnThemeChanged(backgroundColor, color);
+	album_view_->onThemeColorChanged(backgroundColor, color);
 	artist_view_->onThemeChanged(backgroundColor, color);
-	year_view_->OnThemeChanged(backgroundColor, color);
+	year_view_->onThemeColorChanged(backgroundColor, color);
 	album_tag_list_widget_->onThemeColorChanged(backgroundColor, color);
 	artist_tag_list_widget_->onThemeColorChanged(backgroundColor, color);
 }

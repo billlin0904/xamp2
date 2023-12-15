@@ -7,6 +7,8 @@
 
 #include <QTabWidget>
 #include <QMap>
+
+#include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
 class QMouseEvent;
@@ -28,10 +30,15 @@ public:
 
 	void createNewTab(const QString& name, QWidget* widget);
 
+	void setPlaylistCover(const QPixmap &cover);
+
 signals:
 	void createNewPlaylist();
 
 	void removeAllPlaylist();
+
+public slots:
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
 private:
 	void closeTab(int32_t tab_index);

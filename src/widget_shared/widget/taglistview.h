@@ -45,20 +45,22 @@ public:
 
 	void enableTag(const QString& tag);
 
-	void disableAllTag(const QString& skip_tag);
+	void disableAllTag(const QString& skip_tag);	
 
+	void sort();
+	
+public slots:
 	void onCurrentThemeChanged(ThemeColor theme_color);
 
 	void onThemeColorChanged(QColor background_color, QColor color);
 
-	void sort();
 signals:
 	void tagChanged(const QSet<QString> &tags);
 
 	void tagClear();
 
 private:
-	QListWidget* taglist_;
+	QListWidget* list_;
 	QSet<QString> tags_;
 };
 

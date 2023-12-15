@@ -14,7 +14,7 @@
 #include <widget/imagecache.h>
 
 namespace {
-	QString GetFileChecksum(const QString& file_name, 
+	QString getFileChecksum(const QString& file_name, 
 		const QCryptographicHash::Algorithm hash_algorithm) {
 		QFile f(file_name);
 		if (f.open(QFile::ReadOnly)) {
@@ -275,7 +275,7 @@ void TagEditPage::setCurrentInfo(int32_t index) {
 	ui_->titleComboBox->setCurrentIndex(index);
 	ui_->trackComboBox->setCurrentIndex(index);
 
-	const auto check_sum = GetFileChecksum(entities_[index].file_path, QCryptographicHash::Md5);
+	const auto check_sum = getFileChecksum(entities_[index].file_path, QCryptographicHash::Md5);
 	ui_->audioMD5LineEdit->setText(check_sum);
 }
 

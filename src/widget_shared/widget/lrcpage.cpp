@@ -182,7 +182,7 @@ int LrcPage::getDisappearBgProgress() const {
 	return prev_bg_alpha_;
 }
 
-void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+void LrcPage::onCurrentThemeChanged(ThemeColor theme_color) {
 	cover_label_->setGraphicsEffect(nullptr);
 
 	if (theme_color == ThemeColor::LIGHT_THEME) {
@@ -209,8 +209,8 @@ void LrcPage::OnCurrentThemeChanged(ThemeColor theme_color) {
 	}
 }
 
-void LrcPage::OnThemeChanged(QColor backgroundColor, QColor color) {	
-	OnCurrentThemeChanged(qTheme.themeColor());
+void LrcPage::onThemeColorChanged(QColor backgroundColor, QColor color) {	
+	onCurrentThemeChanged(qTheme.themeColor());
 }
 
 void LrcPage::initial() {

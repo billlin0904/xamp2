@@ -145,9 +145,9 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	}
 }
 
-void ArtistInfoPage::OnThemeChanged(QColor backgroundColor, QColor color) {
+void ArtistInfoPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
 	artist_->setStyleSheet(qTEXT("QLabel { color: ") + ColorToString(color) + qTEXT(";}"));
-	album_view_->OnThemeChanged(backgroundColor, color);
+	album_view_->onThemeColorChanged(backgroundColor, color);
 }
 
 void ArtistInfoPage::setAlbumCount(int32_t album_count) {

@@ -294,7 +294,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     }
 }
 
-void AlbumViewPage::OnCurrentThemeChanged(ThemeColor theme_color) {
+void AlbumViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
     close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 }
 
@@ -570,7 +570,7 @@ void AlbumView::enablePage(bool enable) {
     styled_delegate_->enableAlbumView(enable);
 }
 
-void AlbumView::OnThemeChanged(QColor backgroundColor, QColor color) {
+void AlbumView::onThemeColorChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setAlbumTextColor(color);
 }
 
@@ -779,9 +779,9 @@ void AlbumView::reload() {
     }
 }
 
-void AlbumView::OnCurrentThemeChanged(ThemeColor theme_color) {
+void AlbumView::onCurrentThemeChanged(ThemeColor theme_color) {
     if (page_ != nullptr) {
-        page_->OnCurrentThemeChanged(theme_color);
+        page_->onCurrentThemeChanged(theme_color);
     }    
 }
 

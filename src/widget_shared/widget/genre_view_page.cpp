@@ -94,15 +94,15 @@ GenreViewPage::GenreViewPage(QWidget* parent)
 
 void GenreViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
 	Q_FOREACH(auto page, genre_view_) {
-		page.first->view()->OnCurrentThemeChanged(theme_color);
-		page.second->OnCurrentThemeChanged(theme_color);
+		page.first->view()->onCurrentThemeChanged(theme_color);
+		page.second->onCurrentThemeChanged(theme_color);
 	}
 }
 
 void GenreViewPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
 	Q_FOREACH(auto page, genre_view_) {
-		page.first->view()->OnThemeChanged(backgroundColor, color);
-		page.second->OnThemeChanged(backgroundColor, color);
+		page.first->view()->onThemeColorChanged(backgroundColor, color);
+		page.second->onThemeColorChanged(backgroundColor, color);
 	}
 }
 

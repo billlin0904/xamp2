@@ -18,37 +18,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setMovable(true);
     setAttribute(Qt::WA_StyledBackground);   
 
-    switch (qTheme.themeColor()) {
-    case ThemeColor::DARK_THEME:
-        setStyleSheet(qSTR(R"(
-    QTabWidget::pane { 
-		border: 0; 
-	}
-
-	QTabWidget QTabBar::tab {
-		max-width: 120px;
-		min-width: 120px;
-		min-height: 30px;
-	}
-    )"));
-        break;
-    case ThemeColor::LIGHT_THEME:
-        setStyleSheet(qSTR(R"(
-    QTabWidget::pane { 
-		border: 0; 
-	}
-
-	QTabWidget QTabBar::tab {
-		max-width: 120px;
-		min-width: 120px;
-		min-height: 30px;
-		color: black;
-	}
-    )"));
-        break;
-    default: 
-        break;
-    }
+    onCurrentThemeChanged(qTheme.themeColor());
 
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
@@ -116,6 +86,40 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         closeTab(tab_index);
         });
+}
+
+void PlaylistTabWidget::onCurrentThemeChanged(ThemeColor theme_color) {
+    switch (theme_color) {
+    case ThemeColor::DARK_THEME:
+        setStyleSheet(qSTR(R"(
+    QTabWidget::pane { 
+		border: 0; 
+	}
+
+	QTabWidget QTabBar::tab {
+		max-width: 120px;
+		min-width: 120px;
+		min-height: 30px;
+	}
+    )"));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        setStyleSheet(qSTR(R"(
+    QTabWidget::pane { 
+		border: 0; 
+	}
+
+	QTabWidget QTabBar::tab {
+		max-width: 120px;
+		min-width: 120px;
+		min-height: 30px;
+		color: black;
+	}
+    )"));
+        break;
+    default:
+        break;
+    }
 }
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
@@ -206,6 +210,13 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
     const auto index = addTab(widget, name);
     setTabIcon(index, qTheme.applicationIcon());
     setCurrentIndex(index);
+}
+
+void PlaylistTabWidget::setPlaylistCover(const QPixmap& cover) {
+    for (int i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        playlist_page->setCover(&cover);
+    }
 }
 
 void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {

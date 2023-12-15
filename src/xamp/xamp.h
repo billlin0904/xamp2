@@ -80,6 +80,8 @@ signals:
 
     void themeChanged(QColor background_color, QColor color);
 
+	void currentThemeChanged(ThemeColor theme_color);
+
 	void nowPlaying(QString const& artist, QString const& title);
 
 	void blurImage(const QString& cover_id, const QPixmap& image, QSize size);
@@ -122,7 +124,7 @@ public slots:
 
 	void onSearchArtistCompleted(const QString& artist, const QByteArray& image);
 
-	void OnCurrentThemeChanged(ThemeColor theme_color);
+	void onCurrentThemeChanged(ThemeColor theme_color);
 
 	void onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
