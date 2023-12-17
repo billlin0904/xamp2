@@ -12,7 +12,7 @@
 #include <thememanager.h>
 
 namespace {
-	QMap<QString, EqSettings> GetEqPresets() {
+	QMap<QString, EqSettings> getEqPresets() {
 		const auto path = QDir::currentPath() + qTEXT("/Equalizer Presets/");
 		const auto file_ext = QStringList() << qTEXT("*.feq");
         QMap<QString, EqSettings> result;
@@ -139,23 +139,23 @@ SuperEqView::SuperEqView(QWidget* parent)
 
     (void)QObject::connect(ui_->eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         current_settings_ = settingses_[index];
-        ApplySetting(index, current_settings_);
+        applySetting(index, current_settings_);
         });
 
-    settingses_ = GetEqPresets();
+    settingses_ = getEqPresets();
     for (auto& name : settingses_.keys()) {
         ui_->eqPresetComboBox->addItem(name);
     }
 
     if (qAppSettings.contains(kAppSettingEQName)) {
         auto [name, settings] = qAppSettings.eqSettings();
-        ApplySetting(name, settings);
+        applySetting(name, settings);
     } else {
-        ApplySetting(settingses_.firstKey(), settingses_.first());
+        applySetting(settingses_.firstKey(), settingses_.first());
     }
 }
 
-const EqSettings& SuperEqView::GetCurrentSetting() const {
+const EqSettings& SuperEqView::getCurrentSetting() const {
     return current_settings_;
 }
 
@@ -163,9 +163,9 @@ SuperEqView::~SuperEqView() {
     delete ui_;
 }
 
-void SuperEqView::ApplySetting(const QString& name, const EqSettings& settings) {
+void SuperEqView::applySetting(const QString& name, const EqSettings& settings) {
     for (auto i = 0; i < settings.bands.size(); ++i) {
-        bands_label_[i]->setText(FormatDb(settings.bands[i].gain, 2));
+        bands_label_[i]->setText(formatDb(settings.bands[i].gain, 2));
         sliders_[i]->setValue(settings.bands[i].gain);
         bands_label_[i]->show();
         sliders_[i]->show();

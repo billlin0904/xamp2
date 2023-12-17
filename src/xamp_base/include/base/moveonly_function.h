@@ -23,8 +23,8 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 
-    XAMP_ALWAYS_INLINE void operator()() {
-	    impl_->Invoke();
+    XAMP_ALWAYS_INLINE void operator()(const StopToken& stop_token) {
+	    impl_->Invoke(stop_token);
         impl_.reset();
     }
 
@@ -60,7 +60,7 @@ private:
     */
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
-        virtual void Invoke() = 0;
+        virtual void Invoke(const StopToken& stop_token) = 0;
     };
 
     AlignPtr<ImplBase> impl_;
@@ -71,8 +71,8 @@ private:
             : f_(std::forward<Func>(f)) {
         }
 
-        XAMP_ALWAYS_INLINE void Invoke() override {
-            std::forward<Func>(f_)();
+        XAMP_ALWAYS_INLINE void Invoke(const StopToken& stop_token) override {
+            std::forward<Func>(f_)(stop_token);
         }
         Func f_;
     };

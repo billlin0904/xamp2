@@ -98,7 +98,7 @@ namespace {
         }
         stream << "} Data: [";
         if (content_length > 0) {
-            stream << FormatBytes(content_length) << " of " << content_type << " data";
+            stream << formatBytes(content_length) << " of " << content_type << " data";
         }
         stream << "]";
         XAMP_LOG_D(logger, msg.toStdString());
@@ -407,7 +407,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, http2_enabled_env);
     }
 
-    const auto request_id = GenerateUuid();
+    const auto request_id = generateUuid();
 
     request.setRawHeader("X-Request-ID", request_id);
     request.setRawHeader("Accept-Encoding", "gzip");

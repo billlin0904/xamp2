@@ -107,14 +107,14 @@ double NullOutputDevice::GetStreamTime() const noexcept {
 
 void NullOutputDevice::StartStream() {
 	is_stopped_ = false;
-	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this]() {	
+	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this](const StopToken& stop_token) {
 		Mmcss mmcss;
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 
 		mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
 
-		while (!is_stopped_) {
+		while (!is_stopped_ && !stop_token.stop_requested()) {
 			const auto stream_time = stream_time_ + buffer_frames_;
 			stream_time_ = stream_time;
 			const auto stream_time_float = static_cast<double>(stream_time) / output_format_.GetSampleRate();

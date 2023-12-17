@@ -15,7 +15,7 @@ namespace Ui {
 	class TagEditPage;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT TagEditPage : public QFrame {
+class XAMP_WIDGET_SHARED_EXPORT TagEditPage final : public QFrame {
 	Q_OBJECT
 public:
 	static constexpr ConstLatin1String kCoverImageFileExt = qTEXT("(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)");

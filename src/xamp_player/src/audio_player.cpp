@@ -805,7 +805,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()]() {
+    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()](const StopToken& stop_token) {
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };
@@ -824,7 +824,7 @@ void AudioPlayer::Play() {
         wait_timer.SetTimeout(kReadSampleWaitTimeMs);
 
         try {
-            while (p->is_playing_) {
+            while (p->is_playing_ && !stop_token.stop_requested()) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
                     p->ReadPlayerAction();

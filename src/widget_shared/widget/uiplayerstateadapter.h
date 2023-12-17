@@ -24,13 +24,13 @@ class XAMP_WIDGET_SHARED_EXPORT UIPlayerStateAdapter final
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
 
-    void SetBandSize(size_t band_size);
+    void setBandSize(size_t band_size);
 
-    void SetSpectrumBandwidth(double band_width);
+    void setSpectrumBandwidth(double band_width);
 
     void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
-    size_t GetFftSize() const;
+    size_t fftSize() const;
 
     void OnSampleTime(double stream_time) override;
 

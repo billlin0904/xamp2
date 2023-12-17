@@ -86,7 +86,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_model_ = new FileSystemModel(this);
     dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
     dir_model_->setRootPath(qAppSettings.myMusicFolderPath());
-    dir_model_->setNameFilters(GetTrackInfoFileNameFilter());
+    dir_model_->setNameFilters(getTrackInfoFileNameFilter());
     dir_model_->setNameFilterDisables(false);
 
     dir_first_sort_filter_ = new DirFirstSortFilterProxyModel(this);
@@ -114,7 +114,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                 return;
             }
             auto src_index = dir_first_sort_filter_->mapToSource(index);
-            auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
+            auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
             emit addPathToPlaylist(path, false);
             });
 
@@ -124,13 +124,13 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                 return;
             }
             auto src_index = dir_first_sort_filter_->mapToSource(index);
-            auto path = ToNativeSeparators(dir_model_->fileInfo(src_index).filePath());
+            auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
             emit addPathToPlaylist(path, true);
         });
         add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
-            const auto dir_name = GetExistingDirectory(this);
+            const auto dir_name = getExistingDirectory(this);
             if (dir_name.isEmpty()) {
                 return;
             }

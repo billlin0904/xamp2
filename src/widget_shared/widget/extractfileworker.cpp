@@ -18,7 +18,7 @@ namespace {
         size_t depth;
     };
 
-    size_t GetFileCount(const QString& dir, const QStringList& file_name_filters) {
+    size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {
         if (QFileInfo(dir).isFile()) {
             return 1;
         }
@@ -33,7 +33,7 @@ namespace {
         return file_count;
     }
 
-    std::pair<size_t, Vector<PathInfo>> GetPathSortByFileCount(
+    std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
         const Vector<QString>& paths,
         const QStringList& file_name_filters,
         std::function<void(size_t)>&& action) {
@@ -47,7 +47,7 @@ namespace {
         }
 
         Executor::ParallelFor(GetBackgroundThreadPool(), path_infos, [&](auto& path_info) {
-            path_info.file_count = GetFileCount(path_info.path, file_name_filters);
+            path_info.file_count = getFileCount(path_info.path, file_name_filters);
             path_info.depth = path_info.path.count('/');
             total_file_count += path_info.file_count;
             action(total_file_count);
@@ -86,7 +86,7 @@ size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
         if (is_stop_) {
             return 0;
         }
-        auto next_path = ToNativeSeparators(itr.next());
+        auto next_path = toNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
         auto directory = QFileInfo(next_path).dir().path().toStdWString();
         if (!directory_files.contains(directory)) {
@@ -100,7 +100,7 @@ size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
             XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
             return 0;
         }
-        const auto next_path = ToNativeSeparators(dir);
+        const auto next_path = toNativeSeparators(dir);
         const auto path = next_path.toStdWString();
         const auto directory = QFileInfo(dir).dir().path().toStdWString();
         directory_files[directory].emplace_back(path);
@@ -128,7 +128,7 @@ size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
             return first.track < last.track;
             });
 
-        emit readFilePath(StringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
+        emit readFilePath(stringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
         emit insertDatabase(tracks, playlist_id);
     }
     return extract_file_count;
@@ -138,7 +138,7 @@ void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist
 	const Stopwatch sw;
     is_stop_ = false;
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-    QDirIterator itr(file_path, GetTrackInfoFileNameFilter(), filter);
+    QDirIterator itr(file_path, getTrackInfoFileNameFilter(), filter);
 
     Vector<QString> paths;
     paths.reserve(kReserveSize);
@@ -147,7 +147,7 @@ void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist
         if (is_stop_) {
             return;
         }
-        auto path = ToNativeSeparators(itr.next());
+        auto path = toNativeSeparators(itr.next());
         paths.push_back(path);
     }
 
@@ -165,7 +165,7 @@ void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist
 
     std::atomic<size_t> completed_work(0);
 
-    auto [total_work, file_count_paths] = GetPathSortByFileCount(paths, GetTrackInfoFileNameFilter(), [this](auto total_file_count) {
+    auto [total_work, file_count_paths] = getPathSortByFileCount(paths, getTrackInfoFileNameFilter(), [this](auto total_file_count) {
         emit foundFileCount(total_file_count);
         });
 
@@ -174,7 +174,7 @@ void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist
         return;
     }
 
-    const auto &file_name_filter = GetTrackInfoFileNameFilter();
+    const auto &file_name_filter = getTrackInfoFileNameFilter();
 
     Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path_info) {
         if (is_stop_) {

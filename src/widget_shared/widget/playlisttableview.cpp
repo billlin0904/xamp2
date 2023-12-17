@@ -133,10 +133,10 @@ public:
 	        }
             break;
         case PLAYLIST_FILE_SIZE:
-            opt.text = FormatBytes(value.toULongLong());
+            opt.text = formatBytes(value.toULongLong());
             break;
         case PLAYLIST_BIT_RATE:
-            opt.text = FormatBitRate(value.toUInt());
+            opt.text = formatBitRate(value.toUInt());
             break;
         case PLAYLIST_ALBUM_PK:
         case PLAYLIST_ALBUM_RG:
@@ -161,13 +161,13 @@ public:
             }
             break;
         case PLAYLIST_SAMPLE_RATE:
-            opt.text = FormatSampleRate(value.toUInt());
+            opt.text = formatSampleRate(value.toUInt());
             break;
         case PLAYLIST_DURATION:
-            opt.text = FormatDuration(value.toDouble());            
+            opt.text = formatDuration(value.toDouble());            
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
-            opt.text = FormatTime(value.toULongLong());
+            opt.text = formatTime(value.toULongLong());
             break;
         case PLAYLIST_HEART:
 	        {
@@ -490,14 +490,14 @@ void PlayListTableView::initial() {
         ActionMap<PlayListTableView> action_map(this);
 
         auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-            GetOpenMusicFileName(this, [this](const auto& file_name) {
+            getOpenMusicFileName(this, [this](const auto& file_name) {
                 append(file_name);
                 });
             });
         load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
 
         auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
-            const auto dir_name = GetExistingDirectory(this);
+            const auto dir_name = getExistingDirectory(this);
             if (dir_name.isEmpty()) {
                 return;
             }
@@ -541,8 +541,8 @@ void PlayListTableView::initial() {
 
                 auto profile_desc = qSTR("%0 bit, %1, %2").arg(
                     QString::number(profile.bit_per_sample),
-                    FormatSampleRate(profile.sample_rate),
-                    FormatBitRate(profile.bitrate));
+                    formatSampleRate(profile.sample_rate),
+                    formatBitRate(profile.bitrate));
 
                 export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
                     const auto rows = selectItemIndex();

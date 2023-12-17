@@ -70,7 +70,7 @@ AboutPage::AboutPage(QWidget* parent)
     }
 
     ui_->lblAppBuild->setText(qApp->tr("Version ")
-        + FormatVersion(kApplicationVersionValue));
+        + formatVersion(kApplicationVersionValue));
 
     (void)QObject::connect(ui_->btnCredits,
         &QPushButton::clicked,
@@ -89,7 +89,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui_->restartAppButton->hide();
 
     ui_->lblAppBuild->setText(qApp->tr("Version ")
-        + FormatVersion(kApplicationVersionValue));
+        + formatVersion(kApplicationVersionValue));
     ui_->waitForUpdateProcessIndicator->startAnimation();
 
     ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
@@ -123,8 +123,8 @@ void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
 
 void AboutPage::OnUpdateNewVersion(const Version& version) {    
     ui_->lblAppBuild->setText(qApp->tr("Version ")
-        + FormatVersion(version));
-    Delay(1);
+        + formatVersion(version));
+    delay(1);
     ui_->waitForUpdateProcessIndicator->stopAnimation();
     ui_->restartAppButton->show();
 }

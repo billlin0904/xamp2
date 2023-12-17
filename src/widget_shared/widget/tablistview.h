@@ -20,7 +20,7 @@ enum TabIndex {
     TAB_CD,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT TabListView : public QListView {
+class XAMP_WIDGET_SHARED_EXPORT TabListView final : public QListView {
     Q_OBJECT
 public:
     explicit TabListView(QWidget *parent = nullptr);

@@ -14,13 +14,13 @@ ScrollLabel::ScrollLabel(QWidget* parent)
 	scroll_pos_ = 0;
 	scroll_enabled_ = false;
 	waiting_ = true;	
-	UpdateText();
+	updateText();
 }
 
 void ScrollLabel::setText(const QString& text) {
 	text_ = text;
 	scroll_pos_ = 0;
-	UpdateText();
+	updateText();
 	update();
 	updateGeometry();
 }
@@ -29,7 +29,7 @@ QString ScrollLabel::text() const {
 	return text_;
 }
 
-void ScrollLabel::UpdateText() {
+void ScrollLabel::updateText() {
 	timer_.stop();
 
 	single_text_width_ = fontMetrics().horizontalAdvance(text_);
@@ -146,6 +146,6 @@ void ScrollLabel::resizeEvent(QResizeEvent*) {
 
 	const auto new_scroll_enabled = (single_text_width_ > width() - left_margin_);
 	if (new_scroll_enabled != scroll_enabled_) {
-		UpdateText();
+		updateText();
 	}
 }

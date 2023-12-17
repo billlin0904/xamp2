@@ -336,7 +336,7 @@ namespace {
 			for (auto i = 0; i < cores; i++) {
 				auto buffer = stack.data() + div * 4 * i;
 				tasks.push_back(Executor::Spawn(GetBackgroundThreadPool(),
-					[=]() {
+					[=](const StopToken& stop_token) {
 						stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));
 			}

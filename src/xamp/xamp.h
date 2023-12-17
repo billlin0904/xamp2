@@ -99,6 +99,7 @@ signals:
 	void updateNewVersion(const Version &version);
 public slots:
     void onPlayEntity(const PlayListEntity& entity);
+	void ensureOnePlaylistPage();
 
 	void onPlayPlayListEntity(const PlayListEntity& entity);
 

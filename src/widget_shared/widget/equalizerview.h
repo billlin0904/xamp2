@@ -20,7 +20,7 @@ namespace Ui {
     class EqualizerView;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT EqualizerView : public QFrame {
+class XAMP_WIDGET_SHARED_EXPORT EqualizerView final : public QFrame {
     Q_OBJECT
 public:
     explicit EqualizerView(QWidget *parent = nullptr);

@@ -24,7 +24,7 @@ class QLineEdit;
 class QToolButton;
 class QComboBox;
 
-class XAMP_WIDGET_SHARED_EXPORT ThemeManager : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT ThemeManager final : public QObject {
     Q_OBJECT
 public:
     friend class SharedSingleton<ThemeManager>;

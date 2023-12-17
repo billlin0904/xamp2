@@ -10,7 +10,7 @@
 #include <widget/widget_shared.h>
 
 namespace {
-    std::chrono::milliseconds ParseTime(std::wstring const& str) {
+    std::chrono::milliseconds parseTime(std::wstring const& str) {
         auto minutes = 0;
         auto seconds = 0;
         auto milliseconds = 0;
@@ -39,7 +39,7 @@ namespace {
 
     template <typename ReturnType = std::wstring>
     struct TagParser {
-        static ReturnType ParseIdTag(const std::wstring& tag_name, const std::wstring& line) {
+        static ReturnType parseIdTag(const std::wstring& tag_name, const std::wstring& line) {
             const auto tag_prefix = L"[" + tag_name + L":";
 
             auto pos = line.find(tag_prefix);
@@ -54,8 +54,8 @@ namespace {
 
     template <>
     struct TagParser<int> {
-        static int ParseIdTag(const std::wstring& tag_name, const std::wstring& line) {
-            auto str = TagParser<>::ParseIdTag(tag_name, line);
+        static int parseIdTag(const std::wstring& tag_name, const std::wstring& line) {
+            auto str = TagParser<>::parseIdTag(tag_name, line);
             if (str.empty()) {
                 return 0;
             }
@@ -100,7 +100,7 @@ void LrcParser::parseLrc(const std::wstring & line) {
         time.assign(time.c_str() + 1, time.find(']') - 1);
 
         LyricEntry lrc;
-        lrc.timestamp = ParseTime(time);
+        lrc.timestamp = parseTime(time);
         lrc.lrc = res.assign(res.c_str() + res.find(']') + 1);
         lyrics_.push_back(lrc);
     }
@@ -126,7 +126,7 @@ void LrcParser::parseMultiLrc(std::wstring const & line) {
     auto lrc = temp;
     for (auto const &time : times) {
         LyricEntry entry;
-        entry.timestamp = ParseTime(time);
+        entry.timestamp = parseTime(time);
         entry.lrc = lrc;
         lyrics_.push_back(entry);
     }
@@ -137,28 +137,28 @@ bool LrcParser::parseStream(std::wistream &istr) {
 
     bool start_read_lrc = false;
 
-    wchar_t dlm = L'\n';
+	constexpr wchar_t dlm = L'\n';
 
 	std::wstring line;
     while (std::getline(istr, line, dlm)) {
 		if (!start_read_lrc) {
 			if (line.find(L"[ti") != std::wstring::npos) {
-				title_ = TagParser<>::ParseIdTag(L"ti", line);
+				title_ = TagParser<>::parseIdTag(L"ti", line);
 				XAMP_LOG_DEBUG("title: {}", String::ToUtf8String(title_));
 				continue;
 			}
 			if (line.find(L"[ar") != std::wstring::npos) {
-				artist_ = TagParser<>::ParseIdTag(L"ar", line);
+				artist_ = TagParser<>::parseIdTag(L"ar", line);
 				XAMP_LOG_DEBUG("artist: {}", String::ToUtf8String(artist_));
 				continue;
 			}
 			if (line.find(L"[al") != std::wstring::npos) {
-				album_ = TagParser<>::ParseIdTag(L"al", line);
+				album_ = TagParser<>::parseIdTag(L"al", line);
 				XAMP_LOG_DEBUG("album: {}", String::ToUtf8String(album_));
 				continue;
 			}
 			if (line.find(L"[offset") != std::wstring::npos) {
-				offset_ = TagParser<int32_t>::ParseIdTag(L"offset", line);
+				offset_ = TagParser<int32_t>::parseIdTag(L"offset", line);
 				XAMP_LOG_DEBUG("offset: {}", offset_);
 				continue;
 			}
@@ -167,7 +167,7 @@ bool LrcParser::parseStream(std::wistream &istr) {
 			parseLrc(line);
 			break;
 		}
-        auto count = std::count(line.begin(), line.end(), L']');
+        auto count = std::ranges::count(line, L']');
         if (count == 1) {
             parseLrc(line);
 			start_read_lrc = true;
@@ -183,7 +183,7 @@ bool LrcParser::parseStream(std::wistream &istr) {
 		return false;
 	}
 
-	std::stable_sort(lyrics_.begin(), lyrics_.end(), [](const LyricEntry &a, const LyricEntry &b) {
+	std::ranges::stable_sort(lyrics_, [](const LyricEntry &a, const LyricEntry &b) {
 		return a.timestamp < b.timestamp;
 	});
 
@@ -199,7 +199,8 @@ bool LrcParser::parseStream(std::wistream &istr) {
 }
 
 std::wstring LrcParser::maxLengthLrc() const {
-    const auto itr = std::max_element(lyrics_.begin(), lyrics_.end(), [](const LyricEntry& a, const LyricEntry& b) {
+    const auto itr = std::ranges::max_element(lyrics_,
+        [](const LyricEntry& a, const LyricEntry& b) {
         return a.lrc.length() < b.lrc.length();
         });
 

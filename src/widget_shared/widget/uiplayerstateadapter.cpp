@@ -15,11 +15,11 @@ UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
 	, desired_band_width_(44100.0) {
 }
 
-void UIPlayerStateAdapter::SetBandSize(size_t band_size) {
+void UIPlayerStateAdapter::setBandSize(size_t band_size) {
 	band_size_ = band_size;
 }
 
-void UIPlayerStateAdapter::SetSpectrumBandwidth(double band_width) {
+void UIPlayerStateAdapter::setSpectrumBandwidth(double band_width) {
 	desired_band_width_ = band_width;
 }
 
@@ -44,7 +44,7 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-size_t UIPlayerStateAdapter::GetFftSize() const {
+size_t UIPlayerStateAdapter::fftSize() const {
 	return fft_size_;
 }
 

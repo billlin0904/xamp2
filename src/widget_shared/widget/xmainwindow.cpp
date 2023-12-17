@@ -169,13 +169,13 @@ void XMainWindow::restoreAppGeometry() {
     if (qAppSettings.contains(kAppSettingGeometry)) {
         screen_number_ = qAppSettings.valueAs(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
-            CenterDesktop(this);
+            centerDesktop(this);
         } else {
             restoreGeometry(qAppSettings.valueAs(kAppSettingGeometry).toByteArray());
         }
     }
     else {
-        CenterDesktop(this);
+        centerDesktop(this);
     }    
 #endif
 }

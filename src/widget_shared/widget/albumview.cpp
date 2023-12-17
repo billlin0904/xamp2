@@ -347,9 +347,9 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     if (const auto album_stats = qMainDb.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
-            .arg(FormatDuration(album_stats.value().durations))
+            .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year))
-            .arg(FormatBytes(album_stats.value().file_size))
+            .arg(formatBytes(album_stats.value().file_size))
         );
     }
 
@@ -461,7 +461,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        const auto process_dialog = MakeProgressDialog(
+        const auto process_dialog = makeProgressDialog(
             tr("Remove all album"), 
             QString(), 
             tr("Cancel"));
@@ -499,14 +499,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     };
 
     auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-        GetOpenMusicFileName(this, [this](const auto& file_name) {
+        getOpenMusicFileName(this, [this](const auto& file_name) {
             append(file_name);
             });
         });
     load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
 
     auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
-        const auto dir_name = GetExistingDirectory(this);
+        const auto dir_name = getExistingDirectory(this);
         if (dir_name.isEmpty()) {
             return;
         }

@@ -30,7 +30,7 @@ void VolumeButton::setPlayer(std::shared_ptr<IAudioPlayer> player) {
 
 		dialog_->setThemeColor();
 		dialog_->updateVolume();
-		MoveToTopWidget(dialog_.get(), this);
+		moveToTopWidget(dialog_.get(), this);
 		dialog_->show();
 		});
 	setMouseTracking(true);

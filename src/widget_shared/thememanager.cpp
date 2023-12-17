@@ -575,7 +575,7 @@ QSize ThemeManager::albumCoverSize() const noexcept {
 
 void ThemeManager::setBackgroundColor(QWidget* widget) {
     auto color = palette().color(QPalette::WindowText);
-    widget->setStyleSheet(BackgroundColorToString(color));
+    widget->setStyleSheet(backgroundColorToString(color));
 }
 
 void ThemeManager::loadAndApplyTheme() {
@@ -688,7 +688,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										 background-color: %1;
 										 border-radius: 0px;
                                          }
-                                         )").arg(ColorToString(color_hover_color)));
+                                         )").arg(colorToString(color_hover_color)));
     close_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
     close_button->setIcon(fontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
@@ -702,7 +702,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										  background-color: %1;
 										  border-radius: 0px;				 
                                           }
-                                          )").arg(ColorToString(hover_color)));
+                                          )").arg(colorToString(hover_color)));
     min_win_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
     min_win_button->setIcon(fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
     
@@ -716,7 +716,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
 										  background-color: %1;
 										  border-radius: 0px;								 
                                           }
-                                          )").arg(ColorToString(hover_color)));
+                                          )").arg(colorToString(hover_color)));
     max_win_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
     max_win_button->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
 }
@@ -820,7 +820,7 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
                                             color: black;
                                             border-radius: 8px;
                                             }
-                                            )").arg(object_name).arg(ColorToString(Qt::white)));
+                                            )").arg(object_name).arg(colorToString(Qt::white)));
             break;
     }
 }

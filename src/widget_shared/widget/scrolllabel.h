@@ -29,7 +29,7 @@ private:
 
 	void resizeEvent(QResizeEvent* event) override;
 
-	void UpdateText();
+	void updateText();
 
     const QLatin1String seperator_ = QLatin1String("   ");
 

@@ -6,7 +6,7 @@
 #include <QTime>
 #include <QUuid>
 
-QString ColorToString(QColor color) {
+QString colorToString(QColor color) {
     return QString(qTEXT("rgba(%1,%2,%3,%4)"))
         .arg(color.red())
         .arg(color.green())
@@ -14,18 +14,18 @@ QString ColorToString(QColor color) {
         .arg(color.alpha());
 }
 
-QString BackgroundColorToString(QColor color) {
-    return qTEXT("background-color: ") + ColorToString(color) + qTEXT(";");
+QString backgroundColorToString(QColor color) {
+    return qTEXT("background-color: ") + colorToString(color) + qTEXT(";");
 }
 
-QString FormatBitRate(uint32_t bit_rate) {
+QString formatBitRate(uint32_t bit_rate) {
     if (bit_rate > 10000) {
         return QString::number(bit_rate / 1000.0, 'f', 2) + qTEXT(" Mbps");
     }
     return QString::number(bit_rate) + qTEXT(" kbps");
 }
 
-QString FormatSampleRate(const uint32_t sample_rate) {
+QString formatSampleRate(const uint32_t sample_rate) {
     auto precision = 1;
     auto is_mhz_sample_rate = false;
 
@@ -41,12 +41,12 @@ QString FormatSampleRate(const uint32_t sample_rate) {
     }
 }
 
-QString FormatDsdSampleRate(uint32_t dsd_speed) {
+QString formatDsdSampleRate(uint32_t dsd_speed) {
     const auto sample_rate = (dsd_speed / 64) * 2.82;
     return QString::number(sample_rate, 'f', 2) + qTEXT("kHz");
 }
 
-bool ParseVersion(const QString& s, Version& version) {
+bool parseVersion(const QString& s, Version& version) {
     const auto ver = s.split(qTEXT("."));
     if (ver.length() != 3) {
         return false;
@@ -73,7 +73,7 @@ bool ParseVersion(const QString& s, Version& version) {
     return true;
 }
 
-QString FormatDuration(const double stream_time, bool full_text) {
+QString formatDuration(const double stream_time, bool full_text) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);
     const auto h = secs / 3600;
@@ -86,41 +86,41 @@ QString FormatDuration(const double stream_time, bool full_text) {
     return t.toString(qTEXT("mm:ss"));
 }
 
-bool IsMoreThan1Hours(const double stream_time) {
+bool isMoreThan1Hours(const double stream_time) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);
     const auto h = secs / 3600;
     return h > 0;
 }
 
-QString ToNativeSeparators(const QString& path) {
+QString toNativeSeparators(const QString& path) {
     return QDir::toNativeSeparators(path);
 }
 
-QByteArray GenerateUuid() {
+QByteArray generateUuid() {
     return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
 }
 
-QString FormatBytes(quint64 bytes) {
+QString formatBytes(quint64 bytes) {
     return QString::fromStdString(String::FormatBytes(bytes));
 }
 
-QString FormatTime(quint64 time) {
+QString formatTime(quint64 time) {
     QDateTime date_time;
     date_time.setSecsSinceEpoch(time);
     return date_time.toString(qTEXT("yyyy-MM-dd"));
 }
 
-QString FormatVersion(const Version& version) {
+QString formatVersion(const Version& version) {
     return qSTR("%1.%2.%3").arg(version.major_part)
         .arg(version.minor_part)
         .arg(version.revision_part);
 }
 
-QString FormatDb(double value, int prec) {
-    return qSTR("%1 dB").arg(FormatDouble(value, prec));
+QString formatDb(double value, int prec) {
+    return qSTR("%1 dB").arg(formatDouble(value, prec));
 }
 
-QString FormatDouble(double value, int prec) {
+QString formatDouble(double value, int prec) {
     return QString::number(value, 'f', prec);
 }

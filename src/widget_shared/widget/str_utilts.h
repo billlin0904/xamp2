@@ -65,18 +65,18 @@ constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-constexpr ConstLatin1String FromStdStringView(std::string_view const& s) noexcept {
+constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 
-inline QString GetStringOrEmptyString(const std::optional<std::wstring>& s) {
+inline QString getStringOrEmptyString(const std::optional<std::wstring>& s) {
 	if (s) {
 		return QString::fromStdWString(s.value());
 	}
 	return kEmptyString;
 }
 
-inline QString GetStringOrEmptyString(const std::optional<std::string>& s) {
+inline QString getStringOrEmptyString(const std::optional<std::string>& s) {
 	if (s) {
 		return QString::fromStdString(s.value());
 	}
@@ -89,38 +89,38 @@ XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(uint32_t sample_rate);
+XAMP_WIDGET_SHARED_EXPORT QString formatSampleRate(uint32_t sample_rate);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatBitRate(uint32_t bit_rate);
+XAMP_WIDGET_SHARED_EXPORT QString formatBitRate(uint32_t bit_rate);
 
-XAMP_WIDGET_SHARED_EXPORT QString ColorToString(QColor color);
+XAMP_WIDGET_SHARED_EXPORT QString colorToString(QColor color);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatDuration(const double stream_time, bool full_text = false);
+XAMP_WIDGET_SHARED_EXPORT QString formatDuration(const double stream_time, bool full_text = false);
 
-XAMP_WIDGET_SHARED_EXPORT bool IsMoreThan1Hours(const double stream_time);
+XAMP_WIDGET_SHARED_EXPORT bool isMoreThan1Hours(const double stream_time);
 
-XAMP_WIDGET_SHARED_EXPORT QString ToNativeSeparators(const QString& path);
+XAMP_WIDGET_SHARED_EXPORT QString toNativeSeparators(const QString& path);
 
-XAMP_WIDGET_SHARED_EXPORT bool ParseVersion(const QString& s, Version& version);
+XAMP_WIDGET_SHARED_EXPORT bool parseVersion(const QString& s, Version& version);
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatVersion(const Version& version);
+XAMP_WIDGET_SHARED_EXPORT QString formatVersion(const Version& version);
 
-QString FormatDsdSampleRate(uint32_t dsd_speed);
+QString formatDsdSampleRate(uint32_t dsd_speed);
 
-QString BackgroundColorToString(QColor color);
+QString backgroundColorToString(QColor color);
 
-QByteArray GenerateUuid();
+QByteArray generateUuid();
 
-QString FormatBytes(quint64 bytes);
+QString formatBytes(quint64 bytes);
 
-QString FormatTime(quint64 time);
+QString formatTime(quint64 time);
 
-QString FormatDb(double value, int prec = 1);
+QString formatDb(double value, int prec = 1);
 
-QString FormatDouble(double value, int prec = 1);
+QString formatDouble(double value, int prec = 1);
 
 template <typename... Args>
-QString StringFormat(std::string_view s, Args &&...args) {
+QString stringFormat(std::string_view s, Args &&...args) {
 	using namespace xamp::base::String;
 	return QString::fromStdString(Format(s, args...));
 }

@@ -77,7 +77,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         qTheme.setSliderTheme(slider);
 
         (void)QObject::connect(slider, &DoubleSlider::doubleValueChanged, [band, this](auto value) {
-            bands_label_[band]->setText(FormatDb(value));
+            bands_label_[band]->setText(formatDb(value));
             });
         ++band;
     }
@@ -93,7 +93,7 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     (void)QObject::connect(ui_->preampSlider, &DoubleSlider::doubleValueChanged, [this](auto value) {
         preampValueChanged(value);
-        ui_->preampDbLabel->setText(FormatDb(value));
+        ui_->preampDbLabel->setText(formatDb(value));
         });
 
     ui_->enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
@@ -191,8 +191,8 @@ void EqualizerView::applySetting(const QString& name, const EqSettings& settings
     }
 
     for (i = 0; i < settings.bands.size(); ++i) {
-        freq_label_[i]->setText(FormatSampleRate(settings.bands[i].frequency));
-        bands_label_[i]->setText(FormatDb(settings.bands[i].gain, 2));
+        freq_label_[i]->setText(formatSampleRate(settings.bands[i].frequency));
+        bands_label_[i]->setText(formatDb(settings.bands[i].gain, 2));
         sliders_[i]->setValue(settings.bands[i].gain * 10);
 
         freq_label_[i]->show();
@@ -201,5 +201,5 @@ void EqualizerView::applySetting(const QString& name, const EqSettings& settings
     }
 
     ui_->preampSlider->setValue(settings.preamp * 10);
-    ui_->preampDbLabel->setText(FormatDb(settings.preamp));
+    ui_->preampDbLabel->setText(formatDb(settings.preamp));
 }

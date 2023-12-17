@@ -237,7 +237,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			setImageLabel(resize_image, image_size, image_file_size);
 			};
 
-		GetOpenFileName(parent,
+		getOpenFileName(parent,
 			action,
 			QWidget::tr("Open image file"),
 			dir,
@@ -250,7 +250,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 	setCurrentInfo(0);
 
-	ui_->coverSizeLabel->setText(StringFormat("{} x {} (0 B)", 0, 0));
+	ui_->coverSizeLabel->setText(stringFormat("{} x {} (0 B)", 0, 0));
 	ui_->yearLineEdit->setValidator(new QIntValidator(1, 9999));
 
 	readEmbeddedCover(entities_[0]);
@@ -265,11 +265,11 @@ void TagEditPage::setCurrentInfo(int32_t index) {
 	ui_->albumLineEdit->setText(entities_[index].album);
 	ui_->commentLineEdit->setText(entities_[index].comment);
 	ui_->yearLineEdit->setText(QString::number(entities_[index].year));
-	ui_->albumPeakLineEdit->setText(FormatDb(entities_[index].album_peak));
-	ui_->albumReplayGainLineEdit->setText(FormatDb(entities_[index].album_replay_gain));
-	ui_->trackPeakLineEdit->setText(FormatDb(entities_[index].track_peak));
-	ui_->trackReplayGainLineEdit->setText(FormatDb(entities_[index].track_replay_gain));
-	ui_->fileSizeLineEdit->setText(StringFormat("{} ({})",
+	ui_->albumPeakLineEdit->setText(formatDb(entities_[index].album_peak));
+	ui_->albumReplayGainLineEdit->setText(formatDb(entities_[index].album_replay_gain));
+	ui_->trackPeakLineEdit->setText(formatDb(entities_[index].track_peak));
+	ui_->trackReplayGainLineEdit->setText(formatDb(entities_[index].track_replay_gain));
+	ui_->fileSizeLineEdit->setText(stringFormat("{} ({})",
 		entities_[index].file_size,
 		String::FormatBytes(entities_[index].file_size)));
 	ui_->titleComboBox->setCurrentIndex(index);
@@ -310,7 +310,7 @@ void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
 
 void TagEditPage::setImageLabel(const QPixmap& image, QSize image_size, size_t image_file_size) {	
 	ui_->coverLabel->setPixmap(image);
-	ui_->coverSizeLabel->setText(StringFormat("{} x {} ({})",
+	ui_->coverSizeLabel->setText(stringFormat("{} x {} ({})",
 		image_size.width(),
 		image_size.height(),
 		String::FormatBytes(image_file_size)));

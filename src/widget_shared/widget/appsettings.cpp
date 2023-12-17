@@ -216,7 +216,7 @@ QString AppSettings::cachePath() {
 			}
 		}
 
-		cache_path = ToNativeSeparators(cache_path);
+		cache_path = toNativeSeparators(cache_path);
 		qAppSettings.setValue(kAppSettingCachePath, cache_path);
 	}
 	else {
@@ -346,7 +346,7 @@ void AppSettings::saveLogConfig() {
 
 	for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[FromStdStringView(logger->GetName())] = log_util::getLogLevelString(logger->GetLevel());
+			well_known_log_name[fromStdStringView(logger->GetName())] = log_util::getLogLevelString(logger->GetLevel());
 		}
 	}
 
@@ -378,7 +378,7 @@ void AppSettings::loadOrSaveLogConfig() {
 
 	for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[FromStdStringView(logger->GetName())] = qTEXT("info");
+			well_known_log_name[fromStdStringView(logger->GetName())] = qTEXT("info");
 		}
 	}
 

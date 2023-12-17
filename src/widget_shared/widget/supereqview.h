@@ -28,17 +28,17 @@ public:
 
     virtual ~SuperEqView() override;
 
-    const EqSettings& GetCurrentSetting() const;
+    const EqSettings& getCurrentSetting() const;
 
 signals:
-    void BandValueChange(int band, float value, float Q);
+    void bandValueChange(int band, float value, float Q);
 
-    void PreampValueChange(float value);
+    void preampValueChange(float value);
 
 public slots:
 
 private:
-    void ApplySetting(const QString& name, const EqSettings& settings);
+    void applySetting(const QString& name, const EqSettings& settings);
 
     Ui::SuperEqView* ui_;
     EqSettings current_settings_;

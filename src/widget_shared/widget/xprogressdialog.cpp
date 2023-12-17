@@ -76,7 +76,7 @@ XProgressDialog::XProgressDialog(const QString& title,
 		emit cancelRequested();
 		});
 
-	CenterParent(this);
+	centerParent(this);
 }
 
 void XProgressDialog::setRange(int minimum, int maximum) {
@@ -93,7 +93,7 @@ int XProgressDialog::value() const {
 
 void XProgressDialog::setValue(int value) {
 	if (size_ != size()) {
-		CenterParent(this);
+		centerParent(this);
 		size_ = size();
 	}
 	progress_bar_->setValue(value);
@@ -102,7 +102,7 @@ void XProgressDialog::setValue(int value) {
 void XProgressDialog::setLabelText(const QString& text) {
 	const QFontMetrics metrics(font());
 	message_text_label_->setText(metrics.elidedText(text, Qt::ElideRight, max_width_));
-	CenterParent(this);
+	centerParent(this);
 }
 
 bool XProgressDialog::wasCanceled() const {

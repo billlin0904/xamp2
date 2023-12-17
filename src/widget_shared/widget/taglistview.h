@@ -12,7 +12,7 @@
 
 class QLabel;
 
-class TagWidgetItem : public QListWidgetItem {
+class TagWidgetItem final : public QListWidgetItem {
 public:
 	TagWidgetItem(const QString& tag, QColor color, QLabel* label, QListWidget* parent = nullptr);
 
@@ -32,7 +32,7 @@ private:
 	QLabel* label_;
 };
 
-class TagListView : public QFrame {
+class TagListView final : public QFrame {
 	Q_OBJECT
 public:
 	explicit TagListView(QWidget* parent = nullptr);

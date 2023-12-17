@@ -10,6 +10,7 @@
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/platform.h>
+#include <base/stop_token.h>
 
 #include <future>
 #include <type_traits>
@@ -56,11 +57,11 @@ protected:
 
 template <typename F, typename ... Args>
 decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags flags) {
-    using ReturnType = std::invoke_result_t<F, Args...>;
+    using ReturnType = std::invoke_result_t<F, const StopToken&, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
     // https://github.com/microsoft/STL/issues/321
-    using PackagedTaskType = std::packaged_task<ReturnType()>;
+    using PackagedTaskType = std::packaged_task<ReturnType(const StopToken&)>;
 
     auto task = MakeAlignedShared<PackagedTaskType>(bind_front(
         std::forward<F>(f),
@@ -70,8 +71,8 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     auto future = task->get_future();
 
     // note: unique_ptr會在SubmitJob離開lambda解構, 但是shared_ptr會確保lambda在解構的時候task才會解構.
-    scheduler_->SubmitJob([t = std::move(task)]() {
-        (*t)();
+    scheduler_->SubmitJob([t = std::move(task)](const StopToken& stop_token) {
+        (*t)(stop_token);
     }, flags);
 
     return future;

@@ -27,55 +27,55 @@ struct XAMP_WIDGET_SHARED_EXPORT PlaybackFormat {
     AudioFormat output_format;
 };
 
-QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget);
+QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget);
 
-void CenterDesktop(QWidget* widget);
+void centerDesktop(QWidget* widget);
 
-void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
+void moveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
 
-XAMP_WIDGET_SHARED_EXPORT void CenterParent(QWidget* widget);
+XAMP_WIDGET_SHARED_EXPORT void centerParent(QWidget* widget);
 
-XAMP_WIDGET_SHARED_EXPORT XMainWindow* GetMainWindow();
+XAMP_WIDGET_SHARED_EXPORT XMainWindow* getMainWindow();
 
-XAMP_WIDGET_SHARED_EXPORT QString FormatSampleRate(const AudioFormat& format);
+XAMP_WIDGET_SHARED_EXPORT QString formatSampleRate(const AudioFormat& format);
 
-XAMP_WIDGET_SHARED_EXPORT QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext);
+XAMP_WIDGET_SHARED_EXPORT QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
 
-XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
+XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,
     QWidget* parent = nullptr);
 
-XAMP_WIDGET_SHARED_EXPORT PlayerOrder GetNextOrder(PlayerOrder cur) noexcept;
+XAMP_WIDGET_SHARED_EXPORT PlayerOrder getNextOrder(PlayerOrder cur) noexcept;
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter();
+XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeR8BrainSampleRateConverter();
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSrcSampleRateConverter();
+XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeSrcSampleRateConverter();
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings);
+XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings);
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> MakeSampleRateConverter(uint32_t sample_rate);
+XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate);
 
-XAMP_WIDGET_SHARED_EXPORT PlaybackFormat GetPlaybackFormat(IAudioPlayer* player);
+XAMP_WIDGET_SHARED_EXPORT PlaybackFormat getPlaybackFormat(IAudioPlayer* player);
 
-XAMP_WIDGET_SHARED_EXPORT QString GetFileDialogFileExtensions();
+XAMP_WIDGET_SHARED_EXPORT QString getFileDialogFileExtensions();
 
-XAMP_WIDGET_SHARED_EXPORT QString GetExistingDirectory(QWidget* parent);
+XAMP_WIDGET_SHARED_EXPORT QString getExistingDirectory(QWidget* parent);
 
-XAMP_WIDGET_SHARED_EXPORT void GetOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action);
+XAMP_WIDGET_SHARED_EXPORT void getOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action);
 
-XAMP_WIDGET_SHARED_EXPORT void GetOpenFileName(QWidget* parent,
+XAMP_WIDGET_SHARED_EXPORT void getOpenFileName(QWidget* parent,
     std::function<void(const QString&)>&& action,
     const QString& caption = QString(),
     const QString& dir = QString(),
     const QString& filter = QString());
 
-XAMP_WIDGET_SHARED_EXPORT void GetSaveFileName(QWidget* parent,
+XAMP_WIDGET_SHARED_EXPORT void getSaveFileName(QWidget* parent,
     std::function<void(const QString&)>&& action,
     const QString& caption = QString(),
     const QString& dir = QString(),
     const QString& filter = QString());
 
-XAMP_WIDGET_SHARED_EXPORT void Delay(int32_t seconds);
+XAMP_WIDGET_SHARED_EXPORT void delay(int32_t seconds);
 
-XAMP_WIDGET_SHARED_EXPORT const QStringList& GetTrackInfoFileNameFilter();
+XAMP_WIDGET_SHARED_EXPORT const QStringList& getTrackInfoFileNameFilter();

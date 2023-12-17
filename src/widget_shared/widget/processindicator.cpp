@@ -14,7 +14,7 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
 	, color_(Qt::black) {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setFocusPolicy(Qt::NoFocus);
-    CenterParent(this);
+    centerParent(this);
 
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:

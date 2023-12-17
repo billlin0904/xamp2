@@ -21,7 +21,7 @@
 #include <version.h>
 
 namespace {
-    void SaveLastOpenFolderPath(const QString& file_name) {
+    void saveLastOpenFolderPath(const QString& file_name) {
         if (QFileInfo(file_name).isDir()) {
             const QDir current_dir;
             qAppSettings.setValue(kAppSettingLastOpenFolderPath, current_dir.absoluteFilePath(file_name));
@@ -32,11 +32,11 @@ namespace {
     }
 }
 
-QString FormatSampleRate(const AudioFormat& format) {
-    return FormatSampleRate(format.GetSampleRate());
+QString formatSampleRate(const AudioFormat& format) {
+    return formatSampleRate(format.GetSampleRate());
 }
 
-QString Format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
+QString format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
     auto format = playback_format.file_format;
 
     auto ext = file_ext;
@@ -67,18 +67,18 @@ QString Format2String(const PlaybackFormat& playback_format, const QString& file
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
-        output_format_str = FormatSampleRate(playback_format.file_format);
+        output_format_str = formatSampleRate(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += qTEXT("/") + FormatSampleRate(playback_format.output_format);
+            output_format_str += qTEXT("/") + formatSampleRate(playback_format.output_format);
         }
         break;
     case DsdModes::DSD_MODE_NATIVE:
         dsd_mode = qTEXT("Native DSD");
-        output_format_str = FormatDsdSampleRate(playback_format.dsd_speed);
+        output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
         break;
     case DsdModes::DSD_MODE_DOP:
         dsd_mode = qTEXT("DOP");
-        output_format_str = FormatDsdSampleRate(playback_format.dsd_speed);
+        output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
         break;
     default: 
         break;
@@ -104,16 +104,16 @@ QString Format2String(const PlaybackFormat& playback_format, const QString& file
     return result;
 }
 
-QSharedPointer<ProcessIndicator> MakeProcessIndicator(QWidget* widget) {
+QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
     return {new ProcessIndicator(widget), &QObject::deleteLater};
 }
 
-QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
+QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,
     QWidget* parent) {
     if (!parent) {
-        parent = GetMainWindow();
+        parent = getMainWindow();
     }
     if (parent != nullptr) {
         parent->setFocus();
@@ -123,7 +123,7 @@ QSharedPointer<XProgressDialog> MakeProgressDialog(QString const& title,
     return dialog;
 }
 
-void CenterParent(QWidget* widget) {
+void centerParent(QWidget* widget) {
     QWidget* host = nullptr;
 
     if (!host)
@@ -141,14 +141,14 @@ void CenterParent(QWidget* widget) {
     }
 }
 
-void CenterDesktop(QWidget* widget) {
+void centerDesktop(QWidget* widget) {
 	const auto screen_geometry = QGuiApplication::primaryScreen()->geometry();
     const auto x = (screen_geometry.width() - widget->width()) / 2;
     const auto y = (screen_geometry.height() - widget->height()) / 2;
     widget->move(x, y);
 }
 
-void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget) {
+void moveToTopWidget(QWidget* source_widget, const QWidget* target_widget) {
     auto center_pos = target_widget->mapToGlobal(target_widget->rect().center());
     const auto sz = source_widget->size();
     center_pos.setX(center_pos.x() - sz.width() / 2);
@@ -158,21 +158,21 @@ void MoveToTopWidget(QWidget* source_widget, const QWidget* target_widget) {
     source_widget->move(center_pos);
 }
 
-PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
+PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
     auto next = static_cast<int32_t>(cur) + 1;
     auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
     return static_cast<PlayerOrder>(next % max);
 }
 
-AlignPtr<IAudioProcessor> MakeR8BrainSampleRateConverter() {
+AlignPtr<IAudioProcessor> makeR8BrainSampleRateConverter() {
     return MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
 }
 
-AlignPtr<IAudioProcessor> MakeSrcSampleRateConverter() {
+AlignPtr<IAudioProcessor> makeSrcSampleRateConverter() {
     return MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
 }
 
-AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& settings) {
+AlignPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     const auto stop_band = settings[kSoxrStopBand].toInt();
     const auto pass_band = settings[kSoxrPassBand].toInt();
@@ -190,7 +190,7 @@ AlignPtr<IAudioProcessor> MakeSoxrSampleRateConverter(const QVariantMap& setting
     return converter;
 }
 
-AlignPtr<IAudioProcessor> MakeSampleRateConverter(uint32_t sample_rate) {
+AlignPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate) {
     QMap<QString, QVariant> soxr_settings;
 
     soxr_settings[kResampleSampleRate] = sample_rate;
@@ -199,10 +199,10 @@ AlignPtr<IAudioProcessor> MakeSampleRateConverter(uint32_t sample_rate) {
     soxr_settings[kSoxrStopBand] = 100;
     soxr_settings[kSoxrPassBand] = 96;
     soxr_settings[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
-    return MakeSoxrSampleRateConverter(soxr_settings);
+    return makeSoxrSampleRateConverter(soxr_settings);
 }
 
-PlaybackFormat GetPlaybackFormat(IAudioPlayer* player) {
+PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
     PlaybackFormat format;
 
     if (player->IsDsdFile()) {
@@ -217,7 +217,7 @@ PlaybackFormat GetPlaybackFormat(IAudioPlayer* player) {
     return format;
 }
 
-XMainWindow* GetMainWindow() {
+XMainWindow* getMainWindow() {
     XMainWindow* main_window = nullptr;
     Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
         main_window = dynamic_cast<XMainWindow*>(w);
@@ -229,7 +229,7 @@ XMainWindow* GetMainWindow() {
     return main_window;
 }
 
-QString GetFileDialogFileExtensions() {
+QString getFileDialogFileExtensions() {
     static QString file_extension;
     if (file_extension.isEmpty()) {
         QString exts(qTEXT("("));
@@ -245,7 +245,7 @@ QString GetFileDialogFileExtensions() {
     return file_extension;
 }
 
-QString GetExistingDirectory(QWidget* parent) {
+QString getExistingDirectory(QWidget* parent) {
     auto last_open_folder =qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     if (last_open_folder.isEmpty()) {
         last_open_folder = qAppSettings.myMusicFolderPath();
@@ -256,20 +256,20 @@ QString GetExistingDirectory(QWidget* parent) {
         last_open_folder,
         QFileDialog::ShowDirsOnly);
 
-    SaveLastOpenFolderPath(dir_name);
+    saveLastOpenFolderPath(dir_name);
 
     return dir_name;
 }
 
-void GetOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action) {
-    return GetOpenFileName(parent,
+void getOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action) {
+    return getOpenFileName(parent,
         std::move(action),
         QWidget::tr("Open file"),
         qAppSettings.myMusicFolderPath(),
-        QWidget::tr("Music Files ") + GetFileDialogFileExtensions());
+        QWidget::tr("Music Files ") + getFileDialogFileExtensions());
 }
 
-void GetSaveFileName(QWidget* parent, 
+void getSaveFileName(QWidget* parent, 
     std::function<void(const QString&)>&& action,
     const QString& caption,
     const QString& dir,
@@ -285,12 +285,12 @@ void GetSaveFileName(QWidget* parent,
         return;
     }
 
-    SaveLastOpenFolderPath(file_name);
+    saveLastOpenFolderPath(file_name);
 
     action(file_name);
 }
 
-void GetOpenFileName(QWidget* parent, 
+void getOpenFileName(QWidget* parent, 
     std::function<void(const QString&)> && action,
     const QString& caption,
     const QString& dir, 
@@ -306,18 +306,18 @@ void GetOpenFileName(QWidget* parent,
         return;
     }
 
-    SaveLastOpenFolderPath(file_name);
+    saveLastOpenFolderPath(file_name);
     
     action(file_name);    
 }
 
-void Delay(int32_t seconds) {
+void delay(int32_t seconds) {
 	const auto die_time = QTime::currentTime().addSecs(seconds);
     while (QTime::currentTime() < die_time)
         QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 100);
 }
 
-const QStringList& GetTrackInfoFileNameFilter() {
+const QStringList& getTrackInfoFileNameFilter() {
     struct StaticGetFileNameFilter {
         StaticGetFileNameFilter() {
             for (auto& file_ext : GetSupportFileExtensions()) {

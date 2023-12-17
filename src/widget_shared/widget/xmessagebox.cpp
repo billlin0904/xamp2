@@ -74,7 +74,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XMessageBox::onUpdate);
 	timer_.setInterval(1000);
-	CenterParent(this);
+	centerParent(this);
 
 	const auto metrics = defaultButton()->fontMetrics();
 	setMinimumSize(QSize(metrics.horizontalAdvance(default_button_text_) * 1.5, 100));
@@ -128,7 +128,7 @@ void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 		 color: %2;
       }
 	)"
-	).arg(ColorToString(qTheme.highlightColor())).arg(ColorToString(text_color)));
+	).arg(colorToString(qTheme.highlightColor())).arg(colorToString(text_color)));
 	setDefaultButton(default_button);
 }
 
@@ -206,7 +206,7 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
     if (!parent) {
-		parent = GetMainWindow();
+		parent = getMainWindow();
 	}
 	if (parent != nullptr) {
 		parent->setFocus();
@@ -307,7 +307,7 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBox(con
 	QDialogButtonBox::StandardButton default_button,
 	QWidget* parent) {
     if (!parent) {
-		parent = GetMainWindow();
+		parent = getMainWindow();
     }
     if (parent != nullptr) {
         parent->setFocus();

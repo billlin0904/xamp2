@@ -257,7 +257,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			auto running_thread = ++running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{}", i, thread_id, running_thread);
 			excution_stopwatch.Start();
-			(*task)();
+			(*task)(stop_token);
 			excution_stopwatch.Stop();
 			--running_thread_;
 
