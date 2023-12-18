@@ -63,16 +63,17 @@ void PlaylistPage::initial() {
     title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setWeight(QFont::DemiBold);
-	f.setPointSize(qTheme.fontSize(20));
+	f.setPointSize(qTheme.fontSize(15));
 
 	const QFontMetrics metrics(f);
-	const auto font_height = metrics.height();
+	const auto font_height = metrics.height() * 1.2;
 
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
 	title_->setMinimumSize(QSize(0, font_height));
 	title_->setMaximumSize(QSize(16777215, font_height));
 	title_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	title_->setText(qTEXT("\0")); // 預先配置空字串保留行高
 
 	heart_button_ = new QToolButton(this);
 	heart_button_->setObjectName(QString::fromUtf8("heartButton"));
@@ -80,7 +81,7 @@ void PlaylistPage::initial() {
 	heart_button_->setMaximumSize(QSize(24, 24));
 	heart_button_->setIconSize(QSize(24, 24));
 	qTheme.setHeartButton(heart_button_);
-	heart_button_->hide();
+	//heart_button_->hide();
 
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
@@ -106,6 +107,7 @@ void PlaylistPage::initial() {
 	format_ = new QLabel(this);
 	const QFont format_font(qTEXT("FormatFont"));
 	format_->setFont(format_font);
+	format_->setText(qTEXT("\0"));
 
 	vertical_spacer_ = new QSpacerItem(20, 24, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	album_title_layout->addItem(vertical_spacer_);

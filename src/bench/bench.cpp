@@ -79,16 +79,27 @@ static void BM_RcuPtrMutex(benchmark::State& state) {
     }
 }
 
-static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
+static void BM_BaseLineThreadPool(benchmark::State& state) {
+    const auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int64_t> total;
+    for (auto _ : state) {
+        for (auto i = 0; i < length; ++i) {
+            total += 1;
+        }
+    }
+}
+
+static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_LeastLoadPolicyThreadPoolLoggerName);
+        kBM_LeastLoadPolicyThreadPoolLoggerName,
+        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_LeastLoadPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
-    std::vector<int> n(length);
-    std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
@@ -100,14 +111,12 @@ static void BM_LeastLoadPolicyThreadPool(benchmark::State& state) {
 static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
-        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
+        TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY);
 
     LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
-    std::vector<int> n(length);
-    std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
@@ -116,7 +125,7 @@ static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
     }
 }
 
-static void BM_async_pool(benchmark::State& state) {    
+static void BM_StdAsync(benchmark::State& state) {    
     auto std_async_parallel_for = [](auto& items, auto&& f, size_t batches = 4) {
         auto begin = std::begin(items);
         auto size = std::distance(begin, std::end(items));
@@ -616,8 +625,8 @@ static void BM_Spinlock(benchmark::State& state) {
     }
 }
 
-//BENCHMARK(BM_FastMutex)->ThreadRange(1, 32);
-//BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
+BENCHMARK(BM_FastMutex)->ThreadRange(1, 32);
+BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
@@ -662,16 +671,14 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //#ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#endif
-
-//BENCHMARK(BM_RobinStealPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_LeastLoadPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //BENCHMARK(BM_RcuPtr)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_RcuPtrMutex)->RangeMultiplier(2)->Range(8, 8 << 8);

@@ -1,5 +1,5 @@
 #include <widget/fonticonanimation.h>
-
+#include <QPaintEvent>
 #include <QTimer>
 #include <QPainter>
 #include <QWidget>
@@ -24,6 +24,7 @@ void FontIconAnimation::incrementFrame() {
         frame_ = min_frame_;
     else
         frame_ += 1;
+    ((QWidget*)parent())->update();
 }
 
 FontIconSpinAnimation::FontIconSpinAnimation(QWidget* parent, Directions direction, int rpm)
@@ -50,25 +51,47 @@ PixmapGenerator::PixmapGenerator(FontIconAnimation* animation, QWidget* parent)
     , animation_(animation) {
 }
 
-void PixmapGenerator::init(QSize size) {
-    for (auto i = animation_->min(); i < animation_->max(); ++i) {
-        pixmap(size);
+QPixmap PixmapGenerator::pixmap(QSize size) {
+    QPixmap pixmap;
+    if (!pixmap_cache_.isEmpty()) {
+        pixmap = pixmap_cache_[animation_->currentFrame()];
+        animation_->incrementFrame();
+        return pixmap;
     }
+
+    for (auto i = animation_->min(); i <= animation_->max(); ++i) {
+        QImage image(size, QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        QPainter painter(&image);
+        if (animation_) {
+            animation_->transform(painter, size);
+        }
+        pixmap = QPixmap::fromImage(image);
+        pixmap_cache_.push_back(pixmap);
+        animation_->incrementFrame();
+    }        
+    return pixmap_cache_[animation_->currentFrame()];
 }
 
-QPixmap PixmapGenerator::pixmap(QSize size) {
-    if (pixmap_cache_.contains(animation_->currentFrame())) {
-        return pixmap_cache_[animation_->currentFrame()];
-    }
+FontIconAnimationLabel::FontIconAnimationLabel(FontIconAnimation* animation, QWidget* parent)
+    : QLabel(parent)
+    , generator_(animation, parent) {
+}
 
-    QImage image(size, QImage::Format_ARGB32_Premultiplied);
-    image.fill(Qt::transparent);
-    QPainter painter(&image);
-    if (animation_) {
-        animation_->transform(painter, size);
-    }
+void FontIconAnimationLabel::paintEvent(QPaintEvent* e) {
+    auto rect = e->rect();
 
-    auto pixamp = QPixmap::fromImage(image);
-    pixmap_cache_.insert(std::make_pair(animation_->currentFrame(), pixamp));
-    return pixamp;
+    QSize size;
+    if (rect.width() > rect.height())
+        size = QSize(rect.height(), rect.height());
+    else
+        size = QSize(rect.width(), rect.width());
+
+    auto pixmap = generator_.pixmap(size);
+
+    QPainter p(this);
+    auto half_size = size / 2;
+    auto point = rect.center() - QPoint(half_size.width(), half_size.height());
+    p.drawPixmap(point, pixmap);
+    p.end();
 }

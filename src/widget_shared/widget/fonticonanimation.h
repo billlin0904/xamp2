@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QTransform>
 #include <map>
+#include <QLabel>
 
 class QPainter;
 class QTimer;
@@ -65,13 +66,21 @@ class PixmapGenerator : public QObject {
 public:
     explicit PixmapGenerator(FontIconAnimation* animation, QWidget* parent = nullptr);
 
-    void init(QSize size);
-
     QPixmap pixmap(QSize size);
 
 private:
     FontIconAnimation* animation_;
-    std::map<int, QPixmap> pixmap_cache_;
+    QList<QPixmap> pixmap_cache_;
+};
+
+class FontIconAnimationLabel : public QLabel {
+public:
+    FontIconAnimationLabel(FontIconAnimation* animation, QWidget* parent = nullptr);
+
+private:
+    void paintEvent(QPaintEvent*) override;
+
+    PixmapGenerator generator_;
 };
 
 Q_DECLARE_METATYPE(FontIconSpinAnimation*)

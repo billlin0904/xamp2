@@ -189,7 +189,7 @@ void PlaylistTabWidget::restoreTabOrder() {
         ++i;
     }
     for (i = 0; i < count(); ++i) {
-        setTabIcon(i, qTheme.applicationIcon());
+        setTabIcon(i, qTheme.applicationIcon());        
     }
 }
 
@@ -201,7 +201,7 @@ void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
             if (i == tab_index) {
                 continue;
             }
-            setTabIcon(i, qTheme.applicationIcon());
+            setTabIcon(i, qTheme.applicationIcon());            
         }
     }
 }

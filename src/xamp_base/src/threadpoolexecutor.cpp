@@ -13,7 +13,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
+inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(10);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxStealFailureSize = 500;
@@ -255,7 +255,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			}
 
 			auto running_thread = ++running_thread_;
-			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{}", i, thread_id, running_thread);
+			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weak up, running:{}", i, thread_id, running_thread);
 			excution_stopwatch.Start();
 			(*task)(stop_token);
 			excution_stopwatch.Stop();
