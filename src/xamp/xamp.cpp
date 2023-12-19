@@ -681,7 +681,6 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&ui_update_timer_timer_, &QTimer::timeout, this, &Xamp::performDelayedUpdate);
     ui_update_timer_timer_.setInterval(3000);
-    ui_update_timer_timer_.start();
 }
 
 void Xamp::onRestartApp() {
@@ -791,7 +790,7 @@ void Xamp::initialUi() {
     f.setWeight(QFont::Normal);
     f.setPointSize(qTheme.fontSize(6));
     ui_.artistLabel->setFont(f);    
-    ui_.bitPerfectButton->setFont(f);
+    //ui_.bitPerfectButton->setFont(f);
 
     QFont format_font(qTEXT("FormatFont"));
     format_font.setWeight(QFont::Normal);
@@ -968,7 +967,7 @@ void Xamp::initialController() {
     });
 
     qTheme.setHeartButton(ui_.heartButton);
-    qTheme.setBitPerfectButton(ui_.bitPerfectButton, qAppSettings.valueAsBool(kEnableBitPerfect));
+    //qTheme.setBitPerfectButton(ui_.bitPerfectButton, qAppSettings.valueAsBool(kEnableBitPerfect));
 
     (void)QObject::connect(ui_.heartButton, &QToolButton::clicked, [this]() {
         if (!current_entity_) {
@@ -983,11 +982,11 @@ void Xamp::initialController() {
         getCurrentPlaylistPage()->playlist()->reload();
         });
 
-    (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::clicked, [this]() {
+    /*(void)QObject::connect(ui_.bitPerfectButton, &QToolButton::clicked, [this]() {
 	    const auto enable_or_disable = !qAppSettings.valueAsBool(kEnableBitPerfect);
         qAppSettings.setValue(kEnableBitPerfect, enable_or_disable);
         qTheme.setBitPerfectButton(ui_.bitPerfectButton, enable_or_disable);
-    });
+    });*/
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
@@ -1187,7 +1186,7 @@ void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, cons
 }
 
 void Xamp::setFullScreen() {
-    if (qAppSettings.valueAsBool(kAppSettingEnterFullScreen)) {
+    /*if (qAppSettings.valueAsBool(kAppSettingEnterFullScreen)) {
         setCurrentTab(TAB_LYRICS);
         ui_.bottomFrame->setHidden(true);
         ui_.sliderFrame->setHidden(true);
@@ -1203,7 +1202,7 @@ void Xamp::setFullScreen() {
         ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
         lrc_page_->setFullScreen(false);
         qAppSettings.setValue<bool>(kAppSettingEnterFullScreen, true);
-    }
+    }*/
 }
 
 void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
@@ -1246,22 +1245,6 @@ void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
     if (key != nullptr) {
         key();
     }
-}
-
-void Xamp::getNextPage() {
-    if (stack_page_id_.isEmpty()) {
-        return;
-    }
-    const auto idx = ui_.currentView->currentIndex();
-    ui_.currentView->setCurrentIndex(idx + 1);
-}
-
-void Xamp::goBackPage() {
-    if (stack_page_id_.isEmpty()) {
-        return;
-    }
-    const auto idx = ui_.currentView->currentIndex();
-    ui_.currentView->setCurrentIndex(idx - 1);
 }
 
 void Xamp::setVolume(uint32_t volume) {
@@ -1463,10 +1446,6 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
     QString& sample_rate_converter_type) {
     sample_rate_converter_type = qAppSettings.valueAsString(kAppSettingResamplerType);
 
-    if (qAppSettings.valueAsBool(kEnableBitPerfect)) {
-        return;
-	}
-
     if (!qAppSettings.valueAsBool(kAppSettingResamplerEnable)) {
         return;
     }
@@ -1502,7 +1481,9 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 void Xamp::performDelayedUpdate() {
     cd_page_->playlistPage()->playlist()->reload();
     album_page_->album()->reload();
-    getCurrentPlaylistPage()->playlist()->reload();
+    if (tab_widget_->count() > 0) {
+        getCurrentPlaylistPage()->playlist()->reload();
+    }    
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -1532,21 +1513,13 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
     uint32_t target_sample_rate = 0;
     auto byte_format = ByteFormat::SINT32;
     std::function<void()> sample_rate_converter_factory;
-    const auto enable_bit_perfect = qAppSettings.valueAsBool(kEnableBitPerfect);
 
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-    if (enable_bit_perfect) {
-        player_->GetDspManager()->RemoveSampleRateConverter();
-        player_->GetDspManager()->RemoveVolumeControl();
-        player_->GetDspManager()->RemoveEqualizer();
-        player_->GetDspManager()->RemoveCompressor();
-    } else {
-        setupSampleRateConverter(sample_rate_converter_factory, 
-            target_sample_rate, 
-            sample_rate_converter_type);
-    }
+    setupSampleRateConverter(sample_rate_converter_factory,
+        target_sample_rate,
+        sample_rate_converter_type);
 
     if (device_info_.value().connect_type == DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH) {
         AudioFormat default_format;
@@ -1580,22 +1553,16 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             target_sample_rate,
             open_dsd_mode);
 
-        if (!enable_bit_perfect) {
-            if (sample_rate_converter_factory != nullptr) {
-                if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
-                    player_->GetDspManager()->RemoveSampleRateConverter();
-                }
-                else {
-                    sample_rate_converter_factory();
-                }
-            }           
-            setupDsp(entity);
-        } else {
-            if (player_->GetInputFormat().GetByteFormat() == ByteFormat::SINT16) {
-                byte_format = ByteFormat::SINT16;
+        if (sample_rate_converter_factory != nullptr) {
+            if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
+                player_->GetDspManager()->RemoveSampleRateConverter();
+            }
+            else {
+                sample_rate_converter_factory();
             }
         }
 
+        setupDsp(entity);
         setupSampleWriter(byte_format, playback_format);
 
         playback_format.bit_rate = entity.bit_rate;
@@ -2047,28 +2014,7 @@ void Xamp::addItem(const QString& file_name) {
 
 void Xamp::pushWidget(QWidget* widget) {
 	const auto id = ui_.currentView->addWidget(widget);
-    stack_page_id_.push(id);
     ui_.currentView->setCurrentIndex(id);
-}
-
-QWidget* Xamp::topWidget() {
-    if (!stack_page_id_.isEmpty()) {
-        return ui_.currentView->widget(stack_page_id_.top());
-    }
-    return nullptr;
-}
-
-QWidget* Xamp::popWidget() {
-    if (!stack_page_id_.isEmpty()) {
-	    const auto id = stack_page_id_.pop();
-        auto* widget = ui_.currentView->widget(id);
-        ui_.currentView->removeWidget(widget);
-        if (!stack_page_id_.isEmpty()) {
-            ui_.currentView->setCurrentIndex(stack_page_id_.top());
-            return widget;
-        }
-    }
-    return nullptr;
 }
 
 void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
@@ -2333,6 +2279,7 @@ void Xamp::onReadCompleted() {
     }
     read_progress_dialog_->close();
     read_progress_dialog_.reset();
+    ui_update_timer_timer_.stop();
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    
@@ -2360,4 +2307,5 @@ void Xamp::onFoundFileCount(size_t file_count) {
 
 void Xamp::onReadFileStart() {
     progress_timer_.restart();
+    ui_update_timer_timer_.start();
 }

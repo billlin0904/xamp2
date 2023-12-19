@@ -99,7 +99,7 @@ void TaskScheduler::Destroy() noexcept {
 		return;
 	}
 
-	XAMP_LOG_D(logger_, "Thread pool start destory.");
+	XAMP_LOG_D(logger_, "Thread pool start destroy.");
 
 	// Wait for all threads to finish
 	is_stopped_ = true;
@@ -129,7 +129,7 @@ void TaskScheduler::Destroy() noexcept {
 	task_scheduler_policy_.reset();
     task_steal_policy_.reset();	
 
-	XAMP_LOG_D(logger_, "Thread pool was destory.");
+	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
 std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {

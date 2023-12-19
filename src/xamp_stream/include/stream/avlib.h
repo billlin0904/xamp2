@@ -57,6 +57,8 @@ class AvFormatLib final {
 public:
     AvFormatLib();
 
+    XAMP_DISABLE_COPY(AvFormatLib)
+
 private:
     SharedLibraryHandle module_;
 
@@ -82,6 +84,8 @@ public:
 class AvCodecLib final {
 public:
     AvCodecLib();
+
+    XAMP_DISABLE_COPY(AvCodecLib)
 
 private:
     SharedLibraryHandle module_;
@@ -112,6 +116,7 @@ class AvUtilLib final {
 public:
     AvUtilLib();
 
+    XAMP_DISABLE_COPY(AvUtilLib)
 private:
     SharedLibraryHandle module_;
 
@@ -144,6 +149,7 @@ class AvSwLib final {
 public:
     AvSwLib();
 
+    XAMP_DISABLE_COPY(AvSwLib)
 private:
     SharedLibraryHandle module_;
 
@@ -155,11 +161,13 @@ public:
     XAMP_DECLARE_DLL_NAME(swr_close);
 };
 
-class AvLib {
+class AvLib final {
 public:
     AvLib();
 
     ~AvLib();
+
+    XAMP_DISABLE_COPY(AvLib)
 
     HashSet<std::string> GetSupportFileExtensions() const;
 

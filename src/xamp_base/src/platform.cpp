@@ -176,146 +176,6 @@ void SetThreadNameById(DWORD dwThreadID, char const* threadName) {
     } __except (EXCEPTION_EXECUTE_HANDLER) {
     }
 }
-
-class EnumLogicalProcessorInformation {
-    // Based On: https://devblogs.microsoft.com/oldnewthing/20131028-00/?p=2823
-public:
-    explicit EnumLogicalProcessorInformation(LOGICAL_PROCESSOR_RELATIONSHIP relationship)
-        : remaining_(0)
-		, info_base_ptr_(nullptr)
-		, info_current_ptr_(nullptr) {
-        DWORD cb = 0;
-        if (::GetLogicalProcessorInformationEx(relationship,
-            nullptr, &cb)) return;
-        if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER) return;
-        info_base_ptr_ =
-            static_cast<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*>
-            (::LocalAlloc(LMEM_FIXED, cb));
-        if (!info_base_ptr_) return;
-        if (!::GetLogicalProcessorInformationEx(relationship,
-            info_base_ptr_, &cb)) return;
-        info_current_ptr_ = info_base_ptr_;
-        remaining_ = cb;
-    }
-
-    ~EnumLogicalProcessorInformation() {
-	    LocalFree(info_base_ptr_);
-    }
-
-    void MoveNext() noexcept {
-        if (info_current_ptr_) {
-            remaining_ -= info_current_ptr_->Size;
-            if (remaining_) {
-                info_current_ptr_ = AdvanceBytes(info_current_ptr_,
-                    info_current_ptr_->Size);
-            }
-            else {
-                info_current_ptr_ = nullptr;
-            }
-        }
-    }
-
-    [[nodiscard]] const SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX* Current() const {
-        return info_current_ptr_;
-    }
-private:
-    template <typename T>
-    static T* AdvanceBytes(T* p, SIZE_T cb) noexcept {
-        return reinterpret_cast<T*>(reinterpret_cast<BYTE*>(p) + cb);
-    }
-
-    DWORD remaining_;
-    SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX* info_base_ptr_;
-    SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX* info_current_ptr_;
-};
-
-static const char* CacheTypeString(int type) {
-    switch (type) {
-    case CacheUnified:
-        return "Unified";
-    case CacheInstruction:
-        return "Instruction";
-    case CacheData:
-        return "Data";
-    case CacheTrace:
-        return "Trace";
-default: 
-		return "Any";
-    }
-}
-
-static std::string PrintMask(KAFFINITY Mask) {
-    std::string mask;
-    for (int i = (sizeof(Mask) * 8) - 1; i >= 0; i--) {
-        if (Mask & (static_cast<KAFFINITY>(1) << i))
-            mask += "1";
-        else
-            mask += "0";
-    }
-    return mask;
-}
-
-void DumpProcessor() {
-    for (EnumLogicalProcessorInformation enum_info(RelationGroup);
-        const auto info = enum_info.Current(); enum_info.MoveNext()) {
-        XAMP_LOG_DEBUG("Active Group Count:      {}", info->Group.ActiveGroupCount);
-        XAMP_LOG_DEBUG("Maximum Group Count:     {}", info->Group.MaximumGroupCount);
-        XAMP_LOG_DEBUG("Active Processor Count:  {}", info->Group.GroupInfo->ActiveProcessorCount);
-        XAMP_LOG_DEBUG("Maximum Processor Count: {}", info->Group.GroupInfo->MaximumProcessorCount);
-        XAMP_LOG_DEBUG("Active Processor Mask:   {} (0x{:08X})", PrintMask(info->Group.GroupInfo->ActiveProcessorMask), info->Group.GroupInfo->ActiveProcessorMask);
-    }
-
-#if 0
-    for (EnumLogicalProcessorInformation enum_info(RelationNumaNode);
-        const auto info = enum_info.Current(); enum_info.MoveNext()) {
-        XAMP_LOG_DEBUG("Group                    {}", info->NumaNode.GroupMask.Group);
-        XAMP_LOG_DEBUG("Node Number:             {}", info->NumaNode.NodeNumber);
-        XAMP_LOG_DEBUG("NUMA Mask:               {}", PrintMask(info->NumaNode.GroupMask.Mask));
-    }
-
-    for (EnumLogicalProcessorInformation enum_info(RelationProcessorPackage);
-        const auto info = enum_info.Current(); enum_info.MoveNext()) {
-        for (UINT GroupIndex = 0; GroupIndex < info->Processor.GroupCount; GroupIndex++) {
-            XAMP_LOG_DEBUG("Group                    {}", info->Processor.GroupMask[GroupIndex].Group);
-            XAMP_LOG_DEBUG("Group Count:             {}", info->Processor.GroupCount);
-            XAMP_LOG_DEBUG("Node Number:             {}", static_cast<int>(info->NumaNode.NodeNumber));
-            XAMP_LOG_DEBUG("Efficiency Class:        {}", static_cast<int>(info->Processor.EfficiencyClass));
-            XAMP_LOG_DEBUG("Package Mask:            {}", PrintMask(pinfo->Processor.GroupMask[GroupIndex].Mask);
-        }
-    }
-#endif
-    XAMP_LOG_DEBUG("===========================");
-    int i = 0;
-    for (EnumLogicalProcessorInformation enum_info(RelationProcessorCore);
-        const auto info = enum_info.Current(); enum_info.MoveNext()) {
-        for (UINT GroupIndex = 0; GroupIndex < info->Processor.GroupCount; GroupIndex++) {
-            XAMP_LOG_DEBUG("Processor:               {}", i++);
-            XAMP_LOG_DEBUG("Group                    {}", info->Processor.GroupMask[GroupIndex].Group);
-            XAMP_LOG_DEBUG("Group Count:             {}", info->Processor.GroupCount);
-            XAMP_LOG_DEBUG("Node Number:             {}", static_cast<int>(info->NumaNode.NodeNumber));
-            XAMP_LOG_DEBUG("Efficiency Class:        {}", static_cast<int>(info->Processor.EfficiencyClass));
-            XAMP_LOG_DEBUG("Hyperthreaded:           {}", info->Processor.Flags ? "Yes" : "No");
-            XAMP_LOG_DEBUG("Processor Mask:          {} (0x{:08X})", PrintMask(info->Processor.GroupMask[GroupIndex].Mask), info->Processor.GroupMask[GroupIndex].Mask);
-            XAMP_LOG_DEBUG("===========================");
-        }
-    }
-#if 0
-    i = 0;
-    for (EnumLogicalProcessorInformation enum_info(RelationCache);
-        const auto info = enum_info.Current(); enum_info.MoveNext()) {
-        //for (UINT GroupIndex = 0; GroupIndex < info->Processor.GroupCount; GroupIndex++) {
-        XAMP_LOG_DEBUG("Group                    {}", info->Cache.GroupMask.Group);
-        XAMP_LOG_DEBUG("Cache:                   {}", i++);
-        XAMP_LOG_DEBUG("Cache Level:             {}", static_cast<int>(info->Cache.Level));
-        XAMP_LOG_DEBUG("Cache Type:              {}", CacheTypeString(info->Cache.Type));
-        XAMP_LOG_DEBUG("Line Size:               {}", static_cast<int>(info->Cache.LineSize));
-        XAMP_LOG_DEBUG("Cache Size:              {}", static_cast<int>(info->Cache.CacheSize));
-        XAMP_LOG_DEBUG("Associativity:           {}", static_cast<int>(info->Cache.Associativity));
-        XAMP_LOG_DEBUG("Cache Mask:              {}", PrintMask(info->Cache.GroupMask.Mask));
-        }
-    }
-#endif
-}
 #endif
 
 void SetThreadName(std::wstring const& name) noexcept {
@@ -442,12 +302,10 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
     if (priority != ThreadPriority::BACKGROUND) {
         if (!::SetThreadPriority(thread.native_handle(), thread_priority)) {
             XAMP_LOG_DEBUG("Failed to set thread priority! error:{}.", GetLastErrorMessage());
-        }
-        return;
-    }
-
+        }        
+    }    
     auto current_priority = ::GetThreadPriority(thread.native_handle());
-    //XAMP_LOG_DEBUG("Current thread priority is {}.", current_priority);
+    XAMP_LOG_DEBUG("Current thread priority is {}.", current_priority);
 #else
 #if !defined(PTHREAD_MIN_PRIORITY)
 #define PTHREAD_MIN_PRIORITY  0

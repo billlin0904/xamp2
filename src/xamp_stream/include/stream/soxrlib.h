@@ -21,6 +21,8 @@ class SoxrLib final {
 public:
     SoxrLib();
 
+    XAMP_DISABLE_COPY(SoxrLib)
+
 private:
     SharedLibraryHandle module_;
 

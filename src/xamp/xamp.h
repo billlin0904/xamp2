@@ -207,15 +207,6 @@ private:
 	PlaylistPage* createPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 
 	void pushWidget(QWidget* widget);
-
-	QWidget* popWidget();
-
-	QWidget* topWidget();
-
-	void goBackPage();
-
-	void getNextPage();
-
 	void setSeekPosValue(double stream_time_as_ms);
 
 	void resetSeekPosValue();
@@ -272,8 +263,7 @@ private:
 	QScopedPointer<FileSystemViewPage> file_system_view_page_;	
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
-	QScopedPointer<ExtractFileWorker> extract_file_worker_;
-    QStack<int32_t> stack_page_id_;
+	QScopedPointer<ExtractFileWorker> extract_file_worker_;    
     QThread background_thread_;
 	QThread find_album_cover_thread_;
 	QThread extract_file_thread_;

@@ -15,7 +15,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class R8brainLib {
+class R8brainLib final {
 public:
 	R8brainLib();
 

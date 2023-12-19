@@ -12,6 +12,10 @@ const std::string_view VERSION = "R8brain 6.2";
 
 class R8brainSampleRateConverter::R8brainSampleRateConverterImpl {
 public:
+	// The transition band is specified as the normalized spectral space
+	// of the input signal.
+	static constexpr double kReqTransBand = 2.5;
+
 	R8brainSampleRateConverterImpl()
 		: input_sample_rate_(0)
 		, output_sample_rate_(0) {
@@ -26,12 +30,12 @@ public:
 		handle_.reset(LIBR8_DLL.r8b_create(input_sample_rate,
 			output_sample_rate_,
 			kR8brainBufferSize,
-			2.5,
+			kReqTransBand,
 			ER8BResamplerRes::r8brr24));
 	}
 
 	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
-		XAMP_ASSERT(num_samples <= kR8brainBufferSize);
+		XAMP_EXPECTS(num_samples <= kR8brainBufferSize);
 		input_data_.resize(num_samples);
 
 		for (auto i = 0; i < num_samples; ++i) {
@@ -44,7 +48,7 @@ public:
 		                                               input_data_.size(),
 		                                               outbuff);
 
-		XAMP_ASSERT(outbuff != nullptr);
+		XAMP_ENSURES(outbuff != nullptr);
 
 		output.maybe_resize(read_samples);
 

@@ -59,7 +59,6 @@ IMPL_APP_SETTING_NAME(LyricsHighLightTextColor, "AppSettings/lyrics/highLightTex
 
 IMPL_APP_SETTING_NAME(FlacEncodingLevel, "AppSettings/flacEncodingLevel");
 
-IMPL_APP_SETTING_NAME(EnableBitPerfect, "AppSettings/enableBitPerfect");
 IMPL_APP_SETTING_NAME(EnableBlurCover, "AppSettings/enableBlurCover");
 
 IMPL_APP_SETTING_NAME(AppSettingEnableSpectrum, "AppSettings/spectrum/enable");;

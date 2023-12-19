@@ -476,7 +476,6 @@ void AppSettings::loadAppSettings() {
 	setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
 	setDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
 	setDefaultValue(kAppSettingEnableReplayGain, true);
-	setDefaultValue(kEnableBitPerfect, true);
 	setDefaultValue(kAppSettingWindowState, false);
 	setDefaultValue(kAppSettingScreenNumber, 1);
 	setDefaultValue(kAppSettingEnableSpectrum, true);
