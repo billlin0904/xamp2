@@ -678,6 +678,10 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     ui_.menuButton->setMenu(menu);
 
     onCheckForUpdate();
+
+    (void)QObject::connect(&ui_update_timer_timer_, &QTimer::timeout, this, &Xamp::performDelayedUpdate);
+    ui_update_timer_timer_.setInterval(3000);
+    ui_update_timer_timer_.start();
 }
 
 void Xamp::onRestartApp() {
@@ -1397,8 +1401,6 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::onProcessTrackInfo(int32_t total_album, int32_t total_tracks) {
-    album_page_->album()->reload();
-    getCurrentPlaylistPage()->playlist()->reload();
 }
 
 void Xamp::setupDsp(const PlayListEntity& item) const {
@@ -1445,7 +1447,7 @@ QString Xamp::translateErrorCode(const Errors error) const {
     return fromStdStringView(EnumToString(error));
 }
 
-void Xamp::SetupSampleWriter(ByteFormat byte_format,
+void Xamp::setupSampleWriter(ByteFormat byte_format,
     PlaybackFormat& playback_format) const {
     player_->GetDspManager()->SetSampleWriter();
     player_->PrepareToPlay(byte_format);
@@ -1495,6 +1497,12 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
             player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
             };
     }
+}
+
+void Xamp::performDelayedUpdate() {
+    cd_page_->playlistPage()->playlist()->reload();
+    album_page_->album()->reload();
+    getCurrentPlaylistPage()->playlist()->reload();
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -1588,7 +1596,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             }
         }
 
-        SetupSampleWriter(byte_format, playback_format);
+        setupSampleWriter(byte_format, playback_format);
 
         playback_format.bit_rate = entity.bit_rate;
         if (sample_rate_converter_type == kR8Brain) {

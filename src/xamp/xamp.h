@@ -98,7 +98,10 @@ signals:
 
 	void updateNewVersion(const Version &version);
 public slots:
+	void performDelayedUpdate();
+
     void onPlayEntity(const PlayListEntity& entity);
+
 	void ensureOnePlaylistPage();
 
 	void onPlayPlayListEntity(const PlayListEntity& entity);
@@ -239,7 +242,7 @@ private:
 
 	QString translateErrorCode(const Errors error) const;
 
-	void SetupSampleWriter(ByteFormat byte_format,
+	void setupSampleWriter(ByteFormat byte_format,
 		PlaybackFormat& playback_format) const;
 
 	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
@@ -274,6 +277,7 @@ private:
     QThread background_thread_;
 	QThread find_album_cover_thread_;
 	QThread extract_file_thread_;
+	QTimer ui_update_timer_timer_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;
