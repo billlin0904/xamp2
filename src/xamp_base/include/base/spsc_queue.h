@@ -13,10 +13,10 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-template <typename Type>
+template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT SpscQueue {
 public:
-    using Allocator = std::allocator<Type>;
+    using Allocator = std::allocator<T>;
 
     explicit SpscQueue(size_t capacity)
         : capacity_(capacity)
@@ -28,8 +28,8 @@ public:
         }
         slots_ = std::allocator_traits<Allocator>::allocate(allocator_,
                                                             capacity_ + 2 * kPadding);
-        static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize);
-        static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize);
+        static_assert(alignof(SpscQueue<T>) == kCacheAlignSize);
+        static_assert(sizeof(SpscQueue<T>) >= 3 * kCacheAlignSize);
         XAMP_ASSERT(reinterpret_cast<char *>(&tail_) -
                reinterpret_cast<char *>(&head_) >=
                static_cast<std::ptrdiff_t>(kCacheAlignSize));
@@ -61,7 +61,7 @@ public:
         return static_cast<size_t>(diff);
     }
 
-    bool TryPush(const Type &v) noexcept {
+    bool TryPush(const T &v) noexcept {
         return TryEnqueue(v);
     }
 
@@ -75,12 +75,12 @@ public:
         if (next_head == tail_.load(std::memory_order_acquire)) {
             return false;
         }
-        new (&slots_[head + kPadding]) Type(std::forward<Args>(args)...);
+        new (&slots_[head + kPadding]) T(std::forward<Args>(args)...);
         head_.store(next_head, std::memory_order_release);
         return true;
     }
 
-    Type *Front() noexcept {
+    T *Front() noexcept {
         auto const tail = tail_.load(std::memory_order_relaxed);
         if (head_.load(std::memory_order_acquire) == tail) {
             return nullptr;
@@ -102,10 +102,10 @@ public:
     XAMP_DISABLE_COPY(SpscQueue)
 
 private:
-    static constexpr size_t kPadding = (kCacheAlignSize - 1) / sizeof(Type) + 1;
+    static constexpr size_t kPadding = (kCacheAlignSize - 1) / sizeof(T) + 1;
 
     size_t capacity_;
-    Type *slots_;
+    T *slots_;
     Allocator allocator_;
 
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;

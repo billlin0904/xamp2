@@ -39,7 +39,7 @@ public:
 		flag_.store(0, std::memory_order_release);
 	}
 private:
-	std::atomic<uint32_t> flag_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> flag_;
 };
 
 XAMP_BASE_NAMESPACE_END

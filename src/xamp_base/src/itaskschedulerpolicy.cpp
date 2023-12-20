@@ -38,7 +38,7 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 			continue;
 		}
 		auto& queue = task_work_queues.at(current);
-		if (queue->TryEnqueue(task)) {
+		if (queue->TryEnqueue(std::forward<MoveOnlyFunction>(task))) {
 			thread_execute_flags[current] = flags;
 			return;
 		}

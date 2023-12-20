@@ -135,13 +135,11 @@ private:
 	* @return the available read size.
 	*/
     size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
-    
-	Buffer<T> buffer_;	
-	size_t size_;		
+
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-	// Padding to avoid false sharing.
-	uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
+	Buffer<T> buffer_;
 };
 
 template <typename Type, typename U>

@@ -18,7 +18,7 @@
 #include <base/rcu_ptr.h>
 #include <base/uuidof.h>
 #include <base/sfc64.h>
-
+#include <base/mpmc_queue.h>
 #include <stream/fft.h>
 
 #include <player/api.h>
@@ -609,24 +609,102 @@ static void BM_UuidCompilerTime(benchmark::State& state) {
     }
 }
 
-static void BM_FastMutex(benchmark::State& state) {
-    static FastMutex m;
+static void BM_MpmcQueue(benchmark::State& state) {
+    static MpmcQueue<int>* queue;
+    static std::vector<std::jthread> writer_thread;
+    static std::atomic<bool> is_stop{ false };
+    if (state.thread_index == 0) {
+        // Setup code here.
+        queue = new MpmcQueue<int>(512);
+        for (auto i = 0; i < 8; ++i) {
+            writer_thread.emplace_back([&]() {
+                while (!is_stop) {
+                    queue->TryEnqueue(1);
+                }
+                });
+        }
+    }
     for (auto _ : state) {
-        m.lock();
-        m.unlock();
+        int element;
+        queue->TryDequeue(element);
+    }
+    if (state.thread_index == 0) {
+        // Teardown code here.
+        is_stop = true;
+        writer_thread.clear();
+        delete queue;
+    }
+}
+
+static void BM_BlockingQueue(benchmark::State& state) {
+    static BlockingQueue<int>* queue;
+    static std::vector<std::jthread> writer_thread;
+    static std::atomic<bool> is_stop{ false };
+    if (state.thread_index == 0) {
+        // Setup code here.
+        queue = new BlockingQueue<int>(512);
+        for (auto i = 0; i < 8; ++i) {
+            writer_thread.emplace_back([&]() {
+                while (!is_stop) {
+                    queue->TryEnqueue(1);
+                }
+                });
+        }        
+    }
+    for (auto _ : state) {
+        int element;
+        queue->TryDequeue(element);
+    }
+    if (state.thread_index == 0) {
+        // Teardown code here.
+        is_stop = true;
+        writer_thread.clear();
+        delete queue;
+    }
+}
+
+static void BM_FastMutex(benchmark::State& state) {
+    static FastMutex *m;
+    if (state.thread_index == 0) {
+        // Setup code here.
+        m = new FastMutex();
+    }
+    for (auto _ : state) {
+        m->lock();
+        m->unlock();
+    }
+    if (state.thread_index == 0) {
+        // Teardown code here.
+        delete m;
     }
 }
 
 static void BM_Spinlock(benchmark::State& state) {
-    static Spinlock l;
+    static Spinlock *m;
+    if (state.thread_index == 0) {
+        // Setup code here.
+        m = new Spinlock();
+    }
     for (auto _ : state) {
-        l.lock();
-        l.unlock();
+        m->lock();
+        m->unlock();
+    }
+    if (state.thread_index == 0) {
+        // Teardown code here.
+        delete m;
     }
 }
 
-BENCHMARK(BM_FastMutex)->ThreadRange(1, 32);
-BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
+BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
+
+BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 32);
+BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 32);
+
+BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
+BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
@@ -666,15 +744,6 @@ BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
-
-//BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
-//BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
-//BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
-
-BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 //#ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
