@@ -94,8 +94,8 @@ AlignPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
 }
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {
-    //return MakeAlign<IAudioProcessor, BassEqualizer>();
-    return MakeAlign<IAudioProcessor, SuperEqEqualizer>();
+    return MakeAlign<IAudioProcessor, BassEqualizer>();
+    //return MakeAlign<IAudioProcessor, SuperEqEqualizer>();
 }
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeCompressor() {

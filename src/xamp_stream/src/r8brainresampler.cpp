@@ -1,6 +1,8 @@
 #include <stream/r8brainresampler.h>
 
 #include <stream/r8brainlib.h>
+#include <r8bbase.h>
+
 #include <base/assert.h>
 #include <base/logger_impl.h>
 
@@ -8,7 +10,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 #define LIBR8_DLL Singleton<R8brainLib>::GetInstance()
 
-const std::string_view VERSION = "R8brain 6.2";
+const std::string_view VERSION = "R8brain " R8B_VERSION;
 
 class R8brainSampleRateConverter::R8brainSampleRateConverterImpl {
 public:

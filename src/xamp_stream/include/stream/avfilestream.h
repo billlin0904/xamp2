@@ -20,6 +20,8 @@ class XAMP_STREAM_API AvFileStream final : public FileStream {
 	XAMP_DECLARE_MAKE_CLASS_UUID(AvFileStream, "D59756C0-19CE-4E4B-BC83-6616BBB2930B")
 
 public:
+	constexpr static auto Description = std::string_view("AvFileStream");
+
 	AvFileStream();
 
 	XAMP_PIMPL(AvFileStream)

@@ -423,7 +423,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	XAMP_LOG_D(logger_, "IO format :{} ", io_format_);
 	XAMP_LOG_D(logger_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
 	XAMP_LOG_D(logger_, "Output latency: {} msec.", latency_);	
-	XAMP_LOG_D(logger_, "Drvier support post output: {}", ASIODriver.post_output);
+	XAMP_LOG_D(logger_, "Driver support post output: {}", ASIODriver.post_output);
 }
 
 uint32_t AsioDevice::GetVolume() const {

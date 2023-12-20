@@ -18,6 +18,8 @@ class BassEqualizer final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassEqualizer, "FCC73B23-6806-44CD-882D-EA21A3482F51")
 
 public:
+    constexpr static auto Description = std::string_view("BassEqualizer");
+
     BassEqualizer();
 
     XAMP_PIMPL(BassEqualizer)

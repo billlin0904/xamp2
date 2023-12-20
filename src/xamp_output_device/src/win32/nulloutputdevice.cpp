@@ -137,6 +137,7 @@ bool NullOutputDevice::IsStreamRunning() const noexcept {
 }
 
 void NullOutputDevice::AbortStream() noexcept {
+	is_running_ = false;
 }
 
 void NullOutputDevice::SetIoFormat(DsdIoFormat format) {

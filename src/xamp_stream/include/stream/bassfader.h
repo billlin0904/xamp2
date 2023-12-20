@@ -18,6 +18,8 @@ class XAMP_STREAM_API BassFader final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassFader, "6981FB2E-E133-4B33-9378-F23628EEE4FE")
 
 public:
+    constexpr static auto Description = std::string_view("BassFader");
+
     BassFader();
 
     XAMP_PIMPL(BassFader)

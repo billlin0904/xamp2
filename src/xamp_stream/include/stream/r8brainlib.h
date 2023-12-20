@@ -11,7 +11,7 @@
 #include <base/logger_impl.h>
 
 #include <stream/stream.h>
-#include <r8bsrc.h>
+#include <DLL/r8bsrc.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

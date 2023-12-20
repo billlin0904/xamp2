@@ -18,6 +18,8 @@ class BassVolume final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassVolume, "83d25234-5484-45a3-bda8-baf35541f9d2")
 
 public:
+    constexpr static auto Description = std::string_view("BassVolume");
+
     BassVolume();
 
     XAMP_PIMPL(BassVolume)

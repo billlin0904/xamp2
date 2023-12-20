@@ -82,8 +82,6 @@ signals:
 
 	void currentThemeChanged(ThemeColor theme_color);
 
-	void nowPlaying(QString const& artist, QString const& title);
-
 	void blurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
 	void fetchCdInfo(const DriveInfo& drive);

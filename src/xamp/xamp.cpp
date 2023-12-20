@@ -790,7 +790,6 @@ void Xamp::initialUi() {
     f.setWeight(QFont::Normal);
     f.setPointSize(qTheme.fontSize(6));
     ui_.artistLabel->setFont(f);    
-    //ui_.bitPerfectButton->setFont(f);
 
     QFont format_font(qTEXT("FormatFont"));
     format_font.setWeight(QFont::Normal);
@@ -967,7 +966,6 @@ void Xamp::initialController() {
     });
 
     qTheme.setHeartButton(ui_.heartButton);
-    //qTheme.setBitPerfectButton(ui_.bitPerfectButton, qAppSettings.valueAsBool(kEnableBitPerfect));
 
     (void)QObject::connect(ui_.heartButton, &QToolButton::clicked, [this]() {
         if (!current_entity_) {
@@ -981,12 +979,6 @@ void Xamp::initialController() {
         getCurrentPlaylistPage()->setHeart(current_entity_.value().heart);
         getCurrentPlaylistPage()->playlist()->reload();
         });
-
-    /*(void)QObject::connect(ui_.bitPerfectButton, &QToolButton::clicked, [this]() {
-	    const auto enable_or_disable = !qAppSettings.valueAsBool(kEnableBitPerfect);
-        qAppSettings.setValue(kEnableBitPerfect, enable_or_disable);
-        qTheme.setBitPerfectButton(ui_.bitPerfectButton, enable_or_disable);
-    });*/
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
@@ -1058,10 +1050,12 @@ void Xamp::initialController() {
         }
         //MaskWidget mask_widget(this);
         QScopedPointer<XDialog> dialog(new XDialog(this));        
-        QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
+        //QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
+        QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
         dialog->setContentWidget(eq.get(), false);
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
-        dialog->setTitle(tr("SuperEQ"));
+        //dialog->setTitle(tr("SuperEQ"));
+        dialog->setTitle(tr("EQ"));
         dialog->exec();
     });
 
@@ -1480,7 +1474,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 
 void Xamp::performDelayedUpdate() {
     cd_page_->playlistPage()->playlist()->reload();
-    album_page_->album()->reload();
+    album_page_->refresh();
     if (tab_widget_->count() > 0) {
         getCurrentPlaylistPage()->playlist()->reload();
     }    
@@ -1619,22 +1613,27 @@ void Xamp::updateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     ensureOnePlaylistPage();
 
+    auto* playlist_page = qobject_cast<PlaylistPage*>(sender());
+    if (playlist_page != nullptr) {
+        onSetCover(item.cover_id, playlist_page);
+    }
+    else {
+        playlist_page = getCurrentPlaylistPage();
+    }
+    
     if (last_play_list_ != nullptr) {
         if (last_play_list_ != getCurrentPlaylistPage()->playlist()) {
             last_play_list_->removePlaying();
         }
     }
 
-    last_play_list_ = getCurrentPlaylistPage()->playlist();
-    getCurrentPlaylistPage()->format()->setText(format2String(playback_format, ext));
-    getCurrentPlaylistPage()->title()->setText(item.title);
-    getCurrentPlaylistPage()->setHeart(item.heart);
+    last_play_list_ = playlist_page->playlist();
+    playlist_page->format()->setText(format2String(playback_format, ext));
+    playlist_page->title()->setText(item.title);
+    playlist_page->setHeart(item.heart);
 
     album_page_->album()->setPlayingAlbumId(item.album_id);
     updateButtonState();
-    emit nowPlaying(item.artist, item.title);
-
-    onSetCover(item.cover_id, getCurrentPlaylistPage());
 
     const QFontMetrics title_metrics(ui_.titleLabel->font());
     const QFontMetrics artist_metrics(ui_.artistLabel->font());
@@ -1758,8 +1757,7 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
     main_window_->setIconicThumbnail(cover);
 }
 
-void Xamp::onPlayPlayListEntity(const PlayListEntity& entity) {
-    auto *playlist_page = qobject_cast<PlaylistPage*>(sender());
+void Xamp::onPlayPlayListEntity(const PlayListEntity& entity) {    
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
     onPlayEntity(entity);
@@ -1885,18 +1883,15 @@ void Xamp::initialPlaylist() {
             last_play_list_ = nullptr;
         });    
 
-    if (!file_system_view_page_) {
-        file_system_view_page_.reset(new FileSystemViewPage(this));
-    }
+    file_system_view_page_.reset(new FileSystemViewPage(this));
 
-    if (!cd_page_) {
-        cd_page_.reset(new CdPage(this));
-        cd_page_->playlistPage()->playlist()->setPlaylistId(kDefaultCdPlaylistId, kAppSettingCdPlaylistColumnName);
-        cd_page_->playlistPage()->playlist()->setHeaderViewHidden(false);
-        cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
-        onSetCover(kEmptyString, cd_page_->playlistPage());
-        connectPlaylistPageSignal(cd_page_->playlistPage());
-    }
+    cd_page_.reset(new CdPage(this));
+    cd_page_->playlistPage()->playlist()->setPlaylistId(kDefaultCdPlaylistId, kAppSettingCdPlaylistColumnName);
+    cd_page_->playlistPage()->playlist()->setHeaderViewHidden(false);
+    cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
+
+    onSetCover(kEmptyString, cd_page_->playlistPage());
+    connectPlaylistPageSignal(cd_page_->playlistPage());
 
     (void)QObject::connect(this,
         &Xamp::blurImage,
@@ -2270,16 +2265,17 @@ void Xamp::onReadFileProgress(int32_t progress) {
     read_progress_dialog_->setValue(progress);    
 }
 
-void Xamp::onReadCompleted() {    
-    album_page_->refresh();
-    getCurrentPlaylistPage()->playlist()->reload();
+void Xamp::onReadCompleted() {
+    ui_update_timer_timer_.stop();
     delay(1);
+    if (tab_widget_->count() > 0) {
+        getCurrentPlaylistPage()->playlist()->reload();
+    }
     if (!read_progress_dialog_) {
         return;
     }
     read_progress_dialog_->close();
-    read_progress_dialog_.reset();
-    ui_update_timer_timer_.stop();
+    read_progress_dialog_.reset();    
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    

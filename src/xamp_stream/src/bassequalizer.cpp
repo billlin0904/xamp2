@@ -34,8 +34,6 @@ public:
         const auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
         BASS_IF_FAILED_THROW(fx_handle);
 
-        //Q = 1.4;
-
         BASS_BFX_PEAKEQ eq{};
         eq.lBand = i;
         eq.fCenter = freq;
@@ -140,7 +138,7 @@ Uuid BassEqualizer::GetTypeId() const {
 }
 
 std::string_view BassEqualizer::GetDescription() const noexcept {
-    return "BassEqualizer";
+    return Description;
 }
 
 XAMP_STREAM_NAMESPACE_END

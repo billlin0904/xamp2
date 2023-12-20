@@ -392,7 +392,7 @@ void AvFileStream::SeekAsSeconds(double stream_time) const {
 }
 
 std::string_view AvFileStream::GetDescription() const noexcept {
-    return "AvFileStream";
+    return Description;
 }
 
 uint32_t AvFileStream::GetSampleSize() const noexcept {

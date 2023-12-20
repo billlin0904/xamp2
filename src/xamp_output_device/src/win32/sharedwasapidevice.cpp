@@ -466,6 +466,7 @@ HRESULT SharedWasapiDevice::GetSample(bool is_silence) noexcept {
 }
 
 void SharedWasapiDevice::AbortStream() noexcept {
+	is_running_ = false;
 }
 
 bool SharedWasapiDevice::IsHardwareControlVolume() const {

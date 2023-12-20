@@ -71,7 +71,7 @@ Uuid BassVolume::GetTypeId() const {
 }
 
 std::string_view BassVolume::GetDescription() const noexcept {
-    return "BassVolume";
+    return Description;
 }
 
 XAMP_STREAM_NAMESPACE_END

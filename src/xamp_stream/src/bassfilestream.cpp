@@ -379,7 +379,7 @@ uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcep
 }
 
 std::string_view BassFileStream::GetDescription() const noexcept {
-    return "BassFileStream";
+    return Description;
 }
 
 void BassFileStream::SetDSDMode(DsdModes mode) noexcept {

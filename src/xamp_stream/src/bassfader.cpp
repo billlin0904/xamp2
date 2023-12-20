@@ -72,7 +72,7 @@ Uuid BassFader::GetTypeId() const {
 }
 
 std::string_view BassFader::GetDescription() const noexcept {
-    return "BassFader";
+    return Description;
 }
 
 bool BassFader::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
