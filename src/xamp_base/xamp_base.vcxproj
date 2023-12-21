@@ -187,7 +187,6 @@
     <ClInclude Include="include\base\scopeguard.h" />
     <ClInclude Include="include\base\singleton.h" />
     <ClInclude Include="include\base\spinlock.h" />
-    <ClInclude Include="include\base\spsc_queue.h" />
     <ClInclude Include="include\base\stl.h" />
     <ClInclude Include="include\base\align_ptr.h" />
     <ClInclude Include="include\base\audiobuffer.h" />

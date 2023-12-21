@@ -695,16 +695,16 @@ static void BM_Spinlock(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
+//BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
+
+//BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
 
-BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 32);
-BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 32);
-
-BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
-BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);
+//BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
+//BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);

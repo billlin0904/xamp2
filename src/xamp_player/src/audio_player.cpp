@@ -286,11 +286,8 @@ void AudioPlayer::SetState(const PlayerState play_state) {
 
 void AudioPlayer::ReadPlayerAction() {
     while (!action_queue_.empty()) {
-        if (const auto* msg = action_queue_.Front()) {
+        if (const auto msg = action_queue_.TryDequeue()) {
             try {
-                XAMP_ON_SCOPE_EXIT({
-					action_queue_.Pop();
-                });
                 switch (msg->id) {
                 case PlayerActionId::PLAYER_SEEK:
                 {
@@ -300,11 +297,12 @@ void AudioPlayer::ReadPlayerAction() {
                 }
                 break;
                 }
-            } catch (std::exception const &e) {
+            }
+            catch (std::exception const& e) {
                 XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg->id), e.what());
             }
         }
-	}    
+    }
 }
 	
 void AudioPlayer::Pause() {
@@ -675,7 +673,7 @@ void AudioPlayer::Seek(double stream_time) {
 
     if (device_->IsStreamOpen()) {
         read_finish_and_wait_seek_signal_cond_.notify_one();
-        action_queue_.TryPush(PlayerAction{
+        action_queue_.TryEnqueue(PlayerAction{
             PlayerActionId::PLAYER_SEEK,
             stream_time
             });

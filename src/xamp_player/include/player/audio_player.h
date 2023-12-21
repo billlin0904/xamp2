@@ -15,7 +15,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
 #include <base/uuid.h>
-#include <base/spsc_queue.h>
+#include <base/mpmc_queue.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
@@ -368,7 +368,7 @@ private:
     Buffer<int8_t> read_buffer_;
     std::optional<DeviceInfo> device_info_;    
     Task<void> stream_task_;
-    SpscQueue<PlayerAction> action_queue_;
+    MpmcQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
     AnyMap config_;

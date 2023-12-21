@@ -12,11 +12,11 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-enum State : uint8_t {
-	EMPTY,
-	STORING,
-	STORED,
-	LOADING
+enum MpmcState : uint8_t {
+	MPMC_Q_EMPTY,
+	MPMC_Q_STORING,
+	MPMC_Q_STORED,
+	MPMC_Q_LOADING
 };
 
 namespace LockFree {
@@ -38,18 +38,18 @@ namespace LockFree {
 	template <typename T>
 	T DequeueWait(std::atomic<uint8_t>& state, T& queue) noexcept {
 		for (;;) {
-			uint8_t expected = STORED;
+			uint8_t expected = MPMC_Q_STORED;
 
-			XAMP_LIKELY(state.compare_exchange_weak(expected, LOADING, std::memory_order_acquire, std::memory_order_relaxed)) {
+			XAMP_LIKELY(state.compare_exchange_weak(expected, MPMC_Q_LOADING, std::memory_order_acquire, std::memory_order_relaxed)) {
 				T element{ std::move(queue) };
-				state.store(EMPTY, std::memory_order_release);
+				state.store(MPMC_Q_EMPTY, std::memory_order_release);
 				return element;
 			}
 
 			// Do speculative loads while busy-waiting to avoid broadcasting RFO messages.
 			do
 				CpuRelax();
-			while (state.load(std::memory_order_relaxed) != STORED);
+			while (state.load(std::memory_order_relaxed) != MPMC_Q_STORED);
 		}
 	}
 
@@ -69,18 +69,18 @@ namespace LockFree {
 	template <typename U, typename T>
 	void EnqueueWait(U&& element, std::atomic<uint8_t>& state, T& queue) noexcept {
 		for (;;) {
-			uint8_t expected = EMPTY;
+			uint8_t expected = MPMC_Q_EMPTY;
 
-			XAMP_LIKELY(state.compare_exchange_weak(expected, STORING, std::memory_order_acquire, std::memory_order_relaxed)) {
+			XAMP_LIKELY(state.compare_exchange_weak(expected, MPMC_Q_STORING, std::memory_order_acquire, std::memory_order_relaxed)) {
 				queue = std::forward<U>(element);
-				state.store(STORED, std::memory_order_release);
+				state.store(MPMC_Q_STORED, std::memory_order_release);
 				return;
 			}
 
 			// Do speculative loads while busy-waiting to avoid broadcasting RFO messages.
 			do
 				CpuRelax();
-			while (state.load(std::memory_order_relaxed) != EMPTY);
+			while (state.load(std::memory_order_relaxed) != MPMC_Q_EMPTY);
 		}
 	}
 }
@@ -88,28 +88,31 @@ namespace LockFree {
 template <typename Type>
 class XAMP_BASE_API_ONLY_EXPORT MpmcQueue {
 public:
+	using QueueAllocator = std::allocator<Type>;
+	using StateAllocator = std::allocator<std::atomic<uint8_t>>;
+
+	using QueueAllocatorTraits = std::allocator_traits<QueueAllocator>;
+	using StateAllocatorTraits = std::allocator_traits<StateAllocator>;
+
 	explicit MpmcQueue(size_t capacity)
-		: capacity_(capacity)
+		: capacity_(NextPowerOfTwo(capacity))
 		, head_(0)
 		, tail_(0) {
-		states_ = std::allocator_traits<std::allocator<std::atomic<uint8_t>>>::allocate(state_allocator_, capacity_);
-		queue_ = std::allocator_traits<std::allocator<Type>>::allocate(allocator_, capacity_);
+		XAMP_EXPECTS(capacity > 0);
+		states_ = StateAllocatorTraits::allocate(state_allocator_, capacity_);
+		queue_ = QueueAllocatorTraits::allocate(queue_allocator_, capacity_);
 		for (size_t i = 0; i < capacity_; ++i) {
-			new (&queue_[i]) Type();
+			QueueAllocatorTraits::construct(queue_allocator_, &queue_[i]);
 		}
 		for (size_t i = 0; i < capacity_; ++i) {
-			states_[i].store(State::EMPTY);
+			states_[i].store(MpmcState::MPMC_Q_EMPTY);
 		}
 	}
 
 	~MpmcQueue() {
 		clear();
-		std::allocator_traits<std::allocator<std::atomic<uint8_t>>>::deallocate(state_allocator_,
-			states_,
-			capacity_);
-		std::allocator_traits<std::allocator<Type>>::deallocate(allocator_,
-			queue_,
-			capacity_);
+		StateAllocatorTraits::deallocate(state_allocator_, states_, capacity_);
+		QueueAllocatorTraits::deallocate(queue_allocator_, queue_, capacity_);
 	}
 
 	void clear() {
@@ -171,12 +174,12 @@ public:
 		return DoDequeue(tail);
 	}
 
-	bool empty() const noexcept {
+	[[nodiscard]] bool empty() const noexcept {
 		return size() == 0;
 	}
 
-	size_t size() const noexcept {
-		std::ptrdiff_t diff = head_.load(std::memory_order_acquire) -
+	[[nodiscard]] size_t size() const noexcept {
+		ptrdiff_t diff = head_.load(std::memory_order_acquire) -
 			tail_.load(std::memory_order_acquire);
 		if (diff < 0) {
 			diff += capacity_;
@@ -186,12 +189,12 @@ public:
 
 private:
 	template <typename U>
-	void DoEnqueue(U&& element, size_t head) {
+	void DoEnqueue(U&& element, size_t head) noexcept {
 		const auto index = head % capacity_;
 		LockFree::EnqueueWait(std::forward<U>(element), states_[index], queue_[index]);
 	}
 
-	Type DoDequeue(size_t tail) {
+	Type DoDequeue(size_t tail) noexcept {
 		const auto index = tail % capacity_;
 		auto temp = LockFree::DequeueWait(states_[index], queue_[index]);
 		queue_[index].~Type();
@@ -201,11 +204,10 @@ private:
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) size_t capacity_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-	std::allocator<Type> allocator_;
-	std::allocator<std::atomic<uint8_t>> state_allocator_;
+	QueueAllocator queue_allocator_;
+	StateAllocator state_allocator_;
 	std::atomic<uint8_t>* states_;
 	Type* queue_;
-	//Vector<Type> queue_;
 };
 
 
