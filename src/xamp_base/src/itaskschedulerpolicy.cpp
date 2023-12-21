@@ -3,19 +3,13 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-#ifdef XAMP_OS_WIN
-#define XAMP_NO_TLS_GUARDS [[msvc::no_tls_guard]]
-#else
-#define XAMP_NO_TLS_GUARDS
-#endif
-
 AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy) {
 	switch (policy) {
 	case TaskSchedulerPolicy::ROUND_ROBIN_POLICY:
 		return MakeAlign<ITaskSchedulerPolicy, RoundRobinSchedulerPolicy>();
 	case TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY:
 	default:
-		return MakeAlign<ITaskSchedulerPolicy, ThreadLocalRandomSchedulerPolicy>();
+		return MakeAlign<ITaskSchedulerPolicy, RandomSchedulerPolicy>();
 	}
 }
 
@@ -40,6 +34,7 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 		auto& queue = task_work_queues.at(current);
 		if (queue->TryEnqueue(std::forward<MoveOnlyFunction>(task))) {
 			thread_execute_flags[current] = flags;
+			task_pool->Wakeup(); // ¥ß§Y³ê¿ôshared queue
 			return;
 		}
 	}
@@ -62,21 +57,23 @@ void RoundRobinSchedulerPolicy::SetMaxThread(size_t max_thread) {
 	max_thread_ = max_thread;
 }
 
-void ThreadLocalRandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
+void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 	max_thread_ = max_thread;
+	for (size_t i = 0; i < max_thread_; ++i) {
+		prngs_.push_back(MakeRandomEngine());
+	}
 }
 
-size_t ThreadLocalRandomSchedulerPolicy::ScheduleNext(size_t index,
+size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
 	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
 	const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();		
 	uint32_t random_index = 0;
 	while (true) {
-		random_index = prng() % static_cast<uint32_t>(max_thread_);
+		random_index = prngs_[index]() % static_cast<uint32_t>(max_thread_);
 		if (thread_execute_flags[random_index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			// Avoid self stealing
 			if (random_index == index) {
-				return (std::numeric_limits<size_t>::max)();
+				return kInvalidScheduleIndex;
 			}
 			return random_index;
 		}		

@@ -232,6 +232,10 @@ public:
         return queue_.size();
     }
 
+    void Wakeup() {
+        notify_.notify_all();
+    }
+
 private:
     std::atomic<bool> done_;
     mutable Mutex mutex_;

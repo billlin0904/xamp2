@@ -232,7 +232,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			// Try to get a task from the global queue
 			if (!task) {
 				const auto steal_index = policy->ScheduleNext(i, task_work_queues_, task_execute_flags_);				
-				if (steal_index != (std::numeric_limits<size_t>::max)()) {
+				if (steal_index != kInvalidScheduleIndex) {
 					// Try to steal a task from another thread's queue
 					task = TrySteal(stop_token, steal_index);
 				}

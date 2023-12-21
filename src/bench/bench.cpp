@@ -40,12 +40,9 @@ using namespace xamp::player;
 using namespace xamp::base;
 using namespace xamp::stream;
 
-XAMP_DECLARE_LOG_NAME(BM_RcuPtr);
-XAMP_DECLARE_LOG_NAME(BM_LeastLoadPolicyThreadPool);
-XAMP_DECLARE_LOG_NAME(BM_RobinStealPolicyThreadPool);
-XAMP_DECLARE_LOG_NAME(BM_RandomPolicyThreadPool);
-
 static void BM_RcuPtr(benchmark::State& state) {
+    constexpr std::string_view kBM_RcuPtrLoggerName = "BM_RcuPtr";
+
     const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
     LoggerManager::GetInstance().GetLogger(kBM_RcuPtrLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
@@ -63,8 +60,10 @@ static void BM_RcuPtr(benchmark::State& state) {
 }
 
 static void BM_RcuPtrMutex(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
-    LoggerManager::GetInstance().GetLogger(kBM_RcuPtrLoggerName)
+    constexpr std::string_view kBM_RcuPtrMutexLoggerName = "BM_RcuPtrMutex";
+
+    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrMutexLoggerName);
+    LoggerManager::GetInstance().GetLogger(kBM_RcuPtrMutexLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -92,6 +91,8 @@ static void BM_BaseLineThreadPool(benchmark::State& state) {
 }
 
 static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
+    constexpr std::string_view kBM_LeastLoadPolicyThreadPoolLoggerName = "BM_RoundRobinPolicyThreadPool";
+
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_LeastLoadPolicyThreadPoolLoggerName,
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
@@ -109,11 +110,13 @@ static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
 }
 
 static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
+    constexpr std::string_view kBM_ThreadLocalRandomPolicyThreadPoolLoggerName = "BM_ThreadLocalRandomPolicyThreadPool";
+
     const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_RandomPolicyThreadPoolLoggerName,
+        kBM_ThreadLocalRandomPolicyThreadPoolLoggerName,
         TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY);
 
-    LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
+    LoggerManager::GetInstance().GetLogger(kBM_ThreadLocalRandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -695,11 +698,11 @@ static void BM_Spinlock(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
+//BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-//BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
 

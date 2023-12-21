@@ -17,7 +17,7 @@ class Logger;
 
 using LoggerPtr = std::shared_ptr<Logger>;
 
-#define XAMP_DECLARE_LOG_NAME(LogName) inline const std::string_view k##LogName##LoggerName(#LogName)
+#define XAMP_DECLARE_LOG_NAME(LogName) inline constexpr std::string_view k##LogName##LoggerName(#LogName)
 
 XAMP_DECLARE_LOG_NAME(Xamp);
 XAMP_DECLARE_LOG_NAME(CoreAudio);

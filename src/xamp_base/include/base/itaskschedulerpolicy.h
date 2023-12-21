@@ -13,6 +13,8 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+inline constexpr auto kInvalidScheduleIndex = (std::numeric_limits<size_t>::max)();
+
 class XAMP_BASE_API XAMP_NO_VTABLE ITaskSchedulerPolicy {
 public:
     XAMP_BASE_CLASS(ITaskSchedulerPolicy)
@@ -67,7 +69,7 @@ private:
     size_t max_thread_{ 0 };
 };
 
-class ThreadLocalRandomSchedulerPolicy final : public ITaskSchedulerPolicy {
+class RandomSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     void SetMaxThread(size_t max_thread) override;
 
@@ -76,6 +78,7 @@ public:
         const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) override;
 private:
     size_t max_thread_{ 0 };
+    Vector<Sfc64Engine<>> prngs_;
 };
 
 XAMP_BASE_NAMESPACE_END

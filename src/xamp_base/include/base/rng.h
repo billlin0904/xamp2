@@ -81,11 +81,11 @@ public:
         return engine_;
     }
 
-    std::string GetRandomString(size_t size);
-
-    static Sfc64Engine<> MakeRandomEngine();
+    std::string GetRandomString(size_t size);    
 private:
     Sfc64Engine<> engine_;
 };
+
+Sfc64Engine<> MakeRandomEngine();
 
 XAMP_BASE_NAMESPACE_END

@@ -4,11 +4,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-PRNG::PRNG() noexcept
-    : engine_(MakeRandomEngine()) {
-}
-
-Sfc64Engine<> PRNG::MakeRandomEngine() {
+Sfc64Engine<> MakeRandomEngine() {
     Sfc64Engine<> engine;
 
     // https://github.com/sevmeyer/prng/blob/master/include/prng/prng.hpp
@@ -29,6 +25,10 @@ Sfc64Engine<> PRNG::MakeRandomEngine() {
 
     engine.seed(a, b, c, 18);
     return engine;
+}
+
+PRNG::PRNG() noexcept
+    : engine_(MakeRandomEngine()) {
 }
 
 void PRNG::SetSeed(uint64_t seed) {
