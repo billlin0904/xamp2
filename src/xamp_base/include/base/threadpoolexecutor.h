@@ -112,6 +112,7 @@ private:
     AlignPtr<ITaskStealPolicy> task_steal_policy_;
     AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;
     Vector<WorkStealingTaskQueuePtr> task_work_queues_;
+    Vector<size_t> coprimes_;
     Latch work_done_;
     Latch start_clean_up_;
     LoggerPtr logger_;

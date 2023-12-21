@@ -37,14 +37,31 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1) {
 	logger_ = LoggerManager::GetInstance().GetLogger(pool_name);
+
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
-		task_scheduler_policy_->SetMaxThread(max_thread_);		
+		task_scheduler_policy_->SetMaxThread(max_thread_);
+
 		for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
 		}
+
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
+		}
+
+		for (size_t i = 1; i <= max_thread; i++) {
+			auto a = i;
+			auto b = max_thread;
+			// If GCD(a, b) == 1, then a and b are coprimes.
+			while (b != 0) {
+				auto tmp = a;
+				a = b;
+				b = tmp % b;
+			}
+			if (a == 1) {
+				coprimes_.push_back(i);
+			}
 		}
 	}
 	catch (...) {
@@ -161,20 +178,14 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue
 }
 
 std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t i) {
-	// Try to steal a task from another thread's queue
-	// Note: The order in which we try the queues is important to prevent
-	//       all threads from trying to steal from the same thread
-	// 	 (which would lead to a deadlock)
+	const auto inc = coprimes_[i % coprimes_.size()];
 
-	constexpr size_t kMaxAttempts = 100;
-	size_t attempts = 0;
-
-	for (size_t n = 0; attempts < kMaxAttempts && n != max_thread_; ++n, ++attempts) {
+	for (size_t n = 0; n != max_thread_; ++n) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
 		}
 
-		const auto index = (i + n) % max_thread_;
+		const auto index = (i + inc) % max_thread_;
 
 		if (auto func = task_work_queues_.at(index)->TryDequeue()) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
