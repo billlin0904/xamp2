@@ -15,7 +15,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 #include <widget/playlistentity.h>
-#include <widget/zib_utiltis.h>
+#include <widget/progressview.h>
 
 #include <base/scopeguard.h>
 
@@ -140,11 +140,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto album_artist_text_width = default_cover_size.width();
 
     QRect album_text_rect(option.rect.left() + kPaddingSize,
-        option.rect.top() + default_cover_size.height() + 25,
+        option.rect.top() + default_cover_size.height() + 15,
         album_artist_text_width,
         15);
     QRect artist_text_rect(option.rect.left() + kPaddingSize,
-        option.rect.top() + default_cover_size.height() + 45,
+        option.rect.top() + default_cover_size.height() + 30,
         default_cover_size.width(),
         20);
 
@@ -362,7 +362,8 @@ AlbumView::AlbumView(QWidget* parent)
 	, styled_delegate_(new AlbumViewStyledDelegate(this))
     , animation_(nullptr)
 	, model_(this)
-    , proxy_model_(new PlayListTableFilterProxyModel(this)) {
+    , proxy_model_(new PlayListTableFilterProxyModel(this))
+	, progress_view_(nullptr) {
     proxy_model_->addFilterByColumn(INDEX_ALBUM);
     proxy_model_->setSourceModel(&model_);
     setModel(proxy_model_);
@@ -388,6 +389,15 @@ AlbumView::AlbumView(QWidget* parent)
         });
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
+        /*if (!progress_view_) {
+            progress_view_ = new ProgressView(this);
+            const auto list_view_rect = this->rect();
+            page_->hide();
+            progress_view_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
+            progress_view_->adjustSize();
+            progress_view_->show();
+        }*/
+
         albumViewPage();
 
         auto album = indexValue(index, INDEX_ALBUM).toString();
@@ -415,11 +425,11 @@ AlbumView::AlbumView(QWidget* parent)
         showAlbumViewMenu(pt);
     });
 
-    setStyleSheet(qTEXT("background-color: transparent"));
+    //setStyleSheet(qTEXT("background-color: transparent"));
 
     verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
-    ));    
+    ));
 }
 
 void AlbumView::setPlayingAlbumId(int32_t album_id) {
@@ -471,8 +481,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
 
         try {
-            //qMainDb.ClearPendingPlaylist();
-
             QList<int32_t> albums;
             qMainDb.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
@@ -786,16 +794,7 @@ void AlbumView::onCurrentThemeChanged(ThemeColor theme_color) {
 }
 
 void AlbumView::append(const QString& file_name) {
-    auto file_ext = QFileInfo(file_name).completeSuffix();
-
-    if (!file_ext.contains(qTEXT("zip"))) {
-        emit extractFile(file_name, -1);
-    } /*else {
-        ZipFileReader reader;
-        for (auto filename : reader.OpenFile(file_name.toStdWString())) {
-            emit extractFile(QString::fromStdWString(filename), -1);
-        }
-    }*/
+    emit extractFile(file_name, -1);
 }
 
 void AlbumView::hideWidget() {

@@ -134,6 +134,7 @@
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
+    <QtMoc Include="widget\progressview.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="widget\playlisttabwidget.cpp" />
     <ClCompile Include="widget\preferencepage.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
+    <ClCompile Include="widget\progressview.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\read_until.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />

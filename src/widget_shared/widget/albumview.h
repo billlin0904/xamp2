@@ -28,6 +28,7 @@ class AlbumViewPage;
 class AlbumPlayListTableView;
 class PlaylistPage;
 class XMessage;
+class ProgressView;
 
 enum ShowModes {
 	SHOW_ARTIST,
@@ -179,5 +180,6 @@ private:
 	QPropertyAnimation* animation_;
 	LazyLoadingModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
+	ProgressView* progress_view_;
 };
 

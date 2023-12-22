@@ -78,7 +78,6 @@ public:
         const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) override;
 private:
     size_t max_thread_{ 0 };
-    Vector<Sfc64Engine<>> prngs_;
 };
 
 XAMP_BASE_NAMESPACE_END

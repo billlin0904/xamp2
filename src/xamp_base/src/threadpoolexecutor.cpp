@@ -179,6 +179,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue
 
 std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t i) {
 	const auto inc = coprimes_[i % coprimes_.size()];
+	//const auto inc = 1;
 
 	for (size_t n = 0; n != max_thread_; ++n) {
 		if (stop_token.stop_requested()) {

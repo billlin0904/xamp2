@@ -122,7 +122,6 @@ namespace {
 					sum_out_a += src_ptr[3];
 				}
 
-
 				for (i = 1; i <= radius; i++) {
 					if (i <= wm) src_ptr += 4;
 					stack_ptr = &stack[4 * (i + radius)];
@@ -139,7 +138,6 @@ namespace {
 					sum_in_b += src_ptr[2];
 					sum_in_a += src_ptr[3];
 				}
-
 
 				sp = radius;
 				xp = radius;
@@ -198,10 +196,7 @@ namespace {
 					sum_in_g -= stack_ptr[1];
 					sum_in_b -= stack_ptr[2];
 					sum_in_a -= stack_ptr[3];
-
-
 				}
-
 			}
 		}
 

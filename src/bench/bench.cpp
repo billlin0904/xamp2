@@ -109,14 +109,14 @@ static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
     }
 }
 
-static void BM_ThreadLocalRandomPolicyThreadPool(benchmark::State& state) {
-    constexpr std::string_view kBM_ThreadLocalRandomPolicyThreadPoolLoggerName = "BM_ThreadLocalRandomPolicyThreadPool";
+static void BM_RandomPolicyThreadPool(benchmark::State& state) {
+    constexpr std::string_view kBM_RandomPolicyThreadPoolLoggerName = "BM_RandomPolicyThreadPool";
 
     const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_ThreadLocalRandomPolicyThreadPoolLoggerName,
+        kBM_RandomPolicyThreadPoolLoggerName,
         TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY);
 
-    LoggerManager::GetInstance().GetLogger(kBM_ThreadLocalRandomPolicyThreadPoolLoggerName)
+    LoggerManager::GetInstance().GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -701,7 +701,7 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-BENCHMARK(BM_ThreadLocalRandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
