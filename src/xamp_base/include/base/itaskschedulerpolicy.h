@@ -51,7 +51,7 @@ public:
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,
         const Vector<WorkStealingTaskQueuePtr>& task_work_queues,
-        Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) override;
+        Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) override;    
 };
 
 XAMP_BASE_API AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy);

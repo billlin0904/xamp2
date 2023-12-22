@@ -16,6 +16,7 @@ using SharedTaskQueue = BlockingQueue<MoveOnlyFunction>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
 using WorkStealingTaskQueue = MpmcQueue<MoveOnlyFunction>;
+//using WorkStealingTaskQueue = BlockingQueue<MoveOnlyFunction>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 XAMP_BASE_NAMESPACE_END
