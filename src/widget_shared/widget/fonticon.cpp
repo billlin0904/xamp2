@@ -7,7 +7,6 @@
 #include <QtCore>
 #include <QPalette>
 
-#include <widget/fonticonanimation.h>
 #include <widget/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <utility>
@@ -78,14 +77,6 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     Q_UNUSED(state)
 
 	auto paint_rect = rect;
-
-    /*if (options_.contains(FontIconOption::kAnimation)) {
-        auto var = options_.value(FontIconOption::kAnimation);
-        auto* animation = var.value<FontIconAnimation*>();
-        if (animation) {
-            animation->paint(*painter, rect);
-        }
-    }*/
 
     QFont font(font_family_);
     font.setStyleStrategy(QFont::PreferAntialias);

@@ -60,7 +60,8 @@ inline constexpr int32_t kInvalidDatabaseId = -1;
 inline constexpr auto kDefaultPlaylistId = 1;
 inline constexpr auto kDefaultAlbumPlaylistId = 2;
 inline constexpr auto kDefaultCdPlaylistId = 3;
-inline constexpr auto kMaxExistPlaylist = 4;
+inline constexpr auto kDefaultYtMusicPlaylistId = 4;
+inline constexpr auto kMaxExistPlaylist = 5;
 
 enum PlayingState {
 	PLAY_CLEAR = 0,

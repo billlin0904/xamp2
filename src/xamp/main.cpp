@@ -37,7 +37,7 @@
 #include <qmessagebox.h>
 
 namespace {
-    void LoadSampleRateConverterConfig() {
+    void loadSampleRateConverterConfig() {
         XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
         qAppSettings.loadSoxrSetting();
         qAppSettings.LoadR8BrainSetting();
@@ -45,7 +45,7 @@ namespace {
         XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
     }
 
-    void LoadLang() {
+    void loadLang() {
         XAMP_LOG_DEBUG("Load language file.");
 
         if (qAppSettings.valueAsString(kAppSettingLang).isEmpty()) {
@@ -62,7 +62,7 @@ namespace {
     }
 
 #ifdef XAMP_OS_WIN
-    void SetWorkingSetSize() {
+    void setWorkingSetSize() {
         const auto memory_size = GetAvailablePhysicalMemory();
         XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
         constexpr auto kWorkingSize = 512UL * 1024UL * 1024UL;
@@ -70,7 +70,7 @@ namespace {
         XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSize));
     }
 
-    Vector<SharedLibraryHandle> PrefetchDll() {
+    Vector<SharedLibraryHandle> prefetchDll() {
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         Vector<std::string_view> dll_file_names{
             R"(mimalloc-override.dll)",
@@ -99,7 +99,7 @@ namespace {
 #ifdef _DEBUG
     XAMP_DECLARE_LOG_NAME(Qt);
 
-    void LogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+    void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
         QString str;
         QTextStream stream(&str);
         stream.setEncoding(QStringConverter::Utf8);
@@ -152,13 +152,13 @@ namespace {
     }
 #endif
 
-    void ApplyTheme() {
+    void applyTheme() {
         const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
         qTheme.setThemeColor(theme);
         qTheme.loadAndApplyTheme();
     }
 
-    int Execute(int argc, char* argv[], QStringList &args) {
+    int execute(int argc, char* argv[], QStringList &args) {
         qAppSettings;
 
         QApplication::setApplicationName(kApplicationName);
@@ -181,13 +181,13 @@ namespace {
 
 #ifdef _DEBUG    
 #ifdef XAMP_OS_WIN
-        qInstallMessageHandler(LogMessageHandler);
+        qInstallMessageHandler(logMessageHandler);
         QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
 #endif
 
-        ApplyTheme();
-        LoadLang();
+        applyTheme();
+        loadLang();
 
         XMainWindow main_window;
 
@@ -269,7 +269,7 @@ int main() {
 
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver >= QOperatingSystemVersion::Windows10) {
-        SetWorkingSetSize();
+        setWorkingSetSize();
 	}
 
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
@@ -282,7 +282,7 @@ int main() {
 
     qAppSettings.loadOrSaveLogConfig();
     qAppSettings.loadAppSettings();
-    LoadSampleRateConverterConfig();
+    loadSampleRateConverterConfig();
 
 #ifdef Q_OS_WIN32
     const auto components_path = GetComponentsFilePath();
@@ -291,7 +291,7 @@ int main() {
         return -1;
     }
 
-    auto prefetch_dll = PrefetchDll();
+    auto prefetch_dll = prefetchDll();
     XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
 
@@ -317,7 +317,7 @@ int main() {
     QStringList args;
     auto exist_code = 0;
     try {
-        exist_code = Execute(argc, argv, args);        
+        exist_code = execute(argc, argv, args);        
     }
     catch (Exception const& e) {
         exist_code = -1;

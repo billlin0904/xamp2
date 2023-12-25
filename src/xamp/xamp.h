@@ -24,6 +24,7 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+class YtMusic;
 struct MbDiscIdInfo;
 struct PlaybackFormat;
 
@@ -205,6 +206,7 @@ private:
 	PlaylistPage* createPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
 
 	void pushWidget(QWidget* widget);
+
 	void setSeekPosValue(double stream_time_as_ms);
 
 	void resetSeekPosValue();
@@ -258,13 +260,16 @@ private:
 	QScopedPointer<PlaylistPage> music_page_;
 	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> album_page_;
-	QScopedPointer<FileSystemViewPage> file_system_view_page_;	
+	QScopedPointer<FileSystemViewPage> file_system_view_page_;
+	QScopedPointer<PlaylistPage> ytmusic_page_;
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
-	QScopedPointer<ExtractFileWorker> extract_file_worker_;    
+	QScopedPointer<ExtractFileWorker> extract_file_worker_;
+	QScopedPointer<YtMusic> ytmusic_worker_;
     QThread background_thread_;
 	QThread find_album_cover_thread_;
 	QThread extract_file_thread_;
+	QThread ytmusic_thread_;
 	QTimer ui_update_timer_timer_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;

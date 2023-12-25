@@ -12,7 +12,6 @@
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
-#include <widget/fonticonanimation.h>
 
 #include <QDirIterator>
 #include <QGraphicsDropShadowEffect>
@@ -201,6 +200,7 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_EDIT,                      0xF044 },
     { ICON_CIRCLE_CHECK,              0xF058 },
     { ICON_CIRCLE_NOTCH,              0xF1CE },
+	{ ICON_YOUTUBE,                   0xF0C2 }
     };
     
     switch (theme_color_) {
@@ -433,7 +433,6 @@ QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> them
             auto temp = font_icon_opts_;
             temp.insert(FontIconOption::kColorAttr, QVariant(QColor(Qt::gray)));
             temp.insert(FontIconOption::kScaleFactorAttr, 1.2);
-            temp.insert(FontIconOption::kAnimation, QVariant::fromValue(new FontIconSpinAnimation()));
             return qFontIcon.GetIcon(code, temp);
         }
     }

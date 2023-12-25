@@ -66,7 +66,7 @@ constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-#define qTR(str) qApp->tr(str)
+#define qTR(str) QObject::tr(str)
 
 constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };

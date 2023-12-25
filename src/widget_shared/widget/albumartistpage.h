@@ -67,6 +67,8 @@ public:
 		return year_view_;
 	}
 
+signals:
+
 public slots:
 	void reload();
 

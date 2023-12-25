@@ -117,7 +117,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			return;
 		}
 
-		auto index = ui_->titleComboBox->currentIndex();
+		const auto index = ui_->titleComboBox->currentIndex();
 
 		auto& entity = entities_[index];
 		const Path path = entity.file_path.toStdWString();
@@ -144,9 +144,9 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		} catch (...) {
 			XMessageBox::showError(qTR("Write tag failure!"));
 			return;
-		}		
+		}
 
-		auto next_index = (index + 1) % entities_.size();
+		const auto next_index = (index + 1) % entities_.size();
 		if (next_index == entities_.size() - 1) {
 			return;
 		}

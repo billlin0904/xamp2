@@ -153,6 +153,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		else {
 			album_view_->filterCategories(tags);
 		}
+		album_view_->albumViewPage()->hide();
 		album_view_->reload();
 		});
 
@@ -373,6 +374,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			year_view_->filterYears(tags);
 		}
 		year_view_->reload();
+		album_view_->hideWidget();
+		year_view_->hideWidget();
 		});
 
 	(void)QObject::connect(year_tag_list_widget_, &TagListView::tagClear, [this]() {

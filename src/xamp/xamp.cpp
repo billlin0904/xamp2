@@ -63,6 +63,7 @@
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
 #include <widget/playlisttabwidget.h>
+#include <widget/youtubedl/ytmusic.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -455,6 +456,10 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     extract_file_worker_->moveToThread(&extract_file_thread_);
     extract_file_thread_.start(QThread::LowestPriority);
 
+    ytmusic_worker_.reset(new YtMusic());
+    ytmusic_worker_->moveToThread(&ytmusic_thread_);
+    ytmusic_thread_.start();
+
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
         delay(seconds);
@@ -771,6 +776,7 @@ void Xamp::cleanup() {
     quit_and_wait_thread(background_thread_);
     quit_and_wait_thread(find_album_cover_thread_);
     quit_and_wait_thread(extract_file_thread_);
+    quit_and_wait_thread(ytmusic_thread_);
 
     if (main_window_ != nullptr) {
         main_window_->saveGeometry();
@@ -1113,6 +1119,9 @@ void Xamp::setCurrentTab(int32_t table_id) {
         break;
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
+        break;
+    case TAB_YT_MUSIC:
+        ui_.currentView->setCurrentWidget(ytmusic_page_.get());
         break;
     }
 }
@@ -1788,7 +1797,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 
 void Xamp::onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
     ensureOnePlaylistPage();
-	auto *playlist_view = getCurrentPlaylistPage()->playlist();
+    const auto *playlist_view = getCurrentPlaylistPage()->playlist();
     qMainDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit changePlayerOrder(order_);
 }
@@ -1839,6 +1848,7 @@ void Xamp::initialPlaylist() {
     lrc_page_.reset(new LrcPage(this));
     album_page_.reset(new AlbumArtistPage(this));
     tab_widget_.reset(new PlaylistTabWidget(this));
+    ytmusic_page_.reset(new PlaylistPage(this));
     
     ui_.naviBar->addSeparator();
     ui_.naviBar->addTab(qTR("Playlist"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
@@ -1846,13 +1856,15 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
+    ui_.naviBar->addTab(qTR("Youtube Music"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
         const auto& name) {
         if (playlist_id == kDefaultAlbumPlaylistId
-            || playlist_id == kDefaultCdPlaylistId) {
+            || playlist_id == kDefaultCdPlaylistId
+            || playlist_id == kDefaultYtMusicPlaylistId) {
             return;
         }
     	newPlaylistPage(playlist_id, name);
@@ -1868,6 +1880,9 @@ void Xamp::initialPlaylist() {
         qMainDb.addPlaylist(qTR("Playlist"), -1);
     }
     if (!qMainDb.isPlaylistExist(kDefaultCdPlaylistId)) {
+        qMainDb.addPlaylist(qTR("Playlist"), -1);
+    }
+    if (!qMainDb.isPlaylistExist(kDefaultYtMusicPlaylistId)) {
         qMainDb.addPlaylist(qTR("Playlist"), -1);
     }
 
@@ -1892,6 +1907,11 @@ void Xamp::initialPlaylist() {
 
     onSetCover(kEmptyString, cd_page_->playlistPage());
     connectPlaylistPageSignal(cd_page_->playlistPage());
+
+    ytmusic_page_->playlist()->setPlaylistId(kDefaultYtMusicPlaylistId, kAppSettingPlaylistColumnName);
+    onSetCover(kEmptyString, ytmusic_page_.get());
+    connectPlaylistPageSignal(ytmusic_page_.get());
+    auto search_future = ytmusic_worker_->search(qTEXT("Kessoku Band"));
 
     (void)QObject::connect(this,
         &Xamp::blurImage,
@@ -1954,6 +1974,7 @@ void Xamp::initialPlaylist() {
     pushWidget(album_page_.get());
     pushWidget(file_system_view_page_.get());
     pushWidget(cd_page_.get());
+    pushWidget(ytmusic_page_.get());
 
     ui_.currentView->setCurrentIndex(0);
 
