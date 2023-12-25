@@ -7,7 +7,7 @@
 
 #include <QString>
 
-namespace QEtag {
+namespace qetag {
 
 QString getTagId(const QByteArray& buffer) noexcept;
 QString getTagId(const QString& file_name) noexcept;

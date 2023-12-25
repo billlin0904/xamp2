@@ -93,9 +93,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_6);
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->addTab(tr("ALBUM"), TAB_ALBUMS);
-	list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
-	list_view_->addTab(tr("YEAR"), TAB_YEAR);
+	list_view_->addTab(qTR("ALBUM"), TAB_ALBUMS);
+	list_view_->addTab(qTR("ARTISTS"), TAB_ARTISTS);
+	list_view_->addTab(qTR("YEAR"), TAB_YEAR);
 
 	qTheme.setAlbumNaviBarTheme(list_view_);
 
@@ -140,15 +140,15 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	Q_FOREACH(auto category, title_category_list) {
 		album_tag_list_widget_->addTag(category);
 	}
-	album_tag_list_widget_->addTag(tr("All"), true);
+	album_tag_list_widget_->addTag(qTR("All"), true);
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
 			return;
 		}
-		if (tags.contains(tr("All"))) {
+		if (tags.contains(qTR("All"))) {
 			album_view_->showAll();
-			album_tag_list_widget_->disableAllTag(tr("All"));
+			album_tag_list_widget_->disableAllTag(qTR("All"));
 		}
 		else {
 			album_view_->filterCategories(tags);
@@ -172,7 +172,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	album_search_line_edit_->setClearButtonEnabled(true);
 	album_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
-	album_search_line_edit_->setPlaceholderText(tr("search Album/Artist"));
+	album_search_line_edit_->setPlaceholderText(qTR("Search Album/Artist"));
 	
 	album_model_ = new QStandardItemModel(0, 1 , this);
 	auto *album_completer = new QCompleter(album_model_, this);
@@ -221,7 +221,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_combox_layout_1->addLayout(album_combox_layout);
 	album_frame_layout->addLayout(album_combox_layout_1);
 
-	auto* tags_label = new QLabel(tr("Category"));
+	auto* tags_label = new QLabel(qTR("Category"));
 	f.setPointSize(qTheme.fontSize(9));
 	tags_label->setFont(f);
 
@@ -249,7 +249,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	artist_search_line_edit_->setClearButtonEnabled(true);
 	artist_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
-	artist_search_line_edit_->setPlaceholderText(tr("search Artist"));
+	artist_search_line_edit_->setPlaceholderText(qTR("search Artist"));
 
 	action_list = artist_search_line_edit_->findChildren<QAction*>();
 	if (!action_list.isEmpty()) {
@@ -323,15 +323,15 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	vertical_layout_2->addLayout(default_layout, 1);
 
 	(void)QObject::connect(album_view_, &AlbumView::loadCompleted,
-		this, &AlbumArtistPage::refresh);
+		this, &AlbumArtistPage::reload);
 
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
 			return;
 		}
-		if (tags.contains(tr("All"))) {
+		if (tags.contains(qTR("All"))) {
 			artist_view_->showAll();
-			artist_tag_list_widget_->disableAllTag(tr("All"));
+			artist_tag_list_widget_->disableAllTag(qTR("All"));
 		}
 		else {
 			artist_view_->filterArtistName(tags);
@@ -366,9 +366,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		if (tags.isEmpty()) {
 			return;
 		}
-		if (tags.contains(tr("All"))) {
+		if (tags.contains(qTR("All"))) {
 			year_view_->showAll();
-			year_tag_list_widget_->disableAllTag(tr("All"));
+			year_tag_list_widget_->disableAllTag(qTR("All"));
 		} else {
 			year_view_->filterYears(tags);
 		}
@@ -393,6 +393,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			case TAB_YEAR:
 				current_view->setCurrentWidget(year_frame_);
 				break;
+			default: 
+				break;
 		}
 		});
 
@@ -405,7 +407,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 		artist_view_->reload();
 		year_view_->reload();
-		refresh();
+		reload();
 		});
 
 	onCurrentThemeChanged(qTheme.themeColor());
@@ -423,15 +425,15 @@ void AlbumArtistPage::onCurrentThemeChanged(ThemeColor theme_color) {
 	qTheme.setLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
 }
 
-void AlbumArtistPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
-	album_view_->onThemeColorChanged(backgroundColor, color);
-	artist_view_->onThemeChanged(backgroundColor, color);
-	year_view_->onThemeColorChanged(backgroundColor, color);
-	album_tag_list_widget_->onThemeColorChanged(backgroundColor, color);
-	artist_tag_list_widget_->onThemeColorChanged(backgroundColor, color);
+void AlbumArtistPage::onThemeColorChanged(QColor background_color, QColor color) {
+	album_view_->onThemeColorChanged(background_color, color);
+	artist_view_->onThemeChanged(background_color, color);
+	year_view_->onThemeColorChanged(background_color, color);
+	album_tag_list_widget_->onThemeColorChanged(background_color, color);
+	artist_tag_list_widget_->onThemeColorChanged(background_color, color);
 }
 
-void AlbumArtistPage::refresh() {
+void AlbumArtistPage::reload() {
 	album_view_->reload();
 	artist_view_->reload();
 
@@ -445,7 +447,7 @@ void AlbumArtistPage::refresh() {
 		year_tag_list_widget_->addTag(year, true);
 	}
 	if (!years.empty()) {
-		year_tag_list_widget_->enableTag(years.first());
+		year_tag_list_widget_->enableTag(years.last());
 	}
 	year_tag_list_widget_->sort();
 }

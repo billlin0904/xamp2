@@ -89,7 +89,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
         QPixmap cover;
 		if (is_file_path && album.isEmpty()) {
 			const TagIO reader;
-			album = tr("Unknown album");
+			album = qTR("Unknown album");
 			// todo: 如果有內建圖片就把當作一張專輯.
 			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
@@ -98,7 +98,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 		}
 
 		if (artist.isEmpty()) {
-			artist = tr("Unknown artist");
+			artist = qTR("Unknown artist");
 		}
 
         const auto music_id = qMainDb.addOrUpdateMusic(track_info);

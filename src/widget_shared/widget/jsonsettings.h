@@ -14,7 +14,7 @@
 
 class XAMP_WIDGET_SHARED_EXPORT JsonSettings {
 public:
-    static void LoadJsonFile(QString const& file_name);
+    static void loadJsonFile(QString const& file_name);
 
     static QMap<QString, QVariant> valueAsMap(QString const& key);
 

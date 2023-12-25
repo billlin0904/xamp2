@@ -108,7 +108,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     (void)QObject::connect(ui_->dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui_->dirTree);
 
-        action_map.addAction(tr("Add file directory to album"), [this](auto pt) {
+        action_map.addAction(qTR("Add file directory to album"), [this](auto pt) {
             auto index = ui_->dirTree->indexAt(pt);
             if (!index.isValid()) {
                 return;
@@ -118,7 +118,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             emit addPathToPlaylist(path, false);
             });
 
-        auto add_file_to_playlist_act = action_map.addAction(tr("Add file directory to playlist"), [this](auto pt) {
+        auto add_file_to_playlist_act = action_map.addAction(qTR("Add file directory to playlist"), [this](auto pt) {
             auto index = ui_->dirTree->indexAt(pt);
             if (!index.isValid()) {
                 return;
@@ -129,7 +129,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         });
         add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
-        auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
+        auto load_dir_act = action_map.addAction(qTR("Load file directory"), [this](auto pt) {
             const auto dir_name = getExistingDirectory(this);
             if (dir_name.isEmpty()) {
                 return;

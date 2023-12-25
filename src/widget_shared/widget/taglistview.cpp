@@ -166,7 +166,7 @@ void TagListView::onThemeColorChanged(QColor background_color, QColor color) {
 }
 
 void TagListView::sort() {
-	list_->sortItems();
+	list_->sortItems(Qt::DescendingOrder);
 }
 
 void TagListView::disableAllTag(const QString& skip_tag) {

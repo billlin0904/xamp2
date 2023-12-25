@@ -22,7 +22,7 @@ public:
 	}
 
 public slots:
-	void onThemeColorChanged(QColor backgroundColor, QColor color);
+	void onThemeColorChanged(QColor background_color, QColor color);
 
 	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 

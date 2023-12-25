@@ -264,8 +264,8 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
-    qAppSettings.LoadIniFile(qTEXT("xamp.ini"));
-    JsonSettings::LoadJsonFile(qTEXT("config.json"));
+    qAppSettings.loadIniFile(qTEXT("xamp.ini"));
+    JsonSettings::loadJsonFile(qTEXT("config.json"));
 
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver >= QOperatingSystemVersion::Windows10) {

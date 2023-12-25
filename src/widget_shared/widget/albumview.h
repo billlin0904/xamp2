@@ -180,6 +180,5 @@ private:
 	QPropertyAnimation* animation_;
 	LazyLoadingModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
-	ProgressView* progress_view_;
 };
 

@@ -42,8 +42,6 @@ public:
 
 	virtual ~PlayListTableView() override;
 
-	virtual void fastReload();
-
 	void disableDelete(bool enable = false) {
 		enable_delete_ = enable;
 	}

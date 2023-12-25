@@ -200,7 +200,7 @@ std::vector<std::wstring> ZipFileReader::openFile(const std::wstring& file) {
     return impl_->OpenFile(file);
 }
 
-QByteArray GzipDecompress(const QByteArray& data) {
+QByteArray gzipDecompress(const QByteArray& data) {
 #define XAMP_inflateInit2(strm, windowBits) \
           ::inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
                         (int)sizeof(z_stream))

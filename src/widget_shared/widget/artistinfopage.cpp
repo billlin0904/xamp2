@@ -34,11 +34,11 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			return;
 		}
 		ActionMap<ArtistInfoPage> action_map(this);
-		action_map.addAction(tr("Change artist image"), [=]() {
+		action_map.addAction(qTR("Change artist image"), [=]() {
 			const auto file_name = QFileDialog::getOpenFileName(this,
-			                                                    tr("Open file"),
+			                                                    qTR("Open file"),
 			                                                    kEmptyString,
-			                                                    tr("Music Files *.jpg *.jpeg *.png"),
+			                                                    qTR("Music Files *.jpg *.jpeg *.png"),
 			                                                    nullptr);
 			cover_id_ = qImageCache.addImage(QPixmap(file_name));
 			qMainDb.updateArtistCoverId(artist_id_, cover_id_);
@@ -57,7 +57,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	auto* title = new QLabel();
 	title->setStyleSheet(qTEXT("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
-	title->setText(tr("Artists"));
+	title->setText(qTR("Artists"));
 	f.setPointSize(qTheme.fontSize(35));
 	title->setFont(f);
 	default_layout->addWidget(title);
@@ -145,17 +145,17 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	}
 }
 
-void ArtistInfoPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
+void ArtistInfoPage::onThemeColorChanged(QColor background_color, QColor color) {
 	artist_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT(";}"));
-	album_view_->onThemeColorChanged(backgroundColor, color);
+	album_view_->onThemeColorChanged(background_color, color);
 }
 
 void ArtistInfoPage::setAlbumCount(int32_t album_count) {
-	albums_->setText(tr("%1 Albums").arg(album_count));
+	albums_->setText(qTR("%1 Albums").arg(album_count));
 }
 
 void ArtistInfoPage::setTracks(int32_t tracks) {
-	tracks_->setText(tr("%1 Songs").arg(tracks));
+	tracks_->setText(qTR("%1 Songs").arg(tracks));
 }
 
 void ArtistInfoPage::setTotalDuration(double durations) {

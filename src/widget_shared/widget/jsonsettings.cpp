@@ -6,7 +6,7 @@
 #include <widget/str_utilts.h>
 
 namespace {
-	bool ReadJsonFile(QIODevice& device, QSettings::SettingsMap& map) {
+	bool readJsonFile(QIODevice& device, QSettings::SettingsMap& map) {
 		QJsonParseError error;
 		map = QJsonDocument::fromJson(device.readAll(), &error).toVariant().toMap();
 		return error.error == QJsonParseError::NoError;
@@ -25,9 +25,9 @@ namespace {
 QScopedPointer<QSettings> JsonSettings::settings_;
 QMap<QString, QVariant> JsonSettings::default_settings_;
 
-void JsonSettings::LoadJsonFile(const QString& file_name) {
+void JsonSettings::loadJsonFile(const QString& file_name) {
 	const auto json_format =
-		QSettings::registerFormat(qTEXT("json"), ReadJsonFile, WriteJsonFile);
+		QSettings::registerFormat(qTEXT("json"), readJsonFile, WriteJsonFile);
 	settings_.reset(new QSettings(file_name, json_format));
 }
 

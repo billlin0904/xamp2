@@ -19,7 +19,7 @@ namespace {
     }
 }
 
-namespace QEtag {
+namespace qetag {
 
 QString getTagId(const QByteArray &buffer) noexcept {
     // 七牛雲儲存etag演算法

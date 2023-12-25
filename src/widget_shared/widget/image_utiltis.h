@@ -15,6 +15,7 @@
 
 namespace image_utils {
 
+inline constexpr int32_t kDarkAlpha = 80;
 inline constexpr int32_t kImageRadius = 4;
 inline constexpr int32_t kSmallImageRadius = 4;
 inline constexpr int32_t kPlaylistImageRadius = 4;
@@ -23,7 +24,7 @@ XAMP_WIDGET_SHARED_EXPORT QPixmap roundImage(const QPixmap& src, int32_t radius 
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius);
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap roundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRadius);
+XAMP_WIDGET_SHARED_EXPORT QPixmap roundDarkImage(QSize size, int32_t alpha = kDarkAlpha, int32_t radius = kImageRadius);
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 

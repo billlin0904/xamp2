@@ -27,7 +27,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(this, &PlaylistTabBar::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlaylistTabWidget> action_map(this);
 
-        auto* close_all_tab_act = action_map.addAction(tr("Close all tab"), [this]() {
+        auto* close_all_tab_act = action_map.addAction(qTR("Close all tab"), [this]() {
             QList<PlaylistPage*> playlist_pages;
             for (auto i = 0; i < count(); ++i) {
                 auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
@@ -39,11 +39,21 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 page->deleteLater();
             }
 
+            qMainDb.forEachPlaylist([this](auto playlist_id,
+                auto index,
+                const auto& name) {
+                    if (playlist_id == kDefaultAlbumPlaylistId
+                        || playlist_id == kDefaultCdPlaylistId) {
+                        return;
+                    }
+                    removePlaylist(playlist_id);
+                });
+
             clear();
             emit removeAllPlaylist();
             });
 
-        auto* close_other_tab_act = action_map.addAction(tr("Close other tab"), [pt, this]() {
+        auto* close_other_tab_act = action_map.addAction(qTR("Close other tab"), [pt, this]() {
             auto index = tabBar()->tabAt(pt);
             if (index == -1) {
                 return;
@@ -69,9 +79,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         try {
             action_map.exec(pt);
         }
-        catch (Exception const& e) {
+        catch (const Exception&) {
         }
-        catch (std::exception const& e) {
+        catch (const std::exception&) {
         }
         });
 
@@ -81,7 +91,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
-        if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
+        if (XMessageBox::showYesOrNo(qTR("Do you want to close tab ?")) == QDialogButtonBox::No) {
             return;
         }
         closeTab(tab_index);

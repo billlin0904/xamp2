@@ -20,7 +20,7 @@ public:
 
 	void setDefaultLanguage();
 	
-	void SetLanguage(QLocale::Language lang, QLocale::Country country);
+	void setLanguage(QLocale::Language lang, QLocale::Country country);
 
 	QString language() const {
 		return lang_;

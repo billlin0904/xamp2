@@ -43,10 +43,10 @@ namespace {
 	}
 }
 
-void AppSettings::LoadIniFile(const QString& file_name) {
+void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
 	XAMP_ENSURES(settings_ != nullptr);
-	LoadEqPreset();
+	loadEqPreset();
 }
 
 const QMap<QString, EqSettings>& AppSettings::eqPreset() {
@@ -158,7 +158,7 @@ void AppSettings::parseFixedBandEq(const QFileInfo file_info, QFile& file) {
 	eq_settings_[file_info.baseName()] = settings;
 }
 
-void AppSettings::LoadEqPreset() {
+void AppSettings::loadEqPreset() {
 	const auto path = QDir::currentPath() + qTEXT("/eqpresets/");
 	const auto file_ext = QStringList() << qTEXT("*.*");
 
@@ -431,7 +431,7 @@ void AppSettings::loadOrSaveLogConfig() {
 }
 
 
-void AppSettings::RegisterMetaType() {
+void AppSettings::registerMetaType() {
 	XAMP_LOG_DEBUG("RegisterMetaType.");
 
 	// For QSetting read
@@ -456,7 +456,7 @@ void AppSettings::RegisterMetaType() {
 }
 
 void AppSettings::loadAppSettings() {
-	RegisterMetaType();
+	registerMetaType();
 
 	XAMP_LOG_DEBUG("LoadAppSettings.");
 

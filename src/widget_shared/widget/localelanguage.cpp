@@ -32,7 +32,7 @@ void LocaleLanguage::setDefaultLanguage() {
 	setLanguageByLocale(locale);
 }
 
-void LocaleLanguage::SetLanguage(QLocale::Language lang, QLocale::Country country) {
+void LocaleLanguage::setLanguage(QLocale::Language lang, QLocale::Country country) {
 	const QLocale locale(lang, country);
 	setLanguageByLocale(locale);
 }

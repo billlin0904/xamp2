@@ -68,11 +68,11 @@ public:
 	}
 
 public slots:
-	void refresh();
+	void reload();
 
 	void onCurrentThemeChanged(ThemeColor theme_color);
 
-	void onThemeColorChanged(QColor backgroundColor, QColor color);
+	void onThemeColorChanged(QColor background_color, QColor color);
 
 private:
 	QVBoxLayout* genre_frame_layout_;

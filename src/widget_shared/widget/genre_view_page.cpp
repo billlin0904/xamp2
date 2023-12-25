@@ -106,7 +106,7 @@ void GenreViewPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
 	}
 }
 
-void GenreViewPage::refresh() {
+void GenreViewPage::reload() {
 	Q_FOREACH(auto page, genre_view_) {
 		page.first->view()->reload();
 		page.second->reload();

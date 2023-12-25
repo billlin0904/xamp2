@@ -252,7 +252,7 @@ QString getExistingDirectory(QWidget* parent) {
     }
     
     const auto dir_name = QFileDialog::getExistingDirectory(parent,
-        QWidget::tr("Select a directory"),
+        qTR("Select a directory"),
         last_open_folder,
         QFileDialog::ShowDirsOnly);
 
@@ -264,9 +264,9 @@ QString getExistingDirectory(QWidget* parent) {
 void getOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action) {
     return getOpenFileName(parent,
         std::move(action),
-        QWidget::tr("Open file"),
+        qTR("Open file"),
         qAppSettings.myMusicFolderPath(),
-        QWidget::tr("Music Files ") + getFileDialogFileExtensions());
+        qTR("Music Files ") + getFileDialogFileExtensions());
 }
 
 void getSaveFileName(QWidget* parent, 

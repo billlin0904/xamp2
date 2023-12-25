@@ -10,7 +10,7 @@
 
 #include <widget/widget_shared.h>
 
-QByteArray GzipDecompress(const QByteArray& data);
+QByteArray gzipDecompress(const QByteArray& data);
 
 class ZipFileReader {
 public:

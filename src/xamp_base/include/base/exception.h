@@ -41,92 +41,92 @@ XAMP_BASE_NAMESPACE_BEGIN
 * </remarks>
 */
 XAMP_MAKE_ENUM(Errors,
-               XAMP_ERROR_SUCCESS = 0,
-               XAMP_ERROR_PLATFORM_SPEC_ERROR,
-               XAMP_ERROR_LIBRARY_SPEC_ERROR,
-               XAMP_ERROR_DEVICE_CREATE_FAILURE,
-               XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT,
-               XAMP_ERROR_DEVICE_IN_USE,
-               XAMP_ERROR_DEVICE_NOT_FOUND,
-               XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT,
-               XAMP_ERROR_FILE_NOT_FOUND,
-               XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
-               XAMP_ERROR_NOT_SUPPORT_FORMAT,
-               XAMP_ERROR_LOAD_DLL_FAILURE,
-               XAMP_ERROR_STOP_STREAM_TIMEOUT,
-               XAMP_ERROR_SAMPLERATE_CHANGED,
-               XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE,
-               XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
-               XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE,
-               XAMP_ERROR_NOT_BUFFER_OVERFLOW,               
-               XAMP_ERROR_UNKNOWN)
-
-/*
-* Exception class
-* 
-*/
-class XAMP_BASE_API Exception : public std::exception {
-public:
-    /*
-    * Constructor.
-    * 
-    * @param message: Message.
-    * @param what: What.
-    */
-    Exception(std::string const& message, std::string_view what = "");
+    XAMP_ERROR_SUCCESS = 0,
+    XAMP_ERROR_PLATFORM_SPEC_ERROR,
+    XAMP_ERROR_LIBRARY_SPEC_ERROR,
+    XAMP_ERROR_DEVICE_CREATE_FAILURE,
+    XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT,
+    XAMP_ERROR_DEVICE_IN_USE,
+    XAMP_ERROR_DEVICE_NOT_FOUND,
+    XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT,
+    XAMP_ERROR_FILE_NOT_FOUND,
+    XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
+    XAMP_ERROR_NOT_SUPPORT_FORMAT,
+    XAMP_ERROR_LOAD_DLL_FAILURE,
+    XAMP_ERROR_STOP_STREAM_TIMEOUT,
+    XAMP_ERROR_SAMPLERATE_CHANGED,
+    XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE,
+    XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
+    XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE,
+    XAMP_ERROR_NOT_BUFFER_OVERFLOW,
+    XAMP_ERROR_UNKNOWN)
 
     /*
-    * Constructor.
-    * 
-    * @param error: Error code.
-    * @param message: Message.
-    * @param what: What.
+    * Exception class
+    *
     */
-	explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
-                       std::string const & message = "",
-                       std::string_view what = "");
-    
-    /*
-    * Destructor.
-    */
-    ~Exception() noexcept override = default;
+    class XAMP_BASE_API Exception : public std::exception {
+    public:
+        /*
+        * Constructor.
+        *
+        * @param message: Message.
+        * @param what: What.
+        */
+        Exception(std::string const& message, std::string_view what = "");
 
-    /*
-    * what function.
-    */
-    [[nodiscard]] char const * what() const noexcept override;
+        /*
+        * Constructor.
+        *
+        * @param error: Error code.
+        * @param message: Message.
+        * @param what: What.
+        */
+        explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
+            std::string const& message = "",
+            std::string_view what = "");
 
-    /*
-    * Get error code.
-    */
-    [[nodiscard]] virtual Errors GetError() const noexcept;
+        /*
+        * Destructor.
+        */
+        ~Exception() noexcept override = default;
 
-    /*
-    * Get error message.
-    */
-    [[nodiscard]] char const * GetErrorMessage() const noexcept;
+        /*
+        * what function.
+        */
+        [[nodiscard]] char const* what() const noexcept override;
 
-    /*
-    * Get expression.
-    */
-    [[nodiscard]] virtual const char * GetExpression() const noexcept;
+        /*
+        * Get error code.
+        */
+        [[nodiscard]] virtual Errors GetError() const noexcept;
 
-    /*
-    * Get stack trace.
-    */
-    [[nodiscard]] char const* GetStackTrace() const noexcept;
+        /*
+        * Get error message.
+        */
+        [[nodiscard]] char const* GetErrorMessage() const noexcept;
 
-    /*
-    * Get error code string.
-    */
-    static std::string_view ErrorToString(Errors error);
-private:
-    Errors error_;
+        /*
+        * Get expression.
+        */
+        [[nodiscard]] virtual const char* GetExpression() const noexcept;
 
-protected:	
-	std::string what_;
-    std::string message_;
-    std::string stacktrace_;
+        /*
+        * Get stack trace.
+        */
+        [[nodiscard]] char const* GetStackTrace() const noexcept;
+
+        /*
+        * Get error code string.
+        */
+        static std::string_view ErrorToString(Errors error);
+    private:
+        Errors error_;
+
+    protected:
+        std::string what_;
+        std::string message_;
+        std::string stacktrace_;
 };
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
@@ -136,6 +136,8 @@ XAMP_BASE_API std::string GetLastErrorMessage();
 class XAMP_BASE_API LibraryException : public Exception {
 public:
 	explicit LibraryException(std::string const& message, std::string_view what = "");
+
+    virtual ~LibraryException() override = default;
 };
 
 class XAMP_BASE_API PlatformException : public Exception {
@@ -148,7 +150,7 @@ public:
 
     PlatformException(std::string_view what, int32_t err);
 
-    ~PlatformException() override = default;
+    virtual ~PlatformException() override = default;
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
@@ -156,14 +158,14 @@ class XAMP_BASE_API ExceptionClassName final : public Exception {\
 public:\
 	ExceptionClassName();\
 	explicit ExceptionClassName(std::string const& message);\
-    ~ExceptionClassName() override = default;\
+    virtual ~ExceptionClassName() override = default;\
 };
 
 class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception {
 public:
     explicit DeviceUnSupportedFormatException(AudioFormat const & format);
 
-    ~DeviceUnSupportedFormatException() override = default;
+    virtual ~DeviceUnSupportedFormatException() override = default;
 
 private:
     AudioFormat format_;
@@ -173,7 +175,7 @@ class XAMP_BASE_API LoadDllFailureException final : public Exception {
 public:
     explicit LoadDllFailureException(std::string_view dll_name);
 
-    ~LoadDllFailureException() override = default;
+    virtual ~LoadDllFailureException() override = default;
 
 private:
     std::string_view dll_name_;
@@ -183,7 +185,7 @@ class XAMP_BASE_API NotFoundDllExportFuncException final : public Exception {
 public:
     explicit NotFoundDllExportFuncException(std::string_view func_name);
 
-    ~NotFoundDllExportFuncException() override = default;
+    virtual ~NotFoundDllExportFuncException() override = default;
 
 private:
     std::string_view func_name_;
@@ -195,7 +197,7 @@ public:
 
     explicit DeviceNotFoundException(std::string_view device_name);
 
-    ~DeviceNotFoundException() override = default;
+    virtual ~DeviceNotFoundException() override = default;
 
 private:
     std::string_view device_name_;

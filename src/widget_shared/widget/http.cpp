@@ -349,7 +349,7 @@ QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const HttpCo
     try
     {
         if (isZipEncoding(reply)) {
-            const auto data = GzipDecompress(content);
+            const auto data = gzipDecompress(content);
             in.reset(new QTextStream(data));
         }
         else {

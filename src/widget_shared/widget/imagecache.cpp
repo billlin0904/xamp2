@@ -196,7 +196,7 @@ QString ImageCache::addImage(const QPixmap& cover) const {
 	QString tag_name;
 
 	if (!buffer->buffer().isEmpty()) {
-		tag_name = QEtag::getTagId(buffer->buffer());
+		tag_name = qetag::getTagId(buffer->buffer());
 		const auto file_path = qAppSettings.cachePath() + tag_name + kCacheFileExtension;
 		optimizeImageFromBuffer(file_path, buffer->buffer(), tag_name);
 	}

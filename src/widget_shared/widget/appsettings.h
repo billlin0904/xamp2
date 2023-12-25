@@ -65,7 +65,7 @@ class XAMP_WIDGET_SHARED_EXPORT AppSettings final {
 public:
 	AppSettings() = default;
 
-	void LoadIniFile(const QString& file_name);
+	void loadIniFile(const QString& file_name);
 
 	template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
 	void setValue(const QString& key, T value) {
@@ -199,9 +199,9 @@ public:
 	void loadAppSettings();
 
 private:
-	void RegisterMetaType();
+	void registerMetaType();
 
-	void LoadEqPreset();
+	void loadEqPreset();
 
 	QScopedPointer<QSettings> settings_;
 	QMap<QString, QVariant> default_settings_;

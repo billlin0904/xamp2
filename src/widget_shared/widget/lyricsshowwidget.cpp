@@ -70,33 +70,33 @@ void LyricsShowWidget::initial() {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<LyricsShowWidget> action_map(this);
-		(void)action_map.addAction(tr("Show original lyrics"), [this]() {
+		(void)action_map.addAction(qTR("Show original lyrics"), [this]() {
 			lrc_ = orilyrc_;
 			loadLrc(lrc_);
 
 		});
 
-		(void)action_map.addAction(tr("Show translate lyrics"), [this]() {
+		(void)action_map.addAction(qTR("Show translate lyrics"), [this]() {
 			lrc_ = trlyrc_;
 			loadLrc(lrc_);
 			resizeFontSize();
 		});
 #if 0
-		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
+		(void)action_map.addAction(qTR("Set font size(small)"), [this]() {
 			qAppSettings.SetValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(qTheme.fontSize(12));
 			});
 
-		(void)action_map.addAction(tr("Set font size(middle)"), [this]() {
+		(void)action_map.addAction(qTR("Set font size(middle)"), [this]() {
 			qAppSettings.SetValue(kLyricsFontSize, 16);
 			lrc_font_.setPointSize(qTheme.fontSize(16));
 			});
 
-		(void)action_map.addAction(tr("Set font size(big)"), [this]() {
+		(void)action_map.addAction(qTR("Set font size(big)"), [this]() {
 			qAppSettings.SetValue(kLyricsFontSize, 24);
 			lrc_font_.setPointSize(qTheme.fontSize(24));
 			});
-		(void)action_map.addAction(tr("Change high light color"), [this]() {
+		(void)action_map.addAction(qTR("Change high light color"), [this]() {
 			auto text_color = qAppSettings.valueAsColor(kLyricsHighLightTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
@@ -107,7 +107,7 @@ void LyricsShowWidget::initial() {
 			dlg.exec();
 			});
 
-		(void)action_map.addAction(tr("Change text color"), [this]() {
+		(void)action_map.addAction(qTR("Change text color"), [this]() {
 			auto text_color = qAppSettings.valueAsColor(kLyricsTextColor);
 			QColorDialog dlg(text_color, this);
 			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
@@ -131,7 +131,7 @@ void LyricsShowWidget::setBackgroundColor(QColor color) {
 
 void LyricsShowWidget::setDefaultLrc() {
 	LyricEntry entry;
-	entry.lrc = tr("Not found lyrics").toStdWString();
+	entry.lrc = qTR("Not found lyrics").toStdWString();
 	lyric_.addLrc(entry);
 }
 

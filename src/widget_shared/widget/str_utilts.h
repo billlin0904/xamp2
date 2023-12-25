@@ -8,6 +8,7 @@
 #include <QString>
 #include <QColor>
 #include <QHashFunctions>
+#include <QCoreApplication>
 
 #include <base/str_utilts.h>
 #include <widget/widget_shared_global.h>
@@ -65,6 +66,8 @@ constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
+#define qTR(str) qApp->tr(str)
+
 constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
@@ -82,8 +85,6 @@ inline QString getStringOrEmptyString(const std::optional<std::string>& s) {
 	}
 	return kEmptyString;
 }
-
-#define Tr(str) qApp->tr(str)
 
 XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};

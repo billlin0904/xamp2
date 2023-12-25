@@ -45,7 +45,7 @@ public:
 
 	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
-	void refresh();
+	void reload();
 
 	void clear();
 private:

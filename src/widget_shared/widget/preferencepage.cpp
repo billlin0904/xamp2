@@ -181,13 +181,13 @@ void PreferencePage::initialLanguage() {
 void PreferencePage::setPhasePercentText(int32_t value) {
 	auto str = QString(qTEXT("%0%")).arg(value);
 	if (value == 0) {
-		str += tr(" (minimum)");
+		str += qTR(" (minimum)");
 	}
 	else if (value < 50 && value != 0) {
-		str += tr(" (intermediate)");
+		str += qTR(" (intermediate)");
 	}
 	else if (value == 50) {
-		str += tr(" (linear)");
+		str += qTR(" (linear)");
 	}
 	ui_->soxrPhaseValue->setText(str);
 }
@@ -222,10 +222,10 @@ PreferencePage::PreferencePage(QWidget *parent)
 
     ui_->preferenceTreeWidget->header()->hide();
     
-    auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
+    auto* settings_item = new QTreeWidgetItem(QStringList() << qTR("Playback"));
     settings_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
-    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
+    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << qTR("Resampler"));
     settings_item->addChild(dsp_manager_item);
 
     ui_->preferenceTreeWidget->addTopLevelItem(settings_item);
@@ -234,8 +234,8 @@ PreferencePage::PreferencePage(QWidget *parent)
 
     (void)QObject::connect(ui_->preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
         const OrderedMap<QString, int32_t> stack_page_map{
-            { tr("Playback"), 0 },
-            { tr("Resampler"), 1 },
+            { qTR("Playback"), 0 },
+            { qTR("Resampler"), 1 },
         };
 
 	    const auto select_type = item->text(column);
@@ -299,8 +299,8 @@ PreferencePage::PreferencePage(QWidget *parent)
     });
 
 	(void)QObject::connect(ui_->newSoxrSettingBtn, &QRadioButton::clicked, [this](auto checked) {
-		const auto setting_name = QInputDialog::getText(this, tr("New soxr setting"),
-		tr("Setting name:"),
+		const auto setting_name = QInputDialog::getText(this, qTR("New soxr setting"),
+		qTR("Setting name:"),
 		QLineEdit::Normal,
 		ui_->soxrSettingCombo->currentText());
 		if (setting_name.isEmpty()) {

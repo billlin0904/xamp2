@@ -81,12 +81,12 @@ private:
 
     void setWindow(QWidget* window);
 
+    TaskbarProgressState state_{ TaskbarProgressState::TASKBAR_PROCESS_STATE_NO_PROCESS };
     int32_t process_max_{ 0 };
     int32_t process_min_{ 0 };
     int32_t process_value_{ 0 };
     QWidget* window_{ nullptr };
     QIcon overlay_icon_;
-    TaskbarProgressState state_;
     QString overlay_accessible_description_;
     QPixmap thumbnail_;
     CComPtr<ITaskbarList4> taskbar_list_;
