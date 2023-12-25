@@ -31,9 +31,10 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 	const Vector<WorkStealingTaskQueuePtr>& task_work_queues,
 	Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	static constexpr size_t K = 4;
+	XAMP_NO_TLS_GUARDS static thread_local auto prng = Sfc64Engine<>();
 
 	for (size_t n = 0; n < max_thread * K; ++n) {
-		const auto current = n % max_thread;
+		const auto current = prng() % max_thread;
 		if (thread_execute_flags[current] == ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			continue;
 		}

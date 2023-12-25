@@ -178,15 +178,20 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue
 }
 
 std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t i) {
-	const auto inc = coprimes_[i % coprimes_.size()];
-	//const auto inc = 1;
+	// Try to steal a task from another thread's queue
+	// Note: The order in which we try the queues is important to prevent
+	//       all threads from trying to steal from the same thread
+	// 	 (which would lead to a deadlock)
 
-	for (size_t n = 0; n != max_thread_; ++n) {
+	constexpr size_t kMaxAttempts = 100;
+	size_t attempts = 0;
+
+	for (size_t n = 0; attempts < kMaxAttempts && n != max_thread_; ++n, ++attempts) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
 		}
 
-		const auto index = (i + inc) % max_thread_;
+		const auto index = (i + n) % max_thread_;
 
 		if (auto func = task_work_queues_.at(index)->TryDequeue()) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
