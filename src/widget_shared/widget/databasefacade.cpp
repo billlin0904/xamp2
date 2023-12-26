@@ -72,7 +72,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
     FloatMap<QString, int32_t> artist_id_cache;
     FloatMap<QString, int32_t> album_id_cache;
 
-    const auto album_year = result.front().year;
+    uint32_t album_year = 0;
+    if (!result.empty()) {
+        album_year = result.front().year;
+    }    
     constexpr auto album_genre = kEmptyString;
     
 	for (const auto& track_info : result) {        
