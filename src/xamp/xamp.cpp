@@ -699,58 +699,30 @@ void Xamp::onRestartApp() {
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
-    std::vector<TrackInfo> track_infos;
+    ForwardList<TrackInfo> track_infos;
+
     for (auto& item : result) {
           std::visit([&](auto&& arg) {
             using T = std::decay_t<decltype(arg)>;
-            /*if constexpr (std::is_same_v<T, search::Album>) {
-                return arg.title;
-            }
-            else if constexpr (std::is_same_v<T, search::Artist>) {
-                return arg.artist;
-            }
-            else if constexpr (std::is_same_v<T, search::Playlist>) {
-                return arg.title;
-            }
-            else if constexpr (std::is_same_v<T, search::Song>) {
-                return arg.title;
-            }
-            else if constexpr (std::is_same_v<T, search::Video>) {
-                return arg.title;
-            }
-            else if constexpr (std::is_same_v<T, search::TopResult>) {
-                if (arg.title) {
-                    return *arg.title;
-                }
-                else {
-                    if (!arg.artists.empty()) {
-                        return arg.artists.front().name;
-                    }
-                    else {
-                        return std::string();
-                    }
-                }
-            }*/
             if constexpr (std::is_same_v<T, search::Song>) {
                 TrackInfo track_info;
+                track_info.file_path = String::ToString(arg.video_id);
                 track_info.title = String::ToString(arg.title);
                 track_info.album = String::ToString(arg.album.value().name);
                 if (!arg.artists.empty()) {
                     track_info.artist = String::ToString(arg.artists.front().name);
                 }
-
-                auto datetime = QDateTime::fromString(QString::fromStdString(arg.duration.value()), qTEXT("mm:ss"));
-                auto duration = datetime.toMSecsSinceEpoch() / 1000.0;
-                track_infos.push_back(track_info);
+                else {
+                    track_info.artist = std::wstring(L"Unknown artist");
+                }
+                track_infos.push_front(track_info);
             }
-            else {
-            }
-            }, item);
-        /*auto music_id = qMainDb.addOrUpdateMusic(track_info);
-        auto album_id = qMainDb.addOrUpdateArtist();
-        auto album_id = qMainDb.addOrUpdateAlbum();
-        qMainDb.addMusicToPlaylist();*/
+            }, item);        
 	}
+    
+
+    DatabaseFacade facede;
+    facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
     ytmusic_page_->playlist()->reload();
 }
 

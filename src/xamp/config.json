@@ -40,7 +40,8 @@
                 "SuperEqEqualizer": "info",
                 "TagLib": "info",
                 "VirtualMemory": "info",
-                "WASAPIThreadPool": "info"
+                "WASAPIThreadPool": "info",
+                "YtMusic": "info"
             }
         }
     },
@@ -66,6 +67,6 @@
         }
     },
     "Src": {
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 48000
     }
 }

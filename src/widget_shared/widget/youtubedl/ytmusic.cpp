@@ -441,7 +441,7 @@ YtMusicWrapper* YtMusic::wrapper() {
 	if (wrapper_ != nullptr) {
         return wrapper_.get();
 	}
-    wrapper_ = MakeAlign<YtMusicWrapper>();
+    wrapper_ = MakeAlign<YtMusicWrapper>("oauth.json");
     return wrapper_.get();
 }
 
