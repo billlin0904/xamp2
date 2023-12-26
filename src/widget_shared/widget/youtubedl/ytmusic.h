@@ -239,6 +239,15 @@ namespace video_info {
         std::string acodec;
 
         // More, but not interesting for us right now
+        bool operator<(const Format& other) const {
+            if (!quality) {
+                return false;
+            }
+            if (acodec == "none") {
+                return false;
+            }
+            return other.quality < quality;
+        }
     };
 
     struct VideoInfo {
@@ -336,7 +345,7 @@ public slots:
 
     void fetchArtistAlbums(const QString& channel_id, const QString& params);
 
-    void extractVideoInfo(const QString& video_id);
+    void extractVideoInfo(const std::any& context, const QString& video_id);
 
     void fetchWatchPlaylist(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
 
@@ -359,7 +368,7 @@ signals:
 
     void fetchArtistAlbumsCompleted(const std::vector<artist::Artist::Album>& albums);
 
-    void extractVideoInfoCompleted(const video_info::VideoInfo& info);
+    void extractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& info);
 
     void fetchWatchPlaylistCompleted(const watch::Playlist& playlist);
 

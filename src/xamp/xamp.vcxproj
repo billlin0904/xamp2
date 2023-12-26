@@ -82,7 +82,7 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <IntelJCCErratum>false</IntelJCCErratum>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>4819;4828;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4819;4828;4996;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

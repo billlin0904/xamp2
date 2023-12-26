@@ -9,6 +9,7 @@
 #include <QJsonObject>
 
 #include <QSimpleUpdater.h>
+#include <set>
 
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
@@ -465,6 +466,16 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
         ytmusic_worker_.get(),
         &YtMusic::cleanup);
 
+    (void)QObject::connect(this,
+        &Xamp::extractVideoInfo,
+        ytmusic_worker_.get(),
+        &YtMusic::extractVideoInfo);
+
+    (void)QObject::connect(ytmusic_worker_.get(),
+        &YtMusic::extractVideoInfoCompleted,
+        this,
+        &Xamp::onExtractVideoInfoCompleted);
+
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
         delay(seconds);
@@ -699,14 +710,11 @@ void Xamp::onRestartApp() {
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
-    ForwardList<TrackInfo> track_infos;
-
     for (auto& item : result) {
-          std::visit([&](auto&& arg) {
+        std::visit([&](auto&& arg) {
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, search::Song>) {
                 TrackInfo track_info;
-                track_info.file_path = String::ToString(arg.video_id);
                 track_info.title = String::ToString(arg.title);
                 track_info.album = String::ToString(arg.album.value().name);
                 if (!arg.artists.empty()) {
@@ -715,12 +723,22 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
                 else {
                     track_info.artist = std::wstring(L"Unknown artist");
                 }
-                track_infos.push_front(track_info);
+                emit extractVideoInfo(std::any(track_info), QString::fromStdString(arg.video_id));
             }
-            }, item);        
-	}
-    
+            }, item);
+    }
+}
 
+void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& video_info) {
+    auto track_info = std::any_cast<TrackInfo>(context);
+    std::multiset<video_info::Format> formats;
+
+    for (const auto& format : video_info.formats) {
+        formats.insert(format);
+    }
+
+    track_info.file_path = String::ToString(formats.begin()->url);
+    ForwardList<TrackInfo> track_infos{ track_info };
     DatabaseFacade facede;
     facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
     ytmusic_page_->playlist()->reload();

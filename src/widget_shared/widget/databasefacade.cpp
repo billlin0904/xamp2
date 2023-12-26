@@ -161,7 +161,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 
         const auto cover_id = qMainDb.getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
-            //XAMP_LOG_DEBUG("Found album {} cover", album.toStdString());
             emit findAlbumCover(album_id, album, artist, track_info.file_path);
         }
 	}

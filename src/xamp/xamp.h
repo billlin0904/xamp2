@@ -102,6 +102,8 @@ signals:
 
 	void search(const QString& text);
 
+	void extractVideoInfo(const std::any& context, const QString& video_id);
+
 public slots:
 	void searchCompleted(PlayListTableView* playlist, const QString& text);
 
@@ -161,6 +163,7 @@ public slots:
 
 	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
 
+	void onExtractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& video_info);
 private:
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 

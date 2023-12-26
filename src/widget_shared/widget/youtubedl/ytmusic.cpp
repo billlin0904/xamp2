@@ -371,7 +371,12 @@ public:
 
     py::object get_ytdl() {
         if (ytdl_.is_none()) {
-            ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
+            try {
+                ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_E(logger, "{}", e.what());
+            }
         }
         return ytdl_;
     }
@@ -390,6 +395,7 @@ void YtMusic::search(const QString& query) {
     if (query.isEmpty()) {
         return;
     }
+    wrapper()->initial();
     emit searchCompleted(wrapper()->search(query.toStdString()));
 }
 
@@ -416,8 +422,8 @@ void YtMusic::fetchArtistAlbums(const QString& channel_id, const QString& params
     emit fetchArtistAlbumsCompleted(wrapper()->getArtistAlbums(channel_id.toStdString(), params.toStdString()));
 }
 
-void YtMusic::extractVideoInfo(const QString& video_id) {
-    emit extractVideoInfoCompleted(wrapper()->extractInfo(video_id.toStdString()));
+void YtMusic::extractVideoInfo(const std::any& context, const QString& video_id) {
+    emit extractVideoInfoCompleted(context, wrapper()->extractInfo(video_id.toStdString()));
 }
 
 void YtMusic::fetchWatchPlaylist(const std::optional<QString>& video_id,
@@ -441,7 +447,7 @@ YtMusicWrapper* YtMusic::wrapper() {
 	if (wrapper_ != nullptr) {
         return wrapper_.get();
 	}
-    wrapper_ = MakeAlign<YtMusicWrapper>("");
+    wrapper_ = MakeAlign<YtMusicWrapper>();
     return wrapper_.get();
 }
 
