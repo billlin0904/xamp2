@@ -42,7 +42,7 @@ namespace search {
         std::vector<meta::Thumbnail> thumbnails;
     };
 
-    struct Video : public Media {
+    struct Video : Media {
         std::optional<std::string> views;
     };
 
@@ -54,7 +54,7 @@ namespace search {
         std::vector<meta::Thumbnail> thumbnails;
     };
 
-    struct Song : public Media {
+    struct Song : Media {
         std::optional<meta::Album> album;
         std::optional<bool> is_explicit;
     };
@@ -86,7 +86,11 @@ namespace search {
         std::vector<meta::Thumbnail> thumbnails;
     };
 
-    using SearchResultItem = std::variant<Video, Playlist, Song, Album, Artist, TopResult>;
+    struct Profile {
+        std::string profile;
+    };
+
+    using SearchResultItem = std::variant<Video, Playlist, Song, Album, Artist, TopResult, Profile>;
 };
 
 
@@ -281,7 +285,7 @@ public:
         const std::string& language = "en",
         const std::string& location = "");
 
-    ~YtMusicWrapper();
+    XAMP_PIMPL(YtMusicWrapper)
 
     void initial();
 
@@ -319,47 +323,50 @@ class XAMP_WIDGET_SHARED_EXPORT YtMusic : public QObject {
 public:
     explicit YtMusic(QObject* parent = nullptr);
 
-    QFuture<std::vector<search::SearchResultItem>> search(const QString& query);
+public slots:
+    void search(const QString& query);
 
-    QFuture<artist::Artist> fetchArtist(const QString& channel_id);
+    void fetchArtist(const QString& channel_id);
 
-    QFuture<album::Album> fetchAlbum(const QString& browse_id);
+    void fetchAlbum(const QString& browse_id);
 
-    QFuture<std::optional<song::Song>> fetchSong(const QString& video_id);
+    void fetchSong(const QString& video_id);
 
-    QFuture<playlist::Playlist> fetchPlaylist(const QString& playlist_id);
+    void fetchPlaylist(const QString& playlist_id);
 
-    QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbums(const QString& channel_id, const QString& params);
+    void fetchArtistAlbums(const QString& channel_id, const QString& params);
 
-    QFuture<video_info::VideoInfo> extractVideoInfo(const QString& video_id);
+    void extractVideoInfo(const QString& video_id);
 
-    QFuture<watch::Playlist> fetchWatchPlaylist(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
+    void fetchWatchPlaylist(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
 
-    QFuture<Lyrics> fetchLyrics(const QString& browse_id);
+    void fetchLyrics(const QString& browse_id);
+
+    void cleanup();
 
 signals:
     void errorOccurred(const QString& error);
 
-private:
-    template <typename Func>
-    QFuture<std::invoke_result_t<Func>> invokeAndCatchOnThread(Func fun) {
-        using ReturnType = std::invoke_result_t<Func>;
-        auto interface = std::make_shared<QFutureInterface<ReturnType>>();
-        QMetaObject::invokeMethod(this, [=, this]() {
-            ReturnType val;
-            try {
-                val = fun();
-            }
-            catch (const std::exception& err) {
-                auto error = QString::fromLocal8Bit(err.what());
-                Q_EMIT errorOccurred(error);
-            }
+    void searchCompleted(const std::vector<search::SearchResultItem> &result);
 
-            interface->reportResult(val);
-            interface->reportFinished();
-            });
-        return interface->future();
-    }
+    void fetchArtistCompleted(const artist::Artist &artist);
+
+    void fetchAlbumCompleted(const album::Album& album);
+
+    void fetchSongCompleted(const std::optional<song::Song>& song);
+
+    void fetchPlaylistCompleted(const playlist::Playlist& playlist);
+
+    void fetchArtistAlbumsCompleted(const std::vector<artist::Artist::Album>& albums);
+
+    void extractVideoInfoCompleted(const video_info::VideoInfo& info);
+
+    void fetchWatchPlaylistCompleted(const watch::Playlist& playlist);
+
+    void fetchLyricsCompleted(const Lyrics& lyrics);
+
+    void cleanupCompleted();
+
 private:
     YtMusicWrapper* wrapper();
 

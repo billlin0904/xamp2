@@ -46,6 +46,8 @@ public:
 signals:
 	void playMusic(const PlayListEntity& item);
 
+	void search(PlayListTableView* playlist, const QString& text);
+
 public slots:
     void onThemeColorChanged(QColor theme_color, QColor color);
 

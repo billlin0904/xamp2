@@ -419,7 +419,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 }
 
 Xamp::~Xamp() {
-    cleanup();
+    destory();
 }
 
 void Xamp::setXWindow(IXMainWindow* main_window) {
@@ -459,6 +459,11 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     ytmusic_worker_.reset(new YtMusic());
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
     ytmusic_thread_.start();
+
+    (void)QObject::connect(this,
+        &Xamp::cleanup,
+        ytmusic_worker_.get(),
+        &YtMusic::cleanup);
 
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
@@ -693,6 +698,62 @@ void Xamp::onRestartApp() {
     qApp->exit(kRestartExistCode);
 }
 
+void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
+    std::vector<TrackInfo> track_infos;
+    for (auto& item : result) {
+          std::visit([&](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            /*if constexpr (std::is_same_v<T, search::Album>) {
+                return arg.title;
+            }
+            else if constexpr (std::is_same_v<T, search::Artist>) {
+                return arg.artist;
+            }
+            else if constexpr (std::is_same_v<T, search::Playlist>) {
+                return arg.title;
+            }
+            else if constexpr (std::is_same_v<T, search::Song>) {
+                return arg.title;
+            }
+            else if constexpr (std::is_same_v<T, search::Video>) {
+                return arg.title;
+            }
+            else if constexpr (std::is_same_v<T, search::TopResult>) {
+                if (arg.title) {
+                    return *arg.title;
+                }
+                else {
+                    if (!arg.artists.empty()) {
+                        return arg.artists.front().name;
+                    }
+                    else {
+                        return std::string();
+                    }
+                }
+            }*/
+            if constexpr (std::is_same_v<T, search::Song>) {
+                TrackInfo track_info;
+                track_info.title = String::ToString(arg.title);
+                track_info.album = String::ToString(arg.album.value().name);
+                if (!arg.artists.empty()) {
+                    track_info.artist = String::ToString(arg.artists.front().name);
+                }
+
+                auto datetime = QDateTime::fromString(QString::fromStdString(arg.duration.value()), qTEXT("mm:ss"));
+                auto duration = datetime.toMSecsSinceEpoch() / 1000.0;
+                track_infos.push_back(track_info);
+            }
+            else {
+            }
+            }, item);
+        /*auto music_id = qMainDb.addOrUpdateMusic(track_info);
+        auto album_id = qMainDb.addOrUpdateArtist();
+        auto album_id = qMainDb.addOrUpdateAlbum();
+        qMainDb.addMusicToPlaylist();*/
+	}
+    ytmusic_page_->playlist()->reload();
+}
+
 void Xamp::onCheckForUpdate() {
     auto* updater = QSimpleUpdater::getInstance();
 
@@ -744,11 +805,11 @@ void Xamp::closeEvent(QCloseEvent* event) {
         event->ignore();
         return;
     }
-    cleanup();
+    destory();
     window()->close();
 }
 
-void Xamp::cleanup() {
+void Xamp::destory() {
     if (player_ != nullptr) {
         player_->Destroy();
         player_.reset();
@@ -769,6 +830,8 @@ void Xamp::cleanup() {
         }
     };
 
+    emit cleanup();
+
     worker_cancel_requested(background_worker_.get());
     worker_cancel_requested(find_album_cover_worker_.get());
     worker_cancel_requested(extract_file_worker_.get());
@@ -779,12 +842,12 @@ void Xamp::cleanup() {
     quit_and_wait_thread(ytmusic_thread_);
 
     if (main_window_ != nullptr) {
-        main_window_->saveGeometry();
+        (void) main_window_->saveGeometry();
     }
 
     tab_widget_->saveTabOrder();
 
-    XAMP_LOG_DEBUG("Xamp cleanup!");
+    XAMP_LOG_DEBUG("Xamp destory!");
 }
 
 void Xamp::initialUi() {
@@ -1481,6 +1544,10 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
     }
 }
 
+void Xamp::searchCompleted(PlayListTableView* playlist, const QString& text) {
+	
+}
+
 void Xamp::performDelayedUpdate() {
     cd_page_->playlistPage()->playlist()->reload();
     album_page_->reload();
@@ -1911,7 +1978,18 @@ void Xamp::initialPlaylist() {
     ytmusic_page_->playlist()->setPlaylistId(kDefaultYtMusicPlaylistId, kAppSettingPlaylistColumnName);
     onSetCover(kEmptyString, ytmusic_page_.get());
     connectPlaylistPageSignal(ytmusic_page_.get());
-    auto search_future = ytmusic_worker_->search(qTEXT("Kessoku Band"));
+
+    (void)QObject::connect(this,
+        &Xamp::search,
+        ytmusic_worker_.get(),
+        &YtMusic::search);
+
+    (void)QObject::connect(ytmusic_worker_.get(),
+        &YtMusic::searchCompleted,
+        this,
+        &Xamp::onSearchCompleted);
+
+    emit search(qTEXT("Kessoku Band"));
 
     (void)QObject::connect(this,
         &Xamp::blurImage,
@@ -2156,6 +2234,20 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
 }
 
 void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
+    if (playlist_page != ytmusic_page_.get()) {
+        (void)QObject::connect(playlist_page,
+            &PlaylistPage::search,
+            [this](auto* playlist, const auto& text) {
+                playlist->search(text);
+            });
+    } else {
+        (void)QObject::connect(playlist_page,
+            &PlaylistPage::search,
+            [this](auto* playlist, const auto& text) {
+                emit search(text);
+            });
+    }
+
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistItemFinished,
         album_page_.get(),

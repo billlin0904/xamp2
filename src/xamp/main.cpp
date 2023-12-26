@@ -73,6 +73,7 @@ namespace {
     Vector<SharedLibraryHandle> prefetchDll() {
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         Vector<std::string_view> dll_file_names{
+            R"(Python3.dll)",
             R"(mimalloc-override.dll)",
             R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
             R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",

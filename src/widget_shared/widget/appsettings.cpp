@@ -16,7 +16,7 @@
 #include <widget/databasefacade.h>
 #include <widget/log_util.h>
 #include <widget/playerorder.h>
-
+#include <widget/youtubedl/ytmusic.h>
 #include <widget/playlistentity.h>
 
 namespace {
@@ -453,6 +453,7 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<DriveInfo>("DriveInfo");
 	qRegisterMetaType<EncodingProfile>("EncodingProfile");
 	qRegisterMetaType<std::wstring>("std::wstring");
+	qRegisterMetaType<std::vector<search::SearchResultItem>>("std::vector<search::SearchResultItem>");
 }
 
 void AppSettings::loadAppSettings() {

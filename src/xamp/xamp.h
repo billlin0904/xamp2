@@ -7,7 +7,7 @@
 
 #include <QStack>
 #include <QThread>
-#include <QVector>
+#include <QFutureWatcher>
 #include <QSystemTrayIcon>
 
 #include <optional>
@@ -20,6 +20,7 @@
 #include <widget/playerorder.h>
 #include <widget/driveinfo.h>
 #include <widget/str_utilts.h>
+#include <widget/youtubedl/ytmusic.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>
@@ -57,8 +58,7 @@ class Xamp final : public IXFrame {
 
 public:
 	static constexpr auto kShowProgressDialogMsSecs = 1000;
-
-	inline static const ConstLatin1String kSoftwareUpdateUrl =
+	static constexpr ConstLatin1String kSoftwareUpdateUrl =
 		qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
 
     Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer> &player);
@@ -76,6 +76,7 @@ public:
 	void initialDeviceList();
 
 	void waitForReady();
+
 signals:
 	void payNextMusic();
 
@@ -96,7 +97,14 @@ signals:
 	void changePlayerOrder(PlayerOrder order);
 
 	void updateNewVersion(const Version &version);
+
+	void cleanup();
+
+	void search(const QString& text);
+
 public slots:
+	void searchCompleted(PlayListTableView* playlist, const QString& text);
+
 	void performDelayedUpdate();
 
     void onPlayEntity(const PlayListEntity& entity);
@@ -141,8 +149,7 @@ public slots:
 
 	void onFoundFileCount(size_t file_count);
 
-	void onSetAlbumCover(int32_t album_id,
-		const QString& cover_id);
+	void onSetAlbumCover(int32_t album_id, const QString& cover_id);
 
 	void onTranslationCompleted(const QString& keyword, const QString& result);
 
@@ -151,6 +158,8 @@ public slots:
 	void onCheckForUpdate();
 
 	void onRestartApp();
+
+	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
 
 private:
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
@@ -223,7 +232,7 @@ private:
 
 	void updateButtonState();
 
-	void cleanup();
+	void destory();
 
     void setupDsp(const PlayListEntity& item) const;
 
@@ -233,8 +242,7 @@ private:
 
 	QString translateErrorCode(const Errors error) const;
 
-	void setupSampleWriter(ByteFormat byte_format,
-		PlaybackFormat& playback_format) const;
+	void setupSampleWriter(ByteFormat byte_format, PlaybackFormat& playback_format) const;
 
 	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,

@@ -8,7 +8,7 @@ namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
-    void pyPrintPretty(py::handle obj) {
+    void dumpJson(py::handle obj) {
         auto json = py::module::import("json");
         py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
     }
@@ -200,6 +200,56 @@ namespace {
         }
     }
 
+    template <typename T>
+    std::vector<T> extract_py_list(py::handle obj) {
+        if (obj.is_none()) {
+            return std::vector<T>();
+        }
+
+        const auto list = obj.cast<py::list>();
+        std::vector<T> output;
+
+        std::transform(list.begin(), list.end(), std::back_inserter(output), [](py::handle item) {
+            if constexpr (std::is_same_v<T, meta::Thumbnail>) {
+                return extract_thumbnail(item);
+            }
+            else if constexpr (std::is_same_v<T, meta::Artist>) {
+                return extract_meta_artist(item);
+            }
+            else if constexpr (std::is_same_v<T, album::Track>) {
+                return extract_album_track(item);
+            }
+            else if constexpr (std::is_same_v<T, playlist::Track>) {
+                return extract_playlist_track(item);
+            }
+            else if constexpr (std::is_same_v<T, video_info::Format>) {
+                return extract_format(item);
+            }
+            else if constexpr (std::is_same_v<T, watch::Playlist::Track>) {
+                return extract_watch_track(item);
+            }
+            else {
+                return item.cast<T>();
+            }
+            });
+
+        return output;
+    }
+}
+
+XAMP_DECLARE_LOG_NAME(YtMusic);
+
+class YtMusicWrapper::YtMusicImpl {
+public:
+    py::scoped_interpreter guard{};
+    std::optional<std::string> auth;
+    std::optional<std::string> user;
+    std::optional<bool> requests_session;
+    std::optional<std::map<std::string, std::string> > proxies;
+    std::string language;
+    std::string location;
+    LoggerPtr logger;
+
     std::optional<search::SearchResultItem> extract_search_result(py::handle result) {
         const auto resultType = result["resultType"].cast<std::string>();
 
@@ -268,63 +318,16 @@ namespace {
                 extract_py_list<meta::Thumbnail>(result["thumbnails"])
             };
         }
+        else if (resultType == "profile") {
+            return search::Profile{
+                result["name"].cast<std::string>()
+            };
+        }
         else {
-            //std::cerr << "Warning: Unsupported search result type found" << std::endl;
-            //std::cerr << "It's called: " << resultType << std::endl;
-            pyPrintPretty(result);
+            XAMP_LOG_W(logger, "Warning: Unsupported search result type found, It's called: {}", resultType);
             return std::nullopt;
         }
     }
-
-    template <typename T>
-    std::vector<T> extract_py_list(py::handle obj) {
-        if (obj.is_none()) {
-            return std::vector<T>();
-        }
-
-        const auto list = obj.cast<py::list>();
-        std::vector<T> output;
-
-        std::transform(list.begin(), list.end(), std::back_inserter(output), [](py::handle item) {
-            if constexpr (std::is_same_v<T, meta::Thumbnail>) {
-                return extract_thumbnail(item);
-            }
-            else if constexpr (std::is_same_v<T, meta::Artist>) {
-                return extract_meta_artist(item);
-            }
-            else if constexpr (std::is_same_v<T, album::Track>) {
-                return extract_album_track(item);
-            }
-            else if constexpr (std::is_same_v<T, playlist::Track>) {
-                return extract_playlist_track(item);
-            }
-            else if constexpr (std::is_same_v<T, video_info::Format>) {
-                return extract_format(item);
-            }
-            else if constexpr (std::is_same_v<T, watch::Playlist::Track>) {
-                return extract_watch_track(item);
-            }
-            else {
-                return item.cast<T>();
-            }
-            });
-
-        return output;
-    }
-}
-
-XAMP_DECLARE_LOG_NAME(YtMusic);
-
-class YtMusicWrapper::YtMusicImpl {
-public:
-    py::scoped_interpreter guard{};
-    std::optional<std::string> auth;
-    std::optional<std::string> user;
-    std::optional<bool> requests_session;
-    std::optional<std::map<std::string, std::string> > proxies;
-    std::string language;
-    std::string location;
-    LoggerPtr logger;
 
     YtMusicImpl(const std::optional<std::string>& auth,
         const std::optional<std::string>& user,
@@ -348,7 +351,6 @@ public:
             try {
                 ytmusicapi_module = py::module::import("ytmusicapi");
                 ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
-                //ytmusic = ytmusicapi_module.attr("YTMusic")();
 
                 auto old_version = ytmusicapi_module.attr("__dict__").contains("_version");
                 if (old_version) {
@@ -368,7 +370,6 @@ public:
     }
 
     py::object get_ytdl() {
-        // lazy initialization
         if (ytdl_.is_none()) {
             ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
         }
@@ -385,67 +386,55 @@ YtMusic::YtMusic(QObject* parent)
 	: QObject(parent) {
 }
 
-QFuture<std::vector<search::SearchResultItem>> YtMusic::search(const QString& query) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->search(query.toStdString());
-        });
+void YtMusic::search(const QString& query) {
+    if (query.isEmpty()) {
+        return;
+    }
+    emit searchCompleted(wrapper()->search(query.toStdString()));
 }
 
-QFuture<artist::Artist> YtMusic::fetchArtist(const QString& channel_id) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->getArtist(channel_id.toStdString());
-        });
+void YtMusic::fetchArtist(const QString& channel_id) {
+    emit fetchArtistCompleted(wrapper()->getArtist(channel_id.toStdString()));
 }
 
-QFuture<album::Album> YtMusic::fetchAlbum(const QString& browse_id) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->getAlbum(browse_id.toStdString());
-        });
+void YtMusic::fetchAlbum(const QString& browse_id) {
+    emit fetchAlbumCompleted(wrapper()->getAlbum(browse_id.toStdString()));
 }
 
-QFuture<std::optional<song::Song>> YtMusic::fetchSong(const QString& video_id) {
-    return invokeAndCatchOnThread([=, this]() -> std::optional<song::Song> {
-        if (video_id.isEmpty()) {
-            return {};
-        }
-        return wrapper()->getSong(video_id.toStdString());
-        });
+void YtMusic::fetchSong(const QString& video_id) {
+    if (video_id.isEmpty()) {
+        return;
+    }
+    emit fetchSongCompleted(wrapper()->getSong(video_id.toStdString()));
 }
 
-QFuture<playlist::Playlist> YtMusic::fetchPlaylist(const QString& playlist_id) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->getPlaylist(playlist_id.toStdString());
-        });
+void YtMusic::fetchPlaylist(const QString& playlist_id) {
+    emit fetchPlaylistCompleted(wrapper()->getPlaylist(playlist_id.toStdString()));
 }
 
-QFuture<std::vector<artist::Artist::Album>> YtMusic::fetchArtistAlbums(const QString& channel_id, const QString& params) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->getArtistAlbums(channel_id.toStdString(), params.toStdString());
-        });
+void YtMusic::fetchArtistAlbums(const QString& channel_id, const QString& params) {
+    emit fetchArtistAlbumsCompleted(wrapper()->getArtistAlbums(channel_id.toStdString(), params.toStdString()));
 }
 
-QFuture<video_info::VideoInfo> YtMusic::extractVideoInfo(const QString& video_id) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->extractInfo(video_id.toStdString());
-        });
+void YtMusic::extractVideoInfo(const QString& video_id) {
+    emit extractVideoInfoCompleted(wrapper()->extractInfo(video_id.toStdString()));
 }
 
-QFuture<watch::Playlist> YtMusic::fetchWatchPlaylist(const std::optional<QString>& video_id,
+void YtMusic::fetchWatchPlaylist(const std::optional<QString>& video_id,
     const std::optional<QString>& playlist_id) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->getWatchPlaylist(
-            mapOptional(video_id, &QString::toStdString),
-            mapOptional(playlist_id, &QString::toStdString)
-        );
-        });
+    emit fetchWatchPlaylistCompleted(wrapper()->getWatchPlaylist(
+        mapOptional(video_id, &QString::toStdString),
+        mapOptional(playlist_id, &QString::toStdString)
+    ));
 }
 
-QFuture<Lyrics> YtMusic::fetchLyrics(const QString& browse_id) {
-    return invokeAndCatchOnThread([=, this]() {
-        return wrapper()->getLyrics(
-            browse_id.toStdString()
-        );
-        });
+void YtMusic::fetchLyrics(const QString& browse_id) {
+    emit fetchLyricsCompleted(wrapper()->getLyrics(browse_id.toStdString()));
+}
+
+void YtMusic::cleanup() {
+    wrapper_.reset();
+    emit cleanupCompleted();
 }
 
 YtMusicWrapper* YtMusic::wrapper() {
@@ -465,7 +454,7 @@ YtMusicWrapper::YtMusicWrapper(const std::optional<std::string>& auth,
     : impl_(MakeAlign<YtMusicImpl>(auth, user, requests_session, proxies, language, location)) {
 }
 
-YtMusicWrapper::~YtMusicWrapper() = default;
+XAMP_PIMPL_IMPL(YtMusicWrapper)
 
 void YtMusicWrapper::initial() {
     impl_->get_ytdl();
@@ -611,31 +600,36 @@ std::vector<search::SearchResultItem> YtMusicWrapper::search(
     const std::optional<std::string>& scope,
     const int limit,
     const bool ignore_spelling) const {
-    const auto results = impl_->get_ytmusic().attr("search")
-	(
-        "query"_a = query,
-        "filter"_a = filter,
-        "scope"_a = scope,
-        "limit"_a = limit,
-        "ignore_spelling"_a = ignore_spelling
-    ).cast<py::list>();
-
     std::vector<search::SearchResultItem> output;
-    output.reserve(results.size());
 
-    for (const auto& result : results) {
-        if (result.is_none()) {
-            continue;
-        }
+    try {
+        const auto results = impl_->get_ytmusic().attr("search")
+            (
+                "query"_a = query,
+                "filter"_a = filter,
+                "scope"_a = scope,
+                "limit"_a = limit,
+                "ignore_spelling"_a = ignore_spelling
+                ).cast<py::list>();
 
-        try {
-            if (const auto opt = extract_search_result(result); opt.has_value()) {
-                output.push_back(opt.value());
+        for (const auto& result : results) {
+            if (result.is_none()) {
+                continue;
+            }
+
+            try {
+                if (const auto opt = impl_->extract_search_result(result); opt.has_value()) {
+                    output.push_back(opt.value());
+                }
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_D(impl_->logger, "Failed to parse search result because:{}", e.what());
             }
         }
-        catch (const std::exception& e) {
-            XAMP_LOG_D(impl_->logger, "Failed to parse search result because:{}", e.what());
-        }
     }
+    catch (const std::exception& e) {
+        XAMP_LOG_D(impl_->logger, "{}", e.what());
+    }
+    
     return output;
 }

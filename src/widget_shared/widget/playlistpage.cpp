@@ -178,7 +178,8 @@ void PlaylistPage::initial() {
 	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this, search_playlist_model, playlist_completer](const auto& text) {
 		const auto items = search_playlist_model->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
-			playlist_->search(kEmptyString);
+			//playlist_->search(kEmptyString);
+			emit search(playlist_, kEmptyString);
 			return;
 		}
 		if (search_playlist_model->rowCount() >= kMaxCompletionCount) {
@@ -189,7 +190,8 @@ void PlaylistPage::initial() {
 		playlist_completer->setModel(search_playlist_model);
 		playlist_completer->setCompletionPrefix(text);
 
-		playlist_->search(text);
+		//playlist_->search(text);
+		emit search(playlist_, text);
 		});
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
