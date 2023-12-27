@@ -124,3 +124,23 @@ QString formatDb(double value, int prec) {
 QString formatDouble(double value, int prec) {
     return QString::number(value, 'f', prec);
 }
+
+std::chrono::milliseconds parseDuration(const std::string & str) {
+    auto minutes = 0;
+    auto seconds = 0;
+    auto milliseconds = 0;
+#ifdef Q_OS_WIN32    
+    const auto res = sscanf_s(str.c_str(), "%u:%u:%u",
+        &minutes,
+        &seconds,
+        &milliseconds);
+#else
+    const auto res = sscanf(str.c_str(), "%u:%u:%u",
+        &minutes,
+        &seconds,
+        &milliseconds);
+#endif
+    return std::chrono::minutes(minutes)
+        + std::chrono::seconds(seconds)
+        + std::chrono::milliseconds(milliseconds);
+}

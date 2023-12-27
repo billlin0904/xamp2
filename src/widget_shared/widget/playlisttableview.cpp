@@ -476,7 +476,9 @@ void PlayListTableView::initial() {
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        playItem(index);
+        if (model_->rowCount() > 0) {
+            playItem(index);
+        }        
     });
 
     setContextMenuPolicy(Qt::CustomContextMenu);

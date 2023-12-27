@@ -22,9 +22,9 @@
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
-    constexpr auto kJop = qTEXT("jpop");
-    constexpr auto kHiRes = qTEXT("HiRes");
-    constexpr auto kDsdCategory = qTEXT("DSD");
+    inline constexpr auto kJop = qTEXT("jpop");
+    inline constexpr auto kHiRes = qTEXT("HiRes");
+    inline constexpr auto kDsdCategory = qTEXT("DSD");
     const std::wstring kDffExtension(L".dff");
     const std::wstring kDsfExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
@@ -72,7 +72,8 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     }
 }
 
-void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
+void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
+    int32_t playlist_id, std::function<void(int32_t)> fetch_cover) {
     const Stopwatch sw;
     FloatMap<QString, int32_t> artist_id_cache;
     FloatMap<QString, int32_t> album_id_cache;
@@ -156,6 +157,9 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
         }
 
         if (!is_file_path) {
+            if (fetch_cover != nullptr) {
+                fetch_cover(album_id);
+            }
             continue;
         }
 
@@ -166,7 +170,11 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 
         const auto cover_id = database_->getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
-            emit findAlbumCover(album_id, album, artist, track_info.file_path);
+            if (!fetch_cover) {
+                emit findAlbumCover(album_id, album, artist, track_info.file_path);
+            } else {
+                fetch_cover(album_id);
+            }
         }
 	}
     if (sw.ElapsedSeconds() > 1.0) {
@@ -174,13 +182,13 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
     }
 }
 
-void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
+void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, std::function<void(int32_t)> fetch_cover) {
     try {
         if (!database_->transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
             return;
         }
-        addTrackInfo(result, playlist_id);       
+        addTrackInfo(result, playlist_id, fetch_cover);
         if (!database_->commit()) {
             XAMP_LOG_DEBUG("Failed to commit!");
         }

@@ -285,16 +285,16 @@ struct Lyrics {
     std::string lyrics;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT YtMusicWrapper {
+class XAMP_WIDGET_SHARED_EXPORT YtMusicInterop {
 public:
-    explicit YtMusicWrapper(const std::optional<std::string>& auth = std::nullopt,
+    explicit YtMusicInterop(const std::optional<std::string>& auth = std::nullopt,
         const std::optional<std::string>& user = std::nullopt,
         const std::optional<bool> requests_session = true,
         const std::optional<std::map<std::string, std::string>>& proxies = std::nullopt,
         const std::string& language = "en",
         const std::string& location = "");
 
-    XAMP_PIMPL(YtMusicWrapper)
+    XAMP_PIMPL(YtMusicInterop)
 
     void initial();
 
@@ -323,8 +323,8 @@ public:
     [[nodiscard]] Lyrics getLyrics(const std::string& browse_id) const;
 
 private:
-    class YtMusicImpl;
-    AlignPtr<YtMusicImpl> impl_;
+    class YtMusicInteropImpl;
+    AlignPtr<YtMusicInteropImpl> impl_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT YtMusic : public QObject {
@@ -333,6 +333,8 @@ public:
     explicit YtMusic(QObject* parent = nullptr);
 
 public slots:
+    void initial();
+
     void search(const QString& query);
 
     void fetchArtist(const QString& channel_id);
@@ -352,6 +354,8 @@ public slots:
     void fetchLyrics(const QString& browse_id);
 
     void cleanup();
+
+    void fetchThumbnail(int32_t id, const video_info::VideoInfo& video_info);
 
 signals:
     void errorOccurred(const QString& error);
@@ -374,11 +378,13 @@ signals:
 
     void fetchLyricsCompleted(const Lyrics& lyrics);
 
+    void fetchThumbnailCompleted(int32_t id, const QPixmap& image);
+
     void cleanupCompleted();
 
 private:
-    YtMusicWrapper* wrapper();
-
-    AlignPtr<YtMusicWrapper> wrapper_;
+    YtMusicInterop* interop();
+    LoggerPtr logger_;
+    AlignPtr<YtMusicInterop> interop_;
 };
 

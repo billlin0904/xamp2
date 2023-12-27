@@ -43,7 +43,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 auto index,
                 const auto& name) {
                     if (playlist_id == kDefaultAlbumPlaylistId
-                        || playlist_id == kDefaultCdPlaylistId) {
+                        || playlist_id == kDefaultCdPlaylistId
+                        || playlist_id == kDefaultYtMusicPlaylistId) {
                         return;
                     }
                     removePlaylist(playlist_id);

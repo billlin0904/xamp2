@@ -120,6 +120,8 @@ QString formatDb(double value, int prec = 1);
 
 QString formatDouble(double value, int prec = 1);
 
+XAMP_WIDGET_SHARED_EXPORT std::chrono::milliseconds parseDuration(const std::string& str);
+
 template <typename... Args>
 QString stringFormat(std::string_view s, Args &&...args) {
 	using namespace xamp::base::String;

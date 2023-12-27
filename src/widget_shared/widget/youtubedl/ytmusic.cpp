@@ -1,16 +1,21 @@
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 
+#include <QBuffer>
+#include <QImageReader>
+#include <QPixmap>
+
 #include <algorithm>
+#include <widget/http.h>
 #include <widget/youtubedl/ytmusic.h>
 
 namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
-    void dumpJson(py::handle obj) {
-        auto json = py::module::import("json");
-        py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
+    void dump(py::handle obj) {
+        //auto json = py::module::import("json");
+        //py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
     }
 
     template <typename T>
@@ -127,7 +132,7 @@ namespace {
 
         const py::list py_results = section["results"];
         std::vector<T> results;
-        std::transform(py_results.begin(), py_results.end(), std::back_inserter(results), [](py::handle result) {
+        std::transform(py_results.begin(), py_results.end(), std::back_inserter(results), [](py::handle result) {            
             if constexpr (std::is_same_v<T, artist::Artist::Song>) {
                 return artist::Artist::Song{
                     result["videoId"].cast<std::string>(),
@@ -210,6 +215,8 @@ namespace {
         std::vector<T> output;
 
         std::transform(list.begin(), list.end(), std::back_inserter(output), [](py::handle item) {
+            dump(item);
+
             if constexpr (std::is_same_v<T, meta::Thumbnail>) {
                 return extract_thumbnail(item);
             }
@@ -238,8 +245,9 @@ namespace {
 }
 
 XAMP_DECLARE_LOG_NAME(YtMusic);
+XAMP_DECLARE_LOG_NAME(YtMusicInterop);
 
-class YtMusicWrapper::YtMusicImpl {
+class YtMusicInterop::YtMusicInteropImpl {
 public:
     py::scoped_interpreter guard{};
     std::optional<std::string> auth;
@@ -329,7 +337,7 @@ public:
         }
     }
 
-    YtMusicImpl(const std::optional<std::string>& auth,
+    YtMusicInteropImpl(const std::optional<std::string>& auth,
         const std::optional<std::string>& user,
         const std::optional<bool> requests_session,
         const std::optional<std::map<std::string, std::string>>& proxies,
@@ -341,42 +349,31 @@ public:
 			, proxies(proxies)
 			, language(language)
 			, location(location) {
-        logger = LoggerManager::GetInstance().GetLogger(kYtMusicLoggerName);
+        logger = LoggerManager::GetInstance().GetLogger(kYtMusicInteropLoggerName);
         ytmusic_ = py::none();
         ytdl_ = py::none();
     }
 
     py::object get_ytmusic() {
         if (ytmusic_.is_none()) {
-            try {
-                ytmusicapi_module = py::module::import("ytmusicapi");
-                ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
+            ytmusicapi_module = py::module::import("ytmusicapi");
+            ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
 
-                auto old_version = ytmusicapi_module.attr("__dict__").contains("_version");
-                if (old_version) {
-                    XAMP_LOG_E(logger, "Running with outdated and untested version of ytmusicapi.");
-                }
-                else {
-                    const auto version = ytmusicapi_module.attr("__version__").cast<std::string>();
-                    XAMP_LOG_D(logger, "Running with untested version of ytmusicapi {}", version);
-                }
+            auto old_version = ytmusicapi_module.attr("__dict__").contains("_version");
+            if (old_version) {
+                XAMP_LOG_E(logger, "Running with outdated and untested version of ytmusicapi.");
             }
-            catch (const std::exception &e) {
-                XAMP_LOG_E(logger, "{}", e.what());
+            else {
+                const auto version = ytmusicapi_module.attr("__version__").cast<std::string>();
+                XAMP_LOG_D(logger, "Running with untested version of ytmusicapi {}", version);
             }
         }
-
         return ytmusic_;
     }
 
     py::object get_ytdl() {
         if (ytdl_.is_none()) {
-            try {
-                ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
-            }
-            catch (const std::exception& e) {
-                XAMP_LOG_E(logger, "{}", e.what());
-            }
+            ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
         }
         return ytdl_;
     }
@@ -389,85 +386,154 @@ private:
 
 YtMusic::YtMusic(QObject* parent)
 	: QObject(parent) {
+    logger_ = LoggerManager::GetInstance().GetLogger(kYtMusicInteropLoggerName);
+}
+
+void YtMusic::initial() {
+    try {
+        interop()->initial();
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }    
 }
 
 void YtMusic::search(const QString& query) {
     if (query.isEmpty()) {
         return;
     }
-    wrapper()->initial();
-    emit searchCompleted(wrapper()->search(query.toStdString()));
+    try {
+        emit searchCompleted(interop()->search(query.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }
 }
 
-void YtMusic::fetchArtist(const QString& channel_id) {
-    emit fetchArtistCompleted(wrapper()->getArtist(channel_id.toStdString()));
+void YtMusic::fetchArtist(const QString& channel_id) {    
+    try {
+        emit fetchArtistCompleted(interop()->getArtist(channel_id.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }
 }
 
-void YtMusic::fetchAlbum(const QString& browse_id) {
-    emit fetchAlbumCompleted(wrapper()->getAlbum(browse_id.toStdString()));
+void YtMusic::fetchAlbum(const QString& browse_id) {    
+    try {
+        emit fetchAlbumCompleted(interop()->getAlbum(browse_id.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }
 }
 
 void YtMusic::fetchSong(const QString& video_id) {
-    if (video_id.isEmpty()) {
-        return;
+    try {
+        if (video_id.isEmpty()) {
+            return;
+        }
+        emit fetchSongCompleted(interop()->getSong(video_id.toStdString()));
     }
-    emit fetchSongCompleted(wrapper()->getSong(video_id.toStdString()));
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }    
 }
 
 void YtMusic::fetchPlaylist(const QString& playlist_id) {
-    emit fetchPlaylistCompleted(wrapper()->getPlaylist(playlist_id.toStdString()));
+    try {
+        emit fetchPlaylistCompleted(interop()->getPlaylist(playlist_id.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }    
 }
 
 void YtMusic::fetchArtistAlbums(const QString& channel_id, const QString& params) {
-    emit fetchArtistAlbumsCompleted(wrapper()->getArtistAlbums(channel_id.toStdString(), params.toStdString()));
+    try {
+        emit fetchArtistAlbumsCompleted(interop()->getArtistAlbums(channel_id.toStdString(), params.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }    
 }
 
-void YtMusic::extractVideoInfo(const std::any& context, const QString& video_id) {
-    emit extractVideoInfoCompleted(context, wrapper()->extractInfo(video_id.toStdString()));
+void YtMusic::extractVideoInfo(const std::any& context, const QString& video_id) {    
+    try {
+        emit extractVideoInfoCompleted(context, interop()->extractInfo(video_id.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }
 }
 
 void YtMusic::fetchWatchPlaylist(const std::optional<QString>& video_id,
     const std::optional<QString>& playlist_id) {
-    emit fetchWatchPlaylistCompleted(wrapper()->getWatchPlaylist(
-        mapOptional(video_id, &QString::toStdString),
-        mapOptional(playlist_id, &QString::toStdString)
-    ));
+    try {
+        emit fetchWatchPlaylistCompleted(interop()->getWatchPlaylist(
+            mapOptional(video_id, &QString::toStdString),
+            mapOptional(playlist_id, &QString::toStdString)
+        ));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }    
 }
 
 void YtMusic::fetchLyrics(const QString& browse_id) {
-    emit fetchLyricsCompleted(wrapper()->getLyrics(browse_id.toStdString()));
+    try {
+        emit fetchLyricsCompleted(interop()->getLyrics(browse_id.toStdString()));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_E(logger_, "{}", e.what());
+    }    
 }
 
 void YtMusic::cleanup() {
-    wrapper_.reset();
+    interop_.reset();
     emit cleanupCompleted();
 }
 
-YtMusicWrapper* YtMusic::wrapper() {
-	if (wrapper_ != nullptr) {
-        return wrapper_.get();
-	}
-    wrapper_ = MakeAlign<YtMusicWrapper>();
-    return wrapper_.get();
+void YtMusic::fetchThumbnail(int32_t id, const video_info::VideoInfo& video_info) {
+    http::HttpClient(QString::fromStdString(video_info.thumbnail))
+        .download([=, this](const auto& content) {
+        QBuffer buffer;
+        buffer.setData(content);
+        buffer.open(QIODevice::ReadOnly);
+        QImageReader reader(&buffer, "JPG");
+        const auto image = reader.read();
+        if (image.isNull()) {
+            return;
+        }
+        emit fetchThumbnailCompleted(id, QPixmap::fromImage(image));
+            });
 }
 
-YtMusicWrapper::YtMusicWrapper(const std::optional<std::string>& auth,
+YtMusicInterop* YtMusic::interop() {
+	if (interop_ != nullptr) {
+        return interop_.get();
+	}
+    interop_ = MakeAlign<YtMusicInterop>();
+    return interop_.get();
+}
+
+YtMusicInterop::YtMusicInterop(const std::optional<std::string>& auth,
     const std::optional<std::string>& user,
     const std::optional<bool> requests_session,
     const std::optional<std::map<std::string, std::string>>& proxies,
     const std::string& language,
     const std::string& location)
-    : impl_(MakeAlign<YtMusicImpl>(auth, user, requests_session, proxies, language, location)) {
+    : impl_(MakeAlign<YtMusicInteropImpl>(auth, user, requests_session, proxies, language, location)) {
 }
 
-XAMP_PIMPL_IMPL(YtMusicWrapper)
+XAMP_PIMPL_IMPL(YtMusicInterop)
 
-void YtMusicWrapper::initial() {
+void YtMusicInterop::initial() {
     impl_->get_ytdl();
-    impl_->get_ytmusic();
+    impl_->get_ytmusic();    
 }
 
-artist::Artist YtMusicWrapper::getArtist(const std::string& channel_id) const {
+artist::Artist YtMusicInterop::getArtist(const std::string& channel_id) const {
     const auto artist = impl_->get_ytmusic().attr("get_artist")(channel_id);
     return artist::Artist{
         optional_key<std::string>(artist, "description"),
@@ -484,7 +550,7 @@ artist::Artist YtMusicWrapper::getArtist(const std::string& channel_id) const {
     };
 }
 
-album::Album YtMusicWrapper::getAlbum(const std::string& browse_id) const {
+album::Album YtMusicInterop::getAlbum(const std::string& browse_id) const {
     const auto album = impl_->get_ytmusic().attr("get_album")(browse_id);
     return {
         album["title"].cast<std::string>(),
@@ -499,7 +565,7 @@ album::Album YtMusicWrapper::getAlbum(const std::string& browse_id) const {
     };
 }
 
-std::optional<song::Song> YtMusicWrapper::getSong(const std::string& video_id) const {
+std::optional<song::Song> YtMusicInterop::getSong(const std::string& video_id) const {
     const auto song = impl_->get_ytmusic().attr("get_song")(video_id);
     const auto video_details = song["videoDetails"].cast<py::dict>();
 
@@ -533,7 +599,7 @@ std::optional<song::Song> YtMusicWrapper::getSong(const std::string& video_id) c
     };
 }
 
-playlist::Playlist YtMusicWrapper::getPlaylist(const std::string& playlist_id, int limit) const {
+playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, int limit) const {
     const auto playlist = impl_->get_ytmusic().attr("get_playlist")(playlist_id, limit);
 
     return {
@@ -549,7 +615,7 @@ playlist::Playlist YtMusicWrapper::getPlaylist(const std::string& playlist_id, i
     };
 }
 
-std::vector<artist::Artist::Album> YtMusicWrapper::getArtistAlbums(const std::string& channel_id, const std::string& params) const {
+std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::string& channel_id, const std::string& params) const {
     const auto py_albums = impl_->get_ytmusic().attr("get_artist_albums")(channel_id, params);
     std::vector<artist::Artist::Album> albums;
 
@@ -566,7 +632,7 @@ std::vector<artist::Artist::Album> YtMusicWrapper::getArtistAlbums(const std::st
     return albums;
 }
 
-video_info::VideoInfo YtMusicWrapper::extractInfo(const std::string& video_id) const {
+video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) const {
     const auto info = impl_->get_ytdl().attr("extract_info")(video_id, "download"_a = py::bool_(false));
     return {
         info["id"].cast<std::string>(),
@@ -578,7 +644,7 @@ video_info::VideoInfo YtMusicWrapper::extractInfo(const std::string& video_id) c
     };
 }
 
-watch::Playlist YtMusicWrapper::getWatchPlaylist(const std::optional<std::string>& video_id,
+watch::Playlist YtMusicInterop::getWatchPlaylist(const std::optional<std::string>& video_id,
     const std::optional<std::string>& playlist_id,
     int limit) const {
     const auto playlist = impl_->get_ytmusic().attr("get_watch_playlist")("videoId"_a = video_id,
@@ -591,7 +657,7 @@ watch::Playlist YtMusicWrapper::getWatchPlaylist(const std::optional<std::string
 }
 
 
-Lyrics YtMusicWrapper::getLyrics(const std::string& browse_id) const {
+Lyrics YtMusicInterop::getLyrics(const std::string& browse_id) const {
 	const auto lyrics = impl_->get_ytmusic().attr("get_lyrics")(browse_id);
 
     return {
@@ -600,7 +666,7 @@ Lyrics YtMusicWrapper::getLyrics(const std::string& browse_id) const {
     };
 }
 
-std::vector<search::SearchResultItem> YtMusicWrapper::search(
+std::vector<search::SearchResultItem> YtMusicInterop::search(
     const std::string& query,
     const std::optional<std::string>& filter,
     const std::optional<std::string>& scope,

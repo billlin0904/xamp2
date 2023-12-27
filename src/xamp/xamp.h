@@ -78,6 +78,8 @@ public:
 	void waitForReady();
 
 signals:
+	void initial();
+
 	void payNextMusic();
 
     void themeChanged(QColor background_color, QColor color);
@@ -104,9 +106,8 @@ signals:
 
 	void extractVideoInfo(const std::any& context, const QString& video_id);
 
+	void fetchThumbnail(int32_t id, const video_info::VideoInfo& video_info);
 public slots:
-	void searchCompleted(PlayListTableView* playlist, const QString& text);
-
 	void performDelayedUpdate();
 
     void onPlayEntity(const PlayListEntity& entity);
@@ -164,6 +165,8 @@ public slots:
 	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
 
 	void onExtractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& video_info);
+
+	void onFetchThumbnailCompleted(int32_t id, const QPixmap& image);
 private:
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 

@@ -25,10 +25,12 @@ signals:
         const QString& artist,
         const std::wstring& file_path);
 public:
-    void insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+    void insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,
+        std::function<void(int32_t)> fetch_cover = nullptr);
 
 private:   
-    void addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+    void addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,    
+        std::function<void(int32_t)> fetch_cover);
 
     bool is_stop_{false};
     LoggerPtr logger_;

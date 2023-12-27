@@ -471,10 +471,20 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
         ytmusic_worker_.get(),
         &YtMusic::extractVideoInfo);
 
+    (void)QObject::connect(this,
+        &Xamp::fetchThumbnail,
+        ytmusic_worker_.get(),
+        &YtMusic::fetchThumbnail);
+
     (void)QObject::connect(ytmusic_worker_.get(),
         &YtMusic::extractVideoInfoCompleted,
         this,
         &Xamp::onExtractVideoInfoCompleted);
+
+    (void)QObject::connect(ytmusic_worker_.get(),
+        &YtMusic::fetchThumbnailCompleted,
+        this,
+        &Xamp::onFetchThumbnailCompleted);
 
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
@@ -494,8 +504,12 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     const auto tab_name = qAppSettings.valueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.naviBar->tabId(tab_name);
     if (tab_id != -1) {
-        ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(tab_id, 0));
+        ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(tab_id + 1, 0));
         setCurrentTab(tab_id);
+    }
+    else {
+        ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
+        setCurrentTab(0);
     }
 
     (void)QObject::connect(album_page_->album(), &AlbumView::loadCompleted,
@@ -670,7 +684,6 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     qTheme.setMenuStyle(menu);
     const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), qTR("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
-        //MaskWidget mask_widget(this);
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
         preference_page->loadSettings();
@@ -683,7 +696,6 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
    
     const auto* about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),qTR("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
-        //MaskWidget mask_widget(this);
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
         (void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::onCheckForUpdate);
@@ -723,6 +735,9 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
                 else {
                     track_info.artist = std::wstring(L"Unknown artist");
                 }
+                if (arg.duration) {
+                    track_info.duration = parseDuration(arg.duration.value()).count() / 1000.0;
+                }                
                 emit extractVideoInfo(std::any(track_info), QString::fromStdString(arg.video_id));
             }
             }, item);
@@ -738,27 +753,21 @@ void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info
 
     const auto best_format = *formats.begin();
 
-    /*http::HttpClient(QString::fromStdString(video_info.thumbnail))
-        .download([=, this](const auto &content) {
-        auto pool = GetPooledDatabase();
-        auto database = pool->Acquire();
-            
-        auto track_info = std::any_cast<TrackInfo>(context);
-        track_info.file_path = String::ToString(best_format.url);
-
-        const ForwardList<TrackInfo> track_infos{ track_info };
-
-        DatabaseFacade facede(nullptr, database.get());
-        facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
-    });*/
-
     auto track_info = std::any_cast<TrackInfo>(context);
     track_info.file_path = String::ToString(best_format.url);
 
     const ForwardList<TrackInfo> track_infos{ track_info };
 
     DatabaseFacade facede;
-    facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
+    facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId(), [=, this](auto album_id) {
+        emit fetchThumbnail(album_id, video_info);
+        });    
+    ytmusic_page_->playlist()->reload();
+}
+
+void Xamp::onFetchThumbnailCompleted(int32_t album_id, const QPixmap& image) {
+    qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
+    ytmusic_page_->playlist()->reload();
 }
 
 void Xamp::onCheckForUpdate() {
@@ -808,7 +817,7 @@ void Xamp::updateMaximumState(bool is_maximum) {
 
 void Xamp::closeEvent(QCloseEvent* event) {
     if (!trigger_upgrade_restart_ 
-        && XMessageBox::showYesOrNo(qTR("Do you want to exit the app ?")) == QDialogButtonBox::No) {
+        && XMessageBox::showYesOrNo(qTR("Do you want to exit the XAMP ?")) == QDialogButtonBox::No) {
         event->ignore();
         return;
     }
@@ -1248,8 +1257,7 @@ void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& imag
     if (cover.loadFromData(image)) {        
         qMainDb.updateArtistCoverId(qMainDb.addOrUpdateArtist(artist), qImageCache.addImage(cover));
     }
-    emit translation(artist, qTEXT("ja"), qTEXT("en"));
-    //emit Translation(artist, qTEXT("en"), qTEXT("ja"));
+    emit translation(artist, qTEXT("ja"), qTEXT("en"));    
     album_page_->reload();
 }
 
@@ -1259,6 +1267,7 @@ void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, cons
 }
 
 void Xamp::setFullScreen() {
+    // TODO ...
     /*if (qAppSettings.valueAsBool(kAppSettingEnterFullScreen)) {
         setCurrentTab(TAB_LYRICS);
         ui_.bottomFrame->setHidden(true);
@@ -1441,10 +1450,10 @@ void Xamp::playOrPause() {
             getCurrentPlaylistPage()->playlist()->onPlayIndex(play_index_);
         }
     }
-    catch (Exception const &e) {
+    catch (const Exception& e) {
         XAMP_LOG_DEBUG(e.GetStackTrace());
     }
-    catch (std::exception const &e) {
+    catch (const std::exception& e) {
         XAMP_LOG_DEBUG(e.what());
     }
     catch (...) {	    
@@ -1549,10 +1558,6 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
             player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
             };
     }
-}
-
-void Xamp::searchCompleted(PlayListTableView* playlist, const QString& text) {
-	
 }
 
 void Xamp::performDelayedUpdate() {
@@ -1931,8 +1936,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("Youtube Music"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(0, 0));
+    ui_.naviBar->addTab(qTR("YouTube music"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));    
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -1988,6 +1992,11 @@ void Xamp::initialPlaylist() {
     connectPlaylistPageSignal(ytmusic_page_.get());
 
     (void)QObject::connect(this,
+        &Xamp::initial,
+        ytmusic_worker_.get(),
+        &YtMusic::initial);
+
+    (void)QObject::connect(this,
         &Xamp::search,
         ytmusic_worker_.get(),
         &YtMusic::search);
@@ -1997,7 +2006,7 @@ void Xamp::initialPlaylist() {
         this,
         &Xamp::onSearchCompleted);
 
-    emit search(qTEXT("Kessoku Band"));
+    emit initial();
 
     (void)QObject::connect(this,
         &Xamp::blurImage,
