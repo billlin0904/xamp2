@@ -10,12 +10,14 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
+class Database;
+
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
 public:
     static constexpr size_t kReserveSize = 1024;
     
-    explicit DatabaseFacade(QObject* parent = nullptr);
+    explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
 
 signals:
     void findAlbumCover(int32_t album_id,
@@ -30,5 +32,6 @@ private:
 
     bool is_stop_{false};
     LoggerPtr logger_;
+    Database* database_;
 };
 

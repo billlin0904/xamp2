@@ -107,7 +107,7 @@ public:
 
 	void rollback();
 
-	bool DropAllTable();
+	bool dropAllTable();
 
 	QStringList getGenres() const;
 
@@ -262,7 +262,7 @@ private:
 	LoggerPtr logger_;
 };
 
-class DatabaseFactory {
+class XAMP_WIDGET_SHARED_EXPORT DatabaseFactory {
 public:
 	Database* Create() {
 		auto* database = new Database(getDatabaseId());
@@ -276,6 +276,6 @@ private:
 
 using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;
 
-PooledDatabasePtr GetPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
+XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr GetPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
 #define qMainDb SharedSingleton<Database>::GetInstance()

@@ -62,9 +62,14 @@ namespace {
     }
 }
 
-DatabaseFacade::DatabaseFacade(QObject* parent)
+DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
-    logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);    
+    logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);
+    if (!database) {
+        database_ = &qMainDb;
+    } else {
+        database_ = database;
+    }
 }
 
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
@@ -104,10 +109,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 			artist = qTR("Unknown artist");
 		}
 
-        const auto music_id = qMainDb.addOrUpdateMusic(track_info);
+        const auto music_id = database_->addOrUpdateMusic(track_info);
         int32_t artist_id = 0;
         if (!artist_id_cache.contains(artist)) {
-            artist_id = qMainDb.addOrUpdateArtist(artist);
+            artist_id = database_->addOrUpdateArtist(artist);
             artist_id_cache[artist] = artist_id;
         } else {
             artist_id = artist_id_cache[artist];
@@ -115,9 +120,9 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 
         XAMP_EXPECTS(artist_id != 0);
 
-        auto album_id = qMainDb.getAlbumId(album);
+        auto album_id = database_->getAlbumId(album);
         if (album_id == kInvalidDatabaseId) {
-            album_id = qMainDb.addOrUpdateAlbum(album,
+            album_id = database_->addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
@@ -126,28 +131,28 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
                 album_genre);
             album_id_cache[album] = album_id;
             for (const auto &category : GetAlbumCategories(album)) {
-                qMainDb.addOrUpdateAlbumCategory(album_id, category);
+                database_->addOrUpdateAlbumCategory(album_id, category);
             }
             
             if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
-                qMainDb.addOrUpdateAlbumCategory(album_id, kDsdCategory);
+                database_->addOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-                qMainDb.addOrUpdateAlbumCategory(album_id, kHiRes);
+                database_->addOrUpdateAlbumCategory(album_id, kHiRes);
 			}            
         }
 
         XAMP_EXPECTS(album_id != 0);
 
 		if (playlist_id != -1) {
-            qMainDb.addMusicToPlaylist(music_id, playlist_id, album_id);
+            database_->addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-        qMainDb.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
-        qMainDb.addOrUpdateAlbumArtist(album_id, artist_id);
+        database_->addOrUpdateAlbumMusic(album_id, artist_id, music_id);
+        database_->addOrUpdateAlbumArtist(album_id, artist_id);
         for (const auto& multi_artist : artists) {
-            auto id = qMainDb.addOrUpdateArtist(multi_artist);
-            qMainDb.addOrUpdateAlbumArtist(album_id, id);
+            auto id = database_->addOrUpdateArtist(multi_artist);
+            database_->addOrUpdateAlbumArtist(album_id, id);
         }
 
         if (!is_file_path) {
@@ -155,11 +160,11 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
         }
 
         if (!cover.isNull()) {
-            qMainDb.setAlbumCover(album_id, qImageCache.addImage(cover));
+            database_->setAlbumCover(album_id, qImageCache.addImage(cover));
             continue;
         }
 
-        const auto cover_id = qMainDb.getAlbumCoverId(album_id);
+        const auto cover_id = database_->getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             emit findAlbumCover(album_id, album, artist, track_info.file_path);
         }
@@ -171,12 +176,12 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, int32_t 
 
 void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     try {
-        if (!qMainDb.transaction()) {
+        if (!database_->transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
             return;
         }
         addTrackInfo(result, playlist_id);       
-        if (!qMainDb.commit()) {
+        if (!database_->commit()) {
             XAMP_LOG_DEBUG("Failed to commit!");
         }
         return;
@@ -190,5 +195,5 @@ void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, int32
     catch (...) {
         XAMP_LOG_DEBUG("Failed to add track info!");
     }
-    qMainDb.rollback();
+    database_->rollback();
 }

@@ -730,8 +730,6 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
 }
 
 void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& video_info) {
-    auto track_info = std::any_cast<TrackInfo>(context);
-
     std::multiset<video_info::Format> formats;
 
     for (const auto& format : video_info.formats) {
@@ -740,17 +738,27 @@ void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info
 
     const auto best_format = *formats.begin();
 
-    http::HttpClient(QString::fromStdString(video_info.thumbnail))
-        .download([=](const auto &content) {
-    });
+    /*http::HttpClient(QString::fromStdString(video_info.thumbnail))
+        .download([=, this](const auto &content) {
+        auto pool = GetPooledDatabase();
+        auto database = pool->Acquire();
+            
+        auto track_info = std::any_cast<TrackInfo>(context);
+        track_info.file_path = String::ToString(best_format.url);
 
+        const ForwardList<TrackInfo> track_infos{ track_info };
+
+        DatabaseFacade facede(nullptr, database.get());
+        facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
+    });*/
+
+    auto track_info = std::any_cast<TrackInfo>(context);
     track_info.file_path = String::ToString(best_format.url);
 
     const ForwardList<TrackInfo> track_infos{ track_info };
 
     DatabaseFacade facede;
     facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
-    ytmusic_page_->playlist()->reload();
 }
 
 void Xamp::onCheckForUpdate() {
@@ -1550,9 +1558,10 @@ void Xamp::searchCompleted(PlayListTableView* playlist, const QString& text) {
 void Xamp::performDelayedUpdate() {
     cd_page_->playlistPage()->playlist()->reload();
     album_page_->reload();
+    ytmusic_page_->playlist()->reload();
     if (tab_widget_->count() > 0) {
         getCurrentPlaylistPage()->playlist()->reload();
-    }    
+    }
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {

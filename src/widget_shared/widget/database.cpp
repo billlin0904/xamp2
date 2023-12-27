@@ -269,7 +269,7 @@ void Database::createTableIfNotExist() {
     }
 }
 
-bool Database::DropAllTable() {
+bool Database::dropAllTable() {
     SqlQuery dropQuery(db_);
 
     QString dropQueryString = "DROP TABLE IF EXISTS %1";
