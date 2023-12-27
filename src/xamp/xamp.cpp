@@ -671,8 +671,8 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), qTR("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
         //MaskWidget mask_widget(this);
-        QScopedPointer<XDialog> dialog(new XDialog(this));
-        QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
+        const QScopedPointer<XDialog> dialog(new XDialog(this));
+        const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
         preference_page->loadSettings();
         dialog->setContentWidget(preference_page.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
@@ -684,8 +684,8 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     const auto* about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),qTR("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
         //MaskWidget mask_widget(this);
-        QScopedPointer<XDialog> dialog(new XDialog(this));
-        QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
+        const QScopedPointer<XDialog> dialog(new XDialog(this));
+        const QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
         (void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::onCheckForUpdate);
         (void)QObject::connect(about_page.get(), &AboutPage::RestartApp, this, &Xamp::onRestartApp);
         (void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
@@ -731,14 +731,23 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
 
 void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& video_info) {
     auto track_info = std::any_cast<TrackInfo>(context);
+
     std::multiset<video_info::Format> formats;
 
     for (const auto& format : video_info.formats) {
         formats.insert(format);
     }
 
-    track_info.file_path = String::ToString(formats.begin()->url);
-    ForwardList<TrackInfo> track_infos{ track_info };
+    const auto best_format = *formats.begin();
+
+    http::HttpClient(QString::fromStdString(video_info.thumbnail))
+        .download([=](const auto &content) {
+    });
+
+    track_info.file_path = String::ToString(best_format.url);
+
+    const ForwardList<TrackInfo> track_infos{ track_info };
+
     DatabaseFacade facede;
     facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId());
     ytmusic_page_->playlist()->reload();
