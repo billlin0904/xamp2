@@ -13,9 +13,9 @@ namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
-    void dump(py::handle obj) {
-        //auto json = py::module::import("json");
-        //py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
+    void dumps(py::handle obj) {
+        auto json = py::module::import("json");
+        py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
     }
 
     template <typename T>
@@ -215,7 +215,7 @@ namespace {
         std::vector<T> output;
 
         std::transform(list.begin(), list.end(), std::back_inserter(output), [](py::handle item) {
-            dump(item);
+            dumps(item);
 
             if constexpr (std::is_same_v<T, meta::Thumbnail>) {
                 return extract_thumbnail(item);

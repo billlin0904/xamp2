@@ -20,10 +20,7 @@ public:
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
 
 signals:
-    void findAlbumCover(int32_t album_id,
-        const QString& album,
-        const QString& artist,
-        const std::wstring& file_path);
+    void findAlbumCover(int32_t album_id, const std::wstring& file_path);
 public:
     void insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,
         std::function<void(int32_t)> fetch_cover = nullptr);

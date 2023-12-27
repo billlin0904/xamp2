@@ -41,7 +41,8 @@
                 "TagLib": "info",
                 "VirtualMemory": "info",
                 "WASAPIThreadPool": "info",
-                "YtMusic": "info"
+                "YtMusic": "info",
+                "YtMusicInterop": "info"
             }
         }
     },

@@ -171,7 +171,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         const auto cover_id = database_->getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             if (!fetch_cover) {
-                emit findAlbumCover(album_id, album, artist, track_info.file_path);
+                emit findAlbumCover(album_id, track_info.file_path);
             } else {
                 fetch_cover(album_id);
             }

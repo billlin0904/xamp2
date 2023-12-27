@@ -14,10 +14,7 @@ void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
 }
 
-void FindAlbumCoverWorker::onFindAlbumCover(int32_t album_id,
-    const QString& album,
-    const QString& artist,
-    const std::wstring& file_path) {
+void FindAlbumCoverWorker::onFindAlbumCover(int32_t album_id, const std::wstring& file_path) {
     if (is_stop_) {
         return;
     }

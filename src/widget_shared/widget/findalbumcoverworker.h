@@ -20,8 +20,6 @@ signals:
 
 public slots:
 	void onFindAlbumCover(int32_t album_id,
-		const QString& album,
-		const QString& artist,
 		const std::wstring& file_path);
 
 	void cancelRequested();
