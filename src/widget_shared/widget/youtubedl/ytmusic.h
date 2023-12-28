@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <QCoroFuture>
+#include <QtConcurrent/QtConcurrent>
 #include <QObject>
 #include <QFuture>
 
@@ -332,58 +334,48 @@ class XAMP_WIDGET_SHARED_EXPORT YtMusic : public QObject {
 public:
     explicit YtMusic(QObject* parent = nullptr);
 
-public slots:
-    void initial();
+    QFuture<bool> initialAsync();
 
-    void search(const QString& query);
+    QFuture<bool> cleanupAsync();
 
-    void fetchArtist(const QString& channel_id);
+    QFuture<std::vector<search::SearchResultItem>> searchAsync(const QString& query);    
 
-    void fetchAlbum(const QString& browse_id);
+    QFuture<artist::Artist> fetchArtistAsync(const QString& channel_id);
 
-    void fetchSong(const QString& video_id);
+    QFuture<album::Album> fetchAlbumAsync(const QString& browse_id);
 
-    void fetchPlaylist(const QString& playlist_id);
+    QFuture<std::optional<song::Song>> fetchSongAsync(const QString& video_id);
 
-    void fetchArtistAlbums(const QString& channel_id, const QString& params);
+    QFuture<playlist::Playlist> fetchPlaylistAsync(const QString& playlist_id);
 
-    void extractVideoInfo(const std::any& context, const QString& video_id);
+    QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
 
-    void fetchWatchPlaylist(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
+    QFuture<video_info::VideoInfo> extractVideoInfoAsync(const QString& video_id);
 
-    void fetchLyrics(const QString& browse_id);
+    QFuture<watch::Playlist> fetchWatchPlaylistAsync(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
 
-    void cleanup();
-
-    void fetchThumbnail(int32_t id, const video_info::VideoInfo& video_info);
-
-signals:
-    void errorOccurred(const QString& error);
-
-    void searchCompleted(const std::vector<search::SearchResultItem> &result);
-
-    void fetchArtistCompleted(const artist::Artist &artist);
-
-    void fetchAlbumCompleted(const album::Album& album);
-
-    void fetchSongCompleted(const std::optional<song::Song>& song);
-
-    void fetchPlaylistCompleted(const playlist::Playlist& playlist);
-
-    void fetchArtistAlbumsCompleted(const std::vector<artist::Artist::Album>& albums);
-
-    void extractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& info);
-
-    void fetchWatchPlaylistCompleted(const watch::Playlist& playlist);
-
-    void fetchLyricsCompleted(const Lyrics& lyrics);
-
-    void fetchThumbnailCompleted(int32_t id, const QPixmap& image);
-
-    void cleanupCompleted();
-
+    QFuture<Lyrics> fetchLyricsAsync(const QString& browse_id);
 private:
     YtMusicInterop* interop();
+
+    template <typename Func>
+    QFuture<std::invoke_result_t<Func>> invokeAsync(Func fun) {
+        using ReturnType = std::invoke_result_t<Func>;
+        auto interface = std::make_shared<QFutureInterface<ReturnType>>();
+        QMetaObject::invokeMethod(this, [=, this]() {
+            ReturnType val;
+            try {
+                val = fun();
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_D(logger_, "{}", e.what());
+            }
+            interface->reportResult(val);
+            interface->reportFinished();
+            });
+        return interface->future();
+    }
+    
     LoggerPtr logger_;
     AlignPtr<YtMusicInterop> interop_;
 };

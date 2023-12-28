@@ -389,124 +389,77 @@ YtMusic::YtMusic(QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kYtMusicInteropLoggerName);
 }
 
-void YtMusic::initial() {
-    try {
+QFuture<bool> YtMusic::initialAsync() {
+    return invokeAsync([this]() {
         interop()->initial();
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }    
+        return true;
+        });
 }
 
-void YtMusic::search(const QString& query) {
-    if (query.isEmpty()) {
-        return;
-    }
-    try {
-        emit searchCompleted(interop()->search(query.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }
+QFuture<bool> YtMusic::cleanupAsync() {
+    return invokeAsync([this]() {
+        interop_.reset();
+        return true;
+        });
 }
 
-void YtMusic::fetchArtist(const QString& channel_id) {    
-    try {
-        emit fetchArtistCompleted(interop()->getArtist(channel_id.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }
+QFuture<std::vector<search::SearchResultItem>> YtMusic::searchAsync(const QString& query) {
+    return invokeAsync([this, query]() {
+        return interop()->search(query.toStdString());
+        });
 }
 
-void YtMusic::fetchAlbum(const QString& browse_id) {    
-    try {
-        emit fetchAlbumCompleted(interop()->getAlbum(browse_id.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }
+QFuture<video_info::VideoInfo> YtMusic::extractVideoInfoAsync(const QString& video_id) {
+    return invokeAsync([this, video_id]() {
+        return interop()->extractInfo(video_id.toStdString());
+        });
 }
 
-void YtMusic::fetchSong(const QString& video_id) {
-    try {
-        if (video_id.isEmpty()) {
-            return;
-        }
-        emit fetchSongCompleted(interop()->getSong(video_id.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }    
-}
-
-void YtMusic::fetchPlaylist(const QString& playlist_id) {
-    try {
-        emit fetchPlaylistCompleted(interop()->getPlaylist(playlist_id.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }    
-}
-
-void YtMusic::fetchArtistAlbums(const QString& channel_id, const QString& params) {
-    try {
-        emit fetchArtistAlbumsCompleted(interop()->getArtistAlbums(channel_id.toStdString(), params.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }    
-}
-
-void YtMusic::extractVideoInfo(const std::any& context, const QString& video_id) {    
-    try {
-        emit extractVideoInfoCompleted(context, interop()->extractInfo(video_id.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }
-}
-
-void YtMusic::fetchWatchPlaylist(const std::optional<QString>& video_id,
+QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QString>& video_id, 
     const std::optional<QString>& playlist_id) {
-    try {
-        emit fetchWatchPlaylistCompleted(interop()->getWatchPlaylist(
+    return invokeAsync([this, video_id, playlist_id]() {
+        return interop()->getWatchPlaylist(
             mapOptional(video_id, &QString::toStdString),
             mapOptional(playlist_id, &QString::toStdString)
-        ));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }    
+        );
+        });
 }
 
-void YtMusic::fetchLyrics(const QString& browse_id) {
-    try {
-        emit fetchLyricsCompleted(interop()->getLyrics(browse_id.toStdString()));
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_E(logger_, "{}", e.what());
-    }    
+QFuture<Lyrics> YtMusic::fetchLyricsAsync(const QString& browse_id) {
+    return invokeAsync([this, browse_id]() {
+        return interop()->getLyrics(browse_id.toStdString());
+        });
 }
 
-void YtMusic::cleanup() {
-    interop_.reset();
-    emit cleanupCompleted();
+QFuture<artist::Artist> YtMusic::fetchArtistAsync(const QString& channel_id) {
+    return invokeAsync([this, channel_id]() {
+        return interop()->getArtist(channel_id.toStdString());
+        });
 }
 
-void YtMusic::fetchThumbnail(int32_t id, const video_info::VideoInfo& video_info) {
-    http::HttpClient(QString::fromStdString(video_info.thumbnail))
-        .download([=, this](const auto& content) {
-        QBuffer buffer;
-        buffer.setData(content);
-        buffer.open(QIODevice::ReadOnly);
-        QImageReader reader(&buffer, "JPG");
-        const auto image = reader.read();
-        if (image.isNull()) {
-            return;
-        }
-        emit fetchThumbnailCompleted(id, QPixmap::fromImage(image));
-            });
+QFuture<album::Album> YtMusic::fetchAlbumAsync(const QString& browse_id) {
+    return invokeAsync([this, browse_id]() {
+        return interop()->getAlbum(browse_id.toStdString());
+        });
+}
+
+QFuture<std::optional<song::Song>> YtMusic::fetchSongAsync(const QString& video_id) {
+    return invokeAsync([this, video_id]() {
+        return interop()->getSong(video_id.toStdString());
+        });
+}
+
+QFuture<playlist::Playlist> YtMusic::fetchPlaylistAsync(const QString& playlist_id) {
+    return invokeAsync([this, playlist_id]() {
+        return interop()->getPlaylist(playlist_id.toStdString());
+        });
+}
+
+QFuture<std::vector<artist::Artist::Album>> YtMusic::fetchArtistAlbumsAsync(const QString& channel_id, 
+    const QString& params) {
+    return invokeAsync([this, channel_id, params]() {
+        return interop()->getArtistAlbums(channel_id.toStdString(), params.toStdString());
+        });
 }
 
 YtMusicInterop* YtMusic::interop() {
@@ -633,6 +586,9 @@ std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::st
 }
 
 video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) const {
+    if (video_id.empty()) {
+        return {};
+    }
     const auto info = impl_->get_ytdl().attr("extract_info")(video_id, "download"_a = py::bool_(false));
     return {
         info["id"].cast<std::string>(),
@@ -673,34 +629,32 @@ std::vector<search::SearchResultItem> YtMusicInterop::search(
     const int limit,
     const bool ignore_spelling) const {
     std::vector<search::SearchResultItem> output;
+    if (query.empty()) {
+        return output;
+    }
 
-    try {
-        const auto results = impl_->get_ytmusic().attr("search")
-            (
-                "query"_a = query,
-                "filter"_a = filter,
-                "scope"_a = scope,
-                "limit"_a = limit,
-                "ignore_spelling"_a = ignore_spelling
-                ).cast<py::list>();
+    const auto results = impl_->get_ytmusic().attr("search")
+        (
+            "query"_a = query,
+            "filter"_a = filter,
+            "scope"_a = scope,
+            "limit"_a = limit,
+            "ignore_spelling"_a = ignore_spelling
+            ).cast<py::list>();
 
-        for (const auto& result : results) {
-            if (result.is_none()) {
-                continue;
-            }
+    for (const auto& result : results) {
+        if (result.is_none()) {
+            continue;
+        }
 
-            try {
-                if (const auto opt = impl_->extract_search_result(result); opt.has_value()) {
-                    output.push_back(opt.value());
-                }
-            }
-            catch (const std::exception& e) {
-                XAMP_LOG_D(impl_->logger, "Failed to parse search result because:{}", e.what());
+        try {
+            if (const auto opt = impl_->extract_search_result(result); opt.has_value()) {
+                output.push_back(opt.value());
             }
         }
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_D(impl_->logger, "{}", e.what());
+        catch (const std::exception& e) {
+            XAMP_LOG_D(impl_->logger, "Failed to parse search result because:{}", e.what());
+        }
     }
     
     return output;

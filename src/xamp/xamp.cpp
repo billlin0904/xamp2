@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QImageReader>
 
 #include <QSimpleUpdater.h>
 #include <set>
@@ -461,30 +462,9 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
     ytmusic_thread_.start();
 
-    (void)QObject::connect(this,
-        &Xamp::cleanup,
-        ytmusic_worker_.get(),
-        &YtMusic::cleanup);
-
-    (void)QObject::connect(this,
-        &Xamp::extractVideoInfo,
-        ytmusic_worker_.get(),
-        &YtMusic::extractVideoInfo);
-
-    (void)QObject::connect(this,
-        &Xamp::fetchThumbnail,
-        ytmusic_worker_.get(),
-        &YtMusic::fetchThumbnail);
-
-    (void)QObject::connect(ytmusic_worker_.get(),
-        &YtMusic::extractVideoInfoCompleted,
-        this,
-        &Xamp::onExtractVideoInfoCompleted);
-
-    (void)QObject::connect(ytmusic_worker_.get(),
-        &YtMusic::fetchThumbnailCompleted,
-        this,
-        &Xamp::onFetchThumbnailCompleted);
+    QCoro::connect(ytmusic_worker_->initialAsync(), this, [this](auto) {
+        XAMP_LOG_DEBUG("Initial done!");
+        });
 
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
@@ -722,6 +702,11 @@ void Xamp::onRestartApp() {
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
+    if (result.empty()) {
+        spinner_->stopAnimation();
+        return;
+    }
+
     for (auto& item : result) {
         std::visit([&](auto&& arg) {
             using T = std::decay_t<decltype(arg)>;
@@ -737,14 +722,22 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
                 }
                 if (arg.duration) {
                     track_info.duration = parseDuration(arg.duration.value()).count() / 1000.0;
-                }                
-                emit extractVideoInfo(std::any(track_info), QString::fromStdString(arg.video_id));
+                }
+
+                QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(QString::fromStdString(arg.video_id)), this,
+                    [this, track_info](const auto& video_info) {
+                    onExtractVideoInfoCompleted(track_info, video_info);
+                    });
             }
             }, item);
     }
 }
 
-void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info::VideoInfo& video_info) {
+void Xamp::onExtractVideoInfoCompleted(TrackInfo track_info, const video_info::VideoInfo& video_info) {
+    if (video_info.formats.empty()) {
+        return;
+    }
+
     std::multiset<video_info::Format> formats;
 
     for (const auto& format : video_info.formats) {
@@ -753,22 +746,30 @@ void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info
 
     const auto best_format = *formats.begin();
 
-    auto track_info = std::any_cast<TrackInfo>(context);
     track_info.file_path = String::ToString(best_format.url);
 
     const ForwardList<TrackInfo> track_infos{ track_info };
 
     DatabaseFacade facede;
     facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId(), [=, this](auto album_id) {
-        emit fetchThumbnail(album_id, video_info);
-        });    
+        http::HttpClient(QString::fromStdString(video_info.thumbnail))
+            .download([=, this](const auto& content) {
+            QBuffer buffer;
+            buffer.setData(content);
+            buffer.open(QIODevice::ReadOnly);
+            QImageReader reader(&buffer, "JPG");
+            auto formats = QImageReader::supportedImageFormats();
+            const auto image = reader.read();
+            if (image.isNull()) {
+                ytmusic_page_->playlist()->reload();
+                return;
+            }
+            qMainDb.setAlbumCover(album_id, qImageCache.addImage(QPixmap::fromImage(image)));
+            ytmusic_page_->playlist()->reload();
+        });
+    });    
     ytmusic_page_->playlist()->reload();
     spinner_->stopAnimation();
-}
-
-void Xamp::onFetchThumbnailCompleted(int32_t album_id, const QPixmap& image) {
-    qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-    ytmusic_page_->playlist()->reload();
 }
 
 void Xamp::onCheckForUpdate() {
@@ -847,7 +848,9 @@ void Xamp::destory() {
         }
     };
 
-    emit cleanup();
+    QCoro::connect(ytmusic_worker_->cleanupAsync(), this, [this](auto) {
+        XAMP_LOG_DEBUG("Cleanup done!");
+        });
 
     worker_cancel_requested(background_worker_.get());
     worker_cancel_requested(find_album_cover_worker_.get());
@@ -1996,23 +1999,6 @@ void Xamp::initialPlaylist() {
     connectPlaylistPageSignal(ytmusic_page_.get());
 
     (void)QObject::connect(this,
-        &Xamp::initial,
-        ytmusic_worker_.get(),
-        &YtMusic::initial);
-
-    (void)QObject::connect(this,
-        &Xamp::search,
-        ytmusic_worker_.get(),
-        &YtMusic::search);
-
-    (void)QObject::connect(ytmusic_worker_.get(),
-        &YtMusic::searchCompleted,
-        this,
-        &Xamp::onSearchCompleted);
-
-    emit initial();
-
-    (void)QObject::connect(this,
         &Xamp::blurImage,
         background_worker_.get(),
         &BackgroundWorker::onBlurImage);
@@ -2272,7 +2258,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                     spinner_->show();
                 }
                 spinner_->startAnimation();
-                emit search(text);
+                QCoro::connect(ytmusic_worker_->searchAsync(text), this, &Xamp::onSearchCompleted);
             });
     }
 
