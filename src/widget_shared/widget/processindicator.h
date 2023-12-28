@@ -8,7 +8,9 @@
 #include <QWidget>
 #include <QColor>
 
-class ProcessIndicator : public QWidget {
+#include <widget/widget_shared_global.h>
+
+class XAMP_WIDGET_SHARED_EXPORT ProcessIndicator : public QWidget {
     Q_OBJECT
     Q_PROPERTY(int delay READ animationDelay WRITE setAnimationDelay)
     Q_PROPERTY(bool displayedWhenStopped READ isDisplayedWhenStopped WRITE setDisplayedWhenStopped)
@@ -16,6 +18,8 @@ class ProcessIndicator : public QWidget {
 
 public:
     explicit ProcessIndicator(QWidget* parent = nullptr);
+
+    virtual ~ProcessIndicator() override = default;
 
     int animationDelay() const { return delay_; }
 

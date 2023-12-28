@@ -99,7 +99,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 		if (is_file_path && album.isEmpty()) {
 			const TagIO reader;
 			album = qTR("Unknown album");
-			// todo: 如果有內建圖片就把當作一張專輯.
+			// TODO: 如果有內建圖片就把當作一張專輯.
 			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = getStringOrEmptyString(track_info.file_name_no_ext);

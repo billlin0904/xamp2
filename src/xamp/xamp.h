@@ -25,6 +25,7 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+class ProcessIndicator;
 class YtMusic;
 struct MbDiscIdInfo;
 struct PlaybackFormat;
@@ -280,6 +281,7 @@ private:
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<ExtractFileWorker> extract_file_worker_;
 	QScopedPointer<YtMusic> ytmusic_worker_;
+	QScopedPointer<ProcessIndicator> spinner_;
     QThread background_thread_;
 	QThread find_album_cover_thread_;
 	QThread extract_file_thread_;

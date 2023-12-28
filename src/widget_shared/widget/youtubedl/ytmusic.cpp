@@ -14,8 +14,8 @@ using namespace py::literals;
 
 namespace {
     void dumps(py::handle obj) {
-        auto json = py::module::import("json");
-        py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
+        //auto json = py::module::import("json");
+        //py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
     }
 
     template <typename T>

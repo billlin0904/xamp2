@@ -81,7 +81,7 @@ public:
 
     static XAMP_ALWAYS_INLINE void F32ToS16(void* dst, const m256 &src) {
         auto temp = Round(src);
-        // todo: 改用 _mm256_extractf128_si256
+        // TODO: 改用 _mm256_extractf128_si256
         temp = _mm256_packs_epi32(temp, _mm256_setzero_si256());
         temp = _mm256_permute4x64_epi64(temp, 0xD8);
         _mm_store_si128(static_cast<__m128i*>(dst), _mm256_castsi256_si128(temp));

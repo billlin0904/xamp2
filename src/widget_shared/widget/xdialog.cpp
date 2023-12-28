@@ -114,7 +114,7 @@ void XDialog::setContent(QWidget* content) {
     
     max_win_button_->hide();
     min_win_button_->hide();
-    // todo: close_button_ hide的時候會顯示會有問題.
+    // TODO: close_button_ hide的時候會顯示會有問題.
 
     (void)QObject::connect(close_button_, &QToolButton::clicked, [this]() {
         close();

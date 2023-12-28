@@ -240,7 +240,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
 			hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
 
-			// todo: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32. 不管是24/32或是32/32 format資料都是24/32.
+			// TODO: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32. 不管是24/32或是32/32 format資料都是24/32.
 			auto is_32bit_format = false;
 
 			if (mix_format_->wFormatTag == WAVE_FORMAT_EXTENSIBLE
@@ -570,7 +570,7 @@ double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
 }
 
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
-	// todo: GetVolume回傳level, CoreAudio, ASIO均無法讀取設備的dBFS
+	// TODO: GetVolume回傳level, CoreAudio, ASIO均無法讀取設備的dBFS
 	auto volume_scalar = 0.0F;
 	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
 	return static_cast<uint32_t>(volume_scalar * 100.0F);

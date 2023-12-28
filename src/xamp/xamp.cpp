@@ -60,7 +60,7 @@
 #include <widget/aboutpage.h>
 #include <widget/cdpage.h>
 #include <widget/preferencepage.h>
-#include <widget/maskwidget.h>
+#include <widget/processindicator.h>
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
 #include <widget/playlisttabwidget.h>
@@ -763,6 +763,7 @@ void Xamp::onExtractVideoInfoCompleted(const std::any& context, const video_info
         emit fetchThumbnail(album_id, video_info);
         });    
     ytmusic_page_->playlist()->reload();
+    spinner_->stopAnimation();
 }
 
 void Xamp::onFetchThumbnailCompleted(int32_t album_id, const QPixmap& image) {
@@ -1929,6 +1930,9 @@ void Xamp::initialPlaylist() {
     album_page_.reset(new AlbumArtistPage(this));
     tab_widget_.reset(new PlaylistTabWidget(this));
     ytmusic_page_.reset(new PlaylistPage(this));
+
+    spinner_.reset(new ProcessIndicator(ytmusic_page_->playlist()));
+    spinner_->hide();
     
     ui_.naviBar->addSeparator();
     ui_.naviBar->addTab(qTR("Playlist"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
@@ -2261,6 +2265,13 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
             [this](auto* playlist, const auto& text) {
+                if (spinner_->isAnimated()) {
+                    return;
+                }
+                if (spinner_->isHidden()) {
+                    spinner_->show();
+                }
+                spinner_->startAnimation();
                 emit search(text);
             });
     }

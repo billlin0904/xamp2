@@ -56,7 +56,7 @@ QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
     settings[kSoxrQuality] = soxr_quility;
 	settings[kSoxrPassBand] = soxr_pass_band;
 	settings[kSoxrPhase] = soxr_phase;
-	// todo: kSoxrStopBand always set 100?
+	// TODO: kSoxrStopBand always set 100?
 	settings[kSoxrStopBand] = 100;
 
 	return settings;

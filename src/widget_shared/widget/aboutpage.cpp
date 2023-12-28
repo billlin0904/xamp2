@@ -91,6 +91,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui_->lblAppBuild->setText(qTR("Version ")
         + formatVersion(kApplicationVersionValue));
     ui_->waitForUpdateProcessIndicator->startAnimation();
+    ui_->waitForUpdateProcessIndicator->setStoppedIcon(qTheme.fontIcon(Glyphs::ICON_CIRCLE_CHECK));
 
     ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));

@@ -15,7 +15,7 @@ namespace {
         auto seconds = 0;
         auto milliseconds = 0;
 #ifdef Q_OS_WIN32
-        // todo: Support format: %u:%u
+        // TODO: Support format: %u:%u
         const auto res = swscanf_s(str.c_str(), L"%u:%u.%u",
             &minutes,
             &seconds,

@@ -54,8 +54,8 @@ template <PackedFormat InputFormat, PackedFormat OutputFormat>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 	// INFO: Only for DSD file
     static void Convert(int8_t* XAMP_RESTRICT output,
-                        int8_t const* XAMP_RESTRICT input,
-                        AudioConvertContext const& context) noexcept {
+		const int8_t* XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -74,8 +74,8 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 	}
 
     static void Convert(int32_t* XAMP_RESTRICT output,
-                        float const* XAMP_RESTRICT input,
-                        AudioConvertContext const& context) noexcept {
+		const float * XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -102,20 +102,18 @@ template <>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
 #ifdef XAMP_USE_BENCHMAKR
     static void ConvertInt16Bench(int16_t* XAMP_RESTRICT output,
-                                  float const* XAMP_RESTRICT input,
-                                  AudioConvertContext const& context) noexcept {
-		XAMP_ASSERT(output != nullptr);
-		XAMP_ASSERT(input != nullptr);
-
+		const float* XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
+		XAMP_EXPECTS(output != nullptr);
+		XAMP_EXPECTS(input != nullptr);
 		ConvertBench<int16_t>(output, input, kFloat16Scale, context);
 	}
 
 	static void ConvertToInt2432Bench(int32_t* XAMP_RESTRICT output,
-		float const* XAMP_RESTRICT input,
-		AudioConvertContext const& context) noexcept {
-		XAMP_ASSERT(output != nullptr);
-		XAMP_ASSERT(input != nullptr);
-
+		const float* XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
+		XAMP_EXPECTS(output != nullptr);
+		XAMP_EXPECTS(input != nullptr);
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 		while (input != end_input) {
 			XAMP_ASSERT(end_input - input > 0);
@@ -124,19 +122,17 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 	}
 
     static void ConvertInt32Bench(int32_t* XAMP_RESTRICT output,
-                                  float const* XAMP_RESTRICT input,
-                                  AudioConvertContext const& context) noexcept {
-		XAMP_ASSERT(output != nullptr);
-		XAMP_ASSERT(input != nullptr);
-
+		const float* XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
+		XAMP_EXPECTS(output != nullptr);
+		XAMP_EXPECTS(input != nullptr);
 		ConvertBench<int32_t>(output, input, kFloat32Scale, context);
     }
 #endif
 
-	static void XAMP_VECTOR_CALL Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-
+	static void XAMP_VECTOR_CALL Convert(int16_t* XAMP_RESTRICT output, 
+		const float * XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 		const auto scale = SIMD::Set1Ps(kFloat16Scale);
 
@@ -147,22 +143,22 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 			}
 		}
 
-		auto* XAMP_RESTRICT __input = AssumeAligned<kSimdLanes, const float>(input);
-		auto* XAMP_RESTRICT __output = AssumeAligned<kSimdLanes, int16_t>(output);
+		auto* XAMP_RESTRICT from_ptr = AssumeAligned<kSimdLanes, const float>(input);
+		auto* XAMP_RESTRICT dest_ptr = AssumeAligned<kSimdLanes, int16_t>(output);
 
-		while (__input != end_input) {
-			XAMP_ASSERT(end_input - __input > 0);
-			const auto in = SIMD::LoadPs(__input);
+		while (from_ptr != end_input) {
+			XAMP_ASSERT(end_input - from_ptr > 0);
+			const auto in = SIMD::LoadPs(from_ptr);
 			const auto mul = SIMD::MulPs(in, scale);
-			SIMD::F32ToS16(__output, mul);
-			__input += kSimdAlignedSize;
-			__output += kSimdAlignedSize;
+			SIMD::F32ToS16(dest_ptr, mul);
+			from_ptr += kSimdAlignedSize;
+			dest_ptr += kSimdAlignedSize;
 		}
 	}
 
     static void XAMP_VECTOR_CALL Convert(int32_t* XAMP_RESTRICT output,
-                        float const* XAMP_RESTRICT input,
-                        AudioConvertContext const& context) noexcept {
+		const float* XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -176,22 +172,22 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 			}
 		}
 
-		auto* XAMP_RESTRICT __input = AssumeAligned<kSimdLanes, const float>(input);
-		auto* XAMP_RESTRICT __output = AssumeAligned<kSimdLanes, int32_t>(output);
+		auto* XAMP_RESTRICT from_ptr = AssumeAligned<kSimdLanes, const float>(input);
+		auto* XAMP_RESTRICT dest_ptr = AssumeAligned<kSimdLanes, int32_t>(output);
 
-		while (__input != end_input) {
-			XAMP_ASSERT(end_input - __input > 0);
-			const auto in = SIMD::LoadPs(__input);
+		while (from_ptr != end_input) {
+			XAMP_ASSERT(end_input - from_ptr > 0);
+			const auto in = SIMD::LoadPs(from_ptr);
 			const auto mul = SIMD::MulPs(in, scale);
-			SIMD::F32ToS32(__output, mul);
-			__input += kSimdAlignedSize;
-			__output += kSimdAlignedSize;
+			SIMD::F32ToS32(dest_ptr, mul);
+			from_ptr += kSimdAlignedSize;
+			dest_ptr += kSimdAlignedSize;
 		}
 	}
 
     static void XAMP_VECTOR_CALL ConvertToInt2432(int32_t* XAMP_RESTRICT output,
-                                 float const* XAMP_RESTRICT input,
-                                 AudioConvertContext const& context) noexcept {
+		const float* XAMP_RESTRICT input,
+		const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -205,16 +201,16 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 			}
 		}
 
-		auto* XAMP_RESTRICT __input = AssumeAligned<kSimdLanes, const float>(input);
-		auto* XAMP_RESTRICT __output = AssumeAligned<kSimdLanes, int32_t>(output);
+		auto* XAMP_RESTRICT from_ptr = AssumeAligned<kSimdLanes, const float>(input);
+		auto* XAMP_RESTRICT dest_ptr = AssumeAligned<kSimdLanes, int32_t>(output);
 
-		while (__input != end_input) {
-			XAMP_ASSERT(end_input - __input > 0);
-            const auto in = SIMD::LoadPs(__input);
+		while (from_ptr != end_input) {
+			XAMP_ASSERT(end_input - from_ptr > 0);
+            const auto in = SIMD::LoadPs(from_ptr);
             const auto mul = SIMD::MulPs(in, scale);
-            SIMD::F32ToS32<1>(__output, mul);
-			__input += kSimdAlignedSize;
-			__output += kSimdAlignedSize;
+            SIMD::F32ToS32<1>(dest_ptr, mul);
+			from_ptr += kSimdAlignedSize;
+			dest_ptr += kSimdAlignedSize;
 		}
     }
 };

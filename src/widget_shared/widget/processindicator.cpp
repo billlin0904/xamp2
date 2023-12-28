@@ -24,8 +24,6 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
         setColor(Qt::black);
         break;
     }
-
-    stopped_icon_ = qTheme.fontIcon(Glyphs::ICON_CIRCLE_CHECK);
     show();
 }
 

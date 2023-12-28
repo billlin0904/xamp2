@@ -65,7 +65,7 @@ XAMP_BASE_API bool PrefetchSharedLibrary(SharedLibraryHandle const& module);
 * 
 * Add shared library search directory.
 * @param[in] path Search directory path.
-* @todo Repeat add search directory will cause crash.
+* @TODO Repeat add search directory will cause crash.
 */
 XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
 
