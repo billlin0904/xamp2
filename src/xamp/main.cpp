@@ -124,9 +124,9 @@ namespace {
         }
 
         // Skip PNG image error
-        if (str.contains(qTEXT("qpnghandler.cpp"))) {
+        /*if (str.contains(qTEXT("qpnghandler.cpp"))) {
             return;
-        }
+        }*/
 
         if (str.contains(qTEXT("qwindowswindow.cpp"))) {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());

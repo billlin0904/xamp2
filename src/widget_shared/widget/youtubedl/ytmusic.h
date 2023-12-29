@@ -338,7 +338,7 @@ public:
 
     QFuture<bool> cleanupAsync();
 
-    QFuture<std::vector<search::SearchResultItem>> searchAsync(const QString& query);    
+    QFuture<std::vector<search::SearchResultItem>> searchAsync(const QString& query, const std::optional<std::string>& filter);
 
     QFuture<artist::Artist> fetchArtistAsync(const QString& channel_id);
 

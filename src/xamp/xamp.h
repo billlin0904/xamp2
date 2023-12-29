@@ -165,7 +165,7 @@ public slots:
 
 	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
 
-	void onExtractVideoInfoCompleted(TrackInfo track_info, const video_info::VideoInfo& video_info);
+	void onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackInfo track_info, const video_info::VideoInfo& video_info);
 
 private:
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
