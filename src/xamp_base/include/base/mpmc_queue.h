@@ -65,7 +65,7 @@ namespace LockFree {
 			while (queue.load(std::memory_order_relaxed) != TValue);
 		}
 	}
-
+	
 	template <typename U, typename T>
 	void EnqueueWait(U&& element, std::atomic<uint8_t>& state, T& queue) noexcept {
 		for (;;) {

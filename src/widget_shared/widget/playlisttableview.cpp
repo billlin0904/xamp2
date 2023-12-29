@@ -35,6 +35,105 @@
 #include <widget/zib_utiltis.h>
 #include <widget/tagio.h>
 
+namespace {
+    QString groupAlbum(int32_t playlist_id) {
+        return qSTR(R"(
+    SELECT	
+	albums.coverId,
+	musics.musicId,
+	playlistMusics.playing,
+	musics.track,
+	musics.path,
+	musics.fileSize,
+	musics.title,
+	musics.fileName,
+	artists.artist,
+	albums.album,
+	musics.bitRate,
+	musics.sampleRate,
+	albumMusic.albumId,
+	albumMusic.artistId,
+	musics.fileExt,
+	musics.parentPath,
+	musics.dateTime,
+	playlistMusics.playlistMusicsId,
+	musics.albumReplayGain,
+	musics.albumPeak,
+	musics.trackReplayGain,
+	musics.trackPeak,
+	musicLoudness.trackLoudness,
+	musics.genre,	
+	musics.heart,
+	musics.duration,
+	musics.comment,
+	albums.year
+FROM
+	playlistMusics
+	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
+	JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+	JOIN musics ON playlistMusics.musicId = musics.musicId
+	JOIN albums ON albumMusic.albumId = albums.albumId
+	JOIN artists ON albumMusic.artistId = artists.artistId 
+WHERE
+	playlistMusics.playlistId = %1 
+GROUP BY
+	musics.track 
+ORDER BY
+	albums.album ASC,
+	musics.track ASC)").arg(playlist_id);
+    }
+
+    QString groupNone(int32_t playlist_id) {
+        return qSTR(R"(
+    SELECT	
+	albums.coverId,
+	musics.musicId,
+	playlistMusics.playing,
+	musics.track,
+	musics.path,
+	musics.fileSize,
+	musics.title,
+	musics.fileName,
+	artists.artist,
+	albums.album,
+	musics.bitRate,
+	musics.sampleRate,
+	albumMusic.albumId,
+	albumMusic.artistId,
+	musics.fileExt,
+	musics.parentPath,
+	musics.dateTime,
+	playlistMusics.playlistMusicsId,
+	musics.albumReplayGain,
+	musics.albumPeak,
+	musics.trackReplayGain,
+	musics.trackPeak,
+	musicLoudness.trackLoudness,
+	musics.genre,	
+	musics.heart,
+	musics.duration,
+	musics.comment,
+	albums.year
+FROM
+	playlistMusics
+	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
+	JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+	JOIN musics ON playlistMusics.musicId = musics.musicId
+	JOIN albums ON albumMusic.albumId = albums.albumId
+	JOIN artists ON albumMusic.artistId = artists.artistId 
+WHERE
+	playlistMusics.playlistId = %1 
+-- GROUP BY
+--	musics.parentPath,
+--	musics.track 
+ORDER BY
+	musics.parentPath ASC,
+	musics.track ASC)").arg(playlist_id);
+    }
+}
+
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
     static constexpr auto kPlaylistHeartSize = QSize(16, 16);
@@ -220,60 +319,21 @@ void PlayListTableView::search(const QString& keyword) const {
 }
 
 void PlayListTableView::reload() {
-    // NOTE: 呼叫此函數就會更新index, 會導致playing index失效    
-    const QString s = qTEXT(R"(
-    SELECT	
-	albums.coverId,
-	musics.musicId,
-	playlistMusics.playing,
-	musics.track,
-	musics.path,
-	musics.fileSize,
-	musics.title,
-	musics.fileName,
-	artists.artist,
-	albums.album,
-	musics.bitRate,
-	musics.sampleRate,
-	albumMusic.albumId,
-	albumMusic.artistId,
-	musics.fileExt,
-	musics.parentPath,
-	musics.dateTime,
-	playlistMusics.playlistMusicsId,
-	musics.albumReplayGain,
-	musics.albumPeak,
-	musics.trackReplayGain,
-	musics.trackPeak,
-	musicLoudness.trackLoudness,
-	musics.genre,	
-	musics.heart,
-	musics.duration,
-	musics.comment,
-	albums.year
-FROM
-	playlistMusics
-	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
-	JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
-	JOIN musics ON playlistMusics.musicId = musics.musicId
-	JOIN albums ON albumMusic.albumId = albums.albumId
-	JOIN artists ON albumMusic.artistId = artists.artistId 
-WHERE
-	playlistMusics.playlistId = %1 
--- GROUP BY
---	musics.parentPath,
---	musics.track 
-ORDER BY
-	musics.parentPath ASC,
-	musics.track ASC)");
+    QString query_string;
 
-    const QSqlQuery query(s.arg(playlist_id_), qMainDb.database());
+    if (group_ != PLAYLIST_GROUP_ALBUM) {
+        query_string = groupNone(playlist_id_);
+    } else {
+        query_string = groupAlbum(playlist_id_);
+    }
+
+    const QSqlQuery query(query_string, qMainDb.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
     }
-    
+
+    // NOTE: 呼叫此函數就會更新index, 會導致playing index失效    
     model_->dataChanged(QModelIndex(), QModelIndex());
 }
 

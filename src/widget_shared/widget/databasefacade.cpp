@@ -156,8 +156,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             database_->addOrUpdateAlbumArtist(album_id, id);
         }
 
+        const auto cover_id = database_->getAlbumCoverId(album_id);
+
         if (!is_file_path) {
-            if (fetch_cover != nullptr) {
+            if (fetch_cover != nullptr && cover_id.isEmpty()) {
                 fetch_cover(album_id);
             }
             continue;
@@ -168,7 +170,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             continue;
         }
 
-        const auto cover_id = database_->getAlbumCoverId(album_id);
         if (cover_id.isEmpty()) {
             if (!fetch_cover) {
                 emit findAlbumCover(album_id, track_info.file_path);

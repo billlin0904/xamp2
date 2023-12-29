@@ -21,13 +21,17 @@
 class PlayListSqlQueryTableModel;
 class PlayListTableFilterProxyModel;
 
+enum PlayListGroup {
+	PLAYLIST_GROUP_ALBUM,
+	PLAYLIST_GROUP_NONE,
+};
+
 class XAMP_WIDGET_SHARED_EXPORT PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
 	static constexpr auto kMinimalEncodingBitRate = 128;
     static constexpr auto kMaxStretchedSize = 500;
 	static constexpr auto kMaxPendingPlayListSize = 100;
-
 	static constexpr auto kColumnPlayingWidth = 25;
 	static constexpr auto kColumnTrackWidth = 40;
 	static constexpr auto kColumnArtistWidth = 300;
@@ -35,7 +39,6 @@ public:
 	static constexpr auto kColumnDefaultWidth = 120;
 	static constexpr auto kColumnDurationWidth = 10;
 	static constexpr auto kColumnHeight = 46;
-
 	static constexpr auto kPendingPlaylistSize = 30;
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
@@ -48,6 +51,10 @@ public:
 
 	void disableLoadFile(bool enable = false) {
 		enable_load_file_ = enable;
+	}
+
+	void setPlayListGroup(PlayListGroup group) {
+		group_ = group;
 	}
 
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
@@ -160,6 +167,7 @@ protected:
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
 	int32_t playlist_id_{ -1 };
+	PlayListGroup group_{ PlayListGroup::PLAYLIST_GROUP_NONE };
 	std::optional<int32_t> other_playlist_id_;
 	QModelIndex play_index_;
     PlayListSqlQueryTableModel* model_;

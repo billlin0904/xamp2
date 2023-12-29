@@ -721,13 +721,13 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
                         TrackInfo track_info;                        
                         track_info.album = String::ToString(album.title);
                         int track_no = 1;
-
-                        ForwardList<TrackInfo> track_infos;
                         auto thumbnail_url = album.thumbnails.back().url;
 
                         for (const auto &track : album.tracks) {
                             track_info.track = track_no++;
                             track_info.title = String::ToString(track.title);
+
+                            XAMP_LOG_DEBUG("{} - {}.{}", album.title, track_info.track, track.title);
 
                             if (!track.artists.empty()) {
                                 track_info.artist = String::ToString(track.artists.front().name);
@@ -751,8 +751,6 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
                                 [this, thumbnail_url, track_info](const auto& video_info) {
                                 onExtractVideoInfoCompleted(thumbnail_url, track_info, video_info);
                                 });
-
-                            track_infos.push_front(track_info);                            
                         }
                     });
             }
@@ -762,6 +760,7 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
 
 void Xamp::onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackInfo track_info, const video_info::VideoInfo& video_info) {
     if (video_info.formats.empty()) {
+        spinner_->stopAnimation();
         return;
     }
 
@@ -790,6 +789,7 @@ void Xamp::onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackIn
         });
     });    
     ytmusic_page_->playlist()->reload();
+    album_page_->reload();
     spinner_->stopAnimation();
 }
 
@@ -1955,6 +1955,7 @@ void Xamp::initialPlaylist() {
     tab_widget_.reset(new PlaylistTabWidget(this));
     ytmusic_page_.reset(new PlaylistPage(this));
 
+    ytmusic_page_->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
     spinner_.reset(new ProcessIndicator(ytmusic_page_->playlist()));
     spinner_->hide();
     
@@ -2396,7 +2397,6 @@ void Xamp::onTranslationCompleted(const QString& keyword, const QString& result)
 }
 
 void Xamp::onEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities) {
-    //MaskWidget mask_widget(this);
     QScopedPointer<XDialog> dialog(new XDialog(this));
     QScopedPointer<TagEditPage> tag_edit_page(new TagEditPage(dialog.get(), entities));
     dialog->setContentWidget(tag_edit_page.get());
