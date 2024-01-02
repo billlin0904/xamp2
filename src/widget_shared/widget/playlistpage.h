@@ -14,11 +14,17 @@
 #include <widget/widget_shared_global.h>
 #include <widget/themecolor.h>
 
+class QStandardItemModel;
 class QSpacerItem;
 class QLabel;
 class QToolButton;
 class ScrollLabel;
 class PlayListTableView;
+
+enum Match {
+	MATCH_ITEM,
+	MATCH_NONE,
+};
 
 class XAMP_WIDGET_SHARED_EXPORT PlaylistPage : public QFrame {
 	Q_OBJECT
@@ -43,10 +49,14 @@ public:
 
 	void setAlbumId(int32_t album_id, int32_t heart);
 
+	void addSuggestions(const QString& text);
+
+	void showCompleter();
+
 signals:
 	void playMusic(const PlayListEntity& item);
 
-	void search(PlayListTableView* playlist, const QString& text);
+	void search(const QString& text, Match match);
 
 public slots:
     void onThemeColorChanged(QColor theme_color, QColor color);
@@ -72,5 +82,7 @@ private:
 	QSpacerItem* horizontal_spacer_5_{ nullptr };
 	QSpacerItem* middle_spacer_{ nullptr };
 	QSpacerItem* right_spacer_{ nullptr };
-	QSpacerItem* default_spacer_{ nullptr };	
+	QSpacerItem* default_spacer_{ nullptr };
+	QStandardItemModel* search_playlist_model_{ nullptr };
+	QCompleter* playlist_completer_{ nullptr };
 };

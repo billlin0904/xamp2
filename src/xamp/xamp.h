@@ -165,6 +165,8 @@ public slots:
 
 	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
 
+	void onSearchSuggestionsCompleted(const std::vector<std::string>& result);
+
 	void onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackInfo track_info, const video_info::VideoInfo& video_info);
 
 private:

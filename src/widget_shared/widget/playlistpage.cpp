@@ -161,37 +161,38 @@ void PlaylistPage::initial() {
 		this,
 		&PlaylistPage::onSetCoverById);
 
-	auto * search_playlist_model = new QStandardItemModel(0, 1, this);
-	auto* playlist_completer = new QCompleter(search_playlist_model, this);
-	playlist_completer->setCaseSensitivity(Qt::CaseInsensitive);
-	playlist_completer->setFilterMode(Qt::MatchContains);
-	playlist_completer->setCompletionMode(QCompleter::PopupCompletion);
-	search_line_edit_->setCompleter(playlist_completer);
+	search_playlist_model_ = new QStandardItemModel(0, 1, this);
+	playlist_completer_ = new QCompleter(search_playlist_model_, this);
+	playlist_completer_->setCaseSensitivity(Qt::CaseInsensitive);
+	playlist_completer_->setFilterMode(Qt::MatchContains);
+	playlist_completer_->setCompletionMode(QCompleter::PopupCompletion);
+	search_line_edit_->setCompleter(playlist_completer_);
 
 	auto action_list = search_line_edit_->findChildren<QAction*>();
 	if (!action_list.isEmpty()) {
 		(void)QObject::connect(action_list.first(), &QAction::triggered, this, [this]() {
-			playlist_->search(kEmptyString);
+			//playlist_->search(kEmptyString);
+			emit search(kEmptyString, MATCH_NONE);
 			});
 	}
 
-	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this, search_playlist_model, playlist_completer](const auto& text) {
-		const auto items = search_playlist_model->findItems(text, Qt::MatchExactly);
+	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this](const auto& text) {
+		const auto items = search_playlist_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
 			//playlist_->search(kEmptyString);
-			emit search(playlist_, kEmptyString);
+			emit search(text, MATCH_ITEM);
 			return;
 		}
-		if (search_playlist_model->rowCount() >= kMaxCompletionCount) {
-			search_playlist_model->removeRows(0, kMaxCompletionCount - search_playlist_model->rowCount() + 1);
+		if (search_playlist_model_->rowCount() >= kMaxCompletionCount) {
+			search_playlist_model_->removeRows(0, kMaxCompletionCount - search_playlist_model_->rowCount() + 1);
 		}
 
-		search_playlist_model->appendRow(new QStandardItem(text));
-		playlist_completer->setModel(search_playlist_model);
-		playlist_completer->setCompletionPrefix(text);
+		search_playlist_model_->appendRow(new QStandardItem(text));
+		playlist_completer_->setModel(search_playlist_model_);
+		playlist_completer_->setCompletionPrefix(text);
 
 		//playlist_->search(text);
-		emit search(playlist_, text);
+		emit search(text, MATCH_NONE);
 		});
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
@@ -238,6 +239,14 @@ void PlaylistPage::setAlbumId(int32_t album_id, int32_t heart) {
 	album_id_ = album_id;
 	album_heart_ = heart;
 	qTheme.setHeartButton(heart_button_, album_heart_);
+}
+
+void PlaylistPage::addSuggestions(const QString& text) {
+	search_playlist_model_->appendRow(new QStandardItem(text));
+}
+
+void PlaylistPage::showCompleter() {
+	(void) playlist_completer_->popup();
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {

@@ -215,8 +215,6 @@ namespace {
         std::vector<T> output;
 
         std::transform(list.begin(), list.end(), std::back_inserter(output), [](py::handle item) {
-            dumps(item);
-
             if constexpr (std::is_same_v<T, meta::Thumbnail>) {
                 return extract_thumbnail(item);
             }
@@ -354,32 +352,32 @@ public:
         ytdl_ = py::none();
     }
 
-    py::object get_ytmusic() {
+    py::object& get_ytmusic() {
         if (ytmusic_.is_none()) {
             ytmusicapi_module = py::module::import("ytmusicapi");
             ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
 
-            auto old_version = ytmusicapi_module.attr("__dict__").contains("_version");
+            /*auto old_version = ytmusicapi_module.attr("__dict__").contains("_version");
             if (old_version) {
                 XAMP_LOG_E(logger, "Running with outdated and untested version of ytmusicapi.");
             }
             else {
                 const auto version = ytmusicapi_module.attr("__version__").cast<std::string>();
                 XAMP_LOG_D(logger, "Running with untested version of ytmusicapi {}", version);
-            }
+            }*/
         }
         return ytmusic_;
     }
 
-    py::object get_ytdl() {
+    py::object& get_ytdl() {
         if (ytdl_.is_none()) {
             ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
         }
         return ytdl_;
     }
 
-    py::module ytmusicapi_module;
 private:
+    py::module ytmusicapi_module;
     py::object ytmusic_;
     py::object ytdl_;
 };
@@ -389,17 +387,27 @@ YtMusic::YtMusic(QObject* parent)
     logger_ = LoggerManager::GetInstance().GetLogger(kYtMusicInteropLoggerName);
 }
 
+void YtMusic::cancelRequested() {
+    is_stop_ = true;
+}
+
 QFuture<bool> YtMusic::initialAsync() {
     return invokeAsync([this]() {
         interop()->initial();
         return true;
-        });
+        }, InvokeType::INVOKE_IMMEDIATELY);
 }
 
 QFuture<bool> YtMusic::cleanupAsync() {
     return invokeAsync([this]() {
         interop_.reset();
         return true;
+        }, InvokeType::INVOKE_IMMEDIATELY);
+}
+
+QFuture<std::vector<std::string>> YtMusic::searchSuggestionsAsync(const QString& query, bool detailed_runs) {
+    return invokeAsync([this, query, detailed_runs]() {
+        return interop()->searchSuggestions(query.toStdString(), detailed_runs);
         });
 }
 
@@ -422,7 +430,7 @@ QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QS
             mapOptional(video_id, &QString::toStdString),
             mapOptional(playlist_id, &QString::toStdString)
         );
-        });
+    });
 }
 
 QFuture<Lyrics> YtMusic::fetchLyricsAsync(const QString& browse_id) {
@@ -484,6 +492,11 @@ XAMP_PIMPL_IMPL(YtMusicInterop)
 void YtMusicInterop::initial() {
     impl_->get_ytdl();
     impl_->get_ytmusic();    
+}
+
+std::vector<std::string> YtMusicInterop::searchSuggestions(const std::string& query, bool detailed_runs) const {
+    const auto suggestions = impl_->get_ytmusic().attr("get_search_suggestions")(query, detailed_runs);
+    return extract_py_list<std::string>(suggestions);
 }
 
 artist::Artist YtMusicInterop::getArtist(const std::string& channel_id) const {
@@ -633,14 +646,13 @@ std::vector<search::SearchResultItem> YtMusicInterop::search(
         return output;
     }
 
-    const auto results = impl_->get_ytmusic().attr("search")
-        (
-            "query"_a = query,
-            "filter"_a = filter,
-            "scope"_a = scope,
-            "limit"_a = limit,
-            "ignore_spelling"_a = ignore_spelling
-            ).cast<py::list>();
+    const auto results = impl_->get_ytmusic().attr("search") (
+       "query"_a = query,
+       "filter"_a = filter,
+       "scope"_a = scope,
+       "limit"_a = limit,
+       "ignore_spelling"_a = ignore_spelling
+       ).cast<py::list>();
 
     for (const auto& result : results) {
         if (result.is_none()) {
