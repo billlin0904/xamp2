@@ -352,6 +352,9 @@ public:
         ytdl_ = py::none();
     }
 
+    ~YtMusicInteropImpl() {
+    }
+
     py::object& get_ytmusic() {
         if (ytmusic_.is_none()) {
             ytmusicapi_module = py::module::import("ytmusicapi");
@@ -463,6 +466,12 @@ QFuture<playlist::Playlist> YtMusic::fetchPlaylistAsync(const QString& playlist_
         });
 }
 
+QFuture<playlist::Playlist> YtMusic::fetchLibrarySongsAsync() {
+    return invokeAsync([this]() {
+        return interop()->getLibrarySongs();
+        });
+}
+
 QFuture<std::vector<artist::Artist::Album>> YtMusic::fetchArtistAlbumsAsync(const QString& channel_id, 
     const QString& params) {
     return invokeAsync([this, channel_id, params]() {
@@ -474,7 +483,7 @@ YtMusicInterop* YtMusic::interop() {
 	if (interop_ != nullptr) {
         return interop_.get();
 	}
-    interop_ = MakeAlign<YtMusicInterop>();
+    interop_ = MakeAlign<YtMusicInterop>("oauth.json");
     return interop_.get();
 }
 
@@ -562,6 +571,22 @@ std::optional<song::Song> YtMusicInterop::getSong(const std::string& video_id) c
 				return {};
 			}
 		}(),
+    };
+}
+
+playlist::Playlist YtMusicInterop::getLibrarySongs(int limit, bool validate_responses, const std::optional<std::string>& order) {
+    const auto playlist = impl_->get_ytmusic().attr("get_library_songs")(limit, validate_responses, order);
+
+    return {
+        playlist["id"].cast<std::string>(),
+        //playlist["privacy"].cast<std::string>(),
+        //playlist["title"].cast<std::string>(),
+        //extract_py_list<meta::Thumbnail>(playlist["thumbnails"]),
+        //extract_meta_artist(playlist["author"]),
+        //optional_key<std::string>(playlist, "year"),
+        //playlist["duration"].cast<std::string>(),
+        //playlist["trackCount"].cast<int>(),
+        //extract_py_list<playlist::Track>(playlist["tracks"]),
     };
 }
 

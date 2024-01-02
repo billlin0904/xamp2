@@ -100,14 +100,6 @@ signals:
 	void changePlayerOrder(PlayerOrder order);
 
 	void updateNewVersion(const Version &version);
-
-	void cleanup();
-
-	void search(const QString& text);
-
-	void extractVideoInfo(const std::any& context, const QString& video_id);
-
-	void fetchThumbnail(int32_t id, const video_info::VideoInfo& video_info);
 public slots:
 	void performDelayedUpdate();
 
@@ -164,6 +156,8 @@ public slots:
 	void onRestartApp();
 
 	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
+
+	void onFetchAlbumCompleted(const album::Album& album);
 
 	void onSearchSuggestionsCompleted(const std::vector<std::string>& result);
 
@@ -240,7 +234,7 @@ private:
 
 	void updateButtonState();
 
-	void destory();
+	void destroy();
 
     void setupDsp(const PlayListEntity& item) const;
 

@@ -366,4 +366,8 @@ void CrashHandler::SetThreadExceptionHandlers() {
     impl_->SetThreadExceptionHandlers();
 }
 
+void CrashHandler::DumpStackInfo(void* info) {
+    CrashHandlerImpl::DumpStackInfo(info);
+}
+
 XAMP_BASE_NAMESPACE_END

@@ -61,6 +61,7 @@ struct XAMP_WIDGET_SHARED_EXPORT Version {
 };
 
 inline constexpr ConstLatin1String kEmptyString{ "" };
+inline constexpr ConstLatin1String kPlatformKey{ "windows" };
 
 constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };

@@ -246,7 +246,7 @@ void PlaylistPage::addSuggestions(const QString& text) {
 }
 
 void PlaylistPage::showCompleter() {
-	(void) playlist_completer_->popup();
+	search_line_edit_->completer()->complete();
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {

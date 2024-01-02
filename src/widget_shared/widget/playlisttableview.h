@@ -57,6 +57,10 @@ public:
 		group_ = group;
 	}
 
+	void enableCloudMode(bool mode) {
+		cloud_mode_ = mode;
+	}
+
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
 	int32_t playlistId() const;
@@ -162,6 +166,7 @@ private:
 	void initial();
 
 protected:
+	bool cloud_mode_{ false };
 	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
 	int32_t hover_row_{ -1 };

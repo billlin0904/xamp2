@@ -305,7 +305,7 @@ public:
     [[nodiscard]] std::vector<search::SearchResultItem> search(const std::string& query,
         const std::optional<std::string>& filter = std::nullopt,
         const std::optional<std::string>& scope = std::nullopt,
-        const int limit = 100,
+        const int limit = 10,
         const bool ignore_spelling = false) const;
 
     [[nodiscard]] artist::Artist getArtist(const std::string& channel_id) const;
@@ -313,6 +313,10 @@ public:
     [[nodiscard]] album::Album getAlbum(const std::string& browse_id) const;
 
     [[nodiscard]] std::optional<song::Song> getSong(const std::string& video_id) const;
+
+    [[nodiscard]] playlist::Playlist getLibrarySongs(int limit = 25, 
+        bool validate_responses = false,
+        const std::optional<std::string>& order = std::nullopt);
 
     [[nodiscard]] playlist::Playlist getPlaylist(const std::string& playlist_id, int limit = 1024) const;
 
@@ -359,6 +363,8 @@ public:
 
     QFuture<playlist::Playlist> fetchPlaylistAsync(const QString& playlist_id);
 
+    QFuture<playlist::Playlist> fetchLibrarySongsAsync();
+
     QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
 
     QFuture<video_info::VideoInfo> extractVideoInfoAsync(const QString& video_id);
@@ -379,12 +385,12 @@ private:
             if (invoke_type == InvokeType::INVOKE_IMMEDIATELY) {
                 is_stop = false;
             }
-            if (!is_stop_) {
+            if (!is_stop) {
                 try {
                     val = fun();
                 }
                 catch (const std::exception& e) {
-                    XAMP_LOG_D(logger_, "{}", e.what());
+                    XAMP_LOG_D(logger_, "{} =>\r\n {}", e.what(), StackTrace{}.CaptureStack());
                 }
             }            
             interface->reportResult(val);

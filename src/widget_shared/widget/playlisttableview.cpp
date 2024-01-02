@@ -77,8 +77,6 @@ FROM
 	JOIN artists ON albumMusic.artistId = artists.artistId 
 WHERE
 	playlistMusics.playlistId = %1 
-GROUP BY
-	musics.track 
 ORDER BY
 	albums.album ASC,
 	musics.track ASC)").arg(playlist_id);
@@ -547,6 +545,55 @@ void PlayListTableView::initial() {
 		
         ActionMap<PlayListTableView> action_map(this);
 
+        PlayListEntity item;
+        if (model_->rowCount() > 0 && index.isValid()) {
+            item = getEntity(index);
+        }             
+
+        if (cloud_mode_) {            
+            auto* copy_album_act = action_map.addAction(qTR("Copy album"));
+            copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
+
+            auto* copy_artist_act = action_map.addAction(qTR("Copy artist"));
+            auto* copy_title_act = action_map.addAction(qTR("Copy title"));
+
+            action_map.setCallback(copy_album_act, [item]() {
+                QApplication::clipboard()->setText(item.album);
+                });
+            action_map.setCallback(copy_artist_act, [item]() {
+                QApplication::clipboard()->setText(item.artist);
+                });
+            action_map.setCallback(copy_title_act, [item]() {
+                QApplication::clipboard()->setText(item.title);
+                });
+
+            action_map.addSeparator();
+
+            auto* remove_all_act = action_map.addAction(qTR("Remove all"));
+            remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
+
+            action_map.setCallback(remove_all_act, [this]() {
+                if (!model_->rowCount()) {
+                    return;
+                }
+
+                IGNORE_DB_EXCEPTION(qMainDb.removePlaylistAllMusic(playlistId()))
+                    reload();
+                removePlaying();
+                });
+
+            if (model_->rowCount() > 0 && index.isValid()) {
+                try {
+                    action_map.exec(pt);
+                }
+                catch (Exception const& e) {
+                }
+                catch (std::exception const& e) {
+                }                
+            }
+            return;
+        }
+
         auto* load_file_act = action_map.addAction(qTR("Load local file"), [this]() {
             getOpenMusicFileName(this, [this](const auto& file_name) {
                 append(file_name);
@@ -638,9 +685,7 @@ void PlayListTableView::initial() {
             return;
         }
 
-        action_map.addSeparator();
-
-        auto item = getEntity(index);
+        action_map.addSeparator();        
 
         auto* add_to_playlist_act = action_map.addAction(qTR("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
