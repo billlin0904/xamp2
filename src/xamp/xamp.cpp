@@ -502,7 +502,7 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     extract_file_worker_->moveToThread(&extract_file_thread_);
     extract_file_thread_.start(QThread::LowestPriority);
 
-    ytmusic_worker_.reset(new YtMusic());
+    ytmusic_worker_.reset(new YtMusic());    
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
     ytmusic_thread_.start();
 
@@ -1287,7 +1287,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_YT_MUSIC:
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         break;
-    case TAB_YT_MUSIC_LIBRARY:
+    case TAB_YT_MUSIC_PLAYLIST:
         ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         break;
     }
@@ -2029,40 +2029,41 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("YouTube music Search"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->addTab(qTR("YouTube music Library"), TAB_YT_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
+    ui_.naviBar->addTab(qTR("YouTube Search"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(qTR("YouTube Playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
         const auto& name) {
-        if (playlist_id == kDefaultAlbumPlaylistId
-            || playlist_id == kDefaultCdPlaylistId
-            || playlist_id == kDefaultYtMusicPlaylistId) {
-            return;
-        }
-        if (index == -1) {
-            newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
-        } else {
-            newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name);
-        }
+            if (playlist_id == kDefaultAlbumPlaylistId
+                || playlist_id == kDefaultCdPlaylistId
+                || playlist_id == kDefaultYtMusicPlaylistId) {
+                return;
+            }
+            if (index == -1) {
+                newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
+            }
+            else {
+                newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name)->hidePlaybackInformation(true);
+            }
         });
 
-    cloud_tab_widget_->closeAllTab();
-    QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
-        XAMP_LOG_DEBUG("Get library paylist done!");
-        for (const auto& playlist : playlists) {
-            const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -2);
-            auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
-            playlist_page->hidePlaybackInformation(true);
-            QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
-                this, [this, playlist_page](const auto& playlist) {
-                    XAMP_LOG_DEBUG("Get paylist done!");
-                    onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
-                });
-        }
-        });
-
-
+    if (cloud_tab_widget_->count() == 0) {
+        QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
+            XAMP_LOG_DEBUG("Get library playlist done!");
+            for (const auto& playlist : playlists) {
+                const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), -2);
+                auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
+                playlist_page->hidePlaybackInformation(true);
+                QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
+                    this, [this, playlist_page](const auto& playlist) {
+                        XAMP_LOG_DEBUG("Get playlist done!");
+                        onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                    });
+            }
+            });
+    }   
+    
     local_tab_widget_->restoreTabOrder();
 
     if (local_tab_widget_->count() == 0) {

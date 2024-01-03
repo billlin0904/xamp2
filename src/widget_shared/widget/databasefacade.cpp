@@ -75,9 +75,6 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
     int32_t playlist_id, std::function<void(int32_t)> fetch_cover) {
     const Stopwatch sw;
-    FloatMap<QString, int32_t> artist_id_cache;
-    FloatMap<QString, int32_t> album_id_cache;
-
     uint32_t album_year = 0;
     if (!result.empty()) {
         album_year = result.front().year;
@@ -111,14 +108,9 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 		}
 
         const auto music_id = database_->addOrUpdateMusic(track_info);
-        int32_t artist_id = 0;
-        if (!artist_id_cache.contains(artist)) {
-            artist_id = database_->addOrUpdateArtist(artist);
-            artist_id_cache[artist] = artist_id;
-        } else {
-            artist_id = artist_id_cache[artist];
-        }
+        XAMP_EXPECTS(music_id != 0);
 
+        const auto artist_id = database_->addOrUpdateArtist(artist);
         XAMP_EXPECTS(artist_id != 0);
 
         auto album_id = database_->getAlbumId(album);
@@ -130,7 +122,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 false,
                 disc_id,
                 album_genre);
-            album_id_cache[album] = album_id;
             for (const auto &category : GetAlbumCategories(album)) {
                 database_->addOrUpdateAlbumCategory(album_id, category);
             }
