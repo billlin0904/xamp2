@@ -79,8 +79,6 @@ public:
 	void waitForReady();
 
 signals:
-	void initial();
-
 	void payNextMusic();
 
     void themeChanged(QColor background_color, QColor color);
@@ -159,9 +157,14 @@ public slots:
 
 	void onFetchAlbumCompleted(const album::Album& album);
 
+	void onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks);
+
 	void onSearchSuggestionsCompleted(const std::vector<std::string>& result);
 
-	void onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackInfo track_info, const video_info::VideoInfo& video_info);
+	void onExtractVideoInfoCompleted(PlaylistPage* playlist_page,
+		const std::string& thumbnail_url,
+		TrackInfo track_info, 
+		const video_info::VideoInfo& video_info);
 
 private:
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
@@ -252,7 +255,7 @@ private:
 
 	void showEvent(QShowEvent* event) override;
 
-	PlaylistPage* newPlaylistPage(int32_t playlist_id, const QString &name);
+	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString &name);
 
 	PlaylistPage* getCurrentPlaylistPage();
 
@@ -265,13 +268,14 @@ private:
 	PlayListTableView* last_play_list_{ nullptr };
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;
-	QScopedPointer<PlaylistTabWidget> tab_widget_;
+	QScopedPointer<PlaylistTabWidget> local_tab_widget_;
 	QScopedPointer<LrcPage> lrc_page_;	
 	QScopedPointer<PlaylistPage> music_page_;
 	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> album_page_;
 	QScopedPointer<FileSystemViewPage> file_system_view_page_;
-	QScopedPointer<PlaylistPage> ytmusic_page_;
+	QScopedPointer<PlaylistPage> cloud_search_page_;
+	QScopedPointer<PlaylistTabWidget> cloud_tab_widget_;
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<ExtractFileWorker> extract_file_worker_;

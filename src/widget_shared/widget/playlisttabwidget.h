@@ -32,6 +32,8 @@ public:
 
 	void setPlaylistCover(const QPixmap &cover);
 
+	void closeAllTab();
+
 signals:
 	void createNewPlaylist();
 

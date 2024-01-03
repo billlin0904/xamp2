@@ -147,13 +147,13 @@ template <typename T1, typename T2>
 using Pair = robin_hood::pair<T1, T2>;
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
-using FloatMap = robin_hood::unordered_flat_map<K, V, H, E, Alloc>;
+using FloatMap = robin_hood::unordered_flat_map<K, V, H, E>;
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
-using HashMap = robin_hood::unordered_map<K, V, H, E, Alloc>;
+using HashMap = robin_hood::unordered_map<K, V, H, E>;
 
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>, typename Alloc = AlignedAllocator<T>>
-using HashSet = robin_hood::unordered_set<T, H, E, Alloc>;
+using HashSet = robin_hood::unordered_set<T, H, E>;
 #endif
 
 template <typename K, typename V, typename P = std::less<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>

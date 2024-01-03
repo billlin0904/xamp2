@@ -18,7 +18,8 @@ enum TabIndex {
     TAB_LYRICS,
     TAB_MUSIC_LIBRARY,
     TAB_CD,
-    TAB_YT_MUSIC
+    TAB_YT_MUSIC,
+    TAB_YT_MUSIC_LIBRARY,
 };
 
 class XAMP_WIDGET_SHARED_EXPORT TabListView final : public QListView {

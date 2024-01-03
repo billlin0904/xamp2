@@ -13,11 +13,6 @@ namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
-    void dumps(py::handle obj) {
-        //auto json = py::module::import("json");
-        //py::print(json.attr("dumps")(obj, "indent"_a = py::int_(4)));
-    }
-
     template <typename T>
     std::vector<T> extract_py_list(py::handle obj);
 
@@ -95,7 +90,6 @@ namespace {
             }()
         };
     }
-
 
     playlist::Track extract_playlist_track(py::handle track) {
         return {
@@ -374,7 +368,10 @@ public:
 
     py::object& get_ytdl() {
         if (ytdl_.is_none()) {
-            ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(py::dict());
+            py::dict opt;
+            //opt["username"] = "*********@gmail.com";
+            //opt["password"] = "*********";
+            ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(opt);
         }
         return ytdl_;
     }
@@ -466,9 +463,9 @@ QFuture<playlist::Playlist> YtMusic::fetchPlaylistAsync(const QString& playlist_
         });
 }
 
-QFuture<playlist::Playlist> YtMusic::fetchLibrarySongsAsync() {
+QFuture<std::vector<library::Playlist>> YtMusic::fetchLibraryPlaylistsAsync() {
     return invokeAsync([this]() {
-        return interop()->getLibrarySongs();
+        return interop()->getLibraryPlaylists();
         });
 }
 
@@ -574,36 +571,50 @@ std::optional<song::Song> YtMusicInterop::getSong(const std::string& video_id) c
     };
 }
 
-playlist::Playlist YtMusicInterop::getLibrarySongs(int limit, bool validate_responses, const std::optional<std::string>& order) {
-    const auto playlist = impl_->get_ytmusic().attr("get_library_songs")(limit, validate_responses, order);
-
-    return {
-        playlist["id"].cast<std::string>(),
-        //playlist["privacy"].cast<std::string>(),
-        //playlist["title"].cast<std::string>(),
-        //extract_py_list<meta::Thumbnail>(playlist["thumbnails"]),
-        //extract_meta_artist(playlist["author"]),
-        //optional_key<std::string>(playlist, "year"),
-        //playlist["duration"].cast<std::string>(),
-        //playlist["trackCount"].cast<int>(),
-        //extract_py_list<playlist::Track>(playlist["tracks"]),
-    };
-}
-
 playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, int limit) const {
     const auto playlist = impl_->get_ytmusic().attr("get_playlist")(playlist_id, limit);
+    auto extract_author = [&]() -> meta::Artist {
+        if (playlist.contains("author")) {
+            return extract_meta_artist(playlist["author"]);
+        }
+        else {
+            return {};
+        }
+    };
+
+    auto extract_duration = [&]() -> std::string {
+        if (playlist["duration"].is_none()) {
+            return "";
+        }
+        return playlist["duration"].cast<std::string>();
+    };
 
     return {
         playlist["id"].cast<std::string>(),
         playlist["privacy"].cast<std::string>(),
         playlist["title"].cast<std::string>(),
         extract_py_list<meta::Thumbnail>(playlist["thumbnails"]),
-        extract_meta_artist(playlist["author"]),
+        extract_author(),
         optional_key<std::string>(playlist, "year"),
-        playlist["duration"].cast<std::string>(),
+        extract_duration(),
         playlist["trackCount"].cast<int>(),
         extract_py_list<playlist::Track>(playlist["tracks"]),
     };
+}
+
+std::vector<library::Playlist> YtMusicInterop::getLibraryPlaylists(int limit) const {
+    const auto py_playlists = impl_->get_ytmusic().attr("get_library_playlists")(limit);
+    std::vector<library::Playlist> result;
+
+    std::ranges::transform(py_playlists, std::back_inserter(result), [](py::handle playlist) {
+        return library::Playlist {
+        playlist["playlistId"].cast<std::string>(),
+        playlist["title"].cast<std::string>(),
+        extract_py_list<meta::Thumbnail>(playlist["thumbnails"])
+        };
+    });
+
+    return result;
 }
 
 std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::string& channel_id, const std::string& params) const {

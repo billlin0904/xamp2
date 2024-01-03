@@ -41,6 +41,8 @@ public:
 
 	QLabel* format();
 
+	QToolButton* heart();
+
 	void setHeart(bool heart);
 
 	void setCover(const QPixmap* cover);

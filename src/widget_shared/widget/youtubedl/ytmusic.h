@@ -282,6 +282,14 @@ namespace watch {
     };
 }
 
+namespace library {
+    struct Playlist {
+        std::string playlistId;
+        std::string title;
+        std::vector<meta::Thumbnail> thumbnail;
+    };
+}
+
 struct Lyrics {
     std::optional<std::string> source;
     std::string lyrics;
@@ -300,13 +308,13 @@ public:
 
     void initial();
 
-    std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
+    [[nodiscard]] std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
 
     [[nodiscard]] std::vector<search::SearchResultItem> search(const std::string& query,
         const std::optional<std::string>& filter = std::nullopt,
         const std::optional<std::string>& scope = std::nullopt,
-        const int limit = 10,
-        const bool ignore_spelling = false) const;
+        int limit = 10,
+        bool ignore_spelling = false) const;
 
     [[nodiscard]] artist::Artist getArtist(const std::string& channel_id) const;
 
@@ -314,9 +322,7 @@ public:
 
     [[nodiscard]] std::optional<song::Song> getSong(const std::string& video_id) const;
 
-    [[nodiscard]] playlist::Playlist getLibrarySongs(int limit = 25, 
-        bool validate_responses = false,
-        const std::optional<std::string>& order = std::nullopt);
+    [[nodiscard]] std::vector<library::Playlist> getLibraryPlaylists(int limit = 25) const;
 
     [[nodiscard]] playlist::Playlist getPlaylist(const std::string& playlist_id, int limit = 1024) const;
 
@@ -363,7 +369,7 @@ public:
 
     QFuture<playlist::Playlist> fetchPlaylistAsync(const QString& playlist_id);
 
-    QFuture<playlist::Playlist> fetchLibrarySongsAsync();
+    QFuture<std::vector<library::Playlist>> fetchLibraryPlaylistsAsync();
 
     QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
 

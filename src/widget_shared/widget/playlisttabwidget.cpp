@@ -10,6 +10,33 @@
 #include <widget/actionmap.h>
 #include <widget/playlisttabwidget.h>
 
+void PlaylistTabWidget::closeAllTab() {
+    QList<PlaylistPage*> playlist_pages;
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        playlist_pages.append(playlist_page);
+    }
+
+    Q_FOREACH(auto * page, playlist_pages) {
+        removePlaylist(page->playlist()->playlistId());
+        page->deleteLater();
+    }
+
+    qMainDb.forEachPlaylist([this](auto playlist_id,
+        auto index,
+        const auto& name) {
+            if (playlist_id == kDefaultAlbumPlaylistId
+                || playlist_id == kDefaultCdPlaylistId
+                || playlist_id == kDefaultYtMusicPlaylistId) {
+                return;
+            }
+            removePlaylist(playlist_id);
+        });
+
+    clear();
+    emit removeAllPlaylist();
+}
+
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
@@ -28,30 +55,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         ActionMap<PlaylistTabWidget> action_map(this);
 
         auto* close_all_tab_act = action_map.addAction(qTR("Close all tab"), [this]() {
-            QList<PlaylistPage*> playlist_pages;
-            for (auto i = 0; i < count(); ++i) {
-                auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-                playlist_pages.append(playlist_page);
-            }
-
-            Q_FOREACH(auto * page, playlist_pages) {
-                removePlaylist(page->playlist()->playlistId());
-                page->deleteLater();
-            }
-
-            qMainDb.forEachPlaylist([this](auto playlist_id,
-                auto index,
-                const auto& name) {
-                    if (playlist_id == kDefaultAlbumPlaylistId
-                        || playlist_id == kDefaultCdPlaylistId
-                        || playlist_id == kDefaultYtMusicPlaylistId) {
-                        return;
-                    }
-                    removePlaylist(playlist_id);
-                });
-
-            clear();
-            emit removeAllPlaylist();
+            closeAllTab();
             });
 
         auto* close_other_tab_act = action_map.addAction(qTR("Close other tab"), [pt, this]() {

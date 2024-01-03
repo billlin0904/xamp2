@@ -79,6 +79,7 @@ enum Glyphs {
     ICON_CIRCLE_CHECK,
     ICON_CIRCLE_NOTCH,
     ICON_YOUTUBE,
+    ICON_YOUTUBE_LIBRARY,
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {

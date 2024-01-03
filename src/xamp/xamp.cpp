@@ -463,7 +463,7 @@ void Xamp::destroy() {
         (void)main_window_->saveGeometry();
     }
 
-    tab_widget_->saveTabOrder();
+    local_tab_widget_->saveTabOrder();
 
     XAMP_LOG_DEBUG("Xamp destory!");
 }
@@ -508,10 +508,6 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
 
     QCoro::connect(ytmusic_worker_->initialAsync(), this, [this](auto) {
         XAMP_LOG_DEBUG("Initial done!");
-        });
-
-    QCoro::connect(ytmusic_worker_->fetchLibrarySongsAsync(), this, [this](const auto& playlist) {
-        XAMP_LOG_DEBUG("Get Library songs done!");
         });
 
     player_->Startup(state_adapter_);
@@ -747,6 +743,47 @@ void Xamp::onRestartApp() {
     qApp->exit(kRestartExistCode);
 }
 
+void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks) {
+    TrackInfo track_info;
+    int track_no = 1;
+    std::string thumbnail_url;
+
+    for (const auto& track : tracks) {
+        track_info.track = track_no++;
+        track_info.title = String::ToString(track.title);
+
+        if (track.album) {
+            track_info.album = String::ToString(track.album.value().name);
+        }
+        
+        if (!track.thumbnails.empty()) {
+            thumbnail_url = track.thumbnails.back().url;
+        }
+
+        if (!track.artists.empty()) {
+            track_info.artist = String::ToString(track.artists.front().name);
+        }
+        else {
+            track_info.artist = std::wstring(L"Unknown artist");
+        }
+
+        if (track.duration) {
+            track_info.duration = parseDuration(track.duration.value()).count() / 1000.0;
+        }
+        else {
+            track_info.duration = 0;
+        }
+
+        if (!track.video_id) {
+            continue;
+        }
+
+        QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(QString::fromStdString(track.video_id.value())), this,
+            [this, playlist_page, thumbnail_url, track_info](const auto& video_info) {
+                onExtractVideoInfoCompleted(playlist_page, thumbnail_url, track_info, video_info);
+            });
+    }
+}
 
 void Xamp::onFetchAlbumCompleted(const album::Album& album) {
     TrackInfo track_info;
@@ -783,7 +820,8 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
 
         QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(QString::fromStdString(track.video_id.value())), this,
             [this, thumbnail_url, track_info](const auto& video_info) {
-                onExtractVideoInfoCompleted(thumbnail_url, track_info, video_info);
+                onExtractVideoInfoCompleted(cloud_search_page_.get(), thumbnail_url, track_info, video_info);
+                spinner_->stopAnimation();
             });
     }
 }
@@ -811,14 +849,16 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
 
 void Xamp::onSearchSuggestionsCompleted(const std::vector<std::string>& result) {
     for (const auto &text : result) {
-        ytmusic_page_->addSuggestions(QString::fromStdString(text));
+        cloud_search_page_->addSuggestions(QString::fromStdString(text));
     }
-    ytmusic_page_->showCompleter();
+    cloud_search_page_->showCompleter();
 }
 
-void Xamp::onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackInfo track_info, const video_info::VideoInfo& video_info) {
+void Xamp::onExtractVideoInfoCompleted(PlaylistPage* playlist_page,
+    const std::string& thumbnail_url,
+    TrackInfo track_info,
+    const video_info::VideoInfo& video_info) {
     if (video_info.formats.empty()) {
-        spinner_->stopAnimation();
         return;
     }
 
@@ -840,7 +880,7 @@ void Xamp::onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackIn
     const ForwardList<TrackInfo> track_infos{ track_info };
 
     DatabaseFacade facede;
-    facede.insertTrackInfo(track_infos, ytmusic_page_->playlist()->playlistId(), [=, this](auto album_id) {
+    facede.insertTrackInfo(track_infos, playlist_page->playlist()->playlistId(), [=, this](auto album_id) {
         if (thumbnail_url.empty()) {
             return;
         }
@@ -851,12 +891,11 @@ void Xamp::onExtractVideoInfoCompleted(const std::string& thumbnail_url, TrackIn
                 return;
             }
             qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-            ytmusic_page_->playlist()->reload();      
+            playlist_page->playlist()->reload();
         });
     });    
-    ytmusic_page_->playlist()->reload();
+    playlist_page->playlist()->reload();
     album_page_->reload();
-    spinner_->stopAnimation();
 }
 
 void Xamp::onCheckForUpdate() {
@@ -1235,7 +1274,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
     case TAB_PLAYLIST:        
-        ui_.currentView->setCurrentWidget(tab_widget_.get());
+        ui_.currentView->setCurrentWidget(local_tab_widget_.get());
         ensureOnePlaylistPage();
         getCurrentPlaylistPage()->playlist()->reload();
         break;
@@ -1246,7 +1285,10 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC:
-        ui_.currentView->setCurrentWidget(ytmusic_page_.get());
+        ui_.currentView->setCurrentWidget(cloud_search_page_.get());
+        break;
+    case TAB_YT_MUSIC_LIBRARY:
+        ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         break;
     }
 }
@@ -1282,8 +1324,8 @@ void Xamp::onCurrentThemeChanged(ThemeColor theme_color) {
     setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
 
     lrc_page_->setCover(qTheme.unknownCover());
-    tab_widget_->onCurrentThemeChanged(theme_color);
-    tab_widget_->setPlaylistCover(qTheme.unknownCover());
+    local_tab_widget_->onCurrentThemeChanged(theme_color);
+    local_tab_widget_->setPlaylistCover(qTheme.unknownCover());
 
     setPlaylistPageCover(nullptr, getCurrentPlaylistPage());
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
@@ -1369,7 +1411,7 @@ void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
         }
     };
 
-    auto key = shortcut_map.value(shortcut);
+    const auto key = shortcut_map.value(shortcut);
     if (key != nullptr) {
         key();
     }
@@ -1468,14 +1510,14 @@ void Xamp::playOrPause() {
             qTheme.setPlayOrPauseButton(ui_.playButton, false);
             player_->Pause();
             getCurrentPlaylistPage()->playlist()->setNowPlayState(PlayingState::PLAY_PAUSE);
-            tab_widget_->setPlaylistTabIcon(qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0));
+            local_tab_widget_->setPlaylistTabIcon(qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0));
             main_window_->setTaskbarPlayerPaused();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
             qTheme.setPlayOrPauseButton(ui_.playButton, true);
             player_->Resume();
             getCurrentPlaylistPage()->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
-            tab_widget_->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
+            local_tab_widget_->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
             main_window_->setTaskbarPlayingResume();
         }
         else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
@@ -1609,8 +1651,8 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 void Xamp::performDelayedUpdate() {
     cd_page_->playlistPage()->playlist()->reload();
     album_page_->reload();
-    ytmusic_page_->playlist()->reload();
-    if (tab_widget_->count() > 0) {
+    cloud_search_page_->playlist()->reload();
+    if (local_tab_widget_->count() > 0) {
         getCurrentPlaylistPage()->playlist()->reload();
     }
 }
@@ -1728,9 +1770,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 }
 
 void Xamp::ensureOnePlaylistPage() {
-	if (tab_widget_->count() == 0) {
+	if (local_tab_widget_->count() == 0) {
 		const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
-		newPlaylistPage(playlist_id, qTR("Playlist"));
+		newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
 	}
 }
 
@@ -1794,7 +1836,7 @@ void Xamp::updateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
 
-    tab_widget_->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
+    local_tab_widget_->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
 
     player_->Play();
 }
@@ -1961,31 +2003,34 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
-PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id, const QString& name) {
+PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& name) {
     auto* playlist_page = createPlaylistPage(playlist_id, kAppSettingPlaylistColumnName);
     playlist_page->playlist()->setHeaderViewHidden(false);    
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
-    tab_widget_->createNewTab(name, playlist_page);
+    tab_widget->createNewTab(name, playlist_page);
     return playlist_page;
 }
 
 void Xamp::initialPlaylist() {
     lrc_page_.reset(new LrcPage(this));
     album_page_.reset(new AlbumArtistPage(this));
-    tab_widget_.reset(new PlaylistTabWidget(this));
-    ytmusic_page_.reset(new PlaylistPage(this));
+    local_tab_widget_.reset(new PlaylistTabWidget(this));
+    cloud_search_page_.reset(new PlaylistPage(this));
 
-    ytmusic_page_->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
-    ytmusic_page_->playlist()->enableCloudMode(true);
-    
+    cloud_search_page_->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
+    cloud_search_page_->playlist()->enableCloudMode(true);
+    cloud_search_page_->hidePlaybackInformation(true);
+    cloud_tab_widget_.reset(new PlaylistTabWidget(this));
+
     ui_.naviBar->addSeparator();
     ui_.naviBar->addTab(qTR("Playlist"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->addTab(qTR("File explorer"), TAB_FILE_EXPLORER, qTheme.fontIcon(Glyphs::ICON_DESKTOP));
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("YouTube music"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));    
+    ui_.naviBar->addTab(qTR("YouTube music Search"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(qTR("YouTube music Library"), TAB_YT_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -1995,14 +2040,34 @@ void Xamp::initialPlaylist() {
             || playlist_id == kDefaultYtMusicPlaylistId) {
             return;
         }
-    	newPlaylistPage(playlist_id, name);
+        if (index == -1) {
+            newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
+        } else {
+            newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name);
+        }
         });
 
-    tab_widget_->restoreTabOrder();
+    cloud_tab_widget_->closeAllTab();
+    QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
+        XAMP_LOG_DEBUG("Get library paylist done!");
+        for (const auto& playlist : playlists) {
+            const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -2);
+            auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
+            playlist_page->hidePlaybackInformation(true);
+            QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
+                this, [this, playlist_page](const auto& playlist) {
+                    XAMP_LOG_DEBUG("Get paylist done!");
+                    onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                });
+        }
+        });
 
-    if (tab_widget_->count() == 0) {
+
+    local_tab_widget_->restoreTabOrder();
+
+    if (local_tab_widget_->count() == 0) {
 	    const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
-        newPlaylistPage(playlist_id, qTR("Playlist"));
+        newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
     if (!qMainDb.isPlaylistExist(kDefaultAlbumPlaylistId)) {
         qMainDb.addPlaylist(qTR("Playlist"), -1);
@@ -2014,14 +2079,14 @@ void Xamp::initialPlaylist() {
         qMainDb.addPlaylist(qTR("Playlist"), -1);
     }
 
-    (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
+    (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
-            const auto tab_index = tab_widget_->count();
+            const auto tab_index = local_tab_widget_->count();
             const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), tab_index);
-            newPlaylistPage(playlist_id, qTR("Playlist"));
+            newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
         });
 
-    (void)QObject::connect(tab_widget_.get(), &PlaylistTabWidget::removeAllPlaylist,
+    (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::removeAllPlaylist,
         [this]() {
             last_play_list_ = nullptr;
         });    
@@ -2036,9 +2101,9 @@ void Xamp::initialPlaylist() {
     onSetCover(kEmptyString, cd_page_->playlistPage());
     connectPlaylistPageSignal(cd_page_->playlistPage());
 
-    ytmusic_page_->playlist()->setPlaylistId(kDefaultYtMusicPlaylistId, kAppSettingPlaylistColumnName);
-    onSetCover(kEmptyString, ytmusic_page_.get());
-    connectPlaylistPageSignal(ytmusic_page_.get());
+    cloud_search_page_->playlist()->setPlaylistId(kDefaultYtMusicPlaylistId, kAppSettingPlaylistColumnName);
+    onSetCover(kEmptyString, cloud_search_page_.get());
+    connectPlaylistPageSignal(cloud_search_page_.get());
 
     (void)QObject::connect(this,
         &Xamp::blurImage,
@@ -2096,12 +2161,13 @@ void Xamp::initialPlaylist() {
         this,
         &Xamp::onSearchArtistCompleted);
 
-    pushWidget(tab_widget_.get());
+    pushWidget(local_tab_widget_.get());
     pushWidget(lrc_page_.get());
     pushWidget(album_page_.get());
     pushWidget(file_system_view_page_.get());
     pushWidget(cd_page_.get());
-    pushWidget(ytmusic_page_.get());
+    pushWidget(cloud_search_page_.get());
+    pushWidget(cloud_tab_widget_.get());
 
     ui_.currentView->setCurrentIndex(0);
 
@@ -2147,9 +2213,9 @@ void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
 }
 
 void Xamp::addItem(const QString& file_name) {
-    if (tab_widget_->count() == 0) {
+    if (local_tab_widget_->count() == 0) {
         const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
-        newPlaylistPage(playlist_id, qTR("Playlist"));
+        newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
 
     appendToPlaylist(file_name, true);
@@ -2197,9 +2263,7 @@ void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
         },
         qTR("Save AAC file"),
         save_file_name,
-        qTR("AAC Files (*.m4a)"));   
-
-    
+        qTR("AAC Files (*.m4a)"));
 }
 
 void Xamp::encodeWavFile(const PlayListEntity& item) {
@@ -2283,12 +2347,12 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
 }
 
 void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
-    if (playlist_page != ytmusic_page_.get()) {
+    if (playlist_page != cloud_search_page_.get()) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
             [this](const auto& text, Match match) {
-                auto widget = sender();
-                auto playlist_page = dynamic_cast<PlaylistPage*>(widget);
+	            auto* widget = sender();
+	            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget);
                 playlist_page->playlist()->search(text);
             });
     } else {
@@ -2296,7 +2360,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             &PlaylistPage::search,
             [this](const auto& text, Match match) {
                 if (!spinner_) {
-                    spinner_.reset(new ProcessIndicator(ytmusic_page_.get()));
+                    spinner_.reset(new ProcessIndicator(cloud_search_page_.get()));
                     spinner_->hide();
                 }
                 if (spinner_->isAnimated()) {
@@ -2378,7 +2442,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
 }
 
 PlaylistPage* Xamp::createPlaylistPage(int32_t playlist_id, const QString& column_setting_name) {
-    auto* playlist_page = new PlaylistPage(tab_widget_.get());    
+    auto* playlist_page = new PlaylistPage(local_tab_widget_.get());    
     playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
     return playlist_page;
 }
@@ -2388,10 +2452,10 @@ void Xamp::addDropFileItem(const QUrl& url) {
 }
 
 PlaylistPage* Xamp::getCurrentPlaylistPage() {
-    if (tab_widget_->count() == 0) {
+    if (local_tab_widget_->count() == 0) {
         return nullptr;
     }
-    return dynamic_cast<PlaylistPage*>(tab_widget_->currentWidget());
+    return dynamic_cast<PlaylistPage*>(local_tab_widget_->currentWidget());
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
@@ -2403,9 +2467,9 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
         Qt::QueuedConnection);
     facede.insertTrackInfo(result, playlist_id);    
     emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
-    if (tab_widget_->count() == 0) {
+    if (local_tab_widget_->count() == 0) {
         const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
-        newPlaylistPage(playlist_id, qTR("Playlist"));
+        newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
     getCurrentPlaylistPage()->playlist()->reload();
 }
@@ -2418,7 +2482,6 @@ void Xamp::onReadFilePath(const QString& file_path) {
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
-    //XAMP_LOG_DEBUG("{} => {}", album.toStdString(), cover_id.toStdString());
     qMainDb.setAlbumCover(album_id, cover_id);
     album_page_->reload();
 }
@@ -2447,7 +2510,7 @@ void Xamp::onReadFileProgress(int32_t progress) {
 void Xamp::onReadCompleted() {
     ui_update_timer_timer_.stop();
     delay(1);
-    if (tab_widget_->count() > 0) {
+    if (local_tab_widget_->count() > 0) {
         getCurrentPlaylistPage()->playlist()->reload();
     }
     if (!read_progress_dialog_) {
