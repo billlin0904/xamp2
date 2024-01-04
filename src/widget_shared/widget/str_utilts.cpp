@@ -125,7 +125,7 @@ QString formatDouble(double value, int prec) {
     return QString::number(value, 'f', prec);
 }
 
-std::chrono::milliseconds parseDuration(const std::string & str) {
+double parseDuration(const std::string & str) {
     auto minutes = 0;
     auto seconds = 0;
     auto milliseconds = 0;
@@ -140,7 +140,8 @@ std::chrono::milliseconds parseDuration(const std::string & str) {
         &seconds,
         &milliseconds);
 #endif
-    return std::chrono::minutes(minutes)
+    std::chrono::milliseconds duration = std::chrono::minutes(minutes)
         + std::chrono::seconds(seconds)
         + std::chrono::milliseconds(milliseconds);
+    return duration.count() / 1000.0;
 }

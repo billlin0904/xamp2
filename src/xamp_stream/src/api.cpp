@@ -65,8 +65,11 @@ AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode, const Path
             return MakeAlign<FileStream, BassFileStream>();
         default:;
         }
+        /*if (IsFilePath(file_path)) {
+            return MakeAlign<FileStream, AvFileStream>();
+        }
+        return MakeAlign<FileStream, BassFileStream>();*/
         return MakeAlign<FileStream, AvFileStream>();
-        //return MakeAlign<FileStream, BassFileStream>();
     } else {
         return MakeAlign<FileStream, BassFileStream>();
     }

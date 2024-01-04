@@ -143,7 +143,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         database_->addOrUpdateAlbumMusic(album_id, artist_id, music_id);
         database_->addOrUpdateAlbumArtist(album_id, artist_id);
         for (const auto& multi_artist : artists) {
-            auto id = database_->addOrUpdateArtist(multi_artist);
+	        const auto id = database_->addOrUpdateArtist(multi_artist);
             database_->addOrUpdateAlbumArtist(album_id, id);
         }
 

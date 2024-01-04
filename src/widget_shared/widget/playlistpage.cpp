@@ -13,6 +13,7 @@
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/scrolllabel.h>
+#include <widget/processindicator.h>
 #include <widget/playlisttableview.h>
 
 PlaylistPage::PlaylistPage(QWidget* parent)
@@ -20,8 +21,15 @@ PlaylistPage::PlaylistPage(QWidget* parent)
 	initial();
 }
 
+ProcessIndicator* PlaylistPage::spinner() {
+	return spinner_;
+}
+
 void PlaylistPage::initial() {
 	setFrameStyle(QFrame::StyledPanel);
+
+	spinner_ = new ProcessIndicator(this);
+	spinner_->hide();
 
 	auto* default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);

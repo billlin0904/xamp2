@@ -14,6 +14,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/themecolor.h>
 
+class ProcessIndicator;
 class QStandardItemModel;
 class QSpacerItem;
 class QLabel;
@@ -32,6 +33,8 @@ public:
 	static constexpr auto kMaxCompletionCount = 10;
 
 	explicit PlaylistPage(QWidget *parent = nullptr);
+
+	ProcessIndicator* spinner();
 
 	PlayListTableView* playlist();
 
@@ -87,4 +90,5 @@ private:
 	QSpacerItem* default_spacer_{ nullptr };
 	QStandardItemModel* search_playlist_model_{ nullptr };
 	QCompleter* playlist_completer_{ nullptr };
+	ProcessIndicator* spinner_{ nullptr };
 };

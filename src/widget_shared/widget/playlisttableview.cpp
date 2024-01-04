@@ -732,6 +732,9 @@ void PlayListTableView::initial() {
             for (const auto& row : rows) {
                 items.push_front(this->item(row.second));
             }
+            if (items.isEmpty()) {
+                return;
+            }
             emit editTags(playlistId(), items);
             Q_FOREACH(auto entity, items) {
                 onReloadEntity(entity);

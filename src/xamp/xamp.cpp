@@ -745,30 +745,36 @@ void Xamp::onRestartApp() {
 
 void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks) {
     TrackInfo track_info;
-    int track_no = 1;
-    std::string thumbnail_url;
+
+    std::wstring prev_album;
+    auto track_no = 1;
 
     for (const auto& track : tracks) {
-        track_info.track = track_no++;
         track_info.title = String::ToString(track.title);
 
+        track_info.album = kUnknownAlbum;
         if (track.album) {
             track_info.album = String::ToString(track.album.value().name);
         }
-        
+
+        if (prev_album != track_info.album.value()) {
+            prev_album = track_info.album.value();
+            track_no = 1;
+        }
+        track_info.track = track_no++;
+
+        std::string thumbnail_url;
         if (!track.thumbnails.empty()) {
             thumbnail_url = track.thumbnails.back().url;
         }
 
+        track_info.artist = kUnknownArtist;
         if (!track.artists.empty()) {
             track_info.artist = String::ToString(track.artists.front().name);
-        }
-        else {
-            track_info.artist = std::wstring(L"Unknown artist");
-        }
+        }        
 
         if (track.duration) {
-            track_info.duration = parseDuration(track.duration.value()).count() / 1000.0;
+            track_info.duration = parseDuration(track.duration.value());
         }
         else {
             track_info.duration = 0;
@@ -808,7 +814,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
         }
 
         if (track.duration) {
-            track_info.duration = parseDuration(track.duration.value()).count() / 1000.0;
+            track_info.duration = parseDuration(track.duration.value());
         }
         else {
             track_info.duration = 0;
@@ -821,14 +827,14 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
         QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(QString::fromStdString(track.video_id.value())), this,
             [this, thumbnail_url, track_info](const auto& video_info) {
                 onExtractVideoInfoCompleted(cloud_search_page_.get(), thumbnail_url, track_info, video_info);
-                spinner_->stopAnimation();
+                cloud_search_page_->spinner()->stopAnimation();
             });
     }
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
     if (result.empty()) {
-        spinner_->stopAnimation();
+        cloud_search_page_->spinner()->stopAnimation();
         return;
     }
 
@@ -895,7 +901,6 @@ void Xamp::onExtractVideoInfoCompleted(PlaylistPage* playlist_page,
         });
     });    
     playlist_page->playlist()->reload();
-    album_page_->reload();
 }
 
 void Xamp::onCheckForUpdate() {
@@ -2050,7 +2055,7 @@ void Xamp::initialPlaylist() {
 
     if (cloud_tab_widget_->count() == 0) {
         QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
-            XAMP_LOG_DEBUG("Get library playlist done!");
+        	XAMP_LOG_DEBUG("Get library playlist done!");
             for (const auto& playlist : playlists) {
                 const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), -2);
                 auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
@@ -2351,31 +2356,25 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     if (playlist_page != cloud_search_page_.get()) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
-            [this](const auto& text, Match match) {
-	            auto* widget = sender();
-	            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget);
+            [this, playlist_page](const auto& text, Match match) {
                 playlist_page->playlist()->search(text);
             });
     } else {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
-            [this](const auto& text, Match match) {
-                if (!spinner_) {
-                    spinner_.reset(new ProcessIndicator(cloud_search_page_.get()));
-                    spinner_->hide();
-                }
-                if (spinner_->isAnimated()) {
+            [this, playlist_page](const auto& text, Match match) {
+                if (playlist_page->spinner()->isAnimated()) {
                     return;
                 }
-                if (spinner_->isHidden()) {
-                    spinner_->show();
+                if (playlist_page->spinner()->isHidden()) {
+                    playlist_page->spinner()->show();
                 }
-                spinner_->startAnimation();
+                playlist_page->spinner()->startAnimation();
                 if (match == Match::MATCH_ITEM) {
                     QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
                 } else {
                     QCoro::connect(ytmusic_worker_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
-                    spinner_->stopAnimation();
+                    playlist_page->spinner()->stopAnimation();
                 }
             });
     }
@@ -2469,8 +2468,8 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
     facede.insertTrackInfo(result, playlist_id);    
     emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     if (local_tab_widget_->count() == 0) {
-        const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
-        newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
+        const auto new_playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
+        newPlaylistPage(local_tab_widget_.get(), new_playlist_id, qTR("Playlist"));
     }
     getCurrentPlaylistPage()->playlist()->reload();
 }

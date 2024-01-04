@@ -12,6 +12,9 @@
 
 class Database;
 
+const std::wstring kUnknownAlbum{ L"Unknown album" };
+const std::wstring kUnknownArtist{ L"Unknown artist" };
+
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
 public:

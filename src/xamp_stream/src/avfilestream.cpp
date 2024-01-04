@@ -58,8 +58,9 @@ public:
         if (!IsFilePath(file_path.wstring())) {
             // note: Http request timeout in microseconds. 
             LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
-            LIBAV_LIB.UtilLib->av_dict_set(&options, "user-agent", XAMP_HTTP_USER_AGENT, 0);
+            LIBAV_LIB.UtilLib->av_dict_set(&options, "user_agent", XAMP_HTTP_USER_AGENT, 0);
         }
+        LIBAV_LIB.UtilLib->av_dict_set(&options, "probesize", "4M", AV_OPT_SEARCH_CHILDREN);
 
         const auto file_path_ut8 = String::ToString(file_path.wstring());
         const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
@@ -83,8 +84,6 @@ public:
             throw NotSupportFormatException();
         }
 
-        // probe size: 50KB
-        format_context->probesize = 50000;
         // max analyze duration: 5s
         format_context->max_analyze_duration = 5 * AV_TIME_BASE;
 
@@ -122,15 +121,15 @@ public:
 
         // Find libfdk_aac codec.
         AVCodec* codec = nullptr;
-        if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
+        /*if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder_by_name("libfdk_aac");
             if (!codec) {
                 XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
             } else {
                 XAMP_LOG_D(logger_, "Use codec 'libfdk_aac'.");
             }
-        }        
-
+        }
+        */
         // Fallback find other codec.
         if (!codec) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
