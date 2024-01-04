@@ -1776,7 +1776,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
 void Xamp::ensureOnePlaylistPage() {
 	if (local_tab_widget_->count() == 0) {
-		const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
+		const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
 		newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
 	}
 }
@@ -2045,7 +2045,7 @@ void Xamp::initialPlaylist() {
                 || playlist_id == kDefaultYtMusicPlaylistId) {
                 return;
             }
-            if (index == -1) {
+            if (index == StoreType::LOCAL_STORE) {
                 newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
             }
             else {
@@ -2057,7 +2057,7 @@ void Xamp::initialPlaylist() {
         QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
         	XAMP_LOG_DEBUG("Get library playlist done!");
             for (const auto& playlist : playlists) {
-                const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), -2);
+                const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), StoreType::CLOUD_STORE);
                 auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
                 playlist_page->hidePlaybackInformation(true);
                 QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
@@ -2072,17 +2072,17 @@ void Xamp::initialPlaylist() {
     local_tab_widget_->restoreTabOrder();
 
     if (local_tab_widget_->count() == 0) {
-	    const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
+	    const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
     if (!qMainDb.isPlaylistExist(kDefaultAlbumPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), -1);
+        qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
     }
     if (!qMainDb.isPlaylistExist(kDefaultCdPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), -1);
+        qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
     }
     if (!qMainDb.isPlaylistExist(kDefaultYtMusicPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), -1);
+        qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
     }
 
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
@@ -2220,7 +2220,7 @@ void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
 
 void Xamp::addItem(const QString& file_name) {
     if (local_tab_widget_->count() == 0) {
-        const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
+        const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
 
@@ -2468,7 +2468,7 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
     facede.insertTrackInfo(result, playlist_id);    
     emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     if (local_tab_widget_->count() == 0) {
-        const auto new_playlist_id = qMainDb.addPlaylist(qTR("Playlist"), -1);
+        const auto new_playlist_id = qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), new_playlist_id, qTR("Playlist"));
     }
     getCurrentPlaylistPage()->playlist()->reload();

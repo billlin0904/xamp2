@@ -69,6 +69,11 @@ enum PlayingState {
 	PLAY_PAUSE,
 };
 
+enum StoreType {
+	LOCAL_STORE = -1,
+	CLOUD_STORE = -2,
+};
+
 class SqlQuery : public QSqlQuery {
 public:
 	explicit SqlQuery(const QString& query = QString(), QSqlDatabase db = QSqlDatabase())
@@ -115,9 +120,9 @@ public:
 
 	QStringList getYears() const;
 
-	int32_t addPlaylist(const QString& name, int32_t playlist_index);
+	int32_t addPlaylist(const QString& name, int32_t store_type);
 
-	void setPlaylistIndex(int32_t playlist_id, int32_t playlist_index);
+	void setPlaylistIndex(int32_t playlist_id, int32_t store_type);
 
 	std::map<int32_t, int32_t> getPlaylistIndex();
 

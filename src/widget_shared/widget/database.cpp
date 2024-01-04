@@ -584,7 +584,7 @@ ORDER BY count DESC;
     return genres;
 }
 
-int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
+int32_t Database::addPlaylist(const QString& name, int32_t store_type) {
     QSqlTableModel model(nullptr, db_);
 
     model.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -596,7 +596,7 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
     }
 
     model.setData(model.index(0, 0), QVariant());
-    model.setData(model.index(0, 1), playlist_index);
+    model.setData(model.index(0, 1), store_type);
     model.setData(model.index(0, 2), name);
 
     if (!model.submitAll()) {
@@ -607,13 +607,13 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
     return model.query().lastInsertId().toInt();
 }
 
-void Database::setPlaylistIndex(int32_t playlist_id, int32_t playlist_index) {
+void Database::setPlaylistIndex(int32_t playlist_id, int32_t store_type) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE playlist SET playlistIndex = :playlistIndex WHERE (playlistId = :playlistId)"));
 
     query.bindValue(qTEXT(":playlistId"), playlist_id);
-    query.bindValue(qTEXT(":playlistIndex"), playlist_index);
+    query.bindValue(qTEXT(":playlistIndex"), store_type);
     THROW_IF_FAIL1(query);
 }
 
