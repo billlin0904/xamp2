@@ -411,7 +411,8 @@ QFuture<std::vector<std::string>> YtMusic::searchSuggestionsAsync(const QString&
         });
 }
 
-QFuture<std::vector<search::SearchResultItem>> YtMusic::searchAsync(const QString& query, const std::optional<std::string>& filter) {
+QFuture<std::vector<search::SearchResultItem>> YtMusic::searchAsync(const QString& query,
+    const std::optional<std::string>& filter) {
     return invokeAsync([this, query, filter]() {
         return interop()->search(query.toStdString(), filter);
         });

@@ -78,8 +78,7 @@ FROM
 WHERE
 	playlistMusics.playlistId = %1 
 ORDER BY
-	albums.album ASC,
-	musics.track ASC)").arg(playlist_id);
+	albums.album)").arg(playlist_id);
     }
 
     QString groupNone(int32_t playlist_id) {

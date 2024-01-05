@@ -22,17 +22,23 @@ public:
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
 
+    void initUnknownAlbumAndArtist();
+
 signals:
     void findAlbumCover(int32_t album_id, const std::wstring& file_path);
+
 public:
     void insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,
         std::function<void(int32_t)> fetch_cover = nullptr);
 
-private:   
+private:    
     void addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,    
         std::function<void(int32_t)> fetch_cover);
 
     bool is_stop_{false};
+
+    int32_t unknown_artist_id_{ -1 };
+    int32_t unknown_album_id_{ -1 };
     LoggerPtr logger_;
     Database* database_;
 };

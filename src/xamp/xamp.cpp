@@ -2049,7 +2049,11 @@ void Xamp::initialPlaylist() {
                 newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
             }
             else {
-                newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name)->hidePlaybackInformation(true);
+                auto *playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name);
+                playlist_page->hidePlaybackInformation(true);
+                playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
+                playlist_page->playlist()->enableCloudMode(true);
+                playlist_page->playlist()->reload();
             }
         });
 

@@ -72,15 +72,27 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     }
 }
 
+void DatabaseFacade::initUnknownAlbumAndArtist() {
+    if (unknown_album_id_ != -1) {
+        return;
+    }
+    unknown_artist_id_ = database_->addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
+    unknown_album_id_ = database_->addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, -1, -1, false);
+    database_->setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
+}
+
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
     int32_t playlist_id, std::function<void(int32_t)> fetch_cover) {
     const Stopwatch sw;
     uint32_t album_year = 0;
     if (!result.empty()) {
         album_year = result.front().year;
-    }    
+    }
+
     constexpr auto album_genre = kEmptyString;
-    
+
+    initUnknownAlbumAndArtist();
+
 	for (const auto& track_info : result) {        
         auto file_path = getStringOrEmptyString(track_info.file_path);
         auto album = getStringOrEmptyString(track_info.album);
@@ -145,6 +157,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         for (const auto& multi_artist : artists) {
 	        const auto id = database_->addOrUpdateArtist(multi_artist);
             database_->addOrUpdateAlbumArtist(album_id, id);
+        }
+
+        if (album_id == unknown_album_id_) {
+            continue;
         }
 
         const auto cover_id = database_->getAlbumCoverId(album_id);
