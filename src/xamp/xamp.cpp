@@ -882,6 +882,9 @@ void Xamp::onExtractVideoInfoCompleted(PlaylistPage* playlist_page,
     const auto best_format = *formats.begin();
 
     track_info.file_path = String::ToString(best_format.url);
+    if (track_info.album == kUnknownAlbum) {
+        track_info.track = 1;
+    }
 
     const ForwardList<TrackInfo> track_infos{ track_info };
 
@@ -2071,11 +2074,9 @@ void Xamp::initialPlaylist() {
                     });
             }
             });
-    }   
-    
-    local_tab_widget_->restoreTabOrder();
+    }          
 
-    if (local_tab_widget_->count() == 0) {
+    if (local_tab_widget_->tabBar()->count() == 0) {
 	    const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
@@ -2088,6 +2089,8 @@ void Xamp::initialPlaylist() {
     if (!qMainDb.isPlaylistExist(kDefaultYtMusicPlaylistId)) {
         qMainDb.addPlaylist(qTR("Playlist"), StoreType::LOCAL_STORE);
     }
+
+    local_tab_widget_->restoreTabOrder();
 
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
