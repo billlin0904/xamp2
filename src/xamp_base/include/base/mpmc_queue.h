@@ -85,7 +85,15 @@ namespace LockFree {
 	}
 }
 
-template <typename Type>
+template 
+<
+	typename Type,
+	typename U =
+	std::enable_if_t 
+	<
+		std::is_nothrow_move_assignable_v<Type>
+	>
+>
 class XAMP_BASE_API_ONLY_EXPORT MpmcQueue {
 public:
 	using QueueAllocator = std::allocator<Type>;

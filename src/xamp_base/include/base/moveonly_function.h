@@ -18,6 +18,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 */
 class MoveOnlyFunction final {
 public:
+    MoveOnlyFunction() = default;
+
     template <typename Func>
     MoveOnlyFunction(Func&& f)
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
@@ -26,9 +28,7 @@ public:
     XAMP_ALWAYS_INLINE void operator()(const StopToken& stop_token) {
 	    impl_->Invoke(stop_token);
         impl_.reset();
-    }
-
-    MoveOnlyFunction() = default;
+    }    
 
     template <typename Func>
     MoveOnlyFunction(MoveOnlyFunction&& other) noexcept(std::is_nothrow_move_constructible_v<Func>)

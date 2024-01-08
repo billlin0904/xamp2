@@ -13,7 +13,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(10);
+inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxStealFailureSize = 500;
