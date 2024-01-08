@@ -83,8 +83,7 @@ void ProcessIndicator::setStoppedIcon(const QIcon& icon) {
 
 void ProcessIndicator::timerEvent(QTimerEvent* /*event*/) {
     angle_ = (angle_ + 30) % 360;
-    update();
-    centerParent(this);
+    update();   
 }
 
 void ProcessIndicator::paintEvent(QPaintEvent* /*event*/) {

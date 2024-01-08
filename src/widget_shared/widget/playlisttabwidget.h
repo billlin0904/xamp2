@@ -41,6 +41,8 @@ signals:
 
 	void removeAllPlaylist();
 
+	void reloadPlaylist();
+
 public slots:
 	void onCurrentThemeChanged(ThemeColor theme_color);
 

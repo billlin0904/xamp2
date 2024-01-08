@@ -49,20 +49,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
 		}
-
-		for (size_t i = 1; i <= max_thread; i++) {
-			auto a = i;
-			auto b = max_thread;
-			// If GCD(a, b) == 1, then a and b are coprimes.
-			while (b != 0) {
-				auto tmp = a;
-				a = b;
-				b = tmp % b;
-			}
-			if (a == 1) {
-				coprimes_.push_back(i);
-			}
-		}
 	}
 	catch (...) {
 		is_stopped_ = true;

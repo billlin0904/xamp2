@@ -2077,7 +2077,7 @@ void Xamp::initialPlaylist() {
                 newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
             }
             else if (store_type == StoreType::CLOUD_STORE) {
-                auto *playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name);
+                auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name);
                 playlist_page->hidePlaybackInformation(true);
                 playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
                 playlist_page->playlist()->enableCloudMode(true);
@@ -2086,27 +2086,14 @@ void Xamp::initialPlaylist() {
         });
 
     if (cloud_tab_widget_->count() == 0) {
-        QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
-        	XAMP_LOG_DEBUG("Get library playlist done!");
-            int32_t index = 1;
-            for (const auto& playlist : playlists) {
-                const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE);
-                auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
-                playlist_page->hidePlaybackInformation(true);
-                QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
-                    this, [this, playlist_page](const auto& playlist) {
-                        XAMP_LOG_DEBUG("Get playlist done!");
-                        onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
-                    });
-            }
-            cloud_tab_widget_->setCurrentIndex(0);
-            });
-    } else {
+        initialCloudPlaylist();
+    }
+    else {
         cloud_tab_widget_->setCurrentIndex(0);
-    }     
+    }
 
     if (local_tab_widget_->tabBar()->count() == 0) {
-	    const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
+        const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
     }
     if (!qMainDb.isPlaylistExist(kDefaultAlbumPlaylistId)) {
@@ -2120,6 +2107,13 @@ void Xamp::initialPlaylist() {
     }
 
     local_tab_widget_->restoreTabOrder();
+
+    (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::reloadPlaylist,
+        [this]() {
+            cloud_tab_widget_->closeAllTab();
+            initialCloudPlaylist();
+        }
+    );
 
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
@@ -2237,6 +2231,24 @@ void Xamp::initialPlaylist() {
         &AlbumView::addPlaylist,
         this,
         &Xamp::onAddPlaylistItem);
+}
+
+void Xamp::initialCloudPlaylist() {
+    QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
+        XAMP_LOG_DEBUG("Get library playlist done!");
+        int32_t index = 1;
+        for (const auto& playlist : playlists) {
+            const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE);
+            auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
+            playlist_page->hidePlaybackInformation(true);
+            QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
+                this, [this, playlist_page](const auto& playlist) {
+                    XAMP_LOG_DEBUG("Get playlist done!");
+                    onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                });
+        }
+        cloud_tab_widget_->setCurrentIndex(0);
+        });
 }
 
 void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {

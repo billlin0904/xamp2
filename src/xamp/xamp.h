@@ -169,6 +169,8 @@ private:
 
 	void initialPlaylist();
 
+	void initialCloudPlaylist();
+
 	void initialController();
 
 	void initialShortcut();

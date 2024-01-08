@@ -873,7 +873,7 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
     // sample_time: 指的是設備撥放時間, 會被stop重置為0
-    // stream time: 依據sample大小累計從開始撥放到結束的時間.
+    // stream time: samples大小累計從開始撥放到結束的時間.
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
@@ -891,8 +891,8 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         return DataCallbackResult::CONTINUE;
     }
 
-    // note: 為了避免提早將聲音切斷(某些音效介面固定frame大小,低於某個frame大小就無法撥放 ex:WASAPI)
-    // 下次取frame的時候才將聲音停止.
+    // note: 為了避免提早將聲音切斷(某些音效介面frames大小,低於某個frame大小就無法撥放 ex:WASAPI)
+    // 下次frames的時候才將聲音停止.
     // (WASAPI 1 frame)  (WASAPI 2 frame)
     //       |                 |
     //       | End time        |

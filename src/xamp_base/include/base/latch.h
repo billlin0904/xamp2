@@ -5,16 +5,11 @@
 
 #pragma once
 
-#include <cstdint>
-#include <atomic>
-#include <mutex>
+#include <base/base.h>
 
 #ifdef __cpp_lib_latch
 #include <latch>
 #endif
-
-#include <base/fastconditionvariable.h>
-#include <base/fastmutex.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -23,6 +18,13 @@ XAMP_BASE_NAMESPACE_BEGIN
 using Latch = std::latch;
 
 #else
+
+#include <cstdint>
+#include <atomic>
+#include <mutex>
+
+#include <base/fastconditionvariable.h>
+#include <base/fastmutex.h>
 
 class Latch {
 public:

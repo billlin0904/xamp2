@@ -86,6 +86,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             }
             emit removeAllPlaylist();
             });
+
+        auto* reload_the_tab_act = action_map.addAction(qTR("Reload playlist"), [this]() {            
+            emit reloadPlaylist();
+            });
+
         try {
             action_map.exec(pt);
         }

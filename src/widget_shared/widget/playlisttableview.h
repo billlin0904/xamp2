@@ -108,6 +108,7 @@ public:
 	void setOtherPlaylist(int32_t playlist_id);
 
 	void search(const QString& keyword) const;
+
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
