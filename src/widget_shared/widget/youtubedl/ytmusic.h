@@ -328,14 +328,15 @@ public:
 
     [[nodiscard]] std::vector<artist::Artist::Album> getArtistAlbums(const std::string& channel_id, const std::string& params) const;
 
-    [[nodiscard]] video_info::VideoInfo extractInfo(const std::string& video_id) const;
-
     [[nodiscard]] watch::Playlist getWatchPlaylist(const std::optional<std::string>& video_id = std::nullopt,
         const std::optional<std::string>& playlist_id = std::nullopt,
         int limit = 25) const;
 
     [[nodiscard]] Lyrics getLyrics(const std::string& browse_id) const;
 
+    [[nodiscard]] video_info::VideoInfo extractInfo(const std::string& video_id) const;
+
+    [[nodiscard]] int32_t download(const std::string& url);
 private:
     class YtMusicInteropImpl;
     AlignPtr<YtMusicInteropImpl> impl_;
@@ -373,11 +374,13 @@ public:
 
     QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
 
-    QFuture<video_info::VideoInfo> extractVideoInfoAsync(const QString& video_id);
-
     QFuture<watch::Playlist> fetchWatchPlaylistAsync(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
 
     QFuture<Lyrics> fetchLyricsAsync(const QString& browse_id);
+
+    QFuture<video_info::VideoInfo> extractVideoInfoAsync(const QString& video_id);
+
+    QFuture<int32_t> downloadAsync(const QString& url);
 private:
     YtMusicInterop* interop();
 

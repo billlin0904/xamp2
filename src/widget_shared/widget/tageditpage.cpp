@@ -47,10 +47,12 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		ui_->yearLabel,
 		ui_->albumReplayGainLabel,
 		ui_->coverSizeLabel,
+		ui_->filePathLabel,
 	};
 
 	auto font = qTheme.formatFont();
 	font.setPointSize(qTheme.fontSize(9));
+
 	ui_->coverSizeLabel->setFont(font);
 	ui_->albumPeakLineEdit->setFont(font);
 	ui_->albumReplayGainLineEdit->setFont(font);
@@ -58,6 +60,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->trackReplayGainLineEdit->setFont(font);
 	ui_->audioMD5LineEdit->setFont(font);
 	ui_->fileSizeLineEdit->setFont(font);
+	ui_->filePathLineEdit->setFont(font);
 
 	for (auto& l : labels) {
 		l->setStyleSheet(qTEXT("background-color: transparent;"));
@@ -261,6 +264,7 @@ TagEditPage::~TagEditPage() {
 }
 
 void TagEditPage::setCurrentInfo(int32_t index) {
+	ui_->filePathLineEdit->setText(entities_[index].file_path);
 	ui_->artistLineEdit->setText(entities_[index].artist);
 	ui_->albumLineEdit->setText(entities_[index].album);
 	ui_->commentLineEdit->setText(entities_[index].comment);

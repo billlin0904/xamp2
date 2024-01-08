@@ -323,9 +323,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	vertical_layout_2->addLayout(horizontal_layout_5);
 	vertical_layout_2->addLayout(default_layout, 1);
 
-	(void)QObject::connect(album_view_, &AlbumView::loadCompleted,
-		this, &AlbumArtistPage::reload);
-
 	(void)QObject::connect(artist_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
 			return;

@@ -94,7 +94,7 @@ void Database::open() {
     //(void)db_.exec(qTEXT("PRAGMA locking_mode = EXCLUSIVE"));
 
     XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
-        connection_name_.toStdString(), GetVersion().toStdString());
+        connection_name_.toStdString(), getVersion().toStdString());
 
     createTableIfNotExist();
 }
@@ -111,7 +111,7 @@ void Database::rollback() {
     db_.rollback();
 }
 
-QString Database::GetVersion() const {
+QString Database::getVersion() const {
     SqlQuery query(db_);
     query.exec(qTEXT("SELECT sqlite_version() AS version;"));
     if (query.next()) {
@@ -164,6 +164,7 @@ void Database::createTableIfNotExist() {
                        CREATE TABLE IF NOT EXISTS playlist (
                        playlistId integer PRIMARY KEY AUTOINCREMENT,
                        playlistIndex integer,
+					   storeType integer,
                        name TEXT NOT NULL
                        )
                        )"));
@@ -412,7 +413,7 @@ void Database::removeAlbumArtist(int32_t album_id) {
     THROW_IF_FAIL1(query);
 }
 
-void Database::forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun) {
+void Database::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString)>&& fun) {
     QSqlTableModel model(nullptr, db_);
 
     model.setTable(qTEXT("playlist"));
@@ -423,6 +424,7 @@ void Database::forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& 
         auto record = model.record(i);
         fun(record.value(qTEXT("playlistId")).toInt(),
             record.value(qTEXT("playlistIndex")).toInt(),
+            static_cast<StoreType>(record.value(qTEXT("storeType")).toInt()),
             record.value(qTEXT("name")).toString());
     }
 }
@@ -510,7 +512,7 @@ void Database::removeAlbum(int32_t album_id) {
     });
     Q_FOREACH(const auto & entity, entities) {
         QList<int32_t> playlist_ids;
-        forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto) {
+        forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto) {
             playlist_ids.push_back(playlistId);            
         });
         Q_FOREACH(auto playlistId, playlist_ids) {
@@ -584,7 +586,7 @@ ORDER BY count DESC;
     return genres;
 }
 
-int32_t Database::addPlaylist(const QString& name, int32_t store_type) {
+int32_t Database::addPlaylist(const QString& name, int32_t play_index, StoreType store_type) {
     QSqlTableModel model(nullptr, db_);
 
     model.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -596,8 +598,9 @@ int32_t Database::addPlaylist(const QString& name, int32_t store_type) {
     }
 
     model.setData(model.index(0, 0), QVariant());
-    model.setData(model.index(0, 1), store_type);
-    model.setData(model.index(0, 2), name);
+    model.setData(model.index(0, 1), play_index);
+    model.setData(model.index(0, 2), static_cast<int32_t>(store_type));
+    model.setData(model.index(0, 3), name);
 
     if (!model.submitAll()) {
         return kInvalidDatabaseId;
@@ -607,21 +610,24 @@ int32_t Database::addPlaylist(const QString& name, int32_t store_type) {
     return model.query().lastInsertId().toInt();
 }
 
-void Database::setPlaylistIndex(int32_t playlist_id, int32_t store_type) {
+void Database::setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE playlist SET playlistIndex = :playlistIndex WHERE (playlistId = :playlistId)"));
 
     query.bindValue(qTEXT(":playlistId"), playlist_id);
-    query.bindValue(qTEXT(":playlistIndex"), store_type);
+    query.bindValue(qTEXT(":playlistIndex"), play_index);
+    query.bindValue(qTEXT(":storeType"), static_cast<int32_t>(store_type));
     THROW_IF_FAIL1(query);
 }
 
-std::map<int32_t, int32_t> Database::getPlaylistIndex() {
+std::map<int32_t, int32_t> Database::getPlaylistIndex(StoreType type) {
     std::map<int32_t, int32_t> playlist_index;
 
-    forEachPlaylist([&playlist_index](auto id, auto index, auto name) {
-        playlist_index.insert(std::make_pair(index, id));
+    forEachPlaylist([&playlist_index, type](auto id, auto index, auto store_type, auto name) {
+        if (type == store_type) {
+            playlist_index.insert(std::make_pair(index, id));
+        }
         });
     return playlist_index;
 }

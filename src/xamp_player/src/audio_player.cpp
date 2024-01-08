@@ -35,8 +35,8 @@ XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
 static constexpr int32_t kBufferStreamCount = 4;
 
-static constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
-static constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
+static constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
+static constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
 
 static constexpr int32_t kTotalBufferStreamCount = 32;
 static constexpr uint32_t kMaxWriteRatio = 20;
@@ -95,6 +95,7 @@ AudioPlayer::AudioPlayer()
     : is_muted_(false)
 	, is_dsd_file_(false)
     , enable_fadeout_(true)
+	, is_file_path_(true)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , sample_size_(0)
     , target_sample_rate_(0)
@@ -176,7 +177,7 @@ void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
     });
 }
 
-void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
+void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
     AlignPtr<IDeviceType> device_type;
     if (device_id.IsValid()) {
         device_type = device_manager_->CreateDefaultDeviceType();
@@ -192,7 +193,8 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
     }
 }
 
-void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
+void AudioPlayer::Open(const Path& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
+    is_file_path_ = IsFilePath(file_path);
     CloseDevice(true);
     UpdatePlayerStreamTime();
     OpenStream(file_path, output_mode);
@@ -200,7 +202,7 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     target_sample_rate_ = target_sample_rate;
 }
 
-void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & device_id, bool open_always) {
+void AudioPlayer::CreateDevice(const Uuid& device_type_id, std::string const & device_id, bool open_always) {
     if (device_ == nullptr
         || device_id_ != device_id
         || device_type_id_ != device_type_id
@@ -249,7 +251,7 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
     }
 }
 
-void AudioPlayer::OpenStream(Path const& file_path, DsdModes dsd_mode) {
+void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
     stream_ = MakeFileStream(dsd_mode, file_path);
 
     for (auto i = 0; i < 1; ++i) {
@@ -553,7 +555,11 @@ void AudioPlayer::CreateBuffer() {
             * stream_->GetSampleSize() 
             * kTotalBufferStreamCount);
         allocate_size = AlignUp(allocate_size);
-        fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec() * kBufferStreamCount;
+        if (is_file_path_) {
+            fifo_size = kMaxBufferSecs* output_format_.GetAvgBytesPerSec()* kBufferStreamCount;
+        } else {
+            fifo_size = kMaxPreAllocateBufferSize;
+        }
     }
 
     ResizeReadBuffer(allocate_size);

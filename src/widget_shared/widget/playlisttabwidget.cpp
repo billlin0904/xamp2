@@ -24,6 +24,7 @@ void PlaylistTabWidget::closeAllTab() {
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
+        auto store_type,
         const auto& name) {
             if (playlist_id == kDefaultAlbumPlaylistId
                 || playlist_id == kDefaultCdPlaylistId
@@ -35,6 +36,10 @@ void PlaylistTabWidget::closeAllTab() {
 
     clear();
     emit removeAllPlaylist();
+}
+
+void PlaylistTabWidget::setStoreType(StoreType type) {
+    store_type_ = type;
 }
 
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
@@ -170,12 +175,12 @@ void PlaylistTabWidget::saveTabOrder() const {
     for (int i = 0; i < count(); ++i) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         const auto* playlist = playlist_page->playlist();
-        qMainDb.setPlaylistIndex(playlist->playlistId(), i);
+        qMainDb.setPlaylistIndex(playlist->playlistId(), i, store_type_);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-	const auto playlist_index = qMainDb.getPlaylistIndex();
+	const auto playlist_index = qMainDb.getPlaylistIndex(store_type_);
 
     QList<QWidget*> widgets;
     QList<QString> texts;

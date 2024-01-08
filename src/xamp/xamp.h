@@ -111,8 +111,6 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void onProcessTrackInfo(int32_t total_album, int32_t total_tracks);
-
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
 	void onVolumeChanged(float volume);
@@ -167,6 +165,18 @@ public slots:
 		const video_info::VideoInfo& video_info);
 
 private:
+	void initialUi();
+
+	void initialPlaylist();
+
+	void initialController();
+
+	void initialShortcut();
+
+	void initialSpectrum();
+
+	void destroy();
+
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 
 	void drivesRemoved(const DriveInfo& drive_info) override;
@@ -203,16 +213,6 @@ private:
 
 	void setCurrentTab(int32_t table_id);
 
-	void initialUi();
-
-	void initialPlaylist();
-
-	void initialController();
-
-	void initialShortcut();
-
-	void initialSpectrum();
-
 	void playNextItem(int32_t forward);
 
 	void setPlayerOrder(bool emit_order = false);
@@ -237,8 +237,6 @@ private:
 
 	void updateButtonState();
 
-	void destroy();
-
     void setupDsp(const PlayListEntity& item) const;
 
 	void connectPlaylistPageSignal(PlaylistPage* playlist_page);
@@ -251,7 +249,7 @@ private:
 
 	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,
-		QString& sample_rate_converter_type);
+		QString& sample_rate_converter_type) const;
 
 	void showEvent(QShowEvent* event) override;
 

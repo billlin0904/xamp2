@@ -14,180 +14,17 @@
    <string>Frame</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="8" column="2">
-    <widget class="QLineEdit" name="albumPeakLineEdit">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="15" column="5">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="5">
+   <item row="10" column="5">
     <widget class="QLineEdit" name="albumReplayGainLineEdit">
      <property name="readOnly">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="QLabel" name="commentLabel">
-     <property name="text">
-      <string>Comment:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="trackPeakLabel">
-     <property name="text">
-      <string>Track Peak:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="genreLabel">
-     <property name="text">
-      <string>Genre:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="5">
-    <widget class="QLineEdit" name="yearLineEdit"/>
-   </item>
-   <item row="9" column="5">
-    <widget class="QLineEdit" name="trackReplayGainLineEdit">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="artistLabel">
-     <property name="text">
-      <string>Artist:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="3">
-    <widget class="QLabel" name="albumReplayGainLabel">
-     <property name="text">
-      <string>Album ReplayGain:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2" colspan="4">
-    <widget class="QComboBox" name="titleComboBox">
-     <property name="editable">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="2">
-    <widget class="QComboBox" name="trackComboBox">
-     <property name="editable">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="albumPeakLabel">
-     <property name="text">
-      <string>Album Peak:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="2" colspan="4">
-    <widget class="QLineEdit" name="audioMD5LineEdit">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="3">
+   <item row="11" column="3">
     <widget class="QLabel" name="trackReplayGainLabel">
      <property name="text">
       <string>Track ReplayGain:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="3">
-    <widget class="QLabel" name="yearLabel">
-     <property name="text">
-      <string>Year:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="2" colspan="3">
-    <widget class="QLineEdit" name="commentLineEdit"/>
-   </item>
-   <item row="13" column="0">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="9" column="2">
-    <widget class="QLineEdit" name="trackPeakLineEdit">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="albumLabel">
-     <property name="text">
-      <string>Album:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2" colspan="4">
-    <widget class="QLineEdit" name="artistLineEdit"/>
-   </item>
-   <item row="5" column="2">
-    <widget class="QComboBox" name="genreComboBox"/>
-   </item>
-   <item row="6" column="0" colspan="2">
-    <widget class="QLabel" name="trackLabel">
-     <property name="text">
-      <string>Track:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="2" colspan="4">
-    <widget class="QLineEdit" name="albumLineEdit"/>
-   </item>
-   <item row="4" column="5">
-    <widget class="QPushButton" name="clearCommentButton">
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Clear</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="audioMd5Label">
-     <property name="text">
-      <string>Audio MD5:</string>
      </property>
     </widget>
    </item>
@@ -353,7 +190,198 @@
      </layout>
     </widget>
    </item>
-   <item row="14" column="0" colspan="6">
+   <item row="14" column="2" colspan="2">
+    <widget class="QLineEdit" name="fileSizeLineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="artistLabel">
+     <property name="text">
+      <string>Artist:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="3">
+    <widget class="QLabel" name="albumReplayGainLabel">
+     <property name="text">
+      <string>Album ReplayGain:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" colspan="4">
+    <widget class="QLineEdit" name="artistLineEdit"/>
+   </item>
+   <item row="8" column="0" colspan="2">
+    <widget class="QLabel" name="trackLabel">
+     <property name="text">
+      <string>Track:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0">
+    <widget class="QLabel" name="audioMd5Label">
+     <property name="text">
+      <string>Audio MD5:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QLineEdit" name="albumPeakLineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0">
+    <widget class="QLabel" name="audioMd5Label_2">
+     <property name="text">
+      <string>File Size:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="2" colspan="3">
+    <widget class="QLineEdit" name="commentLineEdit"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="titleLabel">
+     <property name="text">
+      <string>Title:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="2">
+    <widget class="QLabel" name="commentLabel">
+     <property name="text">
+      <string>Comment:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="albumPeakLabel">
+     <property name="text">
+      <string>Album Peak:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2" colspan="4">
+    <widget class="QLineEdit" name="albumLineEdit"/>
+   </item>
+   <item row="8" column="5">
+    <widget class="QLineEdit" name="yearLineEdit"/>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="filePathLabel">
+     <property name="text">
+      <string>File Path:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="albumLabel">
+     <property name="text">
+      <string>Album:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2" colspan="4">
+    <widget class="QComboBox" name="titleComboBox">
+     <property name="editable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QComboBox" name="trackComboBox">
+     <property name="editable">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2">
+    <widget class="QLineEdit" name="trackPeakLineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="5">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QComboBox" name="genreComboBox"/>
+   </item>
+   <item row="8" column="3">
+    <widget class="QLabel" name="yearLabel">
+     <property name="text">
+      <string>Year:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="trackPeakLabel">
+     <property name="text">
+      <string>Track Peak:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="genreLabel">
+     <property name="text">
+      <string>Genre:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="5">
+    <widget class="QLineEdit" name="trackReplayGainLineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="5">
+    <widget class="QPushButton" name="clearCommentButton">
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="2" colspan="4">
+    <widget class="QLineEdit" name="audioMD5LineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0" colspan="6">
     <widget class="QFrame" name="frame">
      <property name="frameShape">
       <enum>QFrame::HLine</enum>
@@ -363,26 +391,8 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="titleLabel">
-     <property name="text">
-      <string>Title:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="0">
-    <widget class="QLabel" name="audioMd5Label_2">
-     <property name="text">
-      <string>File Size:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="2" colspan="2">
-    <widget class="QLineEdit" name="fileSizeLineEdit">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
+   <item row="3" column="2" colspan="4">
+    <widget class="QLineEdit" name="filePathLineEdit"/>
    </item>
   </layout>
  </widget>

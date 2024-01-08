@@ -87,7 +87,7 @@ public:
     * @param[in] file_path The file path.
     * @param[in] device_id The device id.
     */
-    void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
+    void Open(const Path& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
 
     /*
     * Open a file.
@@ -96,7 +96,7 @@ public:
     * @param[in] device_info The device info.
     * @param[in] target_sample_rate The target sample rate.
     */
-    void Open(Path const& file_path,
+    void Open(const Path& file_path,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
         DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
@@ -337,6 +337,7 @@ private:
     bool is_muted_;
     bool is_dsd_file_;
     bool enable_fadeout_;
+    bool is_file_path_;
     DsdModes dsd_mode_;
     uint8_t sample_size_;
     uint32_t target_sample_rate_;

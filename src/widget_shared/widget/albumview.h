@@ -145,8 +145,6 @@ signals:
 
 	void removeAll();
 
-	void loadCompleted(int32_t total_album, int32_t total_tracks);
-
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
 public slots:

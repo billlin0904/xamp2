@@ -424,6 +424,12 @@ QFuture<video_info::VideoInfo> YtMusic::extractVideoInfoAsync(const QString& vid
         });
 }
 
+QFuture<int32_t> YtMusic::downloadAsync(const QString& url) {
+    return invokeAsync([this, url]() {
+        return interop()->download(url.toStdString());
+        });
+}
+
 QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QString>& video_id, 
     const std::optional<QString>& playlist_id) {
     return invokeAsync([this, video_id, playlist_id]() {
@@ -633,6 +639,10 @@ std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::st
         });
 
     return albums;
+}
+
+int32_t YtMusicInterop::download(const std::string& url) {
+    return impl_->get_ytmusic().attr("download")(url).cast<int32_t>();
 }
 
 video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) const {

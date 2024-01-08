@@ -121,7 +121,7 @@ public:
 
         // Find libfdk_aac codec.
         AVCodec* codec = nullptr;
-        /*if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
+        if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder_by_name("libfdk_aac");
             if (!codec) {
                 XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
@@ -129,7 +129,7 @@ public:
                 XAMP_LOG_D(logger_, "Use codec 'libfdk_aac'.");
             }
         }
-        */
+        
         // Fallback find other codec.
         if (!codec) {
             codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
@@ -166,7 +166,8 @@ public:
                 Round(GetBitRate() / 1024.0, 2));
         }
 
-        auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
+        const auto channel_layout = codec_context_->channel_layout == 0
+    	? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
        
         swr_context_.reset(LIBAV_LIB.SwrLib->swr_alloc_set_opts(swr_context_.get(),
             AV_CH_LAYOUT_STEREO,
@@ -178,7 +179,7 @@ public:
             0,
             nullptr));
 
-        // Downmix to stereo.
+        // Down mix to stereo.
         AvIfFailedThrow(LIBAV_LIB.SwrLib->swr_init(swr_context_.get()));
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
         if (codec_context_->channels != AudioFormat::kMaxChannel) {
@@ -188,7 +189,7 @@ public:
             audio_format_.SetChannel(static_cast<uint16_t>(codec_context_->channels));
         }
         audio_format_.SetSampleRate(static_cast<uint32_t>(codec_context_->sample_rate));
-        audio_format_.SetBitPerSample(static_cast<uint32_t>(LIBAV_LIB.UtilLib->av_get_bytes_per_sample(codec_context_->sample_fmt) * 8));
+        audio_format_.SetBitPerSample(LIBAV_LIB.UtilLib->av_get_bytes_per_sample(codec_context_->sample_fmt) * 8);
         audio_format_.SetPackedFormat(PackedFormat::INTERLEAVED);
         XAMP_LOG_D(logger_, "Stream format: {}", audio_format_);
 

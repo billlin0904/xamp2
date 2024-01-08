@@ -6,8 +6,8 @@
 #pragma once
 
 #include <QTabWidget>
-#include <QMap>
 
+#include <widget/database.h>
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
@@ -34,6 +34,8 @@ public:
 
 	void closeAllTab();
 
+	void setStoreType(StoreType type);
+
 signals:
 	void createNewPlaylist();
 
@@ -48,5 +50,7 @@ private:
 	bool removePlaylist(int32_t playlist_id);
 
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
+
+	StoreType store_type_{ StoreType::LOCAL_STORE };
 };
 

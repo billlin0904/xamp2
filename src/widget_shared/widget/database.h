@@ -69,7 +69,7 @@ enum PlayingState {
 	PLAY_PAUSE,
 };
 
-enum StoreType {
+enum class StoreType {
 	LOCAL_STORE = -1,
 	CLOUD_STORE = -2,
 };
@@ -120,11 +120,11 @@ public:
 
 	QStringList getYears() const;
 
-	int32_t addPlaylist(const QString& name, int32_t store_type);
+	int32_t addPlaylist(const QString& name, int32_t index, StoreType store_type);
 
-	void setPlaylistIndex(int32_t playlist_id, int32_t store_type);
+	void setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type);
 
-	std::map<int32_t, int32_t> getPlaylistIndex();
+	std::map<int32_t, int32_t> getPlaylistIndex(StoreType type);
 
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
@@ -203,7 +203,7 @@ public:
 
 	void forEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
 
-	void forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
+	void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString)>&& fun);
 
 	void forEachAlbumMusic(int32_t album_id, std::function<void(const PlayListEntity&)>&& fun);
 
@@ -260,7 +260,7 @@ private:
 
 	void createTableIfNotExist();
 
-	QString GetVersion() const;
+	QString getVersion() const;
 
 	QString connection_name_;
 	QSqlDatabase db_;
