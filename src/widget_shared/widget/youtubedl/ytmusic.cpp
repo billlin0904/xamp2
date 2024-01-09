@@ -257,7 +257,6 @@ XAMP_PIMPL_IMPL(PythonInterpreter)
 class YtMusicInterop::YtMusicInteropImpl {
 public:
     py::scoped_interpreter guard{};
-    //py::gil_scoped_release release{};
     std::optional<std::string> auth;
     std::optional<std::string> user;
     std::optional<bool> requests_session;
@@ -357,7 +356,6 @@ public:
 			, proxies(proxies)
 			, language(language)
 			, location(location) {
-        py::gil_scoped_acquire acquire;
         logger = LoggerManager::GetInstance().GetLogger(kYtMusicInteropLoggerName);
         ytmusic_ = py::none();
         ytdl_ = py::none();
@@ -366,7 +364,6 @@ public:
     ~YtMusicInteropImpl() = default;
 
     py::object& get_ytmusic() {
-        py::gil_scoped_acquire acquire{};
         if (ytmusic_.is_none()) {
             ytmusicapi_module = py::module::import("ytmusicapi");
             ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
@@ -375,7 +372,6 @@ public:
     }
 
     py::object& get_ytdl() {
-        py::gil_scoped_acquire acquire{};
         if (ytdl_.is_none()) {
             py::dict opt;
             ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(opt);
@@ -491,10 +487,10 @@ QFuture<std::vector<artist::Artist::Album>> YtMusic::fetchArtistAlbumsAsync(cons
 }
 
 YtMusicInterop* YtMusic::interop() {
-	if (interop_ != nullptr) {
-        return interop_.get();
-	}
-    interop_ = MakeAlign<YtMusicInterop>("oauth.json");
+	//if (interop_ != nullptr) {
+    //    return interop_.get();
+	//}
+    //interop_ = MakeAlign<YtMusicInterop>("oauth.json");
     return interop_.get();
 }
 

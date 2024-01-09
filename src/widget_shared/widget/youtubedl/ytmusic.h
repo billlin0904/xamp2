@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QFuture>
 
+#include <base/lazy_storage.h>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
@@ -307,7 +308,7 @@ private:
 
 class XAMP_WIDGET_SHARED_EXPORT YtMusicInterop {
 public:
-    explicit YtMusicInterop(const std::optional<std::string>& auth = std::nullopt,
+    explicit YtMusicInterop(const std::optional<std::string>& auth = "oauth.json",
         const std::optional<std::string>& user = std::nullopt,
         const std::optional<bool> requests_session = true,
         const std::optional<std::map<std::string, std::string>>& proxies = std::nullopt,
@@ -420,6 +421,6 @@ private:
 
     std::atomic<bool> is_stop_{false};
     LoggerPtr logger_;
-    AlignPtr<YtMusicInterop> interop_;
+    LocalStorage<YtMusicInterop> interop_;
 };
 
