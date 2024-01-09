@@ -17,11 +17,11 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 	timer_.start(15);
 }
 
-void SpectrumWidget::setSampleRate(int32_t sample_rate) {
+void SpectrumWidget::setSampleRate(uint32_t sample_rate) {
 	sample_rate_ = sample_rate;
 }
 
-void SpectrumWidget::setFftSize(int32_t fft_size) {
+void SpectrumWidget::setFftSize(size_t fft_size) {
 	fft_size_ = fft_size;
 }
 

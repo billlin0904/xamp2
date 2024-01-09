@@ -720,7 +720,7 @@ FROM
 LEFT 
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
-	albums.isPodcast = 0
+	albums.storeType = -1
 ORDER BY
     albums.album DESC
     )");   

@@ -9,8 +9,7 @@
 
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
-
-class Database;
+#include <widget/database.h>
 
 const std::wstring kUnknownAlbum{ L"Unknown album" };
 const std::wstring kUnknownArtist{ L"Unknown artist" };
@@ -28,17 +27,21 @@ signals:
     void findAlbumCover(int32_t album_id, const std::wstring& file_path);
 
 public:
-    void insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,
+    void insertTrackInfo(const ForwardList<TrackInfo>& result,
+        int32_t playlist_id,
+        StoreType store_type,
         std::function<void(int32_t)> fetch_cover = nullptr);
 
 private:    
-    void addTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id,    
+    void addTrackInfo(const ForwardList<TrackInfo>& result,
+        int32_t playlist_id,
+        StoreType store_type,
         std::function<void(int32_t)> fetch_cover);
 
     bool is_stop_{false};
 
-    int32_t unknown_artist_id_{ -1 };
-    int32_t unknown_album_id_{ -1 };
+    int32_t unknown_artist_id_{ kInvalidDatabaseId };
+    int32_t unknown_album_id_{ kInvalidDatabaseId };
     LoggerPtr logger_;
     Database* database_;
 };

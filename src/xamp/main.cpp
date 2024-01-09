@@ -279,6 +279,7 @@ int main() {
         os_ver.minorVersion(),
         os_ver.microVersion());
 
+    //PythonInterpreter interpreter;
     FramelessHelperRAII frameless_helper_raii;
 
     qAppSettings.loadOrSaveLogConfig();

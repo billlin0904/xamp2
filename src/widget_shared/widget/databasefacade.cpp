@@ -73,16 +73,18 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
 }
 
 void DatabaseFacade::initUnknownAlbumAndArtist() {
-    if (unknown_album_id_ != -1) {
+    if (unknown_album_id_ != kInvalidDatabaseId) {
         return;
     }
     unknown_artist_id_ = database_->addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
-    unknown_album_id_ = database_->addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, -1, -1, false);
+    unknown_album_id_ = database_->addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, -1, -1, StoreType::CLOUD_STORE);
     database_->setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
 }
 
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
-    int32_t playlist_id, std::function<void(int32_t)> fetch_cover) {
+    int32_t playlist_id,
+    StoreType store_type,
+    std::function<void(int32_t)> fetch_cover) {
     const Stopwatch sw;
     uint32_t album_year = 0;
     if (!result.empty()) {
@@ -131,7 +133,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
-                false,
+                store_type,
                 disc_id,
                 album_genre);
             for (const auto &category : GetAlbumCategories(album)) {
@@ -190,13 +192,16 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     }
 }
 
-void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, int32_t playlist_id, std::function<void(int32_t)> fetch_cover) {
+void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result,
+    int32_t playlist_id,
+    StoreType store_type, 
+    std::function<void(int32_t)> fetch_cover) {
     try {
         if (!database_->transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");
             return;
         }
-        addTrackInfo(result, playlist_id, fetch_cover);
+        addTrackInfo(result, playlist_id, store_type, fetch_cover);
         if (!database_->commit()) {
             XAMP_LOG_DEBUG("Failed to commit!");
         }

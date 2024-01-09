@@ -142,9 +142,9 @@ public:
 
 	void updateMusicFilePath(int32_t music_id, const QString& file_path);
 
-	void addOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc);
+	void addOrUpdateLyrics(int32_t music_id, const QString& lyrc, const QString& trlyrc);
 
-	std::optional<std::tuple<QString, QString>> getLyrc(int32_t music_id);
+	std::optional<std::tuple<QString, QString>> getLyrics(int32_t music_id);
 
 	void updateMusicRating(int32_t music_id, int32_t rating);
 
@@ -166,7 +166,7 @@ public:
 	                      double track_peak);
 
 	int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year,
-	                         bool is_podcast,
+							 StoreType store_type,
 	                         const QString& disc_id = kEmptyString,
 	                         const QString& album_genre = kEmptyString);
 

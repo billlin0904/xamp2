@@ -35,11 +35,14 @@ public:
 	static constexpr auto kColumnPlayingWidth = 25;
 	static constexpr auto kColumnTrackWidth = 40;
 	static constexpr auto kColumnArtistWidth = 300;
-	static constexpr auto kColumnCoverIdWidth = 42;
 	static constexpr auto kColumnDefaultWidth = 120;
 	static constexpr auto kColumnDurationWidth = 10;
-	static constexpr auto kColumnHeight = 46;
 	static constexpr auto kPendingPlaylistSize = 30;
+
+	static constexpr auto kColumnWidth = 42;
+	static constexpr auto kColumnHeight = 46;
+
+	static constexpr auto kCoverSize = QSize(32, 32);
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 

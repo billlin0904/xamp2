@@ -103,7 +103,7 @@ public slots:
 
     void onPlayEntity(const PlayListEntity& entity);
 
-	void ensureOnePlaylistPage();
+	void ensureLocalOnePlaylistPage();
 
 	void onPlayPlayListEntity(const PlayListEntity& entity);
 
@@ -219,7 +219,7 @@ private:
 
 	void setPlayerOrder(bool emit_order = false);
 
-	PlaylistPage* createPlaylistPage(int32_t playlist_id, const QString& column_setting_name);
+	PlaylistPage* createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name);
 
 	void pushWidget(QWidget* widget);
 
@@ -257,7 +257,9 @@ private:
 
 	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString &name);
 
-	PlaylistPage* getCurrentPlaylistPage();
+	PlaylistPage* getLocalPlaylistPage();
+
+	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

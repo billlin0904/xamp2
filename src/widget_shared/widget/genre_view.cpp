@@ -24,7 +24,7 @@ LEFT JOIN artists ON artists.artistId = albums.artistId
 WHERE
     (
     albums.genre LIKE '%%1%' OR albums.genre LIKE '%1,%' OR albums.genre LIKE '%,%1' OR albums.genre LIKE '%1'
-    ) AND (albums.isPodcast = 0)
+    ) AND (albums.storeType = -1)
 ORDER BY
     albums.album DESC
 LIMIT %2

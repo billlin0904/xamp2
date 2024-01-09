@@ -295,6 +295,16 @@ struct Lyrics {
     std::string lyrics;
 };
 
+class XAMP_WIDGET_SHARED_EXPORT PythonInterpreter {
+public:
+    PythonInterpreter();
+
+    XAMP_PIMPL(PythonInterpreter)
+private:
+    class PythonInterpreterImpl;
+    AlignPtr<PythonInterpreterImpl> impl_;
+};
+
 class XAMP_WIDGET_SHARED_EXPORT YtMusicInterop {
 public:
     explicit YtMusicInterop(const std::optional<std::string>& auth = std::nullopt,

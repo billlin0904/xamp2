@@ -133,9 +133,6 @@ ORDER BY
 
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
-    static constexpr auto kPlaylistHeartSize = QSize(16, 16);
-    static constexpr auto kPlaylistCoverSize = QSize(32, 32);
-
     using QStyledItemDelegate::QStyledItemDelegate;
 
     mutable LruCache<QString, QIcon> icon_cache_;
@@ -286,9 +283,8 @@ public:
         case PLAYLIST_COVER_ID:
 	        {
 				opt.icon = icon_cache_.GetOrAdd(value.toString(), [&value]() {
-                    constexpr QSize icon_size(42, 46);
-                    const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(value.toString()), kPlaylistCoverSize));
-                    return UniformIcon(icon, icon_size);
+                    const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(value.toString()), PlayListTableView::kCoverSize));
+                    return UniformIcon(icon, PlayListTableView::kCoverSize);
                 });
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
@@ -952,7 +948,7 @@ void PlayListTableView::resizeColumn() {
         case PLAYLIST_HEART:
         case PLAYLIST_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, kColumnCoverIdWidth);
+            header->resizeSection(column, kColumnWidth);
             break;
         default:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

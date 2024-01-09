@@ -180,7 +180,7 @@ void Database::createTableIfNotExist() {
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        year integer,
                        heart integer,
-                       isPodcast integer,
+                       storeType integer,
                        genre TEXT,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
                        UNIQUE(albumId, artistId)
@@ -440,7 +440,7 @@ FROM
 LEFT 
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
-	albums.isPodcast = 0
+	albums.storeType = -1
 LIMIT
     :limit
     )"));
@@ -836,7 +836,7 @@ PlayListEntity Database::fromSqlQuery(const SqlQuery& query) {
     return entity;
 }
 
-std::optional<std::tuple<QString, QString>> Database::getLyrc(int32_t music_id) {
+std::optional<std::tuple<QString, QString>> Database::getLyrics(int32_t music_id) {
     SqlQuery query(db_);
     query.prepare(qTEXT(R"(
     SELECT
@@ -912,7 +912,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     return music_id;
 }
 
-void Database::addOrUpdateLyrc(int32_t music_id, const QString& lyrc, const QString& trlyrc) {
+void Database::addOrUpdateLyrics(int32_t music_id, const QString& lyrc, const QString& trlyrc) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT("UPDATE musics SET lyrc = :lyrc, trlyrc = :trlyrc WHERE (musicId = :musicId)"));
@@ -1158,18 +1158,18 @@ void Database::updateAlbumByDiscId(const QString& disc_id, const QString& album)
     THROW_IF_FAIL1(query);
 }
 
-int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, bool is_podcast, const QString& disc_id, const QString & album_genre) {
+int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, StoreType store_type, const QString& disc_id, const QString & album_genre) {
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, isPodcast, dateTime, discId, year, genre)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :isPodcast, :dateTime, :discId, :year, :genre)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, storeType, dateTime, discId, year, genre)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :storeType, :dateTime, :discId, :year, :genre)
     )"));
 
     query.bindValue(qTEXT(":album"), album);
     query.bindValue(qTEXT(":artistId"), artist_id);
     query.bindValue(qTEXT(":coverId"), getAlbumCoverId(album));
-    query.bindValue(qTEXT(":isPodcast"), is_podcast ? 1 : 0);
+    query.bindValue(qTEXT(":storeType"), static_cast<int32_t>(store_type));
     query.bindValue(qTEXT(":dateTime"), album_time);
     query.bindValue(qTEXT(":discId"), disc_id);
     query.bindValue(qTEXT(":year"), year);

@@ -22,7 +22,10 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-bool IsFilePath(std::wstring const& file_path) noexcept {
+bool IsFilePath(const std::wstring& file_path) noexcept {
+	if (file_path.empty()) {
+		return false;
+	}
 	const auto lowcase_file_path = String::ToLower(file_path);
 	return lowcase_file_path.find(L"https") == std::string::npos
 		|| lowcase_file_path.find(L"http") == std::string::npos;

@@ -28,9 +28,9 @@ public:
 
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
-	void setSampleRate(int32_t sample_rate);
+	void setSampleRate(uint32_t sample_rate);
 
-	void setFftSize(int32_t fft_size);
+	void setFftSize(size_t fft_size);
 
 	void reset();
 
@@ -42,8 +42,8 @@ protected:
 
 private:
 	int32_t buffer_ptr_{0};
-	int32_t sample_rate_{44100};
-	int32_t fft_size_{4096};
+	uint32_t sample_rate_{44100};
+	size_t fft_size_{4096};
 	SpectrumStyles style_{ SpectrumStyles::WAVE_STYLE };
 	ComplexValarray fft_data_;
 	std::vector<std::valarray<float>> buffer_;

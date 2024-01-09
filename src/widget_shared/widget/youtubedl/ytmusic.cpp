@@ -239,9 +239,25 @@ namespace {
 XAMP_DECLARE_LOG_NAME(YtMusic);
 XAMP_DECLARE_LOG_NAME(YtMusicInterop);
 
+
+class PythonInterpreter::PythonInterpreterImpl {
+public:
+    py::scoped_interpreter guard{};
+    py::gil_scoped_release release{};
+
+    PythonInterpreterImpl() = default;
+};
+
+PythonInterpreter::PythonInterpreter()
+	: impl_(MakeAlign<PythonInterpreterImpl>()) {	
+}
+
+XAMP_PIMPL_IMPL(PythonInterpreter)
+
 class YtMusicInterop::YtMusicInteropImpl {
 public:
     py::scoped_interpreter guard{};
+    //py::gil_scoped_release release{};
     std::optional<std::string> auth;
     std::optional<std::string> user;
     std::optional<bool> requests_session;
@@ -341,36 +357,27 @@ public:
 			, proxies(proxies)
 			, language(language)
 			, location(location) {
+        py::gil_scoped_acquire acquire;
         logger = LoggerManager::GetInstance().GetLogger(kYtMusicInteropLoggerName);
         ytmusic_ = py::none();
         ytdl_ = py::none();
     }
 
-    ~YtMusicInteropImpl() {
-    }
+    ~YtMusicInteropImpl() = default;
 
     py::object& get_ytmusic() {
+        py::gil_scoped_acquire acquire{};
         if (ytmusic_.is_none()) {
             ytmusicapi_module = py::module::import("ytmusicapi");
             ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
-
-            /*auto old_version = ytmusicapi_module.attr("__dict__").contains("_version");
-            if (old_version) {
-                XAMP_LOG_E(logger, "Running with outdated and untested version of ytmusicapi.");
-            }
-            else {
-                const auto version = ytmusicapi_module.attr("__version__").cast<std::string>();
-                XAMP_LOG_D(logger, "Running with untested version of ytmusicapi {}", version);
-            }*/
         }
         return ytmusic_;
     }
 
     py::object& get_ytdl() {
+        py::gil_scoped_acquire acquire{};
         if (ytdl_.is_none()) {
             py::dict opt;
-            //opt["username"] = "*********@gmail.com";
-            //opt["password"] = "*********";
             ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(opt);
         }
         return ytdl_;
@@ -400,7 +407,7 @@ QFuture<bool> YtMusic::initialAsync() {
 
 QFuture<bool> YtMusic::cleanupAsync() {
     return invokeAsync([this]() {
-        interop_.reset();
+    	interop_.reset();
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
