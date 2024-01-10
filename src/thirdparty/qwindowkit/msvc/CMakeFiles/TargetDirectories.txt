@@ -1,0 +1,13 @@
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/CMakeFiles/INSTALL.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/CMakeFiles/ALL_BUILD.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/CMakeFiles/ZERO_CHECK.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/CMakeFiles/INSTALL.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/core/CMakeFiles/QWKCore.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/core/CMakeFiles/INSTALL.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/core/CMakeFiles/ALL_BUILD.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/widgets/CMakeFiles/QWKWidgets.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/widgets/CMakeFiles/INSTALL.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/widgets/CMakeFiles/ALL_BUILD.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/quick/CMakeFiles/QWKQuick.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/quick/CMakeFiles/INSTALL.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/src/quick/CMakeFiles/ALL_BUILD.dir

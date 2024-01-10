@@ -1,0 +1,31 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeCXXInformation.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeFindDependencyMacro.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeGenericSystem.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeInitializeConfigs.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeRCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Compiler/MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/GNUInstallDirs.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Platform/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Platform/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Platform/Windows.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/Platform/WindowsPaths.cmake
+C:/Program Files/CMake/share/cmake-3.26/Modules/WriteBasicConfigVersionFile.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/CMakeLists.txt
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/CMakeFiles/3.26.4/CMakeCXXCompiler.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/CMakeFiles/3.26.4/CMakeRCCompiler.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/CMakeFiles/3.26.4/CMakeSystem.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/_install/lib/cmake/qmsetup/cmake/QMSetupAPI.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/_install/lib/cmake/qmsetup/cmake/modules/Filesystem.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/_install/lib/cmake/qmsetup/qmsetupConfig.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/_install/lib/cmake/qmsetup/qmsetupConfigVersion.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/_install/lib/cmake/qmsetup/qmsetupTargets-release.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/msvc/_install/lib/cmake/qmsetup/qmsetupTargets.cmake
+D:/Source/xamp2/src/thirdparty/qwindowkit/qmsetup/cmake/modules/InstallPackage.cmake

@@ -1,0 +1,4 @@
+D:/Source/xamp2/src/thirdparty/qwindowkit/qmsetup/msvc/src/syscmdline/msvc/CMakeFiles/syscmdline.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/qmsetup/msvc/src/syscmdline/msvc/CMakeFiles/INSTALL.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/qmsetup/msvc/src/syscmdline/msvc/CMakeFiles/ALL_BUILD.dir
+D:/Source/xamp2/src/thirdparty/qwindowkit/qmsetup/msvc/src/syscmdline/msvc/CMakeFiles/ZERO_CHECK.dir
