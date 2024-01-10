@@ -405,7 +405,7 @@ namespace {
 
 #define TRY_LOG(expr) \
     try {\
-        [&]() { expr; }();\
+        [&, this]() { expr; }();\
     }\
     catch (...) {\
         log(std::current_exception());\
@@ -2398,21 +2398,18 @@ void Xamp::encodeWavFile(const PlayListEntity& item) {
 
             std::wstring command;
 
-            try {
+            TRY_LOG(
                 auto encoder = StreamFactory::MakeWaveEncoder();
-                read_until::encodeFile(item.file_path.toStdWString(),
-                    file_name.toStdWString(),
-                    encoder,
-                    command,
-                    [&](auto progress) -> bool {
-                        dialog->setValue(progress);
-                        qApp->processEvents();
-                        return dialog->wasCanceled() != true;
-                    }, metadata);
-            }
-            catch (Exception const& e) {
-                XMessageBox::showError(qTEXT(e.what()));
-            }
+					read_until::encodeFile(item.file_path.toStdWString(),
+                file_name.toStdWString(),
+                encoder,
+                command,
+                [&](auto progress) -> bool {
+                    dialog->setValue(progress);
+                    qApp->processEvents();
+                    return dialog->wasCanceled() != true;
+                }, metadata);
+            );
         },
         qTR("Save Wav file"),
         save_file_name,
@@ -2424,7 +2421,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
 
     getSaveFileName(this,
-        [item](const auto& file_name) {
+        [this, item](const auto& file_name) {
             const auto dialog = makeProgressDialog(
                 qTR("Export progress dialog"),
                 qTR("Export '") + item.title + qTR("' to flac file"),
@@ -2439,21 +2436,18 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
             const auto command
                 = qSTR("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
 
-            try {
+            TRY_LOG(
                 auto encoder = StreamFactory::MakeFlacEncoder();
-                read_until::encodeFile(item.file_path.toStdWString(),
-                    file_name.toStdWString(),
-                    encoder,
-                    command,
-                    [&](auto progress) -> bool {
-                        dialog->setValue(progress);
-                        qApp->processEvents();
-                        return dialog->wasCanceled() != true;
-                    }, track_info);
-            }
-            catch (Exception const& e) {
-                XMessageBox::showError(qTEXT(e.what()));
-            }
+				read_until::encodeFile(item.file_path.toStdWString(),
+                file_name.toStdWString(),
+                encoder,
+                command,
+                [&](auto progress) -> bool {
+                    dialog->setValue(progress);
+                    qApp->processEvents();
+                    return dialog->wasCanceled() != true;
+                }, track_info);
+            );
         },    
         qTR("Save Flac file"),
         save_file_name,
@@ -2659,7 +2653,7 @@ void Xamp::onReadFileStart() {
     ui_update_timer_timer_.start();
 }
 
-void Xamp::log(std::exception_ptr exptr) {
+void Xamp::log(const std::exception_ptr& exptr) {
     try {
         std::rethrow_exception(exptr);
     }

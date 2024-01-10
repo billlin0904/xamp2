@@ -259,7 +259,7 @@ private:
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
 
-	void log(std::exception_ptr exptr);
+	void log(const std::exception_ptr& exptr);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

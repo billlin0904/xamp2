@@ -77,7 +77,7 @@ void DatabaseFacade::initUnknownAlbumAndArtist() {
         return;
     }
     unknown_artist_id_ = database_->addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
-    unknown_album_id_ = database_->addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, -1, -1, StoreType::CLOUD_STORE);
+    unknown_album_id_ = database_->addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
     database_->setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
 }
 

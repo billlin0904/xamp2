@@ -1159,7 +1159,9 @@ void Database::updateAlbumByDiscId(const QString& disc_id, const QString& album)
 }
 
 int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, StoreType store_type, const QString& disc_id, const QString & album_genre) {
-    SqlQuery query(db_);
+    XAMP_ENSURES(year != UINT32_MAX);
+
+	SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, storeType, dateTime, discId, year, genre)
