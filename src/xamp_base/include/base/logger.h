@@ -24,9 +24,24 @@ XAMP_DECLARE_LOG_NAME(CoreAudio);
 	
 XAMP_BASE_NAMESPACE_END
 
+struct XAMP_BASE_API SourceLocation {
+    const char* file;
+    int line;
+    const char* function;
+
+    constexpr SourceLocation(const char* file, int line, const char* function)
+        : file(file)
+        , line(line)
+        , function(function) {
+    }
+};
+
+#define CurrentLocation \
+    SourceLocation { __FILE__, __LINE__, __FUNCTION__ }
+
 #define XAM_LOG_MANAGER() xamp::base::LoggerManager::GetInstance()
 
-#define XAMP_LOG(Level, Format, ...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->Log(Level, __FILE__, __LINE__, __FUNCTION__, Format, __VA_ARGS__)
+#define XAMP_LOG(Level, Format, ...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, Format, __VA_ARGS__)
 #define XAMP_LOG_DEBUG(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogDebug(__VA_ARGS__)
 #define XAMP_LOG_INFO(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogInfo(__VA_ARGS__)
 #define XAMP_LOG_ERROR(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogError(__VA_ARGS__)
@@ -34,7 +49,7 @@ XAMP_BASE_NAMESPACE_END
 #define XAMP_LOG_WARN(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogWarn(__VA_ARGS__)
 #define XAMP_LOG_CRITICAL(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogCritical(__VA_ARGS__)
 
-#define XAMP_LOG_LEVEL(logger, Level, Format, ...) logger->Log(Level, __FILE__, __LINE__, __FUNCTION__, Format, __VA_ARGS__)
+#define XAMP_LOG_LEVEL(logger, Level, Format, ...) logger->Log(Level, CurrentLocation, Format, __VA_ARGS__)
 #define XAMP_LOG_D(logger, ...) logger->LogDebug(__VA_ARGS__)
 #define XAMP_LOG_I(logger, ...) logger->LogInfo(__VA_ARGS__)
 #define XAMP_LOG_E(logger, ...) logger->LogError(__VA_ARGS__)

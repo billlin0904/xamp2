@@ -75,6 +75,15 @@ public:
     [[nodiscard]] bool ShouldLog(LogLevel level) const;
 
     template <typename... Args>
+    void Log(LogLevel level, SourceLocation source_location, std::string_view s, const Args&... args) {
+        if (!ShouldLog(level)) {
+            return;
+        }
+        auto message = fmt::format(s, args...);
+        LogMsg(level, source_location.file, source_location.line, source_location.function, message);
+    }
+
+    template <typename... Args>
     void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
         if (!ShouldLog(level)) {
             return;

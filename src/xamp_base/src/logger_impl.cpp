@@ -19,7 +19,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-class LogFlagFormatrer final : public spdlog::custom_flag_formatter {
+class LogFlagFormatter final : public spdlog::custom_flag_formatter {
 public:
 	void format(const spdlog::details::log_msg& message, const std::tm&, spdlog::memory_buf_t& dest) override {
 		const auto upper_logger_level = String::ToUpper(std::string(to_string_view(message.level).data()));
@@ -27,7 +27,7 @@ public:
 	}
 
 	[[nodiscard]] std::unique_ptr<custom_flag_formatter> clone() const override {
-		return spdlog::details::make_unique<LogFlagFormatrer>();
+		return spdlog::details::make_unique<LogFlagFormatter>();
 	}
 };
 
@@ -72,13 +72,13 @@ LoggerManager & LoggerManager::GetInstance() noexcept {
 
 LoggerManager& LoggerManager::Startup() {
 	GetLogger(kXampLoggerName);
-	default_logger_->LogDebug("{}", "=:==:==:==:==:= LoggerManager init success. =:==:==:==:==:=");
+	default_logger_->LogDebug("{}", "<LoggerManager startup success>");
 	return *this;
 }
 
 void LoggerManager::Shutdown() {
 	GetLogger(kXampLoggerName);
-	default_logger_->LogDebug("=:==:==:==:==:= LoggerManager shutdown =:==:==:==:==:=");
+	default_logger_->LogDebug("<LoggerManager shutdown>");
     spdlog::shutdown();
 }
 
@@ -138,9 +138,9 @@ LoggerPtr LoggerManager::GetLogger(const std::string &name) {
 
 	auto formatter = std::make_unique<spdlog::pattern_formatter>();
 #ifdef XAMP_OS_WIN
-	formatter->add_flag<LogFlagFormatrer>('*').set_pattern("[%H:%M:%S.%e][%*][%n][%t] %^%v%$");
+	formatter->add_flag<LogFlagFormatter>('*').set_pattern("%H:%M:%S.%e %* %n %t %@ %# %! %v");
 #else
-	formatter->add_flag<LogFlagFormatrer>('*').set_pattern("[%*][%n][%t] %^%v%$");
+	formatter->add_flag<LogFlagFormatter>('*').set_pattern("%*::%n::%t::%@::%#::%! %^%v%$");
 #endif
 	logger->set_formatter(std::move(formatter));
 
