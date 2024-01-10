@@ -91,7 +91,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         album_year = result.front().year;
     }
 
-    constexpr auto album_genre = kEmptyString;
+    auto album_genre = kEmptyString;
 
     initUnknownAlbumAndArtist();
 
@@ -129,6 +129,12 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         auto album_id = database_->getAlbumId(album);
         if (album_id == kInvalidDatabaseId) {
+            if (track_info.file_path.rfind(L'.') != std::wstring::npos) {
+                album_genre = kEmptyString; 
+            } else {
+                album_genre = qTEXT("Youtube");
+            }
+
             album_id = database_->addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
@@ -136,10 +142,15 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 store_type,
                 disc_id,
                 album_genre);
-            for (const auto &category : GetAlbumCategories(album)) {
-                database_->addOrUpdateAlbumCategory(album_id, category);
+
+            if (album_genre.isEmpty()) {
+                for (const auto& category : GetAlbumCategories(album)) {
+                    database_->addOrUpdateAlbumCategory(album_id, category);
+                }
+            } else {
+                database_->addOrUpdateAlbumCategory(album_id, album_genre);
             }
-            
+
             if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
                 database_->addOrUpdateAlbumCategory(album_id, kDsdCategory);
             }

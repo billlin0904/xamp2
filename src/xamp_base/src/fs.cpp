@@ -27,8 +27,11 @@ bool IsFilePath(const std::wstring& file_path) noexcept {
 		return false;
 	}
 	const auto lowcase_file_path = String::ToLower(file_path);
-	return lowcase_file_path.find(L"https") == std::string::npos
-		|| lowcase_file_path.find(L"http") == std::string::npos;
+	if (lowcase_file_path.starts_with(L"://")) {
+		return lowcase_file_path.find(L"https") == std::string::npos
+			|| lowcase_file_path.find(L"http") == std::string::npos;
+	}
+	return false;
 }
 
 Path GetTempFileNamePath() {

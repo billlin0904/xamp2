@@ -1643,7 +1643,7 @@ void Xamp::playOrPause() {
             page->playlist()->setNowPlaying(play_index_, true);
             page->playlist()->onPlayIndex(play_index_);
         }
-    );
+    )
 }
 
 void Xamp::resetSeekPosValue() {
@@ -1840,7 +1840,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
         player_->BufferStream();
         open_done = true;
-    );
+    )
 
     auto* page = dynamic_cast<PlaylistPage*>(sender());
 
@@ -1924,7 +1924,9 @@ void Xamp::updateUi(const PlayListEntity& item, const PlaybackFormat& playback_f
 
     qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
 
-    tab_widget->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
+    if (tab_widget != nullptr) {
+        tab_widget->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
+    }
 
     player_->Play();
 }
@@ -2023,12 +2025,11 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 }
 
 void Xamp::onPlayPlayListEntity(const PlayListEntity& entity) {
-	const QUrl url(entity.file_path);
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
-    if (url.isLocalFile() || 
-        url.scheme() == qTEXT("https")) {
+    if (IsFilePath(entity.file_path.toStdWString()) 
+        || QUrl(entity.file_path).scheme() == qTEXT("https")) {
         onPlayEntity(entity);
     }
     else {        
@@ -2051,7 +2052,7 @@ void Xamp::playNextItem(int32_t forward) {
     TRY_LOG(
         last_play_list_->play(order_);
         play_index_ = last_play_list_->currentIndex();
-    );
+    )
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {    
@@ -2409,7 +2410,7 @@ void Xamp::encodeWavFile(const PlayListEntity& item) {
                     qApp->processEvents();
                     return dialog->wasCanceled() != true;
                 }, metadata);
-            );
+            )
         },
         qTR("Save Wav file"),
         save_file_name,
@@ -2447,7 +2448,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
                     qApp->processEvents();
                     return dialog->wasCanceled() != true;
                 }, track_info);
-            );
+            )
         },    
         qTR("Save Flac file"),
         save_file_name,

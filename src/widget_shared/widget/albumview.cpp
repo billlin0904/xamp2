@@ -414,8 +414,6 @@ AlbumView::AlbumView(QWidget* parent)
         showAlbumViewMenu(pt);
     });
 
-    //setStyleSheet(qTEXT("background-color: transparent"));
-
     verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));
@@ -720,7 +718,7 @@ FROM
 LEFT 
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
-	albums.storeType = -1
+	albums.storeType = -1 OR albums.storeType = -2
 ORDER BY
     albums.album DESC
     )");   
