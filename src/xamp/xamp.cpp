@@ -2311,6 +2311,9 @@ void Xamp::initialPlaylist() {
 }
 
 void Xamp::initialCloudPlaylist() {
+    if (!ytmusic_worker_->isInitDone()) {
+        return;
+    }
     QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
         XAMP_LOG_DEBUG("Get library playlist done!");
         int32_t index = 1;
@@ -2488,6 +2491,9 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
             [this, playlist_page](const auto& text, Match match) {
+                if (!ytmusic_worker_->isInitDone()) {
+                    return;
+                }
                 if (playlist_page->spinner()->isAnimated()) {
                     return;
                 }

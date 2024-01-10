@@ -394,9 +394,14 @@ void YtMusic::cancelRequested() {
     is_stop_ = true;
 }
 
+bool YtMusic::isInitDone() const {
+    return is_init_done_;
+}
+
 QFuture<bool> YtMusic::initialAsync() {
     return invokeAsync([this]() {
         interop()->initial();
+        is_init_done_ = true;
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
@@ -487,10 +492,6 @@ QFuture<std::vector<artist::Artist::Album>> YtMusic::fetchArtistAlbumsAsync(cons
 }
 
 YtMusicInterop* YtMusic::interop() {
-	//if (interop_ != nullptr) {
-    //    return interop_.get();
-	//}
-    //interop_ = MakeAlign<YtMusicInterop>("oauth.json");
     return interop_.get();
 }
 

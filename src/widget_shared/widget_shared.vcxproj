@@ -137,7 +137,6 @@
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="widget\xmessagebox.h" />
-    <QtMoc Include="widget\youtubedl\youtubedl.h" />
     <QtMoc Include="widget\youtubedl\ytmusic.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
@@ -270,7 +269,6 @@
     <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
-    <ClCompile Include="widget\youtubedl\youtubedl.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusic.cpp" />
     <ClCompile Include="widget\zib_utiltis.cpp" />
   </ItemGroup>

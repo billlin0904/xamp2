@@ -365,6 +365,8 @@ public:
 
     void cancelRequested();
 
+    bool isInitDone() const;
+
     QFuture<bool> initialAsync();
 
     QFuture<bool> cleanupAsync();
@@ -419,7 +421,8 @@ private:
         return interface->future();
     }
 
-    std::atomic<bool> is_stop_{false};
+    std::atomic<bool> is_stop_{false };
+    std::atomic<bool> is_init_done_{ false };
     LoggerPtr logger_;
     LocalStorage<YtMusicInterop> interop_;
 };
