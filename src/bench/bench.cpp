@@ -159,7 +159,7 @@ static void BM_StdAsync(benchmark::State& state) {
 }
 
 #ifdef XAMP_OS_WIN
-static void BM_std_for_each_par(benchmark::State& state) {
+static void BM_StdForEachPar(benchmark::State& state) {
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -170,9 +170,7 @@ static void BM_std_for_each_par(benchmark::State& state) {
             n.end(),
             [&total](auto&& item)
             {
-                for (auto i = 0; i < 100; ++i) {
-                    total += item;
-                }
+                total += item;
             });
     }
 }
@@ -618,7 +616,7 @@ static void BM_MpmcQueue(benchmark::State& state) {
     static std::atomic<bool> is_stop{ false };
     if (state.thread_index == 0) {
         // Setup code here.
-        queue = new MpmcQueue<int>(512);
+        queue = new MpmcQueue<int>(512 * state.threads);
         for (auto i = 0; i < 8; ++i) {
             writer_thread.emplace_back([&]() {
                 while (!is_stop) {
@@ -645,7 +643,7 @@ static void BM_BlockingQueue(benchmark::State& state) {
     static std::atomic<bool> is_stop{ false };
     if (state.thread_index == 0) {
         // Setup code here.
-        queue = new BlockingQueue<int>(512);
+        queue = new BlockingQueue<int>(512 * state.threads);
         for (auto i = 0; i < 8; ++i) {
             writer_thread.emplace_back([&]() {
                 while (!is_stop) {
@@ -697,14 +695,14 @@ static void BM_Spinlock(benchmark::State& state) {
         delete m;
     }
 }
+BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
+BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-//BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
-//BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
-
+BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 //BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
 //BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);

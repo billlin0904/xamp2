@@ -403,6 +403,14 @@ namespace {
     }
 }
 
+#define TRY_LOG(expr) \
+    try {\
+        [&]() { expr; }();\
+    }\
+    catch (...) {\
+        log(std::current_exception());\
+    }
+
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
     , is_seeking_(false)
@@ -889,7 +897,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
 				});
-            cloud_search_page_->playlist()->reload();
+                cloud_search_page_->playlist()->reload();
             });
     }
 
@@ -1226,9 +1234,9 @@ void Xamp::initialController() {
             qTheme.setPlayOrPauseButton(ui_.playButton, true);
             main_window_->setTaskbarPlayingResume();
         }
-        catch (const Exception & e) {
+        catch (...) {
             player_->Stop(false);
-            XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+            log(std::current_exception());
         }
         is_seeking_ = false;
     });
@@ -1592,7 +1600,7 @@ void Xamp::playOrPause() {
         break;
     }
 
-    try {
+    TRY_LOG(
         if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
             qTheme.setPlayOrPauseButton(ui_.playButton, false);
             player_->Pause();
@@ -1635,15 +1643,7 @@ void Xamp::playOrPause() {
             page->playlist()->setNowPlaying(play_index_, true);
             page->playlist()->onPlayIndex(play_index_);
         }
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_DEBUG(e.GetStackTrace());
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_DEBUG(e.what());
-    }
-    catch (...) {	    
-    }
+    );
 }
 
 void Xamp::resetSeekPosValue() {
@@ -1689,10 +1689,6 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
     } else {
         player_->GetDspManager()->RemoveVolumeControl();
     }
-}
-
-QString Xamp::translateErrorCode(const Errors error) const {
-    return fromStdStringView(EnumToString(error));
 }
 
 void Xamp::setupSampleWriter(ByteFormat byte_format,
@@ -1813,7 +1809,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         entity.sample_rate,
         target_sample_rate);
 
-    try {
+    TRY_LOG(
         player_->Open(entity.file_path.toStdWString(),
             device_info_.value(),
             target_sample_rate,
@@ -1844,24 +1840,16 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
         player_->BufferStream();
         open_done = true;
-    }
-    catch (const Exception & e) {        
-        XMessageBox::showError(QString::fromUtf8(e.GetErrorMessage()));
-        XAMP_LOG_DEBUG(e.GetStackTrace());
-    }
-    catch (const std::exception & e) {
-        XMessageBox::showError(qTEXT(e.what()));
-    }
-    catch (...) {        
-        XMessageBox::showError(qTR("Unknown error"));
-    }
+    );
+
+    auto* page = dynamic_cast<PlaylistPage*>(sender());
 
     if (open_done) {
         updateUi(entity, playback_format, open_done);
     }
     else {
-        dynamic_cast<PlaylistPage*>(sender())->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-    }
+        page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+    } 
 }
 
 void Xamp::ensureLocalOnePlaylistPage() {
@@ -2043,7 +2031,7 @@ void Xamp::onPlayPlayListEntity(const PlayListEntity& entity) {
         url.scheme() == qTEXT("https")) {
         onPlayEntity(entity);
     }
-    else {
+    else {        
         playCloudVideoId(entity, entity.file_path);
     }
     update();
@@ -2060,13 +2048,10 @@ void Xamp::playNextItem(int32_t forward) {
         return;
     }    
 
-    try {
+    TRY_LOG(
         last_play_list_->play(order_);
         play_index_ = last_play_list_->currentIndex();
-    }
-    catch (Exception const& e) {
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
-    }
+    );
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {    
@@ -2341,12 +2326,7 @@ void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
         return;
     }
 
-    try {
-        getLocalPlaylistPage()->playlist()->append(file_name);
-    }
-    catch (const Exception& e) {
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
-    }
+    TRY_LOG(getLocalPlaylistPage()->playlist()->append(file_name))
 }
 
 void Xamp::addItem(const QString& file_name) {
@@ -2499,6 +2479,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 }
                 if (playlist_page->spinner()->isHidden()) {
                     playlist_page->spinner()->show();
+                    centerParent(playlist_page->spinner());
                 }
                 playlist_page->spinner()->startAnimation();
                 if (match == Match::MATCH_ITEM) {
@@ -2676,4 +2657,22 @@ void Xamp::onFoundFileCount(size_t file_count) {
 void Xamp::onReadFileStart() {
     progress_timer_.restart();
     ui_update_timer_timer_.start();
+}
+
+void Xamp::log(std::exception_ptr exptr) {
+    try {
+        std::rethrow_exception(exptr);
+    }
+    catch (const PlatformException& e) {
+        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+    }
+    catch (const Exception& e) {
+        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+    }
+    catch (const std::exception& e) {
+        XMessageBox::showError(qTEXT(e.what()));
+    }
+    catch (...) {
+        XMessageBox::showError(qTR("Unknown error"));
+    }
 }

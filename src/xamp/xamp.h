@@ -245,8 +245,6 @@ private:
 
 	void appendToPlaylist(const QString& file_name, bool append_to_playlist);
 
-	QString translateErrorCode(const Errors error) const;
-
 	void setupSampleWriter(ByteFormat byte_format, PlaybackFormat& playback_format) const;
 
 	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
@@ -260,6 +258,8 @@ private:
 	PlaylistPage* getLocalPlaylistPage();
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
+
+	void log(std::exception_ptr exptr);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

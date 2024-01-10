@@ -48,7 +48,7 @@ XAMP_BASE_API Path GetComponentsFilePath();
 
 XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
-XAMP_BASE_API bool IsCDAFile(Path const& path);
+XAMP_BASE_API bool IsCDAFile(const Path& path);
 
 /*
 * Imbue file from bom.
@@ -66,7 +66,7 @@ public:
     /*
     * Constructor.
     */
-    explicit ExceptedFile(Path const& dest_file_path) {
+    explicit ExceptedFile(const Path& dest_file_path) {
         dest_file_path_ = dest_file_path;        
     }
 
