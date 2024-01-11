@@ -25,8 +25,8 @@ namespace {
     inline constexpr auto kJop = qTEXT("jpop");
     inline constexpr auto kHiRes = qTEXT("HiRes");
     inline constexpr auto kDsdCategory = qTEXT("DSD");
-    const std::wstring kDffExtension(L".dff");
-    const std::wstring kDsfExtension(L".dsf");
+    const std::wstring kDffFileExtension(L".dff");
+    const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
 
     QSet<QString> GetAlbumCategories(const QString& album) {
@@ -156,7 +156,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 database_->addOrUpdateAlbumCategory(album_id, album_genre);
             }
 
-            if (track_info.file_ext == kDsfExtension || track_info.file_ext == kDffExtension) {
+            if (track_info.file_ext == kDsfFileExtension || track_info.file_ext == kDffFileExtension) {
                 database_->addOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
