@@ -10,6 +10,17 @@ FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(GetPooledDatabase(1)) {
 }
 
+void FindAlbumCoverWorker::onFetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url) {
+    http::HttpClient(thumbnail_url)
+        .download([=, this](const auto& content) {
+        QPixmap image;
+        if (!image.loadFromData(content)) {
+            return;
+        }
+        database_ptr_->Acquire()->setAlbumCover(album_id, qImageCache.addImage(image));
+    });
+}
+
 void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
 }

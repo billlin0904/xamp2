@@ -19,8 +19,9 @@ signals:
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
-	void onFindAlbumCover(int32_t album_id,
-		const std::wstring& file_path);
+	void onFindAlbumCover(int32_t album_id, const std::wstring& file_path);
+
+	void onFetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url);
 
 	void cancelRequested();
 

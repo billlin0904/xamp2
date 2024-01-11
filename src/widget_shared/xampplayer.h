@@ -55,8 +55,6 @@ public:
 
     virtual void addDropFileItem(const QUrl& url) = 0;
 
-    virtual void deleteKeyPress() = 0;
-
     virtual void playPrevious() = 0;
 
     virtual void playNext() = 0;

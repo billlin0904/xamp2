@@ -457,10 +457,11 @@ void Xamp::destroy() {
     worker_cancel_requested(extract_file_worker_.get());
     worker_cancel_requested(ytmusic_worker_.get());
 
-    QCoro::connect(ytmusic_worker_->cleanupAsync(), this, [this](auto) {
+    /*QCoro::connect(ytmusic_worker_->cleanupAsync(), this, [this](auto) {
         XAMP_LOG_DEBUG("Cleanup done!");
         });
-    delay(2);    
+    delay(2);*/ 
+    ytmusic_worker_->cleanupAsync().waitForFinished();
 
     quit_and_wait_thread(background_thread_);
     quit_and_wait_thread(find_album_cover_thread_);
@@ -553,10 +554,17 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onTranslationCompleted);
 
+    // FindAlbumCoverWorker
+
     (void)QObject::connect(find_album_cover_worker_.get(),
         &FindAlbumCoverWorker::setAlbumCover,
         this, 
         &Xamp::onSetAlbumCover);
+
+    (void)QObject::connect(this,
+        &Xamp::fetchThumbnailUrl,
+        find_album_cover_worker_.get(),
+        &FindAlbumCoverWorker::onFetchThumbnailUrl);
 
     (void)QObject::connect(&qTheme, 
         &ThemeManager::currentThemeChanged, 
@@ -810,7 +818,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
                 playlist_page->playlist()->reload();
-            });
+            });            
         });
         playlist_page->playlist()->reload();
     }
@@ -882,8 +890,6 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
         track_info.track = track_no++;
         track_info.title = String::ToString(track.title);
 
-        XAMP_LOG_DEBUG("{} - {}.{}", album.title, track_info.track, track.title);
-
         if (!track.artists.empty()) {
             track_info.artist = String::ToString(track.artists.front().name);
         }
@@ -921,8 +927,8 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
                     return;
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-				});
-                cloud_search_page_->playlist()->reload();
+                });
+                cloud_search_page_->playlist()->reload();       
             });
     }
 
@@ -1320,15 +1326,22 @@ void Xamp::initialController() {
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
-        //MaskWidget mask_widget(this);
-        QScopedPointer<XDialog> dialog(new XDialog(this));        
-        //QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
-        QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
-        dialog->setContentWidget(eq.get(), false);
-        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
-        //dialog->setTitle(qTR("SuperEQ"));
-        dialog->setTitle(qTR("EQ"));
-        dialog->exec();
+        constexpr bool use_supereq = false;
+        QScopedPointer<XDialog> dialog(new XDialog(this));
+        if (use_supereq) {
+            QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
+            dialog->setContentWidget(eq.get(), false);
+            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
+            dialog->setTitle(qTR("SuperEQ"));
+            dialog->exec();
+        }
+        else {
+            QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+            dialog->setContentWidget(eq.get(), false);
+            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
+            dialog->setTitle(qTR("EQ"));
+            dialog->exec();
+        }        
     });
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::clicked, [this]() {
@@ -1562,14 +1575,6 @@ void Xamp::playPrevious() {
     else {
         stopPlay();
     }
-}
-
-void Xamp::deleteKeyPress() {
-    if (!ui_.currentView->count()) {
-        return;
-    }
-    auto* playlist_view = getLocalPlaylistPage()->playlist();
-    playlist_view->removeSelectItems();
 }
 
 void Xamp::setPlayerOrder(bool emit_order) {
@@ -1865,16 +1870,18 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
         player_->BufferStream();
         open_done = true;
-    )
-
-    auto* page = dynamic_cast<PlaylistPage*>(sender());
+    )    
 
     if (open_done) {
         updateUi(entity, playback_format, open_done);
+        return;
     }
-    else {
-        page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-    } 
+    
+    auto* page = dynamic_cast<PlaylistPage*>(sender());
+    if (!page) {
+        return;
+    }
+    page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
 }
 
 void Xamp::ensureLocalOnePlaylistPage() {

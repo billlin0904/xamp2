@@ -13,6 +13,7 @@
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
 
+#include <QOperatingSystemVersion>
 #include <QDirIterator>
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
@@ -278,8 +279,14 @@ ThemeManager::ThemeManager() {
     ui_font_ = loadFonts();
     const auto* screen = qApp->screens()[0];
     const auto screen_size = screen->size();
-    if (screen_size.width() >= 1920 && screen_size.height() == 1080) {
-        font_ratio_ = 1.25;
+    const auto os_ver = QOperatingSystemVersion::current();
+    if (os_ver > QOperatingSystemVersion::Windows10) {
+        if (screen_size.width() >= 1920 && screen_size.height() == 1080) {
+            font_ratio_ = 1.25;
+        }
+        else {
+            font_ratio_ = 1.0;
+        }
     }
     else {
         font_ratio_ = 1.0;

@@ -181,16 +181,6 @@ void XMainWindow::restoreAppGeometry() {
 }
 
 bool XMainWindow::eventFilter(QObject * object, QEvent * event) {
-    if (!content_widget_) {
-        return QWidget::eventFilter(object, event);
-    }
-
-    if (event->type() == QEvent::KeyPress) {
-        const auto* key_event = dynamic_cast<QKeyEvent*>(event);
-        if (key_event->key() == Qt::Key_Delete) {
-            content_widget_->deleteKeyPress();
-        }
-    }
     return QWidget::eventFilter(object, event);
 }
 

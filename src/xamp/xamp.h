@@ -98,6 +98,9 @@ signals:
 	void changePlayerOrder(PlayerOrder order);
 
 	void updateNewVersion(const Version &version);
+
+	void fetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url);
+
 public slots:
 	void performDelayedUpdate();
 
@@ -190,8 +193,6 @@ private:
     void playPrevious() override;
 
     void playOrPause() override;
-
-    void deleteKeyPress() override;
 
     void addDropFileItem(const QUrl& url) override;
 
