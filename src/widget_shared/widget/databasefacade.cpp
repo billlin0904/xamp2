@@ -62,6 +62,14 @@ namespace {
     }
 }
 
+LocalStorage<UnknownArtistAndAlbumId> DatabaseFacade::unknown_id_;
+
+UnknownArtistAndAlbumId::UnknownArtistAndAlbumId() {
+    first = qMainDb.addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
+    second = qMainDb.addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), first, 0, 0, StoreType::CLOUD_STORE);
+    qMainDb.setAlbumCover(second, qImageCache.unknownCoverId());
+}
+
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
     logger_ = LoggerManager::GetInstance().GetLogger(kDatabaseFacadeLoggerName);
@@ -72,13 +80,12 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     }
 }
 
-void DatabaseFacade::initUnknownAlbumAndArtist() {
-    if (unknown_album_id_ != kInvalidDatabaseId) {
-        return;
-    }
-    unknown_artist_id_ = database_->addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
-    unknown_album_id_ = database_->addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
-    database_->setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
+int32_t DatabaseFacade::unknownArtistId() {
+    return unknown_id_->first;
+}
+
+int32_t DatabaseFacade::unknownAlbumId() {
+    return unknown_id_->second;
 }
 
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
@@ -92,8 +99,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     }
 
     auto album_genre = kEmptyString;
-
-    initUnknownAlbumAndArtist();
 
 	for (const auto& track_info : result) {        
         auto file_path = getStringOrEmptyString(track_info.file_path);
@@ -172,7 +177,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             database_->addOrUpdateAlbumArtist(album_id, id);
         }
 
-        if (album_id == unknown_album_id_) {
+        if (album_id == unknownAlbumId()) {
             continue;
         }
 

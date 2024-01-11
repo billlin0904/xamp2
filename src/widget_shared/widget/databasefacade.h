@@ -7,12 +7,19 @@
 
 #include <QObject>
 
+
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <widget/database.h>
 
+#include <base/lazy_storage.h>
+
 const std::wstring kUnknownAlbum{ L"Unknown album" };
 const std::wstring kUnknownArtist{ L"Unknown artist" };
+
+struct UnknownArtistAndAlbumId : public std::pair<int32_t, int32_t> {
+    UnknownArtistAndAlbumId();
+};
 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
@@ -21,7 +28,9 @@ public:
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
 
-    void initUnknownAlbumAndArtist();
+    static int32_t unknownArtistId();
+
+    static int32_t unknownAlbumId();
 
 signals:
     void findAlbumCover(int32_t album_id, const std::wstring& file_path);
@@ -40,8 +49,7 @@ private:
 
     bool is_stop_{false};
 
-    int32_t unknown_artist_id_{ kInvalidDatabaseId };
-    int32_t unknown_album_id_{ kInvalidDatabaseId };
+    static LocalStorage<UnknownArtistAndAlbumId> unknown_id_;
     LoggerPtr logger_;
     Database* database_;
 };

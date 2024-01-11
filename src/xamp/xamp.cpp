@@ -820,7 +820,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_id) {
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(video_id), this,
-        [temp = entity, this](const auto& video_info) {
+        [temp = entity, video_id, this](const auto& video_info) {
         auto temp1 = temp;
         if (video_info.formats.empty()) {
             return;
@@ -841,6 +841,31 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_i
         temp1.file_path = QString::fromStdString(best_format.url);
         onPlayPlayListEntity(temp1);
 
+        auto album_id = temp.album_id;
+        if (album_id == DatabaseFacade::unknownAlbumId()) {
+            return;
+        }
+
+        QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, album_id](const std::optional<song::Song>& song) {
+            if (!song) {
+                return;
+            }
+        	if (song.value().thumbnail.thumbnails.empty()) {
+                return;
+            }
+
+            const auto thumbnail_url = song.value().thumbnail.thumbnails.back().url;
+            http::HttpClient(QString::fromStdString(thumbnail_url))
+                .download([=, this](const auto& content) {
+                QPixmap image;
+                if (!image.loadFromData(content)) {
+                    return;
+                }
+                qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
+                lrc_page_->setCover(image_utils::resizeImage(image, lrc_page_->cover()->size(), true));
+                lrc_page_->addCoverShadow(true);
+				});
+            });			
         });
 }
 
