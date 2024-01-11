@@ -67,6 +67,8 @@
 #include <widget/xmessagebox.h>
 #include <widget/playlisttabwidget.h>
 #include <widget/youtubedl/ytmusic.h>
+#include <widget/genre_view_page.h>
+#include <widget/genre_view.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -827,6 +829,8 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 }
 
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_id) {
+    fetchLyrics(entity, video_id);
+
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(video_id), this,
         [temp = entity, video_id, this](const auto& video_info) {
         auto temp1 = temp;
@@ -875,6 +879,16 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_i
 				});
             });			
         });
+}
+
+void Xamp::fetchLyrics(const PlayListEntity& entity, const QString& video_id) {
+    QCoro::connect(ytmusic_worker_->fetchWatchPlaylistAsync(video_id), this, [entity, this](const auto& playlist) {
+        if (playlist.lyrics) {
+            QCoro::connect(ytmusic_worker_->fetchLyricsAsync(QString::fromStdString(*playlist.lyrics)), this, [entity, this](const auto& lyrics) {
+                lrc_page_->lyrics()->onAddFullLrc(QString::fromStdString(lyrics.lyrics));
+            });
+        }
+    });
 }
 
 void Xamp::onFetchAlbumCompleted(const album::Album& album) {
@@ -1399,7 +1413,10 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
-    case TAB_YT_MUSIC:
+    case TAB_YT_MUSIC_INDEX:
+        ui_.currentView->setCurrentWidget(cloud_main_page_.get());
+        break;
+    case TAB_YT_MUSIC_SEARCH:
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         break;
     case TAB_YT_MUSIC_PLAYLIST:
@@ -1621,7 +1638,7 @@ void Xamp::playOrPause() {
         page = dynamic_cast<PlaylistPage*>(local_tab_widget_->currentWidget());
         tab = local_tab_widget_.get();
         break;
-    case TAB_YT_MUSIC:
+    case TAB_YT_MUSIC_SEARCH:
         page = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
         break;
     case TAB_YT_MUSIC_PLAYLIST:
@@ -1765,7 +1782,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 
         initial_sample_rate_converter = [this]() {
             player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
-            };
+        };
     }
 }
 
@@ -2145,6 +2162,10 @@ void Xamp::initialPlaylist() {
     album_page_.reset(new AlbumArtistPage(this));
     local_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_search_page_.reset(new PlaylistPage(this));
+    cloud_main_page_.reset(new GenreViewPage(this));    
+
+    cloud_main_page_->addGenre(qTEXT("best"));
+    cloud_main_page_->addGenre(qTEXT("Youtube"));
 
     cloud_search_page_->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
     cloud_search_page_->playlist()->enableCloudMode(true);
@@ -2158,8 +2179,9 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("YouTube Search"), TAB_YT_MUSIC, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->addTab(qTR("YouTube Playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
+    ui_.naviBar->addTab(qTR("YouTube Index"), TAB_YT_MUSIC_INDEX, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
+    ui_.naviBar->addTab(qTR("YouTube Search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(qTR("YouTube Playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -2274,6 +2296,11 @@ void Xamp::initialPlaylist() {
         album_page_.get(),
         &AlbumArtistPage::onThemeColorChanged);
 
+    (void)QObject::connect(this,
+        &Xamp::themeChanged,
+        cloud_main_page_.get(),
+        &GenreViewPage::onThemeColorChanged);
+
     connectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
     connectPlaylistPageSignal(album_page_->year()->albumViewPage()->playlistPage());
 
@@ -2297,6 +2324,7 @@ void Xamp::initialPlaylist() {
     pushWidget(album_page_.get());
     pushWidget(file_system_view_page_.get());
     pushWidget(cd_page_.get());
+    pushWidget(cloud_main_page_.get());
     pushWidget(cloud_search_page_.get());
     pushWidget(cloud_tab_widget_.get());
 

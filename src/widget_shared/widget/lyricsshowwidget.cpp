@@ -266,24 +266,29 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	return true;
 }
 
-void LyricsShowWidget::onAddFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
+void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
+	stop();
+
     auto i = 0;
 	const auto lyrics = lrc.split(qTEXT("\n"));
-	const auto min_duration = duration / lyrics.count();
 
 	for (const auto &ly : lyrics) {
 		LyricEntry l;
 		l.index = i++;
 		l.lrc = ly.toStdWString();
-		l.timestamp = min_duration * i;
 		lyric_.addLrc(l);
 	}
+
+	stop_scroll_time_ = true;
 }
 
 void LyricsShowWidget::loadLrc(const QString& lrc) {
 	std::wistringstream stream{ lrc.toStdWString() };
 	if (!lyric_.parse(stream)) {
 		setDefaultLrc();
+	}
+	else {
+		stop_scroll_time_ = false;
 	}
 	resizeFontSize();
 	onSetLrcTime(0);
@@ -299,6 +304,10 @@ void LyricsShowWidget::onSetLrc(const QString &lrc, const QString& trlyrc) {
 }
 
 void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
+	if (stop_scroll_time_) {
+		return;
+	}
+
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 

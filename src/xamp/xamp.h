@@ -53,6 +53,7 @@ class FindAlbumCoverWorker;
 class ExtractFileWorker;
 class PlaylistTabWidget;
 class PlayListTableView;
+class GenreViewPage;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -99,7 +100,7 @@ signals:
 
 	void updateNewVersion(const Version &version);
 
-	void fetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url);
+	void fetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url);	
 
 public slots:
 	void performDelayedUpdate();
@@ -260,6 +261,8 @@ private:
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
 
+	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
+
 	void log(const std::exception_ptr& exptr);
 
 	bool is_seeking_;
@@ -279,6 +282,7 @@ private:
 	QScopedPointer<FileSystemViewPage> file_system_view_page_;
 	QScopedPointer<PlaylistPage> cloud_search_page_;
 	QScopedPointer<PlaylistTabWidget> cloud_tab_widget_;
+	QScopedPointer<GenreViewPage> cloud_main_page_;
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<ExtractFileWorker> extract_file_worker_;

@@ -387,7 +387,7 @@ public:
 
     QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
 
-    QFuture<watch::Playlist> fetchWatchPlaylistAsync(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id);
+    QFuture<watch::Playlist> fetchWatchPlaylistAsync(const std::optional<QString>& video_id, const std::optional<QString>& playlist_id = std::nullopt);
 
     QFuture<Lyrics> fetchLyricsAsync(const QString& browse_id);
 

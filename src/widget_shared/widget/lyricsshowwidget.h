@@ -8,6 +8,7 @@
 #include <widget/lrcparser.h>
 #include <widget/wheelablewidget.h>
 #include <widget/widget_shared_global.h>
+#include <widget/str_utilts.h>
 
 class QDropEvent;
 
@@ -38,7 +39,7 @@ public:
 public slots:
 	void stop();	
 
-	void onSetLrc(const QString &lrc, const QString& trlyc);
+	void onSetLrc(const QString &lrc, const QString& trlyc = kEmptyString);
 
 	void onSetLrcTime(int32_t length);
 
@@ -48,7 +49,7 @@ public slots:
 
 	void onSetLrcColor(const QColor& color);
 
-	void onAddFullLrc(const QString& lrc, std::chrono::milliseconds duration);
+	void onAddFullLrc(const QString& lrc);
 
 private:
 	void dragEnterEvent(QDragEnterEvent* event) override;
@@ -69,6 +70,7 @@ private:
 
 	void resizeFontSize();
 
+	bool stop_scroll_time_{ false };
 	int32_t pos_;
     int32_t last_lyric_index_;
 	float item_percent_;
