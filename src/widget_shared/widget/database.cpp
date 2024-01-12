@@ -5,6 +5,7 @@
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QDateTime>
+#include <QDir>
 #include <QThread>
 
 #include <base/logger.h>
@@ -25,6 +26,106 @@
     throw SqlException(query.lastError());\
     }\
     } while (false)
+
+namespace {
+#define SCHAMA_MIGRATIONS_TABLE "__qt_schema_migrations"
+
+    void printSqlError(const QSqlQuery& query) {
+        XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
+    }
+
+    void createInternalTable(QSqlDatabase& database) {
+        QSqlQuery query(qTEXT("create table if not exists " SCHAMA_MIGRATIONS_TABLE " ("
+            "version Text primary key not null, "
+            "run_on timestamp not null default current_timestamp)"), database);
+        if (!query.exec()) {
+            printSqlError(query);
+        }
+    }
+
+    void markMigrationRun(QSqlDatabase& database, const QString& name) {
+        XAMP_LOG_DEBUG("Marking migration {} as done.", name.toStdString());
+
+        QSqlQuery query(database);
+        if (!query.prepare(qTEXT("insert into " SCHAMA_MIGRATIONS_TABLE " (version) values (:name)"))) {
+            printSqlError(query);
+        }
+        query.bindValue(qTEXT(":name"), name);
+        if (!query.exec()) {
+            printSqlError(query);
+        }
+    }
+
+    QString currentDatabaseVersion(QSqlDatabase& database) {
+        QSqlQuery query(database);
+        query.prepare(qTEXT("select version from " SCHAMA_MIGRATIONS_TABLE " order by version desc limit 1"));
+        query.exec();
+
+        if (query.next()) {
+            return query.value(0).toString();
+        }
+        else {
+            return {};
+        }
+    }
+
+    void runDatabaseMigrations(QSqlDatabase& database, const QString& migration_directory) {
+        createInternalTable(database);
+
+        QDir dir(migration_directory);
+        const auto entries = dir.entryList(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot, QDir::SortFlag::Name);
+
+        const QString currentVersion = currentDatabaseVersion(database);
+        for (const auto& entry : entries) {
+            QDir subdir(entry);
+            if (subdir.dirName() > currentVersion) {
+                QFile file(migration_directory + QDir::separator() + entry + QDir::separator() + "up.sql");
+                if (!file.open(QFile::ReadOnly)) {
+                    XAMP_LOG_DEBUG("Failed to open migration file {}", file.fileName().toStdString());
+                }
+                XAMP_LOG_DEBUG("Running migration {}", subdir.dirName().toStdString());
+
+                database.transaction();
+
+                // Hackish
+                const auto statements = file.readAll().split(';');
+
+                bool migration_successful = true;
+                for (const QByteArray& statement : statements) {
+                    const auto trimmed_statement = QString::fromUtf8(statement.trimmed());
+                    QSqlQuery query(database);
+
+                    if (!trimmed_statement.isEmpty()) {
+                        XAMP_LOG_DEBUG("Running {}", trimmed_statement.toStdString());
+                        if (!query.prepare(trimmed_statement)) {
+                            printSqlError(query);
+                            migration_successful = false;
+                        }
+                        else {
+                            const bool success = query.exec();
+                            migration_successful &= success;
+                            if (!success) {
+                                printSqlError(query);
+                            }
+                        }
+                    }
+                }
+
+                if (migration_successful) {
+                    database.commit();
+                    markMigrationRun(database, subdir.dirName());
+                }
+                else {
+                    XAMP_LOG_DEBUG("Migration {} failed, retrying next time.", subdir.dirName().toStdString());
+                    XAMP_LOG_DEBUG("Stopping migrations here, as the next migration may depens on this one.");
+                    database.rollback();
+                    return;
+                }
+            }
+        }
+        XAMP_LOG_DEBUG("Migrations finished");
+    }
+}
 
 QString DatabaseFactory::getDatabaseId() {
     return qTEXT("xamp_db_") + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
@@ -121,164 +222,18 @@ QString Database::getVersion() const {
 }
 
 void Database::createTableIfNotExist() {
-    QList<QLatin1String> create_table_sql;
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS musics (
-                       musicId integer PRIMARY KEY AUTOINCREMENT,
-                       track integer,
-                       title TEXT,
-                       path TEXT NOT NULL,
-                       parentPath TEXT NO NULL,
-                       offset DOUBLE,
-                       duration DOUBLE,
-                       durationStr TEXT,
-                       fileName TEXT,
-                       fileExt TEXT,
-                       bitRate integer,
-                       sampleRate integer,
-                       rating integer,
-                       dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       albumReplayGain DOUBLE,
-                       albumPeak DOUBLE,
-                       trackReplayGain DOUBLE,
-                       trackPeak DOUBLE,
-                       genre TEXT,
-                       comment TEXT,
-                       fileSize integer,
-                       heart integer,
-					   lyrc TEXT,
-					   trLyrc TEXT,
-                       UNIQUE(path, offset)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                      CREATE UNIQUE INDEX IF NOT EXISTS path_index ON musics (path, offset);
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS playlist (
-                       playlistId integer PRIMARY KEY AUTOINCREMENT,
-                       playlistIndex integer,
-					   storeType integer,
-                       name TEXT NOT NULL
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS albums (
-                       albumId integer PRIMARY KEY AUTOINCREMENT,
-                       artistId integer,
-                       album TEXT NOT NULL DEFAULT '',
-                       coverId TEXT,
-                       discId TEXT,
-                       dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       year integer,
-                       heart integer,
-                       storeType integer,
-                       genre TEXT,
-                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
-                       UNIQUE(albumId, artistId)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS artists (
-                       artistId integer PRIMARY KEY AUTOINCREMENT,
-                       artist TEXT NOT NULL DEFAULT '',
-                       artistNameEn TEXT NOT NULL DEFAULT '',
-                       coverId TEXT,
-                       firstChar TEXT,
-					   firstCharEn TEXT,
-                       dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS albumArtist (
-                       albumArtistId integer primary key autoincrement,
-                       artistId integer,
-                       albumId integer,
-                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS albumCategories (
-                       albumCategoryId integer primary key autoincrement,
-                       category TEXT,
-                       albumId integer,
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS albumMusic (
-                       albumMusicId integer PRIMARY KEY AUTOINCREMENT,
-                       musicId integer,
-                       artistId integer,
-                       albumId integer,
-                       FOREIGN KEY(musicId) REFERENCES musics(musicId),
-                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId),
-                       UNIQUE(musicId)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS musicLoudness (
-                       musicLoudnessId integer PRIMARY KEY AUTOINCREMENT,
-                       musicId integer,
-                       artistId integer,
-                       albumId integer,
-                       trackLoudness DOUBLE,
-                       FOREIGN KEY(musicId) REFERENCES musics(musicId),
-                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId),
-                       UNIQUE(musicId)
-                       )
-                       )"));
-
-    create_table_sql.push_back(
-        qTEXT(R"(
-                       CREATE TABLE IF NOT EXISTS playlistMusics (
-                       playlistMusicsId integer PRIMARY KEY AUTOINCREMENT,
-                       playlistId integer,
-                       musicId integer,
-                       albumId integer,
-                       playing integer,
-                       FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
-                       FOREIGN KEY(musicId) REFERENCES musics(musicId),
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId)
-                       )
-                       )"));
-
-    SqlQuery query(db_);
-    Q_FOREACH (const auto& sql , create_table_sql) {
-        THROW_IF_FAIL(query, sql);
-    }
+    runDatabaseMigrations(db_, qTEXT(":/xamp/migrations/"));
 }
 
 bool Database::dropAllTable() {
-    SqlQuery dropQuery(db_);
+    SqlQuery drop_query(db_);
 
-    QString dropQueryString = "DROP TABLE IF EXISTS %1";
+    const QString drop_query_string = "DROP TABLE IF EXISTS %1";
     auto tableNames = db_.tables();
 
     tableNames.removeAll("sqlite_sequence");
-    for (const auto& tableName : qAsConst(tableNames)) {
-        THROW_IF_FAIL(dropQuery, dropQueryString.arg(tableName));
+    for (const auto& table_name : qAsConst(tableNames)) {
+        THROW_IF_FAIL(drop_query, drop_query_string.arg(table_name));
     }
     return true;
 }
@@ -991,6 +946,14 @@ void Database::updateMusicTitle(int32_t music_id, const QString& title) {
     query.bindValue(qTEXT(":musicId"), music_id);
     query.bindValue(qTEXT(":title"), title);
 
+    THROW_IF_FAIL1(query);
+}
+
+void Database::updateMusicPlays(int32_t music_id) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE musics SET plays = plays + 1 WHERE (musicId = :musicId)"));
+    query.bindValue(qTEXT(":musicId"), music_id);
     THROW_IF_FAIL1(query);
 }
 

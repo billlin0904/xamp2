@@ -36,6 +36,8 @@ public:
 
 	void setStoreType(StoreType type);
 
+	void reloadAll();
+
 signals:
 	void createNewPlaylist();
 

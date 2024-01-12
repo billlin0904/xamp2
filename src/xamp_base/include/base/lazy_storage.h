@@ -41,12 +41,12 @@ public:
 	XAMP_DISABLE_COPY(LocalStorage)
 
 	constexpr T* get() {
-		init();
+		wait_for_init_done();
 		return std::launder(reinterpret_cast<T*>(&data_));
 	}
 
 	constexpr const T* get() const {
-		init();
+		wait_for_init_done();
 		return std::launder(reinterpret_cast<T*>(&data_));
 	}
 
@@ -59,7 +59,7 @@ public:
 	}
 	
 private:
-	void init() {
+	void wait_for_init_done() {
 		const auto do_need_init = need_init_.exchange(false);
 		if (do_need_init) {
 			std::construct_at(reinterpret_cast<T*>(std::addressof(data_)));

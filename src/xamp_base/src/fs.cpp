@@ -23,15 +23,16 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 bool IsFilePath(const std::wstring& file_path) noexcept {
-	if (file_path.empty()) {
-		return false;
+	/*if (Fs::is_regular_file(file_path)) {
+		return true;
 	}
 	const auto lowcase_file_path = String::ToLower(file_path);
 	if (lowcase_file_path.starts_with(L"://")) {
-		return lowcase_file_path.find(L"https") == std::string::npos
-			|| lowcase_file_path.find(L"http") == std::string::npos;
+		return lowcase_file_path.find(L"https") != std::string::npos
+			|| lowcase_file_path.find(L"http") != std::string::npos;
 	}
-	return false;
+	return false;*/
+	return Fs::is_regular_file(file_path);
 }
 
 Path GetTempFileNamePath() {

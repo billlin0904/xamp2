@@ -24,5 +24,6 @@
         <file>Resource/Black/minimize-active.ico</file>
         <file>Resource/Black/minimize-inactive.ico</file>
         <file>Resource/Black/unknown_album.png</file>
+        <file>migrations/2024-01-12-093210_init/up.sql</file>
     </qresource>
 </RCC>

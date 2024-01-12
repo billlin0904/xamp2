@@ -154,6 +154,8 @@ public:
 
 	void updateMusicTitle(int32_t music_id, const QString& title);
 
+	void updateMusicPlays(int32_t music_id);
+
 	void addOrUpdateTrackLoudness(int32_t album_id,
 	                              int32_t artist_id,
 	                              int32_t music_id,

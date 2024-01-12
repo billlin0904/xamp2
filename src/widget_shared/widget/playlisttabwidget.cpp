@@ -42,6 +42,13 @@ void PlaylistTabWidget::setStoreType(StoreType type) {
     store_type_ = type;
 }
 
+void PlaylistTabWidget::reloadAll() {
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        playlist_page->playlist()->reload();
+    }
+}
+
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
