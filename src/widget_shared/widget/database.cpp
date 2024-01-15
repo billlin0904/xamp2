@@ -192,7 +192,6 @@ void Database::open() {
     (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));
-    //(void)db_.exec(qTEXT("PRAGMA locking_mode = EXCLUSIVE"));
 
     XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
         connection_name_.toStdString(), getVersion().toStdString());
@@ -368,7 +367,7 @@ void Database::removeAlbumArtist(int32_t album_id) {
     THROW_IF_FAIL1(query);
 }
 
-void Database::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString)>&& fun) {
+void Database::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun) {
     QSqlTableModel model(nullptr, db_);
 
     model.setTable(qTEXT("playlist"));
@@ -380,6 +379,7 @@ void Database::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, Q
         fun(record.value(qTEXT("playlistId")).toInt(),
             record.value(qTEXT("playlistIndex")).toInt(),
             static_cast<StoreType>(record.value(qTEXT("storeType")).toInt()),
+            record.value(qTEXT("cloudPlaylistId")).toString(),
             record.value(qTEXT("name")).toString());
     }
 }
@@ -467,7 +467,7 @@ void Database::removeAlbum(int32_t album_id) {
     });
     Q_FOREACH(const auto & entity, entities) {
         QList<int32_t> playlist_ids;
-        forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto) {
+        forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto, auto) {
             playlist_ids.push_back(playlistId);            
         });
         Q_FOREACH(auto playlistId, playlist_ids) {
@@ -541,7 +541,7 @@ ORDER BY count DESC;
     return genres;
 }
 
-int32_t Database::addPlaylist(const QString& name, int32_t play_index, StoreType store_type) {
+int32_t Database::addPlaylist(const QString& name, int32_t play_index, StoreType store_type, const QString& cloud_playlist_id) {
     QSqlTableModel model(nullptr, db_);
 
     model.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -555,7 +555,8 @@ int32_t Database::addPlaylist(const QString& name, int32_t play_index, StoreType
     model.setData(model.index(0, 0), QVariant());
     model.setData(model.index(0, 1), play_index);
     model.setData(model.index(0, 2), static_cast<int32_t>(store_type));
-    model.setData(model.index(0, 3), name);
+    model.setData(model.index(0, 3), cloud_playlist_id);
+    model.setData(model.index(0, 4), name);
 
     if (!model.submitAll()) {
         return kInvalidDatabaseId;
@@ -579,7 +580,7 @@ void Database::setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreTy
 std::map<int32_t, int32_t> Database::getPlaylistIndex(StoreType type) {
     std::map<int32_t, int32_t> playlist_index;
 
-    forEachPlaylist([&playlist_index, type](auto id, auto index, auto store_type, auto name) {
+    forEachPlaylist([&playlist_index, type](auto id, auto index, auto store_type, auto name, auto) {
         if (type == store_type) {
             playlist_index.insert(std::make_pair(index, id));
         }

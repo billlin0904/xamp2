@@ -291,6 +291,24 @@ namespace library {
     };
 }
 
+namespace edit {
+    struct MultiSelectData {
+        std::string multiSelectParams;
+        std::string multiSelectItem;
+    };
+
+	struct PlaylistEditResultData {
+        std::string videoId;
+        std::string setVideoId;
+        MultiSelectData multiSelectData;
+    };
+
+	struct PlaylistEditResults {
+        std::string status;       
+        std::vector<PlaylistEditResultData> result_data;
+	};
+}
+
 struct Lyrics {
     std::optional<std::string> source;
     std::string lyrics;
@@ -347,6 +365,13 @@ public:
 
     [[nodiscard]] video_info::VideoInfo extractInfo(const std::string& video_id) const;
 
+    [[nodiscard]] edit::PlaylistEditResults addPlaylistItems(const std::string& playlistId,
+                                               const std::vector<std::string>& videoIds, 
+                                               const std::optional<std::string>& source_playlist,
+                                               bool duplicates);
+
+    void removePlaylistItems(const std::string& playlistId, const std::vector<edit::PlaylistEditResultData> &videos);
+
     [[nodiscard]] int32_t download(const std::string& url);
 private:
     class YtMusicInteropImpl;
@@ -394,6 +419,11 @@ public:
     QFuture<video_info::VideoInfo> extractVideoInfoAsync(const QString& video_id);
 
     QFuture<int32_t> downloadAsync(const QString& url);
+
+    QFuture<edit::PlaylistEditResults> addPlaylistItemsAsync(const QString& playlist_id,
+        const std::vector<std::string>& video_ids,
+        const std::optional<std::string>& source_playlist = std::nullopt,
+        bool duplicates = false);
 private:
     YtMusicInterop* interop();
 

@@ -124,9 +124,9 @@ namespace {
         }
 
         // Skip PNG image error
-        /*if (str.contains(qTEXT("qpnghandler.cpp"))) {
+        if (str.contains(qTEXT("qpnghandler.cpp"))) {
             return;
-        }*/
+        }
 
         if (str.contains(qTEXT("qwindowswindow.cpp"))) {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
@@ -210,6 +210,8 @@ namespace {
             return -1;
         }
         XAMP_LOG_DEBUG("Database init success.");
+
+        XAMP_LOG_DEBUG("Start XAMP ...");
 
         Xamp win(&main_window, MakeAudioPlayer());
         win.setXWindow(&main_window);

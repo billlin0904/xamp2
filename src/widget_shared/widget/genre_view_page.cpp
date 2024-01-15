@@ -52,7 +52,7 @@ void GenrePage::setGenre(const QString& genre) {
 	auto genre_label_text = genre;
 	genre_label_text = genre_label_text.replace(0, 1, genre_label_text.at(0).toUpper());
 	genre_label_->setText(genre_label_text);
-	genre_view_->showAllAlbum();
+	genre_view_->showAll();
 	genre_view_->setShowMode(SHOW_NORMAL);
 	genre_view_->reload();
 }

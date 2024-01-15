@@ -64,6 +64,14 @@ public:
 		cloud_mode_ = mode;
 	}
 
+	void setCloudPlaylist(const QString &playlist_id) {
+		cloud_playlist_id_ = playlist_id;
+	}
+
+	const std::optional<QString>& cloudPlaylistId() const {
+		return cloud_playlist_id_;
+	}
+
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
 	int32_t playlistId() const;
@@ -123,6 +131,8 @@ signals:
 
 	void encodeWavFile(const PlayListEntity& item);
 
+	void downloadFile(const PlayListEntity& entity);
+
     void readReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
 
 	void editTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
@@ -132,7 +142,9 @@ signals:
 	void addPlaylistItemFinished();
 
 	void extractFile(const QString& file_path, int32_t playlist_id);
-	
+
+	void addToPlaylist(const QString& playlist_id, const std::vector<std::string> &video_ids);
+
 public slots:
 	void onPlayIndex(const QModelIndex& index);
 
@@ -178,6 +190,7 @@ protected:
 	int32_t playlist_id_{ -1 };
 	PlayListGroup group_{ PlayListGroup::PLAYLIST_GROUP_NONE };
 	std::optional<int32_t> other_playlist_id_;
+	std::optional<QString> cloud_playlist_id_;
 	QModelIndex play_index_;
     PlayListSqlQueryTableModel* model_;
 	PlayListTableFilterProxyModel* proxy_model_;

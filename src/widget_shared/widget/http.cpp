@@ -101,7 +101,7 @@ namespace {
             stream << formatBytes(content_length) << " of " << content_type << " data";
         }
         stream << "]";
-        XAMP_LOG_D(logger, msg.toStdString());
+        XAMP_LOG_D(logger, "{}", msg.toStdString());
     }
 
     ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
@@ -161,7 +161,7 @@ public:
 
     static QString readReply(QNetworkReply *reply, const HttpContext& context);
 
-    static void handleFinish(const HttpContext& context, QNetworkReply *reply, const QString &success_message);
+    static void handleFinish(HttpContext& context, QNetworkReply *reply, const QString &success_message);
 
     static void handleProgress(const HttpContext& context, QNetworkReply* reply, qint64 ready, qint64 total);
 
@@ -261,7 +261,7 @@ QNetworkReply* HttpClient::HttpClientImpl::executeQuery(QSharedPointer<HttpClien
 
     (void) QObject::connect(reply,
         &QNetworkReply::finished,
-        [reply, context, request, operation, d] {
+        [reply, context, request, operation, d]() mutable {
         logHttpRequest(context.logger, requestVerb(operation, request), request, reply);
 	    const auto success_message = readReply(reply, context);
 	    handleFinish(context, reply, success_message);
@@ -307,7 +307,7 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std:
 
     (void) QObject::connect(reply,
         &QNetworkReply::finished,
-        [reply, request, context, d] {
+        [reply, request, context, d]() mutable {
         logHttpRequest(context.logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
         handleFinish(context, reply, QString());
     });
@@ -319,7 +319,7 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std:
     });
 }
 
-void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetworkReply *reply, const QString &success_message) {
+void HttpClient::HttpClientImpl::handleFinish(HttpContext &context, QNetworkReply *reply, const QString &success_message) {
     const auto error = reply->error();
 
     if (error == QNetworkReply::NoError) {
@@ -334,6 +334,10 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
 
     if (reply != nullptr) {
         reply->deleteLater();
+        context.success_handler = nullptr;
+        context.error_handler = nullptr;
+        context.progress_handler = nullptr;
+        XAMP_LOG_D(context.logger, "Free http context");
     }
 
     if (context.use_internal) {

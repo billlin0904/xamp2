@@ -45,6 +45,7 @@ void ProcessIndicator::startAnimation() {
 
 	if (timer_id_ == -1)
 		timer_id_ = startTimer(delay_);
+    show();
 }
 
 void ProcessIndicator::stopAnimation() {

@@ -23,9 +23,10 @@ void PlaylistTabWidget::closeAllTab() {
     }
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
-        auto index,
-        auto store_type,
-        const auto& name) {
+        auto,
+        auto,
+        auto,
+        auto) {
             if (playlist_id == kDefaultAlbumPlaylistId
                 || playlist_id == kDefaultCdPlaylistId
                 || playlist_id == kDefaultYtMusicPlaylistId) {
@@ -226,7 +227,7 @@ void PlaylistTabWidget::restoreTabOrder() {
 }
 
 void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
-    auto tab_index = currentIndex();
+	const auto tab_index = currentIndex();
     if (tab_index != -1) {
         setTabIcon(tab_index, icon);
         for (int i = 0; i < count(); ++i) {

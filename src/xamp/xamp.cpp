@@ -69,6 +69,7 @@
 #include <widget/youtubedl/ytmusic.h>
 #include <widget/genre_view_page.h>
 #include <widget/genre_view.h>
+#include <widget/str_utilts.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -516,10 +517,11 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
     ytmusic_thread_.start();
 
-    QCoro::connect(ytmusic_worker_->initialAsync(), this, [this](auto) {
-        XAMP_LOG_DEBUG("Initial done!");
-        });
-    //ytmusic_worker_->initialAsync().waitForFinished();
+    /*QCoro::connect(ytmusic_worker_->initialAsync(), this, [this](auto) {
+        XAMP_LOG_DEBUG("Youtube worker initial done!");
+        });*/
+    ytmusic_worker_->initialAsync().waitForFinished();
+    XAMP_LOG_DEBUG("Youtube worker initial done!");
 
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
@@ -831,8 +833,20 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_id) {
     fetchLyrics(entity, video_id);
 
+    auto* play_page = dynamic_cast<PlaylistPage*>(sender());
+    if (play_page != nullptr) {
+        play_page->spinner()->startAnimation();
+        centerParent(play_page->spinner());
+    }
+
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(video_id), this,
-        [temp = entity, video_id, this](const auto& video_info) {
+        [temp = entity, video_id, play_page, this](const auto& video_info) {
+        XAMP_ON_SCOPE_EXIT(
+            if (play_page != nullptr) {
+                play_page->spinner()->stopAnimation();
+            }
+        );
+
         auto temp1 = temp;
         if (video_info.formats.empty()) {
             return;
@@ -851,7 +865,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_i
 
         const auto best_format = *formats.begin();
         temp1.file_path = QString::fromStdString(best_format.url);
-        onPlayPlayListEntity(temp1);
+        onPlayMusic(temp1);
 
         auto album_id = temp.album_id;
         if (album_id == DatabaseFacade::unknownAlbumId()) {
@@ -897,7 +911,8 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
     int track_no = 1;
     std::string thumbnail_url;
     if (!album.thumbnails.empty()) {
-        thumbnail_url = album.thumbnails.back().url;
+        //thumbnail_url = album.thumbnails.back().url;
+        thumbnail_url = album.thumbnails.front().url;
     }
 
     for (const auto& track : album.tracks) {
@@ -930,7 +945,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
 
         const ForwardList<TrackInfo> track_infos{ track_info };
         DatabaseFacade facede;
-        facede.insertTrackInfo(track_infos, cloud_search_page_->playlist()->playlistId(), StoreType::CLOUD_STORE, [=, this](auto album_id) {
+        facede.insertTrackInfo(track_infos, cloud_search_page_->playlist()->playlistId(), StoreType::CLOUD_SEARCH_STORE, [=, this](auto album_id) {
             if (thumbnail_url.empty()) {
                 return;
             }
@@ -946,13 +961,17 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
     }
 
     cloud_search_page_->spinner()->stopAnimation();
+    XAMP_LOG_DEBUG("spinner stopAnimation");
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
     if (result.empty()) {
         cloud_search_page_->spinner()->stopAnimation();
+        XAMP_LOG_DEBUG("spinner stopAnimation");
         return;
     }
+
+    XAMP_LOG_DEBUG("Search result: {}", result.size());
 
     for (auto& item : result) {
         std::visit([&](auto&& arg) {
@@ -1155,7 +1174,9 @@ void Xamp::waitForReady() {
     FramelessWidgetsHelper::get(this)->waitForReady();
 }
 
-void Xamp::initialDeviceList() {    
+void Xamp::initialDeviceList() {
+    XAMP_LOG_DEBUG("Start system device list");
+
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
         menu = new XMenu();
@@ -1619,7 +1640,7 @@ void Xamp::setSeekPosValue(double stream_time) {
 
 void Xamp::playLocalFile(const PlayListEntity& item) {
     main_window_->setTaskbarPlayerPlaying();
-    onPlayPlayListEntity(item);
+    onPlayMusic(item);
 }
 
 void Xamp::playOrPause() {
@@ -1741,10 +1762,6 @@ void Xamp::setupSampleWriter(ByteFormat byte_format,
     playback_format = getPlaybackFormat(player_.get());
 }
 
-void Xamp::showEvent(QShowEvent* event) {
-    IXFrame::showEvent(event);
-}
-
 void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
     uint32_t &target_sample_rate,
     QString& sample_rate_converter_type) const {
@@ -1787,7 +1804,7 @@ void Xamp::performDelayedUpdate() {
     album_page_->reload();
     cloud_search_page_->playlist()->reload();
     local_tab_widget_->reloadAll();
-    cloud_tab_widget_->reloadAll();
+	//cloud_tab_widget_->reloadAll();
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -1899,7 +1916,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 void Xamp::ensureLocalOnePlaylistPage() {
 	if (local_tab_widget_->count() == 0) {
 		const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
-		newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
+		newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, qTR("Playlist"));
 	}
 }
 
@@ -2069,7 +2086,7 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
     main_window_->setIconicThumbnail(cover);
 }
 
-void Xamp::onPlayPlayListEntity(const PlayListEntity& entity) {
+void Xamp::onPlayMusic(const PlayListEntity& entity) {
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
@@ -2146,8 +2163,8 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
-PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& name) {
-    auto* playlist_page = createPlaylistPage(tab_widget, playlist_id, kAppSettingPlaylistColumnName);
+PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString& name) {
+    auto* playlist_page = createPlaylistPage(tab_widget, playlist_id,  kAppSettingPlaylistColumnName, cloud_playlist_id);
     playlist_page->playlist()->setHeaderViewHidden(false);    
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
@@ -2185,6 +2202,7 @@ void Xamp::initialPlaylist() {
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
         auto store_type,
+        const auto& cloud_playlist_id,
         const auto& name) {
             if (playlist_id == kDefaultAlbumPlaylistId
                 || playlist_id == kDefaultCdPlaylistId
@@ -2192,10 +2210,10 @@ void Xamp::initialPlaylist() {
                 return;
             }
             if (store_type == StoreType::LOCAL_STORE) {
-                newPlaylistPage(local_tab_widget_.get(), playlist_id, name);
+                newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, name);
             }
             else if (store_type == StoreType::CLOUD_STORE) {
-                auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, name);
+                auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, cloud_playlist_id, name);
                 playlist_page->hidePlaybackInformation(true);
                 playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
                 playlist_page->playlist()->enableCloudMode(true);
@@ -2235,7 +2253,7 @@ void Xamp::initialPlaylist() {
         [this]() {
             const auto tab_index = local_tab_widget_->count();
             const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), tab_index, StoreType::LOCAL_STORE);
-            newPlaylistPage(local_tab_widget_.get(), playlist_id, qTR("Playlist"));
+            newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, qTR("Playlist"));
         });
 
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::removeAllPlaylist,
@@ -2363,8 +2381,8 @@ void Xamp::initialCloudPlaylist() {
         XAMP_LOG_DEBUG("Get library playlist done!");
         int32_t index = 1;
         for (const auto& playlist : playlists) {
-            const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE);
-            auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.title));
+            const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
+            auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.playlistId), QString::fromStdString(playlist.title));
             playlist_page->hidePlaybackInformation(true);
             playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
             playlist_page->playlist()->enableCloudMode(true);
@@ -2440,27 +2458,76 @@ void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
         qTR("AAC Files (*.m4a)"));
 }
 
-void Xamp::encodeWavFile(const PlayListEntity& item) {
+void Xamp::downloadFile(const PlayListEntity& entity) {
+    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(entity.file_path), this,
+        [temp = entity, this](const auto& video_info) {
+            auto temp1 = temp;
+            if (video_info.formats.empty()) {
+                return;
+            }
+
+            std::multiset<video_info::Format> formats;
+            for (const auto& format : video_info.formats) {
+                if (format.vcodec == "none" && format.acodec != "none") {
+                    formats.insert(format);
+                }
+            }
+
+            if (formats.empty()) {
+                return;
+            }
+
+            const auto best_format = *formats.begin();
+            temp1.file_path = QString::fromStdString(best_format.url);
+
+            const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+            const auto save_file_name = last_dir + qTEXT("/") + temp1.album + qTEXT("-") + temp1.title;
+            getSaveFileName(this,
+                [this, temp1](const auto& file_name) {
+                    const auto dialog = makeProgressDialog(
+                        qTR("Download progress dialog"),
+                        qTR("Download '") + temp1.title + qTR("' to wav file"),
+                        qTR("Cancel"));
+                    dialog->show();
+
+                    http::HttpClient(temp1.file_path)
+						.progress([temp = dialog](auto ready, auto total) mutable  {
+                        auto process = Round(ready * 100.0 / total);
+                        if (ready != total) {
+                            temp->setValue(process);
+                        } else {
+                            temp.reset();
+                        }
+						})
+                		.downloadFile(file_name, [](auto) {});
+                },
+                qTR("Save M4A file"),
+                save_file_name,
+                qTR("M4A Files (*.m4a)"));
+        });
+}
+
+void Xamp::encodeWavFile(const PlayListEntity& entity) {
     const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-    const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
+    const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
     getSaveFileName(this,
-        [this, item](const auto& file_name) {
+        [this, entity](const auto& file_name) {
             const auto dialog = makeProgressDialog(
                 qTR("Export progress dialog"),
-                qTR("Export '") + item.title + qTR("' to wav file"),
+                qTR("Export '") + entity.title + qTR("' to wav file"),
                 qTR("Cancel"));
 
             TrackInfo metadata;
-            metadata.album = item.album.toStdWString();
-            metadata.artist = item.artist.toStdWString();
-            metadata.title = item.title.toStdWString();
-            metadata.track = item.track;
+            metadata.album = entity.album.toStdWString();
+            metadata.artist = entity.artist.toStdWString();
+            metadata.title = entity.title.toStdWString();
+            metadata.track = entity.track;
 
             std::wstring command;
 
             TRY_LOG(
                 auto encoder = StreamFactory::MakeWaveEncoder();
-					read_until::encodeFile(item.file_path.toStdWString(),
+				read_until::encodeFile(entity.file_path.toStdWString(),
                 file_name.toStdWString(),
                 encoder,
                 command,
@@ -2473,7 +2540,7 @@ void Xamp::encodeWavFile(const PlayListEntity& item) {
         },
         qTR("Save Wav file"),
         save_file_name,
-        qTR("Wav Files (*.wav)"));    
+        qTR("Wav Files (*.wav)"));
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& item) {
@@ -2528,14 +2595,21 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 if (!ytmusic_worker_->isInitDone()) {
                     return;
                 }
+                if (text.isEmpty()) {
+                    XAMP_LOG_DEBUG("text isEmpty");
+                    return;
+                }
                 if (playlist_page->spinner()->isAnimated()) {
+                    XAMP_LOG_DEBUG("spinner isAnimated");
                     return;
                 }
                 if (playlist_page->spinner()->isHidden()) {
                     playlist_page->spinner()->show();
                     centerParent(playlist_page->spinner());
                 }
+                XAMP_LOG_DEBUG("spinner startAnimation");
                 playlist_page->spinner()->startAnimation();
+                playlist_page->playlist()->removeAll();
                 if (match == Match::MATCH_ITEM) {
                     QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
                 } else {
@@ -2544,6 +2618,14 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 }
             });
     }
+
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::addToPlaylist,
+        [this](const auto& playlist_id, const auto& video_ids) {
+            QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids), this, []() {
+
+                });
+        });
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistItemFinished,
@@ -2558,7 +2640,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page,
         &PlaylistPage::playMusic,
         this,
-        &Xamp::onPlayPlayListEntity);
+        &Xamp::onPlayMusic);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::encodeFlacFile,
@@ -2574,6 +2656,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlayListTableView::encodeWavFile,
         this,
         &Xamp::encodeWavFile);
+
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::downloadFile,
+        this,
+        &Xamp::downloadFile);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::readReplayGain,
@@ -2607,9 +2694,10 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistPage::onCurrentThemeChanged);
 }
 
-PlaylistPage* Xamp::createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name) {
+PlaylistPage* Xamp::createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id) {
     auto* playlist_page = new PlaylistPage(tab_widget);
     playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
+    playlist_page->playlist()->setCloudPlaylist(cloud_playlist_id);
     return playlist_page;
 }
 
@@ -2673,7 +2761,6 @@ void Xamp::onReadFileProgress(int32_t progress) {
 }
 
 void Xamp::onReadCompleted() {
-    //ui_update_timer_timer_.stop();
     delay(1);
     if (local_tab_widget_->count() > 0) {
         getLocalPlaylistPage()->playlist()->reload();
@@ -2710,7 +2797,6 @@ void Xamp::onFoundFileCount(size_t file_count) {
 
 void Xamp::onReadFileStart() {
     progress_timer_.restart();
-    //ui_update_timer_timer_.start();
 }
 
 void Xamp::log(const std::exception_ptr& exptr) {

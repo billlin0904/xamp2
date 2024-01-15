@@ -40,7 +40,7 @@ void GenreView::showAll() {
 
 void GenreView::resizeEvent(QResizeEvent* event) {
     if (!show_all_) {
-        auto album_count = this->width() / kAlbumViewCoverSize;
+	    const auto album_count = this->width() / kAlbumViewCoverSize;
         showAllAlbum(album_count);
     }    
     AlbumView::resizeEvent(event);

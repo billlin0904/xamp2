@@ -139,6 +139,7 @@ void centerParent(QWidget* widget) {
         const auto y = (screen_geometry.height() - widget->height()) / 2;
         widget->move(x, y);
     }
+    widget->raise();
 }
 
 void centerDesktop(QWidget* widget) {

@@ -454,6 +454,7 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<EncodingProfile>("EncodingProfile");
 	qRegisterMetaType<std::wstring>("std::wstring");
 	qRegisterMetaType<std::vector<search::SearchResultItem>>("std::vector<search::SearchResultItem>");
+	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
 }
 
 void AppSettings::loadAppSettings() {

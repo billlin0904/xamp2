@@ -564,6 +564,37 @@ void PlayListTableView::initial() {
 
             action_map.addSeparator();
 
+            auto *add_to_playlist = action_map.addSubMenu(qTR("Add to playlist"));
+            QMap<QString, QString> playlist_ids;
+            qMainDb.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
+                if (store_type == StoreType::CLOUD_STORE) {
+                    playlist_ids.insert(cloud_playlist_id, name);
+                }
+                });
+
+            const auto rows = selectItemIndex();
+            std::vector<std::string> video_ids;
+            video_ids.reserve(rows.size());
+            for (const auto& row : rows) {
+                auto entity = this->item(row.second);
+                video_ids.push_back(entity.file_path.toStdString());
+            }
+
+            for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
+                const auto playlist_id = itr.key();
+                add_to_playlist->addAction(qSTR("Add to playlist (%1)").arg(itr.value()), [playlist_id, &video_ids, this]() {
+                    emit addToPlaylist(playlist_id, video_ids);
+                    });
+            }
+
+            action_map.setCallback(action_map.addAction(qTR("Download file")), [this]() {
+                const auto rows = selectItemIndex();
+                for (const auto& row : rows) {
+                    auto entity = this->item(row.second);
+                    emit downloadFile(entity);
+                }
+                });
+
             auto* remove_all_act = action_map.addAction(qTR("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 

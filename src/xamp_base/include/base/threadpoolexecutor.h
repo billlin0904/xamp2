@@ -102,9 +102,7 @@ private:
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     size_t max_thread_;
-    size_t min_thread_;
     FastMutex mutex_;
-    ThreadPriority thread_priority_;
     std::string pool_name_;
     Vector<JThread> threads_;
     Vector<std::atomic<ExecuteFlags>> task_execute_flags_;

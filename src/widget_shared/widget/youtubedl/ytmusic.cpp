@@ -13,6 +13,11 @@ namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
+    void printObject(py::object obj) {
+        auto dump = py::str(obj).cast<std::string>();
+        XAMP_LOG_DEBUG("{}", dump);
+    }
+
     template <typename T>
     std::vector<T> extract_py_list(py::handle obj);
 
@@ -438,6 +443,12 @@ QFuture<int32_t> YtMusic::downloadAsync(const QString& url) {
         });
 }
 
+QFuture<edit::PlaylistEditResults> YtMusic::addPlaylistItemsAsync(const QString& playlist_id, const std::vector<std::string> &video_ids, const std::optional<std::string>& source_playlist, bool duplicates) {
+    return invokeAsync([this, playlist_id, video_ids, source_playlist, duplicates]() {
+        return interop()->addPlaylistItems(playlist_id.toStdString(), video_ids, source_playlist, duplicates);
+        });
+}
+
 QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QString>& video_id, 
     const std::optional<QString>& playlist_id) {
     return invokeAsync([this, video_id, playlist_id]() {
@@ -664,9 +675,37 @@ video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) c
     };
 }
 
+edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& playlistId,
+    const std::vector<std::string>& videoIds,
+    const std::optional<std::string>& source_playlist, 
+    bool duplicates) {
+    if (playlistId.empty()) {
+        return {};
+    }
+    const auto result = impl_->get_ytmusic().attr("add_playlist_items")(playlistId, py::cast(videoIds), source_playlist, duplicates);
+    std::vector<edit::PlaylistEditResultData> playlist_results;
+    for (const auto& item : result["playlistEditResults"]) {
+	    edit::PlaylistEditResultData result_data;
+        result_data.videoId = item["videoId"].cast<std::string>();
+        result_data.setVideoId = item["setVideoId"].cast<std::string>();
+        result_data.multiSelectData.multiSelectParams = item["multiSelectData"]["multiSelectParams"].cast<std::string>();
+        result_data.multiSelectData.multiSelectItem = item["multiSelectData"]["multiSelectItem"].cast<std::string>();
+        playlist_results.push_back(result_data);
+    }
+    return {
+        result["status"].cast<std::string>(),
+        playlist_results,
+    };
+}
+
+void YtMusicInterop::removePlaylistItems(const std::string& playlistId,
+	const std::vector<edit::PlaylistEditResultData>& videos) {
+
+}
+
 watch::Playlist YtMusicInterop::getWatchPlaylist(const std::optional<std::string>& video_id,
-    const std::optional<std::string>& playlist_id,
-    int limit) const {
+                                                 const std::optional<std::string>& playlist_id,
+                                                 int limit) const {
     const auto playlist = impl_->get_ytmusic().attr("get_watch_playlist")("videoId"_a = video_id,
         "playlistId"_a = playlist_id,
         "limit"_a = py::int_(limit));

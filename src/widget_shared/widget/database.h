@@ -72,6 +72,7 @@ enum PlayingState {
 enum class StoreType {
 	LOCAL_STORE = -1,
 	CLOUD_STORE = -2,
+	CLOUD_SEARCH_STORE = -3,
 };
 
 class SqlQuery : public QSqlQuery {
@@ -119,10 +120,6 @@ public:
 	QStringList getCategories() const;
 
 	QStringList getYears() const;
-
-	int32_t addPlaylist(const QString& name, int32_t index, StoreType store_type);
-
-	void setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type);
 
 	std::map<int32_t, int32_t> getPlaylistIndex(StoreType type);
 
@@ -205,7 +202,7 @@ public:
 
 	void forEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
 
-	void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString)>&& fun);
+	void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun);
 
 	void forEachAlbumMusic(int32_t album_id, std::function<void(const PlayListEntity&)>&& fun);
 
@@ -230,6 +227,10 @@ public:
 	void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
 	bool isPlaylistExist(int32_t playlist_id) const;
+
+	int32_t addPlaylist(const QString& name, int32_t index, StoreType store_type, const QString& cloud_playlist_id= kEmptyString);
+
+	void setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type);
 
 	void addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
 

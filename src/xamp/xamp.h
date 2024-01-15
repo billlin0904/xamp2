@@ -109,7 +109,7 @@ public slots:
 
 	void ensureLocalOnePlaylistPage();
 
-	void onPlayPlayListEntity(const PlayListEntity& entity);
+	void onPlayMusic(const PlayListEntity& entity);
 
     void onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
 
@@ -221,7 +221,7 @@ private:
 
 	void setPlayerOrder(bool emit_order = false);
 
-	PlaylistPage* createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name);
+	PlaylistPage* createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id);
 
 	void pushWidget(QWidget* widget);
 
@@ -235,7 +235,9 @@ private:
 
 	void encodeAacFile(const PlayListEntity& item, const EncodingProfile & profile);
 
-	void encodeWavFile(const PlayListEntity& item);
+	void encodeWavFile(const PlayListEntity& entity);
+
+	void downloadFile(const PlayListEntity& entity);
 
     void updateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
@@ -252,10 +254,8 @@ private:
 	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type) const;
-
-	void showEvent(QShowEvent* event) override;
-
-	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString &name);
+	
+	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString &name);
 
 	PlaylistPage* getLocalPlaylistPage();
 
@@ -263,7 +263,7 @@ private:
 
 	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 
-	void log(const std::exception_ptr& exptr);
+	static void log(const std::exception_ptr& exptr);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

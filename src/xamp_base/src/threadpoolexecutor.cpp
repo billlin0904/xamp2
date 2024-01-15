@@ -28,8 +28,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMaxThreadPoolSize))
-	, min_thread_(1)
-	, thread_priority_(priority)
 	, pool_name_(pool_name)
 	, task_execute_flags_(max_thread_)
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
@@ -209,7 +207,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		auto* local_queue = task_work_queues_[i].get();
 		auto* policy = task_scheduler_policy_.get();
 		auto steal_failure_count = 0;
-		auto thread_id = GetCurrentThreadId();
+		const auto thread_id = GetCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
 		work_done_.count_down();

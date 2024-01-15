@@ -15,16 +15,22 @@ inline constexpr auto kAlbumViewCoverSize = 215;
 
 class XAMP_WIDGET_SHARED_EXPORT GenreView final : public AlbumView {
 public:
+	enum ViewType {
+		VIEW_TYPE_CLOUD_PLAYLIST
+	};
+
 	explicit GenreView(QWidget* parent = nullptr);
 
 	void setGenre(const QString& genre);
 
 	void showAll() override;
 
-	void showAllAlbum(int32_t limit = kMaxShowAlbum);
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
+	void showAllAlbum(int32_t limit = kMaxShowAlbum);
+
 	bool show_all_{ false };
+	ViewType view_type_{ ViewType::VIEW_TYPE_CLOUD_PLAYLIST };
 	QString genre_;
 };

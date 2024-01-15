@@ -35,7 +35,7 @@ IF
 	
 CREATE TABLE
 IF
-	NOT EXISTS playlist ( playlistId integer PRIMARY KEY AUTOINCREMENT, playlistIndex integer, storeType integer, name TEXT NOT NULL );
+	NOT EXISTS playlist ( playlistId integer PRIMARY KEY AUTOINCREMENT, playlistIndex integer, storeType integer, cloudPlaylistId TEXT, name TEXT NOT NULL );
 	
 CREATE TABLE
 IF
