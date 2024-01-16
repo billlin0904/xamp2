@@ -145,7 +145,7 @@ signals:
 
 	void addToPlaylist(const QString& playlist_id, const std::vector<std::string> &video_ids);
 
-	void removePlaylistItems(const QString& playlist_id, const std::vector<std::string>& video_ids);
+	void removePlaylistItems(const QString& playlist_id, const std::vector<std::string>& video_ids);	
 
 public slots:
 	void onPlayIndex(const QModelIndex& index);

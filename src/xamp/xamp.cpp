@@ -2244,6 +2244,15 @@ void Xamp::initialPlaylist() {
         }
     );
 
+    (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::deletePlaylist,
+        [this](const auto &playlist_id) {
+            QCoro::connect(ytmusic_worker_->deletePlaylistAsync(playlist_id), this, [this](auto) {
+                cloud_tab_widget_->closeAllTab();
+                initialCloudPlaylist();
+            });
+        }
+    );
+
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
             const auto tab_index = local_tab_widget_->count();
@@ -2369,9 +2378,6 @@ void Xamp::initialPlaylist() {
 }
 
 void Xamp::initialCloudPlaylist() {
-    if (!ytmusic_worker_->isInitDone()) {
-        return;
-    }
     QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistsAsync(), this, [this](const auto& playlists) {
         XAMP_LOG_DEBUG("Get library playlist done!");
         int32_t index = 1;
@@ -2587,9 +2593,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
             [this, playlist_page](const auto& text, Match match) {
-                if (!ytmusic_worker_->isInitDone()) {
-                    return;
-                }
                 if (text.isEmpty()) {
                     XAMP_LOG_DEBUG("text isEmpty");
                     return;
@@ -2630,14 +2633,10 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             datas.reserve(video_ids.size());
             for (auto id : video_ids) {
                 edit::PlaylistEditResultData data;
-                try {
-                    auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
-                    data.videoId = video_id.toStdString();
-                    data.setVideoId = setVideoId.toStdString();
-                    datas.push_back(data);
-                }
-                catch (...) {
-                }
+                auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
+                data.videoId = video_id.toStdString();
+                data.setVideoId = setVideoId.toStdString();
+                datas.push_back(data);
             }
             playlist_page->spinner()->startAnimation();
             centerParent(playlist_page->spinner());

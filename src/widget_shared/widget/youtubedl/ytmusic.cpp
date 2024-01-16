@@ -402,14 +402,9 @@ void YtMusic::cancelRequested() {
     is_stop_ = true;
 }
 
-bool YtMusic::isInitDone() const {
-    return is_init_done_;
-}
-
 QFuture<bool> YtMusic::initialAsync() {
     return invokeAsync([this]() {
         interop()->initial();
-        is_init_done_ = true;
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
@@ -446,6 +441,16 @@ QFuture<int32_t> YtMusic::downloadAsync(const QString& url) {
         });
 }
 
+QFuture<std::string> YtMusic::createPlaylistAsync(const QString& title,
+    const QString& description,
+    PrivateStatus status,
+    const std::vector<std::string>& video_ids,
+    const std::optional<std::string>& source_playlis) {
+    return invokeAsync([this, title, description, status, video_ids, source_playlis]() {
+        return interop()->createPlaylistAsync(title.toStdString(), description.toStdString(), status, video_ids, source_playlis);
+        });
+}
+
 QFuture<edit::PlaylistEditResults> YtMusic::addPlaylistItemsAsync(const QString& playlist_id, const std::vector<std::string> &video_ids, const std::optional<std::string>& source_playlist, bool duplicates) {
     return invokeAsync([this, playlist_id, video_ids, source_playlist, duplicates]() {
         return interop()->addPlaylistItems(playlist_id.toStdString(), video_ids, source_playlist, duplicates);
@@ -455,6 +460,12 @@ QFuture<edit::PlaylistEditResults> YtMusic::addPlaylistItemsAsync(const QString&
 QFuture<bool> YtMusic::removePlaylistItemsAsync(const QString& playlist_id, const std::vector<edit::PlaylistEditResultData>& videos) {
     return invokeAsync([this, playlist_id, videos]() {
         return interop()->removePlaylistItems(playlist_id.toStdString(), videos);
+        });
+}
+
+QFuture<bool> YtMusic::deletePlaylistAsync(const QString& playlist_id) {    
+    return invokeAsync([this, playlist_id]() {
+        return interop()->deletePlaylist(playlist_id.toStdString());
         });
 }
 
@@ -686,6 +697,31 @@ video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) c
     };
 }
 
+std::string YtMusicInterop::createPlaylistAsync(const std::string& title,
+    const std::string& description,
+    PrivateStatus status,
+    const std::vector<std::string>& video_ids,
+    const std::optional<std::string>& source_playlist) {
+    if (title.empty()) {
+        return {};
+    }
+    std::string private_status = "PRIVATE";
+    switch (status) {
+    case PRIVATE_S_PRIVATE:
+        private_status = "PRIVATE";
+        break;
+    case PRIVATE_S_PUBLIC:
+        private_status = "PUBLIC";
+        break;
+    case PRIVATE_S_UNLISTED:
+        private_status = "UNLISTED";
+        break;
+    }
+    const auto result = impl_->get_ytmusic().attr("create_playlist")(title, description, private_status, py::cast(video_ids), source_playlist);
+    printObject(result);
+    return {};
+}
+
 edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& playlistId,
     const std::vector<std::string>& videoIds,
     const std::optional<std::string>& source_playlist, 
@@ -724,6 +760,12 @@ bool YtMusicInterop::removePlaylistItems(const std::string& playlist_id,
     }
 
     const auto result = impl_->get_ytmusic().attr("remove_playlist_items")(playlist_id, py_list);
+    printObject(result);
+    return true;
+}
+
+bool YtMusicInterop::deletePlaylist(const std::string& playlist_id) {
+    const auto result = impl_->get_ytmusic().attr("delete_playlist")(playlist_id);
     printObject(result);
     return true;
 }

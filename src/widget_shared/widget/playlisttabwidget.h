@@ -45,6 +45,8 @@ signals:
 
 	void reloadPlaylist();
 
+	void deletePlaylist(const QString& playlist_id);
+
 public slots:
 	void onCurrentThemeChanged(ThemeColor theme_color);
 

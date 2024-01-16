@@ -236,6 +236,17 @@ namespace playlist {
     };
 }
 
+enum InvokeType {
+    INVOKE_NONE,
+    INVOKE_IMMEDIATELY,
+};
+
+enum PrivateStatus {
+    PRIVATE_S_PUBLIC,
+    PRIVATE_S_PRIVATE,
+    PRIVATE_S_UNLISTED,
+};
+
 inline std::wstring makeId(const playlist::Track &track) {
     if (!track.set_video_id) {
         return String::ToString(track.video_id.value() + " ");
@@ -382,6 +393,12 @@ public:
 
     [[nodiscard]] video_info::VideoInfo extractInfo(const std::string& video_id) const;
 
+    [[nodiscard]] std::string createPlaylistAsync(const std::string& title,
+        const std::string& description,
+        PrivateStatus status,
+        const std::vector<std::string>& video_ids,
+        const std::optional<std::string>& source_playlist = std::nullopt);
+
     [[nodiscard]] edit::PlaylistEditResults addPlaylistItems(const std::string& playlistId,
                                                const std::vector<std::string>& videoIds, 
                                                const std::optional<std::string>& source_playlist,
@@ -389,15 +406,12 @@ public:
 
     [[nodiscard]] bool removePlaylistItems(const std::string& playlist_id, const std::vector<edit::PlaylistEditResultData> &videos);
 
+    [[nodiscard]] bool deletePlaylist(const std::string& playlist_id);
+
     [[nodiscard]] int32_t download(const std::string& url);
 private:
     class YtMusicInteropImpl;
     AlignPtr<YtMusicInteropImpl> impl_;
-};
-
-enum InvokeType {
-	INVOKE_NONE,
-    INVOKE_IMMEDIATELY,
 };
 
 class XAMP_WIDGET_SHARED_EXPORT YtMusic : public QObject {
@@ -406,8 +420,6 @@ public:
     explicit YtMusic(QObject* parent = nullptr);
 
     void cancelRequested();
-
-    bool isInitDone() const;
 
     QFuture<bool> initialAsync();
 
@@ -437,6 +449,12 @@ public:
 
     QFuture<int32_t> downloadAsync(const QString& url);
 
+    QFuture<std::string> createPlaylistAsync(const QString& title,
+        const QString& description,
+        PrivateStatus status, 
+        const std::vector<std::string>& video_ids,
+        const std::optional<std::string>& source_playlist = std::nullopt);
+
     QFuture<edit::PlaylistEditResults> addPlaylistItemsAsync(const QString& playlist_id,
         const std::vector<std::string>& video_ids,
         const std::optional<std::string>& source_playlist = std::nullopt,
@@ -444,6 +462,8 @@ public:
 
     QFuture<bool> removePlaylistItemsAsync(const QString& playlist_id,
         const std::vector<edit::PlaylistEditResultData>& videos);
+
+    QFuture<bool> deletePlaylistAsync(const QString& playlist_id);
 private:
     YtMusicInterop* interop();
 
@@ -472,7 +492,6 @@ private:
     }
 
     std::atomic<bool> is_stop_{false };
-    std::atomic<bool> is_init_done_{ false };
     LoggerPtr logger_;
     LocalStorage<YtMusicInterop> interop_;
 };

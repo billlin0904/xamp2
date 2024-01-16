@@ -95,17 +95,27 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             emit removeAllPlaylist();
             });
 
-        auto* reload_the_tab_act = action_map.addAction(qTR("Reload playlist"), [this]() {            
+        auto* reload_the_tab_act = action_map.addAction(qTR("Reload all playlist"), [this]() {            
             emit reloadPlaylist();
             });
 
-        try {
+        auto* delete_the_tab_act = action_map.addAction(qTR("Delete the playlist"), [pt, this]() {
+            auto tab_index = tabBar()->tabAt(pt);
+            if (tab_index == -1) {
+                return;
+            }
+
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+            if (!playlist_page->playlist()->cloudPlaylistId()) {
+                return;
+            }
+
+            emit deletePlaylist(playlist_page->playlist()->cloudPlaylistId().value());
+            });
+
+        TRY_LOG(
             action_map.exec(pt);
-        }
-        catch (const Exception&) {
-        }
-        catch (const std::exception&) {
-        }
+        )
         });
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {

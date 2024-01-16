@@ -585,7 +585,7 @@ void PlayListTableView::initial() {
                 if (cloudPlaylistId()) {
                     emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
                 }
-            });
+            });            
 
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
