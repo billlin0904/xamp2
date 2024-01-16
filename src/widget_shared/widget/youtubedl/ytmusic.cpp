@@ -13,10 +13,7 @@ namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
-    void printObject(py::object obj) {
-        auto dump = py::str(obj).cast<std::string>();
-        XAMP_LOG_DEBUG("{}", dump);
-    }
+#define printObject(obj) XAMP_LOG_DEBUG("{}", py::str(obj).cast<std::string>())
 
     template <typename T>
     std::vector<T> extract_py_list(py::handle obj);
@@ -112,7 +109,13 @@ namespace {
             track["likeStatus"].cast<std::optional<std::string>>(),
             extract_py_list<meta::Thumbnail>(track["thumbnails"]),
             track["isAvailable"].cast<bool>(),
-            optional_key<bool>(track, "isExplicit")
+            optional_key<bool>(track, "isExplicit"),
+            [&]() -> std::optional<std::string> {
+                if (!track.contains("setVideoId")) {
+                    return std::nullopt;
+                }
+                return track["setVideoId"].cast<std::optional<std::string>>();
+                }()
         };
     }
 
@@ -449,6 +452,12 @@ QFuture<edit::PlaylistEditResults> YtMusic::addPlaylistItemsAsync(const QString&
         });
 }
 
+QFuture<bool> YtMusic::removePlaylistItemsAsync(const QString& playlist_id, const std::vector<edit::PlaylistEditResultData>& videos) {
+    return invokeAsync([this, playlist_id, videos]() {
+        return interop()->removePlaylistItems(playlist_id.toStdString(), videos);
+        });
+}
+
 QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QString>& video_id, 
     const std::optional<QString>& playlist_id) {
     return invokeAsync([this, video_id, playlist_id]() {
@@ -604,6 +613,8 @@ playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, i
         }
     };
 
+    printObject(playlist);
+
     auto extract_duration = [&]() -> std::string {
         if (playlist["duration"].is_none()) {
             return "";
@@ -688,8 +699,8 @@ edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& pl
 	    edit::PlaylistEditResultData result_data;
         result_data.videoId = item["videoId"].cast<std::string>();
         result_data.setVideoId = item["setVideoId"].cast<std::string>();
-        result_data.multiSelectData.multiSelectParams = item["multiSelectData"]["multiSelectParams"].cast<std::string>();
-        result_data.multiSelectData.multiSelectItem = item["multiSelectData"]["multiSelectItem"].cast<std::string>();
+        result_data.multi_select_data.multi_select_params = item["multiSelectData"]["multiSelectParams"].cast<std::string>();
+        result_data.multi_select_data.multi_select_item = item["multiSelectData"]["multiSelectItem"].cast<std::string>();
         playlist_results.push_back(result_data);
     }
     return {
@@ -698,9 +709,23 @@ edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& pl
     };
 }
 
-void YtMusicInterop::removePlaylistItems(const std::string& playlistId,
-	const std::vector<edit::PlaylistEditResultData>& videos) {
+bool YtMusicInterop::removePlaylistItems(const std::string& playlist_id,
+	const std::vector<edit::PlaylistEditResultData>& videoIds) {
+    if (playlist_id.empty()) {
+        return false;
+    }
 
+    py::list py_list;
+    for (const auto& item : videoIds) {
+        py::dict py_dict;
+        py_dict["videoId"] = item.videoId;
+        py_dict["setVideoId"] = item.setVideoId;
+        py_list.append(py_dict);
+    }
+
+    const auto result = impl_->get_ytmusic().attr("remove_playlist_items")(playlist_id, py_list);
+    printObject(result);
+    return true;
 }
 
 watch::Playlist YtMusicInterop::getWatchPlaylist(const std::optional<std::string>& video_id,

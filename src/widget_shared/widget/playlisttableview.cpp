@@ -576,12 +576,19 @@ void PlayListTableView::initial() {
             std::vector<std::string> video_ids;
             video_ids.reserve(rows.size());
             for (const auto& row : rows) {
-                auto entity = this->item(row.second);
+                const auto entity = this->item(row.second);
                 video_ids.push_back(entity.file_path.toStdString());
             }
 
+            auto* remove_select_cloud_music_act = action_map.addAction(qTR("Remove select music"));
+            action_map.setCallback(remove_select_cloud_music_act, [this, video_ids]() {
+                if (cloudPlaylistId()) {
+                    emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
+                }
+            });
+
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
-                const auto playlist_id = itr.key();
+                const auto& playlist_id = itr.key();
                 add_to_playlist->addAction(qSTR("Add to playlist (%1)").arg(itr.value()), [playlist_id, &video_ids, this]() {
                     emit addToPlaylist(playlist_id, video_ids);
                     });
@@ -604,18 +611,14 @@ void PlayListTableView::initial() {
                 }
 
                 IGNORE_DB_EXCEPTION(qMainDb.removePlaylistAllMusic(playlistId()))
-                    reload();
+            	reload();
                 removePlaying();
                 });
 
             if (model_->rowCount() > 0 && index.isValid()) {
-                try {
+                TRY_LOG(
                     action_map.exec(pt);
-                }
-                catch (Exception const& e) {
-                }
-                catch (std::exception const& e) {
-                }                
+                )
             }
             return;
         }
@@ -701,13 +704,9 @@ void PlayListTableView::initial() {
         auto * copy_title_act = action_map.addAction(qTR("Copy title"));
 
         if (model_->rowCount() == 0 || !index.isValid()) {
-            try {
+            TRY_LOG(
                 action_map.exec(pt);
-            }
-            catch (Exception const& e) {
-            }
-            catch (std::exception const& e) {
-            }
+            )
             return;
         }
 
@@ -791,13 +790,9 @@ void PlayListTableView::initial() {
                 emit encodeWavFile(entity);
             }
         });
-
-        try {
+        TRY_LOG(
             action_map.exec(pt);
-        }
-        catch (Exception const& e) {
-        } catch (std::exception const &e){
-        }
+        )
     });
 
     const auto *control_A_key = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this);
@@ -810,16 +805,11 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
-    try {
+    TRY_LOG(
         qMainDb.addOrUpdateMusic(TagIO::getTrackInfo(item.file_path.toStdWString()));
-        reload();
-        play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
-    }
-    catch (std::filesystem::filesystem_error& e) {
-        XAMP_LOG_DEBUG("Reload track information error: {}", String::LocaleStringToUTF8(e.what()));
-    }
-    catch (...) {
-    }
+		reload();
+		play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+    )
 }
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {

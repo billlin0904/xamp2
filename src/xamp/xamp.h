@@ -263,8 +263,6 @@ private:
 
 	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 
-	static void log(const std::exception_ptr& exptr);
-
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;

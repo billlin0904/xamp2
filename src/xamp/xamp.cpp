@@ -406,14 +406,6 @@ namespace {
     }
 }
 
-#define TRY_LOG(expr) \
-    try {\
-        [&, this]() { expr; }();\
-    }\
-    catch (...) {\
-        log(std::current_exception());\
-    }
-
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
     , is_seeking_(false)
@@ -808,7 +800,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             continue;
         }
 
-        track_info.file_path = String::ToString(track.video_id.value());
+        track_info.file_path = makeId(track);
 
         const ForwardList<TrackInfo> track_infos{ track_info };
         DatabaseFacade facede;
@@ -828,9 +820,12 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
     }
 
     playlist_page->spinner()->stopAnimation();
+    playlist_page->playlist()->reload();
 }
 
-void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &video_id) {
+void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
+    auto [video_id, setVideoId] = parseId(id);
+
     fetchLyrics(entity, video_id);
 
     auto* play_page = dynamic_cast<PlaylistPage*>(sender());
@@ -1299,7 +1294,7 @@ void Xamp::initialController() {
         }
         catch (...) {
             player_->Stop(false);
-            log(std::current_exception());
+            logAndShowMessage(std::current_exception());
         }
         is_seeking_ = false;
     });
@@ -2622,8 +2617,37 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addToPlaylist,
         [this](const auto& playlist_id, const auto& video_ids) {
-            QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids), this, []() {
+            QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids), this, [](auto) {
 
+                });
+        });
+
+
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::removePlaylistItems,
+        [this, playlist_page](const auto& playlist_id, const auto& video_ids) {
+            std::vector<edit::PlaylistEditResultData> datas;
+            datas.reserve(video_ids.size());
+            for (auto id : video_ids) {
+                edit::PlaylistEditResultData data;
+                try {
+                    auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
+                    data.videoId = video_id.toStdString();
+                    data.setVideoId = setVideoId.toStdString();
+                    datas.push_back(data);
+                }
+                catch (...) {
+                }
+            }
+            playlist_page->spinner()->startAnimation();
+            centerParent(playlist_page->spinner());
+            QCoro::connect(ytmusic_worker_->removePlaylistItemsAsync(playlist_id, datas), this, [this, playlist_page, playlist_id](auto) {
+                playlist_page->playlist()->removeAll();
+                QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id),
+                this, [this, playlist_page](const auto& playlist) {
+                    XAMP_LOG_DEBUG("Reload playlist!");
+                	onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                    });
                 });
         });
 
@@ -2799,20 +2823,3 @@ void Xamp::onReadFileStart() {
     progress_timer_.restart();
 }
 
-void Xamp::log(const std::exception_ptr& exptr) {
-    try {
-        std::rethrow_exception(exptr);
-    }
-    catch (const PlatformException& e) {
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
-    }
-    catch (const Exception& e) {
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
-    }
-    catch (const std::exception& e) {
-        XMessageBox::showError(qTEXT(e.what()));
-    }
-    catch (...) {
-        XMessageBox::showError(qTR("Unknown error"));
-    }
-}

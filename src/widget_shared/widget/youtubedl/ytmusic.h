@@ -12,6 +12,7 @@
 
 #include <base/lazy_storage.h>
 #include <widget/widget_shared.h>
+#include <widget/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
 namespace meta {
@@ -219,6 +220,7 @@ namespace playlist {
         std::vector<meta::Thumbnail> thumbnails;
         bool is_available;
         std::optional<bool> is_explicit;
+        std::optional<std::string> set_video_id;
     };
 
     struct Playlist {
@@ -232,6 +234,21 @@ namespace playlist {
         int track_count;
         std::vector<Track> tracks;
     };
+}
+
+inline std::wstring makeId(const playlist::Track &track) {
+    if (!track.set_video_id) {
+        return String::ToString(track.video_id.value() + " ");
+    }
+    return String::ToString(track.video_id.value() + " " + track.set_video_id.value());
+}
+
+inline std::pair<QString, QString> parseId(const QString &id) {
+    auto parts = id.split(qTEXT(" "), Qt::SkipEmptyParts);
+    if (parts.size() != 2) {
+        return std::make_pair(parts[0], kEmptyString);
+    }
+    return std::make_pair(parts[0], parts[1]);
 }
 
 namespace video_info {
@@ -293,14 +310,14 @@ namespace library {
 
 namespace edit {
     struct MultiSelectData {
-        std::string multiSelectParams;
-        std::string multiSelectItem;
+        std::string multi_select_params;
+        std::string multi_select_item;
     };
 
 	struct PlaylistEditResultData {
-        std::string videoId;
-        std::string setVideoId;
-        MultiSelectData multiSelectData;
+        std::optional<std::string> videoId;
+        std::optional<std::string> setVideoId;
+        MultiSelectData multi_select_data;
     };
 
 	struct PlaylistEditResults {
@@ -370,7 +387,7 @@ public:
                                                const std::optional<std::string>& source_playlist,
                                                bool duplicates);
 
-    void removePlaylistItems(const std::string& playlistId, const std::vector<edit::PlaylistEditResultData> &videos);
+    [[nodiscard]] bool removePlaylistItems(const std::string& playlist_id, const std::vector<edit::PlaylistEditResultData> &videos);
 
     [[nodiscard]] int32_t download(const std::string& url);
 private:
@@ -424,6 +441,9 @@ public:
         const std::vector<std::string>& video_ids,
         const std::optional<std::string>& source_playlist = std::nullopt,
         bool duplicates = false);
+
+    QFuture<bool> removePlaylistItemsAsync(const QString& playlist_id,
+        const std::vector<edit::PlaylistEditResultData>& videos);
 private:
     YtMusicInterop* interop();
 

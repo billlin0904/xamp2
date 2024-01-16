@@ -264,6 +264,7 @@
     <ClCompile Include="widget\volumebutton.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
+    <ClCompile Include="widget\widget_shared_global.cpp" />
     <ClCompile Include="widget\win32\wintaskbar.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
