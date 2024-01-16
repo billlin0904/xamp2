@@ -451,6 +451,19 @@ QFuture<std::string> YtMusic::createPlaylistAsync(const QString& title,
         });
 }
 
+QFuture<bool> YtMusic::editPlaylsistAsync(const QString& playlist_id,
+    const QString& title,
+    const QString& description,
+	PrivateStatus status,
+    const std::optional<std::tuple<std::string, std::string>>& move_item,
+	const std::optional<std::string>& add_playlist_id, 
+    const std::optional<std::string>& add_to_top) {
+    return invokeAsync([this, playlist_id, title, description, status, move_item, add_playlist_id, add_to_top]() {
+        return interop()->editPlaylsist(playlist_id.toStdString(),
+			title.toStdString(), description.toStdString(), status, move_item, add_playlist_id, add_to_top);
+        });
+}
+
 QFuture<edit::PlaylistEditResults> YtMusic::addPlaylistItemsAsync(const QString& playlist_id, const std::vector<std::string> &video_ids, const std::optional<std::string>& source_playlist, bool duplicates) {
     return invokeAsync([this, playlist_id, video_ids, source_playlist, duplicates]() {
         return interop()->addPlaylistItems(playlist_id.toStdString(), video_ids, source_playlist, duplicates);
@@ -697,35 +710,64 @@ video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) c
     };
 }
 
+std::string privateStatusToString(PrivateStatus status) {
+	std::string private_status = "PRIVATE";
+	switch (status) {
+	case PRIVATE_S_PRIVATE:
+		private_status = "PRIVATE";
+		break;
+	case PRIVATE_S_PUBLIC:
+		private_status = "PUBLIC";
+		break;
+	case PRIVATE_S_UNLISTED:
+		private_status = "UNLISTED";
+		break;
+	}
+    return private_status;
+}
+
 std::string YtMusicInterop::createPlaylistAsync(const std::string& title,
-    const std::string& description,
-    PrivateStatus status,
-    const std::vector<std::string>& video_ids,
-    const std::optional<std::string>& source_playlist) {
+                                                const std::string& description,
+                                                PrivateStatus status,
+                                                const std::vector<std::string>& video_ids,
+                                                const std::optional<std::string>& source_playlist) {
     if (title.empty()) {
         return {};
     }
-    std::string private_status = "PRIVATE";
-    switch (status) {
-    case PRIVATE_S_PRIVATE:
-        private_status = "PRIVATE";
-        break;
-    case PRIVATE_S_PUBLIC:
-        private_status = "PUBLIC";
-        break;
-    case PRIVATE_S_UNLISTED:
-        private_status = "UNLISTED";
-        break;
-    }
-    const auto result = impl_->get_ytmusic().attr("create_playlist")(title, description, private_status, py::cast(video_ids), source_playlist);
+    const auto result = impl_->get_ytmusic().attr("create_playlist")(title,        
+        description, 
+        privateStatusToString(status), 
+        py::cast(video_ids), 
+        source_playlist);
     printObject(result);
-    return {};
+    return result.cast<std::string>();
+}
+
+bool YtMusicInterop::editPlaylsist(const std::string& playlist_id,
+    const std::string& title,
+    const std::string& description,
+    PrivateStatus status,
+    const std::optional<std::tuple<std::string, std::string>>& move_item,
+    const std::optional<std::string>& add_playlist_id,
+	const std::optional<std::string>& add_to_top) {
+    if (playlist_id.empty()) {
+        return false;
+    }
+    const auto result = impl_->get_ytmusic().attr("edit_playlist")(playlist_id,
+        title,
+        description, 
+        privateStatusToString(status), 
+        move_item, 
+        add_playlist_id,
+        add_to_top);
+    printObject(result);
+    return true;
 }
 
 edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& playlistId,
-    const std::vector<std::string>& videoIds,
-    const std::optional<std::string>& source_playlist, 
-    bool duplicates) {
+                                                           const std::vector<std::string>& videoIds,
+                                                           const std::optional<std::string>& source_playlist, 
+                                                           bool duplicates) {
     if (playlistId.empty()) {
         return {};
     }

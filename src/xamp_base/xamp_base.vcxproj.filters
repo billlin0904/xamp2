@@ -97,5 +97,6 @@
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
     <ClInclude Include="include\base\algorithm.h" />
     <ClInclude Include="include\base\mpmc_queue.h" />
+    <ClInclude Include="include\base\lazy_storage.h" />
   </ItemGroup>
 </Project>

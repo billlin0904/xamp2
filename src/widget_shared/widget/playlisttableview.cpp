@@ -141,7 +141,7 @@ public:
         : QStyledItemDelegate(parent) {
     }
 
-    static QIcon UniformIcon(QIcon icon, QSize size) {
+    static QIcon uniformIcon(QIcon icon, QSize size) {
         QIcon result;
         const auto base_pixmap = icon.pixmap(size);
         for (const auto state : { QIcon::Off, QIcon::On }) {
@@ -272,7 +272,7 @@ public:
 
                 opt.icon = qTheme.fontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
                 // note: 解決圖示再選擇的時候會蓋掉顏色的問題
-                opt.icon = UniformIcon(opt.icon, opt.decorationSize);
+                opt.icon = uniformIcon(opt.icon, opt.decorationSize);
 
                 opt.features = QStyleOptionViewItem::HasDecoration;
                 opt.decorationAlignment = Qt::AlignCenter;
@@ -284,7 +284,7 @@ public:
 	        {
 				opt.icon = icon_cache_.GetOrAdd(value.toString(), [&value]() {
                     const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(value.toString()), PlayListTableView::kCoverSize));
-                    return UniformIcon(icon, PlayListTableView::kCoverSize);
+                    return uniformIcon(icon, PlayListTableView::kCoverSize);
                 });
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;

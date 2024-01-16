@@ -68,6 +68,7 @@
 #include <widget/playlisttabwidget.h>
 #include <widget/youtubedl/ytmusic.h>
 #include <widget/genre_view_page.h>
+#include <widget/playlisttabbar.h>
 #include <widget/genre_view.h>
 #include <widget/str_utilts.h>
 
@@ -808,14 +809,15 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             if (thumbnail_url.empty()) {
                 return;
             }
-            http::HttpClient(QString::fromStdString(thumbnail_url))
+            /*http::HttpClient(QString::fromStdString(thumbnail_url))
                 .download([=, this](const auto& content) {
                 QPixmap image;
                 if (!image.loadFromData(content)) {
                     return;
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-            });            
+            });*/
+            emit fetchThumbnailUrl(album_id, QString::fromStdString(thumbnail_url));
         });
     }
 
@@ -952,7 +954,9 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
                 });
-            });
+            //emit fetchThumbnailUrl(album_id, QString::fromStdString(thumbnail_url));
+            }
+        );
     }
 
     cloud_search_page_->spinner()->stopAnimation();
@@ -1799,7 +1803,7 @@ void Xamp::performDelayedUpdate() {
     album_page_->reload();
     cloud_search_page_->playlist()->reload();
     local_tab_widget_->reloadAll();
-	//cloud_tab_widget_->reloadAll();
+	cloud_tab_widget_->reloadAll();
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -2244,6 +2248,16 @@ void Xamp::initialPlaylist() {
         }
     );
 
+    (void)QObject::connect(dynamic_cast<PlaylistTabBar*>(cloud_tab_widget_->tabBar()), &PlaylistTabBar::textChanged,
+         [this](auto index, const auto& text) {
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(cloud_tab_widget_->widget(index));
+            auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
+            QCoro::connect(ytmusic_worker_->editPlaylsistAsync(playlist_id, text, qTEXT(""), PRIVATE_S_PRIVATE), this, [this](auto) {
+                cloud_tab_widget_->closeAllTab();
+                initialCloudPlaylist();
+                });
+    });
+
     (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::deletePlaylist,
         [this](const auto &playlist_id) {
             QCoro::connect(ytmusic_worker_->deletePlaylistAsync(playlist_id), this, [this](auto) {
@@ -2252,6 +2266,14 @@ void Xamp::initialPlaylist() {
             });
         }
     );
+
+    (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::createCloudPlaylist,
+        [this]() {
+            QCoro::connect(ytmusic_worker_->createPlaylistAsync(qTR("Playlist"), qTR("Playlist"), PRIVATE_S_PRIVATE, {}), this, [this](auto) {
+                cloud_tab_widget_->closeAllTab();
+                initialCloudPlaylist();
+                });
+        });
 
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {

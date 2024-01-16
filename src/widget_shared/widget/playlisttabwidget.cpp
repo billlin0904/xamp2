@@ -67,6 +67,10 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(this, &PlaylistTabBar::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlaylistTabWidget> action_map(this);
 
+        action_map.setCallback(action_map.addAction(qTR("Create a playlist")), [this]() {
+            emit createCloudPlaylist();
+            });
+
         auto* close_all_tab_act = action_map.addAction(qTR("Close all tab"), [this]() {
             closeAllTab();
             });

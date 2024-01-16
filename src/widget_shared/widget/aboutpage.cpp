@@ -51,7 +51,7 @@ AboutPage::AboutPage(QWidget* parent)
     QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
     ui_->lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));
     ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
-    ui_->lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2023 XAMP2 Project."));
+    ui_->lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2024 XAMP2 Project."));
 
     QFont font(qTheme.uiFont());
     font.setBold(false);

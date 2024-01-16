@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2023 XAMP project. All rights reserved.
+// Copyright (c) 2018-2024 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -7,8 +7,9 @@
 
 #include <QLineEdit>
 #include <QTabBar>
+#include <widget/widget_shared_global.h>
 
-class PlaylistTabBar final : public QTabBar {
+class XAMP_WIDGET_SHARED_EXPORT PlaylistTabBar final : public QTabBar {
 	Q_OBJECT
 public:
 	explicit PlaylistTabBar(QWidget* parent = nullptr);

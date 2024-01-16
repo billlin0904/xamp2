@@ -11,6 +11,11 @@ FindAlbumCoverWorker::FindAlbumCoverWorker()
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url) {
+    const auto cover_id = database_ptr_->Acquire()->getAlbumCoverId(album_id);
+    if (!cover_id.isEmpty()) {
+        return;
+    }
+
     http::HttpClient(thumbnail_url)
         .download([=, this](const auto& content) {
         QPixmap image;
