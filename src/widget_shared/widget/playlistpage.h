@@ -63,6 +63,8 @@ signals:
 
 	void search(const QString& text, Match match);
 
+	void editFinished(const QString& text);
+
 public slots:
     void onThemeColorChanged(QColor theme_color, QColor color);
 

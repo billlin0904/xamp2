@@ -201,8 +201,8 @@ void ThemeManager::setFontAwesomeIcons() {
     { ICON_EDIT,                      0xF044 },
     { ICON_CIRCLE_CHECK,              0xF058 },
     { ICON_CIRCLE_NOTCH,              0xF1CE },
-   	{ ICON_YOUTUBE,                   0xF8AE },
-	{ ICON_YOUTUBE_LIBRARY,           0xF8AE }
+   	{ ICON_YOUTUBE,                   0xF002 },
+	{ ICON_YOUTUBE_LIBRARY,           0xF8EB }
     };
     
     switch (theme_color_) {

@@ -32,7 +32,7 @@ private:
 
     using factory_type = FactoryType;
     using pool_type = ObjectPool<T, FactoryType>;
-    using deleter_type = pool_type::ReturnToPool;
+    using deleter_type = typename pool_type::ReturnToPool;
     using ptr_type = std::unique_ptr<T>;
 
 public:

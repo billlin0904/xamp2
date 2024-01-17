@@ -182,6 +182,14 @@ void PlaylistPage::initial() {
 			});
 	}
 
+	(void)QObject::connect(search_line_edit_, &QLineEdit::returnPressed, [this]() {
+		const auto text = search_line_edit_->text();
+		if (text.isEmpty()) {
+			return;
+		}
+		emit editFinished(text);
+		});
+
 	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this](const auto& text) {
 		const auto items = search_playlist_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
@@ -197,6 +205,7 @@ void PlaylistPage::initial() {
 		playlist_completer_->setCompletionPrefix(text);
 		emit search(text, MATCH_NONE);
 		});
+
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 

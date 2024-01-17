@@ -280,7 +280,7 @@ private:
 	QScopedPointer<FileSystemViewPage> file_system_view_page_;
 	QScopedPointer<PlaylistPage> cloud_search_page_;
 	QScopedPointer<PlaylistTabWidget> cloud_tab_widget_;
-	QScopedPointer<GenreViewPage> cloud_main_page_;
+	//QScopedPointer<GenreViewPage> cloud_main_page_;
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<ExtractFileWorker> extract_file_worker_;
@@ -290,6 +290,7 @@ private:
 	QThread extract_file_thread_;
 	QThread ytmusic_thread_;
 	QTimer ui_update_timer_timer_;
+	QMap<int32_t, QString> cloud_album_cover_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;

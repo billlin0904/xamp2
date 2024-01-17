@@ -1,5 +1,6 @@
 #include <QImageReader>
 
+#include <base/object_pool.h>
 #include <widget/findalbumcoverworker.h>
 #include <widget/tagio.h>
 #include <widget/database.h>
@@ -7,7 +8,7 @@
 #include <widget/http.h>
 
 FindAlbumCoverWorker::FindAlbumCoverWorker()
-    : database_ptr_(GetPooledDatabase(1)) {
+    : database_ptr_(GetPooledDatabase(2)) {
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url) {
@@ -22,7 +23,10 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(int32_t album_id, const QString& 
         if (!image.loadFromData(content)) {
             return;
         }
-        database_ptr_->Acquire()->setAlbumCover(album_id, qImageCache.addImage(image));
+        try {
+            database_ptr_->Acquire()->setAlbumCover(album_id, qImageCache.addImage(image));
+        } catch (...) {
+        }
     });
 }
 

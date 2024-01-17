@@ -908,7 +908,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
     int track_no = 1;
     std::string thumbnail_url;
     if (!album.thumbnails.empty()) {
-        //thumbnail_url = album.thumbnails.back().url;
+        // 縮圖使用取最小圖片cover url
         thumbnail_url = album.thumbnails.front().url;
     }
 
@@ -946,15 +946,19 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             if (thumbnail_url.empty()) {
                 return;
             }
-            http::HttpClient(QString::fromStdString(thumbnail_url))
+            /*http::HttpClient(QString::fromStdString(thumbnail_url))
                 .download([=, this](const auto& content) {
                 QPixmap image;
                 if (!image.loadFromData(content)) {
                     return;
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-                });
+                });*/
             //emit fetchThumbnailUrl(album_id, QString::fromStdString(thumbnail_url));
+            if (!cloud_album_cover_pending_.contains(album_id)) {
+                cloud_album_cover_pending_.insert(album_id, QString::fromStdString(thumbnail_url));
+            }
+
             }
         );
     }
@@ -1430,9 +1434,9 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
-    case TAB_YT_MUSIC_INDEX:
-        ui_.currentView->setCurrentWidget(cloud_main_page_.get());
-        break;
+    //case TAB_YT_MUSIC_INDEX:
+    //    ui_.currentView->setCurrentWidget(cloud_main_page_.get());
+    //    break;
     case TAB_YT_MUSIC_SEARCH:
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         break;
@@ -1801,9 +1805,22 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 void Xamp::performDelayedUpdate() {
     cd_page_->playlistPage()->playlist()->reload();
     album_page_->reload();
-    cloud_search_page_->playlist()->reload();
     local_tab_widget_->reloadAll();
 	cloud_tab_widget_->reloadAll();
+    if (!cloud_album_cover_pending_.isEmpty()) {
+	    const auto itr = cloud_album_cover_pending_.keyValueBegin();
+        auto album_id = itr->first;
+        http::HttpClient(itr->second)
+            .download([album_id, this](const auto& content) {
+            QPixmap image;
+            if (!image.loadFromData(content)) {
+                return;
+            }
+            qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
+        });
+        cloud_album_cover_pending_.remove(album_id);
+        cloud_search_page_->playlist()->reload();
+    }
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -2176,11 +2193,6 @@ void Xamp::initialPlaylist() {
     album_page_.reset(new AlbumArtistPage(this));
     local_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_search_page_.reset(new PlaylistPage(this));
-    cloud_main_page_.reset(new GenreViewPage(this));    
-
-    cloud_main_page_->addGenre(qTEXT("Favourites"));
-    cloud_main_page_->addGenre(qTEXT("Most played"));
-    cloud_main_page_->addGenre(qTEXT("Playlists"));
 
     cloud_search_page_->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
     cloud_search_page_->playlist()->enableCloudMode(true);
@@ -2194,9 +2206,8 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("YouTube Index"), TAB_YT_MUSIC_INDEX, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
-    ui_.naviBar->addTab(qTR("YouTube Search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->addTab(qTR("YouTube Playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
+    ui_.naviBar->addTab(qTR("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(qTR("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -2339,11 +2350,6 @@ void Xamp::initialPlaylist() {
         album_page_.get(),
         &AlbumArtistPage::onThemeColorChanged);
 
-    (void)QObject::connect(this,
-        &Xamp::themeChanged,
-        cloud_main_page_.get(),
-        &GenreViewPage::onThemeColorChanged);
-
     connectPlaylistPageSignal(album_page_->album()->albumViewPage()->playlistPage());
     connectPlaylistPageSignal(album_page_->year()->albumViewPage()->playlistPage());
 
@@ -2367,7 +2373,6 @@ void Xamp::initialPlaylist() {
     pushWidget(album_page_.get());
     pushWidget(file_system_view_page_.get());
     pushWidget(cd_page_.get());
-    pushWidget(cloud_main_page_.get());
     pushWidget(cloud_search_page_.get());
     pushWidget(cloud_tab_widget_.get());
 
@@ -2613,6 +2618,12 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             });
     } else {
         (void)QObject::connect(playlist_page,
+            &PlaylistPage::editFinished,
+            [this, playlist_page](const auto& text) {
+                QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
+            });
+
+        (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
             [this, playlist_page](const auto& text, Match match) {
                 if (text.isEmpty()) {
@@ -2630,11 +2641,8 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 XAMP_LOG_DEBUG("spinner startAnimation");
                 playlist_page->spinner()->startAnimation();
                 playlist_page->playlist()->removeAll();
-                if (match == Match::MATCH_ITEM) {
-                    QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
-                } else {
+                if (match != Match::MATCH_ITEM) {
                     QCoro::connect(ytmusic_worker_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
-                    playlist_page->spinner()->stopAnimation();
                 }
             });
     }

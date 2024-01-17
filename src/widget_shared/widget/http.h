@@ -9,7 +9,9 @@
 #include <QVariant>
 #include <QNetworkAccessManager>
 
+#include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
+#include <base/object_pool.h>
 
 namespace http {
 
@@ -30,6 +32,8 @@ public:
     ~HttpClient();
 
     void setTimeout(int timeout);
+
+    void setUserAgent(const QString& user_agent);
 
     HttpClient& param(const QString &name, const QVariant &value);
 
@@ -60,9 +64,8 @@ public:
 
     QNetworkReply* head();
 
-    void setUserAgent(const QString &user_agent);
-
 private:
+    static std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
     class HttpClientImpl;
     QSharedPointer<HttpClientImpl> impl_;
 };

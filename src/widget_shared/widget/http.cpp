@@ -23,7 +23,6 @@
 #include <widget/zib_utiltis.h>
 #include <widget/widget_shared.h>
 
-
 namespace http {
 
 XAMP_DECLARE_LOG_NAME(Http);
@@ -157,7 +156,7 @@ public:
 
     static QNetworkReply* executeQuery(QSharedPointer<HttpClientImpl> d, HttpMethod method);
 
-    static void download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read);
+    static void download(QSharedPointer<HttpClientImpl> d, const std::function<void (const QByteArray &)>& ready_read);
 
     static QString readReply(QNetworkReply *reply, const HttpContext& context);
 
@@ -293,7 +292,8 @@ void HttpClient::HttpClientImpl::handleProgress(const HttpContext& context, QNet
     }
 }
 
-void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, std::function<void (const QByteArray &)> ready_read) {
+void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, const std::function<void (const QByteArray &)>
+                                          & ready_read) {
     auto context = d->createHttpContext();
 
     auto request = createHttpRequest(d, HttpMethod::HTTP_GET);
@@ -422,12 +422,17 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
     return request;
 }
 
+std::shared_ptr<ObjectPool<QByteArray>> HttpClient::buffer_pool_;
+
 HttpClient::HttpClient(const QUrl& url, QObject* parent)
     : HttpClient(url.toString(), parent) {
 }
 
 HttpClient::HttpClient(const QString &url, QObject* parent)
     : impl_(QSharedPointer<HttpClientImpl>::create(url, parent)) {
+    if (!buffer_pool_) {
+        buffer_pool_ = std::make_shared<ObjectPool<QByteArray>>(256);
+    }
 }
 
 HttpClient::~HttpClient() = default;
@@ -517,7 +522,9 @@ void HttpClient::downloadFile(const QString& file_name,
 
 void HttpClient::download(std::function<void (const QByteArray &)> download_handler,
     std::function<void(const QUrl&, const QString&)> error_handler) {
-    auto data = std::make_shared<QByteArray>();
+    //auto data = std::make_shared<QByteArray>();
+    auto data = std::shared_ptr<QByteArray>(buffer_pool_->Acquire());
+    data->clear();
 
     success([handler = std::move(download_handler), data](auto, auto) {
         handler(*data);
