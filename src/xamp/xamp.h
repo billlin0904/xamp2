@@ -280,7 +280,6 @@ private:
 	QScopedPointer<FileSystemViewPage> file_system_view_page_;
 	QScopedPointer<PlaylistPage> cloud_search_page_;
 	QScopedPointer<PlaylistTabWidget> cloud_tab_widget_;
-	//QScopedPointer<GenreViewPage> cloud_main_page_;
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<ExtractFileWorker> extract_file_worker_;

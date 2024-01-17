@@ -71,6 +71,7 @@
 #include <widget/playlisttabbar.h>
 #include <widget/genre_view.h>
 #include <widget/str_utilts.h>
+#include <widget/createplaylistview.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -2161,7 +2162,9 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         image_utils::resizeImage(*cover, cover_size, false),
         image_utils::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
-    page->setCover(cover);
+    if (page != nullptr) {
+        page->setCover(cover);
+    }
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
@@ -2280,7 +2283,23 @@ void Xamp::initialPlaylist() {
 
     (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::createCloudPlaylist,
         [this]() {
-            QCoro::connect(ytmusic_worker_->createPlaylistAsync(qTR("Playlist"), qTR("Playlist"), PRIVATE_S_PRIVATE, {}), this, [this](auto) {
+            QScopedPointer<XDialog> dialog(new XDialog(this));
+            const QScopedPointer<CreatePlaylistView> create_playlist_view(new CreatePlaylistView(dialog.get()));
+            dialog->setContentWidget(create_playlist_view.get());
+            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EDIT));
+            dialog->setTitle(qTR("Create playlist"));
+
+            if (dialog->exec() != QDialog::Accepted) {
+                return;
+            }
+
+            if (create_playlist_view->title().isEmpty()) {
+                return;
+            }
+
+            QCoro::connect(ytmusic_worker_->createPlaylistAsync(create_playlist_view->title(),
+                create_playlist_view->desc(),
+                PRIVATE_S_PRIVATE, {}), this, [this](auto) {
                 cloud_tab_widget_->closeAllTab();
                 initialCloudPlaylist();
                 });
@@ -2649,8 +2668,8 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addToPlaylist,
-        [this](const auto& playlist_id, const auto& video_ids) {
-            QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids), this, [](auto) {
+        [this](const auto& source_playlist_id, const auto& playlist_id, const auto& video_ids) {
+            QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids, source_playlist_id.toStdString()), this, [](auto) {
 
                 });
         });

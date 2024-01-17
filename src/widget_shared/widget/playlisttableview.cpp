@@ -585,12 +585,13 @@ void PlayListTableView::initial() {
                 if (cloudPlaylistId()) {
                     emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
                 }
-            });            
+            });
 
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
-                add_to_playlist->addAction(qSTR("Add to playlist (%1)").arg(itr.value()), [playlist_id, &video_ids, this]() {
-                    emit addToPlaylist(playlist_id, video_ids);
+                add_to_playlist->addAction(qSTR("Add to playlist (%1)").arg(itr.value()), [playlist_id, video_ids, this]() {
+	                const QString source_playlist_id; // 必須從查詢過來的playlist所以只能為空
+                    emit addToPlaylist(source_playlist_id, playlist_id, video_ids);
                     });
             }
 
@@ -628,7 +629,7 @@ void PlayListTableView::initial() {
                 append(file_name);
                 });
             });
-        load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
+        load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
         auto* load_dir_act = action_map.addAction(qTR("Load file directory"), [this]() {
             const auto dir_name = getExistingDirectory(this);
@@ -637,7 +638,7 @@ void PlayListTableView::initial() {
             }
             append(dir_name);
             });
-        load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_DIR));
+        load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
 
         if (enable_delete_ && model()->rowCount() > 0) {
             auto* remove_all_act = action_map.addAction(qTR("Remove all"));

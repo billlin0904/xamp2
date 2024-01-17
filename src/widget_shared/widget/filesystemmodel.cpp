@@ -10,7 +10,7 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const {
 		if (isDir(index)) {
 			return qTheme.fontIcon(Glyphs::ICON_FOLDER);
 		}
-		return qTheme.fontIcon(Glyphs::ICON_AUDIO);
+		return qTheme.fontIcon(Glyphs::ICON_AUDIO_FILE);
 	} else if (role == Qt::ToolTipRole) {
 		return filePath(index);
 	}

@@ -168,6 +168,8 @@ private:
 
     void setFontAwesomeIcons();
 
+    void setGoogleMaterialFontIcons();
+
     ThemeManager();
     
     qreal font_ratio_;

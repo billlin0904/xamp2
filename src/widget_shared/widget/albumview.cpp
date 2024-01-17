@@ -498,7 +498,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             append(file_name);
             });
         });
-    load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_LOAD_FILE));
+    load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
     auto* load_dir_act = action_map.addAction(qTR("Load file directory"), [this]() {
         const auto dir_name = getExistingDirectory(this);

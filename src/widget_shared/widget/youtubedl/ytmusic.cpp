@@ -102,10 +102,14 @@ namespace {
                 if (track["album"].is_none()) {
                     return std::nullopt;
                 }
-
                 return extract_meta_album(track["album"]);
             }(),
-            optional_key<std::string>(track, "duration"),
+            [&]() -> std::optional<std::string> {
+                if (!track.contains("duration")) {
+                    return std::nullopt;
+                }
+                return optional_key<std::string>(track, "duration");
+            }(),
             track["likeStatus"].cast<std::optional<std::string>>(),
             extract_py_list<meta::Thumbnail>(track["thumbnails"]),
             track["isAvailable"].cast<bool>(),
@@ -246,21 +250,6 @@ namespace {
 
 XAMP_DECLARE_LOG_NAME(YtMusic);
 XAMP_DECLARE_LOG_NAME(YtMusicInterop);
-
-
-class PythonInterpreter::PythonInterpreterImpl {
-public:
-    py::scoped_interpreter guard{};
-    py::gil_scoped_release release{};
-
-    PythonInterpreterImpl() = default;
-};
-
-PythonInterpreter::PythonInterpreter()
-	: impl_(MakeAlign<PythonInterpreterImpl>()) {	
-}
-
-XAMP_PIMPL_IMPL(PythonInterpreter)
 
 class YtMusicInterop::YtMusicInteropImpl {
 public:
@@ -582,7 +571,12 @@ album::Album YtMusicInterop::getAlbum(const std::string& browse_id) const {
     return {
         album["title"].cast<std::string>(),
         album["trackCount"].cast<int>(),
-        album["duration"].cast<std::string>(),
+        [&]() -> std::string {
+            if (!album.contains("duration")) {
+                return {};
+            }
+            return album["duration"].cast<std::string>();
+        }(),
         album["audioPlaylistId"].cast<std::string>(),
         optional_key<std::string>(album, "year"),
         optional_key<std::string>(album, "description"),
@@ -764,14 +758,14 @@ bool YtMusicInterop::editPlaylsist(const std::string& playlist_id,
     return true;
 }
 
-edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& playlistId,
-                                                           const std::vector<std::string>& videoIds,
+edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& playlist_id,
+                                                           const std::vector<std::string>& video_ids,
                                                            const std::optional<std::string>& source_playlist, 
                                                            bool duplicates) {
-    if (playlistId.empty()) {
+    if (playlist_id.empty()) {
         return {};
     }
-    const auto result = impl_->get_ytmusic().attr("add_playlist_items")(playlistId, py::cast(videoIds), source_playlist, duplicates);
+    const auto result = impl_->get_ytmusic().attr("add_playlist_items")(playlist_id, py::cast(video_ids), source_playlist, duplicates);
     std::vector<edit::PlaylistEditResultData> playlist_results;
     for (const auto& item : result["playlistEditResults"]) {
 	    edit::PlaylistEditResultData result_data;

@@ -143,7 +143,7 @@ signals:
 
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
-	void addToPlaylist(const QString& playlist_id, const std::vector<std::string> &video_ids);
+	void addToPlaylist(const QString& source_playlist_id, const QString& playlist_id, const std::vector<std::string> &video_ids);
 
 	void removePlaylistItems(const QString& playlist_id, const std::vector<std::string>& video_ids);	
 

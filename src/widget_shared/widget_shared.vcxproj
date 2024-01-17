@@ -122,6 +122,7 @@
     <QtMoc Include="widget\cover_searcher\musicbraincoversearcher.h" />
     <QtMoc Include="widget\cover_searcher\discogscoversearcher.h" />
     <QtMoc Include="widget\cover_searcher\coversearcher.h" />
+    <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\cover_searcher\discogscoversearcher.cpp" />
     <ClCompile Include="widget\cover_searcher\musicbraincoversearcher.cpp" />
+    <ClCompile Include="widget\createplaylistview.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\databasefacade.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
@@ -276,6 +278,7 @@
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
     <QtUic Include="cdpage.ui" />
+    <QtUic Include="createplaylistdialog.ui" />
     <QtUic Include="equalizerdialog.ui" />
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
