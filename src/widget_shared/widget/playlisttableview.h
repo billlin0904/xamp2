@@ -64,6 +64,10 @@ public:
 		cloud_mode_ = mode;
 	}
 
+	bool isEnableCloudMode() const {
+		return cloud_mode_;
+	}
+
 	void setCloudPlaylist(const QString &playlist_id) {
 		cloud_playlist_id_ = playlist_id;
 	}

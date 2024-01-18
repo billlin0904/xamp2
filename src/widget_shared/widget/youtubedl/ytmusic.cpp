@@ -370,8 +370,17 @@ public:
 
     py::object& get_ytdl() {
         if (ytdl_.is_none()) {
-            py::dict opt;
-            ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(opt);
+            py::dict ydl_opts;
+            ydl_opts["format"] = "bestaudio";
+
+            /*py::list postprocessors;
+            py::dict ffmpeg_extract_audio;
+            ffmpeg_extract_audio["key"] = "FFmpegExtractAudio";
+            ffmpeg_extract_audio["preferredcodec"] = "m4a";
+            postprocessors.append(ffmpeg_extract_audio);
+            ydl_opts["postprocessors"] = postprocessors;*/
+
+            ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(ydl_opts);
         }
         return ytdl_;
     }
@@ -434,13 +443,13 @@ QFuture<std::string> YtMusic::createPlaylistAsync(const QString& title,
     const QString& description,
     PrivateStatus status,
     const std::vector<std::string>& video_ids,
-    const std::optional<std::string>& source_playlis) {
-    return invokeAsync([this, title, description, status, video_ids, source_playlis]() {
-        return interop()->createPlaylistAsync(title.toStdString(), description.toStdString(), status, video_ids, source_playlis);
+    const std::optional<std::string>& source_playlist) {
+    return invokeAsync([this, title, description, status, video_ids, source_playlist]() {
+        return interop()->createPlaylistAsync(title.toStdString(), description.toStdString(), status, video_ids, source_playlist);
         });
 }
 
-QFuture<bool> YtMusic::editPlaylsistAsync(const QString& playlist_id,
+QFuture<bool> YtMusic::editPlaylistAsync(const QString& playlist_id,
     const QString& title,
     const QString& description,
 	PrivateStatus status,
@@ -686,7 +695,7 @@ std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::st
 }
 
 int32_t YtMusicInterop::download(const std::string& url) {
-    return impl_->get_ytmusic().attr("download")(url).cast<int32_t>();
+    return impl_->get_ytdl().attr("download")(url).cast<int32_t>();
 }
 
 video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) const {

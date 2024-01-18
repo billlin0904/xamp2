@@ -22,3 +22,7 @@ QString CreatePlaylistView::title() const {
 QString CreatePlaylistView::desc() const {
 	return ui_->descLineEdit->text();
 }
+
+int32_t CreatePlaylistView::privateStatus() const {
+	return ui_->privateStatusComboBox->currentIndex();
+}

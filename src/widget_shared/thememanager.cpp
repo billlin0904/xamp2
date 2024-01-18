@@ -143,153 +143,59 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_FILE_OPEN,                 0xEAF3 },
     { ICON_FOLDER_OPEN,               0xE2C8 },
     { ICON_RELOAD,                    0xE5D5 },
-    { ICON_REMOVE_ALL,                0xE2AE },
-    { ICON_OPEN_FILE_PATH,            0xF07C },
-    { ICON_SCAN_REPLAY_GAIN,          0xF5F0 },
+    { ICON_REMOVE_ALL,                0xEB80 },
+    { ICON_OPEN_FILE_PATH,            0xE255 },
+    { ICON_SCAN_REPLAY_GAIN,          0xE023 },
     { ICON_EXPORT_FILE,               0xF56E },
     { ICON_COPY,                      0xF0C5 },
     { ICON_DOWNLOAD,                  0xF0ED },
-    { ICON_PLAYLIST,                  0xF8C9 },
-    { ICON_PLAYLIST_ORDER,            0xF0CA },
-    { ICON_EQUALIZER,                 0xF3F2 },
-    { ICON_PODCAST,                   0xF2CE },
-    { ICON_MUSIC_LIBRARY,             0xF001 },
-    { ICON_CD,                        0xF51F },
-    { ICON_LEFT_ARROW,                0xF177 },
-    { ICON_ARTIST,                    0xF500 },
-    { ICON_SUBTITLE,                  0xE1DE },
-    { ICON_SETTINGS,                  0xF013 },
-    { ICON_ABOUT,                     0xF05A },
-    { ICON_DARK_MODE,                 0xF186 },
-    { ICON_LIGHT_MODE,                0xF185 },
-    { ICON_SEARCH,                    0xF002 },
-    { ICON_THEME,                     0xF042 },
-    { ICON_DESKTOP,                   0xF390 },
-    { ICON_SHUFFLE_PLAY_ORDER,        0xF074 },
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xF365 },
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xF363 },
-    { ICON_MINIMIZE_WINDOW,           0xF2D1 },
-    { ICON_MAXIMUM_WINDOW,            0xF2D0 },
-    { ICON_CLOSE_WINDOW,              0xF00D },
+    { ICON_PLAYLIST,                  0xE03D },
+    { ICON_EQUALIZER,                 0xE1B8 },
+    { ICON_MUSIC_LIBRARY,             0xE030 },
+    { ICON_CD,                        0xE019 },
+    { ICON_LEFT_ARROW,                0xE5C4 },
+    { ICON_SUBTITLE,                  0xE048 },
+    { ICON_SETTINGS,                  0xE8B8 },
+    { ICON_ABOUT,                     0xE887 },
+    { ICON_SEARCH,                    0xE8B6 },
+    { ICON_DESKTOP,                   0xE30C },
+    { ICON_SHUFFLE_PLAY_ORDER,        0xE043 },
+    { ICON_REPEAT_ONE_PLAY_ORDER,     0xE041 },
+    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xE040 },
+    { ICON_MINIMIZE_WINDOW,           0xE15B },
+    { ICON_MAXIMUM_WINDOW,            0xE930 },
+    { ICON_CLOSE_WINDOW,              0xE5CD },
     { ICON_RESTORE_WINDOW,            0xF2D2 },
-    { ICON_SLIDER_BAR,                0xF0C9 },
-    { ICON_PLAY_LIST_PLAY,            0xF04B },
-    { ICON_PLAY_LIST_PAUSE,           0xF04C },
-    { ICON_PLAY,                      0xF144 },
-    { ICON_PAUSE,                     0xF28B },
-    { ICON_STOP_PLAY,                 0xF04D },
-    { ICON_PLAY_FORWARD,              0xF04E },
-    { ICON_PLAY_BACKWARD,             0xF04A },
-    { ICON_MORE,                      0xF142 },
-    { ICON_HIDE,                      0xF070 },
+    { ICON_PLAY_LIST_PLAY,            0xE037 },
+    { ICON_PLAY_LIST_PAUSE,           0xE034 },
+    { ICON_PLAY,                      0xE037 },
+    { ICON_PAUSE,                     0xE034 },
+    { ICON_STOP_PLAY,                 0xE047 },
+    { ICON_PLAY_FORWARD,              0xE01F },
+    { ICON_PLAY_BACKWARD,             0xE020 },
+    { ICON_MORE,                      0xE5D4 },
+    { ICON_HIDE,                      0xF023 },
     { ICON_SHOW,                      0xF06E },
-    { ICON_USB,                       0xF8E9 },
-    { ICON_BUILD_IN_SPEAKER,          0xF8DF },
-    { ICON_BLUE_TOOTH,                0xF293 },
-    { ICON_MESSAGE_BOX_WARNING,       0xF071 },
-    { ICON_MESSAGE_BOX_INFORMATION,   0xF05A },
-    { ICON_MESSAGE_BOX_ERROR,         0xF05E },
-    { ICON_MESSAGE_BOX_QUESTION,      0xF059 },
-    { ICON_MESSAGE_BOX_SUCCESS,       0xF058 },
-    { ICON_HEART,                     0xF004 },
-    { ICON_HEART_PRESS,               0xF004 },
-    { ICON_CHEVRON_RIGHT,             0xF054 },
-    { ICON_CHEVRON_LEFT,              0xF053 },
-    { ICON_SORT_DOWN,                 0xF160 },
+    { ICON_USB,                       0xE1E0 },
+    { ICON_BUILD_IN_SPEAKER,          0xE32D },
+    { ICON_BLUE_TOOTH,                0xE1A8 },
+    { ICON_MESSAGE_BOX_WARNING,       0xE002 },
+    { ICON_MESSAGE_BOX_INFORMATION,   0xE88E },
+    { ICON_MESSAGE_BOX_ERROR,         0xE000 },
+    { ICON_MESSAGE_BOX_QUESTION,      0xEB8B },
+    { ICON_MESSAGE_BOX_SUCCESS,       0xE86C },
+    { ICON_HEART,                     0xE87D },
+    { ICON_HEART_PRESS,               0xE87D },
+    { ICON_CHEVRON_RIGHT,             0xE5CC },
+    { ICON_CHEVRON_LEFT,              0xE5CB },
     { ICON_FILE_CIRCLE_PLUS,          0xE494 },
-    { ICON_UP,                        0xF357 },
-    { ICON_EDIT,                      0xF044 },
-    { ICON_CIRCLE_CHECK,              0xF058 },
-    { ICON_CIRCLE_NOTCH,              0xF1CE },
-    { ICON_YOUTUBE,                   0xF002 },
-    { ICON_YOUTUBE_LIBRARY,           0xF8EB }
+    { ICON_EDIT,                      0xE3C9 },
+    { ICON_CIRCLE_CHECK,              0xE86C },
+    { ICON_YOUTUBE,                   0xE8B6 },
+    { ICON_YOUTUBE_LIBRARY,           0xE04A }
     };
 
     qFontIcon.AddFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));
-    qFontIcon.SetGlyphs(glyphs);
-}
-
-void ThemeManager::setFontAwesomeIcons() {
-    const HashMap<char32_t, uint32_t> glyphs{
-    { ICON_VOLUME_UP ,                0xF6A8 },
-    { ICON_VOLUME_OFF,                0xF6A9 },
-    { ICON_SPEAKER,                   0xF8DF },
-    { ICON_FOLDER,                    0xF07B },
-    { ICON_AUDIO_FILE,                     0xF001 },
-    { ICON_FILE_OPEN,                 0xF15B },
-    { ICON_FOLDER_OPEN,                  0xF07C },
-    { ICON_RELOAD,                    0xF2F9 },
-    { ICON_REMOVE_ALL,                0xE2AE },
-    { ICON_OPEN_FILE_PATH,            0xF07C },
-    { ICON_SCAN_REPLAY_GAIN,          0xF5F0 },
-    { ICON_EXPORT_FILE,               0xF56E },
-    { ICON_COPY,                      0xF0C5 },
-    { ICON_DOWNLOAD,                  0xF0ED },
-    { ICON_PLAYLIST,                  0xF8C9 },
-    { ICON_PLAYLIST_ORDER,            0xF0CA },
-    { ICON_EQUALIZER,                 0xF3F2 },
-    { ICON_PODCAST,                   0xF2CE },
-    { ICON_MUSIC_LIBRARY,             0xF001 },
-    { ICON_CD,                        0xF51F },
-    { ICON_LEFT_ARROW,                0xF177 },
-    { ICON_ARTIST,                    0xF500 },
-    { ICON_SUBTITLE,                  0xE1DE },
-    { ICON_SETTINGS,                  0xF013 },
-    { ICON_ABOUT,                     0xF05A },
-    { ICON_DARK_MODE,                 0xF186 },
-    { ICON_LIGHT_MODE,                0xF185 },
-    { ICON_SEARCH,                    0xF002 },
-    { ICON_THEME,                     0xF042 },
-    { ICON_DESKTOP,                   0xF390 },
-    { ICON_SHUFFLE_PLAY_ORDER,        0xF074 },
-    { ICON_REPEAT_ONE_PLAY_ORDER,     0xF365 },
-    { ICON_REPEAT_ONCE_PLAY_ORDER,    0xF363 },
-    { ICON_MINIMIZE_WINDOW,           0xF2D1 },
-    { ICON_MAXIMUM_WINDOW,            0xF2D0 },
-    { ICON_CLOSE_WINDOW,              0xF00D },
-    { ICON_RESTORE_WINDOW,            0xF2D2 },
-    { ICON_SLIDER_BAR,                0xF0C9 },
-    { ICON_PLAY_LIST_PLAY,            0xF04B },
-    { ICON_PLAY_LIST_PAUSE,           0xF04C },
-    { ICON_PLAY,                      0xF144 },
-    { ICON_PAUSE,                     0xF28B },
-    { ICON_STOP_PLAY,                 0xF04D },
-    { ICON_PLAY_FORWARD,              0xF04E },
-    { ICON_PLAY_BACKWARD,             0xF04A },
-    { ICON_MORE,                      0xF142 },
-    { ICON_HIDE,                      0xF070 },
-    { ICON_SHOW,                      0xF06E },
-    { ICON_USB,                       0xF8E9 },
-    { ICON_BUILD_IN_SPEAKER,          0xF8DF },
-    { ICON_BLUE_TOOTH,                0xF293 },
-    { ICON_MESSAGE_BOX_WARNING,       0xF071 },
-    { ICON_MESSAGE_BOX_INFORMATION,   0xF05A },
-    { ICON_MESSAGE_BOX_ERROR,         0xF05E },
-    { ICON_MESSAGE_BOX_QUESTION,      0xF059 },
-    { ICON_MESSAGE_BOX_SUCCESS,       0xF058 },
-    { ICON_HEART,                     0xF004 },
-    { ICON_HEART_PRESS,               0xF004 },
-    { ICON_CHEVRON_RIGHT,             0xF054 },
-    { ICON_CHEVRON_LEFT,              0xF053 },
-    { ICON_SORT_DOWN,                 0xF160 },
-    { ICON_FILE_CIRCLE_PLUS,          0xE494 },
-    { ICON_UP,                        0xF357 },
-    { ICON_EDIT,                      0xF044 },
-    { ICON_CIRCLE_CHECK,              0xF058 },
-    { ICON_CIRCLE_NOTCH,              0xF1CE },
-   	{ ICON_YOUTUBE,                   0xF002 },
-	{ ICON_YOUTUBE_LIBRARY,           0xF8EB }
-    };
-    
-    switch (theme_color_) {
-    case ThemeColor::LIGHT_THEME:
-        qFontIcon.AddFont(fontNamePath(qTEXT("fa-regular-400.ttf")));
-        break;
-    case ThemeColor::DARK_THEME:
-        qFontIcon.AddFont(fontNamePath(qTEXT("fa-solid-900.ttf")));
-        break;
-    }   
-
     qFontIcon.SetGlyphs(glyphs);
 }
 
@@ -373,7 +279,8 @@ ThemeManager::ThemeManager() {
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
 
-    setFontAwesomeIcons();
+    //setFontAwesomeIcons();
+    setGoogleMaterialFontIcons();
     setPalette();
 
     qAppSettings.setEnumValue(kAppSettingTheme, theme_color_);
@@ -468,7 +375,9 @@ QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> them
 	    {
         auto temp = font_icon_opts_;
         temp.insert(FontIconOption::kColorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::black) : QColor(Qt::gray)));
-        return qFontIcon.GetIcon(0xF2D1, temp);
+        temp.insert(FontIconOption::kScaleFactorAttr, 1.3);
+        //return qFontIcon.GetIcon(0xF2D1, temp);
+        return qFontIcon.GetIcon(code, temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(themeColorPath(color)));
@@ -512,13 +421,6 @@ QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> them
 			temp.insert(FontIconOption::kColorAttr, QVariant(highlightColor()));
 			return qFontIcon.GetIcon(code, temp);
 		}
-    case Glyphs::ICON_CIRCLE_NOTCH:
-        {
-            auto temp = font_icon_opts_;
-            temp.insert(FontIconOption::kColorAttr, QVariant(QColor(Qt::gray)));
-            temp.insert(FontIconOption::kScaleFactorAttr, 1.2);
-            return qFontIcon.GetIcon(code, temp);
-        }
     }
     return qFontIcon.GetIcon(code, font_icon_opts_);
 }

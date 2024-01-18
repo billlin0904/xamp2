@@ -406,6 +406,25 @@ namespace {
 
         return dsd_modes;
     }
+
+    video_info::Format findBestAudioFormat(const video_info::VideoInfo& video_info) {
+        std::multiset<video_info::Format> formats;
+        for (const auto& format : video_info.formats) {
+            XAMP_LOG_DEBUG("video: {} \t\t audio: {}", format.vcodec, format.acodec);
+            //if (format.vcodec == "none" && format.acodec != "none") {
+            if (format.acodec.find("opus") != std::string::npos) {
+            //if (format.acodec.find("mp4") != std::string::npos) {
+                formats.insert(format);
+            }
+        }
+
+        if (formats.empty()) {
+            throw std::exception();
+        }
+
+        const auto best_format = *formats.begin();
+        return best_format;
+    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -810,15 +829,14 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             if (thumbnail_url.empty()) {
                 return;
             }
-            /*http::HttpClient(QString::fromStdString(thumbnail_url))
+            http::HttpClient(QString::fromStdString(thumbnail_url))
                 .download([=, this](const auto& content) {
                 QPixmap image;
                 if (!image.loadFromData(content)) {
                     return;
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-            });*/
-            emit fetchThumbnailUrl(album_id, QString::fromStdString(thumbnail_url));
+            });
         });
     }
 
@@ -837,6 +855,8 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         centerParent(play_page->spinner());
     }
 
+    //const auto download_url = qSTR("https://www.youtube.com/watch?v=%1").arg(video_id);
+
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(video_id), this,
         [temp = entity, video_id, play_page, this](const auto& video_info) {
         XAMP_ON_SCOPE_EXIT(
@@ -850,18 +870,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
             return;
         }
 
-        std::multiset<video_info::Format> formats;
-        for (const auto& format : video_info.formats) {
-            if (format.vcodec == "none" && format.acodec != "none") {
-                formats.insert(format);
-            }
-        }
-
-        if (formats.empty()) {
-            return;
-        }
-
-        const auto best_format = *formats.begin();
+        const auto best_format = findBestAudioFormat(video_info);
         temp1.file_path = QString::fromStdString(best_format.url);
         onPlayMusic(temp1);
 
@@ -2266,7 +2275,7 @@ void Xamp::initialPlaylist() {
          [this](auto index, const auto& text) {
             auto* playlist_page = dynamic_cast<PlaylistPage*>(cloud_tab_widget_->widget(index));
             auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
-            QCoro::connect(ytmusic_worker_->editPlaylsistAsync(playlist_id, text, qTEXT(""), PRIVATE_S_PRIVATE), this, [this](auto) {
+            QCoro::connect(ytmusic_worker_->editPlaylistAsync(playlist_id, text, qTEXT(""), PRIVATE_S_PRIVATE), this, [this](auto) {
                 cloud_tab_widget_->closeAllTab();
                 initialCloudPlaylist();
                 });
@@ -2297,9 +2306,11 @@ void Xamp::initialPlaylist() {
                 return;
             }
 
+            const auto private_status = static_cast<PrivateStatus>(create_playlist_view->privateStatus());
+
             QCoro::connect(ytmusic_worker_->createPlaylistAsync(create_playlist_view->title(),
                 create_playlist_view->desc(),
-                PRIVATE_S_PRIVATE, {}), this, [this](auto) {
+                private_status, {}), this, [this](auto) {
                 cloud_tab_widget_->closeAllTab();
                 initialCloudPlaylist();
                 });
@@ -2506,25 +2517,19 @@ void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::downloadFile(const PlayListEntity& entity) {
-    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(entity.file_path), this,
+    auto [video_id, _] = parseId(entity.file_path);
+    const auto download_url = qSTR("https://www.youtube.com/watch?v=%1").arg(video_id);
+	QCoro::connect(ytmusic_worker_->downloadAsync(download_url), this,
+        [this]() {
+        });
+    /*QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(entity.file_path), this,
         [temp = entity, this](const auto& video_info) {
             auto temp1 = temp;
             if (video_info.formats.empty()) {
                 return;
             }
 
-            std::multiset<video_info::Format> formats;
-            for (const auto& format : video_info.formats) {
-                if (format.vcodec == "none" && format.acodec != "none") {
-                    formats.insert(format);
-                }
-            }
-
-            if (formats.empty()) {
-                return;
-            }
-
-            const auto best_format = *formats.begin();
+            const auto best_format = findBestAudioFormat(video_info);
             temp1.file_path = QString::fromStdString(best_format.url);
 
             const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
@@ -2551,7 +2556,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
                 qTR("Save M4A file"),
                 save_file_name,
                 qTR("M4A Files (*.m4a)"));
-        });
+        });*/
 }
 
 void Xamp::encodeWavFile(const PlayListEntity& entity) {
@@ -2666,38 +2671,41 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             });
     }
 
-    (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::addToPlaylist,
-        [this](const auto& source_playlist_id, const auto& playlist_id, const auto& video_ids) {
-            QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids, source_playlist_id.toStdString()), this, [](auto) {
+    if (playlist_page->playlist()->isEnableCloudMode()) {
+        (void)QObject::connect(playlist_page->playlist(),
+            &PlayListTableView::addToPlaylist,
+            [this](const auto& source_playlist_id, const auto& playlist_id, const auto& video_ids) {
+                QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids, source_playlist_id.toStdString()), this, [](auto) {
 
-                });
-        });
-
-
-    (void)QObject::connect(playlist_page->playlist(),
-        &PlayListTableView::removePlaylistItems,
-        [this, playlist_page](const auto& playlist_id, const auto& video_ids) {
-            std::vector<edit::PlaylistEditResultData> datas;
-            datas.reserve(video_ids.size());
-            for (auto id : video_ids) {
-                edit::PlaylistEditResultData data;
-                auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
-                data.videoId = video_id.toStdString();
-                data.setVideoId = setVideoId.toStdString();
-                datas.push_back(data);
-            }
-            playlist_page->spinner()->startAnimation();
-            centerParent(playlist_page->spinner());
-            QCoro::connect(ytmusic_worker_->removePlaylistItemsAsync(playlist_id, datas), this, [this, playlist_page, playlist_id](auto) {
-                playlist_page->playlist()->removeAll();
-                QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id),
-                this, [this, playlist_page](const auto& playlist) {
-                    XAMP_LOG_DEBUG("Reload playlist!");
-                	onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
                     });
-                });
-        });
+            });
+
+
+        (void)QObject::connect(playlist_page->playlist(),
+            &PlayListTableView::removePlaylistItems,
+            [this, playlist_page](const auto& playlist_id, const auto& video_ids) {
+                std::vector<edit::PlaylistEditResultData> result_data;
+                result_data.reserve(video_ids.size());
+                for (auto id : video_ids) {
+                    edit::PlaylistEditResultData data;
+                    auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
+                    data.videoId = video_id.toStdString();
+                    data.setVideoId = setVideoId.toStdString();
+                    result_data.push_back(data);
+                }
+                playlist_page->spinner()->startAnimation();
+                centerParent(playlist_page->spinner());
+                QCoro::connect(ytmusic_worker_->removePlaylistItemsAsync(playlist_id, result_data), this, [this, playlist_page, playlist_id](auto) {
+                    playlist_page->playlist()->removeAll();
+                    QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id),
+                        this, [this, playlist_page](const auto& playlist) {
+                            XAMP_LOG_DEBUG("Reload playlist!");
+                            onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                        });
+                    });
+            });
+
+    }
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistItemFinished,

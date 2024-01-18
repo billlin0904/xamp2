@@ -93,7 +93,7 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     // The reason why the glyph size is smaller than the icon size is to
 	// account for font bearing.
     //constexpr auto kRatio = 0.875;
-    constexpr auto kRatio = 0.875;
+    constexpr auto kRatio = 1.0;
     int draw_size = qRound(paint_rect.height() * kRatio);
     if (var.isValid()) {
         draw_size = qRound(paint_rect.height() * kRatio * var.value<qreal>());

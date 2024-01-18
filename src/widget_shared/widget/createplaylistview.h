@@ -24,6 +24,8 @@ public:
 
 	QString desc() const;
 
+	int32_t privateStatus() const;
+
 private:
 	Ui::CreatePlaylistView* ui_;
 };

@@ -456,7 +456,7 @@ public:
 		const std::vector<std::string>& video_ids,
 		const std::optional<std::string>& source_playlist = std::nullopt);
 
-	QFuture<bool> editPlaylsistAsync(const QString& playlist_id,
+	QFuture<bool> editPlaylistAsync(const QString& playlist_id,
 		const QString& title,
 		const QString& description,
 		PrivateStatus status,

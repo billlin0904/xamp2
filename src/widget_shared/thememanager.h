@@ -166,8 +166,6 @@ private:
 
     void setPalette();
 
-    void setFontAwesomeIcons();
-
     void setGoogleMaterialFontIcons();
 
     ThemeManager();

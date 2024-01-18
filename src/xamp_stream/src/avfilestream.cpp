@@ -105,8 +105,10 @@ public:
         }
 
         const auto stream = format_context_->streams[audio_stream_id_];
+        // todo: opus格式可能會讀不出duration.
         if (stream->duration == AV_NOPTS_VALUE) {
-            throw NotSupportFormatException();
+            duration_ = 0;
+            return;
         }
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
     }
@@ -159,15 +161,25 @@ public:
             throw NotSupportFormatException();
         }
 
+        auto FormatBitRate = [this]() {
+            std::ostringstream ostr;
+            if (GetBitRate() > 1000.0) {
+                ostr << Round(GetBitRate() / 1000.0, 1) << " Kbps";
+            } else { 
+                ostr << GetBitRate() << " bps";
+            }
+            return ostr.str();
+            };
+
         if (format_context_->iformat != nullptr) {
-            XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{} Kbps",
+            XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{}",
                 format_context_->iformat->name,
                 GetBitDepth(),
-                Round(GetBitRate() / 1024.0, 2));
+                FormatBitRate());
         }
 
-        const auto channel_layout = codec_context_->channel_layout == 0
-    	? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
+        const int64_t channel_layout = codec_context_->channel_layout == 0
+    	? AV_CH_LAYOUT_STEREO : static_cast<int64_t>(codec_context_->channel_layout);
        
         swr_context_.reset(LIBAV_LIB.SwrLib->swr_alloc_set_opts(swr_context_.get(),
             AV_CH_LAYOUT_STEREO,
