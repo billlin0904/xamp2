@@ -193,12 +193,12 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
-		SharedCrashHandler.SetThreadExceptionHandlers();
-
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto L1_padding_buffer =
 			MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
-			kMaxL1CacheLineSize));
+				kMaxL1CacheLineSize));
+
+		SharedCrashHandler.SetThreadExceptionHandlers();		
 
 		SetWorkerThreadName(i);
 
@@ -220,11 +220,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 #endif
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
-
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
-
-		ExecutionStopwatch excution_stopwatch;
-
+		
 		// Main loop
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			// Try to get a task from the local queue
@@ -243,31 +240,25 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 					if (steal_failure_count >= kMaxStealFailureSize) {
 						task = TryDequeueSharedQueue(kDefaultTimeout);
 					}
+					else {
+						continue;
+					}
 				}
 			}
 
 			// If no task was found, wait for a notification
 			if (!task) {
-				// Cpu relax
-				CpuRelax();				
+				CpuRelax();
 				continue;
 			} else {
 				steal_failure_count = 0;
 			}
 
 			auto running_thread = ++running_thread_;
-			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weak up, running:{}", i, thread_id, running_thread);
-			excution_stopwatch.Start();
 			(*task)(stop_token);
-			excution_stopwatch.Stop();
 			--running_thread_;
 
 			task_execute_flags_[i] = ExecuteFlags::EXECUTE_NORMAL;
-
-			auto cup_useage = excution_stopwatch.GetCpuUsage();
-			if (cup_useage > 0) {
-				XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished ({}%).", i, thread_id, cup_useage);
-			}			
 		}
 
 		XAMP_LOG_D(logger_, "Worker Thread {} is existed.", i);

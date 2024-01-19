@@ -105,7 +105,7 @@ static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            });
+            }, 64);
     }
 }
 
@@ -124,7 +124,7 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            });
+            }, 64);
     }
 }
 
@@ -695,11 +695,11 @@ static void BM_Spinlock(benchmark::State& state) {
         delete m;
     }
 }
-BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
-BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
+//BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
+//BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);

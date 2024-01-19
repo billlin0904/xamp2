@@ -378,8 +378,10 @@ public:
     py::object& get_ytdl() {
         if (ytdl_.is_none()) {
             py::dict ydl_opts;
-            ydl_opts["format"] = "bestaudio";
-            ydl_opts["cookiesfrombrowser"] = create_cookies_from_browser("edge", "", "", "");
+            ydl_opts["format"] = "bestaudio";            
+            ydl_opts["nocheckcertificate"] = true;
+
+            //ydl_opts["cookiesfrombrowser"] = create_cookies_from_browser("edge", "none", "none", "none");
 
             /*py::list postprocessors;
             py::dict ffmpeg_extract_audio;

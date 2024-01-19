@@ -2518,7 +2518,7 @@ void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::downloadFile(const PlayListEntity& entity) {
-    /*bool is_ok = false;
+    bool is_ok = false;
 
     auto download_url = QInputDialog::getText(this, qTEXT("Download Youtube url"),
         qTEXT("Download Youtube url"),
@@ -2530,7 +2530,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
         QCoro::connect(ytmusic_worker_->downloadAsync(download_url), this,
             [this]() {
             });
-    }*/
+    }
 
     /*auto [video_id, _] = parseId(entity.file_path);
     const auto download_url = qSTR("https://www.youtube.com/watch?v=%1").arg(video_id);
