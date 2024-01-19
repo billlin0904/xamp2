@@ -67,7 +67,7 @@ public:
 
 		SRC_DATA src_data{};
 
-		src_data.data_in = samples;
+		src_data.data_in = const_cast<SRC_SAMPLE*>(samples);
 		src_data.input_frames = num_samples / AudioFormat::kMaxChannel;
 		src_data.src_ratio = ratio_;
 

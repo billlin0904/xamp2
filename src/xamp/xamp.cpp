@@ -411,10 +411,13 @@ namespace {
     video_info::Format findBestAudioFormat(const video_info::VideoInfo& video_info) {
         std::multiset<video_info::Format> formats;
         for (const auto& format : video_info.formats) {
-            XAMP_LOG_DEBUG("video: {:<15} audio: {:<10}", format.vcodec, format.acodec);
-            //if (format.vcodec == "none" && format.acodec != "none") {
-            //if (format.acodec.find("opus") != std::string::npos) {
-            if (format.acodec.find("mp4") != std::string::npos) {
+            if (format.quality) {
+                XAMP_LOG_DEBUG("{} video: {:<15} audio: {:<10} {:<10}", format.quality.value(), format.vcodec, format.acodec, format.abr);
+            } else {
+                XAMP_LOG_DEBUG("video: {:<15} audio: {:<10} {:<10}", format.vcodec, format.acodec, format.abr);
+            }
+            if (format.vcodec == "none" && format.acodec.find("mp4") != std::string::npos) {
+            //if (format.vcodec == "none" && format.acodec.find("opus") != std::string::npos) {
                 formats.insert(format);
             }
         }
@@ -423,8 +426,7 @@ namespace {
             throw std::exception();
         }
 
-        const auto best_format = *formats.begin();
-        return best_format;
+        return *formats.begin();
     }
 }
 
@@ -856,9 +858,13 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         centerParent(play_page->spinner());
     }
 
-    //const auto download_url = qSTR("https://www.youtube.com/watch?v=%1").arg(video_id);
+    // 取得256kbs AAC條件
+    // 1. 白金帳號
+    // 2. Browser cookies
+    // 3. 使用youtube music URL
+    const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
 
-    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(video_id), this,
+    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
         [temp = entity, video_id, play_page, this](const auto& video_info) {
         XAMP_ON_SCOPE_EXIT(
             if (play_page != nullptr) {
@@ -873,6 +879,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
 
         const auto best_format = findBestAudioFormat(video_info);
         temp1.file_path = QString::fromStdString(best_format.url);
+        XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
         onPlayMusic(temp1);
 
         auto album_id = temp.album_id;

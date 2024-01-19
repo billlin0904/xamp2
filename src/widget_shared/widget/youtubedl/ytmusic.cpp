@@ -59,7 +59,8 @@ namespace {
             optional_key<float>(format, "quality"),
             format["url"].cast<std::string>(),
             format["vcodec"].cast<std::string>(),
-            optional_key<std::string>(format, "acodec").value_or("none") // returned inconsistently by yt-dlp
+            optional_key<std::string>(format, "acodec").value_or("none"), // returned inconsistently by yt-dlp
+            optional_key<float>(format, "abr").value_or(0)
         };
     }
 
@@ -368,28 +369,17 @@ public:
         return ytmusic_;
     }
 
-    static py::tuple create_cookies_from_browser(const std::string& browserName,
-        const std::string& profileName,
-        const std::string& keyringName,
-        const std::string& containerName) {
-        return py::make_tuple(browserName, profileName, keyringName, containerName);
+    static py::tuple create_cookies_from_browser(const std::string& browser_name,
+        const std::optional<std::string>& profile_name = std::nullopt,
+        const std::optional<std::string>& keyring_name = std::nullopt,
+        const std::optional<std::string>& container_name = std::nullopt) {
+        return py::make_tuple(browser_name, profile_name, keyring_name, container_name);
     }
 
     py::object& get_ytdl() {
         if (ytdl_.is_none()) {
             py::dict ydl_opts;
-            ydl_opts["format"] = "bestaudio";            
-            ydl_opts["nocheckcertificate"] = true;
-
-            //ydl_opts["cookiesfrombrowser"] = create_cookies_from_browser("edge", "none", "none", "none");
-
-            /*py::list postprocessors;
-            py::dict ffmpeg_extract_audio;
-            ffmpeg_extract_audio["key"] = "FFmpegExtractAudio";
-            ffmpeg_extract_audio["preferredcodec"] = "m4a";
-            postprocessors.append(ffmpeg_extract_audio);
-            ydl_opts["postprocessors"] = postprocessors;*/
-
+        	ydl_opts["cookiesfrombrowser"] = create_cookies_from_browser("firefox");
             ytdl_ = py::module::import("yt_dlp").attr("YoutubeDL")(ydl_opts);
         }
         return ytdl_;
@@ -713,6 +703,7 @@ video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) c
         return {};
     }
     const auto info = impl_->get_ytdl().attr("extract_info")(video_id, "download"_a = py::bool_(false));
+    printObject(info);
     return {
         info["id"].cast<std::string>(),
         info["title"].cast<std::string>(),

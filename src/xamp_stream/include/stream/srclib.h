@@ -10,7 +10,7 @@
 #include <base/logger.h>
 
 #include <stream/stream.h>
-#include <libsamplerate/samplerate.h>
+#include <samplerate.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

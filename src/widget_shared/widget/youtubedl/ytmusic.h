@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <QCoroFuture>
 #include <QtConcurrent/QtConcurrent>
 #include <QObject>
 #include <QFuture>
@@ -268,6 +267,7 @@ namespace video_info {
 		std::string url;
 		std::string vcodec;
 		std::string acodec;
+		float abr;
 
 		// More, but not interesting for us right now
 		bool operator<(const Format& other) const {
