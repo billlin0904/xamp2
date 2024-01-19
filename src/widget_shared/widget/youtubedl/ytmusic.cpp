@@ -368,10 +368,18 @@ public:
         return ytmusic_;
     }
 
+    static py::tuple create_cookies_from_browser(const std::string& browserName,
+        const std::string& profileName,
+        const std::string& keyringName,
+        const std::string& containerName) {
+        return py::make_tuple(browserName, profileName, keyringName, containerName);
+    }
+
     py::object& get_ytdl() {
         if (ytdl_.is_none()) {
             py::dict ydl_opts;
             ydl_opts["format"] = "bestaudio";
+            ydl_opts["cookiesfrombrowser"] = create_cookies_from_browser("edge", "", "", "");
 
             /*py::list postprocessors;
             py::dict ffmpeg_extract_audio;

@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QImageReader>
 #include <QCoroFuture>
+#include <QInputDialog>
 
 #include <QSimpleUpdater.h>
 #include <set>
@@ -410,10 +411,10 @@ namespace {
     video_info::Format findBestAudioFormat(const video_info::VideoInfo& video_info) {
         std::multiset<video_info::Format> formats;
         for (const auto& format : video_info.formats) {
-            XAMP_LOG_DEBUG("video: {} \t\t audio: {}", format.vcodec, format.acodec);
+            XAMP_LOG_DEBUG("video: {:<15} audio: {:<10}", format.vcodec, format.acodec);
             //if (format.vcodec == "none" && format.acodec != "none") {
-            if (format.acodec.find("opus") != std::string::npos) {
-            //if (format.acodec.find("mp4") != std::string::npos) {
+            //if (format.acodec.find("opus") != std::string::npos) {
+            if (format.acodec.find("mp4") != std::string::npos) {
                 formats.insert(format);
             }
         }
@@ -2517,11 +2518,26 @@ void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 }
 
 void Xamp::downloadFile(const PlayListEntity& entity) {
-    auto [video_id, _] = parseId(entity.file_path);
+    /*bool is_ok = false;
+
+    auto download_url = QInputDialog::getText(this, qTEXT("Download Youtube url"),
+        qTEXT("Download Youtube url"),
+        QLineEdit::Normal, 
+        qTEXT("url"),
+        &is_ok);
+
+    if (!download_url.isEmpty()) {
+        QCoro::connect(ytmusic_worker_->downloadAsync(download_url), this,
+            [this]() {
+            });
+    }*/
+
+    /*auto [video_id, _] = parseId(entity.file_path);
     const auto download_url = qSTR("https://www.youtube.com/watch?v=%1").arg(video_id);
 	QCoro::connect(ytmusic_worker_->downloadAsync(download_url), this,
         [this]() {
-        });
+        });*/
+
     /*QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(entity.file_path), this,
         [temp = entity, this](const auto& video_info) {
             auto temp1 = temp;
