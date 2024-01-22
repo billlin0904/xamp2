@@ -1821,10 +1821,10 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 }
 
 void Xamp::performDelayedUpdate() {
-    cd_page_->playlistPage()->playlist()->reload();
-    album_page_->reload();
-    local_tab_widget_->reloadAll();
-	cloud_tab_widget_->reloadAll();
+    //cd_page_->playlistPage()->playlist()->reload();
+    //album_page_->reload();
+    //local_tab_widget_->reloadAll();
+	//cloud_tab_widget_->reloadAll();
     if (!cloud_album_cover_pending_.isEmpty()) {
 	    const auto itr = cloud_album_cover_pending_.keyValueBegin();
         auto album_id = itr->first;

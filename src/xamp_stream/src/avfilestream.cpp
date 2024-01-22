@@ -46,12 +46,36 @@ public:
         format_context_.reset();
     }
 
+    OrderedMap<std::wstring, std::wstring> ProbeFileInfo(const Path& file_path) {
+        AVFormatContext* ctx = nullptr;
+        AvPtr<AVFormatContext> format_context;
+        AVDictionary* options = nullptr;
+
+        const auto file_path_ut8 = String::ToString(file_path.wstring());
+        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&ctx, file_path_ut8.c_str(), nullptr, &options);
+        if (err != 0) {
+            return {};
+        }
+
+        format_context.reset(ctx);
+
+        OrderedMap<std::wstring, std::wstring> file_info;
+        AVDictionaryEntry* tag = nullptr;
+        while ((tag = LIBAV_LIB.UtilLib->av_dict_get(format_context->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+            file_info[String::ToString(tag->key)] = String::ToString(tag->value);
+            XAMP_LOG_D(logger_, "{} {}", tag->key, tag->value);
+        }
+        return file_info;
+    }
+
     /*
     * Load file from file path.
     * 
     * @param file_path File path.
     */
     void OpenFile(const Path & file_path) {
+        ProbeFileInfo(file_path);
+
         AVFormatContext* format_context = nullptr;
         AVDictionary* options = nullptr;
         

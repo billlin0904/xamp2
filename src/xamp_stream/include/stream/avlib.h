@@ -143,6 +143,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_samples_fill_arrays);
     XAMP_DECLARE_DLL_NAME(av_rescale_q);
     XAMP_DECLARE_DLL_NAME(av_sample_fmt_is_planar);
+    XAMP_DECLARE_DLL_NAME(av_dict_get);
 };
 
 class AvSwLib final {
