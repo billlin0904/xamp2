@@ -65,7 +65,7 @@ public:
     QNetworkReply* head();
 
 private:
-    static std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
+    static std::shared_ptr<ObjectPool<QByteArray>> qBufferPool;
     class HttpClientImpl;
     QSharedPointer<HttpClientImpl> impl_;
 };

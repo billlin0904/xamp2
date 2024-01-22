@@ -40,6 +40,7 @@ private:
 	void sink_it_(const spdlog::details::log_msg& msg) override {
 		spdlog::memory_buf_t formatted;
 		formatter_->format(msg, formatted);
+		// OutputDebugStringW max output 32766 (include '\0')
 		::OutputDebugStringW(String::ToStdWString(fmt::to_string(formatted)).c_str());
 	}
 

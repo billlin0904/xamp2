@@ -138,6 +138,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <IntelJCCErratum>true</IntelJCCErratum>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

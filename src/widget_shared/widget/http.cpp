@@ -399,9 +399,10 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
 
     if (d->user_agent_.isEmpty()) {
         d->headers_[qTEXT("User-Agent")] = kDefaultUserAgent;
-    }
+    }    
 
     QNetworkRequest request(QUrl(d->url_));
+    
     for (auto i = d->headers_.cbegin(); i != d->headers_.cend(); ++i) {
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
     }
@@ -413,6 +414,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
 
     const auto request_id = generateUuid();
 
+    request.setRawHeader("Connection", "keep-alive");
     request.setRawHeader("X-Request-ID", request_id);
     request.setRawHeader("Accept-Encoding", "gzip");
     
@@ -422,7 +424,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
     return request;
 }
 
-std::shared_ptr<ObjectPool<QByteArray>> HttpClient::buffer_pool_;
+std::shared_ptr<ObjectPool<QByteArray>> HttpClient::qBufferPool;
 
 HttpClient::HttpClient(const QUrl& url, QObject* parent)
     : HttpClient(url.toString(), parent) {
@@ -430,8 +432,8 @@ HttpClient::HttpClient(const QUrl& url, QObject* parent)
 
 HttpClient::HttpClient(const QString &url, QObject* parent)
     : impl_(QSharedPointer<HttpClientImpl>::create(url, parent)) {
-    if (!buffer_pool_) {
-        buffer_pool_ = std::make_shared<ObjectPool<QByteArray>>(256);
+    if (!qBufferPool) {
+        qBufferPool = std::make_shared<ObjectPool<QByteArray>>(256);
     }
 }
 
@@ -522,8 +524,7 @@ void HttpClient::downloadFile(const QString& file_name,
 
 void HttpClient::download(std::function<void (const QByteArray &)> download_handler,
     std::function<void(const QUrl&, const QString&)> error_handler) {
-    //auto data = std::make_shared<QByteArray>();
-    auto data = std::shared_ptr<QByteArray>(buffer_pool_->Acquire());
+    auto data = std::shared_ptr<QByteArray>(qBufferPool->Acquire());
     data->clear();
 
     success([handler = std::move(download_handler), data](auto, auto) {

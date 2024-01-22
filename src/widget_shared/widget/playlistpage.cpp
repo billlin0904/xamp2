@@ -184,9 +184,6 @@ void PlaylistPage::initial() {
 
 	(void)QObject::connect(search_line_edit_, &QLineEdit::returnPressed, [this]() {
 		const auto text = search_line_edit_->text();
-		if (text.isEmpty()) {
-			return;
-		}
 		emit editFinished(text);
 		});
 

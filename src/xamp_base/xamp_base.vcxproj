@@ -139,6 +139,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <IntelJCCErratum>false</IntelJCCErratum>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

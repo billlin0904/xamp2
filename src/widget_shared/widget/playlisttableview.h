@@ -70,6 +70,9 @@ public:
 
 	void setCloudPlaylist(const QString &playlist_id) {
 		cloud_playlist_id_ = playlist_id;
+		if (cloud_playlist_id_) {
+			cloud_mode_ = true;
+		}
 	}
 
 	const std::optional<QString>& cloudPlaylistId() const {

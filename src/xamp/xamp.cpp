@@ -964,25 +964,12 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             if (thumbnail_url.empty()) {
                 return;
             }
-            /*http::HttpClient(QString::fromStdString(thumbnail_url))
-                .download([=, this](const auto& content) {
-                QPixmap image;
-                if (!image.loadFromData(content)) {
-                    return;
-                }
-                qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-                });*/
-            //emit fetchThumbnailUrl(album_id, QString::fromStdString(thumbnail_url));
-            if (!cloud_album_cover_pending_.contains(album_id)) {
-                cloud_album_cover_pending_.insert(album_id, QString::fromStdString(thumbnail_url));
-            }
-
+            if (!download_thumbnail_pending_.contains(album_id)) {
+                download_thumbnail_pending_.insert(album_id, QString::fromStdString(thumbnail_url));
+            }                   
             }
         );
     }
-
-    cloud_search_page_->spinner()->stopAnimation();
-    XAMP_LOG_DEBUG("spinner stopAnimation");
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
@@ -1825,8 +1812,8 @@ void Xamp::performDelayedUpdate() {
     //album_page_->reload();
     //local_tab_widget_->reloadAll();
 	//cloud_tab_widget_->reloadAll();
-    if (!cloud_album_cover_pending_.isEmpty()) {
-	    const auto itr = cloud_album_cover_pending_.keyValueBegin();
+    if (!download_thumbnail_pending_.isEmpty()) {
+	    const auto itr = download_thumbnail_pending_.keyValueBegin();
         auto album_id = itr->first;
         http::HttpClient(itr->second)
             .download([album_id, this](const auto& content) {
@@ -1836,8 +1823,12 @@ void Xamp::performDelayedUpdate() {
             }
             qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
         });
-        cloud_album_cover_pending_.remove(album_id);
+        download_thumbnail_pending_.remove(album_id);
         cloud_search_page_->playlist()->reload();
+
+        if (download_thumbnail_pending_.isEmpty()) {
+            cloud_search_page_->spinner()->stopAnimation();
+        }
     }
 }
 
@@ -2527,7 +2518,7 @@ void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& prof
 void Xamp::downloadFile(const PlayListEntity& entity) {
     bool is_ok = false;
 
-    auto download_url = QInputDialog::getText(this, qTEXT("Download Youtube url"),
+    auto download_url = QInputDialog::getText(this, qTEXT("Download YouTube url"),
         qTEXT("Download Youtube url"),
         QLineEdit::Normal, 
         qTEXT("url"),
@@ -2667,6 +2658,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::editFinished,
             [this, playlist_page](const auto& text) {
+                if (text.isEmpty()) {
+                    playlist_page->spinner()->stopAnimation();
+                    XAMP_LOG_DEBUG("text isEmpty");
+                    return;
+                }
                 QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
             });
 
@@ -2674,6 +2670,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             &PlaylistPage::search,
             [this, playlist_page](const auto& text, Match match) {
                 if (text.isEmpty()) {
+                    playlist_page->spinner()->stopAnimation();
                     XAMP_LOG_DEBUG("text isEmpty");
                     return;
                 }

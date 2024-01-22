@@ -39,14 +39,14 @@ public:
 	void SetWindowType(WindowType type) {
 		switch (type) {
 		case WindowType::NO_WINDOW:
-			dispatch_ = std::bind(&WindowImpl::NoWindow, this, std::placeholders::_1, std::placeholders::_2);
+			dispatch_ = bind_front(&WindowImpl::NoWindow, this);
 			break;
 		case WindowType::HAMMING:
-			dispatch_ = std::bind(&WindowImpl::HammingWindow, this, std::placeholders::_1, std::placeholders::_2);
+			dispatch_ = bind_front(&WindowImpl::HammingWindow, this);
 			break;
 		case WindowType::BLACKMAN_HARRIS:
 		default:
-			dispatch_ = std::bind(&WindowImpl::BlackmanHarrisWindow, this, std::placeholders::_1, std::placeholders::_2);
+			dispatch_ = bind_front(&WindowImpl::BlackmanHarrisWindow, this);
 			break;
 		}
 	}
