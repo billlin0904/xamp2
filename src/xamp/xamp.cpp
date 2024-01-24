@@ -2217,7 +2217,8 @@ void Xamp::initialPlaylist() {
                 return;
             }
             if (store_type == StoreType::LOCAL_STORE) {
-                newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, name);
+                auto* playlist_page = newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, name);
+                playlist_page->playlist()->enableCloudMode(false);
             }
             else if (store_type == StoreType::CLOUD_STORE) {
                 auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, cloud_playlist_id, name);
@@ -2510,7 +2511,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
     bool is_ok = false;
 
     const auto download_url = QInputDialog::getText(this, qTEXT("Download YouTube url"),
-                                                    qTEXT("Download Youtube url"),
+                                                    qTEXT("Download YouTube url"),
                                                     QLineEdit::Normal, 
                                                     qTEXT("url"),
                                                     &is_ok);
@@ -2520,48 +2521,6 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
             [this]() {
             });
     }
-
-    /*auto [video_id, _] = parseId(entity.file_path);
-    const auto download_url = qSTR("https://www.youtube.com/watch?v=%1").arg(video_id);
-	QCoro::connect(ytmusic_worker_->downloadAsync(download_url), this,
-        [this]() {
-        });*/
-
-    /*QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(entity.file_path), this,
-        [temp = entity, this](const auto& video_info) {
-            auto temp1 = temp;
-            if (video_info.formats.empty()) {
-                return;
-            }
-
-            const auto best_format = findBestAudioFormat(video_info);
-            temp1.file_path = QString::fromStdString(best_format.url);
-
-            const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-            const auto save_file_name = last_dir + qTEXT("/") + temp1.album + qTEXT("-") + temp1.title;
-            getSaveFileName(this,
-                [this, temp1](const auto& file_name) {
-                    const auto dialog = makeProgressDialog(
-                        qTR("Download progress dialog"),
-                        qTR("Download '") + temp1.title + qTR("' to wav file"),
-                        qTR("Cancel"));
-                    dialog->show();
-
-                    http::HttpClient(temp1.file_path)
-						.progress([temp = dialog](auto ready, auto total) mutable  {
-                        auto process = Round(ready * 100.0 / total);
-                        if (ready != total) {
-                            temp->setValue(process);
-                        } else {
-                            temp.reset();
-                        }
-						})
-                		.downloadFile(file_name, [](auto) {});
-                },
-                qTR("Save M4A file"),
-                save_file_name,
-                qTR("M4A Files (*.m4a)"));
-        });*/
 }
 
 void Xamp::encodeWavFile(const PlayListEntity& entity) {
@@ -2696,7 +2655,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             [this, playlist_page](const auto& entity) {
                 playlist_page->playlist()->removeAll();
                 auto [video_id, set_video_id] = parseId(entity.file_path);
-                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, SongRating::INDIFFERENT), this, [this, playlist_page](auto) {
+                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, SongRating::LIKE), this, [this, playlist_page](auto) {
 	                const auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
                     QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id), this, [this, playlist_page](const auto& playlist) {
                             XAMP_LOG_DEBUG("Get playlist done!");

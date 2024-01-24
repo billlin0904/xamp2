@@ -60,7 +60,6 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->trackReplayGainLineEdit->setFont(font);
 	ui_->audioMD5LineEdit->setFont(font);
 	ui_->fileSizeLineEdit->setFont(font);
-	ui_->filePathLineEdit->setFont(font);
 
 	for (auto& l : labels) {
 		l->setStyleSheet(qTEXT("background-color: transparent;"));

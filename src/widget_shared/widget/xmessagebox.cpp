@@ -2,6 +2,7 @@
 #include <widget/widget_shared.h>
 #include <widget/xmainwindow.h>
 #include <widget/ui_utilts.h>
+#include <widget/str_utilts.h>
 #include <widget/maskwidget.h>
 
 #include <base/exception.h>
@@ -78,6 +79,9 @@ XMessageBox::XMessageBox(const QString& title,
 
 	const auto metrics = defaultButton()->fontMetrics();
 	setMinimumSize(QSize(metrics.horizontalAdvance(default_button_text_) * 1.5, 100));
+
+	setTitle(kEmptyString);
+	XDialog::setIcon(QIcon());
 }
 
 void XMessageBox::setTextFont(const QFont& font) {

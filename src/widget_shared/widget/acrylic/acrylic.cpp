@@ -4,10 +4,9 @@
 #include <QScreen>
 #include <QWidget>
 
-#include <widget/acrylic/acrylic.h>
 #include <widget/str_utilts.h>
-
-#include "widget/image_utiltis.h"
+#include <widget/acrylic/acrylic.h>
+#include <widget/image_utiltis.h>
 
 AcrylicRender::AcrylicRender(QWidget* device, 
                              int blur_radius,
@@ -123,11 +122,14 @@ void AcrylicTextureLabel::paintEvent(QPaintEvent* event) {
     painter.fillRect(rect(), acrylic_brush);
 }
 
-AcrylicLabel::AcrylicLabel(int blur_radius, QSize max_blur_size, const QColor& tint_color, const QColor& luminosity_color, QWidget* parent)
-	: QLabel(this)
+AcrylicLabel::AcrylicLabel(int blur_radius, const QColor& tint_color, const QColor& luminosity_color, QWidget* parent)
+	: QLabel(parent)
 	, blur_radius_(blur_radius)
-	, max_blur_size_(max_blur_size)
 	, acrylic_texture_label_(tint_color, luminosity_color) {
+}
+
+AcrylicLabel::AcrylicLabel(QWidget* parent)
+    : AcrylicLabel(13, QColor(242, 242, 242, 150), QColor(255, 255, 255, 10), parent) {
 }
 
 void AcrylicLabel::setImage(const QPixmap& image) {

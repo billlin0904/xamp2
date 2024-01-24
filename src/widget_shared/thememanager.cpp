@@ -146,7 +146,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_REMOVE_ALL,                0xEB80 },
     { ICON_OPEN_FILE_PATH,            0xE255 },
     { ICON_SCAN_REPLAY_GAIN,          0xE023 },
-    { ICON_EXPORT_FILE,               0xF56E },
+    { ICON_EXPORT_FILE,               0xEB60 },
     { ICON_COPY,                      0xF0C5 },
     { ICON_DOWNLOAD,                  0xF0ED },
     { ICON_PLAYLIST,                  0xE03D },
@@ -188,7 +188,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_HEART_PRESS,               0xE87D },
     { ICON_CHEVRON_RIGHT,             0xE5CC },
     { ICON_CHEVRON_LEFT,              0xE5CB },
-    { ICON_FILE_CIRCLE_PLUS,          0xE494 },
+    { ICON_FILE_CIRCLE_PLUS,          0xE02E },
     { ICON_EDIT,                      0xE3C9 },
     { ICON_CIRCLE_CHECK,              0xE86C },
     { ICON_YOUTUBE,                   0xE8B6 },
@@ -279,7 +279,6 @@ ThemeManager::ThemeManager() {
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
 
-    //setFontAwesomeIcons();
     setGoogleMaterialFontIcons();
     setPalette();
 
@@ -348,7 +347,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
-    menu->setStyle(new IconSizeStyle(12));
+    menu->setStyle(new IconSizeStyle(20));
 }
 
 QIcon ThemeManager::fontIcon(const char32_t& code, QVariantMap options) {
@@ -376,7 +375,6 @@ QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> them
         auto temp = font_icon_opts_;
         temp.insert(FontIconOption::kColorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::black) : QColor(Qt::gray)));
         temp.insert(FontIconOption::kScaleFactorAttr, 1.3);
-        //return qFontIcon.GetIcon(0xF2D1, temp);
         return qFontIcon.GetIcon(code, temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:

@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QScopedPointer>
 #include <QActionGroup>
+#include <QProxyStyle>
 
 #include <widget/widget_shared_global.h>
 #include <thememanager.h>
@@ -16,6 +17,8 @@ class XAMP_WIDGET_SHARED_EXPORT XMenu : public QMenu {
 public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
+		//setAttribute(Qt::WA_StyledBackground);
+		//setStyle(new XProxyStyle());
 	}
 };
 

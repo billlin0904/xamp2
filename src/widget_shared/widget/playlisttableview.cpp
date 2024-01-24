@@ -572,7 +572,7 @@ void PlayListTableView::initial() {
 
             action_map.addSeparator();
 
-            auto *add_to_playlist = action_map.addSubMenu(qTR("Add to playlist"));
+            auto *add_to_playlist = action_map.addSubMenu(qTR("Add to cloud playlist"));
             QMap<QString, QString> playlist_ids;
             qMainDb.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
                 if (store_type == StoreType::CLOUD_STORE) {

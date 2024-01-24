@@ -114,7 +114,6 @@ void XDialog::setContent(QWidget* content) {
     
     max_win_button_->hide();
     min_win_button_->hide();
-    // TODO: close_button_ hide的時候會顯示會有問題.
 
     (void)QObject::connect(close_button_, &QToolButton::clicked, [this]() {
         close();
@@ -130,11 +129,6 @@ void XDialog::setContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
     
-    // 1. 如果使用waitForReady就會一直接收到message,
-    // 會導致無法訊息一直出現並會遞迴.
-    // 2. 無法將視窗置中.
-    //FramelessWidgetsHelper::get(this)->waitForReady();
-
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
     adjustSize();
 }
@@ -161,20 +155,6 @@ void XDialog::setIcon(const QIcon& icon) const {
 }
 
 void XDialog::showEvent(QShowEvent* event) {
-    /*auto* opacity_effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(opacity_effect);
-    auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
-    opacity_animation->setStartValue(0);
-    opacity_animation->setEndValue(1);
-    opacity_animation->setDuration(200);
-    opacity_animation->setEasingCurve(QEasingCurve::OutCubic);
-    (void)QObject::connect(opacity_animation,
-        &QPropertyAnimation::finished,
-        opacity_effect,
-        &QGraphicsOpacityEffect::deleteLater);
-    opacity_animation->start();
-
-    setAttribute(Qt::WA_Mapped);*/
     QDialog::showEvent(event);
 }
 

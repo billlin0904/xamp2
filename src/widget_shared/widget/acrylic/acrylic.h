@@ -15,7 +15,7 @@ class QWidget;
 class XAMP_WIDGET_SHARED_EXPORT AcrylicRender {
 public:
     AcrylicRender(QWidget* device,         
-        int blur_radius,
+        int blur_radius = 13,
         const QColor& tint_color = QColor(242, 242, 242, 150),
         const QColor& luminosity_color = QColor(255, 255, 255, 10),
         double noise_opacity = 0.03);
@@ -67,11 +67,12 @@ private:
 
 class AcrylicLabel : public QLabel {
 public:
-    explicit AcrylicLabel(int blur_radius,
-        QSize max_blur_size,
+    explicit AcrylicLabel(int blur_radius = 13,
         const QColor& tint_color = QColor(242, 242, 242, 150),
         const QColor& luminosity_color = QColor(255, 255, 255, 10),
         QWidget* parent = nullptr);
+
+    explicit AcrylicLabel(QWidget* parent = nullptr);
 
     void setImage(const QPixmap& image);
 
@@ -80,7 +81,6 @@ public:
     void resizeEvent(QResizeEvent* event) override;
 private:
     int blur_radius_;
-    QSize max_blur_size_;
     QPixmap blur_pixmap_;
     AcrylicTextureLabel acrylic_texture_label_;
 };

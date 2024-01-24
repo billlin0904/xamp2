@@ -6,6 +6,7 @@
 
 #include <thememanager.h>
 
+#include <widget/acrylic/acrylic.h>
 #include <widget/spectrumwidget.h>
 #include <widget/image_utiltis.h>
 #include <widget/scrolllabel.h>

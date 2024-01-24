@@ -162,6 +162,10 @@ namespace {
     int execute(int argc, char* argv[], QStringList &args) {
         qAppSettings;
 
+        QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+        QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+        QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
         QApplication::setApplicationName(kApplicationName);
         QApplication::setApplicationVersion(kApplicationVersion);
         QApplication::setOrganizationName(kApplicationName);
