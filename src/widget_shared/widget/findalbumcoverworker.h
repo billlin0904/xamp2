@@ -5,10 +5,12 @@
 
 #pragma once
 
+#include <QNetworkAccessManager>
 #include <QObject>
 
 #include <widget/database.h>
 #include <widget/widget_shared_global.h>
+#include <widget/databasecoverid.h>
 
 class XAMP_WIDGET_SHARED_EXPORT FindAlbumCoverWorker : public QObject {
 	Q_OBJECT
@@ -16,12 +18,16 @@ public:
 	FindAlbumCoverWorker();
 
 signals:
+	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
+
+	void setThumbnail(const DatabaseCoverId &id, const QString& cover_id);
+
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
 	void onFindAlbumCover(int32_t album_id, const std::wstring& file_path);
 
-	void onFetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url);
+	void onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url);
 
 	void cancelRequested();
 

@@ -39,13 +39,13 @@ public:
     void insertTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type,
-        std::function<void(int32_t)> fetch_cover = nullptr);
+        const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
 private:    
     void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type,
-        std::function<void(int32_t)> fetch_cover);
+        const std::function<void(int32_t, int32_t)>& fetch_cover);
 
     bool is_stop_{false};
 

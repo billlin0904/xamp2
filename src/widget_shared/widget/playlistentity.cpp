@@ -1,3 +1,4 @@
+#include <QVariant>
 #include <widget/playlistentity.h>
 
 #include <widget/playlisttablemodel.h>
@@ -40,6 +41,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.heart = indexValue(index, PLAYLIST_HEART).toUInt();
     entity.comment = indexValue(index, PLAYLIST_COMMENT).toString();
     entity.year = indexValue(index, PLAYLIST_YEAR).toUInt();
+    entity.music_cover_id = indexValue(index, PLAYLIST_MUSIC_COVER).toString();
 
     return entity;
 }

@@ -23,6 +23,7 @@ struct XAMP_BASE_API ReplayGain {
 
 struct XAMP_BASE_API TrackInfo final {
     TrackInfo() noexcept;
+    bool rating;
     uint32_t track;
     uint32_t bit_rate;
     uint32_t sample_rate;

@@ -25,13 +25,17 @@ enum class HttpMethod {
 
 class XAMP_WIDGET_SHARED_EXPORT HttpClient {
 public:
+    HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent = nullptr);
+
     explicit HttpClient(const QUrl& url, QObject* parent = nullptr);
 	
-    explicit HttpClient(const QString &url, QObject* parent = nullptr);
+    explicit HttpClient(const QString &url = QString(), QObject* parent = nullptr);
 
     ~HttpClient();
 
     void setTimeout(int timeout);
+
+    void setUrl(const QString& url);
 
     void setUserAgent(const QString& user_agent);
 

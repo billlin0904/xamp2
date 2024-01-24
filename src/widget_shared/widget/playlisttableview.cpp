@@ -66,7 +66,8 @@ namespace {
 	musics.heart,
 	musics.duration,
 	musics.comment,
-	albums.year
+	albums.year,
+	musics.coverId as musicCoverId
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -111,7 +112,8 @@ ORDER BY
 	musics.heart,
 	musics.duration,
 	musics.comment,
-	albums.year
+	albums.year,
+	musics.coverId as musicCoverId
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -282,8 +284,14 @@ public:
             break;
         case PLAYLIST_COVER_ID:
 	        {
-				opt.icon = icon_cache_.GetOrAdd(value.toString(), [&value]() {
-                    const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(value.toString()), PlayListTableView::kCoverSize));
+				auto music_cover_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_MUSIC_COVER)).toString();
+                auto id = value.toString();
+				if (!music_cover_id.isEmpty()) {
+                    id = music_cover_id;
+				}
+
+				opt.icon = icon_cache_.GetOrAdd(id, [id]() {
+                    const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(id), PlayListTableView::kCoverSize));
                     return uniformIcon(icon, PlayListTableView::kCoverSize);
                 });
 				opt.features = QStyleOptionViewItem::HasDecoration;
@@ -540,9 +548,9 @@ void PlayListTableView::initial() {
 		
         ActionMap<PlayListTableView> action_map(this);
 
-        PlayListEntity item;
+        PlayListEntity entity;
         if (model_->rowCount() > 0 && index.isValid()) {
-            item = getEntity(index);
+            entity = getEntity(index);
         }             
 
         if (cloud_mode_) {            
@@ -552,14 +560,14 @@ void PlayListTableView::initial() {
             auto* copy_artist_act = action_map.addAction(qTR("Copy artist"));
             auto* copy_title_act = action_map.addAction(qTR("Copy title"));
 
-            action_map.setCallback(copy_album_act, [item]() {
-                QApplication::clipboard()->setText(item.album);
+            action_map.setCallback(copy_album_act, [entity]() {
+                QApplication::clipboard()->setText(entity.album);
                 });
-            action_map.setCallback(copy_artist_act, [item]() {
-                QApplication::clipboard()->setText(item.artist);
+            action_map.setCallback(copy_artist_act, [entity]() {
+                QApplication::clipboard()->setText(entity.artist);
                 });
-            action_map.setCallback(copy_title_act, [item]() {
-                QApplication::clipboard()->setText(item.title);
+            action_map.setCallback(copy_title_act, [entity]() {
+                QApplication::clipboard()->setText(entity.title);
                 });
 
             action_map.addSeparator();
@@ -586,6 +594,13 @@ void PlayListTableView::initial() {
                     emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
                 }
             });
+
+            auto* like_song_act = action_map.addAction(qTR("Like the music"));
+            action_map.setCallback(like_song_act, [this, entity]() {
+                if (cloudPlaylistId()) {
+                    emit rateSong(entity);
+                }
+                });
 
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
@@ -733,47 +748,47 @@ void PlayListTableView::initial() {
 
         auto* open_local_file_path_act = action_map.addAction(qTR("Open local file path"));
         open_local_file_path_act->setIcon(qTheme.fontIcon(Glyphs::ICON_OPEN_FILE_PATH));
-        action_map.setCallback(open_local_file_path_act, [item]() {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
+        action_map.setCallback(open_local_file_path_act, [entity]() {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(entity.parent_path));
         });
 
-        action_map.setCallback(reload_track_info_act, [this, item]() {
-            onReloadEntity(item);
+        action_map.setCallback(reload_track_info_act, [this, entity]() {
+            onReloadEntity(entity);
         });
     	
         action_map.addSeparator();
-        action_map.setCallback(copy_album_act, [item]() {
-            QApplication::clipboard()->setText(item.album);
+        action_map.setCallback(copy_album_act, [entity]() {
+            QApplication::clipboard()->setText(entity.album);
         });
-        action_map.setCallback(copy_artist_act, [item]() {
-            QApplication::clipboard()->setText(item.artist);
+        action_map.setCallback(copy_artist_act, [entity]() {
+            QApplication::clipboard()->setText(entity.artist);
         });
-        action_map.setCallback(copy_title_act, [item]() {
-            QApplication::clipboard()->setText(item.title);
+        action_map.setCallback(copy_title_act, [entity]() {
+            QApplication::clipboard()->setText(entity.title);
         });
 
         action_map.setCallback(select_item_edit_track_info_act, [this]() {
             const auto rows = selectItemIndex();
-            QList<PlayListEntity> items;
+            QList<PlayListEntity> entities;
             for (const auto& row : rows) {
-                items.push_front(this->item(row.second));
+                entities.push_front(this->item(row.second));
             }
-            if (items.isEmpty()) {
+            if (entities.isEmpty()) {
                 return;
             }
-            emit editTags(playlistId(), items);
-            Q_FOREACH(auto entity, items) {
+            emit editTags(playlistId(), entities);
+            Q_FOREACH(auto entity, entities) {
                 onReloadEntity(entity);
             }
         });
 
         action_map.setCallback(scan_select_item_replaygain_act, [this]() {
             const auto rows = selectItemIndex();
-            QList<PlayListEntity> items;
+            QList<PlayListEntity> entities;
             for (const auto& row : rows) {
-                items.push_front(this->item(row.second));
+                entities.push_front(this->item(row.second));
             }
-            emit readReplayGain(playlistId(), items);
+            emit readReplayGain(playlistId(), entities);
         });
 
         action_map.setCallback(export_flac_file_act, [this]() {
@@ -825,6 +840,9 @@ PlayListEntity PlayListTableView::item(const QModelIndex& index) const {
 
 void PlayListTableView::playItem(const QModelIndex& index) {
     setNowPlaying(index);
+    if (!play_index_.isValid()) {
+        return;
+    }
     const auto play_item = item(play_index_);
     emit playMusic(play_item);
 }

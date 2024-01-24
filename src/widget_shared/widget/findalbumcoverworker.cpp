@@ -11,23 +11,21 @@ FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(GetPooledDatabase(2)) {
 }
 
-void FindAlbumCoverWorker::onFetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url) {
-    const auto cover_id = database_ptr_->Acquire()->getAlbumCoverId(album_id);
-    if (!cover_id.isEmpty()) {
-        return;
-    }
-
-    http::HttpClient(thumbnail_url)
-        .download([=, this](const auto& content) {
+void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
+    auto download_handler = [=, this](const auto& content) {
         QPixmap image;
         if (!image.loadFromData(content)) {
             return;
         }
-        try {
-            database_ptr_->Acquire()->setAlbumCover(album_id, qImageCache.addImage(image));
-        } catch (...) {
-        }
-    });
+        emit setThumbnail(id, qImageCache.addImage(image));
+        };
+
+    auto error_handler = [id, thumbnail_url, this](const auto& url, const auto& error) {
+        emit fetchThumbnailUrlError(id, thumbnail_url);
+        };
+
+    http::HttpClient(thumbnail_url)
+        .download(download_handler, error_handler);
 }
 
 void FindAlbumCoverWorker::cancelRequested() {

@@ -8,7 +8,9 @@
 #include <cstdint>
 #include <QString>
 #include <QModelIndex>
+#include <QVariant>
 
+#include <widget/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
@@ -45,6 +47,15 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString comment;
     QString lyrc;
     QString trlyrc;
+    std::optional<QString> music_cover_id;
+
+    [[nodiscard]] QString validCoverId() const {
+        auto id = music_cover_id ? music_cover_id.value() : kEmptyString;
+        if (id.isEmpty() || id.isNull()) {
+            id = cover_id;
+        }
+        return id;
+    }
 };
 
 // for QVariant轉換使用

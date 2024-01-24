@@ -124,6 +124,8 @@
     <QtMoc Include="widget\cover_searcher\discogscoversearcher.h" />
     <QtMoc Include="widget\cover_searcher\coversearcher.h" />
     <QtMoc Include="widget\createplaylistview.h" />
+    <ClInclude Include="widget\acrylic\acrylic.h" />
+    <ClInclude Include="widget\databasecoverid.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />
@@ -201,6 +203,7 @@
     <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="version.cpp" />
     <ClCompile Include="widget\aboutpage.cpp" />
+    <ClCompile Include="widget\acrylic\acrylic.cpp" />
     <ClCompile Include="widget\albumartistpage.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>

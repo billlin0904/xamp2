@@ -370,8 +370,6 @@ QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 	const auto temp = source.scaled(scaled_size, mode);
 	auto scaled_image = temp.scaled(size, mode, Qt::SmoothTransformation);
 	return scaled_image;
-	/*const auto mode = is_aspect_ratio ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio;
-	return source.scaled(size, mode, Qt::SmoothTransformation);*/
 }
 
 QByteArray image2ByteArray(const QPixmap& source) {
@@ -458,15 +456,17 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	return result;
 }
 
-QImage blurImage(const QPixmap& source, QSize size) {
-	//const int radius = qMax(20, qMin(size.width(), size.height()) / 5);
-	const int radius = 30;
+QPixmap gaussianBlur(const QPixmap& source, uint32_t radius) {
+	auto image = source.toImage();
+	stackblurJob(image, radius);
+	return QPixmap::fromImage(image);
+}
 
-	const QSize scaled_size(size.width() + radius, size.height() + radius);
+QImage blurImage(const QPixmap& source, QSize size) {
+	const QSize scaled_size(size.width() + kImageBlurRadius, size.height() + kImageBlurRadius);
 	auto resize_pixmap = resizeImage(source, scaled_size);
-	//auto resize_pixmap = source;
 	auto img = resize_pixmap.toImage();
-	stackblurJob(img, radius);
+	stackblurJob(img, kImageBlurRadius);
 	return img;
 }
 

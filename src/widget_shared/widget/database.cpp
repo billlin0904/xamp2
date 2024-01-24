@@ -598,6 +598,20 @@ void Database::setPlaylistName(int32_t playlist_id, const QString& name) {
     THROW_IF_FAIL1(query);
 }
 
+void Database::setMusicCover(int32_t music_id, const QString& cover_id) {
+    XAMP_ENSURES(!cover_id.isEmpty());
+
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE musics SET coverId = :coverId WHERE (musicId = :musicId)"));
+
+    query.bindValue(qTEXT(":musicId"), music_id);
+    query.bindValue(qTEXT(":coverId"), cover_id);
+
+    THROW_IF_FAIL1(query);
+    XAMP_LOG_D(logger_, "setMusicCover musicId: {} coverId: {}", music_id, cover_id.toStdString());
+}
+
 void Database::setAlbumCover(int32_t album_id, const QString& cover_id) {
     XAMP_ENSURES(!cover_id.isEmpty());
 
@@ -704,6 +718,21 @@ QString Database::getArtistCoverId(int32_t artist_id) const {
 
     query.prepare(qTEXT("SELECT coverId FROM artists WHERE artistId = (:artistId)"));
     query.bindValue(qTEXT(":artistId"), artist_id);
+
+    THROW_IF_FAIL1(query);
+
+    const auto index = query.record().indexOf(qTEXT("coverId"));
+    if (query.next()) {
+        return query.value(index).toString();
+    }
+    return kEmptyString;
+}
+
+QString Database::getMusicCoverId(int32_t music_id) const {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("SELECT coverId FROM musics WHERE musicId = (:musicId)"));
+    query.bindValue(qTEXT(":musicId"), music_id);
 
     THROW_IF_FAIL1(query);
 
@@ -823,8 +852,8 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
 
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart)
     )")
     );
 
@@ -840,6 +869,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":sampleRate"), track_info.sample_rate);
     query.bindValue(qTEXT(":offset"), track_info.offset);
     query.bindValue(qTEXT(":fileSize"), track_info.file_size);
+    query.bindValue(qTEXT(":heart"), track_info.rating ? 1 : 0);
 
     if (track_info.replay_gain) {
         query.bindValue(qTEXT(":albumReplayGain"), track_info.replay_gain.value().album_gain);

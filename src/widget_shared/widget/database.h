@@ -77,11 +77,11 @@ enum class StoreType {
 
 class SqlQuery : public QSqlQuery {
 public:
-	explicit SqlQuery(const QString& query = QString(), QSqlDatabase db = QSqlDatabase())
+	explicit SqlQuery(const QString& query = QString(), const QSqlDatabase& db = QSqlDatabase())
 		: QSqlQuery(query, db) {
 	}
 
-	explicit SqlQuery(QSqlDatabase db)
+	explicit SqlQuery(const QSqlDatabase& db)
 		: QSqlQuery(db) {
 	}
 
@@ -190,9 +190,13 @@ public:
 
 	QString getAlbumCoverId(int32_t album_id) const;
 
+	QString getMusicCoverId(int32_t music_id) const;
+
 	int32_t getAlbumId(const QString& album) const;
 
 	QString getAlbumCoverId(const QString& album) const;
+
+	void setMusicCover(int32_t music_id, const QString& cover_id);
 
 	QString getArtistCoverId(int32_t artist_id) const;
 

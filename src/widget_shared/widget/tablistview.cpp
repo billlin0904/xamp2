@@ -57,6 +57,12 @@ void TabListView::onCurrentThemeChanged(ThemeColor theme_color) {
         case TAB_CD:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             break;
+        case TAB_YT_MUSIC_SEARCH:
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+            break;
+        case TAB_YT_MUSIC_PLAYLIST:
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
+            break;
         }
     }
 }

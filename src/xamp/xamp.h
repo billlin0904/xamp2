@@ -21,6 +21,7 @@
 #include <widget/driveinfo.h>
 #include <widget/str_utilts.h>
 #include <widget/youtubedl/ytmusic.h>
+#include <widget/databasecoverid.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>
@@ -100,10 +101,10 @@ signals:
 
 	void updateNewVersion(const Version &version);
 
-	void fetchThumbnailUrl(int32_t album_id, const QString& thumbnail_url);	
+	void fetchThumbnailUrl(const DatabaseCoverId &id, const QString& thumbnail_url);
 
 public slots:
-	void performDelayedUpdate();
+	void onDelayedDownloadThumbnail();
 
     void onPlayEntity(const PlayListEntity& entity);
 
@@ -163,11 +164,9 @@ public slots:
 
 	void onSearchSuggestionsCompleted(const std::vector<std::string>& result);
 
-	void onExtractVideoInfoCompleted(PlaylistPage* playlist_page,
-		const std::string& thumbnail_url,
-		TrackInfo track_info, 
-		const video_info::VideoInfo& video_info);
+	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
 
+	void onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 private:
 	void initialUi();
 
@@ -207,7 +206,7 @@ private:
 
 	void onSampleTimeChanged(double stream_time);
 
-	void playLocalFile(const PlayListEntity& item);
+	void playLocalFile(const PlayListEntity& entity);
 
 	void onPlayerStateChanged(PlayerState play_state);
 
@@ -239,7 +238,7 @@ private:
 
 	void downloadFile(const PlayListEntity& entity);
 
-    void updateUi(const PlayListEntity& item, const PlaybackFormat& playback_format, bool open_done);
+    void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done);
 
 	void updateButtonState();
 
@@ -270,6 +269,7 @@ private:
 	QModelIndex play_index_;
 	IXMainWindow* main_window_;
 	PlayListTableView* last_play_list_{ nullptr };
+	PlaylistPage* last_play_page_{ nullptr };
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;
 	QScopedPointer<PlaylistTabWidget> local_tab_widget_;
@@ -289,7 +289,7 @@ private:
 	QThread extract_file_thread_;
 	QThread ytmusic_thread_;
 	QTimer ui_update_timer_timer_;
-	QMap<int32_t, QString> download_thumbnail_pending_;
+	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;

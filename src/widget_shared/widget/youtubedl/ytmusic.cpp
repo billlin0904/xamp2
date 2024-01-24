@@ -457,7 +457,7 @@ QFuture<bool> YtMusic::editPlaylistAsync(const QString& playlist_id,
 	const std::optional<std::string>& add_playlist_id, 
     const std::optional<std::string>& add_to_top) {
     return invokeAsync([this, playlist_id, title, description, status, move_item, add_playlist_id, add_to_top]() {
-        return interop()->editPlaylsist(playlist_id.toStdString(),
+        return interop()->editPlaylist(playlist_id.toStdString(),
 			title.toStdString(), description.toStdString(), status, move_item, add_playlist_id, add_to_top);
         });
 }
@@ -477,6 +477,12 @@ QFuture<bool> YtMusic::removePlaylistItemsAsync(const QString& playlist_id, cons
 QFuture<bool> YtMusic::deletePlaylistAsync(const QString& playlist_id) {    
     return invokeAsync([this, playlist_id]() {
         return interop()->deletePlaylist(playlist_id.toStdString());
+        });
+}
+
+QFuture<bool> YtMusic::rateSongAsync(const QString& video_id, SongRating rating) {
+    return invokeAsync([this, video_id, rating]() {
+        return interop()->rateSong(video_id.toStdString(), rating);
         });
 }
 
@@ -520,7 +526,7 @@ QFuture<playlist::Playlist> YtMusic::fetchPlaylistAsync(const QString& playlist_
         });
 }
 
-QFuture<std::vector<library::Playlist>> YtMusic::fetchLibraryPlaylistsAsync() {
+QFuture<std::vector<library::Playlist>> YtMusic::fetchLibraryPlaylistAsync() {
     return invokeAsync([this]() {
         return interop()->getLibraryPlaylists();
         });
@@ -555,6 +561,7 @@ void YtMusicInterop::initial() {
 
 std::vector<std::string> YtMusicInterop::searchSuggestions(const std::string& query, bool detailed_runs) const {
     const auto suggestions = impl_->get_ytmusic().attr("get_search_suggestions")(query, detailed_runs);
+    printObject(suggestions);
     return extract_py_list<std::string>(suggestions);
 }
 
@@ -694,7 +701,7 @@ std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::st
     return albums;
 }
 
-int32_t YtMusicInterop::download(const std::string& url) {
+int32_t YtMusicInterop::download(const std::string& url) const {
     return impl_->get_ytdl().attr("download")(url).cast<int32_t>();
 }
 
@@ -714,53 +721,46 @@ video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) c
     };
 }
 
-std::string privateStatusToString(PrivateStatus status) {
-	std::string private_status = "PRIVATE";
-	switch (status) {
-	case PRIVATE_S_PRIVATE:
-		private_status = "PRIVATE";
-		break;
-	case PRIVATE_S_PUBLIC:
-		private_status = "PUBLIC";
-		break;
-	case PRIVATE_S_UNLISTED:
-		private_status = "UNLISTED";
-		break;
-	}
-    return private_status;
+bool YtMusicInterop::rateSong(const std::string& video_id, SongRating rating) const {
+    if (video_id.empty()) {
+        return false;
+    }
+    const auto result = impl_->get_ytmusic().attr("rate_song")(video_id, EnumToString(rating));
+    printObject(result);
+    return true;
 }
 
 std::string YtMusicInterop::createPlaylistAsync(const std::string& title,
                                                 const std::string& description,
                                                 PrivateStatus status,
                                                 const std::vector<std::string>& video_ids,
-                                                const std::optional<std::string>& source_playlist) {
+                                                const std::optional<std::string>& source_playlist) const {
     if (title.empty()) {
         return {};
     }
     const auto result = impl_->get_ytmusic().attr("create_playlist")(title,        
         description, 
-        privateStatusToString(status), 
+        EnumToString(status),
         py::cast(video_ids), 
         source_playlist);
     printObject(result);
     return result.cast<std::string>();
 }
 
-bool YtMusicInterop::editPlaylsist(const std::string& playlist_id,
+bool YtMusicInterop::editPlaylist(const std::string& playlist_id,
     const std::string& title,
     const std::string& description,
     PrivateStatus status,
     const std::optional<std::tuple<std::string, std::string>>& move_item,
     const std::optional<std::string>& add_playlist_id,
-	const std::optional<std::string>& add_to_top) {
+	const std::optional<std::string>& add_to_top) const {
     if (playlist_id.empty()) {
         return false;
     }
     const auto result = impl_->get_ytmusic().attr("edit_playlist")(playlist_id,
         title,
         description, 
-        privateStatusToString(status), 
+        EnumToString(status), 
         move_item, 
         add_playlist_id,
         add_to_top);
@@ -771,7 +771,7 @@ bool YtMusicInterop::editPlaylsist(const std::string& playlist_id,
 edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& playlist_id,
                                                            const std::vector<std::string>& video_ids,
                                                            const std::optional<std::string>& source_playlist, 
-                                                           bool duplicates) {
+                                                           bool duplicates) const {
     if (playlist_id.empty()) {
         return {};
     }
@@ -792,13 +792,13 @@ edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& pl
 }
 
 bool YtMusicInterop::removePlaylistItems(const std::string& playlist_id,
-	const std::vector<edit::PlaylistEditResultData>& videoIds) {
+	const std::vector<edit::PlaylistEditResultData>& video_ids) const {
     if (playlist_id.empty()) {
         return false;
     }
 
     py::list py_list;
-    for (const auto& item : videoIds) {
+    for (const auto& item : video_ids) {
         py::dict py_dict;
         py_dict["videoId"] = item.videoId;
         py_dict["setVideoId"] = item.setVideoId;
@@ -810,7 +810,7 @@ bool YtMusicInterop::removePlaylistItems(const std::string& playlist_id,
     return true;
 }
 
-bool YtMusicInterop::deletePlaylist(const std::string& playlist_id) {
+bool YtMusicInterop::deletePlaylist(const std::string& playlist_id) const {
     const auto result = impl_->get_ytmusic().attr("delete_playlist")(playlist_id);
     printObject(result);
     return true;

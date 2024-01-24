@@ -144,9 +144,13 @@ struct HttpContext {
 
 class XAMP_WIDGET_SHARED_EXPORT HttpClient::HttpClientImpl {
 public:
+    HttpClientImpl(QNetworkAccessManager *nam, const QString& url, QObject* parent = nullptr);
+
 	HttpClientImpl(const QString &url, QObject* parent = nullptr);
 
     ~HttpClientImpl();
+
+    void setUrl(const QString& url);
 
     HttpContext createHttpContext() const;
 
@@ -183,15 +187,23 @@ public:
 
 HttpClient::HttpClientImpl::~HttpClientImpl() = default;
 
-HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
+HttpClient::HttpClientImpl::HttpClientImpl(QNetworkAccessManager* nam, const QString& url, QObject* parent)
     : use_json_(false)
     , use_internal_(true)
     , timeout_(kHttpDefaultTimeout)
     , url_(url)
     , charset_(QStringConverter::Encoding::Utf8)
-    , manager_(new QNetworkAccessManager(parent)) {
+    , manager_(nam) {
     logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
     manager_->setCache(new NetworkDiskCache(parent));
+}
+
+HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
+    : HttpClientImpl(new QNetworkAccessManager(parent), url, parent) {
+}
+
+void HttpClient::HttpClientImpl::setUrl(const QString& url) {
+    url_ = url;
 }
 
 HttpContext HttpClient::HttpClientImpl::createHttpContext() const {
@@ -273,7 +285,7 @@ void HttpClient::HttpClientImpl::handleProgress(const HttpContext& context, QNet
     const auto status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     const auto status = status_code.isValid() ? status_code.toInt() : 200;
 
-    if (total > 0) {
+    if (total > 0 && ready > 0) {
         XAMP_LOG_D(context.logger, "Download progress: {}%", Round(ready * 100.0 / total));
     }
 
@@ -426,21 +438,29 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
 
 std::shared_ptr<ObjectPool<QByteArray>> HttpClient::qBufferPool;
 
+HttpClient::HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent)
+	: impl_(QSharedPointer<HttpClientImpl>::create(nam, url, parent)) {
+    if (!qBufferPool) {
+        qBufferPool = std::make_shared<ObjectPool<QByteArray>>(256);
+    }
+}
+
 HttpClient::HttpClient(const QUrl& url, QObject* parent)
     : HttpClient(url.toString(), parent) {
 }
 
 HttpClient::HttpClient(const QString &url, QObject* parent)
-    : impl_(QSharedPointer<HttpClientImpl>::create(url, parent)) {
-    if (!qBufferPool) {
-        qBufferPool = std::make_shared<ObjectPool<QByteArray>>(256);
-    }
+    : HttpClient(new QNetworkAccessManager(parent), url, parent) {
 }
 
 HttpClient::~HttpClient() = default;
 
 void HttpClient::setTimeout(int timeout) {
     impl_->setTimeout(timeout);
+}
+
+void HttpClient::setUrl(const QString& url) {
+    impl_->setUrl(url);
 }
 
 HttpClient& HttpClient::param(const QString &name, const QVariant &value) {
@@ -526,6 +546,7 @@ void HttpClient::download(std::function<void (const QByteArray &)> download_hand
     std::function<void(const QUrl&, const QString&)> error_handler) {
     auto data = std::shared_ptr<QByteArray>(qBufferPool->Acquire());
     data->clear();
+    data->squeeze();
 
     success([handler = std::move(download_handler), data](auto, auto) {
         handler(*data);

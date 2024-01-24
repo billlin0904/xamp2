@@ -751,14 +751,14 @@
           <widget class="QToolButton" name="prevButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -833,14 +833,14 @@
           <widget class="QToolButton" name="nextButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -874,14 +874,14 @@
           <widget class="QToolButton" name="stopButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">

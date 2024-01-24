@@ -26,6 +26,7 @@ IF
 		plays integer,
 		lyrc TEXT,
 		trLyrc TEXT,
+		coverId TEXT DEFAULT NULL,
 		UNIQUE ( path, offset ) 
 	);
 	

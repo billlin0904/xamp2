@@ -91,7 +91,7 @@ int32_t DatabaseFacade::unknownAlbumId() {
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
     int32_t playlist_id,
     StoreType store_type,
-    std::function<void(int32_t)> fetch_cover) {
+    const std::function<void(int32_t, int32_t)>& fetch_cover) {
     const Stopwatch sw;
     uint32_t album_year = 0;
     if (!result.empty()) {
@@ -181,11 +181,14 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             continue;
         }
 
-        const auto cover_id = database_->getAlbumCoverId(album_id);
+        auto cover_id = database_->getAlbumCoverId(album_id);
+        if (cover_id.isEmpty()) {
+            cover_id = database_->getMusicCoverId(music_id);
+        }
 
         if (!is_file_path) {
             if (fetch_cover != nullptr && cover_id.isEmpty()) {
-                fetch_cover(album_id);
+                fetch_cover(music_id, album_id);
             }
             continue;
         }
@@ -199,7 +202,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             if (!fetch_cover) {
                 emit findAlbumCover(album_id, track_info.file_path);
             } else {
-                fetch_cover(album_id);
+                fetch_cover(music_id, album_id);
             }
         }
 	}
@@ -210,8 +213,8 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
 void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
-    StoreType store_type, 
-    std::function<void(int32_t)> fetch_cover) {
+    StoreType store_type,
+    const std::function<void(int32_t, int32_t)>& fetch_cover) {
     try {
         if (!database_->transaction()) {
             XAMP_LOG_DEBUG("Failed to begin transaction!");

@@ -467,11 +467,13 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        try {
+        auto rollback = true;
+
+        TRY_LOG(
             QList<int32_t> albums;
             qMainDb.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
-            });
+                });
 
             process_dialog->setRange(0, albums.size() + 1);
             int32_t count = 0;
@@ -487,8 +489,10 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             update();
             emit removeAll();
             qImageCache.clear();
-        }
-        catch (...) {
+            rollback = false;
+        )
+
+        if (rollback) {
             qMainDb.rollback();
         }
     };

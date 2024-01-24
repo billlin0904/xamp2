@@ -12,6 +12,7 @@
 #include <base/lazy_storage.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
+#include <base/enum.h>
 #include <widget/widget_shared_global.h>
 
 namespace meta {
@@ -240,11 +241,15 @@ enum InvokeType {
 	INVOKE_IMMEDIATELY,
 };
 
-enum PrivateStatus {
-	PRIVATE_S_PUBLIC,
-	PRIVATE_S_PRIVATE,
-	PRIVATE_S_UNLISTED,
-};
+XAMP_MAKE_ENUM(PrivateStatus,
+	PUBLIC,
+	PRIVATE,
+	UNLISTED)
+
+XAMP_MAKE_ENUM(SongRating,
+	LIKE,
+	DISLIKE,
+	INDIFFERENT)
 
 inline std::wstring makeId(const playlist::Track& track) {
 	if (!track.set_video_id) {
@@ -385,30 +390,33 @@ public:
 
 	[[nodiscard]] video_info::VideoInfo extractInfo(const std::string& video_id) const;
 
+	[[nodiscard]] bool rateSong(const std::string& video_id, SongRating rating) const;
+
 	[[nodiscard]] std::string createPlaylistAsync(const std::string& title,
 		const std::string& description,
 		PrivateStatus status,
 		const std::vector<std::string>& video_ids,
-		const std::optional<std::string>& source_playlist = std::nullopt);
+		const std::optional<std::string>& source_playlist = std::nullopt) const;
 
-	[[nodiscard]] bool editPlaylsist(const std::string& playlist_id,
+	[[nodiscard]] bool editPlaylist(const std::string& playlist_id,
 		const std::string& title,
 		const std::string& description,
 		PrivateStatus status,
 		const std::optional<std::tuple<std::string, std::string>>& move_item = std::nullopt,
 		const std::optional<std::string>& add_playlist_id = std::nullopt,
-		const std::optional<std::string>& add_to_top = std::nullopt);
+		const std::optional<std::string>& add_to_top = std::nullopt) const;
 
 	[[nodiscard]] edit::PlaylistEditResults addPlaylistItems(const std::string& playlist_id,
 		const std::vector<std::string>& video_ids,
 		const std::optional<std::string>& source_playlist,
-		bool duplicates);
+		bool duplicates) const;
 
-	[[nodiscard]] bool removePlaylistItems(const std::string& playlist_id, const std::vector<edit::PlaylistEditResultData>& videos);
+	[[nodiscard]] bool removePlaylistItems(const std::string& playlist_id, 
+		const std::vector<edit::PlaylistEditResultData>& videos) const;
 
-	[[nodiscard]] bool deletePlaylist(const std::string& playlist_id);
+	[[nodiscard]] bool deletePlaylist(const std::string& playlist_id) const;
 
-	[[nodiscard]] int32_t download(const std::string& url);
+	[[nodiscard]] int32_t download(const std::string& url) const;
 private:
 	class YtMusicInteropImpl;
 	AlignPtr<YtMusicInteropImpl> impl_;
@@ -425,7 +433,7 @@ public:
 
 	QFuture<bool> cleanupAsync();
 
-	QFuture<std::vector<std::string>> searchSuggestionsAsync(const QString& query, bool detailed_runs = false);
+	QFuture<std::vector<std::string>> searchSuggestionsAsync(const QString& query, bool detailed_runs = true);
 
 	QFuture<std::vector<search::SearchResultItem>> searchAsync(const QString& query, const std::optional<std::string>& filter);
 
@@ -437,7 +445,7 @@ public:
 
 	QFuture<playlist::Playlist> fetchPlaylistAsync(const QString& playlist_id);
 
-	QFuture<std::vector<library::Playlist>> fetchLibraryPlaylistsAsync();
+	QFuture<std::vector<library::Playlist>> fetchLibraryPlaylistAsync();
 
 	QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
 
@@ -473,6 +481,8 @@ public:
 		const std::vector<edit::PlaylistEditResultData>& videos);
 
 	QFuture<bool> deletePlaylistAsync(const QString& playlist_id);
+
+	QFuture<bool> rateSongAsync(const QString& video_id, SongRating rating);
 private:
 	YtMusicInterop* interop();
 
