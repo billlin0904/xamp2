@@ -18,7 +18,7 @@ enum TabIndex {
     TAB_LYRICS,
     TAB_MUSIC_LIBRARY,
     TAB_CD,
-    TAB_YT_MUSIC_SEARCH,
+    //TAB_YT_MUSIC_SEARCH,
     TAB_YT_MUSIC_PLAYLIST,    
 };
 

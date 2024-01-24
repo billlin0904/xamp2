@@ -529,7 +529,7 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     ytmusic_thread_.start();
 
     ytmusic_worker_->initialAsync().waitForFinished();
-    XAMP_LOG_DEBUG("Youtube worker initial done!");
+    XAMP_LOG_DEBUG("YouTube worker initial done!");
 
     player_->Startup(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
@@ -1417,10 +1417,10 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
-    case TAB_YT_MUSIC_SEARCH:
+    /*case TAB_YT_MUSIC_SEARCH:
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         cloud_search_page_->playlist()->reload();
-        break;
+        break;*/
     case TAB_YT_MUSIC_PLAYLIST:
         ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         cloud_tab_widget_->reloadAll();
@@ -1640,9 +1640,9 @@ void Xamp::playOrPause() {
         page = dynamic_cast<PlaylistPage*>(local_tab_widget_->currentWidget());
         tab = local_tab_widget_.get();
         break;
-    case TAB_YT_MUSIC_SEARCH:
+    /*case TAB_YT_MUSIC_SEARCH:
         page = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
-        break;
+        break;*/
     case TAB_YT_MUSIC_PLAYLIST:
         page = dynamic_cast<PlaylistPage*>(cloud_tab_widget_->currentWidget());
         tab = cloud_tab_widget_.get();
@@ -2203,7 +2203,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    //ui_.naviBar->addTab(qTR("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->addTab(qTR("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
