@@ -33,6 +33,82 @@ enum {
 Q_GUI_EXPORT HBITMAP qt_pixmapToWinHBITMAP(const QPixmap& p, int hbitmapFormat = HBitmapFormat::HBitmapNoAlpha);
 
 namespace {
+	typedef enum _WINDOWCOMPOSITIONATTRIB
+	{
+		WCA_UNDEFINED = 0,
+		WCA_NCRENDERING_ENABLED = 1,
+		WCA_NCRENDERING_POLICY = 2,
+		WCA_TRANSITIONS_FORCEDISABLED = 3,
+		WCA_ALLOW_NCPAINT = 4,
+		WCA_CAPTION_BUTTON_BOUNDS = 5,
+		WCA_NONCLIENT_RTL_LAYOUT = 6,
+		WCA_FORCE_ICONIC_REPRESENTATION = 7,
+		WCA_EXTENDED_FRAME_BOUNDS = 8,
+		WCA_HAS_ICONIC_BITMAP = 9,
+		WCA_THEME_ATTRIBUTES = 10,
+		WCA_NCRENDERING_EXILED = 11,
+		WCA_NCADORNMENTINFO = 12,
+		WCA_EXCLUDED_FROM_LIVEPREVIEW = 13,
+		WCA_VIDEO_OVERLAY_ACTIVE = 14,
+		WCA_FORCE_ACTIVEWINDOW_APPEARANCE = 15,
+		WCA_DISALLOW_PEEK = 16,
+		WCA_CLOAK = 17,
+		WCA_CLOAKED = 18,
+		WCA_ACCENT_POLICY = 19,
+		WCA_FREEZE_REPRESENTATION = 20,
+		WCA_EVER_UNCLOAKED = 21,
+		WCA_VISUAL_OWNER = 22,
+		WCA_HOLOGRAPHIC = 23,
+		WCA_EXCLUDED_FROM_DDA = 24,
+		WCA_PASSIVEUPDATEMODE = 25,
+		WCA_USEDARKMODECOLORS = 26,
+		WCA_CORNER_STYLE = 27,
+		WCA_PART_COLOR = 28,
+		WCA_DISABLE_MOVESIZE_FEEDBACK = 29,
+		WCA_LAST = 30
+	} WINDOWCOMPOSITIONATTRIB;
+
+	typedef struct _WINDOWCOMPOSITIONATTRIBDATA
+	{
+		WINDOWCOMPOSITIONATTRIB Attribute;
+		PVOID Data;
+		SIZE_T SizeOfData;
+	} WINDOWCOMPOSITIONATTRIBDATA;
+
+	typedef enum _ACCENT_STATE
+	{
+		ACCENT_DISABLED = 0,
+		ACCENT_ENABLE_GRADIENT = 1,
+		ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+		ACCENT_ENABLE_BLURBEHIND = 3,
+		ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
+		ACCENT_ENABLE_HOSTBACKDROP = 5,
+		ACCENT_INVALID_STATE = 6
+	} ACCENT_STATE;
+
+	typedef enum DWM_SYSTEMBACKDROP_TYPE {
+		DWMSBT_AUTO,
+		DWMSBT_NONE,
+		DWMSBT_MAINWINDOW,
+		DWMSBT_TRANSIENTWINDOW,
+		DWMSBT_TABBEDWINDOW
+	};
+
+	typedef struct _ACCENT_POLICY
+	{
+		ACCENT_STATE AccentState;
+		DWORD AccentFlags;
+		DWORD GradientColor;
+		DWORD AnimationId;
+	} ACCENT_POLICY;
+
+	WINUSERAPI
+	BOOL
+	WINAPI
+	SetWindowCompositionAttribute(
+		_In_ HWND hWnd,
+		_Inout_ WINDOWCOMPOSITIONATTRIBDATA* pAttrData);
+
 	struct GdiDeleter final {
 		static HBITMAP invalid() noexcept {
 			return nullptr;
@@ -64,7 +140,8 @@ namespace {
 			, XAMP_LOAD_DLL_API(DwmInvalidateIconicBitmaps)
 			, XAMP_LOAD_DLL_API(DwmSetWindowAttribute)
 			, XAMP_LOAD_DLL_API(DwmSetIconicThumbnail)
-			, XAMP_LOAD_DLL_API(DwmSetIconicLivePreviewBitmap) {
+			, XAMP_LOAD_DLL_API(DwmSetIconicLivePreviewBitmap)
+			, XAMP_LOAD_DLL_API(DwmExtendFrameIntoClientArea) {
 		}
 
 		XAMP_DISABLE_COPY(DwmapiLib)
@@ -77,6 +154,7 @@ namespace {
 		XAMP_DECLARE_DLL_NAME(DwmSetWindowAttribute);
 		XAMP_DECLARE_DLL_NAME(DwmSetIconicThumbnail);
 		XAMP_DECLARE_DLL_NAME(DwmSetIconicLivePreviewBitmap);
+		XAMP_DECLARE_DLL_NAME(DwmExtendFrameIntoClientArea);
 	};
 
 	class Comctl32Lib {
@@ -100,6 +178,24 @@ namespace {
 	};
 
 #define COMCTL32_DLL Singleton<Comctl32Lib>::GetInstance()
+
+	class User32Lib {
+	public:
+		User32Lib()
+			: module_(OpenSharedLibrary("user32"))
+			, XAMP_LOAD_DLL_API(SetWindowCompositionAttribute) {
+		}
+
+		XAMP_DISABLE_COPY(User32Lib)
+
+	private:
+		SharedLibraryHandle module_;
+
+	public:
+		XAMP_DECLARE_DLL_NAME(SetWindowCompositionAttribute);
+	};
+
+#define USER32_DLL Singleton<User32Lib>::GetInstance()
 
 	struct HImageListDeleter final {
 		static HIMAGELIST invalid() noexcept {
@@ -182,6 +278,7 @@ namespace {
 	}
 }
 
+
 WinTaskbar::WinTaskbar(XMainWindow* window) {
 	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
 	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
@@ -212,6 +309,50 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 
 WinTaskbar::~WinTaskbar() = default;
 
+void setMicaEffect(HWND hwnd, bool is_dark_mode = false, bool is_alt = false) {
+	auto margins = MARGINS(-1, -1, -1, -1);
+	if (FAILED(DWM_DLL.DwmExtendFrameIntoClientArea(hwnd, &margins))) {
+		XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure!");
+	}
+
+	WINDOWCOMPOSITIONATTRIBDATA win_comp_attr_data;
+	win_comp_attr_data.Attribute = WINDOWCOMPOSITIONATTRIB::WCA_ACCENT_POLICY;
+
+	ACCENT_POLICY accent_policy;
+	accent_policy.AccentState = ACCENT_STATE::ACCENT_ENABLE_HOSTBACKDROP;
+
+	win_comp_attr_data.SizeOfData = sizeof(ACCENT_POLICY);
+	win_comp_attr_data.Data = &accent_policy;
+
+	if (!USER32_DLL.SetWindowCompositionAttribute(hwnd, &win_comp_attr_data)) {
+		XAMP_LOG_DEBUG("SetWindowCompositionAttribute return failure!");
+	}
+
+	if (is_dark_mode) {
+		win_comp_attr_data.Attribute = WINDOWCOMPOSITIONATTRIB::WCA_USEDARKMODECOLORS;
+		if (!USER32_DLL.SetWindowCompositionAttribute(hwnd, &win_comp_attr_data)) {
+			XAMP_LOG_DEBUG("SetWindowCompositionAttribute return failure!");
+		}
+	}
+
+	constexpr auto DWMWA_SYSTEMBACKDROP_TYPE = 38;
+	DWM_SYSTEMBACKDROP_TYPE backdrop = DWMSBT_MAINWINDOW;
+
+	if (FAILED(DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdrop, sizeof(backdrop)))) {
+		XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure!");
+	}
+
+	const BOOL dark = is_dark_mode;
+	if (FAILED(DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark)))) {
+		XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure!");
+	}
+}
+
+void setMicaEffect(QWidget* window) {
+	const auto hwnd = reinterpret_cast<HWND>(window->winId());
+	setMicaEffect(hwnd);
+}
+
 void WinTaskbar::setWindow(QWidget* window) {
 	window_ = window;
 	QCoreApplication::instance()->installNativeEventFilter(this);
@@ -222,6 +363,7 @@ void WinTaskbar::setWindow(QWidget* window) {
 
 	constexpr BOOL enable = TRUE;
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
+
 	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_HAS_ICONIC_BITMAP, &enable, sizeof(enable));
 	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &enable, sizeof(enable));
 	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_DISALLOW_PEEK, &enable, sizeof(enable));

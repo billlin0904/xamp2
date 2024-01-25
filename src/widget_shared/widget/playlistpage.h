@@ -68,7 +68,7 @@ signals:
 public slots:
     void onThemeColorChanged(QColor theme_color, QColor color);
 
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void onSetCoverById(const QString& cover_id);
 

@@ -17,8 +17,6 @@ class XAMP_WIDGET_SHARED_EXPORT XMenu : public QMenu {
 public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
-		//setAttribute(Qt::WA_StyledBackground);
-		//setStyle(new XProxyStyle());
 	}
 };
 
@@ -31,7 +29,7 @@ public:
 	}
 
 public slots:
-	void onCurrentThemeChanged(ThemeColor theme_color) {
+	void onThemeChangedFinished(ThemeColor theme_color) {
 		setIcon(qTheme.fontIcon(glyphs_));
 	}
 
@@ -56,8 +54,8 @@ public:
 		template <typename Callable>
 		QAction* addAction(const QString& menu_name,
 			Callable&& callback,
-			bool checked = false,
-			bool add_separator = false) {
+			const bool checked = false,
+			const bool add_separator = false) {
 			const auto action = new QAction(menu_name, nullptr);
 			action->setCheckable(true);
 
@@ -101,14 +99,14 @@ public:
 	template <typename Callable>
 	QAction* addAction(const QString& menu_name,
 		Callable&& callback,
-		bool add_eparator = false,
-		bool checked = false) {
+		const bool add_separator = false,
+		const bool checked = false) {
 		auto* action = new QAction(menu_name, nullptr);
 
 		map_[action] = callback;
 		menu_.addAction(action);
 
-        if (add_eparator) {
+        if (add_separator) {
             menu_.addSeparator();
         }
 

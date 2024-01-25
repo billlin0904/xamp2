@@ -553,7 +553,7 @@ void PlayListTableView::initial() {
             entity = getEntity(index);
         }             
 
-        if (cloud_mode_) {            
+        if (cloud_mode_ && cloudPlaylistId()) {
             auto* copy_album_act = action_map.addAction(qTR("Copy album"));
             copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
@@ -582,25 +582,44 @@ void PlayListTableView::initial() {
 
             const auto rows = selectItemIndex();
             std::vector<std::string> video_ids;
+            std::vector<PlayListEntity> play_list_entities;
             video_ids.reserve(rows.size());
+            play_list_entities.reserve(rows.size());
             for (const auto& row : rows) {
-                const auto entity = this->item(row.second);
-                video_ids.push_back(entity.file_path.toStdString());
+                const auto play_list_entity = this->item(row.second);
+                video_ids.push_back(play_list_entity.file_path.toStdString());
+                play_list_entities.push_back(play_list_entity);
             }
 
             auto* remove_select_cloud_music_act = action_map.addAction(qTR("Remove select music"));
             action_map.setCallback(remove_select_cloud_music_act, [this, video_ids]() {
-                if (cloudPlaylistId()) {
-                    emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
-                }
+                emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
             });
 
-            auto* like_song_act = action_map.addAction(qTR("Like the music"));
-            action_map.setCallback(like_song_act, [this, entity]() {
-                if (cloudPlaylistId()) {
-                    emit rateSong(entity);
+            QString menu_name;
+            QIcon like_icon;
+            PlayListEntity play_list_entity;
+            if (!play_list_entities.empty()) {
+                play_list_entity = play_list_entities.front();
+                if (play_list_entity.heart > 0) {
+                    menu_name = qTR("DisLike the music");
+                    like_icon = qTheme.fontIcon(Glyphs::ICON_DISLIKE);
                 }
-                });
+                else {
+                    menu_name = qTR("Like the music");
+                    like_icon = qTheme.fontIcon(Glyphs::ICON_LIKE);
+                }
+            } else {
+                menu_name = qTR("Like the music");
+                like_icon = qTheme.fontIcon(Glyphs::ICON_LIKE);
+            }
+            auto* like_song_act = action_map.addAction(menu_name);
+            like_song_act->setIcon(like_icon);
+            if (!play_list_entities.empty()) {
+                action_map.setCallback(like_song_act, [this, &play_list_entity]() {
+                    emit likeSong(play_list_entity.heart > 0, play_list_entity);
+                    });
+            }
 
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
@@ -613,8 +632,8 @@ void PlayListTableView::initial() {
             action_map.setCallback(action_map.addAction(qTR("Download file")), [this]() {
                 const auto rows = selectItemIndex();
                 for (const auto& row : rows) {
-                    auto entity = this->item(row.second);
-                    emit downloadFile(entity);
+                    auto play_list_entity = this->item(row.second);
+                    emit downloadFile(play_list_entity);
                 }
                 });
 
@@ -697,11 +716,11 @@ void PlayListTableView::initial() {
                 export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
                     const auto rows = selectItemIndex();
                     for (const auto& row : rows) {
-                        auto entity = this->item(row.second);
-                        if (entity.sample_rate != profile.sample_rate) {
+                        auto play_list_entity = this->item(row.second);
+                        if (play_list_entity.sample_rate != profile.sample_rate) {
                             continue;
                         }
-                        emit encodeAacFile(entity, profile);
+                        emit encodeAacFile(play_list_entity, profile);
                     }
                 });
             }
@@ -777,8 +796,8 @@ void PlayListTableView::initial() {
                 return;
             }
             emit editTags(playlistId(), entities);
-            Q_FOREACH(auto entity, entities) {
-                onReloadEntity(entity);
+            Q_FOREACH(auto play_list_entity, entities) {
+                onReloadEntity(play_list_entity);
             }
         });
 
@@ -794,16 +813,16 @@ void PlayListTableView::initial() {
         action_map.setCallback(export_flac_file_act, [this]() {
             const auto rows = selectItemIndex();
             for (const auto& row : rows) {
-                auto entity = this->item(row.second);
-                emit encodeFlacFile(entity);
+                auto play_list_entity = this->item(row.second);
+                emit encodeFlacFile(play_list_entity);
             }
             });
 
         action_map.setCallback(export_wav_file_act, [this]() {
             const auto rows = selectItemIndex();
             for (const auto& row : rows) {
-                auto entity = this->item(row.second);
-                emit encodeWavFile(entity);
+                auto play_list_entity = this->item(row.second);
+                emit encodeWavFile(play_list_entity);
             }
         });
         TRY_LOG(
@@ -1081,6 +1100,9 @@ OrderedMap<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
     OrderedMap<int32_t, QModelIndex> select_items;
 
     Q_FOREACH(auto index, selectionModel()->selectedRows()) {
+        if (!index.isValid()) {
+            continue;
+        }
         auto const row = index.row();
         select_items.emplace(row, index);
     }

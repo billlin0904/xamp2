@@ -18,7 +18,7 @@ enum TabIndex {
     TAB_LYRICS,
     TAB_MUSIC_LIBRARY,
     TAB_CD,
-    //TAB_YT_MUSIC_SEARCH,
+    TAB_YT_MUSIC_SEARCH,
     TAB_YT_MUSIC_PLAYLIST,    
 };
 
@@ -41,7 +41,7 @@ signals:
     void tableNameChanged(int table_id, const QString &name);
 
 public slots:
-    void onCurrentThemeChanged(ThemeColor theme_color);
+    void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
     QStandardItemModel model_;

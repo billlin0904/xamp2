@@ -36,7 +36,7 @@ public:
     void setIcon(const QIcon& icon) const;
 
 private slots:
-    void onCurrentThemeChanged(ThemeColor theme_color);
+    void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
 #if defined(Q_OS_WIN)

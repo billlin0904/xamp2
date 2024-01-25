@@ -38,7 +38,7 @@ int32_t TabListView::tabId(const QString& name) const {
     return ids_[name];
 }
 
-void TabListView::onCurrentThemeChanged(ThemeColor theme_color) {
+void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
     for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);
         switch (column_index) {
@@ -57,9 +57,9 @@ void TabListView::onCurrentThemeChanged(ThemeColor theme_color) {
         case TAB_CD:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             break;
-        /*case TAB_YT_MUSIC_SEARCH:
+        case TAB_YT_MUSIC_SEARCH:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-            break;*/
+            break;
         case TAB_YT_MUSIC_PLAYLIST:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
             break;

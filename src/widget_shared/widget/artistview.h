@@ -49,7 +49,7 @@ public:
 
 	void paintEvent(QPaintEvent* event) override;
 
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 	AlbumView* album() const {
 		return album_view_;
@@ -71,7 +71,7 @@ public:
 
 	void onThemeChanged(QColor backgroundColor, QColor color);
 
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void showAll();
 

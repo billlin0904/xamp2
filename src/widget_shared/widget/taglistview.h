@@ -50,7 +50,7 @@ public:
 	void sort();
 	
 public slots:
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void onThemeColorChanged(QColor background_color, QColor color);
 

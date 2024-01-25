@@ -12,6 +12,7 @@
 #include <widget/widget_shared_global.h>
 
 enum Glyphs {
+    ICON_START,
     ICON_VOLUME_UP,
     ICON_VOLUME_OFF,
     ICON_SPEAKER,
@@ -70,6 +71,9 @@ enum Glyphs {
     ICON_CIRCLE_CHECK,
     ICON_YOUTUBE,
     ICON_YOUTUBE_LIBRARY,
+    ICON_LIKE,
+    ICON_DISLIKE,
+    ICON_END,
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {

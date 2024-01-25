@@ -58,7 +58,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setMouseTracking(true);
     setAttribute(Qt::WA_StyledBackground);   
 
-    onCurrentThemeChanged(qTheme.themeColor());
+    onThemeChangedFinished(qTheme.themeColor());
 
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
@@ -73,10 +73,18 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 });
 
             auto* reload_the_tab_act = action_map.addAction(qTR("Reload all playlist"), [this]() {
-                emit reloadPlaylist();
+                emit reloadAllPlaylist();
                 });
 
-            /*auto* delete_the_tab_act = action_map.addAction(qTR("Delete the playlist"), [pt, this]() {
+            auto* reload_the_playlist_act = action_map.addAction(qTR("Reload the playlist"), [pt, this]() {
+                auto tab_index = tabBar()->tabAt(pt);
+                if (tab_index == -1) {
+                    return;
+                }
+                emit reloadPlaylist(tab_index);
+                });
+
+            auto* delete_the_tab_act = action_map.addAction(qTR("Delete the playlist"), [pt, this]() {
                 auto tab_index = tabBar()->tabAt(pt);
                 if (tab_index == -1) {
                     return;
@@ -88,7 +96,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 }
 
                 emit deletePlaylist(playlist_page->playlist()->cloudPlaylistId().value());
-                });*/
+                });
         } else {
             auto* close_all_tab_act = action_map.addAction(qTR("Close all tab"), [this]() {
                 closeAllTab();
@@ -143,7 +151,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         });
 }
 
-void PlaylistTabWidget::onCurrentThemeChanged(ThemeColor theme_color) {
+void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qSTR(R"(

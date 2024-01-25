@@ -192,7 +192,9 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_EDIT,                      0xE3C9 },
     { ICON_CIRCLE_CHECK,              0xE86C },
     { ICON_YOUTUBE,                   0xE8B6 },
-    { ICON_YOUTUBE_LIBRARY,           0xE04A }
+    { ICON_YOUTUBE_LIBRARY,           0xE04A },
+	{ ICON_LIKE,                      0xE8DC },
+    { ICON_DISLIKE,                   0xE8DB },
     };
 
     qFontIcon.AddFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));

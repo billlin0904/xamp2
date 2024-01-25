@@ -29,6 +29,8 @@ enum TaskbarProgressState {
 
 constexpr auto kWinThumbbarButtonSize = 3;
 
+void setMicaEffect(QWidget* window);
+
 class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
     Q_OBJECT
 public:

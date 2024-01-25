@@ -47,7 +47,7 @@ CdPage::~CdPage() {
     delete ui_;
 }
 
-void CdPage::onCurrentThemeChanged(ThemeColor theme_color) {
+void CdPage::onThemeChangedFinished(ThemeColor theme_color) {
     ui_->pcButton->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
     ui_->arrowButton->setIcon(qTheme.fontIcon(Glyphs::ICON_LEFT_ARROW));
     ui_->cdButton->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));

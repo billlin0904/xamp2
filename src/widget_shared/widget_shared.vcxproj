@@ -126,6 +126,7 @@
     <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\acrylic\acrylic.h" />
     <ClInclude Include="widget\databasecoverid.h" />
+    <ClInclude Include="widget\fluentthemecolor.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\lazyloadingmodel.h" />

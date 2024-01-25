@@ -410,16 +410,16 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		reload();
 		});
 
-	onCurrentThemeChanged(qTheme.themeColor());
+	onThemeChangedFinished(qTheme.themeColor());
 }
 
-void AlbumArtistPage::onCurrentThemeChanged(ThemeColor theme_color) {
-	album_view_->onCurrentThemeChanged(theme_color);
-	artist_view_->onCurrentThemeChanged(theme_color);
-	year_view_->onCurrentThemeChanged(theme_color);
+void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
+	album_view_->onThemeChangedFinished(theme_color);
+	artist_view_->onThemeChangedFinished(theme_color);
+	year_view_->onThemeChangedFinished(theme_color);
 
-	album_tag_list_widget_->onCurrentThemeChanged(theme_color);
-	artist_tag_list_widget_->onCurrentThemeChanged(theme_color);
+	album_tag_list_widget_->onThemeChangedFinished(theme_color);
+	artist_tag_list_widget_->onThemeChangedFinished(theme_color);
 
 	qTheme.setLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
 	qTheme.setLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));

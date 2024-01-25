@@ -45,12 +45,14 @@ signals:
 
 	void removeAllPlaylist();
 
-	void reloadPlaylist();
+	void reloadAllPlaylist();
+
+	void reloadPlaylist(int32_t tab_index);
 
 	void deletePlaylist(const QString& playlist_id);
 
 public slots:
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
 	void closeTab(int32_t tab_index);

@@ -293,7 +293,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     }
 }
 
-void AlbumViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
+void AlbumViewPage::onThemeChangedFinished(ThemeColor theme_color) {
     close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 }
 
@@ -778,9 +778,9 @@ void AlbumView::reload() {
     }
 }
 
-void AlbumView::onCurrentThemeChanged(ThemeColor theme_color) {
+void AlbumView::onThemeChangedFinished(ThemeColor theme_color) {
     if (page_ != nullptr) {
-        page_->onCurrentThemeChanged(theme_color);
+        page_->onThemeChangedFinished(theme_color);
     }    
 }
 

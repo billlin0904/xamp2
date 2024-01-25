@@ -151,7 +151,7 @@ public:
 
     void setComboBoxStyle(QComboBox *combo_box, const QString &object_name);
 signals:
-    void currentThemeChanged(ThemeColor theme_color);
+    void themeChangedFinished(ThemeColor theme_color);
 
 private:
     static QString fontNamePath(const QString& file_name);

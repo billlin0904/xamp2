@@ -273,7 +273,7 @@ void PlaylistPage::setCover(const QPixmap * cover) {
 	cover_->setPixmap(playlist_cover);
 }
 
-void PlaylistPage::onCurrentThemeChanged(ThemeColor theme_color) {
+void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 

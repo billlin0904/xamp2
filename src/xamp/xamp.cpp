@@ -590,39 +590,39 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
         &Xamp::onFetchThumbnailUrlError);
 
     (void)QObject::connect(&qTheme, 
-        &ThemeManager::currentThemeChanged, 
+        &ThemeManager::themeChangedFinished, 
         this, 
-        &Xamp::onCurrentThemeChanged);
+        &Xamp::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::currentThemeChanged,
+        &ThemeManager::themeChangedFinished,
         ui_.naviBar,
-        &TabListView::onCurrentThemeChanged);
+        &TabListView::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::currentThemeChanged,
+        &ThemeManager::themeChangedFinished,
         album_page_->album(),
-        &AlbumView::onCurrentThemeChanged);
+        &AlbumView::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::currentThemeChanged,
+        &ThemeManager::themeChangedFinished,
         cd_page_.get(),
-        &CdPage::onCurrentThemeChanged);
+        &CdPage::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::currentThemeChanged,
+        &ThemeManager::themeChangedFinished,
         ui_.mutedButton,
-        &VolumeButton::onCurrentThemeChanged);
+        &VolumeButton::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::currentThemeChanged,
+        &ThemeManager::themeChangedFinished,
         lrc_page_.get(),
-        &LrcPage::onCurrentThemeChanged);
+        &LrcPage::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
-        &ThemeManager::currentThemeChanged,
+        &ThemeManager::themeChangedFinished,
         album_page_.get(),
-        &AlbumArtistPage::onCurrentThemeChanged);
+        &AlbumArtistPage::onThemeChangedFinished);
 
     setPlayerOrder();
     initialDeviceList();
@@ -830,8 +830,8 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
         track_info.rating = track.like_status == "LIKE";
 
         const ForwardList<TrackInfo> track_infos{ track_info };
-        DatabaseFacade facede;
-        facede.insertTrackInfo(track_infos, playlist_page->playlist()->playlistId(), StoreType::CLOUD_STORE, [=, this](auto music_id, auto album_id) {
+        DatabaseFacade facade;
+        facade.insertTrackInfo(track_infos, playlist_page->playlist()->playlistId(), StoreType::CLOUD_STORE, [=, this](auto music_id, auto album_id) {
             if (thumbnail_url.empty()) {
                 return;
             }
@@ -967,8 +967,8 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
         track_info.file_path = String::ToString(track.video_id.value());
 
         const ForwardList<TrackInfo> track_infos{ track_info };
-        DatabaseFacade facede;
-        facede.insertTrackInfo(track_infos, cloud_search_page_->playlist()->playlistId(), StoreType::CLOUD_SEARCH_STORE, [=, this](auto music_id, auto album_id) {
+        DatabaseFacade facade;
+        facade.insertTrackInfo(track_infos, cloud_search_page_->playlist()->playlistId(), StoreType::CLOUD_SEARCH_STORE, [=, this](auto music_id, auto album_id) {
             if (thumbnail_url.empty()) {
                 return;
             }
@@ -1409,7 +1409,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_PLAYLIST:        
         ui_.currentView->setCurrentWidget(local_tab_widget_.get());
         ensureLocalOnePlaylistPage();
-        getLocalPlaylistPage()->playlist()->reload();
+        localPlaylistPage()->playlist()->reload();
         break;
     case TAB_LYRICS:
         ui_.currentView->setCurrentWidget(lrc_page_.get());
@@ -1417,10 +1417,10 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
-    /*case TAB_YT_MUSIC_SEARCH:
+    case TAB_YT_MUSIC_SEARCH:
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         cloud_search_page_->playlist()->reload();
-        break;*/
+        break;
     case TAB_YT_MUSIC_PLAYLIST:
         ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         cloud_tab_widget_->reloadAll();
@@ -1432,7 +1432,7 @@ void Xamp::updateButtonState() {
     qTheme.setPlayOrPauseButton(ui_.playButton, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
 }
 
-void Xamp::onCurrentThemeChanged(ThemeColor theme_color) {
+void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
         qTheme.setThemeColor(ThemeColor::DARK_THEME);		
@@ -1459,10 +1459,10 @@ void Xamp::onCurrentThemeChanged(ThemeColor theme_color) {
     setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
 
     lrc_page_->setCover(qTheme.unknownCover());
-    local_tab_widget_->onCurrentThemeChanged(theme_color);
+    local_tab_widget_->onThemeChangedFinished(theme_color);
     local_tab_widget_->setPlaylistCover(qTheme.unknownCover());
 
-    setPlaylistPageCover(nullptr, getLocalPlaylistPage());
+    setPlaylistPageCover(nullptr, localPlaylistPage());
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
 
     emit currentThemeChanged(theme_color);
@@ -1570,7 +1570,7 @@ void Xamp::stopPlay() {
     setSeekPosValue(0);
     lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
-    getLocalPlaylistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+    localPlaylistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
     qTheme.setPlayOrPauseButton(ui_.playButton, true); // note: Stop play must set true.
     current_entity_ = std::nullopt;
@@ -1640,9 +1640,9 @@ void Xamp::playOrPause() {
         page = dynamic_cast<PlaylistPage*>(local_tab_widget_->currentWidget());
         tab = local_tab_widget_.get();
         break;
-    /*case TAB_YT_MUSIC_SEARCH:
+    case TAB_YT_MUSIC_SEARCH:
         page = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
-        break;*/
+        break;
     case TAB_YT_MUSIC_PLAYLIST:
         page = dynamic_cast<PlaylistPage*>(cloud_tab_widget_->currentWidget());
         tab = cloud_tab_widget_.get();
@@ -1795,6 +1795,7 @@ void Xamp::onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id) {
     else {
         qMainDb.setMusicCover(id.get(), cover_id);
     }
+    //cloud_tab_widget_->reloadAll();
 }
 
 void Xamp::onDelayedDownloadThumbnail() {
@@ -1808,10 +1809,9 @@ void Xamp::onDelayedDownloadThumbnail() {
         download_thumbnail_pending_.remove(id);
     }
 
-    if (download_thumbnail_pending_.isEmpty()) {
+    /*if (download_thumbnail_pending_.isEmpty()) {
         ui_update_timer_timer_.stop();
-    }
-    cloud_tab_widget_->reloadAll();
+    }*/
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -1951,11 +1951,11 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         onSetCover(entity.validCoverId(), playlist_page);
     }
     else {
-        playlist_page = getLocalPlaylistPage();
+        playlist_page = localPlaylistPage();
     }
     
     if (last_play_list_ != nullptr && tab_widget == local_tab_widget_.get()) {
-        if (last_play_list_ != getLocalPlaylistPage()->playlist()) {
+        if (last_play_list_ != localPlaylistPage()->playlist()) {
             last_play_list_->removePlaying();
         }
     }
@@ -2136,7 +2136,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 
 void Xamp::onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
     ensureLocalOnePlaylistPage();
-    const auto *playlist_view = getLocalPlaylistPage()->playlist();
+    const auto *playlist_view = localPlaylistPage()->playlist();
     qMainDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit changePlayerOrder(order_);
 }
@@ -2147,7 +2147,7 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
     }
 
 	if (!page) {
-        page = getLocalPlaylistPage();
+        page = localPlaylistPage();
 	}
 
     const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
@@ -2203,7 +2203,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    //ui_.naviBar->addTab(qTR("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(qTR("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->addTab(qTR("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
@@ -2250,10 +2250,22 @@ void Xamp::initialPlaylist() {
 
     local_tab_widget_->restoreTabOrder();
 
-    (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::reloadPlaylist,
+    (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::reloadAllPlaylist,
         [this]() {
             cloud_tab_widget_->closeAllTab();
             initialCloudPlaylist();
+        }
+    );
+
+    (void)QObject::connect(cloud_tab_widget_.get(), &PlaylistTabWidget::reloadPlaylist,
+        [this](auto tab_index) {
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(cloud_tab_widget_->widget(tab_index));
+            playlist_page->playlist()->removeAll();
+            const auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
+            QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id), this, [this, playlist_page](const auto& playlist) {
+                XAMP_LOG_DEBUG("Get playlist done!");
+                onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                });
         }
     );
 
@@ -2429,6 +2441,7 @@ void Xamp::initialCloudPlaylist() {
             auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.playlistId), QString::fromStdString(playlist.title));
             playlist_page->hidePlaybackInformation(true);
             playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
+            playlist_page->playlist()->setCloudPlaylistId(QString::fromStdString(playlist.playlistId));
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
             QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
@@ -2442,7 +2455,7 @@ void Xamp::initialCloudPlaylist() {
 }
 
 void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
-    auto* playlist_page = getLocalPlaylistPage();
+    auto* playlist_page = localPlaylistPage();
     if (!playlist_page) {
         return;
     }
@@ -2651,11 +2664,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             });
 
         (void)QObject::connect(playlist_page->playlist(),
-            &PlayListTableView::rateSong,
-            [this, playlist_page](const auto& entity) {
+            &PlayListTableView::likeSong,
+            [this, playlist_page](bool like, const auto& entity) {
                 playlist_page->playlist()->removeAll();
                 auto [video_id, set_video_id] = parseId(entity.file_path);
-                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, SongRating::LIKE), this, [this, playlist_page](auto) {
+                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE), this, [this, playlist_page](auto) {
 	                const auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
                     QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id), this, [this, playlist_page](const auto& playlist) {
                             XAMP_LOG_DEBUG("Get playlist done!");
@@ -2754,13 +2767,15 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(this,
         &Xamp::currentThemeChanged,
         playlist_page,
-        &PlaylistPage::onCurrentThemeChanged);
+        &PlaylistPage::onThemeChangedFinished);
 }
 
 PlaylistPage* Xamp::createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id) {
     auto* playlist_page = new PlaylistPage(tab_widget);
     playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
-    playlist_page->playlist()->setCloudPlaylist(cloud_playlist_id);
+    if (!cloud_playlist_id.isEmpty()) {
+        playlist_page->playlist()->setCloudPlaylistId(cloud_playlist_id);
+    }
     return playlist_page;
 }
 
@@ -2768,7 +2783,7 @@ void Xamp::addDropFileItem(const QUrl& url) {
     addItem(url.toLocalFile());
 }
 
-PlaylistPage* Xamp::getLocalPlaylistPage() {
+PlaylistPage* Xamp::localPlaylistPage() const {
     if (local_tab_widget_->tabBar()->count() == 0) {
         return nullptr;
     }
@@ -2776,16 +2791,16 @@ PlaylistPage* Xamp::getLocalPlaylistPage() {
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
-    DatabaseFacade facede;
-    (void)QObject::connect(&facede,
+    DatabaseFacade facade;
+    (void)QObject::connect(&facade,
         &DatabaseFacade::findAlbumCover,
         find_album_cover_worker_.get(),
         &FindAlbumCoverWorker::onFindAlbumCover,
         Qt::QueuedConnection);
-    facede.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
+    facade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
     emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     ensureLocalOnePlaylistPage();
-    getLocalPlaylistPage()->playlist()->reload();
+    localPlaylistPage()->playlist()->reload();
 }
 
 void Xamp::onReadFilePath(const QString& file_path) {
@@ -2812,7 +2827,7 @@ void Xamp::onEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities
     dialog->setTitle(qTR("Edit track information"));    
     dialog->exec();
     if (local_tab_widget_->count() > 0) {
-        getLocalPlaylistPage()->playlist()->reload();
+        localPlaylistPage()->playlist()->reload();
     }
 }
 
@@ -2826,7 +2841,7 @@ void Xamp::onReadFileProgress(int32_t progress) {
 void Xamp::onReadCompleted() {
     delay(1);
     if (local_tab_widget_->count() > 0) {
-        getLocalPlaylistPage()->playlist()->reload();
+        localPlaylistPage()->playlist()->reload();
     }
     if (!read_progress_dialog_) {
         return;

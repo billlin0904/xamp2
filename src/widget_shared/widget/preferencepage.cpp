@@ -213,11 +213,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 	}
 
 	(void)QObject::connect(ui_->lightRadioButton, &QRadioButton::clicked, [](auto checked) {
-		emit qTheme.currentThemeChanged(ThemeColor::LIGHT_THEME);
+		emit qTheme.themeChangedFinished(ThemeColor::LIGHT_THEME);
 		});
 
 	(void)QObject::connect(ui_->darkRadioButton, &QRadioButton::clicked, [](auto checked) {
-		emit qTheme.currentThemeChanged(ThemeColor::DARK_THEME);
+		emit qTheme.themeChangedFinished(ThemeColor::DARK_THEME);
 		});
 
     ui_->preferenceTreeWidget->header()->hide();

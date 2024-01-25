@@ -28,7 +28,7 @@ public:
 public slots:
 	void onVolumeChanged(uint32_t volume);
 
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
 	void mouseMoveEvent(QMouseEvent* event) override;

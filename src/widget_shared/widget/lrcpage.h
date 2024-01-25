@@ -53,9 +53,9 @@ public:
 	void setFullScreen(bool enter);
 
 public slots:
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
-	void onThemeColorChanged(QColor backgroundColor, QColor color);
+	void onThemeColorChanged(QColor background_color, QColor color);
 
 	void setBackground(const QImage& cover);
 

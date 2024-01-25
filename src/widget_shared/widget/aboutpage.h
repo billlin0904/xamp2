@@ -28,7 +28,7 @@ signals:
 public slots:
     void OnCreditsOrLicenseChecked(bool checked);
 
-    void onCurrentThemeChanged(ThemeColor theme_color);
+    void onThemeChangedFinished(ThemeColor theme_color);
 
     void OnUpdateNewVersion(const Version& version);
 private:

@@ -132,7 +132,7 @@ public slots:
 
 	void onSearchArtistCompleted(const QString& artist, const QByteArray& image);
 
-	void onCurrentThemeChanged(ThemeColor theme_color);
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
@@ -256,7 +256,7 @@ private:
 	
 	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString &name);
 
-	PlaylistPage* getLocalPlaylistPage();
+	PlaylistPage* localPlaylistPage() const;
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
 

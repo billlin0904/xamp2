@@ -92,10 +92,10 @@ GenreViewPage::GenreViewPage(QWidget* parent)
 	genre_container_layout->addWidget(scroll_area);
 }
 
-void GenreViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
+void GenreViewPage::onThemeChangedFinished(ThemeColor theme_color) {
 	Q_FOREACH(auto page, genre_view_) {
-		page.first->view()->onCurrentThemeChanged(theme_color);
-		page.second->onCurrentThemeChanged(theme_color);
+		page.first->view()->onThemeChangedFinished(theme_color);
+		page.second->onThemeChangedFinished(theme_color);
 	}
 }
 

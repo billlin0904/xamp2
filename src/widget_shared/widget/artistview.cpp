@@ -201,7 +201,7 @@ void ArtistViewPage::paintEvent(QPaintEvent* event) {
 	QPainter painter(this);
 }
 
-void ArtistViewPage::onCurrentThemeChanged(ThemeColor theme_color) {
+void ArtistViewPage::onThemeChangedFinished(ThemeColor theme_color) {
 	close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
 }
 
@@ -333,8 +333,8 @@ void ArtistView::onThemeChanged(QColor backgroundColor, QColor color) {
 	page_->album()->onThemeColorChanged(backgroundColor, color);
 }
 
-void ArtistView::onCurrentThemeChanged(ThemeColor theme_color) {
-	page_->onCurrentThemeChanged(theme_color);
+void ArtistView::onThemeChangedFinished(ThemeColor theme_color) {
+	page_->onThemeChangedFinished(theme_color);
 }
 
 void ArtistView::filterArtistName(const QSet<QString>& name) {

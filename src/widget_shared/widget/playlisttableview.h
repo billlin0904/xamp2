@@ -64,11 +64,11 @@ public:
 		cloud_mode_ = mode;
 	}
 
-	bool isEnableCloudMode() const {
+	[[nodiscard]] bool isEnableCloudMode() const {
 		return cloud_mode_;
 	}
 
-	void setCloudPlaylist(const QString &playlist_id) {
+	void setCloudPlaylistId(const QString &playlist_id) {
 		cloud_playlist_id_ = playlist_id;
 		if (cloud_playlist_id_) {
 			cloud_mode_ = true;
@@ -81,7 +81,7 @@ public:
 
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
-	int32_t playlistId() const;
+	[[nodiscard]] int32_t playlistId() const;
 
 	void reload();
 
@@ -154,7 +154,7 @@ signals:
 
 	void removePlaylistItems(const QString& playlist_id, const std::vector<std::string>& video_ids);
 
-	void rateSong(const PlayListEntity& entity);
+	void likeSong(bool like, const PlayListEntity& entity);
 
 public slots:
 	void onPlayIndex(const QModelIndex& index);

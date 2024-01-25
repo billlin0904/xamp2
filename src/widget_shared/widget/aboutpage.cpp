@@ -104,7 +104,7 @@ AboutPage::~AboutPage() {
     delete ui_;
 }
 
-void AboutPage::onCurrentThemeChanged(ThemeColor theme_color) {
+void AboutPage::onThemeChangedFinished(ThemeColor theme_color) {
     ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
 }
 

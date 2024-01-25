@@ -37,7 +37,7 @@ XMainWindow::XMainWindow()
 	, screen_number_(1)
 #endif
 	, content_widget_(nullptr) {    
-    setObjectName(qTEXT("framelessWindow"));
+    setObjectName(qTEXT("XMainWindow"));
 }
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {
@@ -110,7 +110,7 @@ void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
     if (!content_widget_) {
         return;
     }
-    emit qTheme.currentThemeChanged(theme_color);
+    emit qTheme.themeChangedFinished(theme_color);
 }
 
 void XMainWindow::setTaskbarProgress(const int32_t percent) {

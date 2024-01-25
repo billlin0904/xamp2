@@ -52,7 +52,8 @@ public:
 
     void shortcutsPressed(uint16_t native_key, uint16_t native_mods);
 
-    void showWindow();    
+    void showWindow();
+
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 

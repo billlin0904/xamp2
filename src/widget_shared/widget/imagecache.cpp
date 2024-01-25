@@ -204,7 +204,7 @@ QString ImageCache::addImage(const QPixmap& cover) const {
 	buffer->close();
 	buffer->setData(QByteArray());
 
-	XAMP_ENSURES(!tag_name.isEmpty());
+	XAMP_ENSURES(!isNullOfEmpty(tag_name));
 	return tag_name;
 }
 

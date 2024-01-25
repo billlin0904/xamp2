@@ -87,6 +87,10 @@ inline QString getStringOrEmptyString(const std::optional<std::string>& s) {
 	return kEmptyString;
 }
 
+XAMP_WIDGET_SHARED_EXPORT inline bool isNullOfEmpty(const QString& s) {
+	return s.isNull() || s.isEmpty();
+}
+
 XAMP_WIDGET_SHARED_EXPORT inline QString qSTR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }

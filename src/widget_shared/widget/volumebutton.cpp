@@ -40,7 +40,7 @@ void VolumeButton::showDialog() {
 	show_timer_.start(kShowDelayMs);
 }
 
-void VolumeButton::onCurrentThemeChanged(ThemeColor theme_color) {
+void VolumeButton::onThemeChangedFinished(ThemeColor theme_color) {
 	dialog_->setThemeColor();
 }
 

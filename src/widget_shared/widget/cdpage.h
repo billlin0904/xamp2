@@ -26,7 +26,7 @@ public:
     PlaylistPage* playlistPage() const;
 
 public slots:
-    void onCurrentThemeChanged(ThemeColor theme_color);
+    void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
     Ui::CDPage* ui_;

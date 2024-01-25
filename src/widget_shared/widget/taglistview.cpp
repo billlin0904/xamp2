@@ -119,7 +119,7 @@ void TagListView::setListViewFixedHeight(int32_t height) {
 	list_->setFixedHeight(height);
 }
 
-void TagListView::onCurrentThemeChanged(ThemeColor theme_color) {
+void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
 		list_->setStyleSheet(qTEXT(
