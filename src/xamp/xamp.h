@@ -220,8 +220,6 @@ private:
 
 	void setPlayerOrder(bool emit_order = false);
 
-	PlaylistPage* createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id);
-
 	void pushWidget(QWidget* widget);
 
 	void setSeekPosValue(double stream_time_as_ms);

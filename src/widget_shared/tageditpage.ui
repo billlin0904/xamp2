@@ -392,7 +392,11 @@
     </widget>
    </item>
    <item row="3" column="2" colspan="4">
-    <widget class="QLineEdit" name="filePathLineEdit"/>
+    <widget class="QLineEdit" name="filePathLineEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

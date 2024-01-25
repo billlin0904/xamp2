@@ -256,6 +256,10 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->yearLineEdit->setValidator(new QIntValidator(1, 9999));
 
 	readEmbeddedCover(entities_[0]);
+
+	QFontMetrics metrics(ui_->filePathLineEdit->font());
+	auto path_pixel_size = metrics.horizontalAdvance(ui_->filePathLineEdit->text());
+	setMinimumWidth(path_pixel_size + 300);
 }
 
 TagEditPage::~TagEditPage() {

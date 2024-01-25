@@ -417,7 +417,7 @@ QMenu::item:pressed {
 }
 
 QMenu::icon {
-  padding-left: 10px;
+  padding-left: 32px;
   width: 14px;
   height: 14px;
 }

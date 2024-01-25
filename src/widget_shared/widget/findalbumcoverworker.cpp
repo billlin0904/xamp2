@@ -8,7 +8,8 @@
 #include <widget/http.h>
 
 FindAlbumCoverWorker::FindAlbumCoverWorker()
-    : database_ptr_(GetPooledDatabase(2)) {
+    : database_ptr_(GetPooledDatabase(2))
+    , nam_(this) {
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
@@ -24,7 +25,7 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
         emit fetchThumbnailUrlError(id, thumbnail_url);
         };
 
-    http::HttpClient(thumbnail_url)
+    http::HttpClient(&nam_, thumbnail_url)
         .download(download_handler, error_handler);
 }
 

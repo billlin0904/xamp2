@@ -427,6 +427,15 @@ namespace {
 
         return *formats.begin();
     }
+
+    PlaylistPage* createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id) {
+        auto* playlist_page = new PlaylistPage(tab_widget);
+        playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
+        if (!cloud_playlist_id.isEmpty()) {
+            playlist_page->playlist()->setCloudPlaylistId(cloud_playlist_id);
+        }
+        return playlist_page;
+    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -987,6 +996,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             }
         );
     }
+    cloud_search_page_->playlist()->reload();
 }
 
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
@@ -997,6 +1007,8 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
     }
 
     XAMP_LOG_DEBUG("Search result: {}", result.size());
+
+    cloud_search_page_->spinner()->stopAnimation();
 
     for (auto& item : result) {
         std::visit([&](auto&& arg) {
@@ -2572,29 +2584,29 @@ void Xamp::encodeWavFile(const PlayListEntity& entity) {
         qTR("Wav Files (*.wav)"));
 }
 
-void Xamp::encodeFlacFile(const PlayListEntity& item) {
+void Xamp::encodeFlacFile(const PlayListEntity& entity) {
     const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-    const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
+    const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
 
     getSaveFileName(this,
-        [this, item](const auto& file_name) {
+        [this, entity](const auto& file_name) {
             const auto dialog = makeProgressDialog(
                 qTR("Export progress dialog"),
-                qTR("Export '") + item.title + qTR("' to flac file"),
+                qTR("Export '") + entity.title + qTR("' to flac file"),
                 qTR("Cancel"));
 
             TrackInfo track_info;
-            track_info.album = item.album.toStdWString();
-            track_info.artist = item.artist.toStdWString();
-            track_info.title = item.title.toStdWString();
-            track_info.track = item.track;
+            track_info.album = entity.album.toStdWString();
+            track_info.artist = entity.artist.toStdWString();
+            track_info.title = entity.title.toStdWString();
+            track_info.track = entity.track;
 
             const auto command
                 = qSTR("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
 
             TRY_LOG(
                 auto encoder = StreamFactory::MakeFlacEncoder();
-				read_until::encodeFile(item.file_path.toStdWString(),
+				read_until::encodeFile(entity.file_path.toStdWString(),
                 file_name.toStdWString(),
                 encoder,
                 command,
@@ -2648,9 +2660,9 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 XAMP_LOG_DEBUG("spinner startAnimation");
                 playlist_page->spinner()->startAnimation();
                 playlist_page->playlist()->removeAll();
-                if (match != Match::MATCH_ITEM) {
+                /*if (match != Match::MATCH_ITEM) {
                     QCoro::connect(ytmusic_worker_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
-                }
+                }*/
             });
     }
 
@@ -2768,15 +2780,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::currentThemeChanged,
         playlist_page,
         &PlaylistPage::onThemeChangedFinished);
-}
-
-PlaylistPage* Xamp::createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id) {
-    auto* playlist_page = new PlaylistPage(tab_widget);
-    playlist_page->playlist()->setPlaylistId(playlist_id, column_setting_name);
-    if (!cloud_playlist_id.isEmpty()) {
-        playlist_page->playlist()->setCloudPlaylistId(cloud_playlist_id);
-    }
-    return playlist_page;
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {

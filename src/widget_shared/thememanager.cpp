@@ -261,20 +261,7 @@ ThemeManager::ThemeManager() {
     album_cover_size_ = QSize(206, 206);
     save_cover_art_size_ = QSize(350, 350);
     ui_font_ = loadFonts();
-    const auto* screen = qApp->screens()[0];
-    const auto screen_size = screen->size();
-    const auto os_ver = QOperatingSystemVersion::current();
-    if (os_ver > QOperatingSystemVersion::Windows10) {
-        if (screen_size.width() >= 1920 && screen_size.height() == 1080) {
-            font_ratio_ = 1.25;
-        }
-        else {
-            font_ratio_ = 1.0;
-        }
-    }
-    else {
-        font_ratio_ = 1.0;
-    }
+    font_ratio_ = 1.0;
     ui_font_.setPointSize(defaultFontSize());
 }
 
@@ -349,7 +336,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
-    menu->setStyle(new IconSizeStyle(20));
+    menu->setStyle(new IconSizeStyle(14));
 }
 
 QIcon ThemeManager::fontIcon(const char32_t& code, QVariantMap options) {

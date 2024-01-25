@@ -189,7 +189,7 @@ HttpClient::HttpClientImpl::~HttpClientImpl() = default;
 
 HttpClient::HttpClientImpl::HttpClientImpl(QNetworkAccessManager* nam, const QString& url, QObject* parent)
     : use_json_(false)
-    , use_internal_(true)
+    , use_internal_(false)
     , timeout_(kHttpDefaultTimeout)
     , url_(url)
     , charset_(QStringConverter::Encoding::Utf8)
@@ -200,6 +200,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(QNetworkAccessManager* nam, const QSt
 
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QObject* parent)
     : HttpClientImpl(new QNetworkAccessManager(parent), url, parent) {
+    use_internal_ = true;
 }
 
 void HttpClient::HttpClientImpl::setUrl(const QString& url) {

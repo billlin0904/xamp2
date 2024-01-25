@@ -32,7 +32,8 @@ public slots:
 	void cancelRequested();
 
 private:
-	bool is_stop_{ false };
+	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;
+	QNetworkAccessManager nam_;
 };
 
