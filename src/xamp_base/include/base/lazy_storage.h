@@ -72,7 +72,7 @@ private:
 
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<bool> need_init_{ true };
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<bool> has_data_{ false };
-	alignas(T) std::byte data_[sizeof(T)];
+	alignas(T) std::byte data_[sizeof(T)]{};
 };
 
 XAMP_BASE_NAMESPACE_END

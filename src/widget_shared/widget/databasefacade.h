@@ -27,7 +27,7 @@ public:
     static constexpr size_t kReserveSize = 1024;
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
-
+    
     static int32_t unknownArtistId();
 
     static int32_t unknownAlbumId();
@@ -42,6 +42,8 @@ public:
         const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
 private:    
+    static void ensureInitialUnknonwId();
+
     void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type,
@@ -49,7 +51,9 @@ private:
 
     bool is_stop_{false};
 
-    static LocalStorage<UnknownArtistAndAlbumId> unknown_id_;
+    static int32_t unknown_artist_id_;
+    static int32_t unknown_album_id_;
+
     LoggerPtr logger_;
     Database* database_;
 };

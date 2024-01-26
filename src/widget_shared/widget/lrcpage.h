@@ -30,6 +30,8 @@ public:
 
 	explicit LrcPage(QWidget* parent = nullptr);
 
+	QSize coverSizeHint() const;
+
 	LyricsShowWidget* lyrics();
 
 	void setCover(const QPixmap& cover);

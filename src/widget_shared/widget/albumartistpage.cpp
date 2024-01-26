@@ -86,11 +86,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto f = font();
-	auto* title_label = new QLabel(tr("Library"), this);
+	auto* page_title_label = new QLabel(tr("Library"), this);
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(40));
-	title_label->setFont(f);
-	vertical_layout_2->addWidget(title_label);
+	page_title_label->setFont(f);
+	vertical_layout_2->addWidget(page_title_label);
 
 	auto* horizontal_layout_5 = new QHBoxLayout();
 	horizontal_layout_5->setSpacing(6);

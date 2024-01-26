@@ -496,7 +496,7 @@ void Xamp::destroy() {
     }
 
     local_tab_widget_->saveTabOrder();
-    XAMP_LOG_DEBUG("Xamp destory!");
+    XAMP_LOG_DEBUG("Xamp destroy!");
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
@@ -904,7 +904,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
         onPlayMusic(temp1);
 
-        auto album_id = temp.album_id;
+        /*auto album_id = temp.album_id;
         if (album_id == DatabaseFacade::unknownAlbumId()) {
             return;
         }
@@ -925,10 +925,10 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
                     return;
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
-                lrc_page_->setCover(image_utils::resizeImage(image, lrc_page_->cover()->size(), true));
+                lrc_page_->setCover(image_utils::resizeImage(image, lrc_page_->coverSizeHint(), true));
                 lrc_page_->addCoverShadow(true);
 				});
-            });			
+            });*/
         });
 }
 
@@ -2206,7 +2206,7 @@ PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playl
 void Xamp::initialPlaylist() {
     lrc_page_.reset(new LrcPage(this));
     album_page_.reset(new AlbumArtistPage(this));
-    local_tab_widget_.reset(new PlaylistTabWidget(this));
+    local_tab_widget_.reset(new PlaylistTabWidget(this));    
     cloud_search_page_.reset(new PlaylistPage(this));
     cloud_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_tab_widget_->setStoreType(StoreType::CLOUD_STORE);
@@ -2231,13 +2231,16 @@ void Xamp::initialPlaylist() {
             if (store_type == StoreType::LOCAL_STORE) {
                 auto* playlist_page = newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, name);
                 playlist_page->playlist()->enableCloudMode(false);
+                playlist_page->pageTitle()->setText(tr("Local Playlist"));
             }
             else if (store_type == StoreType::CLOUD_STORE || playlist_id == kYtMusicSearchPlaylistId) {
                 PlaylistPage* playlist_page;
                 if (playlist_id != kYtMusicSearchPlaylistId) {
                     playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, cloud_playlist_id, name);
+                    playlist_page->pageTitle()->setText(name);
                 } else {
                     playlist_page = cloud_search_page_.get();
+                    playlist_page->pageTitle()->setText(tr("Search YouTube Music"));
                 }                
                 playlist_page->hidePlaybackInformation(true);
                 playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);

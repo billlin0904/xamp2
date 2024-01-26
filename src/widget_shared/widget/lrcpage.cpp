@@ -53,7 +53,7 @@ void LrcPage::setCover(const QPixmap& src) {
 }
 
 QSize LrcPage::coverSize() const {
-	return cover_label_->size();
+	return coverSizeHint();
 }
 
 QLabel* LrcPage::format() {
@@ -92,11 +92,15 @@ void LrcPage::setFullScreen(bool enter) {
 		format_label_->setFont(f);
 	}
 
+    cover_label_->setPixmap(
+		image_utils::roundImage(image_utils::resizeImage(cover_, coverSizeHint(), false),
+		image_utils::kSmallImageRadius));
+}
+
+QSize LrcPage::coverSizeHint() const {
 	const QSize cover_size(cover_label_->size().width() - image_utils::kSmallImageRadius,
 		cover_label_->size().height() - image_utils::kSmallImageRadius);
-    cover_label_->setPixmap(
-		image_utils::roundImage(image_utils::resizeImage(cover_, 	cover_size, false),
-		image_utils::kSmallImageRadius));
+	return cover_size;
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {

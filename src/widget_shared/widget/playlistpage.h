@@ -44,6 +44,8 @@ public:
 
 	QLabel* format();
 
+	QLabel* pageTitle();
+
 	QToolButton* heart();
 
 	void setHeart(bool heart);
@@ -77,6 +79,7 @@ private:
 	
 	std::optional<int32_t> album_id_;
 	int32_t album_heart_{ 0 };
+	QLabel* page_title_label_{ nullptr };
 	QToolButton *heart_button_{ nullptr };
 	PlayListTableView* playlist_{ nullptr };
 	QLabel* cover_{ nullptr };

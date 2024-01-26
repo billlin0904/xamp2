@@ -36,6 +36,13 @@ void PlaylistPage::initial() {
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));
 	default_layout->setContentsMargins(0, 0, 0, 0);
 
+	auto f = font();
+	page_title_label_ = new QLabel(tr("Playlist"), this);
+	f.setBold(true);
+	f.setPointSize(qTheme.fontSize(32));
+	page_title_label_->setFont(f);
+	default_layout->addWidget(page_title_label_);
+
 	auto* child_layout = new QHBoxLayout();
 	child_layout->setSpacing(0);
 	child_layout->setObjectName(QString::fromUtf8("horizontalLayout_7"));
@@ -69,7 +76,7 @@ void PlaylistPage::initial() {
 	album_title_layout->setContentsMargins(0, 5, -1, -1);
 
     title_ = new ScrollLabel(this);
-	auto f = font();
+	f = font();
 	f.setWeight(QFont::DemiBold);
 	f.setPointSize(qTheme.fontSize(15));
 
@@ -161,7 +168,7 @@ void PlaylistPage::initial() {
 	default_layout->addLayout(horizontal_layout_9);
 
 	default_layout->addLayout(horizontalLayout_8);
-	default_layout->setStretch(3, 1);
+	default_layout->setStretch(4, 1);
 
 	(void)QObject::connect(playlist_,
 		&PlayListTableView::updateAlbumCover,
@@ -228,6 +235,10 @@ QToolButton* PlaylistPage::heart() {
 
 ScrollLabel* PlaylistPage::title() {
 	return title_;
+}
+
+QLabel* PlaylistPage::pageTitle() {
+	return page_title_label_;
 }
 
 QLabel* PlaylistPage::cover() {
