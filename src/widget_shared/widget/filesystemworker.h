@@ -13,12 +13,12 @@
 #include <widget/database.h>
 #include <widget/file_system_watcher.h>
 
-class XAMP_WIDGET_SHARED_EXPORT ExtractFileWorker : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT FileSystemWorker : public QObject {
     Q_OBJECT
 public:
     static constexpr size_t kReserveFilePathSize = 1024;
 
-    ExtractFileWorker();
+    FileSystemWorker();
 
     void cancelRequested();
 

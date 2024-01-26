@@ -1,4 +1,4 @@
-#include <widget/extractfileworker.h>
+#include <widget/filesystemworker.h>
 
 #include <QDirIterator>
 
@@ -9,7 +9,7 @@
 #include <widget/albumview.h>
 #include <widget/ui_utilts.h>
 
-XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
+XAMP_DECLARE_LOG_NAME(FileSystemWorker);
 
 namespace {
     struct PathInfo {
@@ -56,9 +56,9 @@ namespace {
     }
 }
 
-ExtractFileWorker::ExtractFileWorker()
+FileSystemWorker::FileSystemWorker()
 	: watcher_(this) {
-    logger_ = LoggerManager::GetInstance().GetLogger(kExtractFileWorkerLoggerName);
+    logger_ = LoggerManager::GetInstance().GetLogger(kFileSystemWorkerLoggerName);
     GetBackgroundThreadPool();
     (void)QObject::connect(&watcher_,
         &FileSystemWatcher::directoryChanged,
@@ -68,11 +68,11 @@ ExtractFileWorker::ExtractFileWorker()
         });
 }
 
-void ExtractFileWorker::onSetWatchDirectory(const QString& dir) {
+void FileSystemWorker::onSetWatchDirectory(const QString& dir) {
     watcher_.addPath(dir);
 }
 
-size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
+size_t FileSystemWorker::scanPathFiles(const QStringList& file_name_filters,
                                       int32_t playlist_id,
                                       const QString& dir) {
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
@@ -130,7 +130,7 @@ size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
     return extract_file_count;
 }
 
-void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
+void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	const Stopwatch sw;
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
@@ -184,6 +184,6 @@ void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist
         });
 }
 
-void ExtractFileWorker::cancelRequested() {
+void FileSystemWorker::cancelRequested() {
     is_stop_ = true;
 }

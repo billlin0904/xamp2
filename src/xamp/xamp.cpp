@@ -50,7 +50,7 @@
 #include <widget/spectrumwidget.h>
 #include <widget/xdialog.h>
 #include <widget/xprogressdialog.h>
-#include <widget/extractfileworker.h>
+#include <widget/filesystemworker.h>
 #include <widget/findalbumcoverworker.h>
 #include <widget/imagecache.h>
 #include <widget/image_utiltis.h>
@@ -488,7 +488,7 @@ void Xamp::destroy() {
 
     quit_and_wait_thread(background_thread_);
     quit_and_wait_thread(find_album_cover_thread_);
-    quit_and_wait_thread(extract_file_thread_);
+    quit_and_wait_thread(file_system_thread_);
     quit_and_wait_thread(ytmusic_thread_);
 
     if (main_window_ != nullptr) {
@@ -529,9 +529,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     find_album_cover_worker_->moveToThread(&find_album_cover_thread_);
     find_album_cover_thread_.start(QThread::LowestPriority);
 
-    extract_file_worker_.reset(new ExtractFileWorker());
-    extract_file_worker_->moveToThread(&extract_file_thread_);
-    extract_file_thread_.start(QThread::LowestPriority);
+    extract_file_worker_.reset(new FileSystemWorker());
+    extract_file_worker_->moveToThread(&file_system_thread_);
+    file_system_thread_.start(QThread::LowestPriority);
 
     ytmusic_worker_.reset(new YtMusic());    
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
@@ -641,53 +641,53 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(this,
         &Xamp::setWatchDirectory,
         extract_file_worker_.get(),
-        &ExtractFileWorker::onSetWatchDirectory,
+        &FileSystemWorker::onSetWatchDirectory,
         Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::extractFile,
         extract_file_worker_.get(),
-        &ExtractFileWorker::onExtractFile,
+        &FileSystemWorker::onExtractFile,
         Qt::QueuedConnection);
 
    (void)QObject::connect(album_page_->album(),
         &AlbumView::extractFile,
         extract_file_worker_.get(),
-        &ExtractFileWorker::onExtractFile,
+        &FileSystemWorker::onExtractFile,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::foundFileCount,
+        &FileSystemWorker::foundFileCount,
         this,
         &Xamp::onFoundFileCount,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::insertDatabase,
+        &FileSystemWorker::insertDatabase,
         this,
         &Xamp::onInsertDatabase,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::readFilePath,
+        &FileSystemWorker::readFilePath,
         this,
         &Xamp::onReadFilePath,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::readFileStart,
+        &FileSystemWorker::readFileStart,
         this,
         &Xamp::onReadFileStart,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::readCompleted,
+        &FileSystemWorker::readCompleted,
         this,
         &Xamp::onReadCompleted,
         Qt::QueuedConnection);
 
     (void)QObject::connect(extract_file_worker_.get(),
-        &ExtractFileWorker::readFileProgress,
+        &FileSystemWorker::readFileProgress,
         this,
         &Xamp::onReadFileProgress,
         Qt::QueuedConnection);
@@ -2766,7 +2766,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::extractFile,
         extract_file_worker_.get(),
-        &ExtractFileWorker::onExtractFile);
+        &FileSystemWorker::onExtractFile);
     
     (void)QObject::connect(background_worker_.get(),
         &BackgroundWorker::readReplayGain,

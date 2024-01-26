@@ -1,5 +1,5 @@
 ﻿#include <widget/databasefacade.h>
-#include <widget/extractfileworker.h>
+#include <widget/filesystemworker.h>
 
 #include <execution>
 
@@ -101,10 +101,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     auto album_genre = kEmptyString;
 
 	for (const auto& track_info : result) {        
-        auto file_path = getStringOrEmptyString(track_info.file_path);
-        auto album = getStringOrEmptyString(track_info.album);
-        auto artist = getStringOrEmptyString(track_info.artist);
-		auto disc_id = getStringOrEmptyString(track_info.disc_id);
+        auto file_path = toQString(track_info.file_path);
+        auto album = toQString(track_info.album);
+        auto artist = toQString(track_info.artist);
+		auto disc_id = toQString(track_info.disc_id);
 
         QStringList artists;
         NormalizeArtist(artist, artists);
@@ -118,7 +118,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 			// TODO: 如果有內建圖片就把當作一張專輯.
 			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
-				album = getStringOrEmptyString(track_info.file_name_no_ext);
+				album = toQString(track_info.file_name_no_ext);
 			}
 		}
 

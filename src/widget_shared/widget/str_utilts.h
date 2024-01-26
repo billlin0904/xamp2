@@ -67,20 +67,20 @@ constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-#define qTR(str) QObject::tr(str)
+#define qTR(str) qApp->tr(str)
 
 constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 
-inline QString getStringOrEmptyString(const std::optional<std::wstring>& s) {
+inline QString toQString(const std::optional<std::wstring>& s) {
 	if (s) {
 		return QString::fromStdWString(s.value());
 	}
 	return kEmptyString;
 }
 
-inline QString getStringOrEmptyString(const std::optional<std::string>& s) {
+inline QString toQString(const std::optional<std::string>& s) {
 	if (s) {
 		return QString::fromStdString(s.value());
 	}
