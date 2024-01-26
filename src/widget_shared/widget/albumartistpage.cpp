@@ -23,6 +23,7 @@
 #include <widget/database.h>
 #include <widget/taglistview.h>
 #include <widget/genre_view_page.h>
+#include <widget/flowlayout.h>
 #include <thememanager.h>
 
 enum {
@@ -58,10 +59,10 @@ AlbumTabListView::AlbumTabListView(QWidget* parent)
 void AlbumTabListView::addTab(const QString& name, int tab_id) {
 	auto* item = new QStandardItem(name);
 	item->setData(tab_id);
-    item->setSizeHint(QSize(90, 30));
+    item->setSizeHint(QSize(130, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-    f.setPointSize(qTheme.fontSize(8));
+    f.setPointSize(qTheme.fontSize(20));
 	f.setBold(true);
 	item->setFont(f);
 	model_.appendRow(item);
@@ -78,20 +79,26 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	, artist_view_(new ArtistView(this))
 	, artist_info_view_(new ArtistInfoPage(this)) {
 	album_view_->reload();
-	album_view_->reload();
-	artist_view_->reload();
 	artist_view_->reload();
 
 	auto* vertical_layout_2 = new QVBoxLayout(this);
-
 	vertical_layout_2->setSpacing(0);
 	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+
+	auto f = font();
+	auto* title_label = new QLabel(tr("Library"), this);
+	f.setBold(true);
+	f.setPointSize(qTheme.fontSize(40));
+	title_label->setFont(f);
+	vertical_layout_2->addWidget(title_label);
 
 	auto* horizontal_layout_5 = new QHBoxLayout();
 	horizontal_layout_5->setSpacing(6);
 	horizontal_layout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
-	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	horizontal_layout_5->addItem(horizontal_spacer_6);
+
+	//auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	//horizontal_layout_5->addItem(horizontal_spacer_6);
+
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
 	list_view_->addTab(qTR("ALBUM"), TAB_ALBUMS);
 	list_view_->addTab(qTR("ARTISTS"), TAB_ARTISTS);
@@ -104,6 +111,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	list_view_->setMinimumSize(500, 40);
 	list_view_->setMaximumHeight(40);
 	horizontal_layout_5->addWidget(list_view_);
+
 	auto* horizontal_spacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_7);
 
@@ -124,7 +132,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* album_combox_layout_1 = new QHBoxLayout();
 	auto* album_combox_layout = new QHBoxLayout();
 
-	auto f = font();
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(10));
 
@@ -216,8 +223,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	album_combox_layout->addWidget(album_search_line_edit_);	
 
-	auto horizontalSpacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	album_combox_layout_1->addSpacerItem(horizontalSpacer);
+	auto horizontal_spacer = new QSpacerItem(20, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	album_combox_layout_1->addSpacerItem(horizontal_spacer);
 
 	album_combox_layout_1->addLayout(album_combox_layout);
 	album_frame_layout->addLayout(album_combox_layout_1);

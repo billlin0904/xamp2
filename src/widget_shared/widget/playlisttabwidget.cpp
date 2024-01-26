@@ -27,9 +27,9 @@ void PlaylistTabWidget::closeAllTab() {
         auto,
         auto,
         auto) {
-            if (playlist_id == kDefaultAlbumPlaylistId
-                || playlist_id == kDefaultCdPlaylistId
-                || playlist_id == kDefaultYtMusicPlaylistId) {
+            if (playlist_id == kAlbumPlaylistId
+                || playlist_id == kCdPlaylistId
+                || playlist_id == kYtMusicSearchPlaylistId) {
                 return;
             }
             removePlaylist(playlist_id);
@@ -130,6 +130,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         TRY_LOG(
             action_map.exec(pt);
         )
+        });
+
+    (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
+        playlist_page->playlist()->reload();
         });
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {

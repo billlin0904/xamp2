@@ -68,7 +68,7 @@ public:
 
     virtual ~Xamp() override;
 
-    void setXWindow(IXMainWindow* main_window);
+    void setMainWindow(IXMainWindow* main_window);
 
     void setThemeColor(QColor background_color, QColor color);
 
@@ -102,6 +102,8 @@ signals:
 	void updateNewVersion(const Version &version);
 
 	void fetchThumbnailUrl(const DatabaseCoverId &id, const QString& thumbnail_url);
+
+	void setWatchDirectory(const QString& dir);
 
 public slots:
 	void onDelayedDownloadThumbnail();

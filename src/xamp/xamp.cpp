@@ -499,7 +499,7 @@ void Xamp::destroy() {
     XAMP_LOG_DEBUG("Xamp destory!");
 }
 
-void Xamp::setXWindow(IXMainWindow* main_window) {
+void Xamp::setMainWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
@@ -636,6 +636,14 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     setPlayerOrder();
     initialDeviceList();
 
+    // ExtractFileWorker
+
+    (void)QObject::connect(this,
+        &Xamp::setWatchDirectory,
+        extract_file_worker_.get(),
+        &ExtractFileWorker::onSetWatchDirectory,
+        Qt::QueuedConnection);
+
     (void)QObject::connect(this,
         &Xamp::extractFile,
         extract_file_worker_.get(),
@@ -647,8 +655,6 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
         extract_file_worker_.get(),
         &ExtractFileWorker::onExtractFile,
         Qt::QueuedConnection);
-
-    // ExtractFileWorker
 
     (void)QObject::connect(extract_file_worker_.get(),
         &ExtractFileWorker::foundFileCount,
@@ -779,6 +785,7 @@ void Xamp::setXWindow(IXMainWindow* main_window) {
     onCheckForUpdate();
 
     (void)QObject::connect(&ui_update_timer_timer_, &QTimer::timeout, this, &Xamp::onDelayedDownloadThumbnail);
+    emit setWatchDirectory(qAppSettings.myMusicFolderPath());
 }
 
 void Xamp::onRestartApp() {
@@ -941,8 +948,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
     int track_no = 1;
     std::string thumbnail_url;
     if (!album.thumbnails.empty()) {
-        // 縮圖使用取最小圖片cover url
-        thumbnail_url = album.thumbnails.front().url;
+        thumbnail_url = album.thumbnails.back().url;
     }
 
     for (const auto& track : album.tracks) {
@@ -1492,7 +1498,7 @@ void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& imag
     if (cover.loadFromData(image)) {        
         qMainDb.updateArtistCoverId(qMainDb.addOrUpdateArtist(artist), qImageCache.addImage(cover));
     }
-    emit translation(artist, qTEXT("ja"), qTEXT("en"));
+    //emit translation(artist, qTEXT("ja"), qTEXT("en"));
 }
 
 void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
@@ -2066,8 +2072,8 @@ void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackIn
     qMainDb.removeAlbum(album_id);
     cd_page_->playlistPage()->playlist()->removeAll();
     DatabaseFacade facade;
-    facade.insertTrackInfo(track_infos, kDefaultCdPlaylistId, StoreType::LOCAL_STORE);
-    emit translation(getStringOrEmptyString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
+    facade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
+    //emit translation(getStringOrEmptyString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
     cd_page_->playlistPage()->playlist()->reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -2202,10 +2208,6 @@ void Xamp::initialPlaylist() {
     album_page_.reset(new AlbumArtistPage(this));
     local_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_search_page_.reset(new PlaylistPage(this));
-
-    cloud_search_page_->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
-    cloud_search_page_->playlist()->enableCloudMode(true);
-    cloud_search_page_->hidePlaybackInformation(true);
     cloud_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_tab_widget_->setStoreType(StoreType::CLOUD_STORE);
 
@@ -2223,17 +2225,20 @@ void Xamp::initialPlaylist() {
         auto store_type,
         const auto& cloud_playlist_id,
         const auto& name) {
-            if (playlist_id == kDefaultAlbumPlaylistId
-                || playlist_id == kDefaultCdPlaylistId
-                || playlist_id == kDefaultYtMusicPlaylistId) {
+            if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
                 return;
             }
             if (store_type == StoreType::LOCAL_STORE) {
                 auto* playlist_page = newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, name);
                 playlist_page->playlist()->enableCloudMode(false);
             }
-            else if (store_type == StoreType::CLOUD_STORE) {
-                auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, cloud_playlist_id, name);
+            else if (store_type == StoreType::CLOUD_STORE || playlist_id == kYtMusicSearchPlaylistId) {
+                PlaylistPage* playlist_page;
+                if (playlist_id != kYtMusicSearchPlaylistId) {
+                    playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, cloud_playlist_id, name);
+                } else {
+                    playlist_page = cloud_search_page_.get();
+                }                
                 playlist_page->hidePlaybackInformation(true);
                 playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
                 playlist_page->playlist()->enableCloudMode(true);
@@ -2244,20 +2249,18 @@ void Xamp::initialPlaylist() {
     if (cloud_tab_widget_->tabBar()->count() == 0) {
         initialCloudPlaylist();
     }
-    else {
-        cloud_tab_widget_->setCurrentIndex(0);
-    }
+    cloud_tab_widget_->setCurrentIndex(0);
 
     ensureLocalOnePlaylistPage();
 
-    if (!qMainDb.isPlaylistExist(kDefaultAlbumPlaylistId)) {
+    if (!qMainDb.isPlaylistExist(kAlbumPlaylistId)) {
         qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
     }
-    if (!qMainDb.isPlaylistExist(kDefaultCdPlaylistId)) {
+    if (!qMainDb.isPlaylistExist(kCdPlaylistId)) {
         qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
     }
-    if (!qMainDb.isPlaylistExist(kDefaultYtMusicPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
+    if (!qMainDb.isPlaylistExist(kYtMusicSearchPlaylistId)) {
+        qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::CLOUD_STORE);
     }
 
     local_tab_widget_->restoreTabOrder();
@@ -2341,14 +2344,14 @@ void Xamp::initialPlaylist() {
     file_system_view_page_.reset(new FileSystemViewPage(this));
 
     cd_page_.reset(new CdPage(this));
-    cd_page_->playlistPage()->playlist()->setPlaylistId(kDefaultCdPlaylistId, kAppSettingCdPlaylistColumnName);
+    cd_page_->playlistPage()->playlist()->setPlaylistId(kCdPlaylistId, kAppSettingCdPlaylistColumnName);
     cd_page_->playlistPage()->playlist()->setHeaderViewHidden(false);
     cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
 
     onSetCover(kEmptyString, cd_page_->playlistPage());
     connectPlaylistPageSignal(cd_page_->playlistPage());
 
-    cloud_search_page_->playlist()->setPlaylistId(kDefaultYtMusicPlaylistId, kAppSettingPlaylistColumnName);
+    cloud_search_page_->playlist()->setPlaylistId(kYtMusicSearchPlaylistId, kAppSettingPlaylistColumnName);
     onSetCover(kEmptyString, cloud_search_page_.get());
     connectPlaylistPageSignal(cloud_search_page_.get());
 
@@ -2801,7 +2804,7 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
         &FindAlbumCoverWorker::onFindAlbumCover,
         Qt::QueuedConnection);
     facade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
-    emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    //emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     ensureLocalOnePlaylistPage();
     localPlaylistPage()->playlist()->reload();
 }

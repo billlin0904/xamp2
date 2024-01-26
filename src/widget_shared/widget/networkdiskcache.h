@@ -14,7 +14,7 @@ class NetworkDiskCache : public QAbstractNetworkCache {
 public:
 	explicit NetworkDiskCache(QObject* parent = nullptr);
 
-	qint64 cacheSize() const override;
+	[[nodiscard]] qint64 cacheSize() const override;
 
 	QIODevice* data(const QUrl& url) override;
 

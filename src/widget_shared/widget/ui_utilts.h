@@ -79,3 +79,5 @@ XAMP_WIDGET_SHARED_EXPORT void getSaveFileName(QWidget* parent,
 XAMP_WIDGET_SHARED_EXPORT void delay(int32_t seconds);
 
 XAMP_WIDGET_SHARED_EXPORT const QStringList& getTrackInfoFileNameFilter();
+
+XAMP_WIDGET_SHARED_EXPORT size_t getFileCount(const QString& dir, const QStringList& file_name_filters = QStringList());

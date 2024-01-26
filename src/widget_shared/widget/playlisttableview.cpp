@@ -553,7 +553,7 @@ void PlayListTableView::initial() {
             entity = getEntity(index);
         }             
 
-        if (cloud_mode_ && cloudPlaylistId()) {
+        if (cloud_mode_) {
             auto* copy_album_act = action_map.addAction(qTR("Copy album"));
             copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 

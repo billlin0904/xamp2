@@ -11,11 +11,12 @@
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <widget/database.h>
+#include <widget/file_system_watcher.h>
 
 class XAMP_WIDGET_SHARED_EXPORT ExtractFileWorker : public QObject {
     Q_OBJECT
 public:
-    static constexpr size_t kReserveSize = 1024;
+    static constexpr size_t kReserveFilePathSize = 1024;
 
     ExtractFileWorker();
 
@@ -37,12 +38,15 @@ signals:
 public slots:
     void onExtractFile(const QString& file_path, int32_t playlist_id);
 
+    void onSetWatchDirectory(const QString& dir);
+
 private:
     size_t scanPathFiles(const QStringList& file_name_filters,
         int32_t playlist_id,
         const QString& dir);
 
-    bool is_stop_{ true };
+    bool is_stop_{ false };
+    FileSystemWatcher watcher_;
     LoggerPtr logger_;
 };
 

@@ -1,6 +1,7 @@
 #include <widget/ui_utilts.h>
 
 #include <QApplication>
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QRandomGenerator>
 #include <QScreen>
@@ -328,4 +329,19 @@ const QStringList& getTrackInfoFileNameFilter() {
         QStringList name_filter;
     };
     return SharedSingleton<StaticGetFileNameFilter>::GetInstance().name_filter;
+}
+
+size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {
+    if (QFileInfo(dir).isFile()) {
+        return 1;
+    }
+
+    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+    size_t file_count = 0;
+    while (itr.hasNext()) {
+        if (QFileInfo(itr.next()).isFile()) {
+            ++file_count;
+        }
+    }
+    return file_count;
 }

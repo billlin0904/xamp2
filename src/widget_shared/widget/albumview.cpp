@@ -269,7 +269,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     hbox_layout->addSpacerItem(button_spacer);
 
     page_ = new PlaylistPage(this);
-    page_->playlist()->setPlaylistId(kDefaultAlbumPlaylistId, kAppSettingAlbumPlaylistColumnName);
+    page_->playlist()->setPlaylistId(kAlbumPlaylistId, kAppSettingAlbumPlaylistColumnName);
     page_->playlist()->setOtherPlaylist(kDefaultPlaylistId);
 
     default_layout->addLayout(hbox_layout);

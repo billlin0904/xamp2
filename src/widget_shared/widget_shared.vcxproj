@@ -126,6 +126,8 @@
     <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\acrylic\acrylic.h" />
     <ClInclude Include="widget\databasecoverid.h" />
+    <QtMoc Include="widget\file_system_watcher.h" />
+    <ClInclude Include="widget\flowlayout.h" />
     <ClInclude Include="widget\fluentthemecolor.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
@@ -229,7 +231,9 @@
     <ClCompile Include="widget\extractfileworker.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
+    <ClCompile Include="widget\file_system_watcher.cpp" />
     <ClCompile Include="widget\findalbumcoverworker.cpp" />
+    <ClCompile Include="widget\flowlayout.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\genre_view_page.cpp" />

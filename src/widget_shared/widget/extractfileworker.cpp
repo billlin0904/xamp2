@@ -13,25 +13,10 @@ XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
 
 namespace {
     struct PathInfo {
-        QString path;
         size_t file_count;
         size_t depth;
+        QString path;
     };
-
-    size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {
-        if (QFileInfo(dir).isFile()) {
-            return 1;
-        }
-
-        QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
-        size_t file_count = 0;
-        while (itr.hasNext()) {
-            if (QFileInfo(itr.next()).isFile()) {
-                ++file_count;
-            }
-        }
-        return file_count;
-    }
 
     std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
         const Vector<QString>& paths,
@@ -43,7 +28,7 @@ namespace {
 
         // Calculate file counts and depths in parallel
         for (const auto & path : paths) {
-            path_infos.push_back({ path, 0, 0 });
+            path_infos.push_back({ 0, 0, path });
         }
 
         Executor::ParallelFor(GetBackgroundThreadPool(), path_infos, [&](auto& path_info) {
@@ -71,9 +56,20 @@ namespace {
     }
 }
 
-ExtractFileWorker::ExtractFileWorker() {
+ExtractFileWorker::ExtractFileWorker()
+	: watcher_(this) {
     logger_ = LoggerManager::GetInstance().GetLogger(kExtractFileWorkerLoggerName);
     GetBackgroundThreadPool();
+    (void)QObject::connect(&watcher_,
+        &FileSystemWatcher::directoryChanged,
+        this,
+        [this](const auto &dir) {
+            onExtractFile(dir, -1);
+        });
+}
+
+void ExtractFileWorker::onSetWatchDirectory(const QString& dir) {
+    watcher_.addPath(dir);
 }
 
 size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
@@ -90,7 +86,7 @@ size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
         auto path = next_path.toStdWString();
         auto directory = QFileInfo(next_path).dir().path().toStdWString();
         if (!directory_files.contains(directory)) {
-            directory_files[directory].reserve(kReserveSize);
+            directory_files[directory].reserve(kReserveFilePathSize);
         }
         directory_files[directory].emplace_back(path);       
     }
@@ -136,12 +132,12 @@ size_t ExtractFileWorker::scanPathFiles(const QStringList& file_name_filters,
 
 void ExtractFileWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	const Stopwatch sw;
-    is_stop_ = false;
+
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, getTrackInfoFileNameFilter(), filter);
 
     Vector<QString> paths;
-    paths.reserve(kReserveSize);
+    paths.reserve(kReserveFilePathSize);
 
     while (itr.hasNext()) {
         if (is_stop_) {

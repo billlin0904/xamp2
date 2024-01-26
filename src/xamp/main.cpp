@@ -218,7 +218,7 @@ namespace {
         XAMP_LOG_DEBUG("Start XAMP ...");
 
         Xamp win(&main_window, MakeAudioPlayer());
-        win.setXWindow(&main_window);
+        win.setMainWindow(&main_window);
         win.setThemeColor(qTheme.backgroundColor(),
             qTheme.themeTextColor());
 

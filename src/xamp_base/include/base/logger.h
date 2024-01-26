@@ -51,7 +51,7 @@ struct XAMP_BASE_API SourceLocation {
 #endif
 
 #define CurrentLocation \
-    SourceLocation { __FILENAME__, __LINE__, __func__ }
+    SourceLocation { __FILENAME__, __LINE__, __FUNCTION__ }
 
 #define XAM_LOG_MANAGER() xamp::base::LoggerManager::GetInstance()
 
