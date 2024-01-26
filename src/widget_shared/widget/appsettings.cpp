@@ -306,6 +306,10 @@ int32_t AppSettings::valueAsInt(const QString& key) {
 	return valueAs(key).toInt();
 }
 
+void AppSettings::loadLanguage() {
+	loadLanguage(valueAsString(kAppSettingLang));
+}
+
 void AppSettings::loadLanguage(const QString& lang) {
 	manager_.loadLanguage(lang);
 }
@@ -346,7 +350,7 @@ void AppSettings::saveLogConfig() {
 
 	for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[fromStdStringView(logger->GetName())] = log_util::getLogLevelString(logger->GetLevel());
+			well_known_log_name[toQString(logger->GetName())] = log_util::getLogLevelString(logger->GetLevel());
 		}
 	}
 
@@ -378,7 +382,7 @@ void AppSettings::loadOrSaveLogConfig() {
 
 	for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[fromStdStringView(logger->GetName())] = qTEXT("info");
+			well_known_log_name[toQString(logger->GetName())] = qTEXT("info");
 		}
 	}
 

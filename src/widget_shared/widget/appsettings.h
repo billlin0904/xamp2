@@ -162,6 +162,8 @@ public:
 
 	void addList(const QString& key, const QString& value);
 
+	void loadLanguage();
+
 	void loadLanguage(const QString& lang);
 
 	QString myMusicFolderPath();

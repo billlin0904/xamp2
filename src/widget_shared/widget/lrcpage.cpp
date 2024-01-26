@@ -50,6 +50,7 @@ void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
     //SetFullScreen(spectrum_->width() > 700);
 	setFullScreen(false);
+	addCoverShadow(true);
 }
 
 QSize LrcPage::coverSize() const {

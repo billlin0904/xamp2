@@ -100,7 +100,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	//horizontal_layout_5->addItem(horizontal_spacer_6);
 
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->addTab(qTR("ALBUM"), TAB_ALBUMS);
+	list_view_->addTab(qTR("ALBUMS"), TAB_ALBUMS);
 	list_view_->addTab(qTR("ARTISTS"), TAB_ARTISTS);
 	list_view_->addTab(qTR("YEAR"), TAB_YEAR);
 

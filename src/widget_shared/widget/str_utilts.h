@@ -18,7 +18,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ConstLatin1String final : public QLatin1String 
         : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
     }
 
-	constexpr ConstLatin1String(char const* const s, int length) noexcept
+	constexpr ConstLatin1String(char const* const s, const int length) noexcept
 		: QLatin1String(s, length) {
 	}
 };
@@ -67,9 +67,9 @@ constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-#define qTR(str) qApp->tr(str)
+#define qTR(str) tr(str)
 
-constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcept {
+constexpr ConstLatin1String fromStdStringView(const std::string_view& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 

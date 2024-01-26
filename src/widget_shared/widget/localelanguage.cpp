@@ -6,7 +6,7 @@
 #include <widget/str_utilts.h>
 
 namespace {
-	void SwitchTranslator(QTranslator& translator, const QString& filename) {
+	void switchTranslator(QTranslator& translator, const QString& filename) {
 		QApplication::removeTranslator(&translator);
 
 		auto path = QApplication::applicationDirPath();
@@ -67,12 +67,18 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	return languages_list;
 }
 
+void LocaleLanguageManager::loadQtLanguage(const QString& lang) {
+	const auto qt_lang_file_name = QString(qTEXT("qt_%1.qm")).arg(lang);
+	switchTranslator(qt_translator_, qt_lang_file_name);
+}
+
 void LocaleLanguageManager::loadLanguage(const QString& lang) {
 	if (current_lang_ != lang) {
 		current_lang_ = lang;
 		locale_ = QLocale(lang);
 		QLocale::setDefault(locale_);
-		SwitchTranslator(translator_, QString(qTEXT("%1.qm")).arg(lang));
+		switchTranslator(translator_, QString(qTEXT("%1.qm")).arg(lang));
+		loadQtLanguage(lang);
 	}
 }
 

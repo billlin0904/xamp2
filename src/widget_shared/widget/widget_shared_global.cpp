@@ -20,6 +20,6 @@ void logAndShowMessage(const std::exception_ptr& ptr) {
     }
     catch (...) {
         XAMP_LOG_DEBUG("Unknown error. {}", StackTrace{}.CaptureStack());
-        XMessageBox::showError(qTR("Unknown error"));
+        XMessageBox::showError(qApp->qTR("Unknown error"));
     }
 }

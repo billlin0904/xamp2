@@ -82,7 +82,7 @@ namespace {
         if (qAppSettings.dontShowMeAgain(message)) {
             auto [button, checked] = XMessageBox::showCheckBoxInformation(
                 message,
-                qTR("Ok, and don't show again."),
+                qApp->qTR("Ok, and don't show again."),
                 kApplicationTitle,
                 false);
             if (checked) {
@@ -435,6 +435,25 @@ namespace {
             playlist_page->playlist()->setCloudPlaylistId(cloud_playlist_id);
         }
         return playlist_page;
+    }
+
+    ConstLatin1String translateError(Errors error) {
+        using xamp::base::Errors;
+        static const QMap<xamp::base::Errors, ConstLatin1String> lut{
+            { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, QT_TR_NOOP("Plaform spec error") },
+            { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, QT_TR_NOOP("Device create failure") },
+        };
+        return lut.value(error, kEmptyString);
+    }
+
+    ConstLatin1String translateDescription(const IDeviceType *device_type) {
+        static const QMap<std::string_view, ConstLatin1String> lut{
+            { "WASAPI (Exclusive Mode)", QT_TR_NOOP("WASAPI (Exclusive Mode)") },
+            { "WASAPI (Shared Mode)", QT_TR_NOOP("WASAPI (Shared Mode)") },
+            { "Null Output", QT_TR_NOOP("Null Output") },
+            { "ASIO", QT_TR_NOOP("ASIO") },
+        };
+        return lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
     }
 }
 
@@ -904,7 +923,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
         onPlayMusic(temp1);
 
-        /*auto album_id = temp.album_id;
+        auto album_id = temp.album_id;
         if (album_id == DatabaseFacade::unknownAlbumId()) {
             return;
         }
@@ -926,9 +945,8 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
                 }
                 qMainDb.setAlbumCover(album_id, qImageCache.addImage(image));
                 lrc_page_->setCover(image_utils::resizeImage(image, lrc_page_->coverSizeHint(), true));
-                lrc_page_->addCoverShadow(true);
 				});
-            });*/
+            });
         });
 }
 
@@ -1083,7 +1101,7 @@ void Xamp::updateMaximumState(bool is_maximum) {
 
 void Xamp::closeEvent(QCloseEvent* event) {
     if (!trigger_upgrade_restart_ 
-        && XMessageBox::showYesOrNo(qTR("Do you want to exit the XAMP ?")) == QDialogButtonBox::No) {
+        && XMessageBox::showYesOrNo(qTR("Do you want to exit the XAMP2 ?")) == QDialogButtonBox::No) {
         event->ignore();
         return;
     }
@@ -1213,7 +1231,7 @@ void Xamp::initialDeviceList() {
         }
 
         menu->addSeparator();
-        menu->addAction(createDeviceMenuWidget(fromStdStringView(device_type->GetDescription())));
+        menu->addAction(createDeviceMenuWidget(translateDescription(device_type.get())));
        
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
@@ -2196,7 +2214,8 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 
 PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString& name) {
     auto* playlist_page = createPlaylistPage(tab_widget, playlist_id,  kAppSettingPlaylistColumnName, cloud_playlist_id);
-    playlist_page->playlist()->setHeaderViewHidden(false);    
+    playlist_page->playlist()->setHeaderViewHidden(false);
+    playlist_page->pageTitle()->hide();
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
     tab_widget->createNewTab(name, playlist_page);
@@ -2231,17 +2250,16 @@ void Xamp::initialPlaylist() {
             if (store_type == StoreType::LOCAL_STORE) {
                 auto* playlist_page = newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, name);
                 playlist_page->playlist()->enableCloudMode(false);
-                playlist_page->pageTitle()->setText(tr("Local Playlist"));
+                playlist_page->pageTitle()->hide();
             }
             else if (store_type == StoreType::CLOUD_STORE || playlist_id == kYtMusicSearchPlaylistId) {
                 PlaylistPage* playlist_page;
                 if (playlist_id != kYtMusicSearchPlaylistId) {
                     playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, cloud_playlist_id, name);
-                    playlist_page->pageTitle()->setText(name);
                 } else {
                     playlist_page = cloud_search_page_.get();
-                    playlist_page->pageTitle()->setText(tr("Search YouTube Music"));
-                }                
+                }
+                playlist_page->pageTitle()->hide();
                 playlist_page->hidePlaybackInformation(true);
                 playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
                 playlist_page->playlist()->enableCloudMode(true);
@@ -2457,6 +2475,7 @@ void Xamp::initialCloudPlaylist() {
         for (const auto& playlist : playlists) {
             const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
             auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.playlistId), QString::fromStdString(playlist.title));
+            playlist_page->pageTitle()->hide();
             playlist_page->hidePlaybackInformation(true);
             playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
             playlist_page->playlist()->setCloudPlaylistId(QString::fromStdString(playlist.playlistId));
@@ -2498,24 +2517,24 @@ void Xamp::pushWidget(QWidget* widget) {
     ui_.currentView->setCurrentIndex(id);
 }
 
-void Xamp::encodeAacFile(const PlayListEntity& item, const EncodingProfile& profile) {
+void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& profile) {
 	const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-    const auto save_file_name = last_dir + qTEXT("/") + item.album + qTEXT("-") + item.title;
+    const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
     getSaveFileName(this,
-        [this, item, profile](const auto &file_name) {
+        [this, entity, profile](const auto &file_name) {
             const auto dialog = makeProgressDialog(
                 qTR("Export progress dialog"),
-                qTR("Export '") + item.title + qTR("' to aac file"),
+                qTR("Export '") + entity.title + qTR("' to aac file"),
                 qTR("Cancel"));
 
             TrackInfo track_info;
-            track_info.album = item.album.toStdWString();
-            track_info.artist = item.artist.toStdWString();
-            track_info.title = item.title.toStdWString();
-            track_info.track = item.track;
+            track_info.album = entity.album.toStdWString();
+            track_info.artist = entity.artist.toStdWString();
+            track_info.title = entity.title.toStdWString();
+            track_info.track = entity.track;
 
             AnyMap config;
-            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(item.file_path.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(entity.file_path.toStdWString()));
             config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(file_name.toStdWString()));
             config.AddOrReplace(FileEncoderConfig::kEncodingProfile, profile);
 

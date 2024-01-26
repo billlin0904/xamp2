@@ -230,9 +230,9 @@ private:
 
     void onDeviceStateChanged(DeviceState state);
 
-    void encodeFlacFile(const PlayListEntity& item);
+    void encodeFlacFile(const PlayListEntity& entity);
 
-	void encodeAacFile(const PlayListEntity& item, const EncodingProfile & profile);
+	void encodeAacFile(const PlayListEntity& entity, const EncodingProfile & profile);
 
 	void encodeWavFile(const PlayListEntity& entity);
 
@@ -256,7 +256,7 @@ private:
 	
 	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString &name);
 
-	PlaylistPage* localPlaylistPage() const;
+	[[nodiscard]] PlaylistPage* localPlaylistPage() const;
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
 

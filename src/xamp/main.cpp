@@ -52,6 +52,7 @@ namespace {
             const LocaleLanguage lang;
             XAMP_LOG_DEBUG("Load locale language file: {}.", lang.isoCode().toStdString());
             qAppSettings.loadLanguage(lang.isoCode());
+            qAppSettings.loadLanguage(qSTR("qt_%1").arg(lang.isoCode()));
             qAppSettings.setValue(kAppSettingLang, lang.isoCode());
         }
         else {
@@ -72,7 +73,7 @@ namespace {
 
     Vector<SharedLibraryHandle> prefetchDll() {
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
-        Vector<std::string_view> dll_file_names{
+        const Vector<std::string_view> dll_file_names{
             R"(Python3.dll)",
             R"(mimalloc-override.dll)",
             R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
@@ -163,8 +164,6 @@ namespace {
         qAppSettings;
 
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-        QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-        QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
         QApplication::setApplicationName(kApplicationName);
         QApplication::setApplicationVersion(kApplicationVersion);
@@ -182,7 +181,9 @@ namespace {
             return -1;
         }
 
-        args = qApp->arguments();
+        loadLang();
+
+        args = app.arguments();
 
 #ifdef _DEBUG    
 #ifdef XAMP_OS_WIN
@@ -192,7 +193,6 @@ namespace {
 #endif
 
         applyTheme();
-        loadLang();
 
         XMainWindow main_window;
 

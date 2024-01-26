@@ -60,8 +60,11 @@ public:
 
 	void loadLanguage(const QString& lang);
 
+	void loadQtLanguage(const QString& lang);
+
 	QLocale locale() const;
 private:
+	QTranslator qt_translator_;
 	QTranslator translator_;
 	QString current_lang_;
 	QLocale locale_;
