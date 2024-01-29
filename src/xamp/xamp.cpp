@@ -82,7 +82,7 @@ namespace {
         if (qAppSettings.dontShowMeAgain(message)) {
             auto [button, checked] = XMessageBox::showCheckBoxInformation(
                 message,
-                qApp->qTR("Ok, and don't show again."),
+                qApp->tr("Ok, and don't show again."),
                 kApplicationTitle,
                 false);
             if (checked) {
@@ -773,19 +773,19 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     auto* menu = new XMenu();
     qTheme.setMenuStyle(menu);
-    const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), qTR("Preference"));
+    const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
         preference_page->loadSettings();
         dialog->setContentWidget(preference_page.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
-        dialog->setTitle(qTR("Preference"));
+        dialog->setTitle(tr("Preference"));
         dialog->exec();
         preference_page->saveAll();
         });
    
-    const auto* about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),qTR("About"));
+    const auto* about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
@@ -794,7 +794,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         (void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
         dialog->setContentWidget(about_page.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
-        dialog->setTitle(qTR("About"));
+        dialog->setTitle(tr("About"));
         emit about_page->CheckForUpdate();
         dialog->exec();
         });
@@ -1101,7 +1101,7 @@ void Xamp::updateMaximumState(bool is_maximum) {
 
 void Xamp::closeEvent(QCloseEvent* event) {
     if (!trigger_upgrade_restart_ 
-        && XMessageBox::showYesOrNo(qTR("Do you want to exit the XAMP2 ?")) == QDialogButtonBox::No) {
+        && XMessageBox::showYesOrNo(tr("Do you want to exit the XAMP2 ?")) == QDialogButtonBox::No) {
         event->ignore();
         return;
     }
@@ -1129,7 +1129,7 @@ void Xamp::initialUi() {
     f.setWeight(QFont::DemiBold);
     f.setPointSize(10);
     ui_.titleFrameLabel->setFont(f);
-    ui_.titleFrameLabel->setText(kApplicationTitle);
+    //ui_.titleFrameLabel->setText(kApplicationTitle);
     ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     QFont mono_font(qTEXT("MonoFont"));
@@ -1386,14 +1386,14 @@ void Xamp::initialController() {
             QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
             dialog->setContentWidget(eq.get(), false);
             dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
-            dialog->setTitle(qTR("SuperEQ"));
+            dialog->setTitle(tr("SuperEQ"));
             dialog->exec();
         }
         else {
             QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
             dialog->setContentWidget(eq.get(), false);
             dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
-            dialog->setTitle(qTR("EQ"));
+            dialog->setTitle(tr("EQ"));
             dialog->exec();
         }        
     });
@@ -1721,7 +1721,7 @@ void Xamp::playOrPause() {
             play_index_ = page->playlist()->model()->index(
                 play_index_.row(), PLAYLIST_PLAYING);
             if (play_index_.row() == -1) {
-                XMessageBox::showInformation(qTR("Not found any playing item."));
+                XMessageBox::showInformation(tr("Not found any playing item."));
                 return;
             }
             page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
@@ -1852,7 +1852,7 @@ void Xamp::onDelayedDownloadThumbnail() {
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
     if (!device_info_) {
-        showMeMessage(qTR("Not found any audio device, please check your audio device."));
+        showMeMessage(tr("Not found any audio device, please check your audio device."));
         return;
     }
 
@@ -1936,7 +1936,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
         if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
-            showMeMessage(qTR("Play DSD file need set 100% volume."));
+            showMeMessage(tr("Play DSD file need set 100% volume."));
             player_->SetVolume(100);
         }
 
@@ -1958,8 +1958,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
 void Xamp::ensureLocalOnePlaylistPage() {
 	if (local_tab_widget_->count() == 0) {
-		const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
-		newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, qTR("Playlist"));
+		const auto playlist_id = qMainDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+		newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
 	}
 }
 
@@ -2073,7 +2073,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     }
 
     if (const auto album_stats = qMainDb.getAlbumStats(album_id)) {
-        cd_page_->playlistPage()->format()->setText(qTR("%1 Songs, %2, %3")
+        cd_page_->playlistPage()->format()->setText(tr("%1 Songs, %2, %3")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year)));
@@ -2156,7 +2156,7 @@ void Xamp::playNextItem(int32_t forward) {
     const auto count = last_play_list_->model()->rowCount();
     if (count == 0) {
         stopPlay();
-        XMessageBox::showInformation(qTR("Not found any playing item."));
+        XMessageBox::showInformation(tr("Not found any playing item."));
         return;
     }    
 
@@ -2231,13 +2231,13 @@ void Xamp::initialPlaylist() {
     cloud_tab_widget_->setStoreType(StoreType::CLOUD_STORE);
 
     ui_.naviBar->addSeparator();
-    ui_.naviBar->addTab(qTR("Playlist"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.naviBar->addTab(qTR("File explorer"), TAB_FILE_EXPLORER, qTheme.fontIcon(Glyphs::ICON_DESKTOP));
-    ui_.naviBar->addTab(qTR("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
-    ui_.naviBar->addTab(qTR("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
-    ui_.naviBar->addTab(qTR("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(qTR("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->addTab(qTR("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
+    ui_.naviBar->addTab(tr("Playlist"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.naviBar->addTab(tr("File explorer"), TAB_FILE_EXPLORER, qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+    ui_.naviBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+    ui_.naviBar->addTab(tr("Library"), TAB_MUSIC_LIBRARY, qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
+    ui_.naviBar->addTab(tr("CD"), TAB_CD, qTheme.fontIcon(Glyphs::ICON_CD));
+    ui_.naviBar->addTab(tr("YouTube search"), TAB_YT_MUSIC_SEARCH, qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -2275,13 +2275,13 @@ void Xamp::initialPlaylist() {
     ensureLocalOnePlaylistPage();
 
     if (!qMainDb.isPlaylistExist(kAlbumPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
+        qMainDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
     }
     if (!qMainDb.isPlaylistExist(kCdPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::LOCAL_STORE);
+        qMainDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
     }
     if (!qMainDb.isPlaylistExist(kYtMusicSearchPlaylistId)) {
-        qMainDb.addPlaylist(qTR("Playlist"), 1, StoreType::CLOUD_STORE);
+        qMainDb.addPlaylist(tr("Playlist"), 1, StoreType::CLOUD_STORE);
     }
 
     local_tab_widget_->restoreTabOrder();
@@ -2330,7 +2330,7 @@ void Xamp::initialPlaylist() {
             const QScopedPointer<CreatePlaylistView> create_playlist_view(new CreatePlaylistView(dialog.get()));
             dialog->setContentWidget(create_playlist_view.get());
             dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EDIT));
-            dialog->setTitle(qTR("Create playlist"));
+            dialog->setTitle(tr("Create playlist"));
 
             if (dialog->exec() != QDialog::Accepted) {
                 return;
@@ -2353,8 +2353,8 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
             const auto tab_index = local_tab_widget_->count();
-            const auto playlist_id = qMainDb.addPlaylist(qTR("Playlist"), tab_index, StoreType::LOCAL_STORE);
-            newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, qTR("Playlist"));
+            const auto playlist_id = qMainDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
+            newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
         });
 
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::removeAllPlaylist,
@@ -2523,9 +2523,9 @@ void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& pr
     getSaveFileName(this,
         [this, entity, profile](const auto &file_name) {
             const auto dialog = makeProgressDialog(
-                qTR("Export progress dialog"),
-                qTR("Export '") + entity.title + qTR("' to aac file"),
-                qTR("Cancel"));
+                tr("Export progress dialog"),
+                tr("Export '") + entity.title + tr("' to aac file"),
+                tr("Cancel"));
 
             TrackInfo track_info;
             track_info.album = entity.album.toStdWString();
@@ -2552,9 +2552,9 @@ void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& pr
                 XMessageBox::showError(qTEXT(e.what()));
             }
         },
-        qTR("Save AAC file"),
+        tr("Save AAC file"),
         save_file_name,
-        qTR("AAC Files (*.m4a)"));
+        tr("AAC Files (*.m4a)"));
 }
 
 void Xamp::downloadFile(const PlayListEntity& entity) {
@@ -2579,9 +2579,9 @@ void Xamp::encodeWavFile(const PlayListEntity& entity) {
     getSaveFileName(this,
         [this, entity](const auto& file_name) {
             const auto dialog = makeProgressDialog(
-                qTR("Export progress dialog"),
-                qTR("Export '") + entity.title + qTR("' to wav file"),
-                qTR("Cancel"));
+                tr("Export progress dialog"),
+                tr("Export '") + entity.title + tr("' to wav file"),
+                tr("Cancel"));
 
             TrackInfo metadata;
             metadata.album = entity.album.toStdWString();
@@ -2604,9 +2604,9 @@ void Xamp::encodeWavFile(const PlayListEntity& entity) {
                 }, metadata);
             )
         },
-        qTR("Save Wav file"),
+        tr("Save Wav file"),
         save_file_name,
-        qTR("Wav Files (*.wav)"));
+        tr("Wav Files (*.wav)"));
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& entity) {
@@ -2616,9 +2616,9 @@ void Xamp::encodeFlacFile(const PlayListEntity& entity) {
     getSaveFileName(this,
         [this, entity](const auto& file_name) {
             const auto dialog = makeProgressDialog(
-                qTR("Export progress dialog"),
-                qTR("Export '") + entity.title + qTR("' to flac file"),
-                qTR("Cancel"));
+                tr("Export progress dialog"),
+                tr("Export '") + entity.title + tr("' to flac file"),
+                tr("Cancel"));
 
             TrackInfo track_info;
             track_info.album = entity.album.toStdWString();
@@ -2642,9 +2642,9 @@ void Xamp::encodeFlacFile(const PlayListEntity& entity) {
                 }, track_info);
             )
         },    
-        qTR("Save Flac file"),
+        tr("Save Flac file"),
         save_file_name,
-        qTR("FLAC Files (*.flac)"));    
+        tr("FLAC Files (*.flac)"));    
 }
 
 void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
@@ -2852,7 +2852,7 @@ void Xamp::onEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities
     QScopedPointer<TagEditPage> tag_edit_page(new TagEditPage(dialog.get(), entities));
     dialog->setContentWidget(tag_edit_page.get());
     dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EDIT));
-    dialog->setTitle(qTR("Edit track information"));    
+    dialog->setTitle(tr("Edit track information"));    
     dialog->exec();
     if (local_tab_widget_->count() > 0) {
         localPlaylistPage()->playlist()->reload();
@@ -2882,8 +2882,8 @@ void Xamp::onFoundFileCount(size_t file_count) {
     if (!read_progress_dialog_
         && progress_timer_.elapsed() > kShowProgressDialogMsSecs) {
         read_progress_dialog_ = makeProgressDialog(kApplicationTitle,
-            qTR("Read track information"),
-            qTR("Cancel"));
+            tr("Read track information"),
+            tr("Cancel"));
 
         (void)QObject::connect(read_progress_dialog_.get(),
             &XProgressDialog::cancelRequested, [this]() {

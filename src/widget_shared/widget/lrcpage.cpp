@@ -303,7 +303,7 @@ void LrcPage::initial() {
     title_ = new ScrollLabel(this);
 	title_->setStyleSheet(qTEXT("background-color: transparent"));
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->setText(qTR("Title:"));
+	title_->setText(tr("Title:"));
 	title_->setFont(f);
     title_->setMinimumHeight(40);
 	f.setPointSize(qTheme.fontSize(15));
@@ -321,7 +321,7 @@ void LrcPage::initial() {
 	auto label_3 = new QLabel(this);
 	label_3->setObjectName(QString::fromUtf8("label_3"));
 
-	label_3->setText(qTR("Artist:"));
+	label_3->setText(tr("Artist:"));
 	label_3->setFont(f);
 	label_3->setMinimumHeight(40);
 	label_3->setMinimumWidth(60);
@@ -344,7 +344,7 @@ void LrcPage::initial() {
 	horizontal_layout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
 	auto label_7 = new QLabel(this);	
 	label_7->setObjectName(QString::fromUtf8("label_4"));
-	label_7->setText(qTR("Album:"));
+	label_7->setText(tr("Album:"));
 
 	label_7->setMinimumWidth(50);
 	label_7->setFont(f);

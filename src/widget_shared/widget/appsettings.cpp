@@ -93,7 +93,7 @@ void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file) {
 	auto node_list = parameter_list.at(1).split(";");
 	EqSettings settings;
 
-	for (auto node_str : node_list) {
+	for (auto& node_str : node_list) {
 		auto values = node_str.trimmed().split(" ", Qt::SkipEmptyParts);
 		if (values.count() != 2) {
 			continue;

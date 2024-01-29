@@ -31,7 +31,7 @@ public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
-	void mouseMoveEvent(QMouseEvent* event) override;
+	void enterEvent(QEnterEvent* event) override;
 	
 	void leaveEvent(QEvent* event) override;
 

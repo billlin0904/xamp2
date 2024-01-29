@@ -4,16 +4,21 @@
 #include <QDir>
 
 #include <widget/str_utilts.h>
+#include <widget/widget_shared.h>
+#include <base/logger.h>
+#include <base/logger_impl.h>
 
 namespace {
 	void switchTranslator(QTranslator& translator, const QString& filename) {
-		QApplication::removeTranslator(&translator);
+		qApp->removeTranslator(&translator);
 
-		auto path = QApplication::applicationDirPath();
+		auto path = qApp->applicationDirPath();
 		path.append(qTEXT("/langs/"));
 
 		if (translator.load(path + filename)) {
-			QApplication::installTranslator(&translator);
+			qApp->installTranslator(&translator);
+		} else {
+			XAMP_LOG_DEBUG("Failure to load translator {} file.", filename.toStdString());
 		}
 	}
 }
@@ -67,9 +72,9 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	return languages_list;
 }
 
-void LocaleLanguageManager::loadQtLanguage(const QString& lang) {
-	const auto qt_lang_file_name = QString(qTEXT("qt_%1.qm")).arg(lang);
-	switchTranslator(qt_translator_, qt_lang_file_name);
+void LocaleLanguageManager::loadPrefixTranslator(QTranslator& translator, const QString& prefix, const QString& lang) {
+	const auto qt_lang_file_name = QString(qTEXT("%1_%2.qm")).arg(prefix).arg(lang);
+	switchTranslator(translator, qt_lang_file_name);
 }
 
 void LocaleLanguageManager::loadLanguage(const QString& lang) {
@@ -77,8 +82,9 @@ void LocaleLanguageManager::loadLanguage(const QString& lang) {
 		current_lang_ = lang;
 		locale_ = QLocale(lang);
 		QLocale::setDefault(locale_);
+		loadPrefixTranslator(qt_translator_, qTEXT("qt"), lang);
+		loadPrefixTranslator(widget_shared_translator_, qTEXT("widget_shared"), lang);
 		switchTranslator(translator_, QString(qTEXT("%1.qm")).arg(lang));
-		loadQtLanguage(lang);
 	}
 }
 

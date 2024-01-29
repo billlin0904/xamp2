@@ -29,7 +29,7 @@ namespace {
     const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
 
-    QSet<QString> GetAlbumCategories(const QString& album) {
+    QSet<QString> getAlbumCategories(const QString& album) {
 	    const QRegularExpression regex(
             R"((piano|vocal|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)",
             QRegularExpression::CaseInsensitiveOption);
@@ -44,7 +44,7 @@ namespace {
         return categories;
     }
 
-    void NormalizeArtist(QString& artist, QStringList& artists) {
+    void normalizeArtist(QString& artist, QStringList& artists) {
         if (artist.contains(' ')) {
             if (!artist[0].isUpper()) {
                 artist = artist.remove(' ');
@@ -75,7 +75,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     }
 }
 
-void DatabaseFacade::ensureInitialUnknonwId() {
+void DatabaseFacade::ensureInitialUnknownId() {
     unknown_artist_id_ = qMainDb.addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
     unknown_album_id_ = qMainDb.addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
     qMainDb.setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
@@ -99,7 +99,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         album_year = result.front().year;
     }
 
-    ensureInitialUnknonwId();
+    ensureInitialUnknownId();
 
     auto album_genre = kEmptyString;
 
@@ -110,14 +110,14 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 		auto disc_id = toQString(track_info.disc_id);
 
         QStringList artists;
-        NormalizeArtist(artist, artists);
+        normalizeArtist(artist, artists);
                 
         const auto is_file_path = IsFilePath(track_info.file_path);
 
         QPixmap cover;
 		if (is_file_path && album.isEmpty()) {
 			const TagIO reader;
-			album = qTR("Unknown album");
+			album = tr("Unknown album");
 			// TODO: 如果有內建圖片就把當作一張專輯.
 			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
@@ -126,7 +126,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 		}
 
 		if (artist.isEmpty()) {
-			artist = qTR("Unknown artist");
+			artist = tr("Unknown artist");
 		}
 
         const auto music_id = database_->addOrUpdateMusic(track_info);
@@ -152,7 +152,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 album_genre);
 
             if (album_genre.isEmpty()) {
-                for (const auto& category : GetAlbumCategories(album)) {
+                for (const auto& category : getAlbumCategories(album)) {
                     database_->addOrUpdateAlbumCategory(album_id, category);
                 }
             } else {

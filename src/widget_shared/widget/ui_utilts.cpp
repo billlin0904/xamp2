@@ -235,8 +235,7 @@ QString getFileDialogFileExtensions() {
     static QString file_extension;
     if (file_extension.isEmpty()) {
         QString exts(qTEXT("("));
-        auto file_exts = GetSupportFileExtensions();
-        //file_exts.insert(".zip");
+        const auto file_exts = GetSupportFileExtensions();
         for (const auto& file_ext : file_exts) {
             exts += qTEXT("*") + QString::fromStdString(file_ext);
             exts += qTEXT(" ");
@@ -254,7 +253,7 @@ QString getExistingDirectory(QWidget* parent) {
     }
     
     const auto dir_name = QFileDialog::getExistingDirectory(parent,
-        qApp->qTR("Select a directory"),
+        qApp->tr("Select a directory"),
         last_open_folder,
         QFileDialog::ShowDirsOnly);
 
@@ -266,9 +265,9 @@ QString getExistingDirectory(QWidget* parent) {
 void getOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action) {
     return getOpenFileName(parent,
         std::move(action),
-        qApp->qTR("Open file"),
+        qApp->tr("Open file"),
         qAppSettings.myMusicFolderPath(),
-        qApp->qTR("Music Files ") + getFileDialogFileExtensions());
+        qApp->tr("Music Files ") + getFileDialogFileExtensions());
 }
 
 void getSaveFileName(QWidget* parent, 

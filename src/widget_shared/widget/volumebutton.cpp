@@ -49,12 +49,8 @@ void VolumeButton::onVolumeChanged(uint32_t volume) {
 	dialog_->setVolume(volume, false);
 }
 
-void VolumeButton::mouseMoveEvent(QMouseEvent* event) {
+void VolumeButton::enterEvent(QEnterEvent* event) {
 	if (is_show_) {
-		return;
-	}
-
-	if (!rect().contains(event->pos())) {
 		return;
 	}
 

@@ -150,7 +150,7 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	f.setWeight(QFont::DemiBold);
 	f.setPointSize(qTheme.fontSize(15));
 	artist->setFont(f);
-	artist->setText(qTR("ARTIST"));
+	artist->setText(tr("ARTIST"));
 
 	artist_name_ = new QLabel(this);
 	f.setWeight(QFont::DemiBold);
@@ -179,7 +179,7 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	f.setWeight(QFont::DemiBold);
 	f.setPointSize(qTheme.fontSize(20));
 	all_album->setFont(f);
-	all_album->setText(qTR("ALL ALBUMS"));
+	all_album->setText(tr("ALL ALBUMS"));
 
 	album_view_ = new AlbumView(this);
 	album_view_->setObjectName(QString::fromUtf8("albumView"));

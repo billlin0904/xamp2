@@ -92,6 +92,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	page_title_label->setFont(f);
 	vertical_layout_2->addWidget(page_title_label);
 
+	auto* line = new QFrame(this);
+	line->setFixedHeight(1);
+	line->setFrameShape(QFrame::HLine);
+	vertical_layout_2->addWidget(line);
+
 	auto* horizontal_layout_5 = new QHBoxLayout();
 	horizontal_layout_5->setSpacing(6);
 	horizontal_layout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
@@ -100,9 +105,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	//horizontal_layout_5->addItem(horizontal_spacer_6);
 
 	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->addTab(qTR("ALBUMS"), TAB_ALBUMS);
-	list_view_->addTab(qTR("ARTISTS"), TAB_ARTISTS);
-	list_view_->addTab(qTR("YEAR"), TAB_YEAR);
+	list_view_->addTab(tr("ALBUMS"), TAB_ALBUMS);
+	list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
+	list_view_->addTab(tr("YEAR"), TAB_YEAR);
 
 	qTheme.setAlbumNaviBarTheme(list_view_);
 
@@ -147,15 +152,15 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	Q_FOREACH(auto category, title_category_list) {
 		album_tag_list_widget_->addTag(category);
 	}
-	album_tag_list_widget_->addTag(qTR("All"), true);
+	album_tag_list_widget_->addTag(tr("All"), true);
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
 			return;
 		}
-		if (tags.contains(qTR("All"))) {
+		if (tags.contains(tr("All"))) {
 			album_view_->showAll();
-			album_tag_list_widget_->disableAllTag(qTR("All"));
+			album_tag_list_widget_->disableAllTag(tr("All"));
 		}
 		else {
 			album_view_->filterCategories(tags);
@@ -180,7 +185,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	album_search_line_edit_->setClearButtonEnabled(true);
 	album_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
-	album_search_line_edit_->setPlaceholderText(qTR("Search Album/Artist"));
+	album_search_line_edit_->setPlaceholderText(tr("Search Album/Artist"));
 	
 	album_model_ = new QStandardItemModel(0, 1 , this);
 	auto *album_completer = new QCompleter(album_model_, this);
@@ -229,8 +234,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_combox_layout_1->addLayout(album_combox_layout);
 	album_frame_layout->addLayout(album_combox_layout_1);
 
-	auto* tags_label = new QLabel(qTR("Category"));
-	f.setPointSize(qTheme.fontSize(9));
+	auto* tags_label = new QLabel(tr("Category"));
+	f.setPointSize(qTheme.fontSize(12));
 	tags_label->setFont(f);
 
 	album_frame_layout->addWidget(tags_label);
@@ -257,7 +262,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	artist_search_line_edit_->setClearButtonEnabled(true);
 	artist_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
-	artist_search_line_edit_->setPlaceholderText(qTR("search Artist"));
+	artist_search_line_edit_->setPlaceholderText(tr("Search Artist"));
 
 	action_list = artist_search_line_edit_->findChildren<QAction*>();
 	if (!action_list.isEmpty()) {
@@ -334,9 +339,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		if (tags.isEmpty()) {
 			return;
 		}
-		if (tags.contains(qTR("All"))) {
+		if (tags.contains(tr("All"))) {
 			artist_view_->showAll();
-			artist_tag_list_widget_->disableAllTag(qTR("All"));
+			artist_tag_list_widget_->disableAllTag(tr("All"));
 		}
 		else {
 			artist_view_->filterArtistName(tags);
@@ -371,9 +376,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		if (tags.isEmpty()) {
 			return;
 		}
-		if (tags.contains(qTR("All"))) {
+		if (tags.contains(tr("All"))) {
 			year_view_->showAll();
-			year_tag_list_widget_->disableAllTag(qTR("All"));
+			year_tag_list_widget_->disableAllTag(tr("All"));
 		} else {
 			year_view_->filterYears(tags);
 		}

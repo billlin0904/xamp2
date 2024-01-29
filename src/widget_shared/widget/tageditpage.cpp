@@ -115,7 +115,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	}
 
 	(void)QObject::connect(ui_->buttonBox, &QDialogButtonBox::accepted, [this]() {
-		if (XMessageBox::showYesOrNo(qTR("Do you want write tag?")) != QDialogButtonBox::Yes) {
+		if (XMessageBox::showYesOrNo(tr("Do you want write tag?")) != QDialogButtonBox::Yes) {
 			return;
 		}
 
@@ -144,7 +144,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			qMainDb.updateAlbum(entity.album_id, entity.album);
 			qMainDb.updateArtist(entity.artist_id, entity.artist);
 		} catch (...) {
-			XMessageBox::showError(qTR("Write tag failure!"));
+			XMessageBox::showError(tr("Write tag failure!"));
 			return;
 		}
 
@@ -157,7 +157,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		ui_->trackComboBox->setCurrentIndex(next_index);
 		setCurrentInfo(next_index);
 
-		XMessageBox::showInformation(qTR("Write tag successfully!"));
+		XMessageBox::showInformation(tr("Write tag successfully!"));
 	});
 
 	(void)QObject::connect(ui_->titleComboBox, &QComboBox::activated, [this](auto index) {
@@ -181,7 +181,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		});
 
 	(void)QObject::connect(ui_->saveToFileButton, &QPushButton::clicked, [this] {
-		if (XMessageBox::showYesOrNo(qTR("Do you want write cover image?")) != QDialogButtonBox::Yes) {
+		if (XMessageBox::showYesOrNo(tr("Do you want write cover image?")) != QDialogButtonBox::Yes) {
 			return;
 		}
 
@@ -241,9 +241,9 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		getOpenFileName(parent,
 			action,
-			qTR("Open image file"),
+			tr("Open image file"),
 			dir,
-			qTR("Image Files ") + kCoverImageFileExt);
+			tr("Image Files ") + kCoverImageFileExt);
 		});
 
 	ui_->notFoundImageLabel->hide();
@@ -287,7 +287,7 @@ void TagEditPage::setCurrentInfo(int32_t index) {
 }
 
 void TagEditPage::closeEvent(QCloseEvent* event) {
-	/*if (XMessageBox::ShowYesOrNo(qTR("Do you give up write tag ?")) == QDialogButtonBox::No) {
+	/*if (XMessageBox::ShowYesOrNo(tr("Do you give up write tag ?")) == QDialogButtonBox::No) {
 		event->ignore();
 		return;
 	}*/

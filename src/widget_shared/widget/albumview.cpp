@@ -345,7 +345,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->onSetCoverById(cover_id);
 
     if (const auto album_stats = qMainDb.getAlbumStats(album_id)) {
-        page_->format()->setText(qTR("%1 Songs, %2, %3, %4")
+        page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year))
@@ -433,12 +433,12 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         const auto album = indexValue(index, INDEX_ALBUM).toString();
         const auto artist = indexValue(index, INDEX_ARTIST).toString();
 
-        auto* copy_album_act = action_map.addAction(qTR("Copy album"), [album]() {
+        auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
             QApplication::clipboard()->setText(album);
             });
         copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
-        action_map.addAction(qTR("Copy artist"), [artist]() {
+        action_map.addAction(tr("Copy artist"), [artist]() {
             QApplication::clipboard()->setText(artist);
             });
     }   
@@ -460,9 +460,9 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
 
         const auto process_dialog = makeProgressDialog(
-            qTR("Remove all album"),
+            tr("Remove all album"),
             kEmptyString,
-            qTR("Cancel"));
+            tr("Cancel"));
         
         if (!qMainDb.transaction()) {
             return;
@@ -498,14 +498,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
     };
 
-    auto* load_file_act = action_map.addAction(qTR("Load local file"), [this]() {
+    auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
         getOpenMusicFileName(this, [this](const auto& file_name) {
             append(file_name);
             });
         });
     load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
-    auto* load_dir_act = action_map.addAction(qTR("Load file directory"), [this]() {
+    auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
         const auto dir_name = getExistingDirectory(this);
         if (dir_name.isEmpty()) {
             return;
@@ -514,7 +514,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         });
     load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
     action_map.addSeparator();
-    auto* remove_all_album_act = action_map.addAction(qTR("Remove all album"), [=]() {
+    auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         remove_album();
         });
     remove_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));    
@@ -531,7 +531,7 @@ void AlbumView::showMenu(const QPoint &pt) {
     auto artist_id = indexValue(index, INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
-    auto* add_album_to_playlist_act = action_map.addAction(qTR("Add album to playlist"), [album_id, this]() {
+    auto* add_album_to_playlist_act = action_map.addAction(tr("Add album to playlist"), [album_id, this]() {
         QList<PlayListEntity> entities;
         QList<int32_t> add_playlist_music_ids;
         qMainDb.forEachAlbumMusic(album_id,
@@ -545,18 +545,18 @@ void AlbumView::showMenu(const QPoint &pt) {
         });
     add_album_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
-    auto* copy_album_act = action_map.addAction(qTR("Copy album"), [album]() {
+    auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
     });
     copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
-    action_map.addAction(qTR("Copy artist"), [artist]() {
+    action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
     });
 
     action_map.addSeparator();
 
-    const auto remove_select_album_act = action_map.addAction(qTR("Remove select album"), [album_id, this]() {
+    const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
         qMainDb.removeAlbum(album_id);
         reload();
     });

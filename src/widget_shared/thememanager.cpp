@@ -125,7 +125,7 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
         XAMP_LOG_ERROR("Not found font file name: {}", file_name.toStdString());
         return;
     }
-    PrefetchFile(font_path.toStdWString());
+
     const auto loaded_font_id = QFontDatabase::addApplicationFont(font_path);
     const auto font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
     if (!ui_fallback_fonts.contains(font_families[0])) {
@@ -211,14 +211,10 @@ QFont ThemeManager::loadFonts() {
 
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
     installFileFonts(qTEXT("NotoSans"), mono_fonts);
-    installFileFonts(qTEXT("OpenSans"), en_fonts);
-    installFileFonts(qTEXT("MiSans"), ui_fonts);
     installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
-    ui_fonts.insert(0, en_fonts[0]);
-    ui_fonts.insert(1, en_fonts[1]);
-    
+
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
     }
@@ -230,15 +226,11 @@ QFont ThemeManager::loadFonts() {
     QFont::insertSubstitutions(qTEXT("DisplayFont"), display_fonts);
     QFont::insertSubstitutions(qTEXT("FormatFont"), format_font);
     QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
-    QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
+    QFont::insertSubstitution(qTEXT("UIFont"), qTEXT("Microsoft JhengHei UI"));
 
     auto ui_font = uiFont();
     ui_font.setStyleStrategy(QFont::PreferAntialias);
-#ifdef Q_OS_WIN
-    ui_font.setWeight(QFont::Weight::Medium);
-#else
     ui_font.setWeight(QFont::Weight::Normal);
-#endif
     ui_font.setKerning(false);
 
     return ui_font;

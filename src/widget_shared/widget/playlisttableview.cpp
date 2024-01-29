@@ -356,34 +356,34 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
     reload();
 
-    model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, qTR("Id"));
-    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, qTR("IsPlaying"));
-    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, qTR("   #"));
-    model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, qTR("FilePath"));
-    model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, qTR("Title"));
-    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, qTR("FileName"));
-    model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, qTR("FileSize"));
-    model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, qTR("Album"));
-    model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, qTR("Artist"));
-    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, qTR("Duration"));
-    model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, qTR("BitRate"));
-    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, qTR("SampleRate"));
-    model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, qTR("AlbumRG"));
-    model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, qTR("AlbumPK"));
-    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, qTR("LastUpdateTime"));
-    model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, qTR("TrackRG"));
-    model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, qTR("TrackPK"));
-    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, qTR("Loudness"));
-    model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, qTR("Genre"));
-    model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, qTR("AlbumId"));
-    model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, qTR("PlaylistId"));
-    model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, qTR("FileExt"));
-    model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, qTR("ParentPath"));
-    model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, qTR(""));
-    model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, qTR("ArtistId"));
-    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, qTR(""));
-    model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, qTR("Comment"));
-    model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, qTR("Year"));
+    model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("Id"));
+    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IsPlaying"));
+    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("   #"));
+    model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FilePath"));
+    model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("Title"));
+    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FileName"));
+    model_->setHeaderData(PLAYLIST_FILE_SIZE, Qt::Horizontal, tr("FileSize"));
+    model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("Album"));
+    model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("Artist"));
+    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duration"));
+    model_->setHeaderData(PLAYLIST_BIT_RATE, Qt::Horizontal, tr("BitRate"));
+    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
+    model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("AlbumRG"));
+    model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("AlbumPK"));
+    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LastUpdateTime"));
+    model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TrackRG"));
+    model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TrackPK"));
+    model_->setHeaderData(PLAYLIST_TRACK_LOUDNESS, Qt::Horizontal, tr("Loudness"));
+    model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("Genre"));
+    model_->setHeaderData(PLAYLIST_ALBUM_ID, Qt::Horizontal, tr("AlbumId"));
+    model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PlaylistId"));
+    model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FileExt"));
+    model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("ParentPath"));
+    model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
+    model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
+    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr(""));
+    model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
+    model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("Year"));
 
     auto column_list = qAppSettings.valueAsStringList(column_setting_name);
 
@@ -452,13 +452,13 @@ void PlayListTableView::setHeaderViewHidden(bool enable) {
     auto* header_view = horizontalHeader();
 
     auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-    auto hide_this_column_act = action_map.addAction(qTR("Hide this column"), [last_referred_logical_column, this]() {
+    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
         setColumnHidden(last_referred_logical_column, true);
     qAppSettings.removeList(column_setting_name_, QString::number(last_referred_logical_column));
         });
     hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
-    auto select_column_show_act = action_map.addAction(qTR("Select columns to show..."), [pt, header_view, this]() {
+    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
         ActionMap<PlayListTableView> action_map(this);
     for (auto column = 0; column < header_view->count(); ++column) {
         auto header_name = model()->headerData(column, Qt::Horizontal).toString();
@@ -554,11 +554,11 @@ void PlayListTableView::initial() {
         }             
 
         if (cloud_mode_) {
-            auto* copy_album_act = action_map.addAction(qTR("Copy album"));
+            auto* copy_album_act = action_map.addAction(tr("Copy album"));
             copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
-            auto* copy_artist_act = action_map.addAction(qTR("Copy artist"));
-            auto* copy_title_act = action_map.addAction(qTR("Copy title"));
+            auto* copy_artist_act = action_map.addAction(tr("Copy artist"));
+            auto* copy_title_act = action_map.addAction(tr("Copy title"));
 
             action_map.setCallback(copy_album_act, [entity]() {
                 QApplication::clipboard()->setText(entity.album);
@@ -572,7 +572,7 @@ void PlayListTableView::initial() {
 
             action_map.addSeparator();
 
-            auto *add_to_playlist = action_map.addSubMenu(qTR("Add to cloud playlist"));
+            auto *add_to_playlist = action_map.addSubMenu(tr("Add to cloud playlist"));
             QMap<QString, QString> playlist_ids;
             qMainDb.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
                 if (store_type == StoreType::CLOUD_STORE) {
@@ -591,7 +591,7 @@ void PlayListTableView::initial() {
                 play_list_entities.push_back(play_list_entity);
             }
 
-            auto* remove_select_cloud_music_act = action_map.addAction(qTR("Remove select music"));
+            auto* remove_select_cloud_music_act = action_map.addAction(tr("Remove select music"));
             action_map.setCallback(remove_select_cloud_music_act, [this, video_ids]() {
                 emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
             });
@@ -602,15 +602,15 @@ void PlayListTableView::initial() {
             if (!play_list_entities.empty()) {
                 play_list_entity = play_list_entities.front();
                 if (play_list_entity.heart > 0) {
-                    menu_name = qTR("DisLike the music");
+                    menu_name = tr("DisLike the music");
                     like_icon = qTheme.fontIcon(Glyphs::ICON_DISLIKE);
                 }
                 else {
-                    menu_name = qTR("Like the music");
+                    menu_name = tr("Like the music");
                     like_icon = qTheme.fontIcon(Glyphs::ICON_LIKE);
                 }
             } else {
-                menu_name = qTR("Like the music");
+                menu_name = tr("Like the music");
                 like_icon = qTheme.fontIcon(Glyphs::ICON_LIKE);
             }
             auto* like_song_act = action_map.addAction(menu_name);
@@ -629,7 +629,7 @@ void PlayListTableView::initial() {
                     });
             }
 
-            action_map.setCallback(action_map.addAction(qTR("Download file")), [this]() {
+            action_map.setCallback(action_map.addAction(tr("Download file")), [this]() {
                 const auto rows = selectItemIndex();
                 for (const auto& row : rows) {
                     auto play_list_entity = this->item(row.second);
@@ -637,7 +637,7 @@ void PlayListTableView::initial() {
                 }
                 });
 
-            auto* remove_all_act = action_map.addAction(qTR("Remove all"));
+            auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
             action_map.setCallback(remove_all_act, [this]() {
@@ -658,14 +658,14 @@ void PlayListTableView::initial() {
             return;
         }
 
-        auto* load_file_act = action_map.addAction(qTR("Load local file"), [this]() {
+        auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
             getOpenMusicFileName(this, [this](const auto& file_name) {
                 append(file_name);
                 });
             });
         load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
-        auto* load_dir_act = action_map.addAction(qTR("Load file directory"), [this]() {
+        auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
             const auto dir_name = getExistingDirectory(this);
             if (dir_name.isEmpty()) {
                 return;
@@ -675,7 +675,7 @@ void PlayListTableView::initial() {
         load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
 
         if (enable_delete_ && model()->rowCount() > 0) {
-            auto* remove_all_act = action_map.addAction(qTR("Remove all"));
+            auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
             action_map.setCallback(remove_all_act, [this]() {
@@ -691,16 +691,16 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
 
-        auto* scan_select_item_replaygain_act = action_map.addAction(qTR("Scan file ReplayGain"));
+        auto* scan_select_item_replaygain_act = action_map.addAction(tr("Scan file ReplayGain"));
         scan_select_item_replaygain_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SCAN_REPLAY_GAIN));
 
         action_map.addSeparator();
-        auto* export_flac_file_act = action_map.addAction(qTR("Export FLAC file"));
+        auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
         export_flac_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EXPORT_FILE));
 
         const auto select_row = selectionModel()->selectedRows();
         if (!select_row.isEmpty()) {
-            auto* export_aac_file_submenu = action_map.addSubMenu(qTR("Export AAC file"));
+            auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
             for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
                 if (profile.num_channels != AudioFormat::kMaxChannel
                     || profile.sample_rate < AudioFormat::k16BitPCM441Khz.GetSampleRate()
@@ -726,17 +726,17 @@ void PlayListTableView::initial() {
             }
         }
         else {
-            action_map.addAction(qTR("Export AAC file"));
+            action_map.addAction(tr("Export AAC file"));
         }       
 
-        auto* export_wav_file_act = action_map.addAction(qTR("Export WAV file"));
+        auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
 
         action_map.addSeparator();
-        auto * copy_album_act = action_map.addAction(qTR("Copy album"));
+        auto * copy_album_act = action_map.addAction(tr("Copy album"));
         copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
 
-        auto * copy_artist_act = action_map.addAction(qTR("Copy artist"));
-        auto * copy_title_act = action_map.addAction(qTR("Copy title"));
+        auto * copy_artist_act = action_map.addAction(tr("Copy artist"));
+        auto * copy_title_act = action_map.addAction(tr("Copy title"));
 
         if (model_->rowCount() == 0 || !index.isValid()) {
             TRY_LOG(
@@ -747,7 +747,7 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();        
 
-        auto* add_to_playlist_act = action_map.addAction(qTR("Add file to playlist"));
+        auto* add_to_playlist_act = action_map.addAction(tr("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
         action_map.setCallback(add_to_playlist_act, [this]() {
             if (const auto other_playlist_id = other_playlist_id_) {
@@ -759,13 +759,13 @@ void PlayListTableView::initial() {
             }
             });
 
-        auto* select_item_edit_track_info_act = action_map.addAction(qTR("Edit track information"));
+        auto* select_item_edit_track_info_act = action_map.addAction(tr("Edit track information"));
         select_item_edit_track_info_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EDIT));
 
-        auto reload_track_info_act = action_map.addAction(qTR("Reload track information"));
+        auto reload_track_info_act = action_map.addAction(tr("Reload track information"));
         reload_track_info_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RELOAD));
 
-        auto* open_local_file_path_act = action_map.addAction(qTR("Open local file path"));
+        auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         open_local_file_path_act->setIcon(qTheme.fontIcon(Glyphs::ICON_OPEN_FILE_PATH));
         action_map.setCallback(open_local_file_path_act, [entity]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(entity.parent_path));

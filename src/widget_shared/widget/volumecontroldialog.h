@@ -27,6 +27,8 @@ public:
 
 	void updateVolume();
 
+	void paintEvent(QPaintEvent* event) override;
+
 signals:
     void volumeChanged(uint32_t volume);
 

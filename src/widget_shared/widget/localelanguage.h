@@ -60,10 +60,11 @@ public:
 
 	void loadLanguage(const QString& lang);
 
-	void loadQtLanguage(const QString& lang);
-
 	QLocale locale() const;
 private:
+	void loadPrefixTranslator(QTranslator& translator, const QString& prefix, const QString& lang);
+
+	QTranslator widget_shared_translator_;
 	QTranslator qt_translator_;
 	QTranslator translator_;
 	QString current_lang_;

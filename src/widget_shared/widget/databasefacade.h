@@ -42,7 +42,7 @@ public:
         const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
 private:    
-    static void ensureInitialUnknonwId();
+    static void ensureInitialUnknownId();
 
     void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,

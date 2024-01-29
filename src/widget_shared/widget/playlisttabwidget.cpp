@@ -68,15 +68,15 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         ActionMap<PlaylistTabWidget> action_map(this);
 
         if (store_type_ == StoreType::CLOUD_STORE) {
-            action_map.setCallback(action_map.addAction(qTR("Create a playlist")), [this]() {
+            action_map.setCallback(action_map.addAction(tr("Create a playlist")), [this]() {
                 emit createCloudPlaylist();
                 });
 
-            auto* reload_the_tab_act = action_map.addAction(qTR("Reload all playlist"), [this]() {
+            auto* reload_the_tab_act = action_map.addAction(tr("Reload all playlist"), [this]() {
                 emit reloadAllPlaylist();
                 });
 
-            auto* reload_the_playlist_act = action_map.addAction(qTR("Reload the playlist"), [pt, this]() {
+            auto* reload_the_playlist_act = action_map.addAction(tr("Reload the playlist"), [pt, this]() {
                 auto tab_index = tabBar()->tabAt(pt);
                 if (tab_index == -1) {
                     return;
@@ -84,7 +84,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 emit reloadPlaylist(tab_index);
                 });
 
-            auto* delete_the_tab_act = action_map.addAction(qTR("Delete the playlist"), [pt, this]() {
+            auto* delete_the_tab_act = action_map.addAction(tr("Delete the playlist"), [pt, this]() {
                 auto tab_index = tabBar()->tabAt(pt);
                 if (tab_index == -1) {
                     return;
@@ -98,11 +98,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 emit deletePlaylist(playlist_page->playlist()->cloudPlaylistId().value());
                 });
         } else {
-            auto* close_all_tab_act = action_map.addAction(qTR("Close all tab"), [this]() {
+            auto* close_all_tab_act = action_map.addAction(tr("Close all tab"), [this]() {
                 closeAllTab();
                 });
 
-            auto* close_other_tab_act = action_map.addAction(qTR("Close other tab"), [pt, this]() {
+            auto* close_other_tab_act = action_map.addAction(tr("Close other tab"), [pt, this]() {
                 auto index = tabBar()->tabAt(pt);
                 if (index == -1) {
                     return;
@@ -143,7 +143,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
-        if (XMessageBox::showYesOrNo(qTR("Do you want to close tab ?")) == QDialogButtonBox::No) {
+        if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
             return;
         }
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
