@@ -445,16 +445,6 @@ namespace {
         };
         return lut.value(error, kEmptyString);
     }
-
-    ConstLatin1String translateDescription(const IDeviceType *device_type) {
-        static const QMap<std::string_view, ConstLatin1String> lut{
-            { "WASAPI (Exclusive Mode)", QT_TR_NOOP("WASAPI (Exclusive Mode)") },
-            { "WASAPI (Shared Mode)", QT_TR_NOOP("WASAPI (Shared Mode)") },
-            { "Null Output", QT_TR_NOOP("Null Output") },
-            { "ASIO", QT_TR_NOOP("ASIO") },
-        };
-        return lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
-    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -476,6 +466,17 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 }
 
 Xamp::~Xamp() = default;
+
+QString Xamp::translateDescription(const IDeviceType* device_type) {
+    static const QMap<std::string_view, ConstLatin1String> lut{
+        { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
+        { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
+        { "Null Output",             QT_TRANSLATE_NOOP("Xamp", "Null Output") },
+        { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
+    };
+    const auto str = lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
+    return tr(str.data());
+}
 
 void Xamp::destroy() {
     if (player_ != nullptr) {

@@ -115,6 +115,7 @@ IF
 		musicId integer,
 		albumId integer,
 		playing integer,
+		isChecked integer,
 		FOREIGN KEY ( playlistId ) REFERENCES playlist ( playlistId ),
 		FOREIGN KEY ( musicId ) REFERENCES musics ( musicId ),
 	    FOREIGN KEY ( albumId ) REFERENCES albums ( albumId ) 

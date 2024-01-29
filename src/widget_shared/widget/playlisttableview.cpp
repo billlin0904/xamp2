@@ -8,6 +8,7 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QApplication>
+#include <QCheckBox>
 #include <qevent.h>
 #include <QPainter>
 #include <QSqlError>
@@ -84,7 +85,7 @@ ORDER BY
 
     QString groupNone(int32_t playlist_id) {
         return qSTR(R"(
-    SELECT	
+    SELECT
 	albums.coverId,
 	musics.musicId,
 	playlistMusics.playing,
@@ -124,14 +125,44 @@ FROM
 	JOIN artists ON albumMusic.artistId = artists.artistId 
 WHERE
 	playlistMusics.playlistId = %1 
--- GROUP BY
---	musics.parentPath,
---	musics.track 
 ORDER BY
 	musics.parentPath ASC,
 	musics.track ASC)").arg(playlist_id);
     }
 }
+
+
+class CheckBoxDelegate : public QStyledItemDelegate {
+public:
+    explicit CheckBoxDelegate(QObject* parent = nullptr)
+        : QStyledItemDelegate(parent) {
+    }
+
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+        return new QCheckBox(parent);
+    }
+
+    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
+        const auto value = index.model()->data(index, Qt::DisplayRole);
+        if (value == Qt::Checked) {
+            static_cast<QCheckBox*>(editor)->setChecked(true);
+        }
+        else {
+            static_cast<QCheckBox*>(editor)->setChecked(false);
+        }
+    }
+
+    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
+        QVariant value;
+        if (static_cast<QCheckBox*>(editor)->isChecked()) {
+            value = Qt::Checked;
+        }
+        else {
+            value = Qt::Unchecked;
+        }
+        model->setData(index, value, Qt::DisplayRole);
+    }
+};
 
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
@@ -188,17 +219,11 @@ public:
         case PLAYLIST_TITLE:
         case PLAYLIST_ALBUM:
             opt.font.setFamily(qTEXT("UIFont"));
-#ifdef Q_OS_WIN
-            opt.font.setWeight(QFont::Weight::Medium);
-#endif
             opt.text = value.toString();
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
             break;
         case PLAYLIST_ARTIST:
             opt.font.setFamily(qTEXT("UIFont"));
-#ifdef Q_OS_WIN
-            opt.font.setWeight(QFont::Weight::Medium);
-#endif
             opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
             opt.text = value.toString();
             break;
@@ -264,9 +289,9 @@ public:
         case PLAYLIST_LAST_UPDATE_TIME:
             opt.text = formatTime(value.toULongLong());
             break;
-        case PLAYLIST_HEART:
+        case PLAYLIST_LIKE:
 	        {
-            auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_HEART)).toInt();
+            auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_LIKE)).toInt();
         	if (is_heart_pressed > 0) {
                 QVariantMap font_options;
                 font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(0.4));
@@ -381,7 +406,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("ParentPath"));
     model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
-    model_->setHeaderData(PLAYLIST_HEART, Qt::Horizontal, tr(""));
+    model_->setHeaderData(PLAYLIST_LIKE, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("Year"));
 
@@ -412,7 +437,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_FILE_PARENT_PATH,
             PLAYLIST_PLAYLIST_MUSIC_ID,
             PLAYLIST_COMMENT,
-            PLAYLIST_HEART,
+            PLAYLIST_LIKE,
             PLAYLIST_YEAR
         };
 
@@ -481,11 +506,6 @@ void PlayListTableView::initial() {
     setModel(proxy_model_);
 
     auto f = font();
-#ifdef Q_OS_WIN
-    f.setWeight(QFont::Weight::Medium);
-#else
-    f.setWeight(QFont::Weight::Normal);
-#endif
     f.setPointSize(qTheme.defaultFontSize());
     setFont(f);
 
@@ -518,6 +538,7 @@ void PlayListTableView::initial() {
     horizontalHeader()->setStretchLastSection(false);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     setItemDelegate(new PlayListStyledItemDelegate(this));
+    //setItemDelegateForColumn(PLAYLIST_CHECKED, new CheckBoxDelegate(this));
  
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1004,7 +1025,7 @@ void PlayListTableView::resizeColumn() {
         case PLAYLIST_ALBUM:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;
-        case PLAYLIST_HEART:
+        case PLAYLIST_LIKE:
         case PLAYLIST_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, kColumnWidth);
