@@ -1831,7 +1831,6 @@ void Xamp::onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id) {
     else {
         qMainDb.setMusicCover(id.get(), cover_id);
     }
-    //cloud_tab_widget_->reloadAll();
 }
 
 void Xamp::onDelayedDownloadThumbnail() {
@@ -1844,10 +1843,6 @@ void Xamp::onDelayedDownloadThumbnail() {
         emit fetchThumbnailUrl(id, thumbnail_url);
         download_thumbnail_pending_.remove(id);
     }
-
-    /*if (download_thumbnail_pending_.isEmpty()) {
-        ui_update_timer_timer_.stop();
-    }*/
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity) {
@@ -1977,6 +1972,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
     ensureLocalOnePlaylistPage();
 
+    auto cloud_music = false;
     auto* playlist_page = qobject_cast<PlaylistPage*>(sender());
     if (!playlist_page) {
         playlist_page = qobject_cast<PlaylistPage*>(cloud_tab_widget_->currentWidget());
@@ -2011,8 +2007,13 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
     ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
     ui_.formatLabel->setText(format2String(playback_format, ext));
-    
-    lrc_page_->lyrics()->loadLrcFile(entity.file_path);	
+
+    if (!cloud_music) {
+        lrc_page_->lyrics()->loadLrcFile(entity.file_path);
+    } else {
+        lrc_page_->lyrics()->loadLrcFile(kEmptyString);
+    }
+
     lrc_page_->title()->setText(entity.title);
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
@@ -2020,12 +2021,15 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     lrc_page_->spectrum()->setFftSize(state_adapter_->fftSize());
     lrc_page_->spectrum()->setSampleRate(playback_format.output_format.GetSampleRate());
 
-    const auto lyrics_opt = qMainDb.getLyrics(entity.music_id);
-    if (!lyrics_opt) {
-        emit searchLyrics(entity.music_id, entity.title, entity.artist);
-    } else {
-        onSearchLyricsCompleted(entity.music_id, std::get<0>(lyrics_opt.value()), std::get<1>(lyrics_opt.value()));
-    }
+    if (!cloud_music) {
+        const auto lyrics_opt = qMainDb.getLyrics(entity.music_id);
+        if (!lyrics_opt) {
+            emit searchLyrics(entity.music_id, entity.title, entity.artist);
+        }
+        else {
+            onSearchLyricsCompleted(entity.music_id, std::get<0>(lyrics_opt.value()), std::get<1>(lyrics_opt.value()));
+        }
+    }    
 
     qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
 

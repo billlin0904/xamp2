@@ -54,8 +54,6 @@ IMPL_APP_SETTING_NAME(AppSettingEnableEQ, "AppSettings/enableEQ");
 IMPL_APP_SETTING_NAME(AppSettingEQName, "AppSettings/EQName");
 
 IMPL_APP_SETTING_NAME(LyricsFontSize, "AppSettings/lyrics/fontSize");
-IMPL_APP_SETTING_NAME(LyricsTextColor, "AppSettings/lyrics/textColor");
-IMPL_APP_SETTING_NAME(LyricsHighLightTextColor, "AppSettings/lyrics/highLightTextColor");
 
 IMPL_APP_SETTING_NAME(FlacEncodingLevel, "AppSettings/flacEncodingLevel");
 

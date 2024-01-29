@@ -64,9 +64,6 @@ void LyricsShowWidget::initial() {
 	resizeFontSize();
 	setDefaultLrc();
 
-	onSetLrcColor(qAppSettings.valueAsColor(kLyricsTextColor));
-	onSetLrcHighLight(qAppSettings.valueAsColor(kLyricsHighLightTextColor));
-
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<LyricsShowWidget> action_map(this);
@@ -81,43 +78,6 @@ void LyricsShowWidget::initial() {
 			loadLrc(lrc_);
 			resizeFontSize();
 		});
-#if 0
-		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
-			qAppSettings.SetValue(kLyricsFontSize, 12);
-			lrc_font_.setPointSize(qTheme.fontSize(12));
-			});
-
-		(void)action_map.addAction(tr("Set font size(middle)"), [this]() {
-			qAppSettings.SetValue(kLyricsFontSize, 16);
-			lrc_font_.setPointSize(qTheme.fontSize(16));
-			});
-
-		(void)action_map.addAction(tr("Set font size(big)"), [this]() {
-			qAppSettings.SetValue(kLyricsFontSize, 24);
-			lrc_font_.setPointSize(qTheme.fontSize(24));
-			});
-		(void)action_map.addAction(tr("Change high light color"), [this]() {
-			auto text_color = qAppSettings.valueAsColor(kLyricsHighLightTextColor);
-			QColorDialog dlg(text_color, this);
-			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
-				OnSetLrcHighLight(color);
-				qAppSettings.SetValue(kLyricsHighLightTextColor, color);
-			});
-			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
-			dlg.exec();
-			});
-
-		(void)action_map.addAction(tr("Change text color"), [this]() {
-			auto text_color = qAppSettings.valueAsColor(kLyricsTextColor);
-			QColorDialog dlg(text_color, this);
-			(void)QObject::connect(&dlg, &QColorDialog::currentColorChanged, [this](auto color) {
-				OnSetLrcColor(color);
-				qAppSettings.SetValue(kLyricsTextColor, color);
-				});
-			dlg.setStyleSheet(qSTR("background-color: %1;").arg(qTheme.BackgroundColorString()));
-			dlg.exec();
-			});
-#endif
 
 		action_map.exec(pt);
 		});
@@ -337,7 +297,7 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	const auto interval = post_ly.index;
 	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_.getSize());
 
-	QFontMetrics metrics(current_mask_font_);
+	const QFontMetrics metrics(current_mask_font_);
 
 	if (item_percent_ == precent) {
 		const auto count = static_cast<double>(interval) / 25.0;

@@ -259,7 +259,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 	QFontMetrics metrics(ui_->filePathLineEdit->font());
 	auto path_pixel_size = metrics.horizontalAdvance(ui_->filePathLineEdit->text());
-	setMinimumWidth(path_pixel_size + 300);
+	setMinimumWidth(path_pixel_size + 100);
 }
 
 TagEditPage::~TagEditPage() {

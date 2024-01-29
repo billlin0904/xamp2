@@ -13,7 +13,7 @@ FindAlbumCoverWorker::FindAlbumCoverWorker()
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
-    auto download_handler = [=, this](const auto& content) {
+    auto download_handler = [id, this](const auto& content) {
         QPixmap image;
         if (!image.loadFromData(content)) {
             return;
