@@ -1027,7 +1027,6 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
 void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result) {
     if (result.empty()) {
         cloud_search_page_->spinner()->stopAnimation();
-        XAMP_LOG_DEBUG("spinner stopAnimation");
         return;
     }
 
@@ -2665,7 +2664,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             [this, playlist_page](const auto& text) {
                 if (text.isEmpty()) {
                     playlist_page->spinner()->stopAnimation();
-                    XAMP_LOG_DEBUG("text isEmpty");
                     return;
                 }
                 QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
@@ -2676,23 +2674,21 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             [this, playlist_page](const auto& text, Match match) {
                 if (text.isEmpty()) {
                     playlist_page->spinner()->stopAnimation();
-                    XAMP_LOG_DEBUG("text isEmpty");
+                    return;
+                }
+                if (match == Match::MATCH_SUGGEST) {
+                    QCoro::connect(ytmusic_worker_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
                     return;
                 }
                 if (playlist_page->spinner()->isAnimated()) {
-                    XAMP_LOG_DEBUG("spinner isAnimated");
                     return;
                 }
                 if (playlist_page->spinner()->isHidden()) {
                     playlist_page->spinner()->show();
                     centerParent(playlist_page->spinner());
                 }
-                XAMP_LOG_DEBUG("spinner startAnimation");
                 playlist_page->spinner()->startAnimation();
                 playlist_page->playlist()->removeAll();
-                /*if (match != Match::MATCH_ITEM) {
-                    QCoro::connect(ytmusic_worker_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
-                }*/
             });
     }
 

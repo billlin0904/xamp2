@@ -433,7 +433,7 @@ public:
 
 	QFuture<bool> cleanupAsync();
 
-	QFuture<std::vector<std::string>> searchSuggestionsAsync(const QString& query, bool detailed_runs = true);
+	QFuture<std::vector<std::string>> searchSuggestionsAsync(const QString& query, bool detailed_runs = false);
 
 	QFuture<std::vector<search::SearchResultItem>> searchAsync(const QString& query, const std::optional<std::string>& filter);
 
@@ -490,7 +490,7 @@ private:
 	QFuture<std::invoke_result_t<Func>> invokeAsync(Func fun, InvokeType invoke_type = InvokeType::INVOKE_NONE) {
 		using ReturnType = std::invoke_result_t<Func>;
 		auto interface = std::make_shared<QFutureInterface<ReturnType>>();
-		QMetaObject::invokeMethod(this, [=, this]() {
+		QMetaObject::invokeMethod(this, [interface, invoke_type, fun, this]() {
 			ReturnType val;
 			auto is_stop = is_stop_.load();
 			if (invoke_type == InvokeType::INVOKE_IMMEDIATELY) {

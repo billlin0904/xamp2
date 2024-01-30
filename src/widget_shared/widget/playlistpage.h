@@ -23,8 +23,9 @@ class ScrollLabel;
 class PlayListTableView;
 
 enum Match {
-	MATCH_ITEM,
 	MATCH_NONE,
+	MATCH_ITEM,
+	MATCH_SUGGEST,
 };
 
 class XAMP_WIDGET_SHARED_EXPORT PlaylistPage : public QFrame {

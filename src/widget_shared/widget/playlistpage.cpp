@@ -189,21 +189,24 @@ void PlaylistPage::initial() {
 			});
 	}
 
+	(void)QObject::connect(playlist_completer_, static_cast<void (QCompleter::*)(const QString &)>(&QCompleter::activated), [this](const auto & text) {
+		emit editFinished(text);
+		});
+
 	(void)QObject::connect(search_line_edit_, &QLineEdit::returnPressed, [this]() {
 		const auto text = search_line_edit_->text();
-		emit editFinished(text);
+		emit search(text, MATCH_SUGGEST);
 		});
 
 	(void)QObject::connect(search_line_edit_, &QLineEdit::textChanged, [this](const auto& text) {
 		const auto items = search_playlist_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
-			emit search(text, MATCH_ITEM);
+			emit search(text, MATCH_NONE);
 			return;
 		}
 		if (search_playlist_model_->rowCount() >= kMaxCompletionCount) {
 			search_playlist_model_->removeRows(0, kMaxCompletionCount - search_playlist_model_->rowCount() + 1);
 		}
-
 		search_playlist_model_->appendRow(new QStandardItem(text));
 		playlist_completer_->setModel(search_playlist_model_);
 		playlist_completer_->setCompletionPrefix(text);
