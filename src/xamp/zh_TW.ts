@@ -4,34 +4,44 @@
 <context>
     <name>Xamp</name>
     <message>
-        <location filename="xamp.cpp" line="472"/>
+        <location filename="xamp.cpp" line="463"/>
         <source>WASAPI (Exclusive Mode)</source>
         <translation type="unfinished">WASAPI (獨佔模式)</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="473"/>
+        <location filename="xamp.cpp" line="464"/>
         <source>WASAPI (Shared Mode)</source>
         <translation type="unfinished">WASAPI (共享模式)</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="474"/>
+        <location filename="xamp.cpp" line="465"/>
         <source>Null Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="475"/>
+        <location filename="xamp.cpp" line="466"/>
         <source>ASIO</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="777"/>
-        <location filename="xamp.cpp" line="784"/>
+        <location filename="xamp.cpp" line="475"/>
+        <source>Platform spec error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="476"/>
+        <source>Device create failure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="778"/>
+        <location filename="xamp.cpp" line="785"/>
         <source>Preference</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="789"/>
-        <location filename="xamp.cpp" line="798"/>
+        <location filename="xamp.cpp" line="790"/>
+        <location filename="xamp.cpp" line="799"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
@@ -141,7 +151,7 @@
         <location filename="xamp.cpp" line="2533"/>
         <location filename="xamp.cpp" line="2589"/>
         <location filename="xamp.cpp" line="2626"/>
-        <location filename="xamp.cpp" line="2891"/>
+        <location filename="xamp.cpp" line="2888"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -186,12 +196,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="2860"/>
+        <location filename="xamp.cpp" line="2857"/>
         <source>Edit track information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="2890"/>
+        <location filename="xamp.cpp" line="2887"/>
         <source>Read track information</source>
         <translation type="unfinished"></translation>
     </message>

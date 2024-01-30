@@ -435,16 +435,7 @@ namespace {
             playlist_page->playlist()->setCloudPlaylistId(cloud_playlist_id);
         }
         return playlist_page;
-    }
-
-    ConstLatin1String translateError(Errors error) {
-        using xamp::base::Errors;
-        static const QMap<xamp::base::Errors, ConstLatin1String> lut{
-            { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, QT_TR_NOOP("Plaform spec error") },
-            { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, QT_TR_NOOP("Device create failure") },
-        };
-        return lut.value(error, kEmptyString);
-    }
+    }    
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -467,7 +458,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 
 Xamp::~Xamp() = default;
 
-QString Xamp::translateDescription(const IDeviceType* device_type) {
+QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
     static const QMap<std::string_view, ConstLatin1String> lut{
         { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
         { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
@@ -475,6 +466,16 @@ QString Xamp::translateDescription(const IDeviceType* device_type) {
         { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
     };
     const auto str = lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
+    return tr(str.data());
+}
+
+QString Xamp::translateError(Errors error) {
+    using xamp::base::Errors;
+    static const QMap<xamp::base::Errors, ConstLatin1String> lut{
+        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,   QT_TRANSLATE_NOOP("Xamp", "Platform spec error") },
+        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, QT_TRANSLATE_NOOP("Xamp", "Device create failure") },
+    };
+    const auto str = lut.value(error, kEmptyString);
     return tr(str.data());
 }
 
@@ -1231,7 +1232,7 @@ void Xamp::initialDeviceList() {
         }
 
         menu->addSeparator();
-        menu->addAction(createDeviceMenuWidget(translateDescription(device_type.get())));
+        menu->addAction(createDeviceMenuWidget(translateDeviceDescription(device_type.get())));
        
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);

@@ -262,7 +262,9 @@ private:
 
 	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 
-	QString translateDescription(const IDeviceType* device_type);
+	QString translateDeviceDescription(const IDeviceType* device_type);
+
+	QString translateError(Errors error);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
