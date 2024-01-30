@@ -174,10 +174,6 @@ public:
     
     mutable LruCache<QString, QIcon> icon_cache_;
 
-    explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
-        : QStyledItemDelegate(parent) {
-    }
-
     static QIcon uniformIcon(QIcon icon, QSize size) {
         QIcon result;
         const auto base_pixmap = icon.pixmap(size);
@@ -188,14 +184,36 @@ public:
         return result;
     }
 
-    bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override {
-        if (event->type() == QEvent::MouseButtonRelease) {
-            const auto playlist_music_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYLIST_MUSIC_ID)).toInt();
-	        const auto value = index.model()->data(index.model()->index(index.row(), PLAYLIST_CHECKED)).toBool();
-            model->setData(index, !value, PLAYLIST_CHECKED);
-            qMainDb.updatePlaylistMusicChecked(playlist_music_id, !value);
+    explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
+        : QStyledItemDelegate(parent) {
+    }    
+
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+        if (index.column() == PLAYLIST_CHECKED) {
+            auto* editor = new QCheckBox(parent);            
+            return editor;
+        }        
+        return QStyledItemDelegate::createEditor(parent, option, index);
+    }
+
+    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
+        if (index.column() != PLAYLIST_CHECKED) {
+            return;
+        }        
+
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editor);
+        checkBox->setChecked(index.data().toBool());
+    }
+
+    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
+        if (index.column() != PLAYLIST_CHECKED) {
+            return;
         }
-        return true;
+
+        const auto playlist_music_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYLIST_MUSIC_ID)).toInt();
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editor);
+        model->setData(index, checkBox->isChecked(), Qt::EditRole);
+        qMainDb.updatePlaylistMusicChecked(playlist_music_id, checkBox->isChecked());        
     }
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
@@ -338,7 +356,7 @@ public:
 				opt.displayAlignment = Qt::AlignCenter;
 	        }
             break;
-        case PLAYLIST_CHECKED: {
+        /*case PLAYLIST_CHECKED: {
             use_checkbox_style = true;
             const auto is_checked = index.model()->data(index.model()->index(index.row(), PLAYLIST_CHECKED)).toBool();
             if (is_checked) {
@@ -347,7 +365,7 @@ public:
                 check_box_opt.state |= QStyle::State_Off;
             }
 			}
-            break;
+            break;*/
 		default:
             use_default_style = true;            
             break;

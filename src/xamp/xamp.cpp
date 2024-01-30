@@ -1166,8 +1166,8 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
 
     desc_label->setObjectName(qTEXT("textSeparator"));
 
-    QFont f(qTEXT("DisplayFont"));
-    f.setPointSize(qTheme.fontSize(8));
+    QFont f = font();
+    f.setPointSize(qTheme.fontSize(10));
     f.setBold(true);
     desc_label->setFont(f);
     desc_label->setAlignment(Qt::AlignCenter);
