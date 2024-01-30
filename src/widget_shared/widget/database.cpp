@@ -1259,6 +1259,17 @@ void Database::removePlaylistAllMusic(int32_t playlist_id) {
     XAMP_LOG_D(logger_, "removePlaylistAllMusic playlist_id:{}", playlist_id);
 }
 
+void Database::updatePlaylistMusicChecked(int32_t playlist_music_id, bool is_checked) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE playlistMusics SET isChecked = :isChecked WHERE (playlistMusicsId = :playlistMusicsId)"));
+
+    query.bindValue(qTEXT(":playlistMusicsId"), playlist_music_id);
+    query.bindValue(qTEXT(":isChecked"), is_checked);
+
+    THROW_IF_FAIL1(query);
+}
+
 void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
     SqlQuery query(db_);
 

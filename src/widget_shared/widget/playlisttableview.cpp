@@ -64,12 +64,12 @@ namespace {
 	musics.trackPeak,
 	musicLoudness.trackLoudness,
 	musics.genre,	
+	playlistMusics.isChecked,
 	musics.heart,
 	musics.duration,
 	musics.comment,
 	albums.year,
-	musics.coverId as musicCoverId,
-    playlistMusics.isChecked
+	musics.coverId as musicCoverId    
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -111,12 +111,12 @@ ORDER BY
 	musics.trackPeak,
 	musicLoudness.trackLoudness,
 	musics.genre,	
+	playlistMusics.isChecked,
 	musics.heart,
 	musics.duration,
 	musics.comment,
 	albums.year,
-	musics.coverId as musicCoverId,
-    playlistMusics.isChecked
+	musics.coverId as musicCoverId    
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -134,42 +134,44 @@ ORDER BY
 }
 
 
-class CheckBoxDelegate : public QStyledItemDelegate {
-public:
-    explicit CheckBoxDelegate(QObject* parent = nullptr)
-        : QStyledItemDelegate(parent) {
-    }
-
-    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-        return new QCheckBox(parent);
-    }
-
-    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
-        const auto value = index.model()->data(index, Qt::DisplayRole);
-        if (value == Qt::Checked) {
-            static_cast<QCheckBox*>(editor)->setChecked(true);
-        }
-        else {
-            static_cast<QCheckBox*>(editor)->setChecked(false);
-        }
-    }
-
-    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
-        QVariant value;
-        if (static_cast<QCheckBox*>(editor)->isChecked()) {
-            value = Qt::Checked;
-        }
-        else {
-            value = Qt::Unchecked;
-        }
-        model->setData(index, value, Qt::DisplayRole);
-    }
-};
+//class CheckBoxDelegate : public QStyledItemDelegate {
+//public:
+//    explicit CheckBoxDelegate(QObject* parent = nullptr)
+//        : QStyledItemDelegate(parent) {
+//    }
+//
+//    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+//        return new QCheckBox(parent);
+//    }
+//
+//    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
+//        const auto value = index.model()->data(index, Qt::DisplayRole);
+//        if (value == Qt::Checked) {
+//            static_cast<QCheckBox*>(editor)->setChecked(true);
+//        }
+//        else {
+//            static_cast<QCheckBox*>(editor)->setChecked(false);
+//        }
+//    }
+//
+//    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
+//        QVariant value;
+//        if (static_cast<QCheckBox*>(editor)->isChecked()) {
+//            value = Qt::Checked;
+//        }
+//        else {
+//            value = Qt::Unchecked;
+//        }
+//        model->setData(index, value, Qt::DisplayRole);
+//    }
+//};
 
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
+    static constexpr auto kPlayingStateIconSize = 10;
+    
     mutable LruCache<QString, QIcon> icon_cache_;
 
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
@@ -186,6 +188,16 @@ public:
         return result;
     }
 
+    bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override {
+        if (event->type() == QEvent::MouseButtonRelease) {
+            const auto playlist_music_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYLIST_MUSIC_ID)).toInt();
+	        const auto value = index.model()->data(index.model()->index(index.row(), PLAYLIST_CHECKED)).toBool();
+            model->setData(index, !value, PLAYLIST_CHECKED);
+            qMainDb.updatePlaylistMusicChecked(playlist_music_id, !value);
+        }
+        return true;
+    }
+
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         if (!index.isValid()) {
             return;
@@ -196,6 +208,8 @@ public:
         painter->setRenderHints(QPainter::TextAntialiasing, true);
 
         QStyleOptionViewItem opt(option);
+        QStyleOptionButton check_box_opt;
+        check_box_opt.rect = opt.rect;
         
         opt.state &= ~QStyle::State_HasFocus;
 
@@ -212,6 +226,7 @@ public:
 
         const auto value  = index.model()->data(index.model()->index(index.row(), index.column()));
         auto use_default_style = false;
+        auto use_checkbox_style = false;
 
         opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
         opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
@@ -231,12 +246,9 @@ public:
             break;
         case PLAYLIST_TRACK:
 	        {
-				constexpr auto kPlayingStateIconSize = 10;
-
+				static constexpr QSize icon_size(kPlayingStateIconSize, kPlayingStateIconSize);
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
                 auto playing_state = is_playing.toInt();
-                QSize icon_size(kPlayingStateIconSize, kPlayingStateIconSize);
-
                 if (playing_state == PlayingState::PLAY_PLAYING) {
                     opt.icon = qTheme.playlistPlayingIcon(icon_size);
                     opt.features = QStyleOptionViewItem::HasDecoration;
@@ -326,13 +338,27 @@ public:
 				opt.displayAlignment = Qt::AlignCenter;
 	        }
             break;
+        case PLAYLIST_CHECKED: {
+            use_checkbox_style = true;
+            const auto is_checked = index.model()->data(index.model()->index(index.row(), PLAYLIST_CHECKED)).toBool();
+            if (is_checked) {
+                check_box_opt.state |= QStyle::State_On;
+            } else {
+                check_box_opt.state |= QStyle::State_Off;
+            }
+			}
+            break;
 		default:
             use_default_style = true;            
             break;
         }
 
         if (!use_default_style) {
-            option.widget->style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, option.widget);
+            if (!use_checkbox_style) {
+                option.widget->style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, option.widget);
+            } else {
+                option.widget->style()->drawControl(QStyle::CE_CheckBox, &check_box_opt, painter, option.widget);
+            }
         } else {
             QStyledItemDelegate::paint(painter, opt, index);
         }
@@ -411,6 +437,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_LIKE, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("Year"));
+    model_->setHeaderData(PLAYLIST_CHECKED, Qt::Horizontal, tr(""));
 
     auto column_list = qAppSettings.valueAsStringList(column_setting_name);
 
@@ -540,7 +567,6 @@ void PlayListTableView::initial() {
     horizontalHeader()->setStretchLastSection(false);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     setItemDelegate(new PlayListStyledItemDelegate(this));
-    //setItemDelegateForColumn(PLAYLIST_CHECKED, new CheckBoxDelegate(this));
  
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1027,6 +1053,7 @@ void PlayListTableView::resizeColumn() {
         case PLAYLIST_ALBUM:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;
+        case PLAYLIST_CHECKED:
         case PLAYLIST_LIKE:
         case PLAYLIST_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

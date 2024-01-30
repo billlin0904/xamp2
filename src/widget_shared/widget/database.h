@@ -228,6 +228,8 @@ public:
 
 	void removePlaylistAllMusic(int32_t playlist_id);
 
+	void updatePlaylistMusicChecked(int32_t playlist_music_id, bool is_checked);
+
 	void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
 	bool isPlaylistExist(int32_t playlist_id) const;
