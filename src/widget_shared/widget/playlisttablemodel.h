@@ -5,8 +5,7 @@
 
 #pragma once
 
-enum PlayListColumn {
-	//PLAYLIST_CHECKED = 0,
+enum PlayListColumn {	
 	PLAYLIST_COVER_ID = 0,
 	PLAYLIST_MUSIC_ID,
 	PLAYLIST_PLAYING,
@@ -36,6 +35,7 @@ enum PlayListColumn {
 	PLAYLIST_COMMENT,
 	PLAYLIST_YEAR,
 	PLAYLIST_MUSIC_COVER,
+	PLAYLIST_CHECKED,
 	PLAYLIST_MAX_COLUMN,
 };
 
