@@ -73,6 +73,7 @@ enum Glyphs {
     ICON_YOUTUBE_LIBRARY,
     ICON_LIKE,
     ICON_DISLIKE,
+    ICON_ADD,
     ICON_END,
 };
 

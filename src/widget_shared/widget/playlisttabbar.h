@@ -9,8 +9,6 @@
 #include <QTabBar>
 #include <widget/widget_shared_global.h>
 
-class QPushButton;
-
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabBar final : public QTabBar {
 	Q_OBJECT
 public:

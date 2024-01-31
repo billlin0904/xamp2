@@ -10,9 +10,10 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setExpanding(true);
 	setTabsClosable(true);
 	setUsesScrollButtons(true);
+	setElideMode(Qt::TextElideMode::ElideRight);
 	setMovable(true);
 	auto f = font();
-	f.setPointSize(qTheme.fontSize(8));
+	f.setPointSize(qTheme.fontSize(10));
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
 }

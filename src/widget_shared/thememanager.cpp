@@ -134,7 +134,7 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 }
 
 void ThemeManager::setGoogleMaterialFontIcons() {
-    const HashMap<char32_t, uint32_t> glyphs{
+    const HashMap<char32_t, uint32_t> glyphs_lut{
     { ICON_VOLUME_UP ,                0xE050 },
     { ICON_VOLUME_OFF,                0xE04f },
     { ICON_SPEAKER,                   0xE32D },
@@ -195,10 +195,11 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_YOUTUBE_LIBRARY,           0xE04A },
 	{ ICON_LIKE,                      0xE8DC },
     { ICON_DISLIKE,                   0xE8DB },
+    { ICON_ADD,                       0xE145 },
     };
 
     qFontIcon.AddFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));
-    qFontIcon.SetGlyphs(glyphs);
+    qFontIcon.SetGlyphs(glyphs_lut);
 }
 
 QFont ThemeManager::loadFonts() {

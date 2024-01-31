@@ -66,12 +66,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
 
-    plus_button_ = new QPushButton(this);
-    plus_button_->setText(qTEXT("+"));
+    plus_button_ = new QPushButton(this);    
     plus_button_->setMaximumSize(32, 32);
     plus_button_->setMinimumSize(32, 32);
-    //plus_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
-    plus_button_->setIconSize(QSize(16, 16));
+    plus_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
+    plus_button_->setIconSize(QSize(20, 20));
     plus_button_->setObjectName(qTEXT("plusButton"));
     plus_button_->setStyleSheet(qSTR(R"(
     QPushButton#plusButton {
@@ -185,8 +184,8 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
 
 	QTabWidget QTabBar::tab {
-		max-width: 120px;
-		min-width: 120px;
+		max-width: 200px;
+		min-width: 200px;
 		min-height: 30px;
 	}
     )"));
@@ -198,8 +197,8 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
 
 	QTabWidget QTabBar::tab {
-		max-width: 120px;
-		min-width: 120px;
+		max-width: 200px;
+		min-width: 200px;
 		min-height: 30px;
 		color: black;
 	}
@@ -208,6 +207,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     default:
         break;
     }
+    plus_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
 }
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
