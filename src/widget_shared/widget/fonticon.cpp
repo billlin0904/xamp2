@@ -200,7 +200,7 @@ FontIcon::FontIcon(QObject* parent)
     : QObject(parent) {
 }
 
-bool FontIcon::AddFont(const QString& filename) {
+bool FontIcon::addFont(const QString& filename) {
     QFile font_file(filename);
     if (!font_file.open(QIODevice::ReadOnly)) {
         return false;
@@ -214,18 +214,18 @@ bool FontIcon::AddFont(const QString& filename) {
     }
 
     const auto family = QFontDatabase::applicationFontFamilies(id).first();
-    AddFamily(family);
+    addFamily(family);
     return true;
 }
 
-QIcon FontIcon::GetIcon(const char32_t& code, QVariantMap options, const QString& family) const {
-    if (GetFamilies().isEmpty()) {
+QIcon FontIcon::getIcon(const char32_t& code, QVariantMap options, const QString& family) const {
+    if (getFamilies().isEmpty()) {
         return {};
     }
 
     QString use_family = family;
     if (use_family.isEmpty()) {
-        use_family = GetFamilies().first();
+        use_family = getFamilies().first();
     }
 
     auto* engine = new FontIconEngine(std::move(options));
@@ -239,14 +239,14 @@ QIcon FontIcon::GetIcon(const char32_t& code, QVariantMap options, const QString
     return QIcon(engine);
 }
 
-const QStringList& FontIcon::GetFamilies() const {
+const QStringList& FontIcon::getFamilies() const {
     return families_;
 }
 
-void FontIcon::AddFamily(const QString& family) {
+void FontIcon::addFamily(const QString& family) {
     families_.append(family);
 }
 
-void FontIcon::SetGlyphs(const HashMap<char32_t, uint32_t>& glyphs) {
+void FontIcon::setGlyphs(const HashMap<char32_t, uint32_t>& glyphs) {
     glyphs_ = glyphs;
 }

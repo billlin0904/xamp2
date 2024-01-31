@@ -74,6 +74,7 @@ enum Glyphs {
     ICON_LIKE,
     ICON_DISLIKE,
     ICON_ADD,
+    ICON_DRAFT,
     ICON_END,
 };
 
@@ -108,15 +109,15 @@ public:
 
     explicit FontIcon(QObject* parent = nullptr);
 
-    bool AddFont(const QString& filename);
+    bool addFont(const QString& filename);
 
-    QIcon GetIcon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
+    QIcon getIcon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
 
-    const QStringList& GetFamilies() const;
+    const QStringList& getFamilies() const;
 
-    void SetGlyphs(const HashMap<char32_t, uint32_t> &glyphs);
+    void setGlyphs(const HashMap<char32_t, uint32_t> &glyphs);
 protected:
-    void AddFamily(const QString& family);
+    void addFamily(const QString& family);
 
     QStringList families_;
     mutable HashMap<char32_t, uint32_t> glyphs_;

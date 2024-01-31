@@ -21,6 +21,8 @@ public:
 
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
+	void hidePlusButton();
+
 	int32_t currentPlaylistId() const;
 
 	void saveTabOrder() const;

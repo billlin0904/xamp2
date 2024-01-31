@@ -196,10 +196,11 @@ void ThemeManager::setGoogleMaterialFontIcons() {
 	{ ICON_LIKE,                      0xE8DC },
     { ICON_DISLIKE,                   0xE8DB },
     { ICON_ADD,                       0xE145 },
+	{ ICON_DRAFT,                     0xE06D },
     };
 
-    qFontIcon.AddFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));
-    qFontIcon.SetGlyphs(glyphs_lut);
+    qFontIcon.addFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));
+    qFontIcon.setGlyphs(glyphs_lut);
 }
 
 QFont ThemeManager::loadFonts() {
@@ -215,9 +216,9 @@ QFont ThemeManager::loadFonts() {
     installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
     ui_fonts.append(qTEXT("Segoe UI"));
-    ui_fonts.append(qTEXT("Yu Gothic UI"));
 	ui_fonts.append(qTEXT("Microsoft JhengHei UI"));
     ui_fonts.append(qTEXT("Microsoft YaHei UI"));
+    ui_fonts.append(qTEXT("Yu Gothic UI"));
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
@@ -338,7 +339,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 }
 
 QIcon ThemeManager::fontIcon(const char32_t& code, QVariantMap options) {
-    return qFontIcon.GetIcon(code, options);
+    return qFontIcon.getIcon(code, options);
 }
 
 QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> theme_color) const {
@@ -355,14 +356,14 @@ QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> them
         else {
             temp.insert(FontIconOption::kColorAttr, QVariant(QColor(255, 0, 0)));
         }        
-        return qFontIcon.GetIcon(code, temp);
+        return qFontIcon.getIcon(code, temp);
     }
     case Glyphs::ICON_MINIMIZE_WINDOW:
 	    {
         auto temp = font_icon_opts_;
         temp.insert(FontIconOption::kColorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::black) : QColor(Qt::gray)));
         temp.insert(FontIconOption::kScaleFactorAttr, 1.3);
-        return qFontIcon.GetIcon(code, temp);
+        return qFontIcon.getIcon(code, temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
         return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(themeColorPath(color)));
@@ -374,40 +375,40 @@ QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> them
 	    {
 			auto temp = font_icon_opts_;
             temp.insert(FontIconOption::kColorAttr, QVariant(QColor(255, 164, 6)));
-            return qFontIcon.GetIcon(code, temp);
+            return qFontIcon.getIcon(code, temp);
 	    }
     case Glyphs::ICON_MESSAGE_BOX_ERROR:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::kColorAttr, QVariant(QColor(189, 29, 29)));
-			return qFontIcon.GetIcon(code, temp);
+			return qFontIcon.getIcon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_INFORMATION:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::kColorAttr, QVariant(QColor(43, 128, 234)));
-		    return qFontIcon.GetIcon(code, temp);
+		    return qFontIcon.getIcon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_QUESTION:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::kColorAttr, QVariant(QColor(53, 193, 31)));
-			return qFontIcon.GetIcon(code, temp);
+			return qFontIcon.getIcon(code, temp);
 		}
     case Glyphs::ICON_MESSAGE_BOX_SUCCESS:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::kColorAttr, QVariant(QColor(0, 249, 0)));
-			return qFontIcon.GetIcon(code, temp);
+			return qFontIcon.getIcon(code, temp);
 		}
     case Glyphs::ICON_CIRCLE_CHECK:
 		{
 			auto temp = font_icon_opts_;
 			temp.insert(FontIconOption::kColorAttr, QVariant(highlightColor()));
-			return qFontIcon.GetIcon(code, temp);
+			return qFontIcon.getIcon(code, temp);
 		}
     }
-    return qFontIcon.GetIcon(code, font_icon_opts_);
+    return qFontIcon.getIcon(code, font_icon_opts_);
 }
 
 QIcon ThemeManager::applicationIcon() const {
@@ -424,7 +425,7 @@ QIcon ThemeManager::playlistPauseIcon(QSize icon_size, double scale_factor) cons
     font_options.insert(FontIconOption::kColorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::kSelectedColorAttr, QColor(250, 88, 106));
 
-    auto icon = qFontIcon.GetIcon(Glyphs::ICON_PLAY_LIST_PAUSE, font_options);
+    auto icon = qFontIcon.getIcon(Glyphs::ICON_PLAY_LIST_PAUSE, font_options);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
         QIcon::Selected, QIcon::Off);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::On),
@@ -437,7 +438,7 @@ QIcon ThemeManager::playlistPlayingIcon(QSize icon_size, double scale_factor) co
     font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(scale_factor));
     font_options.insert(FontIconOption::kColorAttr, QColor(250, 88, 106));
     font_options.insert(FontIconOption::kSelectedColorAttr, QColor(250, 88, 106));
-    auto icon = qFontIcon.GetIcon(Glyphs::ICON_PLAY_LIST_PLAY, font_options);
+    auto icon = qFontIcon.getIcon(Glyphs::ICON_PLAY_LIST_PLAY, font_options);
 
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
         QIcon::Selected, QIcon::Off);
@@ -449,14 +450,14 @@ QIcon ThemeManager::playlistPlayingIcon(QSize icon_size, double scale_factor) co
 QIcon ThemeManager::playingIcon() const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kColorAttr, QColor(252, 215, 75));
-    return qFontIcon.GetIcon(0xF8F2, font_options);
+    return qFontIcon.getIcon(0xF8F2, font_options);
 }
 
 QIcon ThemeManager::hiResIcon() const {
     QVariantMap options;
     options.insert(FontIconOption::kColorAttr, QColor(250, 197, 24));
     options.insert(FontIconOption::kScaleFactorAttr, 0.8);
-    return QIcon(qFontIcon.GetIcon(0xE1AE, options));
+    return QIcon(qFontIcon.getIcon(0xE1AE, options));
 }
 
 QPixmap ThemeManager::githubIcon() const {

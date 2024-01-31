@@ -84,6 +84,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* vertical_layout_2 = new QVBoxLayout(this);
 	vertical_layout_2->setSpacing(0);
 	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+	vertical_layout_2->setContentsMargins(11, 0, 11, 0);
 
 	auto f = font();
 	auto* page_title_label = new QLabel(tr("Library"), this);

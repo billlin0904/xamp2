@@ -59,9 +59,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
     setMouseTracking(true);
-    setAttribute(Qt::WA_StyledBackground);   
-
-    onThemeChangedFinished(qTheme.themeColor());
+    setAttribute(Qt::WA_StyledBackground);
 
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
@@ -70,13 +68,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     plus_button_->setMaximumSize(32, 32);
     plus_button_->setMinimumSize(32, 32);
     plus_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
-    plus_button_->setIconSize(QSize(20, 20));
+    plus_button_->setIconSize(QSize(18, 18));
     plus_button_->setObjectName(qTEXT("plusButton"));
-    plus_button_->setStyleSheet(qSTR(R"(
-    QPushButton#plusButton {
-      border: 1px gray;      
-      }
-    )"));
+
     (void)QObject::connect(plus_button_, &QPushButton::clicked, [this]() {
         emit createNewPlaylist();
         });
@@ -173,12 +167,22 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         emit deletePlaylist(playlist);
         closeTab(tab_index);
         });
+
+    onThemeChangedFinished(qTheme.themeColor());
+}
+
+void PlaylistTabWidget::hidePlusButton() {
+    plus_button_->hide();
 }
 
 void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qSTR(R"(
+	QTabWidget {
+		qproperty-iconSize: 16px 16px;	
+	}
+
     QTabWidget::pane { 
 		border: 0; 
 	}
@@ -187,11 +191,27 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 		max-width: 200px;
 		min-width: 200px;
 		min-height: 30px;
+		background-color: #121212;
+	}
+
+	QTabWidget QTabBar::tab:selected {		
+		background-color: #54687A;
+	}
+    )"));
+
+    plus_button_->setStyleSheet(qSTR(R"(   
+	QPushButton#plusButton:hover {
+		background-color: #455364;
+		border-radius: 8px;
 	}
     )"));
         break;
     case ThemeColor::LIGHT_THEME:
         setStyleSheet(qSTR(R"(
+	QTabWidget {
+		qproperty-iconSize: 16px 16px;	
+	}
+
     QTabWidget::pane { 
 		border: 0; 
 	}
@@ -201,6 +221,18 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 		min-width: 200px;
 		min-height: 30px;
 		color: black;
+		background-color: #f9f9f9;
+	}
+
+	QTabWidget QTabBar::tab:selected {		
+		background-color: #C9CDD0;
+	}
+    )"));
+
+        plus_button_->setStyleSheet(qSTR(R"(   
+	QPushButton#plusButton:hover {
+		background-color: #e1e3e5;
+		border-radius: 8px;
 	}
     )"));
         break;
@@ -277,7 +309,7 @@ void PlaylistTabWidget::restoreTabOrder() {
         ++i;
     }
     for (i = 0; i < count(); ++i) {
-        setTabIcon(i, qTheme.applicationIcon());        
+        setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     }
 }
 
@@ -289,14 +321,14 @@ void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
             if (i == tab_index) {
                 continue;
             }
-            setTabIcon(i, qTheme.applicationIcon());            
+            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
         }
     }
 }
 
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
     const auto index = addTab(widget, name);
-    setTabIcon(index, qTheme.applicationIcon());
+    setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
 }
 
@@ -313,10 +345,12 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
 
 bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
     if (tabBar() == watched && event->type() == QEvent::Resize) {
-        auto r = tabBar()->geometry();
-        auto h = r.height();
-        plus_button_->setFixedSize((h - 1) * QSize(1, 1));
-        plus_button_->move(r.right(), 0);
+        if (!plus_button_->isHidden()) {
+            auto r = tabBar()->geometry();
+            auto h = r.height();
+            plus_button_->setFixedSize((h - 1) * QSize(1, 1));
+            plus_button_->move(r.right() + 3, 0);
+        }
     }
     return QTabWidget::eventFilter(watched, event);
 }

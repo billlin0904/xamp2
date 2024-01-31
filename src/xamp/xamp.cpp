@@ -329,7 +329,7 @@ namespace {
             ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
-				border-top-left-radius: 0px;
+				border-top-left-radius: 0px;			
             }			
             )"));
             
@@ -2225,6 +2225,7 @@ void Xamp::initialPlaylist() {
     cloud_search_page_.reset(new PlaylistPage(this));
     cloud_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_tab_widget_->setStoreType(StoreType::CLOUD_STORE);
+    cloud_tab_widget_->hidePlusButton();
 
     ui_.naviBar->addSeparator();
     ui_.naviBar->addTab(tr("Playlist"), TAB_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
