@@ -6,7 +6,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 
 XProgressDialog::XProgressDialog(const QString& title,
                                  const QString& cancel_text,

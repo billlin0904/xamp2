@@ -1,8 +1,9 @@
+#include <widget/playlisttabbar.h>
 #include <QMouseEvent>
+#include <QPushButton>
 
 #include <thememanager.h>
-#include <widget/str_utilts.h>
-#include <widget/playlisttabbar.h>
+#include <widget/util/str_utilts.h>
 
 PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	: QTabBar(parent) {	
@@ -10,7 +11,6 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setTabsClosable(true);
 	setUsesScrollButtons(true);
 	setMovable(true);
-	setElideMode(Qt::ElideRight);
 	auto f = font();
 	f.setPointSize(qTheme.fontSize(8));
 	setFont(f);

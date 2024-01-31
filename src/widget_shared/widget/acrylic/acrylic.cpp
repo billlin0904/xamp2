@@ -4,9 +4,9 @@
 #include <QScreen>
 #include <QWidget>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/acrylic/acrylic.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 
 AcrylicRender::AcrylicRender(QWidget* device, 
                              int blur_radius,

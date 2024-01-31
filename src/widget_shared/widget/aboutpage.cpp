@@ -2,34 +2,10 @@
 #include <ui_aboutdialog.h>
 #include <QFile>
 
-#include <widget/str_utilts.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <version.h>
 #include <thememanager.h>
-
-namespace {
-#ifdef Q_OS_WIN32
-    constexpr ConstLatin1String visualStudioVersion() {
-        if constexpr (_MSC_VER >= 1930) {
-            return "2022";
-        }
-        return "2019";
-    }
-    QString getCompileTime() {
-        return qSTR("Visual Studio %1.%2.%3")
-            .arg(visualStudioVersion())
-            .arg((_MSC_FULL_VER / 100000) % 100)
-            .arg(_MSC_FULL_VER % 100000);
-    }
-#else
-    QString getCompileTime() {
-        return qSTR("Clang %1.%2.%3")
-            .arg(__clang_major__)
-            .arg(__clang_minor__)
-            .arg(__clang_patchlevel__);
-    }
-#endif
-}
 
 AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
@@ -46,6 +22,9 @@ AboutPage::AboutPage(QWidget* parent)
     ui_->lblProjectTitle->setText(kApplicationName);
     ui_->lblProjectTitle->setStyleSheet(qTEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
+	dp_font.setBold(false);
+    dp_font.setPointSizeF(qTheme.fontSize(8));
+    ui_->lblDescription->setFont(dp_font);
     ui_->lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player."));
 
     QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
@@ -96,7 +75,6 @@ AboutPage::AboutPage(QWidget* parent)
     ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->lblCopying->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblDescription->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->lblAppBuild->setStyleSheet(qTEXT("background-color: transparent; color: gray;"));
 }
 
@@ -122,10 +100,9 @@ void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
     ui_->wdtContent->setVisible(!checked);
 }
 
-void AboutPage::OnUpdateNewVersion(const Version& version) {    
+void AboutPage::OnUpdateNewVersion(const QVersionNumber& version) {
     ui_->lblAppBuild->setText(tr("Version ")
         + formatVersion(version));
-    delay(1);
     ui_->waitForUpdateProcessIndicator->stopAnimation();
     ui_->restartAppButton->show();
 }

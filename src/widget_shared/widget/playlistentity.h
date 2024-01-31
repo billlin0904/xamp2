@@ -10,7 +10,7 @@
 #include <QModelIndex>
 #include <QVariant>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {

@@ -1,4 +1,4 @@
-#include <widget/filesystemworker.h>
+#include <widget/worker/filesystemworker.h>
 
 #include <QDirIterator>
 
@@ -7,7 +7,7 @@
 #include <metadata/taglibmetareader.h>
 
 #include <widget/albumview.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 
 XAMP_DECLARE_LOG_NAME(FileSystemWorker);
 

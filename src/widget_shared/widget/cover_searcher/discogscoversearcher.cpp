@@ -8,7 +8,7 @@
 
 #include <widget/cover_searcher/discogscoversearcher.h>
 #include <widget/http.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 namespace {
 	using ByteArrayPair = QPair<QByteArray, QByteArray>;

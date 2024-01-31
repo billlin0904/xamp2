@@ -1,5 +1,5 @@
 ﻿#include <widget/databasefacade.h>
-#include <widget/filesystemworker.h>
+#include <widget/worker/filesystemworker.h>
 
 #include <execution>
 
@@ -22,8 +22,8 @@
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
-    inline constexpr auto kJop = qTEXT("jpop");
-    inline constexpr auto kHiRes = qTEXT("HiRes");
+    inline constexpr auto kYouTubeCategory = qTEXT("YouTube");
+	inline constexpr auto kHiRes = qTEXT("HiRes");
     inline constexpr auto kDsdCategory = qTEXT("DSD");
     const std::wstring kDffFileExtension(L".dff");
     const std::wstring kDsfFileExtension(L".dsf");
@@ -140,7 +140,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             if (track_info.file_path.rfind(L'.') != std::wstring::npos) {
                 album_genre = kEmptyString; 
             } else {
-                album_genre = qTEXT("Youtube");
+                album_genre = kYouTubeCategory;
             }
 
             album_id = database_->addOrUpdateAlbum(album,

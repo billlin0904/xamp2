@@ -1,4 +1,4 @@
-#include <widget/mbdiscid_uiltis.h>
+#include <widget/util/mbdiscid_uiltis.h>
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -7,7 +7,7 @@
 #include <base/str_utilts.h>
 #include <stream/filestream.h>
 #include <widget/widget_shared.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 using namespace rapidxml;
 

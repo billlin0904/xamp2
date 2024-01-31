@@ -4,8 +4,8 @@
 
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
-#include <widget/image_utiltis.h>
-#include <widget/str_utilts.h>
+#include <widget/util/image_utiltis.h>
+#include <widget/util/str_utilts.h>
 #include <widget/qetag.h>
 #include <widget/widget_shared.h>
 

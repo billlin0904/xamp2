@@ -2,7 +2,7 @@
 
 #include <QStyle>
 #include <thememanager.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 SeekSlider::SeekSlider(QWidget* parent)
 	: QSlider(parent) {

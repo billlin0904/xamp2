@@ -1,6 +1,6 @@
 #include <thememanager.h>
 
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 #if defined(Q_OS_WIN)
 #include <widget/win32/wintaskbar.h>
 #else
@@ -9,7 +9,7 @@
 
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
 
@@ -213,6 +213,11 @@ QFont ThemeManager::loadFonts() {
     installFileFonts(qTEXT("NotoSans"), mono_fonts);
     installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
+    ui_fonts.append(qTEXT("Segoe UI"));
+    ui_fonts.append(qTEXT("Yu Gothic UI"));
+	ui_fonts.append(qTEXT("Microsoft JhengHei UI"));
+    ui_fonts.append(qTEXT("Microsoft YaHei UI"));
+
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
     if (display_fonts.isEmpty()) {
@@ -226,7 +231,7 @@ QFont ThemeManager::loadFonts() {
     QFont::insertSubstitutions(qTEXT("DisplayFont"), display_fonts);
     QFont::insertSubstitutions(qTEXT("FormatFont"), format_font);
     QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
-    QFont::insertSubstitution(qTEXT("UIFont"), qTEXT("Microsoft JhengHei UI"));
+    QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
 
     auto ui_font = uiFont();
     ui_font.setStyleStrategy(QFont::PreferAntialias);

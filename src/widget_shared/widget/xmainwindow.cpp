@@ -5,10 +5,10 @@
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <base/logger_impl.h>
 
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/globalshortcut.h>
 

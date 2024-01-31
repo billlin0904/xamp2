@@ -8,10 +8,10 @@
 
 #include <widget/acrylic/acrylic.h>
 #include <widget/spectrumwidget.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>

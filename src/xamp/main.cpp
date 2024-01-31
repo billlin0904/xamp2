@@ -20,9 +20,9 @@
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/imagecache.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/jsonsettings.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/xmainwindow.h>
 #include <widget/http.h>
 #include <widget/xmessagebox.h>

@@ -1,7 +1,7 @@
 #include <QImageReader>
 
 #include <base/object_pool.h>
-#include <widget/findalbumcoverworker.h>
+#include <widget/worker/findalbumcoverworker.h>
 #include <widget/tagio.h>
 #include <widget/database.h>
 #include <widget/imagecache.h>

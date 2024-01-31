@@ -1,13 +1,13 @@
-#include <widget/backgroundworker.h>
+#include <widget/worker/backgroundworker.h>
 
-#include <widget/str_utilts.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/image_utiltis.h>
 #include <widget/database.h>
 #include <widget/databasefacade.h>
-#include <widget/mbdiscid_uiltis.h>
+#include <widget/util/mbdiscid_uiltis.h>
 #include <widget/http.h>
 #include <widget/appsettingnames.h>
-#include <widget/read_until.h>
+#include <widget/util/read_until.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>

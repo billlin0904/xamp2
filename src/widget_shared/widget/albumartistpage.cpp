@@ -13,11 +13,11 @@
 #include <QCompleter>
 #include <QScrollArea>
 
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/artistview.h>
 #include <widget/genre_view.h>
 #include <widget/clickablelabel.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
@@ -92,10 +92,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	page_title_label->setFont(f);
 	vertical_layout_2->addWidget(page_title_label);
 
-	auto* line = new QFrame(this);
-	line->setFixedHeight(1);
+	auto* line = new QFrame();
 	line->setFrameShape(QFrame::HLine);
-	vertical_layout_2->addWidget(line);
+	vertical_layout_2->addWidget(line, 1);
 
 	auto* horizontal_layout_5 = new QHBoxLayout();
 	horizontal_layout_5->setSpacing(6);

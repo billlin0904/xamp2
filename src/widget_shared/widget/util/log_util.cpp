@@ -1,6 +1,6 @@
+#include <widget/util/log_util.h>
+#include <widget/util/str_utilts.h>
 #include <QMap>
-#include <widget/log_util.h>
-#include <widget/str_utilts.h>
 
 namespace log_util {
 

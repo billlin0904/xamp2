@@ -1,6 +1,6 @@
 #include <version.h>
 
-const Version kApplicationVersionValue{ 1, 0, 0 };
+const QVersionNumber kApplicationVersionValue{ 1, 0, 0 };
 const ConstLatin1String kApplicationName{ "XAMP2" };
 const ConstLatin1String kApplicationTitle{ "XAMP2" };
 const ConstLatin1String kApplicationVersion{ "0.0.2" };

@@ -1,4 +1,4 @@
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/appsettings.h>
 
 #include <QDir>
@@ -46,23 +46,27 @@ QString formatDsdSampleRate(uint32_t dsd_speed) {
     return QString::number(sample_rate, 'f', 2) + qTEXT("kHz");
 }
 
-bool parseVersion(const QString& s, Version& version) {
+bool parseVersion(const QString& s, QVersionNumber& version) {
     const auto ver = s.split(qTEXT("."));
     if (ver.length() != 3) {
         return false;
     }
 
+    auto major_part = 0;
+    auto minor_part = 0;
+    auto revision_part = 0;
+
     for (auto i = 0; i < ver.length(); ++i) {
         bool ok = false;
         switch (i) {
         case 0:
-            version.major_part = ver[i].toInt(&ok);
+            major_part = ver[i].toInt(&ok);
             break;
         case 1:
-            version.minor_part = ver[i].toInt(&ok);
+            minor_part = ver[i].toInt(&ok);
             break;
         case 2:
-            version.revision_part = ver[i].toInt(&ok);
+            revision_part = ver[i].toInt(&ok);
             break;
         default:;
         }
@@ -70,6 +74,7 @@ bool parseVersion(const QString& s, Version& version) {
             return false;
         }
     }
+    version = QVersionNumber(major_part, minor_part, revision_part);
     return true;
 }
 
@@ -111,10 +116,8 @@ QString formatTime(quint64 time) {
     return date_time.toString(qTEXT("yyyy-MM-dd"));
 }
 
-QString formatVersion(const Version& version) {
-    return qSTR("%1.%2.%3").arg(version.major_part)
-        .arg(version.minor_part)
-        .arg(version.revision_part);
+QString formatVersion(const QVersionNumber& version) {
+    return version.toString();
 }
 
 QString formatDb(double value, int prec) {

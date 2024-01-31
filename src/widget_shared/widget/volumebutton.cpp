@@ -3,9 +3,9 @@
 #include <thememanager.h>
 #include <QMouseEvent>
 #include <base/logger_impl.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/volumecontroldialog.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 static constexpr auto kShowDelayMs = 100;
 

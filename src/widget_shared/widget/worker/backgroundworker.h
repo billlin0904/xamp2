@@ -11,9 +11,7 @@
 #include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
 #include <widget/widget_shared_global.h>
-#include <widget/mbdiscid_uiltis.h>
-
-#include <widget/widget_shared.h>
+#include <widget/util/mbdiscid_uiltis.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT ReplayGainResult final {
 	double album_loudness{0};

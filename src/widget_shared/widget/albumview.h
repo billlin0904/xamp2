@@ -11,7 +11,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/themecolor.h>

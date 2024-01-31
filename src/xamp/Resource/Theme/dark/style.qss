@@ -2105,7 +2105,7 @@ https://stackoverflow.com/questions/14581498/qt-stylesheet-for-hline-vline-color
 }
 
 .QFrame[frameShape="4"] {
-  max-height: 2px;
+  max-height: 1px;
   border: none;
   background-color: #455364;
 }

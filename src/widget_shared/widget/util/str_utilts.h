@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QHashFunctions>
 #include <QCoreApplication>
+#include <QVersionNumber>
 
 #include <base/str_utilts.h>
 #include <widget/widget_shared_global.h>
@@ -47,18 +48,6 @@ namespace std {
 		}
 	};
 }
-
-struct XAMP_WIDGET_SHARED_EXPORT Version {
-	int32_t major_part{ -1 };
-	int32_t minor_part{ -1 };
-	int32_t revision_part{ -1 };
-
-	bool operator > (const Version& version) const noexcept {
-		return major_part > version.major_part
-			|| minor_part > version.minor_part
-			|| revision_part > version.revision_part;
-	}
-};
 
 inline constexpr ConstLatin1String kEmptyString{ "" };
 inline constexpr ConstLatin1String kPlatformKey{ "windows" };
@@ -105,9 +94,9 @@ XAMP_WIDGET_SHARED_EXPORT bool isMoreThan1Hours(const double stream_time);
 
 XAMP_WIDGET_SHARED_EXPORT QString toNativeSeparators(const QString& path);
 
-XAMP_WIDGET_SHARED_EXPORT bool parseVersion(const QString& s, Version& version);
+XAMP_WIDGET_SHARED_EXPORT bool parseVersion(const QString& s, QVersionNumber& version);
 
-XAMP_WIDGET_SHARED_EXPORT QString formatVersion(const Version& version);
+XAMP_WIDGET_SHARED_EXPORT QString formatVersion(const QVersionNumber& version);
 
 QString formatDsdSampleRate(uint32_t dsd_speed);
 

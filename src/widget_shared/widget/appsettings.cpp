@@ -14,7 +14,7 @@
 #include <widget/xmainwindow.h>
 
 #include <widget/databasefacade.h>
-#include <widget/log_util.h>
+#include <widget/util/log_util.h>
 #include <widget/playerorder.h>
 #include <widget/youtubedl/ytmusic.h>
 #include <widget/playlistentity.h>

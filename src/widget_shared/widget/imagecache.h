@@ -14,7 +14,7 @@
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 #include <widget/widget_shared_global.h>
 
 struct ImageCacheEntity {

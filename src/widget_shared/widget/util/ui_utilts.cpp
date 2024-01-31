@@ -1,4 +1,4 @@
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 
 #include <QApplication>
 #include <QDirIterator>
@@ -17,7 +17,7 @@
 #include <widget/xprogressdialog.h>
 #include <widget/processindicator.h>
 #include <widget/xmainwindow.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 #include <version.h>
 

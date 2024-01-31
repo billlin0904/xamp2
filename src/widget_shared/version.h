@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
-XAMP_WIDGET_SHARED_EXPORT extern const Version kApplicationVersionValue;
+XAMP_WIDGET_SHARED_EXPORT extern const QVersionNumber kApplicationVersionValue;
 XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kApplicationName;
 XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kApplicationTitle;
 XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kApplicationVersion;

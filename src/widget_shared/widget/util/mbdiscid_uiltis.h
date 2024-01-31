@@ -14,7 +14,7 @@
 #include <QList>
 #include <QMetaType>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
 using namespace xamp::base;

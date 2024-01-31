@@ -8,10 +8,10 @@
 #include <QStandardItemModel>
 
 #include <thememanager.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/scrolllabel.h>
 #include <widget/processindicator.h>
 #include <widget/playlisttableview.h>
@@ -39,7 +39,7 @@ void PlaylistPage::initial() {
 	auto f = font();
 	page_title_label_ = new QLabel(tr("Playlist"), this);
 	f.setBold(true);
-	f.setPointSize(qTheme.fontSize(32));
+	f.setPointSize(qTheme.fontSize(36));
 	page_title_label_->setFont(f);
 	default_layout->addWidget(page_title_label_);
 

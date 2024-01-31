@@ -1,7 +1,7 @@
 #include <widget/taglistview.h>
 
-#include <widget/str_utilts.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <thememanager.h>
 
 #include <QHBoxLayout>

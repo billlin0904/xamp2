@@ -31,12 +31,21 @@
 #include <output_device/api.h>
 #include <player/api.h>
 
+#include <widget/util/str_utilts.h>
+#include <widget/util/mbdiscid_uiltis.h>
+#include <widget/util/image_utiltis.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/ui_utilts.h>
+
+#include <widget/worker/backgroundworker.h>
+#include <widget/worker/filesystemworker.h>
+#include <widget/worker/findalbumcoverworker.h>
+
 #include <widget/widget_shared.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
 #include <widget/appsettings.h>
 #include <widget/xmessage.h>
-#include <widget/backgroundworker.h>
 #include <widget/database.h>
 #include <widget/equalizerview.h>
 #include <widget/filesystemviewpage.h>
@@ -46,20 +55,14 @@
 #include <widget/playlistpage.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableview.h>
-#include <widget/mbdiscid_uiltis.h>
 #include <widget/spectrumwidget.h>
 #include <widget/xdialog.h>
 #include <widget/xprogressdialog.h>
-#include <widget/filesystemworker.h>
-#include <widget/findalbumcoverworker.h>
 #include <widget/imagecache.h>
-#include <widget/image_utiltis.h>
-#include <widget/str_utilts.h>
-#include <widget/ui_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/http.h>
 #include <widget/jsonsettings.h>
-#include <widget/read_until.h>
+#include <widget/util/read_until.h>
 #include <widget/aboutpage.h>
 #include <widget/cdpage.h>
 #include <widget/preferencepage.h>
@@ -71,7 +74,6 @@
 #include <widget/genre_view_page.h>
 #include <widget/playlisttabbar.h>
 #include <widget/genre_view.h>
-#include <widget/str_utilts.h>
 #include <widget/createplaylistview.h>
 
 #include <thememanager.h>
@@ -272,17 +274,6 @@ namespace {
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;
-    }
-    )"));
-
-        auto f = ui.tableLabel->font();
-        f.setPointSize(11);
-        ui.tableLabel->setFont(f);
-        ui.tableLabel->setStyleSheet(qSTR(R"(
-    QLabel#tableLabel {
-    border: none;
-    background: transparent;
-	color: gray;
     }
     )"));
 
@@ -756,7 +747,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             const auto changelog = platform.value(qTEXT("changelog")).toString();
             const auto latest_version = platform.value(qTEXT("latest-version")).toString();
 
-            Version latest_version_value;
+            QVersionNumber latest_version_value;
             if (!parseVersion(latest_version, latest_version_value)) {
                 return;
             }

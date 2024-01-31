@@ -9,10 +9,10 @@
 #include <widget/playlistpage.h>
 #include <widget/appsettingnames.h>
 #include <widget/processindicator.h>
-#include <widget/str_utilts.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/image_utiltis.h>
 #include <widget/imagecache.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/xprogressdialog.h>
 #include <widget/playlistentity.h>
 

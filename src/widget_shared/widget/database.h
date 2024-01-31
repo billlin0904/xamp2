@@ -15,7 +15,7 @@
 
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/playlistentity.h>
 
 class SqlException final : public Exception {

@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 #include <QIODevice>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 namespace {
 	bool readJsonFile(QIODevice& device, QSettings::SettingsMap& map) {

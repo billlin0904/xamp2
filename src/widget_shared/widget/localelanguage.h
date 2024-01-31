@@ -10,7 +10,7 @@
 #include <QTranslator>
 
 #include <widget/widget_shared_global.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 
 class XAMP_WIDGET_SHARED_EXPORT LocaleLanguage {
 public:

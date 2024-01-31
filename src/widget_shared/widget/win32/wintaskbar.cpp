@@ -3,7 +3,7 @@
 
 #if defined(Q_OS_WIN)
 #include <widget/xmainwindow.h>
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 #include <widget/widget_shared.h>
 #include <base/dll.h>
 

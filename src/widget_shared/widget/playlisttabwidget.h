@@ -12,6 +12,7 @@
 #include <widget/widget_shared_global.h>
 
 class QMouseEvent;
+class QPushButton;
 
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget : public QTabWidget {
 	Q_OBJECT
@@ -61,6 +62,9 @@ private:
 
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 
+	bool eventFilter(QObject* watched, QEvent* event) override;
+
 	StoreType store_type_{ StoreType::LOCAL_STORE };
+	QPushButton* plus_button_{ nullptr };
 };
 

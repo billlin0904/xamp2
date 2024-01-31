@@ -1,9 +1,12 @@
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QTabBar>
 #include <QMouseEvent>
+#include <QPushButton>
 
 #include <widget/xmessagebox.h>
 #include <widget/database.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/playlisttabbar.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttableview.h>
@@ -62,6 +65,23 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
+
+    plus_button_ = new QPushButton(this);
+    plus_button_->setText(qTEXT("+"));
+    plus_button_->setMaximumSize(32, 32);
+    plus_button_->setMinimumSize(32, 32);
+    //plus_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
+    plus_button_->setIconSize(QSize(16, 16));
+    plus_button_->setObjectName(qTEXT("plusButton"));
+    plus_button_->setStyleSheet(qSTR(R"(
+    QPushButton#plusButton {
+      border: 1px gray;      
+      }
+    )"));
+    (void)QObject::connect(plus_button_, &QPushButton::clicked, [this]() {
+        emit createNewPlaylist();
+        });
+    tabBar()->installEventFilter(this);
 
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &PlaylistTabBar::customContextMenuRequested, [this](auto pt) {
@@ -289,4 +309,14 @@ void PlaylistTabWidget::setPlaylistCover(const QPixmap& cover) {
 
 void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
     emit createNewPlaylist();
+}
+
+bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
+    if (tabBar() == watched && event->type() == QEvent::Resize) {
+        auto r = tabBar()->geometry();
+        auto h = r.height();
+        plus_button_->setFixedSize((h - 1) * QSize(1, 1));
+        plus_button_->move(r.right(), 0);
+    }
+    return QTabWidget::eventFilter(watched, event);
 }

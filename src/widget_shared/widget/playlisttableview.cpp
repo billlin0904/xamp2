@@ -28,12 +28,12 @@
 #include <widget/appsettings.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/playlistentity.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/fonticon.h>
-#include <widget/zib_utiltis.h>
+#include <widget/util/zib_utiltis.h>
 #include <widget/tagio.h>
 
 namespace {
@@ -188,10 +188,10 @@ public:
         : QStyledItemDelegate(parent) {
     }    
 
-    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+    /*QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         if (index.column() == PLAYLIST_CHECKED) {
             auto* editor = new QCheckBox(parent);            
-            return editor;
+            return editor;s
         }        
         return QStyledItemDelegate::createEditor(parent, option, index);
     }
@@ -199,10 +199,10 @@ public:
     void setEditorData(QWidget* editor, const QModelIndex& index) const override {
         if (index.column() != PLAYLIST_CHECKED) {
             return;
-        }        
+        }
 
-        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editor);
-        checkBox->setChecked(index.data().toBool());
+        auto* check_box = qobject_cast<QCheckBox*>(editor);
+        check_box->setChecked(index.data().toBool());
     }
 
     void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
@@ -211,10 +211,10 @@ public:
         }
 
         const auto playlist_music_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYLIST_MUSIC_ID)).toInt();
-        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editor);
-        model->setData(index, checkBox->isChecked(), Qt::EditRole);
-        qMainDb.updatePlaylistMusicChecked(playlist_music_id, checkBox->isChecked());        
-    }
+        const auto* check_box = qobject_cast<QCheckBox*>(editor);
+        model->setData(index, check_box->isChecked(), Qt::EditRole);
+        qMainDb.updatePlaylistMusicChecked(playlist_music_id, check_box->isChecked());        
+    }*/
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         if (!index.isValid()) {
@@ -259,7 +259,7 @@ public:
             break;
         case PLAYLIST_ARTIST:
             opt.font.setFamily(qTEXT("UIFont"));
-            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
+            opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
             opt.text = value.toString();
             break;
         case PLAYLIST_TRACK:

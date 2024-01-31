@@ -8,7 +8,7 @@
 #include <QSettings>
 #include <QScopedPointer>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared_global.h>
 

@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include <QStack>
-#include <QThread>
-#include <QFutureWatcher>
 #include <QSystemTrayIcon>
 
 #include <optional>
@@ -19,7 +16,7 @@
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
 #include <widget/driveinfo.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/youtubedl/ytmusic.h>
 #include <widget/databasecoverid.h>
 
@@ -99,7 +96,7 @@ signals:
 
 	void changePlayerOrder(PlayerOrder order);
 
-	void updateNewVersion(const Version &version);
+	void updateNewVersion(const QVersionNumber&version);
 
 	void fetchThumbnailUrl(const DatabaseCoverId &id, const QString& thumbnail_url);
 

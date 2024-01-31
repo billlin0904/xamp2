@@ -1,4 +1,4 @@
-#include <widget/image_utiltis.h>
+#include <widget/util/image_utiltis.h>
 
 #include <QPainter>
 #include <QGraphicsPixmapItem>

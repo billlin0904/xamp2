@@ -8,7 +8,7 @@
 
 #include <widget/imagecache.h>
 #include <widget/http.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/cover_searcher/musicbraincoversearcher.h>
 
 namespace {

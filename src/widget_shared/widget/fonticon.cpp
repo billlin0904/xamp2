@@ -7,7 +7,7 @@
 #include <QtCore>
 #include <QPalette>
 
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <utility>
 

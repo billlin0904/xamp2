@@ -6,7 +6,7 @@
 #pragma once
 
 #include <widget/widget_shared_global.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <thememanager.h>
 
 namespace Ui {
@@ -30,7 +30,7 @@ public slots:
 
     void onThemeChangedFinished(ThemeColor theme_color);
 
-    void OnUpdateNewVersion(const Version& version);
+    void OnUpdateNewVersion(const QVersionNumber& version);
 private:
     QString license_;
     QString credits_;

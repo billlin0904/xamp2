@@ -43,7 +43,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>30</height>
+       <height>32</height>
       </size>
      </property>
      <property name="frameShape">
@@ -78,8 +78,8 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>30</width>
-          <height>20</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
        </spacer>
@@ -88,14 +88,14 @@
        <widget class="QToolButton" name="closeButton">
         <property name="minimumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -148,14 +148,14 @@
        <widget class="QToolButton" name="minWinButton">
         <property name="minimumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -179,14 +179,14 @@
        <widget class="QToolButton" name="logoButton">
         <property name="minimumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>18</width>
+          <height>18</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>18</width>
+          <height>18</height>
          </size>
         </property>
         <property name="text">
@@ -204,14 +204,14 @@
        <widget class="QToolButton" name="maxWinButton">
         <property name="minimumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>30</width>
-          <height>30</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -248,14 +248,14 @@
        <widget class="QToolButton" name="menuButton">
         <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>32</width>
+          <height>32</height>
          </size>
         </property>
         <property name="text">
@@ -318,9 +318,15 @@
      </property>
      <item>
       <widget class="QFrame" name="sliderFrame2">
+       <property name="minimumSize">
+        <size>
+         <width>46</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
-         <width>510</width>
+         <width>46</width>
          <height>16777215</height>
         </size>
        </property>
@@ -394,6 +400,9 @@
            </item>
            <item>
             <widget class="Line" name="line">
+             <property name="lineWidth">
+              <number>2</number>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -427,22 +436,18 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QLabel" name="tableLabel">
-             <property name="text">
-              <string>My Music Library</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="TabListView" name="naviBar">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>300</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>

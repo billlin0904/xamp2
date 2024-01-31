@@ -3,7 +3,7 @@
 #include <widget/playlisttableview.h>
 #include <widget/fonticon.h>
 #include <widget/playlistpage.h>
-#include <widget/str_utilts.h>
+#include <widget/util/str_utilts.h>
 #include <ui_cdpage.h>
 
 CdPage::CdPage(QWidget* parent)

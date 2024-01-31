@@ -4,8 +4,8 @@
 #include <QInputDialog>
 #include <QStandardItemModel>
 
-#include <widget/str_utilts.h>
-#include <widget/ui_utilts.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/ui_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/localelanguage.h>
 #include <widget/jsonsettings.h>
