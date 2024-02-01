@@ -362,6 +362,8 @@ public:
 
 	void initial();
 
+	std::string setupOAuth(const std::string& file_name) const;
+
 	[[nodiscard]] std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
 
 	[[nodiscard]] std::vector<search::SearchResultItem> search(const std::string& query,
@@ -429,6 +431,8 @@ public:
 
 	void cancelRequested();
 
+	QFuture<std::string> setupOAuthAsync(const QString& file_name);
+
 	QFuture<bool> initialAsync();
 
 	QFuture<bool> cleanupAsync();
@@ -487,7 +491,7 @@ private:
 	YtMusicInterop* interop();
 
 	template <typename Func>
-	QFuture<std::invoke_result_t<Func>> invokeAsync(Func fun, InvokeType invoke_type = InvokeType::INVOKE_NONE) {
+	QFuture<std::invoke_result_t<Func>> invokeAsync(Func &&fun, InvokeType invoke_type = InvokeType::INVOKE_NONE) {
 		using ReturnType = std::invoke_result_t<Func>;
 		auto interface = std::make_shared<QFutureInterface<ReturnType>>();
 		QMetaObject::invokeMethod(this, [interface, invoke_type, fun, this]() {

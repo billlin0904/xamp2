@@ -348,8 +348,10 @@ bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
         if (!plus_button_->isHidden()) {
             auto r = tabBar()->geometry();
             auto h = r.height();
-            plus_button_->setFixedSize((h - 1) * QSize(1, 1));
-            plus_button_->move(r.right() + 3, 0);
+            if (h > 0) {
+                plus_button_->setFixedSize((h - 1) * QSize(1, 1));
+                plus_button_->move(r.right() + 3, 0);
+            }
         }
     }
     return QTabWidget::eventFilter(watched, event);

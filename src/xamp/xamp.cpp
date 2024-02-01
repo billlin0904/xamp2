@@ -41,6 +41,8 @@
 #include <widget/worker/filesystemworker.h>
 #include <widget/worker/findalbumcoverworker.h>
 
+#include <widget/youtubedl/ytmusicoauth.h>
+
 #include <widget/widget_shared.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
@@ -73,7 +75,6 @@
 #include <widget/youtubedl/ytmusic.h>
 #include <widget/genre_view_page.h>
 #include <widget/playlisttabbar.h>
-#include <widget/genre_view.h>
 #include <widget/createplaylistview.h>
 
 #include <thememanager.h>
@@ -167,6 +168,20 @@ namespace {
                                          background-color: transparent;
                                          }
                                          )"));
+
+        ui.loginButton->setStyleSheet(qTEXT(R"(
+        QToolButton#loginButton {
+			border: none;
+			background-color: transparent;
+		}
+
+		QToolButton#loginButton:hover {
+			background-color: #e1e3e5;
+			border-radius: 8px;
+		}
+		)"));
+        ui.loginButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON));
+
         ui.eqButton->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
 
         ui.repeatButton->setStyleSheet(qTEXT(R"(
@@ -548,6 +563,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ytmusic_worker_.reset(new YtMusic());    
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
     ytmusic_thread_.start();
+
+    (void)QObject::connect(ui_.loginButton, &QToolButton::clicked, [this](auto checked) {
+        //ytmusic_worker_->setupOAuthAsync(qTEXT("oauth.json"));
+        YtMusicOAuth oauth;
+        oauth.setup(qTEXT("oauth.json"));
+        });
 
     ytmusic_worker_->initialAsync().waitForFinished();
     XAMP_LOG_DEBUG("YouTube worker initial done!");

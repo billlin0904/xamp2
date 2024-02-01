@@ -196,7 +196,8 @@ void ThemeManager::setGoogleMaterialFontIcons() {
 	{ ICON_LIKE,                      0xE8DC },
     { ICON_DISLIKE,                   0xE8DB },
     { ICON_ADD,                       0xE145 },
-	{ ICON_DRAFT,                     0xE06D },
+	{ ICON_DRAFT,                     0xF1C6 },
+	{ ICON_PERSON,                    0xE7FD },
     };
 
     qFontIcon.addFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));

@@ -363,17 +363,14 @@ public:
 
     py::object& get_ytmusic() {
         if (ytmusic_.is_none()) {
-            ytmusicapi_module = py::module::import("ytmusicapi");
-            ytmusic_ = ytmusicapi_module.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
+            ytmusicapi_module_ = py::module::import("ytmusicapi");
+            ytmusic_ = ytmusicapi_module_.attr("YTMusic")(auth, user, requests_session, proxies, language, location);
         }
         return ytmusic_;
     }
 
-    static py::tuple create_cookies_from_browser(const std::string& browser_name,
-        const std::optional<std::string>& profile_name = std::nullopt,
-        const std::optional<std::string>& keyring_name = std::nullopt,
-        const std::optional<std::string>& container_name = std::nullopt) {
-        return py::make_tuple(browser_name, profile_name, keyring_name, container_name);
+    py::module& get_ytmusicapi() {
+        return ytmusicapi_module_;
     }
 
     py::object& get_ytdl() {
@@ -386,7 +383,14 @@ public:
     }
 
 private:
-    py::module ytmusicapi_module;
+    static py::tuple create_cookies_from_browser(const std::string& browser_name,
+        const std::optional<std::string>& profile_name = std::nullopt,
+        const std::optional<std::string>& keyring_name = std::nullopt,
+        const std::optional<std::string>& container_name = std::nullopt) {
+        return py::make_tuple(browser_name, profile_name, keyring_name, container_name);
+    }
+
+    py::module ytmusicapi_module_;
     py::object ytmusic_;
     py::object ytdl_;
 };
@@ -398,6 +402,12 @@ YtMusic::YtMusic(QObject* parent)
 
 void YtMusic::cancelRequested() {
     is_stop_ = true;
+}
+
+QFuture<std::string> YtMusic::setupOAuthAsync(const QString& file_name) {
+    return invokeAsync([this, file_name]() {
+        return interop()->setupOAuth(file_name.toStdString());
+        });
 }
 
 QFuture<bool> YtMusic::initialAsync() {
@@ -557,6 +567,11 @@ XAMP_PIMPL_IMPL(YtMusicInterop)
 void YtMusicInterop::initial() {
     impl_->get_ytdl();
     impl_->get_ytmusic();    
+}
+
+std::string YtMusicInterop::setupOAuth(const std::string& file_name) const {
+    const auto token = impl_->get_ytmusicapi().attr("setup_oauth")(file_name).cast<std::string>();
+    return token;
 }
 
 std::vector<std::string> YtMusicInterop::searchSuggestions(const std::string& query, bool detailed_runs) const {

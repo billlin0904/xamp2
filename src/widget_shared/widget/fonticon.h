@@ -75,6 +75,7 @@ enum Glyphs {
     ICON_DISLIKE,
     ICON_ADD,
     ICON_DRAFT,
+    ICON_PERSON,
     ICON_END,
 };
 

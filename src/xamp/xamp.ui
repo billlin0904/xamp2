@@ -84,34 +84,6 @@
         </property>
        </spacer>
       </item>
-      <item row="0" column="10">
-       <widget class="QToolButton" name="closeButton">
-        <property name="minimumSize">
-         <size>
-          <width>32</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>32</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>32</width>
-          <height>32</height>
-         </size>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <spacer name="horizontalSpacer_8">
         <property name="orientation">
@@ -128,8 +100,8 @@
         </property>
        </spacer>
       </item>
-      <item row="0" column="9">
-       <spacer name="horizontalSpacer_5">
+      <item row="0" column="5">
+       <spacer name="horizontalSpacer_15">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -138,7 +110,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>10</width>
+          <width>20</width>
           <height>20</height>
          </size>
         </property>
@@ -175,30 +147,21 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QToolButton" name="logoButton">
-        <property name="minimumSize">
+      <item row="0" column="9">
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
          <size>
-          <width>18</width>
-          <height>18</height>
+          <width>10</width>
+          <height>20</height>
          </size>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>18</width>
-          <height>18</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>16</width>
-          <height>16</height>
-         </size>
-        </property>
-       </widget>
+       </spacer>
       </item>
       <item row="0" column="8">
        <widget class="QToolButton" name="maxWinButton">
@@ -228,22 +191,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="7">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
       <item row="0" column="4">
        <widget class="QToolButton" name="menuButton">
         <property name="minimumSize">
@@ -263,6 +210,75 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="10">
+       <widget class="QToolButton" name="closeButton">
+        <property name="minimumSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QToolButton" name="logoButton">
+        <property name="minimumSize">
+         <size>
+          <width>18</width>
+          <height>18</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>18</width>
+          <height>18</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item row="0" column="3">
        <widget class="QLabel" name="titleFrameLabel">
         <property name="sizePolicy">
@@ -275,22 +291,6 @@
          <string/>
         </property>
        </widget>
-      </item>
-      <item row="0" column="5">
-       <spacer name="horizontalSpacer_15">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
      </layout>
     </widget>
@@ -320,13 +320,13 @@
       <widget class="QFrame" name="sliderFrame2">
        <property name="minimumSize">
         <size>
-         <width>46</width>
+         <width>48</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>46</width>
+         <width>48</width>
          <height>16777215</height>
         </size>
        </property>
@@ -383,20 +383,23 @@
             <number>0</number>
            </property>
            <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Fixed</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+            <widget class="QToolButton" name="loginButton">
+             <property name="minimumSize">
               <size>
-               <width>20</width>
-               <height>40</height>
+               <width>48</width>
+               <height>48</height>
               </size>
              </property>
-            </spacer>
+             <property name="maximumSize">
+              <size>
+               <width>48</width>
+               <height>48</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="Line" name="line">
@@ -435,6 +438,22 @@
            <property name="bottomMargin">
             <number>0</number>
            </property>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item>
             <widget class="TabListView" name="naviBar">
              <property name="sizePolicy">
