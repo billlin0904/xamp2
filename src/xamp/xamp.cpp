@@ -564,10 +564,25 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
     ytmusic_thread_.start();
 
-    (void)QObject::connect(ui_.loginButton, &QToolButton::clicked, [this](auto checked) {
-        //ytmusic_worker_->setupOAuthAsync(qTEXT("oauth.json"));
-        YtMusicOAuth oauth;
-        oauth.setup(qTEXT("oauth.json"));
+    ytmusic_oauth_.reset(new YtMusicOAuth());
+
+    (void)QObject::connect(ui_.loginButton, &QToolButton::clicked, [this](auto checked) {        
+        ytmusic_oauth_->setup();
+        });
+
+    (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::acceptAuthorization, [this]() {
+        auto result = XMessageBox::showYesOrNo(qTEXT("Waiting for authorized ..."), kApplicationTitle, false);
+        if (result == QDialogButtonBox::Yes) {
+            ytmusic_oauth_->requestGrant();
+        }
+        });
+
+    (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
+        QFile file(qTEXT("oauth.json"));
+        if (file.exists()) {
+            /*auto path = qApp->applicationDirPath() + qTEXT("/oauth.json");
+            image_utils::moveFile(qTEXT("oauth.json"), path);*/
+        }
         });
 
     ytmusic_worker_->initialAsync().waitForFinished();

@@ -362,8 +362,6 @@ public:
 
 	void initial();
 
-	std::string setupOAuth(const std::string& file_name) const;
-
 	[[nodiscard]] std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
 
 	[[nodiscard]] std::vector<search::SearchResultItem> search(const std::string& query,
@@ -430,8 +428,6 @@ public:
 	explicit YtMusic(QObject* parent = nullptr);
 
 	void cancelRequested();
-
-	QFuture<std::string> setupOAuthAsync(const QString& file_name);
 
 	QFuture<bool> initialAsync();
 

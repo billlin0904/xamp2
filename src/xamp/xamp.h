@@ -52,6 +52,7 @@ class FileSystemWorker;
 class PlaylistTabWidget;
 class PlayListTableView;
 class GenreViewPage;
+class YtMusicOAuth;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -285,6 +286,7 @@ private:
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
 	QScopedPointer<FileSystemWorker> extract_file_worker_;
 	QScopedPointer<YtMusic> ytmusic_worker_;
+	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
     QThread background_thread_;
 	QThread find_album_cover_thread_;
 	QThread file_system_thread_;

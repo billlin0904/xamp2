@@ -82,6 +82,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	setTitle(kEmptyString);
 	XDialog::setIcon(QIcon());
+	adjustSize();
 }
 
 void XMessageBox::setTextFont(const QFont& font) {

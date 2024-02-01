@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{43B7AE34-6DB8-4147-8EDE-28FDC4C3AF8C}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
     <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
@@ -32,7 +32,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.5.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;network;widgets;sql;networkauth</QtModules>
+    <QtModules>core;gui;network;widgets;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -151,7 +151,7 @@
     <QtMoc Include="widget\worker\findalbumcoverworker.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\youtubedl\ytmusic.h" />
-    <ClInclude Include="widget\youtubedl\ytmusicoauth.h" />
+    <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />

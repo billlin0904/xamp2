@@ -404,12 +404,6 @@ void YtMusic::cancelRequested() {
     is_stop_ = true;
 }
 
-QFuture<std::string> YtMusic::setupOAuthAsync(const QString& file_name) {
-    return invokeAsync([this, file_name]() {
-        return interop()->setupOAuth(file_name.toStdString());
-        });
-}
-
 QFuture<bool> YtMusic::initialAsync() {
     return invokeAsync([this]() {
         interop()->initial();
@@ -567,11 +561,6 @@ XAMP_PIMPL_IMPL(YtMusicInterop)
 void YtMusicInterop::initial() {
     impl_->get_ytdl();
     impl_->get_ytmusic();    
-}
-
-std::string YtMusicInterop::setupOAuth(const std::string& file_name) const {
-    const auto token = impl_->get_ytmusicapi().attr("setup_oauth")(file_name).cast<std::string>();
-    return token;
 }
 
 std::vector<std::string> YtMusicInterop::searchSuggestions(const std::string& query, bool detailed_runs) const {
