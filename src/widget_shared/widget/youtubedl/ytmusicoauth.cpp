@@ -1,6 +1,8 @@
 #include <QJsonDocument>
 #include <QDesktopServices>
 #include <QSaveFile>
+#include <QDateTime>
+#include <QJsonObject>
 
 #include <widget/youtubedl/ytmusicoauth.h>
 
@@ -56,9 +58,21 @@ void YtMusicOAuth::requestGrant() {
 		.param(qTEXT("client_id"), kOAuthClientId)
 		.success([this](const auto& url, const auto& content) {
 		XAMP_LOG_DEBUG("{}", content.toStdString());
+
+		QJsonParseError error;
+		auto code = QJsonDocument::fromJson(content.toUtf8(), &error);
+		if (error.error != QJsonParseError::NoError) {
+			return;
+		}
+		auto root = code.object();
+		root[qTEXT("expires_at")] = QDateTime::currentSecsSinceEpoch() + code["expires_in"].toInt();
+		root[qTEXT("filepath")] = qTEXT("oauth.json");
+		code.setObject(root);
+		auto json = code.toJson();
+
 		QSaveFile file("oauth.json");
 		file.open(QIODevice::WriteOnly);
-		file.write(content.toUtf8());
+		file.write(json);
 		if (file.commit()) {
 			emit requestGrantCompleted();
 		}

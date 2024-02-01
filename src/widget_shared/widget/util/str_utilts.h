@@ -52,11 +52,11 @@ namespace std {
 inline constexpr ConstLatin1String kEmptyString{ "" };
 inline constexpr ConstLatin1String kPlatformKey{ "windows" };
 
-constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
+inline constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-constexpr ConstLatin1String fromStdStringView(const std::string_view& s) noexcept {
+inline constexpr ConstLatin1String fromStdStringView(const std::string_view& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 
