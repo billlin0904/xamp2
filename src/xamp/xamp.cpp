@@ -466,6 +466,13 @@ namespace {
         }
         return playlist_page;
     }    
+
+    bool isAuthorization() {
+        if (!QFile(qTEXT("oauth.json")).exists()) {
+            return false;
+        }
+        return true;
+    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -612,7 +619,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
-        if (QFile(qTEXT("oauth.json")).exists()) {
+        if (isAuthorization()) {
             initialYtMusicWorker();
             initialCloudPlaylist();
             setAuthButton(ui_, true);
@@ -630,7 +637,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialShortcut();
     initialSpectrum();
 
-    if (QFile(qTEXT("oauth.json")).exists()) {
+    if (isAuthorization()) {
         initialYtMusicWorker();
         setAuthButton(ui_, true);
         XAMP_LOG_DEBUG("YouTube worker initial done!");
