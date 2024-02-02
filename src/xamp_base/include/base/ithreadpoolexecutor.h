@@ -63,6 +63,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(const StopToken&)>;
 
+    // std::shared_ptr
     auto task = MakeAlignedShared<PackagedTaskType>(bind_front(
         std::forward<F>(f),
         std::forward<Args>(args)...)
@@ -70,7 +71,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
 
     auto future = task->get_future();
 
-    // note: unique_ptr會在SubmitJob離開lambda解構, 但是shared_ptr會確保lambda在解構的時候task才會解構.
+    // note: std::unique_ptr會在SubmitJob離開lambda解構, 但是std::shared_ptr會確保lambda在解構的時候task才會解構.
     scheduler_->SubmitJob([t = std::move(task)](const StopToken& stop_token) {
         (*t)(stop_token);
     }, flags);

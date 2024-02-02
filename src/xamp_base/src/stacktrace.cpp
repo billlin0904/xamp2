@@ -237,12 +237,13 @@ bool StackTrace::LoadSymbol() {
 #endif
 }
 
-std::string StackTrace::CaptureStack() {
+std::string StackTrace::CaptureStack(uint32_t skip) {
+    auto skip_frame = (std::min)(skip, 1U);
     CaptureStackAddress addrlist;
 #ifdef XAMP_OS_WIN
     addrlist.fill(nullptr);
     std::ostringstream ostr;
-    const auto frame_count = ::CaptureStackBackTrace(1, kMaxStackFrameSize, addrlist.data(), nullptr);
+    const auto frame_count = ::CaptureStackBackTrace(skip_frame, kMaxStackFrameSize, addrlist.data(), nullptr);
     WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else

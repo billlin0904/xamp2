@@ -47,8 +47,6 @@ public:
 
     void setPlayOrPauseButton(QToolButton* playButton, bool is_playing);
 
-    void setBitPerfectButton(QToolButton* bitPerfectButton, bool enable);
-
     void setHeartButton(QToolButton* heartButton, bool press = false);
 
     void updateMaximumIcon(QToolButton* maxWinButton, bool is_maximum) const;
@@ -62,8 +60,6 @@ public:
     QSize albumCoverSize() const noexcept;
 
     QIcon playCircleIcon() const;
-
-    QIcon hiResIcon() const;
 
     QIcon playingIcon() const;
 
@@ -103,17 +99,17 @@ public:
         return theme_color_;
     }
 
-    void setLinearGradient(QLinearGradient &gradient) const;
-
     QString linearGradientStyle() const;
 
     QSize tabIconSize() const;
 
     void setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon fontIcon(const char32_t code, std::optional<ThemeColor> theme_color = std::nullopt) const;
+    QIcon fontIcon(const int32_t code, std::optional<ThemeColor> theme_color = std::nullopt) const;
 
-    QIcon fontIcon(const char32_t& code, QVariantMap options);
+    QIcon fontRawIconOption(const int32_t code, const QVariantMap& options = QVariantMap());
+
+    QIcon fontRawIcon(const int32_t code);
 
     void setTextSeparator(QFrame* frame);    
 

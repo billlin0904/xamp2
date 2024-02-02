@@ -329,7 +329,7 @@ public:
                 font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(0.4));
                 font_options.insert(FontIconOption::kColorAttr, QColor(Qt::red));
 
-                opt.icon = qTheme.fontIcon(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
+                opt.icon = qTheme.fontRawIconOption(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
                 // note: 解決圖示再選擇的時候會蓋掉顏色的問題
                 opt.icon = uniformIcon(opt.icon, opt.decorationSize);
 

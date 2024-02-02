@@ -154,10 +154,6 @@ void XDialog::setIcon(const QIcon& icon) const {
     icon_->setHidden(false);
 }
 
-void XDialog::showEvent(QShowEvent* event) {
-    QDialog::showEvent(event);
-}
-
 void XDialog::closeEvent(QCloseEvent* event) {
     if (!content_->close()) {
         event->ignore();

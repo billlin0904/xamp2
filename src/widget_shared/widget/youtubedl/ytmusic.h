@@ -490,15 +490,15 @@ private:
 	QFuture<std::invoke_result_t<Func>> invokeAsync(Func &&fun, InvokeType invoke_type = InvokeType::INVOKE_NONE) {
 		using ReturnType = std::invoke_result_t<Func>;
 		auto interface = std::make_shared<QFutureInterface<ReturnType>>();
-		QMetaObject::invokeMethod(this, [interface, invoke_type, fun, this]() {
-			ReturnType val;
+		QMetaObject::invokeMethod(this, [interface, invoke_type, f = std::forward<Func>(fun), this]() {
+			ReturnType val{};
 			auto is_stop = is_stop_.load();
 			if (invoke_type == InvokeType::INVOKE_IMMEDIATELY) {
 				is_stop = false;
 			}
 			if (!is_stop) {
 				try {
-					val = fun();
+					val = f();
 				}
 				catch (const std::exception& e) {
 					XAMP_LOG_D(logger_, "{} =>\r\n {}", e.what(), StackTrace{}.CaptureStack());

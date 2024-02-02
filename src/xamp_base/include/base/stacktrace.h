@@ -21,7 +21,7 @@ public:
 
     static bool LoadSymbol();
 
-    std::string CaptureStack();
+    std::string CaptureStack(uint32_t skip = 5);
 };
 
 XAMP_BASE_NAMESPACE_END

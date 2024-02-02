@@ -134,7 +134,7 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 }
 
 void ThemeManager::setGoogleMaterialFontIcons() {
-    const HashMap<char32_t, uint32_t> glyphs_lut{
+    const HashMap<int32_t, uint32_t> glyphs_lut{
     { ICON_VOLUME_UP ,                0xE050 },
     { ICON_VOLUME_OFF,                0xE04f },
     { ICON_SPEAKER,                   0xE32D },
@@ -339,11 +339,15 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
     menu->setStyle(new IconSizeStyle(14));
 }
 
-QIcon ThemeManager::fontIcon(const char32_t& code, QVariantMap options) {
+QIcon ThemeManager::fontRawIcon(const int32_t code) {
+    return qFontIcon.getIcon(code, font_icon_opts_);
+}
+
+QIcon ThemeManager::fontRawIconOption(const int32_t code, const QVariantMap& options) {
     return qFontIcon.getIcon(code, options);
 }
 
-QIcon ThemeManager::fontIcon(const char32_t code, std::optional<ThemeColor> theme_color) const {
+QIcon ThemeManager::fontIcon(const int32_t code, std::optional<ThemeColor> theme_color) const {
     auto color = theme_color ? *theme_color : themeColor();
 
     switch (code) {
@@ -454,13 +458,6 @@ QIcon ThemeManager::playingIcon() const {
     return qFontIcon.getIcon(0xF8F2, font_options);
 }
 
-QIcon ThemeManager::hiResIcon() const {
-    QVariantMap options;
-    options.insert(FontIconOption::kColorAttr, QColor(250, 197, 24));
-    options.insert(FontIconOption::kScaleFactorAttr, 0.8);
-    return QIcon(qFontIcon.getIcon(0xE1AE, options));
-}
-
 QPixmap ThemeManager::githubIcon() const {
     if (themeColor() == ThemeColor::DARK_THEME) {
         return QPixmap(qTEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
@@ -482,40 +479,6 @@ void ThemeManager::updateMaximumIcon(QToolButton *maxWinButton, bool is_maximum)
         maxWinButton->setIcon(fontIcon(Glyphs::ICON_RESTORE_WINDOW));        
     } else {
         maxWinButton->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
-    }
-}
-
-void ThemeManager::setBitPerfectButton(QToolButton * bitPerfectButton, bool enable) {
-    auto f = bitPerfectButton->font();
-    f.setPointSize(fontSize(9));
-    bitPerfectButton->setFont(f);
-    bitPerfectButton->setText(qSTR("Bit-Perfect"));
-
-    if (enable) {        
-        bitPerfectButton->setStyleSheet(qSTR(
-            R"(
-                QToolButton#bitPerfectButton {
-					font-family: "FormatFont";
-					font-weight: bold;
-					color: white;
-                    border: none;
-                    background-color: rgb(167, 200, 255);
-                }
-            )"
-        ));
-    }
-    else {        
-        bitPerfectButton->setStyleSheet(qSTR(
-            R"(
-                QToolButton#bitPerfectButton {
-					font-family: "FormatFont";
-					font-weight: bold;
-					color: white;
-                    border: none;
-                    background-color: rgba(167, 200, 255, 60);
-                }
-            )"
-        ));
     }
 }
 
@@ -594,22 +557,6 @@ QString ThemeManager::linearGradientStyle() const {
         return qTEXT("#2e2f31");
     case ThemeColor::LIGHT_THEME:
         return qTEXT("#ffffff");
-    }
-}
-
-void ThemeManager::setLinearGradient(QLinearGradient& gradient) const {
-    switch (themeColor()) {
-        case ThemeColor::DARK_THEME:
-            gradient.setColorAt(0, QColor("#1e1d23"));
-            gradient.setColorAt(0.74, QColor("#000000"));
-            break;
-        case ThemeColor::LIGHT_THEME:       
-            gradient.setCoordinateMode(QGradient::StretchToDeviceMode);
-            gradient.setStart(0, 0);
-            gradient.setFinalStop(1, 1);
-            gradient.setColorAt(0, QColor(Qt::white));
-            gradient.setColorAt(1, QColor(Qt::lightGray));
-            break;
     }
 }
 

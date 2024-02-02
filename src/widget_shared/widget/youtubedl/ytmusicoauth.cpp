@@ -7,7 +7,7 @@
 #include <widget/youtubedl/ytmusicoauth.h>
 
 inline constexpr auto kOAuthCodeUrl = qTEXT("https://www.youtube.com/o/oauth2/device/code");
-inline constexpr auto kOAuthScope = qTEXT("https://www.googleapis.com/auth/youtube");
+inline constexpr auto kOAuthYouTubeScope = qTEXT("https://www.googleapis.com/auth/youtube");
 
 inline constexpr auto kOAuthTokenUrl = qTEXT("https://oauth2.googleapis.com/token");
 inline constexpr auto kOAuthClientSecret = qTEXT("SboVhoG9s0rNafixCSGGKXAT");
@@ -28,13 +28,17 @@ void YtMusicOAuth::setup() {
 	http::HttpClient(kOAuthCodeUrl)
 		.header(qTEXT("User-Agent"), kOAuthUserAgent)
 		.param(qTEXT("client_id"), kOAuthClientId)
-		.param(qTEXT("scope"), kOAuthScope)
+		.param(qTEXT("scope"), kOAuthYouTubeScope)
+		.error([this](const auto& url, const auto& content) {
+			emit setupError();
+		})
 		.success([this](const auto &url, const auto &content) {
 		XAMP_LOG_DEBUG("{}", content.toStdString());
 
 		QJsonParseError error;
 		auto code = QJsonDocument::fromJson(content.toUtf8(), &error);
 		if (error.error != QJsonParseError::NoError) {
+			emit setupError();
 			return;
 		}
 
@@ -42,9 +46,8 @@ void YtMusicOAuth::setup() {
 		verification_url_ = code["verification_url"].toString();
 		device_code_ = code["device_code"].toString();
 
-		auto open_url = qSTR("%1?user_code=%2").arg(verification_url_).arg(user_code_);
-		QDesktopServices::openUrl(open_url);
-		emit acceptAuthorization();
+		const auto open_url = qSTR("%1?user_code=%2").arg(verification_url_).arg(user_code_);
+		emit acceptAuthorization(open_url);
 		})
 		.post();
 }
@@ -56,12 +59,16 @@ void YtMusicOAuth::requestGrant() {
 		.param(qTEXT("grant_type"), qTEXT("urn:ietf:params:oauth:grant-type:device_code"))
 		.param(qTEXT("device_code"), device_code_)
 		.param(qTEXT("client_id"), kOAuthClientId)
+		.error([this](const auto& url, const auto& content) {
+			emit requestGrantError();
+		})
 		.success([this](const auto& url, const auto& content) {
 		XAMP_LOG_DEBUG("{}", content.toStdString());
 
 		QJsonParseError error;
 		auto code = QJsonDocument::fromJson(content.toUtf8(), &error);
 		if (error.error != QJsonParseError::NoError) {
+			emit requestGrantError();
 			return;
 		}
 		auto root = code.object();
@@ -75,6 +82,8 @@ void YtMusicOAuth::requestGrant() {
 		file.write(json);
 		if (file.commit()) {
 			emit requestGrantCompleted();
+		} else {
+			emit requestGrantError();
 		}
 	})
 	.post();

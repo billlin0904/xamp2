@@ -24,9 +24,9 @@ public:
 
     void setFontFamily(const QString& family);
 
-    void setLetter(const char32_t letter);
+    void setLetter(const int32_t letter);
 private:
-    char32_t letter_;
+    int32_t letter_;
     QString font_family_;
     QVariantMap options_;
 };
@@ -186,7 +186,7 @@ void FontIconEngine::setFontFamily(const QString& family) {
     font_family_ = family;
 }
 
-void FontIconEngine::setLetter(const char32_t letter) {
+void FontIconEngine::setLetter(const int32_t letter) {
     letter_ = letter;
 }
 
@@ -218,7 +218,7 @@ bool FontIcon::addFont(const QString& filename) {
     return true;
 }
 
-QIcon FontIcon::getIcon(const char32_t& code, QVariantMap options, const QString& family) const {
+QIcon FontIcon::getIcon(const int32_t& code, QVariantMap options, const QString& family) const {
     if (getFamilies().isEmpty()) {
         return {};
     }
@@ -247,6 +247,6 @@ void FontIcon::addFamily(const QString& family) {
     families_.append(family);
 }
 
-void FontIcon::setGlyphs(const HashMap<char32_t, uint32_t>& glyphs) {
+void FontIcon::setGlyphs(const HashMap<int32_t, uint32_t>& glyphs) {
     glyphs_ = glyphs;
 }

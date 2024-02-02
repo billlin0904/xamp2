@@ -22,7 +22,11 @@ public:
 signals:
 	void requestGrantCompleted();
 
-	void acceptAuthorization();
+	void acceptAuthorization(const QString &url);
+
+	void setupError();
+
+	void requestGrantError();
 
 private:
 	QString user_code_;

@@ -181,6 +181,7 @@ private:
 	void initialSpectrum();
 
 	void destroy();
+	void initialYtMusicWorker();
 
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 

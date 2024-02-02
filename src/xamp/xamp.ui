@@ -320,13 +320,13 @@
       <widget class="QFrame" name="sliderFrame2">
        <property name="minimumSize">
         <size>
-         <width>48</width>
+         <width>50</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>48</width>
+         <width>50</width>
          <height>16777215</height>
         </size>
        </property>
@@ -383,7 +383,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QToolButton" name="loginButton">
+            <widget class="QToolButton" name="authButton">
              <property name="minimumSize">
               <size>
                <width>48</width>

@@ -39,10 +39,6 @@ private slots:
     void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
-#if defined(Q_OS_WIN)
-    void showEvent(QShowEvent* event) override;
-#endif
-
     void closeEvent(QCloseEvent* event) override;
 
     void setContent(QWidget* content);

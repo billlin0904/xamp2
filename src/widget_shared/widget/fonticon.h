@@ -112,16 +112,16 @@ public:
 
     bool addFont(const QString& filename);
 
-    QIcon getIcon(const char32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
+    QIcon getIcon(const int32_t& code, QVariantMap options = QVariantMap(), const QString& family = QString()) const;
 
     const QStringList& getFamilies() const;
 
-    void setGlyphs(const HashMap<char32_t, uint32_t> &glyphs);
+    void setGlyphs(const HashMap<int32_t, uint32_t> &glyphs);
 protected:
     void addFamily(const QString& family);
 
     QStringList families_;
-    mutable HashMap<char32_t, uint32_t> glyphs_;
+    mutable HashMap<int32_t, uint32_t> glyphs_;
 };
 
 #define qFontIcon SharedSingleton<FontIcon>::GetInstance()
