@@ -3,7 +3,7 @@
 #include <qlibraryinfo.h>
 #include <QLoggingCategory>
 #include <QOperatingSystemVersion>
-#include <QProcess>
+#include <QStyleFactory>
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
@@ -192,7 +192,7 @@ namespace {
 #endif
 #endif
 
-        applyTheme();
+    	applyTheme();
 
         XMainWindow main_window;
 

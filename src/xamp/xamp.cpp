@@ -943,13 +943,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             if (!is_unknown_album) {
                 id.second = album_id;
             }
-            if (!download_thumbnail_pending_.contains(id)) {
-                download_thumbnail_pending_.insert(id, QString::fromStdString(thumbnail_url));
-                if (!ui_update_timer_timer_.isActive()) {
-                    ui_update_timer_timer_.setInterval(1000);
-                    ui_update_timer_timer_.start();
-                }
-            }
+            emit fetchThumbnailUrl(id, QString::fromStdString(thumbnail_url));
         });
     }
     playlist_page->playlist()->reload();
@@ -1078,13 +1072,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             if (!is_unknown_album) {
                 id.second = album_id;
             }
-            if (!download_thumbnail_pending_.contains(id)) {
-                download_thumbnail_pending_.insert(id, QString::fromStdString(thumbnail_url));
-            }
-            if (!ui_update_timer_timer_.isActive()) {
-                ui_update_timer_timer_.setInterval(1000);
-                ui_update_timer_timer_.start();
-            }
+            emit fetchThumbnailUrl(id, QString::fromStdString(thumbnail_url));
             }
         );
     }
@@ -1888,7 +1876,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
 }
 
 void Xamp::onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url) {
-    download_thumbnail_pending_.insert(id, thumbnail_url);
+	download_thumbnail_pending_.insert(id, thumbnail_url);
 }
 
 void Xamp::onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id) {
@@ -2301,6 +2289,8 @@ void Xamp::initialPlaylist() {
     cloud_tab_widget_.reset(new PlaylistTabWidget(this));
     cloud_tab_widget_->setStoreType(StoreType::CLOUD_STORE);
     cloud_tab_widget_->hidePlusButton();
+
+    cloud_search_page_->pageTitle()->hide();
 
     ui_.naviBar->addTab(tr("Playlist"),         TAB_PLAYLIST,          qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->addTab(tr("File explorer"),    TAB_FILE_EXPLORER,     qTheme.fontIcon(Glyphs::ICON_DESKTOP));

@@ -43,7 +43,7 @@ namespace std {
 		typedef size_t result_type;
 		typedef ConstLatin1String argument_type;
 
-		result_type operator()(const argument_type& s) const {
+		result_type operator()(const argument_type& s) const noexcept {
 			return qHash(s);
 		}
 	};
