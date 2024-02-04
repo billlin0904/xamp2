@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QObject>
+#include <QNetworkAccessManager>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
@@ -86,4 +87,5 @@ private:
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;
 	LoggerPtr logger_;
+	QNetworkAccessManager nam_;
 };

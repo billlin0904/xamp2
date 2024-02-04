@@ -153,8 +153,6 @@ namespace {
                                          background-color: transparent;
                                          }
 										)"));
-        constexpr auto kMaxTitleIcon = 20;
-        ui.logoButton->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
 
         ui.stopButton->setStyleSheet(qSTR(R"(
                                          QToolButton#stopButton {
@@ -467,11 +465,38 @@ namespace {
         return playlist_page;
     }    
 
-    bool isAuthorization() {
-        if (!QFile(qTEXT("oauth.json")).exists()) {
+    bool isYtMusicAuthorization() {
+        QFile file(qTEXT("oauth.json"));
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
             return false;
         }
+        const auto content = file.readAll();
+        QJsonParseError error;
+        const auto code = QJsonDocument::fromJson(content, &error);
+        if (error.error != QJsonParseError::NoError) {
+            return false;
+        }
+        const auto root = code.object();
+        const QList<QString> keys{
+            qTEXT("access_token"),
+            qTEXT("expires_in"),
+            qTEXT("refresh_token"),
+            qTEXT("scope"),
+            qTEXT("token_type"),
+            qTEXT("expires_at"),
+            qTEXT("filepath"),
+        };
+        Q_FOREACH(auto key, keys) {
+	        if (!root.contains(key)) {
+                return false;
+	        }
+        }
         return true;
+    }
+
+    QString getYtMusicUrl(const QString& video_id) {
+        const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
+        return ytmusic_url;
     }
 }
 
@@ -619,7 +644,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
-        if (isAuthorization()) {
+        if (isYtMusicAuthorization()) {
             initialYtMusicWorker();
             initialCloudPlaylist();
             setAuthButton(ui_, true);
@@ -637,7 +662,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialShortcut();
     initialSpectrum();
 
-    if (isAuthorization()) {
+    if (isYtMusicAuthorization()) {
         initialYtMusicWorker();
         setAuthButton(ui_, true);
         XAMP_LOG_DEBUG("YouTube worker initial done!");
@@ -846,7 +871,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             emit updateNewVersion(latest_version_value);
         });
 
-    auto* menu = new XMenu();
+    auto* menu = new XMenu(ui_.menuButton);
     qTheme.setMenuStyle(menu);
     const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
@@ -950,11 +975,48 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             if (!is_unknown_album) {
                 id.second = album_id;
             }
+            emit translation(toQString(track_info.artist), qTEXT("ja"), qTEXT("en"));
             emit fetchThumbnailUrl(id, QString::fromStdString(thumbnail_url));
         });
     }
     playlist_page->playlist()->reload();
     playlist_page->spinner()->stopAnimation();
+}
+
+void Xamp::downloadFile(const PlayListEntity& entity) {
+    auto [video_id, setVideoId] = parseId(entity.file_path);
+    const auto ytmusic_url = getYtMusicUrl(video_id);
+
+    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
+        [this, video_id](const auto& video_info) {
+            QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, video_info](const std::optional<song::Song>& song) {
+                auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
+
+                const auto dialog = makeProgressDialog(
+                    tr("Download progress dialog"),
+                    tr("Download ") + file_name,
+                    tr("Cancel"));
+
+                auto process_handler = [dialog](auto ready, auto total) {
+                    dialog->setValue(ready * 100 / total);
+                    qApp->processEvents();
+                    };
+
+                auto download_file_handler = [dialog](auto) {
+                    dialog->close();
+                    };
+
+                auto error_handler = [](auto url, auto message) {
+                    };
+
+                const auto best_format = findBestAudioFormat(video_info);
+                http::HttpClient(QString::fromStdString(best_format.url))
+                    .progress(process_handler)
+                    .downloadFile(file_name, download_file_handler, error_handler);
+                dialog->exec();
+
+                });
+        });
 }
 
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
@@ -972,7 +1034,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     // 1. 白金帳號
     // 2. Browser cookies
     // 3. 使用youtube music URL
-    const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
+    const auto ytmusic_url = getYtMusicUrl(video_id);
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
         [temp = entity, video_id, play_page, this](const auto& video_info) {
@@ -1578,7 +1640,7 @@ void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& imag
     if (cover.loadFromData(image)) {        
         qMainDb.updateArtistCoverId(qMainDb.addOrUpdateArtist(artist), qImageCache.addImage(cover));
     }
-    //emit translation(artist, qTEXT("ja"), qTEXT("en"));
+    emit translation(artist, qTEXT("ja"), qTEXT("en"));
 }
 
 void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
@@ -2157,7 +2219,9 @@ void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackIn
     cd_page_->playlistPage()->playlist()->removeAll();
     DatabaseFacade facade;
     facade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
-    //emit translation(getStringOrEmptyString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
+    if (track_infos.front().artist) {
+        emit translation(toQString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
+    }    
     cd_page_->playlistPage()->playlist()->reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -2619,22 +2683,6 @@ void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& pr
         tr("AAC Files (*.m4a)"));
 }
 
-void Xamp::downloadFile(const PlayListEntity& entity) {
-    bool is_ok = false;
-
-    const auto download_url = QInputDialog::getText(this, qTEXT("Download YouTube url"),
-                                                    qTEXT("Download YouTube url"),
-                                                    QLineEdit::Normal, 
-                                                    qTEXT("url"),
-                                                    &is_ok);
-
-    if (!download_url.isEmpty()) {
-        QCoro::connect(ytmusic_worker_->downloadAsync(download_url), this,
-            [this]() {
-            });
-    }
-}
-
 void Xamp::encodeWavFile(const PlayListEntity& entity) {
     const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
@@ -2885,7 +2933,9 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
         &FindAlbumCoverWorker::onFindAlbumCover,
         Qt::QueuedConnection);
     facade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
-    //emit translation(getStringOrEmptyString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    if (result.front().artist) {
+        emit translation(toQString(result.front().artist), qTEXT("ja"), qTEXT("en"));
+    }    
     ensureLocalOnePlaylistPage();
     localPlaylistPage()->playlist()->reload();
 }

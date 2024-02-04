@@ -3,7 +3,6 @@
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadatawriter.h>
 
-#include <metadata/imetadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
 

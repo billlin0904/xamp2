@@ -106,7 +106,7 @@ public:
                 (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X}({}){}\r\n", 
+            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X}{}\r\n", 
                 GetPlatformErrorMessage(code), stack_trace.CaptureStack());
         }
     }

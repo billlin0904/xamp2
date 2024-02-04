@@ -11,7 +11,6 @@
     <ClInclude Include="include\metadata\taglib.h" />
     <ClInclude Include="include\metadata\taglibmetareader.h" />
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
-    <ClInclude Include="include\metadata\imetadataextractadapter.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
   </ItemGroup>

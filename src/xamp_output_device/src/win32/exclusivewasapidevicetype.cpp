@@ -145,7 +145,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 			}
 
 			if (info.default_format) {
-				XAMP_LOG_DEBUG("{} default format: {}", String::ToString(info.name), info.default_format.value());
+				XAMP_LOG_D(logger_, "{} default format: {}", String::ToString(info.name), info.default_format.value());
 			}
 
 			CComPtr<IAudioEndpointVolume> endpoint_volume;

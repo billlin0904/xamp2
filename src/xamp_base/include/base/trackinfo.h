@@ -23,11 +23,11 @@ struct XAMP_BASE_API ReplayGain {
 
 struct XAMP_BASE_API TrackInfo final {
     TrackInfo() noexcept;
-    bool rating;
+    uint32_t rating;
     uint32_t track;
     uint32_t bit_rate;
     uint32_t sample_rate;
-    uint32_t year;
+    uint64_t year;
     uint64_t file_size;
     int64_t last_write_time;
 	double offset;

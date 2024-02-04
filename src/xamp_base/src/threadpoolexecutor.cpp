@@ -13,7 +13,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
+inline constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxStealFailureSize = 500;
@@ -238,7 +238,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 				if (!task) {					
 					++steal_failure_count;					
 					if (steal_failure_count >= kMaxStealFailureSize) {
-						task = TryDequeueSharedQueue(kDefaultTimeout);
+						task = TryDequeueSharedQueue(kDequeueTimeout);						
 					}
 					else {
 						continue;

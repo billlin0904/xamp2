@@ -157,7 +157,7 @@ private:
     DataFormat format_;
     ByteFormat byte_format_;
     PackedFormat packed_format_;
-    uint16_t num_channels_;
+    uint32_t num_channels_;
     uint32_t sample_rate_;
     uint32_t bits_per_sample_;
 };

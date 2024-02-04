@@ -49,7 +49,7 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     auto f = font();
     f.setFamily(qTEXT("MonoFont"));
     ui_->volumeLabel->setFont(f);
-    ui_->volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: white;"));
+    ui_->volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: gray;"));
     ui_->volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
 
     qTheme.setSliderTheme(ui_->volumeSlider, true);

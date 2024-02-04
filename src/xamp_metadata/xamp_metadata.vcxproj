@@ -158,7 +158,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\metadata.h" />
-    <ClInclude Include="include\metadata\imetadataextractadapter.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
     <ClInclude Include="include\metadata\api.h" />

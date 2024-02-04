@@ -196,6 +196,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 
 	QTabWidget QTabBar::tab:selected {		
 		background-color: #54687A;
+		font-weight: bold;
 	}
     )"));
 
@@ -226,6 +227,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 
 	QTabWidget QTabBar::tab:selected {		
 		background-color: #C9CDD0;
+		font-weight: bold;
 	}
     )"));
 

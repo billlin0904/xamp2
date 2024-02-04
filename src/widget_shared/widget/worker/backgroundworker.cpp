@@ -31,7 +31,8 @@ struct ReplayGainJob {
     Ebur128Reader reader;
 };
 
-BackgroundWorker::BackgroundWorker() {    
+BackgroundWorker::BackgroundWorker()
+    : nam_(this) {
     logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
 
@@ -253,7 +254,7 @@ void BackgroundWorker::onTranslation(const QString& keyword, const QString& from
         .arg(QString(QUrl::toPercentEncoding(keyword)))
         .arg(to)
         .arg(from);
-    http::HttpClient(url)
+    http::HttpClient(&nam_, url)
         .success([keyword, this](const auto& url, const auto& content) {
         if (content.isEmpty()) {
             return;

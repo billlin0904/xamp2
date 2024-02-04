@@ -9,7 +9,6 @@
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
 
-#include <metadata/imetadataextractadapter.h>
 #include <stream/avfilestream.h>
 
 #include <widget/widget_shared.h>

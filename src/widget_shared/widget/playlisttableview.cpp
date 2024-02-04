@@ -134,38 +134,6 @@ ORDER BY
 }
 
 
-//class CheckBoxDelegate : public QStyledItemDelegate {
-//public:
-//    explicit CheckBoxDelegate(QObject* parent = nullptr)
-//        : QStyledItemDelegate(parent) {
-//    }
-//
-//    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-//        return new QCheckBox(parent);
-//    }
-//
-//    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
-//        const auto value = index.model()->data(index, Qt::DisplayRole);
-//        if (value == Qt::Checked) {
-//            static_cast<QCheckBox*>(editor)->setChecked(true);
-//        }
-//        else {
-//            static_cast<QCheckBox*>(editor)->setChecked(false);
-//        }
-//    }
-//
-//    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
-//        QVariant value;
-//        if (static_cast<QCheckBox*>(editor)->isChecked()) {
-//            value = Qt::Checked;
-//        }
-//        else {
-//            value = Qt::Unchecked;
-//        }
-//        model->setData(index, value, Qt::DisplayRole);
-//    }
-//};
-
 class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
@@ -452,7 +420,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("ParentPath"));
     model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
-    model_->setHeaderData(PLAYLIST_LIKE, Qt::Horizontal, tr(""));
+    model_->setHeaderData(PLAYLIST_LIKE, Qt::Horizontal, tr("Like"));
     model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
     model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("Year"));
     model_->setHeaderData(PLAYLIST_CHECKED, Qt::Horizontal, tr(""));

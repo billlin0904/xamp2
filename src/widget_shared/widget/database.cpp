@@ -1042,6 +1042,9 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t
 }
 
 void Database::addMusicToPlaylist(const QList<int32_t>& music_id, int32_t playlist_id) const {
+    if (music_id.isEmpty()) {
+        return;
+    }
     SqlQuery query(db_);
 
     QStringList strings;

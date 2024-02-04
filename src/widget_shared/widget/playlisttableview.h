@@ -39,7 +39,7 @@ public:
 	static constexpr auto kColumnDurationWidth = 10;
 	static constexpr auto kPendingPlaylistSize = 30;
 
-	static constexpr auto kColumnWidth = 42;
+	static constexpr auto kColumnWidth = 48;
 	static constexpr auto kColumnHeight = 46;
 
 	static constexpr auto kCoverSize = QSize(32, 32);
