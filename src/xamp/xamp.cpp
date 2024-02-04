@@ -984,18 +984,25 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 }
 
 void Xamp::downloadFile(const PlayListEntity& entity) {
+    const auto dialog = makeProgressDialog(
+        tr("Download progress dialog"),
+        tr("Download file"),
+        tr("Cancel"));
+    dialog->show();
+
     auto [video_id, setVideoId] = parseId(entity.file_path);
     const auto ytmusic_url = getYtMusicUrl(video_id);
 
-    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
-        [this, video_id](const auto& video_info) {
-            QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, video_info](const std::optional<song::Song>& song) {
-                auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
+    dialog->setLabelText(tr("Fetch video info ..."));
 
-                const auto dialog = makeProgressDialog(
-                    tr("Download progress dialog"),
-                    tr("Download ") + file_name,
-                    tr("Cancel"));
+    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
+        [this, dialog, video_id](const auto& video_info) {
+            dialog->setLabelText(tr("Fetch song info ..."));
+
+            QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, dialog, video_info](const std::optional<song::Song>& song) {
+                auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
+                
+                dialog->setLabelText(tr("Start download ") + file_name);
 
                 auto process_handler = [dialog](auto ready, auto total) {
                     dialog->setValue(ready * 100 / total);
