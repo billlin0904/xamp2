@@ -659,7 +659,10 @@ void PlayListTableView::initial() {
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
                 add_to_playlist->addAction(qSTR("Add to playlist (%1)").arg(itr.value()), [playlist_id, video_ids, this]() {
-	                const QString source_playlist_id; // 必須從查詢過來的playlist所以只能為空
+                    QString source_playlist_id;
+                    if (cloudPlaylistId()) {
+                        source_playlist_id = cloudPlaylistId().value();
+                    }
                     emit addToPlaylist(source_playlist_id, playlist_id, video_ids);
                     });
             }

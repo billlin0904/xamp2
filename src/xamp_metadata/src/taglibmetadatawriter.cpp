@@ -78,29 +78,29 @@ public:
 	}
 
     void Write(const Path &path, const TrackInfo &track_info) const {
-        Write(path, [&metadata = std::as_const(track_info)](auto, auto tag) {
-			tag->setTrack(metadata.track);
+        Write(path, [&ti = std::as_const(track_info)](auto, auto tag) {
+			tag->setTrack(ti.track);
 
-			if (metadata.album) {
-				tag->setAlbum(metadata.album.value());
+			if (ti.album) {
+				tag->setAlbum(ti.album.value());
 			} else {
 				tag->setAlbum("");
 			}
 
-			if (metadata.artist) {
-				tag->setArtist(metadata.artist.value());
+			if (ti.artist) {
+				tag->setArtist(ti.artist.value());
 			} else {
 				tag->setArtist("");
 			}
 
-			if (metadata.title) {
-				tag->setTitle(metadata.title.value());
+			if (ti.title) {
+				tag->setTitle(ti.title.value());
 			} else {
 				tag->setTitle("");
 			}
 
-			if (metadata.comment) {
-				tag->setComment(metadata.comment.value());
+			if (ti.comment) {
+				tag->setComment(ti.comment.value());
 			} else {
 				tag->setComment("");
 			}
@@ -208,10 +208,10 @@ public:
 
 	void WriteEmbeddedCover(const Path& path, const uint8_t *image, size_t image_size) const {
 		const auto ext = String::ToLower(path.extension().string());
-		const TagLib::ByteVector imagedata(reinterpret_cast<const char*>(image), image_size);
+		const TagLib::ByteVector image_data(reinterpret_cast<const char*>(image), image_size);
 
 		if (ext == ".m4a" || ext == ".mp4") {
-			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
+			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), image_data);
 
 			Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
 				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
@@ -224,7 +224,7 @@ public:
 				});
 		}
 		else if (ext == ".mp3") {
-			Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
+			Write(path, [&id = std::as_const(image_data)](auto file, auto) {
 				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
 					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
 						const auto frame_list = mp3_tag->frameList("APIC");
@@ -237,19 +237,19 @@ public:
 						auto* frame = new TagLib::ID3v2::AttachedPictureFrame("APIC");
 						frame->setType(TagLib::ID3v2::AttachedPictureFrame::FrontCover);
 						frame->setMimeType("image/jpeg");
-						frame->setPicture(imagedata);
+						frame->setPicture(id);
 						mp3_tag->addFrame(frame);
 					}
 				}
 				});
 		}
 		else if (ext == ".flac") {
-			Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
+			Write(path, [&id = std::as_const(image_data)](auto file, auto) {
 				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					flac_file->removePictures();
 					auto* picture = new TagLib::FLAC::Picture();
 					picture->setMimeType("image/jpeg");
-					picture->setData(imagedata);
+					picture->setData(id);
 					picture->setType(TagLib::FLAC::Picture::FrontCover);
 					flac_file->addPicture(picture);
 				}
@@ -266,10 +266,13 @@ public:
 
 	[[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const {
 		const auto ext = String::ToLower(path.extension().string());
-		return ext == ".m4a"
-			|| ext == ".mp4"
-			|| ext == ".mp3"
-			|| ext == ".flac";
+		static const HashSet<std::string> support_ext{
+			".m4a",
+			".mp4",
+			".mp3",
+			".flac",
+		};
+		return support_ext.contains(ext);
 	}
 private:
     template <typename Function>

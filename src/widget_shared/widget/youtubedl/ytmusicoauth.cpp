@@ -18,6 +18,8 @@ qTEXT("861556708454-d6dlm3lh05idd8npek18k6be8ba3oc68.apps.googleusercontent.com"
 inline constexpr auto kOAuthUserAgent =
 qTEXT("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0 Cobalt/Version");
 
+inline constexpr auto kGrantType = qTEXT("urn:ietf:params:oauth:grant-type:device_code");
+
 XAMP_DECLARE_LOG_NAME(YtMusicOAuth);
 
 YtMusicOAuth::YtMusicOAuth() {
@@ -56,7 +58,7 @@ void YtMusicOAuth::requestGrant() {
 	http::HttpClient(kOAuthTokenUrl)
 		.header(qTEXT("User-Agent"), kOAuthUserAgent)
 		.param(qTEXT("client_secret"), kOAuthClientSecret)
-		.param(qTEXT("grant_type"), qTEXT("urn:ietf:params:oauth:grant-type:device_code"))
+		.param(qTEXT("grant_type"), kGrantType)
 		.param(qTEXT("device_code"), device_code_)
 		.param(qTEXT("client_id"), kOAuthClientId)
 		.error([this](const auto& url, const auto& content) {

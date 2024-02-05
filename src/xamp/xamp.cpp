@@ -10,6 +10,7 @@
 #include <QImageReader>
 #include <QCoroFuture>
 #include <QInputDialog>
+#include <QCoroProcess>
 
 #include <QSimpleUpdater.h>
 #include <set>
@@ -495,9 +496,29 @@ namespace {
         return true;
     }
 
-    QString getYtMusicUrl(const QString& video_id) {
+    QString makeYtMusicUrl(const QString& video_id) {
         const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
         return ytmusic_url;
+    }
+
+    QCoro::Task<bool> startWebViewProcessAsync(const QString& url) {
+        auto program = qApp->applicationDirPath();
+        program.append(qTEXT("/YtMusicOAuthView/YtMusicOAuthView.exe"));
+
+        QStringList args;
+        args << qTEXT("-") << url;
+
+        QProcess p;
+        auto process = qCoro(p);
+
+        if (!co_await process.start(program, args)) {
+            co_return false;
+        }
+
+        if (!co_await process.waitForFinished(-1)) {
+            co_return false;
+        }
+        co_return true;
     }
 }
 
@@ -634,14 +655,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::acceptAuthorization, [this](const auto &url) {
-        auto program = qApp->applicationDirPath();
-        program.append(qTEXT("/YtMusicOAuthView/YtMusicOAuthView.exe"));
-        QStringList args;
-        args<< qTEXT("-") << url;
-        QProcess p(this);
-        p.start(program, args);
-        p.waitForFinished(-1);
-        ytmusic_oauth_->requestGrant();
+        startWebViewProcessAsync(url)
+            .then([this](auto ret) {
+            if (ret) {
+                ytmusic_oauth_->requestGrant();
+            }            
+            });
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
@@ -992,7 +1011,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
     dialog->show();
 
     auto [video_id, setVideoId] = parseId(entity.file_path);
-    const auto ytmusic_url = getYtMusicUrl(video_id);
+    const auto ytmusic_url = makeYtMusicUrl(video_id);
 
     dialog->setLabelText(tr("Fetch video info ..."));
 
@@ -1067,7 +1086,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     // 1. 白金帳號
     // 2. Browser cookies
     // 3. 使用youtube music URL
-    const auto ytmusic_url = getYtMusicUrl(video_id);
+    const auto ytmusic_url = makeYtMusicUrl(video_id);
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
         [temp = entity, video_id, play_page, this](const auto& video_info) {
@@ -2835,7 +2854,12 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         (void)QObject::connect(playlist_page->playlist(),
             &PlayListTableView::addToPlaylist,
             [this](const auto& source_playlist_id, const auto& playlist_id, const auto& video_ids) {
-                QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, video_ids, source_playlist_id.toStdString()), this, [](auto) {
+                std::vector<std::string> parsed_video_ids;
+                for (auto video_id : video_ids) {
+                    auto [video_id, set_video_id] = parseId(QString::fromStdString(video_id));
+                    parsed_video_ids.push_back(video_id.toStdString());
+                }
+                QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, parsed_video_ids, source_playlist_id.toStdString()), this, [](auto) {
 
                     });
             });

@@ -391,7 +391,6 @@ protected:
 			support_file_extensions_.insert(std::string(".") + file_exts.toCString());
 		}
         support_file_extensions_.erase(".mkv");
-        support_file_extensions_.erase(".mp4");
         support_file_extensions_.erase(".m4v");
 	}
 private:
