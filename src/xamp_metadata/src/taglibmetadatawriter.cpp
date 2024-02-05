@@ -188,7 +188,7 @@ public:
 				}
 				});
 		}
-		else if (ext == ".m4a") {
+		else if (ext == ".m4a" || ext == ".mp4") {
             Write(path, [&replay_gain = std::as_const(replay_gain)](auto* file, Tag* tag) {
 				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
 					mp4_tag->setItem(String::AsStdString(kITunesReplaygainTrackGain),
@@ -210,7 +210,7 @@ public:
 		const auto ext = String::ToLower(path.extension().string());
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char*>(image), image_size);
 
-		if (ext == ".m4a") {
+		if (ext == ".m4a" || ext == ".mp4") {
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
 			Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
@@ -267,6 +267,7 @@ public:
 	[[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const {
 		const auto ext = String::ToLower(path.extension().string());
 		return ext == ".m4a"
+			|| ext == ".mp4"
 			|| ext == ".mp3"
 			|| ext == ".flac";
 	}

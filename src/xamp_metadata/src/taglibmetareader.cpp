@@ -346,6 +346,7 @@ namespace {
             { ".flac", GetFlacReplayGain },
             { ".mp3", GetMp3ReplayGain },
             { ".m4a", GetMp4ReplayGain },
+            { ".mp4", GetMp4ReplayGain },
         };
         const auto itr = parse_replay_gain_table.find(ext);
         if (itr != parse_replay_gain_table.end()) {
@@ -360,6 +361,7 @@ namespace {
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },
+            { ".mp4",  GetMp4Cover },
             { ".dff", GetDsdiffCover },
             { ".dsf", GetDsfCover }
         };

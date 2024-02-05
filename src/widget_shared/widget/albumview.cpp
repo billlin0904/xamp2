@@ -187,8 +187,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         constexpr auto offset = (kIconSize / 2) - 10;
 
         const QRect button_rect(
-            option.rect.left() + default_cover_size.width() / 2 - offset,
-            option.rect.top() + default_cover_size.height() / 2 - offset,
+            option.rect.left() + default_cover_size.width() / 2 - 15,
+            option.rect.top() + default_cover_size.height() / 2 - 15,
             kIconSize, kIconSize);
 
         QStyleOptionButton button;

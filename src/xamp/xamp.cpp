@@ -79,6 +79,7 @@
 
 #include <thememanager.h>
 #include <version.h>
+#include <widget/tagio.h>
 
 namespace {
     void showMeMessage(const QString& message) {
@@ -996,10 +997,10 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
     dialog->setLabelText(tr("Fetch video info ..."));
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
-        [this, dialog, video_id](const auto& video_info) {
+        [this, dialog, video_id, entity](const auto& video_info) {
             dialog->setLabelText(tr("Fetch song info ..."));
 
-            QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, dialog, video_info](const std::optional<song::Song>& song) {
+            QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, dialog, video_info, entity](const auto& song) {
                 auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
                 
                 dialog->setLabelText(tr("Start download ") + file_name);
@@ -1013,7 +1014,8 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
                     dialog->close();
                     };
 
-                auto error_handler = [](auto url, auto message) {
+                auto error_handler = [dialog](auto url, auto message) {
+                    dialog->close();
                     };
 
                 const auto best_format = findBestAudioFormat(video_info);
@@ -1021,6 +1023,30 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
                     .progress(process_handler)
                     .downloadFile(file_name, download_file_handler, error_handler);
                 dialog->exec();
+                
+                if (!QFile(file_name).exists()) {
+                    return;
+                }          
+
+                TagIO tag_io;
+                tag_io.writeAlbum(file_name.toStdWString(),  entity.album);
+                tag_io.writeArtist(file_name.toStdWString(), entity.artist);
+                tag_io.writeTitle(file_name.toStdWString(),  QString::fromStdString(song.value().title));
+                tag_io.writeTrack(file_name.toStdWString(),  entity.track);
+
+                const auto thumbnail_url = song.value().thumbnail.thumbnails.back().url;
+
+                http::HttpClient(QString::fromStdString(thumbnail_url))
+                    .download([file_name, this](const auto& content) {
+                    QPixmap image;
+                    if (!image.loadFromData(content)) {
+                        return;
+                    }
+
+                    TagIO tag_io;
+                    tag_io.writeEmbeddedCover(file_name.toStdWString(), image);
+                    XMessageBox::showInformation(tr("Download completed!"));
+                });                
 
                 });
         });

@@ -10,7 +10,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-class TagIO final {
+class XAMP_WIDGET_SHARED_EXPORT TagIO final {
 public:
     TagIO();
 

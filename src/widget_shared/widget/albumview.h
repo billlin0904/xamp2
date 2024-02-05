@@ -41,7 +41,7 @@ class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 public:	
 	static const ConstLatin1String kAlbumCacheTag;
 	static constexpr auto kMoreIconSize = 20;
-	static constexpr auto kIconSize = 48;
+	static constexpr auto kIconSize = 40;
 
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 

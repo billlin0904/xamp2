@@ -13,6 +13,7 @@
 #include <widget/widget_shared.h>
 #include <widget/util/str_utilts.h>
 #include <base/enum.h>
+#include <base/stl.h>
 #include <widget/widget_shared_global.h>
 
 namespace meta {
@@ -192,6 +193,15 @@ namespace song {
 		struct Thumbnail {
 			std::vector<meta::Thumbnail> thumbnails;
 		};
+
+		std::string artist() {
+			const char* const delim = ", ";
+
+			std::ostringstream imploded;
+			std::copy(artists.begin(), artists.end(),
+				std::ostream_iterator<std::string>(imploded, delim));
+			return imploded.str();
+		}
 
 		std::string video_id;
 		std::string title;
