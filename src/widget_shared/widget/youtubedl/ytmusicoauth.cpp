@@ -3,6 +3,7 @@
 #include <QSaveFile>
 #include <QDateTime>
 #include <QJsonObject>
+#include <QFile>
 
 #include <widget/youtubedl/ytmusicoauth.h>
 
@@ -89,4 +90,46 @@ void YtMusicOAuth::requestGrant() {
 		}
 	})
 	.post();
+}
+
+std::optional<OAuthToken> YtMusicOAuth::parseOAuthToken() {
+	QFile file(qTEXT("oauth.json"));
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		return std::nullopt;
+	}
+
+	const auto content = file.readAll();
+	QJsonParseError error;
+	const auto code = QJsonDocument::fromJson(content, &error);
+	if (error.error != QJsonParseError::NoError) {
+		return std::nullopt;
+	}
+
+	const auto root = code.object();
+	const QList<QString> keys{
+		qTEXT("access_token"),
+		qTEXT("expires_in"),
+		qTEXT("refresh_token"),
+		qTEXT("scope"),
+		qTEXT("token_type"),
+		qTEXT("expires_at"),
+		qTEXT("filepath"),
+	};
+
+	OAuthToken token;
+	Q_FOREACH(auto key, keys) {
+		if (!root.contains(key)) {
+			return std::nullopt;
+		}
+	}
+
+	token.expires_in = root[qTEXT("expires_in")].toInteger();
+	token.expires_at = root[qTEXT("expires_at")].toInteger();
+	token.refresh_token = root[qTEXT("refresh_token")].toString();
+	token.access_token = root[qTEXT("access_token")].toString();
+	token.token_type = root[qTEXT("token_type")].toString();
+	token.filepath = root[qTEXT("filepath")].toString();
+	token.scope = root[qTEXT("scope")].toString();
+
+	return token;
 }

@@ -76,6 +76,7 @@ enum Glyphs {
     ICON_ADD,
     ICON_DRAFT,
     ICON_PERSON,
+    ICON_PERSON_UNAUTHORIZATIONED,
     ICON_END,
 };
 

@@ -198,6 +198,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_ADD,                       0xE145 },
 	{ ICON_DRAFT,                     0xF1C6 },
 	{ ICON_PERSON,                    0xE7FD },
+    { ICON_PERSON_UNAUTHORIZATIONED,  0xE853 },
     };
 
     qFontIcon.addFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));

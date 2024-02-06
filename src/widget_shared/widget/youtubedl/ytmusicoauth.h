@@ -10,6 +10,16 @@
 #include <widget/widget_shared_global.h>
 #include <widget/util/str_utilts.h>
 
+struct XAMP_WIDGET_SHARED_EXPORT OAuthToken {
+	int64_t expires_in{ 0 };
+	int64_t expires_at{ 0 };
+	QString filepath;
+	QString access_token;
+	QString refresh_token;
+	QString scope;
+	QString token_type;
+};
+
 class XAMP_WIDGET_SHARED_EXPORT YtMusicOAuth : public QObject {	
 	Q_OBJECT
 public:
@@ -19,6 +29,7 @@ public:
 
 	void requestGrant();
 
+	static std::optional<OAuthToken> parseOAuthToken();
 signals:
 	void requestGrantCompleted();
 

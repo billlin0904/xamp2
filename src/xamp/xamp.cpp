@@ -77,6 +77,7 @@
 #include <widget/genre_view_page.h>
 #include <widget/playlisttabbar.h>
 #include <widget/createplaylistview.h>
+#include <widget/accountauthorizationpage.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -136,8 +137,8 @@ namespace {
 		)"));
         }
 
-        if (auth) {
-            ui.authButton->setIcon(qTheme.fontRawIcon(0xe853));
+        if (!auth) {
+            ui.authButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON_UNAUTHORIZATIONED));
         } else {
             ui.authButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON));
         }
@@ -467,35 +468,6 @@ namespace {
         return playlist_page;
     }    
 
-    bool isYtMusicAuthorization() {
-        QFile file(qTEXT("oauth.json"));
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            return false;
-        }
-        const auto content = file.readAll();
-        QJsonParseError error;
-        const auto code = QJsonDocument::fromJson(content, &error);
-        if (error.error != QJsonParseError::NoError) {
-            return false;
-        }
-        const auto root = code.object();
-        const QList<QString> keys{
-            qTEXT("access_token"),
-            qTEXT("expires_in"),
-            qTEXT("refresh_token"),
-            qTEXT("scope"),
-            qTEXT("token_type"),
-            qTEXT("expires_at"),
-            qTEXT("filepath"),
-        };
-        Q_FOREACH(auto key, keys) {
-	        if (!root.contains(key)) {
-                return false;
-	        }
-        }
-        return true;
-    }
-
     QString makeYtMusicUrl(const QString& video_id) {
         const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
         return ytmusic_url;
@@ -642,7 +614,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     find_album_cover_worker_.reset(new FindAlbumCoverWorker());
     find_album_cover_worker_->moveToThread(&find_album_cover_thread_);
-    find_album_cover_thread_.start(QThread::LowestPriority);
+    find_album_cover_thread_.start(QThread::NormalPriority);
 
     extract_file_worker_.reset(new FileSystemWorker());
     extract_file_worker_->moveToThread(&file_system_thread_);
@@ -650,8 +622,19 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
 
-    (void)QObject::connect(ui_.authButton, &QToolButton::clicked, [this](auto checked) {        
-        ytmusic_oauth_->setup();
+    (void)QObject::connect(ui_.authButton, &QToolButton::clicked, [this](auto checked) { 
+        auto token = YtMusicOAuth::parseOAuthToken();
+        if (token) {            
+            const QScopedPointer<XDialog> dialog(new XDialog(this));
+            const QScopedPointer<AccountAuthorizationPage> authorization_page(new AccountAuthorizationPage(dialog.get()));
+            dialog->setContentWidget(authorization_page.get());
+            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+            dialog->setTitle(tr("Account Authorization"));
+            authorization_page->setOAuthToken(token.value());
+            dialog->exec();
+        } else {
+            ytmusic_oauth_->setup();
+        }
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::acceptAuthorization, [this](const auto &url) {
@@ -660,11 +643,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             if (ret) {
                 ytmusic_oauth_->requestGrant();
             }            
-            });
+        });
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
-        if (isYtMusicAuthorization()) {
+        if (YtMusicOAuth::parseOAuthToken()) {
             initialYtMusicWorker();
             initialCloudPlaylist();
             setAuthButton(ui_, true);
@@ -682,7 +665,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialShortcut();
     initialSpectrum();
 
-    if (isYtMusicAuthorization()) {
+    if (YtMusicOAuth::parseOAuthToken()) {
         initialYtMusicWorker();
         setAuthButton(ui_, true);
         XAMP_LOG_DEBUG("YouTube worker initial done!");
@@ -770,10 +753,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
         album_page_.get(),
-        &AlbumArtistPage::onThemeChangedFinished);
-
-    setPlayerOrder();
-    initialDeviceList();
+        &AlbumArtistPage::onThemeChangedFinished);    
 
     // ExtractFileWorker
 
@@ -921,8 +901,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
     ui_.menuButton->setMenu(menu);
 
-    onCheckForUpdate();
-
+    setPlayerOrder();
+    initialDeviceList();
+    
     (void)QObject::connect(&ui_update_timer_timer_, &QTimer::timeout, this, &Xamp::onDelayedDownloadThumbnail);
     emit setWatchDirectory(qAppSettings.myMusicFolderPath());
 }
