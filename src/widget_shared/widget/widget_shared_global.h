@@ -21,7 +21,7 @@
 
 #define TRY_LOG(expr) \
     try {\
-        [&, this]() { expr; }();\
+        [&, this]() mutable { expr; }();\
     }\
     catch (...) {\
         logAndShowMessage(std::current_exception());\

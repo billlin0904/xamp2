@@ -102,12 +102,12 @@ public:
 
         const auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_D(logger_, "Uncaught exception: {}{}\r\n",
+            XAMP_LOG_D(logger_, "Uncaught exception: {} {}\r\n",
                 (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X}{}\r\n", 
-                GetPlatformErrorMessage(code), stack_trace.CaptureStack());
+            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X} ({}) {}\r\n", 
+                code, GetPlatformErrorMessage(code), stack_trace.CaptureStack());
         }
     }
 

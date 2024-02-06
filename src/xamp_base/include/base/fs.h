@@ -78,19 +78,7 @@ public:
     */
     template <typename Func>
     bool Try(Func&& func) {
-        return TryImpl(std::forward<Func>(func), [](std::exception const&) {});
-    }
-
-    /*
-    * Try to write file.
-    *
-    * @param[in] func
-    * @param[in] exception_handler
-    * @return bool
-    */
-    template <typename Func, typename ExceptionHandler>
-    bool Try(Func&& func, ExceptionHandler&& exception_handler) {
-        return TryImpl(std::forward<Func>(func), std::forward<ExceptionHandler>(exception_handler));
+        return TryImpl(std::forward<Func>(func));
     }
 
 private:
@@ -101,8 +89,8 @@ private:
     * @param[in] exception_handler
     * @return bool
     */
-    template <typename Func, typename ExceptionHandler>
-    bool TryImpl(Func&& func, ExceptionHandler&& exception_handler) {
+    template <typename Func>
+    bool TryImpl(Func&& func) {
         // Create temp file path.
         temp_file_path_ = Fs::temp_directory_path()
             / Fs::path(MakeTempFileName() + ".tmp");
@@ -114,18 +102,11 @@ private:
             Fs::rename(temp_file_path_, dest_file_path_);
             return true;
         }
-        catch (Exception const& e) {
-            exception_handler(e);
-        }
-        catch (std::exception const& e) {
-            exception_handler(e);
-        }
         catch (...) {
-            exception_handler(std::runtime_error("Unknown exception"));
+            // Remove temp file.
+            Fs::remove(temp_file_path_);
+            std::rethrow_exception(std::current_exception());
         }
-        // Remove temp file.
-        Fs::remove(temp_file_path_);
-        return false;
     }
     Path dest_file_path_;
     Path temp_file_path_;

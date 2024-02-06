@@ -1,4 +1,5 @@
 #include <widget/util/read_until.h>
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
 
 #include <base/align_ptr.h>
@@ -21,6 +22,7 @@
 #include <optional>
 #include <utility>
 #include <tuple>
+
 
 namespace read_until {
 
@@ -102,28 +104,15 @@ void encodeFile(AnyMap const& config,
     AnyMap copy_config = config;
 	ExceptedFile excepted(output_file_path);
 	if (excepted.Try([&](auto const& dest_file_path) {
-        copy_config.AddOrReplace(FileEncoderConfig::kOutputFilePath, dest_file_path);
-		encoder->Start(config);
+		auto temp_path = QString::fromStdWString(dest_file_path.wstring());
+        copy_config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(toNativeSeparators(temp_path).toStdWString()));
+		encoder->Start(copy_config);
 		encoder->Encode(progress);
 		encoder.reset();
 		})) {
 		const auto writer = MakeMetadataWriter();
 		writer->Write(output_file_path, track_info);
 	}
-}
-
-void encodeFile(Path const& file_path,
-	Path const& output_file_path,
-	AlignPtr<IFileEncoder>& encoder,
-    std::wstring const& command,
-    std::function<bool(uint32_t)> const& progress,
-    TrackInfo const& track_info) {
-    ExceptedFile excepted(output_file_path);
-	AnyMap config;
-	config.AddOrReplace(FileEncoderConfig::kInputFilePath, file_path);
-	config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_file_path);
-	config.AddOrReplace(FileEncoderConfig::kCommand, command);
-	encodeFile(config, encoder, progress, track_info);
 }
 
 }

@@ -35,11 +35,4 @@ XAMP_WIDGET_SHARED_EXPORT void encodeFile(AnyMap const &config,
     std::function<bool(uint32_t)> const& progress,
     TrackInfo const& track_info);
 
-XAMP_WIDGET_SHARED_EXPORT void encodeFile(Path const& file_path,
-    Path const& output_file_path,
-    AlignPtr<IFileEncoder>& encoder,
-    std::wstring const& command,
-    std::function<bool(uint32_t)> const& progress,
-    TrackInfo const& track_info);
-
 }
