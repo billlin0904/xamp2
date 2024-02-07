@@ -463,7 +463,11 @@ namespace {
             playlist_page->playlist()->setCloudPlaylistId(cloud_playlist_id);
         }
         return playlist_page;
-    }    
+    }
+
+    void updateButtonState(QToolButton* playButton, PlayerState state) {
+        qTheme.setPlayOrPauseButton(playButton, state != PlayerState::PLAYER_STATE_PAUSED);
+    }
 
     QString makeYtMusicUrl(const QString& video_id) {
         const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
@@ -1618,10 +1622,6 @@ void Xamp::setCurrentTab(int32_t table_id) {
     }
 }
 
-void Xamp::updateButtonState() {
-    qTheme.setPlayOrPauseButton(ui_.playButton, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
-}
-
 void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
@@ -1661,7 +1661,7 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 void Xamp::setThemeColor(QColor background_color, QColor color) {
     qTheme.setBackgroundColor(background_color);
     setWidgetStyle(ui_);
-    updateButtonState();
+    updateButtonState(ui_.playButton, player_->GetState());
     emit themeChanged(background_color, color);
 }
 
@@ -1821,7 +1821,7 @@ void Xamp::playLocalFile(const PlayListEntity& entity) {
 void Xamp::playOrPause() {
     XAMP_LOG_DEBUG("Player state:{}", player_->GetState());
 
-    auto tab_index = ui_.currentView->currentIndex();
+    const auto tab_index = ui_.currentView->currentIndex();
     PlaylistPage* page = nullptr;
     PlaylistTabWidget* tab = nullptr;
 
@@ -2153,7 +2153,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     playlist_page->setHeart(entity.heart);
 
     album_page_->album()->setPlayingAlbumId(entity.album_id);
-    updateButtonState();
+    updateButtonState(ui_.playButton, player_->GetState());
 
     const QFontMetrics title_metrics(ui_.titleLabel->font());
     const QFontMetrics artist_metrics(ui_.artistLabel->font());
@@ -2668,7 +2668,7 @@ void Xamp::addItem(const QString& file_name) {
     appendToPlaylist(file_name, true);
 }
 
-void Xamp::pushWidget(QWidget* widget) {
+void Xamp::pushWidget(QWidget* widget) const {
 	const auto id = ui_.currentView->addWidget(widget);
     ui_.currentView->setCurrentIndex(id);
 }
@@ -2808,7 +2808,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
 
         (void)QObject::connect(playlist_page->playlist(),
             &PlayListTableView::likeSong,
-            [this, playlist_page](bool like, const auto& entity) {
+            [this, playlist_page](auto like, const auto& entity) {
                 playlist_page->playlist()->removeAll();
                 auto [video_id, set_video_id] = parseId(entity.file_path);
                 QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE), this, [this, playlist_page](auto) {
@@ -2955,7 +2955,7 @@ void Xamp::onTranslationCompleted(const QString& keyword, const QString& result)
     qMainDb.updateArtistEnglishName(keyword, result);
 }
 
-void Xamp::onEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities) {
+void Xamp::onEditTags(int32_t /*playlist_id*/, const QList<PlayListEntity>& entities) {
     QScopedPointer<XDialog> dialog(new XDialog(this));
     QScopedPointer<TagEditPage> tag_edit_page(new TagEditPage(dialog.get(), entities));
     dialog->setContentWidget(tag_edit_page.get());

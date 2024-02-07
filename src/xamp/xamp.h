@@ -222,7 +222,7 @@ private:
 
 	void setPlayerOrder(bool emit_order = false);
 
-	void pushWidget(QWidget* widget);
+	void pushWidget(QWidget* widget) const;
 
 	void setSeekPosValue(double stream_time_as_ms);
 
@@ -239,8 +239,6 @@ private:
 	void downloadFile(const PlayListEntity& entity);
 
     void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done);
-
-	void updateButtonState();
 
     void setupDsp(const PlayListEntity& item) const;
 
