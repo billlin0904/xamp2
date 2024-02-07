@@ -20,10 +20,8 @@ Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const 
 QVariant PlayListSqlQueryTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (orientation == Qt::Horizontal) {
         if (role == Qt::TextAlignmentRole) {
-            if (section == PLAYLIST_ARTIST || section == PLAYLIST_DURATION) {
-                return {Qt::AlignVCenter | Qt::AlignLeft};
-            } else if (section == PLAYLIST_TRACK) {
-                return {Qt::AlignCenter };
+            if (section == PLAYLIST_TRACK) {
+                return { Qt::AlignCenter };
             }
         }
     }

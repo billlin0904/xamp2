@@ -19,7 +19,7 @@ class XAMP_PLAYER_API XAMP_NO_VTABLE IPlaybackStateAdapter {
 public:
 	XAMP_BASE_CLASS(IPlaybackStateAdapter)
 
-	virtual void OnError(Exception const & ex) = 0;
+	virtual void OnError(const Exception & ex) = 0;
 
 	virtual void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) = 0;
 

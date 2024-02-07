@@ -96,12 +96,12 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_DEVICE_IN_USE, "Device in use." },
         { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, "Device not found." },
         { Errors::XAMP_ERROR_FILE_NOT_FOUND, "File not found." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE, "Not support samplerate." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE, "Not support samplerate." },
         { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, "Not support format." },
         { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "Load dll failure." },
         { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "Stop stream thread timeout." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE, "Resampler not support variable resample." },
-        { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, "SampleRate was changed." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE, "Resampler not support variable resample." },
+        { Errors::XAMP_ERROR_SAMPLE_RATE_CHANGED, "SampleRate was changed." },
         { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
         { Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE, "Not support exclusive mode." },
         };
@@ -168,11 +168,11 @@ IMP_EXCEPTION_CLASS(DeviceCreateFailureException, Errors::XAMP_ERROR_DEVICE_CREA
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
 IMP_EXCEPTION_CLASS(DeviceNeedSetMatchFormatException, Errors::XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT)
 IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
-IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
+IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE)
 IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
 IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT)
-IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED)
-IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE)
+IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLE_RATE_CHANGED)
+IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE)
 IMP_EXCEPTION_CLASS(NotSupportExclusiveModeException, Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
 IMP_EXCEPTION_CLASS(BufferOverflowException, Errors::XAMP_ERROR_NOT_BUFFER_OVERFLOW)
 

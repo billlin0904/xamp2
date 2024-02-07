@@ -274,7 +274,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		try {
 			HrIfFailledThrow(client_->SetClientProperties(&device_props));
 		}
-		catch (Exception const& e) {
+		catch (const Exception& e) {
 			XAMP_LOG_D(logger_, "SetClientProperties return failure! {}", e.GetErrorMessage());
 			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 			HrIfFailledThrow(client_->SetClientProperties(&device_props));
@@ -417,7 +417,7 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 		try {
 			GetSample(false);
 			rt_work_queue_->WaitAsync(sample_ready_.get());
-		} catch (Exception const &e) {
+		} catch (const Exception &e) {
 			XAMP_LOG_D(logger_, e.what());
 			StopStream();
 		}

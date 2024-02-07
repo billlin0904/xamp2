@@ -233,7 +233,7 @@ public:
         case PLAYLIST_TRACK:
 	        {
 				static constexpr QSize icon_size(kPlayingStateIconSize, kPlayingStateIconSize);
-                auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
+                auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_IS_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
                     opt.icon = qTheme.playlistPlayingIcon(icon_size);
@@ -307,9 +307,9 @@ public:
         	}
 	        }
             break;
-        case PLAYLIST_COVER_ID:
+        case PLAYLIST_ALBUM_COVER_ID:
 	        {
-				auto music_cover_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_MUSIC_COVER)).toString();
+				auto music_cover_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_MUSIC_COVER_ID)).toString();
                 auto id = value.toString();
 				if (!music_cover_id.isEmpty()) {
                     id = music_cover_id;
@@ -396,7 +396,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     reload();
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("Id"));
-    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IsPlaying"));
+    model_->setHeaderData(PLAYLIST_IS_PLAYING, Qt::Horizontal, tr("IsPlaying"));
     model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("   #"));
     model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FilePath"));
     model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("Title"));
@@ -418,7 +418,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     model_->setHeaderData(PLAYLIST_PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("PlaylistId"));
     model_->setHeaderData(PLAYLIST_FILE_EXT, Qt::Horizontal, tr("FileExt"));
     model_->setHeaderData(PLAYLIST_FILE_PARENT_PATH, Qt::Horizontal, tr("ParentPath"));
-    model_->setHeaderData(PLAYLIST_COVER_ID, Qt::Horizontal, tr(""));
+    model_->setHeaderData(PLAYLIST_ALBUM_COVER_ID, Qt::Horizontal, tr(""));
     model_->setHeaderData(PLAYLIST_ARTIST_ID, Qt::Horizontal, tr("ArtistId"));
     model_->setHeaderData(PLAYLIST_LIKE, Qt::Horizontal, tr("Like"));
     model_->setHeaderData(PLAYLIST_COMMENT, Qt::Horizontal, tr("Comment"));
@@ -427,10 +427,27 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
     auto column_list = qAppSettings.valueAsStringList(column_setting_name);
 
+    const QList<int> always_hidden_columns{
+        PLAYLIST_MUSIC_ID,
+        PLAYLIST_IS_PLAYING,
+        PLAYLIST_LIKE,
+        PLAYLIST_PLAYLIST_MUSIC_ID,
+        PLAYLIST_CHECKED,
+        PLAYLIST_ALBUM_ID,
+        PLAYLIST_ALBUM_COVER_ID,
+        PLAYLIST_MUSIC_COVER_ID
+    };
+
+    always_hidden_columns_ = always_hidden_columns;
+
+    for (const auto column : qAsConst(always_hidden_columns_)) {
+        hideColumn(column);
+    }
+
     if (column_list.empty()) {
         const QList<int> hidden_columns{
             PLAYLIST_MUSIC_ID,
-            PLAYLIST_PLAYING,
+            PLAYLIST_IS_PLAYING,
             PLAYLIST_FILE_PATH,
             PLAYLIST_FILE_NAME,
             PLAYLIST_FILE_SIZE,
@@ -447,7 +464,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_GENRE,
             PLAYLIST_ALBUM_ID,
             PLAYLIST_ARTIST_ID,
-            PLAYLIST_COVER_ID,
+            PLAYLIST_ALBUM_COVER_ID,
             PLAYLIST_FILE_EXT,
             PLAYLIST_FILE_PARENT_PATH,
             PLAYLIST_PLAYLIST_MUSIC_ID,
@@ -456,7 +473,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_YEAR
         };
 
-        for (auto column : qAsConst(hidden_columns)) {
+        for (const auto column : qAsConst(hidden_columns)) {
             hideColumn(column);
         }
 
@@ -494,21 +511,25 @@ void PlayListTableView::setHeaderViewHidden(bool enable) {
     auto last_referred_logical_column = header_view->logicalIndexAt(pt);
     auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
         setColumnHidden(last_referred_logical_column, true);
-    qAppSettings.removeList(column_setting_name_, QString::number(last_referred_logical_column));
+		qAppSettings.removeList(column_setting_name_, QString::number(last_referred_logical_column));
         });
     hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
     auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
         ActionMap<PlayListTableView> action_map(this);
-    for (auto column = 0; column < header_view->count(); ++column) {
-        auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-        action_map.addAction(header_name, [this, column]() {
-            setColumnHidden(column, false);
-        qAppSettings.addList(column_setting_name_, QString::number(column));
+        for (auto column = 0; column < header_view->count(); ++column) {
+            if (always_hidden_columns_.contains(column)) {
+                continue;
+            }
+            auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+            action_map.addAction(header_name, [this, column]() {
+                setColumnHidden(column, false);
+			    qAppSettings.addList(column_setting_name_, QString::number(column));
             }, false, !isColumnHidden(column));
-    }
-    action_map.exec(pt);
-        });
+        }
+        action_map.exec(pt);
+    });
+
     select_column_show_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SHOW));
     action_map.exec(pt);
     });
@@ -1024,7 +1045,7 @@ void PlayListTableView::resizeColumn() {
         }
 
 	    switch (column) {
-        case PLAYLIST_PLAYING:
+        case PLAYLIST_IS_PLAYING:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
             header->resizeSection(column, kColumnPlayingWidth);
             break;
@@ -1044,7 +1065,7 @@ void PlayListTableView::resizeColumn() {
             break;
         case PLAYLIST_CHECKED:
         case PLAYLIST_LIKE:
-        case PLAYLIST_COVER_ID:
+        case PLAYLIST_ALBUM_COVER_ID:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, kColumnWidth);
             break;
@@ -1072,7 +1093,7 @@ QModelIndex PlayListTableView::nextIndex(int forward) const {
     const auto count = proxy_model_->rowCount();
     const auto play_index = currentIndex();
     const auto next_index = (play_index.row() + forward) % count;
-    return model()->index(next_index, PLAYLIST_PLAYING);
+    return model()->index(next_index, PLAYLIST_IS_PLAYING);
 }
 
 QModelIndex PlayListTableView::shuffleIndex() {
@@ -1085,7 +1106,7 @@ QModelIndex PlayListTableView::shuffleIndex() {
         rng_.SetSeed(current_playlist_music_id);
     }    
     const auto selected = rng_.NextInt32(0) % count;
-    return model()->index(selected, PLAYLIST_PLAYING);
+    return model()->index(selected, PLAYLIST_IS_PLAYING);
 }
 
 void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_to) {

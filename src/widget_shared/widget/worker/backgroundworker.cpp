@@ -56,7 +56,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
     try {
         disc_id = mbdisc_id.GetDiscId(drive.drive_path.toStdString());
         url = mbdisc_id.GetDiscIdLookupUrl(drive.drive_path.toStdString());
-    } catch (Exception const &e) {
+    } catch (const Exception &e) {
         XAMP_LOG_DEBUG(e.GetErrorMessage());
         return;
     }
@@ -83,7 +83,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
         emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
     }
-    catch (Exception const& e) {
+    catch (const Exception& e) {
         XAMP_LOG_DEBUG(e.GetErrorMessage());
         return;
     }

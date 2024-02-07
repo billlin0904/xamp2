@@ -12,7 +12,7 @@ namespace {
 		return error.error == QJsonParseError::NoError;
 	}
 
-	bool WriteJsonFile(QIODevice& device, const QSettings::SettingsMap& map) {
+	bool writeJsonFile(QIODevice& device, const QSettings::SettingsMap& map) {
 		bool ret = false;
 		const auto json_document = QJsonDocument::fromVariant(QVariant::fromValue(map));
 		if (device.write(json_document.toJson()) != -1) {
@@ -22,31 +22,28 @@ namespace {
 	}
 }
 
-QScopedPointer<QSettings> JsonSettings::settings_;
-QMap<QString, QVariant> JsonSettings::default_settings_;
-
 void JsonSettings::loadJsonFile(const QString& file_name) {
 	const auto json_format =
-		QSettings::registerFormat(qTEXT("json"), readJsonFile, WriteJsonFile);
+		QSettings::registerFormat(qTEXT("json"), readJsonFile, writeJsonFile);
 	settings_.reset(new QSettings(file_name, json_format));
 }
 
-QStringList JsonSettings::keys() {
+QStringList JsonSettings::keys() const {
 	return settings_->allKeys();
 }
 
-void JsonSettings::remove(const QString& key) {
+void JsonSettings::remove(const QString& key) const {
 	settings_->remove(key);
 }
 
-void JsonSettings::save() {
+void JsonSettings::save() const {
 	if (!settings_) {
 		return;
 	}
 	settings_->sync();
 }
 
-int32_t JsonSettings::valueAsInt(const QString& key) {
+int32_t JsonSettings::valueAsInt(const QString& key) const {
 	return valueAs(key).toInt();
 }
 
@@ -54,7 +51,7 @@ QMap<QString, QVariant> JsonSettings::valueAsMap(QString const& key) {
 	return QVariant::fromValue(valueAs(key)).toMap();
 }
 
-QVariant JsonSettings::valueAs(const QString& key) {
+QVariant JsonSettings::valueAs(const QString& key) const {
 	if (key.isEmpty()) {
 		return{};
 	}

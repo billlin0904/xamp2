@@ -208,6 +208,7 @@ protected:
     QSet<QString> hidden_column_names_;
 	PRNG rng_;
 	QString column_setting_name_;
+	QList<int> always_hidden_columns_;
 };
 
 

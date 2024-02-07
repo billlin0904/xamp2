@@ -49,7 +49,7 @@ public:
 	* 
 	* @param[in] exception is a exception.
 	*/
-    virtual void OnError(Exception const & exception) noexcept = 0;
+    virtual void OnError(const Exception & exception) noexcept = 0;
 
 	/*
 	* OnVolumeChange is called when audio device volume changed.

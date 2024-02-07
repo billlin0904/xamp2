@@ -196,7 +196,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="singleinstanceapplication.h" />
+    <ClInclude Include="singleinstanceapplication.h" />
     <ClInclude Include="resource.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>

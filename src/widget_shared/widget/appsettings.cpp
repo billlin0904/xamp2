@@ -32,14 +32,14 @@ namespace {
 
 		QMap<QString, QVariant> soxr_setting;
 
-		if (JsonSettings::valueAsMap(kSoxr).isEmpty()) {
+		if (qJsonSettings.valueAsMap(kSoxr).isEmpty()) {
 			soxr_setting[setting_name] = default_setting;
 		}
 		else {
-			soxr_setting = JsonSettings::valueAsMap(kSoxr);
+			soxr_setting = qJsonSettings.valueAsMap(kSoxr);
 			soxr_setting[setting_name] = default_setting;
 		}
-		JsonSettings::setValue(kSoxr, QVariant::fromValue(soxr_setting));
+		qJsonSettings.setValue(kSoxr, QVariant::fromValue(soxr_setting));
 	}
 }
 
@@ -333,9 +333,9 @@ void AppSettings::LoadR8BrainSetting() {
 	QMap<QString, QVariant> default_setting;
 
 	default_setting[kResampleSampleRate] = 96000;
-	JsonSettings::setDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
-	if (JsonSettings::valueAsMap(kR8Brain).isEmpty()) {
-		JsonSettings::setValue(kR8Brain, QVariant::fromValue(default_setting));
+	qJsonSettings.setDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
+	if (qJsonSettings.valueAsMap(kR8Brain).isEmpty()) {
+		qJsonSettings.setValue(kR8Brain, QVariant::fromValue(default_setting));
 	}
 	if (!contains(kAppSettingResamplerType)) {
 		setValue(kAppSettingResamplerType, kR8Brain);
@@ -367,8 +367,8 @@ void AppSettings::saveLogConfig() {
 
 	min_level[kLogOverride] = override_map;
 	log[kLogMinimumLevel] = min_level;
-	JsonSettings::setValue(kLog, QVariant::fromValue(log));
-	JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
+	qJsonSettings.setValue(kLog, QVariant::fromValue(log));
+	qJsonSettings.setDefaultValue(kLog, QVariant::fromValue(log));
 }
 
 void AppSettings::loadOrSaveLogConfig() {
@@ -386,7 +386,7 @@ void AppSettings::loadOrSaveLogConfig() {
 		}
 	}
 
-	if (JsonSettings::valueAsMap(kLog).isEmpty()) {
+	if (qJsonSettings.valueAsMap(kLog).isEmpty()) {
 		min_level[kLogDefault] = qTEXT("info");
 
 		XAM_LOG_MANAGER().SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
@@ -400,11 +400,11 @@ void AppSettings::loadOrSaveLogConfig() {
 
 		min_level[kLogOverride] = override_map;
 		log[kLogMinimumLevel] = min_level;
-		JsonSettings::setValue(kLog, QVariant::fromValue(log));
-		JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
+		qJsonSettings.setValue(kLog, QVariant::fromValue(log));
+		qJsonSettings.setDefaultValue(kLog, QVariant::fromValue(log));
 	}
 	else {
-		log = JsonSettings::valueAsMap(kLog);
+		log = qJsonSettings.valueAsMap(kLog);
 		min_level = log[kLogMinimumLevel].toMap();
 
 		const auto default_level = min_level[kLogDefault].toString();

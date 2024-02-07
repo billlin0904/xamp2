@@ -14,38 +14,38 @@
 
 class XAMP_WIDGET_SHARED_EXPORT JsonSettings {
 public:
-    static void loadJsonFile(QString const& file_name);
+    JsonSettings() = default;
 
-    static QMap<QString, QVariant> valueAsMap(QString const& key);
+    void loadJsonFile(QString const& file_name);
 
-    static QVariant valueAs(QString const& key);
+    QMap<QString, QVariant> valueAsMap(QString const& key);
 
-    static int32_t valueAsInt(QString const& key);
+    QVariant valueAs(QString const& key) const;
 
-    static void remove(const QString& key);
+	int32_t valueAsInt(QString const& key) const;
+
+    void remove(const QString& key) const;
 
     template <typename T>
-    static void setDefaultValue(QString const& key, T const & value) {
+    void setDefaultValue(QString const& key, T const & value) {
         default_settings_[key] = value;
     }
 
-    static void setValue(QString const & key, QVariant const & value) {
+    void setValue(QString const & key, QVariant const & value) {
         settings_->setValue(key, value);
     }
 
-    static bool contains(QString const& key) {
+    bool contains(QString const& key) {
         return settings_->contains(key);
     }
 
-    static QStringList keys();
+    QStringList keys() const;
 
-    static void save();
-
-protected:
-    JsonSettings() = default;
+    void save() const;
 
 private:
-    static QScopedPointer<QSettings> settings_;
-    static QMap<QString, QVariant> default_settings_;
+    QScopedPointer<QSettings> settings_;
+    QMap<QString, QVariant> default_settings_;
 };
 
+#define qJsonSettings SharedSingleton<JsonSettings>::GetInstance()

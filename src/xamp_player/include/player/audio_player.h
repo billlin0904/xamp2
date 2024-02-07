@@ -288,7 +288,7 @@ private:
 
     void OnVolumeChange(float vol) noexcept override;
 
-    void OnError(Exception const& e) noexcept override;
+    void OnError(const Exception& e) noexcept override;
 
     void OnDeviceStateChange(DeviceState state, std::string const& device_id) override;
 

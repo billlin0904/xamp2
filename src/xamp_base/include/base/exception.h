@@ -28,12 +28,12 @@ XAMP_BASE_NAMESPACE_BEGIN
 * XAMP_ERROR_DEVICE_IN_USE: Device in use
 * XAMP_ERROR_DEVICE_NOT_FOUND: Device not found
 * XAMP_ERROR_FILE_NOT_FOUND: File not found
-* XAMP_ERROR_NOT_SUPPORT_SAMPLERATE: Not support samplerate
+* XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE: Not support sample rate
 * XAMP_ERROR_NOT_SUPPORT_FORMAT: Not support format
 * XAMP_ERROR_LOAD_DLL_FAILURE: Load dll failure
 * XAMP_ERROR_STOP_STREAM_TIMEOUT: Stop stream timeout
-* XAMP_ERROR_SAMPLERATE_CHANGED: Sample rate changed
-* XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE: Not support resample samplerate
+* XAMP_ERROR_SAMPLE_RATE_CHANGED: Sample rate changed
+* XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE: Not support resample sample rate
 * XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC: Not found dll export function
 * XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE: Not support exclusive mode
 * XAMP_ERROR_NOT_BUFFER_OVERFLOW: Not buffer overflow
@@ -50,12 +50,12 @@ XAMP_MAKE_ENUM(Errors,
     XAMP_ERROR_DEVICE_NOT_FOUND,
     XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT,
     XAMP_ERROR_FILE_NOT_FOUND,
-    XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
+    XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE,
     XAMP_ERROR_NOT_SUPPORT_FORMAT,
     XAMP_ERROR_LOAD_DLL_FAILURE,
     XAMP_ERROR_STOP_STREAM_TIMEOUT,
-    XAMP_ERROR_SAMPLERATE_CHANGED,
-    XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE,
+    XAMP_ERROR_SAMPLE_RATE_CHANGED,
+    XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE,
     XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
     XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE,
     XAMP_ERROR_NOT_BUFFER_OVERFLOW,
@@ -73,7 +73,7 @@ XAMP_MAKE_ENUM(Errors,
         * @param message: Message.
         * @param what: What.
         */
-        Exception(std::string const& message, std::string_view what = "");
+        explicit Exception(std::string const& message, std::string_view what = "");
 
         /*
         * Constructor.
@@ -89,7 +89,7 @@ XAMP_MAKE_ENUM(Errors,
         /*
         * Destructor.
         */
-        ~Exception() noexcept override = default;
+        virtual ~Exception() noexcept override = default;
 
         /*
         * what function.

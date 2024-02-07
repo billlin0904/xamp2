@@ -41,7 +41,7 @@ namespace {
         XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
         qAppSettings.loadSoxrSetting();
         qAppSettings.LoadR8BrainSetting();
-        JsonSettings::save();
+        qJsonSettings.save();
         XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
     }
 
@@ -74,6 +74,7 @@ namespace {
     Vector<SharedLibraryHandle> prefetchDll() {
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         const Vector<std::string_view> dll_file_names{
+            R"(WS2_32.dll)",
             R"(Python3.dll)",
             R"(mimalloc-override.dll)",
             R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
@@ -90,7 +91,7 @@ namespace {
                     XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
                 }
             }
-            catch (Exception const& e) {
+            catch (const Exception& e) {
                 XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
             }
         }
@@ -171,7 +172,7 @@ namespace {
         QApplication::setOrganizationDomain(kApplicationName);
 
         const SingleInstanceApplication app(argc, argv);
-        if (!app.IsAttach()) {
+        if (!app.isAttach()) {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
         }
@@ -272,7 +273,7 @@ int main() {
         .Startup();
 
     qAppSettings.loadIniFile(qTEXT("xamp.ini"));
-    JsonSettings::loadJsonFile(qTEXT("config.json"));
+    qJsonSettings.loadJsonFile(qTEXT("config.json"));
 
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver >= QOperatingSystemVersion::Windows10) {
@@ -309,7 +310,7 @@ int main() {
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
-        JsonSettings::save();
+        qJsonSettings.save();
         qAppSettings.save();
         qAppSettings.saveLogConfig();
         qMainDb.close();
@@ -326,7 +327,7 @@ int main() {
     try {
         exist_code = execute(argc, argv, args);        
     }
-    catch (Exception const& e) {
+    catch (const Exception& e) {
         exist_code = -1;
         XAMP_LOG_ERROR("message:{} {}", e.what(), e.GetStackTrace());
     }

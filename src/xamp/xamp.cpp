@@ -4,7 +4,6 @@
 #include <QShortcut>
 #include <QToolTip>
 #include <QWidgetAction>
-#include <QMessageBox>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QImageReader>
@@ -24,7 +23,6 @@
 #include <stream/idspmanager.h>
 #include <stream/r8brainresampler.h>
 #include <stream/compressorparameters.h>
-#include <stream/isameplewriter.h>
 
 #include <player/ebur128reader.h>
 
@@ -35,7 +33,6 @@
 #include <widget/util/str_utilts.h>
 #include <widget/util/mbdiscid_uiltis.h>
 #include <widget/util/image_utiltis.h>
-#include <widget/util/str_utilts.h>
 #include <widget/util/ui_utilts.h>
 
 #include <widget/worker/backgroundworker.h>
@@ -1876,7 +1873,7 @@ void Xamp::playOrPause() {
                 play_index_ = select_item.value();
             }
             play_index_ = page->playlist()->model()->index(
-                play_index_.row(), PLAYLIST_PLAYING);
+                play_index_.row(), PLAYLIST_IS_PLAYING);
             if (play_index_.row() == -1) {
                 XMessageBox::showInformation(tr("Not found any playing item."));
                 return;
@@ -1952,7 +1949,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
     if (sample_rate_converter_type == kSoxr || sample_rate_converter_type.isEmpty()) {
         QMap<QString, QVariant> soxr_settings;
         const auto setting_name = qAppSettings.valueAsString(kAppSettingSoxrSettingName);
-        soxr_settings = JsonSettings::valueAs(kSoxr).toMap()[setting_name].toMap();
+        soxr_settings = qJsonSettings.valueAs(kSoxr).toMap()[setting_name].toMap();
         target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
 
         initial_sample_rate_converter = [this, soxr_settings]() {
@@ -1960,7 +1957,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
         };
     }
     else if (sample_rate_converter_type == kR8Brain) {
-        auto config = JsonSettings::valueAsMap(kR8Brain);
+        auto config = qJsonSettings.valueAsMap(kR8Brain);
         target_sample_rate = config[kResampleSampleRate].toUInt();
 
         initial_sample_rate_converter = [this]() {
@@ -1968,7 +1965,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
         };
     }
     else if (sample_rate_converter_type == kSrc) {
-        auto config = JsonSettings::valueAsMap(kSrc);
+        auto config = qJsonSettings.valueAsMap(kSrc);
         target_sample_rate = config[kResampleSampleRate].toUInt();
 
         initial_sample_rate_converter = [this]() {
@@ -2676,15 +2673,22 @@ void Xamp::pushWidget(QWidget* widget) {
     ui_.currentView->setCurrentIndex(id);
 }
 
-void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& profile) {
-	const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+void Xamp::encodeFile(const PlayListEntity& entity,
+    const EncodingProfile& profile, 
+    const QString& file_filter,
+    const QString& file_type, 
+    const std::wstring &command,
+    AlignPtr<IFileEncoder> encoder) {
+    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
+
     getSaveFileName(this,
-        [this, entity, profile](const auto &file_name) {
+        [this, entity, profile, command, file_type, &encoder](const auto& file_name) {
             const auto dialog = makeProgressDialog(
                 tr("Export progress dialog"),
-                tr("Export '") + entity.title + tr("' to aac file"),
+                tr("Export '") + entity.title + tr("' to ") + file_type + tr(" file"),
                 tr("Cancel"));
+            dialog->show();
 
             TrackInfo track_info;
             track_info.album = entity.album.toStdWString();
@@ -2694,100 +2698,57 @@ void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& pr
 
             AnyMap config;
             config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(entity.file_path.toStdWString()));
-            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(file_name.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(toNativeSeparators(file_name).toStdWString()));
             config.AddOrReplace(FileEncoderConfig::kEncodingProfile, profile);
+            config.AddOrReplace(FileEncoderConfig::kCommand, command);
 
             try {
-                auto encoder = StreamFactory::MakeAACEncoder();
                 read_until::encodeFile(config,
                     encoder,
                     [&](auto progress) -> bool {
                         dialog->setValue(progress);
                         qApp->processEvents();
+                        delay(1);
                         return dialog->wasCanceled() != true;
                     }, track_info);
             }
-            catch (Exception const& e) {
-                XMessageBox::showError(qTEXT(e.what()));
+            catch (...) {
+                logAndShowMessage(std::current_exception());
             }
         },
-        tr("Save AAC file"),
+        tr("Save ") + file_type,
         save_file_name,
-        tr("AAC Files (*.m4a)"));
+        file_filter);
+}
+
+void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& profile) {
+    encodeFile(entity,
+        profile, 
+        tr("AAC Files (*.m4a)"),
+        tr("m4a"),
+        L"",
+        StreamFactory::MakeAACEncoder());
 }
 
 void Xamp::encodeWavFile(const PlayListEntity& entity) {
-    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-    const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
-    getSaveFileName(this,
-        [this, entity](const auto& file_name) {
-            const auto dialog = makeProgressDialog(
-                tr("Export progress dialog"),
-                tr("Export '") + entity.title + tr("' to wav file"),
-                tr("Cancel"));
-
-            TrackInfo metadata;
-            metadata.album = entity.album.toStdWString();
-            metadata.artist = entity.artist.toStdWString();
-            metadata.title = entity.title.toStdWString();
-            metadata.track = entity.track;
-
-            std::wstring command;
-
-            TRY_LOG(
-                auto encoder = StreamFactory::MakeWaveEncoder();
-				read_until::encodeFile(entity.file_path.toStdWString(),
-                file_name.toStdWString(),
-                encoder,
-                command,
-                [&](auto progress) -> bool {
-                    dialog->setValue(progress);
-                    qApp->processEvents();
-                    return dialog->wasCanceled() != true;
-                }, metadata);
-            )
-        },
-        tr("Save Wav file"),
-        save_file_name,
-        tr("Wav Files (*.wav)"));
+    encodeFile(entity,
+        EncodingProfile(),
+        tr("Wav Files (*.wav)"),
+        tr("wav"),
+        L"", 
+        StreamFactory::MakeWaveEncoder());
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& entity) {
-    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-    const auto save_file_name = last_dir + qTEXT("/") + entity.album + qTEXT("-") + entity.title;
+    const auto command
+        = qSTR("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
 
-    getSaveFileName(this,
-        [this, entity](const auto& file_name) {
-            const auto dialog = makeProgressDialog(
-                tr("Export progress dialog"),
-                tr("Export '") + entity.title + tr("' to flac file"),
-                tr("Cancel"));
-
-            TrackInfo track_info;
-            track_info.album = entity.album.toStdWString();
-            track_info.artist = entity.artist.toStdWString();
-            track_info.title = entity.title.toStdWString();
-            track_info.track = entity.track;
-
-            const auto command
-                = qSTR("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
-
-            TRY_LOG(
-                auto encoder = StreamFactory::MakeFlacEncoder();
-				read_until::encodeFile(entity.file_path.toStdWString(),
-                file_name.toStdWString(),
-                encoder,
-                command,
-                [&](auto progress) -> bool {
-                    dialog->setValue(progress);
-                    qApp->processEvents();
-                    return dialog->wasCanceled() != true;
-                }, track_info);
-            )
-        },    
-        tr("Save Flac file"),
-        save_file_name,
-        tr("FLAC Files (*.flac)"));    
+    encodeFile(entity,
+        EncodingProfile(),
+        tr("FLAC Files (*.flac)"),
+        tr("flac"),
+        command,
+        StreamFactory::MakeFlacEncoder());
 }
 
 void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
@@ -2837,8 +2798,8 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             [this](const auto& source_playlist_id, const auto& playlist_id, const auto& video_ids) {
                 std::vector<std::string> parsed_video_ids;
                 for (auto video_id : video_ids) {
-                    auto [video_id, set_video_id] = parseId(QString::fromStdString(video_id));
-                    parsed_video_ids.push_back(video_id.toStdString());
+                    auto [parsed_video_id, set_video_id] = parseId(QString::fromStdString(video_id));
+                    parsed_video_ids.push_back(parsed_video_id.toStdString());
                 }
                 QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, parsed_video_ids, source_playlist_id.toStdString()), this, [](auto) {
 

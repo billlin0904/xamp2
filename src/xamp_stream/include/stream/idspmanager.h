@@ -8,6 +8,7 @@
 
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
+#include <stream/isameplewriter.h>
 
 #include <base/base.h>
 #include <base/audiobuffer.h>

@@ -63,10 +63,10 @@ QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
 }
 
 void PreferencePage::saveSoxrResampler(const QString &name) const {
-	auto soxr_config = JsonSettings::valueAsMap(kSoxr);
+	auto soxr_config = qJsonSettings.valueAsMap(kSoxr);
 
 	soxr_config[name] = currentSoxrSettings();
-	JsonSettings::setValue(kSoxr, soxr_config);
+	qJsonSettings.setValue(kSoxr, soxr_config);
 	qAppSettings.setValue(kAppSettingSoxrSettingName, name);
 
 	if (!soxr_config.contains(name)) {
@@ -77,17 +77,17 @@ void PreferencePage::saveSoxrResampler(const QString &name) const {
 void PreferencePage::saveSrcResampler() {
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = ui_->srcTargetSampleRateComboBox->currentText().toInt();
-	JsonSettings::setValue(kSrc, settings);
+	qJsonSettings.setValue(kSrc, settings);
 }
 
 void PreferencePage::saveR8BrainResampler() {
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = ui_->r8brainTargetSampleRateComboBox->currentText().toInt();
-	JsonSettings::setValue(kR8Brain, settings);
+	qJsonSettings.setValue(kR8Brain, settings);
 }
 
 void PreferencePage::initSrcResampler() {
-	auto config = JsonSettings::valueAsMap(kSrc);
+	auto config = qJsonSettings.valueAsMap(kSrc);
 	ui_->srcTargetSampleRateComboBox->setCurrentText(QString::number(config[kResampleSampleRate].toInt()));
 
 	(void)QObject::connect(ui_->srcTargetSampleRateComboBox, &QComboBox::textActivated, [this](auto) {
@@ -96,7 +96,7 @@ void PreferencePage::initSrcResampler() {
 }
 
 void PreferencePage::initR8BrainResampler() {
-	auto config = JsonSettings::valueAsMap(kR8Brain);
+	auto config = qJsonSettings.valueAsMap(kR8Brain);
 	ui_->r8brainTargetSampleRateComboBox->setCurrentText(QString::number(config[kResampleSampleRate].toInt()));
 
 	(void)QObject::connect(ui_->r8brainTargetSampleRateComboBox, &QComboBox::textActivated, [this](auto) {
@@ -105,7 +105,7 @@ void PreferencePage::initR8BrainResampler() {
 }
 
 void PreferencePage::initSoxResampler() {
-	auto soxr_config = JsonSettings::valueAsMap(kSoxr);
+	auto soxr_config = qJsonSettings.valueAsMap(kSoxr);
 
     Q_FOREACH (const auto &soxr_setting_name, soxr_config.keys()) {
 		ui_->soxrSettingCombo->addItem(soxr_setting_name);
@@ -127,7 +127,7 @@ void PreferencePage::initSoxResampler() {
 		if (name == kSoxrDefaultSettingName) {
 			return;
 		}
-        JsonSettings::remove(name);
+        qJsonSettings.remove(name);
         ui_->soxrSettingCombo->removeItem(ui_->soxrSettingCombo->currentIndex());
 		saveSoxrResampler(ui_->soxrSettingCombo->currentText());
 		});
@@ -141,7 +141,7 @@ void PreferencePage::initSoxResampler() {
     });
 
     (void)QObject::connect(ui_->soxrSettingCombo, &QComboBox::textActivated, [this](auto index) {
-		const auto soxr_settings = JsonSettings::valueAsMap(kSoxr);
+		const auto soxr_settings = qJsonSettings.valueAsMap(kSoxr);
 		const auto settings = soxr_settings[index].toMap();
 		updateSoxrConfigUi(settings);
 		});
@@ -306,7 +306,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		if (setting_name.isEmpty()) {
 			return;
 		}
-		auto soxr_config = JsonSettings::valueAsMap(kSoxr);
+		auto soxr_config = qJsonSettings.valueAsMap(kSoxr);
 		if (soxr_config.contains(setting_name)) {
 			return;
 		}
@@ -314,7 +314,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
 	(void)QObject::connect(ui_->resetAllButton, &QPushButton::clicked, [this]() {
-		JsonSettings::remove(kSoxr);
+		qJsonSettings.remove(kSoxr);
 		initSoxResampler();
         saveAll();
 		});
@@ -411,6 +411,6 @@ void PreferencePage::saveAll() {
 	auto index = ui_->resamplerStackedWidget->currentIndex();
 	qAppSettings.setValue(kAppSettingResamplerEnable, index > 0);
 
-	JsonSettings::save();
+	qJsonSettings.save();
 	qAppSettings.save();
 }

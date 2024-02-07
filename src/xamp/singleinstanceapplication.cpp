@@ -28,10 +28,10 @@ SingleInstanceApplication::SingleInstanceApplication(int& argc, char* argv[])
 		if (socket) {
 			socket->waitForReadyRead(2 * kIpcTimeout);
 			socket.reset();
-			if (!window) {
+			if (!window_) {
 				return;
 			}
-			window->showWindow();
+			window_->showWindow();
 		}
 	});
 
@@ -45,6 +45,6 @@ SingleInstanceApplication::SingleInstanceApplication(int& argc, char* argv[])
 
 SingleInstanceApplication::~SingleInstanceApplication() = default;
 
-bool SingleInstanceApplication::IsAttach() const {
+bool SingleInstanceApplication::isAttach() const {
     return !is_running_;
 }

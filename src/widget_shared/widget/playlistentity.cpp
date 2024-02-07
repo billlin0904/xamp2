@@ -14,7 +14,7 @@ QVariant indexValue(const QModelIndex& index, int i) {
 PlayListEntity getEntity(const QModelIndex& index) {
     PlayListEntity entity;
     entity.music_id = indexValue(index, PLAYLIST_MUSIC_ID).toInt();
-    entity.playing = indexValue(index, PLAYLIST_PLAYING).toInt();
+    entity.playing = indexValue(index, PLAYLIST_IS_PLAYING).toInt();
     entity.track = indexValue(index, PLAYLIST_TRACK).toUInt();
     entity.file_path = indexValue(index, PLAYLIST_FILE_PATH).toString();
     entity.file_size = indexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
@@ -27,7 +27,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.sample_rate = indexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
     entity.album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
     entity.artist_id = indexValue(index, PLAYLIST_ARTIST_ID).toInt();
-    entity.cover_id = indexValue(index, PLAYLIST_COVER_ID).toString();
+    entity.cover_id = indexValue(index, PLAYLIST_ALBUM_COVER_ID).toString();
     entity.file_extension = indexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = indexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
     entity.timestamp = indexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
@@ -41,7 +41,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.heart = indexValue(index, PLAYLIST_LIKE).toUInt();
     entity.comment = indexValue(index, PLAYLIST_COMMENT).toString();
     entity.year = indexValue(index, PLAYLIST_YEAR).toUInt();
-    entity.music_cover_id = indexValue(index, PLAYLIST_MUSIC_COVER).toString();
+    entity.music_cover_id = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
 
     return entity;
 }

@@ -12,19 +12,15 @@ class XMainWindow;
 class QLocalServer;
 
 class SingleInstanceApplication : public QApplication {
-    Q_OBJECT
 public:
-    static constexpr int kReduceWorkingSetSeconds = 1 * 1000;
-
     SingleInstanceApplication(int& argc, char* argv[]);
 
 	virtual ~SingleInstanceApplication() override;
 
-    bool IsAttach() const;
-
-    XMainWindow* window{ nullptr };
+    [[nodiscard]] bool isAttach() const;
 
 private:
     bool is_running_{ false };
+    XMainWindow* window_{ nullptr };
     QScopedPointer<QLocalServer> server_;
 };

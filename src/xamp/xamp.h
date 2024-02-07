@@ -181,6 +181,7 @@ private:
 	void initialSpectrum();
 
 	void destroy();
+
 	void initialYtMusicWorker();
 
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
@@ -256,6 +257,13 @@ private:
 	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString &name);
 
 	[[nodiscard]] PlaylistPage* localPlaylistPage() const;
+
+	void encodeFile(const PlayListEntity& entity,
+		const EncodingProfile& profile,
+		const QString& file_filter,
+		const QString& file_type,
+		const std::wstring& command,
+		AlignPtr<IFileEncoder> encoder);
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
 

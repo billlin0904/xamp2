@@ -259,7 +259,7 @@ void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
         {
             stream_->OpenFile(file_path);
         }
-        catch (Exception const&) {
+        catch (const Exception&) {
             // Fallback other stream
             if (stream_->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
                 stream_ = MakeAlign<FileStream, BassFileStream>();
@@ -694,7 +694,7 @@ void AudioPlayer::DoSeek(double stream_time) {
     try {
         stream_->SeekAsSeconds(stream_time);
     }
-    catch (Exception const& e) {
+    catch (const Exception& e) {
         XAMP_LOG_D(logger_, e.GetErrorMessage());
         Resume();
         return;
