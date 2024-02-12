@@ -74,8 +74,16 @@ public:
 
     [[nodiscard]] bool ShouldLog(LogLevel level) const;
 
+    template <typename T>
+    void Log(LogLevel level, SourceLocation source_location, const T &message) {
+        if (!ShouldLog(level)) {
+            return;
+        }
+        LogMsg(level, source_location.file, source_location.line, source_location.function, message);
+    }
+
     template <typename... Args>
-    void Log(LogLevel level, SourceLocation source_location, std::string_view s, const Args&... args) {
+    void Log(LogLevel level, SourceLocation source_location, fmt::format_string<Args...> s, const Args&... args) {
         if (!ShouldLog(level)) {
             return;
         }
@@ -84,7 +92,7 @@ public:
     }
 
     template <typename... Args>
-    void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
+    void Log(LogLevel level, const char* filename, int32_t line, const char* func, fmt::format_string<Args...> s, const Args&... args) {
         if (!ShouldLog(level)) {
             return;
         }

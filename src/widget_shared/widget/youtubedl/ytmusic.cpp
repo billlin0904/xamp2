@@ -677,7 +677,8 @@ std::vector<library::Playlist> YtMusicInterop::getLibraryPlaylists(int limit) co
     const auto py_playlists = impl_->get_ytmusic().attr("get_library_playlists")(limit);
     std::vector<library::Playlist> result;
 
-    std::ranges::transform(py_playlists, std::back_inserter(result), [](py::handle playlist) {
+    std::transform(py_playlists.begin(),
+                   py_playlists.end(), std::back_inserter(result), [](py::handle playlist) {
         return library::Playlist {
         playlist["playlistId"].cast<std::string>(),
         playlist["title"].cast<std::string>(),
@@ -692,7 +693,7 @@ std::vector<artist::Artist::Album> YtMusicInterop::getArtistAlbums(const std::st
     const auto py_albums = impl_->get_ytmusic().attr("get_artist_albums")(channel_id, params);
     std::vector<artist::Artist::Album> albums;
 
-    std::ranges::transform(py_albums, std::back_inserter(albums), [](py::handle album) {
+    std::transform(py_albums.begin(), py_albums.end(), std::back_inserter(albums), [](py::handle album) {
         return artist::Artist::Album{
             album["title"].cast<std::string>(),
             extract_py_list<meta::Thumbnail>(album["thumbnails"]),

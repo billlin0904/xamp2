@@ -21,7 +21,7 @@
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
-#include <ranges>
+//#include <ranges>
 #include <base/base.h>
 #include <base/assert.h>
 #include <base/logger.h>
@@ -128,9 +128,9 @@ DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
 
 Vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     Vector<Uuid> device_types;
-    for (const auto& uuid : factory_ | std::views::keys) {
-        device_types.push_back(uuid);
-	}
+    //for (const auto& uuid : factory_ | std::views::keys) {
+    //    device_types.push_back(uuid);
+    //}
     return device_types;
 }
 

@@ -215,8 +215,8 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
 
         replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(readers);
 
-        replay_gain.album_peak = *std::ranges::max_element(replay_gain.track_peak
-                                                           ,
+        replay_gain.album_peak = *std::max_element(replay_gain.track_peak.begin(), replay_gain.track_peak.end(),
+
                                                            [](auto& a, auto& b) {return a < b; }
         );
 

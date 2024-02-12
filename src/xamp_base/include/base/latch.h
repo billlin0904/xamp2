@@ -11,12 +11,10 @@
 #include <latch>
 #endif
 
-XAMP_BASE_NAMESPACE_BEGIN
-
 #ifdef __cpp_lib_latch
-
+XAMP_BASE_NAMESPACE_BEGIN
 using Latch = std::latch;
-
+XAMP_BASE_NAMESPACE_END
 #else
 
 #include <cstdint>
@@ -25,6 +23,8 @@ using Latch = std::latch;
 
 #include <base/fastconditionvariable.h>
 #include <base/fastmutex.h>
+
+XAMP_BASE_NAMESPACE_BEGIN
 
 class Latch {
 public:
@@ -68,6 +68,6 @@ private:
     mutable FastMutex mut_;
 };
 
-#endif
-
 XAMP_BASE_NAMESPACE_END
+
+#endif

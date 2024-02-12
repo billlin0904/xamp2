@@ -144,7 +144,7 @@ static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
                                       reinterpret_cast<thread_policy_t>(&policy),
                                       THREAD_AFFINITY_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
-        XAMP_LOG_DEBUG("thread_policy_set return failure.");
+        XAMP_LOG_DEBUG("thread_policy_set return failure ({}).", result);
     }
 }
 #else
@@ -255,6 +255,7 @@ void CpuAffinity::SetAffinity(JThread& thread) {
         }
     }    
 #else
+    /*
     cpu_set_t cpu_set;
     CPU_ZERO(&cpu_set);
     for (int i = 0; i < cpus.size(); ++i) {
@@ -262,7 +263,7 @@ void CpuAffinity::SetAffinity(JThread& thread) {
             CPU_SET(i, &cpu_set);
         }
     }
-    pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set), &cpu_set);
+    pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set), &cpu_set);*/
 #endif
 }
 
@@ -653,72 +654,6 @@ void Assert(const char* message, const char* file, uint32_t line) {
     const auto utf16_file_name = String::ToStdWString(file);
     _wassert(utf16_message.c_str(), utf16_file_name.c_str(), line);
 #endif
-}
-
-void ExecutionStopwatch::Start() {
-    is_running_ = true;
-    start_timestamp_ = GetThreadTimes();
-}
-
-void ExecutionStopwatch::Stop() {
-    is_running_ = false;
-    end_timestamp_ = GetThreadTimes();
-}
-
-void ExecutionStopwatch::Reset() {
-    start_timestamp_ = 0;
-    end_timestamp_ = 0;
-}
-
-std::chrono::milliseconds ExecutionStopwatch::Elapsed() const {
-	const int64_t elapsed = end_timestamp_ - start_timestamp_;
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::nanoseconds(elapsed));
-}
-
-bool ExecutionStopwatch::IsRunning() const noexcept {
-    return is_running_;
-}
-
-namespace {
-    bool GePlatformThreadTimes(ULARGE_INTEGER& kernel_time_value, ULARGE_INTEGER user_time_value) {
-        FILETIME creation_time, exit_time, kernel_time, user_time;
-        if (!::GetThreadTimes(::GetCurrentThread(), &creation_time, &exit_time, &kernel_time, &user_time))
-            return false;
-
-        kernel_time_value.HighPart = kernel_time.dwHighDateTime;
-        kernel_time_value.LowPart = kernel_time.dwLowDateTime;
-        user_time_value.HighPart = user_time.dwHighDateTime;
-        user_time_value.LowPart = user_time.dwLowDateTime;
-        return true;
-    }
-}
-
-int64_t ExecutionStopwatch::GetThreadTimes() {
-    ULARGE_INTEGER kernel_time_value{}, user_time_value{};
-    if (!GePlatformThreadTimes(kernel_time_value, user_time_value)) {
-        return 0;
-    }
-    return kernel_time_value.QuadPart + user_time_value.QuadPart;
-}
-
-double ExecutionStopwatch::GetCpuUsage() const {
-	const std::chrono::milliseconds elapsed = Elapsed();
-	const double elapsed_seconds = elapsed.count() / 1000.0;
-
-    if (elapsed_seconds == 0) {
-        return 0;
-    }
-
-    ULARGE_INTEGER kernel_time_value{}, user_time_value{};
-    GePlatformThreadTimes(kernel_time_value, user_time_value);
-
-    double kernel_time_seconds = kernel_time_value.QuadPart / 10000000.0;  // 锣传计
-    double user_time_seconds = user_time_value.QuadPart / 10000000.0;  // 锣传计    
-    
-    // 璸衡 CPU ㄏノ瞯
-    double cpu_usage = (kernel_time_seconds + user_time_seconds) / elapsed_seconds;
-
-    return cpu_usage;
 }
 
 XAMP_BASE_NAMESPACE_END

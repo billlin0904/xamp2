@@ -97,7 +97,7 @@ void ParallelFor(IThreadPoolExecutor& executor,
         size_t spawn_size = 0;
         for (size_t j = 0; j < batch_size; ++j) {
             if (!IsFutureDuplicate(futures, begin, i)) {
-                auto task = Executor::Spawn(executor, [f, begin, i](const StopToken& stop_token) -> void {
+                auto task = Executor::Spawn(executor, [f, begin, i](const StopToken&) -> void {
                     f(*(begin + i));
                     });
 
@@ -145,7 +145,7 @@ void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&&
     for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [f, begin, i](const StopToken& stop_token) -> void {
+            ff = Executor::Spawn(executor, [f, begin, i](const StopToken&) -> void {
                 f(begin + i);
                 });
             ++i;

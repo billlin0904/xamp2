@@ -13,7 +13,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 template <typename T>
 class PimplPtr {
 public:
-	static constexpr size_t kMaxBufferSize = 128;
+    static constexpr size_t kMaxBufferSize = 256;
 
 	XAMP_DISABLE_COPY(PimplPtr)
 

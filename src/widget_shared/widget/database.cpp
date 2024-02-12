@@ -79,7 +79,7 @@ namespace {
         for (const auto& entry : entries) {
             QDir subdir(entry);
             if (subdir.dirName() > currentVersion) {
-                QFile file(migration_directory + QDir::separator() + entry + QDir::separator() + "up.sql");
+                QFile file(migration_directory + QDir::separator() + entry + QDir::separator() + qTEXT("up.sql"));
                 if (!file.open(QFile::ReadOnly)) {
                     XAMP_LOG_DEBUG("Failed to open migration file {}", file.fileName().toStdString());
                 }
@@ -227,10 +227,10 @@ void Database::createTableIfNotExist() {
 bool Database::dropAllTable() {
     SqlQuery drop_query(db_);
 
-    const QString drop_query_string = "DROP TABLE IF EXISTS %1";
+    const QString drop_query_string = qTEXT("DROP TABLE IF EXISTS %1");
     auto tableNames = db_.tables();
 
-    tableNames.removeAll("sqlite_sequence");
+    tableNames.removeAll(qTEXT("sqlite_sequence"));
     for (const auto& table_name : qAsConst(tableNames)) {
         THROW_IF_FAIL(drop_query, drop_query_string.arg(table_name));
     }

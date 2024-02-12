@@ -30,7 +30,7 @@ inline constexpr size_t __get_file_name_offset(const T(&str)[S], size_t i = S - 
 }
 
 template <typename T>
-inline constexpr size_t __get_file_name_offset(T(&str)[1]) noexcept {
+inline constexpr size_t __get_file_name_offset(T(&)[1]) noexcept {
     return 0;
 }
 
@@ -48,6 +48,9 @@ struct XAMP_BASE_API SourceLocation {
 
 #ifdef XAMP_OS_WIN
 #define __FILENAME__ &__FILE__[__get_file_name_offset(__FILE__)]
+#else
+#define __FILENAME__ __FILE_NAME__
+#define __FUNCTION__ __func__
 #endif
 
 #define CurrentLocation \
@@ -55,7 +58,7 @@ struct XAMP_BASE_API SourceLocation {
 
 #define XAM_LOG_MANAGER() xamp::base::LoggerManager::GetInstance()
 
-#define XAMP_LOG(Level, Format, ...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, Format, __VA_ARGS__)
+#define XAMP_LOG(Level, ...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, __VA_ARGS__)
 #define XAMP_LOG_DEBUG(...)    XAMP_LOG(LOG_LEVEL_DEBUG, __VA_ARGS__)
 #define XAMP_LOG_INFO(...)     XAMP_LOG(LOG_LEVEL_INFO,  __VA_ARGS__)
 #define XAMP_LOG_ERROR(...)    XAMP_LOG(LOG_LEVEL_ERROR, __VA_ARGS__)
@@ -63,7 +66,7 @@ struct XAMP_BASE_API SourceLocation {
 #define XAMP_LOG_WARN(...)     XAMP_LOG(LOG_LEVEL_WARN,  __VA_ARGS__)
 #define XAMP_LOG_CRITICAL(...) XAMP_LOG(LOG_LEVEL_TRACE, __VA_ARGS__)
 
-#define XAMP_LOG_LEVEL(logger, Level, Format, ...) logger->Log(Level, CurrentLocation, Format, __VA_ARGS__)
+#define XAMP_LOG_LEVEL(logger, Level, ...) logger->Log(Level, CurrentLocation, __VA_ARGS__)
 #define XAMP_LOG_D(logger, ...) XAMP_LOG_LEVEL(logger, LOG_LEVEL_DEBUG, __VA_ARGS__)
 #define XAMP_LOG_I(logger, ...) XAMP_LOG_LEVEL(logger, LOG_LEVEL_INFO,  __VA_ARGS__)
 #define XAMP_LOG_E(logger, ...) XAMP_LOG_LEVEL(logger, LOG_LEVEL_ERROR, __VA_ARGS__)

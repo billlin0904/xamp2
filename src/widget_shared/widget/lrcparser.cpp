@@ -167,7 +167,7 @@ bool LrcParser::parseStream(std::wistream &istr) {
 			parseLrc(line);
 			break;
 		}
-        auto count = std::ranges::count(line, L']');
+        auto count = std::count(line.begin(), line.end(), L']');
         if (count == 1) {
             parseLrc(line);
 			start_read_lrc = true;
@@ -183,7 +183,7 @@ bool LrcParser::parseStream(std::wistream &istr) {
 		return false;
 	}
 
-	std::ranges::stable_sort(lyrics_, [](const LyricEntry &a, const LyricEntry &b) {
+    std::stable_sort(lyrics_.begin(), lyrics_.end(), [](const LyricEntry &a, const LyricEntry &b) {
 		return a.timestamp < b.timestamp;
 	});
 
@@ -199,7 +199,7 @@ bool LrcParser::parseStream(std::wistream &istr) {
 }
 
 std::wstring LrcParser::maxLengthLrc() const {
-    const auto itr = std::ranges::max_element(lyrics_,
+    const auto itr = std::max_element(lyrics_.begin(), lyrics_.end(),
         [](const LyricEntry& a, const LyricEntry& b) {
         return a.lrc.length() < b.lrc.length();
         });

@@ -46,7 +46,7 @@ namespace {
         }
 
         // Sort path_infos based on file count and depth
-        std::ranges::sort(path_infos, [](const auto& p1, const auto& p2) {
+        std::sort(path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
             if (p1.file_count != p2.file_count) {
                 return p1.file_count < p2.file_count;
             }
@@ -172,15 +172,13 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 
     const auto &file_name_filter = getTrackInfoFileNameFilter();
 
-    Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&](const auto& path_info) {
+    Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&, total = total_work](const auto& path_info) {
         if (is_stop_) {
             return;
         }
-        XAMP_ON_SCOPE_EXIT(
-            const auto value = completed_work.load();
-            emit readFileProgress((value * 100) / total_work);
-        );
         completed_work += scanPathFiles(file_name_filter, playlist_id, path_info.path);
+        const auto value = completed_work.load();
+        emit readFileProgress((value * 100) / total);
         });
 }
 

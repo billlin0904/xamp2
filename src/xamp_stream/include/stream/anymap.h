@@ -25,7 +25,7 @@ public:
 
     template <typename T>
     void Replace(const std::string_view& name, T&& value) {
-        if (!configs_.contains(name)) {
+        if (configs_.find(name) != configs_.end()) {
             return;
         }
         configs_.insert_or_assign(name, std::forward<T>(value));

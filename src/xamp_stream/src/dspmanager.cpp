@@ -103,7 +103,7 @@ bool DSPManager::CanProcess() const noexcept {
 
 void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
-    const auto itr = std::ranges::find_if(dsp_chain,
+    const auto itr = std::find_if(dsp_chain.begin(), dsp_chain.end(),
                                           [id](auto const& processor) {
 	                                          return processor->GetTypeId() == id;
                                           });

@@ -457,14 +457,14 @@ DeviceConnectType GetDeviceConnectType(AudioDeviceID id) {
                                                &val);
     if (result != noErr) {
         CoreAudioFailedLog(result);
-        return DeviceConnectType::UKNOWN;
+        return DeviceConnectType::CONNECT_TYPE_UNKNOWN;
     }
     if (val == kAudioDeviceTransportTypeBuiltIn) {
-        return DeviceConnectType::BUILT_IN;
+        return DeviceConnectType::CONNECT_TYPE_BUILT_IN;
     } else if (val == kAudioDeviceTransportTypeUSB) {
-        return DeviceConnectType::USB;
+        return DeviceConnectType::CONNECT_TYPE_USB;
     }
-    return DeviceConnectType::UKNOWN;
+    return DeviceConnectType::CONNECT_TYPE_UNKNOWN;
 }
 
 void SetHogMode(AudioDeviceID id) {

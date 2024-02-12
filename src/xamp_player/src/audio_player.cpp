@@ -194,7 +194,7 @@ void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
 }
 
 void AudioPlayer::Open(const Path& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
-    is_file_path_ = IsFilePath(file_path);
+    is_file_path_ = IsFilePath(file_path.wstring());
     CloseDevice(true);
     UpdatePlayerStreamTime();
     OpenStream(file_path, output_mode);
@@ -679,10 +679,11 @@ void AudioPlayer::Seek(double stream_time) {
 
     if (device_->IsStreamOpen()) {
         read_finish_and_wait_seek_signal_cond_.notify_one();
-        action_queue_.TryEnqueue(PlayerAction{
+        PlayerAction action{
             PlayerActionId::PLAYER_SEEK,
             stream_time
-            });
+        };
+        action_queue_.TryEnqueue(std::move(action));
     }
 }
 

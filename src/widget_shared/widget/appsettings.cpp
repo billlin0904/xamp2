@@ -85,16 +85,16 @@ void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file) {
 	}
 
 	const auto line = in.readLine();
-	const QStringList parameter_list(line.split(":"));
+    const QStringList parameter_list(line.split(qTEXT(":")));
 	if (parameter_list.count() < 2) {
 		return;
 	}
 
-	auto node_list = parameter_list.at(1).split(";");
+    auto node_list = parameter_list.at(1).split(qTEXT(";"));
 	EqSettings settings;
 
 	for (auto& node_str : node_list) {
-		auto values = node_str.trimmed().split(" ", Qt::SkipEmptyParts);
+        auto values = node_str.trimmed().split(qTEXT(" "), Qt::SkipEmptyParts);
 		if (values.count() != 2) {
 			continue;
 		}
@@ -258,7 +258,7 @@ QList<QString> AppSettings::valueAsStringList(const QString& key) {
 void AppSettings::removeList(const QString& key, const QString& value) {
 	auto values = valueAsStringList(key);
 
-	const auto itr = std::ranges::find(values, value);
+    const auto itr = std::find(values.begin(), values.end(), value);
 	if (itr != values.end()) {
 		values.erase(itr);
 	}
@@ -273,7 +273,7 @@ void AppSettings::removeList(const QString& key, const QString& value) {
 void AppSettings::addList(const QString& key, const QString& value) {
 	auto values = valueAsStringList(key);
 
-	const auto itr = std::ranges::find(values, value);
+    const auto itr = std::find(values.begin(), values.end(), value);
 	if (itr != values.end()) {
 		return;
 	}

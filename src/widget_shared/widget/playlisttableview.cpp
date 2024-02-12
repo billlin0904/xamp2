@@ -13,7 +13,6 @@
 #include <QPainter>
 #include <QSqlError>
 #include <QStyledItemDelegate>
-#include <ranges>
 
 #include <base/logger_impl.h>
 #include <base/assert.h>
@@ -440,7 +439,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
 
     always_hidden_columns_ = always_hidden_columns;
 
-    for (const auto column : qAsConst(always_hidden_columns_)) {
+    for (const auto column : std::as_const(always_hidden_columns_)) {
         hideColumn(column);
     }
 
@@ -1217,8 +1216,8 @@ void PlayListTableView::removeSelectItems() {
 
     QVector<int> remove_music_ids;
 
-    for (const auto& row : std::ranges::reverse_view(rows)) {
-        const auto it = item(row.second);
+    for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
+        const auto it = item(itr->second);
         CATCH_DB_EXCEPTION(qMainDb.clearNowPlaying(playlist_id_, it.playlist_music_id))
         remove_music_ids.push_back(it.music_id);
     }

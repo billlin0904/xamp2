@@ -251,6 +251,9 @@ public:
     }
 
 #else
+    static void DumpStackInfo(void* info) {
+    }
+
     void SetProcessExceptionHandlers() {
         InstallSignalHandler();
     }
@@ -311,7 +314,7 @@ public:
         XAMP_LOG_E(logger_, "Fatal signal {} ({}){}{}",
             signum, signal_name, info->si_code, info->si_addr);
         StackTrace trace;
-        XAMP_LOG_E(logger_, trace.CaptureStack());
+        XAMP_LOG_E(logger_, "{}", trace.CaptureStack());
     }
 
     static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {

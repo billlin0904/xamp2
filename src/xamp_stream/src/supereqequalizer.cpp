@@ -8,6 +8,8 @@
 #include <stream/eqsettings.h>
 #include <stream/supereqequalizer.h>
 
+#ifdef XAMP_OS_WIN
+
 XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(SuperEqEqualizer);
@@ -165,3 +167,4 @@ std::string_view SuperEqEqualizer::GetDescription() const noexcept {
 
 XAMP_STREAM_NAMESPACE_END
 
+#endif

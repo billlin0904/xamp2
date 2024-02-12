@@ -12,6 +12,8 @@
 #include <base/align_ptr.h>
 #include <base/pimplptr.h>
 
+#ifdef XAMP_OS_WIN
+
 XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr auto kMaxSuperEqBand = 18;
@@ -40,3 +42,5 @@ private:
 };
 
 XAMP_STREAM_NAMESPACE_END
+
+#endif

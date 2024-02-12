@@ -6,7 +6,6 @@
 #include <Dbt.h>
 #else
 #include <Carbon/Carbon.h>
-#include <widget/osx/osx.h>
 #include <QMap>
 #include <QHash>
 #endif
@@ -179,7 +178,7 @@ public:
 
 using Identifier = QPair<uint, uint>;
 
-class XAMP_WIDGET_SHARED_EXPORT GlobalShortcut::GlobalShortcutImpl {
+class GlobalShortcut::GlobalShortcutImpl {
 public:
     GlobalShortcutImpl() = default;
 

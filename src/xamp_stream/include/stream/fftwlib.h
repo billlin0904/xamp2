@@ -14,13 +14,13 @@
 #include <base/dll.h>
 
 #ifdef XAMP_OS_MAC
-#define USE_INTEL_MKL_LIB 1
+#define USE_INTEL_MKL_LIB 0
 #endif
 
 #if (USE_INTEL_MKL_LIB)
 #define MKL_DIRECT_CALL
-#include <fftw/fftw3.h>
-#include <fftw/fftw3_mkl.h>
+#include <fftw3.h>
+#include <fftw3_mkl.h>
 #include <mkl_service.h>
 #else
 #include <fftw3.h>

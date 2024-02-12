@@ -674,7 +674,7 @@ WHERE
 	albums.year IN (%1)
 ORDER BY
     albums.album DESC
-    )").arg(year_list.join(","));
+    )").arg(year_list.join(qTEXT(",")));
     setShowMode(SHOW_ARTIST);
 }
 
@@ -703,7 +703,7 @@ WHERE
 	albumCategories.category IN (%1)
 ORDER BY
     albums.album DESC
-    )").arg(categories.join(","));
+    )").arg(categories.join(qTEXT(",")));
     setShowMode(SHOW_ARTIST);
 }
 

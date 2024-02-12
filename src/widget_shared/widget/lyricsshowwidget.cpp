@@ -25,7 +25,7 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 void LyricsShowWidget::resizeFontSize() {
 	auto font_size = 16;
 	QFontMetrics lrc_metrics(lrc_font_);
-	const auto itr = std::ranges::max_element(lyric_, 
+    const auto itr = std::max_element(lyric_.begin(), lyric_.end(),
 	                                          [&lrc_metrics](const auto &a, const auto &b) {
 		                                          return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
 			                                          < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/enum.h>
+#include <output_device/output_device.h>
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 

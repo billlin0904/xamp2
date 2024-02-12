@@ -67,7 +67,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, affinity);
 			}
 		}
-		XAMP_LOG_D(logger_, "Set Thread affinity, priority is success.");
+        XAMP_LOG_D(logger_, "Set ({}) Thread affinity, priority is success.", max_thread_);
 		start_clean_up_.count_down();
 		}).detach();
 
@@ -146,7 +146,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono
 std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue() {
 	// Wait for a task to be available
     if (auto func = task_pool_->TryDequeue()) {
-		XAMP_LOG_D(logger_, "Pop shared queue.");
+        XAMP_LOG_D(logger_, "Pop shared queue.");
 	}
 	return std::nullopt;
 }

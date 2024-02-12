@@ -33,7 +33,7 @@ do { \
     do {\
         auto err = expr;\
         if (err != noErr) {\
-            XAMP_LOG_DEBUG("{}", CoreAudioException::ErrorToString(err));\
+            XAMP_LOG_DEBUG(CoreAudioException::ErrorToString(err));\
         }\
     } while(false)
 

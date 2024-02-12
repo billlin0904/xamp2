@@ -1,11 +1,6 @@
 #include <thememanager.h>
 
 #include <widget/util/image_utiltis.h>
-#if defined(Q_OS_WIN)
-#include <widget/win32/wintaskbar.h>
-#else
-#include <widget/osx/osx.h>
-#endif
 
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
@@ -691,14 +686,14 @@ void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_
 
     switch (themeColor()) {
     case ThemeColor::LIGHT_THEME:
-        border_color = "#C9CDD0";
-        selection_background_color = "#FAFAFA";
-        on_selection_background_color = "#1e1d23";
+        border_color = qTEXT("#C9CDD0");
+        selection_background_color = qTEXT("#FAFAFA");
+        on_selection_background_color = qTEXT("#1e1d23");
         break;
     case ThemeColor::DARK_THEME:
-        border_color = "#455364";
-        selection_background_color = "#1e1d23";
-        on_selection_background_color = "#9FCBFF";
+        border_color = qTEXT("#455364");
+        selection_background_color = qTEXT("#1e1d23");
+        on_selection_background_color = qTEXT("#9FCBFF");
         break;
     }
 
@@ -730,7 +725,7 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
                                             color: white;
                                             border-radius: 8px;
                                             }
-                                            )").arg(object_name).arg("#3a3a3c"));
+                                            )").arg(object_name).arg(qTEXT("#3a3a3c")));
 			break;
         case ThemeColor::LIGHT_THEME:
             line_edit->setStyleSheet(qSTR(R"(

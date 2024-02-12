@@ -1,8 +1,6 @@
 ﻿#include <widget/databasefacade.h>
 #include <widget/worker/filesystemworker.h>
 
-#include <execution>
-
 #include <qguiapplication.h>
 
 #include <base/base.h>
@@ -11,6 +9,7 @@
 
 #include <stream/avfilestream.h>
 
+#include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
 #include <widget/tagio.h>
 #include <widget/http.h>
@@ -30,7 +29,7 @@ namespace {
 
     QSet<QString> getAlbumCategories(const QString& album) {
 	    const QRegularExpression regex(
-            R"((piano|vocal|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)",
+            qTEXT(R"((piano|vocal|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)"),
             QRegularExpression::CaseInsensitiveOption);
 
         QSet<QString> categories;
@@ -44,16 +43,16 @@ namespace {
     }
 
     void normalizeArtist(QString& artist, QStringList& artists) {
-        if (artist.contains(' ')) {
+        if (artist.contains(qTEXT(" "))) {
             if (!artist[0].isUpper()) {
-                artist = artist.remove(' ');
+                artist = artist.remove(qTEXT(" "));
             }
             else {
                 artist = artist.trimmed();
             }
         }
 
-        artists = artist.split(QRegularExpression("[,/&]"), Qt::SkipEmptyParts);
+        artists = artist.split(QRegularExpression(qTEXT("[,/&]")), Qt::SkipEmptyParts);
         if (!artists.isEmpty()) {
             artist = artists.first();
             artists.pop_front();

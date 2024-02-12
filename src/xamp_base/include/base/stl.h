@@ -17,12 +17,10 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
-#include <robin_hood.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_MAC
-#if __cplusplus < XAMP_CPP20_LANG_VER
 template <typename T, typename ...Args>
 auto tuple_append(T&& t, Args&&...args) {
 	return std::tuple_cat(
@@ -44,13 +42,8 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 	};
 }
 #endif
-#endif
 
-#ifdef XAMP_OS_MAC
-#if __cplusplus >= XAMP_CPP20_LANG_VER
-using std::bind_front;
-#endif
-#else
+#ifdef XAMP_OS_WIN
 using std::bind_front;
 #endif
 

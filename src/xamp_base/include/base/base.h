@@ -134,8 +134,8 @@
 
 #define XAMP_HTTP_USER_AGENT "xamp2/1.0.0"
 
-#define XAMP_BASE_NAMESPACE_BEGIN namespace xamp::base {
-#define XAMP_BASE_NAMESPACE_END }
+#define XAMP_BASE_NAMESPACE_BEGIN namespace xamp { namespace base {
+#define XAMP_BASE_NAMESPACE_END } }
 
 XAMP_BASE_NAMESPACE_BEGIN
 

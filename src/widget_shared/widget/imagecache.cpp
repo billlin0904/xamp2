@@ -44,8 +44,8 @@ ImageCache::ImageCache()
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
-	const QList<QString> target_folders = { "scans", "artwork", "booklet" };
-	const QString cover_name = "Front";
+    const QList<QString> target_folders = { qTEXT("scans"), qTEXT("artwork"), qTEXT("booklet") };
+    const QString cover_name = qTEXT("Front");
 
 	const QDir dir(file_path);
 	QDir scan_dir(dir);
@@ -72,7 +72,7 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 
 	// Find 'Scans' folder in the same level or in parent folders.
 	while (!scan_dir.isRoot()) {
-		if (std::ranges::any_of(target_folders, [&](const QString& folder) {
+        if (std::any_of(target_folders.begin(), target_folders.end(), [&](const QString& folder) {
 			return scan_dir.entryList(QDir::Dirs).contains(folder, Qt::CaseInsensitive);
 			})) {
 			// Enter the first found target folder

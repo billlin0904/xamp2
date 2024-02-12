@@ -98,17 +98,17 @@ XMessageItem::XMessageItem(QWidget* parent,
     icon_ = new QLabel(this);
     switch (type) {
     case MSG_SUCCESS:
-        icon_->setPixmap(qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_SUCCESS).pixmap(35, 35));
+        icon_->setPixmap(qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_SUCCESS).pixmap(35, 35));
         break;
     case MSG_WARNING:
-        icon_->setPixmap(qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_WARNING).pixmap(35, 35));
+        icon_->setPixmap(qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_WARNING).pixmap(35, 35));
         break;   
     case MSG_ERROR:
-        icon_->setPixmap(qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_ERROR).pixmap(35, 35));
+        icon_->setPixmap(qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_ERROR).pixmap(35, 35));
         break;
     case MSG_INFORMATION:
     default:
-        icon_->setPixmap(qTheme.GetFontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION).pixmap(35, 35));
+        icon_->setPixmap(qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION).pixmap(35, 35));
         break;
     }
 
@@ -184,7 +184,7 @@ void XMessageItem::DisappearAnimation() {
 
 void XMessageItem::paintEvent(QPaintEvent* event) {
     QStyleOption opt;
-    opt.init(this);
+    opt.initFrom(this);
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
     QWidget::paintEvent(event);

@@ -20,7 +20,7 @@
 #define XAMP_OUTPUT_DEVICE_API __attribute__((visibility("default")))
 #endif
 
-namespace xamp::output_device {
+namespace xamp { namespace output_device {
 
 using namespace base;
 
@@ -34,10 +34,10 @@ class IAudioCallback;
 class IDeviceStateListener;
 class IDeviceStateNotification;
 
-}
+} }
 
-#define XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN namespace xamp::output_device {
-#define XAMP_OUTPUT_DEVICE_NAMESPACE_END }
+#define XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN namespace xamp { namespace output_device {
+#define XAMP_OUTPUT_DEVICE_NAMESPACE_END } }
 
 #define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN namespace xamp::output_device::win32 {
 #define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END }

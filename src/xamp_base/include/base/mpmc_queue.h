@@ -196,10 +196,10 @@ public:
 	}
 
 private:
-	template <typename U>
-	void DoEnqueue(U&& element, size_t head) noexcept {
+    template <typename E>
+    void DoEnqueue(E&& element, size_t head) noexcept {
 		const auto index = head % capacity_;
-		LockFree::EnqueueWait(std::forward<U>(element), states_[index], queue_[index]);
+        LockFree::EnqueueWait(std::forward<E>(element), states_[index], queue_[index]);
 	}
 
 	Type DoDequeue(size_t tail) noexcept {

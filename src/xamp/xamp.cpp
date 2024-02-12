@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QImageReader>
 #include <QCoroFuture>
+#include "../thirdparty/qcoro/qcoro/qcorotask.h"
 #include <QInputDialog>
 #include <QCoroProcess>
 
@@ -996,12 +997,13 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
     const auto ytmusic_url = makeYtMusicUrl(video_id);
 
     dialog->setLabelText(tr("Fetch video info ..."));
+    auto vid = video_id;
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
-        [this, dialog, video_id, entity](const auto& video_info) {
+        [this, dialog, vid, entity](const auto& video_info) {
             dialog->setLabelText(tr("Fetch song info ..."));
 
-            QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, dialog, video_info, entity](const auto& song) {
+            QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, dialog, video_info, entity](const auto& song) {
                 auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
                 
                 dialog->setLabelText(tr("Start download ") + file_name);
@@ -1069,9 +1071,10 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     // 2. Browser cookies
     // 3. ¨Ï¥Îyoutube music URL
     const auto ytmusic_url = makeYtMusicUrl(video_id);
+    auto vid = video_id;
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
-        [temp = entity, video_id, play_page, this](const auto& video_info) {
+        [temp = entity, vid, play_page, this](const auto& video_info) {
         XAMP_ON_SCOPE_EXIT(
             if (play_page != nullptr) {
                 play_page->spinner()->stopAnimation();
@@ -1093,7 +1096,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
             return;
         }
 
-        QCoro::connect(ytmusic_worker_->fetchSongAsync(video_id), this, [this, album_id](const std::optional<song::Song>& song) {
+        QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, album_id](const std::optional<song::Song>& song) {
             if (!song) {
                 return;
             }
@@ -1425,7 +1428,7 @@ void Xamp::initialDeviceList() {
         }
 
         if (!is_find_setting_device) {
-            auto itr = std::ranges::find_if(device_info_list, [](const auto& info) {
+            auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
                 return info.is_default_device && !IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {
@@ -2216,7 +2219,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
         qMainDb.forEachAlbumMusic(album_id, [&entities](const auto& entity) {
             entities.append(entity);
             });
-        std::ranges::sort(entities, [](const auto& a, const auto& b) {
+        std::sort(entities.begin(), entities.end(), [](const auto& a, const auto& b) {
             return b.track > a.track;
             });
         auto i = 0;

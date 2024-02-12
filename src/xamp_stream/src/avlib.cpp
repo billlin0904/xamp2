@@ -209,7 +209,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 				if (!output_format->extensions)
 					continue;
 				for (const auto& extension : String::Split(output_format->extensions, ",")) {
-                    if (!ordered_extension.contains(extension)) {
+                    if (ordered_extension.find(extension) != ordered_extension.end()) {
 						ordered_extension.insert(extension);
 					}
 				}

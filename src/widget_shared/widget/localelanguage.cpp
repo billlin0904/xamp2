@@ -62,7 +62,7 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 
 	auto file_names = dir.entryList(QStringList(qTEXT("*.qm")));
 	for (auto locale : file_names) {
-		if (locale.contains("qt") || locale.contains("widget_shared")) {
+        if (locale.contains(qTEXT("qt")) || locale.contains(qTEXT("widget_shared"))) {
 			continue;
 		}
 		locale.truncate(locale.lastIndexOf(qTEXT(".")));

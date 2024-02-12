@@ -8,6 +8,7 @@
 #include <zlib.h>
 #include <contrib/minizip/unzip.h>
 
+#if 0
 namespace {
     inline constexpr auto kReadZipBufferSize = 4096;
 
@@ -33,9 +34,14 @@ namespace {
             else
                 if (mode & ZLIB_FILEFUNC_MODE_CREATE)
                     mode_fopen = L"wb";
-
+#ifdef XAMP_OS_WIN
         if ((filename != nullptr) && (mode_fopen != nullptr))
             _wfopen_s(&file, static_cast<const wchar_t*>(filename), mode_fopen);
+#else
+            if ((filename != nullptr) && (mode_fopen != nullptr)) {
+                file = fopen(String::ToString(static_cast<const wchar_t*>(filename)).c_str(), mode_fopen);
+            }
+#endif
         return file;
     }
 
@@ -235,7 +241,7 @@ QByteArray gzipDecompress(const QByteArray& data) {
             ret = Z_DATA_ERROR;     // and fall through
         case Z_DATA_ERROR:
         case Z_MEM_ERROR:
-            throw std::exception("Date error");
+            throw Exception("Date error");
         }
 
         result.append(output, kReadZipBufferSize - zlib_stream.avail_out);
@@ -243,3 +249,10 @@ QByteArray gzipDecompress(const QByteArray& data) {
 
     return result;
 }
+
+#else
+QByteArray gzipDecompress(const QByteArray& data) {
+    return {};
+}
+
+#endif

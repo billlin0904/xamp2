@@ -222,12 +222,12 @@ namespace {
         win.setMainWindow(&main_window);
         win.setThemeColor(qTheme.backgroundColor(),
             qTheme.themeTextColor());
-
+#ifdef Q_O_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");
             SetProcessMitigation();
         }
-
+#endif
         XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 
         main_window.setContentWidget(&win);
@@ -274,7 +274,7 @@ int main() {
 
     qAppSettings.loadIniFile(qTEXT("xamp.ini"));
     qJsonSettings.loadJsonFile(qTEXT("config.json"));
-
+#ifdef Q_OS_WIN32
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver >= QOperatingSystemVersion::Windows10) {
         setWorkingSetSize();
@@ -285,7 +285,7 @@ int main() {
         os_ver.majorVersion(),
         os_ver.minorVersion(),
         os_ver.microVersion());
-
+#endif
     FramelessHelperRAII frameless_helper_raii;
 
     qAppSettings.loadOrSaveLogConfig();
@@ -313,8 +313,11 @@ int main() {
         qJsonSettings.save();
         qAppSettings.save();
         qAppSettings.saveLogConfig();
-        qMainDb.close();
+        qMainDb.close();    
+#ifdef Q_OS_WIN32
         prefetch_dll.clear();
+
+#endif
         LoggerManager::GetInstance().Shutdown();
     );
 

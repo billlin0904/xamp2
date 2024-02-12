@@ -37,8 +37,13 @@ namespace {
             "DSD ", // .dsd file
             "FRM8"  // .dsdiff file
         };
-        return std::ranges::find(knows_chunks, file_chunks)
-            != knows_chunks.end();
+
+        for (auto &chunks : knows_chunks) {
+            if (file_chunks.find(chunks) != std::string_view::npos) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

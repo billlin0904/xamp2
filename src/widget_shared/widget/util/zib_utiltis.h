@@ -11,7 +11,7 @@
 #include <widget/widget_shared.h>
 
 QByteArray gzipDecompress(const QByteArray& data);
-
+#if 0
 class ZipFileReader {
 public:
 	ZipFileReader();
@@ -24,3 +24,4 @@ private:
 	class ZipFileReaderImpl;
 	AlignPtr<ZipFileReaderImpl> impl_;
 };
+#endif

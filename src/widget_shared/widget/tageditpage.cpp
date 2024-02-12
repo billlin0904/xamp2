@@ -102,7 +102,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 	ui_->genreComboBox->addItems(genre_list);
 
-	std::ranges::sort(entities_, [](auto a, auto b) {
+    std::sort(entities_.begin(), entities_.end(), [](auto a, auto b) {
 		return a.track < b.track;
 		});
 

@@ -9,6 +9,7 @@
 #include <string>
 #include <ostream>
 #include <array>
+#include <functional>
 
 #include <base/base.h>
 #include <base/exception.h>
@@ -116,7 +117,7 @@ XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const noexcept {
     return seed;
 }
 
-}
+XAMP_BASE_NAMESPACE_END
 
 namespace std {
 
@@ -140,4 +141,4 @@ struct less<xamp::base::Uuid> {
     }
 };
 
-XAMP_BASE_NAMESPACE_END
+}

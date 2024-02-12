@@ -37,7 +37,7 @@ public:
     try {\
 		(expr);\
     }\
-    catch (SqlException const& e) {\
+    catch (SqlException const&) {\
     }
 
 struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {

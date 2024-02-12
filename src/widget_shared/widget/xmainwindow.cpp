@@ -27,8 +27,6 @@
 #include <windowsx.h>
 #include <Dbt.h>
 #else
-#include <Carbon/Carbon.h>
-#include <widget/osx/osx.h>
 #endif
 
 XMainWindow::XMainWindow()
@@ -79,6 +77,7 @@ XMainWindow::~XMainWindow() {
 }
 
 void XMainWindow::ensureInitTaskbar() {
+#if defined(Q_OS_WIN)
     if (!task_bar_) {
         task_bar_.reset(new WinTaskbar(this));
 
@@ -98,6 +97,7 @@ void XMainWindow::ensureInitTaskbar() {
             content_widget_->playPrevious();
             });
     }
+#endif
 }
 
 void XMainWindow::saveAppGeometry() {

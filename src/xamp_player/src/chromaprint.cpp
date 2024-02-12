@@ -1,3 +1,4 @@
+#if 0
 #include <vector>
 
 #include <chromaprint.h>
@@ -19,7 +20,7 @@ class ChromaprintLib final {
 public:
 	friend class Singleton<ChromaprintLib>;
 
-	XAMP_DISABLE_COPY(ChromaprintLib)
+    XAMP_DISABLE_COPY(ChromaprintLib);
 
 private:
 	ChromaprintLib() try
@@ -154,4 +155,4 @@ std::vector<uint8_t> Chromaprint::GetFingerprint() const {
 }
 
 }
-
+#endif

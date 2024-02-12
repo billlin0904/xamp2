@@ -145,7 +145,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->setListViewFixedHeight(70);
 
-	std::ranges::sort(title_category_list, [](const auto& left, const auto& right) {
+    std::sort(title_category_list.begin(), title_category_list.end(),
+              [](const auto& left, const auto& right) {
 		return left.length() < right.length();
 		});
 	
@@ -454,7 +455,7 @@ void AlbumArtistPage::reload() {
 	}
 
 	auto years = qMainDb.getYears();
-	std::ranges::sort(years);
+    std::sort(years.begin(), years.end());
 	Q_FOREACH(auto year, years) {
 		year_tag_list_widget_->addTag(year, true);
 	}
