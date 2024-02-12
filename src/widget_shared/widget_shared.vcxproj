@@ -91,7 +91,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>WIDGET_SHARED_LIB;QSU_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIDGET_SHARED_LIB;QSU_IMPORT;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,9 +118,6 @@
     <QtMoc Include="widget\preferencepage.h" />
     <QtMoc Include="widget\artistview.h" />
     <QtMoc Include="widget\genre_view_page.h" />
-    <QtMoc Include="widget\cover_searcher\musicbraincoversearcher.h" />
-    <QtMoc Include="widget\cover_searcher\discogscoversearcher.h" />
-    <QtMoc Include="widget\cover_searcher\coversearcher.h" />
     <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\accountauthorizationpage.h" />
     <ClInclude Include="widget\acrylic\acrylic.h" />
@@ -223,8 +220,6 @@
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\cover_searcher\discogscoversearcher.cpp" />
-    <ClCompile Include="widget\cover_searcher\musicbraincoversearcher.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\databasefacade.cpp" />

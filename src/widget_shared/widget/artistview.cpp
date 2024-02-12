@@ -354,7 +354,7 @@ FROM
     artists
 WHERE
 	firstCharEn IN (%1)
-    )").arg(names.join(","));
+    )").arg(names.join(qTEXT(",")));
 }
 
 void ArtistView::showAll() {

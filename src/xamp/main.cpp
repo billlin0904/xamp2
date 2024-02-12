@@ -313,11 +313,7 @@ int main() {
         qJsonSettings.save();
         qAppSettings.save();
         qAppSettings.saveLogConfig();
-        qMainDb.close();    
-#ifdef Q_OS_WIN32
-        prefetch_dll.clear();
-
-#endif
+        qMainDb.close();
         LoggerManager::GetInstance().Shutdown();
     );
 

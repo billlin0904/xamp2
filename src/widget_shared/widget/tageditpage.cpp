@@ -20,7 +20,7 @@ namespace {
 		if (f.open(QFile::ReadOnly)) {
 			QCryptographicHash hash(hash_algorithm);
 			if (hash.addData(&f)) {
-				return hash.result().toHex().toUpper();
+				return QString::fromStdString(hash.result().toHex().toUpper().toStdString());
 			}
 		}
 		return {};
@@ -68,36 +68,36 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	const TagIO tag_io;
 
 	const QStringList genre_list{
-		"",
-		"Blues",
-		"Classic Rock",
-		"Country",
-		"Dance",
-		"Disco",
-		"Funk",
-		"Grunge",
-		"Hip-Hop",
-		"Jazz",
-		"Metal",
-		"New Age",
-		"Oldies",
-		"Other",
-		"Pop",
-		"R&B",
-		"Rap",
-		"Reggae",
-		"Rock",
-		"Techno",
-		"Industrial",
-		"Alternative",
-		"Ska",
-		"Death Metal",
-		"Pranks",
-		"Soundtrack",
-		"Euro-Techno",
-		"Ambient",
-		"Trip-Hop",
-		"Vocal",
+		qTEXT(""),
+		qTEXT("Blues"),
+		qTEXT("Classic Rock"),
+		qTEXT("Country"),
+		qTEXT("Dance"),
+		qTEXT("Disco"),
+		qTEXT("Funk"),
+		qTEXT("Grunge"),
+		qTEXT("Hip-Hop"),
+		qTEXT("Jazz"),
+		qTEXT("Metal"),
+		qTEXT("New Age"),
+		qTEXT("Oldies"),
+		qTEXT("Other"),
+		qTEXT("Pop"),
+		qTEXT("R&B"),
+		qTEXT("Rap"),
+		qTEXT("Reggae"),
+		qTEXT("Rock"),
+		qTEXT("Techno"),
+		qTEXT("Industrial"),
+		qTEXT("Alternative"),
+		qTEXT("Ska"),
+		qTEXT("Death Metal"),
+		qTEXT("Pranks"),
+		qTEXT("Soundtrack"),
+		qTEXT("Euro-Techno"),
+		qTEXT("Ambient"),
+		qTEXT("Trip-Hop"),
+		qTEXT("Vocal"),
 	};
 
 	ui_->genreComboBox->addItems(genre_list);
@@ -171,7 +171,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		});
 
 	(void)QObject::connect(ui_->clearCommentButton, &QPushButton::clicked, [this] {
-		ui_->commentLineEdit->setText("");
+		ui_->commentLineEdit->setText(kEmptyString);
 		});
 
 	(void)QObject::connect(ui_->removeCoverButton, &QPushButton::clicked, [this] {

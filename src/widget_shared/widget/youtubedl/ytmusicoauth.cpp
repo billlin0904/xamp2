@@ -45,9 +45,9 @@ void YtMusicOAuth::setup() {
 			return;
 		}
 
-		user_code_ = code["user_code"].toString();
-		verification_url_ = code["verification_url"].toString();
-		device_code_ = code["device_code"].toString();
+		user_code_ = code[qTEXT("user_code")].toString();
+		verification_url_ = code[qTEXT("verification_url")].toString();
+		device_code_ = code[qTEXT("device_code")].toString();
 
 		const auto open_url = qSTR("%1?user_code=%2").arg(verification_url_).arg(user_code_);
 		emit acceptAuthorization(open_url);
@@ -75,12 +75,12 @@ void YtMusicOAuth::requestGrant() {
 			return;
 		}
 		auto root = code.object();
-		root[qTEXT("expires_at")] = QDateTime::currentSecsSinceEpoch() + code["expires_in"].toInt();
+		root[qTEXT("expires_at")] = QDateTime::currentSecsSinceEpoch() + code[qTEXT("expires_in")].toInt();
 		root[qTEXT("filepath")] = qTEXT("oauth.json");
 		code.setObject(root);
 		auto json = code.toJson();
 
-		QSaveFile file("oauth.json");
+		QSaveFile file(qTEXT("oauth.json"));
 		file.open(QIODevice::WriteOnly);
 		file.write(json);
 		if (file.commit()) {

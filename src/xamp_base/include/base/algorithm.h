@@ -7,6 +7,7 @@
 
 #include <base/base.h>
 #include <base/stl.h>
+#include <algorithm>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

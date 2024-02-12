@@ -19,8 +19,8 @@
 #define XAMP_PLAYER_API __attribute__((visibility("default")))
 #endif
 
-#define XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN namespace xamp::player {
-#define XAMP_AUDIO_PLAYER_NAMESPACE_END }
+#define XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN namespace xamp { namespace player {
+#define XAMP_AUDIO_PLAYER_NAMESPACE_END } }
 
 namespace xamp::player {
 	using namespace base;
