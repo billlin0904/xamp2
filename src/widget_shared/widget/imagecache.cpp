@@ -209,7 +209,10 @@ QString ImageCache::addImage(const QPixmap& cover) const {
 }
 
 void ImageCache::optimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const {
-	image_utils::optimizePng(buffer, file_path);
+	if (!image_utils::optimizePng(buffer, file_path)) {
+		XAMP_LOG_DEBUG("Fail to optimizePng");
+		return;
+	}
 	cache_.AddOrUpdate(tag_name, getFromFile(tag_name));
 }
 

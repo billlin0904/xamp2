@@ -703,7 +703,7 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-                IGNORE_DB_EXCEPTION(qMainDb.removePlaylistAllMusic(playlistId()))
+                qMainDb.removePlaylistAllMusic(playlistId());
             	reload();
                 removePlaying();
                 });
@@ -741,7 +741,7 @@ void PlayListTableView::initial() {
                     return;
                 }
                 
-                IGNORE_DB_EXCEPTION(qMainDb.removePlaylistAllMusic(playlistId()))
+                qMainDb.removePlaylistAllMusic(playlistId());
                 reload();
                 removePlaying();
             });
@@ -907,7 +907,7 @@ void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {
     const auto entity = item(index);
-    CATCH_DB_EXCEPTION(qMainDb.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE))
+    qMainDb.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
     update();
 }
 
@@ -940,17 +940,17 @@ void PlayListTableView::onUpdateReplayGain(int32_t playlistId,
         return;
     }
 
-    CATCH_DB_EXCEPTION(qMainDb.updateReplayGain(
+    qMainDb.updateReplayGain(
         entity.music_id,
         album_rg_gain,
-        album_peak, 
+        album_peak,
         track_rg_gain,
-        track_peak))
+        track_peak);
 
-    CATCH_DB_EXCEPTION(qMainDb.addOrUpdateTrackLoudness(entity.album_id,
+    qMainDb.addOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
-        track_loudness))
+        track_loudness);
 
     XAMP_LOG_DEBUG(
         "Update DB music id: {} artist id: {} album id id: {},"
@@ -995,7 +995,7 @@ void PlayListTableView::onProcessDatabase(int32_t playlist_id, const QList<PlayL
     }
 
     for (const auto& entity : entities) {
-        CATCH_DB_EXCEPTION(qMainDb.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id))
+        qMainDb.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
     }
     reload();
     emit addPlaylistItemFinished();
@@ -1115,8 +1115,8 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = item(play_index_);
-    CATCH_DB_EXCEPTION(qMainDb.clearNowPlaying(playlist_id_))
-	CATCH_DB_EXCEPTION(qMainDb.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING))
+    qMainDb.clearNowPlaying(playlist_id_);
+    qMainDb.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
     reload();
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
@@ -1129,7 +1129,7 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
         return;
     }
     const auto entity = item(play_index_);
-    CATCH_DB_EXCEPTION(qMainDb.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state))
+    qMainDb.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
     reload();
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
     scrollToIndex(play_index_);
@@ -1198,12 +1198,12 @@ void PlayListTableView::onPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    CATCH_DB_EXCEPTION(qMainDb.clearNowPlaying(playlist_id_))
+    qMainDb.clearNowPlaying(playlist_id_);
     reload();
 }
 
 void PlayListTableView::removeAll() {
-    IGNORE_DB_EXCEPTION(qMainDb.removePlaylistAllMusic(playlistId()))
+    qMainDb.removePlaylistAllMusic(playlistId());
     reload();
 }
 
@@ -1218,15 +1218,15 @@ void PlayListTableView::removeSelectItems() {
 
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
         const auto it = item(itr->second);
-        CATCH_DB_EXCEPTION(qMainDb.clearNowPlaying(playlist_id_, it.playlist_music_id))
+        qMainDb.clearNowPlaying(playlist_id_, it.playlist_music_id);
         remove_music_ids.push_back(it.music_id);
     }
 
     const auto count = model_->rowCount();
 	if (!count) {
-        CATCH_DB_EXCEPTION(qMainDb.clearNowPlaying(playlist_id_))
+        qMainDb.clearNowPlaying(playlist_id_);
 	}
 
-    CATCH_DB_EXCEPTION(qMainDb.removePlaylistMusic(playlist_id_, remove_music_ids))
+    qMainDb.removePlaylistMusic(playlist_id_, remove_music_ids);
     reload();
 }

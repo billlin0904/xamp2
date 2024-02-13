@@ -143,7 +143,7 @@ double parseDuration(const std::string & str) {
         &seconds,
         &milliseconds);
 #endif
-    std::chrono::milliseconds duration = std::chrono::minutes(minutes)
+    const std::chrono::milliseconds duration = std::chrono::minutes(minutes)
         + std::chrono::seconds(seconds)
         + std::chrono::milliseconds(milliseconds);
     return duration.count() / 1000.0;

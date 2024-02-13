@@ -2831,9 +2831,15 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 for (const auto &id : video_ids) {
                     edit::PlaylistEditResultData data;
                     auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
+                    if (video_id.isEmpty() || setVideoId.isEmpty()) {
+                        continue;
+                    }
                     data.videoId = video_id.toStdString();
                     data.setVideoId = setVideoId.toStdString();
                     result_data.push_back(data);
+                }
+                if (result_data.empty()) {
+                    return;
                 }
                 playlist_page->spinner()->startAnimation();
                 centerParent(playlist_page->spinner());

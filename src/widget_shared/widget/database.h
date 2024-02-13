@@ -25,21 +25,6 @@ public:
 	const char* what() const noexcept override;
 };
 
-#define IGNORE_DB_EXCEPTION(expr) \
-    try {\
-		(expr);\
-    }\
-    catch (const Exception& e) {\
-		XAMP_LOG_DEBUG(e.what());\
-    }
-
-#define CATCH_DB_EXCEPTION(expr) \
-    try {\
-		(expr);\
-    }\
-    catch (SqlException const&) {\
-    }
-
 struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
 	int32_t songs{0};
 	double durations{0};
