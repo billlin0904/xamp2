@@ -72,7 +72,7 @@ private:
         }
 
         XAMP_ALWAYS_INLINE void Invoke(const StopToken& stop_token) override {
-            std::forward<Func>(f_)(stop_token);
+            std::invoke<Func>(std::forward<Func>(f_), stop_token);
         }
         Func f_;
     };

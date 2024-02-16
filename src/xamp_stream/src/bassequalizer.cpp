@@ -24,15 +24,15 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
-        BASS_IF_FAILED_THROW(stream_);
+        BassIfFailedThrow(stream_);
 
         preamp_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
-        BASS_IF_FAILED_THROW(preamp_);
+        BassIfFailedThrow(preamp_);
     }
 
     void AddBand(uint32_t i, float freq, float band_width, float gain, float Q) {
         const auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_PEAKEQ, 1);
-        BASS_IF_FAILED_THROW(fx_handle);
+        BassIfFailedThrow(fx_handle);
 
         BASS_BFX_PEAKEQ eq{};
         eq.lBand = i;
@@ -41,7 +41,7 @@ public:
         eq.fGain = gain;
         eq.fQ = Q;
         eq.lChannel = BASS_BFX_CHANALL;
-        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(fx_handle, &eq));
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handle, &eq));
         fx_handles_.push_back(fx_handle);
         XAMP_LOG_D(logger_, "Add band {}Hz {}dB Q:{} Bandwidth:{} successfully!", freq, gain, Q, eq.fBandwidth);
     }
@@ -64,17 +64,17 @@ public:
         }
 
         BASS_BFX_PEAKEQ eq{};
-        BASS_IF_FAILED_THROW(BASS.BASS_FXGetParameters(fx_handles_[band], &eq));
+        BassIfFailedThrow(BASS.BASS_FXGetParameters(fx_handles_[band], &eq));
         eq.fGain = gain;
         eq.fQ = Q;
-        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(fx_handles_[band], &eq));
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handles_[band], &eq));
     }
 
     void SetPreamp(float preamp_db) {
         BASS_BFX_VOLUME fv{};
         fv.lChannel = BASS_BFX_CHANALL;
         fv.fVolume = static_cast<float>(std::pow(10, (preamp_db / 20)));
-        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(preamp_, &fv));
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(preamp_, &fv));
         XAMP_LOG_D(logger_, "Add preamp {}dB successfully!", preamp_db);
     }
 

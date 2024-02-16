@@ -33,7 +33,7 @@ public:
         volume.lChannel = -1;
         volume.fVolume = static_cast<float>(std::pow(10, (volume_db / 20)));
         XAMP_LOG_D(logger_, "Set volume:{} dB level:{}", Round(volume_db, 2), static_cast<int32_t>(volume.fVolume * 100));
-        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(volume_handle_, &volume));
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(volume_handle_, &volume));
     }
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {

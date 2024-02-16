@@ -17,7 +17,9 @@ inline constexpr uint32_t kDesiredSchedulerMS = 1;
 class XAMP_NO_VTABLE IWaitableTimer {
 public:
 	virtual ~IWaitableTimer() = default;
+	
 	virtual void SetTimeout(std::chrono::milliseconds timeout) noexcept = 0;
+
 	virtual void Wait() = 0;
 protected:
 	IWaitableTimer() = default;

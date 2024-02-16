@@ -60,9 +60,9 @@ AlignPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
 	return MakeAlign<IAudioDeviceManager, AudioDeviceManager>();
 }
 
-bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
+bool IsExclusiveDevice(const DeviceInfo& info) noexcept {
 #ifdef XAMP_OS_WIN
-    Uuid const device_type_id(info.device_type_id);
+    const Uuid device_type_id(info.device_type_id);
     return device_type_id == XAMP_UUID_OF(win32::ExclusiveWasapiDeviceType)
         || device_type_id == XAMP_UUID_OF(win32::AsioDeviceType)
         ;
@@ -72,7 +72,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 #endif
 }
 
-bool IsAsioDevice(Uuid const& id) noexcept {
+bool IsAsioDevice(const Uuid& id) noexcept {
 #if defined(XAMP_OS_WIN)
     return id == XAMP_UUID_OF(win32::AsioDeviceType);
 #else

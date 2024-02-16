@@ -86,7 +86,7 @@ XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
 * @param[in] v
 * @return int32_t
 */
-XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
+XAMP_ALWAYS_INLINE size_t NextPowerOfTwo(size_t v) noexcept {
 	v--;
 	v |= v >> 1;
 	v |= v >> 2;
@@ -133,49 +133,6 @@ T Round(T a, int32_t places) {
     const T shift = pow(static_cast<T>(10.0), places);
     return Round(a * shift) / shift;
 }
-
-#if XAMP_IS_LITTLE_ENDIAN
-XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
-	return x;
-}
-XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
-	return x;
-}
-XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
-	return x;
-}
-XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
-	return x;
-}
-#elif !XAMP_IS_BIG_ENDIAN
-#  error "Unsupported byte order."
-#elif defined(XAMP_OS_WIN)
-XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
-	return _byteswap_ulong(x);
-}
-XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
-	return _byteswap_ulong(x);
-}
-XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
-	return _byteswap_uint64(x);
-}
-XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
-	return _byteswap_uint64(x);
-}
-#else
-XAMP_ALWAYS_INLINE uint32_t host_from_le32(uint32_t x) noexcept {
-	return __builtin_bswap32(x);
-}
-XAMP_ALWAYS_INLINE uint32_t le32_from_host(uint32_t x) noexcept {
-	return __builtin_bswap32(x);
-}
-XAMP_ALWAYS_INLINE uint64_t host_from_le64(uint64_t x) noexcept {
-	return __builtin_bswap64(x);
-}
-XAMP_ALWAYS_INLINE uint64_t le64_from_host(uint64_t x) noexcept {
-	return __builtin_bswap64(x);
-}
-#endif
 
 XAMP_BASE_NAMESPACE_END
 

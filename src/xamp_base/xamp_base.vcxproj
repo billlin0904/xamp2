@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/atomic_shared_ptr/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/atomic_shared_ptr/;../thirdparty/expected/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -166,6 +166,7 @@
     <ClInclude Include="include\base\dsd_utils.h" />
     <ClInclude Include="include\base\encodingprofile.h" />
     <ClInclude Include="include\base\enum.h" />
+    <ClInclude Include="include\base\expected.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\fs.h" />

@@ -114,6 +114,7 @@ AudioPlayer::AudioPlayer()
     , dsp_manager_(StreamFactory::MakeDSPManager())
     , device_manager_(MakeAudioDeviceManager()) {
     logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
+    PreventSleep(true);
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -141,9 +142,7 @@ void AudioPlayer::Destroy() {
     PreventSleep(false);
 }
 
-void AudioPlayer::Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
-    PreventSleep(true);
-
+void AudioPlayer::SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
     state_adapter_ = adapter;
     device_manager_->RegisterDeviceListener(shared_from_this());
 

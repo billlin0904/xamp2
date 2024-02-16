@@ -34,7 +34,7 @@ public:
     * 
     * @param[in] adapter The playback state adapter.
     */
-	virtual void Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) = 0;
+	virtual void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) = 0;
 
     /*
     * Startup the player.

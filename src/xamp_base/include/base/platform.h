@@ -47,7 +47,7 @@ public:
 
     void SetAffinity(JThread& thread);
 private:
-    std::array<bool, 256> cpus;
+    std::array<bool, 256> cpus_;
 };
 
 inline constexpr uint32_t kInfinity = -1;
@@ -71,7 +71,6 @@ XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
 XAMP_BASE_API size_t GetAvailablePhysicalMemory();
 
 XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
-
 /*
 * Futex wait implementation.
 *
@@ -99,7 +98,6 @@ XAMP_BASE_API void Assert(const char* message, const char* file, uint32_t line);
 
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable);
-XAMP_BASE_API void RedirectStdOut();
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size);
 XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
 XAMP_BASE_API void SetProcessMitigation();

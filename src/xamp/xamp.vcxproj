@@ -72,7 +72,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;QSU_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/framelesshelper/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/framelesshelper/include/;../thirdparty/expected/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -121,7 +121,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_DEBUG;NDEBUG;QT_NO_CAST_FROM_ASCII;QSU_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/framelesshelper/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/framelesshelper/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -207,6 +207,7 @@
   <ItemGroup>
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
+    <None Include="migrations\2024-01-12-093210_init\up.sql" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />
     <None Include="xamp.ini" />

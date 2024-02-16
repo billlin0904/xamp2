@@ -196,20 +196,20 @@ const CpuAffinity CpuAffinity::kInvalid(-1, false);
 
 CpuAffinity::CpuAffinity(int32_t only_use_cpu, bool all_cpu_set) {
     if (only_use_cpu != -1) {
-        cpus.fill(all_cpu_set);
-        cpus[only_use_cpu] = true;
+        cpus_.fill(all_cpu_set);
+        cpus_[only_use_cpu] = true;
     } else {
-        cpus.fill(all_cpu_set);
+        cpus_.fill(all_cpu_set);
     }
 }
 
 void CpuAffinity::SetCpu(int32_t cpu) {
-    cpus[cpu] = true;
+    cpus_[cpu] = true;
 }
 
 CpuAffinity::operator bool() const noexcept {
-    for (int i = 0; i < cpus.size(); ++i) {
-        if (cpus[i]) {
+    for (int i = 0; i < cpus_.size(); ++i) {
+        if (cpus_[i]) {
             return true;
         }
     }
@@ -226,7 +226,7 @@ void CpuAffinity::SetAffinity(JThread& thread) {
         const DWORD processor_count = ::GetActiveProcessorCount(group_index);
         DWORD current_processor = 0;
         for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
-            if (cpus[group_index * 64 + processor_index]) {
+            if (cpus_[group_index * 64 + processor_index]) {
                 group_affinity.Mask |= (1ull << processor_index);
                 ++current_processor;
 			}
@@ -240,7 +240,7 @@ void CpuAffinity::SetAffinity(JThread& thread) {
         }
 
         for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
-            if (cpus[group_index * 64 + processor_index]) {
+            if (cpus_[group_index * 64 + processor_index]) {
                 PROCESSOR_NUMBER processor_number = {};
                 processor_number.Group = group_index;
                 processor_number.Number = processor_index;
@@ -306,7 +306,7 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
         }        
     }    
     auto current_priority = ::GetThreadPriority(thread.native_handle());
-    XAMP_LOG_DEBUG("Current thread priority is {}.", current_priority);
+    XAMP_LOG_TRACE("Current thread priority is {}.", current_priority);
 #else
 #if !defined(PTHREAD_MIN_PRIORITY)
 #define PTHREAD_MIN_PRIORITY  0
@@ -389,35 +389,6 @@ bool IsDebuging() {
 }
 
 #ifdef XAMP_OS_WIN
-void RedirectStdOut() {
-    if (!::AllocConsole()) {
-        return;
-    }
-
-    auto stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi{};
-    if (::GetConsoleScreenBufferInfo(stdout_handle, &csbi)) {
-        csbi.dwSize.Y = 480;
-        csbi.dwSize.X = 640;
-        ::SetConsoleScreenBufferSize(stdout_handle, csbi.dwSize);
-    }
-
-    // Redirect "stdin" to the console window.
-    if (!freopen("CONIN$", "w", stdin)) 
-        return;
-
-    // Redirect "stderr" to the console window.
-    if (!freopen("CONOUT$", "w", stderr)) 
-        return;
-
-    // Redirect "stdout" to the console window.
-    if (!freopen("CONOUT$", "w", stdout))
-        return;
-
-    // Turn off buffering for "stdout" ("stderr" is unbuffered by default).
-    setbuf(stdout, nullptr);
-}
-
 bool ExtendProcessWorkingSetSize(size_t size) {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
@@ -482,7 +453,7 @@ bool SetProcessWorkingSetSize(size_t working_set_size) {
         XAMP_LOG_DEBUG("ExtendProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
         return false;
     }
-    XAMP_LOG_DEBUG("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
+    XAMP_LOG_TRACE("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
     return true;
 }
 

@@ -79,7 +79,7 @@ public:
     * 
     * @param[in] adapter The playback state adapter.
     */
-	void Startup(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
+	void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
 
     /*
     * Open a file.

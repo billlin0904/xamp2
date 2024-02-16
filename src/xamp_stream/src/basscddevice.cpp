@@ -36,11 +36,11 @@ public:
 	}
 
 	void SetAction(CDDeviceAction action) {
-		BASS_IF_FAILED_THROW(BASS.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
+		BassIfFailedThrow(BASS.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
 	}
 
 	void SetSpeed(uint32_t speed) {
-		BASS_IF_FAILED_THROW(BASS.CDLib->BASS_CD_SetSpeed(driver_, speed));
+		BassIfFailedThrow(BASS.CDLib->BASS_CD_SetSpeed(driver_, speed));
 	}
 
 	[[nodiscard]] uint32_t GetSpeed() const {
@@ -92,7 +92,7 @@ public:
 
 	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const {
 		BASS_CD_INFO info{};
-		BASS_IF_FAILED_THROW(BASS.CDLib->BASS_CD_GetInfo(driver_, &info));
+		BassIfFailedThrow(BASS.CDLib->BASS_CD_GetInfo(driver_, &info));
 		CDDeviceInfo device_info;
 		device_info.can_lock = info.canlock;
 		device_info.can_open = info.canopen;
@@ -116,7 +116,7 @@ public:
 
 	void SetMaxSpeed() {
 		// -1 = optimal performace.
-		BASS_IF_FAILED_THROW(BASS.CDLib->BASS_CD_SetSpeed(driver_, -1));
+		BassIfFailedThrow(BASS.CDLib->BASS_CD_SetSpeed(driver_, -1));
 	}
 
 	double GetDuration(uint32_t track) const {

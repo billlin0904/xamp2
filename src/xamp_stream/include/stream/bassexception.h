@@ -20,7 +20,7 @@ private:
     int error_;
 };
 
-#define BASS_IF_FAILED_THROW(cond) \
+#define BassIfFailedThrow(cond) \
 	do {\
         if (!(cond)) {\
             throw BassException();\

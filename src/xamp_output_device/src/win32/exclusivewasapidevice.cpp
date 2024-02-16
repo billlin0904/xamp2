@@ -240,7 +240,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
 			hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
 
-			// TODO: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32. 不管是24/32或是32/32 format資料都是24/32.
+			// TODO: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32.
 			auto is_32bit_format = false;
 
 			if (mix_format_->wFormatTag == WAVE_FORMAT_EXTENSIBLE
@@ -264,7 +264,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 					InitialDeviceFormat(output_format, 32);
 					XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
 					is_2432_format_ = false;
-				}
+				}				
 			}
 			else {
 				HrIfFailledThrow(hr);

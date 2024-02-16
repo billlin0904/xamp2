@@ -128,9 +128,10 @@ DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
 
 Vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     Vector<Uuid> device_types;
-    //for (const auto& uuid : factory_ | std::views::keys) {
-    //    device_types.push_back(uuid);
-    //}
+    device_types.reserve(factory_.size());
+    for (auto [uuid, _] :factory_) {
+        device_types.push_back(uuid);
+    }
     return device_types;
 }
 

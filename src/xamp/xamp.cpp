@@ -1,4 +1,4 @@
-#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+ï»¿#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <xamp.h>
 
 #include <QShortcut>
@@ -625,7 +625,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ytmusic_oauth_.reset(new YtMusicOAuth());
 
     (void)QObject::connect(ui_.authButton, &QToolButton::clicked, [this](auto checked) { 
-        auto token = YtMusicOAuth::parseOAuthToken();
+        auto token = YtMusicOAuth::parseOAuthJson();
         if (token) {            
             const QScopedPointer<XDialog> dialog(new XDialog(this));
             const QScopedPointer<AccountAuthorizationPage> authorization_page(new AccountAuthorizationPage(dialog.get()));
@@ -635,6 +635,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             authorization_page->setOAuthToken(token.value());
             dialog->exec();
         } else {
+            XAMP_LOG_ERROR("{}", token.error());
+            if (XMessageBox::showYesOrNo(tr(" Would you like to proceed with authorization at the moment?"),
+                QString::fromStdString(token.error())) != QDialogButtonBox::Yes) {
+                return;
+            }
             ytmusic_oauth_->setup();
         }
     });
@@ -649,14 +654,18 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
-        if (YtMusicOAuth::parseOAuthToken()) {
+        auto token = YtMusicOAuth::parseOAuthJson();
+        if (token) {
             initialYtMusicWorker();
             initialCloudPlaylist();
             setAuthButton(ui_, true);
         }
+        else {
+            XAMP_LOG_ERROR("{}", token.error());
+        }
     });
 
-    player_->Startup(state_adapter_);
+    player_->SetStateAdapter(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
         delay(seconds);
     });
@@ -667,7 +676,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialShortcut();
     initialSpectrum();
 
-    if (YtMusicOAuth::parseOAuthToken()) {
+    if (YtMusicOAuth::parseOAuthJson()) {
         initialYtMusicWorker();
         setAuthButton(ui_, true);
         XAMP_LOG_DEBUG("YouTube worker initial done!");
@@ -960,7 +969,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             is_unknown_album = true;
         }
 
-        if (!track.video_id) {
+        if (!track.video_id /*|| !track.set_video_id*/) {
             continue;
         }
 
@@ -1066,10 +1075,10 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         centerParent(play_page->spinner());
     }
 
-    // ¨ú±o256kbs AAC±ø¥ó
-    // 1. ¥Õª÷±b¸¹
+    // å–å¾—256kbs AACæ¢ä»¶
+    // 1. ç™½é‡‘å¸³è™Ÿ
     // 2. Browser cookies
-    // 3. ¨Ï¥Îyoutube music URL
+    // 3. ä½¿ç”¨youtube music URL
     const auto ytmusic_url = makeYtMusicUrl(video_id);
     auto vid = video_id;
 
@@ -1248,6 +1257,7 @@ void Xamp::initialSpectrum() {
         return;
     }
 
+    lrc_page_->spectrum()->setBarColor(qTheme.highlightColor());
     (void)QObject::connect(state_adapter_.get(),
         &UIPlayerStateAdapter::fftResultChanged,
         lrc_page_->spectrum(),
@@ -1909,28 +1919,29 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
     if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
         CompressorParameters parameters;
         if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
-            if (item.track_loudness != 0.0) {
-                parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness, -1.0) * -1;
+            if (item.track_loudness) {
+                parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness.value(), -1.0) * -1;
             }
         }
         player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
         player_->GetDspManager()->AddCompressor();
     }
-    
-    if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
+
+    // todo: replay_gain éœ€è¦å…è¨±ç©ºå€¼, è¨­ç‚º0çš„è©±æœƒçˆ†éŸ³.    
+    /*if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
-        if (mode == ReplayGainMode::RG_ALBUM_MODE) {
+        if (mode == ReplayGainMode::RG_ALBUM_MODE && item.album_replay_gain) {
+            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain.value());
             player_->GetDspManager()->AddVolumeControl();
-            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain);
-        } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
+        } else if (mode == ReplayGainMode::RG_TRACK_MODE && item.track_replay_gain) {
+            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.track_replay_gain.value());
             player_->GetDspManager()->AddVolumeControl();
-            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.track_replay_gain);
         } else {
             player_->GetDspManager()->RemoveVolumeControl();
         }
     } else {
         player_->GetDspManager()->RemoveVolumeControl();
-    }
+    }*/
 }
 
 void Xamp::setupSampleWriter(ByteFormat byte_format,
@@ -2044,10 +2055,13 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         } else {
             default_format = AudioFormat::k16BitPCM441Khz;
         }
+
+        auto sample_rate = (std::max)(entity.sample_rate, kPcmSampleRate48);
+
         if (entity.sample_rate != default_format.GetSampleRate()) {
             const auto message =
                 qSTR("Playing blue-tooth device need set %1 to %2.")
-                .arg(formatSampleRate(entity.sample_rate))
+                .arg(formatSampleRate(sample_rate))
                 .arg(formatSampleRate(default_format.GetSampleRate()));
             showMeMessage(message);
             player_->GetDspManager()->RemoveSampleRateConverter();
@@ -2468,7 +2482,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(dynamic_cast<PlaylistTabBar*>(cloud_tab_widget_->tabBar()), &PlaylistTabBar::textChanged,[this](auto index, const auto& text) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(cloud_tab_widget_->widget(index));
         auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
-        QCoro::connect(ytmusic_worker_->editPlaylistAsync(playlist_id, text, qTEXT(""), PrivateStatus::PRIVATE), this, [this](auto) {
+        QCoro::connect(ytmusic_worker_->editPlaylistAsync(playlist_id, text, kEmptyString, PrivateStatus::PRIVATE), this, [this](auto) {
             initialCloudPlaylist();
         });
     });

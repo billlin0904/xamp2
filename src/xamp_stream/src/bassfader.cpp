@@ -33,8 +33,8 @@ public:
             stream_.get(),
             BASS_FX_VOLUME,
             0);
-        BASS_IF_FAILED_THROW(fade_fx);
-        BASS_IF_FAILED_THROW(BASS.BASS_FXSetParameters(fade_fx, &volume_param));
+        BassIfFailedThrow(fade_fx);
+        BassIfFailedThrow(BASS.BASS_FXSetParameters(fade_fx, &volume_param));
         XAMP_LOG_D(logger_, "Fade current:{:.2f} target:{:.2f} time:{:.2f}",
             current,
             target,

@@ -172,7 +172,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	}
 
 	// Sort device list by name length
-	std::ranges::sort(device_list, 
+	std::sort(device_list.begin(), device_list.end(),
 	                  [](const auto& first, const auto& second) {
 		                  return first.name.length() > second.name.length();
 	                  });

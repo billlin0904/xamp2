@@ -58,7 +58,7 @@ void NullOutputDevice::CloseStream() {
 }
 
 void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
-	static constexpr auto kDefaultBufferFrame = 432;
+	static constexpr auto kDefaultBufferFrame = 432; // 10ms
 
 	buffer_frames_ = kDefaultBufferFrame;
 	const size_t buffer_size = buffer_frames_ * output_format.GetChannels();

@@ -62,7 +62,7 @@ namespace {
         }
     }
 
-#ifdef XAMP_OS_WIN
+#ifdef Q_OS_WIN
     void setWorkingSetSize() {
         const auto memory_size = GetAvailablePhysicalMemory();
         XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
@@ -187,7 +187,7 @@ namespace {
         args = app.arguments();
 
 #ifdef _DEBUG    
-#ifdef XAMP_OS_WIN
+#ifdef Q_OS_WIN
         qInstallMessageHandler(logMessageHandler);
         QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
 #endif
@@ -222,7 +222,7 @@ namespace {
         win.setMainWindow(&main_window);
         win.setThemeColor(qTheme.backgroundColor(),
             qTheme.themeTextColor());
-#ifdef Q_O_WIN
+#ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");
             SetProcessMitigation();
