@@ -614,9 +614,9 @@ static void BM_MpmcQueue(benchmark::State& state) {
     static MpmcQueue<int>* queue;
     static std::vector<std::jthread> writer_thread;
     static std::atomic<bool> is_stop{ false };
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Setup code here.
-        queue = new MpmcQueue<int>(512 * state.threads);
+        queue = new MpmcQueue<int>(512 * state.threads());
         for (auto i = 0; i < 8; ++i) {
             writer_thread.emplace_back([&]() {
                 while (!is_stop) {
@@ -629,7 +629,7 @@ static void BM_MpmcQueue(benchmark::State& state) {
         int element;
         queue->TryDequeue(element);
     }
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Teardown code here.
         is_stop = true;
         writer_thread.clear();
@@ -641,9 +641,9 @@ static void BM_BlockingQueue(benchmark::State& state) {
     static BlockingQueue<int>* queue;
     static std::vector<std::jthread> writer_thread;
     static std::atomic<bool> is_stop{ false };
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Setup code here.
-        queue = new BlockingQueue<int>(512 * state.threads);
+        queue = new BlockingQueue<int>(512 * state.threads());
         for (auto i = 0; i < 8; ++i) {
             writer_thread.emplace_back([&]() {
                 while (!is_stop) {
@@ -656,7 +656,7 @@ static void BM_BlockingQueue(benchmark::State& state) {
         int element;
         queue->TryDequeue(element);
     }
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Teardown code here.
         is_stop = true;
         writer_thread.clear();
@@ -666,7 +666,7 @@ static void BM_BlockingQueue(benchmark::State& state) {
 
 static void BM_FastMutex(benchmark::State& state) {
     static FastMutex *m;
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Setup code here.
         m = new FastMutex();
     }
@@ -674,7 +674,7 @@ static void BM_FastMutex(benchmark::State& state) {
         m->lock();
         m->unlock();
     }
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Teardown code here.
         delete m;
     }
@@ -682,7 +682,7 @@ static void BM_FastMutex(benchmark::State& state) {
 
 static void BM_Spinlock(benchmark::State& state) {
     static Spinlock *m;
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Setup code here.
         m = new Spinlock();
     }
@@ -690,7 +690,7 @@ static void BM_Spinlock(benchmark::State& state) {
         m->lock();
         m->unlock();
     }
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
         // Teardown code here.
         delete m;
     }
@@ -700,9 +700,9 @@ static void BM_Spinlock(benchmark::State& state) {
 
 //BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 //BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
 //BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);
@@ -733,7 +733,7 @@ BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);

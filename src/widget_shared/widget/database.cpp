@@ -177,11 +177,18 @@ void Database::close() {
     }
 }
 
-void Database::open() {
+void Database::open() {    
     db_.setDatabaseName(qTEXT("xamp.db"));
 
     if (!db_.open()) {
         throw SqlException(db_.lastError());
+    }
+
+    XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
+        connection_name_.toStdString(), getVersion().toStdString());
+
+    if (connection_name_ != qTEXT("UI")) {
+        return;
     }
 
     (void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
@@ -191,10 +198,7 @@ void Database::open() {
     (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
-    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));
-
-    XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
-        connection_name_.toStdString(), getVersion().toStdString());
+    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));    
 
     createTableIfNotExist();
 }
