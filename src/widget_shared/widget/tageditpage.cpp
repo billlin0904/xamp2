@@ -272,10 +272,21 @@ void TagEditPage::setCurrentInfo(int32_t index) {
 	ui_->albumLineEdit->setText(entities_[index].album);
 	ui_->commentLineEdit->setText(entities_[index].comment);
 	ui_->yearLineEdit->setText(QString::number(entities_[index].year));
-	ui_->albumPeakLineEdit->setText(formatDb(entities_[index].album_peak));
-	ui_->albumReplayGainLineEdit->setText(formatDb(entities_[index].album_replay_gain));
-	ui_->trackPeakLineEdit->setText(formatDb(entities_[index].track_peak));
-	ui_->trackReplayGainLineEdit->setText(formatDb(entities_[index].track_replay_gain));
+
+	auto set_replay_gain = [&](auto* editor, const auto& opt_value) {
+		if (opt_value) {
+			editor->setText(formatDb(opt_value.value()));
+		}
+		else {
+			editor->setText(tr("Not set"));
+		}
+		};
+
+	set_replay_gain(ui_->albumPeakLineEdit, entities_[index].album_peak);
+	set_replay_gain(ui_->albumReplayGainLineEdit, entities_[index].album_replay_gain);
+	set_replay_gain(ui_->trackPeakLineEdit, entities_[index].track_peak);
+	set_replay_gain(ui_->trackReplayGainLineEdit, entities_[index].track_replay_gain);
+
 	ui_->fileSizeLineEdit->setText(stringFormat("{} ({})",
 		entities_[index].file_size,
 		String::FormatBytes(entities_[index].file_size)));

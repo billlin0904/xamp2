@@ -24,7 +24,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ConstLatin1String final : public QLatin1String 
 	}
 };
 
-class XAMP_WIDGET_SHARED_EXPORT ConstString final : public std::string_view {
+class XAMP_WIDGET_SHARED_EXPORT StringView final : public std::string_view {
 public:
 	using std::string_view::string_view;
 

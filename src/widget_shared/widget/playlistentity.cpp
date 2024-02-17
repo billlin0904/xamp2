@@ -32,16 +32,23 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.parent_path = indexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
     entity.timestamp = indexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
     entity.playlist_music_id = indexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    entity.album_replay_gain = indexValue(index, PLAYLIST_ALBUM_RG).toDouble();
-    entity.album_peak = indexValue(index, PLAYLIST_ALBUM_PK).toDouble();
-    entity.track_replay_gain = indexValue(index, PLAYLIST_TRACK_RG).toDouble();
-    entity.track_peak = indexValue(index, PLAYLIST_TRACK_PK).toDouble();
-    entity.track_loudness = indexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
     entity.genre = indexValue(index, PLAYLIST_GENRE).toString();
     entity.heart = indexValue(index, PLAYLIST_LIKE).toUInt();
     entity.comment = indexValue(index, PLAYLIST_COMMENT).toString();
     entity.year = indexValue(index, PLAYLIST_YEAR).toUInt();
     entity.music_cover_id = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
+
+    auto set_entity_value = [](auto &opt_value, const auto &db_value) {
+        if (!db_value.isNull()) {
+            opt_value = db_value.toDouble();
+        }
+        };
+
+    set_entity_value(entity.album_replay_gain, indexValue(index, PLAYLIST_ALBUM_RG));
+    set_entity_value(entity.album_peak, indexValue(index, PLAYLIST_ALBUM_PK));
+    set_entity_value(entity.track_replay_gain, indexValue(index, PLAYLIST_TRACK_RG));
+    set_entity_value(entity.track_peak, indexValue(index, PLAYLIST_TRACK_PK));
+    set_entity_value(entity.track_loudness, indexValue(index, PLAYLIST_TRACK_LOUDNESS));
 
     return entity;
 }

@@ -8,7 +8,7 @@
 #include <widget/http.h>
 
 FindAlbumCoverWorker::FindAlbumCoverWorker()
-    : database_ptr_(GetPooledDatabase(2))
+    : database_ptr_(getPooledDatabase(2))
     , nam_(this) {
 }
 

@@ -28,11 +28,6 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     uint64_t file_size{0};
     uint32_t year{0};
     double duration{0};
-    double album_replay_gain{0};
-    double album_peak{0};
-    double track_replay_gain{0};
-    double track_peak{0};
-    double track_loudness{0};
     uint64_t timestamp{0};
     QString disc_id;
     QString file_path;
@@ -47,7 +42,14 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString comment;
     QString lyrc;
     QString trlyrc;
+
     std::optional<QString> music_cover_id;
+
+    std::optional<double> album_replay_gain;
+    std::optional<double> album_peak;
+    std::optional<double> track_replay_gain;
+    std::optional<double> track_peak;
+    std::optional<double> track_loudness;
 
     [[nodiscard]] QString validCoverId() const {
         auto id = music_cover_id ? music_cover_id.value() : kEmptyString;

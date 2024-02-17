@@ -11,7 +11,8 @@
 #include <widget/widget_shared.h>
 
 QByteArray gzipDecompress(const QByteArray& data);
-#if 0
+
+#if XAMP_OS_WIN
 class ZipFileReader {
 public:
 	ZipFileReader();

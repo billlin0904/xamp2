@@ -48,7 +48,6 @@ void LrcPage::addCoverShadow(bool found_cover) {
 
 void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
-    //SetFullScreen(spectrum_->width() > 700);
 	setFullScreen(false);
 	addCoverShadow(true);
 }
@@ -105,7 +104,6 @@ QSize LrcPage::coverSizeHint() const {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	//SetFullScreen(spectrum_->width() > 700);
 	setFullScreen(false);
 }
 
@@ -212,7 +210,7 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void LrcPage::onThemeColorChanged(QColor background_color, QColor color) {	
-	onThemeChangedFinished(qTheme.themeColor());
+	
 }
 
 void LrcPage::initial() {

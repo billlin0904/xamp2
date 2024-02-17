@@ -236,7 +236,7 @@ void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result,
     catch (const Exception& e) {
         XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
     }
-    catch (std::exception const& e) {
+    catch (const std::exception& e) {
         XAMP_LOG_DEBUG("Failed to add track info({})!", e.what());
     }
     catch (...) {

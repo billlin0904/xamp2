@@ -25,6 +25,10 @@ void SpectrumWidget::setFftSize(size_t fft_size) {
 	fft_size_ = fft_size;
 }
 
+void SpectrumWidget::setBarColor(const QColor& color) {
+	bar_color_ = color;
+}
+
 void SpectrumWidget::onFftResultChanged(ComplexValarray const& fft_data) {
 	fft_data_ = fft_data;
 }
@@ -112,7 +116,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		}
 		path.lineTo(width(), height());
 		path.closeSubpath();
-		const QBrush brush(qTheme.highlightColor());
+		const QBrush brush(bar_color_);
 		painter.fillPath(path, brush);
 	}
 }

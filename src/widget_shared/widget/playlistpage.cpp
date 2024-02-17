@@ -216,9 +216,7 @@ void PlaylistPage::initial() {
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 
-void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {
-	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(color) + qTEXT("; background-color: transparent; }"));
-	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + qTEXT("; background-color: transparent; }"));
+void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {	
 }
 
 void PlaylistPage::setHeart(bool heart) {
@@ -288,6 +286,8 @@ void PlaylistPage::setCover(const QPixmap * cover) {
 }
 
 void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
+	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
+	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 }
 

@@ -131,7 +131,7 @@ QString DatabaseFactory::getDatabaseId() {
     return qTEXT("xamp_db_") + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
 }
 
-PooledDatabasePtr GetPooledDatabase(int32_t pool_size) {
+PooledDatabasePtr getPooledDatabase(int32_t pool_size) {
     return std::make_shared<ObjectPool<Database, DatabaseFactory>>(pool_size);
 }
 
@@ -878,10 +878,10 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
         query.bindValue(qTEXT(":trackPeak"), track_info.replay_gain.value().track_peak);
     }
     else {
-        query.bindValue(qTEXT(":albumReplayGain"), 0);
-        query.bindValue(qTEXT(":trackReplayGain"), 0);
-        query.bindValue(qTEXT(":albumPeak"), 0);
-        query.bindValue(qTEXT(":trackPeak"), 0);
+        query.bindValue(qTEXT(":albumReplayGain"), QVariant());
+        query.bindValue(qTEXT(":trackReplayGain"), QVariant());
+        query.bindValue(qTEXT(":albumPeak"),       QVariant());
+        query.bindValue(qTEXT(":trackPeak"),       QVariant());
     }
 
     query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);

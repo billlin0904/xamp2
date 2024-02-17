@@ -738,6 +738,16 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
+        local_tab_widget_.get(),
+        &PlaylistTabWidget::onThemeChangedFinished);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
+        cloud_tab_widget_.get(),
+        &PlaylistTabWidget::onThemeChangedFinished);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
         ui_.naviBar,
         &TabListView::onThemeChangedFinished);
 
@@ -1078,7 +1088,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     // 取得256kbs AAC條件
     // 1. 白金帳號
     // 2. Browser cookies
-    // 3. 使用youtube music URL
+    // 3. 使用YouTube music URL
     const auto ytmusic_url = makeYtMusicUrl(video_id);
     auto vid = video_id;
 
@@ -1300,7 +1310,7 @@ void Xamp::initialUi() {
     f.setWeight(QFont::DemiBold);
     f.setPointSize(10);
     ui_.titleFrameLabel->setFont(f);
-    //ui_.titleFrameLabel->setText(kApplicationTitle);
+    ui_.titleFrameLabel->setText(kApplicationTitle);
     ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     QFont mono_font(qTEXT("MonoFont"));
@@ -1616,7 +1626,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_PLAYLIST:        
         ui_.currentView->setCurrentWidget(local_tab_widget_.get());
         ensureLocalOnePlaylistPage();
-        localPlaylistPage()->playlist()->reload();
+        local_tab_widget_->reloadAll();
         break;
     case TAB_LYRICS:
         ui_.currentView->setCurrentWidget(lrc_page_.get());
@@ -1657,25 +1667,36 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     }
 
     qTheme.loadAndApplyTheme();
+
     setThemeIcon(ui_);
     setRepeatButtonIcon(ui_, order_);
     setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
 
-    lrc_page_->setCover(qTheme.unknownCover());
-    local_tab_widget_->onThemeChangedFinished(theme_color);
-    local_tab_widget_->setPlaylistCover(qTheme.unknownCover());
+    for (auto i = 0; i < local_tab_widget_->tabBar()->count(); ++i) {
+        auto* page = dynamic_cast<PlaylistPage*>(local_tab_widget_->widget(i));
+        if (!page) {
+            continue;
+        }
+        setPlaylistPageCover(nullptr, page);
+    }
 
-    setPlaylistPageCover(nullptr, localPlaylistPage());
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
 
-    emit currentThemeChanged(theme_color);
+    if (current_entity_) {
+        if (current_entity_.value().cover_id == qImageCache.unknownCoverId()) {
+            lrc_page_->setCover(qImageCache.getOrDefault(qImageCache.unknownCoverId()));
+        }
+    }
+    else {
+        lrc_page_->setCover(qImageCache.getOrDefault(qImageCache.unknownCoverId()));
+    }
 }
 
 void Xamp::setThemeColor(QColor background_color, QColor color) {
     qTheme.setBackgroundColor(background_color);
     setWidgetStyle(ui_);
     updateButtonState(ui_.playButton, player_->GetState());
-    emit themeChanged(background_color, color);
+    emit themeColorChanged(background_color, color);
 }
 
 void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& image) {
@@ -1771,9 +1792,20 @@ void Xamp::initialShortcut() {
 void Xamp::stopPlay() {
     player_->Stop(true, true);
     setSeekPosValue(0);
+
     lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
-    localPlaylistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+    
+    local_tab_widget_->forEachPlaylist([](auto* playlist) {
+        playlist->setNowPlayState(PlayingState::PLAY_CLEAR);
+        });
+    local_tab_widget_->resetAllTabIcon();
+
+    cloud_tab_widget_->forEachPlaylist([](auto* playlist) {
+        playlist->setNowPlayState(PlayingState::PLAY_CLEAR);
+        });
+    cloud_tab_widget_->resetAllTabIcon();
+
     album_page_->album()->albumViewPage()->playlistPage()->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
     qTheme.setPlayOrPauseButton(ui_.playButton, true); // note: Stop play must set true.
     current_entity_ = std::nullopt;
@@ -1852,7 +1884,7 @@ void Xamp::playOrPause() {
         break;
     }
 
-    TRY_LOG(
+    try {
         if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
             qTheme.setPlayOrPauseButton(ui_.playButton, false);
             player_->Pause();
@@ -1895,7 +1927,10 @@ void Xamp::playOrPause() {
             page->playlist()->setNowPlaying(play_index_, true);
             page->playlist()->onPlayIndex(play_index_);
         }
-    )
+    }
+    catch (...) {
+        logAndShowMessage(std::current_exception());
+    }
 }
 
 void Xamp::resetSeekPosValue() {
@@ -2077,7 +2112,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         entity.sample_rate,
         target_sample_rate);
 
-    TRY_LOG(
+    tryLog(
         player_->Open(entity.file_path.toStdWString(),
             device_info_.value(),
             target_sample_rate,
@@ -2337,7 +2372,7 @@ void Xamp::playNextItem(int32_t forward) {
         return;
     }    
 
-    TRY_LOG(
+    tryLog(
         last_play_list_->play(order_);
         play_index_ = last_play_list_->currentIndex();
     )
@@ -2577,7 +2612,7 @@ void Xamp::initialPlaylist() {
         &Xamp::appendToPlaylist);    
 
     (void)QObject::connect(this,
-        &Xamp::themeChanged,
+        &Xamp::themeColorChanged,
         album_page_.get(),
         &AlbumArtistPage::onThemeColorChanged);
 
@@ -2602,7 +2637,7 @@ void Xamp::initialPlaylist() {
         &Xamp::onArtistIdChanged);
 
     (void)QObject::connect(this,
-        &Xamp::themeChanged,
+        &Xamp::themeColorChanged,
         lrc_page_.get(),
         &LrcPage::onThemeColorChanged);
 
@@ -2676,7 +2711,7 @@ void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
         return;
     }
 
-    TRY_LOG(playlist_page->playlist()->append(file_name))
+    tryLog(playlist_page->playlist()->append(file_name))
 }
 
 void Xamp::addItem(const QString& file_name) {
@@ -2926,12 +2961,12 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         Qt::QueuedConnection);    
 
     (void)QObject::connect(this,
-        &Xamp::themeChanged,
+        &Xamp::themeColorChanged,
         playlist_page->playlist(),
         &PlayListTableView::onThemeColorChanged);
 
-    (void)QObject::connect(this,
-        &Xamp::currentThemeChanged,
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
         playlist_page,
         &PlaylistPage::onThemeChangedFinished);
 }

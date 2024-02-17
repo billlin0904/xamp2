@@ -79,9 +79,6 @@ XMessageBox::XMessageBox(const QString& title,
 
 	const auto metrics = defaultButton()->fontMetrics();
 	setMinimumSize(QSize(metrics.horizontalAdvance(default_button_text_) * 1.5, 100));
-
-	setTitle(kEmptyString);
-	XDialog::setIcon(QIcon());
 	adjustSize();
 }
 

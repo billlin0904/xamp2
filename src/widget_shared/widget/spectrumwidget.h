@@ -32,6 +32,8 @@ public:
 
 	void setFftSize(size_t fft_size);
 
+	void setBarColor(const QColor& color);
+
 	void reset();
 
 public slots:
@@ -45,6 +47,7 @@ private:
 	uint32_t sample_rate_{44100};
 	size_t fft_size_{4096};
 	SpectrumStyles style_{ SpectrumStyles::WAVE_STYLE };
+	QColor bar_color_;
 	ComplexValarray fft_data_;
 	std::vector<std::valarray<float>> buffer_;
 	QTimer timer_;

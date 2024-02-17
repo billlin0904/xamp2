@@ -81,9 +81,7 @@ public:
 signals:
 	void payNextMusic();
 
-    void themeChanged(QColor background_color, QColor color);
-
-	void currentThemeChanged(ThemeColor theme_color);
+    void themeColorChanged(QColor background_color, QColor color);
 
 	void blurImage(const QString& cover_id, const QPixmap& image, QSize size);
 

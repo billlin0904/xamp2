@@ -17,10 +17,6 @@
 const std::wstring kUnknownAlbum{ L"Unknown album" };
 const std::wstring kUnknownArtist{ L"Unknown artist" };
 
-struct UnknownArtistAndAlbumId : public std::pair<int32_t, int32_t> {
-    UnknownArtistAndAlbumId();
-};
-
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
 public:

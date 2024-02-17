@@ -259,12 +259,12 @@ ThemeManager::ThemeManager() {
     ui_font_ = loadFonts();
     font_ratio_ = 1.0;
     ui_font_.setPointSize(defaultFontSize());
+    setGoogleMaterialFontIcons();
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
-
-    setGoogleMaterialFontIcons();
+    
     setPalette();
 
     qAppSettings.setEnumValue(kAppSettingTheme, theme_color_);

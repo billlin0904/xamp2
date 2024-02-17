@@ -158,6 +158,7 @@ void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 		if (!item) {
 			continue;
 		}
+		item->setEnable(item->isEnable());
 	}
 }
 

@@ -470,7 +470,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         auto rollback = true;
 
-        TRY_LOG(
+        tryLog(
             QList<int32_t> albums;
             qMainDb.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);

@@ -8,7 +8,7 @@
 #include <zlib.h>
 #include <contrib/minizip/unzip.h>
 
-#if 0
+#if XAMP_OS_WIN
 namespace {
     inline constexpr auto kReadZipBufferSize = 4096;
 

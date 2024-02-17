@@ -19,7 +19,7 @@
 # define XAMP_WIDGET_SHARED_EXPORT
 #endif
 
-#define TRY_LOG(expr) \
+#define tryLog(expr) \
     try {\
         [&, this]() mutable { expr; }();\
     }\

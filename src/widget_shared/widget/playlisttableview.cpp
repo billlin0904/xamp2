@@ -709,7 +709,7 @@ void PlayListTableView::initial() {
                 });
 
             if (model_->rowCount() > 0 && index.isValid()) {
-                TRY_LOG(
+                tryLog(
                     action_map.exec(pt);
                 )
             }
@@ -797,7 +797,7 @@ void PlayListTableView::initial() {
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
 
         if (model_->rowCount() == 0 || !index.isValid()) {
-            TRY_LOG(
+            tryLog(
                 action_map.exec(pt);
             )
             return;
@@ -883,7 +883,7 @@ void PlayListTableView::initial() {
                 emit encodeWavFile(play_list_entity);
             }
         });
-        TRY_LOG(
+        tryLog(
             action_map.exec(pt);
         )
     });
@@ -898,7 +898,7 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
-    TRY_LOG(
+    tryLog(
         qMainDb.addOrUpdateMusic(TagIO::getTrackInfo(item.file_path.toStdWString()));
 		reload();
 		play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());

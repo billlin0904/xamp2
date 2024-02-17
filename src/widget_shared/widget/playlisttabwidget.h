@@ -6,10 +6,12 @@
 #pragma once
 
 #include <QTabWidget>
+#include <QTabBar>
 
 #include <widget/database.h>
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
+#include <widget/playlistpage.h>
 
 class QMouseEvent;
 class QPushButton;
@@ -29,6 +31,8 @@ public:
 
 	void restoreTabOrder();
 
+	void resetAllTabIcon();
+
 	void setPlaylistTabIcon(const QIcon &icon);
 
 	void createNewTab(const QString& name, QWidget* widget);
@@ -40,6 +44,16 @@ public:
 	void setStoreType(StoreType type);
 
 	void reloadAll();
+
+	template <typename F>
+	void forEachPlaylist(F &&func) {
+		for (int i = 0; i < tabBar()->count(); ++i) {
+			auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+			Q_ASSERT(playlist_page != nullptr);
+			auto* playlist = playlist_page->playlist();
+			func(playlist);
+		}
+	}
 
 signals:
 	void createNewPlaylist();
