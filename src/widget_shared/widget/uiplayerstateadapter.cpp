@@ -19,10 +19,6 @@ void UIPlayerStateAdapter::setBandSize(size_t band_size) {
 	band_size_ = band_size;
 }
 
-void UIPlayerStateAdapter::setSpectrumBandwidth(double band_width) {
-	desired_band_width_ = band_width;
-}
-
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
 	emit sampleTimeChanged(stream_time);
 }

@@ -548,8 +548,7 @@ void ExclusiveWasapiDevice::StartStream() {
 				break;
 			}
 		}
-
-		});
+		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 
 	// Wait thread start.
 	constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec

@@ -25,7 +25,9 @@ enum class HttpMethod {
 
 class XAMP_WIDGET_SHARED_EXPORT HttpClient {
 public:
-    HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent = nullptr);
+    HttpClient(QNetworkAccessManager* nam, 
+        std::shared_ptr<ObjectPool<QByteArray>> buffer_pool,
+        const QString& url, QObject* parent = nullptr);
 
     explicit HttpClient(const QUrl& url, QObject* parent = nullptr);
 	
@@ -68,10 +70,10 @@ public:
 
     QNetworkReply* head();
 
-private:
-    static std::shared_ptr<ObjectPool<QByteArray>> qBufferPool;
+private:    
     class HttpClientImpl;
     QSharedPointer<HttpClientImpl> impl_;
+    std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
 };
 
 }

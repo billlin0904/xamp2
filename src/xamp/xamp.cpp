@@ -8,7 +8,6 @@
 #include <QJsonObject>
 #include <QImageReader>
 #include <QCoroFuture>
-#include "../thirdparty/qcoro/qcoro/qcorotask.h"
 #include <QInputDialog>
 #include <QCoroProcess>
 

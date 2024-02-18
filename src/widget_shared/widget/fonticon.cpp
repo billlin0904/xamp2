@@ -88,11 +88,6 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 
     var = options_.value(FontIconOption::kScaleFactorAttr);
 
-    // A 16 pixel-high icon yields a font size of 14, which is pixel perfect
-    // for font-awesome. 16 * 0.875 = 14
-    // The reason why the glyph size is smaller than the icon size is to
-	// account for font bearing.
-    //constexpr auto kRatio = 0.875;
     constexpr auto kRatio = 1.0;
     int draw_size = qRound(paint_rect.height() * kRatio);
     if (var.isValid()) {

@@ -73,8 +73,6 @@ protected:
 	ImageCache();
 
 private:
-	void optimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const;
-
 	void timerEvent(QTimerEvent*) override;
 
 	void loadCache() const;

@@ -35,5 +35,6 @@ private:
 	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;
+	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
 };
 

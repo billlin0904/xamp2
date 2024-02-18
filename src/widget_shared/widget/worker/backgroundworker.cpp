@@ -32,7 +32,8 @@ struct ReplayGainJob {
 };
 
 BackgroundWorker::BackgroundWorker()
-    : nam_(this) {
+    : nam_(this)
+    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(256)) {
     logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
 }
 
@@ -254,7 +255,7 @@ void BackgroundWorker::onTranslation(const QString& keyword, const QString& from
         .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))
         .arg(to)
         .arg(from);
-    http::HttpClient(&nam_, url)
+    http::HttpClient(&nam_, buffer_pool_, url)
         .success([keyword, this](const auto& url, const auto& content) {
         if (content.isEmpty()) {
             return;

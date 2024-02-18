@@ -437,13 +437,11 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
     return request;
 }
 
-std::shared_ptr<ObjectPool<QByteArray>> HttpClient::qBufferPool;
-
-HttpClient::HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent)
-	: impl_(QSharedPointer<HttpClientImpl>::create(nam, url, parent)) {
-    if (!qBufferPool) {
-        qBufferPool = std::make_shared<ObjectPool<QByteArray>>(256);
-    }
+HttpClient::HttpClient(QNetworkAccessManager* nam, 
+    std::shared_ptr<ObjectPool<QByteArray>> buffer_pool,
+    const QString& url, QObject* parent)
+	: impl_(QSharedPointer<HttpClientImpl>::create(nam, url, parent))
+    , buffer_pool_(buffer_pool) {
 }
 
 HttpClient::HttpClient(const QUrl& url, QObject* parent)
@@ -451,7 +449,7 @@ HttpClient::HttpClient(const QUrl& url, QObject* parent)
 }
 
 HttpClient::HttpClient(const QString &url, QObject* parent)
-    : HttpClient(new QNetworkAccessManager(parent), url, parent) {
+    : HttpClient(new QNetworkAccessManager(parent), std::make_shared<ObjectPool<QByteArray>>(256), url, parent) {
 }
 
 HttpClient::~HttpClient() = default;
@@ -545,7 +543,7 @@ void HttpClient::downloadFile(const QString& file_name,
 
 void HttpClient::download(std::function<void (const QByteArray &)> download_handler,
     std::function<void(const QUrl&, const QString&)> error_handler) {
-    auto data = std::shared_ptr<QByteArray>(qBufferPool->Acquire());
+    auto data = std::shared_ptr<QByteArray>(buffer_pool_->Acquire());
     data->clear();
     data->squeeze();
 

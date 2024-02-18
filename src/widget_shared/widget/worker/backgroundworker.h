@@ -7,7 +7,7 @@
 
 #include <QObject>
 #include <QNetworkAccessManager>
-
+#include <base/object_pool.h>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
@@ -88,4 +88,5 @@ private:
 	LruCache<QString, QImage> blur_image_cache_;
 	LoggerPtr logger_;
 	QNetworkAccessManager nam_;
+	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
 };

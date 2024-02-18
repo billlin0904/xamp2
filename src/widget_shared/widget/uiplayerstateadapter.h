@@ -26,8 +26,6 @@ public:
 
     void setBandSize(size_t band_size);
 
-    void setSpectrumBandwidth(double band_width);
-
     void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
     size_t fftSize() const;

@@ -26,6 +26,12 @@ inline constexpr size_t kDefaultCacheSize = 24;
 inline constexpr qint64 kMaxCacheImageSize = 1024 * 1024;
 inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
 
+namespace {
+	QString makeImageCachePath(const QString& tag_id) {
+		return qAppSettings.cachePath() + tag_id + kCacheFileExtension;
+	}
+}
+
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
 ImageCache::ImageCache()
@@ -128,14 +134,14 @@ QPixmap ImageCache::findImageFromDir(const PlayListEntity& item) {
 }
 
 void ImageCache::removeImage(const QString& tag_id) const {
-	QFile file(qAppSettings.cachePath() + tag_id + kCacheFileExtension);
+	QFile file(makeImageCachePath(tag_id));
 	file.remove();
 	cache_.Erase(tag_id);
 }
 
 ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
 	QImage image(qTheme.cacheCoverSize(), kFormat);
-	QImageReader reader(qAppSettings.cachePath() + tag_id + kCacheFileExtension);
+	QImageReader reader(makeImageCachePath(tag_id));
 	if (reader.read(&image)) {
 		const auto file_info = getImageFileInfo(tag_id);
 		return { file_info.size(), QPixmap::fromImage(image) };
@@ -144,7 +150,7 @@ ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
 }
 
 QFileInfo ImageCache::getImageFileInfo(const QString& tag_id) const {
-	return QFileInfo(qAppSettings.cachePath() + tag_id + kCacheFileExtension);
+	return QFileInfo(makeImageCachePath(tag_id));
 }
 
 QPixmap ImageCache::cover(const QString& tag, const QString& cover_id) {	
@@ -168,52 +174,50 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	}
 
 	const auto buffer = buffer_pool_->Acquire();
-
-	const auto cache_cover = value_factory();
-	if (cache_cover.save(buffer.get(), kImageFileFormat)) {
-		const auto file_path = qAppSettings.cachePath() + tag_id + kCacheFileExtension;
-		optimizeImageFromBuffer(file_path, buffer->buffer(), tag_id);
+	if (!buffer->open(QIODevice::WriteOnly)) {
+		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
 
-	buffer->close();
-	buffer->setData(QByteArray());
+	const auto cache_cover = value_factory();
+	const auto file_path = makeImageCachePath(tag_id);
+	if (!cache_cover.save(buffer.get(), kImageFileFormat)) {
+		XAMP_LOG_DEBUG("Failure to save buffer.");
+	}
 
+	if (!cache_cover.save(file_path, kImageFileFormat)) {
+		XAMP_LOG_DEBUG("Failure to save image cache.");
+	}
+
+	cache_.AddOrUpdate(tag_id, { buffer->size(), cache_cover });
+	buffer->close();
+	buffer->setData(QByteArray());	
 	return getOrDefault(tag_id);
 }
 
 QString ImageCache::addImage(const QPixmap& cover) const {
-	Stopwatch sw;
 	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();
-	// Resize PNG image size and save to QBuffer
-	buffer->open(QIODevice::WriteOnly);
-	image_utils::resizeImage(cover, cover_size, true).save(buffer.get(), kImageFileFormat);
-
-	XAMP_LOG_D(logger_, "Resize and save PNG format {} secs", sw.ElapsedSeconds());
-
-	sw.Reset();
-	QString tag_name;
-
-	if (!buffer->buffer().isEmpty()) {
-		tag_name = qetag::getTagId(buffer->buffer());
-		const auto file_path = qAppSettings.cachePath() + tag_name + kCacheFileExtension;
-		optimizeImageFromBuffer(file_path, buffer->buffer(), tag_name);
+	if (!buffer->open(QIODevice::WriteOnly)) {
+		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
 
+	auto resize_image = image_utils::resizeImage(cover, cover_size, true);
+	if (!resize_image.save(buffer.get(), kImageFileFormat)) {
+		XAMP_LOG_DEBUG("Failure to save buffer.");
+	}
+
+	auto tag_id = qetag::getTagId(buffer->buffer());
+	const auto file_path = makeImageCachePath(tag_id);
+
+	if (!resize_image.save(file_path, kImageFileFormat)) {
+		XAMP_LOG_DEBUG("Failure to save image cache.");
+	}
+	
+	cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
 	buffer->close();
-	buffer->setData(QByteArray());
-
-	XAMP_ENSURES(!isNullOfEmpty(tag_name));
-	return tag_name;
-}
-
-void ImageCache::optimizeImageFromBuffer(const QString& file_path, const QByteArray& buffer, const QString& tag_name) const {
-	if (!image_utils::optimizePng(buffer, file_path)) {
-		XAMP_LOG_DEBUG("Fail to optimizePng");
-		return;
-	}
-	cache_.AddOrUpdate(tag_name, getFromFile(tag_name));
+	buffer->setData(QByteArray());	
+	return tag_id;
 }
 
 void ImageCache::loadCache() const {
@@ -232,7 +236,8 @@ void ImageCache::loadCache() const {
 				break;
 			}
 			cache_.AddOrUpdate(tag_name, { file_info.size(), QPixmap::fromImage(image) });
-			XAMP_LOG_D(logger_, "Add tag:{} {} size: {}", tag_name.toStdString(), cache_, String::FormatBytes(file_info.size()));
+			XAMP_LOG_D(logger_, "Add tag:{} {} size: {}", tag_name.toStdString(),
+				cache_, String::FormatBytes(file_info.size()));
 		}
 	}
 

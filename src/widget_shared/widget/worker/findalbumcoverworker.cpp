@@ -9,7 +9,8 @@
 
 FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(getPooledDatabase(2))
-    , nam_(this) {
+    , nam_(this)
+    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(256)) {
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
@@ -25,7 +26,7 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
         emit fetchThumbnailUrlError(id, thumbnail_url);
         };
 
-    http::HttpClient(&nam_, thumbnail_url)
+    http::HttpClient(&nam_, buffer_pool_, thumbnail_url)
         .download(download_handler, error_handler);
 }
 
