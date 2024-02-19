@@ -110,10 +110,10 @@ AudioPlayer::AudioPlayer()
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_end_time_(0)
     , stream_duration_(0)
-    , fifo_(GetPageAlignSize(kPreallocateBufferSize))
-    , action_queue_(kActionQueueSize)
     , dsp_manager_(StreamFactory::MakeDSPManager())
-    , device_manager_(MakeAudioDeviceManager()) {
+    , device_manager_(MakeAudioDeviceManager())
+    , action_queue_(kActionQueueSize)
+    , fifo_(GetPageAlignSize(kPreallocateBufferSize)) {
     logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
     PreventSleep(true);
 }
@@ -202,7 +202,7 @@ void AudioPlayer::Open(const Path& file_path, const DeviceInfo& device_info, uin
     target_sample_rate_ = target_sample_rate;
 }
 
-void AudioPlayer::CreateDevice(const Uuid& device_type_id, std::string const & device_id, bool open_always) {
+void AudioPlayer::CreateDevice(const Uuid& device_type_id, const  std::string & device_id, bool open_always) {
     if (device_ == nullptr
         || device_id_ != device_id
         || device_type_id_ != device_type_id
@@ -600,7 +600,7 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
     XAMP_LOG_DEBUG(e.what());
 }
 
-void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & device_id) {    
+void AudioPlayer::OnDeviceStateChange(DeviceState state, const  std::string & device_id) {    
     if (const auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
@@ -870,7 +870,7 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
         return;
     }
 
-    constexpr std::chrono::milliseconds kMinimalCopySamplesTime(1);
+    static constexpr std::chrono::milliseconds kMinimalCopySamplesTime(5);
     Stopwatch watch;    
     watch.Reset();    
 

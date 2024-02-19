@@ -298,7 +298,7 @@ private:
     	
     void OpenStream(Path const& file_path, DsdModes dsd_mode);
 
-    void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
+    void CreateDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
 
     void CloseDevice(bool wait_for_stop_stream, bool quit = false);
 
@@ -353,29 +353,29 @@ private:
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
     mutable FastMutex pause_mutex_;
-    mutable FastMutex stopped_mutex_;
-    std::string device_id_;
+    mutable FastMutex stopped_mutex_;    
     Uuid device_type_id_;
     Timer timer_;    
-    FastConditionVariable pause_cond_;
-    FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;
     AlignPtr<FileStream> stream_;
     AlignPtr<IDeviceType> device_type_;
     AlignPtr<IOutputDevice> device_;
-    std::weak_ptr<IPlaybackStateAdapter> state_adapter_;
-    AudioBuffer<int8_t> fifo_;
-    Buffer<int8_t> read_buffer_;
-    std::optional<DeviceInfo> device_info_;    
-    Task<void> stream_task_;
-    MpmcQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
+    AlignPtr<IAudioDeviceManager> device_manager_;
+    std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
+    Task<void> stream_task_;        
     AnyMap config_;
     LoggerPtr logger_;
-    AlignPtr<IAudioDeviceManager> device_manager_;
+    std::string device_id_;
+    Buffer<int8_t> read_buffer_;    
     std::function<void(uint32_t)> delay_callback_;
+    std::optional<DeviceInfo> device_info_;
+    FastConditionVariable pause_cond_;
+    FastConditionVariable read_finish_and_wait_seek_signal_cond_;
+    MpmcQueue<PlayerAction> action_queue_;
+    AudioBuffer<int8_t> fifo_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

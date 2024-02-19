@@ -89,7 +89,7 @@ inline constexpr int32_t kClockSourceSize = 32;
 
 XAMP_DECLARE_LOG_NAME(AsioDevice);
 
-AsioDevice::AsioDevice(std::string const & device_id)
+AsioDevice::AsioDevice(const  std::string & device_id)
 	: is_hardware_control_volume_(true)
 	, is_removed_driver_(true)
 	, is_stopped_(true)

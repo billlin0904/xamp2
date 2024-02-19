@@ -28,12 +28,15 @@ void PlaylistTabWidget::closeAllTab() {
 
     qMainDb.forEachPlaylist([this](auto playlist_id,
         auto,
-        auto,
+        auto store_type,
         auto,
         auto) {
             if (playlist_id == kAlbumPlaylistId
                 || playlist_id == kCdPlaylistId
                 || playlist_id == kYtMusicSearchPlaylistId) {
+                return;
+            }
+            if (store_type != store_type_) {
                 return;
             }
             removePlaylist(playlist_id);

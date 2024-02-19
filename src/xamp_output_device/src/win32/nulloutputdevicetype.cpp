@@ -37,7 +37,7 @@ NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexc
 void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {
 }
 
-AlignPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(std::string const & device_id) {
+AlignPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
 	return MakeAlign<IOutputDevice, NullOutputDevice>();
 }
 

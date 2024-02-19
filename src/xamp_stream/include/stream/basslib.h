@@ -274,7 +274,7 @@ public:
     XAMP_DECLARE_DLL_NAME(BASS_StreamGetFilePosition);
     XAMP_DECLARE_DLL_NAME(BASS_ChannelIsActive);
 private:
-    void LoadPlugin(std::string const & file_name);
+    void LoadPlugin(const  std::string & file_name);
 };
 
 #define BASS Singleton<BassLib>::GetInstance()

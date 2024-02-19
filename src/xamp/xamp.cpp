@@ -2424,7 +2424,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 }
 
 PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString& name) {
-    auto* playlist_page = createPlaylistPage(tab_widget, playlist_id,  kAppSettingPlaylistColumnName, cloud_playlist_id);
+    auto* playlist_page = createPlaylistPage(tab_widget, playlist_id, kAppSettingPlaylistColumnName, cloud_playlist_id);
     playlist_page->playlist()->setHeaderViewHidden(false);
     playlist_page->pageTitle()->hide();
     connectPlaylistPageSignal(playlist_page);

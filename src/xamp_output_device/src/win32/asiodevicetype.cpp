@@ -25,9 +25,9 @@ public:
 
     void ScanNewDevice();
 
-	AlignPtr<IOutputDevice> MakeDevice(std::string const &device_id);
+	AlignPtr<IOutputDevice> MakeDevice(const  std::string &device_id);
 private:
-	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
+	DeviceInfo GetDeviceInfo(std::wstring const& name, const  std::string & device_id) const;
 
 	static HashMap<std::string, DeviceInfo> device_info_cache_;
 };
@@ -78,7 +78,7 @@ void AsioDeviceType::AsioDeviceTypeImpl::ScanNewDevice() {
 	}
 }
 
-DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const& name, std::string const & device_id) const {
+DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const& name, const  std::string & device_id) const {
 	DeviceInfo info;
 	info.name = name;
 	info.device_id = device_id;
@@ -88,7 +88,7 @@ DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const&
 	return info;
 }
 
-AlignPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(std::string const & device_id) {
+AlignPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
 	return MakeAlign<IOutputDevice, AsioDevice>(device_id);
 }
 
