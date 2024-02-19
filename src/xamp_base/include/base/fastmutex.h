@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -24,7 +24,7 @@ public:
 	[[nodiscard]] bool try_lock() noexcept;
 private:
 	class SRWMutexImpl;
-	PimplPtr<SRWMutexImpl> impl_;
+	AlignPtr<SRWMutexImpl> impl_;
 };
 
 using FastMutex = SRWMutex;

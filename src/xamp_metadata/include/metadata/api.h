@@ -6,7 +6,7 @@
 #pragma once
 
 #include <functional>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/fs.h>
 #include <metadata/metadata.h>
 #include <metadata/imetadatareader.h>

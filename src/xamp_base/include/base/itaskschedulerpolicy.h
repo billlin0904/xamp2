@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/rng.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/workstealingtaskqueue.h>

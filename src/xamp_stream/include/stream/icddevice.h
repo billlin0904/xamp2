@@ -8,7 +8,7 @@
 #include <stream/stream.h>
 
 #include <base/stl.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/enum.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN

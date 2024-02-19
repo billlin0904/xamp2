@@ -6,7 +6,6 @@
 #pragma once
 
 #include <base/memory.h>
-#include <base/align_ptr.h>
 #include <base/vmmemlock.h>
 #include <base/assert.h>
 

@@ -16,7 +16,7 @@
 #include <map>
 
 #include <base/base.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

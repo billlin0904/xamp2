@@ -10,7 +10,7 @@
 #include <output_device/output_device.h>
 
 #include <base/base.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/stl.h>
 
 #include <string>

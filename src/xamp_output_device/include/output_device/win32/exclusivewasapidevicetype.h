@@ -12,7 +12,7 @@
 #include <output_device/idevicetype.h>
 
 #include <base/uuidof.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN

@@ -10,7 +10,7 @@
 
 #include <base/base.h>
 #include <base/fs.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/audioformat.h>
 #include <base/dsdsampleformat.h>
 #include <base/uuid.h>

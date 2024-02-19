@@ -2,7 +2,6 @@
 #include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
 
-#include <base/align_ptr.h>
 #include <base/buffer.h>
 #include <base/memory.h>
 #include <base/logger_impl.h>

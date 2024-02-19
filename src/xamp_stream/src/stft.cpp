@@ -8,6 +8,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
 STFT::STFT(size_t frame_size, size_t shift_size)
 	: frame_size_(frame_size)
 	, shift_size_(shift_size) {
+    XAMP_EXPECTS(frame_size > 0);
+    XAMP_EXPECTS(shift_size > 0);
     window_.Init(frame_size);
     fft_.Init(frame_size);
     output_size_ = frame_size - shift_size;
@@ -22,8 +24,8 @@ void STFT::SetWindowType(WindowType type) {
 }
 
 const ComplexValarray& STFT::Process(const float* in, size_t length) {
-    XAMP_ASSERT(frame_size_ % AudioFormat::kMaxChannel == 0);
-	XAMP_ASSERT(frame_size_ >= length / AudioFormat::kMaxChannel);
+    XAMP_EXPECTS(frame_size_ % AudioFormat::kMaxChannel == 0);
+    XAMP_EXPECTS(frame_size_ >= length / AudioFormat::kMaxChannel);
     
     for (size_t i = 0; i < length / AudioFormat::kMaxChannel; ++i) {
         in_[i] = in[i * 2];

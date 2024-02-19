@@ -9,7 +9,7 @@
 
 #include <qwindowdefs.h>
 
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/base.h>
 
 class GlobalShortcut {

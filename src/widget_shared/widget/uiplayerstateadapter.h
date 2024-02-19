@@ -10,7 +10,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/audioformat.h>
 #include <stream/stream.h>
 #include <stream/stft.h>

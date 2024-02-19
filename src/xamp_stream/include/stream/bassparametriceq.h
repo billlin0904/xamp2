@@ -5,14 +5,14 @@
 
 #pragma once
 
+#include <base/enum.h>
+#include <base/uuidof.h>
+#include <base/memory.h>
+#include <base/pimplptr.h>
+
 #include <stream/stream.h>
 #include <stream/eqsettings.h>
 #include <stream/iaudioprocessor.h>
-
-#include <base/enum.h>
-#include <base/uuidof.h>
-#include <base/align_ptr.h>
-#include <base/pimplptr.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

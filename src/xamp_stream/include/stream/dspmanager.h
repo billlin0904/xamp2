@@ -7,7 +7,7 @@
 
 #include <stream/idspmanager.h>
 
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/buffer.h>
 #include <base/uuidof.h>
 #include <base/stl.h>
@@ -73,7 +73,7 @@ private:
     }
 
     template <typename Func>
-    [[nodiscard]] bool Contains(Func func) const {
+    [[nodiscard]] bool Contains(Func &&func) const {
         if (FindIf(pre_dsp_.begin(), pre_dsp_.end(), func) == pre_dsp_.end()) {
             return FindIf(post_dsp_.begin(), post_dsp_.end(), func) != post_dsp_.end();
         }
@@ -81,7 +81,7 @@ private:
     }
 
     template <typename Func>
-    [[nodiscard]] ConstDspIterator FindIf(ConstDspIterator begin, ConstDspIterator end, Func func) const {
+    [[nodiscard]] ConstDspIterator FindIf(ConstDspIterator begin, ConstDspIterator end, Func &&func) const {
         auto itr = std::find_if(begin, end, [&](auto const& processor) {
             return func(processor->GetTypeId());
             });

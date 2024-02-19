@@ -11,7 +11,7 @@
 
 #include <output_device/output_device.h>
 #include <output_device/win32/mmcss_types.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN

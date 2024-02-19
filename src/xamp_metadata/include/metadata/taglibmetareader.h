@@ -8,7 +8,7 @@
 #include <metadata/imetadatareader.h>
 
 #include <base/stl.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN

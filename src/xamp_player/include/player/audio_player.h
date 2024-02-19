@@ -13,7 +13,7 @@
 #include <base/audioformat.h>
 #include <base/timer.h>
 #include <base/dsdsampleformat.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/uuid.h>
 #include <base/mpmc_queue.h>
 #include <base/buffer.h>
@@ -292,7 +292,7 @@ private:
 
     void OnDeviceStateChange(DeviceState state, std::string const& device_id) override;
 
-    bool CanConverter() const noexcept;
+    bool IsPcmAudio() const noexcept;
 
     void DoSeek(double stream_time);        
     	

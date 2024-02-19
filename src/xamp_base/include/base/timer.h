@@ -9,7 +9,7 @@
 #include <functional>
 
 #include <base/base.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 
 XAMP_BASE_NAMESPACE_BEGIN

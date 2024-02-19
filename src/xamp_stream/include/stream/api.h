@@ -8,7 +8,7 @@
 #include <map>
 #include <base/stl.h>
 #include <base/fs.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/encodingprofile.h>
 
 #include <base/dsdsampleformat.h>

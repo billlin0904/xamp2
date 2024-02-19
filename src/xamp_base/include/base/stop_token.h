@@ -6,8 +6,8 @@
 #pragma once
 
 #include <atomic>
-#include <base/align_ptr.h>
 #include <base/base.h>
+#include <base/memory.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

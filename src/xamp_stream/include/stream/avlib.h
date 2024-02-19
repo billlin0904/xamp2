@@ -22,7 +22,7 @@ extern "C" {
 #include <base/base.h>
 #include <base/exception.h>
 #include <base/logger.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/dll.h>
 #include <base/singleton.h>
 #include <base/assert.h>
@@ -40,7 +40,7 @@ public:
 
 	[[nodiscard]] int32_t GetErrorCode() const noexcept;
 
-    private:
+private:
 	int32_t error_code_;
 	std::string error_msg_;
 };

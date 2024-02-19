@@ -7,7 +7,6 @@
 
 #include <base/volume.h>
 #include <base/memory.h>
-#include <base/align_ptr.h>
 #include <base/str_utilts.h>
 #include <base/dataconverter.h>
 #include <base/logger.h>

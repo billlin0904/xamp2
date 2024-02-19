@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 #include <base/moveonly_function.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/stl.h>
 #include <base/platform.h>
 #include <base/stop_token.h>
@@ -18,7 +18,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-XAMP_MAKE_ENUM(ExecuteFlags, EXECUTE_NORMAL = 0, EXECUTE_LONG_RUNNING)
+XAMP_MAKE_ENUM(ExecuteFlags, EXECUTE_NORMAL, EXECUTE_LONG_RUNNING)
 
 inline constexpr uint32_t kMaxThread = 32;
 

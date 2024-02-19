@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/assert.h>
 
 XAMP_BASE_NAMESPACE_BEGIN

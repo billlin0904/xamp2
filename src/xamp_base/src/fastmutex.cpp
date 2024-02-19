@@ -62,7 +62,7 @@ public:
 XAMP_PIMPL_IMPL(SRWMutex)
 
 SRWMutex::SRWMutex() noexcept
-	: impl_(MakePimpl<SRWMutexImpl>()) {
+	: impl_(MakeAlign<SRWMutexImpl>()) {
 }
 
 void SRWMutex::lock() noexcept {

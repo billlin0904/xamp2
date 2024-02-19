@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <metadata/imetadatawriter.h>
-
 #include <base/pimplptr.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
+
+#include <metadata/imetadatawriter.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 

@@ -21,7 +21,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/lrucache.h>
 #include <base/rcu_ptr.h>
 #include <base/pimplptr.h>

@@ -9,6 +9,7 @@
 #include <base/timer.h>
 #include <base/scopeguard.h>
 #include <base/waitabletimer.h>
+#include <base/stopwatch.h>
 #include <base/executor.h>
 
 #include <output_device/api.h>
@@ -572,7 +573,7 @@ void AudioPlayer::CreateBuffer() {
 }
 
 void AudioPlayer::SetDeviceFormat() {
-    if (target_sample_rate_ != 0 && CanConverter()) {
+    if (target_sample_rate_ != 0 && IsPcmAudio()) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
@@ -655,7 +656,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 }
 
 void AudioPlayer::BufferStream(double stream_time) {
-    XAMP_LOG_D(logger_, "Buffing samples : {:.2f}msec", stream_time);
+    XAMP_LOG_D(logger_, "Buffing samples : {:.2f}ms", stream_time);
 
     fifo_.Clear();
     stream_->SeekAsSeconds(stream_time);
@@ -712,7 +713,7 @@ void AudioPlayer::DoSeek(double stream_time) {
     Resume();
 }
 
-bool AudioPlayer::CanConverter() const noexcept {
+bool AudioPlayer::IsPcmAudio() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
@@ -860,7 +861,7 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
-    if (!CanConverter()) {
+    if (!IsPcmAudio()) {
         return;
     }
 
@@ -868,11 +869,20 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
     if (!adapter) {
         return;
     }
+
+    constexpr std::chrono::milliseconds kMinimalCopySamplesTime(1);
+    Stopwatch watch;    
+    watch.Reset();    
+
     adapter->OnSamplesChanged(static_cast<const float*>(samples), num_buffer_frames);
+    auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
+    if (elapsed >= kMinimalCopySamplesTime) {
+        XAMP_LOG_D(logger_, "CopySamples too slow ({} ms)!", elapsed.count());
+    }
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
-    // sample_time: 指的是設備撥放時間, 會被stop重置為0
+    // sample_time: 指的是設備撥放時間, 會被stop時候重置為0.
     // stream time: samples大小累計從開始撥放到結束的時間.
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
@@ -891,13 +901,14 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         return DataCallbackResult::CONTINUE;
     }
 
-    // note: 為了避免提早將聲音切斷(某些音效介面frames大小,低於某個frame大小就無法撥放 ex:WASAPI)
-    // 下次frames的時候才將聲音停止.
-    // (WASAPI 1 frame)  (WASAPI 2 frame)
-    //       |                 |
-    //       | End time        |
-    //       V    V            V
-    // <------------------------------->
+    // note: 為了避免提早將聲音切斷(某些音效介面frames大小,低於某個frame大小就無法撥放),
+    // 下次render frame的時候才將聲音停止.
+    // 
+    // (WASAPI render frame)       (WASAPI render end frame)
+    //       |               |                 |
+    //       |       (End audio time)          |
+    //       V               V                 V
+    // <--------------------------------------->
     //
     if (stream_time >= stream_duration_) {
         UpdatePlayerStreamTime(-1);
@@ -924,11 +935,11 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     OpenDevice(0);
     CreateBuffer();
 
-    config_.AddOrReplace(DspConfig::kInputFormat, std::any(input_format_));
+    config_.AddOrReplace(DspConfig::kInputFormat,  std::any(input_format_));
     config_.AddOrReplace(DspConfig::kOutputFormat, std::any(output_format_));
-    config_.AddOrReplace(DspConfig::kDsdMode, std::any(dsd_mode_));
-    config_.AddOrReplace(DspConfig::kSampleSize, std::any(stream_->GetSampleSize()));
-    config_.AddOrReplace(DspConfig::kVolume, std::any(1.0));
+    config_.AddOrReplace(DspConfig::kDsdMode,      std::any(dsd_mode_));
+    config_.AddOrReplace(DspConfig::kSampleSize,   std::any(stream_->GetSampleSize()));
+    config_.AddOrReplace(DspConfig::kVolume,       std::any(1.0));
 
     dsp_manager_->Init(config_);
 	sample_end_time_ = stream_->GetDurationAsSeconds();

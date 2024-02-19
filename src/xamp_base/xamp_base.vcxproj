@@ -191,7 +191,6 @@
     <ClInclude Include="include\base\singleton.h" />
     <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\stl.h" />
-    <ClInclude Include="include\base\align_ptr.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
     <ClInclude Include="include\base\base.h" />
@@ -225,7 +224,6 @@
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\align_ptr.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />

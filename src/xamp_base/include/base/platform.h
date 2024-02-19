@@ -102,7 +102,6 @@ XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size);
 XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
 XAMP_BASE_API void SetProcessMitigation();
 XAMP_BASE_API void SetThreadMitigation();
-XAMP_BASE_API bool SetFileLowIoPriority(int32_t handle);
 #endif
 
 XAMP_BASE_NAMESPACE_END

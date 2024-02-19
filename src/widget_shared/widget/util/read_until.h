@@ -13,7 +13,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/trackinfo.h>
 #include <base/audioformat.h>
 #include <stream/ifileencoder.h>

@@ -18,9 +18,12 @@
 #define XAMP_ASSERT(expr) ((void)0)
 #endif
 
-namespace xamp::details {
-    inline void terminate() noexcept {
-        std::terminate();
+namespace xamp {
+    namespace details {
+        inline void terminate() noexcept {
+            using std::terminate;
+            std::terminate();
+        }
     }
 }
 

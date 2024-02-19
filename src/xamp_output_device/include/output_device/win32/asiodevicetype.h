@@ -9,13 +9,13 @@
 
 #if ENABLE_ASIO && XAMP_OS_WIN
 
-#include <output_device/output_device.h>
-#include <output_device/idevicetype.h>
-
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 #include <base/stl.h>
 #include <base/uuidof.h>
+
+#include <output_device/output_device.h>
+#include <output_device/idevicetype.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 

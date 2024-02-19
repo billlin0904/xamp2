@@ -9,7 +9,7 @@
 
 #include <base/uuidof.h>
 #include <base/enum.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/audiobuffer.h>
 #include <base/pimplptr.h>
 

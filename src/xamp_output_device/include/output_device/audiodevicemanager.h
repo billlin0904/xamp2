@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <base/stl.h>
 #include <base/uuid.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/pimplptr.h>
 
 #include <output_device/iaudiodevicemanager.h>
