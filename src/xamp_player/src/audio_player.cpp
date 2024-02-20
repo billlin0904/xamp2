@@ -588,10 +588,10 @@ void AudioPlayer::SetDeviceFormat() {
     }
 }
 
-void AudioPlayer::OnVolumeChange(float vol) noexcept {
+void AudioPlayer::OnVolumeChange(int32_t vol) noexcept {
     if (const auto adapter = state_adapter_.lock()) {
         adapter->OnVolumeChanged(vol);
-        XAMP_LOG_D(logger_, "Volum change: {}.", vol);
+        XAMP_LOG_D(logger_, "Volume change: {}.", vol);
     }
 }
 

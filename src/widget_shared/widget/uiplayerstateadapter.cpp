@@ -36,7 +36,7 @@ void UIPlayerStateAdapter::OnDeviceChanged(DeviceState state) {
     emit deviceChanged(state);
 }
 
-void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
+void UIPlayerStateAdapter::OnVolumeChanged(int32_t vol) {
     emit volumeChanged(vol);
 }
 

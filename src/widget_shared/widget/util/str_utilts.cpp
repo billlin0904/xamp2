@@ -129,22 +129,24 @@ QString formatDouble(double value, int prec) {
 }
 
 double parseDuration(const std::string & str) {
+    auto hours = 0;
     auto minutes = 0;
     auto seconds = 0;
-    auto milliseconds = 0;
-#ifdef Q_OS_WIN32    
-    const auto res = sscanf_s(str.c_str(), "%u:%u:%u",
-        &minutes,
-        &seconds,
-        &milliseconds);
-#else
-    const auto res = sscanf(str.c_str(), "%u:%u:%u",
-        &minutes,
-        &seconds,
-        &milliseconds);
-#endif
-    const std::chrono::milliseconds duration = std::chrono::minutes(minutes)
-        + std::chrono::seconds(seconds)
-        + std::chrono::milliseconds(milliseconds);
+
+    if (str.length() <= 4) {
+        XAMP_Sscanf(str.c_str(), "%u:%u",
+            &minutes,
+            &seconds);
+    } else {
+        XAMP_Sscanf(str.c_str(), "%u:%u:%u",
+            &hours,
+            &minutes,
+            &seconds);
+    }
+
+    const std::chrono::milliseconds duration = std::chrono::hours(hours)
+        + std::chrono::minutes(minutes)
+        + std::chrono::seconds(seconds);
+
     return duration.count() / 1000.0;
 }

@@ -286,7 +286,7 @@ private:
         double stream_time, 
         double sample_time) noexcept override;
 
-    void OnVolumeChange(float vol) noexcept override;
+    void OnVolumeChange(int32_t vol) noexcept override;
 
     void OnError(const Exception& e) noexcept override;
 

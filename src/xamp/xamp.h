@@ -116,8 +116,6 @@ public slots:
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
-	void onVolumeChanged(float volume);
-
 	void onSetCover(const QString& cover_id, PlaylistPage* page);
 
 	void onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);

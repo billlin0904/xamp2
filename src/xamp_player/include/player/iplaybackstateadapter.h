@@ -29,7 +29,7 @@ public:
 
 	virtual void OnDeviceChanged(DeviceState state) = 0;
 
-	virtual void OnVolumeChanged(float vol) = 0;
+	virtual void OnVolumeChanged(int32_t vol) = 0;
 
 	virtual void OnSamplesChanged(const float* samples, size_t num_buffer_frames) = 0;
 

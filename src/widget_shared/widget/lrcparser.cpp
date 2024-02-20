@@ -7,31 +7,21 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 
+#include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 
 namespace {
-    std::chrono::milliseconds parseTime(std::wstring const& str) {
+    std::chrono::milliseconds parseTime(const std::wstring& str) {
         auto minutes = 0;
         auto seconds = 0;
         auto milliseconds = 0;
-#ifdef Q_OS_WIN32
-        // TODO: Support format: %u:%u
-        const auto res = swscanf_s(str.c_str(), L"%u:%u.%u",
-            &minutes,
-            &seconds,
-            &milliseconds);
-        if (res != 3) {
-            throw std::exception("Malformed lrc file");
-        }
-#else
-        const auto res = swscanf(str.c_str(), L"%u:%u.%u",
+        const auto res = XAMP_Swscanf(str.c_str(), L"%u:%u.%u",
             &minutes,
             &seconds,
             &milliseconds);
         if (res != 3) {
             throw std::exception();
         }
-#endif
         return std::chrono::minutes(minutes)
             + std::chrono::seconds(seconds)
             + std::chrono::milliseconds(milliseconds);

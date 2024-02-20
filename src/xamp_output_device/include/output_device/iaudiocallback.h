@@ -56,7 +56,7 @@ public:
 	* 
 	* @param[in] vol is a volume.
 	*/	
-	virtual void OnVolumeChange(float vol) noexcept = 0;
+	virtual void OnVolumeChange(int32_t vol) noexcept = 0;
 protected:
 	/*
 	* Constructor.

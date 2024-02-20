@@ -100,8 +100,8 @@ public:
 	* 
 	* @param[in] NotificationData PAUDIO_VOLUME_NOTIFICATION_DATA	
 	*/
-	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA NotificationData) override {
-		callback_->OnVolumeChange(NotificationData->fMasterVolume);
+	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA NotificationData) override {	
+		callback_->OnVolumeChange(static_cast<int32_t>(NotificationData->fMasterVolume * 100.0f));
 		return S_OK;
 	}
 

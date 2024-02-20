@@ -38,7 +38,7 @@ public:
 
     void OnDeviceChanged(DeviceState state) override;
 
-    void OnVolumeChanged(float vol) override;
+    void OnVolumeChanged(int32_t vol) override;
 
     void OnSamplesChanged(const float* samples, size_t num_buffer_frames) override;
 
