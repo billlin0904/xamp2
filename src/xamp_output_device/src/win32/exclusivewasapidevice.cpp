@@ -94,6 +94,10 @@ namespace {
 		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 	}
 
+	bool Is16BitSamples(const CComHeapPtr<WAVEFORMATEX> &format) {
+		return format->wBitsPerSample == 16;
+	}
+
 	inline constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
 	inline constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 	inline constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
@@ -362,7 +366,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 			result = false;
 		}
 
-		if (mix_format_->wBitsPerSample != 16) {
+		if (!Is16BitSamples(mix_format_)) {
 			if (!is_2432_format_) {
 				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
 					reinterpret_cast<int32_t*>(data),
@@ -518,7 +522,7 @@ void ExclusiveWasapiDevice::StartStream() {
 			// Check wait time.
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > glitch_time) {
-				XAMP_LOG_D(logger_, "WASAPI output got glitch! {}msec > {}msec.", elapsed.count(), glitch_time.count());
+				XAMP_LOG_D(logger_, "WASAPI output got glitch! {}ms > {}ms.", elapsed.count(), glitch_time.count());
 				if (!ignore_wait_slow_) {
 					thread_exit = true;
 					continue;
@@ -539,7 +543,7 @@ void ExclusiveWasapiDevice::StartStream() {
 				XAMP_LOG_D(logger_, "Stop event trigger!");
 				break;
 			case WAIT_TIMEOUT:
-				XAMP_LOG_D(logger_, "Wait event timeout! {}msec.", elapsed.count());
+				XAMP_LOG_D(logger_, "Wait event timeout! {}ms.", elapsed.count());
 				thread_exit = true;
 				break;
 			default:
