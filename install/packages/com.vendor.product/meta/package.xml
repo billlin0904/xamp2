@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>XAMP2</DisplayName>
+    <Description>XAMP2 Player.</Description>
+    <Version>1.0</Version>
+    <ReleaseDate>2022-09-21</ReleaseDate>
+    <Licenses>
+        <License name="MIT License" file="license.txt" />
+    </Licenses>
+    <Default>script</Default>
+    <Script>installscript.qs</Script>
+    <UserInterfaces>
+        <UserInterface>page.ui</UserInterface>
+    </UserInterfaces>
+</Package>

@@ -1,0 +1,28 @@
+[0929/224611.235:WARNING:chrome_browser_cloud_management_controller.cc(87)] Could not create policy manager as CBCM is not enabled.
+[0929/224613.248:ERROR:cert_verify_proc_builtin.cc(677)] CertVerifyProcBuiltin for 127.0.0.1 failed:
+----- Certificate i=0 (CN=DESKTOP-AQJ84OG) -----
+ERROR: No matching issuer found
+
+
+[0929/224613.249:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.366:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.367:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.371:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.375:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.378:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.381:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.383:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.388:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.391:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.394:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.397:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.401:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.404:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.407:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.410:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.416:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.855:ERROR:ssl_client_socket_impl.cc(992)] handshake failed; returned -1, SSL error code 1, net_error -202
+[0929/224613.890:INFO:CONSOLE(1)] "Mixed Content: The page at 'https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8' was loaded over HTTPS, but requested an insecure element 'https://127.0.0.1:56201/assets/zigzag.svg'. This request was not upgraded to HTTPS because its URL's host is an IP address.", source: https://127.0.0.1:56201/vendor-626047.js (1)
+[0929/224613.901:INFO:CONSOLE(0)] "Mixed Content: The page at 'https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8' was loaded over HTTPS, but requested an insecure element 'https://127.0.0.1:56201/assets/no-connection-to-server.192x192.svg'. This request was not upgraded to HTTPS because its URL's host is an IP address.", source: https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8 (0)
+[0929/224613.902:INFO:CONSOLE(0)] "Mixed Content: The page at 'https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8' was loaded over HTTPS, but requested an insecure element 'https://127.0.0.1:56201/assets/no-connection-to-server.192x192.svg'. This request was not upgraded to HTTPS because its URL's host is an IP address.", source: https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8 (0)
+[0929/224613.902:INFO:CONSOLE(0)] "Mixed Content: The page at 'https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8' was loaded over HTTPS, but requested an insecure element 'https://127.0.0.1:56201/assets/no-connection-to-server.192x192.svg'. This request was not upgraded to HTTPS because its URL's host is an IP address.", source: https://127.0.0.1:56201/extension-ui/Session-1-1695998773061?passphrase=c07521b6-cb79-0cb1-8525-9b7837c675f8 (0)

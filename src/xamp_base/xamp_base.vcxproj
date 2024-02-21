@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{787171BF-E651-4B4F-A2D9-0B3D5108DA93}</ProjectGuid>
+    <RootNamespace>xampbase</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/atomic_shared_ptr/;../thirdparty/expected/include/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
+      <BrowseInformation>true</BrowseInformation>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/BLAKE3/</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OmitFramePointers>true</OmitFramePointers>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
+      <BrowseInformation>true</BrowseInformation>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="include\base\algorithm.h" />
+    <ClInclude Include="include\base\assert.h" />
+    <ClInclude Include="include\base\blocking_queue.h" />
+    <ClInclude Include="include\base\buffer.h" />
+    <ClInclude Include="include\base\crashhandler.h" />
+    <ClInclude Include="include\base\dsd_utils.h" />
+    <ClInclude Include="include\base\encodingprofile.h" />
+    <ClInclude Include="include\base\enum.h" />
+    <ClInclude Include="include\base\expected.h" />
+    <ClInclude Include="include\base\fastconditionvariable.h" />
+    <ClInclude Include="include\base\fastmutex.h" />
+    <ClInclude Include="include\base\fs.h" />
+    <ClInclude Include="include\base\int24.h" />
+    <ClInclude Include="include\base\jthread.h" />
+    <ClInclude Include="include\base\latch.h" />
+    <ClInclude Include="include\base\lazy_storage.h" />
+    <ClInclude Include="include\base\logger_impl.h" />
+    <ClInclude Include="include\base\mpmc_queue.h" />
+    <ClInclude Include="include\base\object_pool.h" />
+    <ClInclude Include="include\base\pimplptr.h" />
+    <ClInclude Include="include\base\platfrom_handle.h" />
+    <ClInclude Include="include\base\itaskschedulerpolicy.h" />
+    <ClInclude Include="include\base\ithreadpoolexecutor.h" />
+    <ClInclude Include="include\base\math.h" />
+    <ClInclude Include="include\base\executor.h" />
+    <ClInclude Include="include\base\rcu_ptr.h" />
+    <ClInclude Include="include\base\sfc64.h" />
+    <ClInclude Include="include\base\shared_singleton.h" />
+    <ClInclude Include="include\base\simd.h" />
+    <ClInclude Include="include\base\scopeguard.h" />
+    <ClInclude Include="include\base\singleton.h" />
+    <ClInclude Include="include\base\spinlock.h" />
+    <ClInclude Include="include\base\stl.h" />
+    <ClInclude Include="include\base\audiobuffer.h" />
+    <ClInclude Include="include\base\audioformat.h" />
+    <ClInclude Include="include\base\base.h" />
+    <ClInclude Include="include\base\circularbuffer.h" />
+    <ClInclude Include="include\base\dataconverter.h" />
+    <ClInclude Include="include\base\dll.h" />
+    <ClInclude Include="include\base\dsdsampleformat.h" />
+    <ClInclude Include="include\base\exception.h" />
+    <ClInclude Include="include\base\lrucache.h" />
+    <ClInclude Include="include\base\platform.h" />
+    <ClInclude Include="include\base\stacktrace.h" />
+    <ClInclude Include="include\base\stopwatch.h" />
+    <ClInclude Include="include\base\stop_token.h" />
+    <ClInclude Include="include\base\moveonly_function.h" />
+    <ClInclude Include="include\base\task.h" />
+    <ClInclude Include="include\base\threadpoolexecutor.h" />
+    <ClInclude Include="include\base\uuidof.h" />
+    <ClInclude Include="include\base\vmmemlock.h" />
+    <ClInclude Include="include\base\memory_mapped_file.h" />
+    <ClInclude Include="include\base\uuid.h" />
+    <ClInclude Include="include\base\logger.h" />
+    <ClInclude Include="include\base\memory.h" />
+    <ClInclude Include="include\base\trackinfo.h" />
+    <ClInclude Include="include\base\rng.h" />
+    <ClInclude Include="include\base\timer.h" />
+    <ClInclude Include="include\base\str_utilts.h" />
+    <ClInclude Include="include\base\unique_handle.h" />
+    <ClInclude Include="include\base\volume.h" />
+    <ClInclude Include="include\base\waitabletimer.h" />
+    <ClInclude Include="include\base\windows_handle.h" />
+    <ClInclude Include="include\base\workstealingtaskqueue.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\audioformat.cpp" />
+    <ClCompile Include="src\crashhandler.cpp" />
+    <ClCompile Include="src\dataconverter.cpp" />
+    <ClCompile Include="src\dll.cpp" />
+    <ClCompile Include="src\dsd_utils.cpp" />
+    <ClCompile Include="src\encodingprofile.cpp" />
+    <ClCompile Include="src\exception.cpp" />
+    <ClCompile Include="src\fastconditionvariable.cpp" />
+    <ClCompile Include="src\fastmutex.cpp" />
+    <ClCompile Include="src\fs.cpp" />
+    <ClCompile Include="src\itaskschedulerpolicy.cpp" />
+    <ClCompile Include="src\ithreadpool.cpp" />
+    <ClCompile Include="src\memory_mapped_file.cpp" />
+    <ClCompile Include="src\shared_singleton.cpp" />
+    <ClCompile Include="src\stl.cpp" />
+    <ClCompile Include="src\uuid.cpp" />
+    <ClCompile Include="src\logger_impl.cpp" />
+    <ClCompile Include="src\memory.cpp" />
+    <ClCompile Include="src\trackinfo.cpp" />
+    <ClCompile Include="src\platform.cpp" />
+    <ClCompile Include="src\rng.cpp" />
+    <ClCompile Include="src\stacktrace.cpp" />
+    <ClCompile Include="src\stopwatch.cpp" />
+    <ClCompile Include="src\threadpoolexecutor.cpp" />
+    <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\str_utilts.cpp" />
+    <ClCompile Include="src\vmmemlock.cpp" />
+    <ClCompile Include="src\volume.cpp" />
+    <ClCompile Include="src\waitabletimer.cpp" />
+    <ClCompile Include="src\windows_handle.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{08F414CF-F9BA-44B6-8B91-5D2900CEA861}</ProjectGuid>
+    <RootNamespace>xampstream</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
+      <BrowseInformation>true</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/supereq/supereq/x64/Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
+      <OmitFramePointers>true</OmitFramePointers>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <BrowseInformation>true</BrowseInformation>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <IntelJCCErratum>true</IntelJCCErratum>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/supereq/supereq/x64/Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="include\stream\anymap.h" />
+    <ClInclude Include="include\stream\avfilestream.h" />
+    <ClInclude Include="include\stream\avlib.h" />
+    <ClInclude Include="include\stream\bassaacfileencoder.h" />
+    <ClInclude Include="include\stream\basscompressor.h" />
+    <ClInclude Include="include\stream\bassequalizer.h" />
+    <ClInclude Include="include\stream\bassfader.h" />
+    <ClInclude Include="include\stream\basslib.h" />
+    <ClInclude Include="include\stream\bassparametriceq.h" />
+    <ClInclude Include="include\stream\bassvolume.h" />
+    <ClInclude Include="include\stream\basswavfileencoder.h" />
+    <ClInclude Include="include\stream\bass_utiltis.h" />
+    <ClInclude Include="include\stream\compressorparameters.h" />
+    <ClInclude Include="include\stream\discIdlib.h" />
+    <ClInclude Include="include\stream\dsd_times.h" />
+    <ClInclude Include="include\stream\dspmanager.h" />
+    <ClInclude Include="include\stream\eqsettings.h" />
+    <ClInclude Include="include\stream\fft.h" />
+    <ClInclude Include="include\stream\fftwlib.h" />
+    <ClInclude Include="include\stream\iaudiostream.h" />
+    <ClInclude Include="include\stream\basscddevice.h" />
+    <ClInclude Include="include\stream\bassflacfileencoder.h" />
+    <ClInclude Include="include\stream\bassfilestream.h" />
+    <ClInclude Include="include\stream\icddevice.h" />
+    <ClInclude Include="include\stream\idsdstream.h" />
+    <ClInclude Include="include\stream\iaudioprocessor.h" />
+    <ClInclude Include="include\stream\idspmanager.h" />
+    <ClInclude Include="include\stream\ifileencoder.h" />
+    <ClInclude Include="include\stream\filestream.h" />
+    <ClInclude Include="include\stream\isameplewriter.h" />
+    <ClInclude Include="include\stream\mbdiscid.h" />
+    <ClInclude Include="include\stream\mfaacencoder.h" />
+    <ClInclude Include="include\stream\r8brainlib.h" />
+    <ClInclude Include="include\stream\r8brainresampler.h" />
+    <ClInclude Include="include\stream\dsdmodesamplewriter.h" />
+    <ClInclude Include="include\stream\soxresampler.h" />
+    <ClInclude Include="include\stream\soxrlib.h" />
+    <ClInclude Include="include\stream\srclib.h" />
+    <ClInclude Include="include\stream\srcresampler.h" />
+    <ClInclude Include="include\stream\stft.h" />
+    <ClInclude Include="include\stream\stream.h" />
+    <ClInclude Include="include\stream\api.h" />
+    <ClInclude Include="include\stream\supereqequalizer.h" />
+    <ClInclude Include="include\stream\wavefilewriter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\avfilestream.cpp" />
+    <ClCompile Include="src\avlib.cpp" />
+    <ClCompile Include="src\bassaacfileencoder.cpp" />
+    <ClCompile Include="src\basscddevice.cpp" />
+    <ClCompile Include="src\basscompressor.cpp" />
+    <ClCompile Include="src\bassequalizer.cpp" />
+    <ClCompile Include="src\bassexception.cpp" />
+    <ClCompile Include="src\bassfader.cpp" />
+    <ClCompile Include="src\bassflacfileencoder.cpp" />
+    <ClCompile Include="src\bassfilestream.cpp" />
+    <ClCompile Include="src\bassparametriceq.cpp" />
+    <ClCompile Include="src\bassvolume.cpp" />
+    <ClCompile Include="src\basswavfileencoder.cpp" />
+    <ClCompile Include="src\basslib.cpp" />
+    <ClCompile Include="src\bass_utiltis.cpp" />
+    <ClCompile Include="src\dspmanager.cpp" />
+    <ClCompile Include="src\fft.cpp" />
+    <ClCompile Include="src\fftwlib.cpp" />
+    <ClCompile Include="src\mbdiscid.cpp" />
+    <ClCompile Include="src\mfaacencoder.cpp" />
+    <ClCompile Include="src\api.cpp" />
+    <ClCompile Include="src\dsdmodesamplewriter.cpp" />
+    <ClCompile Include="src\r8brainresampler.cpp" />
+    <ClCompile Include="src\soxresampler.cpp" />
+    <ClCompile Include="src\srcresampler.cpp" />
+    <ClCompile Include="src\stft.cpp" />
+    <ClCompile Include="src\supereqequalizer.cpp" />
+    <ClCompile Include="src\wavefilewriter.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

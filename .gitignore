@@ -1,0 +1,91 @@
+# Prerequisites
+*.d
+
+*.DS_Store
+CMakeLists.txt.user
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.lib
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+
+# Executables
+*.exe
+*.out
+*.app
+/src/xamp_base/xamp_base.vcxproj.user
+/src/xamp_metadata/x64
+/src/xamp_base/x64
+/src/xamp_player/x64
+/src/xamp_player/xamp_player.vcxproj.user
+/src/xamp_stream/x64
+/src/xamp/xamp.vcxproj.filters
+/src/xamp/xamp.vcxproj.user
+/src/xamp/x64
+/src/xamp/GeneratedFiles
+/src/xamp/caches
+/src/xamp/.vs/xamp/v16
+/src/xamp_output_device/x64
+/src/xamp_output_device/xamp_output_device.vcxproj.user
+/src/xamp/xamp.db
+/src/xamp/logs/xamp.log
+/src/xamp_metadata/xamp_metadata.vcxproj.user
+/src/xamp_stream/xamp_stream.vcxproj.user
+/.vs
+/src/xamp/deploy
+/src/xamp/xamp.ini
+/src/xamp_base/VTune Amplifier Results/xamp_base
+/src/xamp/VTune Amplifier Results/xamp/xamp.amplxeproj
+/src/xamp_base/caches
+/src/xamp_base/logs/xamp.log
+/src/xamp_base/xamp.db
+/src/xamp_base/xamp.ini
+/src/xamp/xamp.aps
+/src/xamp/VTune Amplifier Results/xamp/r002hs
+/src/xamp/VTune Amplifier Results/xamp
+/src/bench/x64
+/src/bench/logs
+/src/bench/bench.vcxproj.user
+/src/sanitize/sanitize.vcxproj.user
+/src/sanitize/x64
+/src/xamp/.vs
+src/build-bench-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp_output_device-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-bench-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_base-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp_output_device-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_base-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp2-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_stream-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_stream-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Debug
+/src/thirdparty/framelesshelper/msvc
+/src/thirdparty/libimagequant/msvc
+/src/thirdparty/qtautoupdater
+/src/thirdparty/soxr
+/src/xamp_stream/xamp_stream.vcxproj.filters
+/src/widget_shared/widget_shared.vcxproj.filters
+/src/widget_shared/widget_shared.vcxproj.user
+/src/widget_shared/x64
+/src/thirdparty/liblastfm

@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+    <EnableUnitySupport>false</EnableUnitySupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <EnableASAN>false</EnableASAN>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <VCToolsVersion>
+    </VCToolsVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <LinkIncremental>false</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>6.5.2_msvc2019_64</QtInstall>
+    <QtModules>core;sql;opengl;network;gui;widgets;</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>6.5.2_msvc2019_64</QtInstall>
+    <QtModules>core;gui;network;widgets;sql</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;QSU_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;%(AdditionalIncludeDirectories);../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/framelesshelper/include/;../thirdparty/expected/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/</AdditionalIncludeDirectories>
+      <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <BrowseInformation>true</BrowseInformation>
+      <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;4828;4996;</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/QSimpleUpdater/debug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;widget_shared.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;QSimpleUpdater.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+    </Link>
+    <QtMoc>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <QtUicDir>.\GeneratedFiles</QtUicDir>
+      <QtUicFileName>ui_%(Filename).h</QtUicFileName>
+    </QtUic>
+    <QtRcc>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <QtRccDir>.\GeneratedFiles</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+    </QtRcc>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_DEBUG;NDEBUG;QT_NO_CAST_FROM_ASCII;QSU_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../widget_shared/;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/expected/include/;../thirdparty/framelesshelper/include/;../thirdparty/QSimpleUpdater/include/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <BrowseInformation>false</BrowseInformation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>./x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/QSimpleUpdater/release/;../thirdparty/qcoro/msvc/qcoro/core/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;FramelessHelperCore.lib;FramelessHelperWidgets.lib;widget_shared.lib;QSimpleUpdater.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <QtMoc>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <QtUicDir>.\GeneratedFiles</QtUicDir>
+      <QtUicFileName>ui_%(Filename).h</QtUicFileName>
+    </QtUic>
+    <QtRcc>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <QtRccDir>.\GeneratedFiles</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+    </QtRcc>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="singleinstanceapplication.cpp" />
+    <ClCompile Include="xamp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="xamp.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resource\Theme\dark\darkstyle.qrc" />
+    <QtRcc Include="Resource\Theme\light\lightstyle.qrc" />
+    <QtRcc Include="xamp.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
+    <ResourceCompile Include="xamp.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="singleinstanceapplication.h" />
+    <ClInclude Include="resource.h" />
+    <QtMoc Include="xamp.h">
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="xamp.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\versions\updates.json" />
+    <None Include="config.json" />
+    <None Include="migrations\2024-01-12-093210_init\up.sql" />
+    <None Include="Resource\Theme\dark\style.qss" />
+    <None Include="Resource\Theme\light\style.qss" />
+    <None Include="xamp.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="credits.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="zh_TW.ts" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

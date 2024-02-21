@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{43B7AE34-6DB8-4147-8EDE-28FDC4C3AF8C}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
+    <QtInstall>6.5.2_msvc2019_64</QtInstall>
+    <QtModules>core;gui;network;widgets;sql</QtModules>
+    <QtBuildConfig>debug</QtBuildConfig>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
+    <QtInstall>6.5.2_msvc2019_64</QtInstall>
+    <QtModules>core;gui;network;widgets;sql</QtModules>
+    <QtBuildConfig>release</QtBuildConfig>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;../thirdparty/expected/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
+      <WarningVersion>
+      </WarningVersion>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;FramelessHelperCore.lib;FramelessHelperWidgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;../thirdparty/pybind11/include/;./xamp/;../thirdparty/expected/include/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
+    <ClCompile>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>WIDGET_SHARED_LIB;QSU_IMPORT;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
+    <ClCompile>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>WIDGET_SHARED_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <QtMoc Include="widget\aboutpage.h" />
+    <QtMoc Include="widget\cdpage.h" />
+    <QtMoc Include="widget\preferencepage.h" />
+    <QtMoc Include="widget\artistview.h" />
+    <QtMoc Include="widget\genre_view_page.h" />
+    <QtMoc Include="widget\createplaylistview.h" />
+    <ClInclude Include="widget\accountauthorizationpage.h" />
+    <ClInclude Include="widget\acrylic\acrylic.h" />
+    <ClInclude Include="widget\databasecoverid.h" />
+    <QtMoc Include="widget\file_system_watcher.h" />
+    <ClInclude Include="widget\flowlayout.h" />
+    <ClInclude Include="widget\fluentthemecolor.h" />
+    <ClInclude Include="widget\genre_view.h" />
+    <QtMoc Include="widget\taglistview.h" />
+    <ClInclude Include="widget\lazyloadingmodel.h" />
+    <ClInclude Include="widget\maskwidget.h" />
+    <QtMoc Include="widget\tageditpage.h" />
+    <QtMoc Include="widget\playlisttabwidget.h" />
+    <QtMoc Include="widget\playlisttabbar.h" />
+    <QtMoc Include="widget\supereqview.h" />
+    <ClInclude Include="widget\networkdiskcache.h" />
+    <ClInclude Include="widget\tagio.h" />
+    <ClInclude Include="widget\util\image_utiltis.h" />
+    <ClInclude Include="widget\util\log_util.h" />
+    <ClInclude Include="widget\util\mbdiscid_uiltis.h" />
+    <ClInclude Include="widget\util\read_until.h" />
+    <ClInclude Include="widget\util\str_utilts.h" />
+    <ClInclude Include="widget\util\ui_utilts.h" />
+    <ClInclude Include="widget\util\zib_utiltis.h" />
+    <ClInclude Include="widget\widget_shared_global.h" />
+    <QtMoc Include="widget\win32\wintaskbar.h" />
+    <QtMoc Include="widget\worker\backgroundworker.h" />
+    <QtMoc Include="widget\worker\filesystemworker.h" />
+    <QtMoc Include="widget\worker\findalbumcoverworker.h" />
+    <ClInclude Include="widget\xmessagebox.h" />
+    <QtMoc Include="widget\youtubedl\ytmusic.h" />
+    <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
+    <ClInclude Include="xampplayer.h" />
+    <QtMoc Include="widget\actionmap.h" />
+    <QtMoc Include="widget\albumartistpage.h" />
+    <QtMoc Include="thememanager.h" />
+    <ClInclude Include="version.h" />
+    <QtMoc Include="widget\albumview.h" />
+    <ClInclude Include="widget\appsettingnames.h" />
+    <ClInclude Include="widget\appsettings.h" />
+    <QtMoc Include="widget\artistinfopage.h" />
+    <QtMoc Include="widget\clickablelabel.h" />
+    <ClInclude Include="widget\database.h" />
+    <QtMoc Include="widget\databasefacade.h" />
+    <QtMoc Include="widget\doubleslider.h" />
+    <ClInclude Include="widget\driveinfo.h" />
+    <QtMoc Include="widget\equalizerview.h" />
+    <ClInclude Include="widget\filesystemmodel.h" />
+    <QtMoc Include="widget\filesystemviewpage.h" />
+    <ClInclude Include="widget\fonticon.h" />
+    <ClInclude Include="widget\globalshortcut.h" />
+    <ClInclude Include="widget\http.h" />
+    <QtMoc Include="widget\iconsizestyle.h" />
+    <ClInclude Include="widget\imagecache.h" />
+    <ClInclude Include="widget\jsonsettings.h" />
+    <ClInclude Include="widget\localelanguage.h" />
+    <QtMoc Include="widget\lrcpage.h" />
+    <ClInclude Include="widget\lrcparser.h" />
+    <QtMoc Include="widget\lyricsshowwidget.h" />
+    <ClInclude Include="widget\playerorder.h" />
+    <ClInclude Include="widget\playlistentity.h" />
+    <QtMoc Include="widget\playlistpage.h" />
+    <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
+    <ClInclude Include="widget\playlisttablemodel.h" />
+    <QtMoc Include="widget\playlisttableproxymodel.h" />
+    <QtMoc Include="widget\playlisttableview.h" />
+    <QtMoc Include="widget\processindicator.h" />
+    <ClInclude Include="widget\qdebugsink.h" />
+    <ClInclude Include="widget\qetag.h" />
+    <ClInclude Include="widget\scrolllabel.h" />
+    <QtMoc Include="widget\seekslider.h" />
+    <QtMoc Include="widget\spectrumwidget.h" />
+    <QtMoc Include="widget\tablistview.h" />
+    <ClInclude Include="widget\themecolor.h" />
+    <QtMoc Include="widget\uiplayerstateadapter.h" />
+    <QtMoc Include="widget\volumebutton.h" />
+    <QtMoc Include="widget\volumecontroldialog.h" />
+    <QtMoc Include="widget\wheelablewidget.h" />
+    <ClInclude Include="widget\widget_shared.h" />
+    <QtMoc Include="widget\xdialog.h" />
+    <ClInclude Include="widget\xmainwindow.h" />
+    <QtMoc Include="widget\xprogressdialog.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="thememanager.cpp" />
+    <ClCompile Include="version.cpp" />
+    <ClCompile Include="widget\aboutpage.cpp" />
+    <ClCompile Include="widget\accountauthorizationpage.cpp" />
+    <ClCompile Include="widget\acrylic\acrylic.cpp" />
+    <ClCompile Include="widget\albumartistpage.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
+    <ClCompile Include="widget\albumview.cpp" />
+    <ClCompile Include="widget\appsettingnames.cpp" />
+    <ClCompile Include="widget\appsettings.cpp" />
+    <ClCompile Include="widget\artistinfopage.cpp" />
+    <ClCompile Include="widget\artistview.cpp" />
+    <ClCompile Include="widget\cdpage.cpp" />
+    <ClCompile Include="widget\clickablelabel.cpp" />
+    <ClCompile Include="widget\createplaylistview.cpp" />
+    <ClCompile Include="widget\database.cpp" />
+    <ClCompile Include="widget\databasefacade.cpp" />
+    <ClCompile Include="widget\doubleslider.cpp" />
+    <ClCompile Include="widget\equalizerview.cpp" />
+    <ClCompile Include="widget\filesystemmodel.cpp" />
+    <ClCompile Include="widget\filesystemviewpage.cpp" />
+    <ClCompile Include="widget\file_system_watcher.cpp" />
+    <ClCompile Include="widget\flowlayout.cpp" />
+    <ClCompile Include="widget\fonticon.cpp" />
+    <ClCompile Include="widget\genre_view.cpp" />
+    <ClCompile Include="widget\genre_view_page.cpp" />
+    <ClCompile Include="widget\globalshortcut.cpp" />
+    <ClCompile Include="widget\http.cpp" />
+    <ClCompile Include="widget\imagecache.cpp" />
+    <ClCompile Include="widget\jsonsettings.cpp" />
+    <ClCompile Include="widget\localelanguage.cpp" />
+    <ClCompile Include="widget\lrcpage.cpp" />
+    <ClCompile Include="widget\lrcparser.cpp" />
+    <ClCompile Include="widget\lyricsshowwidget.cpp" />
+    <ClCompile Include="widget\maskwidget.cpp" />
+    <ClCompile Include="widget\networkdiskcache.cpp" />
+    <ClCompile Include="widget\playlistentity.cpp" />
+    <ClCompile Include="widget\playlistpage.cpp" />
+    <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
+    <ClCompile Include="widget\playlisttabbar.cpp" />
+    <ClCompile Include="widget\playlisttableproxymodel.cpp" />
+    <ClCompile Include="widget\playlisttableview.cpp" />
+    <ClCompile Include="widget\playlisttabwidget.cpp" />
+    <ClCompile Include="widget\preferencepage.cpp" />
+    <ClCompile Include="widget\processindicator.cpp" />
+    <ClCompile Include="widget\qetag.cpp" />
+    <ClCompile Include="widget\scrolllabel.cpp" />
+    <ClCompile Include="widget\seekslider.cpp" />
+    <ClCompile Include="widget\spectrumwidget.cpp" />
+    <ClCompile Include="widget\supereqview.cpp" />
+    <ClCompile Include="widget\tablistview.cpp" />
+    <ClCompile Include="widget\tageditpage.cpp" />
+    <ClCompile Include="widget\tagio.cpp" />
+    <ClCompile Include="widget\taglistview.cpp" />
+    <ClCompile Include="widget\uiplayerstateadapter.cpp" />
+    <ClCompile Include="widget\util\image_utiltis.cpp" />
+    <ClCompile Include="widget\util\log_util.cpp" />
+    <ClCompile Include="widget\util\mbdiscid_uiltis.cpp" />
+    <ClCompile Include="widget\util\read_until.cpp" />
+    <ClCompile Include="widget\util\str_utilts.cpp" />
+    <ClCompile Include="widget\util\ui_utilts.cpp" />
+    <ClCompile Include="widget\util\zib_utiltis.cpp" />
+    <ClCompile Include="widget\volumebutton.cpp" />
+    <ClCompile Include="widget\volumecontroldialog.cpp" />
+    <ClCompile Include="widget\wheelablewidget.cpp" />
+    <ClCompile Include="widget\widget_shared_global.cpp" />
+    <ClCompile Include="widget\win32\wintaskbar.cpp" />
+    <ClCompile Include="widget\worker\backgroundworker.cpp" />
+    <ClCompile Include="widget\worker\filesystemworker.cpp" />
+    <ClCompile Include="widget\worker\findalbumcoverworker.cpp" />
+    <ClCompile Include="widget\xdialog.cpp" />
+    <ClCompile Include="widget\xmainwindow.cpp" />
+    <ClCompile Include="widget\xmessagebox.cpp" />
+    <ClCompile Include="widget\xprogressdialog.cpp" />
+    <ClCompile Include="widget\youtubedl\ytmusic.cpp" />
+    <ClCompile Include="widget\youtubedl\ytmusicoauth.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="aboutdialog.ui" />
+    <QtUic Include="accountauthorizationpage.ui" />
+    <QtUic Include="cdpage.ui" />
+    <QtUic Include="createplaylistdialog.ui" />
+    <QtUic Include="equalizerdialog.ui" />
+    <QtUic Include="filesystemviewpage.ui" />
+    <QtUic Include="preferencedialog.ui" />
+    <QtUic Include="supereqdialog.ui" />
+    <QtUic Include="tageditpage.ui" />
+    <QtUic Include="volumecontroldialog.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="widget_shared_zh_TW.ts" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

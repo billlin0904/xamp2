@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\api.cpp" />
+    <ClCompile Include="src\taglibmetadatawriter.cpp" />
+    <ClCompile Include="src\taglibmetareader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\metadata\metadata.h" />
+    <ClInclude Include="include\metadata\api.h" />
+    <ClInclude Include="include\metadata\taglib.h" />
+    <ClInclude Include="include\metadata\taglibmetareader.h" />
+    <ClInclude Include="include\metadata\taglibmetawriter.h" />
+    <ClInclude Include="include\metadata\imetadatareader.h" />
+    <ClInclude Include="include\metadata\imetadatawriter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="win32">
+      <UniqueIdentifier>{aaa62c94-7a8b-47e5-8bac-e2f19ec7291a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

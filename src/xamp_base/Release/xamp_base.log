@@ -1,0 +1,57 @@
+﻿  align_ptr.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\align_ptr.cpp(1,10): fatal error C1083: Cannot open include file: 'base/base.h': No such file or directory
+  assert.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\assert.cpp(1,10): fatal error C1083: Cannot open include file: 'base/assert.h': No such file or directory
+  audioformat.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\audioformat.cpp(1,10): fatal error C1083: Cannot open include file: 'base/audioformat.h': No such file or directory
+  crashhandler.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\crashhandler.cpp(1,10): fatal error C1083: Cannot open include file: 'base/crashhandler.h': No such file or directory
+  dataconverter.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\dataconverter.cpp(1,10): fatal error C1083: Cannot open include file: 'base/dataconverter.h': No such file or directory
+  dll.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\dll.cpp(1,10): fatal error C1083: Cannot open include file: 'base/dll.h': No such file or directory
+  exception.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\exception.cpp(4,10): fatal error C1083: Cannot open include file: 'base/base.h': No such file or directory
+  fastmutex.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\fastmutex.cpp(1,10): fatal error C1083: Cannot open include file: 'base/fastmutex.h': No such file or directory
+  ithreadpool.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\ithreadpool.cpp(1,10): fatal error C1083: Cannot open include file: 'base/logger.h': No such file or directory
+  memory_mapped_file.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\memory_mapped_file.cpp(1,10): fatal error C1083: Cannot open include file: 'base/base.h': No such file or directory
+  stl.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\stl.cpp(1,10): fatal error C1083: Cannot open include file: 'base/stl.h': No such file or directory
+  uuid.cpp
+  The contents of <charconv> are available only with C++17 or later.
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\uuid.cpp(4,10): fatal error C1083: Cannot open include file: 'base/uuid.h': No such file or directory
+  logger.cpp
+  The contents of <filesystem> are available only with C++17 or later.
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\logger.cpp(5,10): fatal error C1083: Cannot open include file: 'spdlog/async.h': No such file or directory
+  memory.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\memory.cpp(2,10): fatal error C1083: Cannot open include file: 'base/base.h': No such file or directory
+  metadata.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\metadata.cpp(1,10): fatal error C1083: Cannot open include file: 'base/metadata.h': No such file or directory
+  platform.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\platform.cpp(3,10): fatal error C1083: Cannot open include file: 'base/dll.h': No such file or directory
+  rng.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\rng.cpp(1,10): fatal error C1083: Cannot open include file: 'base/rng.h': No such file or directory
+  stacktrace.cpp
+  The contents of <optional> are available only with C++17 or later.
+  The contents of <filesystem> are available only with C++17 or later.
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\stacktrace.cpp(8,10): fatal error C1083: Cannot open include file: 'base/logger.h': No such file or directory
+  stopwatch.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\stopwatch.cpp(1,10): fatal error C1083: Cannot open include file: 'base/stopwatch.h': No such file or directory
+  threadpool.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\threadpool.cpp(2,10): fatal error C1083: Cannot open include file: 'base/logger.h': No such file or directory
+  Compiling...
+  timer.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\timer.cpp(2,10): fatal error C1083: Cannot open include file: 'base/windows_handle.h': No such file or directory
+  str_utilts.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\str_utilts.cpp(1,10): fatal error C1083: Cannot open include file: 'utf8.h': No such file or directory
+  vmmemlock.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\vmmemlock.cpp(1,10): fatal error C1083: Cannot open include file: 'base/logger.h': No such file or directory
+  volume.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\volume.cpp(1,10): fatal error C1083: Cannot open include file: 'base/volume.h': No such file or directory
+  waitabletimer.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\waitabletimer.cpp(2,10): fatal error C1083: Cannot open include file: 'base/exception.h': No such file or directory
+  win32_threadpool.cpp
+C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp_base\src\win32\win32_threadpool.cpp(1,10): fatal error C1083: Cannot open include file: 'base/win32/win32_threadpool.h': No such file or directory

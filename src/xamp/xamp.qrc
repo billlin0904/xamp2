@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/xamp">
+        <file>xamp.ico</file>
+        <file>Resource/Theme/dark/style.qss</file>
+        <file>Resource/Theme/light/style.qss</file>
+        <file>Resource/White/GitHub-Mark.png</file>
+        <file>Resource/Black/GitHub-Mark.png</file>
+        <file>Resource/Black/play_circle.png</file>
+        <file>Resource/White/unknown_album.png</file>
+        <file>Resource/White/close-active.ico</file>
+        <file>Resource/White/close-inactive.ico</file>
+        <file>Resource/White/maximize-active.ico</file>
+        <file>Resource/White/maximize-inactive.ico</file>
+        <file>Resource/White/minimize-active.ico</file>
+        <file>Resource/White/minimize-inactive.ico</file>
+        <file>Resource/White/restore-active.ico</file>
+        <file>Resource/White/restore-inactive.ico</file>
+        <file>Resource/Black/close-active.ico</file>
+        <file>Resource/Black/close-inactive.ico</file>
+        <file>Resource/Black/maximize-active.ico</file>
+        <file>Resource/Black/maximize-inactive.ico</file>
+        <file>Resource/Black/restore-active.ico</file>
+        <file>Resource/Black/restore-inactive.ico</file>
+        <file>Resource/Black/minimize-active.ico</file>
+        <file>Resource/Black/minimize-inactive.ico</file>
+        <file>Resource/Black/unknown_album.png</file>
+        <file>migrations/2024-01-12-093210_init/up.sql</file>
+        <file>Resource/noise.png</file>
+    </qresource>
+</RCC>
