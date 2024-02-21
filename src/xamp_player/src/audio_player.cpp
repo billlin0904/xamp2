@@ -114,7 +114,7 @@ AudioPlayer::AudioPlayer()
     , device_manager_(MakeAudioDeviceManager())
     , action_queue_(kActionQueueSize)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize)) {
-    logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
+    logger_ = XAM_LOG_MANAGER().GetLogger(kAudioPlayerLoggerName);
     PreventSleep(true);
 }
 

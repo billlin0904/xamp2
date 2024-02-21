@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/base.h>
+#include <base/shared_singleton.h>
 
 #include <memory>
 #include <string_view>
@@ -56,9 +57,9 @@ struct XAMP_BASE_API SourceLocation {
 #define CurrentLocation \
     SourceLocation { __FILENAME__, __LINE__, __FUNCTION__ }
 
-#define XAM_LOG_MANAGER() xamp::base::LoggerManager::GetInstance()
+#define XAM_LOG_MANAGER() xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
 
-#define XAMP_LOG(Level, ...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, __VA_ARGS__)
+#define XAMP_LOG(Level, ...) xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, __VA_ARGS__)
 #define XAMP_LOG_DEBUG(...)    XAMP_LOG(LOG_LEVEL_DEBUG, __VA_ARGS__)
 #define XAMP_LOG_INFO(...)     XAMP_LOG(LOG_LEVEL_INFO,  __VA_ARGS__)
 #define XAMP_LOG_ERROR(...)    XAMP_LOG(LOG_LEVEL_ERROR, __VA_ARGS__)

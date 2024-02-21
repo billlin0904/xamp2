@@ -162,7 +162,7 @@ AvLib::~AvLib() {
 }
 
 AvLib::AvLib() {
-	logger = LoggerManager::GetInstance().GetLogger(kLibAvLoggerName);
+	logger = XAM_LOG_MANAGER().GetLogger(kLibAvLoggerName);
 	XAMP_LOG_D(logger, "Load {} success.", LIBAVCODEC_IDENT);
 
 	FormatLib = MakeAlign<AvFormatLib>();

@@ -194,7 +194,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(QNetworkAccessManager* nam, const QSt
     , url_(url)
     , charset_(QStringConverter::Encoding::Utf8)
     , manager_(nam) {
-    logger_ = LoggerManager::GetInstance().GetLogger(kHttpLoggerName);
+    logger_ = XAM_LOG_MANAGER().GetLogger(kHttpLoggerName);
     manager_->setCache(new NetworkDiskCache(parent));
 }
 

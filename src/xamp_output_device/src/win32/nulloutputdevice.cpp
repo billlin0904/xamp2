@@ -24,7 +24,7 @@ NullOutputDevice::NullOutputDevice()
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, wait_time_(0)
-	, logger_(LoggerManager::GetInstance().GetLogger(kNullOutputDeviceLoggerName)) {
+	, logger_(XAM_LOG_MANAGER().GetLogger(kNullOutputDeviceLoggerName)) {
 }
 
 NullOutputDevice::~NullOutputDevice() = default;

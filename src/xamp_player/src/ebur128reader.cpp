@@ -75,7 +75,7 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 class Ebur128Reader::Ebur128ReaderImpl {
 public:
 	Ebur128ReaderImpl() {
-		logger_ = LoggerManager::GetInstance().GetLogger(kEbur128ReaderLoggerName);
+		logger_ = XAM_LOG_MANAGER().GetLogger(kEbur128ReaderLoggerName);
 	}
 
 	void SetSampleRate(uint32_t sample_rate) {

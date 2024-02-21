@@ -134,7 +134,7 @@ namespace {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
-        const auto logger = LoggerManager::GetInstance().GetLogger(kQtLoggerName);
+        const auto logger = XAM_LOG_MANAGER().GetLogger(kQtLoggerName);
 
         switch (type) {
         case QtDebugMsg:
@@ -264,7 +264,7 @@ namespace {
 }
 
 int main() {    
-    LoggerManager::GetInstance()
+    XAM_LOG_MANAGER()
         .AddDebugOutput()
 #ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())
@@ -314,7 +314,7 @@ int main() {
         qAppSettings.save();
         qAppSettings.saveLogConfig();
         qMainDb.close();
-        LoggerManager::GetInstance().Shutdown();
+        XAM_LOG_MANAGER().Shutdown();
     );
 
     static char app_name[] = "xamp2";

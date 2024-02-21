@@ -13,7 +13,7 @@ class BassParametricEq::BassParametricEqImpl {
 public:
     BassParametricEqImpl()
 		: preamp_(0) {
-	    logger_ = LoggerManager::GetInstance().GetLogger(kBassParametricEqLoggerName);
+	    logger_ = XAM_LOG_MANAGER().GetLogger(kBassParametricEqLoggerName);
     }
 
     void Start(uint32_t sample_rate) {

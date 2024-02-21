@@ -172,12 +172,12 @@ private:
 	mutable uint32_t volume_;
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
-	IAudioCallback* callback_;
-	Buffer<float> buffer_;
+	IAudioCallback* callback_;	
 	Task<void> render_task_;
-	std::chrono::milliseconds wait_time_;
-	AudioFormat output_format_;
+	std::chrono::milliseconds wait_time_;	
 	LoggerPtr logger_;
+	AudioFormat output_format_;
+	Buffer<float> buffer_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

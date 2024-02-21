@@ -46,7 +46,7 @@ private:
 };
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceTypeImpl() noexcept {
-	logger_ = LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);	
+	logger_ = XAM_LOG_MANAGER().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);	
 }
 
 void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ScanNewDevice() {

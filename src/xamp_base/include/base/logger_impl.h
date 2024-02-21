@@ -109,9 +109,9 @@ class XAMP_BASE_API LoggerManager final {
 public:
     static constexpr int kMaxLogFileSize = 1024 * 1024;
 
-    friend class Singleton<LoggerManager>;
+    LoggerManager() noexcept;
 
-    static LoggerManager& GetInstance() noexcept;
+    ~LoggerManager();
 
     XAMP_DISABLE_COPY(LoggerManager)
 
@@ -136,11 +136,7 @@ public:
     void SetLevel(LogLevel level);
 
     void Shutdown();
-private:
-    LoggerManager() noexcept;
-
-    ~LoggerManager();
-
+private:    
     Vector<spdlog::sink_ptr> sinks_;
     LoggerPtr default_logger_;
 };

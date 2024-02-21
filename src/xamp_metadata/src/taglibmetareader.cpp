@@ -77,23 +77,23 @@ namespace {
                     if (fr) {
                         const auto desc = fr->description().upper();
                         const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
-                        if (desc == String::AsStdString(kReplaygainAlbumGain)) {
+                        if (desc == kReplaygainAlbumGain) {
                             replay_gain.album_gain = value;
                             found = true;
                         }
-                        else if (desc == String::AsStdString(kReplaygainTrackGain)) {
+                        else if (desc == kReplaygainTrackGain) {
                             replay_gain.track_gain = value;
                             found = true;
                         }
-                        else if (desc == String::AsStdString(kReplaygainAlbumPeak)) {
+                        else if (desc == kReplaygainAlbumPeak) {
                             replay_gain.album_peak = value;
                             found = true;
                         }
-                        else if (desc == String::AsStdString(kReplaygainTrackPeak)) {
+                        else if (desc == kReplaygainTrackPeak) {
                             replay_gain.track_peak = value;
                             found = true;
                         }
-                        else if (desc == String::AsStdString(kReplaygainReferenceLoudness)) {
+                        else if (desc == kReplaygainReferenceLoudness) {
                             replay_gain.ref_loudness = value;
                             found = true;
                         }
@@ -146,27 +146,27 @@ namespace {
         if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
             if (const auto* tag = mp4_file->tag()) {
                 auto const& dict = tag->itemMap();
-                const auto track_gain = String::AsStdString(kITunesReplaygainTrackGain);
+                const auto track_gain = kITunesReplaygainTrackGain;
                 if (dict.contains(track_gain)) {
                     replay_gain.track_gain = ParseStringList(dict[track_gain].toStringList()[0].to8Bit(), false);
                     found = true;
                 }
-                const auto track_peak = String::AsStdString(kITunesReplaygainTrackPeak);
+                const auto track_peak = kITunesReplaygainTrackPeak;
                 if (dict.contains(track_peak)) {
                     replay_gain.track_peak = ParseStringList(dict[track_peak].toStringList()[0].to8Bit(), false);
                     found = true;
                 }
-                const auto album_gain = String::AsStdString(kITunesReplaygainAlbumGain);
+                const auto album_gain = kITunesReplaygainAlbumGain;
                 if (dict.contains(album_gain)) {
                     replay_gain.album_gain = ParseStringList(dict[album_gain].toStringList()[0].to8Bit(), false);
                     found = true;
                 }
-                const auto album_peak = String::AsStdString(kITunesReplaygainAlbumPeak);
+                const auto album_peak = kITunesReplaygainAlbumPeak;
                 if (dict.contains(String::AsStdString(album_peak))) {
                     replay_gain.album_peak = ParseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
                     found = true;
                 }
-                const auto reference_loudness = String::AsStdString(kITunesReplaygainReferenceLoudness);
+                const auto reference_loudness = kITunesReplaygainReferenceLoudness;
                 if (dict.contains(reference_loudness)) {
                     replay_gain.album_peak = ParseStringList(dict[reference_loudness].toStringList()[0].to8Bit(), false);
                     found = true;
@@ -211,23 +211,23 @@ namespace {
             if (const auto* xiph_comment = flac_file->xiphComment()) {
                 auto field_map = xiph_comment->fieldListMap();
                 for (auto& field : field_map) {
-                    if (field.first == String::AsStdString(kReplaygainAlbumGain)) {
+                    if (field.first == kReplaygainAlbumGain) {
                         replay_gain.album_gain = std::stod(field.second[0].to8Bit());
                         found = true;
                     }
-                    else if (field.first == String::AsStdString(kReplaygainTrackPeak)) {
+                    else if (field.first == kReplaygainTrackPeak) {
                         replay_gain.track_peak = std::stod(field.second[0].to8Bit());
                         found = true;
                     }
-                    else if (field.first == String::AsStdString(kReplaygainAlbumPeak)) {
+                    else if (field.first == kReplaygainAlbumPeak) {
                         replay_gain.album_peak = std::stod(field.second[0].to8Bit());
                         found = true;
                     }
-                    else if (field.first == String::AsStdString(kReplaygainTrackGain)) {
+                    else if (field.first == kReplaygainTrackGain) {
                         replay_gain.track_gain = std::stod(field.second[0].to8Bit());
                         found = true;
                     }
-                    else if (field.first == String::AsStdString(kReplaygainReferenceLoudness)) {
+                    else if (field.first == kReplaygainReferenceLoudness) {
                         replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
                         found = true;
                     }

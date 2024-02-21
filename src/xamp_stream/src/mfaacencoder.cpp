@@ -293,7 +293,7 @@ public:
 
     static Vector<EncodingProfile> GetAvailableEncodingProfile() {
         constexpr auto get_encoding_profile = []() {
-            static auto logger = LoggerManager::GetInstance().GetLogger(kMFEncoderLoggerName);
+            static auto logger = XAM_LOG_MANAGER().GetLogger(kMFEncoderLoggerName);
             Vector<EncodingProfile> profiles;
 
             CComPtr<IMFCollection> available_types;

@@ -307,24 +307,23 @@ private:
 	std::atomic<bool> is_stopped_;
 	std::atomic<bool> is_streaming_;
 	std::atomic<bool> is_stop_streaming_;
-	long latency_;
+	int64_t latency_;
 	DsdIoFormat io_format_;
 	DsdFormat sample_format_;
 	mutable std::atomic<uint32_t> volume_;
 	size_t buffer_size_;
 	size_t buffer_bytes_;
-	std::atomic<int64_t> output_bytes_;
-	std::string device_id_;
+	std::atomic<int64_t> output_bytes_;	
 	mutable FastMutex mutex_;
 	FastConditionVariable condition_;
 	AudioFormat format_;
-	Vector<ASIOClockSource> clock_source_;
-	Buffer<int8_t> buffer_;
-	Buffer<int8_t> device_buffer_;	
-	IAudioCallback* callback_;
-	Mmcss mmcss_;
+	Vector<ASIOClockSource> clock_source_;	
+	IAudioCallback* callback_;	
 	ProcessDispatch process_;
 	LoggerPtr logger_;
+	std::string device_id_;
+	Buffer<int8_t> buffer_;
+	Buffer<int8_t> device_buffer_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

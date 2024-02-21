@@ -16,7 +16,7 @@ class BassVolume::BassVolumeImpl {
 public:
     BassVolumeImpl()
         : volume_handle_(0) {
-        logger_ = LoggerManager::GetInstance().GetLogger(kBassVolumeLoggerName);
+        logger_ = XAM_LOG_MANAGER().GetLogger(kBassVolumeLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {

@@ -67,10 +67,6 @@ void LoggerManager::SetLevel(LogLevel level) {
 	default_logger_->SetLevel(level);
 }
 
-LoggerManager & LoggerManager::GetInstance() noexcept {    
-    return Singleton<LoggerManager>::GetInstance();
-}
-
 LoggerManager& LoggerManager::Startup() {
 	GetLogger(kXampLoggerName);
 	default_logger_->LogDebug("{}", "<LoggerManager startup success>");

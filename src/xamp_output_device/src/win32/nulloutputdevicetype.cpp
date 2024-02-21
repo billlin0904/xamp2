@@ -31,7 +31,7 @@ private:
 };
 
 NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexcept {
-	log_ = LoggerManager::GetInstance().GetLogger(kNullOutputDeviceTypeLoggerName);
+	log_ = XAM_LOG_MANAGER().GetLogger(kNullOutputDeviceTypeLoggerName);
 }
 
 void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {

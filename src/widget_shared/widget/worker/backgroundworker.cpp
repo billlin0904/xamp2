@@ -34,7 +34,7 @@ struct ReplayGainJob {
 BackgroundWorker::BackgroundWorker()
     : nam_(this)
     , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(256)) {
-    logger_ = LoggerManager::GetInstance().GetLogger(kBackgroundWorkerLoggerName);
+    logger_ = XAM_LOG_MANAGER().GetLogger(kBackgroundWorkerLoggerName);
 }
 
 BackgroundWorker::~BackgroundWorker() {

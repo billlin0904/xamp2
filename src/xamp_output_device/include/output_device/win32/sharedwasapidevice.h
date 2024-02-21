@@ -182,8 +182,7 @@ private:
 	std::atomic<bool> is_running_;
 	std::atomic<int64_t> stream_time_;	
 	uint32_t buffer_frames_;
-	REFERENCE_TIME buffer_time_;
-	std::wstring mmcss_name_;
+	REFERENCE_TIME buffer_time_;	
 	MmcssThreadPriority thread_priority_;
 	WinHandle sample_ready_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
@@ -196,6 +195,7 @@ private:
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
 	CComPtr<WasapiWorkQueue<SharedWasapiDevice>> rt_work_queue_;
+	std::wstring mmcss_name_;
 	LoggerPtr logger_;
 };
 

@@ -44,7 +44,7 @@ private:
 };
 
 SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::SharedWasapiDeviceTypeImpl() noexcept {
-	logger_ = LoggerManager::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName);
+	logger_ = XAM_LOG_MANAGER().GetLogger(kSharedWasapiDeviceLoggerName);
 }
 
 void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ScanNewDevice() {
