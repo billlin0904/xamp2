@@ -25,6 +25,7 @@ XAMP_DECLARE_LOG_NAME(CoreAudio);
 	
 XAMP_BASE_NAMESPACE_END
 
+#ifdef XAMP_OS_WIN
 template <typename T, size_t S>
 inline constexpr size_t __get_file_name_offset(const T(&str)[S], size_t i = S - 1) noexcept {
     return (str[i] == '/' || str[i] == '\\') ? i + 1 : (i > 0 ? __get_file_name_offset(str, i - 1) : 0);
@@ -35,29 +36,62 @@ inline constexpr size_t __get_file_name_offset(T(&)[1]) noexcept {
     return 0;
 }
 
-struct XAMP_BASE_API SourceLocation {
-    const char* file;
-    int line;
-    const char* function;
+#define __FILENAME__ &__FILE__[__get_file_name_offset(__FILE__)]
+#endif
 
-    constexpr SourceLocation(const char* file, int line, const char* function)
-        : file(file)
-        , line(line)
-        , function(function) {
+#ifdef __cpp_lib_source_location
+
+#include <source_location>
+using SourceLocation = std::source_location;
+
+#define CurrentLocation SourceLocation::current()
+#else
+
+struct XAMP_BASE_API SourceLocation {
+    uint32_t line = 0;
+    uint32_t column = 0;
+    const char* file_name = "";
+    const char* function_name = "";
+
+    constexpr SourceLocation() = default;
+
+    constexpr SourceLocation(uint32_t line, uint32_t column, const char* file_name, const char* function_name)
+        : line(line)
+        , column(column)
+        , file_name(file_name)
+        , function_name(function_name) {
+    }
+
+    static SourceLocation current() {
+        return SourceLocation();
+    }
+
+    uint32_t line() const {
+        return this->line;
+    }
+
+    uint32_t column() const {
+        return this->column;
+    }
+
+    const char* file_name() const {
+        return this->file_name;
+    }
+
+    const char* function_name() const {
+        return this->function_name;
     }
 };
 
-#ifdef XAMP_OS_WIN
-#define __FILENAME__ &__FILE__[__get_file_name_offset(__FILE__)]
-#else
+#define CurrentLocation SourceLocation { __LINE__, 0, __FILENAME__, __FUNCTION__ }
+#endif
+
+#ifndef XAMP_OS_WIN
 #define __FILENAME__ __FILE_NAME__
 #define __FUNCTION__ __func__
 #endif
 
-#define CurrentLocation \
-    SourceLocation { __FILENAME__, __LINE__, __FUNCTION__ }
-
-#define XAM_LOG_MANAGER() xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
+#define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
 
 #define XAMP_LOG(Level, ...) xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, __VA_ARGS__)
 #define XAMP_LOG_DEBUG(...)    XAMP_LOG(LOG_LEVEL_DEBUG, __VA_ARGS__)

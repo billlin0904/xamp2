@@ -58,7 +58,7 @@ namespace {
 
 FileSystemWorker::FileSystemWorker()
 	: watcher_(this) {
-    logger_ = XAM_LOG_MANAGER().GetLogger(kFileSystemWorkerLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(kFileSystemWorkerLoggerName);
     GetBackgroundThreadPool();
     (void)QObject::connect(&watcher_,
         &FileSystemWatcher::directoryChanged,

@@ -354,7 +354,7 @@ public:
 			, proxies(proxies)
 			, language(language)
 			, location(location) {
-        logger = XAM_LOG_MANAGER().GetLogger(kYtMusicInteropLoggerName);
+        logger = XampLoggerFactory.GetLogger(kYtMusicInteropLoggerName);
         ytmusic_ = py::none();
         ytdl_ = py::none();
     }
@@ -397,7 +397,7 @@ private:
 
 YtMusic::YtMusic(QObject* parent)
 	: QObject(parent) {
-    logger_ = XAM_LOG_MANAGER().GetLogger(kYtMusicInteropLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(kYtMusicInteropLoggerName);
 }
 
 void YtMusic::cancelRequested() {

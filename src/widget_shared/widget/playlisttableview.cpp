@@ -153,35 +153,7 @@ public:
 
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
-    }    
-
-    /*QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-        if (index.column() == PLAYLIST_CHECKED) {
-            auto* editor = new QCheckBox(parent);            
-            return editor;s
-        }        
-        return QStyledItemDelegate::createEditor(parent, option, index);
     }
-
-    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
-        if (index.column() != PLAYLIST_CHECKED) {
-            return;
-        }
-
-        auto* check_box = qobject_cast<QCheckBox*>(editor);
-        check_box->setChecked(index.data().toBool());
-    }
-
-    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
-        if (index.column() != PLAYLIST_CHECKED) {
-            return;
-        }
-
-        const auto playlist_music_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYLIST_MUSIC_ID)).toInt();
-        const auto* check_box = qobject_cast<QCheckBox*>(editor);
-        model->setData(index, check_box->isChecked(), Qt::EditRole);
-        qMainDb.updatePlaylistMusicChecked(playlist_music_id, check_box->isChecked());        
-    }*/
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         if (!index.isValid()) {
@@ -216,6 +188,7 @@ public:
         opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
         opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
         opt.font.setFamily(qTEXT("MonoFont"));
+        opt.font.setPointSize(10);
 
         switch (index.column()) {
         case PLAYLIST_TITLE:
@@ -282,7 +255,7 @@ public:
         case PLAYLIST_SAMPLE_RATE:
             opt.text = formatSampleRate(value.toUInt());
             break;
-        case PLAYLIST_DURATION:
+        case PLAYLIST_DURATION:           
             opt.text = formatDuration(value.toDouble());            
             break;
         case PLAYLIST_LAST_UPDATE_TIME:
@@ -323,16 +296,6 @@ public:
 				opt.displayAlignment = Qt::AlignCenter;
 	        }
             break;
-        /*case PLAYLIST_CHECKED: {
-            use_checkbox_style = true;
-            const auto is_checked = index.model()->data(index.model()->index(index.row(), PLAYLIST_CHECKED)).toBool();
-            if (is_checked) {
-                check_box_opt.state |= QStyle::State_On;
-            } else {
-                check_box_opt.state |= QStyle::State_Off;
-            }
-			}
-            break;*/
 		default:
             use_default_style = true;            
             break;
@@ -671,8 +634,11 @@ void PlayListTableView::initial() {
             auto* like_song_act = action_map.addAction(menu_name);
             like_song_act->setIcon(like_icon);
             if (!play_list_entities.empty()) {
-                action_map.setCallback(like_song_act, [this, &play_list_entity]() {
-                    emit likeSong(play_list_entity.heart > 0, play_list_entity);
+                action_map.setCallback(like_song_act, [this, &play_list_entity, play_list_entities]() {
+                    bool like_or_dislike = play_list_entity.heart > 0;
+                    for (auto entity : play_list_entities) {
+                        emit likeSong(like_or_dislike, entity);
+                    }                    
                     });
             }
 
@@ -1153,6 +1119,15 @@ std::optional<QModelIndex> PlayListTableView::selectItem() const {
         return std::nullopt;
     }
     return select_row[0];
+}
+
+QList<PlayListEntity> PlayListTableView::items() const {
+    QList<PlayListEntity> items;
+    items.reserve(model_->rowCount());
+    for (auto i = 0; i < model_->rowCount(); ++i) {        
+        items.push_back(item(model_->index(i, 0)));
+    }
+    return items;
 }
 
 OrderedMap<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {

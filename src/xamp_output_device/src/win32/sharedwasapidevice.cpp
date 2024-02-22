@@ -120,7 +120,7 @@ SharedWasapiDevice::SharedWasapiDevice(bool is_low_latency, CComPtr<IMMDevice> c
 	, sample_ready_(nullptr)
 	, device_(device)
 	, callback_(nullptr)
-	, logger_(XAM_LOG_MANAGER().GetLogger(kSharedWasapiDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(kSharedWasapiDeviceLoggerName)) {
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {

@@ -53,7 +53,7 @@ namespace {
 class SuperEqEqualizer::SuperEqEqualizerImpl {
 public:
     SuperEqEqualizerImpl() {
-        logger_ = XAM_LOG_MANAGER().GetLogger(kSuperEqEqualizerLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(kSuperEqEqualizerLoggerName);
     }
 
     void Start(uint32_t sample_rate) {

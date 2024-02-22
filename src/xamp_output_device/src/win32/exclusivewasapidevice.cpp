@@ -127,7 +127,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device)
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
-	, logger_(XAM_LOG_MANAGER().GetLogger(kExclusiveWasapiDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(kExclusiveWasapiDeviceLoggerName)) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {

@@ -78,7 +78,7 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
 class CrashHandler::CrashHandlerImpl {
 public:
     CrashHandlerImpl() {
-        logger_ = XAM_LOG_MANAGER().GetLogger(kCrashHandlerLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(kCrashHandlerLoggerName);
     }
 
 #ifdef XAMP_OS_WIN    

@@ -348,7 +348,7 @@ void AppSettings::saveLogConfig() {
 	QMap<QString, QVariant> well_known_log_name;
 	QMap<QString, QVariant> override_map;
 
-	for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
+	for (const auto& logger : XampLoggerFactory.GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
 			well_known_log_name[toQString(logger->GetName())] = log_util::getLogLevelString(logger->GetLevel());
 		}
@@ -356,12 +356,12 @@ void AppSettings::saveLogConfig() {
 
 	min_level[kLogDefault] = qTEXT("debug");
 
-	XAM_LOG_MANAGER().SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
+	XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
 	for (auto itr = well_known_log_name.begin()
 	     ; itr != well_known_log_name.end(); ++itr) {
 		override_map[itr.key()] = itr.value();
-		XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
+		XampLoggerFactory.GetLogger(itr.key().toStdString())
 		                 ->SetLevel(log_util::parseLogLevel(itr.value().toString()));
 	}
 
@@ -380,7 +380,7 @@ void AppSettings::loadOrSaveLogConfig() {
 
 	QMap<QString, QVariant> well_known_log_name;
 
-	for (const auto& logger : XAM_LOG_MANAGER().GetAllLogger()) {
+	for (const auto& logger : XampLoggerFactory.GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
 			well_known_log_name[toQString(logger->GetName())] = qTEXT("info");
 		}
@@ -389,12 +389,12 @@ void AppSettings::loadOrSaveLogConfig() {
 	if (qJsonSettings.valueAsMap(kLog).isEmpty()) {
 		min_level[kLogDefault] = qTEXT("info");
 
-		XAM_LOG_MANAGER().SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
+		XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
 		for (auto itr = well_known_log_name.begin()
 		     ; itr != well_known_log_name.end(); ++itr) {
 			override_map[itr.key()] = itr.value();
-			XAM_LOG_MANAGER().GetLogger(itr.key().toStdString())
+			XampLoggerFactory.GetLogger(itr.key().toStdString())
 			                 ->SetLevel(log_util::parseLogLevel(itr.value().toString()));
 		}
 
@@ -408,7 +408,7 @@ void AppSettings::loadOrSaveLogConfig() {
 		min_level = log[kLogMinimumLevel].toMap();
 
 		const auto default_level = min_level[kLogDefault].toString();
-		XAM_LOG_MANAGER().SetLevel(log_util::parseLogLevel(default_level));
+		XampLoggerFactory.SetLevel(log_util::parseLogLevel(default_level));
 
 		override_map = min_level[kLogOverride].toMap();
 
@@ -423,13 +423,13 @@ void AppSettings::loadOrSaveLogConfig() {
 		     ; itr != override_map.end(); ++itr) {
 			const auto& log_name = itr.key();
 			auto log_level = itr.value().toString();
-			XAM_LOG_MANAGER().GetLogger(log_name.toStdString())
+			XampLoggerFactory.GetLogger(log_name.toStdString())
 			                 ->SetLevel(log_util::parseLogLevel(log_level));
 		}
 	}
 
 #ifdef _DEBUG
-	XAM_LOG_MANAGER().GetLogger(kCrashHandlerLoggerName)
+	XampLoggerFactory.GetLogger(kCrashHandlerLoggerName)
 	                 ->SetLevel(LOG_LEVEL_DEBUG);
 #endif
 }

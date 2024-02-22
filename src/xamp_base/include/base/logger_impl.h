@@ -75,20 +75,20 @@ public:
     [[nodiscard]] bool ShouldLog(LogLevel level) const;
 
     template <typename T>
-    void Log(LogLevel level, SourceLocation source_location, const T &message) {
+    void Log(LogLevel level, const SourceLocation& source_location, const T &message) {
         if (!ShouldLog(level)) {
             return;
         }
-        LogMsg(level, source_location.file, source_location.line, source_location.function, message);
+        LogMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
     }
 
     template <typename... Args>
-    void Log(LogLevel level, SourceLocation source_location, fmt::format_string<Args...> s, const Args&... args) {
+    void Log(LogLevel level, const SourceLocation& source_location, fmt::format_string<Args...> s, const Args&... args) {
         if (!ShouldLog(level)) {
             return;
         }
         auto message = fmt::format(s, args...);
-        LogMsg(level, source_location.file, source_location.line, source_location.function, message);
+        LogMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
     }
 
     template <typename... Args>

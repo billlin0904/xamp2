@@ -34,7 +34,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy))
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1) {
-	logger_ = XAM_LOG_MANAGER().GetLogger(pool_name);
+	logger_ = XampLoggerFactory.GetLogger(pool_name);
 
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
@@ -198,7 +198,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
 				kMaxL1CacheLineSize));
 
-		SharedCrashHandler.SetThreadExceptionHandlers();		
+		XampCrashHandler.SetThreadExceptionHandlers();		
 
 		SetWorkerThreadName(i);
 

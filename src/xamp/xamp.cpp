@@ -438,14 +438,10 @@ namespace {
 
     video_info::Format findBestAudioFormat(const video_info::VideoInfo& video_info) {
         std::multiset<video_info::Format> formats;
-        for (const auto& format : video_info.formats) {
-            if (format.quality) {
-                XAMP_LOG_DEBUG("{} video: {:<15} audio: {:<10} {:<10}", format.quality.value(), format.vcodec, format.acodec, format.abr);
-            } else {
-                XAMP_LOG_DEBUG("video: {:<15} audio: {:<10} {:<10}", format.vcodec, format.acodec, format.abr);
-            }
+        for (const auto& format : video_info.formats) {            
             if (format.vcodec == "none" && format.acodec.find("mp4") != std::string::npos) {
                 formats.insert(format);
+                XAMP_LOG_DEBUG("video: {:<15} audio: {:<10} {:<10}", format.vcodec, format.acodec, format.abr);
             }
         }
 
@@ -1087,6 +1083,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     auto [video_id, setVideoId] = parseId(id);
 
+    XAMP_LOG_DEBUG("Fetching lyrics ...");
     fetchLyrics(entity, video_id);
 
     auto* playlist_page = dynamic_cast<PlaylistPage*>(sender());
@@ -1101,6 +1098,8 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     // 3. 使用YouTube music URL
     const auto ytmusic_url = makeYtMusicUrl(video_id);
     const auto vid = video_id;
+
+    XAMP_LOG_DEBUG("Extract video information ...");
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
         [temp = entity, vid, playlist_page, this](const auto& video_info) {
@@ -1126,6 +1125,8 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
             return;
         }
 
+        XAMP_LOG_DEBUG("Extract song information ...");
+
         QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, album_id](const auto& song) {
             if (!song) {
                 XAMP_LOG_DEBUG("Not found song information.");
@@ -1137,6 +1138,9 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
             }
 
             const auto thumbnail_url = song.value().thumbnail.thumbnails.back().url;
+
+            XAMP_LOG_DEBUG("Extract song thumbnail url ...");
+
             http::HttpClient(QString::fromStdString(thumbnail_url))
                 .download([=, this](const auto& content) {
                 QPixmap image;
@@ -2681,17 +2685,18 @@ void Xamp::initialPlaylist() {
 }
 
 void Xamp::initialCloudPlaylist() {
-    if (!QFile(qTEXT("oauth.json")).exists()) {
-        return;
-    }
-
     cloud_tab_widget_->closeAllTab();
 
     QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [this](const auto& playlists) {
+        static const std::string kEpisodesForLaterName("Episodes for Later");
+
         XAMP_LOG_DEBUG("Get library playlist done!");
         int32_t index = 1;
         for (const auto& playlist : playlists) {
             const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
+            if (playlist.title == kEpisodesForLaterName) {
+                continue;
+            }
             auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.playlistId), QString::fromStdString(playlist.title));
             playlist_page->pageTitle()->hide();
             playlist_page->hidePlaybackInformation(true);
@@ -2863,15 +2868,19 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                     auto [parsed_video_id, set_video_id] = parseId(QString::fromStdString(video_id));
                     parsed_video_ids.push_back(parsed_video_id.toStdString());
                 }
-                QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id, parsed_video_ids, source_playlist_id.toStdString()), this, [](auto) {
+                QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id,
+                    parsed_video_ids,
+                    source_playlist_id.toStdString()), this, [](auto) {
 
                     });
             });
 
         (void)QObject::connect(playlist_page->playlist(),
             &PlayListTableView::likeSong,
-            [this, playlist_page](auto like, const auto& entity) {
+            [this, playlist_page](auto like, const auto& entity) {                
                 playlist_page->playlist()->removeAll();
+                qMainDb.removeAlbumMusic(entity.album_id, entity.music_id);
+                qMainDb.removeMusic(entity.music_id);
                 auto [video_id, set_video_id] = parseId(entity.file_path);
                 QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE), this, [this, playlist_page](auto) {
 	                const auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();

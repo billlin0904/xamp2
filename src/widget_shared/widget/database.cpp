@@ -148,7 +148,7 @@ const char* SqlException::what() const noexcept {
 XAMP_DECLARE_LOG_NAME(Database);
 
 Database::Database(const QString& name) {
-    logger_ = XAM_LOG_MANAGER().GetLogger(kDatabaseLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(kDatabaseLoggerName);
     if (QSqlDatabase::contains(name)) {
         db_ = QSqlDatabase::database(name);
     }
@@ -278,6 +278,14 @@ void Database::setNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
 void Database::removePlaylistMusics(int32_t music_id) {
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM playlistMusics WHERE musicId=:musicId"));
+    query.bindValue(qTEXT(":musicId"), music_id);
+    THROW_IF_FAIL1(query);
+}
+
+void Database::removeAlbumMusic(int32_t album_id, int32_t music_id) {
+    SqlQuery query(db_);
+    query.prepare(qTEXT("DELETE FROM albumMusic WHERE albumId=:albumId AND musicId=:musicId"));
+    query.bindValue(qTEXT(":albumId"), album_id);
     query.bindValue(qTEXT(":musicId"), music_id);
     THROW_IF_FAIL1(query);
 }

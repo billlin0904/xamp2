@@ -21,7 +21,7 @@ public:
     BassFileStreamImpl() noexcept
         : mode_(DsdModes::DSD_MODE_PCM)
 		, download_size_(0) {
-        logger_ = XAM_LOG_MANAGER().GetLogger(kBassFileStreamLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(kBassFileStreamLoggerName);
         Close();
     }
 

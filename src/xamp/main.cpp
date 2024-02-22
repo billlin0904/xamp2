@@ -134,7 +134,7 @@ namespace {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
-        const auto logger = XAM_LOG_MANAGER().GetLogger(kQtLoggerName);
+        const auto logger = XampLoggerFactory.GetLogger(kQtLoggerName);
 
         switch (type) {
         case QtDebugMsg:
@@ -264,7 +264,7 @@ namespace {
 }
 
 int main() {    
-    XAM_LOG_MANAGER()
+    XampLoggerFactory
         .AddDebugOutput()
 #ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())
@@ -303,10 +303,10 @@ int main() {
     XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
 
-    SharedCrashHandler.SetProcessExceptionHandlers();
+    XampCrashHandler.SetProcessExceptionHandlers();
     XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
 
-    SharedCrashHandler.SetThreadExceptionHandlers();
+    XampCrashHandler.SetThreadExceptionHandlers();
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
@@ -314,7 +314,7 @@ int main() {
         qAppSettings.save();
         qAppSettings.saveLogConfig();
         qMainDb.close();
-        XAM_LOG_MANAGER().Shutdown();
+        XampLoggerFactory.Shutdown();
     );
 
     static char app_name[] = "xamp2";

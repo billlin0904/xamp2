@@ -35,7 +35,7 @@ public:
         , ratio_(0)
 		, pass_band_(kDefaultPassBand)
         , stop_band_(kDefaultStopBand) {
-		logger_ = XAM_LOG_MANAGER().GetLogger(kSoxrSampleRateConverterLoggerName);
+		logger_ = XampLoggerFactory.GetLogger(kSoxrSampleRateConverterLoggerName);
 	}
 
 	~SoxrSampleRateConverterImpl() noexcept {

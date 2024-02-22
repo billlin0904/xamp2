@@ -107,7 +107,7 @@ AsioDevice::AsioDevice(const  std::string & device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
 	, process_(nullptr)
-	, logger_(XAM_LOG_MANAGER().GetLogger(kAsioDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(kAsioDeviceLoggerName)) {
 }
 
 AsioDevice::~AsioDevice() {
@@ -474,13 +474,13 @@ bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_fille
 	buffer_.Fill(0);
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-		/*const auto in = reinterpret_cast<const float*>(buffer_.Get());
+		const auto in = reinterpret_cast<const float*>(buffer_.Get());
 		InterleaveToPlanar<float, int32_t>::Convert(
 			in,
 			static_cast<int32_t*>(ASIODriver.buffer_infos[0].buffers[index]),
 			static_cast<int32_t*>(ASIODriver.buffer_infos[1].buffers[index]),
 			buffer_size_ * format_.GetChannels(),
-			ASIODriver.data_context.volume_factor);*/
+			ASIODriver.data_context.volume_factor);
 		return true;
 	} else {
 		return false;

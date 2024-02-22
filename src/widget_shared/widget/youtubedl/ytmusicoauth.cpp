@@ -24,7 +24,7 @@ inline constexpr auto kGrantType = qTEXT("urn:ietf:params:oauth:grant-type:devic
 XAMP_DECLARE_LOG_NAME(YtMusicOAuth);
 
 YtMusicOAuth::YtMusicOAuth() {
-	logger_ = XAM_LOG_MANAGER().GetLogger(kYtMusicOAuthLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(kYtMusicOAuthLoggerName);
 }
 
 void YtMusicOAuth::setup() {

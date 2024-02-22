@@ -65,7 +65,7 @@ int32_t DatabaseFacade::unknown_album_id_{ -1 };
 
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
-    logger_ = XAM_LOG_MANAGER().GetLogger(kDatabaseFacadeLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(kDatabaseFacadeLoggerName);
     if (!database) {
         database_ = &qMainDb;
     } else {

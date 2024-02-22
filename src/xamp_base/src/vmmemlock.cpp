@@ -13,7 +13,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 XAMP_DECLARE_LOG_NAME(VirtualMemory);
 
 VmMemLock::VmMemLock() noexcept {
-	logger_ = XAM_LOG_MANAGER().GetLogger(kVirtualMemoryLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(kVirtualMemoryLoggerName);
 }
 
 VmMemLock::~VmMemLock() noexcept {

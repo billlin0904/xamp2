@@ -12,7 +12,7 @@ void logAndShowMessage(const std::exception_ptr& ptr) {
     }
     catch (const Exception& e) {
         XAMP_LOG_DEBUG("{} {}", e.GetErrorMessage(), StackTrace{}.CaptureStack());
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+        XMessageBox::showError(QString::fromStdString(e.GetErrorMessage()));
     }
     catch (const std::exception& e) {
         XAMP_LOG_DEBUG("{} {}", String::LocaleStringToUTF8(e.what()), StackTrace{}.CaptureStack());

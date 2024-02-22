@@ -103,6 +103,8 @@ public:
 
 	std::optional<QModelIndex> selectItem() const;
 
+	QList<PlayListEntity> items() const;
+
 	std::optional<PlayListEntity> selectPlayListEntity() const;
 
     void play(PlayerOrder order);
@@ -154,7 +156,7 @@ signals:
 
 	void removePlaylistItems(const QString& playlist_id, const std::vector<std::string>& video_ids);
 
-	void likeSong(bool like, const PlayListEntity& entity);
+	void likeSong(bool like, const PlayListEntity& entity);	
 
 public slots:
 	void onPlayIndex(const QModelIndex& index);
@@ -208,7 +210,7 @@ protected:
     QSet<QString> hidden_column_names_;
 	PRNG rng_;
 	QString column_setting_name_;
-	QList<int> always_hidden_columns_;
+	QList<int32_t> always_hidden_columns_;
 };
 
 

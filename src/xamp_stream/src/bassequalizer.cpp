@@ -13,7 +13,7 @@ class BassEqualizer::BassEqualizerImpl {
 public:
     BassEqualizerImpl()
 		: preamp_(0) {
-        logger_ = XAM_LOG_MANAGER().GetLogger(kBassEqualizerLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(kBassEqualizerLoggerName);
     }
 
     void Start(uint32_t sample_rate) {

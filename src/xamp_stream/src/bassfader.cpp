@@ -12,7 +12,7 @@ XAMP_DECLARE_LOG_NAME(BassFader);
 class BassFader::BassFaderImpl {
 public:
     BassFaderImpl() {
-        logger_ = XAM_LOG_MANAGER().GetLogger(kBassFaderLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(kBassFaderLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {

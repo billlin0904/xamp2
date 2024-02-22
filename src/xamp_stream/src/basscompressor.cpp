@@ -14,7 +14,7 @@ XAMP_DECLARE_LOG_NAME(BassCompressor);
 class BassCompressor::BassCompressorImpl {
 public:
     BassCompressorImpl() {
-        logger_ = XAM_LOG_MANAGER().GetLogger(kBassCompressorLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(kBassCompressorLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {

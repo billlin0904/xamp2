@@ -31,6 +31,6 @@ private:
 	AlignPtr<CrashHandlerImpl> impl_;
 };
 
-#define SharedCrashHandler SharedSingleton<CrashHandler>::GetInstance()
+#define XampCrashHandler SharedSingleton<CrashHandler>::GetInstance()
 
 XAMP_BASE_NAMESPACE_END

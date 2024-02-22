@@ -189,6 +189,8 @@ public:
 
 	void removeAlbum(int32_t album_id);
 
+	void removeAlbumMusic(int32_t album_id, int32_t music_id);
+
 	void forEachAlbumCover(std::function<void(QString)>&& fun, int limit) const;
 
 	void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun);

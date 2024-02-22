@@ -22,7 +22,7 @@ public:
 		, ratio_(0)
 		, input_sample_rate_(0)
 		, output_sample_rate_(0) {
-		logger_ = XAM_LOG_MANAGER().GetLogger(kSrcSampleRateConverterLoggerName);
+		logger_ = XampLoggerFactory.GetLogger(kSrcSampleRateConverterLoggerName);
 	}
 
 	void Start(uint32_t output_sample_rate) {

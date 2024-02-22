@@ -15,7 +15,7 @@ namespace {
 			using namespace xamp::base;
 			std::string temp(msg.toCString());
 			String::Remove(temp, "\n");
-			static auto logger = XAM_LOG_MANAGER().GetLogger(kTagLibLoggerName);
+			static auto logger = XampLoggerFactory.GetLogger(kTagLibLoggerName);
 			XAMP_LOG_D(logger, temp);
 		}
 	};

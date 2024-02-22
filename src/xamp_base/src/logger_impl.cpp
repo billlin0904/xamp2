@@ -135,9 +135,9 @@ LoggerPtr LoggerManager::GetLogger(const std::string &name) {
 
 	auto formatter = std::make_unique<spdlog::pattern_formatter>();
 #ifdef XAMP_OS_WIN
-	formatter->add_flag<LogFlagFormatter>('*').set_pattern("[%H:%M:%S.%e][%*][%n][%t][%@] %v");
+	formatter->add_flag<LogFlagFormatter>('*').set_pattern("[%H:%M:%S.%e][%L][%n][%t][%@] %v");
 #else
-	formatter->add_flag<LogFlagFormatter>('*').set_pattern("[%*][%n][%t][%@] %v");
+	formatter->add_flag<LogFlagFormatter>('*').set_pattern("[%L][%n][%t][%@] %v");
 #endif
 	logger->set_formatter(std::move(formatter));
 

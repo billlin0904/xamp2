@@ -164,7 +164,7 @@ std::string BassFLACEncLib::GetName() const {
 }
 
 BassLib::BassLib() try
-    : logger(XAM_LOG_MANAGER().GetLogger(kBASSLoggerName))
+    : logger(XampLoggerFactory.GetLogger(kBASSLoggerName))
     , module_(OpenSharedLibrary("bass"))
     , XAMP_LOAD_DLL_API(BASS_Init)
     , XAMP_LOAD_DLL_API(BASS_GetVersion)

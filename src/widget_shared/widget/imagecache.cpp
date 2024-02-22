@@ -35,7 +35,7 @@ namespace {
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
 ImageCache::ImageCache()
-	: logger_(XAM_LOG_MANAGER().GetLogger(kImageCacheLoggerName))
+	: logger_(XampLoggerFactory.GetLogger(kImageCacheLoggerName))
 	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = qTEXT("unknown_album");
 	cache_ext_ =
