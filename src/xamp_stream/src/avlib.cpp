@@ -227,7 +227,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 
 	result.reserve(ordered_extension.size());
 
-	for(auto extension : ordered_extension) {
+	for (const auto& extension : ordered_extension) {
 		const auto file_extensions = String::Format(".{}", extension);
 		XAMP_LOG_T(logger, "Load Libav format extensions: {}", file_extensions);
 		result.insert(file_extensions);

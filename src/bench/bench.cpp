@@ -610,6 +610,26 @@ static void BM_UuidCompilerTime(benchmark::State& state) {
     }
 }
 
+static int32_t TestFunc(int32_t a, int32_t b) {
+    return a + b;
+}
+
+
+static void BM_BindFrontTest_BaseLine(benchmark::State& state) {
+    for (auto _ : state) {
+        auto result = TestFunc(1, 2);
+        benchmark::DoNotOptimize(result);
+    }
+}
+
+static void BM_BindFrontTest(benchmark::State& state) {
+    auto f = bind_front(&TestFunc);
+    for (auto _ : state) {
+        int32_t result = std::invoke(f, 1, 2);
+        benchmark::DoNotOptimize(result);
+    }
+}
+
 static void BM_MpmcQueue(benchmark::State& state) {
     static MpmcQueue<int>* queue;
     static std::vector<std::jthread> writer_thread;
@@ -714,9 +734,12 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_Sfc64Random);
 //BENCHMARK(BM_default_random_engine);
 
-//BENCHMARK(BM_PRNG);
-//BENCHMARK(BM_PRNG_GetInstance);
-//BENCHMARK(BM_PRNG_SharedGetInstance);
+BENCHMARK(BM_PRNG);
+BENCHMARK(BM_PRNG_GetInstance);
+BENCHMARK(BM_PRNG_SharedGetInstance);
+
+//BENCHMARK(BM_BindFrontTest);
+//BENCHMARK(BM_BindFrontTest_BaseLine);
 
 //BENCHMARK(BM_Find_unordered_set);
 //BENCHMARK(BM_Find_RobinHoodHashSet);
@@ -733,7 +756,7 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);

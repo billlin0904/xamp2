@@ -312,7 +312,7 @@ void AudioPlayer::Pause() {
         return;
     }
 
-    XAMP_LOG_D(logger_, "Player pasue.");
+    XAMP_LOG_D(logger_, "Player pause.");
     if (!is_paused_) {        
         if (device_->IsStreamOpen()) {
             is_paused_ = true;

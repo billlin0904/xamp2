@@ -292,16 +292,6 @@ private:
 	*/
 	bool GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) noexcept;
 
-	/*
-	* Process dispatch callback	
-	* 
-	* @param[in] index: index
-	* @param[in] sample_time: sample time
-	* @param[in] num_filled_frame: num filled frame
-	* @return bool
-	*/
-	typedef bool (AsioDevice::* ProcessDispatch)(long index, double sample_time, size_t& num_filled_frame) noexcept;
-
 	bool is_hardware_control_volume_;
 	bool is_removed_driver_;
 	std::atomic<bool> is_stopped_;
@@ -318,8 +308,8 @@ private:
 	FastConditionVariable condition_;
 	AudioFormat format_;
 	Vector<ASIOClockSource> clock_source_;	
-	IAudioCallback* callback_;	
-	ProcessDispatch process_;
+	IAudioCallback* callback_;
+	std::function<bool(long, double, size_t&)> get_samples_;
 	LoggerPtr logger_;
 	std::string device_id_;
 	Buffer<int8_t> buffer_;

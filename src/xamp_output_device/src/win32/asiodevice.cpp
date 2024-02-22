@@ -106,7 +106,7 @@ AsioDevice::AsioDevice(const  std::string & device_id)
 	, device_id_(device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
-	, process_(nullptr)
+	, get_samples_(nullptr)
 	, logger_(XampLoggerFactory.GetLogger(kAsioDeviceLoggerName)) {
 }
 
@@ -507,7 +507,6 @@ bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_fille
 	} else {
 		return false;
 	}
-	return true;
 }
 
 void AsioDevice::GetSamples(long index, double sample_time) noexcept {
@@ -534,7 +533,7 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	output_bytes_ = cache_played_bytes;	
 
 	size_t num_filled_frame = 0;
-	const auto got_samples = (this->*process_)(index, sample_time, num_filled_frame);
+	const auto got_samples = std::invoke(get_samples_, index, sample_time, num_filled_frame);
 	
 	if (got_samples) {
 		ASIODriver.Post();
@@ -578,7 +577,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 		AsioIfFailedThrow2(::ASIOFuture(kAsioSetIoFormat, &asio_io_format), ASE_SUCCESS);
 	}
 	catch (const Exception & e) {
-		XAMP_LOG_D(logger_, "ASIOFuture retun failure. {}", e.GetErrorMessage());
+		XAMP_LOG_D(logger_, "ASIOFuture return failure. {}", e.GetErrorMessage());
 		// NOTE: DSD format must be support!
 		if (output_format.GetFormat() == DataFormat::FORMAT_DSD) {
 			throw;
@@ -666,10 +665,10 @@ void AsioDevice::CloseStream() {
 
 void AsioDevice::StartStream() {
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		process_ = &AsioDevice::GetPCMSamples;
+		get_samples_ = bind_front(&AsioDevice::GetPCMSamples, this);
 	}
 	else {
-		process_ = &AsioDevice::GetDSDSamples;
+		get_samples_ = bind_front(&AsioDevice::GetDSDSamples, this);
 	}
 
 	ASIODriver.mmcss.RevertPriority();

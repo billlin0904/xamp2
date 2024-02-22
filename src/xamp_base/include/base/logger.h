@@ -39,6 +39,11 @@ inline constexpr size_t __get_file_name_offset(T(&)[1]) noexcept {
 #define __FILENAME__ &__FILE__[__get_file_name_offset(__FILE__)]
 #endif
 
+#ifndef XAMP_OS_WIN
+#define __FILENAME__ __FILE_NAME__
+#define __FUNCTION__ __func__
+#endif
+
 #ifdef __cpp_lib_source_location
 
 #include <source_location>
@@ -84,11 +89,6 @@ struct XAMP_BASE_API SourceLocation {
 };
 
 #define CurrentLocation SourceLocation { __LINE__, 0, __FILENAME__, __FUNCTION__ }
-#endif
-
-#ifndef XAMP_OS_WIN
-#define __FILENAME__ __FILE_NAME__
-#define __FUNCTION__ __func__
 #endif
 
 #define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
