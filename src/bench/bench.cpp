@@ -55,7 +55,7 @@ static void BM_RcuPtr(benchmark::State& state) {
 			total.copy_update([item](auto cp) {
 				*cp += item;
 				});
-        }, 16);
+        }, 128);
     }
 }
 
@@ -74,7 +74,7 @@ static void BM_RcuPtrMutex(benchmark::State& state) {
 	    Executor::ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
             std::lock_guard<FastMutex> guard{ mutex };
 			total += item;
-            }, 16);
+            }, 128);
     }
 }
 
@@ -105,7 +105,7 @@ static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            }, 64);
+            }, 128);
     }
 }
 
@@ -124,7 +124,7 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            }, 64);
+            }, 128);
     }
 }
 
@@ -720,9 +720,9 @@ static void BM_Spinlock(benchmark::State& state) {
 
 //BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 //BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
 //BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);
@@ -734,9 +734,9 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_Sfc64Random);
 //BENCHMARK(BM_default_random_engine);
 
-BENCHMARK(BM_PRNG);
-BENCHMARK(BM_PRNG_GetInstance);
-BENCHMARK(BM_PRNG_SharedGetInstance);
+//BENCHMARK(BM_PRNG);
+//BENCHMARK(BM_PRNG_GetInstance);
+//BENCHMARK(BM_PRNG_SharedGetInstance);
 
 //BENCHMARK(BM_BindFrontTest);
 //BENCHMARK(BM_BindFrontTest_BaseLine);

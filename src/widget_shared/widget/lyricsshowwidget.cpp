@@ -5,6 +5,8 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QFileInfo>
+#include <QApplication>
+#include <QClipboard>
 
 #include <widget/widget_shared.h>
 #include <widget/appsettingnames.h>
@@ -79,6 +81,10 @@ void LyricsShowWidget::initial() {
 			resizeFontSize();
 		});
 
+		(void)action_map.addAction(tr("Copy lyrics"), [this]() {
+			QApplication::clipboard()->setText(parsedLyrics());
+			});
+
 		action_map.exec(pt);
 		});
 
@@ -87,6 +93,25 @@ void LyricsShowWidget::initial() {
 
 void LyricsShowWidget::setBackgroundColor(QColor color) {
 	background_color_ = color;
+}
+
+QString LyricsShowWidget::parsedLyrics() const {
+	std::wostringstream ostr;
+	for (auto itr = lyric_.cbegin(); itr != lyric_.cend(); ++itr) {
+		auto s = itr->lrc;
+		auto pos = itr->lrc.find(L"\r");
+		if (pos != std::wstring::npos) {
+			s.erase(pos, 1);
+		}
+		pos = itr->lrc.find(L"\n");
+		if (pos != std::wstring::npos) {
+			s.erase(pos, 1);
+		}
+		if (!s.empty()) {
+			ostr << s << L"\r\n";
+		}		
+	}
+	return QString::fromStdWString(ostr.str());
 }
 
 void LyricsShowWidget::setDefaultLrc() {

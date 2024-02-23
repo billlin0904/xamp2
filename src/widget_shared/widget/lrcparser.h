@@ -37,6 +37,10 @@ public:
 
     std::vector<LyricEntry>::iterator begin();
 
+    std::vector<LyricEntry>::const_iterator cend() const;
+
+    std::vector<LyricEntry>::const_iterator cbegin() const;
+
     LyricEntry last() const;
 
     LyricEntry lineAt(int32_t index) const;

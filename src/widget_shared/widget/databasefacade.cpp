@@ -21,6 +21,7 @@ XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
     inline constexpr auto kYouTubeCategory = qTEXT("YouTube");
+    inline constexpr auto kLocalCategory = qTEXT("Local");
 	inline constexpr auto kHiRes = qTEXT("HiRes");
     inline constexpr auto kDsdCategory = qTEXT("DSD");
     const std::wstring kDffFileExtension(L".dff");
@@ -135,10 +136,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         auto album_id = database_->getAlbumId(album);
         if (album_id == kInvalidDatabaseId) {
-            if (track_info.file_path.rfind(L'.') != std::wstring::npos) {
-                album_genre = kEmptyString; 
+            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
+                album_genre = kYouTubeCategory; 
             } else {
-                album_genre = kYouTubeCategory;
+                album_genre = kEmptyString;
             }
 
             album_id = database_->addOrUpdateAlbum(album,
@@ -150,6 +151,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 album_genre);
 
             if (album_genre.isEmpty()) {
+                database_->addOrUpdateAlbumCategory(album_id, kLocalCategory);
                 for (const auto& category : getAlbumCategories(album)) {
                     database_->addOrUpdateAlbumCategory(album_id, category);
                 }

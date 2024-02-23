@@ -145,7 +145,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     { ICON_COPY,                      0xF0C5 },
     { ICON_DOWNLOAD,                  0xF0ED },
     { ICON_PLAYLIST,                  0xE03D },
-    { ICON_EQUALIZER,                 0xE1B8 },
+    { ICON_EQUALIZER,                 0xE01D },
     { ICON_MUSIC_LIBRARY,             0xE030 },
     { ICON_CD,                        0xE019 },
     { ICON_LEFT_ARROW,                0xE5C4 },
@@ -194,6 +194,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
 	{ ICON_DRAFT,                     0xF1C6 },
 	{ ICON_PERSON,                    0xE7FD },
     { ICON_PERSON_UNAUTHORIZATIONED,  0xE853 },
+    { ICON_PLAYING,                   0xE1B8 },
     };
 
     qFontIcon.addFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));
@@ -451,7 +452,7 @@ QIcon ThemeManager::playlistPlayingIcon(QSize icon_size, double scale_factor) co
 QIcon ThemeManager::playingIcon() const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kColorAttr, QColor(252, 215, 75));
-    return qFontIcon.getIcon(0xF8F2, font_options);
+    return qFontIcon.getIcon(Glyphs::ICON_PLAYING, font_options);
 }
 
 QPixmap ThemeManager::githubIcon() const {

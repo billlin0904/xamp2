@@ -106,6 +106,8 @@ double NullOutputDevice::GetStreamTime() const noexcept {
 }
 
 void NullOutputDevice::StartStream() {
+	XAMP_LOG_DEBUG("NullOutputDevice start render.");
+
 	is_stopped_ = false;
 	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this](const StopToken& stop_token) {
 		Mmcss mmcss;

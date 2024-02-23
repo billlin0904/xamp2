@@ -389,7 +389,7 @@ QMenu {
   border-radius: 3;
   border: 1px solid #37414F;
   color: #E0E1E3;
-  margin: 0px;
+  margin: 2px;
   background-color: #37414F;
   selection-background-color: #1A72BB;
 }

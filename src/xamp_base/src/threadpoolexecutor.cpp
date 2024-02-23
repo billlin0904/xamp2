@@ -40,9 +40,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_scheduler_policy_->SetMaxThread(max_thread_);
 
-		for (size_t i = 0; i < max_thread_; ++i) {
-			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
-		}
+		task_work_queues_.resize(max_thread_);
 
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
@@ -59,9 +57,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	// 所以都改由此方式初始化affinity.
 	JThread([this, priority, affinity]() mutable {
 		for (size_t i = 0; i < max_thread_; ++i) {
-#ifndef XAMP_OS_WIN
-			SetThreadPriority(threads_.at(i), priority);
-#endif
 			if (affinity) {
 				affinity.SetAffinity(threads_.at(i));
 				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, affinity);
@@ -133,7 +128,11 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
+std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout) {
+	if (stop_token.stop_requested()) {
+		return std::nullopt;
+	}
+
 	MoveOnlyFunction func;
 	// Wait for a task to be available
 	if (task_pool_->Dequeue(func, timeout)) {
@@ -143,7 +142,11 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono
 	return std::nullopt;
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue() {
+std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token) {
+	if (stop_token.stop_requested()) {
+		return std::nullopt;
+	}
+
 	// Wait for a task to be available
     if (auto func = task_pool_->TryDequeue()) {
         XAMP_LOG_D(logger_, "Pop shared queue.");
@@ -151,7 +154,11 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue() {
 	return std::nullopt;
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue* local_queue) const {
+std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const {
+	if (stop_token.stop_requested()) {
+		return std::nullopt;
+	}
+
 	MoveOnlyFunction func;
 	// Try to get a task from the local queue
 	if (local_queue->TryDequeue(func)) {
@@ -198,13 +205,15 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
 				kMaxL1CacheLineSize));
 
-		XampCrashHandler.SetThreadExceptionHandlers();		
+		XampCrashHandler.SetThreadExceptionHandlers();
 
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
 
+		task_work_queues_[i] = MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
 		auto* local_queue = task_work_queues_[i].get();
+
 		auto* policy = task_scheduler_policy_.get();
 		auto steal_failure_count = 0;
 		const auto thread_id = GetCurrentThreadId();
@@ -225,7 +234,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		// Main loop
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			// Try to get a task from the local queue
-			auto task = TryLocalPop(local_queue);
+			auto task = TryLocalPop(stop_token, local_queue);
 
 			// Try to get a task from the global queue
 			if (!task) {
@@ -236,12 +245,18 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 				}
 				// Try to get a task from the shared queue
 				if (!task) {					
-					++steal_failure_count;					
+					++steal_failure_count;
 					if (steal_failure_count >= kMaxStealFailureSize) {
-						task = TryDequeueSharedQueue(kDequeueTimeout);						
+						task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
+						if (!task) {
+							continue;
+						}
 					}
 					else {
-						continue;
+						task = TrySteal(stop_token, steal_index);
+						if (!task) {
+							++steal_failure_count;
+						}
 					}
 				}
 			}

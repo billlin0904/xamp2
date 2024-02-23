@@ -25,7 +25,7 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 
-    XAMP_ALWAYS_INLINE void operator()(const StopToken& stop_token) {
+    void operator()(const StopToken& stop_token) {
 	    impl_->Invoke(stop_token);
         impl_.reset();
     }    
@@ -67,11 +67,11 @@ private:
 
     template <typename Func>
     struct ImplType final : ImplBase {
-	    ImplType(Func&& f)
+	    ImplType(Func&& f) noexcept(std::is_nothrow_move_assignable_v<Func>)
             : f_(std::forward<Func>(f)) {
         }
 
-        XAMP_ALWAYS_INLINE void Invoke(const StopToken& stop_token) override {
+        void Invoke(const StopToken& stop_token) override {
             std::invoke<Func>(std::forward<Func>(f_), stop_token);
         }
         Func f_;

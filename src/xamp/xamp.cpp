@@ -888,7 +888,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         });
 
     auto* menu = new XMenu(ui_.menuButton);
-    qTheme.setMenuStyle(menu);
     const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
@@ -1394,8 +1393,7 @@ void Xamp::initialDeviceList() {
 
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
-        menu = new XMenu();
-        qTheme.setMenuStyle(menu);
+        menu = new XMenu();        
         ui_.selectDeviceButton->setMenu(menu);
     }
 

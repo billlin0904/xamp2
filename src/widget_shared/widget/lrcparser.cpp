@@ -208,6 +208,14 @@ std::vector<LyricEntry>::iterator LrcParser::begin() {
     return lyrics_.begin();
 }
 
+std::vector<LyricEntry>::const_iterator LrcParser::cend() const {
+    return lyrics_.cend();
+}
+
+std::vector<LyricEntry>::const_iterator LrcParser::cbegin() const {
+    return lyrics_.cbegin();
+}
+
 LyricEntry LrcParser::last() const {
     return lyrics_.back();
 }

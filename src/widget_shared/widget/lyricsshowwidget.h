@@ -36,6 +36,8 @@ public:
 
 	void setBackgroundColor(QColor color);
 
+	QString parsedLyrics() const;
+
 public slots:
 	void stop();	
 

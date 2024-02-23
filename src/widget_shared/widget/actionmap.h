@@ -17,6 +17,7 @@ class XAMP_WIDGET_SHARED_EXPORT XMenu : public QMenu {
 public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
+		qTheme.setMenuStyle(this);
 	}
 };
 
@@ -80,8 +81,7 @@ public:
 
 	explicit ActionMap(Type* object)
 		: object_(object)
-		, menu_(object) {
-		qTheme.setMenuStyle(&menu_);
+		, menu_(nullptr) {
 	}
 
 	QAction* addAction(const QString& menu_name) {
