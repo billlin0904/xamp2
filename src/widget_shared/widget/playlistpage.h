@@ -62,7 +62,7 @@ public:
 	void showCompleter();
 
 signals:
-	void playMusic(const PlayListEntity& item);
+	void playMusic(const PlayListEntity& item, bool is_play);
 
 	void search(const QString& text, Match match);
 

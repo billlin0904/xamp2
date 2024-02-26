@@ -104,11 +104,11 @@ signals:
 public slots:
 	void onDelayedDownloadThumbnail();
 
-    void onPlayEntity(const PlayListEntity& entity);
+    void onPlayEntity(const PlayListEntity& entity, bool is_play);
 
 	void ensureLocalOnePlaylistPage();
 
-	void onPlayMusic(const PlayListEntity& entity);
+	void onPlayMusic(const PlayListEntity& entity, bool is_play);
 
     void onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
 
@@ -259,7 +259,7 @@ private:
 		const std::wstring& command,
 		AlignPtr<IFileEncoder> encoder);
 
-	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
+	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id, bool is_plays);
 
 	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 

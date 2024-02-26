@@ -887,7 +887,7 @@ void PlayListTableView::playItem(const QModelIndex& index) {
         return;
     }
     const auto play_item = item(play_index_);
-    emit playMusic(play_item);
+    emit playMusic(play_item, true);
 }
 
 void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
@@ -1143,14 +1143,14 @@ OrderedMap<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
     return select_items;
 }
 
-void PlayListTableView::play(PlayerOrder order) {
+QModelIndex PlayListTableView::playOrderIndex(PlayerOrder order) {
     QModelIndex index;
 
     switch (order) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         index = nextIndex(1);
         break;
-    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:            
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         index = play_index_;
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
@@ -1160,16 +1160,18 @@ void PlayListTableView::play(PlayerOrder order) {
     if (!index.isValid()) {
         index = firstIndex();
     }
-
-    const auto entity = item(index);
-    onPlayIndex(index);
+    return index;
 }
 
-void PlayListTableView::onPlayIndex(const QModelIndex& index) {
+void PlayListTableView::play(PlayerOrder order, bool is_plays) {
+    onPlayIndex(playOrderIndex(order), is_plays);
+}
+
+void PlayListTableView::onPlayIndex(const QModelIndex& index, bool is_play) {
     play_index_ = index;
     setNowPlaying(play_index_, true);
     const auto entity = item(play_index_);
-    emit playMusic(entity);
+    emit playMusic(entity, is_play);
 }
 
 void PlayListTableView::removePlaying() {

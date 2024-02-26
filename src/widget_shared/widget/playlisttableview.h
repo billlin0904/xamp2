@@ -107,7 +107,9 @@ public:
 
 	std::optional<PlayListEntity> selectPlayListEntity() const;
 
-    void play(PlayerOrder order);
+    void play(PlayerOrder order, bool is_plays);
+
+	QModelIndex playOrderIndex(PlayerOrder order);
 
 	void setNowPlayState(PlayingState playing_state);
 
@@ -132,7 +134,7 @@ public:
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
-	void playMusic(const PlayListEntity& item);
+	void playMusic(const PlayListEntity& item, bool is_plays);
 
     void encodeFlacFile(const PlayListEntity& item);
 
@@ -159,7 +161,7 @@ signals:
 	void likeSong(bool like, const PlayListEntity& entity);	
 
 public slots:
-	void onPlayIndex(const QModelIndex& index);
+	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 
 	void onProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities);
 

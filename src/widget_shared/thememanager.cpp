@@ -640,7 +640,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
 void ThemeManager::setTextSeparator(QFrame *frame) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        frame->setStyleSheet(qTEXT("background-color: #37414F;"));
+        frame->setStyleSheet(qTEXT("background-color: #1c1c1e;"));
         break;
     case ThemeColor::LIGHT_THEME:
         frame->setStyleSheet(qTEXT("background-color: #CED1D4;"));

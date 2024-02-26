@@ -42,6 +42,7 @@ QToolBar * {
 --------------------------------------------------------------------------- */
 QWidget {
   background-color: #1c1c1e;
+  /*background-color: #2d2d30;*/
   border: 0px solid #455364;
   padding: 0px;
   color: #a9b7c6;
@@ -387,10 +388,11 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenu
 --------------------------------------------------------------------------- */
 QMenu {
   border-radius: 3;
-  border: 1px solid #37414F;
+  border: 1px solid #1c1c1e;
   color: #E0E1E3;
   margin: 2px;
-  background-color: #37414F;
+  padding: 2px;
+  background-color: #1c1c1e;
   selection-background-color: #1A72BB;
 }
 
@@ -401,7 +403,7 @@ QMenu::separator {
 }
 
 QMenu::item {
-  background-color: #37414F;
+  background-color: #1c1c1e;
   padding: 4px 24px 4px 28px;
   /* Reserve space for selection border */
   border: 1px transparent #455364;

@@ -1079,7 +1079,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
         });
 }
 
-void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
+void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, bool is_play) {
     auto [video_id, setVideoId] = parseId(id);
 
     XAMP_LOG_DEBUG("Fetching lyrics ...");
@@ -1101,7 +1101,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     XAMP_LOG_DEBUG("Extract video information ...");
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
-        [temp = entity, vid, playlist_page, this](const auto& video_info) {
+        [temp = entity, vid, playlist_page, this, is_play](const auto& video_info) {
         XAMP_ON_SCOPE_EXIT(
             if (playlist_page != nullptr) {
                 playlist_page->spinner()->stopAnimation();
@@ -1117,7 +1117,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         const auto best_format = findBestAudioFormat(video_info);
         temp1.file_path = QString::fromStdString(best_format.url);
         XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
-        onPlayMusic(temp1);
+        onPlayMusic(temp1, is_play);
 
         auto album_id = temp.album_id;
         if (album_id == DatabaseFacade::unknownAlbumId()) {
@@ -1872,7 +1872,7 @@ void Xamp::setSeekPosValue(double stream_time) {
 
 void Xamp::playLocalFile(const PlayListEntity& entity) {
     main_window_->setTaskbarPlayerPlaying();
-    onPlayMusic(entity);
+    onPlayMusic(entity, true);
 }
 
 void Xamp::playOrPause() {
@@ -2060,13 +2060,31 @@ void Xamp::onDelayedDownloadThumbnail() {
     }
 }
 
-void Xamp::onPlayEntity(const PlayListEntity& entity) {
+void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_play) {
     if (!device_info_) {
         showMeMessage(tr("Not found any audio device, please check your audio device."));
         return;
     }
 
     lrc_page_->spectrum()->reset();
+
+    PlaybackFormat playback_format;
+
+    if (!is_play) {
+        QString ext = entity.file_extension;
+        if (entity.file_extension.isEmpty()) {
+            ext = qTEXT(".m4a");
+        }
+
+        qTheme.setPlayOrPauseButton(ui_.playButton, true);
+        const QFontMetrics title_metrics(ui_.titleLabel->font());
+        const QFontMetrics artist_metrics(ui_.artistLabel->font());
+
+        ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
+        ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
+        ui_.formatLabel->setText(format2String(playback_format, ext));
+        return;
+    }
 
     auto open_done = false;
 
@@ -2082,8 +2100,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         player_->Stop(false, true);
         );
 
-    QString sample_rate_converter_type;
-    PlaybackFormat playback_format;
+    QString sample_rate_converter_type;    
     uint32_t target_sample_rate = 0;
     auto byte_format = ByteFormat::SINT32;
     std::function<void()> sample_rate_converter_factory;
@@ -2156,10 +2173,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         player_->BufferStream();
         open_done = true;
     }
-    /*catch (const DeviceNotFoundException& e) {
-        player_->Stop(false, true);
-        logAndShowMessage(std::current_exception());
-    }*/
     catch (...) {
         player_->Stop(false, true);
         logAndShowMessage(std::current_exception());
@@ -2364,20 +2377,20 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
     main_window_->setIconicThumbnail(cover);
 }
 
-void Xamp::onPlayMusic(const PlayListEntity& entity) {
+void Xamp::onPlayMusic(const PlayListEntity& entity, bool is_play) {
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
     if (QUrl(entity.file_path).scheme() == qTEXT("https")) {
-        onPlayEntity(entity);
+        onPlayEntity(entity, is_play);
         return;
     }
 
     if (IsFilePath(entity.file_path.toStdWString())) {
-        onPlayEntity(entity);
+        onPlayEntity(entity, is_play);
     }
     else {
-        playCloudVideoId(entity, entity.file_path);
+        playCloudVideoId(entity, entity.file_path, is_play);
     }
 }
 
@@ -2393,7 +2406,7 @@ void Xamp::playNextItem(int32_t forward) {
     }    
 
     tryLog(
-        last_play_list_->play(order_);
+        last_play_list_->play(order_, false);
         play_index_ = last_play_list_->currentIndex();
     )
 }

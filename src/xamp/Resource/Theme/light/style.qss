@@ -351,7 +351,7 @@ QMenuBar {
   background-color: #C9CDD0;
   padding: 2px;
   border: 1px solid #FAFAFA;
-  color: #19232D;
+  color: #19232D;  
   selection-background-color: #73C7FF;
 }
 
@@ -390,6 +390,7 @@ QMenu {
   border: 1px solid #CED1D4;
   color: #19232D;
   margin: 0px;
+  padding: 2px;
   background-color: #CED1D4;
   selection-background-color: #73C7FF;
 }
