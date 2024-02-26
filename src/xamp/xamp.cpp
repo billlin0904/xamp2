@@ -2124,7 +2124,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         entity.sample_rate,
         target_sample_rate);
 
-    tryLog(
+    try {
         player_->Open(entity.file_path.toStdWString(),
             device_info_.value(),
             target_sample_rate,
@@ -2155,7 +2155,15 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
         player_->BufferStream();
         open_done = true;
-    )    
+    }
+    /*catch (const DeviceNotFoundException& e) {
+        player_->Stop(false, true);
+        logAndShowMessage(std::current_exception());
+    }*/
+    catch (...) {
+        player_->Stop(false, true);
+        logAndShowMessage(std::current_exception());
+    }
 
     if (open_done) {
         updateUi(entity, playback_format, open_done);

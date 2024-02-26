@@ -105,5 +105,4 @@ void PreventSleep(bool allow) {
 #endif
 }
 
-
 }

@@ -204,7 +204,7 @@ public:
 
 	/*
 	* Remove current ASIO driver
-	*/
+	*/	
 	void RemoveCurrentDriver();
 private:
 	/*

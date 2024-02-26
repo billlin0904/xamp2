@@ -37,6 +37,8 @@ namespace {
 		ASIOCallbacks asio_callbacks{};
 		Stopwatch buffer_switch_stopwatch;
 		Mmcss mmcss;
+
+		std::string current_driver_name;
 		std::array<ASIOBufferInfo, AudioFormat::kMaxChannel> buffer_infos{};
 		std::array<ASIOChannelInfo, AudioFormat::kMaxChannel> channel_infos{};
 
@@ -118,6 +120,7 @@ AsioDevice::~AsioDevice() {
 	}
 	buffer_.reset();
 	device_buffer_.reset();
+	ASIODriver.drivers.reset();
 }
 
 bool AsioDevice::IsHardwareControlVolume() const {	
@@ -187,18 +190,22 @@ void AsioDevice::RemoveCurrentDriver() {
 
 void AsioDevice::ReOpen() {
 	if (ASIODriver.drivers != nullptr) {
-		is_removed_driver_ = false;
-		return;
+		const auto driver_name = ASIODriver.GetDriverName();
+		if (ASIODriver.current_driver_name == driver_name) {
+			is_removed_driver_ = false;
+			return;
+		}		
 	}
 	if (!ASIODriver.drivers) {
 		ASIODriver.drivers = MakeAlign<AsioDrivers>();
 	}
 	ASIODriver.drivers->removeCurrentDriver();
-	if (!ASIODriver.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
-		const auto driver_name = ASIODriver.GetDriverName();
+	const auto driver_name = ASIODriver.GetDriverName();
+	if (!ASIODriver.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {		
 		ASIODriver.drivers.reset();
 		throw DeviceNotFoundException(driver_name);
 	}
+	ASIODriver.current_driver_name = driver_name;
 	is_removed_driver_ = false;
 }
 

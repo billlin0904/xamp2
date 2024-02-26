@@ -390,7 +390,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         XAMP_LOG_D(logger_, "Shutdown device.");
         if (IsAsioDevice(device_type_id_)) {
             device_.reset();
-            ResetAsioDriver();            
+            ResetAsioDriver();           
         }
         device_id_.clear();
         device_.reset();
