@@ -83,11 +83,20 @@ Logger::Logger(const std::shared_ptr<spdlog::logger>& logger)
 	: logger_(logger) {
 }
 
-void Logger::LogMsg(LogLevel level, const char* filename, int32_t line, const char* func, const std::string& msg) const {
-	logger_->log(
-		spdlog::source_loc{ filename, line, func },
-		static_cast<spdlog::level::level_enum>(level),
-		msg);
+void Logger::LogMsg(LogLevel level, const char* filename, int32_t line, const char* func, const std::string& msg) const {	
+	if (filename != nullptr) {		
+		auto file_name = Path(filename).filename().string();
+		logger_->log(
+			spdlog::source_loc{ file_name.c_str(), line, func },
+			static_cast<spdlog::level::level_enum>(level),
+			msg);
+	}
+	else {
+		logger_->log(
+			spdlog::source_loc{ filename, line, func },
+			static_cast<spdlog::level::level_enum>(level),
+			msg);
+	}	
 }
 
 void Logger::SetLevel(LogLevel level) {

@@ -36,6 +36,16 @@
 #include <widget/tagio.h>
 
 namespace {
+    QIcon uniformIcon(QIcon icon, QSize size) {
+        QIcon result;
+        const auto base_pixmap = icon.pixmap(size);
+        for (const auto state : { QIcon::Off, QIcon::On }) {
+            for (const auto mode : { QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected })
+                result.addPixmap(base_pixmap, mode, state);
+        }
+        return result;
+    }
+
     QString groupAlbum(int32_t playlist_id) {
         return qSTR(R"(
     SELECT	
@@ -137,19 +147,9 @@ class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
-    static constexpr auto kPlayingStateIconSize = 10;
+    static constexpr auto kPlayingStateIconSize = 16;
     
-    mutable LruCache<QString, QIcon> icon_cache_;
-
-    static QIcon uniformIcon(QIcon icon, QSize size) {
-        QIcon result;
-        const auto base_pixmap = icon.pixmap(size);
-        for (const auto state : { QIcon::Off, QIcon::On }) {
-            for (const auto mode : { QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected })
-                result.addPixmap(base_pixmap, mode, state);
-        }
-        return result;
-    }
+    mutable LruCache<QString, QIcon> icon_cache_;    
 
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
@@ -208,13 +208,13 @@ public:
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_IS_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
-                    opt.icon = qTheme.playlistPlayingIcon(icon_size);
+                    opt.icon = qTheme.playlistPlayingIcon(icon_size, 0.5);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignCenter;
                     opt.displayAlignment = Qt::AlignCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
-                    opt.icon = qTheme.playlistPauseIcon(icon_size);
+                    opt.icon = qTheme.playlistPauseIcon(icon_size, 0.5);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignCenter;
                     opt.displayAlignment = Qt::AlignCenter;

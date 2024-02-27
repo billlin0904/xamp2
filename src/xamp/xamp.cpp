@@ -154,14 +154,6 @@ namespace {
                                          }
 										)"));
 
-        ui.stopButton->setStyleSheet(qSTR(R"(
-                                         QToolButton#stopButton {
-                                         border: none;
-                                         background-color: transparent;
-                                         }
-                                         )"));
-        ui.stopButton->setIcon(qTheme.fontIcon(ICON_STOP_PLAY));
-
         ui.nextButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#nextButton {
                                         border: none;
@@ -322,13 +314,6 @@ namespace {
                                          }
                                          )"));
 
-            ui.formatLabel->setStyleSheet(qTEXT(R"(
-                                         QLabel#formatLabel {
-                                         color: white;
-                                         background-color: transparent;
-                                         }
-                                         )"));
-
             ui.currentView->setStyleSheet(qSTR(R"(
 			QStackedWidget#currentView {
 				padding: 0px;
@@ -351,13 +336,6 @@ namespace {
         else {
             ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
-                                         color: black;
-                                         background-color: transparent;
-                                         }
-                                         )"));
-
-            ui.formatLabel->setStyleSheet(qTEXT(R"(
-                                         QLabel#formatLabel {
                                          color: black;
                                          background-color: transparent;
                                          }
@@ -1310,17 +1288,12 @@ void Xamp::closeEvent(QCloseEvent* event) {
 void Xamp::initialUi() {
     QFont f(qTEXT("DisplayFont"));
     f.setWeight(QFont::Bold);
-    f.setPointSize(qTheme.fontSize(6));
+    f.setPointSize(qTheme.fontSize(8));
     ui_.titleLabel->setFont(f);
 
     f.setWeight(QFont::Normal);
-    f.setPointSize(qTheme.fontSize(6));
+    f.setPointSize(qTheme.fontSize(8));
     ui_.artistLabel->setFont(f);    
-
-    QFont format_font(qTEXT("FormatFont"));
-    format_font.setWeight(QFont::Normal);
-    format_font.setPointSize(qTheme.fontSize(6));
-    ui_.formatLabel->setFont(format_font);
 
     QToolTip::hideText();
 
@@ -1340,7 +1313,8 @@ void Xamp::initialUi() {
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
     qTheme.setPlayOrPauseButton(ui_.playButton, false);
 
-    ui_.stopButton->hide();    
+    //ui_.stopButton->hide();    
+    //ui_.formatLabel->hide();
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state) {
@@ -1598,10 +1572,6 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.playButton, &QToolButton::clicked, [this]() {
         playOrPause();
-    });
-
-    (void)QObject::connect(ui_.stopButton, &QToolButton::clicked, [this]() {
-        stopPlay();
     });
 
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
@@ -2082,7 +2052,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_play) {
 
         ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
         ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
-        ui_.formatLabel->setText(format2String(playback_format, ext));
+        //ui_.formatLabel->setText(format2String(playback_format, ext));
         return;
     }
 
@@ -2245,8 +2215,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     
     ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
     ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
-    ui_.formatLabel->setText(format2String(playback_format, ext));
-
+ 
     if (!cloud_music) {
         lrc_page_->lyrics()->loadLrcFile(entity.file_path);
     } else {

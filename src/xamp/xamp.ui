@@ -568,7 +568,7 @@
         <property name="frameShadow">
          <enum>QFrame::Plain</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0">
+        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -657,7 +657,7 @@
             <number>0</number>
            </property>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+            <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
              <property name="spacing">
               <number>0</number>
              </property>
@@ -665,14 +665,14 @@
               <widget class="ScrollLabel" name="titleLabel">
                <property name="minimumSize">
                 <size>
-                 <width>150</width>
+                 <width>300</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>150</width>
-                 <height>12</height>
+                 <width>300</width>
+                 <height>15</height>
                 </size>
                </property>
                <property name="font">
@@ -698,13 +698,13 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>150</width>
+                 <width>300</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>150</width>
+                 <width>300</width>
                  <height>30</height>
                 </size>
                </property>
@@ -721,33 +721,6 @@
                </property>
                <property name="wordWrap">
                 <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="ScrollLabel" name="formatLabel">
-               <property name="minimumSize">
-                <size>
-                 <width>150</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>150</width>
-                 <height>12</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                </property>
               </widget>
              </item>
@@ -895,47 +868,6 @@
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="stopButton">
-           <property name="minimumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_23">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>8</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <property name="spacing">
             <number>0</number>
@@ -1031,14 +963,14 @@
           <widget class="QToolButton" name="heartButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -1072,14 +1004,14 @@
           <widget class="QToolButton" name="repeatButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -1113,14 +1045,14 @@
           <widget class="QToolButton" name="eqButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -1154,14 +1086,14 @@
           <widget class="VolumeButton" name="mutedButton">
            <property name="minimumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>18</width>
-             <height>18</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
