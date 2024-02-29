@@ -1057,7 +1057,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
         });
 }
 
-void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, bool is_play) {
+void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     auto [video_id, setVideoId] = parseId(id);
 
     XAMP_LOG_DEBUG("Fetching lyrics ...");
@@ -1079,7 +1079,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
     XAMP_LOG_DEBUG("Extract video information ...");
 
     QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
-        [temp = entity, vid, playlist_page, this, is_play](const auto& video_info) {
+        [temp = entity, vid, playlist_page, this](const auto& video_info) {
         XAMP_ON_SCOPE_EXIT(
             if (playlist_page != nullptr) {
                 playlist_page->spinner()->stopAnimation();
@@ -1095,7 +1095,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
         const auto best_format = findBestAudioFormat(video_info);
         temp1.file_path = QString::fromStdString(best_format.url);
         XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
-        onPlayMusic(temp1, is_play);
+        onPlayMusic(temp1);
 
         auto album_id = temp.album_id;
         if (album_id == DatabaseFacade::unknownAlbumId()) {
@@ -1842,7 +1842,7 @@ void Xamp::setSeekPosValue(double stream_time) {
 
 void Xamp::playLocalFile(const PlayListEntity& entity) {
     main_window_->setTaskbarPlayerPlaying();
-    onPlayMusic(entity, true);
+    onPlayMusic(entity);
 }
 
 void Xamp::playOrPause() {
@@ -2030,7 +2030,7 @@ void Xamp::onDelayedDownloadThumbnail() {
     }
 }
 
-void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_play) {
+void Xamp::onPlayEntity(const PlayListEntity& entity) {
     if (!device_info_) {
         showMeMessage(tr("Not found any audio device, please check your audio device."));
         return;
@@ -2039,23 +2039,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_play) {
     lrc_page_->spectrum()->reset();
 
     PlaybackFormat playback_format;
-
-    if (!is_play) {
-        QString ext = entity.file_extension;
-        if (entity.file_extension.isEmpty()) {
-            ext = qTEXT(".m4a");
-        }
-
-        qTheme.setPlayOrPauseButton(ui_.playButton, true);
-        const QFontMetrics title_metrics(ui_.titleLabel->font());
-        const QFontMetrics artist_metrics(ui_.artistLabel->font());
-
-        ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
-        ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
-        //ui_.formatLabel->setText(format2String(playback_format, ext));
-        return;
-    }
-
     auto open_done = false;
 
     ui_.seekSlider->setEnabled(true);
@@ -2346,24 +2329,24 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
     main_window_->setIconicThumbnail(cover);
 }
 
-void Xamp::onPlayMusic(const PlayListEntity& entity, bool is_play) {
+void Xamp::onPlayMusic(const PlayListEntity& entity) {
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
     if (QUrl(entity.file_path).scheme() == qTEXT("https")) {
-        onPlayEntity(entity, is_play);
+        onPlayEntity(entity);
         return;
     }
 
     if (IsFilePath(entity.file_path.toStdWString())) {
-        onPlayEntity(entity, is_play);
+        onPlayEntity(entity);
     }
     else {
-        playCloudVideoId(entity, entity.file_path, is_play);
+        playCloudVideoId(entity, entity.file_path);
     }
 }
 
-void Xamp::playNextItem(int32_t forward) {
+void Xamp::playNextItem(int32_t forward, bool is_play) {
     if (!last_play_list_) {
         return;
     }
@@ -2372,10 +2355,10 @@ void Xamp::playNextItem(int32_t forward) {
         stopPlay();
         XMessageBox::showInformation(tr("Not found any playing item."));
         return;
-    }    
+    }
 
     tryLog(
-        last_play_list_->play(order_, false);
+        last_play_list_->play(order_, is_play);
         play_index_ = last_play_list_->currentIndex();
     )
 }
