@@ -490,6 +490,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             update();
             emit removeAll();
             qImageCache.clear();
+            qIconCache.Clear();
             rollback = false;
         )
 
