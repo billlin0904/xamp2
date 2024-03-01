@@ -181,4 +181,4 @@ private:
 };
 
 #define qTheme SharedSingleton<ThemeManager>::GetInstance()
-
+#define qIconCache SharedSingleton<LruCache<QString, QIcon>>::GetInstance()

@@ -16,7 +16,7 @@ public:
     }
 
     void unlock() noexcept {
-        (void)::ReleaseSRWLockExclusive(&lock_);
+        ::ReleaseSRWLockExclusive(&lock_);
     }
 
     bool try_lock() noexcept {

@@ -148,9 +148,7 @@ public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
     static constexpr auto kPlayingStateIconSize = 16;
-    
-    mutable LruCache<QString, QIcon> icon_cache_;    
-
+   
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
     }
@@ -287,7 +285,7 @@ public:
                     id = music_cover_id;
 				}
 
-				opt.icon = icon_cache_.GetOrAdd(id, [id]() {
+				opt.icon = qIconCache.GetOrAdd(id, [id]() {
                     const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(id), PlayListTableView::kCoverSize));
                     return uniformIcon(icon, PlayListTableView::kCoverSize);
                 });
@@ -312,7 +310,6 @@ public:
         }
     }
 };
-
 
 void PlayListTableView::search(const QString& keyword) const {
 	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
