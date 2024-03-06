@@ -23,8 +23,6 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <iostream>
-
 #include "id3v2synchdata.h"
 
 using namespace TagLib;
@@ -34,7 +32,7 @@ unsigned int SynchData::toUInt(const ByteVector &data)
 {
   unsigned int sum = 0;
   bool notSynchSafe = false;
-  const int last = data.size() > 4 ? 3 : static_cast<int>(data.size()) - 1;
+  int last = data.size() > 4 ? 3 : data.size() - 1;
 
   for(int i = 0; i <= last; i++) {
     if(data[i] & 0x80) {
@@ -50,12 +48,12 @@ unsigned int SynchData::toUInt(const ByteVector &data)
     // put normal integers here rather than syncsafe ones, and try it that
     // way.
     if(data.size() >= 4) {
-      sum = data.toUInt32BE(0);
+      sum = data.toUInt(0, true);
     }
     else {
       ByteVector tmp(data);
       tmp.resize(4);
-      sum = tmp.toUInt32BE(0);
+      sum = tmp.toUInt(0, true);
     }
   }
 
@@ -74,19 +72,23 @@ ByteVector SynchData::fromUInt(unsigned int value)
 
 ByteVector SynchData::decode(const ByteVector &data)
 {
+  if(data.isEmpty()) {
+    return ByteVector();
+  }
+
   // We have this optimized method instead of using ByteVector::replace(),
   // since it makes a great difference when decoding huge unsynchronized frames.
 
   ByteVector result(data.size());
 
-  ByteVector::ConstIterator src = data.begin();
-  ByteVector::Iterator dst = result.begin();
+  auto src = data.begin();
+  auto dst = result.begin();
 
   while(src < data.end() - 1) {
     *dst++ = *src++;
 
     if(*(src - 1) == '\xff' && *src == '\x00')
-      src++;
+      ++src;
   }
 
   if(src < data.end())

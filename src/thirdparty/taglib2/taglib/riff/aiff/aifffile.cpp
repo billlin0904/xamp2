@@ -23,28 +23,30 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <tbytevector.h>
-#include <tdebug.h>
-#include <id3v2tag.h>
-#include <tstringlist.h>
-#include <tpropertymap.h>
-#include <tagutils.h>
-#include <tsmartptr.h>
-
 #include "aifffile.h"
+
+#include "tdebug.h"
+#include "tpropertymap.h"
+#include "tagutils.h"
 
 using namespace TagLib;
 
 class RIFF::AIFF::File::FilePrivate
 {
 public:
-  FilePrivate() :
-    hasID3v2(false) {}
+  FilePrivate(const ID3v2::FrameFactory *frameFactory)
+        : ID3v2FrameFactory(frameFactory ? frameFactory
+                                         : ID3v2::FrameFactory::instance())
+  {
+  }
 
-  SCOPED_PTR<AudioProperties> properties;
-  SCOPED_PTR<ID3v2::Tag> tag;
+  ~FilePrivate() = default;
 
-  bool hasID3v2;
+  const ID3v2::FrameFactory *ID3v2FrameFactory;
+  std::unique_ptr<Properties> properties;
+  std::unique_ptr<ID3v2::Tag> tag;
+
+  bool hasID3v2 { false };
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,45 +58,64 @@ bool RIFF::AIFF::File::isSupported(IOStream *stream)
   // An AIFF file has to start with "FORM????AIFF" or "FORM????AIFC".
 
   const ByteVector id = Utils::readHeader(stream, 12, false);
-  return (id.startsWith("FORM") && (id.containsAt("AIFF", 8) || id.containsAt("AIFC", 8)));
+  return id.startsWith("FORM") && (id.containsAt("AIFF", 8) || id.containsAt("AIFC", 8));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
-RIFF::AIFF::File::File(FileName file, bool readProperties, AudioProperties::ReadStyle) :
+RIFF::AIFF::File::File(FileName file, bool readProperties, Properties::ReadStyle,
+                       ID3v2::FrameFactory *frameFactory) :
   RIFF::File(file, BigEndian),
-  d(new FilePrivate())
+  d(std::make_unique<FilePrivate>(frameFactory))
 {
   if(isOpen())
     read(readProperties);
 }
 
-RIFF::AIFF::File::File(IOStream *stream, bool readProperties, AudioProperties::ReadStyle) :
+RIFF::AIFF::File::File(IOStream *stream, bool readProperties, Properties::ReadStyle,
+                       ID3v2::FrameFactory *frameFactory) :
   RIFF::File(stream, BigEndian),
-  d(new FilePrivate())
+  d(std::make_unique<FilePrivate>(frameFactory))
 {
   if(isOpen())
     read(readProperties);
 }
 
-RIFF::AIFF::File::~File()
-{
-  delete d;
-}
+RIFF::AIFF::File::~File() = default;
 
 ID3v2::Tag *RIFF::AIFF::File::tag() const
 {
   return d->tag.get();
 }
 
-RIFF::AIFF::AudioProperties *RIFF::AIFF::File::audioProperties() const
+PropertyMap RIFF::AIFF::File::properties() const
+{
+  return d->tag->properties();
+}
+
+void RIFF::AIFF::File::removeUnsupportedProperties(const StringList &unsupported)
+{
+  d->tag->removeUnsupportedProperties(unsupported);
+}
+
+PropertyMap RIFF::AIFF::File::setProperties(const PropertyMap &properties)
+{
+  return d->tag->setProperties(properties);
+}
+
+RIFF::AIFF::Properties *RIFF::AIFF::File::audioProperties() const
 {
   return d->properties.get();
 }
 
 bool RIFF::AIFF::File::save()
+{
+    return save(ID3v2::v4);
+}
+
+bool RIFF::AIFF::File::save(ID3v2::Version version)
 {
   if(readOnly()) {
     debug("RIFF::AIFF::File::save() -- File is read only.");
@@ -113,7 +134,7 @@ bool RIFF::AIFF::File::save()
   }
 
   if(tag() && !tag()->isEmpty()) {
-    setChunkData("ID3 ", d->tag->render());
+    setChunkData("ID3 ", d->tag->render(version));
     d->hasID3v2 = true;
   }
 
@@ -132,10 +153,10 @@ bool RIFF::AIFF::File::hasID3v2Tag() const
 void RIFF::AIFF::File::read(bool readProperties)
 {
   for(unsigned int i = 0; i < chunkCount(); ++i) {
-    const ByteVector name = chunkName(i);
-    if(name == "ID3 " || name == "id3 ") {
+    if(const ByteVector name = chunkName(i); name == "ID3 " || name == "id3 ") {
       if(!d->tag) {
-        d->tag.reset(new ID3v2::Tag(this, chunkOffset(i)));
+        d->tag = std::make_unique<ID3v2::Tag>(this, chunkOffset(i),
+                                              d->ID3v2FrameFactory);
         d->hasID3v2 = true;
       }
       else {
@@ -145,8 +166,8 @@ void RIFF::AIFF::File::read(bool readProperties)
   }
 
   if(!d->tag)
-    d->tag.reset(new ID3v2::Tag());
+    d->tag = std::make_unique<ID3v2::Tag>(nullptr, 0, d->ID3v2FrameFactory);
 
   if(readProperties)
-    d->properties.reset(new AudioProperties(this));
+    d->properties = std::make_unique<Properties>(this, Properties::Average);
 }

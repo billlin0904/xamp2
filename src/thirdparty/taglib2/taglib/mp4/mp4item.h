@@ -27,31 +27,17 @@
 #define TAGLIB_MP4ITEM_H
 
 #include "tstringlist.h"
-#include "mp4coverart.h"
 #include "taglib_export.h"
+#include "mp4coverart.h"
 
 namespace TagLib {
-
   namespace MP4 {
-
+    //! MP4 item
     class TAGLIB_EXPORT Item
     {
     public:
       struct IntPair {
         int first, second;
-      };
-
-      enum ItemType {
-        TypeUndefined = 0,
-        TypeBool,
-        TypeInt,
-        TypeIntPair,
-        TypeByte,
-        TypeUInt,
-        TypeLongLong,
-        TypeStringList,
-        TypeByteVectorList,
-        TypeCoverArtList,
       };
 
       Item();
@@ -63,9 +49,9 @@ namespace TagLib {
       Item &operator=(const Item &item);
 
       /*!
-       * Exchanges the content of the Item by the content of \a item.
+       * Exchanges the content of the Item with the content of \a item.
        */
-      void swap(Item &item);
+      void swap(Item &item) noexcept;
 
       ~Item();
 
@@ -74,7 +60,7 @@ namespace TagLib {
       Item(unsigned int value);
       Item(long long value);
       Item(bool value);
-      Item(int first, int second);
+      Item(int value1, int value2);
       Item(const StringList &value);
       Item(const ByteVectorList &value);
       Item(const CoverArtList &value);
@@ -92,19 +78,15 @@ namespace TagLib {
       ByteVectorList toByteVectorList() const;
       CoverArtList toCoverArtList() const;
 
-      ItemType type() const;
-
       bool isValid() const;
-
-      String toString() const;
 
     private:
       class ItemPrivate;
-      ItemPrivate *d;
+      TAGLIB_MSVC_SUPPRESS_WARNING_NEEDS_TO_HAVE_DLL_INTERFACE
+      std::shared_ptr<ItemPrivate> d;
     };
 
-  }
-
-}
-
+    using ItemMap = TagLib::Map<String, Item>;
+  }  // namespace MP4
+}  // namespace TagLib
 #endif

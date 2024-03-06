@@ -10,6 +10,7 @@
 #include <widget/util/ui_utilts.h>
 
 XAMP_DECLARE_LOG_NAME(FileSystemWorker);
+XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
 
 namespace {
     struct PathInfo {
@@ -44,11 +45,9 @@ namespace {
         if (total_file_count == 0) {
             return std::make_pair(total_file_count.load(), path_infos);
         }
-
-        // Sort path_infos based on file count and depth
         std::sort(path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
             if (p1.file_count != p2.file_count) {
-                return p1.file_count < p2.file_count;
+                return p1.file_count > p2.file_count;
             }
             return p1.depth < p2.depth;
             });
@@ -58,7 +57,7 @@ namespace {
 
 FileSystemWorker::FileSystemWorker()
 	: watcher_(this) {
-    logger_ = XampLoggerFactory.GetLogger(kFileSystemWorkerLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(kFileSystemWorkerLoggerName);    
     GetBackgroundThreadPool();
     (void)QObject::connect(&watcher_,
         &FileSystemWatcher::directoryChanged,
@@ -72,15 +71,13 @@ void FileSystemWorker::onSetWatchDirectory(const QString& dir) {
     watcher_.addPath(dir);
 }
 
-size_t FileSystemWorker::scanPathFiles(const QStringList& file_name_filters,
-                                      int32_t playlist_id,
-                                      const QString& dir) {
-    QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
+    QDirIterator itr(dir, getTrackInfoFileNameFilter(), QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     FloatMap<std::wstring, Vector<Path>> directory_files;
 
     while (itr.hasNext()) {
         if (is_stop_) {
-            return 0;
+            return;
         }
         auto next_path = toNativeSeparators(itr.next());
         auto path = next_path.toStdWString();
@@ -94,7 +91,7 @@ size_t FileSystemWorker::scanPathFiles(const QStringList& file_name_filters,
     if (directory_files.empty()) {
         if (!QFileInfo(dir).isFile()) {
             XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
-            return 0;
+            return;
         }
         const auto next_path = toNativeSeparators(dir);
         const auto path = next_path.toStdWString();
@@ -102,36 +99,36 @@ size_t FileSystemWorker::scanPathFiles(const QStringList& file_name_filters,
         directory_files[directory].emplace_back(path);
     }
 
-    size_t extract_file_count = 0;
-
-    for (const auto& [fst, snd] : directory_files) {
+    Executor::ParallelFor(*extract_file_thread_pool_, directory_files, [&](const auto& path_info) {
         if (is_stop_) {
-            return extract_file_count;
+            return;
         }
 
         ForwardList<TrackInfo> tracks;
 
-        for (const auto & path : snd) {            
+        for (const auto& path : path_info.second) {
             try {
-                TaglibMetadataReader reader;                
+                TaglibMetadataReader reader;
                 tracks.push_front(reader.Extract(path));
-                ++extract_file_count;
+                ++completed_work_;
+                updateProgress();
             }
-            catch (...) { }
+            catch (...) {}
         }
-        
+
         tracks.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
             });
-
-        emit readFilePath(stringFormat("Extract directory {} size: {} completed.", String::ToString(fst), snd.size()));
+        emit readFilePath(stringFormat("Extract directory {} size: {} completed.", String::ToString(path_info.first), path_info.second.size()));
         emit insertDatabase(tracks, playlist_id);
-    }
-    return extract_file_count;
+        });
 }
 
 void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
-	const Stopwatch sw;
+    if (extract_file_thread_pool_ != nullptr) {
+        extract_file_thread_pool_.reset();
+    }
+    extract_file_thread_pool_ = MakeThreadPoolExecutor(kExtractFileWorkerLoggerName);
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, getTrackInfoFileNameFilter(), filter);
@@ -156,7 +153,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
     XAMP_ON_SCOPE_EXIT(
         emit readFileProgress(100);
 		emit readCompleted();
-		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", sw.ElapsedSeconds());
+		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", total_time_elapsed_.ElapsedSeconds());
     );
 
     std::atomic<size_t> completed_work(0);
@@ -168,18 +165,27 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
     if (total_work == 0) {
         XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
         return;
+    }   
+
+    completed_work_ = 0;
+    total_work_ = total_work;
+
+    total_time_elapsed_.Reset();
+
+    for (const auto & path_info : file_count_paths) {
+        scanPathFiles(playlist_id, path_info.path);
+        updateProgress();
     }
+}
 
-    const auto &file_name_filter = getTrackInfoFileNameFilter();
+void FileSystemWorker::updateProgress() {
+    const auto completed_work = completed_work_.load();
+    emit readFileProgress((completed_work * 100) / total_work_);
 
-    Executor::ParallelFor(GetBackgroundThreadPool(), file_count_paths, [&, total = total_work](const auto& path_info) {
-        if (is_stop_) {
-            return;
-        }
-        completed_work += scanPathFiles(file_name_filter, playlist_id, path_info.path);
-        const auto value = completed_work.load();
-        emit readFileProgress((value * 100) / total);
-        });
+    const auto elapsedTime = total_time_elapsed_.ElapsedSeconds();
+    const double remainingTime = (total_work_ > completed_work) ?
+        ((double)elapsedTime / (double)completed_work) * (total_work_ - completed_work) : 0.0;
+    emit remainingTimeEstimation(total_work_, completed_work, static_cast<int>(remainingTime));
 }
 
 void FileSystemWorker::cancelRequested() {

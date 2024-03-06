@@ -186,11 +186,11 @@ namespace {
                 return false;
             }
 
-            if (!tag->itemListMap().contains("covr")) {
+            if (!tag->itemMap().contains("covr")) {
                 return false;
             }
 
-            auto cover_list = tag->itemListMap()["covr"].toCoverArtList();
+            auto cover_list = tag->itemMap()["covr"].toCoverArtList();
             if (cover_list.isEmpty()) {
                 return false;
             }

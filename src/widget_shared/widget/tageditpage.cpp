@@ -320,6 +320,7 @@ void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
 	else {
 		ui_->notFoundImageLabel->show();
 		ui_->coverLabel->hide();
+		ui_->coverSizeLabel->hide();
 	}
 
 	setImageLabel(image, image_size, image_file_size);

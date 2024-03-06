@@ -38,7 +38,7 @@ namespace TagLib {
     //! An implementation of WAV metadata
 
     /*!
-     * This is implementation of WAV metadata.
+     * This is an implementation of WAV metadata.
      *
      * This supports an ID3v2 tag as well as reading stream from the ID3 RIFF
      * chunk as well as properties from the file.
@@ -70,36 +70,47 @@ namespace TagLib {
         };
 
         /*!
-         * Constructs a WAV file from \a file.  If \a readProperties is true the
+         * Constructs a WAV file from \a file.  If \a readProperties is \c true the
          * file's audio properties will also be read.
          *
          * \note In the current implementation, \a propertiesStyle is ignored.
+         *
+         * If this file contains an ID3v2 tag, the frames will be created using
+         * \a frameFactory (default if null).
          */
         File(FileName file, bool readProperties = true,
-             AudioProperties::ReadStyle propertiesStyle = AudioProperties::Average);
+             Properties::ReadStyle propertiesStyle = Properties::Average,
+             ID3v2::FrameFactory *frameFactory = nullptr);
 
         /*!
-         * Constructs a WAV file from \a stream.  If \a readProperties is true the
+         * Constructs a WAV file from \a stream.  If \a readProperties is \c true the
          * file's audio properties will also be read.
          *
          * \note TagLib will *not* take ownership of the stream, the caller is
          * responsible for deleting it after the File object.
          *
          * \note In the current implementation, \a propertiesStyle is ignored.
+         *
+         * If this file contains an ID3v2 tag, the frames will be created using
+         * \a frameFactory (default if null).
          */
         File(IOStream *stream, bool readProperties = true,
-             AudioProperties::ReadStyle propertiesStyle = AudioProperties::Average);
+             Properties::ReadStyle propertiesStyle = Properties::Average,
+             ID3v2::FrameFactory *frameFactory = nullptr);
 
         /*!
          * Destroys this instance of the File.
          */
-        virtual ~File();
+        ~File() override;
+
+        File(const File &) = delete;
+        File &operator=(const File &) = delete;
 
         /*!
-         * Returns the Tag for this file.  This will be an ID3v2 tag, an INFO tag
-         * or a combination of the two.
+         * Returns the tag for this file.  This will be a RIFF INFO tag, an
+         * ID3v2 tag or a combination of the two.
          */
-        virtual TagLib::Tag *tag() const;
+        TagLib::Tag *tag() const override;
 
         /*!
          * Returns the ID3v2 Tag for this file.
@@ -125,7 +136,7 @@ namespace TagLib {
 
         /*!
          * This will strip the tags that match the OR-ed together TagTypes from the
-         * file.  By default it strips all tags.  It returns true if the tags are
+         * file.  By default it strips all tags.  It returns \c true if the tags are
          * successfully stripped.
          *
          * \note This will update the file immediately.
@@ -133,23 +144,38 @@ namespace TagLib {
         void strip(TagTypes tags = AllTags);
 
         /*!
+         * Implements the unified property interface -- export function.
+         * This method forwards to ID3v2::Tag::properties().
+         */
+        PropertyMap properties() const override;
+
+        void removeUnsupportedProperties(const StringList &unsupported) override;
+
+        /*!
          * Implements the unified property interface -- import function.
          * This method forwards to ID3v2::Tag::setProperties().
          */
-        virtual PropertyMap setProperties(const PropertyMap &);
+        PropertyMap setProperties(const PropertyMap &) override;
 
         /*!
          * Returns the WAV::Properties for this file.  If no audio properties
          * were read then this will return a null pointer.
          */
-        virtual AudioProperties *audioProperties() const;
+        Properties *audioProperties() const override;
 
         /*!
          * Saves the file.
          */
-        virtual bool save();
+        bool save() override;
 
-        bool save(TagTypes tags, bool stripOthers = true, int id3v2Version = 4);
+        /*!
+         * Save the file.  If \a strip is specified, it is possible to choose if
+         * tags not specified in \a tags should be stripped from the file or
+         * retained.  With \a version, it is possible to specify whether ID3v2.4
+         * or ID3v2.3 should be used.
+         */
+        bool save(TagTypes tags, StripTags strip = StripOthers,
+                  ID3v2::Version version = ID3v2::v4);
 
         /*!
          * Returns whether or not the file on disk actually has an ID3v2 tag.
@@ -175,19 +201,17 @@ namespace TagLib {
         static bool isSupported(IOStream *stream);
 
       private:
-        File(const File &);
-        File &operator=(const File &);
-
         void read(bool readProperties);
         void removeTagChunks(TagTypes tags);
 
-        friend class AudioProperties;
+        friend class Properties;
 
         class FilePrivate;
-        FilePrivate *d;
+        TAGLIB_MSVC_SUPPRESS_WARNING_NEEDS_TO_HAVE_DLL_INTERFACE
+        std::unique_ptr<FilePrivate> d;
       };
-    }
-  }
-}
+    }  // namespace WAV
+  }  // namespace RIFF
+}  // namespace TagLib
 
 #endif

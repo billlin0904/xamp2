@@ -72,9 +72,6 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 	if (auto image = find_image(QDirIterator::NoIteratorFlags)) {
 		return image.value();
 	}
-	/*if (auto image = find_image(QDirIterator::Subdirectories)) {
-		return image.value();
-	}*/
 
 	// Find 'Scans' folder in the same level or in parent folders.
 	while (!scan_dir.isRoot()) {
@@ -194,7 +191,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	return getOrDefault(tag_id);
 }
 
-QString ImageCache::addImage(const QPixmap& cover) const {
+QString ImageCache::addImage(const QPixmap& cover, bool save_only) const {
 	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();
@@ -212,6 +209,13 @@ QString ImageCache::addImage(const QPixmap& cover) const {
 
 	if (!resize_image.save(file_path, kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save image cache.");
+	}
+
+	if (save_only) {
+		buffer->close();
+		buffer->setData(QByteArray());
+
+		return tag_id;
 	}
 	
 	cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
@@ -275,6 +279,6 @@ void ImageCache::timerEvent(QTimerEvent* ) {
 	if (cache_.GetSize() > trim_target_size_) {
 		cache_.Evict(trim_target_size_);
 	}
-	XAMP_LOG_D(logger_, "Trim target-cache-size: {}, cover cache: {}, cache: {}", 
+	XAMP_LOG_T(logger_, "Trim target-cache-size: {}, cover cache: {}, cache: {}", 
 		String::FormatBytes(trim_target_size_), cover_cache_, cache_);
 }

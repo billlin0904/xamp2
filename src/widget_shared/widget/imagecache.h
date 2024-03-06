@@ -64,7 +64,7 @@ public:
 
 	void clearCache() const;
 
-	QString addImage(const QPixmap& cover) const;
+	QString addImage(const QPixmap& cover, bool save_only = false) const;
 
 	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
 

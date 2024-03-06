@@ -26,7 +26,6 @@
 #ifndef TAGLIB_WAVPROPERTIES_H
 #define TAGLIB_WAVPROPERTIES_H
 
-#include "taglib.h"
 #include "audioproperties.h"
 
 namespace TagLib {
@@ -42,63 +41,48 @@ namespace TagLib {
       //! An implementation of audio property reading for WAV
 
       /*!
-       * This reads the data from an WAV stream found in the AudioProperties
+       * This reads the data from a WAV stream found in the AudioProperties
        * API.
        */
 
-      class TAGLIB_EXPORT AudioProperties : public TagLib::AudioProperties
+      class TAGLIB_EXPORT Properties : public AudioProperties
       {
       public:
         /*!
          * Create an instance of WAV::Properties with the data read from the
          * WAV::File \a file.
          */
-        AudioProperties(File *file, ReadStyle style = Average);
+        Properties(File *file, ReadStyle style);
 
         /*!
          * Destroys this WAV::Properties instance.
          */
-        virtual ~AudioProperties();
+        ~Properties() override;
 
-        /*!
-         * Returns the length of the file in seconds.  The length is rounded down to
-         * the nearest whole second.
-         *
-         * \note This method is just an alias of lengthInSeconds().
-         *
-         * \deprecated
-         */
-        virtual int length() const;
-
-        /*!
-         * Returns the length of the file in seconds.  The length is rounded down to
-         * the nearest whole second.
-         *
-         * \see lengthInMilliseconds()
-         */
-        virtual int lengthInSeconds() const;
+        Properties(const Properties &) = delete;
+        Properties &operator=(const Properties &) = delete;
 
         /*!
          * Returns the length of the file in milliseconds.
          *
          * \see lengthInSeconds()
          */
-        virtual int lengthInMilliseconds() const;
+        int lengthInMilliseconds() const override;
 
         /*!
          * Returns the average bit rate of the file in kb/s.
          */
-        virtual int bitrate() const;
+        int bitrate() const override;
 
         /*!
          * Returns the sample rate in Hz.
          */
-        virtual int sampleRate() const;
+        int sampleRate() const override;
 
         /*!
          * Returns the number of audio channels.
          */
-        virtual int channels() const;
+        int channels() const override;
 
         /*!
          * Returns the number of bits per audio sample.
@@ -106,20 +90,7 @@ namespace TagLib {
         int bitsPerSample() const;
 
         /*!
-         * Returns the number of bits per audio sample.
-         *
-         * \note This method is just an alias of bitsPerSample().
-         *
-         * \deprecated
-         */
-        int sampleWidth() const;
-
-        /*!
-         * Returns the total number of the samples.
-         *
-         * If the format ID is not 1, always returns 0.
-         *
-         * \see format()
+         * Returns the number of sample frames.
          */
         unsigned int sampleFrames() const;
 
@@ -137,10 +108,11 @@ namespace TagLib {
         void read(File *file);
 
         class PropertiesPrivate;
-        PropertiesPrivate *d;
+        TAGLIB_MSVC_SUPPRESS_WARNING_NEEDS_TO_HAVE_DLL_INTERFACE
+        std::unique_ptr<PropertiesPrivate> d;
       };
-    }
-  }
-}
+    }  // namespace WAV
+  }  // namespace RIFF
+}  // namespace TagLib
 
 #endif

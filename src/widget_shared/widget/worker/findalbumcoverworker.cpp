@@ -67,7 +67,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t album_id, const std::wstring
 
     cover = qImageCache.scanCoverFromDir(QString::fromStdWString(file_path));
     if (!cover.isNull()) {
-        emit setAlbumCover(album_id, qImageCache.addImage(cover));
+        emit setAlbumCover(album_id, qImageCache.addImage(cover, true));
     }
     else {
         emit setAlbumCover(album_id, qImageCache.unknownCoverId());

@@ -9,7 +9,7 @@
 XAMP_DECLARE_LOG_NAME(TagLib);
 
 namespace {
-	class DebugListener : public TagLib::DebugListener {
+	class TagLibDebugListener : public TagLib::DebugListener {
 	public:
 		void printMessage(const TagLib::String& msg) override {
 			using namespace xamp::base;
@@ -20,17 +20,13 @@ namespace {
 		}
 	};
 
-	DebugListener debug_listener;
+	TagLibDebugListener debug_listener;
 }
 
 namespace TagLib {
-	DebugListener* debugListener = &debug_listener;
+	TagLibDebugListener* debugListener = &debug_listener;
 
-	DebugListener::DebugListener() = default;
-
-	DebugListener::~DebugListener() = default;
-
-	void setDebugListener(DebugListener* listener) {
+	void setDebugListener(TagLibDebugListener* listener) {
 		if (listener)
 			debugListener = listener;
 		else
@@ -215,11 +211,10 @@ public:
 
 			Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
 				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
-					auto& items_list_map = mp4_tag->itemListMap();
 					TagLib::MP4::CoverArtList cover_art_list;
 					cover_art_list.append(cover_art);
 					const TagLib::MP4::Item cover_item(cover_art_list);
-					items_list_map.insert("covr", cover_item);
+					mp4_tag->setItem("covr", cover_item);
 				}
 				});
 		}

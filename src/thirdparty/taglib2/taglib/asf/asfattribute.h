@@ -33,11 +33,12 @@
 
 namespace TagLib
 {
-
   namespace ASF
   {
     class File;
     class Picture;
+
+    //! Attribute of ASF (WMA) metadata
 
     class TAGLIB_EXPORT Attribute
     {
@@ -107,7 +108,7 @@ namespace TagLib
       /*!
        * Construct an attribute as a copy of \a other.
        */
-      Attribute(const Attribute &item);
+      Attribute(const Attribute &other);
 
       /*!
        * Copies the contents of \a other into this item.
@@ -115,17 +116,17 @@ namespace TagLib
       Attribute &operator=(const Attribute &other);
 
       /*!
-       * Exchanges the content of the Attribute by the content of \a other.
+       * Exchanges the content of the Attribute with the content of \a other.
        */
-      void swap(Attribute &other);
+      void swap(Attribute &other) noexcept;
 
       /*!
        * Destroys the attribute.
        */
-      virtual ~Attribute();
+      ~Attribute();
 
       /*!
-       * Returns type of the value.
+       * Returns the type of the value.
        */
       AttributeTypes type() const;
 
@@ -184,20 +185,24 @@ namespace TagLib
        */
       void setStream(int value);
 
+#ifndef DO_NOT_DOCUMENT
+      /* THIS IS PRIVATE, DON'T TOUCH IT! */
+      String parse(ASF::File &file, int kind = 0);
+#endif
+
       //! Returns the size of the stored data
       int dataSize() const;
 
     private:
       friend class File;
 
-      String parse(ASF::File &file, int kind = 0);
       ByteVector render(const String &name, int kind = 0) const;
 
       class AttributePrivate;
-      AttributePrivate *d;
+      TAGLIB_MSVC_SUPPRESS_WARNING_NEEDS_TO_HAVE_DLL_INTERFACE
+      std::shared_ptr<AttributePrivate> d;
     };
-  }
-
-}
+  }  // namespace ASF
+}  // namespace TagLib
 
 #endif

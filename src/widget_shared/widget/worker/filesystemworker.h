@@ -35,18 +35,24 @@ signals:
 
     void foundFileCount(size_t file_count);
 
+    void remainingTimeEstimation(size_t total_work, size_t ccompleted_work, int32_t secs);
+
 public slots:
     void onExtractFile(const QString& file_path, int32_t playlist_id);
 
     void onSetWatchDirectory(const QString& dir);
 
 private:
-    size_t scanPathFiles(const QStringList& file_name_filters,
-        int32_t playlist_id,
-        const QString& dir);
+    void scanPathFiles(int32_t playlist_id, const QString& dir);
+
+    void updateProgress();
 
     bool is_stop_{ false };
+    size_t total_work_{ 0 };
+    std::atomic<size_t> completed_work_{ 0 };
     FileSystemWatcher watcher_;
+    Stopwatch total_time_elapsed_;
+    AlignPtr<IThreadPoolExecutor> extract_file_thread_pool_;
     LoggerPtr logger_;
 };
 

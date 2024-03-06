@@ -23,12 +23,12 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <tdebug.h>
-#include <tfile.h>
-#include <tpicturemap.h>
-
-#include "rifffile.h"
 #include "infotag.h"
+
+#include <utility>
+
+#include "tbytevector.h"
+#include "tpropertymap.h"
 #include "riffutils.h"
 
 using namespace TagLib;
@@ -36,54 +36,54 @@ using namespace RIFF::Info;
 
 namespace
 {
-  class DefaultStringHandler : public TagLib::StringHandler
-  {
-  public:
-    DefaultStringHandler() :
-      TagLib::StringHandler() {}
-
-    virtual String parse(const ByteVector &data) const
-    {
-      return String(data, String::UTF8);
-    }
-
-    virtual ByteVector render(const String &s) const
-    {
-      return s.data(String::UTF8);
-    }
-  };
-
-  const DefaultStringHandler defaultStringHandler;
-  const TagLib::StringHandler *stringHandler = &defaultStringHandler;
-}
+  const RIFF::Info::StringHandler defaultStringHandler;
+  const RIFF::Info::StringHandler *stringHandler = &defaultStringHandler;
+} // namespace
 
 class RIFF::Info::Tag::TagPrivate
 {
 public:
-  FieldMap fieldMap;
+  FieldListMap fieldListMap;
 };
+
+class RIFF::Info::StringHandler::StringHandlerPrivate
+{
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// StringHandler implementation
+////////////////////////////////////////////////////////////////////////////////
+
+StringHandler::StringHandler() = default;
+
+StringHandler::~StringHandler() = default;
+
+String RIFF::Info::StringHandler::parse(const ByteVector &data) const
+{
+  return String(data, String::UTF8);
+}
+
+ByteVector RIFF::Info::StringHandler::render(const String &s) const
+{
+  return s.data(String::UTF8);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
 RIFF::Info::Tag::Tag(const ByteVector &data) :
-  TagLib::Tag(),
-  d(new TagPrivate())
+  d(std::make_unique<TagPrivate>())
 {
   parse(data);
 }
 
 RIFF::Info::Tag::Tag() :
-  TagLib::Tag(),
-  d(new TagPrivate())
+  d(std::make_unique<TagPrivate>())
 {
 }
 
-RIFF::Info::Tag::~Tag()
-{
-  delete d;
-}
+RIFF::Info::Tag::~Tag() = default;
 
 String RIFF::Info::Tag::title() const
 {
@@ -120,11 +120,6 @@ unsigned int RIFF::Info::Tag::track() const
   return fieldText("IPRT").toInt();
 }
 
-TagLib::PictureMap RIFF::Info::Tag::pictures() const
-{
-    return PictureMap();
-}
-
 void RIFF::Info::Tag::setTitle(const String &s)
 {
   setFieldText("INAM", s);
@@ -155,7 +150,7 @@ void RIFF::Info::Tag::setYear(unsigned int i)
   if(i != 0)
     setFieldText("ICRD", String::number(i));
   else
-    d->fieldMap.erase("ICRD");
+    d->fieldListMap.erase("ICRD");
 }
 
 void RIFF::Info::Tag::setTrack(unsigned int i)
@@ -163,60 +158,134 @@ void RIFF::Info::Tag::setTrack(unsigned int i)
   if(i != 0)
     setFieldText("IPRT", String::number(i));
   else
-    d->fieldMap.erase("IPRT");
-}
-
-void RIFF::Info::Tag::setPictures(const PictureMap &l)
-{
+    d->fieldListMap.erase("IPRT");
 }
 
 bool RIFF::Info::Tag::isEmpty() const
 {
-  return d->fieldMap.isEmpty();
+  return d->fieldListMap.isEmpty();
 }
 
-FieldMap RIFF::Info::Tag::fieldMap() const
+namespace
 {
-  return d->fieldMap;
+  const Map<ByteVector, String> propertyKeyForId = {
+    {"IPRD", "ALBUM"},
+    {"IENG", "ARRANGER"},
+    {"IART", "ARTIST"},
+    {"IBSU", "ARTISTWEBPAGE"},
+    {"IBPM", "BPM"},
+    {"ICMT", "COMMENT"},
+    {"IMUS", "COMPOSER"},
+    {"ICOP", "COPYRIGHT"},
+    {"ICRD", "DATE"},
+    {"PRT1", "DISCSUBTITLE"},
+    {"ITCH", "ENCODEDBY"},
+    {"ISFT", "ENCODING"},
+    {"IDIT", "ENCODINGTIME"},
+    {"IGNR", "GENRE"},
+    {"ISRC", "ISRC"},
+    {"IPUB", "LABEL"},
+    {"ILNG", "LANGUAGE"},
+    {"IWRI", "LYRICIST"},
+    {"IMED", "MEDIA"},
+    {"ISTR", "PERFORMER"},
+    {"ICNT", "RELEASECOUNTRY"},
+    {"IEDT", "REMIXER"},
+    {"INAM", "TITLE"},
+    {"IPRT", "TRACKNUMBER"}
+  };
+}  // namespace
+
+PropertyMap RIFF::Info::Tag::properties() const
+{
+  PropertyMap props;
+  for(const auto &[id, val] : std::as_const(d->fieldListMap)) {
+    if(String key = propertyKeyForId.value(id); !key.isEmpty()) {
+      props[key].append(val);
+    }
+    else {
+      props.addUnsupportedData(key);
+    }
+  }
+  return props;
+}
+
+void RIFF::Info::Tag::removeUnsupportedProperties(const StringList &props)
+{
+  for(const auto &id : props)
+    d->fieldListMap.erase(id.data(String::Latin1));
+}
+
+PropertyMap RIFF::Info::Tag::setProperties(const PropertyMap &props)
+{
+  static Map<String, ByteVector> idForPropertyKey;
+  if(idForPropertyKey.isEmpty()) {
+    for(const auto &[id, key] : propertyKeyForId) {
+      idForPropertyKey[key] = id;
+    }
+  }
+
+  const PropertyMap origProps = properties();
+  for(const auto &[key, _] : origProps) {
+    if(!props.contains(key) || props.value(key).isEmpty()) {
+      d->fieldListMap.erase(idForPropertyKey.value(key));
+    }
+  }
+
+  PropertyMap ignoredProps;
+  for(const auto &[key, val] : props) {
+    if(ByteVector id = idForPropertyKey.value(key);
+       !id.isEmpty() && !val.isEmpty()) {
+      d->fieldListMap[id] = val.front();
+    }
+    else {
+      ignoredProps.insert(key, val);
+    }
+  }
+  return ignoredProps;
+}
+
+FieldListMap RIFF::Info::Tag::fieldListMap() const
+{
+  return d->fieldListMap;
 }
 
 String RIFF::Info::Tag::fieldText(const ByteVector &id) const
 {
-  if(d->fieldMap.contains(id))
-    return String(d->fieldMap[id]);
-  else
-    return String();
+  if(d->fieldListMap.contains(id))
+    return String(d->fieldListMap[id]);
+  return String();
 }
 
 void RIFF::Info::Tag::setFieldText(const ByteVector &id, const String &s)
 {
-  // id must be four-byte long pure ascii string.
+  // id must be a four-byte long pure ascii string.
   if(!isValidChunkName(id))
     return;
 
   if(!s.isEmpty())
-    d->fieldMap[id] = s;
+    d->fieldListMap[id] = s;
   else
     removeField(id);
 }
 
 void RIFF::Info::Tag::removeField(const ByteVector &id)
 {
-  if(d->fieldMap.contains(id))
-    d->fieldMap.erase(id);
+  if(d->fieldListMap.contains(id))
+    d->fieldListMap.erase(id);
 }
 
 ByteVector RIFF::Info::Tag::render() const
 {
   ByteVector data("INFO");
 
-  for(FieldMap::ConstIterator it = d->fieldMap.begin(); it != d->fieldMap.end(); ++it) {
-    ByteVector text = stringHandler->render(it->second);
+  for(const auto &[field, list] : std::as_const(d->fieldListMap)) {
+    ByteVector text = stringHandler->render(list);
     if(text.isEmpty())
       continue;
 
-    data.append(it->first);
-    data.append(ByteVector::fromUInt32LE(text.size() + 1));
+    data.append(field);
+    data.append(ByteVector::fromUInt(text.size() + 1, false));
     data.append(text);
 
     do {
@@ -226,11 +295,10 @@ ByteVector RIFF::Info::Tag::render() const
 
   if(data.size() == 4)
     return ByteVector();
-  else
-    return data;
+  return data;
 }
 
-void RIFF::Info::Tag::setStringHandler(const TagLib::StringHandler *handler)
+void RIFF::Info::Tag::setStringHandler(const StringHandler *handler)
 {
   if(handler)
     stringHandler = handler;
@@ -244,16 +312,15 @@ void RIFF::Info::Tag::setStringHandler(const TagLib::StringHandler *handler)
 
 void RIFF::Info::Tag::parse(const ByteVector &data)
 {
-  size_t p = 4;
+  unsigned int p = 4;
   while(p < data.size()) {
-    const unsigned int size = data.toUInt32LE(p + 4);
+    const unsigned int size = data.toUInt(p + 4, false);
     if(size > data.size() - p - 8)
       break;
 
-    const ByteVector id = data.mid(p, 4);
-    if(isValidChunkName(id)) {
+    if(const ByteVector id = data.mid(p, 4); isValidChunkName(id)) {
       const String text = stringHandler->parse(data.mid(p + 8, size));
-      d->fieldMap[id] = text;
+      d->fieldListMap[id] = text;
     }
 
     p += ((size + 1) & ~1) + 8;
