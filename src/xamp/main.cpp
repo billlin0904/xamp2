@@ -20,6 +20,7 @@
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/imagecache.h>
+#include <widget/youtubedl/ytmusic_disckcache.h>
 #include <widget/util/str_utilts.h>
 #include <widget/jsonsettings.h>
 #include <widget/util/ui_utilts.h>
@@ -181,6 +182,8 @@ namespace {
             XMessageBox::showError(qTEXT("SSL initialization failed."));
             return -1;
         }
+
+        qDiskCache.load();
 
         loadLang();
 

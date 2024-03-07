@@ -1,11 +1,15 @@
 #include <QFile>
 #include <QDir>
+#include <QDirIterator>
+
 #include <widget/appsettings.h>
 #include <widget/util/str_utilts.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
+inline constexpr qint64 kMaxDiskCacheSize = 64 * 1024 * 1024;
+
 YtMusicDiskCache::YtMusicDiskCache()
-	: cache_(64 * 1024 * 1024) {
+	: cache_(kMaxDiskCacheSize) {
 }
 
 QString YtMusicDiskCache::makeFileCachePath(const QString& video_id) {
@@ -17,6 +21,18 @@ QString YtMusicDiskCache::makeFileCachePath(const QString& video_id) {
 		}
 	}
 	return file_path;
+}
+
+void YtMusicDiskCache::load() {
+	auto cache_ext = QStringList() << (qTEXT("*") + qTEXT(".mp4"));
+
+	for (QDirIterator itr(qAppSettings.cachePath() + qTEXT("DiskCache/"), cache_ext, QDir::Files | QDir::NoDotAndDotDot);
+		itr.hasNext();) {
+		const auto path = itr.next();
+		QFileInfo file_info(path);
+		auto video_id = file_info.baseName();
+		setFileName(video_id, path);
+	}
 }
 
 bool YtMusicDiskCache::isCached(const QString& video_id) const {

@@ -36,6 +36,8 @@ public:
 
 	static QString makeFileCachePath(const QString& video_id);
 
+	void load();
+
 	bool isCached(const QString & video_id) const;
 
 	FileCacheEntity getFileName(const QString& video_id) const;
