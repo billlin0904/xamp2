@@ -28,7 +28,7 @@ inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat
 
 namespace {
 	QString makeImageCachePath(const QString& tag_id) {
-		return qAppSettings.cachePath() + tag_id + kCacheFileExtension;
+		return qAppSettings.cachePath() + qTEXT("ImageCache/") + tag_id + kCacheFileExtension;
 	}
 }
 
@@ -137,6 +137,9 @@ void ImageCache::removeImage(const QString& tag_id) const {
 }
 
 ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
+	if (tag_id.isEmpty()) {
+		return {};
+	}
 	QImage image(qTheme.cacheCoverSize(), kFormat);
 	QImageReader reader(makeImageCachePath(tag_id));
 	if (reader.read(&image)) {

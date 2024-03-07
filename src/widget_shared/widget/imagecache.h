@@ -17,7 +17,7 @@
 #include <widget/util/image_utiltis.h>
 #include <widget/widget_shared_global.h>
 
-struct ImageCacheEntity {
+struct XAMP_WIDGET_SHARED_EXPORT ImageCacheEntity {
 	ImageCacheEntity(int64_t size = 0, const QPixmap &image = QPixmap())
 		: size(size)
 		, image(image) {

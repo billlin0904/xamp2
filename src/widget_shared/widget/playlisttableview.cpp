@@ -292,8 +292,6 @@ public:
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
 				opt.displayAlignment = Qt::AlignCenter;
-
-                XAMP_LOG_DEBUG("{}", qIconCache);
 	        }
             break;
 		default:

@@ -150,6 +150,7 @@
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\youtubedl\ytmusic.h" />
     <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
+    <ClInclude Include="widget\youtubedl\ytmusic_disckcache.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />
@@ -282,6 +283,7 @@
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusic.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusicoauth.cpp" />
+    <ClCompile Include="widget\youtubedl\ytmusic_disckcache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />

@@ -75,6 +75,7 @@
 #include <widget/playlisttabbar.h>
 #include <widget/createplaylistview.h>
 #include <widget/accountauthorizationpage.h>
+#include <widget/youtubedl/ytmusic_disckcache.h>
 
 #include <thememanager.h>
 #include <version.h>
@@ -1001,7 +1002,9 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
             dialog->setLabelText(tr("Fetching song information ..."));
 
             QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, dialog, video_info, entity](const auto& song) {
-                auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
+                //auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
+                //auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().video_id));
+                auto file_name = YtMusicDiskCache::makeFileCachePath(QString::fromStdString(song.value().video_id));
                 
                 dialog->setLabelText(tr("Start download ") + file_name + qTEXT(" ..."));
 
@@ -1037,7 +1040,7 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
                 const auto thumbnail_url = song.value().thumbnail.thumbnails.back().url;
 
                 http::HttpClient(QString::fromStdString(thumbnail_url))
-                    .download([file_name, this](const auto& content) {
+                    .download([file_name, song, this](const auto& content) {
                     QPixmap image;
                     if (!image.loadFromData(content)) {
                         return;
@@ -1046,8 +1049,10 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
                     TagIO tag_io;
                     tag_io.writeEmbeddedCover(file_name.toStdWString(), image);
 
-                    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-                    const auto last_save_file_name = last_dir + qTEXT("/") + file_name;
+                    qDiskCache.setFileName(QString::fromStdString(song.value().video_id), file_name);
+
+                    /*const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+                    const auto last_save_file_name = last_dir + qTEXT("/") + file_name;                                     
 
                     getSaveFileName(this, [file_name](const auto& save_file_name) {
                         QDir dir;
@@ -1056,7 +1061,8 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
                         }
                         }, tr("Save ") + qTEXT(".mp4"),
                         last_save_file_name,
-                        kEmptyString);                    
+                        kEmptyString);*/
+                    
                 });                
 
                 });
@@ -1065,6 +1071,15 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
 
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     auto [video_id, setVideoId] = parseId(id);
+
+    if (qDiskCache.isCached(video_id)) {
+        auto file_entity = qDiskCache.getFileName(video_id);
+        auto temp = entity;
+        temp.file_path = file_entity.file_name;
+        qMainDb.updateMusicFilePath(temp.music_id, temp.file_path);
+        onPlayMusic(temp);
+        return;
+    }
 
     XAMP_LOG_DEBUG("Fetching lyrics ...");
     fetchLyrics(entity, video_id);
