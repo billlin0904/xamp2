@@ -58,7 +58,7 @@ class Xamp final : public IXFrame {
 	Q_OBJECT
 
 public:
-	static constexpr auto kShowProgressDialogMsSecs = 1000;
+	static constexpr auto kShowProgressDialogMsSecs = 100;
 	static constexpr ConstLatin1String kSoftwareUpdateUrl =
 		qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
 
@@ -163,6 +163,8 @@ public slots:
 	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
 
 	void onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
+
+	void onRemainingTimeEstimation(size_t total_work, size_t ccompleted_work, int32_t secs);
 private:
 	void initialUi();
 

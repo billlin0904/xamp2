@@ -805,6 +805,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &Xamp::onReadFileProgress,
         Qt::QueuedConnection);
 
+    (void)QObject::connect(extract_file_worker_.get(),
+        &FileSystemWorker::remainingTimeEstimation,
+        this,
+        &Xamp::onRemainingTimeEstimation,
+        Qt::QueuedConnection);
+
     // BackgroundWorker
 
     (void)QObject::connect(background_worker_.get(),
@@ -2995,8 +3001,7 @@ void Xamp::onReadFilePath(const QString& file_path) {
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
-    qMainDb.setAlbumCover(album_id, cover_id);
-    album_page_->reload();
+    qMainDb.setAlbumCover(album_id, cover_id);    
 }
 
 void Xamp::onTranslationCompleted(const QString& keyword, const QString& result) {
@@ -3034,9 +3039,18 @@ void Xamp::onReadCompleted() {
     read_progress_dialog_.reset();    
 }
 
+void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs) {
+    if (!read_progress_dialog_) {
+        return;
+    }
+
+    read_progress_dialog_->setTitle(qSTR("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
+        .arg(formatDuration(secs)).arg(total_work).arg(completed_work));
+}
+
 void Xamp::onFoundFileCount(size_t file_count) {    
     if (!read_progress_dialog_
-        && progress_timer_.elapsed() > kShowProgressDialogMsSecs) {
+        /*&& progress_timer_.elapsed() > kShowProgressDialogMsSecs*/) {
         read_progress_dialog_ = makeProgressDialog(kApplicationTitle,
             tr("Read track information"),
             tr("Cancel"));
