@@ -75,6 +75,13 @@ void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
     QDirIterator itr(dir, getTrackInfoFileNameFilter(), QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     FloatMap<std::wstring, Vector<Path>> directory_files;
 
+    XAMP_ON_SCOPE_EXIT(
+        for (auto& dir : directory_files) {
+            dir.second.clear();
+            dir.second.shrink_to_fit();
+        }
+    );
+
     while (itr.hasNext()) {
         if (is_stop_) {
             return;
@@ -148,19 +155,25 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
         paths.push_back(file_path);
     }
 
-    emit readFileStart();
-
-    XAMP_ON_SCOPE_EXIT(
-        emit readFileProgress(100);
-		emit readCompleted();
-		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", total_time_elapsed_.ElapsedSeconds());
-    );
+    emit readFileStart();    
 
     std::atomic<size_t> completed_work(0);
 
     auto [total_work, file_count_paths] = getPathSortByFileCount(paths, getTrackInfoFileNameFilter(), [this](auto total_file_count) {
         emit foundFileCount(total_file_count);
         });
+
+    XAMP_ON_SCOPE_EXIT(
+        paths.clear();
+        paths.shrink_to_fit();
+
+        file_count_paths.clear();
+        file_count_paths.shrink_to_fit();
+
+        emit readFileProgress(100);
+        emit readCompleted();
+        XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", total_time_elapsed_.ElapsedSeconds());
+    );
 
     if (total_work == 0) {
         XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
