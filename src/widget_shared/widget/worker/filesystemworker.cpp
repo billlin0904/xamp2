@@ -111,6 +111,8 @@ void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
             return;
         }
 
+        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
         ForwardList<TrackInfo> tracks;
 
         for (const auto& path : path_info.second) {
@@ -173,6 +175,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
         emit readFileProgress(100);
         emit readCompleted();
         XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", total_time_elapsed_.ElapsedSeconds());
+        extract_file_thread_pool_.reset();
     );
 
     if (total_work == 0) {
@@ -186,19 +189,24 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
     total_time_elapsed_.Reset();
 
     for (const auto & path_info : file_count_paths) {
+        if (is_stop_) {
+            return;
+        }
         scanPathFiles(playlist_id, path_info.path);
         updateProgress();
-    }
+    }    
 }
 
 void FileSystemWorker::updateProgress() {
     const auto completed_work = completed_work_.load();
     emit readFileProgress((completed_work * 100) / total_work_);
-
-    const auto elapsedTime = total_time_elapsed_.ElapsedSeconds();
-    const double remainingTime = (total_work_ > completed_work) ?
-        ((double)elapsedTime / (double)completed_work) * (total_work_ - completed_work) : 0.0;
-    emit remainingTimeEstimation(total_work_, completed_work, static_cast<int>(remainingTime));
+    if (update_elapsed_.ElapsedSeconds() > 1) {
+        const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
+        const double remaining_time = (total_work_ > completed_work) ?
+            ((double)elapsed_time / (double)completed_work) * (total_work_ - completed_work) : 0.0;
+        emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
+        update_elapsed_.Reset();
+    }    
 }
 
 void FileSystemWorker::cancelRequested() {

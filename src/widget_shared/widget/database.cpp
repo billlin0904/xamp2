@@ -192,7 +192,7 @@ void Database::open() {
     }
 
     (void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
-    (void)db_.exec(qTEXT("PRAGMA auto_vacuum = OFF"));
+    (void)db_.exec(qTEXT("PRAGMA auto_vacuum = FULL"));
     (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
     (void)db_.exec(qTEXT("PRAGMA journal_mode = DELETE"));
     (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
@@ -872,9 +872,9 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":title"), toQString(track_info.title));
     query.bindValue(qTEXT(":track"), track_info.track);
     query.bindValue(qTEXT(":path"), toQString(track_info.file_path));
-    query.bindValue(qTEXT(":fileExt"), toQString(track_info.file_ext));
-    query.bindValue(qTEXT(":fileName"), toQString(track_info.file_name));
-    query.bindValue(qTEXT(":parentPath"), toQString(track_info.parent_path));
+    query.bindValue(qTEXT(":fileExt"), toQString(track_info.file_ext()));
+    query.bindValue(qTEXT(":fileName"), toQString(track_info.file_name()));
+    query.bindValue(qTEXT(":parentPath"), toQString(track_info.parent_path()));
     query.bindValue(qTEXT(":duration"), track_info.duration);
     query.bindValue(qTEXT(":durationStr"), formatDuration(track_info.duration));
     query.bindValue(qTEXT(":bitRate"), track_info.bit_rate);

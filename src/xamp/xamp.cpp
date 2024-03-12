@@ -3047,6 +3047,7 @@ void Xamp::onReadCompleted() {
     if (local_tab_widget_->count() > 0) {
         localPlaylistPage()->playlist()->reload();
     }
+    album_page_->album()->reload();
     if (!read_progress_dialog_) {
         return;
     }

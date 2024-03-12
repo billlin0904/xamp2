@@ -30,10 +30,6 @@ XAMP_MAKE_ENUM(
     TaskStealPolicy,
     CONTINUATION_STEALING_POLICY)
 
-struct XAMP_BASE_API PlatformUUID {
-    uint8_t id[16];
-};
-
 struct XAMP_BASE_API CpuAffinity {
 public:
     static const CpuAffinity kAll;
@@ -57,10 +53,6 @@ XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority) n
 XAMP_BASE_API void SetThreadName(std::wstring const & name) noexcept;
 
 XAMP_BASE_API std::string GetCurrentThreadId();
-
-XAMP_BASE_API std::string MakeUuidString();
-
-XAMP_BASE_API PlatformUUID ParseUuidString(const std::string& str);
 
 XAMP_BASE_API bool IsDebuging();
 

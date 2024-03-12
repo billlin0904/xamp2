@@ -333,43 +333,6 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
 #endif
 }
 
-PlatformUUID ParseUuidString(const std::string &str) {
-    PlatformUUID result{};
-#ifdef XAMP_OS_WIN
-    UUID uuid;
-    auto status = ::UuidFromStringA(RPC_CSTR(str.c_str()), &uuid);
-    XAMP_ASSERT(status == RPC_S_OK);
-    MemoryCopy(&result, &uuid, sizeof(PlatformUUID));
-#else
-    uuid_string_t ustr{ 0 };
-    MemoryCopy(ustr, str.c_str(), sizeof(ustr));
-    uuid_t uuid{ 0 };
-    ::uuid_parse(ustr, uuid);
-    MemoryCopy(&result, &uuid, sizeof(PlatformUUID));
-#endif
-    return result;
-}
-
-std::string MakeUuidString() {
-#ifdef XAMP_OS_WIN
-	UUID uuid;
-    auto status = ::UuidCreate(&uuid);
-    XAMP_ASSERT(status == RPC_S_OK);
-    char* str = nullptr;
-    status = ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&str));
-    XAMP_ASSERT(status == RPC_S_OK);
-    std::string result = str;
-    ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&str));
-    return result;
-#else
-    uuid_t uuid;
-    ::uuid_generate(uuid);
-    char buf[37] = {0};
-    ::uuid_unparse(uuid, buf);
-    return buf;
-#endif    
-}
-
 std::string GetCurrentThreadId() {
     std::ostringstream ostr;
     ostr << std::this_thread::get_id();

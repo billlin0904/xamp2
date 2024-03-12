@@ -309,50 +309,6 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 
 WinTaskbar::~WinTaskbar() = default;
 
-//void setMicaEffect(HWND hwnd, bool is_dark_mode = false, bool is_alt = false) {
-//	auto margins = MARGINS(-1, -1, -1, -1);
-//	if (FAILED(DWM_DLL.DwmExtendFrameIntoClientArea(hwnd, &margins))) {
-//		XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure!");
-//	}
-//
-//	WINDOWCOMPOSITIONATTRIBDATA win_comp_attr_data;
-//	win_comp_attr_data.Attribute = WINDOWCOMPOSITIONATTRIB::WCA_ACCENT_POLICY;
-//
-//	ACCENT_POLICY accent_policy;
-//	accent_policy.AccentState = ACCENT_STATE::ACCENT_ENABLE_HOSTBACKDROP;
-//
-//	win_comp_attr_data.SizeOfData = sizeof(ACCENT_POLICY);
-//	win_comp_attr_data.Data = &accent_policy;
-//
-//	if (!USER32_DLL.SetWindowCompositionAttribute(hwnd, &win_comp_attr_data)) {
-//		XAMP_LOG_DEBUG("SetWindowCompositionAttribute return failure!");
-//	}
-//
-//	if (is_dark_mode) {
-//		win_comp_attr_data.Attribute = WINDOWCOMPOSITIONATTRIB::WCA_USEDARKMODECOLORS;
-//		if (!USER32_DLL.SetWindowCompositionAttribute(hwnd, &win_comp_attr_data)) {
-//			XAMP_LOG_DEBUG("SetWindowCompositionAttribute return failure!");
-//		}
-//	}
-//
-//	constexpr auto DWMWA_SYSTEMBACKDROP_TYPE = 38;
-//	DWM_SYSTEMBACKDROP_TYPE backdrop = DWMSBT_MAINWINDOW;
-//
-//	if (FAILED(DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdrop, sizeof(backdrop)))) {
-//		XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure!");
-//	}
-//
-//	const BOOL dark = is_dark_mode;
-//	if (FAILED(DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark)))) {
-//		XAMP_LOG_DEBUG("DwmSetWindowAttribute return failure!");
-//	}
-//}
-
-void setMicaEffect(QWidget* window) {
-	const auto hwnd = reinterpret_cast<HWND>(window->winId());
-	//setMicaEffect(hwnd);
-}
-
 void WinTaskbar::setWindow(QWidget* window) {
 	window_ = window;
 	QCoreApplication::instance()->installNativeEventFilter(this);
@@ -511,13 +467,16 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 
 	switch (msg->message) {
 	case WM_DWMSENDICONICTHUMBNAIL:
+		XAMP_LOG_DEBUG("WM_DWMSENDICONICTHUMBNAIL");
 		updateIconicThumbnail(QSize(HIWORD(msg->lParam), LOWORD(msg->lParam)), msg->hwnd, thumbnail_);
 		return true;
 	case WM_DWMSENDICONICLIVEPREVIEWBITMAP: 
+		XAMP_LOG_DEBUG("WM_DWMSENDICONICLIVEPREVIEWBITMAP");
 		updateLiveThumbnail(msg->hwnd, window_->grab());
 		return true;
 	case WM_COMMAND:
 	{
+		XAMP_LOG_DEBUG("WM_COMMAND");
 		const int button_id = LOWORD(msg->wParam) - IDTB_FIRST;
 
 		if ((button_id >= 0) && (button_id < kWinThumbbarButtonSize)) {

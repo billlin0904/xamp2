@@ -603,7 +603,8 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 
 	float dbVolume = 0;
 	endpoint_volume_->GetMasterVolumeLevel(&dbVolume);
-	XAMP_LOG_D(logger_, "Current {} dB", dbVolume);
+	XAMP_LOG_D(logger_, "Current:{} dB, max_volume:{} dB, min_volume:{} dB, volume_normalized:{} dB, volume_range:{} ",
+		dbVolume, scaled_max_volume, scaled_min_volume, target_volume_normalized, volume_range);
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {

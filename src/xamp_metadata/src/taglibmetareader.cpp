@@ -258,12 +258,13 @@ namespace {
         return false;
     }
 
-    void SetFileInfo(Path const& path, TrackInfo& track_info) {
-        track_info.file_path = path.wstring();
-        track_info.file_name = path.filename().wstring();
-        track_info.parent_path = path.parent_path().wstring();
-        track_info.file_ext = path.extension().wstring();
-        track_info.file_name_no_ext = path.stem().wstring();
+    void SetFileInfo(const Path& path, TrackInfo& track_info) {
+        track_info.file_path = path;
+        //track_info.file_path = path.wstring();
+        //track_info.file_name = path.filename().wstring();
+        //track_info.parent_path = path.parent_path().wstring();
+        //track_info.file_ext = path.extension().wstring();
+        //track_info.file_name_no_ext = path.stem().wstring();
         track_info.file_size = Fs::file_size(path);
     }
 
@@ -276,29 +277,35 @@ namespace {
     }
 
     void ExtractTitleFromFileName(TrackInfo& track_info) {
-        if (track_info.file_name_no_ext) {
-	        const auto start_pos = track_info.file_name_no_ext.value().find(L'.');
+        std::optional<std::wstring> file_name_no_ext(track_info.file_name_no_ext());
+
+        if (file_name_no_ext) {
+	        const auto start_pos = file_name_no_ext.value().find(L'.');
             if (start_pos != std::wstring::npos) {
-                track_info.title = track_info.file_name_no_ext.value().substr(start_pos + 1);
-                std::wistringstream istr(track_info.file_name_no_ext.value().substr(0, start_pos));
+                track_info.title = file_name_no_ext.value().substr(start_pos + 1);
+                std::wistringstream istr(file_name_no_ext.value().substr(0, start_pos));
                 istr >> track_info.track >> track_info.title.value();
             }
             else {
-                track_info.title = track_info.file_name_no_ext;
+                track_info.title = file_name_no_ext;
             }
 
 #ifdef XAMP_OS_WIN
+            #define port_swscanf swscanf_s
+#else
+            #define port_swscanf swscanf
+#endif
+
             auto track_id = 0;
-            const auto res = swscanf_s(track_info.file_name_no_ext.value().c_str(), L"Track%02d",
+            const auto res = port_swscanf(file_name_no_ext.value().c_str(), L"Track%02d",
                 &track_id);
             if (res == 1) {
                 track_info.track = track_id;
             }
-#endif
         }
     }
 
-    void ExtractTag(Path const& path, Tag const* tag, const AudioProperties* audio_properties, TrackInfo& track_info) {
+    void ExtractTag(Path const& path, const Tag* tag, const AudioProperties* audio_properties, TrackInfo& track_info) {
         try {
             if (!tag->isEmpty()) {
                 if (!tag->artist().toWString().empty()) {
@@ -380,7 +387,7 @@ public:
 		return support_file_extensions_;
 	}
 
-	[[nodiscard]] bool IsSupported(Path const & path) const noexcept {
+	[[nodiscard]] bool IsSupported(const Path & path) const noexcept {
 		const auto file_ext = String::ToLower(path.extension().string());
 		return support_file_extensions_.contains(file_ext);
 	}

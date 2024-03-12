@@ -19,7 +19,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.file_path = indexValue(index, PLAYLIST_FILE_PATH).toString();
     entity.file_size = indexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
     entity.title = indexValue(index, PLAYLIST_TITLE).toString();
-    entity.file_name = indexValue(index, PLAYLIST_FILE_NAME).toString();
+    //entity.file_name = indexValue(index, PLAYLIST_FILE_NAME).toString();
     entity.artist = indexValue(index, PLAYLIST_ARTIST).toString();
     entity.album = indexValue(index, PLAYLIST_ALBUM).toString();
     entity.duration = indexValue(index, PLAYLIST_DURATION).toDouble();
@@ -28,8 +28,8 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
     entity.artist_id = indexValue(index, PLAYLIST_ARTIST_ID).toInt();
     entity.cover_id = indexValue(index, PLAYLIST_ALBUM_COVER_ID).toString();
-    entity.file_extension = indexValue(index, PLAYLIST_FILE_EXT).toString();
-    entity.parent_path = indexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    //entity.file_extension = indexValue(index, PLAYLIST_FILE_EXT).toString();
+    //entity.parent_path = indexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
     entity.timestamp = indexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
     entity.playlist_music_id = indexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     entity.genre = indexValue(index, PLAYLIST_GENRE).toString();

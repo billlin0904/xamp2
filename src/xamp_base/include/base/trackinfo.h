@@ -10,6 +10,7 @@
 #include <optional>
 
 #include <base/base.h>
+#include <base/fs.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -32,19 +33,43 @@ struct XAMP_BASE_API TrackInfo final {
     int64_t last_write_time;
 	double offset;
     double duration;
-    std::wstring file_path;
+    Path file_path;
     std::optional<std::string> cover_id;
     std::optional<std::string> disc_id;
-    std::optional<std::wstring> file_name;
-    std::optional<std::wstring> file_name_no_ext;
-    std::optional<std::wstring> file_ext;
     std::optional<std::wstring> title;
     std::optional<std::wstring> artist;
     std::optional<std::wstring> album;
-    std::optional<std::wstring> parent_path;
     std::optional<std::wstring> genre;
     std::optional<std::wstring> comment;
     std::optional<ReplayGain> replay_gain;
+
+    std::optional<std::wstring> file_name() const {
+        if (!file_path.has_filename()) {
+            return std::nullopt;
+        }
+        return file_path.filename().wstring();
+    }
+
+    std::optional<std::wstring> parent_path() const {
+        if (!file_path.has_parent_path()) {
+            return std::nullopt;
+        }
+        return file_path.parent_path().wstring();
+    }
+
+    std::optional<std::wstring> file_ext() const {
+        if (!file_path.has_extension()) {
+            return std::nullopt;
+        }
+        return file_path.extension().wstring();
+    }
+
+    std::optional<std::wstring> file_name_no_ext() const {
+        if (!file_path.has_stem()) {
+            return std::nullopt;
+        }
+        return file_path.stem().wstring();
+    }
 };
 
 static const std::string kReplaygainAlbumGain{"REPLAYGAIN_ALBUM_GAIN"};

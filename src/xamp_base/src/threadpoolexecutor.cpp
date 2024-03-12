@@ -185,7 +185,8 @@ std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_to
 		const auto index = (i + n) % max_thread_;
 
 		if (auto func = task_work_queues_.at(index)->TryDequeue()) {
-			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
+			//XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
+			XAMP_LOG_DEBUG("Steal other thread {} queue (found count: {}).", index, n);
 			return func;
 		}
 	}

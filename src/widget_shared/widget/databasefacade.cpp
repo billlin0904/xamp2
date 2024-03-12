@@ -120,7 +120,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 			// TODO: 如果有內建圖片就把當作一張專輯.
 			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
-				album = toQString(track_info.file_name_no_ext);
+				album = toQString(track_info.file_name_no_ext());
 			}
 		}
 
@@ -159,7 +159,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 database_->addOrUpdateAlbumCategory(album_id, album_genre);
             }
 
-            if (track_info.file_ext == kDsfFileExtension || track_info.file_ext == kDffFileExtension) {
+            if (track_info.file_ext() == kDsfFileExtension || track_info.file_ext() == kDffFileExtension) {
                 database_->addOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {

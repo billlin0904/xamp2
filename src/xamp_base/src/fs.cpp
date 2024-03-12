@@ -53,7 +53,7 @@ Path GetTempFileNamePath() {
 }
 
 std::string MakeTempFileName() {
-	return MakeUuidString();
+	return std::tmpnam(nullptr);
 }
 
 Path GetApplicationFilePath() {
