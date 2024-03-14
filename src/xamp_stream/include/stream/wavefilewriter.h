@@ -18,18 +18,18 @@ class WaveFileWriter final {
 public:
 	WaveFileWriter() = default;
 	
-	void Open(Path const& file_path, AudioFormat const& format);
+	void Open(const Path& file_path, const AudioFormat& format);
 
 	XAMP_DISABLE_COPY(WaveFileWriter)
 
 	void Close();
 
-	[[nodiscard]] bool TryWrite(float const* sample, size_t num_samples);
+	[[nodiscard]] bool TryWrite(const float* sample, size_t num_samples);
 
-	void Write(float const* sample, size_t num_samples);
+	void Write(const float* sample, size_t num_samples);
 	
 private:
-	void WriteHeader(AudioFormat const& format);
+	void WriteHeader(const AudioFormat& format);
 	
 	void WriteDataLength();
 

@@ -25,8 +25,10 @@
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
 #include <stream/srclib.h>
+#include <stream/alacencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
+#include <stream/alaclib.h>
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -79,6 +81,10 @@ AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode, const Path
 
 AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
     return MakeAlign<IFileEncoder, BassFlacFileEncoder>();
+}
+
+AlignPtr<IFileEncoder> StreamFactory::MakeAlacEncoder() {
+    return MakeAlign<IFileEncoder, AlacFileEncoder>();
 }
 
 AlignPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
@@ -199,6 +205,10 @@ void LoadSoxrLib() {
 
 void LoadSrcLib() {
     Singleton<SrcLib>::GetInstance();
+}
+
+void LoadAlacLib() {
+    Singleton<AlacLib>::GetInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END

@@ -24,6 +24,8 @@ public:
 
 	static AlignPtr<IFileEncoder> MakeFlacEncoder();
 
+	static AlignPtr<IFileEncoder> MakeAlacEncoder();
+
 	static AlignPtr<IFileEncoder> MakeAACEncoder();
 
 	static AlignPtr<IFileEncoder> MakeWaveEncoder();
@@ -71,5 +73,7 @@ XAMP_STREAM_API void LoadSoxrLib();
 XAMP_STREAM_API void LoadSrcLib();
 
 XAMP_STREAM_API void LoadBassLib();
+
+XAMP_STREAM_API void LoadAlacLib();
 
 XAMP_STREAM_NAMESPACE_END

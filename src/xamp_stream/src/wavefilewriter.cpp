@@ -50,7 +50,7 @@ void WaveFileWriter::Close() {
 	data_length_ = 0;
 }
 
-void WaveFileWriter::Open(Path const& file_path, AudioFormat const& format) {
+void WaveFileWriter::Open(const Path& file_path, const AudioFormat& format) {
 	if (format.GetBitsPerSample() != 16 && format.GetBitsPerSample() != 24) {
 		throw NotSupportFormatException();
 	}
@@ -62,7 +62,7 @@ void WaveFileWriter::Open(Path const& file_path, AudioFormat const& format) {
 	WriteHeader(format);	
 }
 
-bool WaveFileWriter::TryWrite(float const* sample, size_t num_samples) {
+bool WaveFileWriter::TryWrite(const float* sample, size_t num_samples) {
 	try {
 		Write(sample, num_samples);
 	}
@@ -72,7 +72,7 @@ bool WaveFileWriter::TryWrite(float const* sample, size_t num_samples) {
 	return true;
 }
 
-void WaveFileWriter::Write(float const* sample, size_t num_samples) {
+void WaveFileWriter::Write(const float* sample, size_t num_samples) {
 	for (size_t i = 0; i < num_samples; ++i) {
 		WriteSample(sample[i]);
 	}
@@ -113,7 +113,7 @@ void WaveFileWriter::WriteDataLength() {
 	}
 }
 
-void WaveFileWriter::WriteHeader(AudioFormat const& format) {
+void WaveFileWriter::WriteHeader(const AudioFormat& format) {
 	COMBINED_HEADER header;
 	MemoryCopy(header.riff.descriptor.id, "RIFF", 4);
 	MemoryCopy(header.riff.type, "WAVE", 4);

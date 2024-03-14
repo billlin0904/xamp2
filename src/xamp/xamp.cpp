@@ -2790,12 +2790,18 @@ void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& pr
 }
 
 void Xamp::encodeWavFile(const PlayListEntity& entity) {
-    encodeFile(entity,
+    /*encodeFile(entity,
         EncodingProfile(),
         tr("Wav Files (*.wav)"),
         tr("wav"),
         L"", 
-        StreamFactory::MakeWaveEncoder());
+        StreamFactory::MakeWaveEncoder());*/
+    encodeFile(entity,
+        EncodingProfile(),
+        tr("ALAC Files (*.m4a)"),
+        tr("m4a"),
+        L"",
+        StreamFactory::MakeAlacEncoder());
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& entity) {

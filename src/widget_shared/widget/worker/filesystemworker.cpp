@@ -137,7 +137,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
     if (extract_file_thread_pool_ != nullptr) {
         extract_file_thread_pool_.reset();
     }
-    extract_file_thread_pool_ = MakeThreadPoolExecutor(kExtractFileWorkerLoggerName);
+    extract_file_thread_pool_ = MakeThreadPoolExecutor(kExtractFileWorkerLoggerName, ThreadPriority::BACKGROUND);
 
     constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
     QDirIterator itr(file_path, getTrackInfoFileNameFilter(), filter);

@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/LibALAC/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/LibALAC/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -156,6 +156,8 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\stream\alacencoder.h" />
+    <ClInclude Include="include\stream\alaclib.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
@@ -202,6 +204,7 @@
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\alacencoder.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
