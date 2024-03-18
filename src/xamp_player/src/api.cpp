@@ -29,9 +29,6 @@ void LoadComponentSharedLibrary() {
     LoadAvLib();
     XAMP_LOG_DEBUG("Load avlib success.");
 
-    LoadAlacLib();
-    XAMP_LOG_DEBUG("Load alaclib success.");
-
     Ebur128Reader::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 

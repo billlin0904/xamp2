@@ -11,7 +11,7 @@ AvException::AvException(int32_t error)
 	: Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) 
 	, error_code_(error) {
 	char buf[256]{};
-	LIBAV_LIB.UtilLib->av_strerror(error, buf, sizeof(buf) - 1);
+	LIBAV_LIB.Util->av_strerror(error, buf, sizeof(buf) - 1);
 	message_.assign(buf);
 }
 
@@ -44,7 +44,9 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(av_oformat_next)
 	, XAMP_LOAD_DLL_API(avformat_alloc_output_context2)
 	, XAMP_LOAD_DLL_API(avio_open)
-	, XAMP_LOAD_DLL_API(av_interleaved_write_frame) {
+	, XAMP_LOAD_DLL_API(av_interleaved_write_frame)
+	, XAMP_LOAD_DLL_API(av_guess_format)
+	, XAMP_LOAD_DLL_API(av_register_all) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -69,7 +71,7 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_find_encoder)
 	, XAMP_LOAD_DLL_API(avcodec_configuration)
 	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context)
-	, XAMP_LOAD_DLL_API(av_codec_next)
+	, XAMP_LOAD_DLL_API(av_codec_iterate)
 	, XAMP_LOAD_DLL_API(av_packet_rescale_ts) {
 }
 catch (const Exception& e) {
@@ -124,7 +126,7 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 
 	va_copy(valist, vl);
 	int print_prefix = 1;
-	LIBAV_LIB.UtilLib->av_log_format_line(ptr, level, fmt, valist, message, sizeof(message), &print_prefix);
+	LIBAV_LIB.Util->av_log_format_line(ptr, level, fmt, valist, message, sizeof(message), &print_prefix);
 	va_end(valist);
 
 	const auto message_length = strlen(message) - 1;
@@ -158,29 +160,33 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 }
 
 AvLib::~AvLib() {
-	FormatLib->avformat_network_deinit();
+	Format->avformat_network_deinit();
 }
 
 AvLib::AvLib() {
 	logger = XampLoggerFactory.GetLogger(kLibAvLoggerName);
 	XAMP_LOG_D(logger, "Load {} success.", LIBAVCODEC_IDENT);
 
-	FormatLib = MakeAlign<AvFormatLib>();
-	CodecLib = MakeAlign<AvCodecLib>();
-	SwrLib = MakeAlign<AvSwLib>();
-	UtilLib = MakeAlign<AvUtilLib>();
+	Format = MakeAlign<AvFormatLib>();
+	Codec = MakeAlign<AvCodecLib>();
+	Swr = MakeAlign<AvSwLib>();
+	Util = MakeAlign<AvUtilLib>();
 
-	UtilLib->av_log_set_callback(LogPrintf);
-	UtilLib->av_log_set_level(AV_LOG_FATAL);
+	Format->av_register_all();
 
-	FormatLib->avformat_network_init();
+	Util->av_log_set_callback(LogPrintf);
+	Util->av_log_set_level(AV_LOG_FATAL);
+
+	Format->avformat_network_init();
 
 	const auto level = logger->GetLevel();
 	logger->SetLevel(LOG_LEVEL_DEBUG);
-	XAMP_LOG_D(logger, CodecLib->avcodec_configuration());
+	XAMP_LOG_D(logger, Codec->avcodec_configuration());
 	logger->SetLevel(level);
 
 	XAMP_LOG_D(logger, "Network init.");
+
+	GetSupportFileExtensions();
 }
 
 HashSet<std::string> AvLib::GetSupportFileExtensions() const {
@@ -190,31 +196,41 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	const auto level = logger->GetLevel();
 	logger->SetLevel(LOG_LEVEL_DEBUG);
 
-	const auto* codec = CodecLib->av_codec_next(nullptr);
-	while (codec != nullptr) {
+	void* i = nullptr;
+	const AVCodec* codec;
+	while ((codec = Codec->av_codec_iterate(&i))) {
 		if (!codec->decode) {
 			if (codec->type == AVMEDIA_TYPE_AUDIO) {
 				audio_codecs.insert(codec);
 			}
 		}
-		codec = codec->next;
 	}
 
-	auto output_format = FormatLib->av_oformat_next(nullptr);
-	std::set<std::string_view> ordered_extension;
+	auto output_format = Format->av_oformat_next(nullptr);
+	std::set<std::string> ordered_extension;
+
+#define IF_NULL_STR(value) value ? value : ""
 
 	while (output_format != nullptr) {
-		for (auto* audio_codec : audio_codecs) {
-			if (FormatLib->avformat_query_codec(output_format, audio_codec->id, FF_COMPLIANCE_STRICT) == 1) {
-				if (!output_format->extensions)
-					continue;
-				for (const auto& extension : String::Split(output_format->extensions, ",")) {
-                    if (ordered_extension.find(extension) != ordered_extension.end()) {
-						ordered_extension.insert(extension);
+		if (output_format->extensions) {
+			auto result = String::Split(output_format->extensions, ",");
+			if (!result.empty()) {
+				for (const auto& extension : result) {
+					auto ext = String::AsStdString(extension);
+					String::LTrim(ext);
+					String::RTrim(ext);
+					if (ordered_extension.find(ext) == ordered_extension.end()) {
+						ordered_extension.insert(ext);
 					}
 				}
-			}
+			} else {
+				ordered_extension.insert(String::Format(".{}", output_format->extensions));
+			}			
 		}
+		
+		XAMP_LOG_D(logger, "Load Libav output format: {} - {}",
+			IF_NULL_STR(output_format->long_name),
+			IF_NULL_STR(output_format->extensions));
 		output_format = output_format->next;
 	}
 
@@ -229,7 +245,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 
 	for (const auto& extension : ordered_extension) {
 		const auto file_extensions = String::Format(".{}", extension);
-		XAMP_LOG_T(logger, "Load Libav format extensions: {}", file_extensions);
+		XAMP_LOG_D(logger, "Load Libav format extensions: {}", file_extensions);
 		result.insert(file_extensions);
 	}
 

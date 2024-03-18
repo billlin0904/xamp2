@@ -52,7 +52,7 @@ public:
         AVDictionary* options = nullptr;
 
         const auto file_path_ut8 = String::ToString(file_path.wstring());
-        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&ctx, file_path_ut8.c_str(), nullptr, &options);
+        const auto err = LIBAV_LIB.Format->avformat_open_input(&ctx, file_path_ut8.c_str(), nullptr, &options);
         if (err != 0) {
             return {};
         }
@@ -61,7 +61,7 @@ public:
 
         OrderedMap<std::wstring, std::wstring> file_info;
         AVDictionaryEntry* tag = nullptr;
-        while ((tag = LIBAV_LIB.UtilLib->av_dict_get(format_context->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+        while ((tag = LIBAV_LIB.Util->av_dict_get(format_context->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
             file_info[String::ToString(tag->key)] = String::ToString(tag->value);
             XAMP_LOG_D(logger_, "{} {}", tag->key, tag->value);
         }
@@ -81,13 +81,13 @@ public:
         
         if (!IsFilePath(file_path.wstring())) {
             // note: Http request timeout in microseconds. 
-            LIBAV_LIB.UtilLib->av_dict_set(&options, "timeout", "6000000", 0);
-            LIBAV_LIB.UtilLib->av_dict_set(&options, "user_agent", XAMP_HTTP_USER_AGENT, 0);
+            LIBAV_LIB.Util->av_dict_set(&options, "timeout", "6000000", 0);
+            LIBAV_LIB.Util->av_dict_set(&options, "user_agent", XAMP_HTTP_USER_AGENT, 0);
         }
-        LIBAV_LIB.UtilLib->av_dict_set(&options, "probesize", "4M", AV_OPT_SEARCH_CHILDREN);
+        LIBAV_LIB.Util->av_dict_set(&options, "probesize", "4M", AV_OPT_SEARCH_CHILDREN);
 
         const auto file_path_ut8 = String::ToString(file_path.wstring());
-        const auto err = LIBAV_LIB.FormatLib->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
+        const auto err = LIBAV_LIB.Format->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
         if (err != 0) {
             static constexpr auto AVERROR_NOFMT = -42;
             switch (err) {
@@ -111,7 +111,7 @@ public:
         // max analyze duration: 5s
         format_context->max_analyze_duration = 5 * AV_TIME_BASE;
 
-        if (LIBAV_LIB.FormatLib->avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
+        if (LIBAV_LIB.Format->avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
             throw NotSupportFormatException();
         }
 
@@ -148,7 +148,7 @@ public:
         // Find libfdk_aac codec.
         AVCodec* codec = nullptr;
         if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
-            codec = LIBAV_LIB.CodecLib->avcodec_find_decoder_by_name("libfdk_aac");
+            codec = LIBAV_LIB.Codec->avcodec_find_decoder_by_name("libfdk_aac");
             if (!codec) {
                 XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
             } else {
@@ -158,7 +158,7 @@ public:
         
         // Fallback find other codec.
         if (!codec) {
-            codec = LIBAV_LIB.CodecLib->avcodec_find_decoder(codec_context_->codec_id);
+            codec = LIBAV_LIB.Codec->avcodec_find_decoder(codec_context_->codec_id);
             if (!codec) {
                 throw NotSupportFormatException();
             }
@@ -167,9 +167,9 @@ public:
         // note: Don't use multi threading for audio decode.
         codec_context_->thread_count = 1;
 
-        AvIfFailedThrow(LIBAV_LIB.CodecLib->avcodec_open2(codec_context_.get(), codec, nullptr));
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), codec, nullptr));
         
-        audio_frame_.reset(LIBAV_LIB.UtilLib->av_frame_alloc());
+        audio_frame_.reset(LIBAV_LIB.Util->av_frame_alloc());
 
         switch (codec_context_->sample_fmt) {
         case AV_SAMPLE_FMT_S16:
@@ -205,7 +205,7 @@ public:
         const int64_t channel_layout = codec_context_->channel_layout == 0
     	? AV_CH_LAYOUT_STEREO : static_cast<int64_t>(codec_context_->channel_layout);
        
-        swr_context_.reset(LIBAV_LIB.SwrLib->swr_alloc_set_opts(swr_context_.get(),
+        swr_context_.reset(LIBAV_LIB.Swr->swr_alloc_set_opts(swr_context_.get(),
             AV_CH_LAYOUT_STEREO,
             AV_SAMPLE_FMT_FLT,
             codec_context_->sample_rate,
@@ -216,7 +216,7 @@ public:
             nullptr));
 
         // Down mix to stereo.
-        AvIfFailedThrow(LIBAV_LIB.SwrLib->swr_init(swr_context_.get()));
+        AvIfFailedThrow(LIBAV_LIB.Swr->swr_init(swr_context_.get()));
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
         if (codec_context_->channels != AudioFormat::kMaxChannel) {
             XAMP_LOG_D(logger_,"Mix {} to Stereo channel", codec_context_->channels);
@@ -225,12 +225,12 @@ public:
             audio_format_.SetChannel(static_cast<uint16_t>(codec_context_->channels));
         }
         audio_format_.SetSampleRate(static_cast<uint32_t>(codec_context_->sample_rate));
-        audio_format_.SetBitPerSample(LIBAV_LIB.UtilLib->av_get_bytes_per_sample(codec_context_->sample_fmt) * 8);
+        audio_format_.SetBitPerSample(LIBAV_LIB.Util->av_get_bytes_per_sample(codec_context_->sample_fmt) * 8);
         audio_format_.SetPackedFormat(PackedFormat::INTERLEAVED);
         XAMP_LOG_D(logger_, "Stream format: {}", audio_format_);
 
-        packet_.reset(LIBAV_LIB.CodecLib->av_packet_alloc());
-        LIBAV_LIB.CodecLib->av_init_packet(packet_.get());
+        packet_.reset(LIBAV_LIB.Codec->av_packet_alloc());
+        LIBAV_LIB.Codec->av_init_packet(packet_.get());
         is_eof_ = false;
     }
 
@@ -249,19 +249,19 @@ public:
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
             int ret = 0;
             while (ret >= 0) {
-                ret = LIBAV_LIB.FormatLib->av_read_frame(format_context_.get(), packet_.get());
+                ret = LIBAV_LIB.Format->av_read_frame(format_context_.get(), packet_.get());
                 if (ret == AVERROR_EOF) {
                     is_eof_ = true;
                     return 0;
                 }
 
-                XAMP_ON_SCOPE_EXIT(LIBAV_LIB.CodecLib->av_packet_unref(packet_.get()));
+                XAMP_ON_SCOPE_EXIT(LIBAV_LIB.Codec->av_packet_unref(packet_.get()));
 
                 if (packet_->stream_index != audio_stream_id_) {
                     continue;
                 }
 
-                auto ret = LIBAV_LIB.CodecLib->avcodec_send_packet(codec_context_.get(), packet_.get());
+                auto ret = LIBAV_LIB.Codec->avcodec_send_packet(codec_context_.get(), packet_.get());
                 if (ret == AVERROR(EAGAIN)) {
                     break;
                 }
@@ -275,9 +275,9 @@ public:
                 }
 
                 while (ret >= 0) {
-                    XAMP_ON_SCOPE_EXIT(LIBAV_LIB.UtilLib->av_frame_unref(audio_frame_.get()));
+                    XAMP_ON_SCOPE_EXIT(LIBAV_LIB.Util->av_frame_unref(audio_frame_.get()));
 
-                    ret = LIBAV_LIB.CodecLib->avcodec_receive_frame(codec_context_.get(), audio_frame_.get());
+                    ret = LIBAV_LIB.Codec->avcodec_receive_frame(codec_context_.get(), audio_frame_.get());
                     if (ret == AVERROR(EAGAIN)) {
                         break;
                     }
@@ -333,8 +333,8 @@ public:
             timestamp += format_context_->start_time;
         }
 
-        AvIfFailedThrow(LIBAV_LIB.FormatLib->av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
-        LIBAV_LIB.CodecLib->avcodec_flush_buffers(codec_context_.get());
+        AvIfFailedThrow(LIBAV_LIB.Format->av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
+        LIBAV_LIB.Codec->avcodec_flush_buffers(codec_context_.get());
         is_eof_ = false;
     }
 
@@ -372,7 +372,7 @@ private:
         }
         // 輸出Channel都是立體聲, 所以要將nb_samples * 2
         const int32_t frame_size = audio_frame_->nb_samples * AudioFormat::kMaxChannel;
-        const auto result = LIBAV_LIB.SwrLib->swr_convert(swr_context_.get(),
+        const auto result = LIBAV_LIB.Swr->swr_convert(swr_context_.get(),
             reinterpret_cast<uint8_t**>(&buffer),
             frame_size,
             const_cast<const uint8_t**>(audio_frame_->data),

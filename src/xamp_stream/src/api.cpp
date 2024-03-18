@@ -28,7 +28,6 @@
 #include <stream/alacencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
-#include <stream/alaclib.h>
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -205,10 +204,6 @@ void LoadSoxrLib() {
 
 void LoadSrcLib() {
     Singleton<SrcLib>::GetInstance();
-}
-
-void LoadAlacLib() {
-    Singleton<AlacLib>::GetInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END

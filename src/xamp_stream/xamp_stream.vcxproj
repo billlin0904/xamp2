@@ -157,7 +157,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\stream\alacencoder.h" />
-    <ClInclude Include="include\stream\alaclib.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
