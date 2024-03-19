@@ -20,12 +20,12 @@ public:
     }
 
     void Start(uint32_t output_sample_rate) {
-        stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
+        stream_.reset(BASS_LIB.BASS_StreamCreate(output_sample_rate,
             AudioFormat::kMaxChannel,
             BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
             STREAMPROC_DUMMY,
             nullptr));
-        volume_handle_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
+        volume_handle_ = BASS_LIB.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
     }
 
     void Init(double volume_db) {
@@ -33,7 +33,7 @@ public:
         volume.lChannel = -1;
         volume.fVolume = static_cast<float>(std::pow(10, (volume_db / 20)));
         XAMP_LOG_D(logger_, "Set volume:{} dB level:{}", Round(volume_db, 2), static_cast<int32_t>(volume.fVolume * 100));
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(volume_handle_, &volume));
+        BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(volume_handle_, &volume));
     }
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {

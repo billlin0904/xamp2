@@ -11,7 +11,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-#define LIBSRC_DLL Singleton<SrcLib>::GetInstance()
+#define LIBSRC_LIB Singleton<SrcLib>::GetInstance()
 
 XAMP_DECLARE_LOG_NAME(SrcSampleRateConverter);
 
@@ -48,13 +48,13 @@ public:
 			break;
 		}
 
-		handle_.reset(LIBSRC_DLL.src_new(quality, AudioFormat::kMaxChannel, &error));
+		handle_.reset(LIBSRC_LIB.src_new(quality, AudioFormat::kMaxChannel, &error));
 		if (!handle_ || error > 0) {
-			throw LibraryException(String::Format("src_new return failure! {}", LIBSRC_DLL.src_strerror(error)));
+			throw LibraryException(String::Format("src_new return failure! {}", LIBSRC_LIB.src_strerror(error)));
 		}
 
 		ratio_ = static_cast<double>(output_sample_rate_) / static_cast<double>(input_sample_rate_);
-		if (!LIBSRC_DLL.src_is_valid_ratio(ratio_)) {
+		if (!LIBSRC_LIB.src_is_valid_ratio(ratio_)) {
 			throw LibraryException("Sample rate change out of valid range.");
 		}
 
@@ -76,7 +76,7 @@ public:
 		src_data.data_out = output.data() + src_data.output_frames_gen;
 		src_data.output_frames = output.size() / AudioFormat::kMaxChannel;
 
-		const auto result = LIBSRC_DLL.src_process(handle_.get(), &src_data);
+		const auto result = LIBSRC_LIB.src_process(handle_.get(), &src_data);
 		if (result > 0) {
 			return false;
 		}
@@ -113,7 +113,7 @@ private:
 		}
 
 		static void close(SRC_STATE* value) noexcept {
-			LIBSRC_DLL.src_delete(value);
+			LIBSRC_LIB.src_delete(value);
 		}
 	};
 

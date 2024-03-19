@@ -46,7 +46,7 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avio_open)
 	, XAMP_LOAD_DLL_API(av_interleaved_write_frame)
 	, XAMP_LOAD_DLL_API(av_guess_format)
-	, XAMP_LOAD_DLL_API(av_register_all) {
+	, XAMP_LOAD_DLL_API(av_write_trailer) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -72,7 +72,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_configuration)
 	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context)
 	, XAMP_LOAD_DLL_API(av_codec_iterate)
-	, XAMP_LOAD_DLL_API(av_packet_rescale_ts) {
+	, XAMP_LOAD_DLL_API(av_packet_rescale_ts)
+	, XAMP_LOAD_DLL_API(av_packet_free) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -171,8 +172,6 @@ AvLib::AvLib() {
 	Codec = MakeAlign<AvCodecLib>();
 	Swr = MakeAlign<AvSwLib>();
 	Util = MakeAlign<AvUtilLib>();
-
-	Format->av_register_all();
 
 	Util->av_log_set_callback(LogPrintf);
 	Util->av_log_set_level(AV_LOG_FATAL);

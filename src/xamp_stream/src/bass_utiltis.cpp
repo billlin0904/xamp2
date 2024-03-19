@@ -10,7 +10,7 @@ namespace xamp::stream::bass_utiltis {
 uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, uint32_t num_samples) {
     MemoryCopy(out, samples, num_samples * sizeof(float));
     const auto bytes_read =
-        BASS.BASS_ChannelGetData(stream.get(),
+        BASS_LIB.BASS_ChannelGetData(stream.get(),
             out,
             num_samples * sizeof(float));
     return bytes_read;
@@ -23,7 +23,7 @@ bool Process(BassStreamHandle& stream, float const * samples, uint32_t num_sampl
     MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
     const auto bytes_read =
-            BASS.BASS_ChannelGetData(stream.get(),
+            BASS_LIB.BASS_ChannelGetData(stream.get(),
                                  out.data(),
                                  num_samples * sizeof(float));
     if (bytes_read == kBassError) {

@@ -80,7 +80,7 @@ public:
    XAMP_DECLARE_DLL_NAME(avio_open);
    XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
    XAMP_DECLARE_DLL_NAME(av_guess_format);
-   XAMP_DECLARE_DLL_NAME(av_register_all);
+   XAMP_DECLARE_DLL_NAME(av_write_trailer);
 };
 
 class AvCodecLib final {
@@ -112,6 +112,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_parameters_from_context);
     XAMP_DECLARE_DLL_NAME(av_codec_iterate);
     XAMP_DECLARE_DLL_NAME(av_packet_rescale_ts);
+    XAMP_DECLARE_DLL_NAME(av_packet_free);
 };
 
 class AvUtilLib final {
@@ -223,7 +224,7 @@ template <>
 struct AvResourceDeleter<AVPacket> {
     void operator()(AVPacket* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LIBAV_LIB.Util->av_free(p);
+        LIBAV_LIB.Codec->av_packet_free(&p);
     }
 };
 

@@ -29,13 +29,13 @@ public:
         if (mode == DsdModes::DSD_MODE_PCM) {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
-            stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+            stream_.reset(BASS_LIB.BASS_StreamCreateFile(FALSE,
                 utf8.c_str(),
                 0,
                 0,
                 flags | BASS_STREAM_DECODE));
 #else
-            stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+            stream_.reset(BASS_LIB.BASS_StreamCreateFile(FALSE,
                 file_path.c_str(),
                 0,
                 0,
@@ -45,14 +45,14 @@ public:
         else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
-            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
                 utf8.c_str(),
                 0,
                 0,
                 flags | BASS_STREAM_DECODE,
                 0));
 #else
-            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
                 file_path.c_str(),
                 0,
                 0,
@@ -61,7 +61,7 @@ public:
 #endif
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
-            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+            BASS_LIB.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
         }
     }
 
@@ -69,14 +69,14 @@ public:
         file_.Open(file_path);
 
         if (mode == DsdModes::DSD_MODE_PCM) {
-            stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
+            stream_.reset(BASS_LIB.BASS_StreamCreateFile(TRUE,
                 file_.GetData(),
                 0,
                 file_.GetLength(),
                 flags | BASS_STREAM_DECODE));
         }
         else {
-            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
                 file_.GetData(),
                 0,
                 file_.GetLength(),
@@ -84,7 +84,7 @@ public:
                 0));
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
-            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+            BASS_LIB.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
         }
     }
 
@@ -94,7 +94,7 @@ public:
 
             if (is_cda_file) {
                 // Only for windows.
-                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                stream_.reset(BASS_LIB.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
                     0,
                     0,
@@ -106,7 +106,7 @@ public:
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
-            stream_.reset(BASS.BASS_StreamCreateURL(
+            stream_.reset(BASS_LIB.BASS_StreamCreateURL(
                 utf8.c_str(),
                 0,
                 flags | BASS_STREAM_DECODE | BASS_STREAM_STATUS,
@@ -114,7 +114,7 @@ public:
                 this));
 #else
             auto url = const_cast<wchar_t*>(file_path.c_str());
-            stream_.reset(BASS.BASS_StreamCreateURL(
+            stream_.reset(BASS_LIB.BASS_StreamCreateURL(
                 url,
                 0,
                 flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
@@ -159,7 +159,7 @@ public:
 
         XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
-        BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
+        BassIfFailedThrow(BASS_LIB.BASS_ChannelGetInfo(stream_.get(), &info_));
 
         const auto duration = GetDuration();
         if (duration < 1.0) {
@@ -171,14 +171,14 @@ public:
         }
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
-            mix_stream_.reset(BASS.MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
+            mix_stream_.reset(BASS_LIB.MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
                 AudioFormat::kMaxChannel,
                 BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
             if (!mix_stream_) {
                 throw BassException();
             }
 
-            BassIfFailedThrow(BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
+            BassIfFailedThrow(BASS_LIB.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                 stream_.get(),
                 BASS_MIXER_BUFFER));
             XAMP_LOG_D(logger_, "Mix stream {} channel to 2 channel", info_.chans);
@@ -203,13 +203,13 @@ public:
     }
 
     [[nodiscard]] double GetReadProgress() const {
-        auto file_len = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
-        auto buffer = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
+        auto file_len = BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
+        auto buffer = BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
         return 100.0 * static_cast<double>(buffer) / static_cast<double>(file_len);
     }
 
     [[nodiscard]] int32_t GetBufferingProgress() const {
-        return 100 - BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFERING);
+        return 100 - BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFERING);
     }
 
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
@@ -247,8 +247,8 @@ public:
     }
 
     [[nodiscard]] double GetDuration() const {
-        const auto len = BASS.BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
-        return BASS.BASS_ChannelBytes2Seconds(GetHStream(), len);
+        const auto len = BASS_LIB.BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
+        return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(), len);
     }
 
     [[nodiscard]] AudioFormat GetFormat() const {
@@ -270,17 +270,17 @@ public:
     }
 
     void Seek(double stream_time) const {
-        const auto pos_bytes = BASS.BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
-        BassIfFailedThrow(BASS.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
+        const auto pos_bytes = BASS_LIB.BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
+        BassIfFailedThrow(BASS_LIB.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
     }
 
     double GetPosition() const {
-        return BASS.BASS_ChannelBytes2Seconds(GetHStream(), BASS.BASS_ChannelGetPosition(GetHStream(), BASS_POS_BYTE));
+        return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(), BASS_LIB.BASS_ChannelGetPosition(GetHStream(), BASS_POS_BYTE));
     }
 
     [[nodiscard]] uint32_t GetDsdSampleRate() const {
         float rate = 0;
-        BassIfFailedThrow(BASS.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
+        BassIfFailedThrow(BASS_LIB.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
@@ -313,7 +313,7 @@ public:
     }
 
     void SetDsdToPcmSampleRate(uint32_t sample_rate) {
-        BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
+        BASS_LIB.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
     }
 
     [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
@@ -328,11 +328,11 @@ public:
     }
 
     bool IsActive() const noexcept {
-        return BASS.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
+        return BASS_LIB.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
 private:
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
-        const auto bytes_read = BASS.BASS_ChannelGetData(GetHStream(), buffer, length);
+        const auto bytes_read = BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {
             return 0;
         }

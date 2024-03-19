@@ -62,7 +62,7 @@ public:
         }
 
         auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
-        encoder_.reset(BASS.CAEncLib->BASS_Encode_StartCAFile(stream_.GetHStream(),
+        encoder_.reset(BASS_LIB.CAEncLib->BASS_Encode_StartCAFile(stream_.GetHStream(),
                                                               kAudioFileM4AType,
                                                               kAudioFormatMPEG4AAC,
                                                               flags,

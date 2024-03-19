@@ -153,31 +153,31 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
 }
 
 void LoadBassLib() {
-    if (!BASS.IsLoaded()) {
+    if (!BASS_LIB.IsLoaded()) {
         Singleton<BassLib>::GetInstance().Load();
     }
-    BASS.MixLib = MakeAlign<BassMixLib>();
-    BASS.DSDLib = MakeAlign<BassDSDLib>();
-    BASS.FxLib = MakeAlign<BassFxLib>();
+    BASS_LIB.MixLib = MakeAlign<BassMixLib>();
+    BASS_LIB.DSDLib = MakeAlign<BassDSDLib>();
+    BASS_LIB.FxLib = MakeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
-    BASS.CDLib = MakeAlign<BassCDLib>();
+    BASS_LIB.CDLib = MakeAlign<BassCDLib>();
     try {
-        BASS.EncLib = MakeAlign<BassEncLib>();
+        BASS_LIB.EncLib = MakeAlign<BassEncLib>();
     }  catch (const Exception &e) {
         XAMP_LOG_DEBUG("Load EncLib error: {}", e.what());
     }
 #else
-    BASS.CAEncLib = MakeAlign<BassCAEncLib>();
+    BASS_LIB.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif
-    BASS.FLACEncLib = MakeAlign<BassFLACEncLib>();
-    BASS.LoadVersionInfo();
-    for (const auto& info : BASS.GetVersions()) {
+    BASS_LIB.FLACEncLib = MakeAlign<BassFLACEncLib>();
+    BASS_LIB.LoadVersionInfo();
+    for (const auto& info : BASS_LIB.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
 }
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {
-    return BASS.GetVersions();
+    return BASS_LIB.GetVersions();
 }
 
 void LoadFFTLib() {

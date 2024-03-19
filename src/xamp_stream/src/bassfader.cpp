@@ -16,7 +16,7 @@ public:
     }
 
     void Start(uint32_t output_sample_rate) {
-        stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
+        stream_.reset(BASS_LIB.BASS_StreamCreate(output_sample_rate,
                                              AudioFormat::kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -29,12 +29,12 @@ public:
         volume_param.fTarget = target;
         volume_param.fTime = fdade_time;
         volume_param.lCurve = 0;
-        const auto fade_fx = BASS.BASS_ChannelSetFX(
+        const auto fade_fx = BASS_LIB.BASS_ChannelSetFX(
             stream_.get(),
             BASS_FX_VOLUME,
             0);
         BassIfFailedThrow(fade_fx);
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(fade_fx, &volume_param));
+        BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(fade_fx, &volume_param));
         XAMP_LOG_D(logger_, "Fade current:{:.2f} target:{:.2f} time:{:.2f}",
             current,
             target,

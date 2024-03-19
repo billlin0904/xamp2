@@ -18,7 +18,7 @@ public:
     }
 
     void Start(uint32_t output_sample_rate) {
-        stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
+        stream_.reset(BASS_LIB.BASS_StreamCreate(output_sample_rate,
                                              AudioFormat::kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -34,12 +34,12 @@ public:
         compressord.fAttack = parameters.attack;
         compressord.fRelease = parameters.release;
         compressord.lChannel = BASS_BFX_CHANALL;
-        const auto compressor_fx = BASS.BASS_ChannelSetFX(
+        const auto compressor_fx = BASS_LIB.BASS_ChannelSetFX(
             stream_.get(),
             BASS_FX_BFX_COMPRESSOR2,
             0);
         BassIfFailedThrow(compressor_fx);
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
+        BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(compressor_fx, &compressord));
         XAMP_LOG_D(logger_, "Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
             compressord.fGain,
             compressord.fThreshold,
@@ -55,7 +55,7 @@ public:
         MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
         const auto bytes_read =
-            BASS.BASS_ChannelGetData(stream_.get(),
+            BASS_LIB.BASS_ChannelGetData(stream_.get(),
                 out.data(),
                 num_samples * sizeof(float));
         if (bytes_read == kBassError) {

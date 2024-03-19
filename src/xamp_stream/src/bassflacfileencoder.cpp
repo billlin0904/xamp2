@@ -35,12 +35,12 @@ public:
 #ifdef XAMP_OS_MAC
         auto utf8_command = String::ToString(command);
         auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
-        encoder_.reset(BASS.FLACEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
+        encoder_.reset(BASS_LIB.FLACEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
                                                       utf8_command.c_str(),
                                                       flags,
                                                       utf8_ouput_file_name.c_str()));
 #else
-        encoder_.reset(BASS.FLACEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
+        encoder_.reset(BASS_LIB.FLACEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
             command.c_str(),
             flags | BASS_UNICODE,
             output_file_path.c_str()));

@@ -40,7 +40,7 @@ public:
             0x00,0x00
         };
 
-        encoder_.reset(BASS.EncLib->BASS_Encode_StartACMFile(stream_.GetHStream(),
+        encoder_.reset(BASS_LIB.EncLib->BASS_Encode_StartACMFile(stream_.GetHStream(),
             (void*)buffer.data(),
             flags | BASS_UNICODE,
             output_file_path.wstring().c_str()));

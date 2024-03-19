@@ -19,21 +19,21 @@ public:
     void Start(uint32_t sample_rate) {
         RemoveFx();
 
-        stream_.reset(BASS.BASS_StreamCreate(sample_rate,
+        stream_.reset(BASS_LIB.BASS_StreamCreate(sample_rate,
             AudioFormat::kMaxChannel,
             BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
             STREAMPROC_DUMMY,
             nullptr));
         BassIfFailedThrow(stream_);
 
-        preamp_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
+        preamp_ = BASS_LIB.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
         BassIfFailedThrow(preamp_);
 
         sample_rate_ = sample_rate;
     }
 
     void AddBand(EQFilterTypes filter, float freq, float band_width, float gain, float Q, float S) {
-	    const auto fx_handle = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_BQF, 1);
+	    const auto fx_handle = BASS_LIB.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_BQF, 1);
         BassIfFailedThrow(fx_handle);
 
         BASS_BFX_BQF bqf{};
@@ -80,7 +80,7 @@ public:
         XAMP_LOG_D(logger_, "{} Bandwidth:{}, freq:{}, gain:{}, Q:{} S:{}",
             filter, bqf.fBandwidth, bqf.fCenter, bqf.fGain, bqf.fQ, bqf.fS);
 
-    	BassIfFailedThrow(BASS.BASS_FXSetParameters(fx_handle, &bqf));
+    	BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(fx_handle, &bqf));
 
         fx_handles_.push_back(fx_handle);
     }
@@ -97,7 +97,7 @@ public:
         BASS_BFX_VOLUME fv;
         fv.lChannel = 0;
         fv.fVolume = static_cast<float>(std::pow(10, (preamp / 20)));
-        BassIfFailedThrow(BASS.BASS_FXSetParameters(preamp_, &fv));
+        BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(preamp_, &fv));
     }
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
@@ -111,10 +111,10 @@ public:
 private:
     void RemoveFx() {
         for (const auto fx_handle : fx_handles_) {
-            BASS.BASS_ChannelRemoveFX(stream_.get(), fx_handle);
+            BASS_LIB.BASS_ChannelRemoveFX(stream_.get(), fx_handle);
         }
         fx_handles_.clear();
-        BASS.BASS_ChannelRemoveFX(stream_.get(), preamp_);
+        BASS_LIB.BASS_ChannelRemoveFX(stream_.get(), preamp_);
         preamp_ = 0;
     }
 

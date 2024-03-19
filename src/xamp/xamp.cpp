@@ -2772,6 +2772,7 @@ void Xamp::encodeFile(const PlayListEntity& entity,
                     }, track_info);
             }
             catch (...) {
+                dialog->hide();
                 logAndShowMessage(std::current_exception());
             }
         },

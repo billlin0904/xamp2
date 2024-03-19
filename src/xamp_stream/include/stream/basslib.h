@@ -277,7 +277,7 @@ private:
     void LoadPlugin(const  std::string & file_name);
 };
 
-#define BASS Singleton<BassLib>::GetInstance()
+#define BASS_LIB Singleton<BassLib>::GetInstance()
 
 XAMP_STREAM_NAMESPACE_END
 
