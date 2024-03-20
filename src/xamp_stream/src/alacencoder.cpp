@@ -12,9 +12,12 @@
 #include <stream/filestream.h>
 #include <stream/alacencoder.h>
 
-XAMP_STREAM_NAMESPACE_BEGIN
+#include "stream/bassfilestream.h"
 
+XAMP_STREAM_NAMESPACE_BEGIN
 namespace {
+#define BSWAP32(x) (((x << 24) | ((x << 8) & 0x00ff0000) | ((x >> 8) & 0x0000ff00) | ((x >> 24) & 0x000000ff)))
+
 	enum {
 		ALAC_EXTRADATA_SIZE = 36
 	};
@@ -36,8 +39,11 @@ namespace {
 	    32 bits  max coded frame size(0 means unknown)
 	    32 bits  average bitrate(0 means unknown)
 	    32 bits  samplerate
-	    */
+	*/
     struct StsdAtom {
+        uint32_t size;
+        uint32_t tag;
+        uint32_t version;
         uint32_t samples_per_frame;
         uint8_t  compatible_version;
         uint8_t  sample_size;
@@ -56,9 +62,9 @@ namespace {
 class AlacFileEncoder::AlacFileEncoderImpl {
 public:
     ~AlacFileEncoderImpl() {
+        codec_context_.reset();
+    	output_io_context_.reset();
         format_context_.reset();
-        stream_ = nullptr;
-        codec_context_ = nullptr;
     }
 
     void Start(const AnyMap& config) {
@@ -71,12 +77,16 @@ public:
     }
 
     void CreateAudioSteam() {
-        const auto best_sample_format = AV_SAMPLE_FMT_S32P;
+        const auto best_sample_format = AV_SAMPLE_FMT_S16P;
         const auto frame_size = 4096;
-        const char file_name[] = "output.m4a";
+        const auto channel_layout = 3;
+        const auto sample_size = 16;
+        const char guess_file_name[] = "output.m4a";
+        const char* file_name = file_name_.c_str();
 
         AVIOContext* output_io_context = nullptr;
         AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, file_name, AVIO_FLAG_WRITE));
+        output_io_context_.reset(output_io_context);
 
         format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
         if (!format_context_) {
@@ -98,9 +108,9 @@ public:
 
         const auto format = input_file_->GetFormat();
 
-        codec_context_ = LIBAV_LIB.Codec->avcodec_alloc_context3(av_codec);
-        codec_context_->channels       = 2;
-        codec_context_->channel_layout = 3;
+        codec_context_.reset(LIBAV_LIB.Codec->avcodec_alloc_context3(av_codec));
+        codec_context_->channels       = format.GetChannels();
+        codec_context_->channel_layout = channel_layout;
         codec_context_->sample_rate    = format.GetSampleRate();
         codec_context_->sample_fmt     = best_sample_format;
         codec_context_->frame_size     = frame_size;
@@ -108,7 +118,7 @@ public:
         stream_->id                       = format_context_->nb_streams - 1;
         stream_->codecpar->codec_type     = AVMEDIA_TYPE_AUDIO;
         stream_->codecpar->codec_id       = AV_CODEC_ID_ALAC;
-        stream_->codecpar->channel_layout = 3;
+        stream_->codecpar->channel_layout = channel_layout;
         stream_->codecpar->channels       = format.GetChannels();
         stream_->codecpar->sample_rate    = format.GetSampleRate();
         stream_->codecpar->frame_size     = frame_size;
@@ -116,83 +126,83 @@ public:
         stream_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
         codec_context_->time_base = stream_->time_base;
 
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(stream_->codecpar, codec_context_));
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()));
 
-        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(nullptr, file_name, nullptr);
+        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(nullptr, guess_file_name, nullptr);
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER)
             codec_context_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
-        codec_context_->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(ALAC_EXTRADATA_SIZE));
+        codec_context_->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(ALAC_EXTRADATA_SIZE + AV_INPUT_BUFFER_PADDING_SIZE));
         codec_context_->extradata_size = ALAC_EXTRADATA_SIZE;
         MemorySet(codec_context_->extradata, 0, ALAC_EXTRADATA_SIZE);
-        
-        // Skip atom size:4, alac tag:4, tag version:4 = 12
-        auto buffer = codec_context_->extradata + 12;
 
+        auto buffer = codec_context_->extradata;
         auto atom = reinterpret_cast<StsdAtom*>(buffer);
         auto atom_size = sizeof(StsdAtom);
-        atom->samples_per_frame = 1024;
+        atom->size              = ALAC_EXTRADATA_SIZE;
+        atom->tag               = MKTAG('a', 'l', 'a', 'c');
+        atom->samples_per_frame = frame_size;
         atom->history_mult      = 40;
         atom->initial_history   = 10;
         atom->rice_param_limit  = 10;
         atom->channels          = 2;
         atom->max_run           = 255;
-        atom->sample_rate       = format.GetSampleRate();
-        atom->sample_size       = 32;
+        atom->sample_rate       = BSWAP32(format.GetSampleRate());
+        atom->sample_size       = sample_size;
 
         stream_->codecpar->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(codec_context_->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
         stream_->codecpar->extradata_size = codec_context_->extradata_size;
         MemorySet(stream_->codecpar->extradata, 0, stream_->codecpar->extradata_size);
         MemoryCopy(stream_->codecpar->extradata, codec_context_->extradata, codec_context_->extradata_size);
 
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_, av_codec, nullptr));
-        
-        AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&format_context_->pb, file_name, AVIO_FLAG_WRITE));
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
         AvIfFailedThrow(LIBAV_LIB.Format->avformat_write_header(format_context_.get(), nullptr));
     }
 
-    bool EncodeFrame(const AVFrame* frame) const {
-    	LIBAV_LIB.Codec->av_init_packet(packet_.get());
+    bool EncodeFrame(AVFrame* frame) {
+        AvPtr<AVPacket> packet;
+        packet.reset(LIBAV_LIB.Codec->av_packet_alloc());
+    	LIBAV_LIB.Codec->av_init_packet(packet.get());
 
-        auto ret = LIBAV_LIB.Codec->avcodec_send_frame(codec_context_, frame);
+        if (frame != nullptr) {
+            frame->pts = LIBAV_LIB.Util->av_rescale_q(pts_, AVRational { 1, frame->sample_rate }, codec_context_->time_base);
+            pts_ += frame->nb_samples;
+        }
+
+        auto ret = LIBAV_LIB.Codec->avcodec_send_frame(codec_context_.get(), frame);
         AvIfFailedThrow(ret);
 
-        while (true) {
-            ret = LIBAV_LIB.Codec->avcodec_receive_packet(codec_context_, packet_.get());
-            if (ret == AVERROR_EOF) {
-                return false;
-            }
-            if (ret == AVERROR(EAGAIN)) {
-                return true;
-            }
-            else {
-                AvIfFailedThrow(ret);
-            }
-            ret = LIBAV_LIB.Format->av_write_frame(format_context_.get(), packet_.get());
+        ret = LIBAV_LIB.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
+        if (ret == AVERROR_EOF) {
+            return false;
+        }
+        if (ret == AVERROR(EAGAIN)) {
+            return true;
+        }
+        else {
             AvIfFailedThrow(ret);
-            LIBAV_LIB.Codec->av_packet_unref(packet_.get());
-        }        
+        }
+        ret = LIBAV_LIB.Format->av_interleaved_write_frame(format_context_.get(), packet.get());
+        AvIfFailedThrow(ret);
+        return true;
     }
 
     void Encode(const std::function<bool(uint32_t)>& progress) {
-        packet_.reset(LIBAV_LIB.Codec->av_packet_alloc());
-        
-        frame_.reset(LIBAV_LIB.Util->av_frame_alloc());
-        frame_->nb_samples     = codec_context_->frame_size;
-        frame_->format         = codec_context_->sample_fmt;
-        frame_->channel_layout = codec_context_->channel_layout;
+        AvPtr<AVFrame> frame;
+        frame.reset(LIBAV_LIB.Util->av_frame_alloc());
+        frame->nb_samples     = codec_context_->frame_size;
+        frame->format         = codec_context_->sample_fmt;
+        frame->channel_layout = codec_context_->channel_layout;
+        frame->sample_rate    = codec_context_->sample_rate;
 
         buffer_.resize(codec_context_->frame_size * 2);
 
-        while (true) {
-            frame_->pts = pts_;
-            pts_ += frame_->nb_samples;
-
-            auto ret = LIBAV_LIB.Util->av_frame_get_buffer(frame_.get(), 0);
+        while (true) {            
+            auto ret = LIBAV_LIB.Util->av_frame_get_buffer(frame.get(), 0);
             if (ret < 0) {
                 AvIfFailedThrow(ret);
             }
-            ret = LIBAV_LIB.Util->av_frame_make_writable(frame_.get());
+            ret = LIBAV_LIB.Util->av_frame_make_writable(frame.get());
             if (ret < 0) {
                 AvIfFailedThrow(ret);
             }
@@ -203,30 +213,29 @@ public:
                 break;
             }
 
-            InterleaveToPlanar<float, int32_t>::Convert(
-                buffer_.data(),
-                reinterpret_cast<int32_t*>(frame_->data[0]),
-                reinterpret_cast<int32_t*>(frame_->data[1]),
-                codec_context_->frame_size,
-                1.0);
+            auto *left_ptr = reinterpret_cast<int16_t*>(frame->data[0]);
+            auto *right_ptr = reinterpret_cast<int16_t*>(frame->data[1]);
 
-            if (!EncodeFrame(frame_.get())) {
+            for (auto i = 0; i < read_samples / 2; ++i) {
+                *left_ptr++  = static_cast<int16_t>(buffer_[i + 0] * kFloat16Scale);
+                *right_ptr++ = static_cast<int16_t>(buffer_[i + 1] * kFloat16Scale);
+            }
+
+            if (!EncodeFrame(frame.get())) {
                 break;
             }
         }
 
-        while (EncodeFrame(nullptr)) {}
-
+        AvIfFailedThrow(LIBAV_LIB.Format->av_interleaved_write_frame(format_context_.get(), nullptr));
         AvIfFailedThrow(LIBAV_LIB.Format->av_write_trailer(format_context_.get()));
     }
 private:
     int64_t pts_{ 0 };
-    AVCodecContext* codec_context_{ nullptr };
     AVStream* stream_{ nullptr };
-    AlignPtr<FileStream> input_file_;
+    AvPtr<AVCodecContext> codec_context_;
+    AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
-    AvPtr<AVPacket> packet_;
-    AvPtr<AVFrame> frame_;
+    AlignPtr<FileStream> input_file_;
     std::vector<float> buffer_;
     std::string file_name_;
 };

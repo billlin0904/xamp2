@@ -113,6 +113,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_codec_iterate);
     XAMP_DECLARE_DLL_NAME(av_packet_rescale_ts);
     XAMP_DECLARE_DLL_NAME(av_packet_free);
+    XAMP_DECLARE_DLL_NAME(avcodec_free_context);
 };
 
 class AvUtilLib final {
@@ -197,10 +198,18 @@ struct AvResourceDeleter<AVFormatContext> {
 };
 
 template <>
+struct AvResourceDeleter<AVIOContext> {
+    void operator()(AVIOContext* p) const {
+        XAMP_EXPECTS(p != nullptr);
+        //LIBAV_LIB.Util->av_free(&p);
+    }
+};
+
+template <>
 struct AvResourceDeleter<AVCodecContext> {
     void operator()(AVCodecContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LIBAV_LIB.Codec->avcodec_close(p);
+        LIBAV_LIB.Codec->avcodec_free_context(&p);
     }
 };
 

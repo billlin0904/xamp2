@@ -42,7 +42,10 @@ public:
         audio_format_.Reset();
         swr_context_.reset();
         audio_frame_.reset();
-        codec_context_.reset();
+        if (codec_context_ != nullptr) {
+            LIBAV_LIB.Codec->avcodec_close(codec_context_);
+            codec_context_ = nullptr;
+        }
         format_context_.reset();
     }
 
@@ -143,7 +146,7 @@ public:
     * @throw NotSupportFormatException
     */
     void OpenAudioStream() {
-        codec_context_.reset(format_context_->streams[audio_stream_id_]->codec);
+        codec_context_ = format_context_->streams[audio_stream_id_]->codec;
 
         // Find libfdk_aac codec.
         AVCodec* codec = nullptr;
@@ -167,7 +170,7 @@ public:
         // note: Don't use multi threading for audio decode.
         codec_context_->thread_count = 1;
 
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), codec, nullptr));
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_, codec, nullptr));
         
         audio_frame_.reset(LIBAV_LIB.Util->av_frame_alloc());
 
@@ -261,7 +264,7 @@ public:
                     continue;
                 }
 
-                auto ret = LIBAV_LIB.Codec->avcodec_send_packet(codec_context_.get(), packet_.get());
+                auto ret = LIBAV_LIB.Codec->avcodec_send_packet(codec_context_, packet_.get());
                 if (ret == AVERROR(EAGAIN)) {
                     break;
                 }
@@ -277,7 +280,7 @@ public:
                 while (ret >= 0) {
                     XAMP_ON_SCOPE_EXIT(LIBAV_LIB.Util->av_frame_unref(audio_frame_.get()));
 
-                    ret = LIBAV_LIB.Codec->avcodec_receive_frame(codec_context_.get(), audio_frame_.get());
+                    ret = LIBAV_LIB.Codec->avcodec_receive_frame(codec_context_, audio_frame_.get());
                     if (ret == AVERROR(EAGAIN)) {
                         break;
                     }
@@ -334,7 +337,7 @@ public:
         }
 
         AvIfFailedThrow(LIBAV_LIB.Format->av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
-        LIBAV_LIB.Codec->avcodec_flush_buffers(codec_context_.get());
+        LIBAV_LIB.Codec->avcodec_flush_buffers(codec_context_);
         is_eof_ = false;
     }
 
@@ -390,7 +393,7 @@ private:
     AudioFormat audio_format_;
     AvPtr<SwrContext> swr_context_;
     AvPtr<AVFrame> audio_frame_;
-    AvPtr<AVCodecContext> codec_context_;
+    AVCodecContext* codec_context_{nullptr};
     AvPtr<AVFormatContext> format_context_;
     AvPtr<AVPacket> packet_;
     LoggerPtr logger_;

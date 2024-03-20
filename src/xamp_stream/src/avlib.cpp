@@ -73,7 +73,8 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_parameters_from_context)
 	, XAMP_LOAD_DLL_API(av_codec_iterate)
 	, XAMP_LOAD_DLL_API(av_packet_rescale_ts)
-	, XAMP_LOAD_DLL_API(av_packet_free) {
+	, XAMP_LOAD_DLL_API(av_packet_free)
+	, XAMP_LOAD_DLL_API(avcodec_free_context) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -157,7 +158,8 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 		return;
 	}
 
-	XAMP_LOG_LEVEL(LIBAV_LIB.logger, log_level, "{}", message);
+	//XAMP_LOG_LEVEL(LIBAV_LIB.logger, log_level, "{}", message);
+	XAMP_LOG_DEBUG("{}", message);
 }
 
 AvLib::~AvLib() {
