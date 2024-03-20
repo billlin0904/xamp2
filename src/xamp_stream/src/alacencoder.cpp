@@ -148,6 +148,7 @@ public:
         atom->channels          = 2;
         atom->max_run           = 255;
         atom->sample_rate       = BSWAP32(format.GetSampleRate());
+        atom->average_bit_rate = format.GetSampleRate() * format.GetChannels() * sample_size;
         atom->sample_size       = sample_size;
 
         stream_->codecpar->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(codec_context_->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
@@ -197,11 +198,12 @@ public:
 
         buffer_.resize(codec_context_->frame_size * 2);
 
+    	auto ret = LIBAV_LIB.Util->av_frame_get_buffer(frame.get(), 0);
+        if (ret < 0) {
+            AvIfFailedThrow(ret);
+        }
+
         while (true) {            
-            auto ret = LIBAV_LIB.Util->av_frame_get_buffer(frame.get(), 0);
-            if (ret < 0) {
-                AvIfFailedThrow(ret);
-            }
             ret = LIBAV_LIB.Util->av_frame_make_writable(frame.get());
             if (ret < 0) {
                 AvIfFailedThrow(ret);
@@ -216,7 +218,7 @@ public:
             auto *left_ptr = reinterpret_cast<int16_t*>(frame->data[0]);
             auto *right_ptr = reinterpret_cast<int16_t*>(frame->data[1]);
 
-            for (auto i = 0; i < read_samples / 2; ++i) {
+            for (auto i = 0; i < read_samples; i += 2) {
                 *left_ptr++  = static_cast<int16_t>(buffer_[i + 0] * kFloat16Scale);
                 *right_ptr++ = static_cast<int16_t>(buffer_[i + 1] * kFloat16Scale);
             }
