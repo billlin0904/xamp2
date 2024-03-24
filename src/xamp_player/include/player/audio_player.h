@@ -179,7 +179,7 @@ public:
     * @param[in] mute The mute.
     */
     void SetMute(bool mute) override;
-
+    
     /*
     * Is playing.
     * 

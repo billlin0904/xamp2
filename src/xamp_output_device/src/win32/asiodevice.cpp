@@ -105,11 +105,11 @@ AsioDevice::AsioDevice(const  std::string & device_id)
 	, buffer_size_(0)
 	, buffer_bytes_(0)
 	, output_bytes_(0)
-	, device_id_(device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
 	, get_samples_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(kAsioDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(kAsioDeviceLoggerName))
+	, device_id_(device_id) {
 }
 
 AsioDevice::~AsioDevice() {
@@ -448,6 +448,9 @@ uint32_t AsioDevice::GetVolume() const {
 }
 
 void AsioDevice::SetVolume(uint32_t volume) const {
+	if (is_hardware_control_volume_) {
+		return;
+	}
 	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(99));
 	XAMP_LOG_D(logger_, "Current volume: {}({} db)", GetVolume(), VolumeToDb(volume_));
 }
@@ -730,8 +733,10 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	}
 
 	auto elapsed = ASIODriver.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
-	if (elapsed > ASIODriver.device->latency_ + 1) {
-		XAMP_LOG_D(ASIODriver.device->logger_, "Wait event timeout! {}ms", elapsed);
+	if (ASIODriver.device->latency_ > 0) {
+		if (elapsed > ASIODriver.device->latency_ + 1) {
+			XAMP_LOG_D(ASIODriver.device->logger_, "Wait event timeout! {}ms", elapsed);
+		}
 	}
 
 	ASIODriver.device->GetSamples(index, sample_time);
@@ -741,6 +746,10 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message, double* opt) {
 	long ret = 0;
 
+	if (ASIODriver.device != nullptr) {
+		XAMP_LOG_D(ASIODriver.device->logger_, "Select:{} value:{}", selector, value);
+	}
+	
 	switch (selector) {
 	case kAsioSelectorSupported:
 		if (value == kAsioResetRequest

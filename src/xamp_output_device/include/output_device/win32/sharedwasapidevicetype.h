@@ -21,7 +21,7 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 /*
  * SharedWasapiDeviceType is the device type for shared mode wasapi.
  */
-class SharedWasapiDeviceType final : public IDeviceType {
+class XAMP_OUTPUT_DEVICE_API SharedWasapiDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
 
 public:
@@ -32,10 +32,7 @@ public:
 	 */
 	SharedWasapiDeviceType() noexcept;
 
-	/*
-	 * Destructor
-	 */
-	virtual ~SharedWasapiDeviceType() override = default;
+	XAMP_PIMPL(SharedWasapiDeviceType)
 
 	/*
 	* Scan new device

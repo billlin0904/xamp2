@@ -126,6 +126,21 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 				info.is_default_device = true;
 			}
 
+			CComPtr<IAudioClient> client;
+			auto hr = device->Activate(__uuidof(IAudioClient),
+				CLSCTX_ALL,
+				nullptr,
+				reinterpret_cast<void**>(&client));
+			if (SUCCEEDED(hr)) {
+				WAVEFORMATEX* format = nullptr;
+				hr = client->GetMixFormat(&format);
+				if (FAILED(hr)) {
+					continue;
+				}
+				CComHeapPtr<WAVEFORMATEX> mix_format(format);
+				info.default_format = helper::ToAudioFormat(format);
+			}
+
 			// Shared mode device always support hardware volume control
 			info.is_hardware_control_volume = true;
 			// Shared mode device always not support DSD
@@ -144,6 +159,8 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 
 	return device_list;
 }
+
+XAMP_PIMPL_IMPL(SharedWasapiDeviceType)
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept
 	: impl_(MakeAlign<SharedWasapiDeviceTypeImpl>()) {

@@ -234,7 +234,7 @@ private:
 
 	void encodeWavFile(const PlayListEntity& entity);
 
-	void downloadFile(const PlayListEntity& entity);
+	void cacheYtMusicFile(const PlayListEntity& entity);
 
     void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done);
 

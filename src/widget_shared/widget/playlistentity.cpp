@@ -1,3 +1,5 @@
+#include <QDir>
+#include <QFileInfo>
 #include <QVariant>
 #include <widget/playlistentity.h>
 
@@ -19,7 +21,6 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.file_path = indexValue(index, PLAYLIST_FILE_PATH).toString();
     entity.file_size = indexValue(index, PLAYLIST_FILE_SIZE).toULongLong();
     entity.title = indexValue(index, PLAYLIST_TITLE).toString();
-    //entity.file_name = indexValue(index, PLAYLIST_FILE_NAME).toString();
     entity.artist = indexValue(index, PLAYLIST_ARTIST).toString();
     entity.album = indexValue(index, PLAYLIST_ALBUM).toString();
     entity.duration = indexValue(index, PLAYLIST_DURATION).toDouble();
@@ -28,8 +29,6 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
     entity.artist_id = indexValue(index, PLAYLIST_ARTIST_ID).toInt();
     entity.cover_id = indexValue(index, PLAYLIST_ALBUM_COVER_ID).toString();
-    //entity.file_extension = indexValue(index, PLAYLIST_FILE_EXT).toString();
-    //entity.parent_path = indexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
     entity.timestamp = indexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
     entity.playlist_music_id = indexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     entity.genre = indexValue(index, PLAYLIST_GENRE).toString();
@@ -49,6 +48,12 @@ PlayListEntity getEntity(const QModelIndex& index) {
     set_entity_value(entity.track_replay_gain, indexValue(index, PLAYLIST_TRACK_RG));
     set_entity_value(entity.track_peak, indexValue(index, PLAYLIST_TRACK_PK));
     set_entity_value(entity.track_loudness, indexValue(index, PLAYLIST_TRACK_LOUDNESS));
+
+
+    QFileInfo file_info(entity.file_path);
+    entity.file_extension = file_info.suffix();
+    entity.file_name = file_info.completeBaseName();
+    entity.parent_path = toNativeSeparators(file_info.dir().path());
 
     return entity;
 }

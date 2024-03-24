@@ -34,10 +34,7 @@ public:
 	*/
 	AsioDeviceType();
 
-	/*
-	* Destructor
-	*/
-	virtual ~AsioDeviceType() = default;
+	XAMP_PIMPL(AsioDeviceType)
 	
 	/*
 	* Get device type description

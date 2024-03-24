@@ -81,7 +81,17 @@
 #include <version.h>
 #include <widget/tagio.h>
 
+#include "output_device/win32/sharedwasapidevicetype.h"
+
 namespace {
+    bool isSharedWasapiDevice(const Uuid& type) {
+#ifdef Q_OS_WIN32
+        return type == win32::SharedWasapiDeviceType::uuidof();
+#else
+        reurn false;
+#endif
+    }
+
     void showMeMessage(const QString& message) {
         if (qAppSettings.dontShowMeAgain(message)) {
             auto [button, checked] = XMessageBox::showCheckBoxInformation(
@@ -650,14 +660,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialShortcut();
     initialSpectrum();
 
-    if (YtMusicOAuth::parseOAuthJson()) {
-        initialYtMusicWorker();
-        setAuthButton(ui_, true);
-        XAMP_LOG_DEBUG("YouTube worker initial done!");
-    } else {
-        setAuthButton(ui_, false);
-    }
-
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
 
     cd_page_->playlistPage()->hidePlaybackInformation(true);
@@ -984,10 +986,10 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
     playlist_page->spinner()->stopAnimation();
 }
 
-void Xamp::downloadFile(const PlayListEntity& entity) {
+void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
     const auto dialog = makeProgressDialog(
-        tr("Download progress dialog"),
-        tr("Download file"),
+        tr("Cache file progress"),
+        tr("Cache file"),
         tr("Cancel"));
     dialog->show();
 
@@ -1002,8 +1004,6 @@ void Xamp::downloadFile(const PlayListEntity& entity) {
             dialog->setLabelText(tr("Fetching song information ..."));
 
             QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, dialog, video_info, entity](const auto& song) {
-                //auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().title));
-                //auto file_name = qSTR("%1.mp4").arg(QString::fromStdString(song.value().video_id));
                 auto file_name = YtMusicDiskCache::makeFileCachePath(QString::fromStdString(song.value().video_id));
                 
                 dialog->setLabelText(tr("Start download ") + file_name + qTEXT(" ..."));
@@ -1618,6 +1618,19 @@ void Xamp::initialController() {
 }
 
 void Xamp::setCurrentTab(int32_t table_id) {
+	auto initial_yt_music = [this]() {
+        if (ytmusic_worker_ != nullptr) {
+            return;
+        }
+        if (YtMusicOAuth::parseOAuthJson()) {
+            initialYtMusicWorker();
+            setAuthButton(ui_, true);
+            XAMP_LOG_DEBUG("YouTube worker initial done!");
+        }
+        else {
+            setAuthButton(ui_, false);
+        }
+        };
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
         album_page_->reload();
@@ -1638,10 +1651,12 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_SEARCH:
+        initial_yt_music();
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         cloud_search_page_->playlist()->reload();
         break;
     case TAB_YT_MUSIC_PLAYLIST:
+        initial_yt_music();
         ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         cloud_tab_widget_->reloadAll();
         break;
@@ -2086,25 +2101,34 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         target_sample_rate,
         sample_rate_converter_type);
 
-    if (device_info_.value().connect_type == DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH) {
+    if (isSharedWasapiDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
         if (device_info_.value().default_format) {
             default_format = device_info_.value().default_format.value();
-        } else {
+        }
+        else {
             default_format = AudioFormat::k16BitPCM441Khz;
         }
 
-        auto sample_rate = (std::max)(entity.sample_rate, kPcmSampleRate48);
+        auto sample_rate = entity.sample_rate;
 
-        if (entity.sample_rate != default_format.GetSampleRate()) {
-            const auto message =
-                qSTR("Playing blue-tooth device need set %1 to %2.")
-                .arg(formatSampleRate(sample_rate))
-                .arg(formatSampleRate(default_format.GetSampleRate()));
-            showMeMessage(message);
+        if (sample_rate != default_format.GetSampleRate()) {
+            if (device_info_.value().connect_type == DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH) {
+                const auto message =
+                    qSTR("Playing blue-tooth device need set %1 to %2.")
+                    .arg(formatSampleRate(sample_rate))
+                    .arg(formatSampleRate(default_format.GetSampleRate()));
+                showMeMessage(message);
+            } else {
+                const auto message =
+                    qSTR("Playing Shared WASAPI device need set %1 to %2.")
+                    .arg(formatSampleRate(sample_rate))
+                    .arg(formatSampleRate(default_format.GetSampleRate()));
+                showMeMessage(message);
+            }
             player_->GetDspManager()->RemoveSampleRateConverter();
-            target_sample_rate = default_format.GetSampleRate();
             sample_rate_converter_type = kSoxr;
+            target_sample_rate = default_format.GetSampleRate();
             player_->GetDspManager()->AddPreDSP(makeSampleRateConverter(target_sample_rate));
         }
         byte_format = ByteFormat::SINT16;
@@ -2138,10 +2162,13 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             player_->SetReadSampleSize(kR8brainBufferSize);
         }
 
-        if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
-            || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
-            showMeMessage(tr("Play DSD file need set 100% volume."));
-            player_->SetVolume(100);
+        // note: 某些DAC(ex: Dx3Pro)再撥放DSD的時候需要將音量設置最大.
+        if (!player_->IsHardwareControlVolume()) {
+            if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
+                || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
+                showMeMessage(tr("Play DSD file need set 100% volume."));
+                player_->SetVolume(100);
+            }
         }
 
         player_->BufferStream();
@@ -2955,7 +2982,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::downloadFile,
         this,
-        &Xamp::downloadFile);
+        &Xamp::cacheYtMusicFile);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::readReplayGain,

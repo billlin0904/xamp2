@@ -830,6 +830,11 @@ PlayListEntity Database::fromSqlQuery(const SqlQuery& query) {
     entity.lyrc = query.value(qTEXT("lyrc")).toString();
     entity.trlyrc = query.value(qTEXT("trLyrc")).toString();
 
+    QFileInfo file_info(entity.file_path);
+    entity.file_extension = file_info.suffix();
+    entity.file_name = file_info.completeBaseName();
+    entity.parent_path = toNativeSeparators(file_info.dir().path());
+
     return entity;
 }
 

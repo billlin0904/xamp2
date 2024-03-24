@@ -158,8 +158,8 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 		return;
 	}
 
-	//XAMP_LOG_LEVEL(LIBAV_LIB.logger, log_level, "{}", message);
-	XAMP_LOG_DEBUG("{}", message);
+	XAMP_LOG_LEVEL(LIBAV_LIB.logger, log_level, "{}", message);
+	//XAMP_LOG_DEBUG("{}", message);
 }
 
 AvLib::~AvLib() {

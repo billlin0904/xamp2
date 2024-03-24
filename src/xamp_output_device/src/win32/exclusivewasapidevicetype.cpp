@@ -180,6 +180,8 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	return device_list;
 }
 
+XAMP_PIMPL_IMPL(ExclusiveWasapiDeviceType)
+
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept
 	: impl_(MakeAlign<ExclusiveWasapiDeviceTypeImpl>()) {
 }

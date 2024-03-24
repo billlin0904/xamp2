@@ -32,10 +32,7 @@ public:
 	*/
 	ExclusiveWasapiDeviceType() noexcept;
 
-	/*
-	* Destructor
-	*/
-	virtual ~ExclusiveWasapiDeviceType() = default;
+	XAMP_PIMPL(ExclusiveWasapiDeviceType)
 	
 	/*
 	* Scan new device

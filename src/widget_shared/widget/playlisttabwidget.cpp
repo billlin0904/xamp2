@@ -298,7 +298,7 @@ void PlaylistTabWidget::restoreTabOrder() {
 
     QList<QWidget*> widgets;
     QList<QString> texts;
-    QList<int> newOrder;
+    QList<int> new_order;
 
     for (int i = 0; i < count(); ++i) {
         auto itr = playlist_index.find(i);
@@ -313,24 +313,24 @@ void PlaylistTabWidget::restoreTabOrder() {
             if (playlist->playlistId() == playlist_id) {
                 widgets.append(playlist_page);
                 texts.append(tabText(i));
-                newOrder.append(i);
+                new_order.append(i);
                 break;
             }
         }
     }
 
     // 移動 tab 的順序
-    for (int i = 0; i < newOrder.size(); ++i) {
-        tabBar()->moveTab(newOrder[i], i);
+    for (int i = 0; i < new_order.size(); ++i) {
+        tabBar()->moveTab(new_order[i], i);
     }
 
     // 重新設置 tab 的標籤
-    for (int i = 0; i < newOrder.size(); ++i) {
+    for (int i = 0; i < new_order.size(); ++i) {
         setTabText(i, texts[i]);
     }
 
     // 重新設置 tab 的 icon
-    for (int i = 0; i < newOrder.size(); ++i) {
+    for (int i = 0; i < new_order.size(); ++i) {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     }
 }

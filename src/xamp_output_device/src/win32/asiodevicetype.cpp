@@ -92,6 +92,8 @@ AlignPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(const  st
 	return MakeAlign<IOutputDevice, AsioDevice>(device_id);
 }
 
+XAMP_PIMPL_IMPL(AsioDeviceType)
+
 AsioDeviceType::AsioDeviceType()
 	: impl_(MakePimpl<AsioDeviceTypeImpl>()) {
 }
