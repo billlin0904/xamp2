@@ -46,7 +46,7 @@ public:
         XAMP_LOG_D(logger_, "Add band {}Hz {}dB Q:{} Bandwidth:{} successfully!", freq, gain, Q, eq.fBandwidth);
     }
 
-    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
+    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
         return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
 
@@ -129,7 +129,7 @@ void BassEqualizer::SetPreamp(float preamp) {
     impl_->SetPreamp(preamp);
 }
 
-bool BassEqualizer::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out)  {
+bool BassEqualizer::Process(float const* samples, size_t num_samples, BufferRef<float>& out)  {
     return impl_->Process(samples, num_samples, out);
 }
 

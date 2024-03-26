@@ -1072,11 +1072,13 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
     auto [video_id, setVideoId] = parseId(id);
 
-    if (qDiskCache.isCached(video_id)) {
+    if (qDiskCache.isCached(video_id) && !entity.isFilePath()) {
         auto file_entity = qDiskCache.getFileName(video_id);
         auto temp = entity;
         temp.file_path = file_entity.file_name;
-        qMainDb.updateMusicFilePath(temp.music_id, temp.file_path);
+        auto track_info = TagIO::getTrackInfo(temp.file_path.toStdWString());
+        qMainDb.updateMusic(temp.music_id, track_info);
+        temp.sample_rate = track_info.sample_rate;
         onPlayMusic(temp);
         return;
     }
@@ -2110,7 +2112,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             default_format = AudioFormat::k16BitPCM441Khz;
         }
 
-        auto sample_rate = entity.sample_rate;
+        auto sample_rate = entity.isFilePath() ? entity.sample_rate : AudioFormat::k16BitPCM48Khz.GetSampleRate();
 
         if (sample_rate != default_format.GetSampleRate()) {
             if (device_info_.value().connect_type == DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH) {
@@ -2199,11 +2201,6 @@ void Xamp::ensureLocalOnePlaylistPage() {
 }
 
 void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done) {
-    QString ext = entity.file_extension;
-    if (entity.file_extension.isEmpty()) {
-        ext = qTEXT(".m4a");
-    }
-	
     qTheme.setPlayOrPauseButton(ui_.playButton, open_done);
 
     const int64_t max_duration_ms = Round(player_->GetDuration()) * 1000;
@@ -2212,7 +2209,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
     ensureLocalOnePlaylistPage();
 
-    auto cloud_music = false;
+    const auto cloud_music = entity.isFilePath();
     auto* playlist_page = qobject_cast<PlaylistPage*>(sender());
     if (!playlist_page) {
         playlist_page = qobject_cast<PlaylistPage*>(cloud_tab_widget_->currentWidget());
@@ -2234,7 +2231,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
     last_play_page_ = playlist_page;
     last_play_list_ = playlist_page->playlist();
-    playlist_page->format()->setText(format2String(playback_format, ext));
+    playlist_page->format()->setText(format2String(playback_format, entity.file_extension));
     playlist_page->title()->setText(entity.title);
     playlist_page->setHeart(entity.heart);
 
@@ -2256,7 +2253,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     lrc_page_->title()->setText(entity.title);
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
-    lrc_page_->format()->setText(format2String(playback_format, ext));
+    lrc_page_->format()->setText(format2String(playback_format, entity.file_extension));
     lrc_page_->spectrum()->setFftSize(state_adapter_->fftSize());
     lrc_page_->spectrum()->setSampleRate(playback_format.output_format.GetSampleRate());
 

@@ -22,17 +22,8 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-bool IsFilePath(const std::wstring& file_path) noexcept {
-	/*if (Fs::is_regular_file(file_path)) {
-		return true;
-	}
-	const auto lowcase_file_path = String::ToLower(file_path);
-	if (lowcase_file_path.starts_with(L"://")) {
-		return lowcase_file_path.find(L"https") != std::string::npos
-			|| lowcase_file_path.find(L"http") != std::string::npos;
-	}
-	return false;*/
-	return Fs::is_regular_file(file_path);
+bool IsFilePath(const Path& file_path) noexcept {
+	return file_path.has_filename();
 }
 
 Path GetTempFileNamePath() {
@@ -53,7 +44,12 @@ Path GetTempFileNamePath() {
 }
 
 std::string MakeTempFileName() {
-	return std::tmpnam(nullptr);
+	char buffer[MAX_PATH]{};
+#ifdef XAMP_OS_WIN
+	::GetTempFileNameA(buffer, "xamp", 0, buffer);
+#else
+#endif
+	return buffer;
 }
 
 Path GetApplicationFilePath() {

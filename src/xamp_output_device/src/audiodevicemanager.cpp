@@ -68,7 +68,7 @@ AudioDeviceManager::AudioDeviceManager()
 #ifdef XAMP_OS_WIN
     using namespace win32;
     XAMP_LOG_DEBUG("LoadAvrtLib success");
-    HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
+    HrIfFailThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);

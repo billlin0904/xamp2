@@ -36,7 +36,7 @@ public:
         BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(volume_handle_, &volume));
     }
 
-    bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+    bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
         return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
 
@@ -62,7 +62,7 @@ void BassVolume::Init(const AnyMap& config) {
     impl_->Init(volume);
 }
 
-bool BassVolume::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+bool BassVolume::Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 

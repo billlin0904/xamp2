@@ -9,6 +9,7 @@
 #include <QString>
 #include <QModelIndex>
 #include <QVariant>
+#include <QFileInfo>
 
 #include <widget/util/str_utilts.h>
 #include <widget/widget_shared_global.h>
@@ -50,6 +51,10 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     std::optional<double> track_replay_gain;
     std::optional<double> track_peak;
     std::optional<double> track_loudness;
+
+    [[nodiscard]] bool isFilePath() const {
+        return QFileInfo(file_path).isFile();
+    }
 
     [[nodiscard]] QString validCoverId() const {
         auto id = music_cover_id ? music_cover_id.value() : kEmptyString;

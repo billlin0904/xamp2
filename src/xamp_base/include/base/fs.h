@@ -34,7 +34,7 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::skip_permission_denied
 };
 
-XAMP_BASE_API bool IsFilePath(const std::wstring& file_path) noexcept;
+XAMP_BASE_API bool IsFilePath(const Path& file_path) noexcept;
 
 XAMP_BASE_API std::string GetSharedLibraryName(const std::string_view &name);
 

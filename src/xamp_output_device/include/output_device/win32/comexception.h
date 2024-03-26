@@ -23,18 +23,6 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 class XAMP_OUTPUT_DEVICE_API ComException final : public PlatformException {
 public:
 	/*
-	* Throw from HRESULT.
-	* 
-	* @param[in] hresult: HRESULT
-	* @param[in] expr: expression
-	* @param[in] file_path: file path
-	* @param[in] line_number: line number
-	*/
-	static inline void ThrowFromHResult(long hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0) {
-		throw ComException(hresult, expr, file_path, line_number);
-	}
-
-	/*
 	* Constructor.
 	* 
 	* @param[in] hresult: HRESULT
@@ -42,7 +30,7 @@ public:
 	* @param[in] file_path: file path
 	* @param[in] line_number: line number
 	*/
-	explicit ComException(long hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
+	explicit ComException(long hresult, std::string_view expr = "");
 
 	/*
 	* Destructor.
@@ -59,32 +47,24 @@ public:
 	*/
 	[[nodiscard]] const char* GetExpression() const noexcept override;
 
-	/*
-	* Get file name and line.
-	* 
-	* @return file name and line
-	*/
-	[[nodiscard]] std::string GetFileNameAndLine() const;
-
 private:
 	long hr_;
 	std::string_view expr_;
-	std::string file_name_and_line_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#define HrIfFailledThrow2(hresult, otherHr) \
+#define HrIfNotEqualThrow(hresult, otherHr) \
 	do { \
 		if (FAILED((hresult)) && ((otherHr) != (hresult))) { \
-			ComException::ThrowFromHResult(hresult, #hresult, __FILE__, __LINE__); \
+			throw ComException(hresult, #hresult); \
 		} \
 	} while (false)
 
-#define HrIfFailledThrow(hresult) \
+#define HrIfFailThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
-			ComException::ThrowFromHResult(hresult, #hresult, __FILE__, __LINE__); \
+			throw ComException(hresult, #hresult); \
 		} \
 	} while (false)
 

@@ -139,13 +139,13 @@ void SharedWasapiDevice::UnRegisterDeviceVolumeChange() {
 }
 
 void SharedWasapiDevice::RegisterDeviceVolumeChange() {
-	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
+	HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		nullptr,
 		reinterpret_cast<void**>(&endpoint_volume_)
 	));
 	device_volume_notification_ = new DeviceEventNotification(callback_);
-	HrIfFailledThrow(endpoint_volume_->RegisterControlChangeNotify(device_volume_notification_));
+	HrIfFailThrow(endpoint_volume_->RegisterControlChangeNotify(device_volume_notification_));
 }
 
 bool SharedWasapiDevice::IsStreamOpen() const noexcept {
@@ -193,7 +193,7 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 	mix_format_.Free();
 
 	// Get the mix format and the current shared mode engine period.
-	HrIfFailledThrow(client_->GetCurrentSharedModeEnginePeriod(&mix_format_, &current_period_in_frame));
+	HrIfFailThrow(client_->GetCurrentSharedModeEnginePeriod(&mix_format_, &current_period_in_frame));
 
 	// Set the mix format to the device format.
 	SetWaveformatEx(mix_format_, output_format.GetSampleRate());
@@ -240,7 +240,7 @@ void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 			// 會出現這個錯誤, 代表音效設備不支援同時多個 sample rate, 所以需要進行重採樣轉換.			
 			throw DeviceNeedSetMatchFormatException();
 		}
-		HrIfFailledThrow(hr);
+		HrIfFailThrow(hr);
 	} else {
 		InitialDeviceFormat(output_format);
 		auto hr = client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
@@ -250,7 +250,7 @@ void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
 			throw DeviceInUseException();
 		}
-		HrIfFailledThrow(hr);		
+		HrIfFailThrow(hr);		
 	}
 }
 
@@ -260,7 +260,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	if (!client_) {
 		XAMP_LOG_D(logger_, "Active device format: {}.", output_format);
 		
-		HrIfFailledThrow(device_->Activate(kAudioClient3ID,
+		HrIfFailThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
@@ -272,12 +272,12 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		device_props.eCategory = AudioCategory_Media;
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | AUDCLNT_STREAMOPTIONS_RAW;
 		try {
-			HrIfFailledThrow(client_->SetClientProperties(&device_props));
+			HrIfFailThrow(client_->SetClientProperties(&device_props));
 		}
 		catch (const Exception& e) {
 			XAMP_LOG_D(logger_, "SetClientProperties return failure! {}", e.GetErrorMessage());
 			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-			HrIfFailledThrow(client_->SetClientProperties(&device_props));
+			HrIfFailThrow(client_->SetClientProperties(&device_props));
 		}
 
 		InitialDevice(output_format);
@@ -286,17 +286,17 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	RegisterDeviceVolumeChange();
 
 	// Reset device state.
-	HrIfFailledThrow(client_->Reset());
+	HrIfFailThrow(client_->Reset());
 
 	// Get the buffer size.
-	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
+	HrIfFailThrow(client_->GetBufferSize(&buffer_frames_));
 
 	// Get the render client.
-	HrIfFailledThrow(client_->GetService(kAudioRenderClientID, 
+	HrIfFailThrow(client_->GetService(kAudioRenderClientID, 
 		reinterpret_cast<void**>(&render_client_)));
 
 	// Get the audio clock.
-	HrIfFailledThrow(client_->GetService(kAudioClockID,
+	HrIfFailThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
 	XAMP_LOG_D(logger_, "WASAPI buffer frame size:{}.", buffer_frames_);
@@ -305,30 +305,30 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		XAMP_ASSERT(sample_ready_);
-		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
+		HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
 	// Create the work queue.
 	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
 
 	// Get the device volume interface.
-	HrIfFailledThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume_)));
+	HrIfFailThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume_)));
 }
 
 bool SharedWasapiDevice::IsMuted() const {
 	BOOL is_muted = FALSE;
-	HrIfFailledThrow(simple_audio_volume_->GetMute(&is_muted));
+	HrIfFailThrow(simple_audio_volume_->GetMute(&is_muted));
 	return is_muted;
 }
 
 uint32_t SharedWasapiDevice::GetVolume() const {	
 	float channel_volume = 0.0;
-	HrIfFailledThrow(simple_audio_volume_->GetMasterVolume(&channel_volume));
+	HrIfFailThrow(simple_audio_volume_->GetMasterVolume(&channel_volume));
 	return static_cast<uint32_t>(channel_volume * 100);
 }
 
 void SharedWasapiDevice::SetMute(bool mute) const {
-	HrIfFailledThrow(simple_audio_volume_->SetMute(mute, nullptr));
+	HrIfFailThrow(simple_audio_volume_->SetMute(mute, nullptr));
 }
 
 PackedFormat SharedWasapiDevice::GetPackedFormat() const noexcept {
@@ -349,14 +349,14 @@ void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 
 	BOOL is_mute = FALSE;
-	HrIfFailledThrow(simple_audio_volume_->GetMute(&is_mute));
+	HrIfFailThrow(simple_audio_volume_->GetMute(&is_mute));
 
 	if (is_mute) {
-		HrIfFailledThrow(simple_audio_volume_->SetMute(false, nullptr));
+		HrIfFailThrow(simple_audio_volume_->SetMute(false, nullptr));
 	}
 
 	const auto channel_volume = static_cast<float>(static_cast<double>(volume) / 100.0);
-	HrIfFailledThrow(simple_audio_volume_->SetMasterVolume(channel_volume, nullptr));
+	HrIfFailThrow(simple_audio_volume_->SetMasterVolume(channel_volume, nullptr));
 
 	XAMP_LOG_D(logger_, "Current volume: {}", GetVolume());
 }
@@ -437,7 +437,7 @@ void SharedWasapiDevice::StartStream() {
 	rt_work_queue_->Initial();
 	rt_work_queue_->WaitAsync(sample_ready_.get());
 	is_running_ = true;
-	HrIfFailledThrow(client_->Start());
+	HrIfFailThrow(client_->Start());
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {

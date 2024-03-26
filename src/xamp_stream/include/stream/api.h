@@ -68,6 +68,8 @@ XAMP_STREAM_API void LoadMBDiscIdLib();
 
 XAMP_STREAM_API void LoadAvLib();
 
+XAMP_STREAM_API void FreeAvLib();
+
 XAMP_STREAM_API void LoadSoxrLib();
 
 XAMP_STREAM_API void LoadSrcLib();

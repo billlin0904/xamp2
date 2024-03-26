@@ -54,7 +54,7 @@ void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ScanNewDevice() {
 
 CComPtr<IMMDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceById(std::wstring const & device_id) const {
 	CComPtr<IMMDevice> device;
-	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
+	HrIfFailThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
@@ -82,7 +82,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
-	HrIfFailledThrow2(hr, ERROR_NOT_FOUND);
+	HrIfNotEqualThrow(hr, ERROR_NOT_FOUND);
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
@@ -97,10 +97,10 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 
 	try {
 		// Get all active devices
-		HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+		HrIfFailThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 		// Get device count
-		HrIfFailledThrow(devices->GetCount(&count));
+		HrIfFailThrow(devices->GetCount(&count));
 
 		device_list.reserve(count);
 
@@ -119,7 +119,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 		CComPtr<IMMDevice> device;
 
 		try {
-			HrIfFailledThrow(devices->Item(i, &device));
+			HrIfFailThrow(devices->Item(i, &device));
 
 			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType));
 			if (default_device_name == info.name) {

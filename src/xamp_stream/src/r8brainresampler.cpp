@@ -36,7 +36,7 @@ public:
 			ER8BResamplerRes::r8brr24));
 	}
 
-	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		XAMP_EXPECTS(num_samples <= kR8brainBufferSize);
 		input_data_.resize(num_samples);
 
@@ -85,7 +85,7 @@ R8brainSampleRateConverter::R8brainSampleRateConverter()
 
 XAMP_PIMPL_IMPL(R8brainSampleRateConverter)
 
-bool R8brainSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+bool R8brainSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
 }
 

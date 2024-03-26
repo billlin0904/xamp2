@@ -141,6 +141,8 @@ void AudioPlayer::Destroy() {
     GetWasapiThreadPool().Stop();
 #endif
     PreventSleep(false);
+    FreeAvLib();
+    device_manager_.reset();
 }
 
 void AudioPlayer::SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
@@ -194,7 +196,7 @@ void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
 }
 
 void AudioPlayer::Open(const Path& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
-    is_file_path_ = IsFilePath(file_path.wstring());
+    is_file_path_ = IsFilePath(file_path);
     CloseDevice(true);
     UpdatePlayerStreamTime();
     OpenStream(file_path, output_mode);

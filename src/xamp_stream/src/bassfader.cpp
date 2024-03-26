@@ -41,7 +41,7 @@ public:
             fdade_time);
     }
 
-    bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+    bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
         return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
 private:
@@ -75,7 +75,7 @@ std::string_view BassFader::GetDescription() const noexcept {
     return Description;
 }
 
-bool BassFader::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
+bool BassFader::Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 

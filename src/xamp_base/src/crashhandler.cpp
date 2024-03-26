@@ -90,7 +90,7 @@ public:
 
         const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            XAMP_LOG_D(logger_, "Ignore exception code: {}({:#014X}) {}",
+            XAMP_LOG_D(logger_, "Ignore exception code: {}({:#010X}) {}",
                        itr->second, itr->first, stack_trace.CaptureStack());
             return;
         }
@@ -106,7 +106,7 @@ public:
                 (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_D(logger_, "Uncaught exception: {:#014X} ({}) {}\r\n", 
+            XAMP_LOG_D(logger_, "Uncaught exception: {:#010X} ({}) {}\r\n", 
                 code, GetPlatformErrorMessage(code), stack_trace.CaptureStack());
         }
     }

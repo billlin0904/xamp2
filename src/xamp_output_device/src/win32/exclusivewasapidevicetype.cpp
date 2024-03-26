@@ -57,7 +57,7 @@ void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ScanNewDevice() {
 std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	const auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
-	HrIfFailledThrow2(hr, ERROR_NOT_FOUND);
+	HrIfNotEqualThrow(hr, ERROR_NOT_FOUND);
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
@@ -70,7 +70,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 
 CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceById(const std::wstring & device_id) const {
 	CComPtr<IMMDevice> device;
-	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
+	HrIfFailThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
@@ -99,10 +99,10 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 
 	try {
 		// Get all active devices
-		HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+		HrIfFailThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 		// Get device count
-		HrIfFailledThrow(devices->GetCount(&count));
+		HrIfFailThrow(devices->GetCount(&count));
 
 		device_list.reserve(count);
 
@@ -120,7 +120,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 		CComPtr<IMMDevice> device;
 
 		try {
-			HrIfFailledThrow(devices->Item(i, &device));
+			HrIfFailThrow(devices->Item(i, &device));
 
 			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
 
@@ -149,14 +149,14 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 			}
 
 			CComPtr<IAudioEndpointVolume> endpoint_volume;
-			HrIfFailledThrow(device->Activate(__uuidof(IAudioEndpointVolume),
+			HrIfFailThrow(device->Activate(__uuidof(IAudioEndpointVolume),
 				CLSCTX_INPROC_SERVER,
 				nullptr,
 				reinterpret_cast<void**>(&endpoint_volume)
 			));
 
 			DWORD volume_support_mask = 0;
-			HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
+			HrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
 
 			// Check device support volume control
 			info.is_hardware_control_volume = (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)

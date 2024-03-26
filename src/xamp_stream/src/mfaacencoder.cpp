@@ -27,7 +27,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(MFEncoder);
 
-#define HrIfFailledThrow(hresult) \
+#define HrIfFailThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
 			throw PlatformException(hresult); \
@@ -41,12 +41,12 @@ public:
     MFEncoderCallback()
 	    : ref_(0)
 		, last_hr_(S_OK) {
-        HrIfFailledThrow(::MFCreateMediaSession(nullptr, &session_));
+        HrIfFailThrow(::MFCreateMediaSession(nullptr, &session_));
         event_.reset(::CreateEvent(nullptr, FALSE, FALSE, nullptr));
         CComPtr<IMFClock> clock;
-        HrIfFailledThrow(session_->GetClock(&clock));
-        HrIfFailledThrow(clock->QueryInterface(IID_PPV_ARGS(&clock_)));
-        HrIfFailledThrow(session_->BeginGetEvent(this, nullptr));
+        HrIfFailThrow(session_->GetClock(&clock));
+        HrIfFailThrow(clock->QueryInterface(IID_PPV_ARGS(&clock_)));
+        HrIfFailThrow(session_->BeginGetEvent(this, nullptr));
     }
 
     virtual ~MFEncoderCallback() {
@@ -56,10 +56,10 @@ public:
     }
 
     void Start(CComPtr<IMFTopology> &topology) const {
-        HrIfFailledThrow(session_->SetTopology(0, topology));
+        HrIfFailThrow(session_->SetTopology(0, topology));
         PROPVARIANT var_start;
         PropVariantInit(&var_start);
-        HrIfFailledThrow(session_->Start(&GUID_NULL, &var_start));
+        HrIfFailThrow(session_->Start(&GUID_NULL, &var_start));
     }
 
     HRESULT GetEncodingPosition(MFTIME &ime) const {
@@ -160,12 +160,12 @@ public:
     }
 
     void Open(const std::wstring &input_file_path) {
-        HrIfFailledThrow(CreateMediaSource(input_file_path, &source_));        
-        HrIfFailledThrow(::MFCreateTranscodeProfile(&profile_));
+        HrIfFailThrow(CreateMediaSource(input_file_path, &source_));        
+        HrIfFailThrow(::MFCreateTranscodeProfile(&profile_));
     }
 
     void SetOutputFile(const std::wstring& output_file_path) {
-        HrIfFailledThrow(::MFCreateTranscodeTopology(source_,
+        HrIfFailThrow(::MFCreateTranscodeTopology(source_,
             output_file_path.c_str(),
             profile_,
             &topology_));
@@ -174,8 +174,8 @@ public:
     UINT64 GetSourceDuration() const {
         UINT64 duration = 0;
         CComPtr<IMFPresentationDescriptor> desc;
-        HrIfFailledThrow(source_->CreatePresentationDescriptor(&desc));
-        HrIfFailledThrow(desc->GetUINT64(MF_PD_DURATION, &duration));
+        HrIfFailThrow(source_->CreatePresentationDescriptor(&desc));
+        HrIfFailThrow(desc->GetUINT64(MF_PD_DURATION, &duration));
         return duration;
     }
 
@@ -200,36 +200,36 @@ public:
 
     void SetContainer(const GUID& container_type) const {
         CComPtr<IMFAttributes> container_attrs;
-        HrIfFailledThrow(::MFCreateAttributes(&container_attrs, 1));
-        HrIfFailledThrow(container_attrs->SetGUID(
+        HrIfFailThrow(::MFCreateAttributes(&container_attrs, 1));
+        HrIfFailThrow(container_attrs->SetGUID(
             MF_TRANSCODE_CONTAINERTYPE,
             container_type
         ));
-        HrIfFailledThrow(profile_->SetContainerAttributes(container_attrs));
+        HrIfFailThrow(profile_->SetContainerAttributes(container_attrs));
     }
 
     void SetAudioFormat(const GUID &target_format) {
-        HrIfFailledThrow(::MFCreateAttributes(&attrs_, 8));
-        HrIfFailledThrow(attrs_->SetGUID(MF_MT_SUBTYPE, target_format));
+        HrIfFailThrow(::MFCreateAttributes(&attrs_, 8));
+        HrIfFailThrow(attrs_->SetGUID(MF_MT_SUBTYPE, target_format));
         if (!encoding_profile_.has_value()) {
             const auto format = AudioFormat::k16BitPCM441Khz;
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, format.GetChannels()));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, format.GetBitsPerSample()));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, format.GetSampleRate()));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 1));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 24000));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, 160000));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, format.GetChannels()));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, format.GetBitsPerSample()));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, format.GetSampleRate()));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 1));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 24000));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, 160000));
         } else {
             const auto& encoding_profile = encoding_profile_.value();
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, encoding_profile.num_channels));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, encoding_profile.bit_per_sample));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, encoding_profile.sample_rate));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 1));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, encoding_profile.bytes_per_second));
-            HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, encoding_profile.bitrate));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, encoding_profile.num_channels));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, encoding_profile.bit_per_sample));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, encoding_profile.sample_rate));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 1));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, encoding_profile.bytes_per_second));
+            HrIfFailThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, encoding_profile.bitrate));
         }
-        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, (UINT32)AACProfileLevel::AAC_PROFILE_L2));
-        HrIfFailledThrow(profile_->SetAudioAttributes(attrs_));
+        HrIfFailThrow(attrs_->SetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, (UINT32)AACProfileLevel::AAC_PROFILE_L2));
+        HrIfFailThrow(profile_->SetAudioAttributes(attrs_));
     }
 
     void SetEncodingProfile(const EncodingProfile& profile) {

@@ -166,11 +166,11 @@ namespace {
 
 		CComPtr<IPropertyStore> property;
 
-		HrIfFailledThrow(device->OpenPropertyStore(STGM_READ, &property));
+		HrIfFailThrow(device->OpenPropertyStore(STGM_READ, &property));
 
 		PropVariant prop_variant;
 
-		HrIfFailledThrow(property->GetValue(key, &prop_variant));
+		HrIfFailThrow(property->GetValue(key, &prop_variant));
 
 		switch (type) {
 		case VT_UI4:
@@ -201,7 +201,7 @@ namespace {
 */
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	CComPtr<IMMDeviceEnumerator> enumerator;
-	HrIfFailledThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
+	HrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
@@ -214,7 +214,7 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id)
 	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
 	
 	CComHeapPtr<WCHAR> id;
-	HrIfFailledThrow(device->GetId(&id));
+	HrIfFailThrow(device->GetId(&id));
 	info.device_type_id = device_type_id;
 	info.device_id = String::ToUtf8String(std::wstring(id));
 	info.connect_type = GetDeviceConnectType(device);

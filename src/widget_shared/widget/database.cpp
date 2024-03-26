@@ -864,6 +864,71 @@ std::optional<std::tuple<QString, QString>> Database::getLyrics(int32_t music_id
     return std::nullopt;
 }
 
+void Database::updateMusic(int32_t music_id, const TrackInfo& track_info) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT(R"(
+    UPDATE musics SET
+    title = :title,
+	track = :track,
+	path = :path,
+	fileExt = :fileExt,
+	fileName= :fileName,
+	duration= :duration,
+	durationStr= :durationStr,
+	parentPath= :parentPath,
+	bitRate= :bitRate,
+	sampleRate= :sampleRate,
+	offset= :offset,
+	dateTime= :dateTime,
+	albumReplayGain= :albumReplayGain,
+	trackReplayGain= :trackReplayGain, 
+	albumPeak= :albumPeak,
+	trackPeak= :trackPeak,
+	genre= :genre, 
+	comment= :comment,
+	fileSize= :fileSize,
+	heart= :heart    
+	WHERE musicId = :musicId
+    )")
+    );
+
+    query.bindValue(qTEXT(":title"),       toQString(track_info.title));
+    query.bindValue(qTEXT(":track"),           track_info.track);
+    query.bindValue(qTEXT(":path"),        toQString(track_info.file_path));
+    query.bindValue(qTEXT(":fileExt"),     toQString(track_info.file_ext()));
+    query.bindValue(qTEXT(":fileName"),    toQString(track_info.file_name()));
+    query.bindValue(qTEXT(":parentPath"),  toQString(track_info.parent_path()));
+    query.bindValue(qTEXT(":duration"),        track_info.duration);
+    query.bindValue(qTEXT(":durationStr"), formatDuration(track_info.duration));
+    query.bindValue(qTEXT(":bitRate"),         track_info.bit_rate);
+    query.bindValue(qTEXT(":sampleRate"),      track_info.sample_rate);
+    query.bindValue(qTEXT(":offset"),          track_info.offset);
+    query.bindValue(qTEXT(":fileSize"),        track_info.file_size);
+    query.bindValue(qTEXT(":heart"),           track_info.rating ? 1 : 0);
+
+    if (track_info.replay_gain) {
+        query.bindValue(qTEXT(":albumReplayGain"), track_info.replay_gain.value().album_gain);
+        query.bindValue(qTEXT(":trackReplayGain"), track_info.replay_gain.value().track_gain);
+        query.bindValue(qTEXT(":albumPeak"), track_info.replay_gain.value().album_peak);
+        query.bindValue(qTEXT(":trackPeak"), track_info.replay_gain.value().track_peak);
+    }
+    else {
+        query.bindValue(qTEXT(":albumReplayGain"), QVariant());
+        query.bindValue(qTEXT(":trackReplayGain"), QVariant());
+        query.bindValue(qTEXT(":albumPeak"), QVariant());
+        query.bindValue(qTEXT(":trackPeak"), QVariant());
+    }
+
+    query.bindValue(qTEXT(":dateTime"), track_info.last_write_time);
+    query.bindValue(qTEXT(":genre"), toQString(track_info.genre));
+    query.bindValue(qTEXT(":comment"), toQString(track_info.comment));
+
+    query.bindValue(qTEXT(":musicId"), music_id);
+
+    THROW_IF_FAIL1(query);
+}
+
 int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     SqlQuery query(db_);
 

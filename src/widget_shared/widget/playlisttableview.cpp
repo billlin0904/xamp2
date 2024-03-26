@@ -1165,6 +1165,9 @@ void PlayListTableView::play(PlayerOrder order, bool is_plays) {
 }
 
 void PlayListTableView::onPlayIndex(const QModelIndex& index, bool is_play) {
+    if (!index.isValid()) {
+        return;
+    }
     play_index_ = index;
     setNowPlaying(play_index_, true);
     const auto entity = item(play_index_);

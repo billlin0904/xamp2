@@ -6,7 +6,7 @@
 #pragma once
 
 #include <QtCore/qglobal.h>
-
+#include <base/port.h>
 #include <stdexcept>
 
 #ifndef BUILD_STATIC
@@ -17,14 +17,6 @@
 # endif
 #else
 # define XAMP_WIDGET_SHARED_EXPORT
-#endif
-
-#ifdef Q_OS_WIN32    
-#define XAMP_Sscanf  sscanf_s
-#define XAMP_Swscanf swscanf_s
-#else
-#define XAMP_Sscanf  sscanf
-#define XAMP_Swscanf swscanf
 #endif
 
 #define tryLog(expr) \

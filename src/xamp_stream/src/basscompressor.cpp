@@ -48,7 +48,7 @@ public:
             compressord.fRelease);
     }
 
-    bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+    bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
         if (out.size() != num_samples) {
             out.maybe_resize(num_samples);
         }
@@ -90,7 +90,7 @@ void BassCompressor::Init(const AnyMap& config) {
     impl_->Init(parameters);
 }
 
-bool BassCompressor::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+bool BassCompressor::Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 

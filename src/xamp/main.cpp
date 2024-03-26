@@ -275,6 +275,7 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
+    qputenv("QT_ICC_PROFILE", QByteArray());
     qAppSettings.loadIniFile(qTEXT("xamp.ini"));
     qJsonSettings.loadJsonFile(qTEXT("config.json"));
 #ifdef Q_OS_WIN32

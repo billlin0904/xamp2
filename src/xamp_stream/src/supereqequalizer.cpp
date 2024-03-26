@@ -62,7 +62,7 @@ public:
         SetEq(settings);
     }
 
-    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
+    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
 	    const int32_t channel_samples = num_samples * AudioFormat::kMaxChannel;
         buffer_.resize(channel_samples);
 
@@ -153,7 +153,7 @@ void SuperEqEqualizer::Init(const AnyMap& config) {
     impl_->SetEq(settings);
 }
 
-bool SuperEqEqualizer::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
+bool SuperEqEqualizer::Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 

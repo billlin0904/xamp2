@@ -61,72 +61,72 @@ XAMP_MAKE_ENUM(Errors,
     XAMP_ERROR_NOT_BUFFER_OVERFLOW,
     XAMP_ERROR_UNKNOWN)
 
-    /*
-    * Exception class
-    *
-    */
-    class XAMP_BASE_API Exception : public std::exception {
-    public:
-        /*
-        * Constructor.
-        *
-        * @param message: Message.
-        * @param what: What.
-        */
-        explicit Exception(std::string const& message, std::string_view what = "");
+ /*
+ * Exception class
+ *
+ */
+class XAMP_BASE_API Exception : public std::exception {
+ public:
+     /*
+     * Constructor.
+     *
+     * @param message: Message.
+     * @param what: What.
+     */
+     explicit Exception(std::string const& message, std::string_view what = "");
 
-        /*
-        * Constructor.
-        *
-        * @param error: Error code.
-        * @param message: Message.
-        * @param what: What.
-        */
-        explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
-            std::string const& message = "",
-            std::string_view what = "");
+     /*
+     * Constructor.
+     *
+     * @param error: Error code.
+     * @param message: Message.
+     * @param what: What.
+     */
+     explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
+         std::string const& message = "",
+         std::string_view what = "");
 
-        /*
-        * Destructor.
-        */
-        virtual ~Exception() noexcept override = default;
+     /*
+     * Destructor.
+     */
+     virtual ~Exception() noexcept override = default;
 
-        /*
-        * what function.
-        */
-        [[nodiscard]] char const* what() const noexcept override;
+     /*
+     * what function.
+     */
+     [[nodiscard]] char const* what() const noexcept override;
 
-        /*
-        * Get error code.
-        */
-        [[nodiscard]] virtual Errors GetError() const noexcept;
+     /*
+     * Get error code.
+     */
+     [[nodiscard]] virtual Errors GetError() const noexcept;
 
-        /*
-        * Get error message.
-        */
-        [[nodiscard]] char const* GetErrorMessage() const noexcept;
+     /*
+     * Get error message.
+     */
+     [[nodiscard]] char const* GetErrorMessage() const noexcept;
 
-        /*
-        * Get expression.
-        */
-        [[nodiscard]] virtual const char* GetExpression() const noexcept;
+     /*
+     * Get expression.
+     */
+     [[nodiscard]] virtual const char* GetExpression() const noexcept;
 
-        /*
-        * Get stack trace.
-        */
-        [[nodiscard]] char const* GetStackTrace() const noexcept;
+     /*
+     * Get stack trace.
+     */
+     [[nodiscard]] char const* GetStackTrace() const noexcept;
 
-        /*
-        * Get error code string.
-        */
-        static std::string_view ErrorToString(Errors error);
-    private:
-        Errors error_;
+     /*
+     * Get error code string.
+     */
+     static std::string_view ErrorToString(Errors error);
+ private:
+     Errors error_;
 
-    protected:
-        std::string what_;
-        std::string message_;
-        std::string stacktrace_;
+ protected:
+     std::string what_;
+     std::string message_;
+     std::string stacktrace_;
 };
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);

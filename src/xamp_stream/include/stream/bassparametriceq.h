@@ -30,7 +30,7 @@ public:
 
     void SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S);
 
-    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
+    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
 
     Uuid GetTypeId() const override;
 

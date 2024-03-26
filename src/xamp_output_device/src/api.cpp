@@ -17,7 +17,7 @@
 #include <base/platfrom_handle.h>
 #endif
 
-namespace xamp::output_device {
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_MAC
 static struct IopmAssertion {
@@ -105,4 +105,4 @@ void PreventSleep(bool allow) {
 #endif
 }
 
-}
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

@@ -100,11 +100,11 @@ public:
         BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(preamp_, &fv));
     }
 
-    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
+    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
         return bass_utiltis::Process(stream_, samples, num_samples, out);
     }
 
-    uint32_t Process(float const* samples, float* out, uint32_t num_samples) {
+    uint32_t Process(float const* samples, float* out, size_t num_samples) {
         return bass_utiltis::Process(stream_, samples, out, num_samples);
     }
 
@@ -149,7 +149,7 @@ void BassParametricEq::SetBand(EQFilterTypes filter, uint32_t band, uint32_t cen
     
 }
 
-bool BassParametricEq::Process(float const* samples, uint32_t num_samples, BufferRef<float>& out)  {
+bool BassParametricEq::Process(float const* samples, size_t num_samples, BufferRef<float>& out)  {
     return impl_->Process(samples, num_samples, out);
 }
 

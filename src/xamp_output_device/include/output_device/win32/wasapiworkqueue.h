@@ -75,7 +75,7 @@ public:
 			return;
 		}
 		async_result_.Release();
-		HrIfFailledThrow(::MFUnlockWorkQueue(queue_id_));
+		HrIfFailThrow(::MFUnlockWorkQueue(queue_id_));
 		queue_id_ = MAXDWORD;
 		task_id_ = 0;
 	}
@@ -112,9 +112,9 @@ public:
 	*/
 	void Initial() {
 		DWORD queue_id = MF_MULTITHREADED_WORKQUEUE;
-		HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &queue_id));
+		HrIfFailThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &queue_id));
 		queue_id_ = queue_id;
-		HrIfFailledThrow(::MFCreateAsyncResult(nullptr, this, nullptr, &async_result_));
+		HrIfFailThrow(::MFCreateAsyncResult(nullptr, this, nullptr, &async_result_));
 	}
 
 	/*
@@ -138,7 +138,7 @@ public:
 			return;
 		}
 		workitem_key_ = 0;
-		HrIfFailledThrow(::MFPutWaitingWorkItem(event, 1, async_result_, &workitem_key_));
+		HrIfFailThrow(::MFPutWaitingWorkItem(event, 1, async_result_, &workitem_key_));
 	}
 
 private:

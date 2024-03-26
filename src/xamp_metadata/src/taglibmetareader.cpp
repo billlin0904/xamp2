@@ -9,14 +9,15 @@
 #include <base/logger_impl.h>
 #include <base/singleton.h>
 #include <base/exception.h>
+#include <base/port.h>
 
 #include <vector>
 #include <sstream>
 #include <functional>
+#include <regex>
 
 XAMP_METADATA_NAMESPACE_BEGIN
-
-namespace {
+	namespace {
     double ParseStringList(const std::string & s, bool string_dummy = true) {
         std::stringstream ss;
         ss << s;
@@ -260,11 +261,6 @@ namespace {
 
     void SetFileInfo(const Path& path, TrackInfo& track_info) {
         track_info.file_path = path;
-        //track_info.file_path = path.wstring();
-        //track_info.file_name = path.filename().wstring();
-        //track_info.parent_path = path.parent_path().wstring();
-        //track_info.file_ext = path.extension().wstring();
-        //track_info.file_name_no_ext = path.stem().wstring();
         track_info.file_size = Fs::file_size(path);
     }
 
@@ -276,31 +272,19 @@ namespace {
         }
     }
 
-    void ExtractTitleFromFileName(TrackInfo& track_info) {
+    void ExtractTitleFromFileName(TrackInfo& track_info) {        
         std::optional<std::wstring> file_name_no_ext(track_info.file_name_no_ext());
 
         if (file_name_no_ext) {
-	        const auto start_pos = file_name_no_ext.value().find(L'.');
-            if (start_pos != std::wstring::npos) {
-                track_info.title = file_name_no_ext.value().substr(start_pos + 1);
-                std::wistringstream istr(file_name_no_ext.value().substr(0, start_pos));
-                istr >> track_info.track >> track_info.title.value();
+            std::wregex pattern(L"Track(\\d{2})\\.(.*)");
+            std::wsmatch matches;
+
+            if (std::regex_search(file_name_no_ext.value(), matches, pattern)) {
+                track_info.track = std::stoi(matches[1].str());
+                track_info.title = matches[2].str();
             }
             else {
                 track_info.title = file_name_no_ext;
-            }
-
-#ifdef XAMP_OS_WIN
-            #define port_swscanf swscanf_s
-#else
-            #define port_swscanf swscanf
-#endif
-
-            auto track_id = 0;
-            const auto res = port_swscanf(file_name_no_ext.value().c_str(), L"Track%02d",
-                &track_id);
-            if (res == 1) {
-                track_info.track = track_id;
             }
         }
     }

@@ -15,7 +15,7 @@ namespace {
         auto minutes = 0;
         auto seconds = 0;
         auto milliseconds = 0;
-        const auto res = XAMP_Swscanf(str.c_str(), L"%u:%u.%u",
+        const auto res = port_swscanf(str.c_str(), L"%u:%u.%u",
             &minutes,
             &seconds,
             &milliseconds);

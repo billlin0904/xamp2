@@ -82,7 +82,7 @@ public:
         AVFormatContext* format_context = nullptr;
         AVDictionary* options = nullptr;
         
-        if (!IsFilePath(file_path.wstring())) {
+        if (!IsFilePath(file_path)) {
             // note: Http request timeout in microseconds. 
             LIBAV_LIB.Util->av_dict_set(&options, "timeout", "6000000", 0);
             LIBAV_LIB.Util->av_dict_set(&options, "user_agent", XAMP_HTTP_USER_AGENT, 0);

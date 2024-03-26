@@ -134,11 +134,11 @@ double parseDuration(const std::string & str) {
     auto seconds = 0;
 
     if (str.length() <= 4) {
-        XAMP_Sscanf(str.c_str(), "%u:%u",
+        port_sscanf(str.c_str(), "%u:%u",
             &minutes,
             &seconds);
     } else {
-        XAMP_Sscanf(str.c_str(), "%u:%u:%u",
+        port_sscanf(str.c_str(), "%u:%u:%u",
             &hours,
             &minutes,
             &seconds);

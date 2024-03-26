@@ -32,7 +32,7 @@ public:
 
     void SetEq(EqSettings const &settings);
 
-    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
+    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

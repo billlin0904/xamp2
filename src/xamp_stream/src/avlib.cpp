@@ -163,7 +163,18 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 }
 
 AvLib::~AvLib() {
-	Format->avformat_network_deinit();
+	Free();
+}
+
+void AvLib::Free() {
+	if (Format != nullptr) {
+		Format->avformat_network_deinit();
+	}
+
+	Util.reset();
+	Swr.reset();
+	Codec.reset();
+	Format.reset();
 }
 
 AvLib::AvLib() {

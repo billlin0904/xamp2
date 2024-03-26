@@ -149,7 +149,7 @@ public:
 
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
-        const auto is_file_path = IsFilePath(file_path.wstring());
+        const auto is_file_path = IsFilePath(file_path);
         XAMP_LOG_D(logger_, "Start open file");
 
         Stopwatch sw;

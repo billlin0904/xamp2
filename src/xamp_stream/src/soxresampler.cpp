@@ -163,7 +163,7 @@ public:
 		LISOXR_LIB.soxr_clear(handle_.get());
 	}
 
-	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
 		MaybeResizeBuffer(output, required_size);
 
@@ -263,7 +263,7 @@ void SoxrSampleRateConverter::SetDither(bool enable) {
 	impl_->SetDither(enable);
 }
 
-bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+bool SoxrSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
 }
 

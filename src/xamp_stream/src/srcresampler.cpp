@@ -61,7 +61,7 @@ public:
 		XAMP_LOG_D(logger_, "quality: {}", quality_);
 	}
 
-	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		const auto required_size = static_cast<size_t>(num_samples * ratio_);
 		MaybeResizeBuffer(output, required_size);
 
@@ -137,7 +137,7 @@ void SrcSampleRateConverter::SetQuality(SrcQuality quality) {
 	return impl_->SetQuality(quality);
 }
 
-bool SrcSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+bool SrcSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
 }
 

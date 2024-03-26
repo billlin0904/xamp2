@@ -198,6 +198,10 @@ void LoadAvLib() {
     Singleton<AvLib>::GetInstance();
 }
 
+void FreeAvLib() {
+    Singleton<AvLib>::GetInstance().Free();
+}
+
 void LoadSoxrLib() {
     Singleton<SoxrLib>::GetInstance();
 }

@@ -156,7 +156,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	if (buffer_period_ == 0) {
 		// If buffer_period_ is not set, use default device period.
-		HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+		HrIfFailThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 		default_device_period = kGlitchFreePeriod;
 	} else {
 		default_device_period = buffer_period_;
@@ -188,19 +188,19 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		if (hr == AUDCLNT_E_DEVICE_IN_USE) {
 			throw DeviceInUseException();
 		}
-		HrIfFailledThrow(hr);
+		HrIfFailThrow(hr);
 	}
 	
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 
-	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
+	HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		nullptr,
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
 
 	// Check hardware support volume control.
-	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
+	HrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
 	
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
 		XAMP_LOG_D(logger_, "Hardware support volume control.");
@@ -228,17 +228,17 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	if (!client_) {
 		XAMP_LOG_D(logger_, "Active device format: {}.", output_format);
 
-        HrIfFailledThrow(device_->Activate(kAudioClient3ID,
+        HrIfFailThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
 
-        HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
+        HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume_)));
 
-		HrIfFailledThrow(client_->GetMixFormat(&mix_format_));		
+		HrIfFailThrow(client_->GetMixFormat(&mix_format_));		
 
 		HRESULT hr = S_OK;
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
@@ -271,7 +271,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 				}				
 			}
 			else {
-				HrIfFailledThrow(hr);
+				HrIfFailThrow(hr);
 			}
 		} else {
 			InitialDeviceFormat(output_format, 16);
@@ -279,20 +279,20 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
     }
 
 	// Reset device state.
-    HrIfFailledThrow(client_->Reset());
+    HrIfFailThrow(client_->Reset());
 
 	// Get device render client.
-    HrIfFailledThrow(client_->GetService(kAudioRenderClientID,
+    HrIfFailThrow(client_->GetService(kAudioRenderClientID,
 		reinterpret_cast<void**>(&render_client_)));
 
 	// Get device clock.
-	HrIfFailledThrow(client_->GetService(kAudioClockID,
+	HrIfFailThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
 	// Create sample ready event handle.
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
+		HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
 	// Create thread start event handle.
@@ -561,7 +561,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	}
 
 	// Start stream.
-	HrIfFailledThrow(client_->Start());
+	HrIfFailThrow(client_->Start());
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {
@@ -575,7 +575,7 @@ double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
 	// TODO: GetVolume回傳level, CoreAudio, ASIO均無法讀取設備的dBFS
 	auto volume_scalar = 0.0F;
-	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
+	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
 	return static_cast<uint32_t>(volume_scalar * 100.0F);
 }
 
@@ -583,23 +583,23 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 
 	auto is_mute = FALSE;
-	HrIfFailledThrow(endpoint_volume_->GetMute(&is_mute));
+	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
 
 	if (is_mute) {
-		HrIfFailledThrow(endpoint_volume_->SetMute(false, nullptr));
+		HrIfFailThrow(endpoint_volume_->SetMute(false, nullptr));
 	}
 
 	// 統一化在各設備之間不同音量控制.
 	float scaled_min_volume = 0;
 	float scaled_max_volume = 0;
 	float volume_increment = 0;
-	HrIfFailledThrow(endpoint_volume_->GetVolumeRange(&scaled_min_volume, &scaled_max_volume, &volume_increment));
+	HrIfFailThrow(endpoint_volume_->GetVolumeRange(&scaled_min_volume, &scaled_max_volume, &volume_increment));
 
     const float target_volume_scale = volume / 100.0f;
 	const float target_volume_level = (scaled_max_volume - scaled_min_volume) * target_volume_scale + scaled_min_volume;
 	const float volume_range = scaled_max_volume - scaled_min_volume;
 	const float target_volume_normalized = (target_volume_level - scaled_min_volume) / volume_range;
-	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_normalized, nullptr));
+	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_normalized, nullptr));
 
 	float dbVolume = 0;
 	endpoint_volume_->GetMasterVolumeLevel(&dbVolume);
@@ -609,12 +609,12 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 
 bool ExclusiveWasapiDevice::IsMuted() const {
 	auto is_mute = FALSE;
-	HrIfFailledThrow(endpoint_volume_->GetMute(&is_mute));
+	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
 	return is_mute;
 }
 
 void ExclusiveWasapiDevice::SetMute(const bool mute) const {
-	HrIfFailledThrow(endpoint_volume_->SetMute(mute, nullptr));
+	HrIfFailThrow(endpoint_volume_->SetMute(mute, nullptr));
 }
 
 PackedFormat ExclusiveWasapiDevice::GetPackedFormat() const noexcept {

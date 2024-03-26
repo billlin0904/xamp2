@@ -50,10 +50,14 @@ PlayListEntity getEntity(const QModelIndex& index) {
     set_entity_value(entity.track_loudness, indexValue(index, PLAYLIST_TRACK_LOUDNESS));
 
 
-    QFileInfo file_info(entity.file_path);
+    const QFileInfo file_info(entity.file_path);
     entity.file_extension = file_info.suffix();
     entity.file_name = file_info.completeBaseName();
     entity.parent_path = toNativeSeparators(file_info.dir().path());
+
+    if (entity.file_extension.isEmpty()) {
+        entity.file_extension = qTEXT(".m4a");
+    }
 
     return entity;
 }

@@ -172,6 +172,8 @@ public:
 
     ~AvLib();
 
+    void Free();
+
     XAMP_DISABLE_COPY(AvLib)
 
     HashSet<std::string> GetSupportFileExtensions() const;

@@ -6,6 +6,7 @@
 #include <base/base.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
+
 namespace {
     std::string MakeErrorMessage(HRESULT hr) {
         char result[16]{};
@@ -61,29 +62,18 @@ namespace {
             return result;
         }
     }
-
-    std::string MakeFileNameAndLine(const Path& file_path, int32_t line_number) {
-        std::ostringstream ostr;
-        ostr << file_path.filename() << ":" << std::dec << line_number;
-        return ostr.str();
-    }
 }
 
-ComException::ComException(long hresult, std::string_view expr, const Path& file_path, int32_t line_number)
+ComException::ComException(long hresult, std::string_view expr)
 	: PlatformException(hresult)
 	, hr_(hresult)
 	, expr_(expr) {	
 	message_ = MakeErrorMessage(hresult);
-    file_name_and_line_ = MakeFileNameAndLine(file_path, line_number);
     what_ = message_;
 }
 
 long ComException::GetHResult() const {
 	return hr_;
-}
-
-std::string ComException::GetFileNameAndLine() const {
-    return file_name_and_line_;
 }
 
 const char* ComException::GetExpression() const noexcept {

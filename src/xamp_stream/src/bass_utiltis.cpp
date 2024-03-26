@@ -7,7 +7,7 @@
 
 namespace xamp::stream::bass_utiltis {
 
-uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, uint32_t num_samples) {
+uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, size_t num_samples) {
     MemoryCopy(out, samples, num_samples * sizeof(float));
     const auto bytes_read =
         BASS_LIB.BASS_ChannelGetData(stream.get(),
@@ -16,7 +16,7 @@ uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, uin
     return bytes_read;
 }
 
-bool Process(BassStreamHandle& stream, float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+bool Process(BassStreamHandle& stream, float const * samples, size_t num_samples, BufferRef<float>& out) {
     if (out.size() != num_samples) {
         out.maybe_resize(num_samples);
     }
