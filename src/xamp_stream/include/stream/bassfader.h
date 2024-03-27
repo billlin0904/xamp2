@@ -24,8 +24,6 @@ public:
 
     XAMP_PIMPL(BassFader)
 
-    void Start(const AnyMap& config) override;
-
     void Initialize(const AnyMap& config) override;
 
     void SetTime(float current, float target, float fdade_time);

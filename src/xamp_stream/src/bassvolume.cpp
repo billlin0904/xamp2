@@ -50,14 +50,12 @@ BassVolume::BassVolume()
     : impl_(MakeAlign<BassVolumeImpl>()) {
 }
 
-void BassVolume::Start(const AnyMap& config) {
-    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
-    impl_->Start(output_format.GetSampleRate());
-}
-
 XAMP_PIMPL_IMPL(BassVolume)
 
 void BassVolume::Initialize(const AnyMap& config) {
+    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
+    impl_->Start(output_format.GetSampleRate());
+
     const auto volume = config.Get<double>(DspConfig::kVolume);
     impl_->Initialize(volume);
 }

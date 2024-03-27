@@ -189,12 +189,10 @@ void DSPManager::Initialize(const AnyMap& config) {
     }
 
     for (const auto& dsp : pre_dsp_) {
-        dsp->Start(config_);
         dsp->Initialize(config_);
     }
 
     for (const auto& dsp : post_dsp_) {
-        dsp->Start(config_);
         dsp->Initialize(config_);
     }
 }

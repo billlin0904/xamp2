@@ -23,8 +23,6 @@ public:
 
     XAMP_PIMPL(BassCompressor)
 
-    void Start(const AnyMap& config) override;
-
     void Initialize(const AnyMap& config) override;
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) override;

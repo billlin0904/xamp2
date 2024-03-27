@@ -53,14 +53,11 @@ BassFader::BassFader()
     : impl_(MakeAlign<BassFaderImpl>()) {
 }
 
-void BassFader::Start(const AnyMap& config) {
-    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
-    impl_->Start(output_format.GetSampleRate());
-}
-
 XAMP_PIMPL_IMPL(BassFader)
 
 void BassFader::Initialize(const AnyMap& config) {
+    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
+    impl_->Start(output_format.GetSampleRate());
 }
 
 void BassFader::SetTime(float current, float target, float fdade_time) {

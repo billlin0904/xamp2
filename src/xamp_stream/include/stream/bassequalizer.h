@@ -24,15 +24,13 @@ public:
 
     XAMP_PIMPL(BassEqualizer)
 
-    void Start(const AnyMap& config) override;
-
     void Initialize(const AnyMap& config) override;
 
     void SetEq(uint32_t band, float gain, float Q);
 
-    void SetEq(EqSettings const &settings);
+    void SetEq(const EqSettings &settings);
 
-    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
+    bool Process(const float* samples, size_t num_samples, BufferRef<float>& out) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

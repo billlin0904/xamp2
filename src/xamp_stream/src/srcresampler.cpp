@@ -29,7 +29,7 @@ public:
 		output_sample_rate_ = output_sample_rate;
 	}
 
-	void Init(uint32_t input_sample_rate) {
+	void Initialize(uint32_t input_sample_rate) {
 		input_sample_rate_ = input_sample_rate;
 
 		int32_t error = 0;
@@ -141,14 +141,12 @@ bool SrcSampleRateConverter::Process(float const* samples, size_t num_samples, B
 	return impl_->Process(samples, num_samples, output);
 }
 
-void SrcSampleRateConverter::Start(const AnyMap& config) {
+void SrcSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->Start(output_format.GetSampleRate());
-}
 
-void SrcSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
-	impl_->Init(input_format.GetSampleRate());
+	impl_->Initialize(input_format.GetSampleRate());
 }
 
 Uuid SrcSampleRateConverter::GetTypeId() const {

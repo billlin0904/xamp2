@@ -78,14 +78,12 @@ BassCompressor::BassCompressor()
     : impl_(MakeAlign<BassCompressorImpl>()) {
 }
 
-void BassCompressor::Start(const AnyMap& config) {
-    const auto output_format = config.AsAudioFormat(DspConfig::kOutputFormat);
-    impl_->Start(output_format.GetSampleRate());
-}
-
 XAMP_PIMPL_IMPL(BassCompressor)
 
 void BassCompressor::Initialize(const AnyMap& config) {
+    const auto output_format = config.AsAudioFormat(DspConfig::kOutputFormat);
+    impl_->Start(output_format.GetSampleRate());
+
 	const auto compressor_config = config.Get<CompressorConfig>(DspConfig::kCompressorConfig);
     impl_->Initialize(compressor_config);
 }

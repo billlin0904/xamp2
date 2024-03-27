@@ -37,13 +37,6 @@ public:
 	XAMP_BASE_CLASS(IAudioProcessor)
 
     /*
-    * Start the audio processor.
-    * 
-    * @param config: the configuration for the audio processor.
-    */
-    virtual void Start(const AnyMap& config) = 0;
-
-    /*
     * Initialize the audio processor.
     * 
     * @param config: the configuration for the audio processor.

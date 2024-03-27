@@ -14,16 +14,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/util/mbdiscid_uiltis.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT ReplayGainResult final {
-	double album_loudness{0};
-	double album_peak{0};
-	double album_gain{0};
-	double album_peak_gain{0};
-	Vector<double> track_loudness;
-	Vector<double> track_peak;
-	Vector<double> track_gain;
-	Vector<double> track_peak_gain;
-};
+Q_DECLARE_METATYPE(ReplayGain);
 
 class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker final : public QObject {
 	Q_OBJECT

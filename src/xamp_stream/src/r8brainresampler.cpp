@@ -28,7 +28,7 @@ public:
 		output_sample_rate_ = output_sample_rate;
 	}
 
-	void Init(uint32_t input_sample_rate) {
+	void Initialize(uint32_t input_sample_rate) {
 		handle_.reset(LIBR8_DLL.r8b_create(input_sample_rate,
 			output_sample_rate_,
 			kR8brainBufferSize,
@@ -89,14 +89,12 @@ bool R8brainSampleRateConverter::Process(float const* samples, size_t num_sample
 	return impl_->Process(samples, num_samples, output);
 }
 
-void R8brainSampleRateConverter::Start(const AnyMap& config) {
+void R8brainSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->Start(output_format.GetSampleRate());
-}
 
-void R8brainSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
-	impl_->Init(input_format.GetSampleRate());
+	impl_->Initialize(input_format.GetSampleRate());
 }
 
 Uuid R8brainSampleRateConverter::GetTypeId() const {

@@ -131,12 +131,10 @@ BassParametricEq::BassParametricEq()
 
 XAMP_PIMPL_IMPL(BassParametricEq)
 
-void BassParametricEq::Start(const AnyMap& config) {
+void BassParametricEq::Initialize(const AnyMap& config) {
     const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
-}
 
-void BassParametricEq::Initialize(const AnyMap& config) {
     const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
     SetEq(settings);
 }

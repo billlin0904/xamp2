@@ -31,6 +31,17 @@ struct ReplayGainJob {
     Ebur128Reader reader;
 };
 
+struct ReplayGainContext {
+    double album_loudness{ 0 };
+    double album_peak{ 0 };
+    double album_gain{ 0 };
+    double album_peak_gain{ 0 };
+    Vector<double> track_loudness;
+    Vector<double> track_peak;
+    Vector<double> track_gain;
+    Vector<double> track_peak_gain;
+};
+
 BackgroundWorker::BackgroundWorker()
     : nam_(this)
     , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(256)) {
@@ -136,8 +147,8 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
     auto entities_size = std::distance(entities.begin(), entities.end());
     XAMP_LOG_D(logger_, "Start read replay gain count:{}", entities_size);
 
-    const auto target_loudness = qAppSettings.valueAs(kAppSettingReplayGainTargetLoudnes).toDouble();
-    const auto scan_mode = qAppSettings.valueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
+    const auto target_loudness  = qAppSettings.valueAs(kAppSettingReplayGainTargetLoudnes).toDouble();
+    const auto scan_mode        = qAppSettings.valueAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
     const auto enable_write_tag = qAppSettings.valueAsBool(kAppSettingEnableReplayGainWriteTag);
 
     QMap<int32_t, Vector<PlayListEntity>> album_group_map;
@@ -164,8 +175,6 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
         for (size_t i = 0; i < entities.size(); ++i) {
             jobs[i].entity = album_entities[i];
         }
-
-        //std::this_thread::sleep_for(std::chrono::seconds(1));
 
         Executor::ParallelFor(GetBackgroundThreadPool(), jobs, [this, scan_mode, total_work, &completed_work](auto & job) {
             auto progress = [scan_mode](auto percent) {
@@ -194,19 +203,19 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
             ++completed_work;
             });
 
-        ReplayGainResult replay_gain;
-        replay_gain.track_peak.reserve(entities.size());
-        replay_gain.track_loudness.reserve(entities.size());
-        replay_gain.track_gain.reserve(entities.size());
-        replay_gain.track_peak_gain.reserve(entities.size());
+        ReplayGainContext replay_gain_context;
+        replay_gain_context.track_peak.reserve(entities.size());
+        replay_gain_context.track_loudness.reserve(entities.size());
+        replay_gain_context.track_gain.reserve(entities.size());
+        replay_gain_context.track_peak_gain.reserve(entities.size());
 
         for (size_t i = 0; i < entities.size(); ++i) {
             auto track_loudness = jobs[i].reader.GetLoudness();
             auto track_peak = jobs[i].reader.GetTruePeek();
-            replay_gain.track_peak.push_back(track_peak);
-            replay_gain.track_peak_gain.push_back(20.0 * log10(track_peak));
-            replay_gain.track_loudness.push_back(track_loudness);
-            replay_gain.track_gain.push_back(target_loudness - track_loudness);
+            replay_gain_context.track_peak.push_back(track_peak);
+            replay_gain_context.track_peak_gain.push_back(20.0 * log10(track_peak));
+            replay_gain_context.track_loudness.push_back(track_loudness);
+            replay_gain_context.track_gain.push_back(target_loudness - track_loudness);
         }
 
         Vector<Ebur128Reader> readers;
@@ -214,34 +223,33 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
             readers.push_back(std::move(job.reader));
         }
 
-        replay_gain.album_loudness = Ebur128Reader::GetMultipleLoudness(readers);
-
-        replay_gain.album_peak = *std::max_element(replay_gain.track_peak.begin(), replay_gain.track_peak.end(),
-
-                                                           [](auto& a, auto& b) {return a < b; }
+        replay_gain_context.album_loudness = Ebur128Reader::GetMultipleLoudness(readers);
+        replay_gain_context.album_peak = *std::max_element(replay_gain_context.track_peak.begin(), 
+            replay_gain_context.track_peak.end(), [](auto& a, auto& b) {return a < b; }
         );
 
-        replay_gain.album_gain = target_loudness - replay_gain.album_loudness;
-        replay_gain.album_peak_gain = 20.0 * log10(replay_gain.album_peak);
+        replay_gain_context.album_gain = target_loudness - replay_gain_context.album_loudness;
+        replay_gain_context.album_peak_gain = 20.0 * log10(replay_gain_context.album_peak);
 
         for (size_t i = 0; i < entities.size(); ++i) {
-            if (enable_write_tag) {
-                ReplayGain rg;
-                rg.album_gain = replay_gain.album_gain;
-                rg.track_gain = replay_gain.track_gain[i];
-                rg.album_peak = replay_gain.album_peak;
-                rg.track_peak = replay_gain.track_peak[i];
-                rg.ref_loudness = target_loudness;
-                writer->WriteReplayGain(entities[i].file_path.toStdWString(), rg);
+            ReplayGain replay_gain;
+            replay_gain.album_gain   = replay_gain_context.album_gain;
+            replay_gain.track_gain   = replay_gain_context.track_gain[i];
+            replay_gain.album_peak   = replay_gain_context.album_peak;
+            replay_gain.track_peak   = replay_gain_context.track_peak[i];
+            replay_gain.ref_loudness = target_loudness;
+
+            if (enable_write_tag) {                
+                writer->WriteReplayGain(entities[i].file_path.toStdWString(), replay_gain);
             }
 
             emit readReplayGain(playlistId,
                 entities[i],
-                replay_gain.track_loudness[i],
-                replay_gain.album_gain,
-                replay_gain.album_peak,
-                replay_gain.track_gain[i],
-                replay_gain.track_peak[i]
+                replay_gain_context.track_loudness[i],
+                replay_gain_context.album_gain,
+                replay_gain_context.album_peak,
+                replay_gain_context.track_gain[i],
+                replay_gain_context.track_peak[i]
             );
         }
     }

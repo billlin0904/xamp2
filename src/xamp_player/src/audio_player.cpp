@@ -498,6 +498,8 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
     }
 
     if (!quit && enable_fadeout_) {
+        fader_ = StreamFactory::MakeFader();
+        fader_->Initialize(config_);
         ProcessFadeOut();
     }
 
@@ -944,9 +946,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
 
     dsp_manager_->Initialize(config_);
 	sample_end_time_ = stream_->GetDurationAsSeconds();
-    XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
-    fader_ = StreamFactory::MakeFader();
-    fader_->Start(config_);
+    XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);    
 }
 
 AnyMap& AudioPlayer::GetDspConfig() {
