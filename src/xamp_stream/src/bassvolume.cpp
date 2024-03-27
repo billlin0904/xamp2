@@ -28,7 +28,7 @@ public:
         volume_handle_ = BASS_LIB.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
     }
 
-    void Init(double volume_db) {
+    void Initialize(double volume_db) {
         BASS_BFX_VOLUME volume{ 0 };
         volume.lChannel = -1;
         volume.fVolume = static_cast<float>(std::pow(10, (volume_db / 20)));
@@ -57,9 +57,9 @@ void BassVolume::Start(const AnyMap& config) {
 
 XAMP_PIMPL_IMPL(BassVolume)
 
-void BassVolume::Init(const AnyMap& config) {
+void BassVolume::Initialize(const AnyMap& config) {
     const auto volume = config.Get<double>(DspConfig::kVolume);
-    impl_->Init(volume);
+    impl_->Initialize(volume);
 }
 
 bool BassVolume::Process(float const * samples, size_t num_samples, BufferRef<float>& out) {

@@ -9,12 +9,12 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-struct XAMP_STREAM_API CompressorParameters final {
-    CompressorParameters() noexcept
-        : gain(-1.0)
+struct XAMP_STREAM_API CompressorConfig final {
+    CompressorConfig() noexcept
+        : gain(0.0)
         , threshold(-1.0)
-        , ratio(1000)
-        , attack(1)
+        , ratio(20)
+        , attack(0.1f)
         , release(100) {
     }
 

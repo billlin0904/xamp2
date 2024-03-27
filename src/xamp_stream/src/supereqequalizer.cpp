@@ -148,7 +148,7 @@ void SuperEqEqualizer::Start(const AnyMap& config) {
     impl_->Start(output_format.GetSampleRate());
 }
 
-void SuperEqEqualizer::Init(const AnyMap& config) {
+void SuperEqEqualizer::Initialize(const AnyMap& config) {
     const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
     impl_->SetEq(settings);
 }

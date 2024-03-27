@@ -94,7 +94,7 @@ void R8brainSampleRateConverter::Start(const AnyMap& config) {
 	impl_->Start(output_format.GetSampleRate());
 }
 
-void R8brainSampleRateConverter::Init(const AnyMap& config) {
+void R8brainSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
 	impl_->Init(input_format.GetSampleRate());
 }

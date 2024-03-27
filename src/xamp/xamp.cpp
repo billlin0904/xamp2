@@ -22,7 +22,7 @@
 #include <stream/bassaacfileencoder.h>
 #include <stream/idspmanager.h>
 #include <stream/r8brainresampler.h>
-#include <stream/compressorparameters.h>
+#include <stream/compressorconfig.h>
 
 #include <player/ebur128reader.h>
 
@@ -1959,7 +1959,8 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::setupDsp(const PlayListEntity& item) const {
-    if (qAppSettings.valueAsBool(kAppSettingEnableEQ)) {
+    // EQ
+	if (qAppSettings.valueAsBool(kAppSettingEnableEQ)) {
         if (qAppSettings.contains(kAppSettingEQName)) {
             const auto [name, settings] =
                 qAppSettings.eqSettings();
@@ -1971,19 +1972,8 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
         player_->GetDspManager()->RemoveEqualizer();
     }
 
-    if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
-        CompressorParameters parameters;
-        if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
-            if (item.track_loudness) {
-                parameters.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness.value(), -1.0) * -1;
-            }
-        }
-        player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorParameters, parameters);
-        player_->GetDspManager()->AddCompressor();
-    }
-
-    // todo: replay_gain 需要允許空值, 設為0的話會爆音.    
-    /*if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
+    // ReplayGain
+    if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE && item.album_replay_gain) {
             player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain.value());
@@ -1996,7 +1986,19 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
         }
     } else {
         player_->GetDspManager()->RemoveVolumeControl();
-    }*/
+    }
+
+    // Limiter
+    if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
+        CompressorConfig config;
+        if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
+            if (item.track_loudness) {
+                config.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness.value(), -1.0) * -1;
+            }
+        }
+        player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorConfig, config);
+        player_->GetDspManager()->AddCompressor();
+    }
 }
 
 void Xamp::setupSampleWriter(ByteFormat byte_format,
@@ -2378,12 +2380,12 @@ void Xamp::onPlayMusic(const PlayListEntity& entity) {
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
-    if (QUrl(entity.file_path).scheme() == qTEXT("https")) {
+    if (entity.isHttpUrl()) {
         onPlayEntity(entity);
         return;
     }
 
-    if (IsFilePath(entity.file_path.toStdWString())) {
+    if (entity.isFilePath()) {
         onPlayEntity(entity);
     }
     else {

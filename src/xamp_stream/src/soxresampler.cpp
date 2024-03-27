@@ -234,7 +234,7 @@ void SoxrSampleRateConverter::Start(const AnyMap& config) {
 	impl_->Start(output_format.GetSampleRate());
 }
 
-void SoxrSampleRateConverter::Init(const AnyMap& config) {
+void SoxrSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
     impl_->Init(input_format.GetSampleRate());
 }

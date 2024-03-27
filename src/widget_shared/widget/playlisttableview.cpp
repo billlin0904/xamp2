@@ -147,7 +147,7 @@ class PlayListStyledItemDelegate final : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
-    static constexpr auto kPlayingStateIconSize = 16;
+    static constexpr auto kPlayingStateIconSize = 8;
    
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {

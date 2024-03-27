@@ -941,9 +941,8 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format, uint32_t device_sample_r
     config_.AddOrReplace(DspConfig::kOutputFormat, std::any(output_format_));
     config_.AddOrReplace(DspConfig::kDsdMode,      std::any(dsd_mode_));
     config_.AddOrReplace(DspConfig::kSampleSize,   std::any(stream_->GetSampleSize()));
-    config_.AddOrReplace(DspConfig::kVolume,       std::any(1.0));
 
-    dsp_manager_->Init(config_);
+    dsp_manager_->Initialize(config_);
 	sample_end_time_ = stream_->GetDurationAsSeconds();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
     fader_ = StreamFactory::MakeFader();

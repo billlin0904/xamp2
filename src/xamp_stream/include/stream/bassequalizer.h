@@ -26,7 +26,7 @@ public:
 
     void Start(const AnyMap& config) override;
 
-    void Init(const AnyMap& config) override;
+    void Initialize(const AnyMap& config) override;
 
     void SetEq(uint32_t band, float gain, float Q);
 

@@ -21,7 +21,7 @@ public:
 
     XAMP_DISABLE_COPY(DSPManager)
 
-	void Init(const AnyMap& config) override;
+	void Initialize(const AnyMap& config) override;
 
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 

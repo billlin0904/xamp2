@@ -1,6 +1,6 @@
 #include <stream/basscompressor.h>
 
-#include <stream/compressorparameters.h>
+#include <stream/compressorconfig.h>
 #include <stream/bass_utiltis.h>
 #include <stream/basslib.h>
 
@@ -26,7 +26,7 @@ public:
         BassIfFailedThrow(stream_);
     }
 
-    void Init(CompressorParameters const& parameters) {
+    void Initialize(CompressorConfig const& parameters) {
         ::BASS_BFX_COMPRESSOR2 compressord{0};
         compressord.fGain = parameters.gain;
         compressord.fThreshold = parameters.threshold;
@@ -85,9 +85,9 @@ void BassCompressor::Start(const AnyMap& config) {
 
 XAMP_PIMPL_IMPL(BassCompressor)
 
-void BassCompressor::Init(const AnyMap& config) {
-	const auto parameters = config.Get<CompressorParameters>(DspConfig::kCompressorParameters);
-    impl_->Init(parameters);
+void BassCompressor::Initialize(const AnyMap& config) {
+	const auto compressor_config = config.Get<CompressorConfig>(DspConfig::kCompressorConfig);
+    impl_->Initialize(compressor_config);
 }
 
 bool BassCompressor::Process(float const * samples, size_t num_samples, BufferRef<float>& out) {

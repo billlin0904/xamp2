@@ -146,7 +146,7 @@ void SrcSampleRateConverter::Start(const AnyMap& config) {
 	impl_->Start(output_format.GetSampleRate());
 }
 
-void SrcSampleRateConverter::Init(const AnyMap& config) {
+void SrcSampleRateConverter::Initialize(const AnyMap& config) {
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
 	impl_->Init(input_format.GetSampleRate());
 }

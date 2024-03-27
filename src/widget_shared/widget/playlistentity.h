@@ -10,6 +10,7 @@
 #include <QModelIndex>
 #include <QVariant>
 #include <QFileInfo>
+#include <QUrl>
 
 #include <widget/util/str_utilts.h>
 #include <widget/widget_shared_global.h>
@@ -26,8 +27,8 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     uint32_t sample_rate{0};
     uint32_t rating{0};
     uint32_t heart{0};
-    uint64_t file_size{0};
     uint32_t year{0};
+    uint64_t file_size{0};
     double duration{0};
     uint64_t timestamp{0};
     QString disc_id;
@@ -52,8 +53,13 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     std::optional<double> track_peak;
     std::optional<double> track_loudness;
 
+    [[nodiscard]] bool isHttpUrl() const {
+        const auto scheme = QUrl(file_path).scheme();
+        return scheme == qTEXT("https") || scheme == qTEXT("http");
+    }
+
     [[nodiscard]] bool isFilePath() const {
-        return QFileInfo(file_path).isFile();
+        return !QFileInfo(file_path).fileName().isEmpty();
     }
 
     [[nodiscard]] QString validCoverId() const {

@@ -19,7 +19,7 @@ class XAMP_STREAM_API XAMP_NO_VTABLE IDSPManager {
 public:
     XAMP_BASE_CLASS(IDSPManager)
 
-	virtual void Init(const AnyMap& config) = 0;
+	virtual void Initialize(const AnyMap& config) = 0;
 
     // note: return true (fetch more data).
     [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;

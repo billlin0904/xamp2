@@ -23,7 +23,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 bool IsFilePath(const Path& file_path) noexcept {
-	return file_path.has_filename();
+	return file_path.has_extension();
 }
 
 Path GetTempFileNamePath() {

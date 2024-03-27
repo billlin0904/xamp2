@@ -112,7 +112,7 @@ void BassEqualizer::Start(const AnyMap& config) {
     impl_->Start(output_format.GetSampleRate());
 }
 
-void BassEqualizer::Init(const AnyMap& config) {
+void BassEqualizer::Initialize(const AnyMap& config) {
 	const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
     SetEq(settings);
 }

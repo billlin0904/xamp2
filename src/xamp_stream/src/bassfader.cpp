@@ -60,7 +60,7 @@ void BassFader::Start(const AnyMap& config) {
 
 XAMP_PIMPL_IMPL(BassFader)
 
-void BassFader::Init(const AnyMap& config) {
+void BassFader::Initialize(const AnyMap& config) {
 }
 
 void BassFader::SetTime(float current, float target, float fdade_time) {

@@ -26,7 +26,7 @@ public:
 
     void Start(const AnyMap& config) override;
 
-    void Init(const AnyMap& config) override;
+    void Initialize(const AnyMap& config) override;
 
     void SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S);
 

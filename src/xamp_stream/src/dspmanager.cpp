@@ -171,7 +171,7 @@ bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer
     return false;
 }
 
-void DSPManager::Init(const AnyMap& config) {
+void DSPManager::Initialize(const AnyMap& config) {
     config_ = config;
 
     if (!sample_writer_) {
@@ -190,12 +190,12 @@ void DSPManager::Init(const AnyMap& config) {
 
     for (const auto& dsp : pre_dsp_) {
         dsp->Start(config_);
-        dsp->Init(config_);
+        dsp->Initialize(config_);
     }
 
     for (const auto& dsp : post_dsp_) {
         dsp->Start(config_);
-        dsp->Init(config_);
+        dsp->Initialize(config_);
     }
 }
 

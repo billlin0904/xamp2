@@ -24,7 +24,7 @@ namespace DspConfig {
     constexpr static auto kOutputFormat = std::string_view("OutputFormat");
     constexpr static auto kSampleSize = std::string_view("SampleSize");
     constexpr static auto kEQSettings = std::string_view("EQSettings");
-    constexpr static auto kCompressorParameters = std::string_view("CompressorParameters");
+    constexpr static auto kCompressorConfig = std::string_view("CompressorConfig");
     constexpr static auto kVolume = std::string_view("Volume");
 };
 
@@ -48,7 +48,7 @@ public:
     * 
     * @param config: the configuration for the audio processor.
     */
-    virtual void Init(const AnyMap& config) = 0;
+    virtual void Initialize(const AnyMap& config) = 0;
 
     /*
     * Process the audio samples.
