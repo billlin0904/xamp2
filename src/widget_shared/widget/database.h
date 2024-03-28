@@ -38,15 +38,20 @@ struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
 	double durations{0};
 };
 
-inline constexpr auto kMaxDatabasePoolSize = 8;
+constexpr auto kMaxDatabasePoolSize = 8;
 
-inline constexpr int32_t kInvalidDatabaseId = -1;
+constexpr int32_t kInvalidDatabaseId = -1;
 
-inline constexpr auto kDefaultPlaylistId = 1;
-inline constexpr auto kAlbumPlaylistId = 2;
-inline constexpr auto kCdPlaylistId = 3;
-inline constexpr auto kYtMusicSearchPlaylistId = 4;
-inline constexpr auto kMaxExistPlaylist = 5;
+constexpr auto kDefaultPlaylistId = 1;
+constexpr auto kAlbumPlaylistId = 2;
+constexpr auto kCdPlaylistId = 3;
+constexpr auto kYtMusicSearchPlaylistId = 4;
+constexpr auto kMaxExistPlaylist = 5;
+
+constexpr auto kYouTubeCategory = qTEXT("YouTube");
+constexpr auto kLocalCategory = qTEXT("Local");
+constexpr auto kHiResCategory = qTEXT("HiRes");
+constexpr auto kDsdCategory = qTEXT("DSD");
 
 enum PlayingState {
 	PLAY_CLEAR = 0,

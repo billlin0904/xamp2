@@ -20,10 +20,6 @@
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
-    constexpr auto kYouTubeCategory = qTEXT("YouTube");
-    constexpr auto kLocalCategory = qTEXT("Local");
-	constexpr auto kHiResCategory = qTEXT("HiRes");
-    constexpr auto kDsdCategory = qTEXT("DSD");
     const std::wstring kDffFileExtension(L".dff");
     const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
