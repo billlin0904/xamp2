@@ -8,7 +8,7 @@
 
 #include <player/audio_player.h>
 
-#include <player/ebur128reader.h>
+#include <stream/ebur128reader.h>
 #include <stream/mbdiscid.h>
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
@@ -29,7 +29,7 @@ void LoadComponentSharedLibrary() {
     LoadAvLib();
     XAMP_LOG_DEBUG("Load avlib success.");
 
-    Ebur128Reader::LoadEbur128Lib();
+    LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 
 #ifdef XAMP_OS_WIN

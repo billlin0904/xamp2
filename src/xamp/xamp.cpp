@@ -1,87 +1,71 @@
-﻿#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
-#include <xamp.h>
-
+﻿#include <QCoroFuture>
+#include <QCoroProcess>
+#include <QImageReader>
+#include <QInputDialog>
+#include <QJsonObject>
 #include <QShortcut>
+#include <QSimpleUpdater.h>
 #include <QToolTip>
 #include <QWidgetAction>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QImageReader>
-#include <QCoroFuture>
-#include <QInputDialog>
-#include <QCoroProcess>
-
-#include <QSimpleUpdater.h>
 #include <set>
-
+#include <thememanager.h>
+#include <version.h>
+#include <xamp.h>
+#include <base/dsd_utils.h>
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
-#include <base/dsd_utils.h>
-
+#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+#include <output_device/api.h>
+#include <output_device/iaudiodevicemanager.h>
+#include <output_device/win32/sharedwasapidevicetype.h>
+#include <player/api.h>
 #include <stream/api.h>
-#include <stream/bassaacfileencoder.h>
+#include <stream/compressorconfig.h>
 #include <stream/idspmanager.h>
 #include <stream/r8brainresampler.h>
-#include <stream/compressorconfig.h>
-
-#include <player/ebur128reader.h>
-
-#include <output_device/iaudiodevicemanager.h>
-#include <output_device/api.h>
-#include <player/api.h>
-
-#include <widget/util/str_utilts.h>
-#include <widget/util/mbdiscid_uiltis.h>
-#include <widget/util/image_utiltis.h>
-#include <widget/util/ui_utilts.h>
-
-#include <widget/worker/backgroundworker.h>
-#include <widget/worker/filesystemworker.h>
-#include <widget/worker/findalbumcoverworker.h>
-
-#include <widget/youtubedl/ytmusicoauth.h>
-
-#include <widget/widget_shared.h>
+#include <widget/aboutpage.h>
+#include <widget/accountauthorizationpage.h>
+#include <widget/actionmap.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
 #include <widget/appsettings.h>
-#include <widget/xmessage.h>
+#include <widget/cdpage.h>
+#include <widget/createplaylistview.h>
 #include <widget/database.h>
 #include <widget/equalizerview.h>
 #include <widget/filesystemviewpage.h>
+#include <widget/genre_view_page.h>
+#include <widget/http.h>
+#include <widget/imagecache.h>
+#include <widget/jsonsettings.h>
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
-#include <widget/supereqview.h>
 #include <widget/playlistpage.h>
+#include <widget/playlisttabbar.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableview.h>
-#include <widget/spectrumwidget.h>
-#include <widget/xdialog.h>
-#include <widget/xprogressdialog.h>
-#include <widget/imagecache.h>
-#include <widget/actionmap.h>
-#include <widget/http.h>
-#include <widget/jsonsettings.h>
-#include <widget/util/read_until.h>
-#include <widget/aboutpage.h>
-#include <widget/cdpage.h>
+#include <widget/playlisttabwidget.h>
 #include <widget/preferencepage.h>
 #include <widget/processindicator.h>
+#include <widget/spectrumwidget.h>
+#include <widget/supereqview.h>
 #include <widget/tageditpage.h>
-#include <widget/xmessagebox.h>
-#include <widget/playlisttabwidget.h>
-#include <widget/youtubedl/ytmusic.h>
-#include <widget/genre_view_page.h>
-#include <widget/playlisttabbar.h>
-#include <widget/createplaylistview.h>
-#include <widget/accountauthorizationpage.h>
-#include <widget/youtubedl/ytmusic_disckcache.h>
-
-#include <thememanager.h>
-#include <version.h>
 #include <widget/tagio.h>
-
-#include "output_device/win32/sharedwasapidevicetype.h"
+#include <widget/widget_shared.h>
+#include <widget/xdialog.h>
+#include <widget/xmessagebox.h>
+#include <widget/xprogressdialog.h>
+#include <widget/util/image_utiltis.h>
+#include <widget/util/mbdiscid_uiltis.h>
+#include <widget/util/read_until.h>
+#include <widget/util/str_utilts.h>
+#include <widget/util/ui_utilts.h>
+#include <widget/worker/backgroundworker.h>
+#include <widget/worker/filesystemworker.h>
+#include <widget/worker/findalbumcoverworker.h>
+#include <widget/youtubedl/ytmusic.h>
+#include <widget/youtubedl/ytmusicoauth.h>
+#include <widget/youtubedl/ytmusic_disckcache.h>
 
 namespace {
     bool isSharedWasapiDevice(const Uuid& type) {
@@ -1972,6 +1956,7 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
         player_->GetDspManager()->RemoveEqualizer();
     }
 
+#if 0
     // ReplayGain
     if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
@@ -1994,11 +1979,13 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
         if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
             if (item.track_loudness) {
                 config.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness.value(), -1.0) * -1;
+                XAMP_LOG_DEBUG("Set limiter gain:{} db", config.gain);
             }
         }
         player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorConfig, config);
         player_->GetDspManager()->AddCompressor();
     }
+#endif
 }
 
 void Xamp::setupSampleWriter(ByteFormat byte_format,
@@ -2162,10 +2149,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         setupSampleWriter(byte_format, playback_format);
 
         playback_format.bit_rate = entity.bit_rate;
-        if (sample_rate_converter_type == kR8Brain) {
-            player_->SetReadSampleSize(kR8brainBufferSize);
-        }
-
         // note: 某些DAC(ex: Dx3Pro)再撥放DSD的時候需要將音量設置最大.
         if (!player_->IsHardwareControlVolume()) {
             if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP

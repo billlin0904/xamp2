@@ -14,7 +14,7 @@
 #include <widget/albumview.h>
 #include <widget/tagio.h>
 
-#include <player/ebur128reader.h>
+#include <stream/ebur128reader.h>
 #include <base/logger_impl.h>
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
@@ -210,7 +210,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
         replay_gain_context.track_peak_gain.reserve(entities.size());
 
         for (size_t i = 0; i < entities.size(); ++i) {
-            auto track_loudness = jobs[i].reader.GetLoudness();
+            auto track_loudness = jobs[i].reader.GetIntegratedLoudness();
             auto track_peak = jobs[i].reader.GetTruePeek();
             replay_gain_context.track_peak.push_back(track_peak);
             replay_gain_context.track_peak_gain.push_back(20.0 * log10(track_peak));
@@ -223,7 +223,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
             readers.push_back(std::move(job.reader));
         }
 
-        replay_gain_context.album_loudness = Ebur128Reader::GetMultipleLoudness(readers);
+        replay_gain_context.album_loudness = Ebur128Reader::GetIntegratedMultipleLoudness(readers);
         replay_gain_context.album_peak = *std::max_element(replay_gain_context.track_peak.begin(), 
             replay_gain_context.track_peak.end(), [](auto& a, auto& b) {return a < b; }
         );
@@ -233,11 +233,12 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
 
         for (size_t i = 0; i < entities.size(); ++i) {
             ReplayGain replay_gain;
-            replay_gain.album_gain   = replay_gain_context.album_gain;
-            replay_gain.track_gain   = replay_gain_context.track_gain[i];
-            replay_gain.album_peak   = replay_gain_context.album_peak;
-            replay_gain.track_peak   = replay_gain_context.track_peak[i];
-            replay_gain.ref_loudness = target_loudness;
+            replay_gain.album_gain     = replay_gain_context.album_gain;
+            replay_gain.track_gain     = replay_gain_context.track_gain[i];
+            replay_gain.album_peak     = replay_gain_context.album_peak;
+            replay_gain.track_peak     = replay_gain_context.track_peak[i];
+            replay_gain.track_loudness = replay_gain_context.track_loudness[i];
+            replay_gain.ref_loudness   = target_loudness;
 
             if (enable_write_tag) {                
                 writer->WriteReplayGain(entities[i].file_path.toStdWString(), replay_gain);
@@ -245,11 +246,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
 
             emit readReplayGain(playlistId,
                 entities[i],
-                replay_gain_context.track_loudness[i],
-                replay_gain_context.album_gain,
-                replay_gain_context.album_peak,
-                replay_gain_context.track_gain[i],
-                replay_gain_context.track_peak[i]
+                replay_gain
             );
         }
     }

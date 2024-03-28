@@ -74,13 +74,6 @@ public:
     virtual void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) = 0;
 
     /*
-    * Set read sample size.
-    *
-    * @param[in] num_samples The num samples.
-    */
-    virtual void SetReadSampleSize(uint32_t num_samples) = 0;
-
-    /*
     * Buffer stream.
     *
     * @param[in] stream_time The stream time.

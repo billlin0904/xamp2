@@ -894,38 +894,34 @@ void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /
 
 void PlayListTableView::onUpdateReplayGain(int32_t playlistId,
     const PlayListEntity& entity,
-    double track_loudness,
-    double album_rg_gain,
-    double album_peak,
-    double track_rg_gain,
-    double track_peak) {
+    const ReplayGain& replay_gain) {
     if (playlistId != playlist_id_) {
         return;
     }
 
     qMainDb.updateReplayGain(
         entity.music_id,
-        album_rg_gain,
-        album_peak,
-        track_rg_gain,
-        track_peak);
+        replay_gain.album_gain,
+        replay_gain.album_peak,
+        replay_gain.track_gain,
+        replay_gain.track_peak);
 
     qMainDb.addOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
-        track_loudness);
+        replay_gain.track_loudness);
 
     XAMP_LOG_DEBUG(
         "Update DB music id: {} artist id: {} album id id: {},"
-        "track_loudness: {:.2f} LUFS album_rg_gain: {:.2f} dB album_peak: {:.2f} track_rg_gain: {:.2f} dB track_peak: {:.2f}",
+        "track_loudness: {:.2f} LUFS album_gain: {:.2f} dB album_peak: {:.2f} track_gain: {:.2f} dB track_peak: {:.2f}",
         entity.music_id,
         entity.artist_id,
         entity.album_id,
-        track_loudness,
-        album_rg_gain,
-        album_peak, 
-        track_rg_gain,
-        track_peak);
+        replay_gain.track_loudness,
+        replay_gain.album_gain,
+        replay_gain.album_peak,
+        replay_gain.track_gain,
+        replay_gain.track_peak);
 
     reload();
 
@@ -1161,6 +1157,9 @@ QModelIndex PlayListTableView::playOrderIndex(PlayerOrder order) {
 }
 
 void PlayListTableView::play(PlayerOrder order, bool is_plays) {
+    if (!model_->rowCount()) {
+        return;
+    }
     onPlayIndex(playOrderIndex(order), is_plays);
 }
 

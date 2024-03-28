@@ -37,11 +37,7 @@ signals:
 
 	void readReplayGain(int32_t playlistId,
 	                    const PlayListEntity& entity,
-	                    double track_loudness,
-	                    double album_rg_gain,
-	                    double album_peak,
-	                    double track_rg_gain,
-	                    double track_peak);
+	                    const ReplayGain &replay_gain);
 
 	void blurImage(const QImage& image);
 

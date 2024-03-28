@@ -5,6 +5,7 @@
 #include <base/logger_impl.h>
 
 #include <stream/basslib.h>
+#include <stream/ebur128reader.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
@@ -29,10 +30,10 @@
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
+#include <stream/ebur128lib.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
-
-namespace {
+	namespace {
     bool IsDsdFileChunk(const std::string_view & file_chunks) noexcept {
         static constexpr std::array<std::string_view, 2> knows_chunks{
             "DSD ", // .dsd file
@@ -208,6 +209,10 @@ void LoadSoxrLib() {
 
 void LoadSrcLib() {
     Singleton<SrcLib>::GetInstance();
+}
+
+void LoadEbur128Lib() {
+    Singleton<Ebur128Lib>::GetInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END

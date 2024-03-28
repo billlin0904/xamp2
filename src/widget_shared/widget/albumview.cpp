@@ -34,16 +34,22 @@
 #include <QApplication>
 #include <QHeaderView>
 
-enum {
-    INDEX_ALBUM = 0,
-    INDEX_COVER,
-    INDEX_ARTIST,
-    INDEX_ALBUM_ID,
-    INDEX_ARTIST_ID,
-    INDEX_ARTIST_COVER_ID,
-    INDEX_ALBUM_YEAR,
-    INDEX_ALBUM_HEART,
-};
+namespace {
+    enum {
+        INDEX_ALBUM = 0,
+        INDEX_COVER,
+        INDEX_ARTIST,
+        INDEX_ALBUM_ID,
+        INDEX_ARTIST_ID,
+        INDEX_ARTIST_COVER_ID,
+        INDEX_ALBUM_YEAR,
+        INDEX_ALBUM_HEART,
+        INDEX_CATEGORY,
+    };
+
+    constexpr auto kMoreIconSize = 24;
+    constexpr auto kPaddingSize = 5;
+}
 
 const ConstLatin1String AlbumViewStyledDelegate::kAlbumCacheTag(qTEXT("album_thumbnail_"));
 
@@ -76,11 +82,10 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
 	const auto current_cursor = QApplication::overrideCursor();
 
     const auto default_cover_size = qTheme.defaultCoverSize();
-    constexpr auto icon_size = 24;
     const QRect more_button_rect(
         option.rect.left() + default_cover_size.width() - 10,
         option.rect.top() + default_cover_size.height() + 28,
-        icon_size, icon_size);
+        kMoreIconSize, kMoreIconSize);
 
     switch (ev->type()) {
     case QEvent::MouseButtonPress:
@@ -113,10 +118,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
-    auto album = indexValue(index, INDEX_ALBUM).toString();
+    auto album    = indexValue(index, INDEX_ALBUM).toString();
     auto cover_id = indexValue(index, INDEX_COVER).toString();
-    auto artist = indexValue(index, INDEX_ARTIST).toString();    
-    auto album_year = indexValue(index, INDEX_ALBUM_YEAR).toInt();
+    auto artist   = indexValue(index, INDEX_ARTIST).toString();    
+    auto album_year  = indexValue(index, INDEX_ALBUM_YEAR).toInt();
+    auto is_hires = indexValue(index, INDEX_CATEGORY).toBool();
 
     auto* style = option.widget ? option.widget->style() : QApplication::style();
 
@@ -127,8 +133,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (show_mode_ == SHOW_YEAR) {
         artist = album_year <= 0 ? qTEXT("Unknown") : QString::number(album_year);
     }
-
-    constexpr auto kPaddingSize = 5;
 
     const auto default_cover_size = qTheme.defaultCoverSize();
     const QRect cover_rect(option.rect.left() + kPaddingSize,
@@ -154,14 +158,14 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     f.setBold(true);
     painter->setFont(f);
 
-    if (playing_album_id_ > 0 && playing_album_id_ == album_id) {
+    if (is_hires) {
         const QRect playing_state_icon_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 15,
             kMoreIconSize, kMoreIconSize);
 
         album_artist_text_width -= kMoreIconSize;
-        painter->drawPixmap(playing_state_icon_rect, qTheme.playingIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+        painter->drawPixmap(playing_state_icon_rect, qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
     }
 
     QFontMetrics album_metrics(painter->font());
@@ -390,13 +394,13 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
         albumViewPage();
 
-        auto album = indexValue(index, INDEX_ALBUM).toString();
-        auto cover_id = indexValue(index, INDEX_COVER).toString();
-        auto artist = indexValue(index, INDEX_ARTIST).toString();
-        auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
-        auto artist_id = indexValue(index, INDEX_ARTIST_ID).toInt();
+        auto album           = indexValue(index, INDEX_ALBUM).toString();
+        auto cover_id        = indexValue(index, INDEX_COVER).toString();
+        auto artist          = indexValue(index, INDEX_ARTIST).toString();
+        auto album_id        = indexValue(index, INDEX_ALBUM_ID).toInt();
+        auto artist_id       = indexValue(index, INDEX_ARTIST_ID).toInt();
         auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
-        auto album_heart = indexValue(index, INDEX_ALBUM_HEART).toInt();
+        auto album_heart     = indexValue(index, INDEX_ALBUM_HEART).toInt();
 
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id, cover_id, album_heart);
@@ -526,10 +530,10 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     ActionMap<AlbumView> action_map(this);
 
-    auto album = indexValue(index, INDEX_ALBUM).toString();
-    auto artist = indexValue(index, INDEX_ARTIST).toString();
-    auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
-    auto artist_id = indexValue(index, INDEX_ARTIST_ID).toInt();
+    auto album           = indexValue(index, INDEX_ALBUM).toString();
+    auto artist          = indexValue(index, INDEX_ARTIST).toString();
+    auto album_id           = indexValue(index, INDEX_ALBUM_ID).toInt();
+    auto artist_id          = indexValue(index, INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
     auto* add_album_to_playlist_act = action_map.addAction(tr("Add album to playlist"), [album_id, this]() {
@@ -589,7 +593,8 @@ void AlbumView::filterByArtistId(int32_t artist_id) {
         artists.artistId,
         artists.coverId as artistCover,
         albums.year,
-        albums.heart
+        albums.heart,
+		albums.isHiRes
     FROM
         albumArtist
     LEFT JOIN
@@ -597,7 +602,7 @@ void AlbumView::filterByArtistId(int32_t artist_id) {
     LEFT JOIN
         artists ON artists.artistId = albumArtist.artistId
     WHERE
-        (artists.artistId = %1) AND (albums.isPodcast = 0)
+        (artists.artistId = %1)
 	GROUP BY 
 		albums.albumId
     ORDER BY
@@ -616,7 +621,8 @@ SELECT
     artists.artistId,
     artists.coverId as artistCover,
     albums.year,
-    albums.heart
+    albums.heart,
+	albums.isHiRes
 FROM
     albums
 LEFT 
@@ -641,11 +647,12 @@ SELECT
     artists.artistId,
     artists.coverId as artistCover,
     albums.year,
-    albums.heart
+    albums.heart,
+	albums.isHiRes
 FROM
     albums
-LEFT 
-	JOIN artists ON artists.artistId = albums.artistId
+LEFT JOIN
+	artists ON artists.artistId = albums.artistId
 ORDER BY
     albums.year DESC
     )");
@@ -666,11 +673,12 @@ SELECT
     artists.artistId,
     artists.coverId as artistCover,
     albums.year,
-    albums.heart
+    albums.heart,
+	albums.isHiRes
 FROM
     albums
-LEFT 
-	JOIN artists ON artists.artistId = albums.artistId
+LEFT JOIN
+	artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.year IN (%1)
 ORDER BY
@@ -693,13 +701,14 @@ SELECT
     artists.artistId,
     artists.coverId as artistCover,
     albums.year,
-    albums.heart
+    albums.heart,
+	albums.isHiRes
 FROM
     albums
-LEFT 
-	JOIN artists ON artists.artistId = albums.artistId
-LEFT 
-	JOIN albumCategories ON albumCategories.albumId = albums.albumId
+LEFT JOIN
+	artists ON artists.artistId = albums.artistId
+LEFT JOIN
+	albumCategories ON albumCategories.albumId = albums.albumId
 WHERE 
 	albumCategories.category IN (%1)
 ORDER BY
@@ -718,11 +727,12 @@ SELECT
     artists.artistId,
     artists.coverId as artistCover,
     albums.year,
-    albums.heart
+    albums.heart,
+	albums.isHiRes
 FROM
     albums
-LEFT 
-	JOIN artists ON artists.artistId = albums.artistId
+LEFT JOIN
+	artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.storeType = -1 OR albums.storeType = -2
 ORDER BY

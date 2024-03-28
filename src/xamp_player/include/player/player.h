@@ -29,7 +29,6 @@ namespace xamp::player {
 
 	class IAudioPlayer;	
 	class IPlaybackStateAdapter;
-    class Ebur128Reader;
 }
 
 

@@ -15,7 +15,7 @@
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
 
-#include <player/ebur128reader.h>
+#include <stream/ebur128reader.h>
 
 #include <functional>
 #include <optional>
@@ -79,19 +79,19 @@ double readAll(Path const& file_path,
 std::tuple<double, double> readFileLufs(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration) {
-	Ebur128Reader scanner;
+	Ebur128Reader reader;
 
     readAll(file_path, progress,
-		[&scanner](AudioFormat const& input_format)
+		[&reader](AudioFormat const& input_format)
 		{
-			scanner.SetSampleRate(input_format.GetSampleRate());
-		}, [&scanner](auto const* samples, auto sample_size)
+			reader.SetSampleRate(input_format.GetSampleRate());
+		}, [&reader](auto const* samples, auto sample_size)
 		{
-			scanner.Process(samples, sample_size);
+			reader.Process(samples, sample_size);
         }, max_duration);
 
-    return std::make_tuple(scanner.GetLoudness(),
-                           scanner.GetTruePeek());
+    return std::make_tuple(reader.GetIntegratedLoudness(),
+                           reader.GetTruePeek());
 }
 
 void encodeFile(AnyMap const& config,

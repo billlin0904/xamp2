@@ -20,10 +20,10 @@
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
-    inline constexpr auto kYouTubeCategory = qTEXT("YouTube");
-    inline constexpr auto kLocalCategory = qTEXT("Local");
-	inline constexpr auto kHiRes = qTEXT("HiRes");
-    inline constexpr auto kDsdCategory = qTEXT("DSD");
+    constexpr auto kYouTubeCategory = qTEXT("YouTube");
+    constexpr auto kLocalCategory = qTEXT("Local");
+	constexpr auto kHiResCategory = qTEXT("HiRes");
+    constexpr auto kDsdCategory = qTEXT("DSD");
     const std::wstring kDffFileExtension(L".dff");
     const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
@@ -148,7 +148,8 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 album_year,
                 store_type,
                 disc_id,
-                album_genre);
+                album_genre,
+                track_info.bit_rate >= k24Bit96KhzBitRate);
 
             if (album_genre.isEmpty()) {
                 database_->addOrUpdateAlbumCategory(album_id, kLocalCategory);
@@ -163,7 +164,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 database_->addOrUpdateAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-                database_->addOrUpdateAlbumCategory(album_id, kHiRes);
+                database_->addOrUpdateAlbumCategory(album_id, kHiResCategory);
 			}            
         }
 

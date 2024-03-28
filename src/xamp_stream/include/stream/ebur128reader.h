@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include <player/player.h>
+#include <stream/stream.h>
 
 #include <base/pimplptr.h>
 #include <base/stl.h>
 
-XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
+XAMP_STREAM_NAMESPACE_BEGIN
 
-class XAMP_PLAYER_API Ebur128Reader final {
+class XAMP_STREAM_API Ebur128Reader final {
 public:
 	Ebur128Reader();
 
@@ -20,9 +20,9 @@ public:
 
 	void SetSampleRate(uint32_t sample_rate);
 
-	void Process(float const * samples, size_t num_sample);
+	void Process(float const * samples, size_t num_sample) const;
 
-	[[nodiscard]] double GetLoudness() const;
+	[[nodiscard]] double GetIntegratedLoudness() const;
 
 	[[nodiscard]] double GetTruePeek() const;
 
@@ -32,12 +32,11 @@ public:
 
 	static double GetEbur128Gain(double lufs, double targetdb);
 
-    static double GetMultipleLoudness(const Vector<Ebur128Reader>& scanners);
+    static double GetIntegratedMultipleLoudness(const Vector<Ebur128Reader>& scanners);
 
-	static void LoadEbur128Lib();
 private:
 	class Ebur128ReaderImpl;
 	AlignPtr<Ebur128ReaderImpl> impl_;
 };
 
-XAMP_AUDIO_PLAYER_NAMESPACE_END
+XAMP_STREAM_NAMESPACE_END

@@ -1237,14 +1237,21 @@ void Database::updateAlbumByDiscId(const QString& disc_id, const QString& album)
     THROW_IF_FAIL1(query);
 }
 
-int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, StoreType store_type, const QString& disc_id, const QString & album_genre) {
+int32_t Database::addOrUpdateAlbum(const QString& album,
+    int32_t artist_id,
+    int64_t album_time,
+    uint32_t year,
+    StoreType store_type, 
+    const QString& disc_id, 
+    const QString & album_genre,
+    bool is_hires) {
     XAMP_ENSURES(year != UINT32_MAX);
 
 	SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, storeType, dateTime, discId, year, genre)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :storeType, :dateTime, :discId, :year, :genre)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, coverId, storeType, dateTime, discId, year, genre, isHiRes)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :coverId, :storeType, :dateTime, :discId, :year, :genre, :isHiRes)
     )"));
 
     query.bindValue(qTEXT(":album"), album);
@@ -1255,6 +1262,7 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int6
     query.bindValue(qTEXT(":discId"), disc_id);
     query.bindValue(qTEXT(":year"), year);
     query.bindValue(qTEXT(":genre"), album_genre);
+    query.bindValue(qTEXT(":isHiRes"), is_hires);
 
     THROW_IF_FAIL1(query);
 

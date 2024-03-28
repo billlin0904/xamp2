@@ -63,6 +63,8 @@ public:
 
     QIcon playingIcon() const;
 
+    QIcon hdIcon() const;
+
     QPixmap githubIcon() const;
 
     QIcon playlistPlayingIcon(QSize icon_size, double scale_factor = 0.3) const;

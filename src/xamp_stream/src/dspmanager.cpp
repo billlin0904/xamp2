@@ -101,6 +101,12 @@ bool DSPManager::CanProcess() const noexcept {
     return false;
 }
 
+bool DSPManager::Contains(const Uuid& type) const noexcept {
+    return Contains([type](const auto& id) {
+        return id == type;
+        });
+}
+
 void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
     const auto itr = std::find_if(dsp_chain.begin(), dsp_chain.end(),

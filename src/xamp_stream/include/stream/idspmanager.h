@@ -52,6 +52,8 @@ public:
 
     [[nodiscard]] virtual bool CanProcess() const noexcept = 0;
 
+    [[nodiscard]] virtual bool Contains(const Uuid &type) const noexcept = 0;
+
 protected:
     IDSPManager() = default;
 };

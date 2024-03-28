@@ -53,6 +53,7 @@ public:
 
     [[nodiscard]] bool CanProcess() const noexcept override;
 
+    [[nodiscard]] bool Contains(const Uuid& type) const noexcept;
 private:
     void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 

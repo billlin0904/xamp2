@@ -20,6 +20,7 @@ struct XAMP_BASE_API ReplayGain {
     double track_peak{ 0 };
     double album_peak{ 0 };
     double ref_loudness{ 0 };
+    double track_loudness{ 0 };
 };
 
 struct XAMP_BASE_API TrackInfo final {

@@ -26,71 +26,78 @@
 #include <stream/iaudioprocessor.h>
 #include <stream/avfilestream.h>
 #include <stream/bassfilestream.h>
+#include <stream/r8brainresampler.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_player.h>
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
-XAMP_DECLARE_LOG_NAME(AudioPlayer);
+namespace {
+    XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
-static constexpr int32_t kBufferStreamCount = 4;
+    constexpr int32_t kBufferStreamCount = 4;
 
-static constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
-static constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
+    constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
+    constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
 
-static constexpr int32_t kTotalBufferStreamCount = 32;
-static constexpr uint32_t kMaxWriteRatio = 20;
-static constexpr uint32_t kMaxReadRatio = 4;
-static constexpr uint32_t kMaxBufferSecs = 5;
-static constexpr uint32_t kActionQueueSize = 30;
+    constexpr int32_t kTotalBufferStreamCount = 32;
+    constexpr uint32_t kMaxWriteRatio = 20;
+    constexpr uint32_t kMaxReadRatio = 4;
+    constexpr uint32_t kMaxBufferSecs = 5;
+    constexpr uint32_t kActionQueueSize = 30;
 
-static constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(100);
-static constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(30);
-static constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
-static constexpr std::chrono::seconds kWaitForStreamStopTime(10);
-static constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
+    constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(100);
+    constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(30);
+    constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
+    constexpr std::chrono::seconds kWaitForStreamStopTime(10);
+    constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
-static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, Path const& file_path) {
-    auto file_stream = StreamFactory::MakeFileStream(dsd_mode, file_path);
+    AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, Path const& file_path) {
+        auto file_stream = StreamFactory::MakeFileStream(dsd_mode, file_path);
 
-    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
-        if (auto* dsd_stream = AsDsdStream(file_stream)) {
-            switch (dsd_mode) {
-            case DsdModes::DSD_MODE_DOP:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DOP_AA:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP_AA(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_NATIVE:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportNativeSD(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DSD2PCM:
-                break;
-            default:
-                Throw<NotSupportFormatException>(
-                    "Not support dsd-mode: {}.", dsd_mode);
-                break;
+        if (dsd_mode != DsdModes::DSD_MODE_PCM) {
+            if (auto* dsd_stream = AsDsdStream(file_stream)) {
+                switch (dsd_mode) {
+                case DsdModes::DSD_MODE_DOP:
+                    ThrowIf<NotSupportFormatException>(
+                        dsd_stream->SupportDOP(),
+                        "Stream not support mode: {}", dsd_mode);
+                    break;
+                case DsdModes::DSD_MODE_DOP_AA:
+                    ThrowIf<NotSupportFormatException>(
+                        dsd_stream->SupportDOP_AA(),
+                        "Stream not support mode: {}", dsd_mode);
+                    break;
+                case DsdModes::DSD_MODE_NATIVE:
+                    ThrowIf<NotSupportFormatException>(
+                        dsd_stream->SupportNativeSD(),
+                        "Stream not support mode: {}", dsd_mode);
+                    break;
+                case DsdModes::DSD_MODE_DSD2PCM:
+                    break;
+                case DsdModes::DSD_MODE_AUTO:
+                    break;
+                case DsdModes::DSD_MODE_PCM:
+                    break;
+                default:
+                    Throw<NotSupportFormatException>(
+                        "Not support dsd-mode: {}.", dsd_mode);
+                    break;
+                }
+                dsd_stream->SetDSDMode(dsd_mode);
             }
-            dsd_stream->SetDSDMode(dsd_mode);
         }
+
+        return file_stream;
     }
 
-    return file_stream;
-}
-
 #if defined(XAMP_OS_WIN)
-IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
-    return dynamic_cast<IDsdDevice*>(device.get());
-}
+    IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
+        return dynamic_cast<IDsdDevice*>(device.get());
+    }
 #endif
+}
 
 AudioPlayer::AudioPlayer()
     : is_muted_(false)
@@ -661,6 +668,10 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::BufferStream(double stream_time) {
     XAMP_LOG_D(logger_, "Buffing samples : {:.2f}ms", stream_time);
+
+	if (dsp_manager_->Contains(R8brainSampleRateConverter::uuidof())) {
+        SetReadSampleSize(kR8brainBufferSize);
+	}
 
     fifo_.Clear();
     stream_->SeekAsSeconds(stream_time);

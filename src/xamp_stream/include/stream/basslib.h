@@ -273,6 +273,7 @@ public:
 #endif
     XAMP_DECLARE_DLL_NAME(BASS_StreamGetFilePosition);
     XAMP_DECLARE_DLL_NAME(BASS_ChannelIsActive);
+    XAMP_DECLARE_DLL_NAME(BASS_SampleGetChannel);
 private:
     void LoadPlugin(const  std::string & file_name);
 };

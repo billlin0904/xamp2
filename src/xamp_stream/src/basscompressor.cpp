@@ -26,14 +26,14 @@ public:
         BassIfFailedThrow(stream_);
     }
 
-    void Initialize(CompressorConfig const& parameters) {
+    void Initialize(const CompressorConfig& config) {
         ::BASS_BFX_COMPRESSOR2 compressord{0};
-        compressord.fGain = parameters.gain;
-        compressord.fThreshold = parameters.threshold;
-        compressord.fRatio = parameters.ratio;
-        compressord.fAttack = parameters.attack;
-        compressord.fRelease = parameters.release;
-        compressord.lChannel = BASS_BFX_CHANALL;
+        compressord.fGain      = config.gain;
+        compressord.fThreshold = config.threshold;
+        compressord.fRatio     = config.ratio;
+        compressord.fAttack    = config.attack;
+        compressord.fRelease   = config.release;
+        compressord.lChannel   = BASS_BFX_CHANALL;
         const auto compressor_fx = BASS_LIB.BASS_ChannelSetFX(
             stream_.get(),
             BASS_FX_BFX_COMPRESSOR2,

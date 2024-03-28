@@ -41,6 +41,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
     class IDsdStream;
     class IDSPManager;
 
+    class Ebur128Reader;
+
     using Complex = std::complex<float>;
     using ComplexValarray = std::valarray<Complex>;
 XAMP_STREAM_NAMESPACE_END

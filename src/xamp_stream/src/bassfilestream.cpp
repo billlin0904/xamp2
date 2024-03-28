@@ -2,6 +2,7 @@
 
 #include <stream/bassexception.h>
 #include <stream/basslib.h>
+#include <stream/ebur128reader.h>
 
 #include <base/dsd_utils.h>
 #include <base/str_utilts.h>
@@ -11,6 +12,8 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <bass/bassdsd.h>
+
+#include <stream/compressorconfig.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
@@ -320,29 +323,51 @@ public:
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 
-    XAMP_ALWAYS_INLINE HSTREAM GetHStream() const noexcept {
+    [[nodiscard]] HSTREAM GetHStream() const noexcept {
         if (mix_stream_.is_valid()) {
             return mix_stream_.get();
         }
         return stream_.get();
     }
 
-    bool IsActive() const noexcept {
+    [[nodiscard]] bool IsActive() const noexcept {
         return BASS_LIB.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
+
+    void AddTruePeakLimiter(const CompressorConfig& config) {
+        limiter_.reset(BASS_LIB.BASS_SampleGetChannel(
+            GetFormat().GetSampleRate(),
+            FALSE));
+        BassIfFailedThrow(stream_);
+        compressor_fx_ = BASS_LIB.BASS_ChannelSetFX(
+            stream_.get(),
+            BASS_FX_BFX_COMPRESSOR2,
+            0);
+        BassIfFailedThrow(compressor_fx_);
+        compressor_config_ = config;
+    }
 private:
-    XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
+    uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
         const auto bytes_read = BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {
             return 0;
+        }
+        if (!limiter_) {
+            Ebur128Reader ebur128_reader;
+            ebur128_reader.SetSampleRate(GetFormat().GetSampleRate());
+            ebur128_reader.Process(static_cast<float const*>(buffer), length / sizeof(float));
+            auto gain = Ebur128Reader::GetEbur128Gain(ebur128_reader.GetIntegratedLoudness(), -1.0) * -1;
         }
         return static_cast<uint32_t>(bytes_read);
     }
 
     DsdModes mode_;
+    size_t download_size_;
+    CompressorConfig compressor_config_;
+    HFX compressor_fx_;
     BassStreamHandle stream_;
     BassStreamHandle mix_stream_;
-    size_t download_size_;
+    BassStreamHandle limiter_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     LoggerPtr logger_;

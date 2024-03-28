@@ -59,7 +59,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     }
 
     [[nodiscard]] bool isFilePath() const {
-        return !QFileInfo(file_path).fileName().isEmpty();
+        return !QFileInfo(file_path).suffix().isEmpty();
     }
 
     [[nodiscard]] QString validCoverId() const {

@@ -251,13 +251,6 @@ public:
     AlignPtr<IDSPManager>& GetDspManager() override;    
 
     /*
-    * Set read sample size.
-    * 
-    * @param[in] num_samples The num samples.
-    */
-    void SetReadSampleSize(uint32_t num_samples) override;
-
-    /*
     * Buffer stream.
     * 
     * @param[in] stream_time The stream time.
@@ -333,6 +326,8 @@ private:
     void WaitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& stopped_lock);
 
     bool ShouldKeepReading() const noexcept;
+
+    void SetReadSampleSize(uint32_t num_samples);
 
     bool is_muted_;
     bool is_dsd_file_;

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="src\align_ptr.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
@@ -63,7 +62,6 @@
     <ClInclude Include="include\base\singleton.h" />
     <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\stl.h" />
-    <ClInclude Include="include\base\align_ptr.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
     <ClInclude Include="include\base\base.h" />
@@ -99,5 +97,6 @@
     <ClInclude Include="include\base\mpmc_queue.h" />
     <ClInclude Include="include\base\lazy_storage.h" />
     <ClInclude Include="include\base\expected.h" />
+    <ClInclude Include="include\base\port.h" />
   </ItemGroup>
 </Project>

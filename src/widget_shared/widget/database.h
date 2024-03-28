@@ -154,7 +154,8 @@ public:
 	int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year,
 							 StoreType store_type,
 	                         const QString& disc_id = kEmptyString,
-	                         const QString& album_genre = kEmptyString);
+	                         const QString& album_genre = kEmptyString,
+	                         bool is_hires = false);
 
 	void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
