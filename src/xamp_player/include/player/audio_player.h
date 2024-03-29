@@ -329,6 +329,8 @@ private:
 
     void SetReadSampleSize(uint32_t num_samples);
 
+    void Normalize(float* buffer, size_t buffer_size);
+
     bool is_muted_;
     bool is_dsd_file_;
     bool enable_fadeout_;

@@ -334,29 +334,11 @@ public:
         return BASS_LIB.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
 
-    void AddTruePeakLimiter(const CompressorConfig& config) {
-        limiter_.reset(BASS_LIB.BASS_SampleGetChannel(
-            GetFormat().GetSampleRate(),
-            FALSE));
-        BassIfFailedThrow(stream_);
-        compressor_fx_ = BASS_LIB.BASS_ChannelSetFX(
-            stream_.get(),
-            BASS_FX_BFX_COMPRESSOR2,
-            0);
-        BassIfFailedThrow(compressor_fx_);
-        compressor_config_ = config;
-    }
 private:
     uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
         const auto bytes_read = BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {
             return 0;
-        }
-        if (!limiter_) {
-            Ebur128Reader ebur128_reader;
-            ebur128_reader.SetSampleRate(GetFormat().GetSampleRate());
-            ebur128_reader.Process(static_cast<float const*>(buffer), length / sizeof(float));
-            auto gain = Ebur128Reader::GetEbur128Gain(ebur128_reader.GetIntegratedLoudness(), -1.0) * -1;
         }
         return static_cast<uint32_t>(bytes_read);
     }

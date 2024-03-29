@@ -27,6 +27,8 @@
 #include <stream/avfilestream.h>
 #include <stream/bassfilestream.h>
 #include <stream/r8brainresampler.h>
+#include <stream/ebur128reader.h>
+#include <stream/compressorconfig.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_player.h>
@@ -780,13 +782,21 @@ bool AudioPlayer::ShouldKeepReading() const noexcept {
     return is_playing_ && stream_->IsActive();
 }
 
+void AudioPlayer::Normalize(float *buffer, size_t buffer_size) {
+    CompressorConfig compressor_config;
+    Ebur128Reader ebur128_reader;
+    ebur128_reader.SetSampleRate(output_format_.GetSampleRate());
+    ebur128_reader.Process(static_cast<float const*>(buffer), buffer_size / sizeof(float));
+    auto gain = Ebur128Reader::GetEbur128Gain(ebur128_reader.GetIntegratedLoudness(), -1.0) * -1;
+}
+
 void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock) {
     if (!stream_->IsActive()) {
         if (is_playing_) {
             WaitForReadFinishAndSeekSignal(stopped_lock);
         }
         return;
-    }
+    }    
 
     while (ShouldKeepReading()) {
         const auto num_samples = stream_->GetSamples(buffer, buffer_size);
