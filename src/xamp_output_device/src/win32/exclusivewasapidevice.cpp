@@ -37,7 +37,7 @@ namespace {
 		XAMP_EXPECTS(input_fromat->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX));
 		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_fromat);
 
-		// Copy from AudioFormat
+		// CopyFrom from AudioFormat
 		format.Format.nChannels = audio_format.GetChannels();
 		format.Format.nSamplesPerSec = audio_format.GetSampleRate();
 		format.Format.nAvgBytesPerSec = audio_format.GetAvgBytesPerSec();

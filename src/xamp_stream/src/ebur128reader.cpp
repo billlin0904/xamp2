@@ -24,14 +24,6 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace {
 
-	float Power2Loudness(float power) {
-		return 10 * log10(power) - 0.691;
-	}
-
-	float Loudness2Power(float loudness) {
-		return pow(10, (loudness + 0.691) / 10.0);
-	}
-
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()
 
 	XAMP_DECLARE_LOG_NAME(Ebur128Reader);
@@ -54,9 +46,10 @@ public:
 			EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
 		Ebur128IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
 		Ebur128IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT));
+		Ebur128IfFailThrow(EBUR128_LIB.ebur128_set_max_history(state_.get(), sample_rate * 0.005));
 	}
 
-	void Process(float const* samples, size_t num_sample) const {
+	void Process(const float* samples, size_t num_sample) const {
 		Ebur128IfFailThrow(EBUR128_LIB.ebur128_add_frames_float(state_.get(), 
 			samples, num_sample / AudioFormat::kMaxChannel));
 	}

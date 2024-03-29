@@ -30,6 +30,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(ebur128_prev_true_peak);
 	XAMP_DECLARE_DLL_NAME(ebur128_prev_sample_peak);
 	XAMP_DECLARE_DLL_NAME(ebur128_get_version);
+	XAMP_DECLARE_DLL_NAME(ebur128_set_max_history);
 };
 
 inline Ebur128Lib::Ebur128Lib()
@@ -44,7 +45,8 @@ inline Ebur128Lib::Ebur128Lib()
 	, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple)
 	, XAMP_LOAD_DLL_API(ebur128_prev_true_peak)
 	, XAMP_LOAD_DLL_API(ebur128_prev_sample_peak)
-	, XAMP_LOAD_DLL_API(ebur128_get_version) {
+	, XAMP_LOAD_DLL_API(ebur128_get_version)
+	, XAMP_LOAD_DLL_API(ebur128_set_max_history) {
 }
 
 XAMP_STREAM_NAMESPACE_END

@@ -106,7 +106,7 @@ public:
 
 private:
     size_t size_ = 0;
-    AlignArray<T> ptr_;
+    AlignArrayPtr<T> ptr_;
     VmMemLock lock_;
 };
 
@@ -126,6 +126,11 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
     }
 
     XAMP_DISABLE_COPY_AND_MOVE(BufferRef)
+
+    void CopyFrom(const T *buffer, size_t buffer_size) {
+        XAMP_ENSURES(buffer_size <= size_);
+        MemoryCopy(data(), buffer, buffer_size * sizeof(T));
+    }
 
     void maybe_resize(size_t size) noexcept {
         if (size > ref_.size()) {

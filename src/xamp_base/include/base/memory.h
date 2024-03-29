@@ -185,7 +185,7 @@ template <typename Type>
 using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 
 template <typename Type>
-using AlignArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
+using AlignArrayPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 /*
 * Make aligned pointer.
@@ -238,15 +238,15 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 * Make aligned array.
 *
 * @param[in] n
-* @return AlignArray<Type>
+* @return AlignArrayPtr<Type>
 */
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT AlignArray<Type> MakeAlignedArray(size_t n) {
+XAMP_BASE_API_ONLY_EXPORT AlignArrayPtr<Type> MakeAlignedArray(size_t n) {
     auto ptr = AlignedMallocCountOf<Type>(n, kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
-    return AlignArray<Type>(static_cast<Type*>(ptr));
+    return AlignArrayPtr<Type>(static_cast<Type*>(ptr));
 }
 
 /*

@@ -213,9 +213,9 @@ private:
     size_t complex_size_{ 0 };
 	FFTSetupHandle fft_setup_;
 	DSPSplitComplex split_complex_;
-	AlignArray<float> input_;
-	AlignArray<float> re_;
-	AlignArray<float> im_;
+	AlignArrayPtr<float> input_;
+	AlignArrayPtr<float> re_;
+	AlignArrayPtr<float> im_;
 	ComplexValarray output_;
 };
 

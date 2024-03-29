@@ -11,6 +11,7 @@
 #include <base/waitabletimer.h>
 #include <base/stopwatch.h>
 #include <base/executor.h>
+#include <base/trackinfo.h>
 
 #include <output_device/api.h>
 #include <output_device/win32/asiodevicetype.h>
@@ -29,12 +30,12 @@
 #include <stream/r8brainresampler.h>
 #include <stream/ebur128reader.h>
 #include <stream/compressorconfig.h>
+#include <stream/basscompressor.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_player.h>
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
-
 namespace {
     XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
@@ -54,6 +55,18 @@ namespace {
     constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
     constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
+
+    void AppyGain(float* buffer, size_t buffer_size, double gain_db) {
+        double k = std::pow(10, gain_db / 20);
+        for (size_t i = 0; i < buffer_size; ++i) {
+            buffer[i] *= k;
+        }
+    }
+
+    void AppyGain(float* buffer, size_t buffer_size, double from_db, double to_db) {
+        double gain_db = to_db - from_db;
+        AppyGain(buffer, buffer_size, gain_db);
+    }
 
     AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, Path const& file_path) {
         auto file_stream = StreamFactory::MakeFileStream(dsd_mode, file_path);
@@ -673,6 +686,10 @@ void AudioPlayer::BufferStream(double stream_time) {
 
 	if (dsp_manager_->Contains(R8brainSampleRateConverter::uuidof())) {
         SetReadSampleSize(kR8brainBufferSize);
+	} else {
+        ebur128_reader_ = MakeAlign<Ebur128Reader>();
+        ebur128_reader_->SetSampleRate(output_format_.GetSampleRate());
+        SetReadSampleSize(256 * 1024);
 	}
 
     fifo_.Clear();
@@ -782,12 +799,30 @@ bool AudioPlayer::ShouldKeepReading() const noexcept {
     return is_playing_ && stream_->IsActive();
 }
 
-void AudioPlayer::Normalize(float *buffer, size_t buffer_size) {
-    CompressorConfig compressor_config;
-    Ebur128Reader ebur128_reader;
-    ebur128_reader.SetSampleRate(output_format_.GetSampleRate());
-    ebur128_reader.Process(static_cast<float const*>(buffer), buffer_size / sizeof(float));
-    auto gain = Ebur128Reader::GetEbur128Gain(ebur128_reader.GetIntegratedLoudness(), -1.0) * -1;
+void AudioPlayer::NormalizeSamples(float *buffer, size_t buffer_size) {
+    float target_loudness = kReferenceLoudness;
+    float integrated_loudness = 0;
+    float gain = target_loudness - integrated_loudness;
+
+    if (std::abs(target_loudness - integrated_loudness) > 0.5f) {
+        Buffer<float> dsp_buffer(buffer_size);
+        BufferRef<float> dsp_buffer_ref(dsp_buffer);
+        dsp_buffer_ref.CopyFrom(buffer, buffer_size);
+
+        if (ebur128_reader_ != nullptr) {
+            ebur128_reader_ = MakeAlign<Ebur128Reader>();
+            ebur128_reader_->SetSampleRate(output_format_.GetSampleRate());
+        }
+        ebur128_reader_->Process(dsp_buffer_ref.data(), dsp_buffer_ref.size());
+
+        integrated_loudness = ebur128_reader_->GetIntegratedLoudness();
+        if (integrated_loudness == -std::numeric_limits<double>::infinity()) {
+            return;
+        }
+        XAMP_LOG_DEBUG("LFUS {}", integrated_loudness);
+        //gain = Ebur128Reader::GetEbur128Gain(integrated_loudness, kReferenceGain);
+        //AppyGain(buffer, buffer_size, gain);
+    }
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock) {
@@ -802,8 +837,8 @@ void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::uniq
         const auto num_samples = stream_->GetSamples(buffer, buffer_size);
 
         if (num_samples > 0) {
-            auto* samples = reinterpret_cast<const float*>(buffer);
-
+            auto* samples = reinterpret_cast<float*>(buffer);
+            NormalizeSamples(samples, num_samples);
             if (dsp_manager_->ProcessDSP(samples, num_samples, fifo_)) {
                 continue;
             }

@@ -19,13 +19,13 @@ XAMP_STREAM_NAMESPACE_BEGIN
 * 
 */
 namespace DspConfig {
-    constexpr static auto kInputFormat = std::string_view("InputFormat");
-    constexpr static auto kDsdMode = std::string_view("DsdMode");
-    constexpr static auto kOutputFormat = std::string_view("OutputFormat");
-    constexpr static auto kSampleSize = std::string_view("SampleSize");
-    constexpr static auto kEQSettings = std::string_view("EQSettings");
+    constexpr static auto kInputFormat      = std::string_view("InputFormat");
+    constexpr static auto kDsdMode          = std::string_view("DsdMode");
+    constexpr static auto kOutputFormat     = std::string_view("OutputFormat");
+    constexpr static auto kSampleSize       = std::string_view("SampleSize");
+    constexpr static auto kEQSettings       = std::string_view("EQSettings");
     constexpr static auto kCompressorConfig = std::string_view("CompressorConfig");
-    constexpr static auto kVolume = std::string_view("Volume");
+    constexpr static auto kVolume           = std::string_view("Volume");
 };
 
 /*

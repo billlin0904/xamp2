@@ -10,7 +10,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-// Copy from book 'The Modern Cpp Challenge'
+// CopyFrom from book 'The Modern Cpp Challenge'
 
 template <typename T>
 class CircularBuffer;

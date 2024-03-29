@@ -329,7 +329,7 @@ private:
 
     void SetReadSampleSize(uint32_t num_samples);
 
-    void Normalize(float* buffer, size_t buffer_size);
+    void NormalizeSamples(float* buffer, size_t buffer_size);
 
     bool is_muted_;
     bool is_dsd_file_;
@@ -361,6 +361,7 @@ private:
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
     AlignPtr<IAudioDeviceManager> device_manager_;
+    AlignPtr<Ebur128Reader> ebur128_reader_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     Task<void> stream_task_;        
     AnyMap config_;

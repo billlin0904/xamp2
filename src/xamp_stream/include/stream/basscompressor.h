@@ -13,7 +13,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class BassCompressor final : public IAudioProcessor {
+class XAMP_STREAM_API BassCompressor final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassCompressor, "263079D0-FDD4-46DF-9BB3-71821AF95EDB")
 
 public:

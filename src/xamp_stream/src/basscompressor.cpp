@@ -48,7 +48,7 @@ public:
             compressord.fRelease);
     }
 
-    bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
+    bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) const {
         if (out.size() != num_samples) {
             out.maybe_resize(num_samples);
         }
