@@ -32,8 +32,8 @@ void UIPlayerStateAdapter::OnError(const Exception &ex) {
                                           ? QString::fromStdString(ex.what()) : QString());
 }
 
-void UIPlayerStateAdapter::OnDeviceChanged(DeviceState state) {
-    emit deviceChanged(state);
+void UIPlayerStateAdapter::OnDeviceChanged(DeviceState state, const std::string& device_id) {
+    emit deviceChanged(state, QString::fromStdString(device_id));
 }
 
 void UIPlayerStateAdapter::OnVolumeChanged(int32_t vol) {

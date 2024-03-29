@@ -36,7 +36,7 @@ public:
 
     void OnError(const Exception &ex) override;
 
-    void OnDeviceChanged(DeviceState state) override;
+    void OnDeviceChanged(DeviceState state, const std::string& device_id) override;
 
     void OnVolumeChanged(int32_t vol) override;
 
@@ -49,7 +49,7 @@ signals:
 
     void playbackError(Errors error, const QString &message);
 
-    void deviceChanged(DeviceState state);
+    void deviceChanged(DeviceState state, const QString& message);
 
     void volumeChanged(float vol);
 

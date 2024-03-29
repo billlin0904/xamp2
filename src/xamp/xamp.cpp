@@ -1324,7 +1324,7 @@ void Xamp::initialUi() {
     //ui_.formatLabel->hide();
 }
 
-void Xamp::onDeviceStateChanged(DeviceState state) {
+void Xamp::onDeviceStateChanged(DeviceState state, const QString &device_id) {
     XAMP_LOG_DEBUG("OnDeviceStateChanged: {}", state);
 
     if (state == DeviceState::DEVICE_STATE_REMOVED) {
@@ -1333,7 +1333,7 @@ void Xamp::onDeviceStateChanged(DeviceState state) {
     if (state == DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE) {
         return;
     }
-    initialDeviceList();
+    initialDeviceList(device_id.toStdString());
 }
 
 QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &icon) {
@@ -1369,7 +1369,7 @@ void Xamp::waitForReady() {
     FramelessWidgetsHelper::get(this)->waitForReady();
 }
 
-void Xamp::initialDeviceList() {
+void Xamp::initialDeviceList(const std::string& device_id) {
     XAMP_LOG_DEBUG("Start system device list");
 
     auto* menu = ui_.selectDeviceButton->menu();
@@ -1389,7 +1389,10 @@ void Xamp::initialDeviceList() {
     OrderedMap<std::string, QAction*> device_id_action;
 
     const auto device_type_id = qAppSettings.valueAsId(kAppSettingDeviceType);
-    const auto device_id = qAppSettings.valueAsString(kAppSettingDeviceId).toStdString();
+    auto current_device_id = device_id;
+    if (current_device_id.empty()) {
+        current_device_id = qAppSettings.valueAsString(kAppSettingDeviceId).toStdString();
+    }
     const auto & device_manager = player_->GetAudioDeviceManager();
 
     auto max_width = 0;
@@ -1429,7 +1432,7 @@ void Xamp::initialDeviceList() {
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
             menu->addAction(device_action);
 
-            if (device_type_id == device_info.device_type_id && device_id == device_info.device_id) {
+            if (/*device_type_id == device_info.device_type_id &&*/ current_device_id == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -1441,7 +1444,8 @@ void Xamp::initialDeviceList() {
         }
 
         if (!is_find_setting_device) {
-            auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
+            auto itr = std::find_if(device_info_list.begin(),
+                device_info_list.end(), [](const auto& info) {
                 return info.is_default_device && !IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {

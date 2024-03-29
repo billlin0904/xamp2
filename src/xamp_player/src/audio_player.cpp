@@ -611,12 +611,12 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
     XAMP_LOG_DEBUG(e.what());
 }
 
-void AudioPlayer::OnDeviceStateChange(DeviceState state, const  std::string & device_id) {    
+void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::string & device_id) {    
     if (const auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
             XAMP_LOG_D(logger_, "Device added device id:{}.", device_id);
-            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
+            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED, device_id);
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_D(logger_, "Device removed device id:{}.", device_id);
@@ -626,7 +626,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const  std::string & de
                     ResetAsioDriver();
                 }
                 
-                state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
+                state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED, device_id);
                 if (device_ != nullptr) {
                     device_->AbortStream();
                     XAMP_LOG_D(logger_, "Device abort stream id:{}.", device_id);
@@ -635,7 +635,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const  std::string & de
             break;
         case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
             XAMP_LOG_D(logger_, "Default device device id:{}.", device_id);
-            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE);
+            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, device_id);
             break;
         }
     }

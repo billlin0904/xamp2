@@ -74,7 +74,7 @@ public:
 
 	void setFullScreen();
 
-	void initialDeviceList();
+	void initialDeviceList(const std::string& device_id = "");
 
 	void waitForReady();
 
@@ -164,7 +164,7 @@ public slots:
 
 	void onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
-	void onRemainingTimeEstimation(size_t total_work, size_t ccompleted_work, int32_t secs);
+	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 private:
 	void initialUi();
 
@@ -226,7 +226,7 @@ private:
 
 	void resetSeekPosValue();
 
-    void onDeviceStateChanged(DeviceState state);
+    void onDeviceStateChanged(DeviceState state, const QString& device_id);
 
     void encodeFlacFile(const PlayListEntity& entity);
 
@@ -250,7 +250,10 @@ private:
 		uint32_t& target_sample_rate,
 		QString& sample_rate_converter_type) const;
 	
-	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString &name);
+	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget,
+		int32_t playlist_id, 
+		const QString& cloud_playlist_id, 
+		const QString &name);
 
 	[[nodiscard]] PlaylistPage* localPlaylistPage() const;
 

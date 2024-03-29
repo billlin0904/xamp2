@@ -27,7 +27,7 @@ public:
 
 	virtual void OnSampleTime(double stream_time) = 0;
 
-	virtual void OnDeviceChanged(DeviceState state) = 0;
+	virtual void OnDeviceChanged(DeviceState state, const std::string & device_id) = 0;
 
 	virtual void OnVolumeChanged(int32_t vol) = 0;
 
