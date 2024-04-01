@@ -7,6 +7,7 @@
 #include <widget/util/str_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
+#include <widget/imagecache.h>
 
 #include <QOperatingSystemVersion>
 #include <QDirIterator>

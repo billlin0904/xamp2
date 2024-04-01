@@ -22,7 +22,6 @@
 #include <stream/api.h>
 #include <stream/compressorconfig.h>
 #include <stream/idspmanager.h>
-#include <stream/r8brainresampler.h>
 #include <widget/aboutpage.h>
 #include <widget/accountauthorizationpage.h>
 #include <widget/actionmap.h>
@@ -409,17 +408,18 @@ namespace {
         return dsd_modes;
     }
 
-    video_info::Format findBestAudioFormat(const video_info::VideoInfo& video_info) {
+    std::optional<video_info::Format> findBestAudioFormat(const video_info::VideoInfo& video_info) {
         std::multiset<video_info::Format> formats;
+        static const std::string kBestAudioCodec{ "mp4" };
         for (const auto& format : video_info.formats) {            
-            if (format.vcodec == "none" && format.acodec.find("mp4") != std::string::npos) {
+            if (format.vcodec == "none" && format.acodec.find(kBestAudioCodec) != std::string::npos) {
                 formats.insert(format);
                 XAMP_LOG_DEBUG("video: {:<15} audio: {:<10} {:<10}", format.vcodec, format.acodec, format.abr);
             }
         }
 
         if (formats.empty()) {
-            throw std::exception();
+            return std::nullopt;
         }
 
         return *formats.begin();
@@ -488,8 +488,8 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
     static const QMap<std::string_view, ConstLatin1String> lut{
         { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
         { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
-        { "Null Output",             QT_TRANSLATE_NOOP("Xamp", "Null Output") },
-        { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
+        { "Null Output",              QT_TRANSLATE_NOOP("Xamp", "Null Output") },
+        { "ASIO",                     QT_TRANSLATE_NOOP("Xamp", "ASIO") },
     };
     const auto str = lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
     return tr(str.data());
@@ -499,7 +499,7 @@ QString Xamp::translateError(Errors error) {
     using xamp::base::Errors;
     static const QMap<xamp::base::Errors, ConstLatin1String> lut{
         { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,   QT_TRANSLATE_NOOP("Xamp", "Platform spec error") },
-        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, QT_TRANSLATE_NOOP("Xamp", "Device create failure") },
+        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE,  QT_TRANSLATE_NOOP("Xamp", "Device create failure") },
     };
     const auto str = lut.value(error, kEmptyString);
     return tr(str.data());
@@ -1005,13 +1005,17 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
                     dialog->close();
                     };
 
-                const auto best_format = findBestAudioFormat(video_info);
-                http::HttpClient(QString::fromStdString(best_format.url))
-                    .progress(process_handler)
-                    .downloadFile(file_name, download_file_handler, error_handler);
-                dialog->exec();
+                if (auto best_format = findBestAudioFormat(video_info)) {
+                    http::HttpClient(QString::fromStdString(best_format.value().url))
+                        .progress(process_handler)
+                        .downloadFile(file_name, download_file_handler, error_handler);
+                    dialog->exec();
+                } else {
+                    return;
+                }                
                 
                 if (!QFile(file_name).exists()) {
+                    XMessageBox::showError(tr("Failed to write cache file."));
                     return;
                 }          
 
@@ -1100,7 +1104,10 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         }
 
         const auto best_format = findBestAudioFormat(video_info);
-        temp1.file_path = QString::fromStdString(best_format.url);
+        if (!best_format) {
+            return;
+        }
+        temp1.file_path = QString::fromStdString(best_format.value().url);
         XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
         onPlayMusic(temp1);
 
@@ -1333,7 +1340,12 @@ void Xamp::onDeviceStateChanged(DeviceState state, const QString &device_id) {
     if (state == DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE) {
         return;
     }
-    initialDeviceList(device_id.toStdString());
+
+    if (qAppSettings.valueAsBool(kAppSettingAutoSelectNewDevice)) {
+        initialDeviceList(device_id.toStdString());
+    } else {
+        initialDeviceList();
+    }
 }
 
 QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &icon) {
@@ -1370,7 +1382,7 @@ void Xamp::waitForReady() {
 }
 
 void Xamp::initialDeviceList(const std::string& device_id) {
-    XAMP_LOG_DEBUG("Start system device list");
+    XAMP_LOG_DEBUG("Initial device list");
 
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
@@ -3067,7 +3079,7 @@ void Xamp::onReadCompleted() {
     if (local_tab_widget_->count() > 0) {
         localPlaylistPage()->playlist()->reload();
     }
-    album_page_->album()->reload();
+    album_page_->reload();
     if (!read_progress_dialog_) {
         return;
     }

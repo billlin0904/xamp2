@@ -387,11 +387,11 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenu
 --------------------------------------------------------------------------- */
 QMenu {
   border-radius: 3;
-  border: 1px solid #CED1D4;
+  border: 1px solid #FAFAFA;
   color: #19232D;
   margin: 0px;
   padding: 2px;
-  background-color: #CED1D4;
+  background-color: #F3F3F3;
   selection-background-color: #73C7FF;
 }
 
@@ -402,7 +402,7 @@ QMenu::separator {
 }
 
 QMenu::item {
-  background-color: #CED1D4;
+  background-color: #F3F3F3;
   padding: 4px 24px 4px 28px;
   /* Reserve space for selection border */
   border: 1px transparent #C9CDD0;

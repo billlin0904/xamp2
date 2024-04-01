@@ -10,7 +10,7 @@
 #define DECLARE_APP_SETTING_NAME(Name) \
 	XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String k##Name
 
-DECLARE_APP_SETTING_NAME(EnablePcm2Dsd);
+DECLARE_APP_SETTING_NAME(AppSettingAutoSelectNewDevice);
 DECLARE_APP_SETTING_NAME(AppSettingDontShowMeAgainList);
 DECLARE_APP_SETTING_NAME(AppSettingAutoCheckForUpdate);
 DECLARE_APP_SETTING_NAME(AppSettingLastTabName);

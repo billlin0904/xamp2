@@ -148,6 +148,7 @@ public:
     void setLineEditStyle(QLineEdit *line_edit, const QString &object_name);
 
     void setComboBoxStyle(QComboBox *combo_box, const QString &object_name);
+
 signals:
     void themeChangedFinished(ThemeColor theme_color);
 

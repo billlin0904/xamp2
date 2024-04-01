@@ -255,7 +255,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
 }
 
 void BackgroundWorker::onTranslation(const QString& keyword, const QString& from, const QString& to) {
-    const auto url =
+    /*const auto url =
         qSTR("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))
         .arg(to)
@@ -269,5 +269,5 @@ void BackgroundWorker::onTranslation(const QString& keyword, const QString& from
         result = result.replace(qTEXT("[[[\""), qTEXT(""));
         result = result.mid(0, result.indexOf(qTEXT(",\"")) - 1);
         emit translationCompleted(keyword, result);
-            }).get();
+            }).get();*/
 }

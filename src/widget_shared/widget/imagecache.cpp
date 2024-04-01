@@ -278,6 +278,27 @@ size_t ImageCache::size() const {
 	return cache_.GetSize();
 }
 
+QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
+	QIcon result;
+	const auto base_pixmap = icon.pixmap(size);
+	for (const auto state : { QIcon::Off, QIcon::On }) {
+		for (const auto mode : { QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected })
+			result.addPixmap(base_pixmap, mode, state);
+	}
+	return result;
+}
+
+QIcon ImageCache::getOrAddIcon(const QString& id) const {
+	return qIconCache.GetOrAdd(id, [id, this]() {
+		const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(id), kCoverSize));
+		return uniformIcon(icon, kCoverSize);
+		});
+}
+
+void ImageCache::addOrUpdateIcon(const QString& id, const QIcon& value) const {
+	qIconCache.AddOrUpdate(id, value);
+}
+
 void ImageCache::timerEvent(QTimerEvent* ) {
 	if (cache_.GetSize() > trim_target_size_) {
 		cache_.Evict(trim_target_size_);

@@ -686,10 +686,6 @@ void AudioPlayer::BufferStream(double stream_time) {
 
 	if (dsp_manager_->Contains(R8brainSampleRateConverter::uuidof())) {
         SetReadSampleSize(kR8brainBufferSize);
-	} else {
-        ebur128_reader_ = MakeAlign<Ebur128Reader>();
-        ebur128_reader_->SetSampleRate(output_format_.GetSampleRate());
-        SetReadSampleSize(256 * 1024);
 	}
 
     fifo_.Clear();
@@ -838,7 +834,7 @@ void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::uniq
 
         if (num_samples > 0) {
             auto* samples = reinterpret_cast<float*>(buffer);
-            NormalizeSamples(samples, num_samples);
+            
             if (dsp_manager_->ProcessDSP(samples, num_samples, fifo_)) {
                 continue;
             }

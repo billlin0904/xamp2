@@ -39,6 +39,7 @@ public:
 	static constexpr char kImageFileFormat[] = "PNG";
 	static constexpr int kTrimImageSizeSeconds = 3 * 1000;
 	static constexpr QImage::Format kFormat = QImage::Format_RGB888;
+	static constexpr auto kCoverSize = QSize(32, 32);
 
     friend class SharedSingleton<ImageCache>;
 
@@ -69,6 +70,12 @@ public:
 	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
 
 	QPixmap cover(const QString& tag, const QString& cover_id);
+
+	QIcon getOrAddIcon(const QString& id) const;
+
+	void addOrUpdateIcon(const QString& id, const QIcon &value) const;
+
+	QIcon uniformIcon(const QIcon &icon, QSize size) const;
 protected:
 	ImageCache();
 

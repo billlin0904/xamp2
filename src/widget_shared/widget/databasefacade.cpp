@@ -24,6 +24,11 @@ namespace {
     const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
 
+    bool isCloudStore(const StoreType store_type) {
+        return store_type == StoreType::CLOUD_STORE
+            || store_type == StoreType::CLOUD_SEARCH_STORE;
+    }
+
     QSet<QString> getAlbumCategories(const QString& album) {
 	    const QRegularExpression regex(
             qTEXT(R"((piano|vocal|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)"),
@@ -110,7 +115,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         const auto is_file_path = IsFilePath(track_info.file_path);
 
         QPixmap cover;
-		if (is_file_path && album.isEmpty()) {
+		if (is_file_path && isCloudStore(store_type)) {
 			const TagIO reader;
 			album = tr("Unknown album");
 			// TODO: 如果有內建圖片就把當作一張專輯.

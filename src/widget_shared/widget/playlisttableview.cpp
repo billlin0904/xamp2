@@ -36,7 +36,7 @@
 #include <widget/tagio.h>
 
 namespace {
-    QIcon uniformIcon(QIcon icon, QSize size) {
+    /*QIcon uniformIcon(QIcon icon, QSize size) {
         QIcon result;
         const auto base_pixmap = icon.pixmap(size);
         for (const auto state : { QIcon::Off, QIcon::On }) {
@@ -44,7 +44,7 @@ namespace {
                 result.addPixmap(base_pixmap, mode, state);
         }
         return result;
-    }
+    }*/
 
     QString groupAlbum(int32_t playlist_id) {
         return qSTR(R"(
@@ -269,7 +269,7 @@ public:
 
                 opt.icon = qTheme.fontRawIconOption(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
                 // note: 解決圖示再選擇的時候會蓋掉顏色的問題
-                opt.icon = uniformIcon(opt.icon, opt.decorationSize);
+                opt.icon = qImageCache.uniformIcon(opt.icon, opt.decorationSize);
 
                 opt.features = QStyleOptionViewItem::HasDecoration;
                 opt.decorationAlignment = Qt::AlignCenter;
@@ -285,10 +285,7 @@ public:
                     id = music_cover_id;
 				}
 
-				opt.icon = qIconCache.GetOrAdd(id, [id]() {
-                    const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(id), PlayListTableView::kCoverSize));
-                    return uniformIcon(icon, PlayListTableView::kCoverSize);
-                });
+                opt.icon = qImageCache.getOrAddIcon(id);
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
 				opt.displayAlignment = Qt::AlignCenter;

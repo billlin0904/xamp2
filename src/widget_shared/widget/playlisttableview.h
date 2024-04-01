@@ -42,8 +42,6 @@ public:
 	static constexpr auto kColumnWidth = 48;
 	static constexpr auto kColumnHeight = 46;
 
-	static constexpr auto kCoverSize = QSize(32, 32);
-
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
 	virtual ~PlayListTableView() override;
