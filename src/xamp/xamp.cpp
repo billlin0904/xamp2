@@ -1329,6 +1329,14 @@ void Xamp::initialUi() {
 
     //ui_.stopButton->hide();    
     //ui_.formatLabel->hide();
+
+    if (YtMusicOAuth::parseOAuthJson()) {
+        setAuthButton(ui_, true);
+        XAMP_LOG_DEBUG("YouTube worker initial done!");
+    }
+    else {
+        setAuthButton(ui_, false);
+    }
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state, const QString &device_id) {
