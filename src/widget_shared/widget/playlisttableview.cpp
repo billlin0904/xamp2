@@ -36,16 +36,6 @@
 #include <widget/tagio.h>
 
 namespace {
-    /*QIcon uniformIcon(QIcon icon, QSize size) {
-        QIcon result;
-        const auto base_pixmap = icon.pixmap(size);
-        for (const auto state : { QIcon::Off, QIcon::On }) {
-            for (const auto mode : { QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected })
-                result.addPixmap(base_pixmap, mode, state);
-        }
-        return result;
-    }*/
-
     QString groupAlbum(int32_t playlist_id) {
         return qSTR(R"(
     SELECT	
@@ -647,7 +637,7 @@ void PlayListTableView::initial() {
                     });
             }
 
-            action_map.setCallback(action_map.addAction(tr("Download file")), [this]() {
+            action_map.setCallback(action_map.addAction(tr("Cache file")), [this]() {
                 const auto rows = selectItemIndex();
                 for (const auto& row : rows) {
                     auto play_list_entity = this->item(row.second);

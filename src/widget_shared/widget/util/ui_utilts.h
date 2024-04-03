@@ -8,6 +8,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playerorder.h>
+#include <widget/xmessagebox.h>
 
 #include <QSharedPointer>
 #include <QWidget>
@@ -77,6 +78,10 @@ XAMP_WIDGET_SHARED_EXPORT void getSaveFileName(QWidget* parent,
     const QString& filter = QString());
 
 XAMP_WIDGET_SHARED_EXPORT void delay(int32_t seconds);
+
+XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XMessageBox> makeMessageBox(const QString& title,
+    const QString &message, 
+    QWidget* parent = nullptr);
 
 XAMP_WIDGET_SHARED_EXPORT const QStringList& getTrackInfoFileNameFilter();
 

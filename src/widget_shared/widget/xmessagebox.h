@@ -10,19 +10,15 @@
 
 #include <version.h>
 
+#include <widget/maskwidget.h>
 #include <widget/widget_shared_global.h>
+#include <widget/widget_shared.h>
 #include <widget/xdialog.h>
 
 class QIcon;
 class QAbstractButton;
 class QGridLayout;
 class QLabel;
-
-using xamp::base::Exception;
-
-namespace xamp::base {
-    class Exception;
-}
 
 class XAMP_WIDGET_SHARED_EXPORT XMessageBox : public XDialog {
 public:
@@ -34,6 +30,8 @@ public:
 						 QFlags<QDialogButtonBox::StandardButton> buttons = QDialogButtonBox::Ok,
 						 QDialogButtonBox::StandardButton default_button = QDialogButtonBox::StandardButton::Ok,
 						 bool enable_countdown = false);
+
+    ~XMessageBox() override;
 
     void setDefaultButton(QPushButton* button);
 
@@ -138,4 +136,5 @@ private:
     QAbstractButton* clicked_button_;
     QAbstractButton* default_button_;
     QTimer timer_;
+    QScopedPointer<MaskWidget> mask_widget_;
 };

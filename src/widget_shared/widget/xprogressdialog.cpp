@@ -1,5 +1,5 @@
 #include <widget/xprogressdialog.h>
-
+#include <widget/maskwidget.h>
 #include <QGridLayout>
 #include <QProgressBar>
 #include <QPushButton>
@@ -14,6 +14,8 @@ XProgressDialog::XProgressDialog(const QString& title,
 								 int maximum,
                                  QWidget* parent)
 	: XDialog(parent, true) {
+	mask_widget_.reset(new MaskWidget(parent));
+
 	message_text_label_ = new QLabel(this);
 	sub_text_label_ = new QLabel(this);
 	progress_bar_ = new QProgressBar(this);
@@ -77,6 +79,8 @@ XProgressDialog::XProgressDialog(const QString& title,
 
 	centerParent(this);
 }
+
+XProgressDialog::~XProgressDialog() = default;
 
 void XProgressDialog::setRange(int minimum, int maximum) {
 	progress_bar_->setRange(minimum, maximum);

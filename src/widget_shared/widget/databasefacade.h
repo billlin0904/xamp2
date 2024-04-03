@@ -7,15 +7,9 @@
 
 #include <QObject>
 
-
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <widget/database.h>
-
-#include <base/lazy_storage.h>
-
-const std::wstring kUnknownAlbum{ L"Unknown album" };
-const std::wstring kUnknownArtist{ L"Unknown artist" };
 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
@@ -23,10 +17,18 @@ public:
     static constexpr size_t kReserveSize = 1024;
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
-    
-    static int32_t unknownArtistId();
 
-    static int32_t unknownAlbumId();
+    QString unknownArtist() const {
+        return unknown_artist_;
+    }
+
+    QString unknownAlbum() const {
+        return unknown_album_;
+    }
+
+    int32_t unknownArtistId() const;
+
+    int32_t unknownAlbumId() const;
 
 signals:
     void findAlbumCover(int32_t album_id, const std::wstring& file_path);
@@ -38,7 +40,7 @@ public:
         const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
 private:    
-    static void ensureInitialUnknownId();
+    void ensureInitialUnknownId();
 
     void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
@@ -46,11 +48,12 @@ private:
         const std::function<void(int32_t, int32_t)>& fetch_cover);
 
     bool is_stop_{false};
-
-    static int32_t unknown_artist_id_;
-    static int32_t unknown_album_id_;
-
+    int32_t unknown_artist_id_{ kInvalidDatabaseId };
+    int32_t unknown_album_id_{ kInvalidDatabaseId };
+    QString unknown_artist_;
+    QString unknown_album_;
     LoggerPtr logger_;
     Database* database_;
 };
 
+#define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()

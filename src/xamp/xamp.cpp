@@ -488,8 +488,8 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
     static const QMap<std::string_view, ConstLatin1String> lut{
         { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
         { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
-        { "Null Output",              QT_TRANSLATE_NOOP("Xamp", "Null Output") },
-        { "ASIO",                     QT_TRANSLATE_NOOP("Xamp", "ASIO") },
+        { "Null Output",             QT_TRANSLATE_NOOP("Xamp", "Null Output") },
+        { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
     };
     const auto str = lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
     return tr(str.data());
@@ -498,7 +498,7 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
 QString Xamp::translateError(Errors error) {
     using xamp::base::Errors;
     static const QMap<xamp::base::Errors, ConstLatin1String> lut{
-        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,   QT_TRANSLATE_NOOP("Xamp", "Platform spec error") },
+        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,    QT_TRANSLATE_NOOP("Xamp", "Platform spec error") },
         { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE,  QT_TRANSLATE_NOOP("Xamp", "Device create failure") },
     };
     const auto str = lut.value(error, kEmptyString);
@@ -549,6 +549,9 @@ void Xamp::destroy() {
 }
 
 void Xamp::initialYtMusicWorker() {
+    if (ytmusic_worker_) {
+        return;
+    }
 	ytmusic_worker_.reset(new YtMusic());
 	ytmusic_worker_->moveToThread(&ytmusic_thread_);
 	ytmusic_thread_.start();
@@ -911,7 +914,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 
         track_info.title = String::ToString(track.title);
 
-        track_info.album = kUnknownAlbum;
+        track_info.album = qDatabaseFacade.unknownAlbum().toStdWString();
         if (track.album) {
             track_info.album = String::ToString(track.album.value().name);
         }
@@ -927,7 +930,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             thumbnail_url = track.thumbnails.back().url;
         }
 
-        track_info.artist = kUnknownArtist;
+        track_info.artist = qDatabaseFacade.unknownArtist().toStdWString();
         if (!track.artists.empty()) {
             track_info.artist = String::ToString(track.artists.front().name);
         }        
@@ -939,7 +942,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             track_info.duration = 0;
         }
 
-        if (track_info.album == kUnknownAlbum) {
+        if (track_info.album == qDatabaseFacade.unknownAlbum().toStdWString()) {
             track_info.track = 1;
             is_unknown_album = true;
         }
@@ -1112,7 +1115,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         onPlayMusic(temp1);
 
         auto album_id = temp.album_id;
-        if (album_id == DatabaseFacade::unknownAlbumId()) {
+        if (album_id == qDatabaseFacade.unknownAlbumId()) {
             return;
         }
 
@@ -1174,7 +1177,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             track_info.artist = String::ToString(track.artists.front().name);
         }
         else {
-            track_info.artist = kUnknownArtist;
+            track_info.artist = qDatabaseFacade.unknownArtist().toStdWString();
         }
 
         if (track.duration) {
@@ -1184,7 +1187,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             track_info.duration = 0;
         }
 
-        if (track_info.album == kUnknownAlbum) {
+        if (track_info.album == qDatabaseFacade.unknownAlbum().toStdWString()) {
             track_info.track = 1;
             is_unknown_album = true;
         }
@@ -1196,8 +1199,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
         track_info.file_path = String::ToString(track.video_id.value());
 
         const ForwardList<TrackInfo> track_infos{ track_info };
-        DatabaseFacade facade;
-        facade.insertTrackInfo(track_infos, cloud_search_page_->playlist()->playlistId(), StoreType::CLOUD_SEARCH_STORE, [=, this](auto music_id, auto album_id) {
+        qDatabaseFacade.insertTrackInfo(track_infos, cloud_search_page_->playlist()->playlistId(), StoreType::CLOUD_SEARCH_STORE, [=, this](auto music_id, auto album_id) {
             if (thumbnail_url.empty()) {
                 return;
             }
@@ -1628,19 +1630,6 @@ void Xamp::initialController() {
 }
 
 void Xamp::setCurrentTab(int32_t table_id) {
-	auto initial_yt_music = [this]() {
-        if (ytmusic_worker_ != nullptr) {
-            return;
-        }
-        if (YtMusicOAuth::parseOAuthJson()) {
-            initialYtMusicWorker();
-            setAuthButton(ui_, true);
-            XAMP_LOG_DEBUG("YouTube worker initial done!");
-        }
-        else {
-            setAuthButton(ui_, false);
-        }
-        };
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
         album_page_->reload();
@@ -1661,12 +1650,12 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_SEARCH:
-        initial_yt_music();
+        initialYtMusicWorker();
         ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         cloud_search_page_->playlist()->reload();
         break;
     case TAB_YT_MUSIC_PLAYLIST:
-        initial_yt_music();
+        initialYtMusicWorker();
         ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         cloud_tab_widget_->reloadAll();
         break;
@@ -1717,6 +1706,13 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     }
     else {
         lrc_page_->setCover(qImageCache.getOrDefault(qImageCache.unknownCoverId()));
+    }
+
+    if (YtMusicOAuth::parseOAuthJson()) {
+        setAuthButton(ui_, true);
+    }
+    else {
+        setAuthButton(ui_, false);
     }
 }
 
@@ -2338,8 +2334,7 @@ void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackIn
     const auto album_id = qMainDb.getAlbumIdByDiscId(disc_id);
     qMainDb.removeAlbum(album_id);
     cd_page_->playlistPage()->playlist()->removeAll();
-    DatabaseFacade facade;
-    facade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
+    qDatabaseFacade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
     if (track_infos.front().artist) {
         emit translation(toQString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
     }    
@@ -2714,8 +2709,9 @@ void Xamp::initialCloudPlaylist() {
 
     QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [this](const auto& playlists) {
         static const std::string kEpisodesForLaterName("Episodes for Later");
-
-        XAMP_LOG_DEBUG("Get library playlist done!");
+        auto message_box = makeMessageBox(kApplicationTitle, tr("Reload all playlist, please waiting..."));
+        message_box->show();
+        message_box->setText(tr("Get library playlist done!"));
         int32_t index = 1;
         for (const auto& playlist : playlists) {
             const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
@@ -2730,12 +2726,14 @@ void Xamp::initialCloudPlaylist() {
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
             QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
-                this, [this, playlist_page](const auto& playlist) {
-                    XAMP_LOG_DEBUG("Get playlist done!");
+                this, [this, playlist_page, message_box](const auto& playlist) {
                     onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
+                    message_box->setText(tr("Add %1 playlist(%2) completed!").arg(QString::fromStdString(playlist.title)).arg(playlist.tracks.size()));
+                    delay(1);
                 });
         }
         cloud_tab_widget_->setCurrentIndex(0);
+        delay(1);
         });
 }
 
@@ -2902,8 +2900,8 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 }
                 QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id,
                     parsed_video_ids,
-                    source_playlist_id.toStdString()), this, [](auto) {
-
+                    source_playlist_id.toStdString()), this, [this](auto) {
+                        initialCloudPlaylist();
                     });
             });
 
@@ -2914,13 +2912,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 qMainDb.removeAlbumMusic(entity.album_id, entity.music_id);
                 qMainDb.removeMusic(entity.music_id);
                 auto [video_id, set_video_id] = parseId(entity.file_path);
-                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE), this, [this, playlist_page](auto) {
-	                const auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
-                    QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id), this, [this, playlist_page](const auto& playlist) {
-                            XAMP_LOG_DEBUG("Get playlist done!");
-                            onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
-                        });
+                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE),
+                    this, [this, playlist_page](auto) {
+                    initialCloudPlaylist();
                     });
+
             });
 
         (void)QObject::connect(playlist_page->playlist(),
@@ -3034,13 +3030,12 @@ PlaylistPage* Xamp::localPlaylistPage() const {
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
-    DatabaseFacade facade;
-    (void)QObject::connect(&facade,
+    (void)QObject::connect(&qDatabaseFacade,
         &DatabaseFacade::findAlbumCover,
         find_album_cover_worker_.get(),
         &FindAlbumCoverWorker::onFindAlbumCover,
         Qt::QueuedConnection);
-    facade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
+    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
     if (result.front().artist) {
         emit translation(toQString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     }    

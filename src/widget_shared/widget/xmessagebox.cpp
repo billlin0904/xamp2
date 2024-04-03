@@ -3,7 +3,6 @@
 #include <widget/xmainwindow.h>
 #include <widget/util/ui_utilts.h>
 #include <widget/util/str_utilts.h>
-#include <widget/maskwidget.h>
 
 #include <base/exception.h>
 
@@ -23,6 +22,8 @@ XMessageBox::XMessageBox(const QString& title,
                          const QDialogButtonBox::StandardButton default_button,
                          const bool enable_countdown)
 	: XDialog(parent) {
+	mask_widget_.reset(new MaskWidget(parent));
+
 	enable_countdown_ = enable_countdown;
 
 	button_box_ = new QDialogButtonBox(this);
@@ -82,12 +83,18 @@ XMessageBox::XMessageBox(const QString& title,
 	adjustSize();
 }
 
+XMessageBox::~XMessageBox() = default;
+
 void XMessageBox::setTextFont(const QFont& font) {
 	message_text_label_->setFont(font);
 }
 
 void XMessageBox::setText(const QString& text) {
 	message_text_label_->setText(text);
+	const auto metrics = defaultButton()->fontMetrics();
+	setMinimumSize(QSize(metrics.horizontalAdvance(text) * 1.5, 100));
+	adjustSize();
+	centerParent(this);
 }
 
 void XMessageBox::onButtonClicked(QAbstractButton* button) {

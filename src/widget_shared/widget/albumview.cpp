@@ -122,7 +122,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto cover_id = indexValue(index, INDEX_COVER).toString();
     auto artist   = indexValue(index, INDEX_ARTIST).toString();    
     auto album_year  = indexValue(index, INDEX_ALBUM_YEAR).toInt();
-    auto is_hires = indexValue(index, INDEX_CATEGORY).toBool();
+    auto is_hires   = indexValue(index, INDEX_CATEGORY).toBool();
+
+    if (album.isEmpty()) {
+        return;
+    }
 
     auto* style = option.widget ? option.widget->style() : QApplication::style();
 
@@ -463,7 +467,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
 
-        const auto process_dialog = makeProgressDialog(
+        auto process_dialog = makeProgressDialog(
             tr("Remove all album"),
             kEmptyString,
             tr("Cancel"));
@@ -500,6 +504,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         if (rollback) {
             qMainDb.rollback();
+            process_dialog->close();
         }
     };
 

@@ -134,6 +134,8 @@ void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
 }
 
 void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
+    is_stop_ = false;
+
     if (extract_file_thread_pool_ != nullptr) {
         extract_file_thread_pool_.reset();
     }
@@ -203,7 +205,7 @@ void FileSystemWorker::updateProgress() {
     if (update_elapsed_.ElapsedSeconds() > 1) {
         const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
         const double remaining_time = (total_work_ > completed_work) ?
-            ((double)elapsed_time / (double)completed_work) * (total_work_ - completed_work) : 0.0;
+            (static_cast<double>(elapsed_time) / static_cast<double>(completed_work)) * (total_work_ - completed_work) : 0.0;
         emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
         update_elapsed_.Reset();
     }    

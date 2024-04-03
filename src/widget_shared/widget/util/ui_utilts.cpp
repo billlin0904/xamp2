@@ -318,6 +318,20 @@ void delay(int32_t seconds) {
         QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 100);
 }
 
+QSharedPointer<XMessageBox> makeMessageBox(const QString& title,
+    const QString& message, 
+    QWidget* parent) {
+    if (!parent) {
+        parent = getMainWindow();
+    }
+    if (parent != nullptr) {
+        parent->setFocus();
+    }
+    auto* message_box = new XMessageBox(title, message, parent);
+    message_box->setIcon(qTheme.fontIcon(Glyphs::ICON_MESSAGE_BOX_INFORMATION));
+	return QSharedPointer<XMessageBox>(message_box);
+}
+
 const QStringList& getTrackInfoFileNameFilter() {
     struct StaticGetFileNameFilter {
         StaticGetFileNameFilter() {

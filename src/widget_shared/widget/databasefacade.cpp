@@ -62,9 +62,6 @@ namespace {
     }
 }
 
-int32_t DatabaseFacade::unknown_artist_id_{ -1 };
-int32_t DatabaseFacade::unknown_album_id_{ -1 };
-
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
     logger_ = XampLoggerFactory.GetLogger(kDatabaseFacadeLoggerName);
@@ -73,19 +70,23 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     } else {
         database_ = database;
     }
+    unknown_artist_ = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown artist"));
+    unknown_album_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown album"));
+    ensureInitialUnknownId();
 }
 
 void DatabaseFacade::ensureInitialUnknownId() {
-    unknown_artist_id_ = qMainDb.addOrUpdateArtist(QString::fromStdWString(kUnknownArtist));
-    unknown_album_id_ = qMainDb.addOrUpdateAlbum(QString::fromStdWString(kUnknownAlbum), unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
+    unknown_artist_id_ = qMainDb.addOrUpdateArtist(unknown_artist_);
+    unknown_album_id_ =  qMainDb.addOrUpdateAlbum(unknown_album_,
+        unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
     qMainDb.setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
 }
 
-int32_t DatabaseFacade::unknownArtistId() {
+int32_t DatabaseFacade::unknownArtistId() const {
     return unknown_artist_id_;
 }
 
-int32_t DatabaseFacade::unknownAlbumId() {
+int32_t DatabaseFacade::unknownAlbumId() const {
     return unknown_album_id_;
 }
 
@@ -105,9 +106,9 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
 	for (const auto& track_info : result) {        
         auto file_path = toQString(track_info.file_path);
-        auto album = toQString(track_info.album);
-        auto artist = toQString(track_info.artist);
-		auto disc_id = toQString(track_info.disc_id);
+        auto album     = toQString(track_info.album);
+        auto artist    = toQString(track_info.artist);
+		auto disc_id   = toQString(track_info.disc_id);
 
         QStringList artists;
         normalizeArtist(artist, artists);
@@ -116,17 +117,19 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         QPixmap cover;
 		if (is_file_path && isCloudStore(store_type)) {
-			const TagIO reader;
-			album = tr("Unknown album");
-			// TODO: 如果有內建圖片就把當作一張專輯.
+			const TagIO reader;			
 			cover = reader.embeddedCover(track_info);
 			if (!cover.isNull()) {
 				album = toQString(track_info.file_name_no_ext());
 			}
 		}
 
+        if (album.isEmpty()) {
+            album = unknown_album_;
+        }
+
 		if (artist.isEmpty()) {
-			artist = tr("Unknown artist");
+			artist = unknown_artist_;
 		}
 
         const auto music_id = database_->addOrUpdateMusic(track_info);
