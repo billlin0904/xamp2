@@ -27,11 +27,11 @@ public:
 	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 	
 private:
-	LoggerPtr log_;
+	LoggerPtr logger_;
 };
 
 NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexcept {
-	log_ = XampLoggerFactory.GetLogger(kNullOutputDeviceTypeLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(kNullOutputDeviceTypeLoggerName);
 }
 
 void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {

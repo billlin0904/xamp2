@@ -6,7 +6,7 @@
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 
-VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent)
+VolumeControlDialog::VolumeControlDialog(const std::shared_ptr<IAudioPlayer> &player, QWidget* parent)
 	: QDialog(parent)
 	, player_(player) {
     ui_ = new Ui::VolumeControlDialog();
@@ -21,15 +21,6 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
     ui_->volumeSlider->setSingleStep(1);
     ui_->volumeSlider->setInvertedAppearance(false);
     ui_->volumeSlider->setInvertedControls(false);
-
-    if (qAppSettings.valueAsBool(kAppSettingIsMuted)) {
-        setVolume(0);
-    }
-    else {
-        const auto vol = qAppSettings.valueAs(kAppSettingVolume).toUInt();
-        setVolume(vol);
-        ui_->volumeSlider->setValue(vol);
-    }
 
     (void)QObject::connect(ui_->volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         setVolume(volume);
@@ -56,8 +47,8 @@ VolumeControlDialog::VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, Q
 }
 
 void VolumeControlDialog::setThemeColor() {
-    update();
     qTheme.setSliderTheme(ui_->volumeSlider, true);
+    update();
 }
 
 VolumeControlDialog::~VolumeControlDialog() {
@@ -85,27 +76,51 @@ void VolumeControlDialog::paintEvent(QPaintEvent* event) {
     p.drawRoundedRect(rect(), 10, 10);
 }
 
+bool VolumeControlDialog::isHardwareControlVolume() const {
+    return player_->IsHardwareControlVolume();
+}
+
+void VolumeControlDialog::updateState() {
+    if (!player_->IsHardwareControlVolume()) {
+        if (qAppSettings.valueAsBool(kAppSettingIsMuted)) {
+            setVolume(0);
+        }
+        else {
+            const auto vol = qAppSettings.valueAs(kAppSettingVolume).toUInt();
+            setVolume(vol);
+            ui_->volumeSlider->setValue(vol);
+        }
+    }
+    else {
+        ui_->volumeSlider->setValue(100);
+        ui_->volumeSlider->setDisabled(true);
+        ui_->volumeLabel->setText(QString::number(100));
+        ui_->volumeLabel->adjustSize();
+    }
+}
+
 void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
     if (volume > 100) {
         return;
     }
 
     try {
-        if (volume > 0) {
-            player_->SetMute(false);
-        }
-        else {
-            player_->SetMute(true);
-        }
+        if (!player_->IsHardwareControlVolume()) {
+            if (volume > 0) {
+                player_->SetMute(false);
+            }
+            else {
+                player_->SetMute(true);
+            }
 
-        if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
-                ui_->volumeSlider->setDisabled(false);
             }
+            ui_->volumeSlider->setDisabled(false);
         }
         else {
             ui_->volumeSlider->setDisabled(true);
+            return;
         }
         if (notify) {
             emit volumeChanged(volume);

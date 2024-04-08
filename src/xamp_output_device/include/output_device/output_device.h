@@ -20,7 +20,16 @@
 #define XAMP_OUTPUT_DEVICE_API __attribute__((visibility("default")))
 #endif
 
-namespace xamp { namespace output_device {
+#define XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN namespace xamp { namespace output_device {
+#define XAMP_OUTPUT_DEVICE_NAMESPACE_END } }
+
+#define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN namespace xamp { namespace output_device { namespace win32 {
+#define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END } } }
+
+#define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN namespace xamp { namespace output_device { namespace win32 { namespace helper {
+#define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END } } } }
+
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 using namespace base;
 
@@ -34,13 +43,4 @@ class IAudioCallback;
 class IDeviceStateListener;
 class IDeviceStateNotification;
 
-} }
-
-#define XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN namespace xamp { namespace output_device {
-#define XAMP_OUTPUT_DEVICE_NAMESPACE_END } }
-
-#define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN namespace xamp { namespace output_device { namespace win32 {
-#define XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END } } }
-
-#define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN namespace xamp { namespace output_device { namespace win32 { namespace helper {
-#define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END } } } }
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

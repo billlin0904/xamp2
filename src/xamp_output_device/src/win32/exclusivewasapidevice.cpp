@@ -98,10 +98,10 @@ namespace {
 		return format->wBitsPerSample == 16;
 	}
 
-	inline constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
-	inline constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-	inline constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
-	inline constexpr IID kAudioClockID = __uuidof(IAudioClock);
+	constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
+	constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+	constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
+	constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 	// A total typical delay of 35 ms contains three parts:
 	// 1. Audio endpoint device period (~10 ms).
@@ -273,6 +273,8 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			else {
 				HrIfFailThrow(hr);
 			}
+			// note: DOP模式下是否只能使用24/32格式?
+			//is_2432_format_ = true;
 		} else {
 			InitialDeviceFormat(output_format, 16);
 		}
@@ -601,10 +603,14 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 	const float target_volume_normalized = (target_volume_level - scaled_min_volume) / volume_range;
 	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_normalized, nullptr));
 
-	float dbVolume = 0;
-	endpoint_volume_->GetMasterVolumeLevel(&dbVolume);
+	float db_volume = 0;
+	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevel(&db_volume));
 	XAMP_LOG_D(logger_, "Current:{} dB, max_volume:{} dB, min_volume:{} dB, volume_normalized:{} dB, volume_range:{} ",
-		dbVolume, scaled_max_volume, scaled_min_volume, target_volume_normalized, volume_range);
+		db_volume, scaled_max_volume, scaled_min_volume, target_volume_normalized, volume_range);
+}
+
+void ExclusiveWasapiDevice::SetVolumeLevelScalar(float level) {
+	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(level, nullptr));
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {

@@ -176,6 +176,8 @@ public:
 	* @return DsdIoFormat
 	*/
 	DsdIoFormat GetIoFormat() const override;
+
+	void SetVolumeLevelScalar(float level) override;
 private:
 	/*
 	* Initial device format

@@ -38,7 +38,7 @@ public:
 	/*
 	* Destructor.
 	*/
-	virtual ~NullOutputDeviceType() = default;
+	virtual ~NullOutputDeviceType() override = default;
 
 	/*
 	* Scan new device.

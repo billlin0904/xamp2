@@ -102,6 +102,7 @@ public:
     * @return true if device type exist
     */
     [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
+
 private:
     class DeviceStateNotificationImpl;
     AlignPtr<DeviceStateNotificationImpl> impl_;    

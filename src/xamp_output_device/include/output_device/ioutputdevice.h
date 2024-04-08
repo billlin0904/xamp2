@@ -94,6 +94,8 @@ public:
 	*/
     virtual void SetVolume(uint32_t volume) const = 0;
 
+	virtual void SetVolumeLevelScalar(float level) = 0;
+
 	/*
 	* Set mute.
 	* 

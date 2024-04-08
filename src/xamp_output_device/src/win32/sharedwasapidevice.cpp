@@ -17,41 +17,43 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 using namespace helper;
 
-/*
-* SetWaveformatEx is a helper function to set WAVEFORMATEX.
-* 
-* @param[in] input_fromat WAVEFORMATEX*
-* @param[in] samplerate uint32_t
-*/
-static void SetWaveformatEx(WAVEFORMATEX *input_fromat, uint32_t samplerate) noexcept {
-	XAMP_EXPECTS(input_fromat != nullptr);
-	XAMP_EXPECTS(input_fromat->nChannels == AudioFormat::kMaxChannel);
-	XAMP_EXPECTS(samplerate > 0);
+namespace {
+	/*
+	* SetWaveformatEx is a helper function to set WAVEFORMATEX.
+	*
+	* @param[in] input_fromat WAVEFORMATEX*
+	* @param[in] samplerate uint32_t
+	*/
+	void SetWaveformatEx(WAVEFORMATEX* input_fromat, uint32_t samplerate) noexcept {
+		XAMP_EXPECTS(input_fromat != nullptr);
+		XAMP_EXPECTS(input_fromat->nChannels == AudioFormat::kMaxChannel);
+		XAMP_EXPECTS(samplerate > 0);
 
-	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
+		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_fromat);
 
-	format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-	format.Format.nChannels = 2;
-	format.Format.nBlockAlign = 2 * sizeof(float);
-	format.Format.wBitsPerSample = 8 * sizeof(float);
-	format.Format.cbSize = 22;	
-	format.Format.nSamplesPerSec = samplerate;
-	format.Format.nAvgBytesPerSec = format.Format.nSamplesPerSec * format.Format.nBlockAlign;
-	format.Samples.wValidBitsPerSample = format.Format.wBitsPerSample;
-	format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
-	format.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+		format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+		format.Format.nChannels = 2;
+		format.Format.nBlockAlign = 2 * sizeof(float);
+		format.Format.wBitsPerSample = 8 * sizeof(float);
+		format.Format.cbSize = 22;
+		format.Format.nSamplesPerSec = samplerate;
+		format.Format.nAvgBytesPerSec = format.Format.nSamplesPerSec * format.Format.nBlockAlign;
+		format.Samples.wValidBitsPerSample = format.Format.wBitsPerSample;
+		format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
+		format.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+	}
+
+	constexpr IID kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
+	constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
+	constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+	constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
+	constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
+	constexpr IID kAudioClockID = __uuidof(IAudioClock);
 }
 
-inline constexpr IID kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
-inline constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
-inline constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-inline constexpr IID kAudioRenderClientID =__uuidof(IAudioRenderClient);
-inline constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
-inline constexpr IID kAudioClockID = __uuidof(IAudioClock);
-
 /*
-* DeviceEventNotification is a IAudioEndpointVolumeCallback implementation.
-*/
+	* DeviceEventNotification is a IAudioEndpointVolumeCallback implementation.
+	*/
 class SharedWasapiDevice::DeviceEventNotification final
 	: public UnknownImpl<IAudioEndpointVolumeCallback> {
 public:
@@ -67,16 +69,16 @@ public:
 	* Destructor
 	*/
 	virtual ~DeviceEventNotification() override = default;
-	
+
 	/*
 	* QueryInterface
-	* 
+	*
 	* @param[in] iid REFIID
 	* @param[out] ReturnValue void**
-	* 
+	*
 	* @return HRESULT
 	*/
-	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {		
+	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {
 		if (ReturnValue == nullptr) {
 			return E_POINTER;
 		}
@@ -97,10 +99,10 @@ public:
 
 	/*
 	* OnNotify
-	* 
-	* @param[in] NotificationData PAUDIO_VOLUME_NOTIFICATION_DATA	
+	*
+	* @param[in] NotificationData PAUDIO_VOLUME_NOTIFICATION_DATA
 	*/
-	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA NotificationData) override {	
+	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA NotificationData) override {
 		callback_->OnVolumeChange(static_cast<int32_t>(NotificationData->fMasterVolume * 100.0f));
 		return S_OK;
 	}
@@ -115,11 +117,11 @@ SharedWasapiDevice::SharedWasapiDevice(bool is_low_latency, CComPtr<IMMDevice> c
 	, stream_time_(0)
 	, buffer_frames_(0)
 	, buffer_time_(0)
-	, mmcss_name_(kMmcssProfileProAudio)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
 	, sample_ready_(nullptr)
 	, device_(device)
 	, callback_(nullptr)
+	, mmcss_name_(kMmcssProfileProAudio)
 	, logger_(XampLoggerFactory.GetLogger(kSharedWasapiDeviceLoggerName)) {
 }
 
@@ -469,8 +471,11 @@ void SharedWasapiDevice::AbortStream() noexcept {
 	is_running_ = false;
 }
 
+void SharedWasapiDevice::SetVolumeLevelScalar(float level) {
+}
+
 bool SharedWasapiDevice::IsHardwareControlVolume() const {
-	return true;
+	return false;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

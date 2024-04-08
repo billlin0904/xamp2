@@ -155,8 +155,11 @@ DsdIoFormat NullOutputDevice::GetIoFormat() const {
 	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DSD : DsdIoFormat::IO_FORMAT_PCM;
 }
 
+void NullOutputDevice::SetVolumeLevelScalar(float level) {
+}
+
 bool NullOutputDevice::IsHardwareControlVolume() const {
-	return true;
+	return false;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

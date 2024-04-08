@@ -39,7 +39,7 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 namespace {
     XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
-    constexpr int32_t kBufferStreamCount = 4;
+    constexpr int32_t kBufferStreamCount = 8;
 
     constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
     constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
@@ -442,7 +442,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
         return device_->IsHardwareControlVolume();
     }
-    return true;
+    return false;
 }
 
 bool AudioPlayer::IsMute() const {
@@ -793,32 +793,6 @@ void AudioPlayer::WaitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& st
 
 bool AudioPlayer::ShouldKeepReading() const noexcept {
     return is_playing_ && stream_->IsActive();
-}
-
-void AudioPlayer::NormalizeSamples(float *buffer, size_t buffer_size) {
-    float target_loudness = kReferenceLoudness;
-    float integrated_loudness = 0;
-    float gain = target_loudness - integrated_loudness;
-
-    if (std::abs(target_loudness - integrated_loudness) > 0.5f) {
-        Buffer<float> dsp_buffer(buffer_size);
-        BufferRef<float> dsp_buffer_ref(dsp_buffer);
-        dsp_buffer_ref.CopyFrom(buffer, buffer_size);
-
-        if (ebur128_reader_ != nullptr) {
-            ebur128_reader_ = MakeAlign<Ebur128Reader>();
-            ebur128_reader_->SetSampleRate(output_format_.GetSampleRate());
-        }
-        ebur128_reader_->Process(dsp_buffer_ref.data(), dsp_buffer_ref.size());
-
-        integrated_loudness = ebur128_reader_->GetIntegratedLoudness();
-        if (integrated_loudness == -std::numeric_limits<double>::infinity()) {
-            return;
-        }
-        XAMP_LOG_DEBUG("LFUS {}", integrated_loudness);
-        //gain = Ebur128Reader::GetEbur128Gain(integrated_loudness, kReferenceGain);
-        //AppyGain(buffer, buffer_size, gain);
-    }
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock) {

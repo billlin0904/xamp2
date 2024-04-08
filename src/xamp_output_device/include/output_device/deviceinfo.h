@@ -38,11 +38,15 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_default_device{ false };
 	bool is_support_dsd{ false };
 	bool is_hardware_control_volume{ false };
+	bool is_normalized_volume{ false };
 	DeviceConnectType connect_type{ DeviceConnectType::CONNECT_TYPE_UNKNOWN };
 	std::wstring name;    
 	std::string device_id;
 	Uuid device_type_id;
 	std::optional<AudioFormat> default_format;
+	std::optional<float> scaled_min_db;
+	std::optional<float> scaled_max_db;
+	std::optional<float> volume_increment;
 };
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END

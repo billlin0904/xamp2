@@ -21,10 +21,11 @@ public:
 
 	~VolumeButton() override;
 
-	void setPlayer(std::shared_ptr<IAudioPlayer> player);
+	void setAudioPlayer(const std::shared_ptr<IAudioPlayer>& player);
 
 	void showDialog();
 
+	void updateState();
 public slots:
 	void onVolumeChanged(uint32_t volume);
 

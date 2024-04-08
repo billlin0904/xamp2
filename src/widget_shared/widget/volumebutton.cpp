@@ -2,12 +2,14 @@
 
 #include <thememanager.h>
 #include <QMouseEvent>
-#include <base/logger_impl.h>
-#include <widget/util/ui_utilts.h>
-#include <widget/volumecontroldialog.h>
-#include <widget/util/str_utilts.h>
 
-static constexpr auto kShowDelayMs = 100;
+#include <base/logger_impl.h>
+
+#include <widget/util/ui_utilts.h>
+#include <widget/util/str_utilts.h>
+#include <widget/volumecontroldialog.h>
+
+static constexpr auto kShowDelayMs = 30;
 
 VolumeButton::VolumeButton(QWidget *parent)
 	: QToolButton(parent) {
@@ -16,7 +18,7 @@ VolumeButton::VolumeButton(QWidget *parent)
 
 VolumeButton::~VolumeButton() = default;
 
-void VolumeButton::setPlayer(std::shared_ptr<IAudioPlayer> player) {
+void VolumeButton::setAudioPlayer(const std::shared_ptr<IAudioPlayer>& player) {
 	dialog_.reset(new VolumeControlDialog(player, this));
 	(void)QObject::connect(dialog_.get(),
 		&VolumeControlDialog::volumeChanged,
@@ -38,6 +40,10 @@ void VolumeButton::setPlayer(std::shared_ptr<IAudioPlayer> player) {
 
 void VolumeButton::showDialog() {
 	show_timer_.start(kShowDelayMs);
+}
+
+void VolumeButton::updateState() {
+	dialog_->updateState();
 }
 
 void VolumeButton::onThemeChangedFinished(ThemeColor theme_color) {
@@ -65,4 +71,5 @@ void VolumeButton::leaveEvent(QEvent* event) {
 		return;
 	}
 	is_show_ = false;
+	show_timer_.stop();
 }

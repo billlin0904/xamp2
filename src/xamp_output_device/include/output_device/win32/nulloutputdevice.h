@@ -164,6 +164,9 @@ public:
 	* @return DsdIoFormat
 	*/
 	[[nodiscard]] virtual DsdIoFormat GetIoFormat() const override;
+
+	void SetVolumeLevelScalar(float level) override;
+
 private:
 	bool is_running_;
 	bool raw_mode_;

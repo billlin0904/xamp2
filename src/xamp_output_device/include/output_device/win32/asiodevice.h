@@ -206,6 +206,8 @@ public:
 	* Remove current ASIO driver
 	*/	
 	void RemoveCurrentDriver();
+
+	void SetVolumeLevelScalar(float level) override;
 private:
 	/*
 	* On buffer switch time info callback

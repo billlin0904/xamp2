@@ -155,6 +155,17 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 				reinterpret_cast<void**>(&endpoint_volume)
 			));
 
+			float scaled_min_db = 0;
+			float scaled_max_db = 0;
+			float volume_increment = 0;
+			HrIfFailThrow(endpoint_volume->GetVolumeRange(&scaled_min_db,
+				&scaled_max_db,
+				&volume_increment));
+			info.scaled_min_db = scaled_min_db;
+			info.scaled_max_db = scaled_max_db;
+			info.volume_increment  = volume_increment;
+			info.is_normalized_volume = true;
+
 			DWORD volume_support_mask = 0;
 			HrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
 

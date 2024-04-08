@@ -20,8 +20,10 @@
 #define XAMP_METADATA_NAMESPACE_BEGIN namespace xamp { namespace metadata {
 #define XAMP_METADATA_NAMESPACE_END } }
 
-namespace xamp::metadata {
+XAMP_METADATA_NAMESPACE_BEGIN
+
     using namespace xamp::base;
     class IMetadataReader;
     class IMetadataWriter;
-}
+
+XAMP_METADATA_NAMESPACE_END

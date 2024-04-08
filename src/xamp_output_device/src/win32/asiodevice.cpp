@@ -202,6 +202,9 @@ void AsioDevice::RemoveCurrentDriver() {
 	}
 }
 
+void AsioDevice::SetVolumeLevelScalar(float level) {
+}
+
 void AsioDevice::ReOpen() {
 	if (theDriverContext.drivers != nullptr) {
 		const auto driver_name = theDriverContext.GetDriverName();

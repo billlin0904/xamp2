@@ -1325,7 +1325,8 @@ void Xamp::initialUi() {
     ui_.endPosLabel->setFont(mono_font);
     ui_.seekSlider->setDisabled(true);
 
-    ui_.mutedButton->setPlayer(player_);
+    ui_.mutedButton->setAudioPlayer(player_);
+    ui_.mutedButton->updateState();
     ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
     qTheme.setPlayOrPauseButton(ui_.playButton, false);
 
@@ -2165,7 +2166,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             }
         }
 
-        setupDsp(entity);
+        if (open_dsd_mode == DsdModes::DSD_MODE_PCM) {
+            setupDsp(entity);
+        }
         setupSampleWriter(byte_format, playback_format);
 
         playback_format.bit_rate = entity.bit_rate;
@@ -2187,6 +2190,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
     }
 
     if (open_done) {
+        ui_.mutedButton->updateState();
         updateUi(entity, playback_format, open_done);
         return;
     }
@@ -2214,7 +2218,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
     ensureLocalOnePlaylistPage();
 
-    const auto cloud_music = entity.isFilePath();
+    const auto local_music = entity.isFilePath();
     auto* playlist_page = qobject_cast<PlaylistPage*>(sender());
     if (!playlist_page) {
         playlist_page = qobject_cast<PlaylistPage*>(cloud_tab_widget_->currentWidget());
@@ -2249,7 +2253,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
     ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
  
-    if (!cloud_music) {
+    if (local_music) {
         lrc_page_->lyrics()->loadLrcFile(entity.file_path);
     } else {
         lrc_page_->lyrics()->loadLrcFile(kEmptyString);
@@ -2262,7 +2266,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     lrc_page_->spectrum()->setFftSize(state_adapter_->fftSize());
     lrc_page_->spectrum()->setSampleRate(playback_format.output_format.GetSampleRate());
 
-    if (!cloud_music) {
+    if (!local_music) {
         const auto lyrics_opt = qMainDb.getLyrics(entity.music_id);
         if (!lyrics_opt) {
             emit searchLyrics(entity.music_id, entity.title, entity.artist);
@@ -2709,9 +2713,7 @@ void Xamp::initialCloudPlaylist() {
 
     QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [this](const auto& playlists) {
         static const std::string kEpisodesForLaterName("Episodes for Later");
-        auto message_box = makeMessageBox(kApplicationTitle, tr("Reload all playlist, please waiting..."));
-        message_box->show();
-        message_box->setText(tr("Get library playlist done!"));
+
         int32_t index = 1;
         for (const auto& playlist : playlists) {
             const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
@@ -2726,14 +2728,11 @@ void Xamp::initialCloudPlaylist() {
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
             QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
-                this, [this, playlist_page, message_box](const auto& playlist) {
+                this, [this, playlist_page](const auto& playlist) {
                     onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
-                    message_box->setText(tr("Add %1 playlist(%2) completed!").arg(QString::fromStdString(playlist.title)).arg(playlist.tracks.size()));
-                    delay(1);
                 });
         }
         cloud_tab_widget_->setCurrentIndex(0);
-        delay(1);
         });
 }
 

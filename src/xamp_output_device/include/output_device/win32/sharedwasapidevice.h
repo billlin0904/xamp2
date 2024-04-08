@@ -159,6 +159,7 @@ public:
 	*/
 	void AbortStream() noexcept override;
 
+	void SetVolumeLevelScalar(float level) override;
 private:
 	HRESULT GetSample(bool is_silence) noexcept;
 

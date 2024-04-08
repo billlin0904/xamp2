@@ -86,3 +86,5 @@ XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XMessageBox> makeMessageBox(const QStri
 XAMP_WIDGET_SHARED_EXPORT const QStringList& getTrackInfoFileNameFilter();
 
 XAMP_WIDGET_SHARED_EXPORT size_t getFileCount(const QString& dir, const QStringList& file_name_filters = QStringList());
+
+XAMP_WIDGET_SHARED_EXPORT bool isSupportFileExtension(const QString &file_ext);

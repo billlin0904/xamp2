@@ -17,7 +17,7 @@ namespace Ui {
 class XAMP_WIDGET_SHARED_EXPORT VolumeControlDialog final : public QDialog {
     Q_OBJECT
 public:
-	explicit VolumeControlDialog(std::shared_ptr<IAudioPlayer> player, QWidget* parent = nullptr);
+	explicit VolumeControlDialog(const std::shared_ptr<IAudioPlayer>& player, QWidget* parent = nullptr);
 
 	virtual ~VolumeControlDialog() override;
 
@@ -29,6 +29,9 @@ public:
 
 	void paintEvent(QPaintEvent* event) override;
 
+	bool isHardwareControlVolume() const;
+
+	void updateState();
 signals:
     void volumeChanged(uint32_t volume);
 
