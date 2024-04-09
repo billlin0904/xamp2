@@ -2125,7 +2125,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         auto sample_rate = entity.isFilePath() ? entity.sample_rate : AudioFormat::k16BitPCM48Khz.GetSampleRate();
 
         if (sample_rate != default_format.GetSampleRate()) {
-            if (device_info_.value().connect_type == DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH) {
+            if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
                 const auto message =
                     qSTR("Playing blue-tooth device need set %1 to %2.")
                     .arg(formatSampleRate(sample_rate))

@@ -78,15 +78,15 @@ namespace {
 	*/
 	DeviceConnectType GetDeviceConnectType(const std::wstring& name) {
 		if (name.find(L"usb") != std::wstring::npos) {
-			return DeviceConnectType::CONNECT_TYPE_USB;
+			return DeviceConnectType::USB;
 		}
 		if (name.find(L"hdaudio") != std::wstring::npos) {
-			return DeviceConnectType::CONNECT_TYPE_BUILT_IN;
+			return DeviceConnectType::BUILT_IN_SPEAKER;
 		}
 		if (name.find(L"bthenum") != std::wstring::npos) {
-			return DeviceConnectType::CONNECT_TYPE_BLUE_TOOTH;
+			return DeviceConnectType::BLUE_TOOTH;
 		}
-		return DeviceConnectType::CONNECT_TYPE_UNKNOWN;
+		return DeviceConnectType::UNKNOWN;
 	}
 
 	/*
@@ -98,7 +98,7 @@ namespace {
 	DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 #define IfFailedReturnUnknownType(hr) \
 		if (FAILED(hr)) {\
-			return DeviceConnectType::CONNECT_TYPE_UNKNOWN;\
+			return DeviceConnectType::UNKNOWN;\
 		}
 
 		// Get device topology

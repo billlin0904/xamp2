@@ -63,7 +63,7 @@ bool IsDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-AlignPtr<FileStream> StreamFactory::MakeFileStream(DsdModes dsd_mode, const Path& file_path) {
+AlignPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
     if (!IsCDAFile(file_path)) {
         switch (dsd_mode) {
         case DsdModes::DSD_MODE_NATIVE:

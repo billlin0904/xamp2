@@ -353,10 +353,7 @@ size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {
     if (info.isFile()) {
         return 1;
     }
-    const auto file_ext = qTEXT(".") + info.suffix().toLower();
-    if (!isSupportFileExtension(file_ext)) {
-        return 0;
-    }
+
     QDirIterator itr(dir, file_name_filters, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
     size_t file_count = 0;
     while (itr.hasNext()) {

@@ -25,10 +25,10 @@ XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 * </remarks>
 */
 XAMP_MAKE_ENUM(DeviceConnectType,
-	CONNECT_TYPE_UNKNOWN,
-	CONNECT_TYPE_USB,
-	CONNECT_TYPE_BUILT_IN,
-	CONNECT_TYPE_BLUE_TOOTH)
+	UNKNOWN,
+	USB,
+	BUILT_IN_SPEAKER,
+	BLUE_TOOTH)
 
 /*
 * DeviceInfo is the device info.
@@ -39,7 +39,7 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_support_dsd{ false };
 	bool is_hardware_control_volume{ false };
 	bool is_normalized_volume{ false };
-	DeviceConnectType connect_type{ DeviceConnectType::CONNECT_TYPE_UNKNOWN };
+	DeviceConnectType connect_type{ DeviceConnectType::UNKNOWN };
 	std::wstring name;    
 	std::string device_id;
 	Uuid device_type_id;

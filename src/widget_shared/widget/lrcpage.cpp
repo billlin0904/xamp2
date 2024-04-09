@@ -210,7 +210,7 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void LrcPage::onThemeColorChanged(QColor background_color, QColor color) {	
-	
+	onThemeChangedFinished(qTheme.themeColor());
 }
 
 void LrcPage::initial() {

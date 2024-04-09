@@ -33,8 +33,9 @@ double readAll(Path const& file_path,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
     uint64_t max_duration) {
 	const auto is_dsd_file = IsDsdFile(file_path.wstring());
-    const auto file_stream = StreamFactory::MakeFileStream(is_dsd_file
-                                                               ? DsdModes::DSD_MODE_NATIVE : DsdModes::DSD_MODE_PCM, file_path);
+    const auto file_stream = StreamFactory::MakeFileStream(file_path,
+		is_dsd_file
+		? DsdModes::DSD_MODE_NATIVE : DsdModes::DSD_MODE_PCM);
 
 	if (auto* stream = AsDsdStream(file_stream)) {
 		if (is_dsd_file) {

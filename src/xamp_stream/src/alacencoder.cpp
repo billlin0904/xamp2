@@ -71,7 +71,7 @@ public:
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
         file_name_ = output_file_path.string();
-        input_file_ = StreamFactory::MakeFileStream(DsdModes::DSD_MODE_PCM, input_file_path);
+        input_file_ = StreamFactory::MakeFileStream(input_file_path, DsdModes::DSD_MODE_PCM);
         input_file_->OpenFile(input_file_path);
         CreateAudioSteam();
     }

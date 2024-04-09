@@ -334,7 +334,7 @@ private:
     bool enable_fadeout_;
     bool is_file_path_;
     DsdModes dsd_mode_;
-    uint8_t sample_size_;
+    uint32_t sample_size_;
     uint32_t target_sample_rate_;
     uint32_t num_read_buffer_size_;
     uint32_t num_write_buffer_size_;

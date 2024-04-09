@@ -51,25 +51,13 @@ namespace {
     constexpr uint32_t kActionQueueSize = 30;
 
     constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(100);
-    constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(30);
+    constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(15);
     constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
     constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
-    void AppyGain(float* buffer, size_t buffer_size, double gain_db) {
-        double k = std::pow(10, gain_db / 20);
-        for (size_t i = 0; i < buffer_size; ++i) {
-            buffer[i] *= k;
-        }
-    }
-
-    void AppyGain(float* buffer, size_t buffer_size, double from_db, double to_db) {
-        double gain_db = to_db - from_db;
-        AppyGain(buffer, buffer_size, gain_db);
-    }
-
-    AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, Path const& file_path) {
-        auto file_stream = StreamFactory::MakeFileStream(dsd_mode, file_path);
+    AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
+        auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
 
         if (dsd_mode != DsdModes::DSD_MODE_PCM) {
             if (auto* dsd_stream = AsDsdStream(file_stream)) {
@@ -112,6 +100,56 @@ namespace {
         return dynamic_cast<IDsdDevice*>(device.get());
     }
 #endif
+
+    // 將音量映射到分貝值
+    double MapVolumeToDb(int32_t volume, int32_t min_db, int32_t max_db, int32_t levels) {
+        double db_range = max_db - min_db;
+        double db_per_level = db_range / (levels - 1);
+        return min_db + volume * db_per_level;
+    }
+
+    // 根據目標增量調整音量
+    double AdjustVolumeForDevice(int32_t volume, int32_t min_db, int32_t max_db, int32_t levels, double target_increment) {
+        // 將音量映射到分貝值
+        double db = MapVolumeToDb(volume, min_db, max_db, levels);
+
+        // 計算目標增量需要的步數
+        int steps = abs(db) / target_increment;
+
+        // 根據步數調整分貝值
+        double adjusted_db = db - steps * target_increment;
+
+        return adjusted_db;
+    }
+
+    // 將分貝值映射到 fLevel 參數
+    double MapDbToFlevel(double db, int32_t min_db, int32_t max_db) {
+        return (db - min_db) / (max_db - min_db);
+    }
+
+    double GetVolumeLevelScalar(const DeviceInfo& device_info, uint32_t volume) {
+        float volume_level =
+            (device_info.scaled_max_db.value() - device_info.scaled_min_db.value())
+            / device_info.volume_increment.value();
+
+        auto adjusted_db = AdjustVolumeForDevice(volume,
+            device_info.scaled_min_db.value(),
+            device_info.scaled_max_db.value(),
+            volume_level,
+            1);
+
+        double fLevel_device1 = MapDbToFlevel(adjusted_db,
+            device_info.scaled_min_db.value(),
+            device_info.scaled_max_db.value());
+
+        XAMP_LOG_DEBUG("device_id:{} volume_level:{} adjusted_db:{} fLevel_device1: {}",
+            device_info.device_id,
+            volume_level,
+            adjusted_db,
+            fLevel_device1);
+
+        return fLevel_device1;
+    }
 }
 
 AudioPlayer::AudioPlayer()
@@ -164,6 +202,8 @@ void AudioPlayer::Destroy() {
 #endif
     PreventSleep(false);
     FreeAvLib();
+
+    device_.reset();
     device_manager_.reset();
 }
 
@@ -276,14 +316,14 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
 }
 
 void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
-    stream_ = MakeFileStream(dsd_mode, file_path);
+    stream_ = MakeFileStream(file_path, dsd_mode);
 
     for (auto i = 0; i < 1; ++i) {
         try
         {
             stream_->OpenFile(file_path);
         }
-        catch (const Exception&) {
+        catch (const Exception & e) {
             // Fallback other stream
             if (stream_->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
                 stream_ = MakeAlign<FileStream, BassFileStream>();
@@ -292,6 +332,7 @@ void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
                 stream_ = MakeAlign<FileStream, AvFileStream>();
             }
             stream_->OpenFile(file_path);
+            XAMP_LOG_E(logger_, "{}", e.what());
         }
     }
 
@@ -324,7 +365,7 @@ void AudioPlayer::ReadPlayerAction() {
                 break;
                 }
             }
-            catch (std::exception const& e) {
+            catch (const std::exception& e) {
                 XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg->id), e.what());
             }
         }
@@ -427,6 +468,11 @@ void AudioPlayer::SetVolume(uint32_t volume) {
     volume_ = volume;
     if (!device_ || !device_->IsStreamOpen()) {
         return;
+    }
+
+	if (device_info_->is_normalized_volume) {
+        auto level_scalar = GetVolumeLevelScalar(device_info_.value(), volume);
+        device_->SetVolumeLevelScalar(level_scalar);
     }
     device_->SetVolume(volume);
 }
@@ -582,7 +628,7 @@ void AudioPlayer::CreateBuffer() {
             * kTotalBufferStreamCount);
         allocate_size = AlignUp(allocate_size);
         if (is_file_path_) {
-            fifo_size = kMaxBufferSecs* output_format_.GetAvgBytesPerSec()* kBufferStreamCount;
+            fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec()* kBufferStreamCount;
         } else {
             fifo_size = kMaxPreAllocateBufferSize;
         }

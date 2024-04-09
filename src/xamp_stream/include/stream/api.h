@@ -20,7 +20,7 @@ class XAMP_STREAM_API StreamFactory {
 public:
 	StreamFactory() = delete;
 
-    static AlignPtr<FileStream> MakeFileStream(DsdModes dsd_mode, const Path &file_path);
+    static AlignPtr<FileStream> MakeFileStream(const Path &file_path, DsdModes dsd_mode);
 
 	static AlignPtr<IFileEncoder> MakeFlacEncoder();
 
