@@ -160,7 +160,9 @@ public:
 
 	void SetVolumeLevelScalar(float level) override;
 
-private:	
+private:
+	class XAudio2VoiceContext;
+
 	bool is_running_;
 	bool raw_mode_;
 	mutable bool is_muted_;
@@ -175,9 +177,13 @@ private:
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
 	std::wstring device_id_;
+	WinHandle thread_start_;
+	WinHandle thread_exit_;
+	WinHandle close_request_;
 	CComPtr<IXAudio2> xaudio2_;
 	IXAudio2MasteringVoice* mastering_voice_;
 	IXAudio2SourceVoice* source_voice_;
+	AlignPtr<XAudio2VoiceContext> context_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

@@ -481,7 +481,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Must be active device and prefill buffer.
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this, glitch_time](const StopToken& stop_token) {
+	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this, glitch_time](const auto& stop_token) {
 		XAMP_LOG_D(logger_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;
