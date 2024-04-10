@@ -67,30 +67,25 @@ public:
 	virtual ~XAudio2VoiceContext() = default;
 
 	void OnVoiceProcessingPassStart(UINT32 BytesRequired) override {
-
 	}
 
 	void OnVoiceProcessingPassEnd() override {
-
 	}
 
-	void OnStreamEnd() override {
-		::SetEvent(sample_ready_.get());
+	void OnStreamEnd() override {		
 	}
 
 	void OnBufferStart(void* pBufferContext) override {
-
 	}
 
 	void OnBufferEnd(void* pBufferContext) override {
-
+		::SetEvent(sample_ready_.get());
 	}
 
 	void OnLoopEnd(void* pBufferContext) override {
-
 	}
-	void OnVoiceError(void* pBufferContext, HRESULT Error) override {
 
+	void OnVoiceError(void* pBufferContext, HRESULT Error) override {
 	}
 	WinHandle sample_ready_;
 };
@@ -223,7 +218,7 @@ void XAudio2OutputDevice::StartStream() {
 		);
 
 		while (!thread_exit && !stop_token.stop_requested()) {
-			while (!thread_exit && !stop_token.stop_requested()) {
+			while (true) {
 				XAUDIO2_VOICE_STATE state;
 				source_voice_->GetState(&state);
 				if (state.BuffersQueued < 1)
@@ -231,8 +226,12 @@ void XAudio2OutputDevice::StartStream() {
 				auto wait_result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, INFINITE);
 				if (wait_result == WAIT_OBJECT_0 + 1) {
 					thread_exit = true;
-					return;
+					break;
 				}
+			}
+
+			if (thread_exit || stop_token.stop_requested()) {
+				continue;
 			}
 
 			XAUDIO2_BUFFER buf{};
@@ -262,6 +261,10 @@ void XAudio2OutputDevice::StartStream() {
 					thread_exit = true;
 					break;
 				}
+			}
+
+			if (thread_exit || stop_token.stop_requested()) {
+				break;
 			}
 		}
 
