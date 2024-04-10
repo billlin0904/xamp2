@@ -151,7 +151,7 @@ public:
 		if (!TryDequeue(element)) {
 			return std::nullopt;
 		}
-		return element;
+		return std::optional<Type>{ std::in_place_t{}, element };
 	}
 
 	template <typename T>

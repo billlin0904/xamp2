@@ -62,7 +62,7 @@ public:
     * Write embedded cover to file.
     * 
     * @param[in] path file path.
-    * @param[in] image image data.
+    * @param[in] image data.
     */
     virtual void WriteEmbeddedCover(const Path& path, const Vector<uint8_t> & image) const = 0;
 

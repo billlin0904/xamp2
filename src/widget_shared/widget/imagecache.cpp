@@ -62,9 +62,11 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 		for (QDirIterator itr(path, cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
-			return image_utils::readFileImage(image_file_path, 
-				qTheme.cacheCoverSize(), 
-				kFormat);
+			return std::optional<QPixmap> {
+				std::in_place_t{}, 
+				image_utils::readFileImage(image_file_path,
+					qTheme.cacheCoverSize(),
+					kFormat) };
 		}
 		return std::nullopt;
 	};

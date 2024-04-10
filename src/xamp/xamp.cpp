@@ -422,7 +422,7 @@ namespace {
             return std::nullopt;
         }
 
-        return *formats.begin();
+        return std::optional<video_info::Format> { std::in_place_t{}, * formats.begin() };
     }
 
     PlaylistPage* createPlaylistPage(PlaylistTabWidget* tab_widget, int32_t playlist_id, const QString& column_setting_name, const QString& cloud_playlist_id) {
@@ -1939,7 +1939,7 @@ void Xamp::playOrPause() {
             if (!page) {
                 return;
             }
-            if (const auto select_item = page->playlist()->selectItem()) {
+            if (const auto select_item = page->playlist()->selectFirstItem()) {
                 play_index_ = select_item.value();
             }
             play_index_ = page->playlist()->model()->index(

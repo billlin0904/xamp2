@@ -30,7 +30,7 @@ public:
 	/*
 	 * Constructor
 	 */
-	SharedWasapiDeviceType() noexcept;
+	SharedWasapiDeviceType();
 
 	XAMP_PIMPL(SharedWasapiDeviceType)
 

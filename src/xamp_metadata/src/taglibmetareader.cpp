@@ -105,7 +105,7 @@ XAMP_METADATA_NAMESPACE_BEGIN
         if (!found) {
             return std::nullopt;
         }
-        return replay_gain;
+        return std::optional<ReplayGain> { std::in_place_t{}, replay_gain };
     }
 
     bool GetMp3Cover(File* file, Vector<uint8_t>& buffer) {
@@ -177,7 +177,7 @@ XAMP_METADATA_NAMESPACE_BEGIN
         if (!found) {
             return std::nullopt;
         }
-        return replay_gain;
+        return std::optional<ReplayGain> { std::in_place_t{}, replay_gain };
     }
 
     bool GetMp4Cover(File* file, Vector<uint8_t>& buffer) {
@@ -238,7 +238,7 @@ XAMP_METADATA_NAMESPACE_BEGIN
         if (!found) {
             return std::nullopt;
         }
-        return replay_gain;
+        return std::optional<ReplayGain> { std::in_place_t{}, replay_gain };
     }
 
     bool GetFlacCover(File* file, Vector<uint8_t>& buffer) {
@@ -335,9 +335,9 @@ XAMP_METADATA_NAMESPACE_BEGIN
         static const HashMap<std::string_view, std::function<std::optional<ReplayGain>(File*)>>
             parse_replay_gain_table{
             { ".flac", GetFlacReplayGain },
-            { ".mp3", GetMp3ReplayGain },
-            { ".m4a", GetMp4ReplayGain },
-            { ".mp4", GetMp4ReplayGain },
+            { ".mp3",  GetMp3ReplayGain },
+            { ".m4a",  GetMp4ReplayGain },
+            { ".mp4",  GetMp4ReplayGain },
         };
         const auto itr = parse_replay_gain_table.find(ext);
         if (itr != parse_replay_gain_table.end()) {

@@ -325,14 +325,14 @@ void Database::removeAlbumArtistId(int32_t artist_id) {
     DbIfFailedThrow1(query);
 }
 
-void Database::removeMusic(int32_t music_id) {
+void Database::removeMusic(int32_t music_id) const {
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM musics WHERE musicId=:musicId"));
     query.bindValue(qTEXT(":musicId"), music_id);
     DbIfFailedThrow1(query);
 }
 
-std::optional<QString> Database::getAlbumFirstMusicFilePath(int32_t album_id) {
+std::optional<QString> Database::getAlbumFirstMusicFilePath(int32_t album_id) const {
     SqlQuery query(qTEXT(R"(
 SELECT
     musics.path
@@ -348,7 +348,7 @@ LIMIT
     query.addBindValue(album_id);
     query.exec();
     while (query.next()) {
-        return query.value(qTEXT("path")).toString();
+        return  std::optional<QString> { std::in_place_t{}, query.value(qTEXT("path")).toString() };
     }
     return std::nullopt;
 }
@@ -662,7 +662,7 @@ std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
         stats.albums = query.value(qTEXT("albums")).toInt();
         stats.tracks = query.value(qTEXT("tracks")).toInt();
         stats.durations = query.value(qTEXT("durations")).toDouble();
-        return stats;
+        return std::optional<ArtistStats>{ std::in_place_t{},stats };
     }
 
     return std::nullopt;
@@ -694,7 +694,7 @@ std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
         stats.year = query.value(qTEXT("year")).toInt();
         stats.durations = query.value(qTEXT("durations")).toDouble();
         stats.file_size = query.value(qTEXT("fileSize")).toULongLong();
-        return stats;
+        return std::optional<AlbumStats>{ std::in_place_t{}, stats };
     }
 
     return std::nullopt;
@@ -858,7 +858,8 @@ std::optional<std::tuple<QString, QString>> Database::getLyrics(int32_t music_id
         auto lyrc = query.value(qTEXT("lyrc")).toString();
         auto tr_lyrc = query.value(qTEXT("trLyrc")).toString();
         if (!lyrc.isEmpty()) {
-            return std::tuple<QString, QString> { lyrc, tr_lyrc };
+            return std::optional<std::tuple<QString, QString>> { std::in_place_t{},
+                std::tuple<QString, QString> { lyrc, tr_lyrc } };
         }
     }
     return std::nullopt;

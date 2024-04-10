@@ -24,12 +24,12 @@ AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
 }
 
 void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
-	ExecuteFlags flags,
-	size_t max_thread,
-	SharedTaskQueue* task_pool,
-	ITaskSchedulerPolicy* policy,
-	const Vector<WorkStealingTaskQueuePtr>& task_work_queues,
-	Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
+                                        ExecuteFlags flags,
+                                        size_t max_thread,
+                                        SharedTaskQueue* task_pool,
+                                        ITaskSchedulerPolicy* policy,
+                                        const Vector<WorkStealingTaskQueuePtr>& task_work_queues,
+                                        Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	static constexpr size_t K = 4;
 	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
 
@@ -41,15 +41,15 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 				thread_execute_flags[current] = flags;
 				return;
 			}
-		}		
+		}
 	}
 	task_pool->Enqueue(task);
 }
 
 size_t RoundRobinSchedulerPolicy::ScheduleNext([[maybe_unused]] size_t index,
-	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
-	const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
-	static std::atomic<int32_t> id{ -1 };
+                                               [[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
+                                               const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
+	static std::atomic<int32_t> id{-1};
 	while (true) {
 		auto index = (id.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
 		if (thread_execute_flags[index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
@@ -67,8 +67,8 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 }
 
 size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
-	[[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
-	const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
+                                           [[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
+                                           const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
 	uint32_t random_index = 0;
 
@@ -80,7 +80,7 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
 				return kInvalidScheduleIndex;
 			}
 			return random_index;
-		}		
+		}
 	}
 }
 

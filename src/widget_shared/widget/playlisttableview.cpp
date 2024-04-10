@@ -305,6 +305,11 @@ void PlayListTableView::search(const QString& keyword) const {
 }
 
 void PlayListTableView::reload() {
+    std::optional<PlayListEntity> entity;
+    if (play_index_.isValid()) {
+        entity.emplace(item(play_index_));
+    }
+
     QString query_string;
 
     if (group_ != PLAYLIST_GROUP_ALBUM) {
@@ -321,6 +326,18 @@ void PlayListTableView::reload() {
 
     // NOTE: 呼叫此函數就會更新index, 會導致playing index失效    
     model_->dataChanged(QModelIndex(), QModelIndex());
+
+    // NOTE: playing index失效必須要重新尋找playlist_music_id
+    if (entity) {
+        for (auto i = 0; i < model_->rowCount(); ++i) {
+            auto temp = item(model_->index(i, 0));
+            if (temp.playlist_music_id == entity->playlist_music_id) {
+                play_index_ = model_->index(i, 0);
+                return;
+            }
+        }
+    }
+    play_index_ = QModelIndex();
 }
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
@@ -1086,19 +1103,12 @@ void PlayListTableView::scrollToIndex(const QModelIndex& index) {
     QTableView::scrollTo(index, PositionAtTop);
 }
 
-std::optional<PlayListEntity> PlayListTableView::selectPlayListEntity() const {
-    if (const auto select_item = selectItem()) {
-        return item(select_item.value());
-	}
-    return std::nullopt;
-}
-
-std::optional<QModelIndex> PlayListTableView::selectItem() const {
+std::optional<QModelIndex> PlayListTableView::selectFirstItem() const {
     auto select_row = selectionModel()->selectedRows();
     if (select_row.isEmpty()) {
         return std::nullopt;
     }
-    return select_row[0];
+    return std::optional<QModelIndex> { std::in_place_t{}, select_row[0] };
 }
 
 QList<PlayListEntity> PlayListTableView::items() const {

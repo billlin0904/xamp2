@@ -112,9 +112,8 @@ public:
         if (queue_.empty()) {
             return std::nullopt;
         }
-         
-        auto value = std::move(queue_.top());
-        return value;
+
+        return std::optional<T>{ std::in_place_t{}, std::move(queue_.top()) };
 	}
 
     /*

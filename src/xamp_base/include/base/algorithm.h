@@ -10,7 +10,6 @@
 #include <algorithm>
 
 XAMP_BASE_NAMESPACE_BEGIN
-
 template <typename TP>
 time_t ToTime_t(TP tp) {
 	using namespace std::chrono;
@@ -30,8 +29,8 @@ Vector<T> Union(C const& a, C const& b) {
 	Vector<T> result;
 	result.reserve(a.size() + b.size());
 	std::set_union(a.begin(), a.end(),
-		b.begin(), b.end(),
-		std::back_inserter(result));
+	               b.begin(), b.end(),
+	               std::back_inserter(result));
 	return result;
 }
 
@@ -43,21 +42,21 @@ double Median(C const& v) {
 
 	if (n % 2 == 0) {
 		std::nth_element(temp.begin(),
-			temp.begin() + n / 2,
-			temp.end());
+		                 temp.begin() + n / 2,
+		                 temp.end());
 
 		std::nth_element(temp.begin(),
-			temp.begin() + (n - 1) / 2,
-			temp.end());
+		                 temp.begin() + (n - 1) / 2,
+		                 temp.end());
 
 		return static_cast<double>(temp[(n - 1) / 2]
-			+ temp[n / 2])
+				+ temp[n / 2])
 			/ 2.0;
 	}
 	else {
 		std::nth_element(temp.begin(),
-			temp.begin() + n / 2,
-			temp.end());
+		                 temp.begin() + n / 2,
+		                 temp.end());
 		return static_cast<double>(temp[n / 2]);
 	}
 }
@@ -67,14 +66,14 @@ T Max(const Vector<T>& v) {
 	return *std::max_element(std::begin(v), std::end(v));
 }
 
-template<template <typename...> typename TMap, typename TKey, typename TValue>
+template <template <typename...> typename TMap, typename TKey, typename TValue>
 Vector<TKey> Keys(const TMap<TKey, TValue>& map) {
 	Vector<TKey> keys;
 	keys.reserve(map.size());
 	std::transform(map.begin(),
-		map.end(),
-		std::back_inserter(keys),
-		[](const auto& pair) { return pair.first; });
+	               map.end(),
+	               std::back_inserter(keys),
+	               [](const auto& pair) { return pair.first; });
 	return keys;
 }
 
@@ -83,9 +82,9 @@ Vector<TValue> Values(const TMap<TKey, TValue>& map) {
 	Vector<TValue> keys;
 	keys.reserve(map.size());
 	std::transform(map.begin(),
-		map.end(),
-		std::back_inserter(keys),
-		[](const auto& pair) { return pair.second; });
+	               map.end(),
+	               std::back_inserter(keys),
+	               [](const auto& pair) { return pair.second; });
 	return keys;
 }
 
@@ -96,4 +95,3 @@ ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const T& value, Compare 
 }
 
 XAMP_BASE_NAMESPACE_END
-

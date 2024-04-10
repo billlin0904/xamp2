@@ -7,6 +7,7 @@
 #include <output_device/win32/comexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
+#include <output_device/win32/xaudio2devicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>
 #include <output_device/win32/nulloutputdevicetype.h>
@@ -70,6 +71,7 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_LOG_DEBUG("LoadAvrtLib success");
     HrIfFailThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
+    XAMP_REGISTER_DEVICE_TYPE(XAudio2DeviceType);
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);

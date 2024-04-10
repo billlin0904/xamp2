@@ -29,18 +29,18 @@ enum PlayListGroup {
 class XAMP_WIDGET_SHARED_EXPORT PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
-	static constexpr auto kMinimalEncodingBitRate = 128;
-    static constexpr auto kMaxStretchedSize = 500;
 	static constexpr auto kMaxPendingPlayListSize = 100;
-	static constexpr auto kColumnPlayingWidth = 25;
-	static constexpr auto kColumnTrackWidth = 40;
-	static constexpr auto kColumnArtistWidth = 300;
-	static constexpr auto kColumnDefaultWidth = 120;
-	static constexpr auto kColumnDurationWidth = 10;
-	static constexpr auto kPendingPlaylistSize = 30;
+	static constexpr auto kMinimalEncodingBitRate = 128;
+    static constexpr auto kMaxStretchedSize       = 500;
+	static constexpr auto kColumnPlayingWidth     = 25;
+	static constexpr auto kColumnTrackWidth       = 40;
+	static constexpr auto kColumnArtistWidth      = 300;
+	static constexpr auto kColumnDefaultWidth     = 120;
+	static constexpr auto kColumnDurationWidth    = 10;
+	static constexpr auto kPendingPlaylistSize    = 30;
 
-	static constexpr auto kColumnWidth = 48;
-	static constexpr auto kColumnHeight = 46;
+	static constexpr auto kColumnWidth            = 48;
+	static constexpr auto kColumnHeight           = 46;
 
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
@@ -99,12 +99,10 @@ public:
 
 	QModelIndex nextIndex(int forward) const;
 
-	std::optional<QModelIndex> selectItem() const;
+	std::optional<QModelIndex> selectFirstItem() const;
 
 	QList<PlayListEntity> items() const;
-
-	std::optional<PlayListEntity> selectPlayListEntity() const;
-
+	
     void play(PlayerOrder order, bool is_plays);
 
 	QModelIndex playOrderIndex(PlayerOrder order);

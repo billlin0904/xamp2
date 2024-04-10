@@ -12,9 +12,11 @@
 #endif
 
 #ifdef __cpp_lib_latch
+
 XAMP_BASE_NAMESPACE_BEGIN
 using Latch = std::latch;
 XAMP_BASE_NAMESPACE_END
+
 #else
 
 #include <cstdint>

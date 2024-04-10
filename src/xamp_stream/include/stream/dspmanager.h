@@ -98,7 +98,7 @@ private:
         if (itr == end) {
             return std::nullopt;
         }
-        return dynamic_cast<TDSP*>((*itr).get());
+        return std::optional<TDSP*> { std::in_place_t{}, dynamic_cast<TDSP*>((*itr).get()) };
     }
 
     template <typename TDSP>

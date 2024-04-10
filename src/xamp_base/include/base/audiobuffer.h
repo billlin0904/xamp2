@@ -12,18 +12,16 @@
 #include <base/buffer.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
-
 /*
 * AudioBuffer is a thread safe circular buffer.
 * 
 * @tparam T is the type of the buffer.
 * @tparam U is the enable_if_t type.
 */
-template 
+template
 <
 	typename T,
-	typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>
->
+	typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 class XAMP_BASE_API_ONLY_EXPORT AudioBuffer final {
 public:
 	/*
@@ -49,7 +47,7 @@ public:
 	* @return the buffer data.
 	*/
 	T* GetData() const noexcept;
-	
+
 	/*
 	* Clear the buffer.
 	* 
@@ -82,14 +80,14 @@ public:
 	* 
 	* @return the available write size.
 	*/
-    size_t GetAvailableWrite() const noexcept;
+	size_t GetAvailableWrite() const noexcept;
 
 	/*
 	* Get the available read size.
 	* 
 	* @return the available read size.
 	*/
-    size_t GetAvailableRead() const noexcept;
+	size_t GetAvailableRead() const noexcept;
 
 	/*
 	* Write data to the buffer.
@@ -98,7 +96,7 @@ public:
 	* @param[in] count is the number of data to write.
 	* @return true if write success.
 	*/
-    bool TryWrite(const T* data, size_t count) noexcept;
+	bool TryWrite(const T* data, size_t count) noexcept;
 
 	/*
 	* Read data from the buffer.
@@ -108,7 +106,7 @@ public:
 	* @param[out] num_filled_count is the number of data read.
 	* @return true if read success.
 	*/
-    bool TryRead(T* data, size_t count, size_t& num_filled_count) noexcept;
+	bool TryRead(T* data, size_t count, size_t& num_filled_count) noexcept;
 
 	/*
 	* Fill the buffer with value.
@@ -125,7 +123,7 @@ private:
 	* @param[in] tail is the tail of the buffer.
 	* @return the available write size.
 	*/
-    size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
+	size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
 
 	/*
 	* Get the available read size.
@@ -134,25 +132,25 @@ private:
 	* @param[in] tail is the tail of the buffer.
 	* @return the available read size.
 	*/
-    size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
+	size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
 
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
 	Buffer<T> buffer_;
 };
 
 template <typename Type, typename U>
 AudioBuffer<Type, U>::AudioBuffer() noexcept
 	: size_(0)
-	, head_(0)
-	, tail_(0) {
+	  , head_(0)
+	  , tail_(0) {
 }
 
 template <typename Type, typename U>
 AudioBuffer<Type, U>::AudioBuffer(size_t size)
-    : AudioBuffer() {
-    Resize(size);
+	: AudioBuffer() {
+	Resize(size);
 }
 
 template <typename Type, typename U>
@@ -167,7 +165,7 @@ template <typename Type, typename U>
 size_t AudioBuffer<Type, U>::GetSize() const noexcept {
 	return size_;
 }
-	
+
 template <typename Type, typename U>
 size_t AudioBuffer<Type, U>::GetByteSize() const noexcept {
 	return GetSize() * 8;
@@ -176,11 +174,11 @@ size_t AudioBuffer<Type, U>::GetByteSize() const noexcept {
 template <typename Type, typename U>
 void AudioBuffer<Type, U>::Resize(size_t size) {
 	if (size > size_) {
-        auto new_buffer = MakeBuffer<Type>(size);
-        if (GetSize() > 0) {
-            MemoryCopy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
-        }
-        buffer_ = std::move(new_buffer);
+		auto new_buffer = MakeBuffer<Type>(size);
+		if (GetSize() > 0) {
+			MemoryCopy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
+		}
+		buffer_ = std::move(new_buffer);
 		size_ = size;
 	}
 }
@@ -225,22 +223,23 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, si
 
 template <typename Type, typename U>
 XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
-    const auto head = head_.load(std::memory_order_relaxed);
-    const auto tail = tail_.load(std::memory_order_acquire);
+	const auto head = head_.load(std::memory_order_relaxed);
+	const auto tail = tail_.load(std::memory_order_acquire);
 
-    auto next_head = head + count;
+	auto next_head = head + count;
 
 	if (count > GetAvailableWrite(head, tail)) {
 		return false;
 	}
 
 	if (next_head > size_) {
-        const auto range1 = size_ - head;
-        const auto range2 = count - range1;
+		const auto range1 = size_ - head;
+		const auto range2 = count - range1;
 		MemoryCopy(buffer_.get() + head, data, range1 * sizeof(Type));
 		MemoryCopy(buffer_.get(), data + range1, range2 * sizeof(Type));
 		next_head -= size_;
-	} else {
+	}
+	else {
 		MemoryCopy(buffer_.get() + head, data, count * sizeof(Type));
 		if (next_head == size_) {
 			next_head = 0;
@@ -252,21 +251,21 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t 
 
 template <typename Type, typename U>
 XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count, size_t& num_filled_count) noexcept {
-    const auto head = head_.load(std::memory_order_acquire);
-    const auto tail = tail_.load(std::memory_order_relaxed);
+	const auto head = head_.load(std::memory_order_acquire);
+	const auto tail = tail_.load(std::memory_order_relaxed);
 
-    count = (std::min)(count, GetAvailableRead(head, tail));
+	count = (std::min)(count, GetAvailableRead(head, tail));
 	num_filled_count = count;
-    if (!count) {
+	if (!count) {
 		return false;
 	}
 
-    auto next_tail = tail + count;
+	auto next_tail = tail + count;
 
 	if (next_tail > size_) {
-        const auto range1 = size_ - tail;
-        const auto range2 = count - range1;
-        MemoryCopy(data, buffer_.get() + tail, range1 * sizeof(Type));
+		const auto range1 = size_ - tail;
+		const auto range2 = count - range1;
+		MemoryCopy(data, buffer_.get() + tail, range1 * sizeof(Type));
 		MemoryCopy(data + range1, buffer_.get(), range2 * sizeof(Type));
 		next_tail -= size_;
 	}

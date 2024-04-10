@@ -15,8 +15,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 
 inline constexpr uint32_t kUnlocked = 0;
-inline constexpr uint32_t kLocked = 1;
-inline constexpr uint32_t kSleeper = 2;
+inline constexpr uint32_t kLocked   = 1;
+inline constexpr uint32_t kSleeper  = 2;
 
 /*
 * FastConditionVariable is a condition variable that is faster than std::condition_variable.
@@ -53,7 +53,8 @@ public:
 	*/
 	template <typename Predicate>
 	void wait(std::unique_lock<FastMutex>& lock, Predicate&& predicate) {
-		while (!predicate()) {
+		auto wait_predicate = std::forward<Predicate>(predicate);
+		while (!wait_predicate()) {
 			wait(lock);
 		}
 	}

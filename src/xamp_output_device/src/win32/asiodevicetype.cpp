@@ -47,7 +47,7 @@ std::optional<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDefaultDeviceIn
 	if (device_info_cache_.empty()) {
 		return std::nullopt;
 	}
-	return GetDeviceInfo(0);
+	return std::optional<DeviceInfo> { std::in_place_t{}, GetDeviceInfo(0) };
 }
 
 Vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() const {
@@ -95,7 +95,7 @@ AlignPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(const  st
 XAMP_PIMPL_IMPL(AsioDeviceType)
 
 AsioDeviceType::AsioDeviceType()
-	: impl_(MakePimpl<AsioDeviceTypeImpl>()) {
+	: impl_(MakeAlign<AsioDeviceTypeImpl>()) {
 }
 
 std::string_view AsioDeviceType::GetDescription() const {

@@ -137,7 +137,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	// Wait for a task to be available
 	if (task_pool_->Dequeue(func, timeout)) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
-		return std::move(func);
+		return func;
 	}
 	return std::nullopt;
 }
@@ -150,6 +150,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	// Wait for a task to be available
     if (auto func = task_pool_->TryDequeue()) {
         XAMP_LOG_D(logger_, "Pop shared queue.");
+		return func;
 	}
 	return std::nullopt;
 }
