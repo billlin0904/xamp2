@@ -171,6 +171,9 @@ private:
 	*/
 	void ReportError(HRESULT hr) noexcept;
 
+	HRESULT FillSamples(bool& end_of_stream);
+
+	class XAudio2EngineContext;
 	class XAudio2VoiceContext;
 
 	bool is_running_;
@@ -192,7 +195,8 @@ private:
 	CComPtr<IXAudio2> xaudio2_;
 	IXAudio2MasteringVoice* mastering_voice_;
 	IXAudio2SourceVoice* source_voice_;
-	AlignPtr<XAudio2VoiceContext> context_;
+	AlignPtr<XAudio2EngineContext> engine_context_;
+	AlignPtr<XAudio2VoiceContext> voice_context_;
 	LoggerPtr logger_;
 };
 
