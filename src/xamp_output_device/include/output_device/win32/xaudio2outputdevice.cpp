@@ -90,6 +90,7 @@ XAudio2OutputDevice::XAudio2OutputDevice(const CComPtr<IXAudio2>& xaudio2, const
 	, device_id_(device_id)
 	, xaudio2_(xaudio2)
 	, mastering_voice_(nullptr)
+	, source_voice_(nullptr)
 	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName)) {
 }
 
@@ -210,6 +211,10 @@ uint32_t XAudio2OutputDevice::GetBufferSize() const noexcept {
 
 void XAudio2OutputDevice::SetVolume(uint32_t volume) const {
 	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
+	if (!source_voice_) {
+		return;
+	}
+	HrIfFailThrow(source_voice_->SetVolume(volume));
 }
 
 void XAudio2OutputDevice::SetStreamTime(double stream_time) noexcept {
