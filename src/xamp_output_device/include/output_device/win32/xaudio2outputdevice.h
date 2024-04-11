@@ -32,6 +32,9 @@ XAMP_DECLARE_LOG_NAME(XAudio2OutputDevice);
 */
 class XAudio2OutputDevice final : public IOutputDevice {
 public:
+	// Wait thread start.
+	static constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
+
 	/*
 	* Constructor.
 	*
@@ -161,6 +164,13 @@ public:
 	void SetVolumeLevelScalar(float level) override;
 
 private:
+	/*
+	* Report error
+	*
+	* @param hr: HRESULT
+	*/
+	void ReportError(HRESULT hr) noexcept;
+
 	class XAudio2VoiceContext;
 
 	bool is_running_;
@@ -173,7 +183,6 @@ private:
 	IAudioCallback* callback_;
 	Task<void> render_task_;
 	std::chrono::milliseconds wait_time_;
-	LoggerPtr logger_;
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
 	std::wstring device_id_;
@@ -184,6 +193,7 @@ private:
 	IXAudio2MasteringVoice* mastering_voice_;
 	IXAudio2SourceVoice* source_voice_;
 	AlignPtr<XAudio2VoiceContext> context_;
+	LoggerPtr logger_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

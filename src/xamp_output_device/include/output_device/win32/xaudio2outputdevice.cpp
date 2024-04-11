@@ -67,15 +67,19 @@ public:
 	virtual ~XAudio2VoiceContext() = default;
 
 	void OnVoiceProcessingPassStart(UINT32 BytesRequired) override {
+		XAMP_LOG_DEBUG("OnVoiceProcessingPassStart");
 	}
 
 	void OnVoiceProcessingPassEnd() override {
+		XAMP_LOG_DEBUG("OnVoiceProcessingPassEnd");
 	}
 
-	void OnStreamEnd() override {		
+	void OnStreamEnd() override {
+		XAMP_LOG_DEBUG("OnStreamEnd");
 	}
 
 	void OnBufferStart(void* pBufferContext) override {
+		XAMP_LOG_DEBUG("OnBufferStart");
 	}
 
 	void OnBufferEnd(void* pBufferContext) override {
@@ -83,10 +87,13 @@ public:
 	}
 
 	void OnLoopEnd(void* pBufferContext) override {
+		XAMP_LOG_DEBUG("OnLoopEnd");
 	}
 
 	void OnVoiceError(void* pBufferContext, HRESULT Error) override {
+		XAMP_LOG_DEBUG("OnVoiceError");
 	}
+
 	WinHandle sample_ready_;
 };
 
@@ -99,11 +106,10 @@ XAudio2OutputDevice::XAudio2OutputDevice(const CComPtr<IXAudio2>& xaudio2, const
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, wait_time_(0)
-	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName))
 	, device_id_(device_id)
 	, xaudio2_(xaudio2)
-	, mastering_voice_(nullptr) {
-	context_ = MakeAlign<XAudio2VoiceContext>();
+	, mastering_voice_(nullptr)
+	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName)) {
 }
 
 XAudio2OutputDevice::~XAudio2OutputDevice() {
@@ -144,10 +150,17 @@ void XAudio2OutputDevice::CloseStream() {
 		source_voice_->Stop();
 		source_voice_->DestroyVoice();
 	}
+
+	context_.reset();
+	thread_start_.close();
+	thread_exit_.close();
+	close_request_.close();
 	render_task_ = Task<void>();
 }
 
 void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
+	constexpr size_t kDefaultBufferSize = 2048;
+
 	auto hr = xaudio2_->CreateMasteringVoice(&mastering_voice_,
 		XAUDIO2_DEFAULT_CHANNELS,
 		XAUDIO2_DEFAULT_SAMPLERATE,
@@ -155,6 +168,7 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 		device_id_.c_str(),
 		nullptr);
 	HrIfFailThrow(hr);
+
 	WAVEFORMATEXTENSIBLE waveformatex{};
 	waveformatex.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 	SetWaveformatEx(reinterpret_cast<WAVEFORMATEX*>(&waveformatex), output_format, 32);
@@ -164,6 +178,26 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 		1,
 		context_.get());
 	HrIfFailThrow(hr);
+
+	// Create thread start event handle.
+	if (!thread_start_) {
+		thread_start_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+	}
+
+	// Create thread exit event handle.
+	if (!thread_exit_) {
+		thread_exit_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+	}
+
+	// Create close request event handle.
+	if (!close_request_) {
+		close_request_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+	}
+
+	output_format_ = output_format;
+	buffer_frames_ = kDefaultBufferSize / output_format.GetChannels() / output_format.GetBytesPerSample();
+	buffer_.resize(buffer_frames_);
+	context_ = MakeAlign<XAudio2VoiceContext>();
 }
 
 bool XAudio2OutputDevice::IsMuted() const {
@@ -200,11 +234,18 @@ double XAudio2OutputDevice::GetStreamTime() const noexcept {
 }
 
 void XAudio2OutputDevice::StartStream() {
+	XAMP_EXPECTS(context_->sample_ready_);
+	XAMP_EXPECTS(thread_start_);
+	XAMP_EXPECTS(thread_exit_);
+	XAMP_EXPECTS(close_request_);
+
 	::ResetEvent(close_request_.get());
 
-	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this](const auto& stop_token) {
+	render_task_ = Executor::Spawn(GetOutputDeviceThreadPool(), [this](const auto& stop_token) {
 		const std::array<HANDLE, 2> objects{
+			// WAIT_OBJECT_0
 			context_->sample_ready_.get(),
+			// WAIT_OBJECT_0 + 1
 			close_request_.get()
 		};
 
@@ -219,11 +260,15 @@ void XAudio2OutputDevice::StartStream() {
 
 		while (!thread_exit && !stop_token.stop_requested()) {
 			while (true) {
-				XAUDIO2_VOICE_STATE state;
+				XAUDIO2_VOICE_STATE state{};
 				source_voice_->GetState(&state);
-				if (state.BuffersQueued < 1)
+				if (state.BuffersQueued < 1) {
 					break;
-				auto wait_result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, INFINITE);
+				}
+				auto wait_result = ::WaitForMultipleObjects(objects.size(),
+					objects.data(),
+					FALSE, 
+					INFINITE);
 				if (wait_result == WAIT_OBJECT_0 + 1) {
 					thread_exit = true;
 					break;
@@ -234,44 +279,45 @@ void XAudio2OutputDevice::StartStream() {
 				continue;
 			}
 
-			XAUDIO2_BUFFER buf{};
+			XAUDIO2_BUFFER buffer{};
 			size_t num_filled_frames = 0;
 			float stream_time_float = 0;
 			float sample_time = 0;
 
-			XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_,
+			XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(),
+				buffer_frames_,
 				num_filled_frames,
 				stream_time_float,
 				sample_time) == DataCallbackResult::CONTINUE) {
-				buf.AudioBytes = num_filled_frames;
-				buf.pAudioData = reinterpret_cast<const BYTE*>(buffer_.Get());
-				source_voice_->SubmitSourceBuffer(&buf);
+				buffer.AudioBytes = num_filled_frames * output_format_.GetChannels() * output_format_.GetBytesPerSample();
+				buffer.pAudioData = reinterpret_cast<const BYTE*>(buffer_.Get());
+				auto hr = source_voice_->SubmitSourceBuffer(&buffer);
+				ReportError(hr);
+				thread_exit = FAILED(hr);
 			} else {
-				buf.Flags = XAUDIO2_END_OF_STREAM;
-				source_voice_->SubmitSourceBuffer(&buf);
-			}
-
-			while (!thread_exit && !stop_token.stop_requested()) {
-				XAUDIO2_VOICE_STATE state;
-				source_voice_->GetState(&state);
-				if (state.BuffersQueued < 1)
-					break;
-				auto wait_result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, INFINITE);
-				if (wait_result == WAIT_OBJECT_0 + 1) {
-					thread_exit = true;
-					break;
-				}
-			}
-
-			if (thread_exit || stop_token.stop_requested()) {
-				break;
+				buffer.Flags = XAUDIO2_END_OF_STREAM;
+				auto hr = source_voice_->SubmitSourceBuffer(&buffer);
+				ReportError(hr);
+				thread_exit = FAILED(hr);
 			}
 		}
 
+		while (!thread_exit && !stop_token.stop_requested()) {
+			XAUDIO2_VOICE_STATE state{};
+			source_voice_->GetState(&state);
+			if (state.BuffersQueued < 1) {
+				break;
+			}
+			auto wait_result = ::WaitForMultipleObjects(objects.size(),
+				objects.data(),
+				FALSE,
+				INFINITE);
+			if (wait_result == WAIT_OBJECT_0 + 1) {
+				break;
+			}
+		}
 	});
 
-	// Wait thread start.
-	constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
 	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
 		throw ComException(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
 	}
@@ -287,6 +333,14 @@ void XAudio2OutputDevice::AbortStream() noexcept {
 }
 
 void XAudio2OutputDevice::SetVolumeLevelScalar(float level) {
+}
+
+void XAudio2OutputDevice::ReportError(HRESULT hr) noexcept {
+	if (FAILED(hr)) {
+		const ComException exception(hr);
+		callback_->OnError(exception);
+		is_running_ = false;
+	}
 }
 
 bool XAudio2OutputDevice::IsHardwareControlVolume() const {

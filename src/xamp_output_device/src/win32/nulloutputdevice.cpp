@@ -109,7 +109,7 @@ void NullOutputDevice::StartStream() {
 	XAMP_LOG_DEBUG("NullOutputDevice start render.");
 
 	is_stopped_ = false;
-	render_task_ = Executor::Spawn(GetWasapiThreadPool(), [this](const StopToken& stop_token) {
+	render_task_ = Executor::Spawn(GetOutputDeviceThreadPool(), [this](const StopToken& stop_token) {
 		Mmcss mmcss;
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;

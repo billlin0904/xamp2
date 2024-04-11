@@ -42,7 +42,7 @@ void LoadComponentSharedLibrary() {
     GetPlaybackThreadPool();
     XAMP_LOG_DEBUG("Start Playback thread pool success.");
 
-    GetWasapiThreadPool();
+    GetOutputDeviceThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
 }

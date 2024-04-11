@@ -198,7 +198,7 @@ void AudioPlayer::Destroy() {
 
     GetPlaybackThreadPool().Stop();
 #ifdef XAMP_OS_WIN
-    GetWasapiThreadPool().Stop();
+    GetOutputDeviceThreadPool().Stop();
 #endif
     PreventSleep(false);
     FreeAvLib();

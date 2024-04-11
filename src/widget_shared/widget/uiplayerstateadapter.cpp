@@ -67,5 +67,5 @@ void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buf
 	if (!enable_spectrum_ || !stft_) {
 		return;
 	}
-	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
+	//emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
 }

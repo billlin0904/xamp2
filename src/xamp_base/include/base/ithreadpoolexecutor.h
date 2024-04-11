@@ -104,7 +104,7 @@ XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::st
 
 XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();
 
-XAMP_BASE_API IThreadPoolExecutor& GetWasapiThreadPool();
+XAMP_BASE_API IThreadPoolExecutor& GetOutputDeviceThreadPool();
 
 XAMP_BASE_API IThreadPoolExecutor& GetBackgroundThreadPool();
 
