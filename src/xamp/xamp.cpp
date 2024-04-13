@@ -1455,7 +1455,7 @@ void Xamp::initialDeviceList(const std::string& device_id) {
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
             menu->addAction(device_action);
 
-            if (/*device_type_id == device_info.device_type_id &&*/ current_device_id == device_info.device_id) {
+            if (device_type_id == device_info.device_type_id && current_device_id == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);

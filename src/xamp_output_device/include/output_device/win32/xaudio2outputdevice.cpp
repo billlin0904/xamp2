@@ -9,10 +9,8 @@
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/comexception.h>
 
-#include <output_device/win32/mmcss.h>
-
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
-namespace {
+	namespace {
 	void SetWaveformatEx(WAVEFORMATEX& format, uint32_t samplerate) noexcept {
 		format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
 		format.nChannels = 2;
@@ -78,35 +76,45 @@ public:
 	WinHandle sample_ready_;
 };
 
-XAudio2OutputDevice::XAudio2OutputDevice(const CComPtr<IXAudio2>& xaudio2, const std::wstring& device_id)
+XAudio2OutputDevice::XAudio2OutputDevice(const std::wstring& device_id)
 	: is_running_(false)
-	, raw_mode_(false)
-	, is_muted_(false)
-	, is_stopped_(true)
-	, volume_(0)
 	, buffer_frames_(0)
 	, callback_(nullptr)
-	, wait_time_(0)
 	, device_id_(device_id)
-	, xaudio2_(xaudio2)
 	, mastering_voice_(nullptr)
 	, source_voice_(nullptr)
 	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName)) {
+#ifdef _DEBUG
+	UINT32 flags = 0;
+	HrIfFailThrow(::XAudio2Create(&xaudio2_, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
+
+	XAUDIO2_DEBUG_CONFIGURATION debug_config;
+	debug_config.TraceMask = XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_DETAIL | XAUDIO2_LOG_FUNC_CALLS | XAUDIO2_LOG_TIMING | XAUDIO2_LOG_LOCKS | XAUDIO2_LOG_MEMORY | XAUDIO2_LOG_STREAMING;
+	debug_config.BreakMask = XAUDIO2_LOG_WARNINGS;
+	debug_config.LogThreadID = TRUE;
+	debug_config.LogFileline = TRUE;
+	debug_config.LogFunctionName = TRUE;
+	debug_config.LogTiming = TRUE;
+	xaudio2_->SetDebugConfiguration(&debug_config, nullptr);
+#else
+	HrIfFailThrow(::XAudio2Create(&xaudio2_));
+#endif
+	engine_context_ = MakeAlign<XAudio2EngineContext>();
+	voice_context_ = MakeAlign<XAudio2VoiceContext>();
+	HrIfFailThrow(xaudio2_->RegisterForCallbacks(engine_context_.get()));
 }
 
 XAudio2OutputDevice::~XAudio2OutputDevice() {
+	StopStream();
 	CloseStream();
-	if (mastering_voice_ != nullptr) {
-		mastering_voice_->DestroyVoice();
-	}
-	xaudio2_.Release();
 }
 
 bool XAudio2OutputDevice::IsStreamOpen() const noexcept {
-	return true;
+	return mastering_voice_ != nullptr;
 }
 
 void XAudio2OutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
+	XAMP_EXPECTS(callback != nullptr);
 	callback_ = callback;
 }
 
@@ -127,25 +135,25 @@ void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
 
 	if (source_voice_ != nullptr) {
 		source_voice_->Stop();
-		source_voice_->FlushSourceBuffers();
+	}
+	is_running_ = false;
+}
+
+void XAudio2OutputDevice::CloseStream() {
+	if (source_voice_ != nullptr) {
 		source_voice_->DestroyVoice();
 		source_voice_ = nullptr;
+	}
+
+	if (xaudio2_ != nullptr) {
+		xaudio2_->StopEngine();
 	}
 
 	if (mastering_voice_ != nullptr) {
 		mastering_voice_->DestroyVoice();
 		mastering_voice_ = nullptr;
 	}
-	is_running_ = false;
-}
 
-void XAudio2OutputDevice::CloseStream() {
-	if (xaudio2_ != nullptr) {
-		xaudio2_->StopEngine();
-	}
-
-	engine_context_.reset();
-	voice_context_.reset();
 	thread_start_.close();
 	thread_exit_.close();
 	close_request_.close();
@@ -153,14 +161,10 @@ void XAudio2OutputDevice::CloseStream() {
 }
 
 void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
+	// NOTE: 設置太大或太小都會有問題.
 	auto get_buffer_size = [](auto sample_rate) {
 		return (sample_rate / 2) * 8;
 		};
-
-	engine_context_ = MakeAlign<XAudio2EngineContext>();
-	voice_context_ = MakeAlign<XAudio2VoiceContext>();
-
-	HrIfFailThrow(xaudio2_->RegisterForCallbacks(engine_context_.get()));
 
 	HrIfFailThrow(xaudio2_->CreateMasteringVoice(&mastering_voice_,
 		output_format.GetChannels(),
@@ -190,15 +194,13 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 }
 
 bool XAudio2OutputDevice::IsMuted() const {
-	return is_muted_;
-}
-
-uint32_t XAudio2OutputDevice::GetVolume() const {
-	return volume_;
+	return GetVolume() == 0;
 }
 
 void XAudio2OutputDevice::SetMute(bool mute) const {
-	is_muted_ = mute;
+	if (mute) {
+		SetVolume(0);
+	}
 }
 
 PackedFormat XAudio2OutputDevice::GetPackedFormat() const noexcept {
@@ -209,12 +211,22 @@ uint32_t XAudio2OutputDevice::GetBufferSize() const noexcept {
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
 
+uint32_t XAudio2OutputDevice::GetVolume() const {
+	if (!source_voice_) {
+		return 0;
+	}
+	float volume = 0;
+	source_voice_->GetVolume(&volume);
+	uint32_t mapped_volume = static_cast<uint32_t>(volume * 100);
+	return mapped_volume;
+}
+
 void XAudio2OutputDevice::SetVolume(uint32_t volume) const {
-	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 	if (!source_voice_) {
 		return;
 	}
-	HrIfFailThrow(source_voice_->SetVolume(volume));
+	float mapped_volume = volume / 100.0f;
+	HrIfFailThrow(source_voice_->SetVolume(mapped_volume));
 }
 
 void XAudio2OutputDevice::SetStreamTime(double stream_time) noexcept {
@@ -232,23 +244,19 @@ void XAudio2OutputDevice::StartStream() {
 	XAMP_EXPECTS(thread_exit_);
 	XAMP_EXPECTS(close_request_);
 
-	WAVEFORMATEX waveformat{};
-	SetWaveformatEx(waveformat, output_format_.GetSampleRate());
-
-	HrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
-		&waveformat,
-		XAUDIO2_VOICE_NOSRC |
-		XAUDIO2_VOICE_NOPITCH,
-		1,
-		voice_context_.get()));
-
-	XAUDIO2_VOICE_DETAILS details{};
-	source_voice_->GetVoiceDetails(&details);
-
 	::ResetEvent(close_request_.get());
 
-	bool dummy = false;
-	HrIfFailThrow(FillSamples(dummy));
+	if (!source_voice_) {
+		WAVEFORMATEX waveformat{};
+		SetWaveformatEx(waveformat, output_format_.GetSampleRate());
+
+		HrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
+			&waveformat,
+			XAUDIO2_VOICE_NOSRC |
+			XAUDIO2_VOICE_NOPITCH,
+			1,
+			voice_context_.get()));
+	}
 
 	render_task_ = Executor::Spawn(GetOutputDeviceThreadPool(), [this](const auto& stop_token) {
 		is_running_ = true;
@@ -308,6 +316,8 @@ void XAudio2OutputDevice::StartStream() {
 				FALSE,
 				INFINITE);
 		}
+
+		XAMP_LOG_D(logger_, "Render task done!");
 	});
 
 	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {

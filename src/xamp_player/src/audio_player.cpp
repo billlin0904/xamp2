@@ -353,12 +353,13 @@ void AudioPlayer::SetState(const PlayerState play_state) {
 
 void AudioPlayer::ReadPlayerAction() {
     while (!action_queue_.empty()) {
-        if (const auto msg = action_queue_.TryDequeue()) {
+        PlayerAction msg;
+        if (action_queue_.TryDequeue(msg)) {
             try {
-                switch (msg->id) {
+                switch (msg.id) {
                 case PlayerActionId::PLAYER_SEEK:
                 {
-                    auto stream_time = std::any_cast<double>(msg->content);
+                    auto stream_time = std::any_cast<double>(msg.content);
                     XAMP_LOG_D(logger_, "Receive seek {:.2f} message.", stream_time);
                     DoSeek(stream_time);
                 }
@@ -366,7 +367,7 @@ void AudioPlayer::ReadPlayerAction() {
                 }
             }
             catch (const std::exception& e) {
-                XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg->id), e.what());
+                XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg.id), e.what());
             }
         }
     }

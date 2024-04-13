@@ -147,8 +147,9 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 		return std::nullopt;
 	}
 
+	MoveOnlyFunction func;
 	// Wait for a task to be available
-    if (auto func = task_pool_->TryDequeue()) {
+    if (task_pool_->TryDequeue(func)) {
         XAMP_LOG_D(logger_, "Pop shared queue.");
 		return func;
 	}
@@ -185,7 +186,8 @@ std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_to
 
 		const auto index = (i + n) % max_thread_;
 
-		if (auto func = task_work_queues_.at(index)->TryDequeue()) {
+		MoveOnlyFunction func;
+		if (task_work_queues_.at(index)->TryDequeue(func)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue (found count: {}).", index, n);
 			return func;
 		}

@@ -100,43 +100,20 @@ public:
     /*
     * Pops a value from the queue.
     * 
-    * @return The value popped from the queue.
-    */
-    std::optional<T> TrySteal() {
-        const std::unique_lock lock{ mutex_, std::try_to_lock };
-                
-        if (!lock) {
-            return std::nullopt;
-        }
-
-        if (queue_.empty()) {
-            return std::nullopt;
-        }
-
-        return std::optional<T>{ std::in_place_t{}, std::move(queue_.top()) };
-	}
-
-    /*
-    * Pops a value from the queue.
-    * 
-    * @return The value popped from the queue.
-    */
-    std::optional<T> TryDequeue() {
-        return TrySteal();
-    }
-
-    /*
-    * Pops a value from the queue.
-    * 
     * @param[in] value The value popped from the queue.
     * @return true if the value was popped, false if the queue is empty.
     */
     bool TryDequeue(T& value) {
-        if (auto v = TrySteal()) {
-            value = std::move(*v);
-			return true;
+        const std::unique_lock lock{ mutex_, std::try_to_lock };
+        if (!lock) {
+            return false;
         }
-        return false;
+
+        if (queue_.empty()) {
+            return false;
+        }
+        value = std::move(queue_.top());
+        return true;
 	}
 
     /*

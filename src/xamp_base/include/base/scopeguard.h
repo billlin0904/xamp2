@@ -12,19 +12,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-class XAMP_BASE_API_ONLY_EXPORT UncaughtExceptionDetector final {
-public:
-    UncaughtExceptionDetector() noexcept
-        : count_(std::uncaught_exceptions()) {
-    }
-
-    operator bool() const noexcept {
-        return std::uncaught_exceptions() > count_;
-    }
-private:
-    const int32_t count_;
-};
-
 // C++17 ScopeGuard
 template <typename T, bool ExceptedSuccess, bool ExceptedFailure>
 class XAMP_BASE_API_ONLY_EXPORT ScopeGuard final {
@@ -51,6 +38,19 @@ public:
         }
     }
 private:
+    class UncaughtExceptionDetector final {
+    public:
+        UncaughtExceptionDetector() noexcept
+            : count_(std::uncaught_exceptions()) {
+        }
+
+        operator bool() const noexcept {
+            return std::uncaught_exceptions() > count_;
+        }
+    private:
+        const int32_t count_;
+    };
+
     UncaughtExceptionDetector detector_;
     T f_;
 };

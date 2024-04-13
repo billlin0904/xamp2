@@ -146,14 +146,6 @@ public:
 		return true;
 	}
 
-	std::optional<Type> TryDequeue() noexcept {
-		Type element;
-		if (!TryDequeue(element)) {
-			return std::nullopt;
-		}
-		return std::optional<Type>{ std::in_place_t{}, element };
-	}
-
 	template <typename T>
 	bool TryDequeue(T& element) noexcept {
 		auto tail = tail_.load(std::memory_order_relaxed);

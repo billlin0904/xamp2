@@ -25,7 +25,7 @@ XAMP_DECLARE_LOG_NAME(NullOutputDeviceType);
 * 
 */
 class NullOutputDeviceType final : public IDeviceType {
-	XAMP_DECLARE_MAKE_CLASS_UUID(NullOutputDeviceType, "3B5452A1-7747-456E-80D4-E04929B05F66")
+	XAMP_DECLARE_MAKE_CLASS_UUID(NullOutputDeviceType, "6F1223E0-231A-495C-B16A-2AAC851F8D5F")
 
 public:
 	constexpr static auto Description = std::string_view("Null Output");

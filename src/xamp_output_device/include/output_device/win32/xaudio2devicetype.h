@@ -19,7 +19,7 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 XAMP_DECLARE_LOG_NAME(XAudio2DeviceType);
 
 class XAudio2DeviceType final : public IDeviceType {
-	XAMP_DECLARE_MAKE_CLASS_UUID(XAudio2DeviceType, "6F1223E0-231A-495C-B16A-2AAC851F8D5F")
+	XAMP_DECLARE_MAKE_CLASS_UUID(XAudio2DeviceType, "3B5452A1-7747-456E-80D4-E04929B05F66")
 
 public:
 	constexpr static auto Description = std::string_view("XAudio2");

@@ -40,7 +40,7 @@ public:
 	*
 	* @param device: device
 	*/
-	XAudio2OutputDevice(const CComPtr<IXAudio2>& xaudio2, const std::wstring &device_id);
+	explicit XAudio2OutputDevice(const std::wstring &device_id);
 
 	/*
 	* Destructor.
@@ -177,26 +177,21 @@ private:
 	class XAudio2VoiceContext;
 
 	bool is_running_;
-	bool raw_mode_;
-	mutable bool is_muted_;
-	std::atomic<bool> is_stopped_;
-	mutable uint32_t volume_;
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
 	IAudioCallback* callback_;
 	Task<void> render_task_;
-	std::chrono::milliseconds wait_time_;
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
 	std::wstring device_id_;
 	WinHandle thread_start_;
 	WinHandle thread_exit_;
 	WinHandle close_request_;
-	CComPtr<IXAudio2> xaudio2_;
 	IXAudio2MasteringVoice* mastering_voice_;
 	IXAudio2SourceVoice* source_voice_;
 	AlignPtr<XAudio2EngineContext> engine_context_;
 	AlignPtr<XAudio2VoiceContext> voice_context_;
+	CComPtr<IXAudio2> xaudio2_;
 	LoggerPtr logger_;
 };
 

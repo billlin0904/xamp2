@@ -56,7 +56,10 @@ void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, 
 	size_t fft_shift_size = buffer_size * 0.55;	
 	size_t frame_size = 0;
 	fft_size_ = 4096;
-	//fft_size_ = 8192;
+	if (buffer_size > fft_size_) {
+		stft_.reset();
+		return;
+	}
 	frame_size = fft_size_ * AudioFormat::kMaxChannel;
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, fft_shift_size, buffer_size);
 	stft_ = MakeAlign<STFT>(frame_size, fft_shift_size);
@@ -67,5 +70,5 @@ void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buf
 	if (!enable_spectrum_ || !stft_) {
 		return;
 	}
-	//emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
+	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
 }

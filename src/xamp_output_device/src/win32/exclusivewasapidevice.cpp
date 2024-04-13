@@ -25,17 +25,17 @@ namespace {
 	/*
 	* Set WAVEFORMATEX from AudioFormat and valid bits samples
 	*
-	* @param input_fromat: input format
+	* @param input_format: input format
 	* @param audio_format: audio format
 	*/
-	void SetWaveformatEx(WAVEFORMATEX* input_fromat, const AudioFormat& audio_format, const int32_t valid_bits_samples) noexcept {
-		XAMP_EXPECTS(input_fromat != nullptr);
+	void SetWaveformatEx(WAVEFORMATEX* input_format, const AudioFormat& audio_format, const int32_t valid_bits_samples) noexcept {
+		XAMP_EXPECTS(input_format != nullptr);
 		XAMP_EXPECTS(audio_format.GetChannels() == AudioFormat::kMaxChannel);
 		XAMP_EXPECTS(valid_bits_samples > 0);
 
 		// Check if this is correct	
-		XAMP_EXPECTS(input_fromat->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX));
-		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_fromat);
+		XAMP_EXPECTS(input_format->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX));
+		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_format);
 
 		// CopyFrom from AudioFormat
 		format.Format.nChannels = audio_format.GetChannels();

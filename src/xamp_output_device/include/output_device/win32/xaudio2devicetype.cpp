@@ -17,6 +17,8 @@ class XAudio2DeviceType::XAudio2DeviceTypeImpl final {
 public:
 	XAudio2DeviceTypeImpl() noexcept;
 
+	~XAudio2DeviceTypeImpl();
+
 	void ScanNewDevice();
 
 	[[nodiscard]] size_t GetDeviceCount() const;
@@ -38,8 +40,10 @@ private:
 };
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() noexcept {
-	logger_ = XampLoggerFactory.GetLogger(kXAudio2DeviceTypeLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(kXAudio2DeviceTypeLoggerName);	
 }
+
+XAudio2DeviceType::XAudio2DeviceTypeImpl::~XAudio2DeviceTypeImpl() = default;
 
 void XAudio2DeviceType::XAudio2DeviceTypeImpl::ScanNewDevice() {
 	enumerator_ = helper::CreateDeviceEnumerator();
@@ -47,21 +51,7 @@ void XAudio2DeviceType::XAudio2DeviceTypeImpl::ScanNewDevice() {
 }
 
 AlignPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::MakeDevice(const std::string& device_id) {
-	CComPtr<IXAudio2> xaudio2;
-
-	UINT32 flags = 0;
-	HrIfFailThrow(::XAudio2Create(&xaudio2, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
-
-	XAUDIO2_DEBUG_CONFIGURATION debug_config;
-	debug_config.TraceMask = XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_DETAIL | XAUDIO2_LOG_FUNC_CALLS | XAUDIO2_LOG_TIMING | XAUDIO2_LOG_LOCKS | XAUDIO2_LOG_MEMORY | XAUDIO2_LOG_STREAMING;
-	debug_config.BreakMask = XAUDIO2_LOG_WARNINGS;
-	debug_config.LogThreadID = TRUE;
-	debug_config.LogFileline = TRUE;
-	debug_config.LogFunctionName = TRUE;
-	debug_config.LogTiming = TRUE;
-	xaudio2->SetDebugConfiguration(&debug_config, nullptr);
-
-	return MakeAlign<IOutputDevice, XAudio2OutputDevice>(xaudio2, String::ToStdWString(device_id));
+	return MakeAlign<IOutputDevice, XAudio2OutputDevice>(String::ToStdWString(device_id));
 }
 
 DeviceInfo XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
