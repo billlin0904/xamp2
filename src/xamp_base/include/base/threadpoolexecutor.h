@@ -29,23 +29,23 @@ XAMP_BASE_NAMESPACE_BEGIN
 */
 class TaskScheduler final : public ITaskScheduler {
 public:
-    /*
-    * Constructor.
-    */
-    TaskScheduler(const std::string_view & pool_name,
-        size_t max_thread,
-        const CpuAffinity& affinity,
-        ThreadPriority priority);
+	/*
+	* Constructor.
+	*/
+	TaskScheduler(const std::string_view& pool_name,
+	              size_t max_thread,
+	              const CpuAffinity& affinity,
+	              ThreadPriority priority);
 
-    /*
-    * Constructor.
-    */
-    TaskScheduler(TaskSchedulerPolicy policy,
-        TaskStealPolicy steal_policy,
-        const std::string_view& pool_name,
-        size_t max_thread,
-        CpuAffinity affinity,
-        ThreadPriority priority);
+	/*
+	* Constructor.
+	*/
+	TaskScheduler(TaskSchedulerPolicy policy,
+	              TaskStealPolicy steal_policy,
+	              const std::string_view& pool_name,
+	              size_t max_thread,
+	              CpuAffinity affinity,
+	              ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
@@ -118,16 +118,16 @@ private:
 class ThreadPoolExecutor final : public IThreadPoolExecutor {
 public:
 	ThreadPoolExecutor(const std::string_view& pool_name,
-        TaskSchedulerPolicy policy,
-        TaskStealPolicy steal_policy,
-	    uint32_t max_thread = std::thread::hardware_concurrency(), 
-        CpuAffinity affinity = CpuAffinity::kAll,
-	    ThreadPriority priority = ThreadPriority::NORMAL);
+	                   TaskSchedulerPolicy policy,
+	                   TaskStealPolicy steal_policy,
+	                   uint32_t max_thread = std::thread::hardware_concurrency(),
+	                   CpuAffinity affinity = CpuAffinity::kAll,
+	                   ThreadPriority priority = ThreadPriority::NORMAL);
 
-    explicit ThreadPoolExecutor(const std::string_view& pool_name,
-        uint32_t max_thread = std::thread::hardware_concurrency(),
-        CpuAffinity affinity = CpuAffinity::kAll,
-        ThreadPriority priority = ThreadPriority::NORMAL);
+	explicit ThreadPoolExecutor(const std::string_view& pool_name,
+	                            uint32_t max_thread = std::thread::hardware_concurrency(),
+	                            CpuAffinity affinity = CpuAffinity::kAll,
+	                            ThreadPriority priority = ThreadPriority::NORMAL);
 
 	~ThreadPoolExecutor() override;
     

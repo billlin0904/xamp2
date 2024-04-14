@@ -89,15 +89,15 @@ public:
     DECLARE_AUDIO_FORMAT(PCM768Khz);
 
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
-        uint16_t number_of_channels = 0,
-        uint32_t bits_per_sample = 0,
-        uint32_t sample_rate = 0) noexcept;
+                         uint16_t number_of_channels = 0,
+                         uint32_t bits_per_sample = 0,
+                         uint32_t sample_rate = 0) noexcept;
 
     explicit AudioFormat(DataFormat format,
-        uint16_t number_of_channels,
-        ByteFormat byte_format,
-        uint32_t sample_rate,
-        PackedFormat packed_format = PackedFormat::INTERLEAVED) noexcept;
+                         uint16_t number_of_channels,
+                         ByteFormat byte_format,
+                         uint32_t sample_rate,
+                         PackedFormat packed_format = PackedFormat::INTERLEAVED) noexcept;
 
     void SetFormat(DataFormat format) noexcept;
 
