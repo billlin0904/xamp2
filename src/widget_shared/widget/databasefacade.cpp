@@ -185,31 +185,19 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             database_->addOrUpdateAlbumArtist(album_id, id);
         }
 
+        if (!cover.isNull()) {
+            database_->setAlbumCover(album_id, qImageCache.addImage(cover));
+            continue;
+        }
+
         QString cover_id;
         if (album_id != unknownAlbumId()) {
             cover_id = database_->getAlbumCoverId(album_id);
             if (isNullOfEmpty(cover_id)) {
                 cover_id = database_->getMusicCoverId(music_id);
             }
-
-            if (!is_file_path) {
-                if (fetch_cover != nullptr && isNullOfEmpty(cover_id)) {
-                    fetch_cover(music_id, album_id);
-                }
-                continue;
-            }
         } else {
             cover_id = database_->getMusicCoverId(music_id);
-
-            if (fetch_cover != nullptr && isNullOfEmpty(cover_id)) {
-                fetch_cover(music_id, album_id);
-            }
-            continue;
-        }
-
-        if (!cover.isNull()) {
-            database_->setAlbumCover(album_id, qImageCache.addImage(cover));
-            continue;
         }
 
         if (isNullOfEmpty(cover_id)) {

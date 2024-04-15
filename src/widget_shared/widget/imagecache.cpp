@@ -23,7 +23,7 @@
 #include <QImageReader>
 
 inline constexpr size_t kDefaultCacheSize = 24;
-inline constexpr qint64 kMaxCacheImageSize = 1024 * 1024;
+inline constexpr qint64 kMaxCacheImageSize = 512 * 1024;
 inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
 
 namespace {

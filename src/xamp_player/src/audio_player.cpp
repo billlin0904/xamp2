@@ -56,6 +56,10 @@ namespace {
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
     constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
+    int32_t GetBufferCount(int32_t sample_rate) {
+        return sample_rate > (176400 * 2) ? kBufferStreamCount : 3;
+    }
+
     AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
         auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
 
@@ -629,7 +633,7 @@ void AudioPlayer::CreateBuffer() {
             * kTotalBufferStreamCount);
         allocate_size = AlignUp(allocate_size);
         if (is_file_path_) {
-            fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec()* kBufferStreamCount;
+            fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec() * GetBufferCount(output_format_.GetSampleRate());
         } else {
             fifo_size = kMaxPreAllocateBufferSize;
         }
@@ -738,7 +742,7 @@ void AudioPlayer::BufferStream(double stream_time) {
     fifo_.Clear();
     stream_->SeekAsSeconds(stream_time);
     sample_size_ = stream_->GetSampleSize();    
-    BufferSamples(stream_, kBufferStreamCount);
+    BufferSamples(stream_, GetBufferCount(output_format_.GetSampleRate()));
 }
 
 void AudioPlayer::EnableFadeOut(bool enable) {
