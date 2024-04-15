@@ -213,9 +213,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         }
 
         if (isNullOfEmpty(cover_id)) {
-            if (!fetch_cover) {
-                emit findAlbumCover(album_id, track_info.file_path);
-            } else {
+            if (fetch_cover != nullptr) {
                 fetch_cover(music_id, album_id);
             }
         }

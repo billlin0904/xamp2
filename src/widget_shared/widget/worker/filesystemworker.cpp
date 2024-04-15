@@ -56,7 +56,9 @@ namespace {
 }
 
 FileSystemWorker::FileSystemWorker()
-	: watcher_(this) {
+	: watcher_(this)
+	, timer_(this) {
+	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemWorker::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(kFileSystemWorkerLoggerName);
 	GetBackgroundThreadPool();
 	(void)QObject::connect(&watcher_,
@@ -71,7 +73,7 @@ void FileSystemWorker::onSetWatchDirectory(const QString& dir) {
 	watcher_.addPath(dir);
 }
 
-void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
+void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool, int32_t playlist_id, const QString& dir) {
 	QDirIterator itr(dir, getTrackInfoFileNameFilter(), QDir::NoDotAndDotDot | QDir::Files,
 	                 QDirIterator::Subdirectories);
 	FloatMap<std::wstring, Vector<Path>> directory_files;
@@ -107,7 +109,7 @@ void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		directory_files[directory].emplace_back(path);
 	}
 
-	Executor::ParallelFor(*extract_file_thread_pool_, directory_files, [&](const auto& path_info) {
+	Executor::ParallelFor(*thread_pool, directory_files, [&](const auto& path_info) {
 		if (is_stop_) {
 			return;
 		}
@@ -130,7 +132,7 @@ void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		tracks.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
 		});
-		emit readFilePath(stringFormat("Extract directory {} size: {} completed.", String::ToString(path_info.first),
+		emit readFilePath(stringFormat("Extract directory {} size:{} completed.", String::ToString(path_info.first),
 		                               path_info.second.size()));
 		emit insertDatabase(tracks, playlist_id);
 	});
@@ -139,10 +141,7 @@ void FileSystemWorker::scanPathFiles(int32_t playlist_id, const QString& dir) {
 void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	is_stop_ = false;
 
-	if (extract_file_thread_pool_ != nullptr) {
-		extract_file_thread_pool_.reset();
-	}
-	extract_file_thread_pool_ = MakeThreadPoolExecutor(kExtractFileWorkerLoggerName, ThreadPriority::BACKGROUND);
+	auto extract_file_thread_pool = MakeThreadPoolExecutor(kExtractFileWorkerLoggerName, ThreadPriority::BACKGROUND);
 
 	constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
 	QDirIterator itr(file_path, getTrackInfoFileNameFilter(), filter);
@@ -163,15 +162,16 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 	}
 
 	emit readFileStart();
-
 	std::atomic<size_t> completed_work(0);
 
-	auto [total_work, file_count_paths] = getPathSortByFileCount(paths, getTrackInfoFileNameFilter(),
-	                                                             [this](auto total_file_count) {
-		                                                             emit foundFileCount(total_file_count);
-	                                                             });
+	auto [total_work, file_count_paths] =
+		getPathSortByFileCount(paths, getTrackInfoFileNameFilter(),
+		                       [this](auto total_file_count) {
+			                       emit foundFileCount(total_file_count);
+		                       });
 
 	XAMP_ON_SCOPE_EXIT(
+		timer_.stop();
 		paths.clear();
 		paths.shrink_to_fit();
 
@@ -181,7 +181,6 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 		emit readFileProgress(100);
 		emit readCompleted();
 		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", total_time_elapsed_.ElapsedSeconds());
-		extract_file_thread_pool_.reset();
 	);
 
 	if (total_work == 0) {
@@ -191,15 +190,15 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 
 	completed_work_ = 0;
 	total_work_ = total_work;
-
 	total_time_elapsed_.Reset();
+
+	timer_.start(std::chrono::seconds(1));
 
 	for (const auto& path_info : file_count_paths) {
 		if (is_stop_) {
 			return;
 		}
-		scanPathFiles(playlist_id, path_info.path);
-		updateProgress();
+		scanPathFiles(extract_file_thread_pool, playlist_id, path_info.path);
 	}
 }
 

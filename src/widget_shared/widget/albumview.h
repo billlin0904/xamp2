@@ -36,7 +36,7 @@ enum ShowModes {
 	SHOW_NORMAL,
 };
 
-class AlbumViewStyledDelegate final : public QStyledItemDelegate {
+class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:	
 	static const ConstLatin1String kAlbumCacheTag;
@@ -64,6 +64,8 @@ signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
 	void showAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
+
+	void findAlbumCover(int32_t album_id) const;
 
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
@@ -133,6 +135,10 @@ public:
 	void sortYears();
 
 	void setShowMode(ShowModes mode);
+
+	AlbumViewStyledDelegate* styledDelegate() {
+		return styled_delegate_;
+	}
 
 	void resizeEvent(QResizeEvent* event) override;
 

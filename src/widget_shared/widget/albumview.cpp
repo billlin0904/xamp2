@@ -184,6 +184,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
+    if (isNullOfEmpty(cover_id)) {
+        emit findAlbumCover(album_id);
+    }
     painter->drawPixmap(cover_rect, qImageCache.cover(kAlbumCacheTag, cover_id));
 
     bool hit_play_button = false;

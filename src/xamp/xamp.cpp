@@ -759,6 +759,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &FileSystemWorker::onExtractFile,
         Qt::QueuedConnection);
 
+   (void)QObject::connect(album_page_->album()->styledDelegate(),
+       &AlbumViewStyledDelegate::findAlbumCover,
+       find_album_cover_worker_.get(),
+       &FindAlbumCoverWorker::onFindAlbumCover,
+       Qt::QueuedConnection);
+
     (void)QObject::connect(extract_file_worker_.get(),
         &FileSystemWorker::foundFileCount,
         this,
@@ -3029,11 +3035,6 @@ PlaylistPage* Xamp::localPlaylistPage() const {
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
-    (void)QObject::connect(&qDatabaseFacade,
-        &DatabaseFacade::findAlbumCover,
-        find_album_cover_worker_.get(),
-        &FindAlbumCoverWorker::onFindAlbumCover,
-        Qt::QueuedConnection);
     qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
     if (result.front().artist) {
         emit translation(toQString(result.front().artist), qTEXT("ja"), qTEXT("en"));

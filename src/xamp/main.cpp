@@ -1,9 +1,7 @@
 ﻿#include <iostream>
 #include <QDir>
 #include <qlibraryinfo.h>
-#include <QLoggingCategory>
 #include <QOperatingSystemVersion>
-#include <QStyleFactory>
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
@@ -35,7 +33,6 @@
 #include <singleinstanceapplication.h>
 #include <version.h>
 #include <xamp.h>
-#include <qmessagebox.h>
 
 namespace {
     void loadSampleRateConverterConfig() {

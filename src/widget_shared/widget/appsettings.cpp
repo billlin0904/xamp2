@@ -31,7 +31,6 @@ namespace {
 		default_setting[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
 
 		QMap<QString, QVariant> soxr_setting;
-
 		if (qJsonSettings.valueAsMap(kSoxr).isEmpty()) {
 			soxr_setting[setting_name] = default_setting;
 		}

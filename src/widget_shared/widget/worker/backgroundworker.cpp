@@ -164,7 +164,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
         total_work += album_entities.size();
     }
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    //std::this_thread::sleep_for(std::chrono::seconds(1));
 
     emit foundFileCount(total_work);
 

@@ -30,10 +30,6 @@ public:
 
     int32_t unknownAlbumId() const;
 
-signals:
-    void findAlbumCover(int32_t album_id, const std::wstring& file_path);
-
-public:
     void insertTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type,

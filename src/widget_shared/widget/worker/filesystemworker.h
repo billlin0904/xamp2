@@ -6,12 +6,13 @@
 #pragma once
 
 #include <QObject>
+#include <QTimer>
 
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <widget/database.h>
-#include <widget/file_system_watcher.h>
+#include <widget/filesystemwatcher.h>
 
 class XAMP_WIDGET_SHARED_EXPORT FileSystemWorker final : public QObject {
     Q_OBJECT
@@ -35,7 +36,7 @@ signals:
 
     void foundFileCount(size_t file_count);
 
-    void remainingTimeEstimation(size_t total_work, size_t ccompleted_work, int32_t secs);
+    void remainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 
 public slots:
     void onExtractFile(const QString& file_path, int32_t playlist_id);
@@ -43,7 +44,7 @@ public slots:
     void onSetWatchDirectory(const QString& dir);
 
 private:
-    void scanPathFiles(int32_t playlist_id, const QString& dir);
+    void scanPathFiles(AlignPtr<IThreadPoolExecutor> &thread_pool, int32_t playlist_id, const QString& dir);
 
     void updateProgress();
 
@@ -53,7 +54,7 @@ private:
     FileSystemWatcher watcher_;
     Stopwatch total_time_elapsed_;
     Stopwatch update_elapsed_;
-    AlignPtr<IThreadPoolExecutor> extract_file_thread_pool_;
+    QTimer timer_;
     LoggerPtr logger_;
 };
 
