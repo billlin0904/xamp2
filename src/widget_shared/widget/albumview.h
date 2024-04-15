@@ -74,7 +74,13 @@ protected:
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
-private:	
+private:
+	QList<QModelIndex> getVisibleIndexes(const QListView* listView, int column = 0) const;
+
+	QList<QString> getVisibleCovers(const QStyleOptionViewItem& option) const;
+
+	QPixmap visibleCovers(const QString& cover_id) const;
+
 	bool enable_album_view_{ true };
 	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };
@@ -83,6 +89,7 @@ private:
 	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
+	mutable LruCache<QString, QPixmap> cache_;
 };
 
 class AlbumViewPage final : public QFrame {
