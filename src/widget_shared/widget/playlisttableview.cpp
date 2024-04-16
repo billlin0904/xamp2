@@ -138,9 +138,18 @@ public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
     static constexpr auto kPlayingStateIconSize = 8;
-   
+    static constexpr QSize kIconSize = QSize(kPlayingStateIconSize, kPlayingStateIconSize);
+    static constexpr auto kImageCacheSize = 24;
+
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
-        : QStyledItemDelegate(parent) {
+        : QStyledItemDelegate(parent)
+        , cache_(kImageCacheSize) {
+    }
+
+    QIcon visibleCovers(const QString& cover_id) const {
+        return cache_.GetOrAdd(cover_id, [cover_id]() {
+            return qImageCache.getOrAddIcon(cover_id);
+            });
     }
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
@@ -148,9 +157,15 @@ public:
             return;
         }
 
-        painter->setRenderHints(QPainter::Antialiasing, true);
-        painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
-        painter->setRenderHints(QPainter::TextAntialiasing, true);
+        auto visible_covers = getVisibleCovers(option, PLAYLIST_ALBUM_COVER_ID);
+        XAMP_LOG_DEBUG("PlayListView cache cover size:{} cache:{}", visible_covers.size(), cache_);
+        Q_FOREACH(auto cover_id, visible_covers) {
+            visibleCovers(cover_id);
+        }
+
+        painter->setRenderHints(QPainter::Antialiasing,         true);
+        painter->setRenderHints(QPainter::SmoothPixmapTransform,true);
+        painter->setRenderHints(QPainter::TextAntialiasing,     true);
 
         QStyleOptionViewItem opt(option);
         QStyleOptionButton check_box_opt;
@@ -192,17 +207,16 @@ public:
             break;
         case PLAYLIST_TRACK:
 	        {
-				static constexpr QSize icon_size(kPlayingStateIconSize, kPlayingStateIconSize);
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_IS_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
-                    opt.icon = qTheme.playlistPlayingIcon(icon_size, 0.5);
+                    opt.icon = qTheme.playlistPlayingIcon(kIconSize, 0.5);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignCenter;
                     opt.displayAlignment = Qt::AlignCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
-                    opt.icon = qTheme.playlistPauseIcon(icon_size, 0.5);
+                    opt.icon = qTheme.playlistPauseIcon(kIconSize, 0.5);
                     opt.features = QStyleOptionViewItem::HasDecoration;
                     opt.decorationAlignment = Qt::AlignCenter;
                     opt.displayAlignment = Qt::AlignCenter;
@@ -275,7 +289,8 @@ public:
                     id = music_cover_id;
 				}
 
-                opt.icon = qImageCache.getOrAddIcon(id);
+                //opt.icon = qImageCache.getOrAddIcon(id);
+                opt.icon = visibleCovers(id);
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
 				opt.displayAlignment = Qt::AlignCenter;
@@ -296,6 +311,8 @@ public:
             QStyledItemDelegate::paint(painter, opt, index);
         }
     }
+
+    mutable LruCache<QString, QIcon> cache_;
 };
 
 void PlayListTableView::search(const QString& keyword) const {

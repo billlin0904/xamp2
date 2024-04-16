@@ -108,56 +108,6 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     return true;
 }
 
-
-QList<QModelIndex> AlbumViewStyledDelegate::getVisibleIndexes(const QListView* listView, int column) const {
-    QList<QModelIndex> idx_found;
-
-    // Width and height of single items
-    const int grid_w = listView->width();
-    const int grid_h = listView->height();
-
-    // Visible region of the viewport
-    const auto region = listView->viewport()->visibleRegion();
-
-    // Function to check if index is visible
-    auto idx_is_visible = [&](const QModelIndex& idx) {
-        QRect idx_rect = listView->visualRect(idx);
-        return region.contains(idx_rect) || region.intersects(idx_rect);
-        };
-
-    // Get the first index
-    auto first_idx = listView->indexAt(QPoint(grid_w / 2, 0));
-    if (!first_idx.isValid())
-        first_idx = listView->indexAt(QPoint(grid_w / 2, grid_h / 2));
-
-    if (first_idx.isValid()) {
-        auto nxt_idx = first_idx;
-
-        // Traverse items until index isn't visible
-        while (idx_is_visible(nxt_idx)) {
-            idx_found.append(nxt_idx);
-            nxt_idx = nxt_idx.sibling(nxt_idx.row() + 1, column);
-        }
-    }
-
-    return idx_found;
-}
-
-
-QList<QString> AlbumViewStyledDelegate::getVisibleCovers(const QStyleOptionViewItem& option) const {
-    QList<QString> view_items;
-    const auto* list_view = static_cast<const QListView*>(option.widget);
-    if (!list_view) {
-        return view_items;
-    }
-
-    Q_FOREACH(auto index, getVisibleIndexes(list_view)) {
-        auto cover_id = indexValue(index, INDEX_COVER).toString();
-        view_items.push_back(cover_id);
-    }
-    return view_items;
-}
-
 QPixmap AlbumViewStyledDelegate::visibleCovers(const QString & cover_id) const {
     return cache_.GetOrAdd(cover_id, [cover_id]() {
         return qImageCache.cover(kAlbumCacheTag, cover_id);
@@ -169,7 +119,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
-    Q_FOREACH(auto cover_id, getVisibleCovers(option)) {
+    auto visible_covers = getVisibleCovers(option, INDEX_COVER);
+    XAMP_LOG_DEBUG("AlbumView cache cover size:{} cache:{}", visible_covers.size(), cache_);
+    Q_FOREACH(auto cover_id, visible_covers) {
         visibleCovers(kAlbumCacheTag + cover_id);
     }
 

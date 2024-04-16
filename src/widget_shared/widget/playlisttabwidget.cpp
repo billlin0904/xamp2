@@ -172,6 +172,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         emit deletePlaylist(playlist);
         closeTab(tab_index);
+        if (!count()) {
+            emit removeAllPlaylist();
+        }
         });
 
     onThemeChangedFinished(qTheme.themeColor());

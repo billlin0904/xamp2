@@ -17,6 +17,8 @@ class XMainWindow;
 class XProgressDialog;
 class ProcessIndicator;
 class QFileDialog;
+class QStyleOptionViewItem;
+class QAbstractItemView;
 
 struct XAMP_WIDGET_SHARED_EXPORT PlaybackFormat {
     bool is_dsd_file{ false };
@@ -88,3 +90,7 @@ XAMP_WIDGET_SHARED_EXPORT const QStringList& getTrackInfoFileNameFilter();
 XAMP_WIDGET_SHARED_EXPORT size_t getFileCount(const QString& dir, const QStringList& file_name_filters = QStringList());
 
 XAMP_WIDGET_SHARED_EXPORT bool isSupportFileExtension(const QString &file_ext);
+
+QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t column);
+
+QSet<QString> getVisibleCovers(const QStyleOptionViewItem& option, int32_t column);

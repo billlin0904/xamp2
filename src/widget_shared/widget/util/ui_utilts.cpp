@@ -6,6 +6,7 @@
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QTime>
+#include <QAbstractItemView>
 
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
@@ -20,6 +21,9 @@
 #include <widget/util/str_utilts.h>
 
 #include <version.h>
+
+#include "widget/playlistentity.h"
+#include "widget/playlisttablemodel.h"
 
 namespace {
     void saveLastOpenFolderPath(const QString& file_name) {
@@ -363,4 +367,54 @@ size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {
         }
     }
     return file_count;
+}
+
+QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t column) {
+    QList<QModelIndex> index_found;
+
+    // Width and height of single items
+    const int grid_w = list_view->width();
+    const int grid_h = list_view->height();
+
+    // Visible region of the viewport
+    const auto region = list_view->viewport()->visibleRegion();
+
+    // Function to check if index is visible
+    auto is_index_visible = [&](const QModelIndex& index) {
+        auto index_rect = list_view->visualRect(index);
+        return region.contains(index_rect) || region.intersects(index_rect);
+        };
+
+    // Get the first index
+    auto first_index = list_view->indexAt(QPoint(grid_w / 2, 0));
+    if (!first_index.isValid())
+        first_index = list_view->indexAt(QPoint(grid_w / 2, grid_h / 2));
+
+    if (first_index.isValid()) {
+        auto next_index = first_index;
+
+        // Traverse items until index isn't visible
+        while (is_index_visible(next_index)) {
+            index_found.append(next_index);
+            next_index = next_index.sibling(next_index.row() + 1, column);
+        }
+    }
+
+    return index_found;
+}
+
+QSet<QString> getVisibleCovers(const QStyleOptionViewItem& option, int32_t column) {
+    QSet<QString> view_items;
+    const auto* list_view = static_cast<const QAbstractItemView*>(option.widget);
+    if (!list_view) {
+        return view_items;
+    }
+
+    Q_FOREACH(auto index, getVisibleIndexes(list_view, 0)) {
+        auto cover_id = indexValue(index, column).toString();
+        if (!isNullOfEmpty(cover_id)) {
+            view_items.insert(cover_id);
+        }
+    }
+    return view_items;
 }
