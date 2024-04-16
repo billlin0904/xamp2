@@ -142,12 +142,12 @@ public:
     static constexpr auto kImageCacheSize = 24;
 
     explicit PlayListStyledItemDelegate(QObject* parent = nullptr)
-        : QStyledItemDelegate(parent)
-        , cache_(kImageCacheSize) {
+        : QStyledItemDelegate(parent) {
     }
 
     QIcon visibleCovers(const QString& cover_id) const {
-        return cache_.GetOrAdd(cover_id, [cover_id]() {
+        static LruCache<QString, QIcon> cache(kImageCacheSize);
+        return cache.GetOrAdd(cover_id, [cover_id]() {
             return qImageCache.getOrAddIcon(cover_id);
             });
     }
@@ -158,9 +158,8 @@ public:
         }
 
         auto visible_covers = getVisibleCovers(option, PLAYLIST_ALBUM_COVER_ID);
-        XAMP_LOG_DEBUG("PlayListView cache cover size:{} cache:{}", visible_covers.size(), cache_);
         Q_FOREACH(auto cover_id, visible_covers) {
-            visibleCovers(cover_id);
+            (void)visibleCovers(cover_id);
         }
 
         painter->setRenderHints(QPainter::Antialiasing,         true);
@@ -207,7 +206,7 @@ public:
             break;
         case PLAYLIST_TRACK:
 	        {
-                auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_IS_PLAYING));
+				auto is_playing = indexValue(index, PLAYLIST_IS_PLAYING);
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
                     opt.icon = qTheme.playlistPlayingIcon(kIconSize, 0.5);
@@ -265,7 +264,7 @@ public:
             break;
         case PLAYLIST_LIKE:
 	        {
-            auto is_heart_pressed = index.model()->data(index.model()->index(index.row(), PLAYLIST_LIKE)).toInt();
+            auto is_heart_pressed = indexValue(index, PLAYLIST_LIKE).toInt();
         	if (is_heart_pressed > 0) {
                 QVariantMap font_options;
                 font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(0.4));
@@ -283,13 +282,12 @@ public:
             break;
         case PLAYLIST_ALBUM_COVER_ID:
 	        {
-				auto music_cover_id = index.model()->data(index.model()->index(index.row(), PLAYLIST_MUSIC_COVER_ID)).toString();
+				auto music_cover_id = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
                 auto id = value.toString();
 				if (!music_cover_id.isEmpty()) {
                     id = music_cover_id;
 				}
 
-                //opt.icon = qImageCache.getOrAddIcon(id);
                 opt.icon = visibleCovers(id);
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
@@ -311,8 +309,6 @@ public:
             QStyledItemDelegate::paint(painter, opt, index);
         }
     }
-
-    mutable LruCache<QString, QIcon> cache_;
 };
 
 void PlayListTableView::search(const QString& keyword) const {

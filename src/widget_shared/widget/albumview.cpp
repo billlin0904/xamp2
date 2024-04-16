@@ -58,8 +58,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , album_text_color_(Qt::black)
 	, more_album_opt_button_(new QPushButton())
-	, play_button_(new QPushButton())
-	, cache_(kImageCacheSize) {
+	, play_button_(new QPushButton()) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
     mask_image_ = image_utils::roundDarkImage(qTheme.defaultCoverSize(),
@@ -109,7 +108,8 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
 }
 
 QPixmap AlbumViewStyledDelegate::visibleCovers(const QString & cover_id) const {
-    return cache_.GetOrAdd(cover_id, [cover_id]() {
+    static LruCache<QString, QPixmap> cache(kImageCacheSize);
+    return cache.GetOrAdd(cover_id, [cover_id]() {
         return qImageCache.cover(kAlbumCacheTag, cover_id);
         });
 }
@@ -119,12 +119,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
-    auto visible_covers = getVisibleCovers(option, INDEX_COVER);
-    XAMP_LOG_DEBUG("AlbumView cache cover size:{} cache:{}", visible_covers.size(), cache_);
-    Q_FOREACH(auto cover_id, visible_covers) {
-        visibleCovers(kAlbumCacheTag + cover_id);
-    }
-
     auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
 
     if (album_id == 0) {
@@ -132,15 +126,16 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         return;
     }
 
+    auto visible_covers = getVisibleCovers(option, INDEX_COVER);
+    Q_FOREACH(auto cover_id, visible_covers) {
+        (void)visibleCovers(kAlbumCacheTag + cover_id);
+    }
+
     auto album    = indexValue(index, INDEX_ALBUM).toString();
     auto cover_id = indexValue(index, INDEX_COVER).toString();
     auto artist   = indexValue(index, INDEX_ARTIST).toString();    
     auto album_year  = indexValue(index, INDEX_ALBUM_YEAR).toInt();
     auto is_hires   = indexValue(index, INDEX_CATEGORY).toBool();
-
-    if (album.isEmpty()) {
-        return;
-    }
 
     auto* style = option.widget ? option.widget->style() : QApplication::style();
 
@@ -201,7 +196,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (isNullOfEmpty(cover_id)) {
         emit findAlbumCover(album_id);
     }
-    //painter->drawPixmap(cover_rect, qImageCache.cover(kAlbumCacheTag, cover_id));
     painter->drawPixmap(cover_rect, visibleCovers(cover_id));
 
     bool hit_play_button = false;
