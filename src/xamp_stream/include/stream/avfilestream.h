@@ -33,7 +33,7 @@ public:
 
 	[[nodiscard]] AudioFormat GetFormat() const noexcept override;
 
-	uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
+	uint32_t GetSamples(void* buffer, uint32_t length) const override;
 
 	void SeekAsSeconds(double stream_time) const override;
 

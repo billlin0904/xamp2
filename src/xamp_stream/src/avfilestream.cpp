@@ -150,14 +150,14 @@ public:
 
         // Find libfdk_aac codec.
         AVCodec* codec = nullptr;
-        if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
+        /*if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
             codec = LIBAV_LIB.Codec->avcodec_find_decoder_by_name("libfdk_aac");
             if (!codec) {
                 XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
             } else {
                 XAMP_LOG_D(logger_, "Use codec 'libfdk_aac'.");
             }
-        }
+        }*/
         
         // Fallback find other codec.
         if (!codec) {
@@ -245,7 +245,7 @@ public:
     * 
     * @return The number of samples read.
     */
-    uint32_t GetSamples(float* buffer, uint32_t length) const noexcept {
+    uint32_t GetSamples(float* buffer, uint32_t length) const {
         const auto channel_read_samples = length / sizeof(float);
         uint32_t num_read_sample = 0;
 
@@ -274,7 +274,7 @@ public:
                 }
 
                 if (ret == AVERROR_INVALIDDATA) {
-                    break;
+                    AvIfFailedThrow(ret);
                 }
 
                 while (ret >= 0) {
@@ -422,7 +422,7 @@ AudioFormat AvFileStream::GetFormat() const noexcept {
     return impl_->GetFormat();
 }
 
-uint32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const noexcept {
+uint32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const {
     return impl_->GetSamples(static_cast<float *>(buffer), length);
 }
 

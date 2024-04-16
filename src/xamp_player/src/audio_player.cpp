@@ -931,9 +931,11 @@ void AudioPlayer::Play() {
         }
         catch (const Exception& e) {
             XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
+            p->is_playing_ = false;
         }
         catch (const std::exception& e) {
             XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
+            p->is_playing_ = false;
         }
 
         XAMP_LOG_D(p->logger_, "Stream thread done!");

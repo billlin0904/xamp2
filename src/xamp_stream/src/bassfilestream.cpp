@@ -245,7 +245,7 @@ public:
         return info_.ctype == BASS_CTYPE_STREAM_DSD;
     }
 
-    uint32_t GetSamples(void *buffer, uint32_t length) const noexcept {
+    uint32_t GetSamples(void *buffer, uint32_t length) const {
         return InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize();
     }
 
@@ -381,7 +381,7 @@ void BassFileStream::SeekAsSeconds(double stream_time) const {
     stream_->Seek(stream_time);
 }
 
-uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {
+uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const {
     return stream_->GetSamples(buffer, length);
 }
 

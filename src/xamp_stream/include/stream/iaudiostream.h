@@ -49,7 +49,7 @@ public:
     *
     * @return The number of samples read.
     */
-    virtual uint32_t GetSamples(void *buffer, uint32_t length) const noexcept = 0;
+    virtual uint32_t GetSamples(void *buffer, uint32_t length) const = 0;
 
     /*
     * Get the format of the stream.
