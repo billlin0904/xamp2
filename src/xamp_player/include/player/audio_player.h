@@ -272,6 +272,8 @@ public:
     AnyMap& GetDspConfig() override;
 
     void SetDelayCallback(std::function<void(uint32_t)> delay_callback) override;
+
+    void SeFileCacheMode(bool enable) override;
 private:
     DataCallbackResult OnGetSamples(void* samples,
         size_t num_buffer_frames, 
@@ -332,7 +334,7 @@ private:
     bool is_muted_;
     bool is_dsd_file_;
     bool enable_fadeout_;
-    bool is_file_path_;
+    bool enable_file_cache_;
     DsdModes dsd_mode_;
     uint32_t sample_size_;
     uint32_t target_sample_rate_;

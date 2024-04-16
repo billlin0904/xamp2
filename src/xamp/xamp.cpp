@@ -2163,6 +2163,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             target_sample_rate,
             open_dsd_mode);
 
+        player_->SeFileCacheMode(entity.isHttpUrl());
+
         if (sample_rate_converter_factory != nullptr) {
             if (player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
                 player_->GetDspManager()->RemoveSampleRateConverter();

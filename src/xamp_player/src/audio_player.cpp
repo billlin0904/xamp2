@@ -160,7 +160,7 @@ AudioPlayer::AudioPlayer()
     : is_muted_(false)
 	, is_dsd_file_(false)
     , enable_fadeout_(true)
-	, is_file_path_(true)
+	, enable_file_cache_(true)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , sample_size_(0)
     , target_sample_rate_(0)
@@ -262,7 +262,6 @@ void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
 }
 
 void AudioPlayer::Open(const Path& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, DsdModes output_mode) {
-    is_file_path_ = IsFilePath(file_path);
     CloseDevice(true);
     UpdatePlayerStreamTime();
     OpenStream(file_path, output_mode);
@@ -632,7 +631,7 @@ void AudioPlayer::CreateBuffer() {
             * stream_->GetSampleSize() 
             * kTotalBufferStreamCount);
         allocate_size = AlignUp(allocate_size);
-        if (is_file_path_) {
+        if (enable_file_cache_) {
             fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec() * GetBufferCount(output_format_.GetSampleRate());
         } else {
             fifo_size = kMaxPreAllocateBufferSize;
@@ -921,21 +920,17 @@ void AudioPlayer::Play() {
                 if (p->fifo_.GetAvailableWrite() < num_write_buffer_size) {
                     wait_timer.Wait();
                     XAMP_LOG_T(p->logger_, "FIFO buffer: {} num_sample_write: {}",
-                               p->fifo_.GetAvailableWrite(),
-                               num_write_buffer_size
-                               );
+                        p->fifo_.GetAvailableWrite(),
+                        num_write_buffer_size
+                    );
                     continue;
-                }                
+                }
                 p->ReadSampleLoop(buffer, num_read_buffer_size, stopped_lock);
             }
         }
-        catch (const Exception& e) {
-            XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
-            p->is_playing_ = false;
-        }
         catch (const std::exception& e) {
             XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
-            p->is_playing_ = false;
+            p->stream_duration_ = 0;
         }
 
         XAMP_LOG_D(p->logger_, "Stream thread done!");
@@ -1034,6 +1029,10 @@ AnyMap& AudioPlayer::GetDspConfig() {
 
 void AudioPlayer::SetDelayCallback(const std::function<void(uint32_t)> delay_callback) {
     delay_callback_ = delay_callback;
+}
+
+void AudioPlayer::SeFileCacheMode(bool enable) {
+    enable_file_cache_ = enable;
 }
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

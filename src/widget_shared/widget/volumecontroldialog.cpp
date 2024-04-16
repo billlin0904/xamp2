@@ -105,14 +105,14 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
     }
 
     try {
-        if (!player_->IsHardwareControlVolume()) {
-            if (volume > 0) {
-                player_->SetMute(false);
-            }
-            else {
-                player_->SetMute(true);
-            }
+        if (volume > 0) {
+            player_->SetMute(false);
+        }
+        else {
+            player_->SetMute(true);
+        }
 
+        if (!player_->IsHardwareControlVolume()) {            
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
             }

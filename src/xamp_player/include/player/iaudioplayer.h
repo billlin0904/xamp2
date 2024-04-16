@@ -234,6 +234,8 @@ public:
     virtual AnyMap& GetDspConfig() = 0;
 
     virtual void SetDelayCallback(std::function<void(uint32_t)> delay_callback) = 0;
+
+    virtual void SeFileCacheMode(bool enable) = 0;
 protected:
     /*
     * Constructor.

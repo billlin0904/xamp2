@@ -143,8 +143,8 @@ private:
 template <typename Type, typename U>
 AudioBuffer<Type, U>::AudioBuffer() noexcept
 	: size_(0)
-	  , head_(0)
-	  , tail_(0) {
+	, head_(0)
+	, tail_(0) {
 }
 
 template <typename Type, typename U>
