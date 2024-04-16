@@ -34,7 +34,7 @@ public:
 
     void OnStateChanged(PlayerState play_state) override;
 
-    void OnError(const Exception &ex) override;
+    void OnError(const std::exception&ex) override;
 
     void OnDeviceChanged(DeviceState state, const std::string& device_id) override;
 
@@ -47,7 +47,7 @@ signals:
 
     void stateChanged(PlayerState play_state);
 
-    void playbackError(Errors error, const QString &message);
+    void playbackError(const QString &message);
 
     void deviceChanged(DeviceState state, const QString& message);
 

@@ -354,7 +354,7 @@ namespace edit {
 
 struct Lyrics {
 	std::optional<std::string> source;
-	std::string lyrics;
+	std::optional<std::string> lyrics;
 };
 
 class YtMusicInterop;

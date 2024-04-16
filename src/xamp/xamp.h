@@ -165,6 +165,8 @@ public slots:
 	void onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
 	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
+
+	void onPlaybackError(const QString& message);
 private:
 	void initialUi();
 

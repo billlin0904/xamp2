@@ -27,8 +27,8 @@ void UIPlayerStateAdapter::OnStateChanged(PlayerState play_state) {
     emit stateChanged(play_state);
 }
 
-void UIPlayerStateAdapter::OnError(const Exception &ex) {
-    emit playbackError(ex.GetError(), ex.what() != nullptr
+void UIPlayerStateAdapter::OnError(const std::exception &ex) {
+    emit playbackError(ex.what() != nullptr
                                           ? QString::fromStdString(ex.what()) : QString());
 }
 

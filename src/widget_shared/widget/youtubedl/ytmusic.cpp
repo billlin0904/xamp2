@@ -840,10 +840,10 @@ watch::Playlist YtMusicInterop::getWatchPlaylist(const std::optional<std::string
 
 Lyrics YtMusicInterop::getLyrics(const std::string& browse_id) const {
 	const auto lyrics = impl_->get_ytmusic().attr("get_lyrics")(browse_id);
-
+    dumpObject(lyrics);
     return {
         lyrics["source"].cast<std::optional<std::string>>(),
-        lyrics["lyrics"].cast<std::string>()
+        lyrics["lyrics"].cast<std::optional<std::string>>()
     };
 }
 

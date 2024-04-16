@@ -671,9 +671,11 @@ void AudioPlayer::OnVolumeChange(int32_t vol) noexcept {
     }
 }
 
-void AudioPlayer::OnError(const Exception& e) noexcept {
+void AudioPlayer::OnError(const std::exception& e) noexcept {
     is_playing_ = false;
-    XAMP_LOG_DEBUG(e.what());
+    if (const auto adapter = state_adapter_.lock()) {
+        adapter->OnError(e);
+    }
 }
 
 void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::string & device_id) {    
@@ -930,7 +932,10 @@ void AudioPlayer::Play() {
         }
         catch (const std::exception& e) {
             XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
-            p->stream_duration_ = 0;
+            p->OnError(e);
+        }
+        catch (...) {
+            p->OnError(std::exception());
         }
 
         XAMP_LOG_D(p->logger_, "Stream thread done!");

@@ -1159,7 +1159,9 @@ void Xamp::fetchLyrics(const PlayListEntity& entity, const QString& video_id) {
     QCoro::connect(ytmusic_worker_->fetchWatchPlaylistAsync(video_id), this, [entity, this](const auto& playlist) {
         if (playlist.lyrics) {
             QCoro::connect(ytmusic_worker_->fetchLyricsAsync(QString::fromStdString(*playlist.lyrics)), this, [entity, this](const auto& lyrics) {
-                lrc_page_->lyrics()->onAddFullLrc(QString::fromStdString(lyrics.lyrics));
+                if (auto lyric = lyrics.lyrics) {
+                    lrc_page_->lyrics()->onAddFullLrc(QString::fromStdString(lyric.value()));
+                }
             });
         }
     });
@@ -1567,6 +1569,12 @@ void Xamp::initialController() {
                             this,
                             &Xamp::onDeviceStateChanged,
                             Qt::QueuedConnection);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::playbackError,
+        this,
+        &Xamp::onPlaybackError,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
         &UIPlayerStateAdapter::volumeChanged,
@@ -3099,6 +3107,11 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
 
     read_progress_dialog_->setTitle(qSTR("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
         .arg(formatDuration(secs)).arg(total_work).arg(completed_work));
+}
+
+void Xamp::onPlaybackError(const QString& message) {
+    player_->Stop();
+    XMessageBox::showError(message);
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    
