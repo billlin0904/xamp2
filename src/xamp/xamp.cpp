@@ -2198,17 +2198,15 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         }
 
         player_->BufferStream();
-        open_done = true;
-    }
-    catch (...) {
-        player_->Stop(false, true);
-        logAndShowMessage(std::current_exception());
-    }
-
-    if (open_done) {
         ui_.mutedButton->updateState();
+        open_done = true;
         updateUi(entity, playback_format, open_done);
         return;
+    }
+    catch (...) {
+        open_done = false;
+        player_->Stop(false, true);
+        logAndShowMessage(std::current_exception());
     }
     
     auto* page = dynamic_cast<PlaylistPage*>(sender());

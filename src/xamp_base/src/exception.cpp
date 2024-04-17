@@ -26,38 +26,6 @@ ExceptionClassName::ExceptionClassName()\
 #endif
 
 #ifdef XAMP_OS_WIN
-std::string FormatMessage(const std::string_view& file_name, int32_t error) {
-    HANDLE locale_handle = nullptr;
-    DWORD locale_system = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
-    auto ok = ::FormatMessageA(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr,
-        error,
-        locale_system,
-        (PTSTR) &locale_handle,
-        0,
-        nullptr
-    );
-
-    if (!ok) {
-        auto dll = LoadSharedLibrary(file_name);
-        ok = ::FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_IGNORE_INSERTS,
-            dll.get(),
-            error,
-            locale_system,
-            (PTSTR)&locale_handle,
-            0,
-            nullptr
-        );
-    }
-    if (ok && (locale_handle != nullptr)) {
-        auto message = std::string((const char*) ::LocalLock(locale_handle));
-        ::LocalFree(locale_handle);
-    }
-    return "";
-}
-
 std::string GetPlatformErrorMessage(int32_t err) {
     return String::LocaleStringToUTF8(std::system_category().message(err));
 }

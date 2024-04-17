@@ -133,6 +133,8 @@ XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
 XAMP_BASE_API std::string GetLastErrorMessage();
 
+XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t error, const std::string_view& file_name);
+
 class XAMP_BASE_API LibraryException : public Exception {
 public:
 	explicit LibraryException(std::string const& message, std::string_view what = "");

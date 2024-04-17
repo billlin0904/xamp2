@@ -128,7 +128,7 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
         ui_->volumeLabel->setText(QString::number(volume));
         ui_->volumeLabel->adjustSize();
     }
-    catch (const Exception& e) {
+    catch (const std::exception& e) {
         player_->Stop(false);
     }
 }

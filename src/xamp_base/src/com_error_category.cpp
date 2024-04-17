@@ -1,8 +1,84 @@
+#include <Audioclient.h>
 #include <comdef.h>
 #include <comutil.h>
+
+#include <base/exception.h>
 #include <base/com_error_category.h>
+#include <base/dll.h>
+
+using namespace xamp::base;
 
 namespace {
+	SharedLibraryHandle LoadSharedLibraryResource(const std::string_view& file_name) {
+        return SharedLibraryHandle { ::LoadLibraryExA(file_name.data(),
+            nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE) };
+    }
+
+    std::string GetModuleErrorMessage(const std::string_view& file_name, int32_t error) {
+        constexpr size_t kMaxBufferSize = 256;
+
+        HANDLE locale_handle = nullptr;
+
+        constexpr DWORD locale_system = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
+        constexpr DWORD flags = FORMAT_MESSAGE_IGNORE_INSERTS |
+            FORMAT_MESSAGE_ALLOCATE_BUFFER |
+            FORMAT_MESSAGE_FROM_HMODULE;
+        
+        auto dll = LoadSharedLibraryResource(file_name);
+        ::FormatMessageA(
+            flags,
+            dll.get(),
+            error,
+            locale_system,
+            reinterpret_cast<LPSTR>(&locale_handle),
+            kMaxBufferSize,
+            nullptr
+        );
+
+        if (locale_handle != nullptr) {
+            auto error_text = std::string(static_cast<const char*>(::LocalLock(locale_handle)));
+            ::LocalFree(locale_handle);
+            return error_text;
+        }
+        return "";
+    }
+
+    std::string GetAudioClientErrors(HRESULT error) {
+        static const std::vector<std::string> messages {
+          "The IAudioClient object is not initialized.",
+          "The IAudioClient object is already initialized.",
+          "The endpoint device is a capture device, not a rendering device.",
+          "The audio device has been unplugged or otherwise made unavailable.",
+          "The audio stream was not stopped at the time of the Start call.",
+          "The buffer is too large.",
+          "A previous GetBuffer call is still in effect.",
+          "The specified audio format is not supported.",
+          "The wrong NumFramesWritten value.",
+          "The endpoint device is already in use.",
+          "Buffer operation pending",
+          "The thread is not registered.",
+          "The session spans more than one process.",
+          "Exclusive mode is disabled on the device.",
+          "Failed to create the audio endpoint.",
+          "The Windows audio service is not running.",
+          "The audio stream was not initialized for event-driven buffering.",
+          "Exclusive mode only.",
+          "The hnsBufferDuration and hnsPeriodicity parameters are not equal.",
+          "Event handle not set.",
+          "Incorrect buffer size.",
+          "Buffer size error.",
+          "CPU usage exceeded.",
+          "Buffer error",
+          "Buffer size not aligned."
+        };
+
+        auto index = error - AUDCLNT_E_NOT_INITIALIZED;
+        if (index > messages.size()) {
+	        return _com_error{ error }.ErrorMessage();
+        }
+        return messages[index];
+	}
+
 	std::unique_ptr<char[]> to_narrow(BSTR msg) {
         return std::unique_ptr<char[]>{
             _com_util::ConvertBSTRToString(msg)
@@ -34,7 +110,7 @@ std::string com_error_category::message(int hr) const {
     auto narrow = detail::to_narrow(_com_error{ hr }.ErrorMessage());
     return narrow.get();
 #else
-    return _com_error{ hr }.ErrorMessage();
+    return GetAudioClientErrors(hr);
 #endif
 }
 
