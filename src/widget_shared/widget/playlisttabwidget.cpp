@@ -1,6 +1,5 @@
 ﻿#include <QHBoxLayout>
 #include <QLabel>
-#include <QTabBar>
 #include <QMouseEvent>
 #include <QPushButton>
 

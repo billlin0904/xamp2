@@ -556,6 +556,12 @@ void Xamp::initialYtMusicWorker() {
 	ytmusic_worker_->moveToThread(&ytmusic_thread_);
 	ytmusic_thread_.start();
 	ytmusic_worker_->initialAsync().waitForFinished();
+#ifdef Q_OS_WIN
+    if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
+        XAMP_LOG_DEBUG("Set process mitigation.");
+        SetProcessMitigation();
+    }
+#endif
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {

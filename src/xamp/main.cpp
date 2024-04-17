@@ -222,13 +222,6 @@ namespace {
         win.setMainWindow(&main_window);
         win.setThemeColor(qTheme.backgroundColor(),
             qTheme.themeTextColor());
-//#ifdef Q_OS_WIN
-//        if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
-//            XAMP_LOG_DEBUG("Set process mitigation.");
-//            SetProcessMitigation();
-//        }
-//#endif
-        XAMP_LOG_DEBUG("Load all dll completed! Start sandbox mode.");
 
         main_window.setContentWidget(&win);
         win.adjustSize();

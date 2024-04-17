@@ -436,10 +436,6 @@ void AppSettings::loadOrSaveLogConfig() {
 
 void AppSettings::registerMetaType() {
 	XAMP_LOG_DEBUG("RegisterMetaType.");
-
-	// For QSetting read
-	//qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
-
 	qRegisterMetaType<int64_t>("int64_t");
 	qRegisterMetaType<AppEQSettings>("AppEQSettings");
 	qRegisterMetaType<DeviceState>("DeviceState");
