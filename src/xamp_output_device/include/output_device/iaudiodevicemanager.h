@@ -79,6 +79,8 @@ public:
 	* @return end iterator
 	*/	
 	virtual DeviceTypeFactoryMap::iterator End() = 0;
+
+	virtual void Shutdown() = 0;
 protected:
 	/*
 	* Constructor.

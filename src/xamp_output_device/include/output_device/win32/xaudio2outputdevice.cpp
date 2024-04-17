@@ -321,7 +321,7 @@ void XAudio2OutputDevice::StartStream() {
 	});
 
 	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
-		throw ComException(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
+		throw_translated_com_error(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
 	}
 
 	HrIfFailThrow(xaudio2_->StartEngine());
@@ -368,8 +368,7 @@ void XAudio2OutputDevice::SetVolumeLevelScalar(float level) {
 
 void XAudio2OutputDevice::ReportError(HRESULT hr) noexcept {
 	if (FAILED(hr)) {
-		const ComException exception(hr);
-		callback_->OnError(exception);
+		callback_->OnError(com_to_system_error(hr));
 		is_running_ = false;
 	}
 }

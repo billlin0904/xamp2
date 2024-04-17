@@ -83,13 +83,7 @@ AudioDeviceManager::AudioDeviceManager()
 #endif
 }
 
-AudioDeviceManager::~AudioDeviceManager() {
-#ifdef XAMP_OS_WIN	
-    ::MFShutdown();    
-#else
-    PreventSleep(false);
-#endif
-}
+AudioDeviceManager::~AudioDeviceManager() = default;
 
 void AudioDeviceManager::Clear() {
     factory_.clear();
@@ -108,7 +102,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
     if (itr == factory_.end()) {
         throw DeviceNotFoundException();
     }
-    return (*itr).second();
+    return itr->second();
 }
 
 bool AudioDeviceManager::IsSupportAsio() const noexcept {
@@ -140,7 +134,22 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
     return factory_.contains(id);
 }
 
+void AudioDeviceManager::Shutdown() {
+    impl_.reset();
+    // https://learn.microsoft.com/en-us/windows/win32/api/mfapi/nf-mfapi-mfshutdown
+    // MFShutdown should be called during should be called during app uninitialization
+    // and not from static destructors during process exit.
+#ifdef XAMP_OS_WIN	
+    ::MFShutdown();
+#else
+    PreventSleep(false);
+#endif
+}
+
 void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
+    if (!impl_) {
+        return;
+    }
     impl_->SetCallback(callback);
     impl_->Run();
 }

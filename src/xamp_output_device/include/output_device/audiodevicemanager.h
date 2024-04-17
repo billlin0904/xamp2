@@ -103,6 +103,7 @@ public:
     */
     [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
 
+    void Shutdown() override;
 private:
     class DeviceStateNotificationImpl;
     AlignPtr<DeviceStateNotificationImpl> impl_;    

@@ -373,8 +373,7 @@ double SharedWasapiDevice::GetStreamTime() const noexcept {
 
 void SharedWasapiDevice::ReportError(HRESULT hr) {
 	if (FAILED(hr)) {
-		const ComException exception(hr);
-		callback_->OnError(exception);
+		callback_->OnError(com_to_system_error(hr));
 		is_running_ = false;
 	}
 }
@@ -419,7 +418,7 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 		try {
 			GetSample(false);
 			rt_work_queue_->WaitAsync(sample_ready_.get());
-		} catch (const Exception &e) {
+		} catch (const std::exception &e) {
 			XAMP_LOG_D(logger_, e.what());
 			StopStream();
 		}
@@ -431,7 +430,7 @@ void SharedWasapiDevice::StartStream() {
 	XAMP_LOG_D(logger_, "StartStream!");
 
 	if (!client_) {
-		throw ComException(AUDCLNT_E_NOT_INITIALIZED);
+		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
 	// Note: 必要! 某些音效卡會爆音!

@@ -331,8 +331,7 @@ void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, 
 
 void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 	if (FAILED(hr)) {
-		const ComException exception(hr);
-		callback_->OnError(exception);
+		callback_->OnError(com_to_system_error(hr));
 		is_running_ = false;
 	}	
 }
@@ -460,7 +459,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	XAMP_LOG_D(logger_, "StartStream!");
 
 	if (!client_ || !render_client_) {
-		throw ComException(AUDCLNT_E_NOT_INITIALIZED);
+		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
 	XAMP_EXPECTS(sample_ready_);
@@ -559,7 +558,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Wait thread start.
 	constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
 	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
-		throw ComException(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
+		throw_translated_com_error(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
 	}
 
 	// Start stream.

@@ -208,6 +208,9 @@ void AudioPlayer::Destroy() {
     FreeAvLib();
 
     device_.reset();
+    if (device_manager_ != nullptr) {
+        device_manager_->Shutdown();
+    }
     device_manager_.reset();
 }
 
