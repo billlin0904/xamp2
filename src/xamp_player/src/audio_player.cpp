@@ -868,7 +868,9 @@ void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::uniq
                 continue;
             }
         }
-        break;
+        if (!enable_file_cache_) {
+            break;
+        }        
     }
 }
 

@@ -2541,12 +2541,7 @@ void Xamp::initialPlaylist() {
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
         }
-    });
-
-    /*if (cloud_tab_widget_->tabBar()->count() == 0) {
-        initialCloudPlaylist();
-    }
-    cloud_tab_widget_->setCurrentIndex(0);*/
+    });    
 
     ensureLocalOnePlaylistPage();
 
@@ -3134,7 +3129,7 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
 
 void Xamp::onPlaybackError(const QString& message) {
     player_->Stop();
-    XMessageBox::showError(message);
+    XMessageBox::showError(message, kApplicationTitle, true);
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    
