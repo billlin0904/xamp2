@@ -283,14 +283,14 @@ private:
 	PlayListTableView* last_play_list_{ nullptr };
 	PlaylistPage* last_play_page_{ nullptr };
 	std::optional<DeviceInfo> device_info_;
-	std::optional<PlayListEntity> current_entity_;
-	QScopedPointer<PlaylistTabWidget> local_tab_widget_;
+	std::optional<PlayListEntity> current_entity_;	
 	QScopedPointer<LrcPage> lrc_page_;	
 	QScopedPointer<PlaylistPage> music_page_;
 	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> album_page_;
 	QScopedPointer<FileSystemViewPage> file_system_view_page_;
 	QScopedPointer<PlaylistPage> cloud_search_page_;
+	QScopedPointer<PlaylistTabWidget> local_tab_widget_;
 	QScopedPointer<PlaylistTabWidget> cloud_tab_widget_;
 	QScopedPointer<BackgroundWorker> background_worker_;
 	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;

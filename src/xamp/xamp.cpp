@@ -1677,6 +1677,9 @@ void Xamp::setCurrentTab(int32_t table_id) {
         break;
     case TAB_YT_MUSIC_PLAYLIST:
         initialYtMusicWorker();
+        if (!cloud_tab_widget_->count()) {
+            initialCloudPlaylist();
+        }
         ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         cloud_tab_widget_->reloadAll();
         break;
@@ -2357,6 +2360,7 @@ void Xamp::onUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
 void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
     const auto album_id = qMainDb.getAlbumIdByDiscId(disc_id);
     qMainDb.removeAlbum(album_id);
+    qMainDb.removeAlbumArtist(album_id);
     cd_page_->playlistPage()->playlist()->removeAll();
     qDatabaseFacade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
     if (track_infos.front().artist) {
@@ -2539,10 +2543,10 @@ void Xamp::initialPlaylist() {
         }
     });
 
-    if (cloud_tab_widget_->tabBar()->count() == 0) {
+    /*if (cloud_tab_widget_->tabBar()->count() == 0) {
         initialCloudPlaylist();
     }
-    cloud_tab_widget_->setCurrentIndex(0);
+    cloud_tab_widget_->setCurrentIndex(0);*/
 
     ensureLocalOnePlaylistPage();
 
@@ -2674,6 +2678,12 @@ void Xamp::initialPlaylist() {
         album_page_.get(),
         &AlbumArtistPage::onThemeColorChanged);
 
+    (void)QObject::connect(album_page_->album(),
+        &AlbumView::removeAll,        
+        [this]() {
+            cloud_tab_widget_->closeAllTab();
+        });
+
     (void)QObject::connect(this,
         &Xamp::searchLyrics,
         background_worker_.get(),
@@ -2731,11 +2741,20 @@ void Xamp::initialPlaylist() {
 void Xamp::initialCloudPlaylist() {
     cloud_tab_widget_->closeAllTab();
 
-    QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [this](const auto& playlists) {
+    const auto process_dialog = makeProgressDialog(
+        tr("Initial cloud playlist"),
+        tr(""),
+        tr("Cancel"));
+    process_dialog->show();
+
+    QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [process_dialog, this](const auto& playlists) {
         static const std::string kEpisodesForLaterName("Episodes for Later");
 
         int32_t index = 1;
+        int32_t count = 0;
         for (const auto& playlist : playlists) {
+            process_dialog->setValue(count++ * 100 / playlists.size() + 1);
+
             const auto playlist_id = qMainDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
             if (playlist.title == kEpisodesForLaterName) {
                 continue;

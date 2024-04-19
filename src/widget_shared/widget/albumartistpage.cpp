@@ -417,10 +417,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	(void)QObject::connect(album_view_, &AlbumView::removeAll, [this]() {
 		album_tag_list_widget_->clearTag();
 		year_tag_list_widget_->clearTag();
-
+		
 		artist_view_->reload();
 		year_view_->reload();
-		reload();
+		reload();		
 		});
 
 	onThemeChangedFinished(qTheme.themeColor());

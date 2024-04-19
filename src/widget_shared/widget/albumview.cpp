@@ -490,7 +490,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         auto rollback = true;
 
-        tryLog(
+        try {
             QList<int32_t> albums;
             qMainDb.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
@@ -500,10 +500,13 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             int32_t count = 0;
             process_dialog->show();
             Q_FOREACH(const auto album_id, albums) {
+                qMainDb.removeAlbumArtist(album_id);
+            }
+            Q_FOREACH(const auto album_id, albums) {
                 qMainDb.removeAlbum(album_id);
                 process_dialog->setValue(count++ * 100 / albums.size() + 1);
                 qApp->processEvents();
-            }
+            }            
             qMainDb.removeAllArtist();
             process_dialog->setValue(100);
             qMainDb.commit();
@@ -512,7 +515,10 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             qImageCache.clear();
             qIconCache.Clear();
             rollback = false;
-        )
+        }
+        catch (...) {
+            logAndShowMessage(std::current_exception());
+        }
 
         if (rollback) {
             qMainDb.rollback();
@@ -580,6 +586,7 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
         qMainDb.removeAlbum(album_id);
+        qMainDb.removeAlbumArtist(album_id);
         reload();
     });
     remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));

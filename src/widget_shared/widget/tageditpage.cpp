@@ -215,8 +215,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			if (image.isNull()) {
 				return;
 			}
-
-			//auto temp_image = image_utils::ResizeImage(image_utils::ConvertToImageFormat(image), kCoverSize);
+			
 			auto temp_image = image;
 			const auto std_temp_file_path = GetTempFileNamePath();
 			const auto temp_file_path = QString::fromStdWString(std_temp_file_path.wstring());
@@ -293,15 +292,14 @@ void TagEditPage::setCurrentInfo(int32_t index) {
 	ui_->titleComboBox->setCurrentIndex(index);
 	ui_->trackComboBox->setCurrentIndex(index);
 
+	if (!entities_[index].isFilePath()) {
+		return;
+	}
 	const auto check_sum = getFileChecksum(entities_[index].file_path, QCryptographicHash::Md5);
 	ui_->audioMD5LineEdit->setText(check_sum);
 }
 
 void TagEditPage::closeEvent(QCloseEvent* event) {
-	/*if (XMessageBox::ShowYesOrNo(tr("Do you give up write tag ?")) == QDialogButtonBox::No) {
-		event->ignore();
-		return;
-	}*/
 	QFrame::closeEvent(event);
 }
 

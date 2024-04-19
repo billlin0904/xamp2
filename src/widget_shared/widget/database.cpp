@@ -490,7 +490,7 @@ void Database::removeAlbum(int32_t album_id) {
         removeTrackLoudnessMusicId(entity.music_id);
         removeMusic(entity.music_id);
     }
-    removeAlbumArtist(album_id);
+    
     SqlQuery query(db_);
     query.prepare(qTEXT("DELETE FROM albums WHERE albumId=:albumId"));
     query.bindValue(qTEXT(":albumId"), album_id);
