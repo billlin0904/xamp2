@@ -585,8 +585,8 @@ void AlbumView::showMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
-        qMainDb.removeAlbum(album_id);
         qMainDb.removeAlbumArtist(album_id);
+    	qMainDb.removeAlbum(album_id);        
         reload();
     });
     remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
