@@ -9,7 +9,7 @@
 #include <widget/util/str_utilts.h>
 #include <widget/volumecontroldialog.h>
 
-static constexpr auto kShowDelayMs = 30;
+static constexpr auto kShowDelayMs = 100;
 
 VolumeButton::VolumeButton(QWidget *parent)
 	: QToolButton(parent) {
@@ -51,8 +51,8 @@ void VolumeButton::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void VolumeButton::onVolumeChanged(uint32_t volume) {
-	qTheme.setMuted(this, volume == 0);
 	dialog_->setVolume(volume, false);
+	qTheme.setMuted(this, volume == 0);
 }
 
 void VolumeButton::enterEvent(QEnterEvent* event) {

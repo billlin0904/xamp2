@@ -240,7 +240,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 			}			
 		}
 		
-		XAMP_LOG_D(logger, "Load Libav output format: {} - {}",
+		XAMP_LOG_T(logger, "Load Libav output format: {} - {}",
 			IF_NULL_STR(output_format->long_name),
 			IF_NULL_STR(output_format->extensions));
 		output_format = output_format->next;
@@ -257,7 +257,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 
 	for (const auto& extension : ordered_extension) {
 		const auto file_extensions = String::Format(".{}", extension);
-		XAMP_LOG_D(logger, "Load Libav format extensions: {}", file_extensions);
+		XAMP_LOG_T(logger, "Load Libav format extensions: {}", file_extensions);
 		result.insert(file_extensions);
 	}
 

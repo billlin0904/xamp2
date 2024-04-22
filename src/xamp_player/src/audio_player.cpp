@@ -868,10 +868,15 @@ void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::uniq
                 continue;
             }
         }
-        if (!enable_file_cache_) {
+        if (!enable_file_cache_ || !IsAvailableWrite()) {
             break;
         }        
     }
+}
+
+bool AudioPlayer::IsAvailableWrite() const noexcept {
+    const auto num_write_buffer_size = num_write_buffer_size_ * kMaxWriteRatio;
+    return fifo_.GetAvailableWrite() < num_write_buffer_size;
 }
 
 void AudioPlayer::Play() {
@@ -924,7 +929,7 @@ void AudioPlayer::Play() {
 
                 p->ReadPlayerAction();
 
-                if (p->fifo_.GetAvailableWrite() < num_write_buffer_size) {
+                if (!p->IsAvailableWrite()) {
                     wait_timer.Wait();
                     XAMP_LOG_T(p->logger_, "FIFO buffer: {} num_sample_write: {}",
                         p->fifo_.GetAvailableWrite(),
@@ -958,9 +963,9 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
         return;
     }
 
-    static constexpr std::chrono::milliseconds kMinimalCopySamplesTime(5);
     Stopwatch watch;    
     watch.Reset();    
+    static constexpr std::chrono::milliseconds kMinimalCopySamplesTime(5);
 
     adapter->OnSamplesChanged(static_cast<const float*>(samples), num_buffer_frames);
     auto elapsed = watch.Elapsed<std::chrono::milliseconds>();

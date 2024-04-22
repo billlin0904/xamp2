@@ -63,6 +63,7 @@ namespace {
 		}
 		txxx_frame->setText(value);
 	}
+	
 }
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {

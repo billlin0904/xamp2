@@ -489,6 +489,7 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
         { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
         { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
         { "Null Output",             QT_TRANSLATE_NOOP("Xamp", "Null Output") },
+        { "XAudio2",                 QT_TRANSLATE_NOOP("Xamp", "XAudio2") },
         { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
     };
     const auto str = lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
@@ -1130,6 +1131,10 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         if (album_id == qDatabaseFacade.unknownAlbumId()) {
             return;
         }
+
+		if (isNullOfEmpty(temp1.cover_id)) {
+            return;
+		}
 
         XAMP_LOG_DEBUG("Extract song information ...");
 
@@ -1824,8 +1829,6 @@ void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
 }
 
 void Xamp::setVolume(uint32_t volume) {
-    qAppSettings.setValue(kAppSettingVolume, volume);
-    qTheme.setMuted(ui_.mutedButton, volume == 0);
     ui_.mutedButton->onVolumeChanged(volume);
     ui_.mutedButton->showDialog();
 }
@@ -1898,12 +1901,14 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 
 void Xamp::setSeekPosValue(double stream_time) {
     const auto full_text = isMoreThan1Hours(player_->GetDuration());
-    ui_.endPosLabel->setText(formatDuration(player_->GetDuration() - stream_time, full_text));
-    const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
-    ui_.seekSlider->setValue(stream_time_as_ms);
-    ui_.startPosLabel->setText(formatDuration(stream_time, full_text));
-    main_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
-    lrc_page_->lyrics()->onSetLrcTime(stream_time_as_ms);
+    if (player_->GetDuration() - stream_time >= 0.0) {
+        ui_.endPosLabel->setText(formatDuration(player_->GetDuration() - stream_time, full_text));
+        const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
+        ui_.seekSlider->setValue(stream_time_as_ms);
+        ui_.startPosLabel->setText(formatDuration(stream_time, full_text));
+        main_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
+        lrc_page_->lyrics()->onSetLrcTime(stream_time_as_ms);
+    }
 }
 
 void Xamp::playLocalFile(const PlayListEntity& entity) {

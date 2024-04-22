@@ -55,7 +55,7 @@ class AudioPlayer final :
     public std::enable_shared_from_this<AudioPlayer> {
 public:
     static constexpr auto kFadeTimeSeconds = 1;
-
+    
     /*
     * Constructor.
     */
@@ -330,6 +330,8 @@ private:
     bool ShouldKeepReading() const noexcept;
 
     void SetReadSampleSize(uint32_t num_samples);
+
+    bool IsAvailableWrite() const noexcept;
 
     bool is_muted_;
     bool is_dsd_file_;

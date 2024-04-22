@@ -112,6 +112,8 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
             player_->SetMute(true);
         }
 
+        qAppSettings.setValue(kAppSettingVolume, volume);
+
         if (!player_->IsHardwareControlVolume()) {            
             if (!player_->IsMute()) {
                 player_->SetVolume(volume);
@@ -122,6 +124,7 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
             ui_->volumeSlider->setDisabled(true);
             return;
         }
+
         if (notify) {
             emit volumeChanged(volume);
         }
