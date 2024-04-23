@@ -5,9 +5,11 @@
 
 #pragma once
 
-#include <widget/lrcparser.h>
+#include <widget/ilrrcparser.h>
 #include <widget/wheelablewidget.h>
 #include <widget/widget_shared_global.h>
+#include <widget/widget_shared.h>
+#include <base/memory.h>
 #include <widget/util/str_utilts.h>
 
 class QDropEvent;
@@ -85,5 +87,5 @@ private:
 	QString lrc_;
 	QString orilyrc_;
 	QString trlyrc_;
-	LrcParser lyric_;	
+	AlignPtr<ILrcParser> lyric_;
 };

@@ -21,6 +21,8 @@ public:
 
     FileSystemWorker();
 
+    virtual ~FileSystemWorker() override;
+
     void cancelRequested();
 
 signals:

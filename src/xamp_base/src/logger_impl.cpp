@@ -34,14 +34,35 @@ public:
 #ifdef XAMP_OS_WIN
 class DebugOutputSink : public spdlog::sinks::base_sink<LoggerMutex> {
 public:
+	// OutputDebugStringW max output 32766 (include '\0')
+	static constexpr size_t kMaxOutputLength = 32766;
+
 	DebugOutputSink() = default;
 
 private:
 	void sink_it_(const spdlog::details::log_msg& msg) override {
 		spdlog::memory_buf_t formatted;
 		formatter_->format(msg, formatted);
-		// OutputDebugStringW max output 32766 (include '\0')
-		::OutputDebugStringW(String::ToStdWString(fmt::to_string(formatted)).c_str());
+
+		const auto output_text = String::ToStdWString(fmt::to_string(formatted));
+		const auto count = output_text.size() / kMaxOutputLength;
+		if (!count) {
+			::OutputDebugStringW(output_text.c_str());
+			return;
+		}
+
+		std::wstring output;
+		auto offset = 0;
+		for (auto i = 0; i < count; ++i) {
+			output = output_text.substr(offset, kMaxOutputLength);
+			::OutputDebugStringW(output.c_str());
+			offset += kMaxOutputLength;
+		}
+
+		if (output_text.size() % kMaxOutputLength > 0) {
+			output = output_text.substr(offset);
+			::OutputDebugStringW(output.c_str());
+		}
 	}
 
 	void flush_() override {

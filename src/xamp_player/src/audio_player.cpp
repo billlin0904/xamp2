@@ -876,7 +876,7 @@ void AudioPlayer::ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::uniq
 
 bool AudioPlayer::IsAvailableWrite() const noexcept {
     const auto num_write_buffer_size = num_write_buffer_size_ * kMaxWriteRatio;
-    return fifo_.GetAvailableWrite() < num_write_buffer_size;
+    return fifo_.GetAvailableWrite() >= num_write_buffer_size;
 }
 
 void AudioPlayer::Play() {

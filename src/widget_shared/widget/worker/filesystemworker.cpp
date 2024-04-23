@@ -69,6 +69,10 @@ FileSystemWorker::FileSystemWorker()
 	                       });
 }
 
+FileSystemWorker::~FileSystemWorker() {
+	GetBackgroundThreadPool().Stop();
+}
+
 void FileSystemWorker::onSetWatchDirectory(const QString& dir) {
 	watcher_.addPath(dir);
 }
@@ -125,15 +129,17 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 				++completed_work_;
 				updateProgress();
 			}
-			catch (...) {
+			catch (const std::exception &e) {
+				XAMP_LOG_DEBUG("Failed to extract file:{}", path.string());
 			}
 		}
 
 		tracks.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
 		});
-		emit readFilePath(stringFormat("Extract directory {} size:{} completed.", String::ToString(path_info.first),
-		                               path_info.second.size()));
+		emit readFilePath(stringFormat("Extract directory {} size:{} completed.",
+			String::ToString(path_info.first),
+			path_info.second.size()));
 		emit insertDatabase(tracks, playlist_id);
 	});
 }

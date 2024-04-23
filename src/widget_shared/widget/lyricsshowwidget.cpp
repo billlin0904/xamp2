@@ -7,8 +7,11 @@
 #include <QFileInfo>
 #include <QApplication>
 #include <QClipboard>
+#include <QDir>
 
 #include <widget/widget_shared.h>
+#include <widget/lrcparser.h>
+#include <widget/webvttparser.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
@@ -25,14 +28,18 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 }
 
 void LyricsShowWidget::resizeFontSize() {
+	if (!lyric_) {
+		return;
+	}
+
 	auto font_size = 16;
 	QFontMetrics lrc_metrics(lrc_font_);
-    const auto itr = std::max_element(lyric_.begin(), lyric_.end(),
+    const auto itr = std::max_element(lyric_->begin(), lyric_->end(),
 	                                          [&lrc_metrics](const auto &a, const auto &b) {
 		                                          return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
 			                                          < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
 	                                          });
-	if (itr == lyric_.end()) {
+	if (itr == lyric_->end()) {
 		lrc_font_.setPointSize(font_size);
 		return;
 	}
@@ -97,7 +104,7 @@ void LyricsShowWidget::setBackgroundColor(QColor color) {
 
 QString LyricsShowWidget::parsedLyrics() const {
 	std::wostringstream ostr;
-	for (auto itr = lyric_.cbegin(); itr != lyric_.cend(); ++itr) {
+	for (auto itr = lyric_->cbegin(); itr != lyric_->cend(); ++itr) {
 		auto s = itr->lrc;
 		auto pos = itr->lrc.find(L"\r");
 		if (pos != std::wstring::npos) {
@@ -115,9 +122,12 @@ QString LyricsShowWidget::parsedLyrics() const {
 }
 
 void LyricsShowWidget::setDefaultLrc() {
+	if (!lyric_) {
+		return;
+	}
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
-	lyric_.addLrc(entry);
+	lyric_->addLrc(entry);
 }
 
 void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) {
@@ -127,12 +137,16 @@ void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) 
 	    time2 = (-time2);
 	}
 
-	for (auto& lrc : lyric_) {
+	for (auto& lrc : *lyric_) {
 	    lrc.timestamp += std::chrono::milliseconds(time2);
 	}
 }
 
 void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& rect) {
+	if (!lyric_) {
+		return;
+	}
+
 	const int32_t ih = itemHeight() * 1.2 / 10;
 	const int32_t ch = item_offset_ * 1.2 / 10;
 
@@ -163,7 +177,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& 
 	}
 
 	const QFontMetrics metrics(painter->font());
-	const auto text = QString::fromStdWString(lyric_.lineAt(index).lrc);
+	const auto text = QString::fromStdWString(lyric_->lineAt(index).lrc);
 
 	painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
 		rect.y() + (rect.height() - metrics.height()) / 2,
@@ -197,7 +211,10 @@ int32_t LyricsShowWidget::itemHeight() const {
 }
 
 int32_t LyricsShowWidget::itemCount() const {
-	return lyric_.getSize();
+	if (!lyric_) {
+		return 0;
+	}
+	return lyric_->getSize();
 }
 
 void LyricsShowWidget::stop() {
@@ -205,7 +222,9 @@ void LyricsShowWidget::stop() {
 	last_lyric_index_ = -1;
 	current_roll_rect_ = QRect(0, 0, 0, 0);
 	real_current_text_.clear();
-	lyric_.clear();
+	if (lyric_ != nullptr) {
+		lyric_->clear();
+	}
 	update();
 }
 
@@ -235,17 +254,52 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 
 bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QFileInfo file_info(file_path);
+	stop();
 
-	const auto lrc_path = file_info.path()
+	/*auto lrc_path = file_info.path()
 		+ qTEXT("/")
 		+ file_info.completeBaseName()
 		+ qTEXT(".lrc");
 
-	stop();
-	if (!lyric_.parseFile(lrc_path.toStdWString())) {
+	if (!QFileInfo::exists(lrc_path)) {
+		lrc_path = file_info.path()
+			+ qTEXT("/")
+			+ file_info.completeBaseName()
+			+ qTEXT(".")
+			+ file_info.suffix()
+			+ qTEXT(".vtt");
+		lyric_ = MakeAlign<ILrcParser, WebVTTParser>();
+	} else {
+		lyric_ = MakeAlign<ILrcParser, LrcParser>();
+	}*/
+
+	const QString file_dir = file_info.path();
+	const QString base_name = file_info.completeBaseName();
+	const QString suffix = file_info.completeSuffix();
+
+	QString lrc_path = file_dir + QDir::separator() + base_name;
+	std::function<AlignPtr<ILrcParser>()> parser_type;
+
+	if (suffix == qTEXT("lrc")) {
+		lrc_path += qTEXT(".lrc");
+		parser_type = []() {
+			return MakeAlign<ILrcParser, LrcParser>();
+		};
+	}
+	else {
+		lrc_path += qTEXT(".") + suffix + qTEXT(".vtt");
+		parser_type = []() {
+			return MakeAlign<ILrcParser, WebVTTParser>();
+		};
+	}
+
+	lyric_ = parser_type();
+
+	if (!lyric_->parseFile(lrc_path.toStdWString())) {
 		setDefaultLrc();
 		return false;
 	}
+
 	resizeFontSize();
 	update();
 	return true;
@@ -261,7 +315,7 @@ void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
 		LyricEntry l;
 		l.index = i++;
 		l.lrc = ly.toStdWString();
-		lyric_.addLrc(l);
+		lyric_->addLrc(l);
 	}
 
 	stop_scroll_time_ = true;
@@ -269,7 +323,7 @@ void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
 
 void LyricsShowWidget::loadLrc(const QString& lrc) {
 	std::wistringstream stream{ lrc.toStdWString() };
-	if (!lyric_.parse(stream)) {
+	if (!lyric_->parse(stream)) {
 		setDefaultLrc();
 	}
 	else {
@@ -296,12 +350,12 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
-	if (is_scrolled_ || !lyric_.getSize()) {
+	if (is_scrolled_ || !lyric_->getSize()) {
 		update();
 		return;
 	}
 
-    const auto &ly = lyric_.getLyrics(std::chrono::milliseconds(stream_time));
+    const auto &ly = lyric_->getLyrics(std::chrono::milliseconds(stream_time));
 
 	if (item_ != ly.index && item_offset_ == 0) {
 		mask_length_ = -1000;
@@ -316,11 +370,11 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 		return;
 	}
 
-    const auto &post_ly = lyric_.getLyrics(std::chrono::milliseconds(pos_));
+    const auto &post_ly = lyric_->getLyrics(std::chrono::milliseconds(pos_));
 
 	const auto text = QString::fromStdWString(post_ly.lrc);
 	const auto interval = post_ly.index;
-	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_.getSize());
+	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_->getSize());
 
 	const QFontMetrics metrics(current_mask_font_);
 

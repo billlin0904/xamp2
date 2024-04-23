@@ -12,48 +12,43 @@
 #include <vector>
 
 #include <base/base.h>
+#include <widget/ilrrcparser.h>
 
-struct LyricEntry {
-    int32_t index{0};
-    std::chrono::milliseconds timestamp{0};
-    std::wstring lrc;
-};
-
-class LrcParser {
+class LrcParser : public ILrcParser {
 public:
 	LrcParser();
 
     XAMP_DISABLE_COPY(LrcParser)
 
-    bool parseFile(const std::wstring &file_path);
+    bool parseFile(const std::wstring &file_path) override;
 
-    bool parse(std::wistream &istr);
+    bool parse(std::wistream &istr) override;
 
-    void clear();
+    void clear() override;
 
     std::wstring maxLengthLrc() const;
 
-    std::vector<LyricEntry>::iterator end();
+    std::vector<LyricEntry>::iterator end() override;
 
-    std::vector<LyricEntry>::iterator begin();
+    std::vector<LyricEntry>::iterator begin() override;
 
-    std::vector<LyricEntry>::const_iterator cend() const;
+    std::vector<LyricEntry>::const_iterator cend() const override;
 
-    std::vector<LyricEntry>::const_iterator cbegin() const;
+    std::vector<LyricEntry>::const_iterator cbegin() const override;
 
     LyricEntry last() const;
 
-    LyricEntry lineAt(int32_t index) const;
+    LyricEntry lineAt(int32_t index) const override;
 
     std::chrono::milliseconds getDuration() const;
 
-    void addLrc(const LyricEntry &lrc);
+    void addLrc(const LyricEntry &lrc) override;
 
     int32_t getInterval() const;
 
-    const LyricEntry& getLyrics(const std::chrono::milliseconds &time) const noexcept;
+    const LyricEntry& getLyrics(const std::chrono::milliseconds &time) const noexcept override;
 
-    int32_t getSize() const;
+    int32_t getSize() const override;
 
 private:
     void parseLrc(std::wstring const & line);

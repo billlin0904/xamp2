@@ -966,6 +966,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 
         track_info.file_path = makeId(track);
         track_info.rating = track.like_status == "LIKE";
+        track_info.sample_rate = 48000;
 
         const ForwardList<TrackInfo> track_infos{ track_info };
         DatabaseFacade facade;
@@ -1007,7 +1008,7 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
                 auto file_name = YtMusicDiskCache::makeFileCachePath(QString::fromStdString(song.value().video_id));
                 
                 dialog->setLabelText(tr("Start download ") + file_name + qTEXT(" ..."));
-
+                
                 auto process_handler = [dialog](auto ready, auto total) {
                     dialog->setValue(ready * 100 / total);
                     qApp->processEvents();
@@ -2313,7 +2314,21 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     player_->Play();
     qMainDb.updateMusicPlays(entity.music_id);
 
+    if (open_done) {
+        setCover(entity.validCoverId());
+    }
+
     update();
+}
+
+void Xamp::setCover(const QString &cover_id) {
+    const auto cover = qImageCache.getOrDefault(cover_id, true);
+    const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
+        ui_.coverLabel->size().height() - image_utils::kPlaylistImageRadius);
+    const auto ui_cover = image_utils::roundImage(
+        image_utils::resizeImage(cover, cover_size, false),
+        image_utils::kPlaylistImageRadius);
+    ui_.coverLabel->setPixmap(ui_cover);
 }
 
 void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -2465,12 +2480,12 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         page = localPlaylistPage();
 	}
 
-    const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
+    /*const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
         ui_.coverLabel->size().height() - image_utils::kPlaylistImageRadius);
     const auto ui_cover = image_utils::roundImage(
         image_utils::resizeImage(*cover, cover_size, false),
         image_utils::kPlaylistImageRadius);
-    ui_.coverLabel->setPixmap(ui_cover);
+    ui_.coverLabel->setPixmap(ui_cover);*/
     if (page != nullptr) {
         page->setCover(cover);
     }
@@ -2639,6 +2654,8 @@ void Xamp::initialPlaylist() {
     cloud_search_page_->playlist()->setPlaylistId(kYtMusicSearchPlaylistId, kAppSettingPlaylistColumnName);
     onSetCover(kEmptyString, cloud_search_page_.get());
     connectPlaylistPageSignal(cloud_search_page_.get());
+
+    setCover(kEmptyString);
 
     (void)QObject::connect(this,
         &Xamp::blurImage,

@@ -274,6 +274,8 @@ private:
 
 	QString translateError(Errors error);
 
+	void setCover(const QString& cover_id);
+
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;
