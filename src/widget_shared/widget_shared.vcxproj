@@ -142,6 +142,7 @@
     <ClInclude Include="widget\util\str_utilts.h" />
     <ClInclude Include="widget\util\ui_utilts.h" />
     <ClInclude Include="widget\util\zib_utiltis.h" />
+    <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
     <QtMoc Include="widget\worker\backgroundworker.h" />
@@ -271,6 +272,7 @@
     <ClCompile Include="widget\util\zib_utiltis.cpp" />
     <ClCompile Include="widget\volumebutton.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
+    <ClCompile Include="widget\webvttparser.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\widget_shared_global.cpp" />
     <ClCompile Include="widget\win32\wintaskbar.cpp" />
