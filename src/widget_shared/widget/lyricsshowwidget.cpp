@@ -256,23 +256,6 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QFileInfo file_info(file_path);
 	stop();
 
-	/*auto lrc_path = file_info.path()
-		+ qTEXT("/")
-		+ file_info.completeBaseName()
-		+ qTEXT(".lrc");
-
-	if (!QFileInfo::exists(lrc_path)) {
-		lrc_path = file_info.path()
-			+ qTEXT("/")
-			+ file_info.completeBaseName()
-			+ qTEXT(".")
-			+ file_info.suffix()
-			+ qTEXT(".vtt");
-		lyric_ = MakeAlign<ILrcParser, WebVTTParser>();
-	} else {
-		lyric_ = MakeAlign<ILrcParser, LrcParser>();
-	}*/
-
 	const QString file_dir = file_info.path();
 	const QString base_name = file_info.completeBaseName();
 	const QString suffix = file_info.completeSuffix();
@@ -280,7 +263,7 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	QString lrc_path = file_dir + QDir::separator() + base_name;
 	std::function<AlignPtr<ILrcParser>()> parser_type;
 
-	if (suffix == qTEXT("lrc")) {
+	if (QFileInfo::exists(lrc_path + qTEXT(".lrc"))) {
 		lrc_path += qTEXT(".lrc");
 		parser_type = []() {
 			return MakeAlign<ILrcParser, LrcParser>();
