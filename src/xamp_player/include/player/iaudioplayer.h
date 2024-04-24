@@ -59,9 +59,9 @@ public:
     * @param[in] target_sample_rate The target sample rate.
     */
     virtual void Open(Path const& file_path,
-        const DeviceInfo& device_info, 
-        uint32_t target_sample_rate = 0, 
-        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
+                      const DeviceInfo& device_info,
+                      uint32_t target_sample_rate = 0,
+                      DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
     /*
     * Prepare to play.

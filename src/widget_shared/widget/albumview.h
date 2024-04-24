@@ -65,7 +65,7 @@ signals:
 
 	void showAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
 
-	void findAlbumCover(int32_t album_id) const;
+	void findAlbumCover(int32_t music_id, int32_t album_id) const;
 
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;

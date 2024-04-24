@@ -34,7 +34,7 @@ void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
 }
 
-void FindAlbumCoverWorker::onFindAlbumCover(int32_t album_id) {
+void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) {
     if (is_stop_) {
         return;
     }

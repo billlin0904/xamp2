@@ -30,10 +30,10 @@ public:
 
     int32_t unknownAlbumId() const;
 
-    void insertTrackInfo(const ForwardList<TrackInfo>& result,
-        int32_t playlist_id,
-        StoreType store_type,
-        const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
+	void insertTrackInfo(const ForwardList<TrackInfo>& result,
+	                     int32_t playlist_id,
+	                     StoreType store_type,
+	                     const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
 private:    
     void ensureInitialUnknownId();

@@ -23,7 +23,6 @@
 #include <widget/database.h>
 #include <widget/taglistview.h>
 #include <widget/genre_view_page.h>
-#include <widget/flowlayout.h>
 #include <thememanager.h>
 
 enum {

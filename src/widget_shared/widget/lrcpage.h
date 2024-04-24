@@ -9,7 +9,6 @@
 #include <QPixmap>
 
 #include <widget/themecolor.h>
-#include <widget/acrylic/acrylic.h>
 #include <widget/widget_shared_global.h>
 
 class QLabel;

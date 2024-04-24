@@ -21,22 +21,22 @@ namespace {
 	/*
 	* SetWaveformatEx is a helper function to set WAVEFORMATEX.
 	*
-	* @param[in] input_fromat WAVEFORMATEX*
-	* @param[in] samplerate uint32_t
+	* @param[in] input_format WAVEFORMATEX*
+	* @param[in] sample_rate uint32_t
 	*/
-	void SetWaveformatEx(WAVEFORMATEX* input_fromat, uint32_t samplerate) noexcept {
-		XAMP_EXPECTS(input_fromat != nullptr);
-		XAMP_EXPECTS(input_fromat->nChannels == AudioFormat::kMaxChannel);
-		XAMP_EXPECTS(samplerate > 0);
+	void SetWaveformatEx(WAVEFORMATEX* input_format, uint32_t sample_rate) noexcept {
+		XAMP_EXPECTS(input_format != nullptr);
+		XAMP_EXPECTS(input_format->nChannels == AudioFormat::kMaxChannel);
+		XAMP_EXPECTS(sample_rate > 0);
 
-		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_fromat);
+		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_format);
 
 		format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 		format.Format.nChannels = 2;
 		format.Format.nBlockAlign = 2 * sizeof(float);
 		format.Format.wBitsPerSample = 8 * sizeof(float);
 		format.Format.cbSize = 22;
-		format.Format.nSamplesPerSec = samplerate;
+		format.Format.nSamplesPerSec = sample_rate;
 		format.Format.nAvgBytesPerSec = format.Format.nSamplesPerSec * format.Format.nBlockAlign;
 		format.Samples.wValidBitsPerSample = format.Format.wBitsPerSample;
 		format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
@@ -78,17 +78,17 @@ public:
 	*
 	* @return HRESULT
 	*/
-	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {
-		if (ReturnValue == nullptr) {
+	HRESULT QueryInterface(REFIID iid, void** return_value) override {
+		if (return_value == nullptr) {
 			return E_POINTER;
 		}
-		*ReturnValue = nullptr;
+		*return_value = nullptr;
 		if (iid == IID_IUnknown) {
-			*ReturnValue = static_cast<IUnknown*>(static_cast<IAudioEndpointVolumeCallback*>(this));
+			*return_value = static_cast<IUnknown*>(static_cast<IAudioEndpointVolumeCallback*>(this));
 			AddRef();
 		}
 		else if (iid == kAudioEndpointVolumeCallbackID) {
-			*ReturnValue = static_cast<IAudioEndpointVolumeCallback*>(this);
+			*return_value = static_cast<IAudioEndpointVolumeCallback*>(this);
 			AddRef();
 		}
 		else {
@@ -102,8 +102,8 @@ public:
 	*
 	* @param[in] NotificationData PAUDIO_VOLUME_NOTIFICATION_DATA
 	*/
-	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA NotificationData) override {
-		callback_->OnVolumeChange(static_cast<int32_t>(NotificationData->fMasterVolume * 100.0f));
+	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA notification_data) override {
+		callback_->OnVolumeChange(static_cast<int32_t>(notification_data->fMasterVolume * 100.0f));
 		return S_OK;
 	}
 
