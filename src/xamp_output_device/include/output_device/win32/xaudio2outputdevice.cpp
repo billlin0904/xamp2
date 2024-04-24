@@ -10,70 +10,86 @@
 #include <output_device/win32/comexception.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
-	namespace {
-	void SetWaveformatEx(WAVEFORMATEX& format, uint32_t samplerate) noexcept {
+namespace {
+	/*
+	* Set wave format.
+	*/
+	void SetWaveformatEx(WAVEFORMATEX& format, uint32_t sample_rate) noexcept {
+		// Fixed float format.
 		format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
 		format.nChannels = 2;
 		format.wBitsPerSample = 8 * sizeof(float);
 		format.cbSize = 0;
-		format.nSamplesPerSec = samplerate;
+		format.nSamplesPerSec = sample_rate;
 		format.nBlockAlign = format.nChannels * format.wBitsPerSample / 8;
 		format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
 	}
 }
 
+XAMP_DECLARE_LOG_NAME(XAudio2EngineContext);
+
 class XAudio2OutputDevice::XAudio2EngineContext final : public IXAudio2EngineCallback {
 public:
+	explicit XAudio2EngineContext(const LoggerPtr& logger) {
+		logger_ = logger;
+	}
+
 	void OnProcessingPassStart() override {
-		//XAMP_LOG_DEBUG("OnProcessingPassStart");
+		XAMP_LOG_D(logger_, "OnProcessingPassStart");
 	}
 
 	void OnProcessingPassEnd() override {
-		//XAMP_LOG_DEBUG("OnProcessingPassEnd");
+		XAMP_LOG_D(logger_, "OnProcessingPassEnd");
 	}
 
 	void OnCriticalError(HRESULT Error) override {
-		//XAMP_LOG_DEBUG("OnCriticalError");
+		XAMP_LOG_D(logger_, "OnCriticalError");
 	}
+private:
+	LoggerPtr logger_;
 };
 
 class XAudio2OutputDevice::XAudio2VoiceContext final : public IXAudio2VoiceCallback {
 public:
-	XAudio2VoiceContext() {
+	explicit XAudio2VoiceContext(const LoggerPtr &logger) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+		logger_ = logger;
 	}
 
 	virtual ~XAudio2VoiceContext() = default;
 
 	void OnVoiceProcessingPassStart(UINT32 BytesRequired) override {
-		//XAMP_LOG_DEBUG("OnVoiceProcessingPassStart");
+		XAMP_LOG_D(logger_, "OnVoiceProcessingPassStart");
 	}
 
 	void OnVoiceProcessingPassEnd() override {
-		//XAMP_LOG_DEBUG("OnVoiceProcessingPassEnd");
+		XAMP_LOG_D(logger_, "OnVoiceProcessingPassEnd");
 	}
 
 	void OnStreamEnd() override {
-		//XAMP_LOG_DEBUG("OnStreamEnd");
+		XAMP_LOG_D(logger_, "OnStreamEnd");
 	}
 
 	void OnBufferStart(void* pBufferContext) override {
-		//XAMP_LOG_DEBUG("OnBufferStart");
+		XAMP_LOG_D(logger_, "OnBufferStart");
 	}
 
 	void OnBufferEnd(void* pBufferContext) override {
+		XAMP_LOG_D(logger_, "OnBufferEnd");
 		::SetEvent(sample_ready_.get());
 	}
 
 	void OnLoopEnd(void* pBufferContext) override {
-		//XAMP_LOG_DEBUG("OnLoopEnd");
+		XAMP_LOG_D(logger_, "OnLoopEnd");
 	}
 
 	void OnVoiceError(void* pBufferContext, HRESULT Error) override {
-		//XAMP_LOG_DEBUG("OnVoiceError");
+		XAMP_LOG_D(logger_, "OnVoiceError");
 	}
 
 	WinHandle sample_ready_;
+private:	
+	LoggerPtr logger_;
 };
 
 XAudio2OutputDevice::XAudio2OutputDevice(const std::wstring& device_id)
@@ -99,8 +115,9 @@ XAudio2OutputDevice::XAudio2OutputDevice(const std::wstring& device_id)
 #else
 	HrIfFailThrow(::XAudio2Create(&xaudio2_));
 #endif
-	engine_context_ = MakeAlign<XAudio2EngineContext>();
-	voice_context_ = MakeAlign<XAudio2VoiceContext>();
+	auto context_logger = XampLoggerFactory.GetLogger(kXAudio2EngineContextLoggerName);
+	engine_context_ = MakeAlign<XAudio2EngineContext>(context_logger);
+	voice_context_ = MakeAlign<XAudio2VoiceContext>(context_logger);
 	HrIfFailThrow(xaudio2_->RegisterForCallbacks(engine_context_.get()));
 }
 

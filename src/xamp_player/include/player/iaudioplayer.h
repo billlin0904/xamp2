@@ -233,8 +233,14 @@ public:
     */
     virtual AnyMap& GetDspConfig() = 0;
 
+    /*
+    * Set audio delay callback. 
+    */
     virtual void SetDelayCallback(std::function<void(uint32_t)> delay_callback) = 0;
 
+    /*
+    * Set file cache mode.
+    */
     virtual void SeFileCacheMode(bool enable) = 0;
 protected:
     /*

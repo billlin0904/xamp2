@@ -43,8 +43,9 @@ namespace {
 
     constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
     constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
+    constexpr uint32_t kMinReadBufferSize = 8192;
 
-    constexpr int32_t kTotalBufferStreamCount = 32;
+    constexpr int32_t  kTotalBufferStreamCount = 32;
     constexpr uint32_t kMaxWriteRatio = 20;
     constexpr uint32_t kMaxReadRatio = 4;
     constexpr uint32_t kMaxBufferSecs = 5;
@@ -55,6 +56,7 @@ namespace {
     constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
     constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
+    constexpr std::chrono::milliseconds kMinimalCopySamplesTime(5);    
 
     int32_t GetBufferCount(int32_t sample_rate) {
         return sample_rate > (176400 * 2) ? kBufferStreamCount : 3;
@@ -104,56 +106,6 @@ namespace {
         return dynamic_cast<IDsdDevice*>(device.get());
     }
 #endif
-
-    // 將音量映射到分貝值
-    double MapVolumeToDb(int32_t volume, int32_t min_db, int32_t max_db, int32_t levels) {
-        double db_range = max_db - min_db;
-        double db_per_level = db_range / (levels - 1);
-        return min_db + volume * db_per_level;
-    }
-
-    // 根據目標增量調整音量
-    double AdjustVolumeForDevice(int32_t volume, int32_t min_db, int32_t max_db, int32_t levels, double target_increment) {
-        // 將音量映射到分貝值
-        double db = MapVolumeToDb(volume, min_db, max_db, levels);
-
-        // 計算目標增量需要的步數
-        int steps = abs(db) / target_increment;
-
-        // 根據步數調整分貝值
-        double adjusted_db = db - steps * target_increment;
-
-        return adjusted_db;
-    }
-
-    // 將分貝值映射到 fLevel 參數
-    double MapDbToFlevel(double db, int32_t min_db, int32_t max_db) {
-        return (db - min_db) / (max_db - min_db);
-    }
-
-    double GetVolumeLevelScalar(const DeviceInfo& device_info, uint32_t volume) {
-        float volume_level =
-            (device_info.scaled_max_db.value() - device_info.scaled_min_db.value())
-            / device_info.volume_increment.value();
-
-        auto adjusted_db = AdjustVolumeForDevice(volume,
-            device_info.scaled_min_db.value(),
-            device_info.scaled_max_db.value(),
-            volume_level,
-            1);
-
-        double fLevel_device1 = MapDbToFlevel(adjusted_db,
-            device_info.scaled_min_db.value(),
-            device_info.scaled_max_db.value());
-
-        XAMP_LOG_DEBUG("device_id:{} volume_level:{} adjusted_db:{} fLevel_device1: {}",
-            device_info.device_id,
-            volume_level,
-            adjusted_db,
-            fLevel_device1);
-
-        return fLevel_device1;
-    }
 }
 
 AudioPlayer::AudioPlayer()
@@ -476,11 +428,6 @@ void AudioPlayer::SetVolume(uint32_t volume) {
     if (!device_ || !device_->IsStreamOpen()) {
         return;
     }
-
-	if (device_info_->is_normalized_volume) {
-        auto level_scalar = GetVolumeLevelScalar(device_info_.value(), volume);
-        device_->SetVolumeLevelScalar(level_scalar);
-    }
     device_->SetVolume(volume);
 }
 
@@ -619,16 +566,19 @@ void AudioPlayer::CreateBuffer() {
     };
 
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+        // DSD native mode output buffer size is 8 times of the sample rate.
         num_read_buffer_size_ = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
+        // Fifo buffer size is 5 seconds of the output format.
         fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
         allocate_size = num_read_buffer_size_;
         num_write_buffer_size_ = device_->GetBufferSize() * kMaxBufferSecs;
     }
     else {
+        // Note: 如果比讀取的緩衝區還要小的話就沒辦法正確撥放.
+        // Calculate the buffer size from the output format.
         auto max_ratio = (std::max)(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
-        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));
-        // TODO: 如果比讀取的緩衝區還要小的話就沒辦法正確撥放.
-        num_read_buffer_size_ = (std::max)(get_buffer_sample(device_.get(), kMaxReadRatio), 8192U);
+        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));        
+        num_read_buffer_size_ = (std::max)(get_buffer_sample(device_.get(), kMaxReadRatio), kMinReadBufferSize);        
         allocate_size = std::min(kMaxPreAllocateBufferSize,
             num_write_buffer_size_
             * stream_->GetSampleSize() 
@@ -922,14 +872,18 @@ void AudioPlayer::Play() {
 
         try {
             while (p->is_playing_ && !stop_token.stop_requested()) {
+                // Wait for pause signal.
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
                     p->ReadPlayerAction();
                 }
 
+                // Read action queue.
                 p->ReadPlayerAction();
 
+                // Check stream is active.
                 if (!p->IsAvailableWrite()) {
+                    // Wait for next available write time.
                     wait_timer.Wait();
                     XAMP_LOG_T(p->logger_, "FIFO buffer: {} num_sample_write: {}",
                         p->fifo_.GetAvailableWrite(),
@@ -965,8 +919,7 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
 
     Stopwatch watch;    
     watch.Reset();    
-    static constexpr std::chrono::milliseconds kMinimalCopySamplesTime(5);
-
+    
     adapter->OnSamplesChanged(static_cast<const float*>(samples), num_buffer_frames);
     auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
     if (elapsed >= kMinimalCopySamplesTime) {

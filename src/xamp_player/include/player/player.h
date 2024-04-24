@@ -22,13 +22,13 @@
 #define XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN namespace xamp { namespace player {
 #define XAMP_AUDIO_PLAYER_NAMESPACE_END } }
 
-namespace xamp::player {
+XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 	using namespace base;
 	using namespace stream;
 	using namespace output_device;
 
 	class IAudioPlayer;	
 	class IPlaybackStateAdapter;
-}
+XAMP_AUDIO_PLAYER_NAMESPACE_END
 
 
