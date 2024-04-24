@@ -19,58 +19,58 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-class LogFlagFormatter final : public spdlog::custom_flag_formatter {
-public:
-	void format(const spdlog::details::log_msg& message, const std::tm&, spdlog::memory_buf_t& dest) override {
-		const auto upper_logger_level = String::ToUpper(std::string(to_string_view(message.level).data()));
-		dest.append(upper_logger_level.data(), upper_logger_level.data() + upper_logger_level.size());
-	}
+namespace {
+	class LogFlagFormatter final : public spdlog::custom_flag_formatter {
+	public:
+		void format(const spdlog::details::log_msg& message, const std::tm&, spdlog::memory_buf_t& dest) override {
+			const auto upper_logger_level = String::ToUpper(std::string(to_string_view(message.level).data()));
+			dest.append(upper_logger_level.data(), upper_logger_level.data() + upper_logger_level.size());
+		}
 
-	[[nodiscard]] std::unique_ptr<custom_flag_formatter> clone() const override {
-		return spdlog::details::make_unique<LogFlagFormatter>();
-	}
-};
+		[[nodiscard]] std::unique_ptr<custom_flag_formatter> clone() const override {
+			return spdlog::details::make_unique<LogFlagFormatter>();
+		}
+	};
 
 #ifdef XAMP_OS_WIN
-class DebugOutputSink : public spdlog::sinks::base_sink<LoggerMutex> {
-public:
-	// OutputDebugStringW max output 32766 (include '\0')
-	static constexpr size_t kMaxOutputLength = 32766;
+	class DebugOutputSink : public spdlog::sinks::base_sink<LoggerMutex> {
+	public:
+		// OutputDebugStringW max output 32766 (include '\0')
+		static constexpr size_t kMaxOutputLength = 32766;
 
-	DebugOutputSink() = default;
+		DebugOutputSink() = default;
 
-private:
-	void sink_it_(const spdlog::details::log_msg& msg) override {
-		spdlog::memory_buf_t formatted;
-		formatter_->format(msg, formatted);
+	private:
+		void sink_it_(const spdlog::details::log_msg& msg) override {
+			spdlog::memory_buf_t formatted;
+			formatter_->format(msg, formatted);
 
-		const auto output_text = String::ToStdWString(fmt::to_string(formatted));
-		const auto count = output_text.size() / kMaxOutputLength;
-		if (!count) {
-			::OutputDebugStringW(output_text.c_str());
-			return;
+			const auto output_text = String::ToStdWString(fmt::to_string(formatted));
+			const auto count = output_text.size() / kMaxOutputLength;
+			if (!count) {
+				::OutputDebugStringW(output_text.c_str());
+				return;
+			}
+
+			std::wstring output;
+			size_t offset = 0;
+			for (size_t i = 0; i < count; ++i) {
+				output = output_text.substr(offset, kMaxOutputLength);
+				::OutputDebugStringW(output.c_str());
+				offset += kMaxOutputLength;
+			}
+
+			if (output_text.size() % kMaxOutputLength > 0) {
+				output = output_text.substr(offset);
+				::OutputDebugStringW(output.c_str());
+			}
 		}
 
-		std::wstring output;
-		auto offset = 0;
-		for (auto i = 0; i < count; ++i) {
-			output = output_text.substr(offset, kMaxOutputLength);
-			::OutputDebugStringW(output.c_str());
-			offset += kMaxOutputLength;
+		void flush_() override {
 		}
-
-		if (output_text.size() % kMaxOutputLength > 0) {
-			output = output_text.substr(offset);
-			::OutputDebugStringW(output.c_str());
-		}
-	}
-
-	void flush_() override {
-	}
-};
+	};
 #endif
 
-namespace {
 	bool CreateLogsDir() {
 		const Path log_path("logs");
 		if (!Fs::exists(log_path)) {

@@ -36,18 +36,60 @@ public:
     */
     virtual void Write(const Path &path, const TrackInfo& track_info) = 0;
 
+    /*
+    * Write artist to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] artist artist.
+    */
     virtual void WriteArtist(const Path& path, const std::wstring& artist) = 0;
 
+    /*
+    * Write album to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] album album.
+    */
     virtual void WriteAlbum(const Path& path, const std::wstring& album) = 0;
 
+    /*
+    * Write title to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] title title.
+    */
     virtual void WriteTitle(const Path& path, const std::wstring& title) = 0;
-
+    
+    /*
+    * Write track number to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] track track number.
+    */
     virtual void WriteTrack(const Path& path, uint32_t track) = 0;
 
+    /*
+    * Write disc number to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] disc disc number.
+    */
     virtual void WriteGenre(const Path& path, const std::wstring& genre) = 0;
 
+    /*
+    * Write year to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] year year.
+    */
     virtual void WriteComment(const Path& path, const std::wstring& comment) = 0;
 
+    /*
+    * Write year to file.
+    * 
+    * @param[in] path file path.
+    * @param[in] year year.
+    */
     virtual void WriteYear(const Path& path, uint32_t year) = 0;
 
     /*
@@ -66,8 +108,18 @@ public:
     */
     virtual void WriteEmbeddedCover(const Path& path, const Vector<uint8_t> & image) const = 0;
 
+    /*
+    * Remove embedded cover from file.
+    * 
+    * @param[in] path file path.
+    */
     virtual void RemoveEmbeddedCover(const Path& path) = 0;
 
+    /*
+    * Check file is supported.
+    * 
+    * @param[in] path file path.
+    */
     [[nodiscard]] virtual bool CanWriteEmbeddedCover(const Path& path) const = 0;
 protected:
     IMetadataWriter() = default;

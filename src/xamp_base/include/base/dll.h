@@ -127,7 +127,7 @@ public:
         func_ = static_cast<T*>(LoadSharedLibrarySymbolEx(dll, name, flags));
     }
 #endif
-
+    
     [[nodiscard]] XAMP_ALWAYS_INLINE operator T* () const noexcept {
         XAMP_EXPECTS(func_ != nullptr);
         return func_;

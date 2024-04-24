@@ -12,25 +12,40 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-// Harald Achitz: Launder lazy_storage
-// https://www.youtube.com/watch?v=743l-mSqtsI
+/*
+* LocalStorage is a thread-safe lazy storage.
+* 
+* @tparam T The type of the storage.
+*/
 template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT LocalStorage {
 public:
 	constexpr LocalStorage() noexcept = default;
 
+	/*
+	* Move constructor.
+	*/
 	LocalStorage(LocalStorage&& other) noexcept {
 		other.data_ = std::move(data_);
 		other.need_init_ = true;
 		other.has_data_ = false;
 	}
 
+	/*
+	* Disable move assignment.
+	*/
 	LocalStorage& operator=(LocalStorage&&) = delete;
 
+	/*
+	* Destructor.
+	*/
 	~LocalStorage() {
 		reset();
 	}
 
+	/*
+	* Reset the storage.
+	*/
 	void reset() {
 		if (has_data_.load()) {
 			std::destroy_at(reinterpret_cast<T*>(std::addressof(data_)));
@@ -59,13 +74,19 @@ public:
 	}
 	
 private:
+	/*
+	* Wait for the initialization done.
+	*/
 	void wait_for_init_done() {
-		const auto do_need_init = need_init_.exchange(false);
+		// If need_init_ is true, we need to initialize the data.
+		const auto do_need_init = need_init_.exchange(false);		
 		if (do_need_init) {
+			// Initialize the data.
 			std::construct_at(reinterpret_cast<T*>(std::addressof(data_)));
 			has_data_ = true;
 		}
 		else {
+			// Wait for the initialization done.
 			while (!has_data_.load()) {}
 		}
 	}

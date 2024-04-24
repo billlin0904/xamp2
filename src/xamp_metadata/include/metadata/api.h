@@ -14,10 +14,19 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
+/*
+ * Create a metadata reader instance.
+*/
 XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
 
+/*
+ * Create a metadata writer instance.
+*/
 XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
 
+/*
+ * Get the supported file extensions.
+*/
 XAMP_METADATA_API const HashSet<std::string>& GetSupportFileExtensions();
 
 XAMP_METADATA_NAMESPACE_END
