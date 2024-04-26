@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -77,7 +77,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/robin_hood/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/libcue/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
@@ -157,6 +157,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\metadata\cueloader.h" />
     <ClInclude Include="include\metadata\metadata.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
@@ -167,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\api.cpp" />
+    <ClCompile Include="src\cuefilereader.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />
     <ClCompile Include="src\taglibmetareader.cpp" />
   </ItemGroup>

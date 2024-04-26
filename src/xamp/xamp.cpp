@@ -67,6 +67,8 @@
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
 namespace {
+    constexpr auto kYtMusicSampleRate = 48000;
+
     bool isSharedWasapiDevice(const Uuid& type) {
 #ifdef Q_OS_WIN32
         return type == win32::SharedWasapiDeviceType::uuidof();
@@ -965,8 +967,8 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
         }
 
         track_info.file_path = makeId(track);
-        track_info.rating = track.like_status == "LIKE";
-        track_info.sample_rate = 48000;
+        track_info.rating = track.like_status == "LIKE";        
+        track_info.sample_rate = kYtMusicSampleRate;
 
         const ForwardList<TrackInfo> track_infos{ track_info };
         DatabaseFacade facade;
@@ -3085,7 +3087,9 @@ PlaylistPage* Xamp::localPlaylistPage() const {
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
-    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
+    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE, [this](auto music_id, auto album_id) {
+        emit findAlbumCover(music_id, album_id);
+    });
     if (result.front().artist) {
         emit translation(toQString(result.front().artist), qTEXT("ja"), qTEXT("en"));
     }    

@@ -140,7 +140,10 @@ void AudioDeviceManager::Shutdown() {
     // MFShutdown should be called during should be called during app uninitialization
     // and not from static destructors during process exit.
 #ifdef XAMP_OS_WIN	
-    ::MFShutdown();
+    auto hr = ::MFShutdown();
+    if (FAILED(hr)) {
+		XAMP_LOG_ERROR("MFShutdown failed: {}", com_to_system_error(hr).code().message());
+	}	
 #else
     PreventSleep(false);
 #endif

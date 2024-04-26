@@ -714,7 +714,7 @@ QStringList Database::getCategories() const {
     QStringList categories;
     SqlQuery query(db_);
 
-    query.prepare(qTEXT("SELECT category FROM albumCategories GROUP BY category"));
+    query.prepare(qTEXT("SELECT category FROM albumCategories WHERE category != 'YouTube' GROUP BY category"));
 
     DbIfFailedThrow1(query);
 

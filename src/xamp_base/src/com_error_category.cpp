@@ -9,6 +9,7 @@
 using namespace xamp::base;
 
 namespace {
+#ifdef XAMP_OS_WIN
 	SharedLibraryHandle LoadSharedLibraryResource(const std::string_view& file_name) {
         return SharedLibraryHandle { ::LoadLibraryExA(file_name.data(),
             nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE) };
@@ -16,7 +17,7 @@ namespace {
 
     std::string GetModuleErrorMessage(const std::string_view& file_name, int32_t error) {
         constexpr size_t kMaxBufferSize = 256;
-
+        std::string error_text;
         HANDLE locale_handle = nullptr;
 
         constexpr DWORD locale_system = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
@@ -36,13 +37,15 @@ namespace {
         );
 
         if (locale_handle != nullptr) {
-            auto error_text = std::string(static_cast<const char*>(::LocalLock(locale_handle)));
-            ::LocalFree(locale_handle);
-            return error_text;
+            auto ptr = ::LocalLock(locale_handle);
+            if (ptr != nullptr) {
+                error_text = static_cast<const char*>(ptr);
+                ::LocalFree(locale_handle);
+			}                       
         }
-        return "";
+        return error_text;
     }
-
+#endif
     std::string GetAudioClientErrors(HRESULT error) {
         static const std::vector<std::string> messages {
           "The IAudioClient object is not initialized.",

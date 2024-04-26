@@ -5,29 +5,24 @@
 
 #pragma once
 
-#include <metadata/metadata.h>
-#include <base/memory.h>
 #include <base/fs.h>
+#include <base/trackinfo.h>
+#include <base/memory.h>
+#include <metadata/metadata.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-struct CueTrack {
-	Path file_path;
-	std::chrono::milliseconds timestamp;
-};	
-
-class XAMP_METADATA_API CueFileReader final {
+class XAMP_METADATA_API CueLoader {
 public:
-	CueFileReader();
+	CueLoader();
 
-	XAMP_PIMPL(CueFileReader)
+	XAMP_PIMPL(CueLoader)
 
-	void Open(const Path& path);
-
-	std::vector<CueTrack> GetTracks() const;
+	std::vector<TrackInfo> Load(const Path& file_path);
 private:
-	class CueFileReaderImpl;
-	AlignPtr<CueFileReaderImpl> impl_;
+	class CueLoaderImpl;
+	AlignPtr<CueLoaderImpl> impl_;
 };
 
 XAMP_METADATA_NAMESPACE_END
+

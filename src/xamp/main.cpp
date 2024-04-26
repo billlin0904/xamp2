@@ -13,6 +13,7 @@
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
+#include <metadata/cueloader.h>
 
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
@@ -240,6 +241,11 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
 
+        CueLoader loader;
+        auto tracks = loader.Load("D:\\Music\\BeeGees - Their Greatest Hits\\CD-1\\Their Greatest Hits  The Record (CD 1) [R 2006] (flac).cue");
+        for (auto track : tracks) {
+            XAMP_LOG_DEBUG("Track: {} - {}", track.track, String::ToString(track.title.value()));
+        }
         return app.exec();
     }
 
@@ -273,6 +279,9 @@ int main() {
     if (os_ver >= QOperatingSystemVersion::Windows10) {
         setWorkingSetSize();
 	}
+
+    /*CueFileReader cue_file_reader;
+    cue_file_reader.Open("test.cue");*/
 
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
         os_ver.name().toStdString(),
