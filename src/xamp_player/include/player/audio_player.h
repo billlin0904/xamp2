@@ -96,7 +96,7 @@ public:
     * @param[in] device_info The device info.
     * @param[in] target_sample_rate The target sample rate.
     */
-    void Open(const Path& file_path,
+    void Open(const Path& file_path,              
               const DeviceInfo& device_info,
               uint32_t target_sample_rate = 0,
               DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;

@@ -68,7 +68,8 @@ namespace {
 	musics.duration,
 	musics.comment,
 	albums.year,
-	musics.coverId as musicCoverId    
+	musics.coverId as musicCoverId,
+    musics.offset
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -115,7 +116,8 @@ ORDER BY
 	musics.duration,
 	musics.comment,
 	albums.year,
-	musics.coverId as musicCoverId    
+	musics.coverId as musicCoverId,
+    musics.offset
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId

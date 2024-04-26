@@ -274,25 +274,33 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
 }
 
 void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
+    static const std::string kApeFileExtention = ".ape";
+
     stream_ = MakeFileStream(file_path, dsd_mode);
 
-    for (auto i = 0; i < 1; ++i) {
-        try
-        {
-            stream_->OpenFile(file_path);
-        }
-        catch (const Exception & e) {
-            // Fallback other stream
-            if (stream_->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
-                stream_ = MakeAlign<FileStream, BassFileStream>();
+    if (file_path.extension() != kApeFileExtention) {
+        for (auto i = 0; i < 1; ++i) {
+            try
+            {
+                stream_->OpenFile(file_path);
             }
-            else {
-                stream_ = MakeAlign<FileStream, AvFileStream>();
+            catch (const Exception& e) {
+                // Fallback other stream
+                if (stream_->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
+                    stream_ = MakeAlign<FileStream, BassFileStream>();
+                }
+                else {
+                    stream_ = MakeAlign<FileStream, AvFileStream>();
+                }
+                stream_->OpenFile(file_path);
+                XAMP_LOG_E(logger_, "{}", e.what());
             }
-            stream_->OpenFile(file_path);
-            XAMP_LOG_E(logger_, "{}", e.what());
         }
     }
+    else {
+        stream_ = MakeAlign<FileStream, BassFileStream>();
+        stream_->OpenFile(file_path);
+    }    
 
     ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",

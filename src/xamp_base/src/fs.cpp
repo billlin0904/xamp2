@@ -130,6 +130,26 @@ bool IsCDAFile(Path const& path) {
 	return path.extension() == ".cda";
 }
 
+std::string ReadFileToUtf8String(const Path& path) {
+	std::wifstream file;
+	file.open(path, std::ios::binary);
+
+	if (!file.is_open()) {
+		return "";
+	}
+
+	ImbueFileFromBom(file);
+
+	file.seekg(0, std::ios::end);
+	auto length = file.tellg();
+	file.seekg(0, std::ios::beg);
+
+	std::vector<wchar_t> buffer(length);
+	file.read(&buffer[0], length);
+
+	return String::ToString(std::wstring(buffer.data(), file.gcount()));
+}
+
 bool TryImbue(std::wifstream& file, std::string_view name) {
 	try {
 		(void)file.imbue(std::locale(name.data()));
@@ -142,7 +162,7 @@ bool TryImbue(std::wifstream& file, std::string_view name) {
 
 void ImbueFileFromBom(std::wifstream& file) {
 #ifdef XAMP_OS_WIN
-	static const Vector<std::string_view> locale_names{
+	static const std::array<std::string_view, 4> locale_names{
 		"en_US.UTF-8",
 		"zh_TW.UTF-8",
 		"zh_CN.UTF-8",
@@ -166,11 +186,11 @@ void ImbueFileFromBom(std::wifstream& file) {
 		}
 		// Other BOM
 		for (auto locale_name : locale_names) {			
-			if (TryImbue(file, locale_name)) {
-				file.seekg(0, std::ios_base::beg);
+			if (TryImbue(file, locale_name)) {				
 				break;
 			}
 		}
+		file.seekg(0, std::ios_base::beg);
 	}
 #else
 	std::locale utf8_locale(std::locale(), new std::codecvt_utf8<wchar_t>());

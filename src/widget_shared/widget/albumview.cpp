@@ -131,10 +131,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         (void)visibleCovers(kAlbumCacheTag + cover_id);
     }
 
-    auto album    = indexValue(index, INDEX_ALBUM).toString();
-    auto cover_id = indexValue(index, INDEX_COVER).toString();
-    auto artist   = indexValue(index, INDEX_ARTIST).toString();    
-    auto album_year  = indexValue(index, INDEX_ALBUM_YEAR).toInt();
+    auto album      = indexValue(index, INDEX_ALBUM).toString();
+    auto cover_id   = indexValue(index, INDEX_COVER).toString();
+    auto artist     = indexValue(index, INDEX_ARTIST).toString();    
+    auto album_year = indexValue(index, INDEX_ALBUM_YEAR).toInt();
     auto is_hires   = indexValue(index, INDEX_CATEGORY).toBool();
 
     auto* style = option.widget ? option.widget->style() : QApplication::style();

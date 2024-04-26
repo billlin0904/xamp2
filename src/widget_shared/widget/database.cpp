@@ -895,24 +895,24 @@ void Database::updateMusic(int32_t music_id, const TrackInfo& track_info) {
     );
 
     query.bindValue(qTEXT(":title"),       toQString(track_info.title));
-    query.bindValue(qTEXT(":track"),           track_info.track);
+    query.bindValue(qTEXT(":track"),       track_info.track);
     query.bindValue(qTEXT(":path"),        toQString(track_info.file_path));
     query.bindValue(qTEXT(":fileExt"),     toQString(track_info.file_ext()));
     query.bindValue(qTEXT(":fileName"),    toQString(track_info.file_name()));
     query.bindValue(qTEXT(":parentPath"),  toQString(track_info.parent_path()));
-    query.bindValue(qTEXT(":duration"),        track_info.duration);
+    query.bindValue(qTEXT(":duration"),    track_info.duration);
     query.bindValue(qTEXT(":durationStr"), formatDuration(track_info.duration));
-    query.bindValue(qTEXT(":bitRate"),         track_info.bit_rate);
-    query.bindValue(qTEXT(":sampleRate"),      track_info.sample_rate);
-    query.bindValue(qTEXT(":offset"),          track_info.offset);
-    query.bindValue(qTEXT(":fileSize"),        track_info.file_size);
-    query.bindValue(qTEXT(":heart"),           track_info.rating ? 1 : 0);
+    query.bindValue(qTEXT(":bitRate"),     track_info.bit_rate);
+    query.bindValue(qTEXT(":sampleRate"),  track_info.sample_rate);
+    query.bindValue(qTEXT(":offset"),      track_info.offset ? track_info.offset.value() : 0);
+    query.bindValue(qTEXT(":fileSize"),    track_info.file_size);
+    query.bindValue(qTEXT(":heart"),       track_info.rating ? 1 : 0);
 
     if (track_info.replay_gain) {
         query.bindValue(qTEXT(":albumReplayGain"), track_info.replay_gain.value().album_gain);
         query.bindValue(qTEXT(":trackReplayGain"), track_info.replay_gain.value().track_gain);
-        query.bindValue(qTEXT(":albumPeak"), track_info.replay_gain.value().album_peak);
-        query.bindValue(qTEXT(":trackPeak"), track_info.replay_gain.value().track_peak);
+        query.bindValue(qTEXT(":albumPeak"),       track_info.replay_gain.value().album_peak);
+        query.bindValue(qTEXT(":trackPeak"),       track_info.replay_gain.value().track_peak);
     }
     else {
         query.bindValue(qTEXT(":albumReplayGain"), QVariant());
@@ -936,7 +936,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
     (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path AND offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart)
     )")
     );
 
@@ -950,7 +950,7 @@ int32_t Database::addOrUpdateMusic(const TrackInfo& track_info) {
     query.bindValue(qTEXT(":durationStr"), formatDuration(track_info.duration));
     query.bindValue(qTEXT(":bitRate"), track_info.bit_rate);
     query.bindValue(qTEXT(":sampleRate"), track_info.sample_rate);
-    query.bindValue(qTEXT(":offset"), track_info.offset);
+    query.bindValue(qTEXT(":offset"), track_info.offset ? track_info.offset.value() : 0);
     query.bindValue(qTEXT(":fileSize"), track_info.file_size);
     query.bindValue(qTEXT(":heart"), track_info.rating ? 1 : 0);
 

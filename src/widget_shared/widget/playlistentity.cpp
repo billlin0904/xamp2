@@ -45,6 +45,8 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.year              = indexValue(index, PLAYLIST_YEAR).toUInt();
     entity.music_cover_id    = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
 
+    setEntityValue(entity.offset, indexValue(index, PLAYLIST_OFFSET));
+
     setEntityValue(entity.album_replay_gain,  indexValue(index, PLAYLIST_ALBUM_RG));
     setEntityValue(entity.album_peak,         indexValue(index, PLAYLIST_ALBUM_PK));
     setEntityValue(entity.track_replay_gain,  indexValue(index, PLAYLIST_TRACK_RG));

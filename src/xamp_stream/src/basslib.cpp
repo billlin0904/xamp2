@@ -247,7 +247,7 @@ void BassLib::Load() {
     BASS_LIB.BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
     LoadPlugin("bass_aac.dll");
     LoadPlugin("bassflac.dll");
-    LoadPlugin("bass_ape.dll");
+    LoadPlugin("bassape.dll");
     LoadPlugin("bassalac.dll");
     LoadPlugin("basscd.dll");
     // For GetSupportFileExtensions need!

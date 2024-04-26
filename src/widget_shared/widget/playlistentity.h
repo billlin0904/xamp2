@@ -46,6 +46,8 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString trlyrc;
 
     std::optional<QString> music_cover_id;
+    
+    std::optional<double> offset;
 
     std::optional<double> album_replay_gain;
     std::optional<double> album_peak;

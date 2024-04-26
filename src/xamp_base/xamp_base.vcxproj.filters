@@ -31,6 +31,7 @@
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
     <ClCompile Include="src\windows_handle.cpp" />
+    <ClCompile Include="src\com_error_category.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -98,5 +99,6 @@
     <ClInclude Include="include\base\lazy_storage.h" />
     <ClInclude Include="include\base\expected.h" />
     <ClInclude Include="include\base\port.h" />
+    <ClInclude Include="include\base\com_error_category.h" />
   </ItemGroup>
 </Project>

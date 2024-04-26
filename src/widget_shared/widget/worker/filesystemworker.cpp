@@ -5,6 +5,7 @@
 #include <base/scopeguard.h>
 
 #include <metadata/taglibmetareader.h>
+#include <metadata/cueloader.h>
 
 #include <widget/albumview.h>
 #include <widget/util/ui_utilts.h>
@@ -13,6 +14,8 @@ XAMP_DECLARE_LOG_NAME(FileSystemWorker);
 XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
 
 namespace {
+	const std::string kCueFileExtension(".cue");
+
 	struct PathInfo {
 		size_t file_count;
 		size_t depth;
@@ -118,20 +121,26 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 			return;
 		}
 
-		//std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
 		ForwardList<TrackInfo> tracks;
-
+		
 		for (const auto& path : path_info.second) {
 			try {
-				TaglibMetadataReader reader;
-				tracks.push_front(reader.Extract(path));
-				++completed_work_;
-				updateProgress();
+				if (path.extension() != kCueFileExtension) {									
+					TaglibMetadataReader reader;
+					tracks.push_front(reader.Extract(path));
+				}
+				else {					
+					CueLoader loader;
+					for (auto& track : loader.Load(path)) {
+						tracks.push_front(track);
+					}
+				}
 			}
 			catch (const std::exception &e) {
 				XAMP_LOG_DEBUG("Failed to extract file:{}", path.string());
 			}
+			++completed_work_;
+			updateProgress();
 		}
 
 		tracks.sort([](const auto& first, const auto& last) {

@@ -981,7 +981,6 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             if (!is_unknown_album) {
                 id.second = album_id;
             }
-            emit translation(toQString(track_info.artist), qTEXT("ja"), qTEXT("en"));
             emit fetchThumbnailUrl(id, QString::fromStdString(thumbnail_url));
         });
     }
@@ -1760,7 +1759,6 @@ void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& imag
     if (cover.loadFromData(image)) {        
         qMainDb.updateArtistCoverId(qMainDb.addOrUpdateArtist(artist), qImageCache.addImage(cover));
     }
-    emit translation(artist, qTEXT("ja"), qTEXT("en"));
 }
 
 void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
@@ -1903,9 +1901,9 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
-    const auto full_text = isMoreThan1Hours(player_->GetDuration());
-    if (player_->GetDuration() - stream_time >= 0.0) {
-        ui_.endPosLabel->setText(formatDuration(player_->GetDuration() - stream_time, full_text));
+    const auto full_text = isMoreThan1Hours(current_entity_.value().duration);
+    if (current_entity_.value().duration - stream_time >= 0.0) {
+        ui_.endPosLabel->setText(formatDuration(current_entity_.value().duration - stream_time, full_text));
         const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
         ui_.seekSlider->setValue(stream_time_as_ms);
         ui_.startPosLabel->setText(formatDuration(stream_time, full_text));
@@ -2214,7 +2212,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
             }
         }
 
-        player_->BufferStream();
+        auto offset = !entity.offset ? 0.0 : entity.offset.value();
+        player_->BufferStream(offset);
+
         ui_.mutedButton->updateState();
         open_done = true;
         updateUi(entity, playback_format, open_done);
@@ -2243,7 +2243,7 @@ void Xamp::ensureLocalOnePlaylistPage() {
 void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done) {
     qTheme.setPlayOrPauseButton(ui_.playButton, open_done);
 
-    const int64_t max_duration_ms = Round(player_->GetDuration()) * 1000;
+    const int64_t max_duration_ms = Round(entity.duration) * 1000;
     ui_.seekSlider->setRange(0, max_duration_ms - 1000);
     ui_.seekSlider->setValue(0);
 
@@ -2385,9 +2385,6 @@ void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackIn
     qMainDb.removeAlbumArtist(album_id);
     cd_page_->playlistPage()->playlist()->removeAll();
     qDatabaseFacade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
-    if (track_infos.front().artist) {
-        emit translation(toQString(track_infos.front().artist), qTEXT("ja"), qTEXT("en"));
-    }    
     cd_page_->playlistPage()->playlist()->reload();
     cd_page_->showPlaylistPage(true);
 }
@@ -3090,9 +3087,6 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
     qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE, [this](auto music_id, auto album_id) {
         emit findAlbumCover(music_id, album_id);
     });
-    if (result.front().artist) {
-        emit translation(toQString(result.front().artist), qTEXT("ja"), qTEXT("en"));
-    }    
     ensureLocalOnePlaylistPage();
     localPlaylistPage()->playlist()->reload();
 }
