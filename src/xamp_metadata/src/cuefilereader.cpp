@@ -24,6 +24,7 @@ namespace {
 		SharedLibraryHandle module_;
 
 	public:
+		XAMP_DECLARE_DLL_NAME(cd_delete);
 		XAMP_DECLARE_DLL_NAME(cue_parse_string);
 		XAMP_DECLARE_DLL_NAME(cd_get_ntrack);
 		XAMP_DECLARE_DLL_NAME(cd_get_track);
@@ -42,6 +43,7 @@ namespace {
 
 	LibCueLib::LibCueLib() try
 		: module_(OpenSharedLibrary("libcue"))
+		, XAMP_LOAD_DLL_API(cd_delete)
 		, XAMP_LOAD_DLL_API(cue_parse_string)
 		, XAMP_LOAD_DLL_API(cd_get_ntrack)
 		, XAMP_LOAD_DLL_API(cd_get_track)
@@ -85,6 +87,20 @@ namespace {
 	}
 
 	FastMutex libcue_mutex;
+
+	template <typename T>
+	struct CdPtrDeleter;
+
+	template <>
+	struct CdPtrDeleter<Cd> {
+		void operator()(Cd* p) const {
+			XAMP_EXPECTS(p != nullptr);
+			LIBCUE_LIB.cd_delete(p);
+		}
+	};
+
+	template <typename T>
+	using CdPtr = std::unique_ptr<T, CdPtrDeleter<T>>;
 }
 
 XAMP_DECLARE_LOG_NAME(CueLoader);
@@ -103,25 +119,27 @@ public:
 		// NOTE: libcue is not thread-safe so we need to lock it.
 		std::lock_guard<FastMutex> lock{ libcue_mutex };
 
-		auto *cd = LIBCUE_LIB.cue_parse_string(utf8_text.c_str());
-		if (!cd) {
+		auto *cd_handle = LIBCUE_LIB.cue_parse_string(utf8_text.c_str());
+		if (!cd_handle) {
 			XAMP_LOG_E(logger_, "Failed to parse cue file: {}", path);
 			return track_infos;
 		}
+
+		CdPtr<Cd> cd(cd_handle);
 
 		std::optional<TrackInfo> opt_track_info;
 		TrackInfo track_info;
 		std::wstring album;
 
-		auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd);
+		auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd.get());
 		if (cd_text != nullptr) {
 			const char* s = nullptr;
 			if ((s = LIBCUE_LIB.cdtext_get(PTI_TITLE, cd_text)))
 				album = String::ToString(s);
 		}
 				
-		auto tracks = LIBCUE_LIB.cd_get_ntrack(cd);
-		auto* cur = LIBCUE_LIB.cd_get_track(cd, 1);
+		auto tracks = LIBCUE_LIB.cd_get_ntrack(cd.get());
+		auto* cur = LIBCUE_LIB.cd_get_track(cd.get(), 1);
 		const char* cur_name = cur ? LIBCUE_LIB.track_get_filename(cur) : nullptr;
 		if (!cur_name) {
 			XAMP_LOG_E(logger_, "Failed to parse cue file: {}", path);
@@ -136,24 +154,19 @@ public:
 				auto wide_cur_name = String::ToString(cur_name);
 				if (path.has_root_path()) {
 					auto file_path = path.parent_path() / Path(wide_cur_name);
-					try {
-						track_info = reader->Extract(file_path);
-						file_duration = track_info.duration;
-					} catch (...) {}					
+					track_info = reader->Extract(file_path);
+					file_duration = track_info.duration;
 				}
 				else {
-					try {
-						track_info = reader->Extract(Path(wide_cur_name));
-						file_duration = track_info.duration;
-					}
-					catch (...) {}
+					track_info = reader->Extract(Path(wide_cur_name));
+					file_duration = track_info.duration;
 				}			
 				track_info.album = album;
-				auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd);
+				auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd.get());
 				if (cd_text != nullptr) {
 					GetCdText(cd_text, track_info);
 				}
-				auto* rem = LIBCUE_LIB.cd_get_rem(cd);
+				auto* rem = LIBCUE_LIB.cd_get_rem(cd.get());
 				if (rem != nullptr) {
 					GetYear(rem, track_info);
 					GetReplayGain(rem, track_info);
@@ -161,7 +174,7 @@ public:
 				opt_track_info = track_info;
 			}
 			
-			auto* next = (track + 1 <= tracks) ? LIBCUE_LIB.cd_get_track(cd, track + 1) : nullptr;
+			auto* next = (track + 1 <= tracks) ? LIBCUE_LIB.cd_get_track(cd.get(), track + 1) : nullptr;
 			const char* next_name = next ? LIBCUE_LIB.track_get_filename(next) : nullptr;
 			same_file = (next_name && !strcmp(next_name, cur_name));
 
@@ -215,23 +228,17 @@ public:
 	}
 
 	void GetReplayGain(Rem* rem, TrackInfo& info) {
-		const char* s = nullptr;
-		
+		const char* s = nullptr;		
 		ReplayGain replay_gain;
-		double album_gain = std::numeric_limits<double>::min();
-		double album_peak = std::numeric_limits<double>::min();
-
 		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_ALBUM_GAIN, rem)))
-			album_gain = std::atof(s);
+			replay_gain.album_gain = std::atof(s);
 		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_ALBUM_PEAK, rem)))
-			album_peak = std::atof(s);
-
-		if (album_gain != std::numeric_limits<double>::min()) {
-			replay_gain.album_gain = album_gain;
-		}
-		if (album_gain != std::numeric_limits<double>::min()) {
-			replay_gain.album_peak = album_peak;
-		}
+			replay_gain.album_peak = std::atof(s);
+		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_TRACK_GAIN, rem)))
+			replay_gain.track_gain = std::atof(s);
+		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_TRACK_PEAK, rem)))
+			replay_gain.track_peak = std::atof(s);
+		info.replay_gain = replay_gain;
 	}
 
 	void GetCdText(Cdtext* cd_text, TrackInfo& track_info) {

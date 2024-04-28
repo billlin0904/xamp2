@@ -271,8 +271,14 @@ public:
     */
     AnyMap& GetDspConfig() override;
 
+    /*
+     * Set audio delay callback.
+     */
     void SetDelayCallback(std::function<void(uint32_t)> delay_callback) override;
 
+   /*
+    * Set file cache mode.
+    */
     void SeFileCacheMode(bool enable) override;
 private:
     DataCallbackResult OnGetSamples(void* samples,

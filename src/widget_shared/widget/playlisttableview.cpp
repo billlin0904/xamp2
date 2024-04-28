@@ -904,6 +904,7 @@ void PlayListTableView::playItem(const QModelIndex& index) {
     }
     const auto play_item = item(play_index_);
     emit playMusic(play_item, true);
+    reload();
 }
 
 void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
@@ -1094,8 +1095,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
     }
     const auto entity = item(play_index_);
     qMainDb.clearNowPlaying(playlist_id_);
-    qMainDb.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
-    reload();
+    qMainDb.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);    
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
