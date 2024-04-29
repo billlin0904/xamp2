@@ -23,6 +23,7 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
         };
 
     auto error_handler = [id, thumbnail_url, this](const auto& url, const auto& error) {
+        XAMP_LOG_DEBUG("Download thumbnail error: {}", error.toStdString());
         emit fetchThumbnailUrlError(id, thumbnail_url);
         };
 

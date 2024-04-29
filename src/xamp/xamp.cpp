@@ -2082,7 +2082,7 @@ void Xamp::setupSampleRateConverter(std::function<void()>& initial_sample_rate_c
     }
 }
 
-void Xamp::onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url) {
+void Xamp::onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url) {    
 	download_thumbnail_pending_.insert(id, thumbnail_url);
 }
 
