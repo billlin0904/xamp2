@@ -46,6 +46,9 @@ private:
     bool is_stop_{false};
     int32_t unknown_artist_id_{ kInvalidDatabaseId };
     int32_t unknown_album_id_{ kInvalidDatabaseId };
+    int32_t various_artists_id_{ kInvalidDatabaseId };
+
+    QString various_artists_;
     QString unknown_artist_;
     QString unknown_album_;
     LoggerPtr logger_;

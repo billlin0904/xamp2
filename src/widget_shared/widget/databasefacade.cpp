@@ -20,6 +20,7 @@
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
+    const std::wstring kVariousArtists(L"Various Artists");
     const std::wstring kDffFileExtension(L".dff");
     const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
@@ -70,12 +71,14 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     } else {
         database_ = database;
     }
-    unknown_artist_ = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown artist"));
-    unknown_album_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown album"));
+    unknown_artist_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Unknown artist"));
+    unknown_album_   = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Unknown album"));
+    various_artists_ = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Various Artists"));
     ensureInitialUnknownId();
 }
 
 void DatabaseFacade::ensureInitialUnknownId() {
+    various_artists_id_ = qMainDb.addOrUpdateArtist(various_artists_);
     unknown_artist_id_ = qMainDb.addOrUpdateArtist(unknown_artist_);
     unknown_album_id_ =  qMainDb.addOrUpdateAlbum(unknown_album_,
         unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
@@ -96,11 +99,24 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     const std::function<void(int32_t, int32_t)>& fetch_cover) {
     const Stopwatch sw;
     uint32_t album_year = 0;
-    if (!result.empty()) {
-        album_year = result.front().year;
-    }
+    auto artist_count = 0;
 
     ensureInitialUnknownId();
+
+    if (!result.empty()) {
+        album_year = result.front().year;        
+        auto artist = result.begin()->artist;
+        if (artist) {
+            for (const auto& track_info : result) {
+                if (track_info.artist != artist) {
+                    artist_count++;
+                }
+                if (artist_count > 1) {
+                    break;
+                }
+            }
+        }
+    }
 
     auto album_genre = kEmptyString;
 
@@ -135,7 +151,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         const auto music_id = database_->addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
 
-        const auto artist_id = database_->addOrUpdateArtist(artist);
+        auto artist_id = database_->addOrUpdateArtist(artist);
         XAMP_EXPECTS(artist_id != 0);
 
         auto album_id = database_->getAlbumId(album);
@@ -144,6 +160,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 album_genre = kYouTubeCategory; 
             } else {
                 album_genre = kEmptyString;
+            }
+
+            if (artist_count > 1) {
+                artist_id = various_artists_id_;
             }
 
             album_id = database_->addOrUpdateAlbum(album,
