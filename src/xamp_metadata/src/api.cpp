@@ -1,5 +1,6 @@
 #include <metadata/api.h>
 
+#include <metadata/libcuelib.h>
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadatawriter.h>
 
@@ -18,6 +19,10 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 
 const HashSet<std::string>& GetSupportFileExtensions() {
 	return TaglibMetadataReader::GetSupportFileExtensions();
+}
+
+void LoadLibCueLib() {
+	Singleton<LibCueLib>::GetInstance();
 }
 
 XAMP_METADATA_NAMESPACE_END

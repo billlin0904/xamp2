@@ -158,6 +158,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\cueloader.h" />
+    <ClInclude Include="include\metadata\libcuelib.h" />
     <ClInclude Include="include\metadata\metadata.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />

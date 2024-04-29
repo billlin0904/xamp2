@@ -1,6 +1,7 @@
 #include <fstream>
 #include <metadata/api.h>
 #include <metadata/cueloader.h>
+#include <metadata/libcuelib.h>
 #include <base/fs.h>
 #include <base/fastmutex.h>
 #include <base/dll.h>
@@ -14,53 +15,6 @@ extern "C" {
 XAMP_METADATA_NAMESPACE_BEGIN
 
 namespace {
-	class LibCueLib final {
-	public:
-		LibCueLib();
-
-		XAMP_DISABLE_COPY(LibCueLib)
-
-	private:
-		SharedLibraryHandle module_;
-
-	public:
-		XAMP_DECLARE_DLL_NAME(cd_delete);
-		XAMP_DECLARE_DLL_NAME(cue_parse_string);
-		XAMP_DECLARE_DLL_NAME(cd_get_ntrack);
-		XAMP_DECLARE_DLL_NAME(cd_get_track);
-		XAMP_DECLARE_DLL_NAME(track_get_filename);
-		XAMP_DECLARE_DLL_NAME(cd_get_cdtext);
-		XAMP_DECLARE_DLL_NAME(cdtext_get);
-		XAMP_DECLARE_DLL_NAME(rem_get);
-		XAMP_DECLARE_DLL_NAME(cd_get_rem);
-		XAMP_DECLARE_DLL_NAME(track_get_start);
-		XAMP_DECLARE_DLL_NAME(track_get_length);
-		XAMP_DECLARE_DLL_NAME(track_get_cdtext);
-		XAMP_DECLARE_DLL_NAME(track_get_rem);
-	};
-
-#define LIBCUE_LIB Singleton<LibCueLib>::GetInstance()
-
-	LibCueLib::LibCueLib() try
-		: module_(OpenSharedLibrary("libcue"))
-		, XAMP_LOAD_DLL_API(cd_delete)
-		, XAMP_LOAD_DLL_API(cue_parse_string)
-		, XAMP_LOAD_DLL_API(cd_get_ntrack)
-		, XAMP_LOAD_DLL_API(cd_get_track)
-		, XAMP_LOAD_DLL_API(track_get_filename)
-		, XAMP_LOAD_DLL_API(cd_get_cdtext)
-		, XAMP_LOAD_DLL_API(cdtext_get)
-		, XAMP_LOAD_DLL_API(rem_get)
-		, XAMP_LOAD_DLL_API(cd_get_rem)
-		, XAMP_LOAD_DLL_API(track_get_start)
-		, XAMP_LOAD_DLL_API(track_get_length)
-		, XAMP_LOAD_DLL_API(track_get_cdtext)
-		, XAMP_LOAD_DLL_API(track_get_rem) {
-	}
-	catch (const Exception& e) {
-		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-	}
-
 	bool IsYear(const char* s) {
 		auto is_digit = [](char c)
 			{ return c >= '0' && c <= '9'; };

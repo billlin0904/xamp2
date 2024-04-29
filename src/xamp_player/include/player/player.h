@@ -7,6 +7,7 @@
 
 #include <base/base.h>
 #include <stream/stream.h>
+#include <metadata/metadata.h>
 #include <output_device/output_device.h>
 
 #ifdef XAMP_OS_WIN
@@ -25,6 +26,7 @@
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 	using namespace base;
 	using namespace stream;
+	using namespace metadata;
 	using namespace output_device;
 
 	class IAudioPlayer;	

@@ -8,6 +8,8 @@
 
 #include <player/audio_player.h>
 
+#include <metadata/api.h>
+
 #include <stream/ebur128reader.h>
 #include <stream/mbdiscid.h>
 
@@ -31,6 +33,9 @@ void LoadComponentSharedLibrary() {
 
     LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
+
+    LoadLibCueLib();
+    XAMP_LOG_DEBUG("Load libcue lib success.");
 
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();
