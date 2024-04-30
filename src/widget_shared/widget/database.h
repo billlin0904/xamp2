@@ -249,6 +249,7 @@ public:
 
 	void removeAlbumArtist(int32_t album_id);
 
+	int32_t getAlbumIdFromAlbumMusic(int32_t music_id);
 private:
 	static PlayListEntity fromSqlQuery(const SqlQuery& query);	
 

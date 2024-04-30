@@ -25,6 +25,8 @@ struct XAMP_BASE_API ReplayGain {
 
 struct XAMP_BASE_API TrackInfo final {
     TrackInfo() noexcept;
+
+    uint32_t is_cue_file;
     uint32_t rating;
     uint32_t track;
     uint32_t bit_rate;
@@ -34,6 +36,7 @@ struct XAMP_BASE_API TrackInfo final {
     int64_t last_write_time;    
     double duration;
     Path file_path;
+
     std::optional<double>       offset;
     std::optional<std::string>  cover_id;
     std::optional<std::string>  disc_id;

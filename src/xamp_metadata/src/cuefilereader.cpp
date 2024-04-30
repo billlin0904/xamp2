@@ -114,7 +114,8 @@ public:
 				else {
 					track_info = reader->Extract(Path(wide_cur_name));
 					file_duration = track_info.duration;
-				}			
+				}		
+				track_info.is_cue_file = true;
 				track_info.album = album;
 				auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd.get());
 				if (cd_text != nullptr) {

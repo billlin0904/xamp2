@@ -555,8 +555,8 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     auto album           = indexValue(index, INDEX_ALBUM).toString();
     auto artist          = indexValue(index, INDEX_ARTIST).toString();
-    auto album_id           = indexValue(index, INDEX_ALBUM_ID).toInt();
-    auto artist_id          = indexValue(index, INDEX_ARTIST_ID).toInt();
+    auto album_id        = indexValue(index, INDEX_ALBUM_ID).toInt();
+    auto artist_id       = indexValue(index, INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
     auto* add_album_to_playlist_act = action_map.addAction(tr("Add album to playlist"), [album_id, this]() {
@@ -585,9 +585,23 @@ void AlbumView::showMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
-        qMainDb.removeAlbumArtist(album_id);
-    	qMainDb.removeAlbum(album_id);        
-        reload();
+        if (!qMainDb.transaction()) {
+            return;
+        }
+        bool rollback = false;
+        try {
+            qMainDb.removeAlbumArtist(album_id);
+            qMainDb.removeAlbum(album_id);            
+            reload();            
+            qMainDb.commit();
+        }
+        catch (...) {
+            rollback = true;
+            logAndShowMessage(std::current_exception());
+        }
+        if (rollback) {
+            qMainDb.rollback();            
+        }
     });
     remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 

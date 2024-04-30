@@ -154,7 +154,9 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         auto artist_id = database_->addOrUpdateArtist(artist);
         XAMP_EXPECTS(artist_id != 0);
 
-        auto album_id = database_->getAlbumId(album);
+        // Avoid cue file album name create new album id.
+        auto album_id = database_->getAlbumIdFromAlbumMusic(music_id);
+
         if (album_id == kInvalidDatabaseId) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
                 album_genre = kYouTubeCategory; 
@@ -164,7 +166,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
             if (artist_count > 1) {
                 artist_id = various_artists_id_;
-            }
+            }            
 
             album_id = database_->addOrUpdateAlbum(album,
                 artist_id,

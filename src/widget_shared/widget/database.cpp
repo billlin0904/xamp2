@@ -379,6 +379,19 @@ void Database::removeAlbumArtist(int32_t album_id) {
     DbIfFailedThrow1(query);
 }
 
+int32_t Database::getAlbumIdFromAlbumMusic(int32_t music_id) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("SELECT albumId FROM albumMusic WHERE musicId = (:musicId)"));
+    query.bindValue(qTEXT(":musicId"), music_id);
+    query.exec();
+
+    if (query.next()) {
+        return query.value(qTEXT("albumId")).toInt();
+    }
+    return kInvalidDatabaseId;
+}
+
 void Database::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun) {
     QSqlTableModel model(nullptr, db_);
 
@@ -477,11 +490,13 @@ void Database::removeAlbum(int32_t album_id) {
     forEachAlbumMusic(album_id, [this, &entities](auto const& entity) {
         entities.push_back(entity);        
     });
+
     Q_FOREACH(const auto & entity, entities) {
         QList<int32_t> playlist_ids;
         forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto, auto) {
             playlist_ids.push_back(playlistId);            
         });
+
         Q_FOREACH(auto playlistId, playlist_ids) {
             removePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
         }

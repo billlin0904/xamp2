@@ -5,7 +5,8 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 TrackInfo::TrackInfo() noexcept
-	: rating(false)
+	: is_cue_file(false)
+	, rating(false)
 	, track(0)
 	, bit_rate(0)
 	, sample_rate(0)
