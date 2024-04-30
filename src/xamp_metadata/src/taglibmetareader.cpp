@@ -353,8 +353,8 @@ XAMP_METADATA_NAMESPACE_BEGIN
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },
             { ".mp4",  GetMp4Cover },
-            { ".dff", GetDsdiffCover },
-            { ".dsf", GetDsfCover }
+            { ".dff",  GetDsdiffCover },
+            { ".dsf",  GetDsfCover }
         };
         auto itr = parse_cover_table.find(ext);
         if (itr != parse_cover_table.end()) {

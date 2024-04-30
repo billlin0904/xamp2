@@ -49,8 +49,7 @@ IF
 		dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		year integer,
 		heart integer,
-		storeType integer,
-		genre TEXT,
+		storeType integer,		
 		isHiRes integer,
 		FOREIGN KEY ( artistId ) REFERENCES artists ( artistId ),
 		UNIQUE ( albumId, artistId ) 

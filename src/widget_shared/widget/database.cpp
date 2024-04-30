@@ -1259,7 +1259,6 @@ int32_t Database::addOrUpdateAlbum(const QString& album,
     uint32_t year,
     StoreType store_type, 
     const QString& disc_id, 
-    const QString & album_genre,
     bool is_hires) {
     XAMP_ENSURES(!album.isEmpty());
     XAMP_ENSURES(year != UINT32_MAX);
@@ -1275,8 +1274,7 @@ int32_t Database::addOrUpdateAlbum(const QString& album,
       storeType,
       dateTime,
       discId,
-      year, 
-      genre, 
+      year,
       isHiRes
     ) 
     VALUES 
@@ -1296,20 +1294,18 @@ int32_t Database::addOrUpdateAlbum(const QString& album,
         :dateTime, 
         :discId, 
         :year, 
-        :genre, 
         :isHiRes
       )
     )"));
 
-    query.bindValue(qTEXT(":album"), album);
-    query.bindValue(qTEXT(":artistId"), artist_id);
-    query.bindValue(qTEXT(":coverId"), getAlbumCoverId(album));
+    query.bindValue(qTEXT(":album"),     album);
+    query.bindValue(qTEXT(":artistId"),  artist_id);
+    query.bindValue(qTEXT(":coverId"),   getAlbumCoverId(album));
     query.bindValue(qTEXT(":storeType"), static_cast<int32_t>(store_type));
-    query.bindValue(qTEXT(":dateTime"), album_time);
-    query.bindValue(qTEXT(":discId"), disc_id);
-    query.bindValue(qTEXT(":year"), year);
-    query.bindValue(qTEXT(":genre"), album_genre);
-    query.bindValue(qTEXT(":isHiRes"), is_hires);
+    query.bindValue(qTEXT(":dateTime"),  album_time);
+    query.bindValue(qTEXT(":discId"),    disc_id);
+    query.bindValue(qTEXT(":year"),      year);
+    query.bindValue(qTEXT(":isHiRes"),   is_hires);
 
     DbIfFailedThrow1(query);
 
@@ -1323,8 +1319,8 @@ void Database::addOrUpdateAlbumCategory(int32_t album_id, const QString& categor
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT INTO albumCategories (albumCategoryId, albumId, category)
-    VALUES (NULL, :albumId, :category)
+    INSERT OR REPLACE INTO albumCategories (albumCategoryId, albumId, category)
+    VALUES ((SELECT albumCategoryId FROM albumCategories WHERE albumId = :albumId), :albumId, :category)
     )"));
 
     query.bindValue(qTEXT(":albumId"), album_id);

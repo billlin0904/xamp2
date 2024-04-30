@@ -137,7 +137,9 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 				}
 			}
 			catch (const std::exception &e) {
-				XAMP_LOG_DEBUG("Failed to extract file:{}", path.string());
+				XAMP_LOG_DEBUG("Failed to extract file:{} ({})", 
+					path.string(), 
+					String::LocaleStringToUTF8(e.what()));
 			}
 			++completed_work_;
 			updateProgress();

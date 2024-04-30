@@ -4,6 +4,7 @@
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />
     <ClCompile Include="src\taglibmetareader.cpp" />
+    <ClCompile Include="src\cuefilereader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\metadata.h" />
@@ -13,6 +14,7 @@
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
+    <ClInclude Include="include\metadata\cueloader.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="win32">

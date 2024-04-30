@@ -81,7 +81,10 @@ void DatabaseFacade::ensureInitialUnknownId() {
     various_artists_id_ = qMainDb.addOrUpdateArtist(various_artists_);
     unknown_artist_id_ = qMainDb.addOrUpdateArtist(unknown_artist_);
     unknown_album_id_ =  qMainDb.addOrUpdateAlbum(unknown_album_,
-        unknown_artist_id_, 0, 0, StoreType::CLOUD_STORE);
+        unknown_artist_id_,
+        0,
+        0,
+        StoreType::CLOUD_STORE);
     qMainDb.setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
 }
 
@@ -158,12 +161,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         auto album_id = database_->getAlbumIdFromAlbumMusic(music_id);
 
         if (album_id == kInvalidDatabaseId) {
-            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
-                album_genre = kYouTubeCategory; 
-            } else {
-                album_genre = kEmptyString;
-            }
-
             if (artist_count > 1) {
                 artist_id = various_artists_id_;
             }            
@@ -174,16 +171,17 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 album_year,
                 store_type,
                 disc_id,
-                album_genre,
                 track_info.bit_rate >= k24Bit96KhzBitRate);
 
-            if (album_genre.isEmpty()) {
+            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
+                database_->addOrUpdateAlbumCategory(album_id, kYouTubeCategory);
+            }
+            else {
                 database_->addOrUpdateAlbumCategory(album_id, kLocalCategory);
-                for (const auto& category : getAlbumCategories(album)) {
-                    database_->addOrUpdateAlbumCategory(album_id, category);
-                }
-            } else {
-                database_->addOrUpdateAlbumCategory(album_id, album_genre);
+            }
+
+            for (const auto& category : getAlbumCategories(album)) {
+                database_->addOrUpdateAlbumCategory(album_id, category);
             }
 
             if (track_info.file_ext() == kDsfFileExtension || track_info.file_ext() == kDffFileExtension) {

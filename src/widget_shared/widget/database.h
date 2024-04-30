@@ -26,16 +26,16 @@ public:
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
-	int32_t songs{0};
-	double durations{0};
-	int32_t year{0};
-	size_t file_size{0};
+	int32_t songs{ 0 };
+	double durations{ 0 };
+	int32_t year{ 0 };
+	size_t file_size{ 0 };
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
-	int32_t albums{0};
-	int32_t tracks{0};
-	double durations{0};
+	int32_t albums{ 0 };
+	int32_t tracks{ 0 };
+	double durations{ 0 };
 };
 
 constexpr auto kMaxDatabasePoolSize = 8;
@@ -91,7 +91,7 @@ public:
 
 	Q_DISABLE_COPY(Database)
 
-	QSqlDatabase& database();
+		QSqlDatabase& database();
 
 	void close();
 
@@ -146,21 +146,23 @@ public:
 	void updateMusicPlays(int32_t music_id);
 
 	void addOrUpdateTrackLoudness(int32_t album_id,
-	                              int32_t artist_id,
-	                              int32_t music_id,
-	                              double track_loudness);
+		int32_t artist_id,
+		int32_t music_id,
+		double track_loudness);
 
 	void updateReplayGain(int32_t music_id,
-	                      double album_rg_gain,
-	                      double album_peak,
-	                      double track_rg_gain,
-	                      double track_peak);
+		double album_rg_gain,
+		double album_peak,
+		double track_rg_gain,
+		double track_peak);
 
-	int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year,
-							 StoreType store_type,
-	                         const QString& disc_id = kEmptyString,
-	                         const QString& album_genre = kEmptyString,
-	                         bool is_hires = false);
+	int32_t addOrUpdateAlbum(const QString& album,
+		int32_t artist_id,
+		int64_t album_time,
+		uint32_t year,
+		StoreType store_type,
+		const QString& disc_id = kEmptyString,
+		bool is_hires = false);
 
 	void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
@@ -169,7 +171,7 @@ public:
 	void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
 	void addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id,
-	                              double track_loudness = 0) const;
+		double track_loudness = 0) const;
 
 	int32_t getAlbumIdByDiscId(const QString& disc_id) const;
 
@@ -229,7 +231,7 @@ public:
 
 	bool isPlaylistExist(int32_t playlist_id) const;
 
-	int32_t addPlaylist(const QString& name, int32_t index, StoreType store_type, const QString& cloud_playlist_id= kEmptyString);
+	int32_t addPlaylist(const QString& name, int32_t index, StoreType store_type, const QString& cloud_playlist_id = kEmptyString);
 
 	void setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type);
 
@@ -251,7 +253,7 @@ public:
 
 	int32_t getAlbumIdFromAlbumMusic(int32_t music_id);
 private:
-	static PlayListEntity fromSqlQuery(const SqlQuery& query);	
+	static PlayListEntity fromSqlQuery(const SqlQuery& query);
 
 	void removeAlbumMusicAlbum(int32_t album_id);
 
