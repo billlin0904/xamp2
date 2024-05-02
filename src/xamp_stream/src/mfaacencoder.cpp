@@ -297,7 +297,7 @@ public:
             Vector<EncodingProfile> profiles;
 
             CComPtr<IMFCollection> available_types;
-            auto hr = MFTranscodeGetAudioOutputAvailableTypes(MFAudioFormat_AAC,
+            auto hr = ::MFTranscodeGetAudioOutputAvailableTypes(MFAudioFormat_AAC,
                 MFT_ENUM_FLAG_ALL,
                 nullptr,
                 &available_types);
@@ -316,16 +316,16 @@ public:
                 }
             }
 
-            Vector<CComPtr<IMFMediaType>> audio_types;
-            for (const auto& unknown_audio_type : unknown_audio_types) {
-                CComPtr<IMFMediaType> audio_type;
-                hr = unknown_audio_type->QueryInterface(IID_PPV_ARGS(&audio_type));
+            Vector<CComPtr<IMFMediaType>> media_types;
+            for (const auto& unknown_media_type : unknown_audio_types) {
+                CComPtr<IMFMediaType> media_type;
+                hr = unknown_media_type->QueryInterface(IID_PPV_ARGS(&media_type));
                 if (SUCCEEDED(hr)) {
-                    audio_types.push_back(audio_type);
+                    media_types.push_back(media_type);
                 }
             }
 
-            for (const auto& audio_type : audio_types) {
+            for (const auto& audio_type : media_types) {
                 uint32_t sample_rate = 0;
                 audio_type->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &sample_rate);
                 uint32_t num_channels = 0;

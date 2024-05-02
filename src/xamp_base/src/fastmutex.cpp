@@ -1,62 +1,27 @@
 #include <base/assert.h>
 #include <base/platfrom_handle.h>
 #include <base/fastmutex.h>
+#include <shared_mutex>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
 class SRWMutex::SRWMutexImpl {
 public:
-#ifdef XAMP_OS_WIN
-    SRWMutexImpl() {
-        ::InitializeSRWLock(&lock_);
-    }
+    SRWMutexImpl() = default;
 
     void lock() noexcept {
-        ::AcquireSRWLockExclusive(&lock_);
+        lock_.lock();
     }
 
     void unlock() noexcept {
-        ::ReleaseSRWLockExclusive(&lock_);
+        lock_.unlock();
     }
 
     bool try_lock() noexcept {
-        return ::TryAcquireSRWLockExclusive(&lock_);
+        return lock_.try_lock();
     }
 
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
-    uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };
-#else
-    SRWMutexImpl() noexcept {
-        auto ret = ::pthread_rwlock_init(&lock_, nullptr);
-        XAMP_ASSERT(ret == 0);
-	}
-
-    ~SRWMutexImpl() noexcept {
-        auto ret = ::pthread_rwlock_destroy(&lock_);
-        XAMP_ASSERT(ret == 0);
-    }
-
-    void lock() noexcept {
-        auto ret = ::pthread_rwlock_wrlock(&lock_);
-        XAMP_ASSERT(ret == 0);
-    }
-
-    void unlock() noexcept {
-        auto ret = ::pthread_rwlock_unlock(&lock_);
-        XAMP_ASSERT(ret == 0);
-    }
-
-    bool try_lock() noexcept {
-        auto ret = ::pthread_rwlock_trywrlock(&lock_);
-        if (ret == EBUSY) {
-            return false;
-        }
-        XAMP_ASSERT(ret == 0);
-        return true;
-    }
-
-    pthread_rwlock_t lock_ = PTHREAD_RWLOCK_INITIALIZER;
-#endif
+    std::shared_mutex lock_;
 };
 
 XAMP_PIMPL_IMPL(SRWMutex)

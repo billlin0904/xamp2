@@ -13,12 +13,12 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-inline constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
-inline constexpr auto kSharedTaskQueueSize = 4096;
-inline constexpr auto kWorkStealingTaskQueueSize = 4096;
-inline constexpr auto kMaxStealFailureSize = 500;
-inline constexpr auto kMaxWorkQueueSize = 65536;
-inline constexpr size_t kMaxThreadPoolSize = 8;
+constexpr std::chrono::milliseconds kSpinningTimeout = std::chrono::milliseconds(10);
+constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
+constexpr auto kSharedTaskQueueSize = 4096;
+constexpr auto kWorkStealingTaskQueueSize = 4096;
+constexpr auto kMaxWorkQueueSize = 65536;
+constexpr size_t kMaxThreadPoolSize = 8;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, const CpuAffinity& affinity, ThreadPriority priority)
 	: TaskScheduler(TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
@@ -218,7 +218,6 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		auto* local_queue = task_work_queues_[i].get();
 
 		auto* policy = task_scheduler_policy_.get();
-		auto steal_failure_count = 0;
 		const auto thread_id = GetCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
@@ -234,6 +233,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 		
+		Stopwatch spinning_watch;		
+
 		// Main loop
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			// Try to get a task from the local queue
@@ -247,19 +248,15 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 					task = TrySteal(stop_token, steal_index);
 				}
 				// Try to get a task from the shared queue
-				if (!task) {					
-					++steal_failure_count;
-					if (steal_failure_count >= kMaxStealFailureSize) {
+				if (!task) {
+					if (spinning_watch.Elapsed() >= kSpinningTimeout) {
 						task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
 						if (!task) {
 							continue;
 						}
 					}
 					else {
-						task = TrySteal(stop_token, steal_index);
-						if (!task) {
-							++steal_failure_count;
-						}
+						task = TrySteal(stop_token, steal_index);						
 					}
 				}
 			}
@@ -269,7 +266,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 				CpuRelax();
 				continue;
 			} else {
-				steal_failure_count = 0;
+				spinning_watch.Reset();
 			}
 
 			auto running_thread = ++running_thread_;

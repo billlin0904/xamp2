@@ -83,7 +83,9 @@ AudioDeviceManager::AudioDeviceManager()
 #endif
 }
 
-AudioDeviceManager::~AudioDeviceManager() = default;
+AudioDeviceManager::~AudioDeviceManager() {
+    Shutdown();
+}
 
 void AudioDeviceManager::Clear() {
     factory_.clear();

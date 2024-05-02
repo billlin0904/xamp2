@@ -160,9 +160,6 @@ void AudioPlayer::Destroy() {
     FreeAvLib();
 
     device_.reset();
-    if (device_manager_ != nullptr) {
-        device_manager_->Shutdown();
-    }
     device_manager_.reset();
 }
 
@@ -680,7 +677,11 @@ void AudioPlayer::OpenDevice(double stream_time) {
                     dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 }
                 else {
-                    dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
+                    if (dsd_mode_ == DsdModes::DSD_MODE_DOP) {
+                        dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DOP);
+                    } else {
+                        dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
+                    }
                 }
             }            
         } else {

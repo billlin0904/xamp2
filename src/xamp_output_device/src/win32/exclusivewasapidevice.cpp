@@ -268,13 +268,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 					InitialDeviceFormat(output_format, 32);
 					XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
 					is_2432_format_ = false;
-				}				
+				}
 			}
 			else {
 				HrIfFailThrow(hr);
 			}
-			// note: DOP模式下是否只能使用24/32格式?
-			//is_2432_format_ = true;
 		} else {
 			InitialDeviceFormat(output_format, 16);
 		}
@@ -424,7 +422,7 @@ void ExclusiveWasapiDevice::AbortStream() noexcept {
 }
 
 void ExclusiveWasapiDevice::SetIoFormat(DsdIoFormat format) {
-	if (format == DsdIoFormat::IO_FORMAT_DSD) {
+	if (format == DsdIoFormat::IO_FORMAT_DSD || format == DsdIoFormat::IO_FORMAT_DOP) {
 		raw_mode_ = true;
 	} else {
 		raw_mode_ = false;

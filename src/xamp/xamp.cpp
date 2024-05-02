@@ -2204,12 +2204,10 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
         playback_format.bit_rate = entity.bit_rate;
         // note: 某些DAC(ex: Dx3Pro)再撥放DSD的時候需要將音量設置最大.
-        if (!player_->IsHardwareControlVolume()) {
-            if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
-                || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
-                showMeMessage(tr("Play DSD file need set 100% volume."));
-                player_->SetVolume(100);
-            }
+        if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
+            || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
+            showMeMessage(tr("Play DSD file need set 100% volume."));
+            player_->SetVolume(100);
         }
 
         auto offset = !entity.offset ? 0.0 : entity.offset.value();

@@ -103,6 +103,9 @@ public:
     */
     [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
 
+    /*
+    * Shutdown global device resource.
+    */
     void Shutdown() override;
 private:
     class DeviceStateNotificationImpl;

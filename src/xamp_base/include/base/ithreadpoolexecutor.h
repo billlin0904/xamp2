@@ -83,23 +83,23 @@ XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::st
                                                                    ThreadPriority priority = ThreadPriority::NORMAL,
                                                                    CpuAffinity affinity = CpuAffinity::kAll,
                                                                    uint32_t max_thread =
-	                                                                   std::thread::hardware_concurrency(),
+	                                                               std::thread::hardware_concurrency(),
                                                                    TaskSchedulerPolicy policy =
-	                                                                   TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY,
+	                                                               TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY,
                                                                    TaskStealPolicy steal_policy =
-	                                                                   TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+	                                                               TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
 XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
                                                                    TaskSchedulerPolicy policy,
                                                                    TaskStealPolicy steal_policy =
-	                                                                   TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+	                                                               TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
 
 XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
                                                                    ThreadPriority priority,
                                                                    TaskSchedulerPolicy policy,
                                                                    TaskStealPolicy steal_policy =
-	                                                                   TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+	                                                               TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
 
 XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();

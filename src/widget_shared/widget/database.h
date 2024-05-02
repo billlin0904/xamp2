@@ -91,7 +91,7 @@ public:
 
 	Q_DISABLE_COPY(Database)
 
-		QSqlDatabase& database();
+	QSqlDatabase& database();
 
 	void close();
 

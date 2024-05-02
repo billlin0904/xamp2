@@ -21,8 +21,9 @@ XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 * </remarks>
 */
 XAMP_MAKE_ENUM(DsdIoFormat,
-    IO_FORMAT_PCM,
-    IO_FORMAT_DSD)
+    IO_FORMAT_PCM,    
+    IO_FORMAT_DSD,
+    IO_FORMAT_DOP)
 
 /*
 * IDsdDevice is the interface for DSD device.

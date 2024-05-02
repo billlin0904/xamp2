@@ -80,6 +80,9 @@ public:
 	*/	
 	virtual DeviceTypeFactoryMap::iterator End() = 0;
 
+	/*
+	* Shutdown global device resource.
+	*/
 	virtual void Shutdown() = 0;
 protected:
 	/*

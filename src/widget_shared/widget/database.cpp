@@ -191,14 +191,18 @@ void Database::open() {
         return;
     }
 
-    (void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
+    (void)db_.exec(qTEXT("PRAGMA auto_vacuum = FULL"));
+    (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
+    (void)db_.exec(qTEXT("PRAGMA journal_mode = DELETE"));
+
+    /*(void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
     (void)db_.exec(qTEXT("PRAGMA auto_vacuum = FULL"));
     (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
     (void)db_.exec(qTEXT("PRAGMA journal_mode = DELETE"));
     (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
     (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
     (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
-    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));    
+    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));*/    
 
     createTableIfNotExist();
 }
