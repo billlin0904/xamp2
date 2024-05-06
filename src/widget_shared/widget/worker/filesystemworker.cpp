@@ -135,13 +135,9 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 						tracks.push_front(track);
 					}
 				}
-				/*TaglibMetadataReader reader;
-				tracks.push_front(reader.Extract(path));*/
 			}
 			catch (const std::exception &e) {
-				XAMP_LOG_DEBUG("Failed to extract file:{} ({})", 
-					path.string(), 
-					String::LocaleStringToUTF8(e.what()));
+				XAMP_LOG_DEBUG("Failed to extract file: {}", e.what());
 			}
 			catch (...) {
 			}

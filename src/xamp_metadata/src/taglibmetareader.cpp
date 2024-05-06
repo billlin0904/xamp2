@@ -404,6 +404,10 @@ public:
         TrackInfo track_info;
 
 	    const auto fileref = GetFileRef(path);
+        if (fileref.isNull()) {
+            throw FileNotFoundException();
+        }
+
         const auto* tag = fileref.tag();
 
         if (tag != nullptr) {

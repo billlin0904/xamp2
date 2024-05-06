@@ -1054,21 +1054,7 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
 
                     TagIO tag_io;
                     tag_io.writeEmbeddedCover(file_name.toStdWString(), image);
-
-                    qDiskCache.setFileName(QString::fromStdString(song.value().video_id), file_name);
-
-                    /*const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-                    const auto last_save_file_name = last_dir + qTEXT("/") + file_name;                                     
-
-                    getSaveFileName(this, [file_name](const auto& save_file_name) {
-                        QDir dir;
-                        if (dir.rename(file_name, save_file_name)) {
-                            XMessageBox::showInformation(tr("Download completed!"));
-                        }
-                        }, tr("Save ") + qTEXT(".mp4"),
-                        last_save_file_name,
-                        kEmptyString);*/
-                    
+                    qDiskCache.setFileName(QString::fromStdString(song.value().video_id), file_name);                    
                 });                
 
                 });
