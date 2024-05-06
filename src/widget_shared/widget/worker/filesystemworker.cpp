@@ -92,12 +92,36 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 		}
 	);
 
+	auto process_cue_file = [this](const auto &path, auto playlist_id) {
+		ForwardList<TrackInfo> tracks;
+		try {
+			CueLoader loader;
+			for (auto& track : loader.Load(path)) {
+				tracks.push_front(track);
+			}
+			tracks.sort([](const auto& first, const auto& last) {
+				return first.track < last.track;
+				});
+			emit insertDatabase(tracks, playlist_id);
+		}
+		catch (const std::exception &e) {
+			XAMP_LOG_DEBUG("Failed to extract cue file: {}", e.what());
+		}
+		catch (...) {	
+		}			
+		};
+
 	while (itr.hasNext()) {
 		if (is_stop_) {
 			return;
 		}
 		auto next_path = toNativeSeparators(itr.next());
 		auto path = next_path.toStdWString();
+		// Note: CueLoader has thread safe issue so we need to process no in parallel.
+		if (Path(path).extension() == kCueFileExtension) {
+			process_cue_file(path, playlist_id);
+			continue;
+		}
 		auto directory = QFileInfo(next_path).dir().path().toStdWString();
 		if (!directory_files.contains(directory)) {
 			directory_files[directory].reserve(kReserveFilePathSize);
@@ -112,6 +136,10 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 		}
 		const auto next_path = toNativeSeparators(dir);
 		const auto path = next_path.toStdWString();
+		// Note: CueLoader has thread safe issue so we need to process no in parallel.
+		if (Path(path).extension() == kCueFileExtension) {
+			process_cue_file(path, playlist_id);
+		}
 		const auto directory = QFileInfo(dir).dir().path().toStdWString();
 		directory_files[directory].emplace_back(path);
 	}
@@ -125,16 +153,8 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 		
 		for (const auto& path : path_info.second) {
 			try {
-				if (path.extension() != kCueFileExtension) {									
-					TaglibMetadataReader reader;
-					tracks.push_front(reader.Extract(path));
-				}
-				else {					
-					CueLoader loader;
-					for (auto& track : loader.Load(path)) {
-						tracks.push_front(track);
-					}
-				}
+				TaglibMetadataReader reader;
+				tracks.push_front(reader.Extract(path));
 			}
 			catch (const std::exception &e) {
 				XAMP_LOG_DEBUG("Failed to extract file: {}", e.what());
