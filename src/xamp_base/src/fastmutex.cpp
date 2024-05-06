@@ -10,7 +10,8 @@ public:
     SRWMutexImpl() = default;
 
     void lock() noexcept {
-        lock_.lock();
+        while (!lock_.try_lock()) {            
+        }
     }
 
     void unlock() noexcept {

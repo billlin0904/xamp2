@@ -135,11 +135,15 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 						tracks.push_front(track);
 					}
 				}
+				/*TaglibMetadataReader reader;
+				tracks.push_front(reader.Extract(path));*/
 			}
 			catch (const std::exception &e) {
 				XAMP_LOG_DEBUG("Failed to extract file:{} ({})", 
 					path.string(), 
 					String::LocaleStringToUTF8(e.what()));
+			}
+			catch (...) {
 			}
 			++completed_work_;
 			updateProgress();
@@ -215,7 +219,14 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 		if (is_stop_) {
 			return;
 		}
-		scanPathFiles(extract_file_thread_pool, playlist_id, path_info.path);
+		try {
+			scanPathFiles(extract_file_thread_pool, playlist_id, path_info.path);
+		}
+		catch (const std::exception &e) {
+			XAMP_LOG_DEBUG("Failed to extract file:{} ({})", 
+				String::ToString(path_info.path.toStdWString()), 
+				String::LocaleStringToUTF8(e.what()));
+		}		
 	}
 }
 

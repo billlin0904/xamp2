@@ -164,7 +164,8 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
         ThreadPriority::NORMAL,
-        affinity);
+        affinity,
+        32);
 
     XampLoggerFactory.GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
