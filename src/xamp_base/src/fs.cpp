@@ -6,6 +6,10 @@
 #include <base/logger_impl.h>
 #include <base/stl.h>
 #include <base/str_utilts.h>
+#include <base/charset_detector.h>
+
+#include <errno.h>
+#include <iconv.h>
 
 #ifdef XAMP_OS_WIN
 #include <codecvt>
@@ -21,6 +25,73 @@
 #include <fstream>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+namespace {
+	template <typename T>
+	struct IconvDeleter;
+
+	template <>
+	struct IconvDeleter<void> {
+		void operator()(void* p) const {
+			::iconv_close(p);
+		}
+	};
+
+	using IconvPtr = std::unique_ptr<void, IconvDeleter<void>>;
+
+	std::string ConvertToUtf8String(const std::string& input_encoding,
+		const std::string& input,
+		size_t buf_size = 4096,
+		bool ignore_error = false) {
+		IconvPtr handle(::iconv_open("UTF-8", input_encoding.c_str()));
+		if (handle.get() == (iconv_t)(-1)) {
+			throw std::runtime_error("unknown error");
+		}
+
+		std::string output;
+
+		auto check_convert_error = []() {
+			switch (errno) {
+			case EILSEQ:
+			case EINVAL:
+				throw std::runtime_error("invalid multibyte chars");
+			default:
+				throw std::runtime_error("unknown error");
+			}
+			};
+
+		// copy the string to a buffer as iconv function requires a non-const char
+		// pointer.
+		std::vector<char> in_buf(input.begin(), input.end());
+		char* src_ptr = &in_buf[0];
+		size_t src_size = input.size();
+
+		std::vector<char> buf(buf_size);
+		std::string dst;
+
+		while (0 < src_size) {
+			char* dst_ptr = &buf[0];
+			size_t dst_size = buf.size();
+			size_t res = ::iconv(handle.get(), &src_ptr, &src_size, &dst_ptr, &dst_size);
+			if (res == (size_t)-1) {
+				if (errno == E2BIG) {
+					// ignore this error
+				}
+				else if (ignore_error) {
+					// skip character
+					++src_ptr;
+					--src_size;
+				}
+				else {
+					check_convert_error();
+				}
+			}
+			dst.append(&buf[0], buf.size() - dst_size);
+		}
+		dst.swap(output);
+		return output;
+	}
+}
 
 bool IsFilePath(const Path& file_path) noexcept {
 	return file_path.has_extension();
@@ -59,22 +130,22 @@ Path GetApplicationFilePath() {
 	::GetModuleFileNameW(nullptr, buffer, MAX_PATH);
 	return Path(buffer).parent_path();
 #else
-    char raw_path_name[PATH_MAX]{};
-    char real_path_name[PATH_MAX]{};
-    uint32_t raw_path_size = (uint32_t)sizeof(raw_path_name);
-    if(!::_NSGetExecutablePath(raw_path_name, &raw_path_size)) {
-        ::realpath(raw_path_name, real_path_name);
-    }
-    return Path(real_path_name).parent_path();
+	char raw_path_name[PATH_MAX]{};
+	char real_path_name[PATH_MAX]{};
+	uint32_t raw_path_size = (uint32_t)sizeof(raw_path_name);
+	if (!::_NSGetExecutablePath(raw_path_name, &raw_path_size)) {
+		::realpath(raw_path_name, real_path_name);
+	}
+	return Path(real_path_name).parent_path();
 #endif
 }
 
-std::string GetSharedLibraryName(const std::string_view &name) {
-    std::string library_name(name);
+std::string GetSharedLibraryName(const std::string_view& name) {
+	std::string library_name(name);
 #ifdef XAMP_OS_WIN
-    return library_name + ".dll";
+	return library_name + ".dll";
 #else
-    return "lib" + library_name + ".dylib";
+	return "lib" + library_name + ".dylib";
 #endif
 }
 
@@ -84,10 +155,10 @@ int64_t GetLastWriteTime(const Path& path) {
 
 	FileHandle file(::CreateFileW(file_path.c_str(),
 		GENERIC_READ,
-		FILE_SHARE_READ, 
+		FILE_SHARE_READ,
 		nullptr,
-		OPEN_EXISTING, 
-		0, 
+		OPEN_EXISTING,
+		0,
 		nullptr));
 	if (!file) {
 		throw PlatformException();
@@ -117,8 +188,8 @@ int64_t GetLastWriteTime(const Path& path) {
 	tm.tm_isdst = -1;
 	return std::mktime(&tm);
 #else
-    //return ToTime_t(Fs::last_write_time(path));
-    return 0;
+	//return ToTime_t(Fs::last_write_time(path));
+	return 0;
 #endif
 }
 
@@ -131,71 +202,27 @@ bool IsCDAFile(Path const& path) {
 }
 
 std::string ReadFileToUtf8String(const Path& path) {
-	std::wifstream file;
+	std::ifstream file;
 	file.open(path, std::ios::binary);
 
 	if (!file.is_open()) {
-		return "";
+		throw FileNotFoundException();
 	}
-
-	ImbueFileFromBom(file);
 
 	file.seekg(0, std::ios::end);
 	auto length = file.tellg();
 	file.seekg(0, std::ios::beg);
 
-	std::vector<wchar_t> buffer(length);
+	std::vector<char> buffer(length);
 	file.read(&buffer[0], length);
+	std::string input_str(buffer.data(), length);
 
-	return String::ToString(std::wstring(buffer.data(), file.gcount()));
-}
-
-bool TryImbue(std::wifstream& file, std::string_view name) {
-	try {
-		(void)file.imbue(std::locale(name.data()));
-		return true;
+	CharsetDetector detector;
+	const auto encoding = detector.Detect(input_str.data(), input_str.length());
+	if (encoding.empty()) {
+		return input_str;
 	}
-	catch (const std::exception&) {
-		return false;
-	}
-}
-
-void ImbueFileFromBom(std::wifstream& file) {
-#ifdef XAMP_OS_WIN
-	static const std::array<std::string_view, 4> locale_names{
-		"en_US.UTF-8",
-		"zh_TW.UTF-8",
-		"zh_CN.UTF-8",
-		"ja_JP.SJIS",
-	};
-
-	std::wstring bom;
-
-	if (std::getline(file, bom, L'\r')) {
-		// UTF-16 BOM
-		if (bom.size() > 2 && bom[0] == 0xFEFF) {
-			file.imbue(std::locale(std::locale(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>()));
-			file.seekg(2, std::ios_base::beg);
-			return;
-		}
-		// UTF-8 BOM
-		if (bom.size() > 3 && bom.substr(0, 3) == L"\xEF\xBB\xBF") {
-			file.imbue(std::locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t, 0x10FFFF, std::little_endian>()));
-			file.seekg(3, std::ios_base::beg);
-			return;
-		}
-		// Other BOM
-		for (auto locale_name : locale_names) {			
-			if (TryImbue(file, locale_name)) {				
-				break;
-			}
-		}
-		file.seekg(0, std::ios_base::beg);
-	}
-#else
-	std::locale utf8_locale(std::locale(), new std::codecvt_utf8<wchar_t>());
-	file.imbue(utf8_locale);
-#endif
+	return ConvertToUtf8String(encoding, input_str, length);
 }
 
 XAMP_BASE_NAMESPACE_END

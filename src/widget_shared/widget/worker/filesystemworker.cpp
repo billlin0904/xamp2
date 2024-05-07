@@ -117,7 +117,7 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 		}
 		auto next_path = toNativeSeparators(itr.next());
 		auto path = next_path.toStdWString();
-		// Note: CueLoader has thread safe issue so we need to process no in parallel.
+		// Note: CueLoader has thread safe issue so we need to process not in parallel.
 		if (Path(path).extension() == kCueFileExtension) {
 			process_cue_file(path, playlist_id);
 			continue;
@@ -136,7 +136,7 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 		}
 		const auto next_path = toNativeSeparators(dir);
 		const auto path = next_path.toStdWString();
-		// Note: CueLoader has thread safe issue so we need to process no in parallel.
+		// Note: CueLoader has thread safe issue so we need to process not in parallel.
 		if (Path(path).extension() == kCueFileExtension) {
 			process_cue_file(path, playlist_id);
 		}

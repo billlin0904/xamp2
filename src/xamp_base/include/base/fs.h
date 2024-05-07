@@ -50,13 +50,6 @@ XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
 XAMP_BASE_API bool IsCDAFile(const Path& path);
 
-/*
-* Imbue file from bom.
-* 
-* @param[in] file
-*/
-XAMP_BASE_API void ImbueFileFromBom(std::wifstream& file);
-
 XAMP_BASE_API std::string ReadFileToUtf8String(const Path& path);
 
 /*

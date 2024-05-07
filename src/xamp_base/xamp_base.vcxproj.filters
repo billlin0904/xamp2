@@ -32,6 +32,7 @@
     <ClCompile Include="src\waitabletimer.cpp" />
     <ClCompile Include="src\windows_handle.cpp" />
     <ClCompile Include="src\com_error_category.cpp" />
+    <ClCompile Include="src\charset_detector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -100,5 +101,6 @@
     <ClInclude Include="include\base\expected.h" />
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\com_error_category.h" />
+    <ClInclude Include="include\base\charset_detector.h" />
   </ItemGroup>
 </Project>

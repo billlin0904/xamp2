@@ -52,9 +52,8 @@ namespace {
 			LIBCUE_LIB.cd_delete(p);
 		}
 	};
-
-	template <typename T>
-	using CdPtr = std::unique_ptr<T, CdPtrDeleter<T>>;
+	
+	using CdPtr = std::unique_ptr<Cd, CdPtrDeleter<Cd>>;
 }
 
 XAMP_DECLARE_LOG_NAME(CueLoader);
@@ -79,7 +78,7 @@ public:
 			return track_infos;
 		}
 
-		CdPtr<Cd> cd(cd_handle);
+		CdPtr cd(cd_handle);
 
 		std::optional<TrackInfo> opt_track_info;
 		TrackInfo track_info;

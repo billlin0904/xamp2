@@ -78,16 +78,17 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/expected/include/;../thirdparty/thread-safe-lru/;../thirdparty/oneapi-tb/include/</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/expected/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASE_API_EXPORTS;UCHARDET_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
       <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;uchardet.lib;libiconvD.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../thirdparty/uchardet/msvc/src/Debug/;../thirdparty/libiconv/output/x64/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -162,6 +163,7 @@
     <ClInclude Include="include\base\assert.h" />
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
+    <ClInclude Include="include\base\charset_detector.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\dsd_utils.h" />
@@ -227,6 +229,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audioformat.cpp" />
+    <ClCompile Include="src\charset_detector.cpp" />
     <ClCompile Include="src\com_error_category.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />

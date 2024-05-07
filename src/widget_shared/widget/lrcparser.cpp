@@ -75,7 +75,7 @@ bool LrcParser::parseFile(const std::wstring &file_path) {
         return false;
     }
 
-    ImbueFileFromBom(file);
+    // TODO: use ReadFileToUtf8String to std::stringstream
     return parseStream(file);
 }
 
