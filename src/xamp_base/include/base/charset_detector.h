@@ -26,4 +26,7 @@ private:
 	AlignPtr<CharsetDetectorImpl> impl_;
 };
 
+
+XAMP_BASE_API void LoadUcharDectLib();
+
 XAMP_BASE_NAMESPACE_END

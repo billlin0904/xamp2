@@ -3,10 +3,39 @@
 #include <vector>
 
 #include <stdexcept>
+
+#include <base/dll.h>
+#include <base/logger_impl.h>
 #include <base/text_encoding.h>
 #include <base/charset_detector.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+class LibIconvLib final {
+public:
+	LibIconvLib();
+
+	XAMP_DISABLE_COPY(LibIconvLib)
+private:
+	SharedLibraryHandle module_;
+
+public:
+	XAMP_DECLARE_DLL_NAME(libiconv_open);
+	XAMP_DECLARE_DLL_NAME(libiconv_close);
+	XAMP_DECLARE_DLL_NAME(libiconv);
+};
+
+inline LibIconvLib::LibIconvLib() try
+	: module_(OpenSharedLibrary("libiconv"))
+	, XAMP_LOAD_DLL_API(libiconv_open)
+	, XAMP_LOAD_DLL_API(libiconv_close)
+	, XAMP_LOAD_DLL_API(libiconv) {
+}
+catch (const Exception& e) {
+	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+#define LIBICONV_LIB Singleton<LibIconvLib>::GetInstance()
 
 template <typename T>
 struct IconvDeleter;
@@ -14,7 +43,7 @@ struct IconvDeleter;
 template <>
 struct IconvDeleter<void> {
 	void operator()(void* p) const {
-		::iconv_close(p);
+		LIBICONV_LIB.iconv_close(p);
 	}
 };
 
@@ -28,14 +57,18 @@ public:
 		const std::string& input,
 		size_t buf_size,
 		bool ignore_error) {
-		IconvPtr handle(::iconv_open("UTF-8", input_encoding.c_str()));
+		IconvPtr handle(LIBICONV_LIB.libiconv_open("UTF-8", input_encoding.c_str()));
+		if (!handle) {
+			throw std::runtime_error("unknown error");
+		}
 		if (handle.get() == (iconv_t)(-1)) {
 			throw std::runtime_error("unknown error");
 		}
 
 		std::string output;
 
-		auto check_convert_error = []() {
+		auto check_convert_error = [&convert_pos]() {
+			auto check_error = errno;
 			switch (errno) {
 			case EILSEQ:
 			case EINVAL:
@@ -52,12 +85,15 @@ public:
 		size_t src_size = input.size();
 
 		std::vector<char> buf(buf_size);
-		std::string dst;
+		std::string dst;		
 
 		while (0 < src_size) {
+			// reset the buffer
 			char* dst_ptr = &buf[0];
-			size_t dst_size = buf.size();
-			size_t res = ::iconv(handle.get(), &src_ptr, &src_size, &dst_ptr, &dst_size);
+			size_t dst_size = buf.size();			
+
+			// convert the string
+			size_t res = LIBICONV_LIB.libiconv(handle.get(), &src_ptr, &src_size, &dst_ptr, &dst_size);
 			if (res == (size_t)-1) {
 				if (errno == E2BIG) {
 					// ignore this error
@@ -71,8 +107,12 @@ public:
 					check_convert_error();
 				}
 			}
+
+			// append the converted string
 			dst.append(&buf[0], buf.size() - dst_size);
 		}
+
+		// swap the result
 		dst.swap(output);
 		return output;
 	}
@@ -99,5 +139,9 @@ TextEncoding::TextEncoding()
 }
 
 XAMP_PIMPL_IMPL(TextEncoding)
+
+void LoadLibIconvLib() {
+	LIBICONV_LIB;
+}
 
 XAMP_BASE_NAMESPACE_END

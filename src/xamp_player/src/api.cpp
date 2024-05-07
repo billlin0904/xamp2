@@ -2,6 +2,8 @@
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/logger_impl.h>
+#include <base/text_encoding.h>
+#include <base/charset_detector.h>
 
 #include <stream/api.h>
 #include <stream/icddevice.h>
@@ -36,6 +38,12 @@ void LoadComponentSharedLibrary() {
 
     LoadLibCueLib();
     XAMP_LOG_DEBUG("Load libcue lib success.");
+
+    LoadUcharDectLib();
+    XAMP_LOG_DEBUG("Load uchardect lib success.");
+
+    LoadLibIconvLib();
+    XAMP_LOG_DEBUG("Load iconv lib success.");
 
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();

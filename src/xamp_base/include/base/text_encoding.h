@@ -29,5 +29,7 @@ private:
 	AlignPtr<TextEncodingImpl> impl_;
 };
 
+XAMP_BASE_API void LoadLibIconvLib();
+
 XAMP_BASE_NAMESPACE_END
 
