@@ -69,13 +69,14 @@ bool WebVTTParser::parse(std::wistream& file) {
 }
 
 bool WebVTTParser::parseFile(const std::wstring& file_path) {
-    std::wifstream file(file_path);
-    if (!file.is_open()) {
-        return false;
+    try {
+        auto wide_str = String::ToStdWString(ReadFileToUtf8String(file_path));
+        std::wstringstream file(wide_str);
+        return parse(file);
     }
-
-    // TODO: use ReadFileToUtf8String to std::stringstream
-    return parse(file);
+    catch (...) {
+		return false;
+    }
 }
 
 LyricEntry WebVTTParser::lineAt(int32_t index) const {

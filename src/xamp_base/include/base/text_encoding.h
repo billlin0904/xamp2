@@ -10,20 +10,24 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-class XAMP_BASE_API CharsetDetector {
+class XAMP_BASE_API TextEncoding {
 public:
-	CharsetDetector();
+	TextEncoding();
 
-	XAMP_PIMPL(CharsetDetector)
+	XAMP_PIMPL(TextEncoding)
 
-	std::string Detect(const char* data, size_t size);
+	std::string ToUtf8String(const std::string& encoding_name,
+			const std::string& input,
+			size_t buf_size = 4096,
+			bool ignore_error = false);
 
-	std::string Detect(const std::string &str) {
-		return Detect(str.data(), str.size());
-	}
+	std::string ToUtf8String(const std::string& input,
+		size_t buf_size,
+		bool ignore_error);
 private:
-	class CharsetDetectorImpl;
-	AlignPtr<CharsetDetectorImpl> impl_;
+	class TextEncodingImpl;
+	AlignPtr<TextEncodingImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END
+

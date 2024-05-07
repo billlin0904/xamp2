@@ -164,6 +164,7 @@
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\charset_detector.h" />
+    <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\dsd_utils.h" />
@@ -245,6 +246,7 @@
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
+    <ClCompile Include="src\text_encoding.cpp" />
     <ClCompile Include="src\uuid.cpp" />
     <ClCompile Include="src\logger_impl.cpp" />
     <ClCompile Include="src\memory.cpp" />

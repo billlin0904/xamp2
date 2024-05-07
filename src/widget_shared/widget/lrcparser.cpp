@@ -68,15 +68,14 @@ void LrcParser::clear() {
 }
 
 bool LrcParser::parseFile(const std::wstring &file_path) {
-    std::wifstream file;
-    file.open(file_path);
-
-    if (!file.is_open()) {
-        return false;
+    try {
+        auto wide_str = String::ToStdWString(ReadFileToUtf8String(file_path));
+        std::wstringstream file(wide_str);
+        return parseStream(file);
     }
-
-    // TODO: use ReadFileToUtf8String to std::stringstream
-    return parseStream(file);
+    catch (...) {
+        return false;
+    }   
 }
 
 void LrcParser::parseLrc(const std::wstring & line) {

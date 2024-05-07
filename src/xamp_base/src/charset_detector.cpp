@@ -33,7 +33,7 @@ public:
 		::uchardet_reset(detector_.get());
 		return encoding;
 	}
-
+private:
 	UcharDetPtr detector_;
 };
 
