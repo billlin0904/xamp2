@@ -21,8 +21,8 @@ const HashSet<std::string>& GetSupportFileExtensions() {
 	return TaglibMetadataReader::GetSupportFileExtensions();
 }
 
-void LoadLibCueLib() {
-	LIBCUE_LIB;
+void LoadCueLib() {
+	Singleton<LibCueLib>::GetInstance();
 }
 
 XAMP_METADATA_NAMESPACE_END

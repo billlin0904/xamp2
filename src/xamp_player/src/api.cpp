@@ -36,7 +36,7 @@ void LoadComponentSharedLibrary() {
     LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 
-    LoadLibCueLib();
+    LoadCueLib();
     XAMP_LOG_DEBUG("Load libcue lib success.");
 
     LoadUcharDectLib();

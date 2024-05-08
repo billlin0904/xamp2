@@ -15,6 +15,7 @@
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
     <ClInclude Include="include\metadata\cueloader.h" />
+    <ClInclude Include="include\metadata\libcuelib.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="win32">
