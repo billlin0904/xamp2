@@ -22,7 +22,7 @@ const HashSet<std::string>& GetSupportFileExtensions() {
 }
 
 void LoadLibCueLib() {
-	Singleton<LibCueLib>::GetInstance();
+	LIBCUE_LIB;
 }
 
 XAMP_METADATA_NAMESPACE_END

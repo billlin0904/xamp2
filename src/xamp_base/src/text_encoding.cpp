@@ -67,7 +67,7 @@ public:
 
 		std::string output;
 
-		auto check_convert_error = [&convert_pos]() {
+		auto check_convert_error = []() {
 			auto check_error = errno;
 			switch (errno) {
 			case EILSEQ:
@@ -118,18 +118,18 @@ public:
 	}
 };
 
-std::string TextEncoding::ToUtf8String(const std::string& encoding_name,
+std::string TextEncoding::ToUtf8String(const std::string& input_encoding,
 	const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
-	return impl_->ConvertToUtf8String(encoding_name, input, buf_size, ignore_error);
+	return impl_->ConvertToUtf8String(input_encoding, input, buf_size, ignore_error);
 }
 
 std::string TextEncoding::ToUtf8String(const std::string& input, size_t buf_size, bool ignore_error) {
 	CharsetDetector detector;
 	const auto encoding_name = detector.Detect(input);
 	if (encoding_name.empty()) {
-		throw std::runtime_error("unknown encoding");
+		throw std::runtime_error("detect unknown encoding");
 	}
 	return ToUtf8String(encoding_name, input, buf_size, ignore_error);
 }

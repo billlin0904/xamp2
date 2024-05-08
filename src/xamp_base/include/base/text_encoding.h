@@ -16,14 +16,14 @@ public:
 
 	XAMP_PIMPL(TextEncoding)
 
-	std::string ToUtf8String(const std::string& encoding_name,
+	std::string ToUtf8String(const std::string& input_encoding,
 			const std::string& input,
 			size_t buf_size = 4096,
 			bool ignore_error = false);
 
 	std::string ToUtf8String(const std::string& input,
-		size_t buf_size,
-		bool ignore_error);
+		size_t buf_size = 4096,
+		bool ignore_error = false);
 private:
 	class TextEncodingImpl;
 	AlignPtr<TextEncodingImpl> impl_;
