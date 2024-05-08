@@ -46,8 +46,6 @@ XAMP_BASE_API Path GetApplicationFilePath();
 
 XAMP_BASE_API Path GetComponentsFilePath();
 
-XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
-
 XAMP_BASE_API bool IsCDAFile(const Path& path);
 
 XAMP_BASE_API std::string ReadFileToUtf8String(const Path& path);
