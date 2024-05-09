@@ -243,6 +243,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             painter->setBrush(QBrush(qTheme.hoverColor()));
             painter->drawEllipse(more_button_rect);
         }
+        emit stopRefreshCover();
     }    
 
     if (more_album_opt_button_->isDefault()) {
@@ -378,6 +379,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
 
 AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
+    , refresh_cover_timer_(this)
     , page_(nullptr)
 	, styled_delegate_(new AlbumViewStyledDelegate(this))
     , animation_(nullptr)
@@ -401,7 +403,7 @@ AlbumView::AlbumView(QWidget* parent)
     setItemDelegate(styled_delegate_);
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
-    setMouseTracking(true);       
+    setMouseTracking(true);    
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
         showMenu(pt);
@@ -430,14 +432,20 @@ AlbumView::AlbumView(QWidget* parent)
         emit clickedAlbum(album, album_id, cover_id);
         }); 
 
+    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::stopRefreshCover, [this]() {
+        refresh_cover_timer_.stop();
+        });
+
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         showAlbumViewMenu(pt);
     });
 
-    verticalScrollBar()->setStyleSheet(qTEXT(
+   verticalScrollBar()->setStyleSheet(qTEXT(
         "QScrollBar:vertical { width: 6px; }"
     ));
+
+    (void)QObject::connect(&refresh_cover_timer_, &QTimer::timeout, this, &AlbumView::reload);
 }
 
 void AlbumView::setPlayingAlbumId(int32_t album_id) {
@@ -546,6 +554,10 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         remove_album();
         });
     remove_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));    
+}
+
+void AlbumView::enterEvent(QEnterEvent* event) {
+    refresh_cover_timer_.stop();
 }
 
 void AlbumView::showMenu(const QPoint &pt) {
@@ -853,4 +865,8 @@ void AlbumView::resizeEvent(QResizeEvent* event) {
         }
     }    
     QListView::resizeEvent(event);
+}
+
+void AlbumView::refreshCover() {
+    refresh_cover_timer_.start();
 }

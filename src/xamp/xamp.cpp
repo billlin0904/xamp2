@@ -1753,24 +1753,6 @@ void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, cons
 }
 
 void Xamp::setFullScreen() {
-    // TODO ...
-    /*if (qAppSettings.valueAsBool(kAppSettingEnterFullScreen)) {
-        setCurrentTab(TAB_LYRICS);
-        ui_.bottomFrame->setHidden(true);
-        ui_.sliderFrame->setHidden(true);
-        ui_.titleFrame->setHidden(true);
-        ui_.verticalSpacer_3->changeSize(0, 0);
-        lrc_page_->setFullScreen(true);
-        qAppSettings.setValue<bool>(kAppSettingEnterFullScreen, false);
-    }
-    else {
-        ui_.bottomFrame->setHidden(false);
-        ui_.sliderFrame->setHidden(false);
-        ui_.titleFrame->setHidden(false);
-        ui_.verticalSpacer_3->changeSize(20, 15, QSizePolicy::Minimum, QSizePolicy::Fixed);
-        lrc_page_->setFullScreen(false);
-        qAppSettings.setValue<bool>(kAppSettingEnterFullScreen, true);
-    }*/
 }
 
 void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
@@ -2463,12 +2445,6 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         page = localPlaylistPage();
 	}
 
-    /*const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
-        ui_.coverLabel->size().height() - image_utils::kPlaylistImageRadius);
-    const auto ui_cover = image_utils::roundImage(
-        image_utils::resizeImage(*cover, cover_size, false),
-        image_utils::kPlaylistImageRadius);
-    ui_.coverLabel->setPixmap(ui_cover);*/
     if (page != nullptr) {
         page->setCover(cover);
     }
@@ -3083,7 +3059,8 @@ void Xamp::onReadFilePath(const QString& file_path) {
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
-    qMainDb.setAlbumCover(album_id, cover_id);    
+    qMainDb.setAlbumCover(album_id, cover_id);  
+    album_page_->album()->refreshCover();
 }
 
 void Xamp::onTranslationCompleted(const QString& keyword, const QString& result) {

@@ -41,19 +41,6 @@ namespace {
 	}
 
 	FastMutex libcue_mutex;
-
-	template <typename T>
-	struct CdPtrDeleter;
-
-	template <>
-	struct CdPtrDeleter<Cd> {
-		void operator()(Cd* p) const {
-			XAMP_EXPECTS(p != nullptr);
-			LIBCUE_LIB.cd_delete(p);
-		}
-	};
-	
-	using CdPtr = std::unique_ptr<Cd, CdPtrDeleter<Cd>>;
 }
 
 XAMP_DECLARE_LOG_NAME(CueLoader);
@@ -74,7 +61,7 @@ public:
 
 		auto *cd_handle = LIBCUE_LIB.cue_parse_string(utf8_text.c_str());
 		if (!cd_handle) {
-			XAMP_LOG_E(logger_, "Failed to parse cue file: {}", path);
+			XAMP_LOG_E(logger_, "failed to parse cue file.");
 			return track_infos;
 		}
 
@@ -95,7 +82,7 @@ public:
 		auto* cur = LIBCUE_LIB.cd_get_track(cd.get(), 1);
 		const char* cur_name = cur ? LIBCUE_LIB.track_get_filename(cur) : nullptr;
 		if (!cur_name) {
-			XAMP_LOG_E(logger_, "Failed to parse cue file: {}", path);
+			XAMP_LOG_E(logger_, "failed to parse cue file.");
 			return track_infos;
 		}
 		
@@ -208,6 +195,19 @@ public:
 	}
 
 private:
+	template <typename T>
+	struct CdPtrDeleter;
+
+	template <>
+	struct CdPtrDeleter<Cd> {
+		void operator()(Cd* p) const {
+			XAMP_EXPECTS(p != nullptr);
+			LIBCUE_LIB.cd_delete(p);
+		}
+	};
+
+	using CdPtr = std::unique_ptr<Cd, CdPtrDeleter<Cd>>;
+
 	LoggerPtr logger_;
 };
 

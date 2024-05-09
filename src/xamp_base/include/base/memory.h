@@ -38,8 +38,6 @@ inline constexpr size_t kMaxPreReadFileSize = 65536;
 
 XAMP_BASE_API size_t GetPageSize() noexcept;
 
-XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
-
 XAMP_BASE_API bool PrefetchFile(std::wstring const& file_path);
 
 XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file, size_t prefech_size = kMaxPreReadFileSize);

@@ -254,6 +254,7 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 
 bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QFileInfo file_info(file_path);
+
 	stop();
 
 	const QString file_dir = file_info.path();
@@ -261,22 +262,43 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QString suffix = file_info.completeSuffix();
 
 	QString lrc_path = file_dir + QDir::separator() + base_name;
-	std::function<AlignPtr<ILrcParser>()> parser_type;
+	std::function<AlignPtr<ILrcParser>()> make_parser_func;
 
-	if (QFileInfo::exists(lrc_path + qTEXT(".lrc"))) {
-		lrc_path += qTEXT(".lrc");
-		parser_type = []() {
+	const OrderedMap<QString, std::function<AlignPtr<ILrcParser>()>> lrc_parser_map{
+		{
+			qTEXT(".lrc"), []() {
 			return MakeAlign<ILrcParser, LrcParser>();
-		};
-	}
-	else {
-		lrc_path += qTEXT(".") + suffix + qTEXT(".vtt");
-		parser_type = []() {
+			}
+		},
+		{
+			qTEXT(".vtt"), []() {
 			return MakeAlign<ILrcParser, WebVTTParser>();
-		};
+			}
+		},
+	};
+
+	for (const auto &parser_pair : lrc_parser_map) {
+		// Path like "C:/filename.lrc"
+		if (QFileInfo::exists(lrc_path + parser_pair.first)) {
+			lrc_path = lrc_path + parser_pair.first;
+			make_parser_func = parser_pair.second;
+			break;
+			// Path like "C:/filename.mp3.lrc"
+		} else if (QFileInfo::exists(lrc_path + qTEXT(".") + suffix + parser_pair.first)) {
+			lrc_path = lrc_path + qTEXT(".") + suffix + parser_pair.first;
+			make_parser_func = parser_pair.second;
+			break;
+		}
 	}
 
-	lyric_ = parser_type();
+	if (!make_parser_func) {
+		// Create default parser, make GUI happy!
+		lyric_ = MakeAlign<ILrcParser, LrcParser>();
+		setDefaultLrc();		
+		return false;
+	}
+
+	lyric_ = make_parser_func();
 
 	if (!lyric_->parseFile(lrc_path.toStdWString())) {
 		setDefaultLrc();

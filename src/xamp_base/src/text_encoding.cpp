@@ -131,7 +131,10 @@ std::string TextEncoding::ToUtf8String(const std::string& input, size_t buf_size
 	if (encoding_name.empty()) {
 		throw std::runtime_error("detect unknown encoding");
 	}
-	return ToUtf8String(encoding_name, input, buf_size, ignore_error);
+	if (encoding_name != "UTF-8") {
+		return ToUtf8String(encoding_name, input, buf_size, ignore_error);		
+	}
+	return input;
 }
 
 TextEncoding::TextEncoding()

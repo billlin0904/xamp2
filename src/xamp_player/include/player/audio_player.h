@@ -321,7 +321,7 @@ private:
 
     void ResizeReadBuffer(uint32_t allocate_size);
 
-    void ResizeFifo(uint32_t fifo_size);
+    void ResizeFIFO(uint32_t fifo_size);
 
     void ReadPlayerAction();
 

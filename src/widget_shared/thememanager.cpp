@@ -209,16 +209,21 @@ QFont ThemeManager::loadFonts() {
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
     QList<QString> en_fonts;
-    QList<QString> debug_fonts;    
+    QList<QString> debug_fonts;
 
-    installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
+    //installFileFonts(qTEXT("Inter"), ui_fonts);
     installFileFonts(qTEXT("NotoSans"), mono_fonts);
     installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
+    installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
+
+    ui_fonts.append(qTEXT("Segoe UI WPC"));
     ui_fonts.append(qTEXT("Segoe UI"));
 	ui_fonts.append(qTEXT("Microsoft JhengHei UI"));
     ui_fonts.append(qTEXT("Microsoft YaHei UI"));
     ui_fonts.append(qTEXT("Yu Gothic UI"));
+    ui_fonts.append(qTEXT("Meiryo UI"));
+    ui_fonts.append(qTEXT("MS PGothic"));
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 

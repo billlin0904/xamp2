@@ -153,6 +153,45 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
+AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
+    auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
+
+    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
+        if (auto* dsd_stream = AsDsdStream(file_stream)) {
+            switch (dsd_mode) {
+            case DsdModes::DSD_MODE_DOP:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DOP_AA:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP_AA(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_NATIVE:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportNativeSD(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DSD2PCM:
+                break;
+            case DsdModes::DSD_MODE_AUTO:
+                break;
+            case DsdModes::DSD_MODE_PCM:
+                break;
+            default:
+                Throw<NotSupportFormatException>(
+                    "Not support dsd-mode: {}.", dsd_mode);
+                break;
+            }
+            dsd_stream->SetDSDMode(dsd_mode);
+        }
+    }
+
+    return file_stream;
+}
+
 void LoadBassLib() {
     if (!BASS_LIB.IsLoaded()) {
         Singleton<BassLib>::GetInstance().Load();

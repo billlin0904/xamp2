@@ -48,7 +48,7 @@ double readAll(Path const& file_path,
 	const auto source_format = file_stream->GetFormat();
 	const AudioFormat input_format = AudioFormat::ToFloatFormat(source_format);
 
-	const auto buffer_size = GetPageAlignSize(1024 + kReadSampleSize * input_format.GetChannels());
+	const auto buffer_size = AlignUp(1024 + kReadSampleSize * input_format.GetChannels(), GetPageSize());
 	auto buffer = MakeBuffer<float>(buffer_size);
 	uint32_t num_samples = 0;
 

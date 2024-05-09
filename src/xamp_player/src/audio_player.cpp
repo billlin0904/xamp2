@@ -40,9 +40,11 @@ namespace {
     XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
     constexpr int32_t kBufferStreamCount = 8;
-
+    // 32MB
     constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
+    // 128MB
     constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
+    // 8KB
     constexpr uint32_t kMinReadBufferSize = 8192;
 
     constexpr int32_t  kTotalBufferStreamCount = 32;
@@ -60,45 +62,6 @@ namespace {
 
     int32_t GetBufferCount(int32_t sample_rate) {
         return sample_rate > (176400 * 2) ? kBufferStreamCount : 3;
-    }
-
-    AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
-        auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
-
-        if (dsd_mode != DsdModes::DSD_MODE_PCM) {
-            if (auto* dsd_stream = AsDsdStream(file_stream)) {
-                switch (dsd_mode) {
-                case DsdModes::DSD_MODE_DOP:
-                    ThrowIf<NotSupportFormatException>(
-                        dsd_stream->SupportDOP(),
-                        "Stream not support mode: {}", dsd_mode);
-                    break;
-                case DsdModes::DSD_MODE_DOP_AA:
-                    ThrowIf<NotSupportFormatException>(
-                        dsd_stream->SupportDOP_AA(),
-                        "Stream not support mode: {}", dsd_mode);
-                    break;
-                case DsdModes::DSD_MODE_NATIVE:
-                    ThrowIf<NotSupportFormatException>(
-                        dsd_stream->SupportNativeSD(),
-                        "Stream not support mode: {}", dsd_mode);
-                    break;
-                case DsdModes::DSD_MODE_DSD2PCM:
-                    break;
-                case DsdModes::DSD_MODE_AUTO:
-                    break;
-                case DsdModes::DSD_MODE_PCM:
-                    break;
-                default:
-                    Throw<NotSupportFormatException>(
-                        "Not support dsd-mode: {}.", dsd_mode);
-                    break;
-                }
-                dsd_stream->SetDSDMode(dsd_mode);
-            }
-        }
-
-        return file_stream;
     }
 
 #if defined(XAMP_OS_WIN)
@@ -129,7 +92,7 @@ AudioPlayer::AudioPlayer()
     , dsp_manager_(StreamFactory::MakeDSPManager())
     , device_manager_(MakeAudioDeviceManager())
     , action_queue_(kActionQueueSize)
-    , fifo_(GetPageAlignSize(kPreallocateBufferSize)) {
+    , fifo_(AlignUp(kPreallocateBufferSize, GetPageSize())) {
     logger_ = XampLoggerFactory.GetLogger(kAudioPlayerLoggerName);
     PreventSleep(true);
 }
@@ -451,15 +414,6 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 }
 
 bool AudioPlayer::IsMute() const {
-    if (device_ != nullptr && device_->IsStreamOpen()) {
-#if defined(XAMP_OS_WIN)
-        if (device_type_->GetTypeId() == XAMP_UUID_OF(win32::AsioDeviceType)) {
-            return is_muted_;
-        }
-#else
-        return device_->IsMuted();
-#endif
-    }
     return is_muted_;
 }
 
@@ -554,7 +508,7 @@ void AudioPlayer::ResizeReadBuffer(uint32_t allocate_size) {
     }
 }
 
-void AudioPlayer::ResizeFifo(uint32_t fifo_size) {
+void AudioPlayer::ResizeFIFO(uint32_t fifo_size) {
     if (fifo_.GetSize() == 0 || fifo_.GetSize() < fifo_size) {
         XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.", String::FormatBytes(fifo_size));
         fifo_.Resize(fifo_size);
@@ -566,14 +520,13 @@ void AudioPlayer::CreateBuffer() {
     uint32_t fifo_size = 0;
 
     auto get_buffer_sample = [](auto *device, auto ratio) {
-        return static_cast<uint32_t>(
-            GetPageAlignSize(device->GetBufferSize() * ratio));
+        return static_cast<uint32_t>(AlignUp(device->GetBufferSize() * ratio, GetPageSize()));
     };
 
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         // DSD native mode output buffer size is 8 times of the sample rate.
-        num_read_buffer_size_ = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
-        // Fifo buffer size is 5 seconds of the output format.
+        num_read_buffer_size_ = static_cast<uint32_t>(AlignUp(output_format_.GetSampleRate() / 8), GetPageSize());
+        // FIFO buffer size is 5 seconds of the output format.
         fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
         allocate_size = num_read_buffer_size_;
         num_write_buffer_size_ = device_->GetBufferSize() * kMaxBufferSecs;
@@ -583,21 +536,24 @@ void AudioPlayer::CreateBuffer() {
         // Calculate the buffer size from the output format.
         auto max_ratio = (std::max)(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
         num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));        
-        num_read_buffer_size_ = (std::max)(get_buffer_sample(device_.get(), kMaxReadRatio), kMinReadBufferSize);        
+        num_read_buffer_size_ = (std::max)(get_buffer_sample(device_.get(), kMaxReadRatio), kMinReadBufferSize);   
+        // Calculate the buffer size from the stream.
         allocate_size = std::min(kMaxPreAllocateBufferSize,
             num_write_buffer_size_
             * stream_->GetSampleSize() 
             * kTotalBufferStreamCount);
-        allocate_size = AlignUp(allocate_size);
-        if (enable_file_cache_) {
+        // Align up the buffer size.
+        allocate_size = AlignUp(allocate_size, GetPageSize());
+        if (!enable_file_cache_) {
             fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec() * GetBufferCount(output_format_.GetSampleRate());
         } else {
             fifo_size = kMaxPreAllocateBufferSize;
         }
+        allocate_size = AlignUp(fifo_size, GetPageSize());
     }
 
     ResizeReadBuffer(allocate_size);
-    ResizeFifo(fifo_size);
+    ResizeFIFO(fifo_size);
 
     XAMP_LOG_DEBUG("Device output buffer:{} num_write_buffer_size:{} num_read_sample:{} fifo buffer:{}.",
         String::FormatBytes(device_->GetBufferSize()),

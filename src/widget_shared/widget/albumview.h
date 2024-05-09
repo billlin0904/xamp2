@@ -10,6 +10,7 @@
 #include <QStyledItemDelegate>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QTimer>
 
 #include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
@@ -67,6 +68,7 @@ signals:
 
 	void findAlbumCover(int32_t music_id, int32_t album_id) const;
 
+	void stopRefreshCover() const;
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 
@@ -144,6 +146,7 @@ public:
 
 	void resizeEvent(QResizeEvent* event) override;
 
+	void refreshCover();
 signals:
     void addPlaylist(const QList<int32_t> &music_ids, const QList<PlayListEntity> &entities);
 
@@ -174,6 +177,7 @@ public slots:
 
 	void showAlbumViewMenu(const QPoint& pt);
 
+	void enterEvent(QEnterEvent* event) override;
 private:
 	bool enable_page_{ true };
 
@@ -181,6 +185,7 @@ protected:
 	QString last_query_;
 
 private:
+	QTimer refresh_cover_timer_;
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;

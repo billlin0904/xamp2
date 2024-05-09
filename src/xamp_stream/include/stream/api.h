@@ -59,6 +59,8 @@ XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<FileStream> const & stream) noe
 
 XAMP_STREAM_API FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept;
 
+XAMP_STREAM_API AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
+
 XAMP_STREAM_API void LoadFFTLib();
 
 #ifdef XAMP_OS_WIN

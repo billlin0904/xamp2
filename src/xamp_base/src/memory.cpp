@@ -37,11 +37,6 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 }
 #endif
 
-size_t GetPageAlignSize(size_t value) noexcept {
-	const auto page_size = GetPageSize();
-	return AlignUp(value, page_size);
-}
-
 bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size) {
     const auto preread_file_size = (std::min)(prefech_size, file.GetLength());
     return PrefetchMemory(const_cast<void*>(file.GetData()), preread_file_size);
