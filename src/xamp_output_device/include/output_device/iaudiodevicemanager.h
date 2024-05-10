@@ -84,6 +84,13 @@ public:
 	* Shutdown global device resource.
 	*/
 	virtual void Shutdown() = 0;
+
+	/*
+	* Is shared device
+	*
+	* @param type: device type
+	*/
+	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
 protected:
 	/*
 	* Constructor.

@@ -199,7 +199,6 @@
     <ClCompile Include="src\win32\asioexception.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
-    <ClCompile Include="src\win32\comexception.cpp" />
     <ClCompile Include="src\win32\mmcss.cpp" />
     <ClCompile Include="src\win32\nulloutputdevice.cpp" />
     <ClCompile Include="src\win32\nulloutputdevicetype.cpp" />

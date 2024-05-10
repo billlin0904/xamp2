@@ -104,6 +104,13 @@ public:
     [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
 
     /*
+    * Is shared device
+    * 
+    * @param type: device type
+    */
+    [[nodiscard]] bool IsSharedDevice(const Uuid& type) const noexcept override;
+
+    /*
     * Shutdown global device resource.
     */
     void Shutdown() override;

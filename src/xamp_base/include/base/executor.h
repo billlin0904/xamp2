@@ -8,13 +8,16 @@
 #include <base/stl.h>
 #include <base/task.h>
 #include <base/logger_impl.h>
+#include <base/fastmutex.h>
 #include <base/ithreadpoolexecutor.h>
+
+#include <condition_variable>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace Executor {
 
-inline constexpr size_t kDefaultParallelBatchSize = 8;
+inline constexpr size_t kBatchSize = 8;
 
 XAMP_DECLARE_LOG_NAME(DefaultThreadPoollExecutor);
 
@@ -40,7 +43,7 @@ decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args, Execu
 * @return void
 */
 template <typename C, typename Func>
-void ParallelFor(C& items, Func&& f, size_t batches = kDefaultParallelBatchSize) {
+void ParallelFor(C& items, Func&& f, size_t batches = kBatchSize) {
     auto executor = MakeThreadPoolExecutor(kDefaultThreadPoollExecutorLoggerName);
     ParallelFor(*executor, items, f, batches);
 }
@@ -60,7 +63,7 @@ void ParallelFor(IThreadPoolExecutor& executor,
     C& items,
     Func&& f,
     const std::chrono::milliseconds &wait_timeout = std::chrono::milliseconds(100),
-    size_t batches = kDefaultParallelBatchSize) {
+    size_t batches = kBatchSize) {
     using IteratorType = typename C::iterator;
 
     IteratorType begin = items.begin();
@@ -134,7 +137,7 @@ void ParallelFor(IThreadPoolExecutor& executor,
 * @return void
 */
 template <typename Func>
-void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&& f, size_t batches = kDefaultParallelBatchSize) {    
+void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&& f, size_t batches = kBatchSize) {    
     size_t size = end - begin;
     for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
@@ -150,6 +153,57 @@ void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&&
             ff.wait();
         }
     }
+}
+
+template <typename C, typename Compare>
+void ParallelSort(IThreadPoolExecutor& executor, C& items, Compare&& comp) {    
+    auto begin = items.begin();
+    auto end = items.end();
+
+    size_t size = std::distance(begin, end);
+
+    if (size <= 1) {
+        return;
+    }
+
+    std::mutex mutex;
+    std::condition_variable cv;
+
+    size_t sorted_chunks = 0;
+
+    auto sort_chunk = [&](auto&& items_begin, auto&& items_end) -> void {
+        std::sort(items_begin, items_end, comp);
+
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            ++sorted_chunks;
+        }
+        cv.notify_one();
+        };
+
+    auto chunk_size = (std::min)(size, kBatchSize);
+
+    auto itr = begin;
+    while (true) {
+        auto remaining_size = std::distance(itr, end);
+        auto chunk_end = itr + (std::min)(chunk_size, static_cast<size_t>(remaining_size));
+        if (chunk_end == end) {			
+			break;
+		}
+        executor.Spawn([=](const StopToken& token) {
+            if (!token.stop_requested()) {
+                sort_chunk(itr, chunk_end);
+            }
+        });
+        itr = chunk_end;
+    }
+
+    {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.wait(lock, [&] { return sorted_chunks == (size + chunk_size - 1) / chunk_size; });
+    }
+
+    std::inplace_merge(begin, end - size % chunk_size, end, comp);
 }
 	
 }

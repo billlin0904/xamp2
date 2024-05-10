@@ -136,6 +136,14 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
     return factory_.contains(id);
 }
 
+bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {
+#ifdef XAMP_OS_WIN
+    return type == XAMP_UUID_OF(win32::SharedWasapiDeviceType);
+#else
+    return false;
+#endif
+}
+
 void AudioDeviceManager::Shutdown() {
     impl_.reset();
     // https://learn.microsoft.com/en-us/windows/win32/api/mfapi/nf-mfapi-mfshutdown

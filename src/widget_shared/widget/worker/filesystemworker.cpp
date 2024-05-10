@@ -1,7 +1,7 @@
 #include <widget/worker/filesystemworker.h>
 
 #include <QDirIterator>
-
+#include <execution>
 #include <base/scopeguard.h>
 
 #include <metadata/taglibmetareader.h>
@@ -48,7 +48,8 @@ namespace {
 		if (total_file_count == 0) {
 			return std::make_pair(total_file_count.load(), path_infos);
 		}
-		std::sort(path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
+
+		std::sort(std::execution::par_unseq, path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
 			if (p1.file_count != p2.file_count) {
 				return p1.file_count > p2.file_count;
 			}
