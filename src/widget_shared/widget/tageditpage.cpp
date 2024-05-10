@@ -211,7 +211,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		const auto action = [this, index](auto file_path) {
 			const auto image = image_utils::readFileImage(file_path,
 				kCoverSize,
-				ImageCache::kFormat);
+				ImageCache::kImageFormat);
 			if (image.isNull()) {
 				return;
 			}

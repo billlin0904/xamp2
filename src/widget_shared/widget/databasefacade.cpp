@@ -32,7 +32,7 @@ namespace {
 
     QSet<QString> getAlbumCategories(const QString& album) {
 	    const QRegularExpression regex(
-            qTEXT(R"((piano|vocal|soundtrack|best|complete|collection|edition|version)(?:(?: \[.*\])|(?: - .*))?)"),
+            qTEXT(R"((piano|vocal|soundtrack|best|complete|collection|collections|edition|version)(?:(?: \[.*\])|(?: - .*))?)"),
             QRegularExpression::CaseInsensitiveOption);
 
         QSet<QString> categories;

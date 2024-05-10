@@ -55,7 +55,6 @@ private:
     std::atomic<size_t> completed_work_{ 0 };
     FileSystemWatcher watcher_;
     Stopwatch total_time_elapsed_;
-    Stopwatch update_elapsed_;
     QTimer timer_;
     LoggerPtr logger_;
 };

@@ -187,6 +187,8 @@ public:
 
 	QString getMusicCoverId(int32_t music_id) const;
 
+	QString getMusicFilePath(int32_t music_id) const;
+
 	int32_t getAlbumId(const QString& album) const;
 
 	QString getAlbumCoverId(const QString& album) const;

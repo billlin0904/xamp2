@@ -774,6 +774,21 @@ QString Database::getMusicCoverId(int32_t music_id) const {
     return kEmptyString;
 }
 
+QString Database::getMusicFilePath(int32_t music_id) const {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("SELECT path FROM musics WHERE musicId = (:musicId)"));
+    query.bindValue(qTEXT(":musicId"), music_id);
+
+    DbIfFailedThrow1(query);
+
+    const auto index = query.record().indexOf(qTEXT("path"));
+    if (query.next()) {
+        return query.value(index).toString();
+    }
+    return kEmptyString;
+}
+
 QString Database::getAlbumCoverId(int32_t album_id) const {
     SqlQuery query(db_);
 

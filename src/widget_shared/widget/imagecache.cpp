@@ -50,65 +50,72 @@ ImageCache::ImageCache()
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
-    const QList<QString> target_folders = { qTEXT("scans"), qTEXT("artwork"), qTEXT("booklet") };
-    const QString cover_name = qTEXT("Front");
+    const QList<QString> kTargetFolders = { qTEXT("scans"), qTEXT("artwork"), qTEXT("booklet") };    
+	constexpr auto kMaxDirCdUp = 4;
 
 	const QDir dir(file_path);
 	QDir scan_dir(dir);
 
-	auto find_image = [scan_dir, this](QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
-		const QFileInfo file_info(scan_dir.absolutePath());
-		const auto path = file_info.absolutePath();
-		for (QDirIterator itr(path, cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
+	auto find_dir_image = [this](const QDir &scan_dir, QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
+		const QString kFrontCoverName = qTEXT("Front");
+
+		QStringList image_file_list;
+		for (QDirIterator itr(scan_dir.path(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
 			itr.hasNext();) {
 			const auto image_file_path = itr.next();
-			return std::optional<QPixmap> {
-				std::in_place_t{}, 
-				image_utils::readFileImage(image_file_path,
-					qTheme.cacheCoverSize(),
-					kFormat) };
+			image_file_list.append(image_file_path);
 		}
-		return std::nullopt;
+
+		if (image_file_list.isEmpty()) {
+			return std::nullopt;
+		}
+
+		auto find_cover_path = image_file_list[0];
+
+		for (const auto& image_file_path : image_file_list) {
+			if (image_file_path.contains(kFrontCoverName, Qt::CaseInsensitive)) {
+				find_cover_path = image_file_path;
+				break;
+			}			
+		}
+
+		return std::optional<QPixmap> {
+			std::in_place_t{},
+				image_utils::readFileImage(find_cover_path,
+					qTheme.cacheCoverSize(),
+					kImageFormat) };
 	};
 
-	if (auto image = find_image(QDirIterator::NoIteratorFlags)) {
+	// 1. Scan image file in the same level.
+	if (auto image = find_dir_image(QDir(dir.absolutePath()), QDirIterator::NoIteratorFlags)) {
 		return image.value();
 	}
 
-	// Find 'Scans' folder in the same level or in parent folders.
-	while (!scan_dir.isRoot()) {
-        if (std::any_of(target_folders.begin(), target_folders.end(), [&](const QString& folder) {
-			return scan_dir.entryList(QDir::Dirs).contains(folder, Qt::CaseInsensitive);
-			})) {
-			// Enter the first found target folder
-			scan_dir.cd(target_folders.first());
-			break;
+	// 2. Find 'Scans' folder in the same level or in parent folders.
+	auto cd_up_count = 0;
+	while (!scan_dir.isRoot() && cd_up_count < kMaxDirCdUp) {
+		bool found = false;
+		for (const auto& folder : kTargetFolders) {
+			auto dirs = scan_dir.entryList(QDir::Dirs);
+			for (const auto& dir : dirs) {
+				if (dir.contains(folder, Qt::CaseInsensitive)) {
+					scan_dir.cd(dir);
+					found = true;
+					break;
+				}
+			}
+			if (found) {
+				break;
+			}
 		}
+		auto now_path = scan_dir.path();
 		// Parent path maybe contains image file.
-		const auto image_files = scan_dir.entryList(cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-		if (!image_files.isEmpty()) {			
-			break;
+		if (auto image = find_dir_image(scan_dir, QDirIterator::Subdirectories)) {
+			return image.value();
 		}
 		scan_dir.cdUp();
-	}
-
-	// Scan image file in 'Front' file name.
-	const auto image_files = scan_dir.entryList(cover_ext_, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-	for (const auto& image_file_path : image_files) {
-		if (!image_file_path.toLower().contains(cover_name.toLower())) {
-			continue;
-		}
-
-		return image_utils::readFileImage(scan_dir.filePath(image_file_path),
-			qTheme.cacheCoverSize(),
-			kFormat);
-	}
-
-	// If no file matches the 'Front' file name, return the first file that matches the name filters.
-	if (!image_files.empty()) {
-		return image_utils::readFileImage(scan_dir.filePath(image_files[0]),
-			qTheme.cacheCoverSize(),
-			kFormat);
+		now_path = scan_dir.path();
+		++cd_up_count;
 	}
 
 	return {};
@@ -142,7 +149,7 @@ ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
 	if (tag_id.isEmpty()) {
 		return {};
 	}
-	QImage image(qTheme.cacheCoverSize(), kFormat);
+	QImage image(qTheme.cacheCoverSize(), kImageFormat);
 	QImageReader reader(makeImageCachePath(tag_id));
 	if (reader.read(&image)) {
 		const auto file_info = getImageFileInfo(tag_id);
@@ -236,7 +243,7 @@ void ImageCache::loadCache() const {
 	for (QDirIterator itr(qAppSettings.cachePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
 		const auto path = itr.next();
-		QImage image(qTheme.cacheCoverSize(), kFormat);
+		QImage image(qTheme.cacheCoverSize(), kImageFormat);
 		QImageReader reader(path);
 		if (reader.read(&image)) {
 			const QFileInfo file_info(path);

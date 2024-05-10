@@ -11,7 +11,7 @@
 #include <widget/util/ui_utilts.h>
 
 XAMP_DECLARE_LOG_NAME(FileSystemWorker);
-XAMP_DECLARE_LOG_NAME(ExtractFileWorker);
+XAMP_DECLARE_LOG_NAME(ExtractFileThreadPool);
 
 namespace {
 	const std::string kCueFileExtension(".cue");
@@ -63,7 +63,7 @@ FileSystemWorker::FileSystemWorker()
 	: watcher_(this)
 	, timer_(this) {
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemWorker::updateProgress);
-	logger_ = XampLoggerFactory.GetLogger(kFileSystemWorkerLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemWorker));
 	GetBackgroundThreadPool();
 	(void)QObject::connect(&watcher_,
 	                       &FileSystemWatcher::directoryChanged,
@@ -139,10 +139,12 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 		const auto path = next_path.toStdWString();
 		// Note: CueLoader has thread safe issue so we need to process not in parallel.
 		if (Path(path).extension() == kCueFileExtension) {
-			process_cue_file(path, playlist_id);
+			process_cue_file(path, playlist_id);		
 		}
-		const auto directory = QFileInfo(dir).dir().path().toStdWString();
-		directory_files[directory].emplace_back(path);
+		else {
+			const auto directory = QFileInfo(dir).dir().path().toStdWString();
+			directory_files[directory].emplace_back(path);
+		}		
 	}
 
 	Executor::ParallelFor(*thread_pool, directory_files, [&](const auto& path_info) {
@@ -179,10 +181,12 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	is_stop_ = false;
 
-	auto extract_file_thread_pool = MakeThreadPoolExecutor(kExtractFileWorkerLoggerName, ThreadPriority::BACKGROUND);
+	auto extract_file_thread_pool = MakeThreadPoolExecutor(
+		XAMP_LOG_NAME(ExtractFileThreadPool),
+		ThreadPriority::BACKGROUND);
 
-	constexpr QFlags<QDir::Filter> filter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-	QDirIterator itr(file_path, getTrackInfoFileNameFilter(), filter);
+	static constexpr QFlags<QDir::Filter> kDirFilter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
+	QDirIterator itr(file_path, getTrackInfoFileNameFilter(), kDirFilter);
 
 	Vector<QString> paths;
 	paths.reserve(kReserveFilePathSize);
@@ -250,15 +254,12 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 void FileSystemWorker::updateProgress() {
 	const auto completed_work = completed_work_.load();
 	emit readFileProgress((completed_work * 100) / total_work_);
-	if (update_elapsed_.ElapsedSeconds() > 1) {
-		const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
-		const double remaining_time = (total_work_ > completed_work)
-			                              ? (static_cast<double>(elapsed_time) / static_cast<double>(completed_work)) *
-			                              (total_work_ - completed_work)
-			                              : 0.0;
-		emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
-		update_elapsed_.Reset();
-	}
+	const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
+	const double remaining_time = (total_work_ > completed_work)
+		? (static_cast<double>(elapsed_time) / static_cast<double>(completed_work)) *
+		(total_work_ - completed_work)
+		: 0.0;
+	emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
 }
 
 void FileSystemWorker::cancelRequested() {
