@@ -179,6 +179,39 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     }
 }
 
+static void BM_ParallelSort(benchmark::State& state) {
+    constexpr std::string_view kBM_ParallelSortLoggerName = "BM_ParallelSort";
+
+    const auto thread_pool = MakeThreadPoolExecutor(
+        kBM_ParallelSortLoggerName,
+        ThreadPriority::NORMAL);
+
+    XampLoggerFactory.GetLogger(kBM_ParallelSortLoggerName)
+        ->SetLevel(LOG_LEVEL_OFF);
+
+    const auto length = state.range(0);
+    std::vector<int> n(length);
+    for (auto i = 0; i < length; ++i) {
+		n[i] = SharedSingleton<PRNG>::GetInstance().NextInt32();
+    }
+
+    for (auto _ : state) {
+        Executor::ParallelSort(*thread_pool, n, [](auto a, auto b) { return a < b; });
+    }
+}
+
+static void BM_BaseLine_StdParallelSort(benchmark::State& state) {
+    const auto length = state.range(0);
+	std::vector<int> n(length);
+	for (auto i = 0; i < length; ++i) {
+		n[i] = SharedSingleton<PRNG>::GetInstance().NextInt32();
+	}
+
+	for (auto _ : state) {
+		std::sort(std::execution::par_unseq, n.begin(), n.end());
+	}
+}
+
 //static void BM_StdAsync(benchmark::State& state) {    
 //    auto std_async_parallel_for = [](auto& items, auto&& f, size_t batches = 4) {
 //        auto begin = std::begin(items);
@@ -773,9 +806,12 @@ static void BM_Spinlock(benchmark::State& state) {
 
 //BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+
+BENCHMARK(BM_ParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_BaseLine_StdParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 //BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
 //BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);

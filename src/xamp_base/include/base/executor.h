@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <stack>
 #include <base/stl.h>
 #include <base/task.h>
 #include <base/logger_impl.h>
@@ -156,54 +157,33 @@ void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&&
 }
 
 template <typename C, typename Compare>
-void ParallelSort(IThreadPoolExecutor& executor, C& items, Compare&& comp) {    
-    auto begin = items.begin();
-    auto end = items.end();
+void ParallelSort(IThreadPoolExecutor& executor, C& items, Compare&& comp) {
+    auto first = items.begin();
+    auto last = items.end();
 
-    size_t size = std::distance(begin, end);
-
-    if (size <= 1) {
+    if (last - first < 2)
         return;
+
+    std::stack<std::pair<typename C::iterator, typename C::iterator>> ranges;
+    ranges.push({ first, last });
+
+    while (!ranges.empty()) {
+        auto [begin, end] = ranges.top();
+        ranges.pop();
+        if (end - begin < 2)
+            continue;
+
+        auto middle = begin + (end - begin) / 2;
+        auto fut1 = Executor::Spawn(executor, [=](const StopToken&) -> void { std::sort(begin, middle, comp); });
+        auto fut2 = Executor::Spawn(executor, [=](const StopToken&) -> void { std::sort(middle, end, comp); });
+
+        fut1.wait();
+        fut2.wait();
+
+        std::inplace_merge(begin, middle, end, comp);
+        ranges.push({ begin, middle });
+        ranges.push({ middle, end });
     }
-
-    std::mutex mutex;
-    std::condition_variable cv;
-
-    size_t sorted_chunks = 0;
-
-    auto sort_chunk = [&](auto&& items_begin, auto&& items_end) -> void {
-        std::sort(items_begin, items_end, comp);
-
-        {
-            std::unique_lock<std::mutex> lock(mutex);
-            ++sorted_chunks;
-        }
-        cv.notify_one();
-        };
-
-    auto chunk_size = (std::min)(size, kBatchSize);
-
-    auto itr = begin;
-    while (true) {
-        auto remaining_size = std::distance(itr, end);
-        auto chunk_end = itr + (std::min)(chunk_size, static_cast<size_t>(remaining_size));
-        if (chunk_end == end) {			
-			break;
-		}
-        executor.Spawn([=](const StopToken& token) {
-            if (!token.stop_requested()) {
-                sort_chunk(itr, chunk_end);
-            }
-        });
-        itr = chunk_end;
-    }
-
-    {
-        std::unique_lock<std::mutex> lock(mutex);
-        cv.wait(lock, [&] { return sorted_chunks == (size + chunk_size - 1) / chunk_size; });
-    }
-
-    std::inplace_merge(begin, end - size % chunk_size, end, comp);
 }
 	
 }

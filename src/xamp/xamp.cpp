@@ -69,14 +69,6 @@
 namespace {
     constexpr auto kYtMusicSampleRate = 48000;
 
-    bool isSharedWasapiDevice(const Uuid& type) {
-#ifdef Q_OS_WIN32
-        return type == win32::SharedWasapiDeviceType::uuidof();
-#else
-        reurn false;
-#endif
-    }
-
     void showMeMessage(const QString& message) {
         if (qAppSettings.dontShowMeAgain(message)) {
             auto [button, checked] = XMessageBox::showCheckBoxInformation(
@@ -2110,7 +2102,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         target_sample_rate,
         sample_rate_converter_type);
 
-    if (isSharedWasapiDevice(device_info_.value().device_type_id)) {
+    if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
         if (device_info_.value().default_format) {
             default_format = device_info_.value().default_format.value();
