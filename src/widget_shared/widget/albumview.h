@@ -189,7 +189,8 @@ private:
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;
-	LazyLoadingModel model_;
+	//LazyLoadingModel model_;
+	QSqlQueryModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
 };
 

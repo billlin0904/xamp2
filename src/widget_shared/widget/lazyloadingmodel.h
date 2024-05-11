@@ -10,7 +10,7 @@
 
 class LazyLoadingModel : public QSqlQueryModel {
 public:
-	static constexpr auto kMaxBatchSize = 65535;
+	static constexpr auto kMaxBatchSize = 200;
 
 	explicit LazyLoadingModel(QObject* parent = nullptr)
 		: QSqlQueryModel(parent) {

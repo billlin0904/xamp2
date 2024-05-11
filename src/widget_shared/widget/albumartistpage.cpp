@@ -200,16 +200,13 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			if (action) {
 				(void)QObject::connect(action, &QAction::triggered, [this]() {
 					album_view_->search(kEmptyString);
-					album_view_->reload();		
-					album_tag_list_widget_->clearTag();
+					album_view_->reload();
 					});
 			}
 		}
 	}
 
 	(void)QObject::connect(album_search_line_edit_, &QLineEdit::textChanged, [this, album_completer](const auto& text) {
-		album_tag_list_widget_->clearTag();
-
 		const auto items = album_model_->findItems(text, Qt::MatchExactly);
 		if (!items.isEmpty()) {
 			album_view_->search(kEmptyString);
