@@ -1067,9 +1067,14 @@ void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 void Database::updateAlbumSelectState(int32_t album_id, bool state) {
     SqlQuery query(db_);
 
-    query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId)"));
+    if (album_id != kInvalidDatabaseId) {
+        query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId)"));
+        query.bindValue(qTEXT(":albumId"), album_id);
+    }
+    else {
+        query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected"));
+    }
 
-    query.bindValue(qTEXT(":albumId"), album_id);
     query.bindValue(qTEXT(":isSelected"), state ? 1: 0);
 
     DbIfFailedThrow1(query);

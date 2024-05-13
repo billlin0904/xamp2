@@ -2424,8 +2424,12 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::onAddPlaylistItem(int32_t playlist_id, const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
     ensureLocalOnePlaylistPage();
     if (playlist_id == kInvalidDatabaseId) {
-        const auto* playlist_view = localPlaylistPage()->playlist();
-        qMainDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
+        //const auto* playlist_view = localPlaylistPage()->playlist();
+        //qMainDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
+        const auto tab_index = local_tab_widget_->count();
+        const auto playlist_id = qMainDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
+        newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
+        qMainDb.addMusicToPlaylist(music_ids, playlist_id);
 	}
     else {
 		qMainDb.addMusicToPlaylist(music_ids, playlist_id);

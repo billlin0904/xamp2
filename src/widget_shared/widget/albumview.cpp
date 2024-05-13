@@ -157,7 +157,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             option.rect.top() + 5,
             option.rect.width() - 5,
             option.rect.height() - 20);
-        painter->fillRect(select_rect, Qt::black);
+        painter->fillRect(select_rect, qTheme.highlightColor());
 
         painter->restore();
     }
@@ -446,6 +446,7 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
+    qMainDb.updateAlbumSelectState(kInvalidDatabaseId, false);
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
         showMenu(pt);
@@ -535,11 +536,12 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     }
     auto* enable_edit_mode_act = action_map.addAction(action_name, [this]() {
         styled_delegate_->enableEditMode(!styled_delegate_->editMode());
+        qMainDb.updateAlbumSelectState(kInvalidDatabaseId, false);
         });
     //select_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SELECT_ALBUM));
 
     if (styled_delegate_->editMode()) {
-        auto* sub_menu = action_map.addSubMenu(tr("Add selected album to playlist"));
+        auto* sub_menu = action_map.addSubMenu(tr("Add selected albums to playlist"));
         QList<int32_t> selected_albums = qMainDb.getSelectedAlbums();
         qMainDb.forEachPlaylist([sub_menu, selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
@@ -562,6 +564,20 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                     emit addPlaylist(playlist_id, add_playlist_music_ids, entities);
                 }
                 });
+            });
+        action_map.addAction(tr("Add selected albums to new playlist"), [this, selected_albums]() {
+            QList<PlayListEntity> entities;
+            QList<int32_t> add_playlist_music_ids;
+            Q_FOREACH(auto album_id, selected_albums) {
+                qMainDb.forEachAlbumMusic(album_id,
+                    [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                        if (entity.track_loudness == 0.0) {
+                            entities.push_back(entity);
+                        }
+                        add_playlist_music_ids.push_back(entity.music_id);
+                    });                
+            }
+            emit addPlaylist(kInvalidDatabaseId, add_playlist_music_ids, entities);
             });
         return;
     }
