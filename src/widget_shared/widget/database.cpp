@@ -1068,11 +1068,11 @@ void Database::updateAlbumSelectState(int32_t album_id, bool state) {
     SqlQuery query(db_);
 
     if (album_id != kInvalidDatabaseId) {
-        query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId)"));
+        query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId) AND storeType == -1"));
         query.bindValue(qTEXT(":albumId"), album_id);
     }
     else {
-        query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected"));
+        query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE storeType == -1"));
     }
 
     query.bindValue(qTEXT(":isSelected"), state ? 1: 0);

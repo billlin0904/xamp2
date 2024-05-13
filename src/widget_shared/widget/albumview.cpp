@@ -150,14 +150,14 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto is_hires   = indexValue(index, INDEX_CATEGORY).toBool();
     auto is_selected= indexValue(index, INDEX_IS_SELECTED).toBool();
 
-    if (enable_album_view_ && enable_edit_mode_) {
+    if (enable_album_view_ && enable_edit_mode_ && is_selected) {
         painter->save();
 
         const QRect select_rect(option.rect.left() + 5,
             option.rect.top() + 5,
             option.rect.width() - 5,
             option.rect.height() - 20);
-        painter->fillRect(select_rect, qTheme.highlightColor());
+        painter->fillRect(select_rect, qTheme.hoverColor().darker());
 
         painter->restore();
     }
@@ -535,15 +535,16 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         action_name = tr("Leave edit mode");
     }
     auto* enable_edit_mode_act = action_map.addAction(action_name, [this]() {
+        qMainDb.updateAlbumSelectState(kInvalidDatabaseId, !styled_delegate_->editMode());
         styled_delegate_->enableEditMode(!styled_delegate_->editMode());
-        qMainDb.updateAlbumSelectState(kInvalidDatabaseId, false);
+        reload();
         });
     //select_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SELECT_ALBUM));
 
     if (styled_delegate_->editMode()) {
         auto* sub_menu = action_map.addSubMenu(tr("Add selected albums to playlist"));
         QList<int32_t> selected_albums = qMainDb.getSelectedAlbums();
-        qMainDb.forEachPlaylist([sub_menu, selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        qMainDb.forEachPlaylist([sub_menu, &selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
                 return;
             }
@@ -565,7 +566,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 }
                 });
             });
-        action_map.addAction(tr("Add selected albums to new playlist"), [this, selected_albums]() {
+        action_map.addAction(tr("Add selected albums to new playlist"), [this, &selected_albums]() {
             QList<PlayListEntity> entities;
             QList<int32_t> add_playlist_music_ids;
             Q_FOREACH(auto album_id, selected_albums) {
@@ -901,7 +902,7 @@ FROM
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
 WHERE 
-	albums.storeType = -1 OR albums.storeType = -2
+	albums.storeType = -1
 ORDER BY
     albums.album DESC
     )");   

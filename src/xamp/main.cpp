@@ -240,13 +240,6 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
             main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
-
-        /*CueLoader loader;
-        auto tracks = loader.Load("D:\\Music\\Bocchi the Rock!\\FLAC\\EXTRA MUSIC 3-2\\EXTRA MUSIC 3-2.cue");
-        for (auto track : tracks) {
-            XAMP_LOG_DEBUG("Track: {} - {}", track.track, String::ToString(track.title.value()));
-            XAMP_LOG_DEBUG("Duration: {}", formatDuration(track.duration).toStdString());
-        }*/
         return app.exec();
     }
 
