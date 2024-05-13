@@ -553,7 +553,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         remove_album();
         });
-    remove_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));    
+    remove_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 }
 
 void AlbumView::enterEvent(QEnterEvent* event) {
@@ -571,19 +571,27 @@ void AlbumView::showMenu(const QPoint &pt) {
     auto artist_id       = indexValue(index, INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
-    auto* add_album_to_playlist_act = action_map.addAction(tr("Add album to playlist"), [album_id, this]() {
-        QList<PlayListEntity> entities;
-        QList<int32_t> add_playlist_music_ids;
-        qMainDb.forEachAlbumMusic(album_id,
-            [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                if (entity.track_loudness == 0.0) {
-                    entities.push_back(entity);
-                }
-                add_playlist_music_ids.push_back(entity.music_id);
+    auto* sub_menu = action_map.addSubMenu(tr("Playlist"));
+    qMainDb.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
+            return;
+        }
+        if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
+            return;
+        }
+        sub_menu->addAction(name, [playlist_id, album_id, this]() {
+            QList<PlayListEntity> entities;
+            QList<int32_t> add_playlist_music_ids;
+            qMainDb.forEachAlbumMusic(album_id,
+                [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                    if (entity.track_loudness == 0.0) {
+                        entities.push_back(entity);
+                    }
+                    add_playlist_music_ids.push_back(entity.music_id);
+                });
+            emit addPlaylist(playlist_id, add_playlist_music_ids, entities);
             });
-        emit addPlaylist(add_playlist_music_ids, entities);
         });
-    add_album_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);

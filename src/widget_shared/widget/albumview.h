@@ -148,7 +148,7 @@ public:
 
 	void refreshCover();
 signals:
-    void addPlaylist(const QList<int32_t> &music_ids, const QList<PlayListEntity> &entities);
+    void addPlaylist(int32_t playlist_id, const QList<int32_t> &music_ids, const QList<PlayListEntity> &entities);
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 

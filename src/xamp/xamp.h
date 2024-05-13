@@ -112,7 +112,7 @@ public slots:
 
 	void onPlayMusic(const PlayListEntity& entity);
 
-    void onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
+    void onAddPlaylistItem(int32_t playlist_id, const QList<int32_t>& music_ids, const QList<PlayListEntity>& entities);
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 

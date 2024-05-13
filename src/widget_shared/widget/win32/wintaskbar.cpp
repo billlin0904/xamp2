@@ -443,7 +443,7 @@ void WinTaskbar::updateOverlay() {
 		icon_handle.reset(overlay_icon_.pixmap(getWin32IconSize()).toImage().toHICON());
 
 		if (!icon_handle) {
-			icon_handle.reset(static_cast<HICON>(::LoadImageW(nullptr, IDI_APPLICATION, IMAGE_ICON, SM_CXSMICON, SM_CYSMICON, LR_SHARED)));
+			icon_handle.reset(static_cast<HICON>(::LoadImage(nullptr, IDI_APPLICATION, IMAGE_ICON, SM_CXSMICON, SM_CYSMICON, LR_SHARED)));
 		}
 	}
 

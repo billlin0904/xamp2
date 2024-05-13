@@ -2421,10 +2421,15 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
     ui_.currentView->setCurrentWidget(album_page_.get());
 }
 
-void Xamp::onAddPlaylistItem(const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
+void Xamp::onAddPlaylistItem(int32_t playlist_id, const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
     ensureLocalOnePlaylistPage();
-    const auto *playlist_view = localPlaylistPage()->playlist();
-    qMainDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
+    if (playlist_id == kInvalidDatabaseId) {
+        const auto* playlist_view = localPlaylistPage()->playlist();
+        qMainDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
+	}
+    else {
+		qMainDb.addMusicToPlaylist(music_ids, playlist_id);
+	}
     emit changePlayerOrder(order_);
 }
 
