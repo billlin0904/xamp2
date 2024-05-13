@@ -181,9 +181,13 @@ public:
 
 	void updateAlbum(int32_t album_id, const QString& album);
 
+	void updateAlbumSelectState(int32_t album_id, bool state);
+
 	void updateArtist(int32_t artist_id, const QString& artist);
 
 	QString getAlbumCoverId(int32_t album_id) const;
+
+	QList<int32_t> getSelectedAlbums() const;
 
 	QString getMusicCoverId(int32_t music_id) const;
 

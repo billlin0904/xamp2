@@ -733,7 +733,7 @@ QStringList Database::getCategories() const {
     QStringList categories;
     SqlQuery query(db_);
 
-    query.prepare(qTEXT("SELECT category FROM albumCategories WHERE category != 'YouTube' GROUP BY category"));
+    query.prepare(qTEXT("SELECT category FROM albumCategories GROUP BY category"));
 
     DbIfFailedThrow1(query);
 
@@ -802,6 +802,21 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
         return query.value(index).toString();
     }
     return kEmptyString;
+}
+
+QList<int32_t> Database::getSelectedAlbums() const {
+    QList<int32_t> selected_albums;
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("SELECT albumId FROM albums WHERE isSelected = 1"));
+
+    DbIfFailedThrow1(query);
+
+    const auto index = query.record().indexOf(qTEXT("albumId"));
+    while (query.next()) {
+        selected_albums.append(query.value(index).toInt());
+    }
+    return selected_albums;
 }
 
 int32_t Database::getAlbumId(const QString& album) const {
@@ -1045,6 +1060,17 @@ void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 
     query.bindValue(qTEXT(":musicId"), music_id);
     query.bindValue(qTEXT(":rating"), rating);
+
+    DbIfFailedThrow1(query);
+}
+
+void Database::updateAlbumSelectState(int32_t album_id, bool state) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId)"));
+
+    query.bindValue(qTEXT(":albumId"), album_id);
+    query.bindValue(qTEXT(":isSelected"), state ? 1: 0);
 
     DbIfFailedThrow1(query);
 }

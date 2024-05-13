@@ -51,6 +51,7 @@ IF
 		heart integer,
 		storeType integer,		
 		isHiRes integer,
+		isSelected integer,
 		FOREIGN KEY ( artistId ) REFERENCES artists ( artistId ),
 		UNIQUE ( albumId, artistId ) 
 	);

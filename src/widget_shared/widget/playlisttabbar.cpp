@@ -45,6 +45,7 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	const auto rect = tabRect(edited_index_);
 
 	line_edit_ = new QLineEdit(this);
+	line_edit_->installEventFilter(this);
 
 	switch (qTheme.themeColor()) {
 	case ThemeColor::LIGHT_THEME:
@@ -73,10 +74,24 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	line_edit_->show();
 }
 
-void PlaylistTabBar::focusOutEvent(QFocusEvent* event) {
-	QTabBar::focusOutEvent(event);
-
+void PlaylistTabBar::finishRename() {
 	if (line_edit_ && !line_edit_->hasFocus()) {
 		onFinishRename();
 	}
+}
+
+void PlaylistTabBar::focusOutEvent(QFocusEvent* event) {
+	QTabBar::focusOutEvent(event);
+	finishRename();
+}
+
+bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
+	if (object == line_edit_ && event->type() == QEvent::KeyPress) {
+		auto* ke = static_cast<QKeyEvent*>(event);
+		if (ke->key() == Qt::Key_Escape) {
+			onFinishRename();
+			return true;
+		}
+	}
+	return false;
 }

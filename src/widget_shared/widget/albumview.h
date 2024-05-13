@@ -11,6 +11,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QTimer>
+#include <QCheckBox>
 
 #include <widget/util/str_utilts.h>
 #include <widget/widget_shared.h>
@@ -58,11 +59,21 @@ public:
 		show_mode_ = mode;
 	}
 
+	void enableEditMode(bool enable) {
+		enable_edit_mode_ = enable;
+	}
+
+	bool editMode() const {
+		return enable_edit_mode_;
+	}
+
 	ShowModes showModes() const {
 		return show_mode_;
 	}	
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
+
+	void editAlbumView(const QModelIndex& index, bool state) const;
 
 	void showAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
 
@@ -79,6 +90,7 @@ protected:
 private:
 	QPixmap visibleCovers(const QString& cover_id) const;
 
+	bool enable_edit_mode_{ false };
 	bool enable_album_view_{ true };
 	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };
@@ -87,6 +99,7 @@ private:
 	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
+	QScopedPointer<QCheckBox> edit_mode_checkbox_;
 };
 
 class AlbumViewPage final : public QFrame {

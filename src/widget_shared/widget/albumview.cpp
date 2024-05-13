@@ -45,11 +45,12 @@ namespace {
         INDEX_ALBUM_YEAR,
         INDEX_ALBUM_HEART,
         INDEX_CATEGORY,
+        INDEX_IS_SELECTED
     };
 
     constexpr auto kImageCacheSize = 24;
     constexpr auto kMoreIconSize = 24;
-    constexpr auto kPaddingSize = 5;
+    constexpr auto kPaddingSize = 10;
 }
 
 const ConstLatin1String AlbumViewStyledDelegate::kAlbumCacheTag(qTEXT("album_thumbnail_"));
@@ -58,9 +59,11 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , album_text_color_(Qt::black)
 	, more_album_opt_button_(new QPushButton())
-	, play_button_(new QPushButton()) {
+	, play_button_(new QPushButton())
+    , edit_mode_checkbox_(new QCheckBox()) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
+    edit_mode_checkbox_->setStyleSheet(qTEXT("background-color: transparent"));
     mask_image_ = image_utils::roundDarkImage(qTheme.defaultCoverSize(),
                                               image_utils::kDarkAlpha, image_utils::kSmallImageRadius);
 }
@@ -88,6 +91,11 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
         option.rect.top() + default_cover_size.height() + 28,
         kMoreIconSize, kMoreIconSize);
 
+    const QRect checkbox_icon_rect(
+        option.rect.left() + default_cover_size.width() + 10,
+        option.rect.top() + 2,
+        kMoreIconSize, kMoreIconSize);
+
     switch (ev->type()) {
     case QEvent::MouseButtonPress:
         if (ev->button() == Qt::LeftButton) {
@@ -98,6 +106,10 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
             }
             if (more_button_rect.contains(mouse_point_)) {
                 emit showAlbumMenu(index, mouse_point_);
+            }
+            if (checkbox_icon_rect.contains(mouse_point_)) {
+                auto is_selected = indexValue(index, INDEX_IS_SELECTED).toBool();
+                emit editAlbumView(index, is_selected);
             }
         }        
         break;
@@ -136,6 +148,19 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto artist     = indexValue(index, INDEX_ARTIST).toString();    
     auto album_year = indexValue(index, INDEX_ALBUM_YEAR).toInt();
     auto is_hires   = indexValue(index, INDEX_CATEGORY).toBool();
+    auto is_selected= indexValue(index, INDEX_IS_SELECTED).toBool();
+
+    if (enable_album_view_ && enable_edit_mode_) {
+        painter->save();
+
+        const QRect select_rect(option.rect.left() + 5,
+            option.rect.top() + 5,
+            option.rect.width() - 5,
+            option.rect.height() - 20);
+        painter->fillRect(select_rect, Qt::black);
+
+        painter->restore();
+    }
 
     auto* style = option.widget ? option.widget->style() : QApplication::style();
 
@@ -172,13 +197,13 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setFont(f);
 
     if (is_hires) {
-        const QRect playing_state_icon_rect(
+        const QRect hi_res_icon_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 15,
             kMoreIconSize, kMoreIconSize);
 
         album_artist_text_width -= kMoreIconSize;
-        painter->drawPixmap(playing_state_icon_rect, qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+        painter->drawPixmap(hi_res_icon_rect, qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
     }
 
     QFontMetrics album_metrics(painter->font());
@@ -206,25 +231,42 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         painter->drawPixmap(cover_rect, mask_image_);
         constexpr auto offset = (kIconSize / 2) - 10;
 
-        const QRect button_rect(
-            option.rect.left() + default_cover_size.width() / 2 - 15,
-            option.rect.top() + default_cover_size.height() / 2 - 15,
+        const QRect play_button_rect(
+            option.rect.left() + default_cover_size.width() / 2 - 10,
+            option.rect.top() + default_cover_size.height() / 2 - 10,
             kIconSize, kIconSize);
 
-        QStyleOptionButton button;
-        button.rect = button_rect;
-        button.icon = qTheme.playCircleIcon();
-        button.state |= QStyle::State_Enabled;
-        button.iconSize = QSize(kIconSize, kIconSize);
-        style->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
+        QStyleOptionButton play_button_style;
+        play_button_style.rect = play_button_rect;
+        play_button_style.icon = qTheme.playCircleIcon();
+        play_button_style.state |= QStyle::State_Enabled;
+        play_button_style.iconSize = QSize(kIconSize, kIconSize);
+        style->drawControl(QStyle::CE_PushButton, &play_button_style, painter, play_button_.get());
 
-        if (button_rect.contains(mouse_point_)) {
+        if (play_button_rect.contains(mouse_point_)) {
             QApplication::setOverrideCursor(Qt::PointingHandCursor);
             hit_play_button = true;
         }
     }
 
-    QStyleOptionButton more_option_button;
+    if (enable_album_view_ && enable_edit_mode_) {
+        QStyleOptionButton checkbox_style;
+        const QRect checkbox_icon_rect(
+            option.rect.left() + default_cover_size.width() + 10,
+            option.rect.top() + 2,
+            24, 24);
+        checkbox_style.iconSize = QSize(24, 24);
+        checkbox_style.rect = checkbox_icon_rect;
+        if (is_selected) {
+            checkbox_style.state |= QStyle::State_On;
+        }
+        else {
+            checkbox_style.state |= QStyle::State_Off;
+        }
+        style->drawControl(QStyle::CE_CheckBox, &checkbox_style, painter, edit_mode_checkbox_.get());
+    }
+
+    QStyleOptionButton more_option_style;
 
     if (enable_album_view_
         && option.rect.contains(mouse_point_)
@@ -233,12 +275,12 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 35,
             kMoreIconSize, kMoreIconSize);
-        more_option_button.initFrom(more_album_opt_button_.get());
-        more_option_button.rect = more_button_rect;
-        more_option_button.icon = qTheme.fontIcon(Glyphs::ICON_MORE);
-        more_option_button.state |= QStyle::State_Enabled;
+        more_option_style.initFrom(more_album_opt_button_.get());
+        more_option_style.rect = more_button_rect;
+        more_option_style.icon = qTheme.fontIcon(Glyphs::ICON_MORE);
+        more_option_style.state |= QStyle::State_Enabled;
         if (more_button_rect.contains(mouse_point_)) {
-            more_option_button.state |= QStyle::State_Sunken;
+            more_option_style.state |= QStyle::State_Sunken;
             painter->setPen(qTheme.hoverColor());
             painter->setBrush(QBrush(qTheme.hoverColor()));
             painter->drawEllipse(more_button_rect);
@@ -247,13 +289,13 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     }    
 
     if (more_album_opt_button_->isDefault()) {
-        more_option_button.features = QStyleOptionButton::DefaultButton;
+        more_option_style.features = QStyleOptionButton::DefaultButton;
     }
-    more_option_button.iconSize = QSize(kMoreIconSize, kMoreIconSize);
-    style->drawControl(QStyle::CE_PushButton, &more_option_button, painter, more_album_opt_button_.get());
+    more_option_style.iconSize = QSize(kMoreIconSize, kMoreIconSize);
+    style->drawControl(QStyle::CE_PushButton, &more_option_style, painter, more_album_opt_button_.get());
     if (!hit_play_button) {
         QApplication::restoreOverrideCursor();
-    }    
+    }
 }
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -409,6 +451,13 @@ AlbumView::AlbumView(QWidget* parent)
         showMenu(pt);
         });
 
+    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
+        auto album = indexValue(index, INDEX_ALBUM).toString();
+        auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
+        qMainDb.updateAlbumSelectState(album_id, !state);
+        reload();
+        });
+
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
         albumViewPage();
 
@@ -477,6 +526,43 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
 	const auto show_mode = dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->showModes();
     if (show_mode == SHOW_NORMAL) {
+        return;
+    }
+
+    QString action_name = tr("Enter edit mode");
+    if (styled_delegate_->editMode()) {
+        action_name = tr("Leave edit mode");
+    }
+    auto* enable_edit_mode_act = action_map.addAction(action_name, [this]() {
+        styled_delegate_->enableEditMode(!styled_delegate_->editMode());
+        });
+    //select_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SELECT_ALBUM));
+
+    if (styled_delegate_->editMode()) {
+        auto* sub_menu = action_map.addSubMenu(tr("Add selected album to playlist"));
+        QList<int32_t> selected_albums = qMainDb.getSelectedAlbums();
+        qMainDb.forEachPlaylist([sub_menu, selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
+                return;
+            }
+            if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
+                return;
+            }
+            sub_menu->addAction(name, [playlist_id, selected_albums, this]() {
+                QList<PlayListEntity> entities;
+                QList<int32_t> add_playlist_music_ids;
+                Q_FOREACH(auto album_id, selected_albums) {
+                    qMainDb.forEachAlbumMusic(album_id,
+                        [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                            if (entity.track_loudness == 0.0) {
+                                entities.push_back(entity);
+                            }
+                            add_playlist_music_ids.push_back(entity.music_id);
+                        });
+                    emit addPlaylist(playlist_id, add_playlist_music_ids, entities);
+                }
+                });
+            });
         return;
     }
 
@@ -549,6 +635,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         append(dir_name);
         });
     load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
+
     action_map.addSeparator();
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
         remove_album();
@@ -571,7 +658,7 @@ void AlbumView::showMenu(const QPoint &pt) {
     auto artist_id       = indexValue(index, INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
-    auto* sub_menu = action_map.addSubMenu(tr("Playlist"));
+    auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
     qMainDb.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
         if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
             return;
@@ -652,7 +739,8 @@ void AlbumView::filterByArtistId(int32_t artist_id) {
         artists.coverId as artistCover,
         albums.year,
         albums.heart,
-		albums.isHiRes
+		albums.isHiRes,
+        albums.isSelected
     FROM
         albumArtist
     LEFT JOIN
@@ -680,7 +768,8 @@ SELECT
     artists.coverId as artistCover,
     albums.year,
     albums.heart,
-	albums.isHiRes
+	albums.isHiRes,
+    albums.isSelected
 FROM
     albums
 LEFT 
@@ -706,7 +795,8 @@ SELECT
     artists.coverId as artistCover,
     albums.year,
     albums.heart,
-	albums.isHiRes
+	albums.isHiRes,
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
@@ -732,7 +822,8 @@ SELECT
     artists.coverId as artistCover,
     albums.year,
     albums.heart,
-	albums.isHiRes
+	albums.isHiRes,
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
@@ -760,7 +851,8 @@ SELECT
     artists.coverId as artistCover,
     albums.year,
     albums.heart,
-	albums.isHiRes
+	albums.isHiRes,
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
@@ -786,13 +878,14 @@ SELECT
     artists.coverId as artistCover,
     albums.year,
     albums.heart,
-	albums.isHiRes
+	albums.isHiRes,
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
 WHERE 
-	albums.storeType = -1
+	albums.storeType = -1 OR albums.storeType = -2
 ORDER BY
     albums.album DESC
     )");   

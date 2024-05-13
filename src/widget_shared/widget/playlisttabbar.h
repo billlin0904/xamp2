@@ -21,9 +21,13 @@ public slots:
 	void onFinishRename();
 
 private:
+	void finishRename();
+
 	void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 	void focusOutEvent(QFocusEvent* event) override;
+
+	bool eventFilter(QObject* object, QEvent* event) override;
 
 	int32_t edited_index_{0};
 	QLineEdit* line_edit_{nullptr};
