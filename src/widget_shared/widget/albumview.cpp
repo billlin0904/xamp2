@@ -63,7 +63,14 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     , edit_mode_checkbox_(new QCheckBox()) {
     more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    edit_mode_checkbox_->setStyleSheet(qTEXT("background-color: transparent"));
+
+    edit_mode_checkbox_->setObjectName(qTEXT("editModeCheckbox"));
+    edit_mode_checkbox_->setStyleSheet(qSTR(R"(
+                                         QCheckBox#editModeCheckbox {
+        			                        background-color: transparent;
+    							            color: white;
+                                         }
+                                         )"));
     mask_image_ = image_utils::roundDarkImage(qTheme.defaultCoverSize(),
                                               image_utils::kDarkAlpha, image_utils::kSmallImageRadius);
 }
@@ -157,8 +164,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             option.rect.top() + 5,
             option.rect.width() - 5,
             option.rect.height() - 20);
-        painter->fillRect(select_rect, qTheme.hoverColor().darker());
 
+        QPainterPath path;
+        path.addRoundedRect(select_rect, 8, 8);
+        painter->fillPath(path, qTheme.hoverColor().darker());
         painter->restore();
     }
 
@@ -252,10 +261,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (enable_album_view_ && enable_edit_mode_) {
         QStyleOptionButton checkbox_style;
         const QRect checkbox_icon_rect(
-            option.rect.left() + default_cover_size.width() + 10,
+            option.rect.left() + default_cover_size.width() + 15,
             option.rect.top() + 2,
-            24, 24);
-        checkbox_style.iconSize = QSize(24, 24);
+            32, 32);
+        edit_mode_checkbox_->setIconSize(QSize(32, 32));
         checkbox_style.rect = checkbox_icon_rect;
         if (is_selected) {
             checkbox_style.state |= QStyle::State_On;
@@ -301,8 +310,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
     const auto default_cover = qTheme.defaultCoverSize();
-    result.setWidth(default_cover.width() + 30);
-    result.setHeight(default_cover.height() + 85);
+    result.setWidth(default_cover.width() + 40);
+    result.setHeight(default_cover.height() + 80);
     return result;
 }
 
@@ -507,19 +516,17 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
     ActionMap<AlbumView> action_map(this);
 
-    if (index.isValid()) {
-        const auto album = indexValue(index, INDEX_ALBUM).toString();
-        const auto artist = indexValue(index, INDEX_ARTIST).toString();
+    QString action_name = tr("Enter edit mode");
+    if (styled_delegate_->editMode()) {
+        action_name = tr("Leave edit mode");
+    }
+    auto* enable_edit_mode_act = action_map.addAction(action_name, [this]() {
+        qMainDb.updateAlbumSelectState(kInvalidDatabaseId, !styled_delegate_->editMode());
+        styled_delegate_->enableEditMode(!styled_delegate_->editMode());
+        reload();
+        });    
 
-        auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
-            QApplication::clipboard()->setText(album);
-            });
-        copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
-
-        action_map.addAction(tr("Copy artist"), [artist]() {
-            QApplication::clipboard()->setText(artist);
-            });
-    }   
+    action_map.addSeparator();
 
     XAMP_ON_SCOPE_EXIT(
         action_map.exec(pt);
@@ -530,19 +537,18 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         return;
     }
 
-    QString action_name = tr("Enter edit mode");
     if (styled_delegate_->editMode()) {
-        action_name = tr("Leave edit mode");
-    }
-    auto* enable_edit_mode_act = action_map.addAction(action_name, [this]() {
-        qMainDb.updateAlbumSelectState(kInvalidDatabaseId, !styled_delegate_->editMode());
-        styled_delegate_->enableEditMode(!styled_delegate_->editMode());
-        reload();
-        });
-    //select_all_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SELECT_ALBUM));
+        auto* unselected_all_act = action_map.addAction(tr("Unselected all albums"), [this]() {
+            qMainDb.updateAlbumSelectState(kInvalidDatabaseId, false);
+            reload();
+            });
 
-    if (styled_delegate_->editMode()) {
-        auto* sub_menu = action_map.addSubMenu(tr("Add selected albums to playlist"));
+        auto* selected_all_act = action_map.addAction(tr("Selected all albums"), [this]() {
+            qMainDb.updateAlbumSelectState(kInvalidDatabaseId, true);
+            reload();
+            });
+
+        auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
         QList<int32_t> selected_albums = qMainDb.getSelectedAlbums();
         qMainDb.forEachPlaylist([sub_menu, &selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
@@ -566,7 +572,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 }
                 });
             });
-        action_map.addAction(tr("Add selected albums to new playlist"), [this, &selected_albums]() {
+        action_map.addAction(tr("Add albums to new playlist"), [this, &selected_albums]() {
             QList<PlayListEntity> entities;
             QList<int32_t> add_playlist_music_ids;
             Q_FOREACH(auto album_id, selected_albums) {
@@ -576,11 +582,26 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                             entities.push_back(entity);
                         }
                         add_playlist_music_ids.push_back(entity.music_id);
-                    });                
+                    });
             }
             emit addPlaylist(kInvalidDatabaseId, add_playlist_music_ids, entities);
             });
         return;
+    }
+    else {
+        if (index.isValid()) {
+            const auto album = indexValue(index, INDEX_ALBUM).toString();
+            const auto artist = indexValue(index, INDEX_ARTIST).toString();
+
+            auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
+                QApplication::clipboard()->setText(album);
+                });
+            copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
+
+            action_map.addAction(tr("Copy artist"), [artist]() {
+                QApplication::clipboard()->setText(artist);
+                });
+        }
     }
 
     action_map.addSeparator();
