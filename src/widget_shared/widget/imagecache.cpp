@@ -28,6 +28,10 @@ inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat
 
 namespace {
 	QString makeImageCachePath(const QString& tag_id) {
+		QDir dir(qAppSettings.cachePath() + qTEXT("ImageCache/"));
+		if (!dir.exists()) {
+			dir.mkpath(qAppSettings.cachePath() + qTEXT("ImageCache/"));
+		}
 		return qAppSettings.cachePath() + qTEXT("ImageCache/") + tag_id + kCacheFileExtension;
 	}
 }

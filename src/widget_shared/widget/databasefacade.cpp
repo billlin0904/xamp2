@@ -159,11 +159,11 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         // Avoid cue file album name create new album id.
         auto album_id = kInvalidDatabaseId;
-        if (track_info.is_cue_file) {
-            album_id = database_->getAlbumIdFromAlbumMusic(music_id);
+        if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {            
+            album_id = database_->getAlbumId(album);
         }
         else {
-            album_id = database_->getAlbumId(album);
+            album_id = database_->getAlbumIdFromAlbumMusic(music_id);
         }
 
         if (album_id == kInvalidDatabaseId) {
