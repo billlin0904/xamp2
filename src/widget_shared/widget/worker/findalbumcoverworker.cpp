@@ -10,7 +10,7 @@
 FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
-    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(256)) {
+    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(kBufferPoolSize)) {
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {

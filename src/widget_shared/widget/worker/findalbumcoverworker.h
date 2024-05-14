@@ -15,6 +15,8 @@
 class XAMP_WIDGET_SHARED_EXPORT FindAlbumCoverWorker : public QObject {
 	Q_OBJECT
 public:
+	static constexpr size_t kBufferPoolSize = 256;
+
 	FindAlbumCoverWorker();
 
 signals:
