@@ -141,8 +141,8 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			entity.track = ui_->trackComboBox->currentText().toUInt();
 			entity.year = ui_->yearLineEdit->text().toUInt();
 
-			qMainDb.updateAlbum(entity.album_id, entity.album);
-			qMainDb.updateArtist(entity.artist_id, entity.artist);
+			qAppDb.updateAlbum(entity.album_id, entity.album);
+			qAppDb.updateArtist(entity.artist_id, entity.artist);
 		} catch (...) {
 			XMessageBox::showError(tr("Write tag failure!"));
 			return;

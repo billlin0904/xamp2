@@ -17,7 +17,7 @@
 #include <regex>
 
 XAMP_METADATA_NAMESPACE_BEGIN
-	namespace {
+namespace {
     double ParseStringList(const std::string & s, bool string_dummy = true) {
         std::stringstream ss;
         ss << s;

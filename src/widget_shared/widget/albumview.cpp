@@ -402,12 +402,12 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->playlist()->setAlternatingRowColors(false);
     page_->playlist()->removeAll();
 
-    qMainDb.forEachAlbumMusic(album_id,
+    qAppDb.forEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
             add_playlist_music_ids.push_back(entity.music_id);
         });
 
-    qMainDb.addMusicToPlaylist(add_playlist_music_ids,
+    qAppDb.addMusicToPlaylist(add_playlist_music_ids,
         page_->playlist()->playlistId());
 
     page_->setAlbumId(album_id, album_heart);
@@ -416,7 +416,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->title()->setText(album);
     page_->onSetCoverById(cover_id);
 
-    if (const auto album_stats = qMainDb.getAlbumStats(album_id)) {
+    if (const auto album_stats = qAppDb.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
@@ -455,7 +455,7 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
-    qMainDb.updateAlbumSelectState(kInvalidDatabaseId, false);
+    qAppDb.updateAlbumSelectState(kInvalidDatabaseId, false);
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
         showMenu(pt);
@@ -464,7 +464,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
         auto album = indexValue(index, INDEX_ALBUM).toString();
         auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
-        qMainDb.updateAlbumSelectState(album_id, !state);
+        qAppDb.updateAlbumSelectState(album_id, !state);
         reload();
         });
 
@@ -521,7 +521,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         action_name = tr("Leave edit mode");
     }
     auto* enable_edit_mode_act = action_map.addAction(action_name, [this]() {
-        qMainDb.updateAlbumSelectState(kInvalidDatabaseId, !styled_delegate_->editMode());
+        qAppDb.updateAlbumSelectState(kInvalidDatabaseId, !styled_delegate_->editMode());
         styled_delegate_->enableEditMode(!styled_delegate_->editMode());
         reload();
         });    
@@ -539,18 +539,18 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
     if (styled_delegate_->editMode()) {
         auto* unselected_all_act = action_map.addAction(tr("Unselected all albums"), [this]() {
-            qMainDb.updateAlbumSelectState(kInvalidDatabaseId, false);
+            qAppDb.updateAlbumSelectState(kInvalidDatabaseId, false);
             reload();
             });
 
         auto* selected_all_act = action_map.addAction(tr("Selected all albums"), [this]() {
-            qMainDb.updateAlbumSelectState(kInvalidDatabaseId, true);
+            qAppDb.updateAlbumSelectState(kInvalidDatabaseId, true);
             reload();
             });
 
         auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
-        QList<int32_t> selected_albums = qMainDb.getSelectedAlbums();
-        qMainDb.forEachPlaylist([sub_menu, &selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        QList<int32_t> selected_albums = qAppDb.getSelectedAlbums();
+        qAppDb.forEachPlaylist([sub_menu, &selected_albums, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
                 return;
             }
@@ -561,7 +561,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 QList<PlayListEntity> entities;
                 QList<int32_t> add_playlist_music_ids;
                 Q_FOREACH(auto album_id, selected_albums) {
-                    qMainDb.forEachAlbumMusic(album_id,
+                    qAppDb.forEachAlbumMusic(album_id,
                         [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                             if (entity.track_loudness == 0.0) {
                                 entities.push_back(entity);
@@ -576,7 +576,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             QList<PlayListEntity> entities;
             QList<int32_t> add_playlist_music_ids;
             Q_FOREACH(auto album_id, selected_albums) {
-                qMainDb.forEachAlbumMusic(album_id,
+                qAppDb.forEachAlbumMusic(album_id,
                     [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         if (entity.track_loudness == 0.0) {
                             entities.push_back(entity);
@@ -616,7 +616,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             kEmptyString,
             tr("Cancel"));
         
-        if (!qMainDb.transaction()) {
+        if (!qAppDb.transaction()) {
             return;
         }
 
@@ -624,7 +624,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         try {
             QList<int32_t> albums;
-            qMainDb.forEachAlbum([&albums](auto album_id) {
+            qAppDb.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
                 });
 
@@ -632,16 +632,16 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             int32_t count = 0;
             process_dialog->show();
             Q_FOREACH(const auto album_id, albums) {
-                qMainDb.removeAlbumArtist(album_id);
+                qAppDb.removeAlbumArtist(album_id);
             }
             Q_FOREACH(const auto album_id, albums) {
-                qMainDb.removeAlbum(album_id);
+                qAppDb.removeAlbum(album_id);
                 process_dialog->setValue(count++ * 100 / albums.size() + 1);
                 qApp->processEvents();
             }            
-            qMainDb.removeAllArtist();
+            qAppDb.removeAllArtist();
             process_dialog->setValue(100);
-            qMainDb.commit();
+            qAppDb.commit();
             update();
             emit removeAll();
             qImageCache.clear();
@@ -653,7 +653,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
 
         if (rollback) {
-            qMainDb.rollback();
+            qAppDb.rollback();
             process_dialog->close();
         }
     };
@@ -697,7 +697,7 @@ void AlbumView::showMenu(const QPoint &pt) {
     auto artist_cover_id = indexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
     auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
-    qMainDb.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+    qAppDb.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
         if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
             return;
         }
@@ -707,7 +707,7 @@ void AlbumView::showMenu(const QPoint &pt) {
         sub_menu->addAction(name, [playlist_id, album_id, this]() {
             QList<PlayListEntity> entities;
             QList<int32_t> add_playlist_music_ids;
-            qMainDb.forEachAlbumMusic(album_id,
+            qAppDb.forEachAlbumMusic(album_id,
                 [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                     if (entity.track_loudness == 0.0) {
                         entities.push_back(entity);
@@ -730,22 +730,22 @@ void AlbumView::showMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
-        if (!qMainDb.transaction()) {
+        if (!qAppDb.transaction()) {
             return;
         }
         bool rollback = false;
         try {
-            qMainDb.removeAlbumArtist(album_id);
-            qMainDb.removeAlbum(album_id);            
+            qAppDb.removeAlbumArtist(album_id);
+            qAppDb.removeAlbum(album_id);            
             reload();            
-            qMainDb.commit();
+            qAppDb.commit();
         }
         catch (...) {
             rollback = true;
             logAndShowMessage(std::current_exception());
         }
         if (rollback) {
-            qMainDb.rollback();            
+            qAppDb.rollback();            
         }
     });
     remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
@@ -973,7 +973,7 @@ void AlbumView::reload() {
     if (last_query_.isEmpty()) {
         showAll();
     }
-    model_.setQuery(last_query_, qMainDb.database());
+    model_.setQuery(last_query_, qAppDb.database());
     if (model_.lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
     }

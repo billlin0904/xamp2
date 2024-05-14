@@ -25,7 +25,7 @@ void PlaylistTabWidget::closeAllTab() {
         page->deleteLater();
     }
 
-    qMainDb.forEachPlaylist([this](auto playlist_id,
+    qAppDb.forEachPlaylist([this](auto playlist_id,
         auto,
         auto store_type,
         auto,
@@ -155,7 +155,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         });
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
-        qMainDb.setPlaylistName(currentPlaylistId(), name);
+        qAppDb.setPlaylistName(currentPlaylistId(), name);
         });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
@@ -257,17 +257,17 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
-    if (!qMainDb.transaction()) {
+    if (!qAppDb.transaction()) {
         return false;
     }
     try {
-        qMainDb.removePlaylistAllMusic(playlist_id);
-        qMainDb.removePlaylist(playlist_id);
-        qMainDb.commit();
+        qAppDb.removePlaylistAllMusic(playlist_id);
+        qAppDb.removePlaylist(playlist_id);
+        qAppDb.commit();
         return true;
     }
     catch (...) {
-        qMainDb.rollback();
+        qAppDb.rollback();
     }
     return false;
 }
@@ -291,12 +291,12 @@ void PlaylistTabWidget::saveTabOrder() const {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         Q_ASSERT(playlist_page != nullptr);
         const auto* playlist = playlist_page->playlist();
-        qMainDb.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+        qAppDb.setPlaylistIndex(playlist->playlistId(), i, store_type_);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-	const auto playlist_index = qMainDb.getPlaylistIndex(store_type_);
+	const auto playlist_index = qAppDb.getPlaylistIndex(store_type_);
 
     QList<QWidget*> widgets;
     QList<QString> texts;

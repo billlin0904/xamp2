@@ -41,7 +41,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			                                                    tr("Music Files *.jpg *.jpeg *.png"),
 			                                                    nullptr);
 			cover_id_ = qImageCache.addImage(QPixmap(file_name));
-			qMainDb.updateArtistCoverId(artist_id_, cover_id_);
+			qAppDb.updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);
 		});
 		action_map.exec(pt);
@@ -131,14 +131,14 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	artist_->setText(artist_metrics.elidedText(artist, Qt::ElideRight, 300));
 	album_view_->filterByArtistId(artist_id);
 
-	const auto cover = qImageCache.getOrDefault(cover_id);
+	const auto cover = qImageCache.getOrAddDefault(cover_id);
 	const auto small_cover = getArtistImage(&cover);
 	cover_->setPixmap(small_cover);
 
 	artist_id_ = artist_id;
 	cover_id_ = cover_id;
 
-	if (const auto artist_stats = qMainDb.getArtistStats(artist_id)) {
+	if (const auto artist_stats = qAppDb.getArtistStats(artist_id)) {
 		setAlbumCount(artist_stats.value().albums);
 		setTracks(artist_stats.value().tracks);
 		setTotalDuration(artist_stats.value().durations);

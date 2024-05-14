@@ -13,7 +13,9 @@ namespace py = pybind11;
 using namespace py::literals;
 
 namespace {
-#define dumpObject(obj) XAMP_LOG_DEBUG("{}", py::str(obj).cast<std::string>())
+    void dumpObject(LoggerPtr logger, const py::object& obj) {
+        XAMP_LOG_D(logger, "{}", py::str(obj).cast<std::string>());
+    }
 
     template <typename T>
     std::vector<T> extract_py_list(py::handle obj);
@@ -565,7 +567,7 @@ void YtMusicInterop::initial() {
 
 std::vector<std::string> YtMusicInterop::searchSuggestions(const std::string& query, bool detailed_runs) const {
     const auto suggestions = impl_->get_ytmusic().attr("get_search_suggestions")(query, detailed_runs);
-    dumpObject(suggestions);
+    dumpObject(impl_->logger, suggestions);
     return extract_py_list<std::string>(suggestions);
 }
 
@@ -651,7 +653,7 @@ playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, i
         }
     };
 
-    dumpObject(playlist);
+    dumpObject(impl_->logger, playlist);
 
     auto extract_duration = [&]() -> std::string {
         if (playlist["duration"].is_none()) {
@@ -715,7 +717,7 @@ video_info::VideoInfo YtMusicInterop::extractInfo(const std::string& video_id) c
         return {};
     }
     const auto info = impl_->get_ytdl().attr("extract_info")(video_id, "download"_a = py::bool_(false));
-    dumpObject(info);
+    dumpObject(impl_->logger, info);
     return {
         info["id"].cast<std::string>(),
         info["title"].cast<std::string>(),
@@ -731,7 +733,7 @@ bool YtMusicInterop::rateSong(const std::string& video_id, SongRating rating) co
         return false;
     }
     const auto result = impl_->get_ytmusic().attr("rate_song")(video_id, EnumToString(rating));
-    dumpObject(result);
+    dumpObject(impl_->logger, result);
     return true;
 }
 
@@ -748,7 +750,7 @@ std::string YtMusicInterop::createPlaylistAsync(const std::string& title,
         EnumToString(status),
         py::cast(video_ids), 
         source_playlist);
-    dumpObject(result);
+    dumpObject(impl_->logger, result);
     return result.cast<std::string>();
 }
 
@@ -769,7 +771,7 @@ bool YtMusicInterop::editPlaylist(const std::string& playlist_id,
         move_item, 
         add_playlist_id,
         add_to_top);
-    dumpObject(result);
+    dumpObject(impl_->logger, result);
     return true;
 }
 
@@ -784,7 +786,7 @@ edit::PlaylistEditResults YtMusicInterop::addPlaylistItems(const std::string& pl
         py::cast(video_ids),
         source_playlist,
         duplicates);
-    dumpObject(result);
+    dumpObject(impl_->logger, result);
     std::vector<edit::PlaylistEditResultData> playlist_results;
     for (const auto& item : result["playlistEditResults"]) {
 	    edit::PlaylistEditResultData result_data;
@@ -815,13 +817,13 @@ bool YtMusicInterop::removePlaylistItems(const std::string& playlist_id,
     }
 
     const auto result = impl_->get_ytmusic().attr("remove_playlist_items")(playlist_id, py_list);
-    dumpObject(result);
+    dumpObject(impl_->logger, result);
     return true;
 }
 
 bool YtMusicInterop::deletePlaylist(const std::string& playlist_id) const {
     const auto result = impl_->get_ytmusic().attr("delete_playlist")(playlist_id);
-    dumpObject(result);
+    dumpObject(impl_->logger, result);
     return true;
 }
 
@@ -840,7 +842,7 @@ watch::Playlist YtMusicInterop::getWatchPlaylist(const std::optional<std::string
 
 Lyrics YtMusicInterop::getLyrics(const std::string& browse_id) const {
 	const auto lyrics = impl_->get_ytmusic().attr("get_lyrics")(browse_id);
-    dumpObject(lyrics);
+    dumpObject(impl_->logger, lyrics);
     return {
         lyrics["source"].cast<std::optional<std::string>>(),
         lyrics["lyrics"].cast<std::optional<std::string>>()

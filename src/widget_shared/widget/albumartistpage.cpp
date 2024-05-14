@@ -139,7 +139,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(10));
 
-	auto title_category_list = qMainDb.getCategories();
+	auto title_category_list = qAppDb.getCategories();
 
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->setListViewFixedHeight(70);
@@ -363,7 +363,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_view_ = new AlbumView();
 	year_tag_list_widget_ = new TagListView();
 	year_tag_list_widget_->setSizePolicy(size_policy_1);
-	Q_FOREACH (auto year, qMainDb.getYears()) {
+	Q_FOREACH (auto year, qAppDb.getYears()) {
 		year_tag_list_widget_->addTag(year, true);
 	}
 	year_frame_layout->addWidget(year_tag_list_widget_);
@@ -446,11 +446,11 @@ void AlbumArtistPage::reload() {
 	album_view_->reload();
 	artist_view_->reload();
 
-	Q_FOREACH(auto category, qMainDb.getCategories()) {
+	Q_FOREACH(auto category, qAppDb.getCategories()) {
 		album_tag_list_widget_->addTag(category);
 	}
 
-	auto years = qMainDb.getYears();
+	auto years = qAppDb.getYears();
     std::sort(years.begin(), years.end());
 	Q_FOREACH(auto year, years) {
 		year_tag_list_widget_->addTag(year, true);

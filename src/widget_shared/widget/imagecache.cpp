@@ -170,14 +170,14 @@ QPixmap ImageCache::cover(const QString& tag, const QString& cover_id) {
 	return cover_cache_.GetOrAdd(tag + cover_id, [this, tag, cover_id]() {
 		return getOrAdd(tag + cover_id, [cover_id, this]() {
 			return image_utils::roundImage(
-				image_utils::resizeImage(getOrDefault(cover_id), qTheme.defaultCoverSize(), true),
+				image_utils::resizeImage(getOrAddDefault(cover_id), qTheme.defaultCoverSize(), true),
 				image_utils::kSmallImageRadius);
 			});
 		});
 }
 
 QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const {
-	auto image = getOrDefault(tag_id, false);
+	auto image = getOrAddDefault(tag_id, false);
 	if (!image.isNull()) {
 		return image;
 	}
@@ -200,7 +200,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	cache_.AddOrUpdate(tag_id, { buffer->size(), cache_cover });
 	buffer->close();
 	buffer->setData(QByteArray());	
-	return getOrDefault(tag_id);
+	return getOrAddDefault(tag_id);
 }
 
 QString ImageCache::addImage(const QPixmap& cover, bool save_only) const {
@@ -263,7 +263,7 @@ void ImageCache::loadCache() const {
 		String::FormatBytes(size()));
 }
 
-QPixmap ImageCache::getOrDefault(const QString& tag_id, bool not_found_use_default) const {
+QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {
 	const auto [size, image] = cache_.GetOrAdd(tag_id, [tag_id, this]() {
 		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());
 		return getFromFile(tag_id);
@@ -299,7 +299,7 @@ QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
 
 QIcon ImageCache::getOrAddIcon(const QString& id) const {
 	return qIconCache.GetOrAdd(id, [id, this]() {
-		const QIcon icon(image_utils::roundImage(qImageCache.getOrDefault(id), kCoverSize));
+		const QIcon icon(image_utils::roundImage(qImageCache.getOrAddDefault(id), kCoverSize));
 		return uniformIcon(icon, kCoverSize);
 		});
 }

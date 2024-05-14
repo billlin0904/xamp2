@@ -209,7 +209,7 @@ namespace {
         XAMP_LOG_DEBUG("Load component shared library success.");
 
         try {
-            qMainDb.open();
+            qAppDb.open();
         }
         catch (const Exception& e) {
             XMessageBox::showBug(e);
@@ -310,7 +310,7 @@ int main() {
         qJsonSettings.save();
         qAppSettings.save();
         qAppSettings.saveLogConfig();
-        qMainDb.close();
+        qAppDb.close();
         XampLoggerFactory.Shutdown();
     );
 

@@ -27,7 +27,8 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
         emit fetchThumbnailUrlError(id, thumbnail_url);
         };
 
-    http::HttpClient(&nam_, buffer_pool_, thumbnail_url)
+    //http::HttpClient(&nam_, buffer_pool_, thumbnail_url)
+    http::HttpClient(thumbnail_url)
         .download(download_handler, error_handler);
 }
 

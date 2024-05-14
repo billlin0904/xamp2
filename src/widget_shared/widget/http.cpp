@@ -431,7 +431,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
     request.setRawHeader("X-Request-ID", request_id);
     request.setRawHeader("Accept-Encoding", "gzip");
     
-    request.setTransferTimeout(d->timeout_);
+    request.setTransferTimeout(d->timeout_ * 2);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     return request;

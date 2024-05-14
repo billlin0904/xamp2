@@ -67,7 +67,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
     logger_ = XampLoggerFactory.GetLogger(kDatabaseFacadeLoggerName);
     if (!database) {
-        database_ = &qMainDb;
+        database_ = &qAppDb;
     } else {
         database_ = database;
     }
@@ -78,14 +78,14 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
 }
 
 void DatabaseFacade::ensureInitialUnknownId() {
-    various_artists_id_ = qMainDb.addOrUpdateArtist(various_artists_);
-    unknown_artist_id_ = qMainDb.addOrUpdateArtist(unknown_artist_);
-    unknown_album_id_ =  qMainDb.addOrUpdateAlbum(unknown_album_,
+    various_artists_id_ = qAppDb.addOrUpdateArtist(various_artists_);
+    unknown_artist_id_ = qAppDb.addOrUpdateArtist(unknown_artist_);
+    unknown_album_id_ =  qAppDb.addOrUpdateAlbum(unknown_album_,
         unknown_artist_id_,
         0,
         0,
         StoreType::CLOUD_STORE);
-    qMainDb.setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
+    qAppDb.setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
 }
 
 int32_t DatabaseFacade::unknownArtistId() const {
@@ -158,7 +158,13 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         XAMP_EXPECTS(artist_id != 0);
 
         // Avoid cue file album name create new album id.
-        auto album_id = database_->getAlbumIdFromAlbumMusic(music_id);
+        auto album_id = kInvalidDatabaseId;
+        if (track_info.is_cue_file) {
+            album_id = database_->getAlbumIdFromAlbumMusic(music_id);
+        }
+        else {
+            album_id = database_->getAlbumId(album);
+        }
 
         if (album_id == kInvalidDatabaseId) {
             if (artist_count > 1) {

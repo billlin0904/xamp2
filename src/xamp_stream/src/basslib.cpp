@@ -236,7 +236,14 @@ void BassLib::Load() {
 #ifdef XAMP_OS_WIN
     // Disable 1ms timer resolution
 #define BASS_CONFIG_NOTIMERES 29
-    BASS_LIB.BASS_SetConfig(BASS_CONFIG_NOTIMERES, 1);
+    BASS_LIB.BASS_SetConfig(BASS_CONFIG_NOTIMERES, true);
+
+    // Automatically reduce the read speed when a read error occurs?
+    BASS_LIB.BASS_SetConfig(BASS_CONFIG_CD_AUTOSPEED, true);
+    // Number of times to retry after a read error.
+    BASS_LIB.BASS_SetConfig(BASS_CONFIG_CD_RETRY, 4);
+    // Skip past errors?
+    BASS_LIB.BASS_SetConfig(BASS_CONFIG_CD_SKIPERROR, false);
 #endif
 
     BASS_LIB.BASS_Init(0, 44100, 0, nullptr, nullptr);

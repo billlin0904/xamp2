@@ -47,7 +47,7 @@ public:
 
 	QPixmap findImageFromDir(const PlayListEntity& item);
 
-    QPixmap getOrDefault(const QString& tag_id, bool not_found_use_default = true) const;
+    QPixmap getOrAddDefault(const QString& tag_id, bool not_found_use_default = true) const;
 
 	ImageCacheEntity getFromFile(const QString& tag_id) const;
 

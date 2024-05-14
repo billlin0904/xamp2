@@ -333,7 +333,7 @@ void PlayListTableView::reload() {
         query_string = groupAlbum(playlist_id_);
     }
 
-    const QSqlQuery query(query_string, qMainDb.database());
+    const QSqlQuery query(query_string, qAppDb.database());
     model_->setQuery(query);
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
@@ -369,7 +369,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     playlist_id_ = playlist_id;
     column_setting_name_ = column_setting_name;
 
-    qMainDb.clearNowPlaying(playlist_id_);
+    qAppDb.clearNowPlaying(playlist_id_);
 
     reload();
 
@@ -608,7 +608,7 @@ void PlayListTableView::initial() {
 
             auto *add_to_playlist = action_map.addSubMenu(tr("Add to cloud playlist"));
             QMap<QString, QString> playlist_ids;
-            qMainDb.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
+            qAppDb.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
                 if (store_type == StoreType::CLOUD_STORE) {
                     playlist_ids.insert(cloud_playlist_id, name);
                 }
@@ -685,7 +685,7 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-                qMainDb.removePlaylistAllMusic(playlistId());
+                qAppDb.removePlaylistAllMusic(playlistId());
             	reload();
                 removePlaying();
                 });
@@ -723,7 +723,7 @@ void PlayListTableView::initial() {
                     return;
                 }
                 
-                qMainDb.removePlaylistAllMusic(playlistId());
+                qAppDb.removePlaylistAllMusic(playlistId());
                 reload();
                 removePlaying();
             });
@@ -794,7 +794,7 @@ void PlayListTableView::initial() {
                 const auto rows = selectItemIndex();
                 for (const auto& row : rows) {
 	                const auto entity = this->item(row.second);
-                    qMainDb.addMusicToPlaylist(entity.music_id, other_playlist_id.value(), entity.album_id);
+                    qAppDb.addMusicToPlaylist(entity.music_id, other_playlist_id.value(), entity.album_id);
                 }
             }
             });
@@ -881,7 +881,7 @@ void PlayListTableView::initial() {
 
 void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
     tryLog(
-        qMainDb.addOrUpdateMusic(TagIO::getTrackInfo(item.file_path.toStdWString()));
+        qAppDb.addOrUpdateMusic(TagIO::getTrackInfo(item.file_path.toStdWString()));
 		reload();
 		play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
     )
@@ -889,7 +889,7 @@ void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {
     const auto entity = item(index);
-    qMainDb.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
+    qAppDb.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
     update();
 }
 
@@ -919,14 +919,14 @@ void PlayListTableView::onUpdateReplayGain(int32_t playlistId,
         return;
     }
 
-    qMainDb.updateReplayGain(
+    qAppDb.updateReplayGain(
         entity.music_id,
         replay_gain.album_gain,
         replay_gain.album_peak,
         replay_gain.track_gain,
         replay_gain.track_peak);
 
-    qMainDb.addOrUpdateTrackLoudness(entity.album_id,
+    qAppDb.addOrUpdateTrackLoudness(entity.album_id,
         entity.artist_id,
         entity.music_id,
         replay_gain.track_loudness);
@@ -974,7 +974,7 @@ void PlayListTableView::onProcessDatabase(int32_t playlist_id, const QList<PlayL
     }
 
     for (const auto& entity : entities) {
-        qMainDb.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
+        qAppDb.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
     }
     reload();
     emit addPlaylistItemFinished();
@@ -1094,8 +1094,8 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = item(play_index_);
-    qMainDb.clearNowPlaying(playlist_id_);
-    qMainDb.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);    
+    qAppDb.clearNowPlaying(playlist_id_);
+    qAppDb.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);    
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
@@ -1107,7 +1107,7 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
         return;
     }
     const auto entity = item(play_index_);
-    qMainDb.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
+    qAppDb.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
     reload();
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
     scrollToIndex(play_index_);
@@ -1186,12 +1186,12 @@ void PlayListTableView::onPlayIndex(const QModelIndex& index, bool is_play) {
 }
 
 void PlayListTableView::removePlaying() {
-    qMainDb.clearNowPlaying(playlist_id_);
+    qAppDb.clearNowPlaying(playlist_id_);
     reload();
 }
 
 void PlayListTableView::removeAll() {
-    qMainDb.removePlaylistAllMusic(playlistId());
+    qAppDb.removePlaylistAllMusic(playlistId());
     reload();
 }
 
@@ -1206,15 +1206,15 @@ void PlayListTableView::removeSelectItems() {
 
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
         const auto it = item(itr->second);
-        qMainDb.clearNowPlaying(playlist_id_, it.playlist_music_id);
+        qAppDb.clearNowPlaying(playlist_id_, it.playlist_music_id);
         remove_music_ids.push_back(it.music_id);
     }
 
     const auto count = model_->rowCount();
 	if (!count) {
-        qMainDb.clearNowPlaying(playlist_id_);
+        qAppDb.clearNowPlaying(playlist_id_);
 	}
 
-    qMainDb.removePlaylistMusic(playlist_id_, remove_music_ids);
+    qAppDb.removePlaylistMusic(playlist_id_, remove_music_ids);
     reload();
 }

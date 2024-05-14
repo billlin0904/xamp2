@@ -221,7 +221,7 @@ void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const Q
 	artist_image_->setPixmap(round_image);
 	album_view_->filterByArtistId(artist_id);
 	album_view_->reload();
-	cover_ = qImageCache.getOrDefault(artist_cover_id, false);
+	cover_ = qImageCache.getOrAddDefault(artist_cover_id, false);
 	if (!cover_.isNull()) {
 		cover_ = QPixmap::fromImage(image_utils::blurImage(cover_, size()));
 	}
@@ -294,7 +294,7 @@ void ArtistView::reload() {
 	if (last_query_.isEmpty()) {
 		showAll();
 	}
-	model_.setQuery(last_query_, qMainDb.database());
+	model_.setQuery(last_query_, qAppDb.database());
 	if (model_.lastError().type() != QSqlError::NoError) {
 		XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
 	}
