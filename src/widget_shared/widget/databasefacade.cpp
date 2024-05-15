@@ -69,26 +69,27 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     unknown_artist_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Unknown artist"));
     unknown_album_   = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Unknown album"));
     various_artists_ = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Various Artists"));
-    ensureInitialUnknownId();
+    ensureAddUnknownId();
 }
 
-void DatabaseFacade::ensureInitialUnknownId() {
-    various_artists_id_ = qAppDb.addOrUpdateArtist(various_artists_);
-    unknown_artist_id_ = qAppDb.addOrUpdateArtist(unknown_artist_);
-    unknown_album_id_ =  qAppDb.addOrUpdateAlbum(unknown_album_,
-        unknown_artist_id_,
+void DatabaseFacade::ensureAddUnknownId() {
+    kVariousArtistsId_ = qAppDb.addOrUpdateArtist(various_artists_);
+    kUnknownArtistId_ = qAppDb.addOrUpdateArtist(unknown_artist_);
+    kUnknownAlbumId_ =  qAppDb.addOrUpdateAlbum(unknown_album_,
+        kUnknownArtistId_,
         0,
         0,
         StoreType::CLOUD_STORE);
-    qAppDb.setAlbumCover(unknown_album_id_, qImageCache.unknownCoverId());
+    database_->addAlbumCategory(kUnknownAlbumId_, kLocalCategory);
+    qAppDb.setAlbumCover(kUnknownAlbumId_, qImageCache.unknownCoverId());
 }
 
 int32_t DatabaseFacade::unknownArtistId() const {
-    return unknown_artist_id_;
+    return kUnknownArtistId_;
 }
 
 int32_t DatabaseFacade::unknownAlbumId() const {
-    return unknown_album_id_;
+    return kUnknownAlbumId_;
 }
 
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
@@ -99,44 +100,23 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     uint32_t album_year = 0;
     auto artist_count = 0;
 
-    ensureInitialUnknownId();
+    ensureAddUnknownId();
 
     if (!result.empty()) {
         album_year = result.front().year;        
         auto artist = result.begin()->artist;
         if (artist) {
-            for (const auto& track_info : result) {
-                if (track_info.artist != artist) {
-                    artist_count++;
-                }
-                if (artist_count > 1) {
-                    break;
-                }
-            }
+            artist_count = std::count_if(result.begin(), result.end(),[artist] (const auto &info) {
+                return info.artist == artist;
+            });
         }
     }
-
-    auto album_genre = kEmptyString;
 
 	for (const auto& track_info : result) {        
         auto file_path = toQString(track_info.file_path);
         auto album     = toQString(track_info.album).trimmed();
         auto artist    = toQString(track_info.artist).trimmed();
 		auto disc_id   = toQString(track_info.disc_id);
-
-        QStringList artists;
-        normalizeArtist(artist, artists);
-                
-        const auto is_file_path = IsFilePath(track_info.file_path);
-
-        QPixmap cover;
-		if (is_file_path && isCloudStore(store_type)) {
-			const TagIO reader;			
-			cover = reader.embeddedCover(track_info);
-			if (!cover.isNull()) {
-				album = toQString(track_info.file_name_no_ext());
-			}
-		}
 
         if (album.isEmpty()) {
             album = unknown_album_;
@@ -163,16 +143,17 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         if (album_id == kInvalidDatabaseId) {
             if (artist_count > 1) {
-                artist_id = various_artists_id_;
+                artist_id = kVariousArtistsId_;
             }            
 
+            auto is_hires = track_info.bit_rate >= k24Bit96KhzBitRate;
             album_id = database_->addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 album_year,
                 store_type,
                 disc_id,
-                track_info.bit_rate >= k24Bit96KhzBitRate);
+                is_hires);
 
             if (isCloudStore(store_type)) {
                 database_->addAlbumCategory(album_id, kYouTubeCategory);
@@ -181,16 +162,17 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 database_->addAlbumCategory(album_id, kLocalCategory);
             }
 
-            for (const auto& category : getAlbumCategories(album)) {
-                database_->addAlbumCategory(album_id, category);
-            }
-
             if (track_info.file_ext() == kDsfFileExtension || track_info.file_ext() == kDffFileExtension) {
                 database_->addAlbumCategory(album_id, kDsdCategory);
             }
-            else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
+
+            if (is_hires) {
                 database_->addAlbumCategory(album_id, kHiResCategory);
-			}            
+			}
+
+            for (const auto& category : getAlbumCategories(album)) {
+                database_->addAlbumCategory(album_id, category);
+            }
         }
 
         XAMP_EXPECTS(album_id != 0);
@@ -201,14 +183,15 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         database_->addOrUpdateAlbumMusic(album_id, artist_id, music_id);
         database_->addOrUpdateAlbumArtist(album_id, artist_id);
-        for (const auto& multi_artist : artists) {
-	        const auto id = database_->addOrUpdateArtist(multi_artist);
-            database_->addOrUpdateAlbumArtist(album_id, id);
-        }
 
-        if (!cover.isNull()) {
-            database_->setAlbumCover(album_id, qImageCache.addImage(cover));
-            continue;
+        if (artist_id != kUnknownArtistId_) {
+            QStringList artists;
+            normalizeArtist(artist, artists);
+
+            for (const auto& artist : artists) {
+                const auto id = database_->addOrUpdateArtist(artist);
+                database_->addOrUpdateAlbumArtist(album_id, id);
+            }
         }
 
         QString cover_id;

@@ -175,6 +175,8 @@ public:
 
 	void addAlbumCategory(int32_t album_id, const QString& category) const;
 
+	void addOrUpdateAlbumCategory(int32_t album_id, const QString& category) const;
+
 	void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
 	void addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id,

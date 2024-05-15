@@ -57,6 +57,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) 
         find_file_path = db->getAlbumFirstMusicFilePath(album_id)->toStdWString(); 
     }
 
+    // Read file embedded cover.
     QPixmap cover;
     if (!find_file_path.empty()) {
         const TagIO reader;

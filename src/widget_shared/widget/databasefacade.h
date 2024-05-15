@@ -36,7 +36,7 @@ public:
 	                     const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
 private:    
-    void ensureInitialUnknownId();
+    void ensureAddUnknownId();
 
     void addTrackInfo(const ForwardList<TrackInfo>& result,
         int32_t playlist_id,
@@ -44,9 +44,9 @@ private:
         const std::function<void(int32_t, int32_t)>& fetch_cover);
 
     bool is_stop_{false};
-    int32_t unknown_artist_id_{ kInvalidDatabaseId };
-    int32_t unknown_album_id_{ kInvalidDatabaseId };
-    int32_t various_artists_id_{ kInvalidDatabaseId };
+    int32_t kUnknownArtistId_{ kInvalidDatabaseId };
+    int32_t kUnknownAlbumId_{ kInvalidDatabaseId };
+    int32_t kVariousArtistsId_{ kInvalidDatabaseId };
 
     QString various_artists_;
     QString unknown_artist_;

@@ -911,8 +911,6 @@ FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
-WHERE 
-	albums.storeType = -1
 ORDER BY
     albums.album DESC
     )");   
