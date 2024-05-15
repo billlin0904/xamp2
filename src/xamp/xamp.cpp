@@ -2421,7 +2421,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
     ui_.currentView->setCurrentWidget(album_page_.get());
 }
 
-void Xamp::onAddPlaylistItem(int32_t playlist_id, const QList<int32_t>& music_ids, const QList<PlayListEntity> & entities) {
+void Xamp::onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids) {
     ensureLocalOnePlaylistPage();
     if (playlist_id == kInvalidDatabaseId) {
         //const auto* playlist_view = localPlaylistPage()->playlist();
@@ -2699,7 +2699,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(album_page_->album(),
         &AlbumView::addPlaylist,
         this,
-        &Xamp::onAddPlaylistItem);
+        &Xamp::onAddPlaylist);
 
     pushWidget(local_tab_widget_.get());
     pushWidget(lrc_page_.get());

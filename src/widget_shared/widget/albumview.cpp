@@ -558,33 +558,25 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 return;
             }
             sub_menu->addAction(name, [playlist_id, selected_albums, this]() {
-                QList<PlayListEntity> entities;
                 QList<int32_t> add_playlist_music_ids;
                 Q_FOREACH(auto album_id, selected_albums) {
                     qAppDb.forEachAlbumMusic(album_id,
-                        [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                            if (entity.track_loudness == 0.0) {
-                                entities.push_back(entity);
-                            }
+                        [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                             add_playlist_music_ids.push_back(entity.music_id);
-                        });
-                    emit addPlaylist(playlist_id, add_playlist_music_ids, entities);
+                        });                    
                 }
+                emit addPlaylist(playlist_id, add_playlist_music_ids);
                 });
             });
         action_map.addAction(tr("Add albums to new playlist"), [this, &selected_albums]() {
-            QList<PlayListEntity> entities;
             QList<int32_t> add_playlist_music_ids;
             Q_FOREACH(auto album_id, selected_albums) {
                 qAppDb.forEachAlbumMusic(album_id,
-                    [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                        if (entity.track_loudness == 0.0) {
-                            entities.push_back(entity);
-                        }
+                    [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         add_playlist_music_ids.push_back(entity.music_id);
                     });
             }
-            emit addPlaylist(kInvalidDatabaseId, add_playlist_music_ids, entities);
+            emit addPlaylist(kInvalidDatabaseId, add_playlist_music_ids);
             });
         return;
     }
@@ -705,16 +697,12 @@ void AlbumView::showMenu(const QPoint &pt) {
             return;
         }
         sub_menu->addAction(name, [playlist_id, album_id, this]() {
-            QList<PlayListEntity> entities;
             QList<int32_t> add_playlist_music_ids;
             qAppDb.forEachAlbumMusic(album_id,
-                [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                    if (entity.track_loudness == 0.0) {
-                        entities.push_back(entity);
-                    }
+                [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                     add_playlist_music_ids.push_back(entity.music_id);
                 });
-            emit addPlaylist(playlist_id, add_playlist_music_ids, entities);
+            emit addPlaylist(playlist_id, add_playlist_music_ids);
             });
         });
 
@@ -764,6 +752,7 @@ void AlbumView::onThemeColorChanged(QColor backgroundColor, QColor color) {
 
 void AlbumView::setShowMode(ShowModes mode) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setShowMode(mode);
+    qAppDb.updateAlbumSelectState(kInvalidDatabaseId, false);
 }
 
 void AlbumView::filterByArtistId(int32_t artist_id) {
@@ -871,7 +860,7 @@ WHERE
 ORDER BY
     albums.album DESC
     )").arg(year_list.join(qTEXT(",")));
-    setShowMode(SHOW_ARTIST);
+    setShowMode(SHOW_ARTIST);    
 }
 
 void AlbumView::filterCategories(const QSet<QString>& category) {

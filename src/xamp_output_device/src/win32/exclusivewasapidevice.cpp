@@ -629,9 +629,10 @@ uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 }
 
 bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
-	const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
-		&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
-	return hw_support;
+	//const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
+	//	&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
+	//return hw_support;
+	return false;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
