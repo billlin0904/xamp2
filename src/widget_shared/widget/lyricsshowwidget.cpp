@@ -69,6 +69,7 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 void LyricsShowWidget::initial() {
     lrc_font_ = font();
 	lrc_font_.setPointSize(qAppSettings.valueAsInt(kLyricsFontSize));
+	lyric_ = MakeAlign<ILrcParser, LrcParser>();
 
 	resizeFontSize();
 	setDefaultLrc();

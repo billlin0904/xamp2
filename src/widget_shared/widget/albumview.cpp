@@ -888,8 +888,8 @@ LEFT JOIN
 	albumCategories ON albumCategories.albumId = albums.albumId
 WHERE 
 	albumCategories.category IN (%1)
-ORDER BY
-    albums.album DESC
+GROUP BY
+    albums.album
     )").arg(categories.join(qTEXT(",")));
     setShowMode(SHOW_ARTIST);
 }

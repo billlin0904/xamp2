@@ -25,11 +25,6 @@ namespace {
     const std::wstring kDsfFileExtension(L".dsf");
     constexpr auto k24Bit96KhzBitRate = 4608;
 
-    bool isCloudStore(const StoreType store_type) {
-        return store_type == StoreType::CLOUD_STORE
-            || store_type == StoreType::CLOUD_SEARCH_STORE;
-    }
-
     QSet<QString> getAlbumCategories(const QString& album) {
 	    const QRegularExpression regex(
             qTEXT(R"((piano|vocal|soundtrack|best|complete|collection|collections|edition|version)(?:(?: \[.*\])|(?: - .*))?)"),
@@ -125,8 +120,8 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
 	for (const auto& track_info : result) {        
         auto file_path = toQString(track_info.file_path);
-        auto album     = toQString(track_info.album);
-        auto artist    = toQString(track_info.artist);
+        auto album     = toQString(track_info.album).trimmed();
+        auto artist    = toQString(track_info.artist).trimmed();
 		auto disc_id   = toQString(track_info.disc_id);
 
         QStringList artists;
@@ -157,12 +152,12 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         auto artist_id = database_->addOrUpdateArtist(artist);
         XAMP_EXPECTS(artist_id != 0);
 
-        // Avoid cue file album name create new album id.
         auto album_id = kInvalidDatabaseId;
-        if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {            
+        if (isCloudStore(store_type)) {
             album_id = database_->getAlbumId(album);
         }
         else {
+            // Avoid cue file album name create new album id.
             album_id = database_->getAlbumIdFromAlbumMusic(music_id);
         }
 
@@ -179,22 +174,22 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
                 disc_id,
                 track_info.bit_rate >= k24Bit96KhzBitRate);
 
-            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
-                database_->addOrUpdateAlbumCategory(album_id, kYouTubeCategory);
+            if (isCloudStore(store_type)) {
+                database_->addAlbumCategory(album_id, kYouTubeCategory);
             }
             else {
-                database_->addOrUpdateAlbumCategory(album_id, kLocalCategory);
+                database_->addAlbumCategory(album_id, kLocalCategory);
             }
 
             for (const auto& category : getAlbumCategories(album)) {
-                database_->addOrUpdateAlbumCategory(album_id, category);
+                database_->addAlbumCategory(album_id, category);
             }
 
             if (track_info.file_ext() == kDsfFileExtension || track_info.file_ext() == kDffFileExtension) {
-                database_->addOrUpdateAlbumCategory(album_id, kDsdCategory);
+                database_->addAlbumCategory(album_id, kDsdCategory);
             }
             else if (track_info.bit_rate >= k24Bit96KhzBitRate) {
-                database_->addOrUpdateAlbumCategory(album_id, kHiResCategory);
+                database_->addAlbumCategory(album_id, kHiResCategory);
 			}            
         }
 

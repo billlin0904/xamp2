@@ -1365,12 +1365,12 @@ int32_t Database::addOrUpdateAlbum(const QString& album,
     return album_id;
 }
 
-void Database::addOrUpdateAlbumCategory(int32_t album_id, const QString& category) const {
+void Database::addAlbumCategory(int32_t album_id, const QString& category) const {
     SqlQuery query(db_);
 
     query.prepare(qTEXT(R"(
-    INSERT OR REPLACE INTO albumCategories (albumCategoryId, albumId, category)
-    VALUES ((SELECT albumCategoryId FROM albumCategories WHERE albumId = :albumId), :albumId, :category)
+    INSERT INTO albumCategories (albumCategoryId, albumId, category)
+    VALUES (NULL, :albumId, :category)
     )"));
 
     query.bindValue(qTEXT(":albumId"), album_id);

@@ -42,11 +42,13 @@ constexpr auto kMaxDatabasePoolSize = 8;
 
 constexpr int32_t kInvalidDatabaseId = -1;
 
-constexpr auto kDefaultPlaylistId = 1;
-constexpr auto kAlbumPlaylistId = 2;
-constexpr auto kCdPlaylistId = 3;
-constexpr auto kYtMusicSearchPlaylistId = 4;
-constexpr auto kMaxExistPlaylist = 5;
+enum {
+	kDefaultPlaylistId = 1,
+	kAlbumPlaylistId,
+	kCdPlaylistId,
+	kYtMusicSearchPlaylistId,
+	kMaxExistPlaylist
+};
 
 constexpr auto kYouTubeCategory = qTEXT("YouTube");
 constexpr auto kLocalCategory = qTEXT("Local");
@@ -64,6 +66,11 @@ enum class StoreType {
 	CLOUD_STORE = -2,
 	CLOUD_SEARCH_STORE = -3,
 };
+
+inline bool isCloudStore(const StoreType store_type) {
+	return store_type == StoreType::CLOUD_STORE
+		|| store_type == StoreType::CLOUD_SEARCH_STORE;
+}
 
 class SqlQuery : public QSqlQuery {
 public:
@@ -166,7 +173,7 @@ public:
 
 	void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
-	void addOrUpdateAlbumCategory(int32_t album_id, const QString& category) const;
+	void addAlbumCategory(int32_t album_id, const QString& category) const;
 
 	void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 

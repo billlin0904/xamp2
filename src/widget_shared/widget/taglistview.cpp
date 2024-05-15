@@ -206,7 +206,7 @@ void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
 
 	auto* item = new TagWidgetItem(tag, color, tag_label, list_);
 	f.setBold(true);
-	f.setPointSize(qTheme.fontSize(8));
+	f.setPointSize(qTheme.fontSize(10));
 	tag_label->setFont(f);
 
 	if (!uniform_item_sizes) {

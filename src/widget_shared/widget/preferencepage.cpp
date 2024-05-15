@@ -14,24 +14,6 @@
 
 #include <thememanager.h>
 
-class ActiveListWidget : public QWidget {
-public:
-	ActiveListWidget(PreferencePage* page, const QString& name, QStandardItemModel* model, QModelIndex index) {
-		auto* layout = new QHBoxLayout(this);
-		auto* namelbl = new QLabel(name);
-		delete_button = new QPushButton(qTEXT("X"));
-		delete_button->setMaximumSize(QSize(16, 16));
-		layout->addWidget(namelbl, Qt::AlignLeft);
-		layout->addWidget(delete_button, Qt::AlignRight);
-		layout->setContentsMargins(0, 0, 0, 0);
-		(void)QObject::connect(delete_button, &QPushButton::clicked, [=] {
-			model->removeRow(index.row());
-			});
-	}
-
-	QPushButton* delete_button;
-};
-
 void PreferencePage::updateSoxrConfigUi(const QVariantMap& soxr_settings) {
 	ui_->soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kResampleSampleRate].toInt()));
 	ui_->soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
