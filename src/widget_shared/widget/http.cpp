@@ -519,6 +519,10 @@ QNetworkReply* HttpClient::head() {
     return HttpClientImpl::executeQuery(impl_, HttpMethod::HTTP_HEAD);
 }
 
+QNetworkReply* HttpClient::del() {
+    return HttpClientImpl::executeQuery(impl_, HttpMethod::HTTP_DELETE);
+}
+
 void HttpClient::downloadFile(const QString& file_name, 
     const std::function<void(const QString&)>& download_handler,
     std::function<void(const QUrl&, const QString&)> error_handler) {

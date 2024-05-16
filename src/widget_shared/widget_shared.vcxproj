@@ -131,9 +131,9 @@
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
-    <ClInclude Include="widget\service\chroma_service.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\image_utiltis.h" />
+    <ClInclude Include="widget\util\json_util.h" />
     <ClInclude Include="widget\util\log_util.h" />
     <ClInclude Include="widget\util\mbdiscid_uiltis.h" />
     <ClInclude Include="widget\util\read_until.h" />

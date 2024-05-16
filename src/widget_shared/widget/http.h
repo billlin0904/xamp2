@@ -27,7 +27,8 @@ class XAMP_WIDGET_SHARED_EXPORT HttpClient {
 public:
     HttpClient(QNetworkAccessManager* nam, 
         std::shared_ptr<ObjectPool<QByteArray>> buffer_pool,
-        const QString& url, QObject* parent = nullptr);
+        const QString& url,
+        QObject* parent = nullptr);
 
     explicit HttpClient(const QUrl& url, QObject* parent = nullptr);
 	
@@ -69,6 +70,8 @@ public:
     QNetworkReply* post();
 
     QNetworkReply* head();
+
+    QNetworkReply* del();
 
 private:    
     class HttpClientImpl;
