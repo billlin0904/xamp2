@@ -1,6 +1,8 @@
 #include <QImageReader>
-
+#include <widget/util/json_util.h>
 #include <base/object_pool.h>
+
+#include <widget/util/read_until.h>
 #include <widget/worker/findalbumcoverworker.h>
 #include <widget/tagio.h>
 #include <widget/database.h>
@@ -14,6 +16,10 @@ FindAlbumCoverWorker::FindAlbumCoverWorker()
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
+    if (is_stop_) {
+        return;
+    }
+
     auto download_handler = [id, this](const auto& content) {
         QPixmap image;
         if (!image.loadFromData(content)) {
@@ -34,6 +40,51 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
 
 void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
+}
+
+void FindAlbumCoverWorker::fetchAlbumCover(const Path& file_path) {
+    // Read fingerprint from music file.
+    auto [duration, result] = read_until::readFingerprint(file_path);
+
+    // Fingerprint to QString.
+    QByteArray buffer(reinterpret_cast<const char*>(result.data()), result.size());
+    auto fingerprint = QString::fromLatin1(buffer);
+
+    auto error_handler = [this](const auto& url, const auto& error) {
+        };
+
+    auto success_handler = [this](const auto& url, const auto& content) {
+        QJsonDocument json;
+        json_util::deserialize(content, json);
+
+        auto root = json.object();
+        auto results = root[qTEXT("results")].toArray();
+        for (const auto& result : results) {
+            auto recordings = result.toObject()[qTEXT("recordings")].toArray();
+            for (const auto& recording : recordings) {
+                auto releasegroups = recording.toObject()[qTEXT("releasegroups")].toArray();
+                for (const auto& releasegroup : releasegroups) {
+                    auto cover_art_archive = releasegroup.toObject()[qTEXT("cover-art-archive")].toObject();
+                    if (cover_art_archive[qTEXT("front")].toBool()) {
+                        auto cover_art_url = releasegroup.toObject()[qTEXT("cover-art-url")].toString();
+
+                        return;
+                    }
+                }
+            }
+        }
+        };
+
+    // Perform HTTP GET request to AcoustID API.
+    http::HttpClient(&nam_, buffer_pool_,
+        qSTR("http://api.acoustid.org/v2/lookup?client=%1&meta=recordings+releasegroups+compress&duration=%2&fingerprint=%3")
+        .arg(qTEXT("J0OsCydP14"))
+        .arg((int32_t)duration)
+        .arg(fingerprint)
+    )
+    .success(success_handler)
+    .error(error_handler)
+    .get();
 }
 
 void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) {
@@ -81,7 +132,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) 
             emit setAlbumCover(album_id, qImageCache.unknownCoverId());
         }
 	}
-	catch (...) {
-        
+	catch (const std::exception &e) {
+        XAMP_LOG_DEBUG("Find album cover error: {}", e.what());
 	}    
 }

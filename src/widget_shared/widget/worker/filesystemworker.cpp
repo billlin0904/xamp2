@@ -1,5 +1,4 @@
 #include <widget/worker/filesystemworker.h>
-#include <widget/util/read_until.h>
 
 #include <QDirIterator>
 #include <execution>
@@ -155,16 +154,7 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 
 		ForwardList<TrackInfo> tracks;
 		
-		for (const auto& path : path_info.second) {
-			/*try {
-				auto fingerprint = read_until::readFingerprint(path);
-			}
-			catch (const std::exception& e) {
-				XAMP_LOG_DEBUG("Failed to read fingerprint: {}", e.what());
-			}
-			catch (...) {
-			}*/
-
+		for (const auto& path : path_info.second) {			
 			try {
 				TaglibMetadataReader reader;
 				tracks.push_front(reader.Extract(path));

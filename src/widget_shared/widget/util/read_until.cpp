@@ -78,13 +78,10 @@ double readAll(Path const& file_path,
 	return file_stream->GetDurationAsSeconds();
 }
 
-std::vector<uint8_t> readFingerprint(Path const& file_path) {
+std::tuple<double, std::vector<uint8_t>> readFingerprint(Path const& file_path) {
 	Chromaprint reader;
 	std::vector<int16_t> output;
-	// note: Read the audio file for 24 seconds.
-	constexpr auto kMaxReadDurationSec = 24;
-
-	readAll(file_path, nullptr,
+	auto duration = readAll(file_path, nullptr,
 		[&reader](AudioFormat const& input_format)
 		{
 			reader.SetSampleRate(input_format.GetSampleRate());
@@ -100,8 +97,8 @@ std::vector<uint8_t> readFingerprint(Path const& file_path) {
 			}				
 			
 			reader.Process(output.data(), output.size());
-		}, kMaxReadDurationSec);
-	return reader.GetFingerprint();
+		});
+	return std::make_tuple(duration, reader.GetFingerprint());
 }
 
 std::tuple<double, double> readFileLufs(Path const& file_path,

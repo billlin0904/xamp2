@@ -34,6 +34,8 @@ public slots:
 	void cancelRequested();
 
 private:
+	void fetchAlbumCover(const Path& file_path);
+
 	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;

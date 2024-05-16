@@ -11,9 +11,9 @@
 
 namespace json_util {
 
-inline bool deserialize(const QString& str, QVariantMap &value) {
+inline bool deserialize(const QString& str, QJsonDocument& doc) {
 	QJsonParseError error;
-	value = QJsonDocument::fromJson(str.toUtf8(), &error).toVariant().toMap();
+	doc = QJsonDocument::fromJson(str.toUtf8(), &error);
 	return error.error == QJsonParseError::NoError;
 }
 
