@@ -30,6 +30,8 @@ std::tuple<double, double> readFileLufs(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
 
+std::vector<uint8_t> readFingerprint(Path const& file_path);
+
 XAMP_WIDGET_SHARED_EXPORT void encodeFile(AnyMap const &config,
     AlignPtr<IFileEncoder>& encoder,
     std::function<bool(uint32_t)> const& progress,

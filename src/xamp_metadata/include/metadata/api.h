@@ -31,5 +31,7 @@ XAMP_METADATA_API const HashSet<std::string>& GetSupportFileExtensions();
 
 XAMP_METADATA_API void LoadCueLib();
 
+XAMP_METADATA_API void LoadChromaprintLib();
+
 XAMP_METADATA_NAMESPACE_END
 

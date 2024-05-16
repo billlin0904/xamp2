@@ -26,4 +26,7 @@ XAMP_METADATA_NAMESPACE_BEGIN
     class IMetadataReader;
     class IMetadataWriter;
 
+    class CueLoader;
+    class Chromaprint;
+
 XAMP_METADATA_NAMESPACE_END

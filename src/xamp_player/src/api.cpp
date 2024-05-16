@@ -45,6 +45,9 @@ void LoadComponentSharedLibrary() {
     LoadLibIconvLib();
     XAMP_LOG_DEBUG("Load iconv lib success.");
 
+    LoadChromaprintLib();
+    XAMP_LOG_DEBUG("Load chromaprint lib success.");
+
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();
     XAMP_LOG_DEBUG("Load r8brain lib success.");

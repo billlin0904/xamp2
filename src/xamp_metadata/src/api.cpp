@@ -1,6 +1,8 @@
 #include <metadata/api.h>
 
 #include <metadata/libcuelib.h>
+#include <metadata/chromaprintlib.h>
+
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadatawriter.h>
 
@@ -23,6 +25,10 @@ const HashSet<std::string>& GetSupportFileExtensions() {
 
 void LoadCueLib() {
 	Singleton<LibCueLib>::GetInstance();
+}
+
+void LoadChromaprintLib() {
+	Singleton<ChromaprintLib>::GetInstance();
 }
 
 XAMP_METADATA_NAMESPACE_END

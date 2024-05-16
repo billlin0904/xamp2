@@ -97,20 +97,8 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     StoreType store_type,
     const std::function<void(int32_t, int32_t)>& fetch_cover) {
     const Stopwatch sw;
-    uint32_t album_year = 0;
-    auto artist_count = 0;
 
     ensureAddUnknownId();
-
-    if (!result.empty()) {
-        album_year = result.front().year;        
-        auto artist = result.begin()->artist;
-        if (artist) {
-            artist_count = std::count_if(result.begin(), result.end(),[artist] (const auto &info) {
-                return info.artist == artist;
-            });
-        }
-    }
 
 	for (const auto& track_info : result) {        
         auto file_path = toQString(track_info.file_path);
@@ -142,15 +130,11 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         }
 
         if (album_id == kInvalidDatabaseId) {
-            if (artist_count > 1) {
-                artist_id = kVariousArtistsId_;
-            }            
-
             auto is_hires = track_info.bit_rate >= k24Bit96KhzBitRate;
             album_id = database_->addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
-                album_year,
+                track_info.year,
                 store_type,
                 disc_id,
                 is_hires);

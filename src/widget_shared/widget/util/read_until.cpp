@@ -6,6 +6,7 @@
 #include <base/memory.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
+#include <base/dataconverter.h>
 
 #include <stream/idsdstream.h>
 #include <stream/api.h>
@@ -14,6 +15,7 @@
 
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
+#include <metadata/chromaprint.h>
 
 #include <stream/ebur128reader.h>
 
@@ -21,7 +23,6 @@
 #include <optional>
 #include <utility>
 #include <tuple>
-
 
 namespace read_until {
 
@@ -75,6 +76,32 @@ double readAll(Path const& file_path,
 	}
 
 	return file_stream->GetDurationAsSeconds();
+}
+
+std::vector<uint8_t> readFingerprint(Path const& file_path) {
+	Chromaprint reader;
+	std::vector<int16_t> output;
+	// note: Read the audio file for 24 seconds.
+	constexpr auto kMaxReadDurationSec = 24;
+
+	readAll(file_path, nullptr,
+		[&reader](AudioFormat const& input_format)
+		{
+			reader.SetSampleRate(input_format.GetSampleRate());
+		}, [&reader, &output](auto const* samples, auto sample_size)
+		{
+			if (output.size() != sample_size) {
+				output.resize(sample_size);
+			}
+
+			// note: use AVX2 to speed up the conversion.
+			for (auto i = 0; i < sample_size; ++i) {
+				output[i] = static_cast<int16_t>(kFloat16Scale * samples[i]);
+			}				
+			
+			reader.Process(output.data(), output.size());
+		}, kMaxReadDurationSec);
+	return reader.GetFingerprint();
 }
 
 std::tuple<double, double> readFileLufs(Path const& file_path,
