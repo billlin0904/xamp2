@@ -190,7 +190,7 @@ void XMessageBox::showBug(const Exception& exception,
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,
 		false);
-	box.setIcon(qTheme.fontIcon(0xF188));
+	box.setIcon(qTheme.fontIcon(Glyphs::ICON_BUG_REPORT));
 	box.setTextFont(QFont(qTEXT("DebugFont")));
 	box.exec();
 }

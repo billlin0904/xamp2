@@ -30,7 +30,7 @@ signals:
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
-	void onFindAlbumCover(int32_t music_id, int32_t album_id);
+	void onFindAlbumCover(const DatabaseCoverId& id);
 
 	void onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url);
 

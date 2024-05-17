@@ -44,6 +44,7 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
 void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
     timer_.stop();
+    fetch_album_cover_queue_.clear();
 }
 
 void FindAlbumCoverWorker::onLookupAlbumCover(const DatabaseCoverId& id, const Path& path) {
@@ -123,50 +124,47 @@ void FindAlbumCoverWorker::fetchAlbumCover(const DatabaseCoverId& id, const Path
     .get();
 }
 
-void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) {
+void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
     if (is_stop_) {
         return;
     }
 
     auto db = database_ptr_->Acquire();
 
-    QString cover_id;
-
     try {
-        cover_id = db->getAlbumCoverId(album_id);
+        auto cover_id = db->getAlbumCoverId(id.second.value());
 
         if (!isNullOfEmpty(cover_id)) {
             return;
         }
 
-        std::wstring find_file_path;
-
         // 1. Read embedded cover in music file.
-        auto first_file_path = db->getMusicFilePath(music_id).toStdWString();
-        if (first_file_path.empty()) {
+        auto music_file_path = db->getMusicFilePath(id.first).toStdWString();
+        
+        if (music_file_path.empty()) {
             // 2. Read embedded cover in album first music file.
-            find_file_path = db->getAlbumFirstMusicFilePath(album_id)->toStdWString();
+            music_file_path = db->getAlbumFirstMusicFilePath(id.second.value())->toStdWString();
         }
 
         // Read file embedded cover.
         QPixmap cover;
-        if (!find_file_path.empty()) {
+        if (!music_file_path.empty()) {
             const TagIO reader;
-            cover = reader.embeddedCover(find_file_path);
+            cover = reader.embeddedCover(music_file_path);
             if (!cover.isNull()) {
-                emit setAlbumCover(album_id, qImageCache.addImage(cover));
+                emit setAlbumCover(id.second.value(), qImageCache.addImage(cover));
                 return;
             }
         }
 
         // 3. If not found embedded cover, try to find cover from album folder.
-        cover = qImageCache.scanCoverFromDir(QString::fromStdWString(find_file_path));
+        cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
         if (!cover.isNull()) {
-            emit setAlbumCover(album_id, qImageCache.addImage(cover, true));
+            emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
         }
         else {
             // 4. If not found cover from album folder, try to find cover from AcoustID API.
-            onLookupAlbumCover(DatabaseCoverId(music_id, album_id), find_file_path);
+            onLookupAlbumCover(id, music_file_path);
         }
 	}
 	catch (const std::exception &e) {

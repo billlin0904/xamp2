@@ -228,7 +228,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     if (isNullOfEmpty(cover_id)) {
-        emit findAlbumCover(-1, album_id);
+        emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
     }
     painter->drawPixmap(cover_rect, visibleCovers(cover_id));
 
