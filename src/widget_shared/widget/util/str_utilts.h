@@ -14,12 +14,12 @@
 #include <base/str_utilts.h>
 #include <widget/widget_shared_global.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT ConstLatin1String final : public QLatin1String {
-    constexpr ConstLatin1String(char const* const s) noexcept
+struct XAMP_WIDGET_SHARED_EXPORT ConstexprQString final : public QLatin1String {
+    constexpr ConstexprQString(char const* const s) noexcept
         : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
     }
 
-	constexpr ConstLatin1String(char const* const s, const int length) noexcept
+	constexpr ConstexprQString(char const* const s, const int length) noexcept
 		: QLatin1String(s, length) {
 	}
 };
@@ -39,9 +39,9 @@ public:
 
 namespace std {
 	template <>
-	struct hash<ConstLatin1String> {
+	struct hash<ConstexprQString> {
 		typedef size_t result_type;
-		typedef ConstLatin1String argument_type;
+		typedef ConstexprQString argument_type;
 
 		result_type operator()(const argument_type& s) const noexcept {
 			return qHash(s);
@@ -49,14 +49,14 @@ namespace std {
 	};
 }
 
-inline constexpr ConstLatin1String kEmptyString{ "" };
-inline constexpr ConstLatin1String kPlatformKey{ "windows" };
+inline constexpr ConstexprQString kEmptyString{ "" };
+inline constexpr ConstexprQString kPlatformKey{ "windows" };
 
-inline constexpr ConstLatin1String qTEXT(const char str[]) noexcept {
+inline constexpr ConstexprQString qTEXT(const char str[]) noexcept {
     return { str };
 }
 
-inline constexpr ConstLatin1String fromStdStringView(const std::string_view& s) noexcept {
+inline constexpr ConstexprQString fromStdStringView(const std::string_view& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 

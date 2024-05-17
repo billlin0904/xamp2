@@ -8,7 +8,7 @@
 #include <widget/util/str_utilts.h>
 
 #define DECLARE_APP_SETTING_NAME(Name) \
-	XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String k##Name
+	XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString k##Name
 
 DECLARE_APP_SETTING_NAME(AppSettingAutoSelectNewDevice);
 DECLARE_APP_SETTING_NAME(AppSettingDontShowMeAgainList);

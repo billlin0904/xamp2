@@ -53,7 +53,7 @@ namespace {
     constexpr auto kPaddingSize = 10;
 }
 
-const ConstLatin1String AlbumViewStyledDelegate::kAlbumCacheTag(qTEXT("album_thumbnail_"));
+const ConstexprQString AlbumViewStyledDelegate::kAlbumCacheTag(qTEXT("album_thumbnail_"));
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)

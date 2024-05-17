@@ -1,7 +1,7 @@
 ﻿#include <widget/appsettingnames.h>
 
 #define IMPL_APP_SETTING_NAME(Name, Path) \
-	const ConstLatin1String k##Name { Path }
+	const ConstexprQString k##Name { Path }
 
 IMPL_APP_SETTING_NAME(AppSettingAutoSelectNewDevice, "AppSettings/autoSelectNewDevice");
 IMPL_APP_SETTING_NAME(AppSettingAutoCheckForUpdate, "AppSettings/autoCheckForUpdate" );

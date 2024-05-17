@@ -41,7 +41,7 @@ enum ShowModes {
 class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:	
-	static const ConstLatin1String kAlbumCacheTag;
+	static const ConstexprQString kAlbumCacheTag;
 	static constexpr auto kMoreIconSize = 20;
 	static constexpr auto kIconSize = 40;
 

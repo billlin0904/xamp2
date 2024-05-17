@@ -59,7 +59,7 @@ class Xamp final : public IXFrame {
 
 public:
 	static constexpr auto kShowProgressDialogMsSecs = 100;
-	static constexpr ConstLatin1String kSoftwareUpdateUrl =
+	static constexpr ConstexprQString kSoftwareUpdateUrl =
 		qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
 
     Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer> &player);

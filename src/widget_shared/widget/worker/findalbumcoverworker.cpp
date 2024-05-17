@@ -12,7 +12,10 @@
 FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
-    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(kBufferPoolSize)) {
+    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(kBufferPoolSize))
+    , timer_(this) {
+    (void)QObject::connect(&timer_, &QTimer::timeout, this, &FindAlbumCoverWorker::onFetchAlbumCover);
+    timer_.start(1000);
 }
 
 void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
@@ -40,45 +43,78 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
 
 void FindAlbumCoverWorker::cancelRequested() {
     is_stop_ = true;
+    timer_.stop();
 }
 
-void FindAlbumCoverWorker::fetchAlbumCover(const Path& file_path) {
-    // Read fingerprint from music file.
+void FindAlbumCoverWorker::onLookupAlbumCover(const DatabaseCoverId& id, const Path& path) {
+    const auto entity = std::make_pair(id, path);
+    fetch_album_cover_queue_.push_back(entity);
+}
+
+void FindAlbumCoverWorker::onFetchAlbumCover() {
+    if (is_stop_) {
+        return;
+    }
+
+    if (fetch_album_cover_queue_.empty()) {
+        return;
+    }
+
+    auto [id, path] = fetch_album_cover_queue_.front();
+    fetch_album_cover_queue_.pop_front();
+    fetchAlbumCover(id, path);
+}
+
+void FindAlbumCoverWorker::fetchAlbumCover(const DatabaseCoverId& id, const Path& file_path) {
+    // 1. Read fingerprint from music file.
     auto [duration, result] = read_until::readFingerprint(file_path);
 
-    // Fingerprint to QString.
+    // 2. Fingerprint to QString.
     QByteArray buffer(reinterpret_cast<const char*>(result.data()), result.size());
     auto fingerprint = QString::fromLatin1(buffer);
 
-    auto error_handler = [this](const auto& url, const auto& error) {
+    auto error_handler = [this, id](const auto& url, const auto& error) {
+        if (id.second) {
+            emit setAlbumCover(id.second.value(), qImageCache.unknownCoverId());
+        }
         };
 
-    auto success_handler = [this](const auto& url, const auto& content) {
+    auto success_handler = [this, id](const auto& url, const auto& content) {
         QJsonDocument json;
-        json_util::deserialize(content, json);
+        if (!json_util::deserialize(content, json)) {
+            return;
+        }
 
         auto root = json.object();
         auto results = root[qTEXT("results")].toArray();
         for (const auto& result : results) {
             auto recordings = result.toObject()[qTEXT("recordings")].toArray();
             for (const auto& recording : recordings) {
-                auto releasegroups = recording.toObject()[qTEXT("releasegroups")].toArray();
-                for (const auto& releasegroup : releasegroups) {
-                    auto cover_art_archive = releasegroup.toObject()[qTEXT("cover-art-archive")].toObject();
+                auto release_groups = recording.toObject()[qTEXT("releasegroups")].toArray();
+                for (const auto& release_group : release_groups) {
+                    auto cover_art_archive = release_group.toObject()[qTEXT("cover-art-archive")].toObject();
                     if (cover_art_archive[qTEXT("front")].toBool()) {
-                        auto cover_art_url = releasegroup.toObject()[qTEXT("cover-art-url")].toString();
-
+                        auto cover_art_url = release_group.toObject()[qTEXT("cover-art-url")].toString();
+                        onFetchThumbnailUrl(id, cover_art_url);
                         return;
                     }
                 }
             }
         }
+
+        if (id.second) {
+            emit setAlbumCover(id.second.value(), qImageCache.unknownCoverId());
+        }
         };
 
-    // Perform HTTP GET request to AcoustID API.
+    constexpr auto kHost = qTEXT("api.acoustid.org");
+    constexpr auto kAPIKey = qTEXT("J0OsCydP14");
+
+    // 3. Perform HTTP GET request to AcoustID API.
     http::HttpClient(&nam_, buffer_pool_,
-        qSTR("http://api.acoustid.org/v2/lookup?client=%1&meta=recordings+releasegroups+compress&duration=%2&fingerprint=%3")
-        .arg(qTEXT("J0OsCydP14"))
+        qSTR("http://%1/v2/lookup?client=%2&meta=recordings+releasegroups+compress&duration=%3&fingerprint=%4")
+        .arg(kHost)
+        .arg(kAPIKey)
         .arg((int32_t)duration)
         .arg(fingerprint)
     )
@@ -129,7 +165,8 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) 
             emit setAlbumCover(album_id, qImageCache.addImage(cover, true));
         }
         else {
-            emit setAlbumCover(album_id, qImageCache.unknownCoverId());
+            // 4. If not found cover from album folder, try to find cover from AcoustID API.
+            onLookupAlbumCover(DatabaseCoverId(music_id, album_id), find_file_path);
         }
 	}
 	catch (const std::exception &e) {

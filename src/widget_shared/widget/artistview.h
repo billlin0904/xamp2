@@ -22,7 +22,7 @@ class QPropertyAnimation;
 class ArtistStyledItemDelegate : public QStyledItemDelegate {
 	Q_OBJECT
 public:
-	static const ConstLatin1String kArtistCacheTag;
+	static const ConstexprQString kArtistCacheTag;
 
 	explicit ArtistStyledItemDelegate(QObject* parent = nullptr);
 

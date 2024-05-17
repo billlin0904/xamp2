@@ -104,7 +104,7 @@ bool ArtistStyledItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* mo
 	return true;
 }
 
-const ConstLatin1String ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_thumbnail_"));
+const ConstexprQString ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_thumbnail_"));
 
 ArtistViewPage::ArtistViewPage(QWidget* parent)
 	: QFrame(parent) {

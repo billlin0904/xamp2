@@ -479,7 +479,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 Xamp::~Xamp() = default;
 
 QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
-    static const QMap<std::string_view, ConstLatin1String> lut{
+    static const QMap<std::string_view, ConstexprQString> lut{
         { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
         { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
         { "Null Output",             QT_TRANSLATE_NOOP("Xamp", "Null Output") },
@@ -492,7 +492,7 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
 
 QString Xamp::translateError(Errors error) {
     using xamp::base::Errors;
-    static const QMap<xamp::base::Errors, ConstLatin1String> lut{
+    static const QMap<xamp::base::Errors, ConstexprQString> lut{
         { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,    QT_TRANSLATE_NOOP("Xamp", "Platform spec error") },
         { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE,  QT_TRANSLATE_NOOP("Xamp", "Device create failure") },
     };

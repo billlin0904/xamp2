@@ -353,6 +353,7 @@ void PlayListTableView::reload() {
         }
     }
     play_index_ = QModelIndex();
+    update();
 }
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)

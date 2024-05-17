@@ -40,7 +40,7 @@ namespace {
         return false;
     }
 
-    ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) {
+    ConstexprQString networkErrorToString(QNetworkReply::NetworkError code) {
         const auto* mo = &QNetworkReply::staticMetaObject;
         const int index = mo->indexOfEnumerator("NetworkError");
         if (index == -1)
@@ -50,7 +50,7 @@ namespace {
     }
 
     void logHttpRequest(const LoggerPtr& logger,
-        const ConstLatin1String& verb,
+        const ConstexprQString& verb,
         const QString& url,
         const QNetworkRequest& request,
         const QNetworkReply* reply) {
@@ -103,7 +103,7 @@ namespace {
         XAMP_LOG_D(logger, "{}", msg.toStdString());
     }
 
-    ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
+    ConstexprQString requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
         switch (operation) {
         case QNetworkAccessManager::HeadOperation:
             return qTEXT("HEAD");
@@ -124,7 +124,7 @@ namespace {
     }
 
     void logHttpRequest(const LoggerPtr& logger,
-        const ConstLatin1String& verb,
+        const ConstexprQString& verb,
         const QNetworkRequest& request,
         const QNetworkReply* reply = nullptr) {
         logHttpRequest(logger, verb, request.url().toString(), request, reply);

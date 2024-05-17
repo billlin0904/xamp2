@@ -82,7 +82,7 @@ std::tuple<double, std::vector<uint8_t>> readFingerprint(Path const& file_path) 
 	Chromaprint reader;
 	std::vector<int16_t> output;
 	auto duration = readAll(file_path, nullptr,
-		[&reader](AudioFormat const& input_format)
+		[&reader](auto const& input_format)
 		{
 			reader.SetSampleRate(input_format.GetSampleRate());
 		}, [&reader, &output](auto const* samples, auto sample_size)
@@ -107,7 +107,7 @@ std::tuple<double, double> readFileLufs(Path const& file_path,
 	Ebur128Reader reader;
 
     readAll(file_path, progress,
-		[&reader](AudioFormat const& input_format)
+		[&reader](auto const& input_format)
 		{
 			reader.SetSampleRate(input_format.GetSampleRate());
 		}, [&reader](auto const* samples, auto sample_size)

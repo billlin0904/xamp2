@@ -7,6 +7,9 @@
 
 #include <QNetworkAccessManager>
 #include <QObject>
+#include <QTimer>
+
+#include <deque>
 
 #include <widget/database.h>
 #include <widget/widget_shared_global.h>
@@ -33,12 +36,19 @@ public slots:
 
 	void cancelRequested();
 
+	void onLookupAlbumCover(const DatabaseCoverId& id, const Path& path);
+
+private slots:
+	void onFetchAlbumCover();
+
 private:
-	void fetchAlbumCover(const Path& file_path);
+	void fetchAlbumCover(const DatabaseCoverId& id, const Path& file_path);
 
 	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;
+	QTimer timer_;
+	std::deque<std::pair<DatabaseCoverId, Path>> fetch_album_cover_queue_;
 	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
 };
 

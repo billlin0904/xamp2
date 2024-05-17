@@ -9,8 +9,8 @@
 #include <widget/widget_shared_global.h>
 
 XAMP_WIDGET_SHARED_EXPORT extern const QVersionNumber kApplicationVersionValue;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kApplicationName;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kApplicationTitle;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kApplicationVersion;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kDefaultCharset;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstLatin1String kDefaultUserAgent;
+XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationName;
+XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationTitle;
+XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationVersion;
+XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kDefaultCharset;
+XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kDefaultUserAgent;
