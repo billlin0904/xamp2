@@ -201,7 +201,7 @@ namespace {
         XAMP_LOG_DEBUG("Load component shared library success.");
 
         try {
-            qAppDb.open();
+            qGuiDb.open();
         }
         catch (const Exception& e) {
             XMessageBox::showBug(e);
@@ -295,7 +295,7 @@ int main() {
         qJsonSettings.save();
         qAppSettings.save();
         qAppSettings.saveLogConfig();
-        qAppDb.close();
+        qGuiDb.close();
         XampLoggerFactory.Shutdown();
     );
 

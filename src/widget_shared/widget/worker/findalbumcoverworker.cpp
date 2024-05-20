@@ -157,15 +157,13 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
                 emit setAlbumCover(id.second.value(), qImageCache.addImage(cover));
                 return;
             }
-        }
 
-        // 3. If not found embedded cover, try to find cover from album folder.
-        cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
-        if (!cover.isNull()) {
-            emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
-        }
-        else {
-            emit setAlbumCover(id.second.value(), qImageCache.unknownCoverId());
+            // 3. If not found embedded cover, try to find cover from album folder.
+            cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
+            if (!cover.isNull()) {
+                emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
+            }
+
             // 4. If not found cover from album folder, try to find cover from AcoustID API.
             onLookupAlbumCover(id, music_file_path);
         }

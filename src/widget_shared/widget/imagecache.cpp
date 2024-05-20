@@ -166,7 +166,7 @@ QFileInfo ImageCache::getImageFileInfo(const QString& tag_id) const {
 	return QFileInfo(makeImageCachePath(tag_id));
 }
 
-QPixmap ImageCache::cover(const QString& tag, const QString& cover_id) {	
+QPixmap ImageCache::getCoverOrDefault(const QString& tag, const QString& cover_id) {	
 	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cover cache: {}, cache: {}", 
 		tag.toStdString(),
 		String::FormatBytes(cache_.GetSize()), cover_cache_, cache_);
@@ -178,6 +178,13 @@ QPixmap ImageCache::cover(const QString& tag, const QString& cover_id) {
 				image_utils::kSmallImageRadius);
 			});
 		});
+}
+
+void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) {
+	auto cache_cover = image_utils::roundImage(
+		image_utils::resizeImage(cover, qTheme.defaultCoverSize(), true),
+		image_utils::kSmallImageRadius);
+	cover_cache_.AddOrUpdate(tag + cover_id, cache_cover);
 }
 
 QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const {

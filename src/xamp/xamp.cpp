@@ -1067,7 +1067,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
         auto temp = entity;
         temp.file_path = file_entity.file_name;
         auto track_info = TagIO::getTrackInfo(temp.file_path.toStdWString());
-        qAppDb.updateMusic(temp.music_id, track_info);
+        qGuiDb.updateMusic(temp.music_id, track_info);
         temp.sample_rate = track_info.sample_rate;
         onPlayMusic(temp);
         return;
@@ -1145,7 +1145,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
                     XAMP_LOG_DEBUG("Failure to load song thumbnail.");
                     return;
                 }
-                qAppDb.setAlbumCover(album_id, qImageCache.addImage(image));
+                qGuiDb.setAlbumCover(album_id, qImageCache.addImage(image));
                 lrc_page_->setCover(image_utils::resizeImage(image, lrc_page_->coverSizeHint(), true));
 				});
             });
@@ -1510,7 +1510,7 @@ void Xamp::initialController() {
 
         current_entity_.value().heart = !(current_entity_.value().heart);
 
-        qAppDb.updateMusicHeart(current_entity_.value().music_id, current_entity_.value().heart);
+        qGuiDb.updateMusicHeart(current_entity_.value().music_id, current_entity_.value().heart);
         qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
         if (last_play_page_ != nullptr) {
             last_play_page_->setHeart(current_entity_.value().heart);
@@ -1741,13 +1741,13 @@ void Xamp::setThemeColor(QColor background_color, QColor color) {
 void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& image) {
     QPixmap cover;
     if (cover.loadFromData(image)) {        
-        qAppDb.updateArtistCoverId(qAppDb.addOrUpdateArtist(artist), qImageCache.addImage(cover));
+        qGuiDb.updateArtistCoverId(qGuiDb.addOrUpdateArtist(artist), qImageCache.addImage(cover));
     }
 }
 
 void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
     lrc_page_->lyrics()->onSetLrc(lyrics, trlyrics);
-    qAppDb.addOrUpdateLyrics(music_id, lyrics, trlyrics);
+    qGuiDb.addOrUpdateLyrics(music_id, lyrics, trlyrics);
 }
 
 void Xamp::setFullScreen() {
@@ -2054,10 +2054,10 @@ void Xamp::onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& th
 
 void Xamp::onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id) {
     if (id.isAlbumIdValid()) {
-        qAppDb.setAlbumCover(id.get(), cover_id);
+        qGuiDb.setAlbumCover(id.get(), cover_id);
     }
     else {
-        qAppDb.setMusicCover(id.get(), cover_id);
+        qGuiDb.setMusicCover(id.get(), cover_id);
     }
 }
 
@@ -2199,7 +2199,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
 void Xamp::ensureLocalOnePlaylistPage() {
 	if (local_tab_widget_->count() == 0) {
-		const auto playlist_id = qAppDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+		const auto playlist_id = qGuiDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
 		newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
 	}
 }
@@ -2262,7 +2262,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     lrc_page_->spectrum()->setSampleRate(playback_format.output_format.GetSampleRate());
 
     if (!local_music) {
-        const auto lyrics_opt = qAppDb.getLyrics(entity.music_id);
+        const auto lyrics_opt = qGuiDb.getLyrics(entity.music_id);
         if (!lyrics_opt) {
             emit searchLyrics(entity.music_id, entity.title, entity.artist);
         }
@@ -2282,7 +2282,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     }
 
     player_->Play();
-    qAppDb.updateMusicPlays(entity.music_id);
+    qGuiDb.updateMusicPlays(entity.music_id);
 
     if (open_done) {
         setCover(entity.validCoverId());
@@ -2307,17 +2307,17 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     const auto artist = QString::fromStdWString(mb_disc_id_info.artist);
     
     if (!album.isEmpty()) {
-        qAppDb.updateAlbumByDiscId(disc_id, album);
+        qGuiDb.updateAlbumByDiscId(disc_id, album);
     }
     if (!artist.isEmpty()) {
-        qAppDb.updateArtistByDiscId(disc_id, artist);
+        qGuiDb.updateArtistByDiscId(disc_id, artist);
     }
 
-	const auto album_id = qAppDb.getAlbumIdByDiscId(disc_id);
+	const auto album_id = qGuiDb.getAlbumIdByDiscId(disc_id);
 
     if (!mb_disc_id_info.tracks.empty()) {
         QList<PlayListEntity> entities;
-        qAppDb.forEachAlbumMusic(album_id, [&entities](const auto& entity) {
+        qGuiDb.forEachAlbumMusic(album_id, [&entities](const auto& entity) {
             entities.append(entity);
             });
         std::sort(entities.begin(), entities.end(), [](const auto& a, const auto& b) {
@@ -2325,7 +2325,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
             });
         auto i = 0;
         Q_FOREACH(const auto track, mb_disc_id_info.tracks) {
-            qAppDb.updateMusicTitle(entities[i++].music_id, QString::fromStdWString(track.title));
+            qGuiDb.updateMusicTitle(entities[i++].music_id, QString::fromStdWString(track.title));
         }
     }    
 
@@ -2334,7 +2334,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
         cd_page_->playlistPage()->playlist()->reload();
     }
 
-    if (const auto album_stats = qAppDb.getAlbumStats(album_id)) {
+    if (const auto album_stats = qGuiDb.getAlbumStats(album_id)) {
         cd_page_->playlistPage()->format()->setText(tr("%1 Songs, %2, %3")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
@@ -2343,14 +2343,14 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 }
 
 void Xamp::onUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
-	const auto album_id = qAppDb.getAlbumIdByDiscId(disc_id);
-    qAppDb.setAlbumCover(album_id, cover_id);
+	const auto album_id = qGuiDb.getAlbumIdByDiscId(disc_id);
+    qGuiDb.setAlbumCover(album_id, cover_id);
 }
 
 void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos) {
-    const auto album_id = qAppDb.getAlbumIdByDiscId(disc_id);
-    qAppDb.removeAlbum(album_id);
-    qAppDb.removeAlbumArtist(album_id);
+    const auto album_id = qGuiDb.getAlbumIdByDiscId(disc_id);
+    qGuiDb.removeAlbum(album_id);
+    qGuiDb.removeAlbumArtist(album_id);
     cd_page_->playlistPage()->playlist()->removeAll();
     qDatabaseFacade.insertTrackInfo(track_infos, kCdPlaylistId, StoreType::LOCAL_STORE);
     cd_page_->playlistPage()->playlist()->reload();
@@ -2437,12 +2437,12 @@ void Xamp::onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids) {
         //const auto* playlist_view = localPlaylistPage()->playlist();
         //qAppDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
         const auto tab_index = local_tab_widget_->count();
-        const auto playlist_id = qAppDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
+        const auto playlist_id = qGuiDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
-        qAppDb.addMusicToPlaylist(music_ids, playlist_id);
+        qGuiDb.addMusicToPlaylist(music_ids, playlist_id);
 	}
     else {
-		qAppDb.addMusicToPlaylist(music_ids, playlist_id);
+		qGuiDb.addMusicToPlaylist(music_ids, playlist_id);
 	}
     emit changePlayerOrder(order_);
 }
@@ -2505,7 +2505,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(tr("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->addTab(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
 
-    qAppDb.forEachPlaylist([this](auto playlist_id,
+    qGuiDb.forEachPlaylist([this](auto playlist_id,
         auto index,
         auto store_type,
         const auto& cloud_playlist_id,
@@ -2535,14 +2535,14 @@ void Xamp::initialPlaylist() {
 
     ensureLocalOnePlaylistPage();
 
-    if (!qAppDb.isPlaylistExist(kAlbumPlaylistId)) {
-        qAppDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+    if (!qGuiDb.isPlaylistExist(kAlbumPlaylistId)) {
+        qGuiDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
     }
-    if (!qAppDb.isPlaylistExist(kCdPlaylistId)) {
-        qAppDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+    if (!qGuiDb.isPlaylistExist(kCdPlaylistId)) {
+        qGuiDb.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
     }
-    if (!qAppDb.isPlaylistExist(kYtMusicSearchPlaylistId)) {
-        qAppDb.addPlaylist(tr("Playlist"), 1, StoreType::CLOUD_STORE);
+    if (!qGuiDb.isPlaylistExist(kYtMusicSearchPlaylistId)) {
+        qGuiDb.addPlaylist(tr("Playlist"), 1, StoreType::CLOUD_STORE);
     }
 
     local_tab_widget_->restoreTabOrder();
@@ -2602,7 +2602,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(local_tab_widget_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
             const auto tab_index = local_tab_widget_->count();
-            const auto playlist_id = qAppDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
+            const auto playlist_id = qGuiDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
             newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
         });
 
@@ -2742,7 +2742,7 @@ void Xamp::initialCloudPlaylist() {
         for (const auto& playlist : playlists) {
             process_dialog->setValue(count++ * 100 / playlists.size() + 1);
 
-            const auto playlist_id = qAppDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
+            const auto playlist_id = qGuiDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
             if (playlist.title == kEpisodesForLaterName) {
                 continue;
             }
@@ -2934,8 +2934,8 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             &PlayListTableView::likeSong,
             [this, playlist_page](auto like, const auto& entity) {                
                 playlist_page->playlist()->removeAll();
-                qAppDb.removeAlbumMusic(entity.album_id, entity.music_id);
-                qAppDb.removeMusic(entity.music_id);
+                qGuiDb.removeAlbumMusic(entity.album_id, entity.music_id);
+                qGuiDb.removeMusic(entity.music_id);
                 auto [video_id, set_video_id] = parseId(entity.file_path);
                 QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE),
                     this, [this, playlist_page](auto) {
@@ -3070,7 +3070,7 @@ void Xamp::onReadFilePath(const QString& file_path) {
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
-    qAppDb.setAlbumCover(album_id, cover_id);  
+    qGuiDb.setAlbumCover(album_id, cover_id);  
     album_page_->album()->refreshCover();
     if (current_entity_) {
         if (current_entity_.value().album_id == album_id) {
@@ -3081,7 +3081,7 @@ void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
 }
 
 void Xamp::onTranslationCompleted(const QString& keyword, const QString& result) {
-    qAppDb.updateArtistEnglishName(keyword, result);
+    qGuiDb.updateArtistEnglishName(keyword, result);
 }
 
 void Xamp::onEditTags(int32_t /*playlist_id*/, const QList<PlayListEntity>& entities) {

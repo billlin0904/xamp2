@@ -100,7 +100,7 @@ void PlaylistPage::initial() {
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
 			album_heart_ = !album_heart_;
-			qAppDb.updateAlbumHeart(album_id_.value(), album_heart_);
+			qGuiDb.updateAlbumHeart(album_id_.value(), album_heart_);
 			qTheme.setHeartButton(heart_button_, album_heart_);
 		}
 		});

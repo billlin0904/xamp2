@@ -305,4 +305,4 @@ using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>
 
 XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
-#define qAppDb SharedSingleton<Database>::GetInstance()
+#define qGuiDb SharedSingleton<Database>::GetInstance()

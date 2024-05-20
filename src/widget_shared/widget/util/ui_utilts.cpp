@@ -403,19 +403,3 @@ QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t
 
     return index_found;
 }
-
-QSet<QString> getVisibleCovers(const QStyleOptionViewItem& option, int32_t column) {
-    QSet<QString> view_items;
-    const auto* list_view = static_cast<const QAbstractItemView*>(option.widget);
-    if (!list_view) {
-        return view_items;
-    }
-
-    Q_FOREACH(auto index, getVisibleIndexes(list_view, 0)) {
-        auto cover_id = indexValue(index, column).toString();
-        if (!isNullOfEmpty(cover_id)) {
-            view_items.insert(cover_id);
-        }
-    }
-    return view_items;
-}

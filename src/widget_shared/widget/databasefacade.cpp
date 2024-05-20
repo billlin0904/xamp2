@@ -62,7 +62,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
     logger_ = XampLoggerFactory.GetLogger(kDatabaseFacadeLoggerName);
     if (!database) {
-        database_ = &qAppDb;
+        database_ = &qGuiDb;
     } else {
         database_ = database;
     }
@@ -78,15 +78,15 @@ void DatabaseFacade::initialUnknownTranslateString() {
 }
 
 void DatabaseFacade::ensureAddUnknownId() {
-    kVariousArtistsId = qAppDb.addOrUpdateArtist(various_artists_);
-    kUnknownArtistId = qAppDb.addOrUpdateArtist(unknown_artist_);
-    kUnknownAlbumId =  qAppDb.addOrUpdateAlbum(unknown_album_,
+    kVariousArtistsId = qGuiDb.addOrUpdateArtist(various_artists_);
+    kUnknownArtistId = qGuiDb.addOrUpdateArtist(unknown_artist_);
+    kUnknownAlbumId =  qGuiDb.addOrUpdateAlbum(unknown_album_,
         kUnknownArtistId,
         0,
         0,
         StoreType::CLOUD_STORE);
     database_->addAlbumCategory(kUnknownAlbumId, kLocalCategory);
-    qAppDb.setAlbumCover(kUnknownAlbumId, qImageCache.unknownCoverId());
+    qGuiDb.setAlbumCover(kUnknownAlbumId, qImageCache.unknownCoverId());
 }
 
 int32_t DatabaseFacade::unknownArtistId() const {

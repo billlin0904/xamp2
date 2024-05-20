@@ -61,7 +61,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 	auto font = painter->font();
 
 	if (!artist_cover_id.isEmpty()) {
-		const auto artist_cover = qImageCache.cover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+		const auto artist_cover = qImageCache.getCoverOrDefault(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 		painter->drawPixmap(rect, image_utils::roundImage(artist_cover, size / 2));
 	}
 	else {
@@ -215,7 +215,7 @@ void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const Q
         )"
 	).arg(qTheme.linearGradientStyle()));
 
-	const auto artist_cover = qImageCache.cover(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
+	const auto artist_cover = qImageCache.getCoverOrDefault(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 	const auto round_image = image_utils::roundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(round_image);
@@ -294,7 +294,7 @@ void ArtistView::reload() {
 	if (last_query_.isEmpty()) {
 		showAll();
 	}
-	model_.setQuery(last_query_, qAppDb.database());
+	model_.setQuery(last_query_, qGuiDb.database());
 	if (model_.lastError().type() != QSqlError::NoError) {
 		XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
 	}

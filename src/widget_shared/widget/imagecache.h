@@ -34,6 +34,8 @@ struct ImageCacheSizeOfPolicy {
 
 class QTimerEvent;
 
+inline constexpr ConstexprQString kAlbumCacheTag(qTEXT("album_thumbnail_"));
+
 class XAMP_WIDGET_SHARED_EXPORT ImageCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
@@ -69,7 +71,9 @@ public:
 
 	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
 
-	QPixmap cover(const QString& tag, const QString& cover_id);
+	QPixmap getCoverOrDefault(const QString& tag, const QString& cover_id);
+
+	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover);
 
 	QIcon getOrAddIcon(const QString& id) const;
 

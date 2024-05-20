@@ -41,9 +41,7 @@ enum ShowModes {
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
-public:	
-	static const ConstexprQString kAlbumCacheTag;
-	
+public:
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
 	void setAlbumTextColor(QColor color);
@@ -68,9 +66,7 @@ public:
 
 	ShowModes showModes() const {
 		return show_mode_;
-	}	
-
-	void clearCoverCache();
+	}
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
