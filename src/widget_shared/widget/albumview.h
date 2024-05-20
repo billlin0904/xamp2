@@ -14,6 +14,7 @@
 #include <QCheckBox>
 
 #include <widget/util/str_utilts.h>
+#include <widget/databasecoverid.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/themecolor.h>
@@ -77,7 +78,7 @@ signals:
 
 	void showAlbumMenu(const QModelIndex& index, const QPoint &pt) const;
 
-	void findAlbumCover(int32_t music_id, int32_t album_id) const;
+	void findAlbumCover(const DatabaseCoverId& id) const;
 
 	void stopRefreshCover() const;
 protected:

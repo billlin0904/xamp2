@@ -101,7 +101,7 @@ signals:
 
 	void setWatchDirectory(const QString& dir);
 
-	void findAlbumCover(int32_t music_id, int32_t album_id);
+	void findAlbumCover(const DatabaseCoverId& id);
 
 public slots:
 	void onDelayedDownloadThumbnail();

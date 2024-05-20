@@ -294,7 +294,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     // Perform search album cover
     if (isNullOfEmpty(cover_id)) {
-        emit findAlbumCover(kInvalidDatabaseId, album_id);
+        emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
     }
     painter->drawPixmap(coverRect(option), visibleCovers(cover_id));
 
@@ -729,7 +729,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
         const auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
-        emit styled_delegate_->findAlbumCover(kInvalidDatabaseId, album_id);
+        emit styled_delegate_->findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
         });
 }
 

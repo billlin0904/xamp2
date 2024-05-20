@@ -2278,7 +2278,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     }
 
     if (!entity.isHttpUrl()) {
-        emit findAlbumCover(entity.music_id, entity.album_id);
+        emit findAlbumCover(DatabaseCoverId(entity.music_id, entity.album_id));
     }
 
     player_->Play();
@@ -3056,7 +3056,7 @@ PlaylistPage* Xamp::localPlaylistPage() const {
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
     qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE, [this](auto music_id, auto album_id) {
-        emit findAlbumCover(music_id, album_id);
+        emit findAlbumCover(DatabaseCoverId(music_id, album_id));
     });
     ensureLocalOnePlaylistPage();
     localPlaylistPage()->playlist()->reload();
