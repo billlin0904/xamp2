@@ -373,10 +373,6 @@ size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {
 QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t column) {
     QList<QModelIndex> index_found;
 
-    // Width and height of single items
-    const int grid_w = list_view->width();
-    const int grid_h = list_view->height();
-
     // Visible region of the viewport
     const auto region = list_view->viewport()->visibleRegion();
 
@@ -386,10 +382,8 @@ QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t
         return region.contains(index_rect) || region.intersects(index_rect);
         };
 
-    // Get the first index
-    auto first_index = list_view->indexAt(QPoint(grid_w / 2, 0));
-    if (!first_index.isValid())
-        first_index = list_view->indexAt(QPoint(grid_w / 2, grid_h / 2));
+    // Get the index of the first visible item
+    auto first_index = list_view->indexAt(QPoint(0, 0));
 
     if (first_index.isValid()) {
         auto next_index = first_index;

@@ -85,7 +85,7 @@ protected:
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
 private:
-	QPixmap visibleCovers(const QString& cover_id) const;
+	QPixmap visibleCovers(const QString& cover_id, const QStyleOptionViewItem& option) const;
 
 	bool enable_selected_mode_{ false };
 	bool enable_album_view_{ true };

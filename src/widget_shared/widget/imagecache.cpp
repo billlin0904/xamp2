@@ -49,6 +49,7 @@ ImageCache::ImageCache()
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 	buffer_pool_ = std::make_shared<ObjectPool<QBuffer>>(kDefaultCacheSize);
 	cache_.Add(unknown_cover_id_, { 1, qTheme.unknownCover() });
+	addOrUpdateCover(kAlbumCacheTag, unknown_cover_id_, qTheme.unknownCover());
 	loadCache();
 	startTimer(kTrimImageSizeSeconds);	
 }
@@ -171,20 +172,19 @@ QPixmap ImageCache::getCoverOrDefault(const QString& tag, const QString& cover_i
 		tag.toStdString(),
 		String::FormatBytes(cache_.GetSize()), cover_cache_, cache_);
 
-	return cover_cache_.GetOrAdd(tag + cover_id, [this, tag, cover_id]() {
-		return getOrAdd(tag + cover_id, [cover_id, this]() {
-			return image_utils::roundImage(
-				image_utils::resizeImage(getOrAddDefault(cover_id), qTheme.defaultCoverSize(), true),
-				image_utils::kSmallImageRadius);
-			});
+	return getOrAdd(tag + cover_id, [cover_id, this]() {
+		return image_utils::roundImage(
+			image_utils::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), true),
+			image_utils::kSmallImageRadius);
 		});
 }
 
-void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) {
-	auto cache_cover = image_utils::roundImage(
-		image_utils::resizeImage(cover, qTheme.defaultCoverSize(), true),
-		image_utils::kSmallImageRadius);
-	cover_cache_.AddOrUpdate(tag + cover_id, cache_cover);
+void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const {
+	getOrAdd(tag + cover_id, [&cover]() {
+		return image_utils::roundImage(
+			image_utils::resizeImage(cover, qTheme.defaultCoverSize(), true),
+			image_utils::kSmallImageRadius);
+		});
 }
 
 QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const {
@@ -244,6 +244,8 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) const {
 	cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
 	buffer->close();
 	buffer->setData(QByteArray());	
+
+	addOrUpdateCover(kAlbumCacheTag, tag_id, resize_image);
 	return tag_id;
 }
 

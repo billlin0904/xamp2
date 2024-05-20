@@ -73,7 +73,7 @@ public:
 
 	QPixmap getCoverOrDefault(const QString& tag, const QString& cover_id);
 
-	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover);
+	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const;
 
 	QIcon getOrAddIcon(const QString& id) const;
 
@@ -98,7 +98,7 @@ private:
 	LoggerPtr logger_;
 	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> cache_;
 	mutable std::shared_ptr<ObjectPool<QBuffer>> buffer_pool_;
-	LruCache<QString, QPixmap> cover_cache_;
+	mutable LruCache<QString, QPixmap> cover_cache_;
 };
 
 #define qImageCache SharedSingleton<ImageCache>::GetInstance()

@@ -124,8 +124,8 @@ namespace {
         return cover_rect;
     }
 
-    QMap<int32_t, QString> getVisibleCovers(const QStyleOptionViewItem& option) {
-        QMap<int32_t, QString> view_items;
+    QSet<int32_t> getVisibleAlbumId(const QStyleOptionViewItem& option) {
+        QSet<int32_t> view_items;
         const auto* list_view = static_cast<const QAbstractItemView*>(option.widget);
         if (!list_view) {
             return view_items;
@@ -133,8 +133,23 @@ namespace {
 
         Q_FOREACH(auto index, getVisibleIndexes(list_view, 0)) {
             auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
+            view_items.insert(album_id);
+        }
+        return view_items;
+    }
+
+    QSet<QString> getVisibleCoverId(const QStyleOptionViewItem& option) {
+        QSet<QString> view_items;
+        const auto* list_view = static_cast<const QAbstractItemView*>(option.widget);
+        if (!list_view) {
+            return view_items;
+        }
+
+        Q_FOREACH(auto index, getVisibleIndexes(list_view, 0)) {
             auto cover_id = indexValue(index, INDEX_COVER).toString();
-            view_items.insert(album_id, cover_id);
+            if (!isNullOfEmpty(cover_id)) {
+                view_items.insert(cover_id);
+            }            
         }
         return view_items;
     }
@@ -200,8 +215,13 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     return true;
 }
 
-QPixmap AlbumViewStyledDelegate::visibleCovers(const QString & cover_id) const {
-    return qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id);
+QPixmap AlbumViewStyledDelegate::visibleCovers(const QString & cover_id, const QStyleOptionViewItem& option) const {
+    // Pre-pair album cover
+    auto visible_covers = getVisibleCoverId(option);
+    if (visible_covers.contains(cover_id)) {
+        return qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id);
+    }
+    return qTheme.unknownCover();
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -221,12 +241,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setRenderHints(QPainter::Antialiasing, true);
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
     painter->setRenderHints(QPainter::TextAntialiasing, true);
-
-    // Prepair album cover
-    auto visible_covers = getVisibleCovers(option);
-    Q_FOREACH(auto cover_id, visible_covers) {
-        (void)visibleCovers(cover_id);
-    }
 
     auto album      = indexValue(index, INDEX_ALBUM).toString();
     auto cover_id   = indexValue(index, INDEX_COVER).toString();
@@ -257,7 +271,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     // Draw album and artist text
 
     auto album_artist_text_width = default_cover_size.width();
-    auto album_text_rect = albumTextRect(option, album_artist_text_width);
+    auto album_text_rect  = albumTextRect(option, album_artist_text_width);
     auto artist_text_rect = artistTextRect(option);
 
     if (is_selected && qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
@@ -300,13 +314,17 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     // Perform search album cover
     if (isNullOfEmpty(cover_id)) {
-        emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+        auto visible_albums = getVisibleAlbumId(option);
+        if (visible_albums.contains(album_id)) {
+            emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+        }
+        painter->drawPixmap(coverRect(option), qTheme.unknownCover());
+    }
+    else {
+        painter->drawPixmap(coverRect(option), visibleCovers(cover_id, option));
     }
 
-    painter->drawPixmap(coverRect(option), visibleCovers(cover_id));
-
     // Draw hit play button
-
     bool hit_play_button = false;
     if (enable_album_view_
         && show_mode_ != SHOW_NORMAL

@@ -134,7 +134,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
     try {
         auto cover_id = db->getAlbumCoverId(id.second.value());
 
-        if (!isNullOfEmpty(cover_id)) {
+        if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {
             return;
         }
 
@@ -162,6 +162,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
             cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
             if (!cover.isNull()) {
                 emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
+                return;
             }
 
             // 4. If not found cover from album folder, try to find cover from AcoustID API.
