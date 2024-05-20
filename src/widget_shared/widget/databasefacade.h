@@ -18,6 +18,12 @@ public:
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
 
+    void initialUnknownTranslateString();
+
+    QString unknown() const {
+		return unknown_;
+	}
+
     QString unknownArtist() const {
         return unknown_artist_;
     }
@@ -44,13 +50,15 @@ private:
         const std::function<void(int32_t, int32_t)>& fetch_cover);
 
     bool is_stop_{false};
-    int32_t kUnknownArtistId_{ kInvalidDatabaseId };
-    int32_t kUnknownAlbumId_{ kInvalidDatabaseId };
-    int32_t kVariousArtistsId_{ kInvalidDatabaseId };
+    
+    int32_t kUnknownArtistId{ kInvalidDatabaseId };
+    int32_t kUnknownAlbumId{ kInvalidDatabaseId };
+    int32_t kVariousArtistsId{ kInvalidDatabaseId };
 
     QString various_artists_;
     QString unknown_artist_;
     QString unknown_album_;
+    QString unknown_;
     LoggerPtr logger_;
     Database* database_;
 };

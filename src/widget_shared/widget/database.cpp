@@ -495,19 +495,25 @@ void Database::removeAlbum(int32_t album_id) {
         entities.push_back(entity);        
     });
 
-    Q_FOREACH(const auto & entity, entities) {
-        QList<int32_t> playlist_ids;
-        forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto, auto) {
-            playlist_ids.push_back(playlistId);            
-        });
+    if (!entities.empty()) {
+        Q_FOREACH(const auto & entity, entities) {
+            QList<int32_t> playlist_ids;
+            forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto, auto) {
+                playlist_ids.push_back(playlistId);
+                });
 
-        Q_FOREACH(auto playlistId, playlist_ids) {
-            removePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
+            Q_FOREACH(auto playlistId, playlist_ids) {
+                removePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
+            }
+            removeAlbumCategory(album_id);
+            removeAlbumMusicAlbum(album_id);
+            removeTrackLoudnessMusicId(entity.music_id);
+            removeMusic(entity.music_id);
         }
+    }
+    else {
         removeAlbumCategory(album_id);
-        removeAlbumMusicAlbum(album_id);
-        removeTrackLoudnessMusicId(entity.music_id);
-        removeMusic(entity.music_id);
+		removeAlbumMusicAlbum(album_id);
     }
     
     SqlQuery query(db_);

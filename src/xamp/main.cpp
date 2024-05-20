@@ -62,14 +62,6 @@ namespace {
     }
 
 #ifdef Q_OS_WIN
-    void setWorkingSetSize() {
-        const auto memory_size = GetAvailablePhysicalMemory();
-        XAMP_LOG_DEBUG("GetAvailablePhysicalMemory {} success.", String::FormatBytes(memory_size));
-        constexpr auto kWorkingSize = 512UL * 1024UL * 1024UL;
-        SetProcessWorkingSetSize(kWorkingSize);
-        XAMP_LOG_DEBUG("SetProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSize));
-    }
-
     Vector<SharedLibraryHandle> prefetchDll() {
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         const Vector<std::string_view> dll_file_names{
@@ -270,13 +262,6 @@ int main() {
     qJsonSettings.loadJsonFile(qTEXT("config.json"));
 #ifdef Q_OS_WIN32
     const auto os_ver = QOperatingSystemVersion::current();
-    if (os_ver >= QOperatingSystemVersion::Windows10) {
-        setWorkingSetSize();
-	}
-
-    /*CueFileReader cue_file_reader;
-    cue_file_reader.Open("test.cue");*/
-
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
         os_ver.name().toStdString(),
         os_ver.majorVersion(),

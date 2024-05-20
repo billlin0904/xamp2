@@ -66,30 +66,35 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     } else {
         database_ = database;
     }
-    unknown_artist_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Unknown artist"));
-    unknown_album_   = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Unknown album"));
-    various_artists_ = tr(QT_TRANSLATE_NOOP("DatabaseFacade",  "Various Artists"));
+    initialUnknownTranslateString();
     ensureAddUnknownId();
 }
 
+void DatabaseFacade::initialUnknownTranslateString() {
+    unknown_         = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown"));
+    unknown_artist_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown artist"));
+    unknown_album_   = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown album"));
+    various_artists_ = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Various Artists"));
+}
+
 void DatabaseFacade::ensureAddUnknownId() {
-    kVariousArtistsId_ = qAppDb.addOrUpdateArtist(various_artists_);
-    kUnknownArtistId_ = qAppDb.addOrUpdateArtist(unknown_artist_);
-    kUnknownAlbumId_ =  qAppDb.addOrUpdateAlbum(unknown_album_,
-        kUnknownArtistId_,
+    kVariousArtistsId = qAppDb.addOrUpdateArtist(various_artists_);
+    kUnknownArtistId = qAppDb.addOrUpdateArtist(unknown_artist_);
+    kUnknownAlbumId =  qAppDb.addOrUpdateAlbum(unknown_album_,
+        kUnknownArtistId,
         0,
         0,
         StoreType::CLOUD_STORE);
-    database_->addAlbumCategory(kUnknownAlbumId_, kLocalCategory);
-    qAppDb.setAlbumCover(kUnknownAlbumId_, qImageCache.unknownCoverId());
+    database_->addAlbumCategory(kUnknownAlbumId, kLocalCategory);
+    qAppDb.setAlbumCover(kUnknownAlbumId, qImageCache.unknownCoverId());
 }
 
 int32_t DatabaseFacade::unknownArtistId() const {
-    return kUnknownArtistId_;
+    return kUnknownArtistId;
 }
 
 int32_t DatabaseFacade::unknownAlbumId() const {
-    return kUnknownAlbumId_;
+    return kUnknownAlbumId;
 }
 
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
@@ -168,7 +173,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         database_->addOrUpdateAlbumMusic(album_id, artist_id, music_id);
         database_->addOrUpdateAlbumArtist(album_id, artist_id);
 
-        if (artist_id != kUnknownArtistId_) {
+        if (artist_id != kUnknownArtistId) {
             QStringList artists;
             normalizeArtist(artist, artists);
 

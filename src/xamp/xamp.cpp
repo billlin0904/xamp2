@@ -766,6 +766,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
        &FindAlbumCoverWorker::onFindAlbumCover,
        Qt::QueuedConnection);
 
+   (void)QObject::connect(this,
+       &Xamp::findAlbumCover,
+       find_album_cover_worker_.get(),
+       &FindAlbumCoverWorker::onFindAlbumCover,
+       Qt::QueuedConnection);
+
     (void)QObject::connect(extract_file_worker_.get(),
         &FileSystemWorker::foundFileCount,
         this,
@@ -2271,6 +2277,10 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         tab_widget->setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
     }
 
+    if (!entity.isHttpUrl()) {
+        emit findAlbumCover(entity.music_id, entity.album_id);
+    }
+
     player_->Play();
     qAppDb.updateMusicPlays(entity.music_id);
 
@@ -3062,6 +3072,12 @@ void Xamp::onReadFilePath(const QString& file_path) {
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
     qAppDb.setAlbumCover(album_id, cover_id);  
     album_page_->album()->refreshCover();
+    if (current_entity_) {
+        if (current_entity_.value().album_id == album_id) {
+            current_entity_.value().cover_id = cover_id;
+            onSetCover(cover_id, nullptr);
+		}
+    }
 }
 
 void Xamp::onTranslationCompleted(const QString& keyword, const QString& result) {

@@ -263,9 +263,6 @@
     <ClCompile Include="src\waitabletimer.cpp" />
     <ClCompile Include="src\windows_handle.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

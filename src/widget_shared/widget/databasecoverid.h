@@ -16,38 +16,10 @@
  * First is music id, second is album id.
 */
 struct XAMP_WIDGET_SHARED_EXPORT DatabaseCoverId : public std::pair<int32_t, std::optional<int32_t>> {
-	//int32_t first;
-	//std::optional<int32_t> second;
-
 	explicit DatabaseCoverId(int32_t music_id = kInvalidDatabaseId, std::optional<int32_t> album_id = std::nullopt) {
 		first = music_id;
 		second = album_id;
 	}
-
-	/*DatabaseCoverId(DatabaseCoverId&& other) noexcept {
-		*this = std::move(other);
-	}
-
-	DatabaseCoverId& operator=(DatabaseCoverId&& other) noexcept {
-		if (this != &other) {
-			first = other.first;
-			second = std::move(other.second);
-		}
-		return *this;
-	}
-
-	DatabaseCoverId(const DatabaseCoverId& other) {
-		first = other.first;
-		second = other.second;
-	}
-
-	DatabaseCoverId& operator=(const DatabaseCoverId& other) {
-		if (this != &other) {
-			first = other.first;
-			second = other.second;
-		}
-		return *this;
-	}*/
 
 	[[nodiscard]] bool isAlbumIdValid() const {
 		return second.has_value();

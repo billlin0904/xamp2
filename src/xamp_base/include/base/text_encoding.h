@@ -12,17 +12,19 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API TextEncoding {
 public:
+	static constexpr size_t kBufferSize = 4096;
+
 	TextEncoding();
 
 	XAMP_PIMPL(TextEncoding)
 
 	std::string ToUtf8String(const std::string& input_encoding,
 			const std::string& input,
-			size_t buf_size = 4096,
+			size_t buf_size = kBufferSize,
 			bool ignore_error = false);
 
 	std::string ToUtf8String(const std::string& input,
-		size_t buf_size = 4096,
+		size_t buf_size = kBufferSize,
 		bool ignore_error = false);
 private:
 	class TextEncodingImpl;

@@ -142,10 +142,15 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) 
         std::wstring find_file_path;
 
         // 1. Read embedded cover in music file.
-        auto first_file_path = db->getMusicFilePath(music_id).toStdWString();
-        if (first_file_path.empty()) {
+        find_file_path = db->getMusicFilePath(music_id).toStdWString();
+        if (find_file_path.empty()) {
             // 2. Read embedded cover in album first music file.
-            find_file_path = db->getAlbumFirstMusicFilePath(album_id)->toStdWString();
+            if (auto album_first_music_path = db->getAlbumFirstMusicFilePath(album_id)) {
+                find_file_path = album_first_music_path->toStdWString();
+            }
+            else {
+                return;
+            }
         }
 
         // Read file embedded cover.
@@ -165,8 +170,9 @@ void FindAlbumCoverWorker::onFindAlbumCover(int32_t music_id, int32_t album_id) 
             emit setAlbumCover(album_id, qImageCache.addImage(cover, true));
         }
         else {
+            emit setAlbumCover(album_id, qImageCache.unknownCoverId());
             // 4. If not found cover from album folder, try to find cover from AcoustID API.
-            onLookupAlbumCover(DatabaseCoverId(music_id, album_id), find_file_path);
+            onLookupAlbumCover(DatabaseCoverId(music_id, album_id), find_file_path);            
         }
 	}
 	catch (const std::exception &e) {

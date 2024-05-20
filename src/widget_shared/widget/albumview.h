@@ -42,9 +42,7 @@ class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledIt
 	Q_OBJECT
 public:	
 	static const ConstexprQString kAlbumCacheTag;
-	static constexpr auto kMoreIconSize = 20;
-	static constexpr auto kIconSize = 40;
-
+	
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
 	void setAlbumTextColor(QColor color);
@@ -59,17 +57,19 @@ public:
 		show_mode_ = mode;
 	}
 
-	void enableEditMode(bool enable) {
-		enable_edit_mode_ = enable;
+	void setSelected(bool enable) {
+		enable_selected_mode_ = enable;
 	}
 
-	bool editMode() const {
-		return enable_edit_mode_;
+	bool isSelected() const {
+		return enable_selected_mode_;
 	}
 
 	ShowModes showModes() const {
 		return show_mode_;
 	}	
+
+	void clearCoverCache();
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
@@ -90,7 +90,7 @@ protected:
 private:
 	QPixmap visibleCovers(const QString& cover_id) const;
 
-	bool enable_edit_mode_{ false };
+	bool enable_selected_mode_{ false };
 	bool enable_album_view_{ true };
 	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };
