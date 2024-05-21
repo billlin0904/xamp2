@@ -56,12 +56,21 @@ public:
 		show_mode_ = mode;
 	}
 
-	void setSelected(bool enable) {
+	void setSelectedMode(bool enable) {
 		enable_selected_mode_ = enable;
+		is_selected_all_ = true;
 	}
 
-	bool isSelected() const {
+	bool isSelectedMode() const {
 		return enable_selected_mode_;
+	}
+
+	bool isSelectedAll() const {
+		return is_selected_all_;
+	}
+
+	void setSelectedAll(bool selected) {
+		is_selected_all_ = selected;
 	}
 
 	ShowModes showModes() const {
@@ -85,9 +94,8 @@ protected:
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
 private:
-	QPixmap visibleCovers(const QString& cover_id, const QStyleOptionViewItem& option) const;
-
 	bool enable_selected_mode_{ false };
+	bool is_selected_all_{ true };
 	bool enable_album_view_{ true };
 	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };

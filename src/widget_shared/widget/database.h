@@ -306,3 +306,36 @@ using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>
 XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
 #define qGuiDb SharedSingleton<Database>::GetInstance()
+
+template <typename Func>
+class TransactionScope {
+public:
+	explicit TransactionScope(Func&& action)
+		: action_(std::forward<Func>(action)) {
+		result_ = qGuiDb.transaction();
+	}
+
+	~TransactionScope() noexcept {
+		if (!result_) {
+			return;
+		}
+
+		try {
+			action_();
+			qGuiDb.commit();
+		}
+		catch (...) {
+			rollback_ = true;
+			logAndShowMessage(std::current_exception());
+		}
+
+		if (rollback_) {
+			qGuiDb.rollback();
+		}
+	}
+
+private:
+	bool result_{ false };
+	bool rollback_{ false };
+	Func action_;
+};

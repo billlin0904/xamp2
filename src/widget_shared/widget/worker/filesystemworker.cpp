@@ -252,6 +252,10 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 }
 
 void FileSystemWorker::updateProgress() {
+	if (total_time_elapsed_.ElapsedSeconds() < 0) {
+		return;
+	}
+
 	const auto completed_work = completed_work_.load();
 	emit readFileProgress((completed_work * 100) / total_work_);
 	const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
@@ -260,6 +264,7 @@ void FileSystemWorker::updateProgress() {
 		(total_work_ - completed_work)
 		: 0.0;
 	emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
+	total_time_elapsed_.Reset();
 }
 
 void FileSystemWorker::cancelRequested() {

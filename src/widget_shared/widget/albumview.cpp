@@ -44,14 +44,14 @@ namespace {
         INDEX_ARTIST_COVER_ID,
         INDEX_ALBUM_YEAR,
         INDEX_ALBUM_HEART,
-        INDEX_CATEGORY,
+        INDEX_IS_HIRES,
         INDEX_IS_SELECTED
     };
 
-    inline constexpr auto kMoreIconSize = 24;
-    inline constexpr auto kIconSize = 40;
-    inline constexpr auto kImageCacheSize = 24;
-    inline constexpr auto kPaddingSize = 10;
+    constexpr auto kMoreIconSize = 24;
+    constexpr auto kIconSize = 40;
+    constexpr auto kImageCacheSize = 24;
+    constexpr auto kPaddingSize = 10;
 
     inline QRect moreButtonRect(const QStyleOptionViewItem& option) noexcept {
         const auto& default_cover_size = qTheme.defaultCoverSize();
@@ -67,7 +67,7 @@ namespace {
         const QRect hi_res_icon_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 15,
-            20, 20);
+            kMoreIconSize, kMoreIconSize);
         return hi_res_icon_rect;
     }
 
@@ -215,15 +215,6 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     return true;
 }
 
-QPixmap AlbumViewStyledDelegate::visibleCovers(const QString & cover_id, const QStyleOptionViewItem& option) const {
-    // Pre-pair album cover
-    auto visible_covers = getVisibleCoverId(option);
-    if (visible_covers.contains(cover_id)) {
-        return qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id);
-    }
-    return qTheme.unknownCover();
-}
-
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
@@ -232,7 +223,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto album_id = indexValue(index, INDEX_ALBUM_ID).toInt();
 
     if (album_id == 0) {
-        // Note: Qt6 當沒有可以顯示的內容album_id為0
+        // Note: Qt6 no more data.
         return;
     }
 
@@ -246,7 +237,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto cover_id   = indexValue(index, INDEX_COVER).toString();
     auto artist     = indexValue(index, INDEX_ARTIST).toString();    
     auto album_year = indexValue(index, INDEX_ALBUM_YEAR).toInt();
-    auto is_hires   = indexValue(index, INDEX_CATEGORY).toBool();
+    auto is_hires   = indexValue(index, INDEX_IS_HIRES).toBool();
     auto is_selected= indexValue(index, INDEX_IS_SELECTED).toBool();
 
     // Process edit album view 
@@ -313,6 +304,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
 
     // Perform search album cover
+    // Note: Calculate view visible is not necessary, Qt already done it. 
     if (isNullOfEmpty(cover_id)) {
         auto visible_albums = getVisibleAlbumId(option);
         if (visible_albums.contains(album_id)) {
@@ -321,7 +313,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         painter->drawPixmap(coverRect(option), qTheme.unknownCover());
     }
     else {
-        painter->drawPixmap(coverRect(option), visibleCovers(cover_id, option));
+        painter->drawPixmap(coverRect(option), qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id));
     }
 
     // Draw hit play button
@@ -596,20 +588,20 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
     ActionMap<AlbumView> action_map(this);
 
-    QString action_name = tr("Select all album");
-    if (styled_delegate_->isSelected()) {
-        action_name = tr("Unselected all albums");
+    QString action_name = tr("Enter select mode");
+    if (styled_delegate_->isSelectedMode()) {
+        action_name = tr("Leave select move");
     }
     auto* selected_album_mode_act = action_map.addAction(action_name, [this]() {
         // Check all album state
         for (auto index = 0; index < proxy_model_->rowCount(); ++index) {            
             auto album_id = indexValue(proxy_model_->index(index, INDEX_ALBUM_ID), INDEX_ALBUM_ID).toInt();
-			qGuiDb.updateAlbumSelectState(album_id, !styled_delegate_->isSelected());
+			qGuiDb.updateAlbumSelectState(album_id, !styled_delegate_->isSelectedMode());
         }
-        styled_delegate_->setSelected(!styled_delegate_->isSelected());
+        styled_delegate_->setSelectedMode(!styled_delegate_->isSelectedMode());
         // Update selected album state
         reload();
-        });    
+        });
 
     action_map.addSeparator();
 
@@ -622,7 +614,36 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         return;
     }
 
-    if (styled_delegate_->isSelected()) {
+    if (styled_delegate_->isSelectedMode()) {
+        QString action_name;
+        if (!styled_delegate_->isSelectedAll()) {
+			action_name = tr("Selected all");
+            styled_delegate_->setSelectedAll(true);
+        }
+        else {
+            action_name = tr("Unselected all");
+            styled_delegate_->setSelectedAll(false);
+        }
+        action_map.addAction(action_name, [this]() {
+            TransactionScope scope([&]() {
+                if (!styled_delegate_->isSelectedAll()) {
+                    QList<int32_t> selected_albums = qGuiDb.getSelectedAlbums();
+                    Q_FOREACH(auto album_id, selected_albums) {
+                        qGuiDb.updateAlbumSelectState(album_id, false);
+                    }
+                }
+                else {
+                    for (auto index = 0; index < proxy_model_->rowCount(); ++index) {
+                        auto album_id = indexValue(proxy_model_->index(index, INDEX_ALBUM_ID), INDEX_ALBUM_ID).toInt();
+                        qGuiDb.updateAlbumSelectState(album_id, true);
+                    }
+                }
+                reload();
+                }
+            );
+            });
+
+
         auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
         
         qGuiDb.forEachPlaylist([sub_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
@@ -655,6 +676,36 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             }
             emit addPlaylist(kInvalidDatabaseId, add_playlist_music_ids);
             });
+
+        action_map.addSeparator();
+
+        auto* remove_selected_album_act = action_map.addAction(tr("Remove selected albums"), [this]() {
+			if (!qGuiDb.transaction()) {
+				return;
+			}
+
+            auto process_dialog = makeProgressDialog(
+                tr("Remove all album"),
+                kEmptyString,
+                tr("Cancel"));
+            
+            process_dialog->show();
+
+            int32_t count = 0;
+
+            TransactionScope scope([&]() {
+                QList<int32_t> selected_albums = qGuiDb.getSelectedAlbums();
+                Q_FOREACH(auto album_id, selected_albums) {
+                    qGuiDb.removeAlbumArtist(album_id);
+                    qGuiDb.removeAlbum(album_id);
+                    process_dialog->setValue(count++ * 100 / selected_albums.size() + 1);
+                }
+                process_dialog->setValue(100);
+                reload();
+                });
+
+			});
+
         return;
     }
     else {
@@ -684,22 +735,16 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             tr("Remove all album"),
             kEmptyString,
             tr("Cancel"));
-        
-        if (!qGuiDb.transaction()) {
-            return;
-        }
 
-        auto rollback = true;
+        process_dialog->show();
 
-        try {
+        TransactionScope scope([&]() {
             QList<int32_t> albums;
             qGuiDb.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
                 });
-
             process_dialog->setRange(0, albums.size() + 1);
             int32_t count = 0;
-            process_dialog->show();
             Q_FOREACH(const auto album_id, albums) {
                 qGuiDb.removeAlbumArtist(album_id);
             }
@@ -707,24 +752,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 qGuiDb.removeAlbum(album_id);
                 process_dialog->setValue(count++ * 100 / albums.size() + 1);
                 qApp->processEvents();
-            }            
+            }
             qGuiDb.removeAllArtist();
             process_dialog->setValue(100);
-            qGuiDb.commit();
-            update();
             emit removeAll();
             qImageCache.clear();
             qIconCache.Clear();
-            rollback = false;
-        }
-        catch (...) {
-            logAndShowMessage(std::current_exception());
-        }
-
-        if (rollback) {
-            qGuiDb.rollback();
-            process_dialog->close();
-        }
+            update();
+            });
     };
 
     auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
@@ -978,7 +1013,9 @@ GROUP BY
 }
 
 void AlbumView::showAll() {
-    last_query_ = qSTR(R"(
+    // Note: If the sql use order by, refresh cover will be slow.
+    // Because the view will be refresh many times.
+    last_query_ = qTEXT(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -994,8 +1031,6 @@ FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
-ORDER BY
-    albums.album DESC
     )");   
     setShowMode(SHOW_ARTIST);
 }
