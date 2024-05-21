@@ -36,22 +36,6 @@
 #include <widget/tagio.h>
 
 namespace {
-    QSet<QString> getVisibleCovers(const QStyleOptionViewItem& option, int32_t column) {
-        QSet<QString> view_items;
-        const auto* list_view = static_cast<const QAbstractItemView*>(option.widget);
-        if (!list_view) {
-            return view_items;
-        }
-
-        Q_FOREACH(auto index, getVisibleIndexes(list_view, 0)) {
-            auto cover_id = indexValue(index, column).toString();
-            if (!isNullOfEmpty(cover_id)) {
-                view_items.insert(cover_id);
-            }
-        }
-        return view_items;
-    }
-
     QString groupAlbum(int32_t playlist_id) {
         return qSTR(R"(
     SELECT	
@@ -173,11 +157,6 @@ public:
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         if (!index.isValid()) {
             return;
-        }
-
-        auto visible_covers = getVisibleCovers(option, PLAYLIST_ALBUM_COVER_ID);
-        Q_FOREACH(auto cover_id, visible_covers) {
-            (void)visibleCovers(cover_id);
         }
 
         painter->setRenderHints(QPainter::Antialiasing,         true);
@@ -306,7 +285,7 @@ public:
                     id = music_cover_id;
 				}
 
-                opt.icon = visibleCovers(id);
+                opt.icon = qImageCache.getOrAddIcon(id);
 				opt.features = QStyleOptionViewItem::HasDecoration;
 				opt.decorationAlignment = Qt::AlignCenter;
 				opt.displayAlignment = Qt::AlignCenter;

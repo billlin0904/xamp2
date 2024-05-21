@@ -67,7 +67,7 @@ namespace {
         const QRect hi_res_icon_rect(
             option.rect.left() + default_cover_size.width() - 10,
             option.rect.top() + default_cover_size.height() + 15,
-            kMoreIconSize, kMoreIconSize);
+            kMoreIconSize - 4, kMoreIconSize - 4);
         return hi_res_icon_rect;
     }
 
@@ -528,6 +528,13 @@ AlbumView::AlbumView(QWidget* parent)
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
     qGuiDb.updateAlbumSelectState(kInvalidDatabaseId, false);
+
+    (void)QObject::connect(&model_, &QAbstractTableModel::modelReset,
+        [this] {
+            while (model_.canFetchMore()) {
+                model_.fetchMore();
+            }
+        });
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
         showMenu(pt);

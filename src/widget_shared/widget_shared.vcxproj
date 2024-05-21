@@ -124,7 +124,6 @@
     <QtMoc Include="widget\filesystemwatcher.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
-    <ClInclude Include="widget\lazyloadingmodel.h" />
     <ClInclude Include="widget\maskwidget.h" />
     <QtMoc Include="widget\tageditpage.h" />
     <QtMoc Include="widget\playlisttabwidget.h" />

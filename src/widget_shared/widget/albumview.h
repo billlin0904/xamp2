@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QCheckBox>
+#include <QSqlQueryModel>
 
 #include <widget/util/str_utilts.h>
 #include <widget/databasecoverid.h>
@@ -19,7 +20,6 @@
 #include <widget/imagecache.h>
 #include <widget/themecolor.h>
 #include <widget/playlistentity.h>
-#include <widget/lazyloadingmodel.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playlisttableproxymodel.h>
 
