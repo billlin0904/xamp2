@@ -312,6 +312,8 @@ void HttpClient::HttpClientImpl::download(QSharedPointer<HttpClientImpl> d, cons
     auto request = createHttpRequest(d, HttpMethod::HTTP_GET);
     auto* reply = context.manager->get(request);
 
+    logHttpRequest(context.logger, requestVerb(QNetworkAccessManager::GetOperation, request), request);
+
     (void) QObject::connect(reply,
         &QNetworkReply::readyRead, 
         [reply, d, ready_read] {
@@ -431,15 +433,16 @@ QNetworkRequest HttpClient::HttpClientImpl::createHttpRequest(QSharedPointer<Htt
     request.setRawHeader("X-Request-ID", request_id);
     request.setRawHeader("Accept-Encoding", "gzip");
     
-    request.setTransferTimeout(d->timeout_ * 2);
+    request.setTransferTimeout(d->timeout_);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     return request;
 }
 
-HttpClient::HttpClient(QNetworkAccessManager* nam, 
-    std::shared_ptr<ObjectPool<QByteArray>> buffer_pool,
-    const QString& url, QObject* parent)
+HttpClient::HttpClient(QNetworkAccessManager* nam,
+	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool,
+	const QString& url,
+    QObject* parent)
 	: impl_(QSharedPointer<HttpClientImpl>::create(nam, url, parent))
     , buffer_pool_(buffer_pool) {
 }
@@ -449,7 +452,7 @@ HttpClient::HttpClient(const QUrl& url, QObject* parent)
 }
 
 HttpClient::HttpClient(const QString &url, QObject* parent)
-    : HttpClient(new QNetworkAccessManager(parent), std::make_shared<ObjectPool<QByteArray>>(256), url, parent) {
+    : HttpClient(new QNetworkAccessManager(parent), MakeObjectPool<QByteArray>(kBufferPoolSize), url, parent) {
 }
 
 HttpClient::~HttpClient() = default;

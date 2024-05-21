@@ -39,10 +39,10 @@ public slots:
 	void onLookupAlbumCover(const DatabaseCoverId& id, const Path& path);
 
 private slots:
-	void onFetchAlbumCover();
+	void onLookupAlbumCoverTimeout();
 
 private:
-	void fetchAlbumCover(const DatabaseCoverId& id, const Path& file_path);
+	void lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path);
 
 	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;

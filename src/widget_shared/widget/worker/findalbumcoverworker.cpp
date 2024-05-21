@@ -12,9 +12,9 @@
 FindAlbumCoverWorker::FindAlbumCoverWorker()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
-    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(kBufferPoolSize))
+    , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize))
     , timer_(this) {
-    (void)QObject::connect(&timer_, &QTimer::timeout, this, &FindAlbumCoverWorker::onFetchAlbumCover);
+    (void)QObject::connect(&timer_, &QTimer::timeout, this, &FindAlbumCoverWorker::onLookupAlbumCoverTimeout);
     timer_.start(1000);
 }
 
@@ -52,7 +52,7 @@ void FindAlbumCoverWorker::onLookupAlbumCover(const DatabaseCoverId& id, const P
     fetch_album_cover_queue_.push_back(entity);
 }
 
-void FindAlbumCoverWorker::onFetchAlbumCover() {
+void FindAlbumCoverWorker::onLookupAlbumCoverTimeout() {
     if (is_stop_) {
         return;
     }
@@ -63,10 +63,10 @@ void FindAlbumCoverWorker::onFetchAlbumCover() {
 
     auto [id, path] = fetch_album_cover_queue_.front();
     fetch_album_cover_queue_.pop_front();
-    fetchAlbumCover(id, path);
+    lookupAlbumCover(id, path);
 }
 
-void FindAlbumCoverWorker::fetchAlbumCover(const DatabaseCoverId& id, const Path& file_path) {
+void FindAlbumCoverWorker::lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path) {
     // 1. Read fingerprint from music file.
     auto [duration, result] = read_until::readFingerprint(file_path);
 

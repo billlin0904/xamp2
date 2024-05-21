@@ -25,6 +25,8 @@ enum class HttpMethod {
 
 class XAMP_WIDGET_SHARED_EXPORT HttpClient {
 public:
+    static constexpr size_t kBufferPoolSize = 256;
+
     HttpClient(QNetworkAccessManager* nam, 
         std::shared_ptr<ObjectPool<QByteArray>> buffer_pool,
         const QString& url,

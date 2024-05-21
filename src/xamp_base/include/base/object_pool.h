@@ -134,4 +134,9 @@ private:
     };
 };
 
+template <typename T>
+std::shared_ptr<ObjectPool<T>> MakeObjectPool(size_t size) {
+    return std::make_shared<ObjectPool<T>>(size);
+}
+
 XAMP_BASE_NAMESPACE_END
