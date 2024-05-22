@@ -78,7 +78,7 @@ public:
     *
     * @param[in] stream_time The stream time.
     */
-    virtual void BufferStream(double stream_time = 0.0) = 0;
+    virtual void BufferStream(double stream_time = 0.0, const std::optional<double>& offset = std::nullopt) = 0;
 
     /*
     * Play.

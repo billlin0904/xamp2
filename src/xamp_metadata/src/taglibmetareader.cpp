@@ -272,7 +272,7 @@ namespace {
         }
     }
 
-    void ExtractTitleFromFileName(TrackInfo& track_info) {        
+    void ExtractTitleFromFileName(TrackInfo& track_info) {
         std::optional<std::wstring> file_name_no_ext(track_info.file_name_no_ext());
 
         if (file_name_no_ext) {
@@ -281,6 +281,9 @@ namespace {
 
             if (std::regex_search(file_name_no_ext.value(), matches, pattern)) {
                 track_info.track = std::stoi(matches[1].str());
+				if (track_info.track > kMaxTrackNumber) {
+					track_info.track = 0;
+				}
                 track_info.title = matches[2].str();
             }
             else {

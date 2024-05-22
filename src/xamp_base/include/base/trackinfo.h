@@ -23,6 +23,8 @@ struct XAMP_BASE_API ReplayGain {
     double track_loudness{ 0 };
 };
 
+inline constexpr int32_t kMaxTrackNumber = 99;
+
 struct XAMP_BASE_API TrackInfo final {
     TrackInfo() noexcept;
 

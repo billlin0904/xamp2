@@ -35,6 +35,7 @@ public:
 
     int32_t tabId(const QString &name) const;
 
+	int32_t currentTabId() const;
 signals:
     void clickedTable(int table_id);
 

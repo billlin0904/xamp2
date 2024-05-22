@@ -82,14 +82,17 @@ void FileSystemWorker::onSetWatchDirectory(const QString& dir) {
 }
 
 void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool, int32_t playlist_id, const QString& dir) {
-	QDirIterator itr(dir, getTrackInfoFileNameFilter(), QDir::NoDotAndDotDot | QDir::Files,
-	                 QDirIterator::Subdirectories);
+	QDirIterator itr(dir,
+		getTrackInfoFileNameFilter(), 
+		QDir::NoDotAndDotDot | QDir::Files,
+	    QDirIterator::Subdirectories);
+
 	FloatMap<std::wstring, Vector<Path>> directory_files;
 
 	XAMP_ON_SCOPE_EXIT(
 		for (auto& files : directory_files) {
-		files.second.clear();
-		files.second.shrink_to_fit();
+			files.second.clear();
+			files.second.shrink_to_fit();
 		}
 	);
 
@@ -185,8 +188,9 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 		XAMP_LOG_NAME(ExtractFileThreadPool),
 		ThreadPriority::BACKGROUND);
 
-	static constexpr QFlags<QDir::Filter> kDirFilter = QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs;
-	QDirIterator itr(file_path, getTrackInfoFileNameFilter(), kDirFilter);
+	QDirIterator itr(file_path,
+		getTrackInfoFileNameFilter(), 
+		QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs);
 
 	Vector<QString> paths;
 	paths.reserve(kReserveFilePathSize);

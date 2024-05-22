@@ -255,7 +255,7 @@ public:
     * 
     * @param[in] stream_time The stream time.
     */
-    void BufferStream(double stream_time = 0.0) override;
+    void BufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt) override;
 
     /*
     * Enable fade out.
@@ -349,6 +349,7 @@ private:
     uint32_t num_read_buffer_size_;
     uint32_t num_write_buffer_size_;
     uint32_t volume_;
+    double stream_offset_time_;
     std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_fade_out_;
     std::atomic<bool> is_playing_;

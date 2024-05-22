@@ -478,6 +478,8 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 
+    stream_offset_time_ = 0;
+
     if (!quit && enable_fadeout_) {
         fader_ = StreamFactory::MakeFader();
         fader_->Initialize(config_);
@@ -651,15 +653,19 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);
 }
 
-void AudioPlayer::BufferStream(double stream_time) {
+void AudioPlayer::BufferStream(double stream_time, const std::optional<double>& offset) {
     XAMP_LOG_D(logger_, "Buffing samples : {:.2f}ms", stream_time);
 
 	if (dsp_manager_->Contains(R8brainSampleRateConverter::uuidof())) {
         SetReadSampleSize(kR8brainBufferSize);
 	}
 
+    if (offset.has_value()) {
+		stream_offset_time_ = offset.value();
+    }
+
     fifo_.Clear();
-    stream_->SeekAsSeconds(stream_time);
+    stream_->SeekAsSeconds(stream_offset_time_ + stream_time);
     sample_size_ = stream_->GetSampleSize();    
     BufferSamples(stream_, GetBufferCount(output_format_.GetSampleRate()));
 }

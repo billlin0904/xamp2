@@ -102,7 +102,7 @@ namespace {
         const QRect selected_rect(option.rect.left() + 5,
             option.rect.top() + 5,
             option.rect.width() - 5,
-            option.rect.height() - 20);
+            option.rect.height() - 5);
         return selected_rect;
     }
 
@@ -634,8 +634,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         action_map.addAction(action_name, [this]() {
             TransactionScope scope([&]() {
                 if (!styled_delegate_->isSelectedAll()) {
-                    QList<int32_t> selected_albums = qGuiDb.getSelectedAlbums();
-                    Q_FOREACH(auto album_id, selected_albums) {
+                    Q_FOREACH(auto album_id, qGuiDb.getSelectedAlbums()) {
                         qGuiDb.updateAlbumSelectState(album_id, false);
                     }
                 }
@@ -661,9 +660,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 return;
             }
             sub_menu->addAction(name, [playlist_id, this]() {
-                QList<int32_t> selected_albums = qGuiDb.getSelectedAlbums();
                 QList<int32_t> add_playlist_music_ids;
-                Q_FOREACH(auto album_id, selected_albums) {
+                Q_FOREACH(auto album_id, qGuiDb.getSelectedAlbums()) {
                     qGuiDb.forEachAlbumMusic(album_id,
                         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                             add_playlist_music_ids.push_back(entity.music_id);
@@ -673,9 +671,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 });
             });
         action_map.addAction(tr("Add albums to new playlist"), [this]() {
-            QList<int32_t> selected_albums = qGuiDb.getSelectedAlbums();
             QList<int32_t> add_playlist_music_ids;
-            Q_FOREACH(auto album_id, selected_albums) {
+            Q_FOREACH(auto album_id, qGuiDb.getSelectedAlbums()) {
                 qGuiDb.forEachAlbumMusic(album_id,
                     [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         add_playlist_music_ids.push_back(entity.music_id);
@@ -844,23 +841,11 @@ void AlbumView::showMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
-        if (!qGuiDb.transaction()) {
-            return;
-        }
-        bool rollback = false;
-        try {
+		TransactionScope scope([&]() {
             qGuiDb.removeAlbumArtist(album_id);
-            qGuiDb.removeAlbum(album_id);            
-            reload();            
-            qGuiDb.commit();
-        }
-        catch (...) {
-            rollback = true;
-            logAndShowMessage(std::current_exception());
-        }
-        if (rollback) {
-            qGuiDb.rollback();            
-        }
+            qGuiDb.removeAlbum(album_id);
+            reload();
+			});
     });
     remove_select_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
@@ -1098,7 +1083,7 @@ void AlbumView::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void AlbumView::append(const QString& file_name) {
-    emit extractFile(file_name, -1);
+    emit extractFile(file_name, kInvalidDatabaseId);
 }
 
 void AlbumView::hideWidget() {

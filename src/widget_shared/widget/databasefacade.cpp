@@ -180,7 +180,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         XAMP_EXPECTS(album_id != 0);
 
-		if (playlist_id != -1) {
+		if (playlist_id != kInvalidDatabaseId) {
             database_->addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 

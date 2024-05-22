@@ -38,6 +38,15 @@ int32_t TabListView::tabId(const QString& name) const {
     return ids_[name];
 }
 
+int32_t TabListView::currentTabId() const {
+    auto index = currentIndex();
+    if (!index.isValid()) {
+        return -1;
+    }
+    auto table_id = index.data(Qt::UserRole + 1).toInt();
+    return table_id;
+}
+
 void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
     for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);

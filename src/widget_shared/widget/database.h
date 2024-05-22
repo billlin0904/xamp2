@@ -72,7 +72,7 @@ inline bool isCloudStore(const StoreType store_type) {
 		|| store_type == StoreType::CLOUD_SEARCH_STORE;
 }
 
-class SqlQuery : public QSqlQuery {
+class SqlQuery final : public QSqlQuery {
 public:
 	explicit SqlQuery(const QString& query = QString(), const QSqlDatabase& db = QSqlDatabase())
 		: QSqlQuery(query, db) {
@@ -289,7 +289,7 @@ private:
 	LoggerPtr logger_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT DatabaseFactory {
+class XAMP_WIDGET_SHARED_EXPORT DatabaseFactory final {
 public:
 	Database* Create() {
 		auto* database = new Database(getDatabaseId());
@@ -308,7 +308,7 @@ XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size 
 #define qGuiDb SharedSingleton<Database>::GetInstance()
 
 template <typename Func>
-class TransactionScope {
+class TransactionScope final {
 public:
 	TransactionScope(Func&& action)
 		: action_(std::forward<Func>(action)) {
@@ -335,7 +335,7 @@ private:
 	Func action_;
 };
 
-struct Transaction {
+struct Transaction final {
 	template <typename Func>
 	bool complete(Func&& action) {
 		if (!qGuiDb.transaction()) {
