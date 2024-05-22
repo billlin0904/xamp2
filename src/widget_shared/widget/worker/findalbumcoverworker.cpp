@@ -148,7 +148,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
             }            
         }
 
-        // Read file embedded cover.
+        // 3. Read file embedded cover.
         QPixmap cover;
         if (!music_file_path.empty()) {
             const TagIO reader;
@@ -158,7 +158,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
                 return;
             }
 
-            // 3. If not found embedded cover, try to find cover from album folder.
+            // 4. If not found embedded cover, try to find cover from album folder.
             cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
             if (!cover.isNull()) {
                 emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));

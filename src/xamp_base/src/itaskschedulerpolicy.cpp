@@ -69,19 +69,19 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
                                            [[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
                                            const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
+	// use Sfc64 random engine
 	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
+	constexpr size_t kMaxAttempts = 100;
 	uint32_t random_index = 0;
 
-	while (true) {
+	for (size_t attempt = 0; attempt < kMaxAttempts; ++attempt) {
 		random_index = prng() % static_cast<uint32_t>(max_thread_);
-		if (thread_execute_flags[random_index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-			// Avoid self stealing
-			if (random_index == index) {
-				return kInvalidScheduleIndex;
-			}
+		if (random_index != index
+			&& thread_execute_flags[random_index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			return random_index;
 		}
 	}
+	return kInvalidScheduleIndex;
 }
 
 XAMP_BASE_NAMESPACE_END

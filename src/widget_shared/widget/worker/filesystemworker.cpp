@@ -233,6 +233,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 	completed_work_ = 0;
 	total_work_ = total_work;
 	total_time_elapsed_.Reset();
+	update_ui_elapsed_.Reset();
 
 	timer_.start(std::chrono::seconds(1));
 
@@ -252,7 +253,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 }
 
 void FileSystemWorker::updateProgress() {
-	if (total_time_elapsed_.ElapsedSeconds() < 0) {
+	if (update_ui_elapsed_.ElapsedSeconds() < 3.0) {
 		return;
 	}
 
@@ -264,7 +265,7 @@ void FileSystemWorker::updateProgress() {
 		(total_work_ - completed_work)
 		: 0.0;
 	emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
-	total_time_elapsed_.Reset();
+	update_ui_elapsed_.Reset();
 }
 
 void FileSystemWorker::cancelRequested() {

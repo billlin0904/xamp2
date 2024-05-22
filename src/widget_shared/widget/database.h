@@ -310,12 +310,12 @@ XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size 
 template <typename Func>
 class TransactionScope {
 public:
-	explicit TransactionScope(Func&& action)
+	TransactionScope(Func&& action)
 		: action_(std::forward<Func>(action)) {
 		result_ = qGuiDb.transaction();
 	}
 
-	~TransactionScope() noexcept {
+	~TransactionScope() {
 		if (!result_) {
 			return;
 		}
@@ -325,17 +325,33 @@ public:
 			qGuiDb.commit();
 		}
 		catch (...) {
-			rollback_ = true;
-			logAndShowMessage(std::current_exception());
-		}
-
-		if (rollback_) {
 			qGuiDb.rollback();
+			logAndShowMessage(std::current_exception());
 		}
 	}
 
 private:
 	bool result_{ false };
-	bool rollback_{ false };
 	Func action_;
 };
+
+struct Transaction {
+	template <typename Func>
+	bool complete(Func&& action) {
+		if (!qGuiDb.transaction()) {
+			return false;
+		}
+
+		try {
+			action();
+			qGuiDb.commit();
+			return true;
+		}
+		catch (...) {
+			qGuiDb.rollback();
+			logAndShowMessage(std::current_exception());			
+		}
+		return false;
+	}
+};
+

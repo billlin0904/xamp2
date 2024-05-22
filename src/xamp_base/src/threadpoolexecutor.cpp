@@ -239,25 +239,24 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			// Try to get a task from the local queue
 			auto task = TryLocalPop(stop_token, local_queue);
+			auto steal_index = 0;
 
 			// Try to get a task from the global queue
 			if (!task) {
-				const auto steal_index = policy->ScheduleNext(i, task_work_queues_, task_execute_flags_);				
+				steal_index = policy->ScheduleNext(i, task_work_queues_, task_execute_flags_);				
 				if (steal_index != kInvalidScheduleIndex) {
 					// Try to steal a task from another thread's queue
 					task = TrySteal(stop_token, steal_index);
 				}
-				// Try to get a task from the shared queue
-				if (!task) {
-					if (spinning_watch.Elapsed() >= kSpinningTimeout) {
-						task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
-						if (!task) {
-							continue;
-						}
-					}
-					else {
-						task = TrySteal(stop_token, steal_index);						
-					}
+			}
+
+			// Try to get a task from the shared queue
+			if (!task) {
+				if (spinning_watch.Elapsed() >= kSpinningTimeout) {
+					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);					
+				}
+				else {
+					task = TrySteal(stop_token, steal_index);
 				}
 			}
 

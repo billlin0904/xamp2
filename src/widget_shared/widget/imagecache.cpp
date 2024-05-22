@@ -58,6 +58,18 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
     const QList<QString> kTargetFolders = { qTEXT("scans"), qTEXT("artwork"), qTEXT("booklet") };    
 	constexpr auto kMaxDirCdUp = 4;
 
+	// 1...
+	// 2..
+	// 3.Disc1
+	// 4.Disc2
+	// 5.Disc3
+	// 6.Disc4
+	// 7.Disc5
+	// 8.Disc6
+	// 9.Disc7
+	// 10.Scans
+	constexpr auto kMaxUnexceptedDirSize = 10;
+
 	const QDir dir(file_path);
 	QDir scan_dir(dir);
 
@@ -100,8 +112,11 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 	auto cd_up_count = 0;
 	while (!scan_dir.isRoot() && cd_up_count < kMaxDirCdUp) {
 		bool found = false;
-		for (const auto& folder : kTargetFolders) {
-			auto dirs = scan_dir.entryList(QDir::Dirs);
+		auto dirs = scan_dir.entryList(QDir::Dirs);
+		if (dirs.count() > kMaxUnexceptedDirSize) {
+			return {};
+		}
+		for (const auto& folder : kTargetFolders) {			
 			for (const auto& dir : dirs) {
 				if (dir.contains(folder, Qt::CaseInsensitive)) {
 					scan_dir.cd(dir);

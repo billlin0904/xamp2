@@ -151,6 +151,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
+        Q_ASSERT(playlist_page != nullptr);
         playlist_page->playlist()->reload();
         });
 
@@ -257,19 +258,11 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
-    if (!qGuiDb.transaction()) {
-        return false;
-    }
-    try {
+    Transaction scope;
+    return scope.complete([&]() {
         qGuiDb.removePlaylistAllMusic(playlist_id);
         qGuiDb.removePlaylist(playlist_id);
-        qGuiDb.commit();
-        return true;
-    }
-    catch (...) {
-        qGuiDb.rollback();
-    }
-    return false;
+        });
 }
 
 void PlaylistTabWidget::closeTab(int32_t tab_index) {

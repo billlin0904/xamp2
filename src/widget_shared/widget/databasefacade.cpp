@@ -26,41 +26,55 @@ namespace {
     constexpr auto k24Bit96KhzBitRate = 4608;
 
     QSet<QString> getAlbumCategories(const QString& album) {
-	    const QRegularExpression regex(
-            qTEXT(R"((piano|vocal|soundtrack|best|complete|collection|collections|edition|version)(?:(?: \[.*\])|(?: - .*))?)"),
-            QRegularExpression::CaseInsensitiveOption);
+        static const QStringList categoriesList = {
+        qTEXT("piano"), 
+        qTEXT("vocal"), 
+        qTEXT("soundtrack"), 
+        qTEXT("best"),
+        qTEXT("complete"),
+        qTEXT("collection"), 
+        qTEXT("collections"),
+        qTEXT("edition"),
+        qTEXT("version")
+        };
 
         QSet<QString> categories;
-        auto it = regex.globalMatch(album);
-        while (it.hasNext()) {
-            QRegularExpressionMatch match = it.next();
-            QString category = match.captured(1).toLower().trimmed();
-            categories.insert(category);
+        for (const QString& category : categoriesList) {
+            QRegularExpression regex(qSTR("\\b%1\\b").arg(QRegularExpression::escape(category)), QRegularExpression::CaseInsensitiveOption);
+            if (regex.match(album).hasMatch()) {
+                categories.insert(category.toLower().trimmed());
+            }
         }
         return categories;
     }
 
-    void normalizeArtist(QString& artist, QStringList& artists) {
+    QStringList normalizeArtist(QString artist) {
+        QStringList artists;
+        // Trim whitespace from the artist name
+        artist = artist.trimmed();
+
+        // If the artist name contains spaces and is not fully capitalized, remove spaces
         if (artist.contains(qTEXT(" "))) {
-            if (!artist[0].isUpper()) {
+            if (!artist[0].isUpper() || !artist.toUpper().contains(artist)) {
                 artist = artist.remove(qTEXT(" "));
-            }
-            else {
-                artist = artist.trimmed();
             }
         }
 
-        artists = artist.split(QRegularExpression(qTEXT("[,/&]")), Qt::SkipEmptyParts);
+        // Split artist names by common delimiters
+        artists = artist.split(QRegularExpression(qTEXT("([,/&])")), Qt::SkipEmptyParts);
+
+        // Standardize the first artist name and update the list
         if (!artists.isEmpty()) {
-            artist = artists.first();
-            artists.pop_front();
+            artist = artists.first().trimmed();
+            artists.removeFirst();
         }
+        return artists;
     }
 }
 
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
-    logger_ = XampLoggerFactory.GetLogger(kDatabaseFacadeLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DatabaseFacade));
     if (!database) {
         database_ = &qGuiDb;
     } else {
@@ -174,10 +188,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         database_->addOrUpdateAlbumArtist(album_id, artist_id);
 
         if (artist_id != kUnknownArtistId) {
-            QStringList artists;
-            normalizeArtist(artist, artists);
-
-            for (const auto& artist : artists) {
+            for (const auto& artist : normalizeArtist(artist)) {
                 const auto id = database_->addOrUpdateArtist(artist);
                 database_->addOrUpdateAlbumArtist(album_id, id);
             }
@@ -208,25 +219,7 @@ void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result,
     int32_t playlist_id,
     StoreType store_type,
     const std::function<void(int32_t, int32_t)>& fetch_cover) {
-    try {
-        if (!database_->transaction()) {
-            XAMP_LOG_DEBUG("Failed to begin transaction!");
-            return;
-        }
+    TransactionScope scope([&]() {
         addTrackInfo(result, playlist_id, store_type, fetch_cover);
-        if (!database_->commit()) {
-            XAMP_LOG_DEBUG("Failed to commit!");
-        }
-        return;
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_DEBUG("Failed to add track info({})!", e.GetErrorMessage());
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_DEBUG("Failed to add track info({})!", e.what());
-    }
-    catch (...) {
-        XAMP_LOG_DEBUG("Failed to add track info!");
-    }
-    database_->rollback();
+        });
 }
