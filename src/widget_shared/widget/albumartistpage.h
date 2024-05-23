@@ -85,8 +85,9 @@ private:
 	QFrame* year_frame_;
 	QLineEdit* album_search_line_edit_;
 	QLineEdit* artist_search_line_edit_;
-	AlbumTabListView* list_view_;
+	AlbumTabListView* album_tab_list_view_;
 	AlbumView* album_view_;
+	AlbumView* recent_play_album_view_;
 	ArtistView* artist_view_;
 	AlbumView* year_view_;
 	ArtistInfoPage* artist_info_view_;

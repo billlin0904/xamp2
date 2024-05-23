@@ -73,8 +73,9 @@ void AlbumTabListView::setCurrentTab(int tab_id) {
 
 AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	: QFrame(parent)
-	, list_view_(new AlbumTabListView(this))
+	, album_tab_list_view_(new AlbumTabListView(this))
 	, album_view_(new AlbumView(this))
+	, recent_play_album_view_(new AlbumView(this))
 	, artist_view_(new ArtistView(this))
 	, artist_info_view_(new ArtistInfoPage(this)) {
 	album_view_->reload();
@@ -103,18 +104,18 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	//auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	//horizontal_layout_5->addItem(horizontal_spacer_6);
 
-	list_view_->setObjectName(QString::fromUtf8("albumTab"));
-	list_view_->addTab(tr("ALBUMS"), TAB_ALBUMS);
-	list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
-	list_view_->addTab(tr("YEAR"), TAB_YEAR);
+	album_tab_list_view_->setObjectName(QString::fromUtf8("albumTab"));
+	album_tab_list_view_->addTab(tr("ALBUMS"), TAB_ALBUMS);
+	album_tab_list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
+	album_tab_list_view_->addTab(tr("YEAR"), TAB_YEAR);
 
-	qTheme.setAlbumNaviBarTheme(list_view_);
+	qTheme.setAlbumNaviBarTheme(album_tab_list_view_);
 
 	constexpr QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-	list_view_->setSizePolicy(size_policy);
-	list_view_->setMinimumSize(500, 40);
-	list_view_->setMaximumHeight(40);
-	horizontal_layout_5->addWidget(list_view_);
+	album_tab_list_view_->setSizePolicy(size_policy);
+	album_tab_list_view_->setMinimumSize(500, 40);
+	album_tab_list_view_->setMaximumHeight(40);
+	horizontal_layout_5->addWidget(album_tab_list_view_);
 
 	auto* horizontal_spacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_7);
@@ -153,7 +154,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_tag_list_widget_->addTag(category);
 	}
 	album_tag_list_widget_->addTag(tr("All"), true);
-	album_tag_list_widget_->addTag(tr("Most played"), true);
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
@@ -162,9 +162,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		if (tags.contains(tr("All"))) {
 			album_view_->showAll();
 			album_tag_list_widget_->disableAllTag(tr("All"));
-		}
-		else if (tags.contains(tr("Most played"))) {
-			album_view_->filterMostPlayed();
 		}
 		else {
 			album_view_->filterCategories(tags);
@@ -235,9 +232,19 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_combox_layout_1->addLayout(album_combox_layout);
 	album_frame_layout->addLayout(album_combox_layout_1);
 
+	auto* recent_plays_tags_label = new QLabel(tr("Recent Plays"));
+	f.setPointSize(qTheme.fontSize(12));
+	recent_plays_tags_label->setFont(f);
+
 	auto* tags_label = new QLabel(tr("Category"));
 	f.setPointSize(qTheme.fontSize(12));
 	tags_label->setFont(f);
+
+	album_frame_layout->addWidget(recent_plays_tags_label);
+	recent_play_album_view_->setFixedHeight(270);
+	recent_play_album_view_->filterRecentPlays();
+	recent_play_album_view_->reload();
+	album_frame_layout->addWidget(recent_play_album_view_, 1);
 
 	album_frame_layout->addWidget(tags_label);
 
@@ -395,7 +402,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->addWidget(year_frame_);
 
-	(void)QObject::connect(list_view_, &AlbumTabListView::clickedTable, [this, current_view](auto table_id) {
+	(void)QObject::connect(album_tab_list_view_, &AlbumTabListView::clickedTable, [this, current_view](auto table_id) {
 		switch (table_id) {
 			case TAB_ALBUMS:
 				current_view->setCurrentWidget(album_frame_);
@@ -412,7 +419,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		});
 
 	current_view->setCurrentIndex(0);
-	list_view_->setCurrentTab(TAB_ALBUMS);
+	album_tab_list_view_->setCurrentTab(TAB_ALBUMS);
 
 	(void)QObject::connect(album_view_, &AlbumView::removeAll, [this]() {
 		album_tag_list_widget_->clearTag();
@@ -440,6 +447,7 @@ void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
 
 void AlbumArtistPage::onThemeColorChanged(QColor background_color, QColor color) {
 	album_view_->onThemeColorChanged(background_color, color);
+	recent_play_album_view_->onThemeColorChanged(background_color, color);
 	artist_view_->onThemeChanged(background_color, color);
 	year_view_->onThemeColorChanged(background_color, color);
 	album_tag_list_widget_->onThemeColorChanged(background_color, color);

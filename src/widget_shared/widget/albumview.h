@@ -154,7 +154,7 @@ public:
 
 	void filterYears(const QSet<QString>& years);
 
-	void filterMostPlayed();
+	void filterRecentPlays();
 
 	void sortYears();
 

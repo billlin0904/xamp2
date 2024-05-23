@@ -973,7 +973,7 @@ ORDER BY
     setShowMode(SHOW_ARTIST);
 }
 
-void AlbumView::filterMostPlayed() {
+void AlbumView::filterRecentPlays() {
     last_query_ = qTEXT(R"(
 SELECT
     albums.album,
@@ -990,8 +990,11 @@ FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
+WHERE
+    albums.plays > 0
 ORDER BY
     albums.plays DESC
+LIMIT 5
     )");
     setShowMode(SHOW_ARTIST);
 }
