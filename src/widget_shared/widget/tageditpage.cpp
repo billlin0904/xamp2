@@ -6,7 +6,7 @@
 #include <widget/databasefacade.h>
 #include <widget/util/str_utilts.h>
 #include <widget/database.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/util/ui_utilts.h>
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
@@ -209,7 +209,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		const auto dir = entities_[index].parent_path;
 		
 		const auto action = [this, index](auto file_path) {
-			const auto image = image_utils::readFileImage(file_path,
+			const auto image = image_util::readFileImage(file_path,
 				kCoverSize,
 				ImageCache::kImageFormat);
 			if (image.isNull()) {
@@ -233,7 +233,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 			const auto image_file_size = QFileInfo(temp_file_path_).size();
 			const auto image_size = temp_image_.size();
-			const auto resize_image = image_utils::resizeImage(temp_image_, ui_->coverLabel->size());
+			const auto resize_image = image_util::resizeImage(temp_image_, ui_->coverLabel->size());
 
 			setImageLabel(resize_image, image_size, image_file_size);
 			};
@@ -311,7 +311,7 @@ void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
 
 	if (tag_io.embeddedCover(entity.file_path.toStdWString(), image, image_file_size)) {
 		image_size = image.size();
-		image = image_utils::resizeImage(image, ui_->coverLabel->size());
+		image = image_util::resizeImage(image, ui_->coverLabel->size());
 		ui_->notFoundImageLabel->hide();
 		ui_->coverLabel->show();
 	}

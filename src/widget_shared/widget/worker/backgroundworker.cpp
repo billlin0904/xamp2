@@ -1,7 +1,7 @@
 #include <widget/worker/backgroundworker.h>
 
 #include <widget/util/str_utilts.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 #include <widget/util/mbdiscid_uiltis.h>
@@ -137,7 +137,7 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QPixmap& image
         return;
     }    
     emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
-        return image_utils::blurImage(image, size);
+        return image_util::blurImage(image, size);
         }));
 }
 

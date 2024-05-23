@@ -10,7 +10,7 @@
 #include <widget/appsettingnames.h>
 #include <widget/processindicator.h>
 #include <widget/util/str_utilts.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/imagecache.h>
 #include <widget/util/ui_utilts.h>
 #include <widget/xprogressdialog.h>
@@ -171,8 +171,8 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     							            color: white;
                                          }
                                          )"));
-    mask_image_ = image_utils::roundDarkImage(qTheme.defaultCoverSize(),
-                                              image_utils::kDarkAlpha, image_utils::kSmallImageRadius);
+    mask_image_ = image_util::roundDarkImage(qTheme.defaultCoverSize(),
+                                              image_util::kDarkAlpha, image_util::kSmallImageRadius);
 }
 
 void AlbumViewStyledDelegate::setAlbumTextColor(QColor color) {

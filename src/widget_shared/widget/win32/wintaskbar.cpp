@@ -3,7 +3,7 @@
 
 #if defined(Q_OS_WIN)
 #include <widget/xmainwindow.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/widget_shared.h>
 #include <base/dll.h>
 
@@ -244,7 +244,7 @@ namespace {
 
 		XAMP_LOG_DEBUG("{} {} => {} {}", max_size.width(), max_size.height(), thumbnail.width(), thumbnail.height());
 
-		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_utils::resizeImage(thumbnail, max_size, true)));
+		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_util::resizeImage(thumbnail, max_size, true)));
 		if (!bitmap) {
 			return;
 		}
@@ -264,7 +264,7 @@ namespace {
 		height_ratio = width_ratio;
 
 		const QSize resize_size(width_ratio * src_width, height_ratio * src_height);
-		const auto resize_thumbnail = image_utils::resizeImage(thumbnail, resize_size);
+		const auto resize_thumbnail = image_util::resizeImage(thumbnail, resize_size);
 
 		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_thumbnail));
 		if (!bitmap) {

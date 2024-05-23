@@ -1,5 +1,5 @@
 #include <widget/tagio.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 
 TrackInfo TagIO::getTrackInfo(const Path& path) {
     const auto reader = MakeMetadataReader();
@@ -72,7 +72,7 @@ void TagIO::writeEmbeddedCover(const Path& file_path, const QPixmap& image) {
         return;
     }
 
-    const auto buffer = image_utils::image2Buffer(image);
+    const auto buffer = image_util::image2Buffer(image);
     writer_->WriteEmbeddedCover(file_path, buffer);
 }
 

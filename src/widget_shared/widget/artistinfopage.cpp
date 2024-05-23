@@ -9,7 +9,7 @@
 
 #include <widget/albumview.h>
 #include <widget/actionmap.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/imagecache.h>
 
 ArtistInfoPage::ArtistInfoPage(QWidget* parent)
@@ -122,7 +122,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 }
 
 QPixmap ArtistInfoPage::getArtistImage(const QPixmap* cover) const {
-	return image_utils::roundImage(image_utils::resizeImage(*cover, cover_->size()), image_utils::kPlaylistImageRadius);
+	return image_util::roundImage(image_util::resizeImage(*cover, cover_->size()), image_util::kPlaylistImageRadius);
 }
 
 void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {

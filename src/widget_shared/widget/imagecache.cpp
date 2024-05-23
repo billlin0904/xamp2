@@ -4,7 +4,7 @@
 
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/util/str_utilts.h>
 #include <widget/qetag.h>
 #include <widget/widget_shared.h>
@@ -98,7 +98,7 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 
 		return std::optional<QPixmap> {
 			std::in_place_t{},
-				image_utils::readFileImage(find_cover_path,
+				image_util::readFileImage(find_cover_path,
 					qTheme.cacheCoverSize(),
 					kImageFormat) };
 	};
@@ -188,17 +188,17 @@ QPixmap ImageCache::getCoverOrDefault(const QString& tag, const QString& cover_i
 		String::FormatBytes(cache_.GetSize()), cover_cache_, cache_);
 
 	return getOrAdd(tag + cover_id, [cover_id, this]() {
-		return image_utils::roundImage(
-			image_utils::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), true),
-			image_utils::kSmallImageRadius);
+		return image_util::roundImage(
+			image_util::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), true),
+			image_util::kSmallImageRadius);
 		});
 }
 
 void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const {
 	getOrAdd(tag + cover_id, [&cover]() {
-		return image_utils::roundImage(
-			image_utils::resizeImage(cover, qTheme.defaultCoverSize(), true),
-			image_utils::kSmallImageRadius);
+		return image_util::roundImage(
+			image_util::resizeImage(cover, qTheme.defaultCoverSize(), true),
+			image_util::kSmallImageRadius);
 		});
 }
 
@@ -237,7 +237,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) const {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
 
-	auto resize_image = image_utils::resizeImage(cover, cover_size, true);
+	auto resize_image = image_util::resizeImage(cover, cover_size, true);
 	if (!resize_image.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
 	}
@@ -327,7 +327,7 @@ QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
 
 QIcon ImageCache::getOrAddIcon(const QString& id) const {
 	return qIconCache.GetOrAdd(id, [id, this]() {
-		const QIcon icon(image_utils::roundImage(qImageCache.getOrAddDefault(id), kCoverSize));
+		const QIcon icon(image_util::roundImage(qImageCache.getOrAddDefault(id), kCoverSize));
 		return uniformIcon(icon, kCoverSize);
 		});
 }

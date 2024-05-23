@@ -1,4 +1,4 @@
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 
 #include <QPainter>
 #include <QGraphicsPixmapItem>
@@ -18,7 +18,7 @@
 
 #include <thememanager.h>
 
-namespace image_utils {
+namespace image_util {
 
 namespace {
 	inline constexpr uint16_t kStackblurMul[255] = {
@@ -371,7 +371,7 @@ QPixmap mergeImage(const QList<QPixmap>& images) {
 
 	for (auto i = 0; i < qMin(num_images, 4); i++) {
 		// Resize image to fit in 92x92 region
-		auto resized = images[i].scaled(92, 92, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+		auto resized = resizeImage(images[i], QSize(92, 92));
 
 		// Calculate the position to center the resized image
 		auto x_offset = (positions[i].width() - resized.width()) / 2;

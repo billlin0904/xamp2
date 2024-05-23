@@ -7,7 +7,7 @@
 #include <thememanager.h>
 
 #include <widget/spectrumwidget.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/util/str_utilts.h>
@@ -91,13 +91,13 @@ void LrcPage::setFullScreen(bool enter) {
 	}
 
     cover_label_->setPixmap(
-		image_utils::roundImage(image_utils::resizeImage(cover_, coverSizeHint(), false),
-		image_utils::kSmallImageRadius));
+		image_util::roundImage(image_util::resizeImage(cover_, coverSizeHint(), false),
+		image_util::kSmallImageRadius));
 }
 
 QSize LrcPage::coverSizeHint() const {
-	const QSize cover_size(cover_label_->size().width() - image_utils::kSmallImageRadius,
-		cover_label_->size().height() - image_utils::kSmallImageRadius);
+	const QSize cover_size(cover_label_->size().width() - image_util::kSmallImageRadius,
+		cover_label_->size().height() - image_util::kSmallImageRadius);
 	return cover_size;
 }
 
@@ -119,7 +119,7 @@ void LrcPage::setBackground(const QImage& cover) {
 }
 
 void LrcPage::startBackgroundAnimation(const int durationMs) {
-	current_bg_alpha_ = image_utils::sampleImageBlur(background_image_, kBlurAlpha);
+	current_bg_alpha_ = image_util::sampleImageBlur(background_image_, kBlurAlpha);
 
 	auto* fade_in_animation = new QPropertyAnimation(this, "appearBgProg");
 	fade_in_animation->setStartValue(0);

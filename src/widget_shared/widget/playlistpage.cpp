@@ -279,9 +279,9 @@ void PlaylistPage::showCompleter() {
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {
-	const auto playlist_cover = image_utils::roundImage(
-		image_utils::resizeImage(*cover, QSize(165, 165), false),
-		image_utils::kPlaylistImageRadius);
+	const auto playlist_cover = image_util::roundImage(
+		image_util::resizeImage(*cover, QSize(165, 165), false),
+		image_util::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
 }
 

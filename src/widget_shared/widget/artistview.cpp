@@ -62,7 +62,7 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
 	if (!artist_cover_id.isEmpty()) {
 		const auto artist_cover = qImageCache.getCoverOrDefault(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
-		painter->drawPixmap(rect, image_utils::roundImage(artist_cover, size / 2));
+		painter->drawPixmap(rect, image_util::roundImage(artist_cover, size / 2));
 	}
 	else {
 		painter->setPen(Qt::white);
@@ -216,14 +216,14 @@ void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const Q
 	).arg(qTheme.linearGradientStyle()));
 
 	const auto artist_cover = qImageCache.getCoverOrDefault(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
-	const auto round_image = image_utils::roundImage(artist_cover, artist_cover.width() / 2);	
+	const auto round_image = image_util::roundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
 	artist_image_->setPixmap(round_image);
 	album_view_->filterByArtistId(artist_id);
 	album_view_->reload();
 	cover_ = qImageCache.getOrAddDefault(artist_cover_id, false);
 	if (!cover_.isNull()) {
-		cover_ = QPixmap::fromImage(image_utils::blurImage(cover_, size()));
+		cover_ = QPixmap::fromImage(image_util::blurImage(cover_, size()));
 	}
 }
 

@@ -1,6 +1,6 @@
 #include <thememanager.h>
 
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
@@ -292,7 +292,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
         unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
         break;
     }
-    default_size_unknown_cover_ = image_utils::resizeImage(unknown_cover_, album_cover_size_, true);
+    default_size_unknown_cover_ = image_util::resizeImage(unknown_cover_, album_cover_size_, true);
 }
 
 QLatin1String ThemeManager::themeColorPath() const {

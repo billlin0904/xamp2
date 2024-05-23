@@ -13,7 +13,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-namespace image_utils {
+namespace image_util {
 
 inline constexpr int32_t kDarkAlpha = 80;
 inline constexpr int32_t kImageRadius = 4;

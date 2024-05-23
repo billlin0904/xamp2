@@ -54,7 +54,7 @@
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
 #include <widget/xprogressdialog.h>
-#include <widget/util/image_utiltis.h>
+#include <widget/util/image_util.h>
 #include <widget/util/mbdiscid_uiltis.h>
 #include <widget/util/read_until.h>
 #include <widget/util/str_utilts.h>
@@ -655,7 +655,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     const auto tab_name = qAppSettings.valueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.naviBar->tabId(tab_name);
     if (tab_id != -1) {
-        ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(tab_id + 1, 0));
+        ui_.naviBar->setCurrentIndex(ui_.naviBar->model()->index(tab_id, 0));
         setCurrentTab(tab_id);
     }
     else {
@@ -1146,7 +1146,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
                     return;
                 }
                 qGuiDb.setAlbumCover(album_id, qImageCache.addImage(image));
-                lrc_page_->setCover(image_utils::resizeImage(image, lrc_page_->coverSizeHint(), true));
+                lrc_page_->setCover(image_util::resizeImage(image, lrc_page_->coverSizeHint(), true));
 				});
             });
         });
@@ -2293,11 +2293,11 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
 void Xamp::setCover(const QString &cover_id) {
     const auto cover = qImageCache.getOrAddDefault(cover_id, true);
-    const QSize cover_size(ui_.coverLabel->size().width() - image_utils::kPlaylistImageRadius,
-        ui_.coverLabel->size().height() - image_utils::kPlaylistImageRadius);
-    const auto ui_cover = image_utils::roundImage(
-        image_utils::resizeImage(cover, cover_size, false),
-        image_utils::kPlaylistImageRadius);
+    const QSize cover_size(ui_.coverLabel->size().width() - image_util::kPlaylistImageRadius,
+        ui_.coverLabel->size().height() - image_util::kPlaylistImageRadius);
+    const auto ui_cover = image_util::roundImage(
+        image_util::resizeImage(cover, cover_size, false),
+        image_util::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 }
 
@@ -2386,7 +2386,7 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 
     if (lrc_page_ != nullptr) {
         lrc_page_->clearBackground();
-        lrc_page_->setCover(image_utils::resizeImage(cover, lrc_page_->cover()->size(), true));
+        lrc_page_->setCover(image_util::resizeImage(cover, lrc_page_->cover()->size(), true));
         lrc_page_->addCoverShadow(found_cover);        
     }
 

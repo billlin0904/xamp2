@@ -1,7 +1,7 @@
 #include <QImageReader>
 #include <widget/util/json_util.h>
 #include <base/object_pool.h>
-
+#include <widget/util/image_util.h>
 #include <widget/util/read_until.h>
 #include <widget/worker/findalbumcoverworker.h>
 #include <widget/tagio.h>
@@ -158,6 +158,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
             const TagIO reader;
             cover = reader.embeddedCover(music_file_path);
             if (!cover.isNull()) {
+                //cover = image_util::mergeImage({ cover });
                 emit setAlbumCover(id.second.value(), qImageCache.addImage(cover));
                 return;
             }
@@ -165,6 +166,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
             // 4. If not found embedded cover, try to find cover from album folder.
             cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
             if (!cover.isNull()) {
+                //cover = image_util::mergeImage({ cover });
                 emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
                 return;
             }

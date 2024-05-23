@@ -131,7 +131,7 @@
     <QtMoc Include="widget\supereqview.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <ClInclude Include="widget\tagio.h" />
-    <ClInclude Include="widget\util\image_utiltis.h" />
+    <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
     <ClInclude Include="widget\util\log_util.h" />
     <ClInclude Include="widget\util\mbdiscid_uiltis.h" />
@@ -258,7 +258,7 @@
     <ClCompile Include="widget\tagio.cpp" />
     <ClCompile Include="widget\taglistview.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
-    <ClCompile Include="widget\util\image_utiltis.cpp" />
+    <ClCompile Include="widget\util\image_util.cpp" />
     <ClCompile Include="widget\util\log_util.cpp" />
     <ClCompile Include="widget\util\mbdiscid_uiltis.cpp" />
     <ClCompile Include="widget\util\read_until.cpp" />
