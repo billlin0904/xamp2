@@ -53,47 +53,42 @@ namespace {
     constexpr auto kImageCacheSize = 24;
     constexpr auto kPaddingSize = 10;
 
-    inline QRect moreButtonRect(const QStyleOptionViewItem& option) noexcept {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect moreButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
         const QRect more_button_rect(
-            option.rect.left() + default_cover_size.width() - 10,
-            option.rect.top() + default_cover_size.height() + 35,
+            option.rect.left() + cover_size.width() - 10,
+            option.rect.top() + cover_size.height() + 35,
             kMoreIconSize, kMoreIconSize);
         return more_button_rect;
     }
 
-    inline QRect hiResIconRect(const QStyleOptionViewItem& option) noexcept {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect hiResIconRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
         const QRect hi_res_icon_rect(
-            option.rect.left() + default_cover_size.width() - 10,
-            option.rect.top() + default_cover_size.height() + 15,
+            option.rect.left() + cover_size.width() - 10,
+            option.rect.top() + cover_size.height() + 15,
             kMoreIconSize - 4, kMoreIconSize - 4);
         return hi_res_icon_rect;
     }
 
-    inline QRect checkBoxIconRect(const QStyleOptionViewItem& option) noexcept {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect checkBoxIconRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
         const QRect checkbox_icon_rect(
-            option.rect.left() + default_cover_size.width() + 15,
+            option.rect.left() + cover_size.width() + 15,
             option.rect.top() + 2,
             kMoreIconSize, kMoreIconSize);
         return checkbox_icon_rect;
     }
 
-    inline QRect albumTextRect(const QStyleOptionViewItem& option, uint32_t album_artist_text_width) noexcept {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect albumTextRect(const QStyleOptionViewItem& option, const QSize& cover_size, uint32_t album_artist_text_width) noexcept {
         const QRect album_text_rect(option.rect.left() + kPaddingSize,
-            option.rect.top() + default_cover_size.height() + 15,
+            option.rect.top() + cover_size.height() + 15,
             album_artist_text_width,
             15);
         return album_text_rect;
     }
 
-    inline QRect artistTextRect(const QStyleOptionViewItem& option) noexcept {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect artistTextRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
         const QRect artist_text_rect(option.rect.left() + kPaddingSize,
-            option.rect.top() + default_cover_size.height() + 30,
-            default_cover_size.width(),
+            option.rect.top() + cover_size.height() + 30,
+            cover_size.width(),
             20);
         return artist_text_rect;
     }
@@ -106,21 +101,19 @@ namespace {
         return selected_rect;
     }
 
-    inline QRect playButtonRect(const QStyleOptionViewItem& option) noexcept {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect playButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
         const QRect play_button_rect(
-            option.rect.left() + default_cover_size.width() / 2 - 10,
-            option.rect.top() + default_cover_size.height() / 2 - 10,
+            option.rect.left() + cover_size.width() / 2 - 10,
+            option.rect.top() + cover_size.height() / 2 - 10,
             kIconSize, kIconSize);
         return play_button_rect;
     }
 
-    inline QRect coverRect(const QStyleOptionViewItem& option) {
-        const auto& default_cover_size = qTheme.defaultCoverSize();
+    inline QRect coverRect(const QStyleOptionViewItem& option, const QSize &cover_size) {
         const QRect cover_rect(option.rect.left() + kPaddingSize,
             option.rect.top() + kPaddingSize,
-            default_cover_size.width(),
-            default_cover_size.height());
+            cover_size.width(),
+            cover_size.height());
         return cover_rect;
     }
 
@@ -173,6 +166,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
                                          )"));
     mask_image_ = image_util::roundDarkImage(qTheme.defaultCoverSize(),
                                               image_util::kDarkAlpha, image_util::kSmallImageRadius);
+    cover_size_ = qTheme.defaultCoverSize();
 }
 
 void AlbumViewStyledDelegate::setAlbumTextColor(QColor color) {
@@ -200,10 +194,10 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
                     emit enterAlbumView(index);
                 }
             }
-            if (moreButtonRect(option).contains(mouse_point_)) {
+            if (moreButtonRect(option, cover_size_).contains(mouse_point_)) {
                 emit showAlbumMenu(index, mouse_point_);
             }
-            if (checkBoxIconRect(option).contains(mouse_point_)) {
+            if (checkBoxIconRect(option, cover_size_).contains(mouse_point_)) {
                 auto is_selected = indexValue(index, INDEX_IS_SELECTED).toBool();
                 emit editAlbumView(index, is_selected);
             }
@@ -258,12 +252,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         artist = album_year <= 0 ? qDatabaseFacade.unknown() : QString::number(album_year);
     }
 
-    const auto default_cover_size = qTheme.defaultCoverSize();
     // Draw album and artist text
 
-    auto album_artist_text_width = default_cover_size.width();
-    auto album_text_rect  = albumTextRect(option, album_artist_text_width);
-    auto artist_text_rect = artistTextRect(option);
+    auto album_artist_text_width = cover_size_.width();
+    auto album_text_rect  = albumTextRect(option, cover_size_, album_artist_text_width);
+    auto artist_text_rect = artistTextRect(option, cover_size_);
 
     if (is_selected && qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         painter->setPen(QPen(Qt::white));
@@ -281,7 +274,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     if (is_hires) {
         album_artist_text_width -= kMoreIconSize;
-        painter->drawPixmap(hiResIconRect(option), qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+        painter->drawPixmap(hiResIconRect(option, cover_size_), qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
     }
 
     QFontMetrics album_metrics(painter->font());
@@ -301,7 +294,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     QFontMetrics artist_metrics(painter->font());
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
-        artist_metrics.elidedText(artist, Qt::ElideRight, default_cover_size.width() - kMoreIconSize));
+        artist_metrics.elidedText(artist, Qt::ElideRight, cover_size_.width() - kMoreIconSize));
 
     // Perform search album cover
     // Note: Calculate view visible is not necessary, Qt already done it. 
@@ -310,10 +303,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         if (visible_albums.contains(album_id)) {
             emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
         }
-        painter->drawPixmap(coverRect(option), qTheme.unknownCover());
+        painter->drawPixmap(coverRect(option, cover_size_), qTheme.unknownCover());
     }
     else {
-        painter->drawPixmap(coverRect(option), qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id));
+        painter->drawPixmap(coverRect(option, cover_size_), qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id));
     }
 
     // Draw hit play button
@@ -321,15 +314,15 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (enable_album_view_
         && show_mode_ != SHOW_NORMAL
         && option.state & QStyle::State_MouseOver 
-        && coverRect(option).contains(mouse_point_)) {
-        painter->drawPixmap(coverRect(option), mask_image_);
+        && coverRect(option, cover_size_).contains(mouse_point_)) {
+        painter->drawPixmap(coverRect(option, cover_size_), mask_image_);
         QStyleOptionButton play_button_style;
-        play_button_style.rect = playButtonRect(option);
+        play_button_style.rect = playButtonRect(option, cover_size_);
         play_button_style.icon = qTheme.playCircleIcon();
         play_button_style.state |= QStyle::State_Enabled;
         play_button_style.iconSize = QSize(kIconSize, kIconSize);
         style->drawControl(QStyle::CE_PushButton, &play_button_style, painter, play_button_.get());
-        if (playButtonRect(option).contains(mouse_point_)) {
+        if (playButtonRect(option, cover_size_).contains(mouse_point_)) {
             QApplication::setOverrideCursor(Qt::PointingHandCursor);
             hit_play_button = true;
         }
@@ -340,7 +333,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (enable_album_view_ && enable_selected_mode_) {
         QStyleOptionButton checkbox_style;
         edit_mode_checkbox_->setIconSize(QSize(kMoreIconSize, kMoreIconSize));
-        checkbox_style.rect = checkBoxIconRect(option);
+        checkbox_style.rect = checkBoxIconRect(option, cover_size_);
         if (is_selected) {
             checkbox_style.state |= QStyle::State_On;
         }
@@ -356,14 +349,14 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         && option.rect.contains(mouse_point_)
         && show_mode_ != SHOW_NORMAL) {        
         more_option_style.initFrom(more_album_opt_button_.get());
-        more_option_style.rect = moreButtonRect(option);
+        more_option_style.rect = moreButtonRect(option, cover_size_);
         more_option_style.icon = qTheme.fontIcon(Glyphs::ICON_MORE);
         more_option_style.state |= QStyle::State_Enabled;
-        if (moreButtonRect(option).contains(mouse_point_)) {
+        if (moreButtonRect(option, cover_size_).contains(mouse_point_)) {
             more_option_style.state |= QStyle::State_Sunken;
             painter->setPen(qTheme.hoverColor());
             painter->setBrush(QBrush(qTheme.hoverColor()));
-            painter->drawEllipse(moreButtonRect(option));
+            painter->drawEllipse(moreButtonRect(option, cover_size_));
         }
         emit stopRefreshCover();
     }    

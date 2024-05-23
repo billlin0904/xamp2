@@ -2283,6 +2283,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
     qGuiDb.updateMusicPlays(entity.music_id);
     qGuiDb.updateAlbumPlays(entity.album_id);
+    album_page_->albumRecentsPlay()->reload();
 
     player_->Play();
 
@@ -2423,10 +2424,10 @@ void Xamp::playNextItem(int32_t forward, bool is_play) {
         return;
     }
 
-    tryLog(
+    TRY_LOG(
         last_play_list_->play(order_, is_play);
         play_index_ = last_play_list_->currentIndex();
-    )
+        );
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {    
@@ -2779,7 +2780,7 @@ void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
         return;
     }
 
-    tryLog(playlist_page->playlist()->append(file_name))
+    TRY_LOG(playlist_page->playlist()->append(file_name));
 }
 
 void Xamp::addItem(const QString& file_name) {

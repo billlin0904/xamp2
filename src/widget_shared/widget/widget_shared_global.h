@@ -19,12 +19,17 @@
 # define XAMP_WIDGET_SHARED_EXPORT
 #endif
 
-#define tryLog(expr) \
-    try {\
-        [&, this]() mutable { expr; }();\
-    }\
-    catch (...) {\
-        logAndShowMessage(std::current_exception());\
-    }
 
 XAMP_WIDGET_SHARED_EXPORT void logAndShowMessage(const std::exception_ptr& ptr);
+
+template <typename Func>
+void tryLog(Func&& func) {
+    try {
+        func();
+    }
+    catch (...) {
+        logAndShowMessage(std::current_exception());
+    }
+}
+
+#define TRY_LOG(expr) tryLog([&]() mutable { expr; })

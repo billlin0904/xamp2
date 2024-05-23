@@ -76,6 +76,10 @@ public:
 	ShowModes showModes() const {
 		return show_mode_;
 	}
+
+	void setCoverSize(const QSize& size) {
+		cover_size_ = size;
+	}
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
@@ -99,6 +103,7 @@ private:
 	bool enable_album_view_{ true };
 	ShowModes show_mode_{ SHOW_ARTIST };
 	int32_t playing_album_id_{ -1 };
+	QSize cover_size_;
 	QColor album_text_color_;
 	QPoint mouse_point_;
 	QPixmap mask_image_;

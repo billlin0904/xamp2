@@ -687,9 +687,9 @@ void PlayListTableView::initial() {
                 });
 
             if (model_->rowCount() > 0 && index.isValid()) {
-                tryLog(
+                TRY_LOG(
                     action_map.exec(pt);
-                )
+                    );
             }
             return;
         }
@@ -775,9 +775,9 @@ void PlayListTableView::initial() {
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
 
         if (model_->rowCount() == 0 || !index.isValid()) {
-            tryLog(
+            TRY_LOG(
                 action_map.exec(pt);
-            )
+                );
             return;
         }
 
@@ -861,9 +861,9 @@ void PlayListTableView::initial() {
                 emit encodeWavFile(play_list_entity);
             }
         });
-        tryLog(
+        TRY_LOG(
             action_map.exec(pt);
-        )
+        );
     });
 
     const auto *control_A_key = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this);
@@ -876,11 +876,11 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
-    tryLog(
+    TRY_LOG(
         qGuiDb.addOrUpdateMusic(TagIO::getTrackInfo(item.file_path.toStdWString()));
-		reload();
-		play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
-    )
+        reload();
+        play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+        );
 }
 
 void PlayListTableView::pauseItem(const QModelIndex& index) {

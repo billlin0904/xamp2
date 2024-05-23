@@ -59,6 +59,10 @@ public:
 		return album_view_;
 	}
 
+	AlbumView* albumRecentsPlay() const {
+		return recent_plays_album_view_;
+	}
+
 	ArtistView* artist() const {
 		return artist_view_;
 	}
@@ -87,7 +91,7 @@ private:
 	QLineEdit* artist_search_line_edit_;
 	AlbumTabListView* album_tab_list_view_;
 	AlbumView* album_view_;
-	AlbumView* recent_play_album_view_;
+	AlbumView* recent_plays_album_view_;
 	ArtistView* artist_view_;
 	AlbumView* year_view_;
 	ArtistInfoPage* artist_info_view_;

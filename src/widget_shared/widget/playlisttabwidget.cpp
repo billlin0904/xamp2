@@ -144,9 +144,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 });
         }
 
-        tryLog(
+        TRY_LOG(
             action_map.exec(pt);
-        )
+        );
         });
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
