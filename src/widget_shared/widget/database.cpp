@@ -1142,6 +1142,14 @@ void Database::updateMusicPlays(int32_t music_id) {
     DbIfFailedThrow1(query);
 }
 
+void Database::updateAlbumPlays(int32_t album_id) {
+    SqlQuery query(db_);
+
+    query.prepare(qTEXT("UPDATE albums SET plays = plays + 1 WHERE (albumId = :albumId)"));
+    query.bindValue(qTEXT(":albumId"), album_id);
+    DbIfFailedThrow1(query);
+}
+
 void Database::addOrUpdateTrackLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness) {
     SqlQuery query(db_);
 

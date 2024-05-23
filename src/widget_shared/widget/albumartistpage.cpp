@@ -153,6 +153,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_tag_list_widget_->addTag(category);
 	}
 	album_tag_list_widget_->addTag(tr("All"), true);
+	album_tag_list_widget_->addTag(tr("Most played"), true);
 
 	(void)QObject::connect(album_tag_list_widget_, &TagListView::tagChanged, [this](const auto& tags) {
 		if (tags.isEmpty()) {
@@ -161,6 +162,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		if (tags.contains(tr("All"))) {
 			album_view_->showAll();
 			album_tag_list_widget_->disableAllTag(tr("All"));
+		}
+		else if (tags.contains(tr("Most played"))) {
+			album_view_->filterMostPlayed();
 		}
 		else {
 			album_view_->filterCategories(tags);

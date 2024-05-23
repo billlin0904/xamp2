@@ -2281,8 +2281,10 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         emit findAlbumCover(DatabaseCoverId(entity.music_id, entity.album_id));
     }
 
-    player_->Play();
     qGuiDb.updateMusicPlays(entity.music_id);
+    qGuiDb.updateAlbumPlays(entity.album_id);
+
+    player_->Play();
 
     if (open_done) {
         setCover(entity.validCoverId());

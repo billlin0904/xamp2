@@ -973,6 +973,29 @@ ORDER BY
     setShowMode(SHOW_ARTIST);
 }
 
+void AlbumView::filterMostPlayed() {
+    last_query_ = qTEXT(R"(
+SELECT
+    albums.album,
+    albums.coverId,
+    artists.artist,
+    albums.albumId,
+    artists.artistId,
+    artists.coverId as artistCover,
+    albums.year,
+    albums.heart,
+	albums.isHiRes,
+    albums.isSelected
+FROM
+    albums
+LEFT JOIN
+	artists ON artists.artistId = albums.artistId
+ORDER BY
+    albums.plays DESC
+    )");
+    setShowMode(SHOW_ARTIST);
+}
+
 void AlbumView::filterCategories(const QSet<QString>& category) {
     QStringList categories;
     Q_FOREACH(auto & c, category) {

@@ -152,6 +152,8 @@ public:
 
 	void updateMusicPlays(int32_t music_id);
 
+	void updateAlbumPlays(int32_t album_id);
+
 	void addOrUpdateTrackLoudness(int32_t album_id,
 		int32_t artist_id,
 		int32_t music_id,

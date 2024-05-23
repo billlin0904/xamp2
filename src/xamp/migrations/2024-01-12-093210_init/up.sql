@@ -23,7 +23,7 @@ IF
 		comment TEXT,
 		fileSize integer,
 		heart integer,
-		plays integer,
+		plays integer DEFAULT 0,
 		lyrc TEXT,
 		trLyrc TEXT,
 		coverId TEXT DEFAULT NULL,
@@ -52,6 +52,7 @@ IF
 		storeType integer,		
 		isHiRes integer,
 		isSelected integer,
+		plays integer DEFAULT 0,
 		FOREIGN KEY ( artistId ) REFERENCES artists ( artistId ),
 		UNIQUE ( albumId, artistId ) 
 	);
