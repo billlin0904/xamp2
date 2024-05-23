@@ -151,6 +151,10 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
         // 3. Read file embedded cover.
         QPixmap cover;
         if (!music_file_path.empty()) {
+            if (!IsFilePath(music_file_path)) {
+                return;
+            }
+
             const TagIO reader;
             cover = reader.embeddedCover(music_file_path);
             if (!cover.isNull()) {

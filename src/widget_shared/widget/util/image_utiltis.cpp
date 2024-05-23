@@ -353,6 +353,37 @@ bool optimizePng(const QByteArray& buffer, const QString& dest_file_path) {
 	return file.commit();	
 }
 
+QPixmap mergeImage(const QList<QPixmap>& images) {
+	// Create a black 185x185 canvas
+	QPixmap canvas(185, 185);
+	canvas.fill(Qt::black);
+
+	QPainter painter(&canvas);
+	auto num_images = images.size();
+
+	// Define positions for up to 4 images
+	QList<QRect> positions = {
+		QRect(0,  0,  92, 92),
+		QRect(93, 0,  92, 92),
+		QRect(0,  93, 92, 92),
+		QRect(93, 93, 92, 92)
+	};
+
+	for (auto i = 0; i < qMin(num_images, 4); i++) {
+		// Resize image to fit in 92x92 region
+		auto resized = images[i].scaled(92, 92, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+		// Calculate the position to center the resized image
+		auto x_offset = (positions[i].width() - resized.width()) / 2;
+		auto y_offset = (positions[i].height() - resized.height()) / 2;
+
+		// Place the resized image on the canvas
+		painter.drawPixmap(positions[i].x() + x_offset, positions[i].y() + y_offset, resized);
+	}
+
+	return canvas;
+}
+
 bool moveFile(const QString& src_file_path, const QString& dest_file_path) {
 	try {
 		Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());

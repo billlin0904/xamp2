@@ -47,4 +47,6 @@ XAMP_WIDGET_SHARED_EXPORT bool moveFile(const QString& src_file_path, const QStr
 
 XAMP_WIDGET_SHARED_EXPORT bool optimizePng(const QByteArray& buffer, const QString& dest_file_path);
 
+XAMP_WIDGET_SHARED_EXPORT QPixmap mergeImage(const QList<QPixmap>& images);
+
 }

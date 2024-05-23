@@ -261,14 +261,18 @@ XAMP_MAKE_ENUM(SongRating,
 	DISLIKE,
 	INDIFFERENT)
 
-inline std::wstring makeId(const playlist::Track& track) {
+inline std::wstring makeYtMusicPath(const playlist::Track& track) {
 	if (!track.set_video_id) {
 		return String::ToString(track.video_id.value() + " ");
 	}
 	return String::ToString(track.video_id.value() + " " + track.set_video_id.value());
 }
 
-inline std::pair<QString, QString> parseId(const QString& id) {
+/*
+* First: video id
+* Second: set video id
+*/
+inline std::pair<QString, QString> parseYtMusicPath(const QString& id) {
 	auto parts = id.split(qTEXT(" "), Qt::SkipEmptyParts);
 	if (parts.size() != 2) {
 		return std::make_pair(parts[0], kEmptyString);

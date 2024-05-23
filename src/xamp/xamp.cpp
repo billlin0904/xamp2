@@ -964,7 +964,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             continue;
         }
 
-        track_info.file_path = makeId(track);
+        track_info.file_path = makeYtMusicPath(track);
         track_info.rating = track.like_status == "LIKE";        
         track_info.sample_rate = kYtMusicSampleRate;
 
@@ -993,7 +993,7 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
         tr("Cancel"));
     dialog->show();
 
-    auto [video_id, setVideoId] = parseId(entity.file_path);
+    auto [video_id, setVideoId] = parseYtMusicPath(entity.file_path);
     const auto ytmusic_url = makeYtMusicUrl(video_id);
 
     dialog->setLabelText(tr("Fetching video information ..."));
@@ -1060,7 +1060,7 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
 }
 
 void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
-    auto [video_id, setVideoId] = parseId(id);
+    auto [video_id, setVideoId] = parseYtMusicPath(id);
 
     if (qDiskCache.isCached(video_id) && !entity.isFilePath()) {
         auto file_entity = qDiskCache.getFileName(video_id);
@@ -2746,6 +2746,7 @@ void Xamp::initialCloudPlaylist() {
             if (playlist.title == kEpisodesForLaterName) {
                 continue;
             }
+
             auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.playlistId), QString::fromStdString(playlist.title));
             playlist_page->pageTitle()->hide();
             playlist_page->hidePlaybackInformation(true);
@@ -2754,7 +2755,9 @@ void Xamp::initialCloudPlaylist() {
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
             QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
-                this, [this, playlist_page](const auto& playlist) {
+                this, [this, playlist_page, process_dialog](const auto& playlist) {
+                    process_dialog->setLabelText(qSTR("Fetch '%1' playlist...").arg(QString::fromStdString(playlist.title)));
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
                     onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
                 });
         }
@@ -2920,7 +2923,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             [this](const auto& source_playlist_id, const auto& playlist_id, const auto& video_ids) {
                 std::vector<std::string> parsed_video_ids;
                 for (auto video_id : video_ids) {
-                    auto [parsed_video_id, set_video_id] = parseId(QString::fromStdString(video_id));
+                    auto [parsed_video_id, set_video_id] = parseYtMusicPath(QString::fromStdString(video_id));
                     parsed_video_ids.push_back(parsed_video_id.toStdString());
                 }
                 QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id,
@@ -2936,7 +2939,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 playlist_page->playlist()->removeAll();
                 qGuiDb.removeAlbumMusic(entity.album_id, entity.music_id);
                 qGuiDb.removeMusic(entity.music_id);
-                auto [video_id, set_video_id] = parseId(entity.file_path);
+                auto [video_id, set_video_id] = parseYtMusicPath(entity.file_path);
                 QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE),
                     this, [this, playlist_page](auto) {
                     initialCloudPlaylist();
@@ -2951,7 +2954,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 result_data.reserve(video_ids.size());
                 for (const auto &id : video_ids) {
                     edit::PlaylistEditResultData data;
-                    auto [video_id, setVideoId] = parseId(QString::fromStdString(id));
+                    auto [video_id, setVideoId] = parseYtMusicPath(QString::fromStdString(id));
                     if (video_id.isEmpty() || setVideoId.isEmpty()) {
                         continue;
                     }
