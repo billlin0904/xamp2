@@ -5,8 +5,8 @@
 
 #include <base/logger_impl.h>
 
-#include <widget/util/ui_utilts.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/ui_util.h>
+#include <widget/util/str_util.h>
 #include <widget/volumecontroldialog.h>
 
 static constexpr auto kShowDelayMs = 100;

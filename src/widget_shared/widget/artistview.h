@@ -9,7 +9,7 @@
 #include <QStyledItemDelegate>
 #include <QSqlQueryModel>
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 

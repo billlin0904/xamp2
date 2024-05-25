@@ -1,7 +1,7 @@
 #include <widget/clickablelabel.h>
 
 #include <QMouseEvent>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 ClickableLabel::ClickableLabel(QWidget* parent)
 	: ClickableLabel(QString(), parent) {

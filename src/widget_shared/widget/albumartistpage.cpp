@@ -13,11 +13,11 @@
 #include <QCompleter>
 #include <QScrollArea>
 
-#include <widget/util/ui_utilts.h>
+#include <widget/util/ui_util.h>
 #include <widget/artistview.h>
 #include <widget/genre_view.h>
 #include <widget/clickablelabel.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
 #include <widget/database.h>
@@ -234,7 +234,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	// Recent Plays
 
-	auto* recent_plays_tags_label = new QLabel(tr("Recent Plays"));
+	/*auto* recent_plays_tags_label = new QLabel(tr("Recent Plays"));
 	f.setPointSize(qTheme.fontSize(12));
 	recent_plays_tags_label->setFont(f);
 
@@ -242,7 +242,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	recent_plays_album_view_->setFixedHeight(280);
 	recent_plays_album_view_->filterRecentPlays();
 	recent_plays_album_view_->reload();
-	album_frame_layout->addWidget(recent_plays_album_view_, 1);
+	album_frame_layout->addWidget(recent_plays_album_view_, 1);*/
 
 	// Category
 

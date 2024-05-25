@@ -2,7 +2,7 @@
 
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <stream/eqsettings.h>
 #include <ui_equalizerdialog.h>

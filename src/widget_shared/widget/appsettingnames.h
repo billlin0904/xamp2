@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 #define DECLARE_APP_SETTING_NAME(Name) \
 	XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString k##Name

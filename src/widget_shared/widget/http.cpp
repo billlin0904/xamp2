@@ -19,8 +19,8 @@
 
 #include <version.h>
 #include <widget/networkdiskcache.h>
-#include <widget/util/str_utilts.h>
-#include <widget/util/zib_utiltis.h>
+#include <widget/util/str_util.h>
+#include <widget/util/zib_util.h>
 #include <widget/widget_shared.h>
 
 namespace http {

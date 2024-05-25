@@ -7,7 +7,7 @@
 #include <base/str_utilts.h>
 #include <stream/filestream.h>
 #include <widget/widget_shared.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 using namespace rapidxml;
 

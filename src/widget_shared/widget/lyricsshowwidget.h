@@ -10,7 +10,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <base/memory.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 class QDropEvent;
 

@@ -12,7 +12,7 @@
 #include <QFileInfo>
 #include <QUrl>
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {

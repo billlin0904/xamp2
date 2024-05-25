@@ -3,7 +3,7 @@
 #include <QPainter>
 
 #include <thememanager.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/ui_util.h>
 
 ProcessIndicator::ProcessIndicator(QWidget* parent)
 	: QWidget(parent)

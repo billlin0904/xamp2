@@ -91,6 +91,36 @@ namespace {
         MacOSFutexWake(to_wake, false);
 #endif
     }
+
+    void SetProcessPriority(const WinHandle& handle, ProcessPriority priority) {
+        if (handle) {
+            DWORD priority_class = NORMAL_PRIORITY_CLASS;
+            if (priority == ProcessPriority::PRIORITY_BACKGROUND) {
+                priority_class = IDLE_PRIORITY_CLASS;
+            }
+            else if (priority == ProcessPriority::PRIORITY_BACKGROUND_PERCEIVABLE) {
+                priority_class = BELOW_NORMAL_PRIORITY_CLASS;
+            }
+            if (!::SetPriorityClass(handle.get(), priority_class)) {
+                XAMP_LOG_DEBUG("Failed to set SetPriorityClass! error: {}.", GetLastErrorMessage());
+                return;
+            }
+        }
+
+        constexpr auto enable_eco_qos = true;
+        PROCESS_POWER_THROTTLING_STATE power_throttling;
+        RtlZeroMemory(&power_throttling, sizeof(power_throttling));
+        power_throttling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+        power_throttling.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+        power_throttling.StateMask =
+            (priority == ProcessPriority::PRIORITY_BACKGROUND) &&
+            enable_eco_qos
+            ? PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+            : 0;
+        if (!::SetProcessInformation(handle.get(), ProcessPowerThrottling, &power_throttling, sizeof(power_throttling))) {
+            XAMP_LOG_DEBUG("Failed to set SetProcessInformation! error: {}.", GetLastErrorMessage());
+        }
+    }
 }
 
 void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept {
@@ -178,7 +208,7 @@ void SetThreadNameById(DWORD dwThreadID, char const* threadName) {
 }
 #endif
 
-void SetThreadName(std::wstring const& name) noexcept {
+void SetThreadName(std::wstring const& name) {
 #ifdef XAMP_OS_WIN
 	const WinHandle thread(::GetCurrentThread());
     ::SetThreadDescription(thread.get(), name.c_str());
@@ -224,16 +254,16 @@ void CpuAffinity::SetAffinity(JThread& thread) {
         group_affinity.Group = group_index;
 
         const DWORD processor_count = ::GetActiveProcessorCount(group_index);
-        DWORD current_processor = 0;
+        group_affinity.Mask = 0;
+
         for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
             if (cpus_[group_index * 64 + processor_index]) {
                 group_affinity.Mask |= (1ull << processor_index);
-                ++current_processor;
-			}
+            }
         }
 
         if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
-            XAMP_LOG_TRACE("Fail to set SetThreadGroupAffinity");
+            XAMP_LOG_DEBUG("Failed to set SetThreadGroupAffinity! error: {}.", GetLastErrorMessage());
         }
         else {
             XAMP_LOG_TRACE("Success to set SetThreadGroupAffinity mask: {:#02X}", group_affinity.Mask);
@@ -246,32 +276,39 @@ void CpuAffinity::SetAffinity(JThread& thread) {
                 processor_number.Number = processor_index;
                 processor_number.Reserved = 0;
                 if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
-                    XAMP_LOG_TRACE("Fail to set SetThreadIdealProcessorEx");
+                    XAMP_LOG_DEBUG("Failed to set SetThreadIdealProcessorEx! error: {}.", GetLastErrorMessage());
                 }
                 else {
-                    XAMP_LOG_TRACE("Success to set SetThreadIdealProcessorEx group:{} processor index:{}", group_index, processor_index);
+                    XAMP_LOG_TRACE("Success to set SetThreadIdealProcessorEx group: {} processor index: {}", group_index, processor_index);
+                    break;
                 }
             }
         }
-    }    
+}
 #else
-    /*
-    cpu_set_t cpu_set;
-    CPU_ZERO(&cpu_set);
-    for (int i = 0; i < cpus.size(); ++i) {
-        if (cpus[i]) {
-            CPU_SET(i, &cpu_set);
-        }
-    }
-    pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set), &cpu_set);*/
+	// TODO: Implement for Linux or macOS.
 #endif
 }
 
-void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
+void SetCurrentProcessPriority(ProcessPriority priority) {
+#ifdef XAMP_OS_WIN
+    const WinHandle handle(::GetCurrentProcess());
+    SetProcessPriority(handle, priority);
+#endif
+}
+
+void SetProcessPriority(int32_t pid, ProcessPriority priority) {
+#ifdef XAMP_OS_WIN
+    const WinHandle handle(::OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid));
+	SetProcessPriority(handle, priority);
+#endif
+}
+
+void SetThreadPriority(JThread& thread, ThreadPriority priority) {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
     switch (priority) {
-    case ThreadPriority::BACKGROUND:
+    case ThreadPriority::PRIORITY_BACKGROUND:
         if (::GetThreadPriority(thread.native_handle()) >= THREAD_PRIORITY_BELOW_NORMAL) {
             ::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_END);
         }
@@ -292,15 +329,15 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept {
             }
 		}
         break;
-    case ThreadPriority::NORMAL:
+    case ThreadPriority::PRIORITY_NORMAL:
         thread_priority = THREAD_PRIORITY_NORMAL;
         break;
-    case ThreadPriority::HIGHEST:
+    case ThreadPriority::PRIORITY_HIGHEST:
         thread_priority = THREAD_PRIORITY_HIGHEST;
         break;
     }
 
-    if (priority != ThreadPriority::BACKGROUND) {
+    if (priority != ThreadPriority::PRIORITY_BACKGROUND) {
         if (!::SetThreadPriority(thread.native_handle(), thread_priority)) {
             XAMP_LOG_DEBUG("Failed to set thread priority! error:{}.", GetLastErrorMessage());
         }        

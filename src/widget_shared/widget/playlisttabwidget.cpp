@@ -5,7 +5,7 @@
 
 #include <widget/xmessagebox.h>
 #include <widget/database.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/playlisttabbar.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttableview.h>
@@ -144,7 +144,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 });
         }
 
-        TRY_LOG(
+        XAMP_TRY_LOG(
             action_map.exec(pt);
         );
         });

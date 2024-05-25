@@ -11,7 +11,7 @@
 #include <widget/util/image_util.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/scrolllabel.h>
 #include <widget/processindicator.h>
 #include <widget/playlisttableview.h>

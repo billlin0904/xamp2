@@ -1,6 +1,6 @@
 #include <QPropertyAnimation>
 #include <widget/maskwidget.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 MaskWidget::MaskWidget(QWidget* parent)
 	: QWidget(parent) {

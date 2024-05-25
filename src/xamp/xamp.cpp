@@ -7,6 +7,9 @@
 #include <QSimpleUpdater.h>
 #include <QToolTip>
 #include <QWidgetAction>
+#include <QScrollBar>
+#include <QScrollArea>
+
 #include <set>
 #include <thememanager.h>
 #include <version.h>
@@ -57,8 +60,8 @@
 #include <widget/util/image_util.h>
 #include <widget/util/mbdiscid_uiltis.h>
 #include <widget/util/read_until.h>
-#include <widget/util/str_utilts.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/str_util.h>
+#include <widget/util/ui_util.h>
 #include <widget/worker/backgroundworker.h>
 #include <widget/worker/filesystemworker.h>
 #include <widget/worker/findalbumcoverworker.h>
@@ -463,6 +466,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     , is_seeking_(false)
     , trigger_upgrade_action_(false)
     , trigger_upgrade_restart_(false)
+    , cloud_playlist_process_count_(0)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , main_window_(nullptr)
 	, lrc_page_(nullptr)
@@ -507,12 +511,6 @@ void Xamp::destroy() {
         XAMP_LOG_DEBUG("Player destroy!");
     }
 
-    auto worker_cancel_requested = [](auto* worker) {
-        if (worker != nullptr) {
-            worker->cancelRequested();
-        }
-    };
-
     auto quit_and_wait_thread = [](auto& thread) {
         if (!thread.isFinished()) {
             thread.requestInterruption();
@@ -521,10 +519,12 @@ void Xamp::destroy() {
         }
     };
 
-    worker_cancel_requested(background_worker_.get());
-    worker_cancel_requested(find_album_cover_worker_.get());
-    worker_cancel_requested(extract_file_worker_.get());
-    worker_cancel_requested(ytmusic_worker_.get());
+    (void)QObject::connect(this, &Xamp::cancelRequested, background_worker_.get(), &BackgroundWorker::cancelRequested);
+    (void)QObject::connect(this, &Xamp::cancelRequested, find_album_cover_worker_.get(), &FindAlbumCoverWorker::cancelRequested);
+    (void)QObject::connect(this, &Xamp::cancelRequested, extract_file_worker_.get(), &FileSystemWorker::cancelRequested);
+    (void)QObject::connect(this, &Xamp::cancelRequested, ytmusic_worker_.get(), &YtMusic::cancelRequested);
+
+    emit cancelRequested();
 
     if (ytmusic_worker_ != nullptr) {
         ytmusic_worker_->cleanupAsync().waitForFinished();
@@ -1645,25 +1645,25 @@ void Xamp::setCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
         album_page_->reload();
-        ui_.currentView->setCurrentWidget(album_page_.get());
+        //ui_.currentView->setCurrentWidget(album_page_.get());        
         break;
     case TAB_FILE_EXPLORER:
-        ui_.currentView->setCurrentWidget(file_system_view_page_.get());
+        //ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
     case TAB_PLAYLIST:        
-        ui_.currentView->setCurrentWidget(local_tab_widget_.get());
+        //ui_.currentView->setCurrentWidget(local_tab_widget_.get());
         ensureLocalOnePlaylistPage();
         local_tab_widget_->reloadAll();
         break;
     case TAB_LYRICS:
-        ui_.currentView->setCurrentWidget(lrc_page_.get());
+        //ui_.currentView->setCurrentWidget(lrc_page_.get());
         break;
     case TAB_CD:
-        ui_.currentView->setCurrentWidget(cd_page_.get());
+        //ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_SEARCH:
         initialYtMusicWorker();
-        ui_.currentView->setCurrentWidget(cloud_search_page_.get());
+        //ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         cloud_search_page_->playlist()->reload();
         break;
     case TAB_YT_MUSIC_PLAYLIST:
@@ -1671,10 +1671,11 @@ void Xamp::setCurrentTab(int32_t table_id) {
         if (!cloud_tab_widget_->count()) {
             initialCloudPlaylist();
         }
-        ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
+        //ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         cloud_tab_widget_->reloadAll();
         break;
     }
+    ui_.currentView->setCurrentWidget(widgets_[table_id]);
 }
 
 void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
@@ -2424,7 +2425,7 @@ void Xamp::playNextItem(int32_t forward, bool is_play) {
         return;
     }
 
-    TRY_LOG(
+    XAMP_TRY_LOG(
         last_play_list_->play(order_, is_play);
         play_index_ = last_play_list_->currentIndex();
         );
@@ -2437,8 +2438,6 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids) {
     ensureLocalOnePlaylistPage();
     if (playlist_id == kInvalidDatabaseId) {
-        //const auto* playlist_view = localPlaylistPage()->playlist();
-        //qAppDb.addMusicToPlaylist(music_ids, playlist_view->playlistId());
         const auto tab_index = local_tab_widget_->count();
         const auto playlist_id = qGuiDb.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
         newPlaylistPage(local_tab_widget_.get(), playlist_id, kEmptyString, tr("Playlist"));
@@ -2736,20 +2735,17 @@ void Xamp::initialCloudPlaylist() {
         tr(""),
         tr("Cancel"));
     process_dialog->show();
+    cloud_playlist_process_count_ = 0;
 
     QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [process_dialog, this](const auto& playlists) {
         static const std::string kEpisodesForLaterName("Episodes for Later");
 
         int32_t index = 1;
-        int32_t count = 0;
         for (const auto& playlist : playlists) {
-            process_dialog->setValue(count++ * 100 / playlists.size() + 1);
-
             const auto playlist_id = qGuiDb.addPlaylist(QString::fromStdString(playlist.title), index++, StoreType::CLOUD_STORE, QString::fromStdString(playlist.playlistId));
             if (playlist.title == kEpisodesForLaterName) {
                 continue;
             }
-
             auto* playlist_page = newPlaylistPage(cloud_tab_widget_.get(), playlist_id, QString::fromStdString(playlist.playlistId), QString::fromStdString(playlist.title));
             playlist_page->pageTitle()->hide();
             playlist_page->hidePlaybackInformation(true);
@@ -2758,9 +2754,8 @@ void Xamp::initialCloudPlaylist() {
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
             QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
-                this, [this, playlist_page, process_dialog](const auto& playlist) {
-                    process_dialog->setLabelText(qSTR("Fetch '%1' playlist...").arg(QString::fromStdString(playlist.title)));
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                this, [this, playlists, playlist_page, process_dialog](const auto& playlist) {
+                    process_dialog->setValue(cloud_playlist_process_count_++ * 100 / playlists.size() + 1);
                     onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
                 });
         }
@@ -2780,17 +2775,29 @@ void Xamp::appendToPlaylist(const QString& file_name, bool append_to_playlist) {
         return;
     }
 
-    TRY_LOG(playlist_page->playlist()->append(file_name));
+    XAMP_TRY_LOG(playlist_page->playlist()->append(file_name));
 }
 
 void Xamp::addItem(const QString& file_name) {
     ensureLocalOnePlaylistPage();
-
     appendToPlaylist(file_name, true);
 }
 
-void Xamp::pushWidget(QWidget* widget) const {
-	const auto id = ui_.currentView->addWidget(widget);
+void Xamp::pushWidget(QWidget* widget) {
+    /*auto* scroll_area = new QScrollArea();
+    scroll_area->verticalScrollBar()->setStyleSheet(qTEXT(
+        "QScrollBar:vertical { width: 6px; }"
+    ));
+    scroll_area->setWidget(widget);
+    scroll_area->setWidgetResizable(true);
+    const auto id = ui_.currentView->addWidget(scroll_area);
+    if (id == TAB_MUSIC_LIBRARY - 1) {
+		widget->setMinimumHeight(6000);
+        scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    }
+    widgets_.push_back(scroll_area);*/
+    const auto id = ui_.currentView->addWidget(widget);
+    widgets_.push_back(widget);
     ui_.currentView->setCurrentIndex(id);
 }
 

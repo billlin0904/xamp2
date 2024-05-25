@@ -10,7 +10,7 @@
 #include <widget/util/image_util.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>
 

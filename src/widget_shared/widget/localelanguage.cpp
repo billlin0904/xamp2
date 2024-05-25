@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QDir>
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>

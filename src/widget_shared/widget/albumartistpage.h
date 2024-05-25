@@ -30,6 +30,7 @@ class ClickableLabel;
 class QListWidget;
 class TagListView;
 class GenreViewPage;
+class QScrollArea;
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
 	Q_OBJECT

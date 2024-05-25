@@ -3,7 +3,7 @@
 #include <QPushButton>
 
 #include <thememanager.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	: QTabBar(parent) {	

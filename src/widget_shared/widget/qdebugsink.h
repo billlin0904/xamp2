@@ -9,7 +9,7 @@
 #include <spdlog/sinks/sink.h>
 #include <spdlog/fmt/ostr.h>
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/widget_shared_global.h>
 
 #include <QDebug>

@@ -37,7 +37,7 @@ AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& poo
                                                      TaskSchedulerPolicy policy,
                                                      TaskStealPolicy steal_policy) {
 	return MakeThreadPoolExecutor(pool_name,
-	                              ThreadPriority::NORMAL,
+	                              ThreadPriority::PRIORITY_NORMAL,
 	                              CpuAffinity::kAll,
 	                              std::thread::hardware_concurrency(),
 	                              policy,
@@ -66,7 +66,7 @@ IThreadPoolExecutor& GetOutputDeviceThreadPool() {
 	static ThreadPoolExecutor executor(kOutputDeviceThreadPoolLoggerName,
 	                                   kMaxOutputDeviceThreadPoolSize,
 	                                   cpu_aff,
-	                                   ThreadPriority::HIGHEST);
+	                                   ThreadPriority::PRIORITY_HIGHEST);
 	return executor;
 }
 
@@ -74,7 +74,7 @@ IThreadPoolExecutor& GetBackgroundThreadPool() {
 	static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
 	                                   kMaxBackgroundThreadPoolSize,
 	                                   GetBackgroundCpuAffinity(),
-	                                   ThreadPriority::BACKGROUND);
+	                                   ThreadPriority::PRIORITY_BACKGROUND);
 	return executor;
 }
 
@@ -82,7 +82,7 @@ IThreadPoolExecutor& GetPlaybackThreadPool() {
 	static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
 	                                   kMaxPlaybackThreadPoolSize,
 	                                   GetBackgroundCpuAffinity(),
-	                                   ThreadPriority::BACKGROUND);
+	                                   ThreadPriority::PRIORITY_BACKGROUND);
 	return executor;
 }
 

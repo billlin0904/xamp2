@@ -2,8 +2,8 @@
 #include <ui_aboutdialog.h>
 #include <QFile>
 
-#include <widget/util/str_utilts.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/str_util.h>
+#include <widget/util/ui_util.h>
 #include <version.h>
 #include <thememanager.h>
 

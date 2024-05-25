@@ -122,12 +122,12 @@ public:
 	                   TaskStealPolicy steal_policy,
 	                   uint32_t max_thread = std::thread::hardware_concurrency(),
 	                   CpuAffinity affinity = CpuAffinity::kAll,
-	                   ThreadPriority priority = ThreadPriority::NORMAL);
+	                   ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
 
 	explicit ThreadPoolExecutor(const std::string_view& pool_name,
 	                            uint32_t max_thread = std::thread::hardware_concurrency(),
 	                            CpuAffinity affinity = CpuAffinity::kAll,
-	                            ThreadPriority priority = ThreadPriority::NORMAL);
+	                            ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
 
 	~ThreadPoolExecutor() override;
     

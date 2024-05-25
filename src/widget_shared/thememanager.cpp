@@ -4,7 +4,7 @@
 
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
 #include <widget/imagecache.h>

@@ -3,8 +3,8 @@
 #include <widget/xdialog.h>
 
 #include <thememanager.h>
-#include <widget/util/str_utilts.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/str_util.h>
+#include <widget/util/ui_util.h>
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 
 #include <QLabel>

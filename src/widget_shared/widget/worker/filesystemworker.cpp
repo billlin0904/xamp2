@@ -8,7 +8,7 @@
 #include <metadata/cueloader.h>
 
 #include <widget/albumview.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/ui_util.h>
 
 XAMP_DECLARE_LOG_NAME(FileSystemWorker);
 XAMP_DECLARE_LOG_NAME(ExtractFileThreadPool);
@@ -186,7 +186,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 
 	auto extract_file_thread_pool = MakeThreadPoolExecutor(
 		XAMP_LOG_NAME(ExtractFileThreadPool),
-		ThreadPriority::BACKGROUND);
+		ThreadPriority::PRIORITY_BACKGROUND);
 
 	QDirIterator itr(file_path,
 		getTrackInfoFileNameFilter(), 

@@ -1,5 +1,5 @@
 #include <widget/util/log_util.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <QMap>
 
 namespace log_util {

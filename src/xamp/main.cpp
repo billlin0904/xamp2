@@ -20,9 +20,9 @@
 #include <widget/database.h>
 #include <widget/imagecache.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/jsonsettings.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/ui_util.h>
 #include <widget/xmainwindow.h>
 #include <widget/http.h>
 #include <widget/xmessagebox.h>
@@ -240,6 +240,7 @@ namespace {
             FramelessHelper::Widgets::initialize();
             FramelessHelper::Core::setApplicationOSThemeAware();
             FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
+            FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
         }
 
         ~FramelessHelperRAII() {
@@ -260,6 +261,7 @@ int main() {
     qputenv("QT_ICC_PROFILE", QByteArray());
     qAppSettings.loadIniFile(qTEXT("xamp.ini"));
     qJsonSettings.loadJsonFile(qTEXT("config.json"));
+
 #ifdef Q_OS_WIN32
     const auto os_ver = QOperatingSystemVersion::current();
     XAMP_LOG_DEBUG("Running {} {}.{}.{}",
@@ -268,6 +270,9 @@ int main() {
         os_ver.minorVersion(),
         os_ver.microVersion());
 #endif
+
+	SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
+
     FramelessHelperRAII frameless_helper_raii;
 
     qAppSettings.loadOrSaveLogConfig();

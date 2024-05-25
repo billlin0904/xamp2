@@ -17,9 +17,22 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(
     ThreadPriority,
-    BACKGROUND,
-    NORMAL,
-    HIGHEST)
+    PRIORITY_UNKNOWN,
+    PRIORITY_BACKGROUND,
+    PRIORITY_NORMAL,
+    PRIORITY_HIGHEST)
+
+XAMP_MAKE_ENUM(
+    ProcessPriority,
+    PRIORITY_UNKNOWN,
+    PRIORITY_BACKGROUND,
+    PRIORITY_BACKGROUND_PERCEIVABLE,
+    PRIORITY_FOREGROUND_KEYBOARD,
+    PRIORITY_PREALLOC,
+    PRIORITY_FOREGROUND,
+    PRIORITY_FOREGROUND_HIGH,
+    PRIORITY_PARENT_PROCESS
+)
 
 XAMP_MAKE_ENUM(
     TaskSchedulerPolicy,
@@ -48,9 +61,13 @@ private:
 
 inline constexpr uint32_t kInfinity = -1;
 
-XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority) noexcept;
+XAMP_BASE_API void SetCurrentProcessPriority(ProcessPriority priority);
 
-XAMP_BASE_API void SetThreadName(std::wstring const & name) noexcept;
+XAMP_BASE_API void SetProcessPriority(int32_t pid, ProcessPriority priority);
+
+XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority);
+
+XAMP_BASE_API void SetThreadName(std::wstring const & name);
 
 XAMP_BASE_API std::string GetCurrentThreadId();
 

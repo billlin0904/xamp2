@@ -3,7 +3,7 @@
 #include <QDirIterator>
 
 #include <widget/appsettings.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
 inline constexpr qint64 kMaxDiskCacheSize = 64 * 1024 * 1024;

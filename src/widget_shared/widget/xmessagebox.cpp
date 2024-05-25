@@ -1,8 +1,8 @@
 #include <widget/xmessagebox.h>
 #include <widget/widget_shared.h>
 #include <widget/xmainwindow.h>
-#include <widget/util/ui_utilts.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/ui_util.h>
+#include <widget/util/str_util.h>
 
 #include <base/exception.h>
 

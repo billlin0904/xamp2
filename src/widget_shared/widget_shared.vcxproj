@@ -136,9 +136,9 @@
     <ClInclude Include="widget\util\log_util.h" />
     <ClInclude Include="widget\util\mbdiscid_uiltis.h" />
     <ClInclude Include="widget\util\read_until.h" />
-    <ClInclude Include="widget\util\str_utilts.h" />
-    <ClInclude Include="widget\util\ui_utilts.h" />
-    <ClInclude Include="widget\util\zib_utiltis.h" />
+    <ClInclude Include="widget\util\str_util.h" />
+    <ClInclude Include="widget\util\ui_util.h" />
+    <ClInclude Include="widget\util\zib_util.h" />
     <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
@@ -262,9 +262,9 @@
     <ClCompile Include="widget\util\log_util.cpp" />
     <ClCompile Include="widget\util\mbdiscid_uiltis.cpp" />
     <ClCompile Include="widget\util\read_until.cpp" />
-    <ClCompile Include="widget\util\str_utilts.cpp" />
-    <ClCompile Include="widget\util\ui_utilts.cpp" />
-    <ClCompile Include="widget\util\zib_utiltis.cpp" />
+    <ClCompile Include="widget\util\str_util.cpp" />
+    <ClCompile Include="widget\util\ui_util.cpp" />
+    <ClCompile Include="widget\util\zib_util.cpp" />
     <ClCompile Include="widget\volumebutton.cpp" />
     <ClCompile Include="widget\volumecontroldialog.cpp" />
     <ClCompile Include="widget\webvttparser.cpp" />

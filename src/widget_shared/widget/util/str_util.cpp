@@ -1,4 +1,4 @@
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/appsettings.h>
 
 #include <QDir>

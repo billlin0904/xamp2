@@ -1,5 +1,5 @@
 #include <ui_accountauthorizationpage.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <thememanager.h>
 #include <widget/accountauthorizationpage.h>
 

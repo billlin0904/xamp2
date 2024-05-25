@@ -1,6 +1,6 @@
 #include <widget/worker/backgroundworker.h>
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/util/image_util.h>
 #include <widget/database.h>
 #include <widget/databasefacade.h>

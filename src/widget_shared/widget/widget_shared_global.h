@@ -32,4 +32,4 @@ void tryLog(Func&& func) {
     }
 }
 
-#define TRY_LOG(expr) tryLog([&]() mutable { expr; })
+#define XAMP_TRY_LOG(expr) tryLog([&]() mutable { expr; })

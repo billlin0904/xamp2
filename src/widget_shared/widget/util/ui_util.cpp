@@ -1,4 +1,4 @@
-#include <widget/util/ui_utilts.h>
+#include <widget/util/ui_util.h>
 
 #include <QApplication>
 #include <QDirIterator>
@@ -18,12 +18,12 @@
 #include <widget/xprogressdialog.h>
 #include <widget/processindicator.h>
 #include <widget/xmainwindow.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 #include <version.h>
 
-#include "widget/playlistentity.h"
-#include "widget/playlisttablemodel.h"
+#include <widget/playlistentity.h>
+#include <widget/playlisttablemodel.h>
 
 namespace {
     void saveLastOpenFolderPath(const QString& file_name) {

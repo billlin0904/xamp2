@@ -16,7 +16,7 @@
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
 #include <widget/driveinfo.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/youtubedl/ytmusic.h>
 #include <widget/databasecoverid.h>
 
@@ -53,6 +53,7 @@ class PlaylistTabWidget;
 class PlayListTableView;
 class GenreViewPage;
 class YtMusicOAuth;
+class QScrollArea;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -103,6 +104,8 @@ signals:
 
 	void findAlbumCover(const DatabaseCoverId& id);
 
+	void cancelRequested();
+	
 public slots:
 	void onDelayedDownloadThumbnail();
 
@@ -224,7 +227,7 @@ private:
 
 	void setPlayerOrder(bool emit_order = false);
 
-	void pushWidget(QWidget* widget) const;
+	void pushWidget(QWidget* widget);
 
 	void setSeekPosValue(double stream_time_as_ms);
 
@@ -281,6 +284,7 @@ private:
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;
+	int32_t cloud_playlist_process_count_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	IXMainWindow* main_window_;
@@ -301,6 +305,8 @@ private:
 	QScopedPointer<FileSystemWorker> extract_file_worker_;
 	QScopedPointer<YtMusic> ytmusic_worker_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
+	//QList<QScrollArea*> widgets_;
+	QList<QWidget*> widgets_;
     QThread background_thread_;
 	QThread find_album_cover_thread_;
 	QThread file_system_thread_;

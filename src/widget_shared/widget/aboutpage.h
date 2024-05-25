@@ -6,7 +6,7 @@
 #pragma once
 
 #include <widget/widget_shared_global.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <thememanager.h>
 
 namespace Ui {

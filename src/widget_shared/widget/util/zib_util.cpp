@@ -1,4 +1,4 @@
-#include <widget/util/zib_utiltis.h>
+#include <widget/util/zib_util.h>
 #include <widget/widget_shared.h>
 #include <base/dll.h>
 #include <base/scopeguard.h>

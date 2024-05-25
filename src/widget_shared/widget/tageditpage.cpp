@@ -4,10 +4,10 @@
 #include <ui_tageditpage.h>
 
 #include <widget/databasefacade.h>
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 #include <widget/database.h>
 #include <widget/util/image_util.h>
-#include <widget/util/ui_utilts.h>
+#include <widget/util/ui_util.h>
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
 #include <widget/tagio.h>
