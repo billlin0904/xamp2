@@ -12,7 +12,7 @@
 #include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
 #include <widget/widget_shared_global.h>
-#include <widget/util/mbdiscid_uiltis.h>
+#include <widget/util/mbdiscid_util.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 

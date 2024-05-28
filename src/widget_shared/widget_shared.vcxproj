@@ -138,7 +138,7 @@
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
     <ClInclude Include="widget\util\log_util.h" />
-    <ClInclude Include="widget\util\mbdiscid_uiltis.h" />
+    <ClInclude Include="widget\util\mbdiscid_util.h" />
     <ClInclude Include="widget\util\read_until.h" />
     <ClInclude Include="widget\util\str_util.h" />
     <ClInclude Include="widget\util\ui_util.h" />
@@ -268,7 +268,7 @@
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\util\image_util.cpp" />
     <ClCompile Include="widget\util\log_util.cpp" />
-    <ClCompile Include="widget\util\mbdiscid_uiltis.cpp" />
+    <ClCompile Include="widget\util\mbdiscid_util.cpp" />
     <ClCompile Include="widget\util\read_until.cpp" />
     <ClCompile Include="widget\util\str_util.cpp" />
     <ClCompile Include="widget\util\ui_util.cpp" />

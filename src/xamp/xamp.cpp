@@ -67,7 +67,7 @@
 #include <widget/xmessagebox.h>
 #include <widget/xprogressdialog.h>
 #include <widget/util/image_util.h>
-#include <widget/util/mbdiscid_uiltis.h>
+#include <widget/util/mbdiscid_util.h>
 #include <widget/util/read_until.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
