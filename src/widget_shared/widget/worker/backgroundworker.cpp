@@ -44,12 +44,12 @@ struct ReplayGainContext {
 
 BackgroundWorker::BackgroundWorker()
     : nam_(this)
-    , buffer_pool_(std::make_shared<ObjectPool<QByteArray>>(256)) {
-    logger_ = XampLoggerFactory.GetLogger(kBackgroundWorkerLoggerName);
+    , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize)) {
+    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundWorker));
 }
 
 BackgroundWorker::~BackgroundWorker() {
-    XAMP_LOG_DEBUG("BackgroundWorker destory!");
+    XAMP_LOG_DEBUG("BackgroundWorker destroy!");
 }
 
 void BackgroundWorker::cancelRequested() {
@@ -100,7 +100,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
         return;
     }
 
-    XAMP_LOG_D(logger_, "Start fetch cd information form musicbrainz.");
+    XAMP_LOG_D(logger_, "Start fetch cd information form music brainz.");
 
     http::HttpClient(QString::fromStdString(url))
         .success([this, disc_id](const auto& url, const auto& content) {
@@ -255,7 +255,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
 }
 
 void BackgroundWorker::onTranslation(const QString& keyword, const QString& from, const QString& to) {
-    /*const auto url =
+    const auto url =
         qSTR("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))
         .arg(to)
@@ -269,5 +269,5 @@ void BackgroundWorker::onTranslation(const QString& keyword, const QString& from
         result = result.replace(qTEXT("[[[\""), qTEXT(""));
         result = result.mid(0, result.indexOf(qTEXT(",\"")) - 1);
         emit translationCompleted(keyword, result);
-            }).get();*/
+            }).get();
 }

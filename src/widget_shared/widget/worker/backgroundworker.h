@@ -20,6 +20,8 @@ class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker final : public QObject {
 	Q_OBJECT
 
 public:
+	static constexpr size_t kBufferPoolSize = 256;
+
 	BackgroundWorker();
 
 	~BackgroundWorker() override;

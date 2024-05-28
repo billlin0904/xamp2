@@ -55,6 +55,7 @@ public:
 		}
 	}
 
+	PlaylistPage* findPlaylistPage(int32_t playlist_id);
 signals:
 	void createNewPlaylist();
 

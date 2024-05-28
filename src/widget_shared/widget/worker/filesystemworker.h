@@ -23,8 +23,6 @@ public:
 
     virtual ~FileSystemWorker() override;
 
-    void cancelRequested();
-
 signals:
     void insertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
@@ -44,6 +42,8 @@ public slots:
     void onExtractFile(const QString& file_path, int32_t playlist_id);
 
     void onSetWatchDirectory(const QString& dir);
+
+    void cancelRequested();
 
 private:
     void scanPathFiles(AlignPtr<IThreadPoolExecutor> &thread_pool, int32_t playlist_id, const QString& dir);

@@ -315,6 +315,8 @@ public:
 void PlayListTableView::search(const QString& keyword) const {
 	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
     proxy_model_->addFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->addFilterByColumn(PLAYLIST_ARTIST);
+    proxy_model_->addFilterByColumn(PLAYLIST_ALBUM);
     proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
@@ -343,10 +345,10 @@ void PlayListTableView::reload() {
 
     // NOTE: playing index失效必須要重新尋找playlist_music_id
     if (entity) {
-        for (auto i = 0; i < model_->rowCount(); ++i) {
-            auto temp = item(model_->index(i, 0));
+        for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
+            auto temp = item(proxy_model_->index(i, 0));
             if (temp.playlist_music_id == entity->playlist_music_id) {
-                play_index_ = model_->index(i, 0);
+                play_index_ = proxy_model_->index(i, 0);
                 return;
             }
         }
@@ -733,6 +735,21 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
 
+        auto* add_music_to_new_playlist_menu = action_map.addSubMenu(tr("Add music to new playlist"));
+        dao::PlaylistDao(qGuiDb.getDatabase()).forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
+                return;
+            }
+            if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
+                return;
+            }
+            add_music_to_new_playlist_menu->addAction(name, [playlist_id, this]() {
+                emit addPlaylist(playlist_id, items());
+                });
+            });
+
+        action_map.addSeparator();
+
         auto* scan_select_item_replaygain_act = action_map.addAction(tr("Scan file ReplayGain"));
         scan_select_item_replaygain_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SCAN_REPLAY_GAIN));
 
@@ -1109,7 +1126,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
 }
 
 void PlayListTableView::setNowPlayState(PlayingState playing_state) {
-    if (model_->rowCount() == 0) {
+    if (proxy_model_->rowCount() == 0) {
         return;
     }
     if (!play_index_.isValid()) {
@@ -1137,9 +1154,9 @@ std::optional<QModelIndex> PlayListTableView::selectFirstItem() const {
 
 QList<PlayListEntity> PlayListTableView::items() const {
     QList<PlayListEntity> items;
-    items.reserve(model_->rowCount());
-    for (auto i = 0; i < model_->rowCount(); ++i) {        
-        items.push_back(item(model_->index(i, 0)));
+    items.reserve(proxy_model_->rowCount());
+    for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
+        items.push_back(item(proxy_model_->index(i, 0)));
     }
     return items;
 }
@@ -1178,7 +1195,7 @@ QModelIndex PlayListTableView::playOrderIndex(PlayerOrder order) {
 }
 
 void PlayListTableView::play(PlayerOrder order, bool is_plays) {
-    if (!model_->rowCount()) {
+    if (!proxy_model_->rowCount()) {
         return;
     }
     onPlayIndex(playOrderIndex(order), is_plays);
@@ -1205,7 +1222,7 @@ void PlayListTableView::removeAll() {
 }
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
-    model_->removeRows(index.row(), 1, index);
+    proxy_model_->removeRows(index.row(), 1, index);
 }
 
 void PlayListTableView::removeSelectItems() {
@@ -1219,7 +1236,7 @@ void PlayListTableView::removeSelectItems() {
         remove_music_ids.push_back(it.music_id);
     }
 
-    const auto count = model_->rowCount();
+    const auto count = proxy_model_->rowCount();
 	if (!count) {
         dao::PlaylistDao(qGuiDb.getDatabase()).clearNowPlaying(playlist_id_);
 	}

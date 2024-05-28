@@ -1403,6 +1403,9 @@ void Xamp::setCurrentTab(int32_t table_id) {
         if (!yt_music_tab_page_->count()) {
             initialCloudPlaylist();
         }
+        else {
+            yt_music_tab_page_->setCurrentIndex(0);
+        }
         //ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         yt_music_tab_page_->reloadAll();
         break;
@@ -1879,6 +1882,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         entity.sample_rate,
         target_sample_rate);
 
+    auto* page = dynamic_cast<PlaylistPage*>(sender());
+
     try {
         player_->Open(entity.file_path.toStdWString(),
             device_info_.value(),
@@ -1915,6 +1920,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         ui_.mutedButton->updateState();
         open_done = true;
         updateUi(entity, playback_format, open_done);
+        if (page != nullptr) {
+            page->playlist()->reload();
+        }
         return;
     }
     catch (...) {
@@ -1923,11 +1931,11 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         logAndShowMessage(std::current_exception());
     }
     
-    auto* page = dynamic_cast<PlaylistPage*>(sender());
     if (!page) {
         return;
     }
     page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+    page->playlist()->reload();
 }
 
 void Xamp::ensureLocalOnePlaylistPage() {
@@ -2789,6 +2797,19 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &ThemeManager::themeChangedFinished,
         playlist_page,
         &PlaylistPage::onThemeChangedFinished);
+
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::addPlaylist,
+        this,
+        [this](const auto& playlist_id, const auto& entities) {
+            if (auto* playlist_page = playlist_tab_page_->findPlaylistPage(playlist_id)) {
+                dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+                for (const auto& entity : entities) {
+                    playlist_dao.addMusicToPlaylist(entity.music_id, playlist_id, entity.album_id);
+                }
+                playlist_page->playlist()->reload();
+            }            
+        });
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {

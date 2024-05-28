@@ -61,6 +61,17 @@ void PlaylistTabWidget::reloadAll() {
     }
 }
 
+PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
+	for (auto i = 0; i < count(); ++i) {
+		auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+		Q_ASSERT(playlist_page != nullptr);
+		if (playlist_page->playlist()->playlistId() == playlist_id) {
+			return playlist_page;
+		}
+	}
+	return nullptr;
+}
+
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
