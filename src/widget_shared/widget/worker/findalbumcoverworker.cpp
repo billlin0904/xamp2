@@ -5,7 +5,8 @@
 #include <widget/util/read_until.h>
 #include <widget/worker/findalbumcoverworker.h>
 #include <widget/tagio.h>
-#include <widget/database.h>
+#include <widget/dao/albumdao.h>
+#include <widget/dao/musicdao.h>
 #include <widget/imagecache.h>
 #include <widget/http.h>
 
@@ -132,18 +133,18 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
     auto db = database_ptr_->Acquire();
 
     try {
-        auto cover_id = db->getAlbumCoverId(id.second.value());
+        auto cover_id = dao::AlbumDao(db->getDatabase()).getAlbumCoverId(id.second.value());
 
         if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {
             return;
         }
 
         // 1. Read embedded cover in music file.
-        auto music_file_path = db->getMusicFilePath(id.first).toStdWString();
+        auto music_file_path = dao::MusicDao(db->getDatabase()).getMusicFilePath(id.first).toStdWString();
         
         if (music_file_path.empty()) {
             // 2. Read embedded cover in album first music file.
-            if (auto file_path = db->getAlbumFirstMusicFilePath(id.second.value())) {
+            if (auto file_path = dao::AlbumDao(db->getDatabase()).getAlbumFirstMusicFilePath(id.second.value())) {
                 music_file_path = file_path->toStdWString();
             }            
         }
@@ -172,7 +173,7 @@ void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
             }
 
             // 4. If not found cover from album folder, try to find cover from AcoustID API.
-            onLookupAlbumCover(id, music_file_path);
+            //onLookupAlbumCover(id, music_file_path);
         }
 	}
 	catch (const std::exception &e) {

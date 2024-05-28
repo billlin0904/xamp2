@@ -24,7 +24,7 @@ inline constexpr auto kGrantType = qTEXT("urn:ietf:params:oauth:grant-type:devic
 XAMP_DECLARE_LOG_NAME(YtMusicOAuth);
 
 YtMusicOAuth::YtMusicOAuth() {
-	logger_ = XampLoggerFactory.GetLogger(kYtMusicOAuthLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(YtMusicOAuth));
 }
 
 void YtMusicOAuth::setup() {
@@ -123,13 +123,13 @@ Expected<OAuthToken, std::string> YtMusicOAuth::parseOAuthJson() {
 		}
 	}
 
-	token.expires_in = root[qTEXT("expires_in")].toInteger();
-	token.expires_at = root[qTEXT("expires_at")].toInteger();
+	token.expires_in    = root[qTEXT("expires_in")].toInteger();
+	token.expires_at    = root[qTEXT("expires_at")].toInteger();
 	token.refresh_token = root[qTEXT("refresh_token")].toString();
-	token.access_token = root[qTEXT("access_token")].toString();
-	token.token_type = root[qTEXT("token_type")].toString();
-	token.filepath = root[qTEXT("filepath")].toString();
-	token.scope = root[qTEXT("scope")].toString();
+	token.access_token  = root[qTEXT("access_token")].toString();
+	token.token_type    = root[qTEXT("token_type")].toString();
+	token.filepath      = root[qTEXT("filepath")].toString();
+	token.scope         = root[qTEXT("scope")].toString();
 
 	return token;
 }

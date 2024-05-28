@@ -13,9 +13,9 @@ namespace {
 	public:
 		void printMessage(const TagLib::String& msg) override {
 			using namespace xamp::base;
+			static auto logger = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(TagLib));
 			std::string temp(msg.toCString());
 			String::Remove(temp, "\n");
-			static auto logger = XampLoggerFactory.GetLogger(kTagLibLoggerName);
 			XAMP_LOG_D(logger, temp);
 		}
 	};
@@ -69,10 +69,6 @@ namespace {
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
 	TaglibMetadataWriterImpl() = default;
-
-	[[nodiscard]] bool IsFileReadOnly(const Path & path) const {
-		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
-	}
 
     void Write(const Path &path, const TrackInfo &track_info) const {
         Write(path, [&ti = std::as_const(track_info)](auto, auto tag) {
@@ -258,6 +254,40 @@ public:
     }
 
 	void RemoveEmbeddedCover(const Path& path) {
+		const auto ext = String::ToLower(path.extension().string());
+
+		if (ext == ".m4a" || ext == ".mp4") {
+			Write(path, [](auto file, auto) {
+				if (auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+					auto cover_art_list = mp4_file->tag()->item("covr").toCoverArtList();
+					if (!cover_art_list.isEmpty()) {
+						mp4_file->tag()->removeItem("covr");
+					}
+				}
+				});
+		}
+		else if (ext == ".flac") {
+			Write(path, [](auto file, auto) {
+				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+					flac_file->removePictures();
+				}
+				});
+		}
+		else if (ext == ".mp3") {
+			Write(path, [](auto file, auto) {
+				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
+						const auto frame_list = mp3_tag->frameList("APIC");
+						for (auto* it : frame_list) {
+							auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(it);
+							if (frame != nullptr) {
+								mp3_tag->removeFrame(frame, true);
+							}
+						}
+					}
+				}
+				});
+		}
 	}
 
 	[[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const {
@@ -301,10 +331,6 @@ TaglibMetadataWriter::TaglibMetadataWriter()
 
 void TaglibMetadataWriter::WriteReplayGain(const Path & path, const ReplayGain& replay_gain) {
 	return writer_->WriteReplayGain(path, replay_gain);
-}
-
-bool TaglibMetadataWriter::IsFileReadOnly(const Path & path) const {
-	return writer_->IsFileReadOnly(path);
 }
 
 void TaglibMetadataWriter::Write(const Path& path, const TrackInfo& track_info) {

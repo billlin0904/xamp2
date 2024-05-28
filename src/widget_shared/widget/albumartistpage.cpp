@@ -20,7 +20,7 @@
 #include <widget/util/str_util.h>
 #include <widget/albumview.h>
 #include <widget/artistinfopage.h>
-#include <widget/database.h>
+#include <widget/dao/albumdao.h>
 #include <widget/taglistview.h>
 #include <widget/genre_view_page.h>
 #include <thememanager.h>
@@ -75,7 +75,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	: QFrame(parent)
 	, album_tab_list_view_(new AlbumTabListView(this))
 	, album_view_(new AlbumView(this))
-	, recent_plays_album_view_(new AlbumView(this))
+	//, recent_plays_album_view_(new AlbumView(this))
 	, artist_view_(new ArtistView(this))
 	, artist_info_view_(new ArtistInfoPage(this)) {
 	album_view_->reload();
@@ -140,7 +140,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(10));
 
-	auto title_category_list = qGuiDb.getCategories();
+	auto title_category_list = dao::AlbumDao(qGuiDb.getDatabase()).getCategories();
 
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->setListViewFixedHeight(70);
@@ -378,7 +378,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_view_ = new AlbumView();
 	year_tag_list_widget_ = new TagListView();
 	year_tag_list_widget_->setSizePolicy(size_policy_1);
-	Q_FOREACH (auto year, qGuiDb.getYears()) {
+	Q_FOREACH (auto year, dao::AlbumDao(qGuiDb.getDatabase()).getYears()) {
 		year_tag_list_widget_->addTag(year, true);
 	}
 	year_frame_layout->addWidget(year_tag_list_widget_);
@@ -451,7 +451,7 @@ void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
 
 void AlbumArtistPage::onThemeColorChanged(QColor background_color, QColor color) {
 	album_view_->onThemeColorChanged(background_color, color);
-	recent_plays_album_view_->onThemeColorChanged(background_color, color);
+	//recent_plays_album_view_->onThemeColorChanged(background_color, color);
 	artist_view_->onThemeChanged(background_color, color);
 	year_view_->onThemeColorChanged(background_color, color);
 	album_tag_list_widget_->onThemeColorChanged(background_color, color);
@@ -462,11 +462,13 @@ void AlbumArtistPage::reload() {
 	album_view_->reload();
 	artist_view_->reload();
 
-	Q_FOREACH(auto category, qGuiDb.getCategories()) {
+	dao::AlbumDao album_dao(qGuiDb.getDatabase());
+
+	Q_FOREACH(auto category, album_dao.getCategories()) {
 		album_tag_list_widget_->addTag(category);
 	}
 
-	auto years = qGuiDb.getYears();
+	auto years = album_dao.getYears();
     std::sort(years.begin(), years.end());
 	Q_FOREACH(auto year, years) {
 		year_tag_list_widget_->addTag(year, true);

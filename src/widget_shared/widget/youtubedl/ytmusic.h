@@ -441,8 +441,6 @@ class XAMP_WIDGET_SHARED_EXPORT YtMusic : public QObject {
 public:
 	explicit YtMusic(QObject* parent = nullptr);
 
-	void cancelRequested();
-
 	QFuture<bool> initialAsync();
 
 	QFuture<bool> cleanupAsync();
@@ -497,6 +495,10 @@ public:
 	QFuture<bool> deletePlaylistAsync(const QString& playlist_id);
 
 	QFuture<bool> rateSongAsync(const QString& video_id, SongRating rating);
+
+public slots:
+	void cancelRequested();
+
 private:
 	YtMusicInterop* interop();
 

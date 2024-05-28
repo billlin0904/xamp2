@@ -4,7 +4,9 @@
 #include <QPushButton>
 
 #include <widget/xmessagebox.h>
-#include <widget/database.h>
+#include <widget/dao/playlistdao.h>
+#include <widget/dao/musicdao.h>
+
 #include <widget/util/str_util.h>
 #include <widget/playlisttabbar.h>
 #include <widget/playlistpage.h>
@@ -25,7 +27,7 @@ void PlaylistTabWidget::closeAllTab() {
         page->deleteLater();
     }
 
-    qGuiDb.forEachPlaylist([this](auto playlist_id,
+    dao::PlaylistDao(qGuiDb.getDatabase()).forEachPlaylist([this](auto playlist_id,
         auto,
         auto store_type,
         auto,
@@ -156,7 +158,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         });
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
-        qGuiDb.setPlaylistName(currentPlaylistId(), name);
+        dao::PlaylistDao(qGuiDb.getDatabase()).setPlaylistName(currentPlaylistId(), name);
         });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
@@ -259,9 +261,11 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
     Transaction scope;
+    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+
     return scope.complete([&]() {
-        qGuiDb.removePlaylistAllMusic(playlist_id);
-        qGuiDb.removePlaylist(playlist_id);
+        playlist_dao.removePlaylistAllMusic(playlist_id);
+        playlist_dao.removePlaylist(playlist_id);
         });
 }
 
@@ -280,16 +284,18 @@ int32_t PlaylistTabWidget::currentPlaylistId() const {
 }
 
 void PlaylistTabWidget::saveTabOrder() const {
+	dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
     for (int i = 0; i < tabBar()->count(); ++i) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         Q_ASSERT(playlist_page != nullptr);
         const auto* playlist = playlist_page->playlist();
-        qGuiDb.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+        playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-	const auto playlist_index = qGuiDb.getPlaylistIndex(store_type_);
+    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+	const auto playlist_index = playlist_dao.getPlaylistIndex(store_type_);
 
     QList<QWidget*> widgets;
     QList<QString> texts;

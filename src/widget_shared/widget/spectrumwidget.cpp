@@ -35,7 +35,10 @@ void SpectrumWidget::onFftResultChanged(ComplexValarray const& fft_data) {
 
 void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	QPainter painter(this);
+
 	painter.setRenderHints(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+	painter.setRenderHints(QPainter::TextAntialiasing, true);
 
 	if (fft_data_.size() == 0) {
 		return;

@@ -21,14 +21,6 @@ public:
     XAMP_BASE_CLASS(IMetadataWriter)
 
     /*
-    * Check file is read only.
-    * 
-    * @param[in] path file path.
-    * @return bool
-    */
-    [[nodiscard]] virtual bool IsFileReadOnly(const Path & path) const = 0;
-    
-    /*
     * Write track information to file.
     * 
     * @param[in] path file path.

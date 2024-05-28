@@ -5,7 +5,8 @@
 
 #include <widget/databasefacade.h>
 #include <widget/util/str_util.h>
-#include <widget/database.h>
+#include <widget/dao/albumdao.h>
+#include <widget/dao/artistdao.h>
 #include <widget/util/image_util.h>
 #include <widget/util/ui_util.h>
 #include <widget/tageditpage.h>
@@ -141,8 +142,8 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			entity.track = ui_->trackComboBox->currentText().toUInt();
 			entity.year = ui_->yearLineEdit->text().toUInt();
 
-			qGuiDb.updateAlbum(entity.album_id, entity.album);
-			qGuiDb.updateArtist(entity.artist_id, entity.artist);
+			dao::AlbumDao(qGuiDb.getDatabase()).updateAlbum(entity.album_id, entity.album);
+			dao::ArtistDao(qGuiDb.getDatabase()).updateArtist(entity.artist_id, entity.artist);
 		} catch (...) {
 			XMessageBox::showError(tr("Write tag failure!"));
 			return;

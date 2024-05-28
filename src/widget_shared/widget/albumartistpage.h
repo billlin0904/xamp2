@@ -60,7 +60,7 @@ public:
 		return album_view_;
 	}
 
-	AlbumView* albumRecentsPlay() const {
+	AlbumView* albumRecentPlays() const {
 		return recent_plays_album_view_;
 	}
 

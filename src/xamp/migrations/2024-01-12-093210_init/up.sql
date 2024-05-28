@@ -5,8 +5,8 @@ IF
 		track integer,
 		title TEXT,
 		path TEXT NOT NULL,
-		parentPath TEXT NO NULL,
-		offset DOUBLE,
+		parentPath TEXT NOT NULL,
+		offset DOUBLE DEFAULT 0.0,
 		duration DOUBLE,
 		durationStr TEXT,
 		fileName TEXT,
@@ -37,6 +37,8 @@ IF
 CREATE TABLE
 IF
 	NOT EXISTS playlist ( playlistId integer PRIMARY KEY AUTOINCREMENT, playlistIndex integer, storeType integer, cloudPlaylistId TEXT, name TEXT NOT NULL );
+
+CREATE INDEX IF NOT EXISTS playlist_name_index ON playlist (name);
 	
 CREATE TABLE
 IF
@@ -56,6 +58,8 @@ IF
 		FOREIGN KEY ( artistId ) REFERENCES artists ( artistId ),
 		UNIQUE ( albumId, artistId ) 
 	);
+
+CREATE INDEX IF NOT EXISTS album_name_index ON albums (album);
 	
 CREATE TABLE
 IF
@@ -68,6 +72,8 @@ IF
 		firstCharEn TEXT,
 		dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 	);
+
+CREATE INDEX IF NOT EXISTS artist_name_index ON artists (artist);
 	
 CREATE TABLE
 IF

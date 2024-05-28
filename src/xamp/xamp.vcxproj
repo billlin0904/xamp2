@@ -181,6 +181,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
+    <ClCompile Include="style_util.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -198,6 +199,7 @@
   <ItemGroup>
     <ClInclude Include="singleinstanceapplication.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="style_util.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>
   </ItemGroup>

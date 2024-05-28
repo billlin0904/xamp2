@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QFileDialog>
 
-#include <widget/database.h>
+#include <widget/dao/artistdao.h>
 #include <thememanager.h>
 
 #include <widget/albumview.h>
@@ -41,7 +41,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			                                                    tr("Music Files *.jpg *.jpeg *.png"),
 			                                                    nullptr);
 			cover_id_ = qImageCache.addImage(QPixmap(file_name));
-			qGuiDb.updateArtistCoverId(artist_id_, cover_id_);
+			dao::ArtistDao(qGuiDb.getDatabase()).updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);
 		});
 		action_map.exec(pt);
@@ -138,7 +138,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	artist_id_ = artist_id;
 	cover_id_ = cover_id;
 
-	if (const auto artist_stats = qGuiDb.getArtistStats(artist_id)) {
+	if (const auto artist_stats = dao::ArtistDao(qGuiDb.getDatabase()).getArtistStats(artist_id)) {
 		setAlbumCount(artist_stats.value().albums);
 		setTracks(artist_stats.value().tracks);
 		setTotalDuration(artist_stats.value().durations);

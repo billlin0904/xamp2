@@ -120,6 +120,10 @@
     <QtMoc Include="widget\genre_view_page.h" />
     <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\accountauthorizationpage.h" />
+    <ClInclude Include="widget\dao\albumdao.h" />
+    <ClInclude Include="widget\dao\artistdao.h" />
+    <ClInclude Include="widget\dao\musicdao.h" />
+    <ClInclude Include="widget\dao\playlistdao.h" />
     <ClInclude Include="widget\databasecoverid.h" />
     <QtMoc Include="widget\filesystemwatcher.h" />
     <ClInclude Include="widget\genre_view.h" />
@@ -219,6 +223,10 @@
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />
+    <ClCompile Include="widget\dao\albumdao.cpp" />
+    <ClCompile Include="widget\dao\artistdao.cpp" />
+    <ClCompile Include="widget\dao\musicdao.cpp" />
+    <ClCompile Include="widget\dao\playlistdao.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\databasefacade.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
