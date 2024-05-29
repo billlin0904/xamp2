@@ -268,6 +268,8 @@ void Xamp::initialYtMusicWorker() {
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
 	ytmusic_thread_.start();
 
+    XAMP_LOG_DEBUG("Initial ytmusic worker...");
+
     QCoro::connect(ytmusic_worker_->initialAsync(), this, []() {
 #ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
@@ -275,6 +277,7 @@ void Xamp::initialYtMusicWorker() {
             SetProcessMitigation();
         }
 #endif
+        XAMP_LOG_DEBUG("Initial ytmusic worker done.");
         });
 }
 
@@ -933,6 +936,7 @@ void Xamp::onFetchAlbumCompleted(const album::Album& album) {
             continue;
         }
 
+        track_info.sample_rate = kYtMusicSampleRate;
         track_info.file_path = String::ToString(track.video_id.value());
 
         const ForwardList<TrackInfo> track_infos{ track_info };
@@ -1959,7 +1963,14 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     if (!playlist_page) {
         playlist_page = qobject_cast<PlaylistPage*>(yt_music_tab_page_->currentWidget());
     }
-    auto* tab_widget = qobject_cast<PlaylistTabWidget*>(playlist_page->parent()->parent());
+
+	PlaylistTabWidget* tab_widget = nullptr;
+    if (playlist_page != nullptr) {
+       tab_widget = qobject_cast<PlaylistTabWidget*>(playlist_page->parent()->parent());
+    }
+    else {
+		playlist_page = localPlaylistPage();
+    }
 
     if (playlist_page != nullptr) {
         onSetCover(entity.validCoverId(), playlist_page);
@@ -2138,6 +2149,8 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 }
 
 void Xamp::onPlayMusic(const PlayListEntity& entity) {
+    initialYtMusicWorker();
+
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
@@ -2241,7 +2254,7 @@ void Xamp::initialPlaylist() {
 
     yt_music_search_page_->pageTitle()->hide();
 
-    ui_.naviBar->addTab(tr("Playlist"),         TAB_PLAYLIST,          qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.naviBar->addTab(tr("Playlists"),        TAB_PLAYLIST,          qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->addTab(tr("File explorer"),    TAB_FILE_EXPLORER,     qTheme.fontIcon(Glyphs::ICON_DESKTOP));
     ui_.naviBar->addTab(tr("Lyrics"),           TAB_LYRICS,            qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
     ui_.naviBar->addTab(tr("Library"),          TAB_MUSIC_LIBRARY,     qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
