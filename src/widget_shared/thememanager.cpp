@@ -213,6 +213,7 @@ QFont ThemeManager::loadFonts() {
     QList<QString> debug_fonts;
 
     //installFileFonts(qTEXT("Inter"), ui_fonts);
+    installFileFonts(qTEXT("WorkSans"), ui_fonts);
     installFileFonts(qTEXT("NotoSans"), mono_fonts);
     installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
 
