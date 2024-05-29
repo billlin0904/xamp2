@@ -70,7 +70,7 @@ void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
             break;
         case TAB_YT_MUSIC_PLAYLIST:
-            item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));
             break;
         }
     }

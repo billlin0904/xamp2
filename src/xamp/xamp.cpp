@@ -266,16 +266,16 @@ void Xamp::initialYtMusicWorker() {
 	
     ytmusic_worker_.reset(new YtMusic());
     ytmusic_worker_->moveToThread(&ytmusic_thread_);
-
 	ytmusic_thread_.start();
-	ytmusic_worker_->initialAsync().waitForFinished();
 
+    QCoro::connect(ytmusic_worker_->initialAsync(), this, []() {
 #ifdef Q_OS_WIN
-    if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
-        XAMP_LOG_DEBUG("Set process mitigation.");
-        SetProcessMitigation();
-    }
+        if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
+            XAMP_LOG_DEBUG("Set process mitigation.");
+            SetProcessMitigation();
+        }
 #endif
+        });
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
@@ -2247,7 +2247,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(tr("Library"),          TAB_MUSIC_LIBRARY,     qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
     ui_.naviBar->addTab(tr("CD"),               TAB_CD,                qTheme.fontIcon(Glyphs::ICON_CD));
     ui_.naviBar->addTab(tr("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->addTab(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_LIBRARY));    
+    ui_.naviBar->addTab(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));    
 
 	dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
     playlist_dao.forEachPlaylist([this](auto playlist_id,
