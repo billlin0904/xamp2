@@ -8,10 +8,11 @@
 #include <QObject>
 #include <QMap>
 
+#include <base/enum.h>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-enum Glyphs {
+XAMP_MAKE_ENUM(Glyphs,
     ICON_START,
     ICON_VOLUME_UP,
     ICON_VOLUME_OFF,
@@ -80,8 +81,7 @@ enum Glyphs {
     ICON_PERSON_UNAUTHORIZATIONED,
     ICON_HD_AUDIO,
     ICON_REPORT_BUG,
-    ICON_END,
-};
+    ICON_END);
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
     static const QString kRectAttr;

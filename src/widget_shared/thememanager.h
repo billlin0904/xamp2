@@ -107,11 +107,11 @@ public:
 
     void setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon fontIcon(const int32_t code, std::optional<ThemeColor> theme_color = std::nullopt) const;
+    QIcon fontIcon(const Glyphs code, std::optional<ThemeColor> theme_color = std::nullopt) const;
 
-    QIcon fontRawIconOption(const int32_t code, const QVariantMap& options = QVariantMap());
+    QIcon fontRawIconOption(const Glyphs code, const QVariantMap& options = QVariantMap());
 
-    QIcon fontRawIcon(const int32_t code);
+    QIcon fontRawIcon(const Glyphs code);
 
     void setTextSeparator(QFrame* frame);    
 
