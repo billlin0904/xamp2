@@ -12,7 +12,7 @@
 
 namespace dao {
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumDao {
+class XAMP_WIDGET_SHARED_EXPORT AlbumDao final {
 public:
     explicit AlbumDao(QSqlDatabase& db);
 

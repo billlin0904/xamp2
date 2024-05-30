@@ -11,7 +11,7 @@
 
 namespace dao {
 
-class XAMP_WIDGET_SHARED_EXPORT MusicDao {
+class XAMP_WIDGET_SHARED_EXPORT MusicDao final {
 public:
     explicit MusicDao(QSqlDatabase& db);
 

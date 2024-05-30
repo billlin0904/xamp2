@@ -194,7 +194,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
                 }
                 job.reader.Process(samples, sample_size);
             };
-            read_until::readAll(job.entity.file_path.toStdWString(), progress, prepare, dps_process);
+            read_util::readAll(job.entity.file_path.toStdWString(), progress, prepare, dps_process);
 
         	emit readFilePath(job.entity.file_path);
 

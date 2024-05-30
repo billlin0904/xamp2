@@ -28,7 +28,7 @@ enum Match {
 	MATCH_SUGGEST,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistPage : public QFrame {
+class XAMP_WIDGET_SHARED_EXPORT PlaylistPage final : public QFrame {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxCompletionCount = 10;

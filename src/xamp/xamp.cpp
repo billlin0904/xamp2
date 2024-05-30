@@ -2587,7 +2587,7 @@ void Xamp::encodeFile(const PlayListEntity& entity,
             config.AddOrReplace(FileEncoderConfig::kCommand, command);
 
             try {
-                read_until::encodeFile(config,
+                read_util::encodeFile(config,
                     encoder,
                     [&](auto progress) -> bool {
                         dialog->setValue(progress);

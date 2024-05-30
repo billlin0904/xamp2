@@ -135,6 +135,7 @@
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
+    <ClInclude Include="widget\playListstyledItemdelegate.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
+    <ClCompile Include="widget\playListstyledItemdelegate.cpp" />
     <ClCompile Include="widget\playlisttabbar.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />

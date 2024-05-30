@@ -69,7 +69,7 @@ void FindAlbumCoverWorker::onLookupAlbumCoverTimeout() {
 
 void FindAlbumCoverWorker::lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path) {
     // 1. Read fingerprint from music file.
-    auto [duration, result] = read_until::readFingerprint(file_path);
+    auto [duration, result] = read_util::readFingerprint(file_path);
 
     // 2. Fingerprint to QString.
     QByteArray buffer(reinterpret_cast<const char*>(result.data()), result.size());

@@ -7,7 +7,7 @@
 
 #include <QSqlQueryModel>
 
-class PlayListSqlQueryTableModel : public QSqlQueryModel {
+class PlayListSqlQueryTableModel final : public QSqlQueryModel {
 public:
     explicit PlayListSqlQueryTableModel(QObject *parent = nullptr);
 

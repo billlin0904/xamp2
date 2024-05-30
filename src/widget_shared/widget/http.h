@@ -23,7 +23,7 @@ enum class HttpMethod {
     HTTP_DELETE
 };
 
-class XAMP_WIDGET_SHARED_EXPORT HttpClient {
+class XAMP_WIDGET_SHARED_EXPORT HttpClient final {
 public:
     static constexpr size_t kBufferPoolSize = 256;
 

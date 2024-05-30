@@ -18,7 +18,7 @@
 #include <base/audioformat.h>
 #include <stream/ifileencoder.h>
 
-namespace read_until {
+namespace read_util {
 
 double readAll(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,

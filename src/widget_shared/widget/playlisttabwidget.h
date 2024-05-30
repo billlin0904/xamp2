@@ -16,7 +16,7 @@
 class QMouseEvent;
 class QPushButton;
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget : public QTabWidget {
+class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget final : public QTabWidget {
 	Q_OBJECT
 public:
 	static constexpr QSize kTabIconSize = QSize(32, 32);

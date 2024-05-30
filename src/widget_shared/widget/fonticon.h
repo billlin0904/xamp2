@@ -83,7 +83,7 @@ enum Glyphs {
     ICON_END,
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {
+struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
     static const QString kRectAttr;
     static const QString kScaleFactorAttr; 
     static const QString kFontStyleAttr;
@@ -108,7 +108,7 @@ struct XAMP_WIDGET_SHARED_EXPORT FontIconOption {
     static double opacity;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT FontIcon : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT FontIcon final : public QObject {
 public:
     friend class XAMP_WIDGET_SHARED_EXPORT SharedSingleton<FontIcon>;
 

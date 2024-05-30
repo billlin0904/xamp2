@@ -14,6 +14,7 @@
 #include <widget/databasefacade.h>
 #include <widget/playerorder.h>
 #include <widget/widget_shared_global.h>
+#include <widget/playListstyledItemdelegate.h>
 
 #include <base/rng.h>
 #include <base/encodingprofile.h>
@@ -26,7 +27,7 @@ enum PlayListGroup {
 	PLAYLIST_GROUP_NONE,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlayListTableView : public QTableView {
+class XAMP_WIDGET_SHARED_EXPORT PlayListTableView final : public QTableView {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxPendingPlayListSize = 100;

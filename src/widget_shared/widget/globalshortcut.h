@@ -12,7 +12,7 @@
 #include <base/memory.h>
 #include <base/base.h>
 
-class GlobalShortcut {
+class GlobalShortcut final {
 public:
     GlobalShortcut();
 

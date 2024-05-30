@@ -24,7 +24,7 @@
 #include <utility>
 #include <tuple>
 
-namespace read_until {
+namespace read_util {
 
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
