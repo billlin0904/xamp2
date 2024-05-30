@@ -18,10 +18,10 @@
 #include <QPropertyAnimation>
 
 enum {
-	INDEX_ARTIST,
-	INDEX_ARTIST_ID,
-	INDEX_COVER_ID,
-	INDEX_FIRST_CHAR,
+	ARTIST_INDEX_ARTIST,
+	ARTIST_INDEX_ARTIST_ID,
+	ARTIST_INDEX_COVER_ID,
+	ARTIST_INDEX_FIRST_CHAR,
 };
 
 ArtistStyledItemDelegate::ArtistStyledItemDelegate(QObject* parent)
@@ -35,10 +35,10 @@ void ArtistStyledItemDelegate::setTextColor(QColor color) {
 void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
 	auto* style = option.widget ? option.widget->style() : QApplication::style();
 
-	const auto artist = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST)).toString();
-	auto artist_id = index.model()->data(index.model()->index(index.row(), INDEX_ARTIST_ID)).toString();
-	const auto artist_cover_id = index.model()->data(index.model()->index(index.row(), INDEX_COVER_ID)).toString();
-	const auto first_char = index.model()->data(index.model()->index(index.row(), INDEX_FIRST_CHAR)).toString();
+	const auto artist = index.model()->data(index.model()->index(index.row(),          ARTIST_INDEX_ARTIST)).toString();
+	auto artist_id = index.model()->data(index.model()->index(index.row(),             ARTIST_INDEX_ARTIST_ID)).toString();
+	const auto artist_cover_id = index.model()->data(index.model()->index(index.row(), ARTIST_INDEX_COVER_ID)).toString();
+	const auto first_char = index.model()->data(index.model()->index(index.row(),      ARTIST_INDEX_FIRST_CHAR)).toString();
 
 	constexpr auto kPaddingSize = 2;
 
@@ -232,7 +232,7 @@ ArtistView::ArtistView(QWidget* parent)
 	, page_(new ArtistViewPage(this))
 	, model_(this)
 	, proxy_model_(new PlayListTableFilterProxyModel(this)) {
-	proxy_model_->addFilterByColumn(INDEX_ARTIST);
+	proxy_model_->addFilterByColumn(ALBUM_INDEX_ARTIST);
 	proxy_model_->setSourceModel(&model_);
 	setModel(proxy_model_);
 
@@ -260,9 +260,9 @@ ArtistView::ArtistView(QWidget* parent)
 
 	(void)QObject::connect(styled_delegate, &ArtistStyledItemDelegate::enterAlbumView, [this](auto index) {
 		const auto list_view_rect = this->rect();
-		auto artist = indexValue(index, INDEX_ARTIST).toString();
-		auto artist_id = indexValue(index, INDEX_ARTIST_ID).toInt();
-		auto artist_cover_id = indexValue(index, INDEX_COVER_ID).toString();
+		auto artist = indexValue(index,          ARTIST_INDEX_ARTIST).toString();
+		auto artist_id = indexValue(index,       ARTIST_INDEX_ARTIST_ID).toInt();
+		auto artist_cover_id = indexValue(index, ARTIST_INDEX_COVER_ID).toString();
 		
 		if (enable_page_) {
 			showPageAnimation();
@@ -286,7 +286,7 @@ ArtistView::ArtistView(QWidget* parent)
 
 void ArtistView::search(const QString& keyword) {
 	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
-	proxy_model_->addFilterByColumn(INDEX_ARTIST);
+	proxy_model_->addFilterByColumn(ALBUM_INDEX_ARTIST);
 	proxy_model_->setFilterRegularExpression(reg_exp);
 }
 

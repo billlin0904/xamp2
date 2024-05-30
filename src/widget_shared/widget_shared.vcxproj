@@ -120,6 +120,7 @@
     <QtMoc Include="widget\genre_view_page.h" />
     <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\accountauthorizationpage.h" />
+    <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
@@ -216,6 +217,7 @@
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
     <ClCompile Include="widget\albumview.cpp" />
+    <ClCompile Include="widget\albumviewstyleddelegate.cpp" />
     <ClCompile Include="widget\appsettingnames.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />

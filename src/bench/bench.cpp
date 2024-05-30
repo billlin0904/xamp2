@@ -83,43 +83,43 @@ PlatformUUID ParseUuidString(const std::string& str) {
 }
 #endif
 
-//static void BM_RcuPtr(benchmark::State& state) {
-//    constexpr std::string_view kBM_RcuPtrLoggerName = "BM_RcuPtr";
-//
-//    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
-//    XampLoggerFactory.GetLogger(kBM_RcuPtrLoggerName)
-//        ->SetLevel(LOG_LEVEL_OFF);
-//
-//    const auto length = state.range(0);
-//    RcuPtr<int> total(std::make_shared<int>());
-//
-//    for (auto _ : state) {
-//	    Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
-//			total.copy_update([item](auto cp) {
-//				*cp += item;
-//				});
-//        }, 128);
-//    }
-//}
+static void BM_RcuPtr(benchmark::State& state) {
+    constexpr std::string_view kBM_RcuPtrLoggerName = "BM_RcuPtr";
 
-//static void BM_RcuPtrMutex(benchmark::State& state) {
-//    constexpr std::string_view kBM_RcuPtrMutexLoggerName = "BM_RcuPtrMutex";
-//
-//    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrMutexLoggerName);
-//    XampLoggerFactory.GetLogger(kBM_RcuPtrMutexLoggerName)
-//        ->SetLevel(LOG_LEVEL_OFF);
-//
-//    const auto length = state.range(0);
-//    int total = 0;
-//    FastMutex mutex;
-//
-//    for (auto _ : state) {
-//	    Executor::ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
-//            std::lock_guard<FastMutex> guard{ mutex };
-//			total += item;
-//            }, 128);
-//    }
-//}
+    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
+    XampLoggerFactory.GetLogger(kBM_RcuPtrLoggerName)
+        ->SetLevel(LOG_LEVEL_OFF);
+
+    const auto length = state.range(0);
+    RcuPtr<int> total(std::make_shared<int>());
+
+    for (auto _ : state) {
+	    Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
+			total.copy_update([item](auto cp) {
+				*cp += item;
+				});
+        }, 128);
+    }
+}
+
+static void BM_RcuPtrMutex(benchmark::State& state) {
+    constexpr std::string_view kBM_RcuPtrMutexLoggerName = "BM_RcuPtrMutex";
+
+    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrMutexLoggerName);
+    XampLoggerFactory.GetLogger(kBM_RcuPtrMutexLoggerName)
+        ->SetLevel(LOG_LEVEL_OFF);
+
+    const auto length = state.range(0);
+    int total = 0;
+    FastMutex mutex;
+
+    for (auto _ : state) {
+	    Executor::ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
+            std::lock_guard<FastMutex> guard{ mutex };
+			total += item;
+            }, 128);
+    }
+}
 
 static void BM_BaseLineThreadPool(benchmark::State& state) {
     const auto length = state.range(0);
@@ -133,37 +133,18 @@ static void BM_BaseLineThreadPool(benchmark::State& state) {
     }
 }
 
-//static void BM_RoundRobinPolicyThreadPool(benchmark::State& state) {
-//    constexpr std::string_view kBM_LeastLoadPolicyThreadPoolLoggerName = "BM_RoundRobinPolicyThreadPool";
-//
-//    const auto thread_pool = MakeThreadPoolExecutor(
-//        kBM_LeastLoadPolicyThreadPoolLoggerName,
-//        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
-//
-//    XampLoggerFactory.GetLogger(kBM_LeastLoadPolicyThreadPoolLoggerName)
-//        ->SetLevel(LOG_LEVEL_OFF);
-//
-//    const auto length = state.range(0);
-//    std::atomic<int64_t> total;
-//    for (auto _ : state) {
-//        Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
-//            total += item;
-//            }, 128);
-//    }
-//}
-//
 static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     constexpr std::string_view kBM_RandomPolicyThreadPoolLoggerName = "BM_RandomPolicyThreadPool";
 
     CpuAffinity affinity(-1, false);
+    affinity.SetCpu(0);
     affinity.SetCpu(1);
     affinity.SetCpu(2);
     affinity.SetCpu(3);
-    affinity.SetCpu(4);
 
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
-        ThreadPriority::NORMAL,
+        ThreadPriority::PRIORITY_NORMAL,
         affinity,
         32);
 
@@ -184,7 +165,7 @@ static void BM_ParallelSort(benchmark::State& state) {
 
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_ParallelSortLoggerName,
-        ThreadPriority::NORMAL);
+        ThreadPriority::PRIORITY_NORMAL);
 
     XampLoggerFactory.GetLogger(kBM_ParallelSortLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
@@ -212,35 +193,35 @@ static void BM_BaseLine_StdParallelSort(benchmark::State& state) {
 	}
 }
 
-//static void BM_StdAsync(benchmark::State& state) {    
-//    auto std_async_parallel_for = [](auto& items, auto&& f, size_t batches = 4) {
-//        auto begin = std::begin(items);
-//        auto size = std::distance(begin, std::end(items));
-//
-//        for (size_t i = 0; i < size; ++i) {
-//            std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
-//            for (auto& ff : futures) {
-//                ff = std::async(std::launch::async, [f, begin, i]() -> void {
-//                    f(*(begin + i));
-//                    });
-//                ++i;
-//            }
-//            for (auto& ff : futures) {
-//                ff.wait();
-//            }
-//        }
-//        };
-//
-//    auto length = state.range(0);
-//    std::vector<int> n(length);
-//    std::iota(n.begin(), n.end(), 1);
-//    std::atomic<int64_t> total;
-//    for (auto _ : state) {
-//        std_async_parallel_for(n, [&total](auto item) {
-//            total += item;
-//            });
-//    }
-//}
+static void BM_StdAsync(benchmark::State& state) {    
+    auto std_async_parallel_for = [](auto& items, auto&& f, size_t batches = 4) {
+        auto begin = std::begin(items);
+        auto size = std::distance(begin, std::end(items));
+
+        for (size_t i = 0; i < size; ++i) {
+            std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
+            for (auto& ff : futures) {
+                ff = std::async(std::launch::async, [f, begin, i]() -> void {
+                    f(*(begin + i));
+                    });
+                ++i;
+            }
+            for (auto& ff : futures) {
+                ff.wait();
+            }
+        }
+        };
+
+    auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int64_t> total;
+    for (auto _ : state) {
+        std_async_parallel_for(n, [&total](auto item) {
+            total += item;
+            });
+    }
+}
 
 #ifdef XAMP_OS_WIN
 static void BM_StdForEachPar(benchmark::State& state) {
@@ -667,26 +648,6 @@ static void BM_FFT(benchmark::State& state) {
     }
 }
 
-#if 0
-static void BM_Builtin_UuidParse(benchmark::State& state) {
-    const auto uuid_str = MakeUuidString();
-    for (auto _ : state) {
-        auto result = ParseUuidString(uuid_str);
-        benchmark::DoNotOptimize(result);
-        benchmark::ClobberMemory();
-    }
-}
-
-static void BM_UuidParse(benchmark::State& state) {
-    const auto uuid_str = MakeUuidString();
-
-    for (auto _ : state) {
-        auto result = Uuid::FromString(uuid_str);
-        benchmark::DoNotOptimize(result);
-    }
-}
-#endif
-
 static void BM_UuidCompilerTime(benchmark::State& state) {
     using namespace UuidLiterals;
 
@@ -806,12 +767,11 @@ static void BM_Spinlock(benchmark::State& state) {
 
 //BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_RoundRobinPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
-BENCHMARK(BM_ParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_BaseLine_StdParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_ParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_BaseLine_StdParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 //BENCHMARK(BM_FastMutex)->ThreadRange(4, 32);
 //BENCHMARK(BM_Spinlock)->ThreadRange(4, 32);

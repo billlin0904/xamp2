@@ -271,7 +271,7 @@ int main() {
         os_ver.microVersion());
 #endif
 
-	SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
+	//SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
 
     FramelessHelperRAII frameless_helper_raii;
 
