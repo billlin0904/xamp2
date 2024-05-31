@@ -141,6 +141,16 @@ inline constexpr std::string_view EnumToString(EnumName value) noexcept {\
     size_t index = static_cast<size_t>(value); \
     return (index < EnumName##_enum_names.size() - 1) ? EnumName##_enum_names[index] : "Unknown";\
 }\
+inline bool Find##EnumName(std::string_view str, EnumName &result) {\
+    for (size_t i = 0; i < Get##EnumName##Size(); ++i) {\
+        auto ename = static_cast<EnumName>(i);\
+        if (str == EnumToString(ename)) {\
+            result = ename; \
+            return true;\
+        }\
+    }\
+    return false;\
+}\
 inline std::ostream &operator<<(std::ostream &os, EnumName value) {\
     os << EnumToString(value);\
     return os;\

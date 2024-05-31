@@ -131,27 +131,17 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 }
 
 void ThemeManager::setGoogleMaterialFontIcons() {
-    auto find_glyphs = [](const auto &str) {
-        auto i = 0;
-        for (; i < GetGlyphsSize(); ++i) {
-            if (str == fromStdStringView(EnumToString(static_cast<Glyphs>(i)))) {
-                break;
-            }
-        }
-        return i;
-    };
-
     HashMap<int32_t, uint32_t> glyphs_lut;
 
     QJsonDocument doc;
     if (json_util::deserializeFile(qTEXT("fonticon.json"), doc)) {
         auto jsonObject = doc.object();
         for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
-            auto key = it.key();
+            auto key = it.key().toStdString();
             auto value = it.value().toString();
-            auto glyphs = find_glyphs(key);
-            if (glyphs != -1) {
-				glyphs_lut.insert(std::make_pair(glyphs, value.toUInt(nullptr, 16)));
+            Glyphs glyph;
+            if (FindGlyphs(key, glyph)) {
+				glyphs_lut.insert(std::make_pair(static_cast<int32_t>(glyph), value.toUInt(nullptr, 16)));
             }
         }
     }
