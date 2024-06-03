@@ -15,12 +15,12 @@
 #include <widget/widget_shared_global.h>
 #include <widget/databasecoverid.h>
 
-class XAMP_WIDGET_SHARED_EXPORT FindAlbumCoverWorker : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT AlbumCoverService : public QObject {
 	Q_OBJECT
 public:
 	static constexpr size_t kBufferPoolSize = 256;
 
-	FindAlbumCoverWorker();
+	AlbumCoverService();
 
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
@@ -42,6 +42,8 @@ private slots:
 	void onLookupAlbumCoverTimeout();
 
 private:
+	void mergeUnknownAlbumCover();
+
 	void lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path);
 
 	bool is_stop_{ false };	

@@ -14,14 +14,14 @@
 #include <widget/database.h>
 #include <widget/filesystemwatcher.h>
 
-class XAMP_WIDGET_SHARED_EXPORT FileSystemWorker final : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT FileSystemService final : public QObject {
     Q_OBJECT
 public:
     static constexpr size_t kReserveFilePathSize = 1024;
 
-    FileSystemWorker();
+    FileSystemService();
 
-    virtual ~FileSystemWorker() override;
+    virtual ~FileSystemService() override;
 
 signals:
     void insertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);

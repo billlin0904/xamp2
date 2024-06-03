@@ -16,7 +16,7 @@
 #include <widget/databasefacade.h>
 #include <widget/util/log_util.h>
 #include <widget/playerorder.h>
-#include <widget/youtubedl/ytmusic.h>
+#include <widget/youtubedl/ytmusicservice.h>
 #include <widget/playlistentity.h>
 
 namespace {

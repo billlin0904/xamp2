@@ -7,7 +7,7 @@
 
 #include <algorithm>
 #include <widget/http.h>
-#include <widget/youtubedl/ytmusic.h>
+#include <widget/youtubedl/ytmusicservice.h>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -251,7 +251,7 @@ namespace {
     }
 }
 
-XAMP_DECLARE_LOG_NAME(YtMusic);
+XAMP_DECLARE_LOG_NAME(YtMusicService);
 XAMP_DECLARE_LOG_NAME(YtMusicInterop);
 
 class YtMusicInterop::YtMusicInteropImpl {
@@ -397,55 +397,55 @@ private:
     py::object ytdl_;
 };
 
-YtMusic::YtMusic(QObject* parent)
+YtMusicService::YtMusicService(QObject* parent)
 	: QObject(parent) {
     logger_ = XampLoggerFactory.GetLogger(kYtMusicInteropLoggerName);
 }
 
-void YtMusic::cancelRequested() {
+void YtMusicService::cancelRequested() {
     is_stop_ = true;
 }
 
-QFuture<bool> YtMusic::initialAsync() {
+QFuture<bool> YtMusicService::initialAsync() {
     return invokeAsync([this]() {
         interop()->initial();
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
 
-QFuture<bool> YtMusic::cleanupAsync() {
+QFuture<bool> YtMusicService::cleanupAsync() {
     return invokeAsync([this]() {
     	interop_.reset();
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
 
-QFuture<std::vector<std::string>> YtMusic::searchSuggestionsAsync(const QString& query, bool detailed_runs) {
+QFuture<std::vector<std::string>> YtMusicService::searchSuggestionsAsync(const QString& query, bool detailed_runs) {
     return invokeAsync([this, query, detailed_runs]() {
         return interop()->searchSuggestions(query.toStdString(), detailed_runs);
         });
 }
 
-QFuture<std::vector<search::SearchResultItem>> YtMusic::searchAsync(const QString& query,
+QFuture<std::vector<search::SearchResultItem>> YtMusicService::searchAsync(const QString& query,
     const std::optional<std::string>& filter) {
     return invokeAsync([this, query, filter]() {
         return interop()->search(query.toStdString(), filter);
         });
 }
 
-QFuture<video_info::VideoInfo> YtMusic::extractVideoInfoAsync(const QString& video_id) {
+QFuture<video_info::VideoInfo> YtMusicService::extractVideoInfoAsync(const QString& video_id) {
     return invokeAsync([this, video_id]() {
         return interop()->extractInfo(video_id.toStdString());
         });
 }
 
-QFuture<int32_t> YtMusic::downloadAsync(const QString& url) {
+QFuture<int32_t> YtMusicService::downloadAsync(const QString& url) {
     return invokeAsync([this, url]() {
         return interop()->download(url.toStdString());
         });
 }
 
-QFuture<std::string> YtMusic::createPlaylistAsync(const QString& title,
+QFuture<std::string> YtMusicService::createPlaylistAsync(const QString& title,
     const QString& description,
     PrivateStatus status,
     const std::vector<std::string>& video_ids,
@@ -455,7 +455,7 @@ QFuture<std::string> YtMusic::createPlaylistAsync(const QString& title,
         });
 }
 
-QFuture<bool> YtMusic::editPlaylistAsync(const QString& playlist_id,
+QFuture<bool> YtMusicService::editPlaylistAsync(const QString& playlist_id,
     const QString& title,
     const QString& description,
 	PrivateStatus status,
@@ -468,31 +468,31 @@ QFuture<bool> YtMusic::editPlaylistAsync(const QString& playlist_id,
         });
 }
 
-QFuture<edit::PlaylistEditResults> YtMusic::addPlaylistItemsAsync(const QString& playlist_id, const std::vector<std::string> &video_ids, const std::optional<std::string>& source_playlist, bool duplicates) {
+QFuture<edit::PlaylistEditResults> YtMusicService::addPlaylistItemsAsync(const QString& playlist_id, const std::vector<std::string> &video_ids, const std::optional<std::string>& source_playlist, bool duplicates) {
     return invokeAsync([this, playlist_id, video_ids, source_playlist, duplicates]() {
         return interop()->addPlaylistItems(playlist_id.toStdString(), video_ids, source_playlist, duplicates);
         });
 }
 
-QFuture<bool> YtMusic::removePlaylistItemsAsync(const QString& playlist_id, const std::vector<edit::PlaylistEditResultData>& videos) {
+QFuture<bool> YtMusicService::removePlaylistItemsAsync(const QString& playlist_id, const std::vector<edit::PlaylistEditResultData>& videos) {
     return invokeAsync([this, playlist_id, videos]() {
         return interop()->removePlaylistItems(playlist_id.toStdString(), videos);
         });
 }
 
-QFuture<bool> YtMusic::deletePlaylistAsync(const QString& playlist_id) {    
+QFuture<bool> YtMusicService::deletePlaylistAsync(const QString& playlist_id) {    
     return invokeAsync([this, playlist_id]() {
         return interop()->deletePlaylist(playlist_id.toStdString());
         });
 }
 
-QFuture<bool> YtMusic::rateSongAsync(const QString& video_id, SongRating rating) {
+QFuture<bool> YtMusicService::rateSongAsync(const QString& video_id, SongRating rating) {
     return invokeAsync([this, video_id, rating]() {
         return interop()->rateSong(video_id.toStdString(), rating);
         });
 }
 
-QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QString>& video_id, 
+QFuture<watch::Playlist> YtMusicService::fetchWatchPlaylistAsync(const std::optional<QString>& video_id, 
     const std::optional<QString>& playlist_id) {
     return invokeAsync([this, video_id, playlist_id]() {
         return interop()->getWatchPlaylist(
@@ -502,50 +502,50 @@ QFuture<watch::Playlist> YtMusic::fetchWatchPlaylistAsync(const std::optional<QS
     });
 }
 
-QFuture<Lyrics> YtMusic::fetchLyricsAsync(const QString& browse_id) {
+QFuture<Lyrics> YtMusicService::fetchLyricsAsync(const QString& browse_id) {
     return invokeAsync([this, browse_id]() {
         return interop()->getLyrics(browse_id.toStdString());
         });
 }
 
-QFuture<artist::Artist> YtMusic::fetchArtistAsync(const QString& channel_id) {
+QFuture<artist::Artist> YtMusicService::fetchArtistAsync(const QString& channel_id) {
     return invokeAsync([this, channel_id]() {
         return interop()->getArtist(channel_id.toStdString());
         });
 }
 
-QFuture<album::Album> YtMusic::fetchAlbumAsync(const QString& browse_id) {
+QFuture<album::Album> YtMusicService::fetchAlbumAsync(const QString& browse_id) {
     return invokeAsync([this, browse_id]() {
         return interop()->getAlbum(browse_id.toStdString());
         });
 }
 
-QFuture<std::optional<song::Song>> YtMusic::fetchSongAsync(const QString& video_id) {
+QFuture<std::optional<song::Song>> YtMusicService::fetchSongAsync(const QString& video_id) {
     return invokeAsync([this, video_id]() {
         return interop()->getSong(video_id.toStdString());
         });
 }
 
-QFuture<playlist::Playlist> YtMusic::fetchPlaylistAsync(const QString& playlist_id) {
+QFuture<playlist::Playlist> YtMusicService::fetchPlaylistAsync(const QString& playlist_id) {
     return invokeAsync([this, playlist_id]() {
         return interop()->getPlaylist(playlist_id.toStdString());
         });
 }
 
-QFuture<std::vector<library::Playlist>> YtMusic::fetchLibraryPlaylistAsync() {
+QFuture<std::vector<library::Playlist>> YtMusicService::fetchLibraryPlaylistAsync() {
     return invokeAsync([this]() {
         return interop()->getLibraryPlaylists();
         });
 }
 
-QFuture<std::vector<artist::Artist::Album>> YtMusic::fetchArtistAlbumsAsync(const QString& channel_id, 
+QFuture<std::vector<artist::Artist::Album>> YtMusicService::fetchArtistAlbumsAsync(const QString& channel_id, 
     const QString& params) {
     return invokeAsync([this, channel_id, params]() {
         return interop()->getArtistAlbums(channel_id.toStdString(), params.toStdString());
         });
 }
 
-YtMusicInterop* YtMusic::interop() {
+YtMusicInterop* YtMusicService::interop() {
     return interop_.get();
 }
 

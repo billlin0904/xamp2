@@ -296,6 +296,7 @@ int32_t PlaylistTabWidget::currentPlaylistId() const {
 
 void PlaylistTabWidget::saveTabOrder() const {
 	dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+
     for (int i = 0; i < tabBar()->count(); ++i) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         Q_ASSERT(playlist_page != nullptr);

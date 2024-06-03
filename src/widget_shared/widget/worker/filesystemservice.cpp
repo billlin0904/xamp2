@@ -1,4 +1,4 @@
-#include <widget/worker/filesystemworker.h>
+#include <widget/worker/filesystemservice.h>
 
 #include <QDirIterator>
 #include <execution>
@@ -10,7 +10,7 @@
 #include <widget/albumview.h>
 #include <widget/util/ui_util.h>
 
-XAMP_DECLARE_LOG_NAME(FileSystemWorker);
+XAMP_DECLARE_LOG_NAME(FileSystemService);
 XAMP_DECLARE_LOG_NAME(ExtractFileThreadPool);
 
 namespace {
@@ -59,11 +59,11 @@ namespace {
 	}
 }
 
-FileSystemWorker::FileSystemWorker()
+FileSystemService::FileSystemService()
 	: watcher_(this)
 	, timer_(this) {
-	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemWorker::updateProgress);
-	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemWorker));
+	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
 	GetBackgroundThreadPool();
 	(void)QObject::connect(&watcher_,
 	                       &FileSystemWatcher::directoryChanged,
@@ -73,15 +73,15 @@ FileSystemWorker::FileSystemWorker()
 	                       });
 }
 
-FileSystemWorker::~FileSystemWorker() {
+FileSystemService::~FileSystemService() {
 	GetBackgroundThreadPool().Stop();
 }
 
-void FileSystemWorker::onSetWatchDirectory(const QString& dir) {
+void FileSystemService::onSetWatchDirectory(const QString& dir) {
 	watcher_.addPath(dir);
 }
 
-void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool, int32_t playlist_id, const QString& dir) {
+void FileSystemService::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool, int32_t playlist_id, const QString& dir) {
 	QDirIterator itr(dir,
 		getTrackInfoFileNameFilter(), 
 		QDir::NoDotAndDotDot | QDir::Files,
@@ -181,7 +181,7 @@ void FileSystemWorker::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool,
 	});
 }
 
-void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_id) {
+void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	is_stop_ = false;
 
 	auto extract_file_thread_pool = MakeThreadPoolExecutor(
@@ -256,7 +256,7 @@ void FileSystemWorker::onExtractFile(const QString& file_path, int32_t playlist_
 	}
 }
 
-void FileSystemWorker::updateProgress() {
+void FileSystemService::updateProgress() {
 	if (update_ui_elapsed_.ElapsedSeconds() < 3.0) {
 		return;
 	}
@@ -272,6 +272,6 @@ void FileSystemWorker::updateProgress() {
 	update_ui_elapsed_.Reset();
 }
 
-void FileSystemWorker::cancelRequested() {
+void FileSystemService::cancelRequested() {
 	is_stop_ = true;
 }

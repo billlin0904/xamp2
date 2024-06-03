@@ -136,17 +136,20 @@ static void BM_BaseLineThreadPool(benchmark::State& state) {
 static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     constexpr std::string_view kBM_RandomPolicyThreadPoolLoggerName = "BM_RandomPolicyThreadPool";
 
-    CpuAffinity affinity(-1, false);
+    /*CpuAffinity affinity(-1, false);
     affinity.SetCpu(0);
     affinity.SetCpu(1);
     affinity.SetCpu(2);
-    affinity.SetCpu(3);
+    affinity.SetCpu(3);*/
+
+    CpuAffinity affinity(-1, true);
 
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,
         ThreadPriority::PRIORITY_NORMAL,
         affinity,
-        32);
+        32,
+        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
     XampLoggerFactory.GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
         ->SetLevel(LOG_LEVEL_OFF);
@@ -156,7 +159,7 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     for (auto _ : state) {
         Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
             total += item;
-            }, 128);
+            });
     }
 }
 

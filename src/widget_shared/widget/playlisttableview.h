@@ -82,7 +82,7 @@ public:
 
 	[[nodiscard]] int32_t playlistId() const;
 
-	void reload();
+	void reload(bool is_scroll_to = false);
 
 	void removePlaying();
 
@@ -92,7 +92,7 @@ public:
 
 	void removeSelectItems();
 
-	void setNowPlaying(const QModelIndex& index, bool is_scroll_to = false);
+	void setNowPlaying(const QModelIndex& index);
 
 	QModelIndex firstIndex() const;
 

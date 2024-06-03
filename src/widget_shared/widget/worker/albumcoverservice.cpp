@@ -3,23 +3,24 @@
 #include <base/object_pool.h>
 #include <widget/util/image_util.h>
 #include <widget/util/read_until.h>
-#include <widget/worker/findalbumcoverworker.h>
+#include <widget/databasefacade.h>
+#include <widget/worker/albumcoverservice.h>
 #include <widget/tagio.h>
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
 #include <widget/imagecache.h>
 #include <widget/http.h>
 
-FindAlbumCoverWorker::FindAlbumCoverWorker()
+AlbumCoverService::AlbumCoverService()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
     , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize))
     , timer_(this) {
-    (void)QObject::connect(&timer_, &QTimer::timeout, this, &FindAlbumCoverWorker::onLookupAlbumCoverTimeout);
+    (void)QObject::connect(&timer_, &QTimer::timeout, this, &AlbumCoverService::onLookupAlbumCoverTimeout);
     timer_.start(1000);
 }
 
-void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
+void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
     if (is_stop_) {
         return;
     }
@@ -42,18 +43,18 @@ void FindAlbumCoverWorker::onFetchThumbnailUrl(const DatabaseCoverId& id, const 
         .download(download_handler, error_handler);
 }
 
-void FindAlbumCoverWorker::cancelRequested() {
+void AlbumCoverService::cancelRequested() {
     is_stop_ = true;
     timer_.stop();
     fetch_album_cover_queue_.clear();
 }
 
-void FindAlbumCoverWorker::onLookupAlbumCover(const DatabaseCoverId& id, const Path& path) {
+void AlbumCoverService::onLookupAlbumCover(const DatabaseCoverId& id, const Path& path) {
     const auto entity = std::make_pair(id, path);
     fetch_album_cover_queue_.push_back(entity);
 }
 
-void FindAlbumCoverWorker::onLookupAlbumCoverTimeout() {
+void AlbumCoverService::onLookupAlbumCoverTimeout() {
     if (is_stop_) {
         return;
     }
@@ -67,7 +68,57 @@ void FindAlbumCoverWorker::onLookupAlbumCoverTimeout() {
     lookupAlbumCover(id, path);
 }
 
-void FindAlbumCoverWorker::lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path) {
+void AlbumCoverService::mergeUnknownAlbumCover() {
+	constexpr auto kMaxCoverCount = 4;
+
+    auto db = database_ptr_->Acquire();
+    auto album_id = qDatabaseFacade.unknownAlbumId();
+
+    dao::AlbumDao album_dao(db->getDatabase());
+    auto album_state = album_dao.getAlbumStats(album_id);
+    if (!album_state) {
+		return;
+    }
+
+    if (album_state.value().songs < kMaxCoverCount) {
+        return;
+    }
+
+    QList<int32_t> music_ids;
+    QList<QPixmap> covers;
+    album_dao.forEachAlbumMusic(album_id, [&](const auto& entity) {
+        if (covers.size() == kMaxCoverCount) {
+            return;
+        }
+        TagIO tag_io;
+        try {
+            auto image = tag_io.embeddedCover(entity.file_path.toStdWString());
+            if (!image.isNull()) {
+                covers.push_back(image);
+                music_ids.append(entity.music_id);
+            }
+        }
+		catch (...) {
+			// Ignore exception.
+        }
+        });
+    
+    if (covers.size() < kMaxCoverCount) {
+        return;
+    }
+
+    auto image = image_util::mergeImage(covers);
+    auto cover_id = qImageCache.addImage(image);
+
+    dao::MusicDao music_dao(db->getDatabase());
+    TransactionScope scope([&]() {
+        for (auto music_id : music_ids) {
+            music_dao.setMusicCover(music_id, cover_id);
+        }
+        });
+}
+
+void AlbumCoverService::lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path) {
     // 1. Read fingerprint from music file.
     auto [duration, result] = read_util::readFingerprint(file_path);
 
@@ -125,7 +176,7 @@ void FindAlbumCoverWorker::lookupAlbumCover(const DatabaseCoverId& id, const Pat
     .get();
 }
 
-void FindAlbumCoverWorker::onFindAlbumCover(const DatabaseCoverId& id) {
+void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
     if (is_stop_) {
         return;
     }

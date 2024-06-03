@@ -80,7 +80,8 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
-    item->setSizeHint(QSize(35, 35));    
+    item->setSizeHint(QSize(36, 36));        
+    item->setToolTip(name);
     auto f = item->font();
     f.setPointSize(qTheme.fontSize(9));
     item->setFont(f);

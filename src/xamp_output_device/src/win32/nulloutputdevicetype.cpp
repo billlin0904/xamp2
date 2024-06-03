@@ -12,6 +12,9 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 class NullOutputDeviceType::NullOutputDeviceTypeImpl final {
 public:
+	static constexpr std::wstring_view kDescription = L"Null Output Device";
+	static constexpr std::string_view kDeviceId = "16AE95CF-6173-41DA-859D-EFF9D45CC504";
+
 	NullOutputDeviceTypeImpl() noexcept;
 
 	void ScanNewDevice();
@@ -55,12 +58,10 @@ Vector<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo
 	return device_info_list;
 }
 
-std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDefaultDeviceInfo() const {
-	static constexpr std::wstring_view kDescription = L"Null Output Device";
-	static constexpr std::string_view kDeviceId = "16AE95CF-6173-41DA-859D-EFF9D45CC504";
+std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDefaultDeviceInfo() const {	
 	DeviceInfo info;
-	info.name = kDescription;
-	info.device_id = kDeviceId;
+	info.name           = kDescription;
+	info.device_id      = kDeviceId;
 	info.is_support_dsd = true;
 	info.device_type_id = XAMP_UUID_OF(NullOutputDeviceType);
 	return std::optional<DeviceInfo>{ std::in_place_t{}, info };

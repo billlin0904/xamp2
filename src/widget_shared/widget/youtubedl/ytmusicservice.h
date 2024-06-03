@@ -436,10 +436,10 @@ private:
 	AlignPtr<YtMusicInteropImpl> impl_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT YtMusic : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT YtMusicService : public QObject {
 	Q_OBJECT
 public:
-	explicit YtMusic(QObject* parent = nullptr);
+	explicit YtMusicService(QObject* parent = nullptr);
 
 	QFuture<bool> initialAsync();
 

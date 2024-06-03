@@ -1,4 +1,4 @@
-#include <widget/worker/backgroundworker.h>
+#include <widget/worker/backgroundservice.h>
 
 #include <widget/util/str_util.h>
 #include <widget/util/image_util.h>
@@ -24,7 +24,7 @@
 #include <QJsonValueRef>
 #include <QThread>
 
-XAMP_DECLARE_LOG_NAME(BackgroundWorker);
+XAMP_DECLARE_LOG_NAME(BackgroundService);
 
 struct ReplayGainJob {
     PlayListEntity entity;
@@ -42,25 +42,25 @@ struct ReplayGainContext {
     Vector<double> track_peak_gain;
 };
 
-BackgroundWorker::BackgroundWorker()
+BackgroundService::BackgroundService()
     : nam_(this)
     , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize)) {
-    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundWorker));
+    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundService));
 }
 
-BackgroundWorker::~BackgroundWorker() {
+BackgroundService::~BackgroundService() {
     XAMP_LOG_DEBUG("BackgroundWorker destroy!");
 }
 
-void BackgroundWorker::cancelRequested() {
+void BackgroundService::cancelRequested() {
     is_stop_ = true;
 }
 
-void BackgroundWorker::onSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
+void BackgroundService::onSearchLyrics(int32_t music_id, const QString& title, const QString& artist) {
 }
 
 #if defined(Q_OS_WIN)
-void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
+void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
     MBDiscId mbdisc_id;
     std::string disc_id;
     std::string url;
@@ -102,7 +102,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
     XAMP_LOG_D(logger_, "Start fetch cd information form music brainz.");
 
-    http::HttpClient(QString::fromStdString(url))
+    http::HttpClient(&nam_, buffer_pool_, QString::fromStdString(url))
         .success([this, disc_id](const auto& url, const auto& content) {
         auto [image_url, mb_disc_id_info] = parseMbDiscIdXml(content);
 
@@ -115,7 +115,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 
         XAMP_LOG_D(logger_, "Start fetch cd cover image.");
 
-        http::HttpClient(QString::fromStdString(image_url))
+        http::HttpClient(&nam_, buffer_pool_, QString::fromStdString(image_url))
             .success([this, disc_id](const auto& url, const auto& content) {
 	            const auto cover_url = parseCoverUrl(content);
                 http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
@@ -131,7 +131,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
 }
 #endif
 
-void BackgroundWorker::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
+void BackgroundService::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (image.isNull()) {
         emit blurImage(QImage());
         return;
@@ -141,7 +141,7 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QPixmap& image
         }));
 }
 
-void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {
+void BackgroundService::onReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities) {
 	const auto writer = MakeMetadataWriter();
 
     auto entities_size = std::distance(entities.begin(), entities.end());
@@ -254,7 +254,7 @@ void BackgroundWorker::onReadReplayGain(int32_t playlistId, const QList<PlayList
     emit readCompleted();
 }
 
-void BackgroundWorker::onTranslation(const QString& keyword, const QString& from, const QString& to) {
+void BackgroundService::onTranslation(const QString& keyword, const QString& from, const QString& to) {
     const auto url =
         qSTR("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))

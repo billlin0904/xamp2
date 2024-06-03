@@ -148,11 +148,11 @@
     <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
-    <QtMoc Include="widget\worker\backgroundworker.h" />
-    <QtMoc Include="widget\worker\filesystemworker.h" />
-    <QtMoc Include="widget\worker\findalbumcoverworker.h" />
+    <QtMoc Include="widget\worker\backgroundservice.h" />
+    <QtMoc Include="widget\worker\filesystemservice.h" />
+    <QtMoc Include="widget\worker\albumcoverservice.h" />
     <ClInclude Include="widget\xmessagebox.h" />
-    <QtMoc Include="widget\youtubedl\ytmusic.h" />
+    <QtMoc Include="widget\youtubedl\ytmusicservice.h" />
     <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
     <ClInclude Include="widget\youtubedl\ytmusic_disckcache.h" />
     <ClInclude Include="xampplayer.h" />
@@ -283,14 +283,14 @@
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\widget_shared_global.cpp" />
     <ClCompile Include="widget\win32\wintaskbar.cpp" />
-    <ClCompile Include="widget\worker\backgroundworker.cpp" />
-    <ClCompile Include="widget\worker\filesystemworker.cpp" />
-    <ClCompile Include="widget\worker\findalbumcoverworker.cpp" />
+    <ClCompile Include="widget\worker\backgroundservice.cpp" />
+    <ClCompile Include="widget\worker\filesystemservice.cpp" />
+    <ClCompile Include="widget\worker\albumcoverservice.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
-    <ClCompile Include="widget\youtubedl\ytmusic.cpp" />
+    <ClCompile Include="widget\youtubedl\ytmusicservice.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusicoauth.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusic_disckcache.cpp" />
   </ItemGroup>

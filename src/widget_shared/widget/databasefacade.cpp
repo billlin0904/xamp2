@@ -1,5 +1,5 @@
 ﻿#include <widget/databasefacade.h>
-#include <widget/worker/filesystemworker.h>
+#include <widget/worker/filesystemservice.h>
 
 #include <qguiapplication.h>
 

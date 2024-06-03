@@ -16,15 +16,15 @@
 
 Q_DECLARE_METATYPE(ReplayGain);
 
-class XAMP_WIDGET_SHARED_EXPORT BackgroundWorker final : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
 	Q_OBJECT
 
 public:
 	static constexpr size_t kBufferPoolSize = 256;
 
-	BackgroundWorker();
+	BackgroundService();
 
-	~BackgroundWorker() override;
+	~BackgroundService() override;
 
 signals:
 	void readFileStart();
