@@ -17,14 +17,14 @@
 #include <widget/playerorder.h>
 #include <widget/driveinfo.h>
 #include <widget/util/str_util.h>
-#include <widget/youtubedl/ytmusic.h>
+#include <widget/youtubedl/ytmusicservice.h>
 #include <widget/databasecoverid.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
 class ProcessIndicator;
-class YtMusic;
+class YtMusicService;
 struct MbDiscIdInfo;
 struct PlaybackFormat;
 
@@ -41,14 +41,14 @@ class QWidgetAction;
 class QFileSystemWatcher;
 class FileSystemViewPage;
 class QRadioButton;
-class BackgroundWorker;
+class BackgroundService;
 class CdPage;
 class XMenu;
 class DatabaseFacade;
 class XMessage;
 class XProgressDialog;
-class FindAlbumCoverWorker;
-class FileSystemWorker;
+class AlbumCoverService;
+class FileSystemService;
 class PlaylistTabWidget;
 class PlayListTableView;
 class GenreViewPage;
@@ -181,6 +181,8 @@ private:
 
 	void initialController();
 
+	void showNaviBarButton();
+
 	void initialShortcut();
 
 	void initialSpectrum();
@@ -300,17 +302,17 @@ private:
 	QScopedPointer<PlaylistPage> yt_music_search_page_;
 	QScopedPointer<PlaylistTabWidget> playlist_tab_page_;
 	QScopedPointer<PlaylistTabWidget> yt_music_tab_page_;
-	QScopedPointer<BackgroundWorker> background_worker_;
-	QScopedPointer<FindAlbumCoverWorker> find_album_cover_worker_;
-	QScopedPointer<FileSystemWorker> extract_file_worker_;
-	QScopedPointer<YtMusic> ytmusic_worker_;
+	QScopedPointer<BackgroundService> background_service_;
+	QScopedPointer<AlbumCoverService> album_cover_service_;
+	QScopedPointer<FileSystemService> file_system_service_;
+	QScopedPointer<YtMusicService> ytmusic_service_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
 	//QList<QScrollArea*> widgets_;
 	QList<QWidget*> widgets_;
-    QThread background_thread_;
-	QThread find_album_cover_thread_;
-	QThread file_system_thread_;
-	QThread ytmusic_thread_;
+    QThread background_service_thread_;
+	QThread album_cover_service_thread_;
+	QThread file_system_service_thread_;
+	QThread ytmusic_service_thread_;
 	QTimer ui_update_timer_timer_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

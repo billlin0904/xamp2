@@ -14,6 +14,37 @@ void setRepeatOncePlayOrder(Ui::XampWindow& ui) {
     ui.repeatButton->setIcon(qTheme.fontIcon(Glyphs::ICON_REPEAT_ONCE_PLAY_ORDER));
 }
 
+void setNaviBarMenuButton(Ui::XampWindow& ui) {
+    if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
+        ui.naviBarButton->setStyleSheet(qTEXT(R"(
+        QToolButton#naviBarButton {
+			border: none;
+			background-color: transparent;
+		}
+
+        QToolButton#naviBarButton:hover {
+			background-color: #e1e3e5;
+			border-radius: 4px;
+		}
+		)"));
+    }
+    else {
+        ui.naviBarButton->setStyleSheet(qTEXT(R"(
+        QToolButton#naviBarButton {
+			border: none;
+			background-color: transparent;
+		}
+
+        QToolButton#naviBarButton:hover {
+			background-color: #43474e;
+			border-radius: 4px;
+		}
+		)"));
+    }
+    ui.naviBarButton->setIconSize(QSize(22, 22));
+    ui.naviBarButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MENU));
+}
+
 void setAuthButton(Ui::XampWindow& ui, bool auth) {
     if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         ui.authButton->setStyleSheet(qTEXT(R"(

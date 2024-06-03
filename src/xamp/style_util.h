@@ -28,3 +28,4 @@ void setWidgetStyle(Ui::XampWindow& ui);
 
 void updateButtonState(QToolButton* playButton, PlayerState state);
 
+void setNaviBarMenuButton(Ui::XampWindow& ui);

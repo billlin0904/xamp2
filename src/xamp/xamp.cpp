@@ -71,10 +71,10 @@
 #include <widget/util/read_until.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
-#include <widget/worker/backgroundworker.h>
-#include <widget/worker/filesystemworker.h>
-#include <widget/worker/findalbumcoverworker.h>
-#include <widget/youtubedl/ytmusic.h>
+#include <widget/worker/backgroundservice.h>
+#include <widget/worker/filesystemservice.h>
+#include <widget/worker/albumcoverservice.h>
+#include <widget/youtubedl/ytmusicservice.h>
 #include <widget/youtubedl/ytmusicoauth.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
@@ -195,7 +195,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 	, cd_page_(nullptr)
 	, music_library_page_(nullptr)
 	, file_explorer_page_(nullptr)
-	, background_worker_(nullptr)
+	, background_service_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 	, player_(player) {
     ui_.setupUi(this);
@@ -242,14 +242,14 @@ void Xamp::destroy() {
 
     emit cancelRequested();
 
-    if (ytmusic_worker_ != nullptr) {
-        ytmusic_worker_->cleanupAsync().waitForFinished();
+    if (ytmusic_service_ != nullptr) {
+        ytmusic_service_->cleanupAsync().waitForFinished();
     }
 
-    quit_and_wait_thread(background_thread_);
-    quit_and_wait_thread(find_album_cover_thread_);
-    quit_and_wait_thread(file_system_thread_);
-    quit_and_wait_thread(ytmusic_thread_);
+    quit_and_wait_thread(background_service_thread_);
+    quit_and_wait_thread(album_cover_service_thread_);
+    quit_and_wait_thread(file_system_service_thread_);
+    quit_and_wait_thread(ytmusic_service_thread_);
 
     if (main_window_ != nullptr) {
         (void)main_window_->saveGeometry();
@@ -260,17 +260,17 @@ void Xamp::destroy() {
 }
 
 void Xamp::initialYtMusicWorker() {
-    if (ytmusic_worker_) {
+    if (ytmusic_service_) {
         return;
     }
 	
-    ytmusic_worker_.reset(new YtMusic());
-    ytmusic_worker_->moveToThread(&ytmusic_thread_);
-	ytmusic_thread_.start();
+    ytmusic_service_.reset(new YtMusicService());
+    ytmusic_service_->moveToThread(&ytmusic_service_thread_);
+	ytmusic_service_thread_.start();
 
     XAMP_LOG_DEBUG("Initial ytmusic worker...");
 
-    QCoro::connect(ytmusic_worker_->initialAsync(), this, []() {
+    QCoro::connect(ytmusic_service_->initialAsync(), this, []() {
 #ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
             XAMP_LOG_DEBUG("Set process mitigation.");
@@ -304,29 +304,29 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         QWidget::close();
         });
 
-    background_worker_.reset(new BackgroundWorker());
-    background_worker_->moveToThread(&background_thread_);
-    background_thread_.start(QThread::LowestPriority);
+    background_service_.reset(new BackgroundService());
+    background_service_->moveToThread(&background_service_thread_);
+    background_service_thread_.start(QThread::LowestPriority);
 
-    find_album_cover_worker_.reset(new FindAlbumCoverWorker());
-    find_album_cover_worker_->moveToThread(&find_album_cover_thread_);
-    find_album_cover_thread_.start(QThread::NormalPriority);
+    album_cover_service_.reset(new AlbumCoverService());
+    album_cover_service_->moveToThread(&album_cover_service_thread_);
+    album_cover_service_thread_.start(QThread::NormalPriority);
 
-    extract_file_worker_.reset(new FileSystemWorker());
-    extract_file_worker_->moveToThread(&file_system_thread_);
-    file_system_thread_.start(QThread::LowestPriority);
+    file_system_service_.reset(new FileSystemService());
+    file_system_service_->moveToThread(&file_system_service_thread_);
+    file_system_service_thread_.start(QThread::LowestPriority);
 
-    if (background_worker_ != nullptr) {
-        (void)QObject::connect(this, &Xamp::cancelRequested, background_worker_.get(), &BackgroundWorker::cancelRequested);
+    if (background_service_ != nullptr) {
+        (void)QObject::connect(this, &Xamp::cancelRequested, background_service_.get(), &BackgroundService::cancelRequested);
     }
-    if (find_album_cover_worker_ != nullptr) {
-        (void)QObject::connect(this, &Xamp::cancelRequested, find_album_cover_worker_.get(), &FindAlbumCoverWorker::cancelRequested);
+    if (album_cover_service_ != nullptr) {
+        (void)QObject::connect(this, &Xamp::cancelRequested, album_cover_service_.get(), &AlbumCoverService::cancelRequested);
     }
-    if (extract_file_worker_ != nullptr) {
-        (void)QObject::connect(this, &Xamp::cancelRequested, extract_file_worker_.get(), &FileSystemWorker::cancelRequested);
+    if (file_system_service_ != nullptr) {
+        (void)QObject::connect(this, &Xamp::cancelRequested, file_system_service_.get(), &FileSystemService::cancelRequested);
     }
-    if (ytmusic_worker_ != nullptr) {
-        (void)QObject::connect(this, &Xamp::cancelRequested, ytmusic_worker_.get(), &YtMusic::cancelRequested);
+    if (ytmusic_service_ != nullptr) {
+        (void)QObject::connect(this, &Xamp::cancelRequested, ytmusic_service_.get(), &YtMusicService::cancelRequested);
     }
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
@@ -400,33 +400,33 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(this,
         &Xamp::translation,
-        background_worker_.get(),
-        &BackgroundWorker::onTranslation);
+        background_service_.get(),
+        &BackgroundService::onTranslation);
 
-    (void)QObject::connect(background_worker_.get(), 
-        &BackgroundWorker::translationCompleted,
+    (void)QObject::connect(background_service_.get(), 
+        &BackgroundService::translationCompleted,
         this,
         &Xamp::onTranslationCompleted);
 
     // FindAlbumCoverWorker
 
-    (void)QObject::connect(find_album_cover_worker_.get(),
-        &FindAlbumCoverWorker::setAlbumCover,
+    (void)QObject::connect(album_cover_service_.get(),
+        &AlbumCoverService::setAlbumCover,
         this, 
         &Xamp::onSetAlbumCover);
 
     (void)QObject::connect(this,
         &Xamp::fetchThumbnailUrl,
-        find_album_cover_worker_.get(),
-        &FindAlbumCoverWorker::onFetchThumbnailUrl);
+        album_cover_service_.get(),
+        &AlbumCoverService::onFetchThumbnailUrl);
 
-    (void)QObject::connect(find_album_cover_worker_.get(),
-        &FindAlbumCoverWorker::setThumbnail,
+    (void)QObject::connect(album_cover_service_.get(),
+        &AlbumCoverService::setThumbnail,
         this,
         &Xamp::onSetThumbnail);
 
-    (void)QObject::connect(find_album_cover_worker_.get(),
-        &FindAlbumCoverWorker::fetchThumbnailUrlError,
+    (void)QObject::connect(album_cover_service_.get(),
+        &AlbumCoverService::fetchThumbnailUrlError,
         this,
         &Xamp::onFetchThumbnailUrlError);
 
@@ -479,104 +479,104 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(this,
         &Xamp::setWatchDirectory,
-        extract_file_worker_.get(),
-        &FileSystemWorker::onSetWatchDirectory,
+        file_system_service_.get(),
+        &FileSystemService::onSetWatchDirectory,
         Qt::QueuedConnection);
 
     (void)QObject::connect(this,
         &Xamp::extractFile,
-        extract_file_worker_.get(),
-        &FileSystemWorker::onExtractFile,
+        file_system_service_.get(),
+        &FileSystemService::onExtractFile,
         Qt::QueuedConnection);
 
    (void)QObject::connect(music_library_page_->album(),
         &AlbumView::extractFile,
-        extract_file_worker_.get(),
-        &FileSystemWorker::onExtractFile,
+        file_system_service_.get(),
+        &FileSystemService::onExtractFile,
         Qt::QueuedConnection);
 
    (void)QObject::connect(music_library_page_->album()->styledDelegate(),
        &AlbumViewStyledDelegate::findAlbumCover,
-       find_album_cover_worker_.get(),
-       &FindAlbumCoverWorker::onFindAlbumCover,
+       album_cover_service_.get(),
+       &AlbumCoverService::onFindAlbumCover,
        Qt::QueuedConnection);
 
    (void)QObject::connect(this,
        &Xamp::findAlbumCover,
-       find_album_cover_worker_.get(),
-       &FindAlbumCoverWorker::onFindAlbumCover,
+       album_cover_service_.get(),
+       &AlbumCoverService::onFindAlbumCover,
        Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::foundFileCount,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::foundFileCount,
         this,
         &Xamp::onFoundFileCount,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::insertDatabase,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::insertDatabase,
         this,
         &Xamp::onInsertDatabase,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::readFilePath,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFilePath,
         this,
         &Xamp::onReadFilePath,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::readFileStart,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFileStart,
         this,
         &Xamp::onReadFileStart,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::readCompleted,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readCompleted,
         this,
         &Xamp::onReadCompleted,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::readFileProgress,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFileProgress,
         this,
         &Xamp::onReadFileProgress,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(extract_file_worker_.get(),
-        &FileSystemWorker::remainingTimeEstimation,
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::remainingTimeEstimation,
         this,
         &Xamp::onRemainingTimeEstimation,
         Qt::QueuedConnection);
 
     // BackgroundWorker
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::foundFileCount,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::foundFileCount,
         this,
         &Xamp::onFoundFileCount,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::readFilePath,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readFilePath,
         this,
         &Xamp::onReadFilePath,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::readFileStart,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readFileStart,
         this,
         &Xamp::onReadFileStart,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::readCompleted,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readCompleted,
         this,
         &Xamp::onReadCompleted,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::readFileProgress,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readFileProgress,
         this,
         &Xamp::onReadFileProgress,
         Qt::QueuedConnection);
@@ -734,11 +734,11 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
     dialog->setLabelText(tr("Fetching video information ..."));
     auto vid = video_id;    
 
-    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
+    QCoro::connect(ytmusic_service_->extractVideoInfoAsync(ytmusic_url), this,
         [this, dialog, vid, entity](const auto& video_info) {
             dialog->setLabelText(tr("Fetching song information ..."));
 
-            QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, dialog, video_info, entity](const auto& song) {
+            QCoro::connect(ytmusic_service_->fetchSongAsync(vid), this, [this, dialog, video_info, entity](const auto& song) {
                 auto file_name = YtMusicDiskCache::makeFileCachePath(QString::fromStdString(song.value().video_id));
                 
                 dialog->setLabelText(tr("Start download ") + file_name + qTEXT(" ..."));
@@ -826,7 +826,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
 
     XAMP_LOG_DEBUG("Extract video information ...");
 
-    QCoro::connect(ytmusic_worker_->extractVideoInfoAsync(ytmusic_url), this,
+    QCoro::connect(ytmusic_service_->extractVideoInfoAsync(ytmusic_url), this,
         [temp = entity, vid, playlist_page, this](const auto& video_info) {
         XAMP_ON_SCOPE_EXIT(
             if (playlist_page != nullptr) {
@@ -859,7 +859,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
 
         XAMP_LOG_DEBUG("Extract song information ...");
 
-        QCoro::connect(ytmusic_worker_->fetchSongAsync(vid), this, [this, album_id](const auto& song) {
+        QCoro::connect(ytmusic_service_->fetchSongAsync(vid), this, [this, album_id](const auto& song) {
             if (!song) {
                 XAMP_LOG_DEBUG("Not found song information.");
                 return;
@@ -888,9 +888,9 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id) {
 }
 
 void Xamp::fetchLyrics(const PlayListEntity& entity, const QString& video_id) {
-    QCoro::connect(ytmusic_worker_->fetchWatchPlaylistAsync(video_id), this, [entity, this](const auto& playlist) {
+    QCoro::connect(ytmusic_service_->fetchWatchPlaylistAsync(video_id), this, [entity, this](const auto& playlist) {
         if (playlist.lyrics) {
-            QCoro::connect(ytmusic_worker_->fetchLyricsAsync(QString::fromStdString(*playlist.lyrics)), this, [entity, this](const auto& lyrics) {
+            QCoro::connect(ytmusic_service_->fetchLyricsAsync(QString::fromStdString(*playlist.lyrics)), this, [entity, this](const auto& lyrics) {
                 if (auto lyric = lyrics.lyrics) {
                     lrc_page_->lyrics()->onAddFullLrc(QString::fromStdString(lyric.value()));
                 }
@@ -973,7 +973,7 @@ void Xamp::onSearchCompleted(const std::vector<search::SearchResultItem>& result
                 if (!arg.browse_id) {
                     return;
                 }
-                QCoro::connect(ytmusic_worker_->fetchAlbumAsync(
+                QCoro::connect(ytmusic_service_->fetchAlbumAsync(
                     QString::fromStdString(arg.browse_id.value())), this,
                     &Xamp::onFetchAlbumCompleted);
             }
@@ -1081,6 +1081,8 @@ void Xamp::initialUi() {
     else {
         setAuthButton(ui_, false);
     }
+
+    setNaviBarMenuButton(ui_);
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state, const QString &device_id) {
@@ -1375,6 +1377,32 @@ void Xamp::initialController() {
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(formatDuration(0));
     ui_.endPosLabel->setText(formatDuration(0));
+
+    if (qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
+		ui_.sliderFrame2->setMaximumWidth(180);
+    }
+    else {
+        ui_.sliderFrame2->setMaximumWidth(50);
+    }
+
+    showNaviBarButton();
+
+    (void)QObject::connect(ui_.naviBarButton, &QToolButton::clicked, [this]() {
+        showNaviBarButton();
+        });
+}
+
+void Xamp::showNaviBarButton() {
+    auto start_width = ui_.sliderFrame2->maximumWidth();
+    auto end_width = (start_width == 50) ? 180 : 50;
+    qAppSettings.setValue(kAppSettingHideNaviBar, end_width == 50);
+
+    auto* animation = new QPropertyAnimation(ui_.sliderFrame2, "maximumWidth");
+    animation->setDuration(100);
+    animation->setStartValue(start_width);
+    animation->setEndValue(end_width);
+    animation->setEasingCurve(QEasingCurve::OutCubic);
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void Xamp::setCurrentTab(int32_t table_id) {
@@ -1684,7 +1712,7 @@ void Xamp::playOrPause() {
                 return;
             }
             page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
-            page->playlist()->setNowPlaying(play_index_, true);
+            page->playlist()->setNowPlaying(play_index_);
             page->playlist()->onPlayIndex(play_index_);
         }
     }
@@ -1925,7 +1953,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
         open_done = true;
         updateUi(entity, playback_format, open_done);
         if (page != nullptr) {
-            page->playlist()->reload();
+            page->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
+            page->playlist()->reload(false);
         }
         return;
     }
@@ -1937,8 +1966,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
     
     if (!page) {
         return;
-    }
-    page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
+    }        
+    //page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
     page->playlist()->reload();
 }
 
@@ -2313,7 +2342,7 @@ void Xamp::initialPlaylist() {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(yt_music_tab_page_->widget(tab_index));
         playlist_page->playlist()->removeAll();
         const auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
-        QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id), this, [this, playlist_page](const auto& playlist) {
+        QCoro::connect(ytmusic_service_->fetchPlaylistAsync(playlist_id), this, [this, playlist_page](const auto& playlist) {
             XAMP_LOG_DEBUG("Get playlist done!");
             onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
         });
@@ -2322,13 +2351,13 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(dynamic_cast<PlaylistTabBar*>(yt_music_tab_page_->tabBar()), &PlaylistTabBar::textChanged,[this](auto index, const auto& text) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(yt_music_tab_page_->widget(index));
         auto playlist_id = playlist_page->playlist()->cloudPlaylistId().value();
-        QCoro::connect(ytmusic_worker_->editPlaylistAsync(playlist_id, text, kEmptyString, PrivateStatus::PRIVATE), this, [this](auto) {
+        QCoro::connect(ytmusic_service_->editPlaylistAsync(playlist_id, text, kEmptyString, PrivateStatus::PRIVATE), this, [this](auto) {
             initialCloudPlaylist();
         });
     });
 
     (void)QObject::connect(yt_music_tab_page_.get(), &PlaylistTabWidget::deletePlaylist, [this](const auto &playlist_id) {
-        QCoro::connect(ytmusic_worker_->deletePlaylistAsync(playlist_id), this, [this](auto) {
+        QCoro::connect(ytmusic_service_->deletePlaylistAsync(playlist_id), this, [this](auto) {
             initialCloudPlaylist();
         });
     });
@@ -2350,7 +2379,7 @@ void Xamp::initialPlaylist() {
 
         const auto private_status = static_cast<PrivateStatus>(create_playlist_view->privateStatus());
 
-        QCoro::connect(ytmusic_worker_->createPlaylistAsync(create_playlist_view->title(),
+        QCoro::connect(ytmusic_service_->createPlaylistAsync(create_playlist_view->title(),
             create_playlist_view->desc(),
             private_status, {}), this, [this](auto) {                
             initialCloudPlaylist();
@@ -2387,28 +2416,28 @@ void Xamp::initialPlaylist() {
 
     (void)QObject::connect(this,
         &Xamp::blurImage,
-        background_worker_.get(),
-        &BackgroundWorker::onBlurImage);
+        background_service_.get(),
+        &BackgroundService::onBlurImage);
 #if defined(Q_OS_WIN)
     (void)QObject::connect(this,
         &Xamp::fetchCdInfo,
-        background_worker_.get(),
-        &BackgroundWorker::onFetchCdInfo);
+        background_service_.get(),
+        &BackgroundService::onFetchCdInfo);
 #endif
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::readCdTrackInfo,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readCdTrackInfo,
         this,
         &Xamp::onUpdateCdTrackInfo,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::fetchMbDiscInfoCompleted,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::fetchMbDiscInfoCompleted,
         this,
         &Xamp::onUpdateMbDiscInfo,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(background_worker_.get(),
-		&BackgroundWorker::fetchDiscCoverCompleted,
+    (void)QObject::connect(background_service_.get(),
+		&BackgroundService::fetchDiscCoverCompleted,
         this,
         &Xamp::onUpdateDiscCover,
         Qt::QueuedConnection);
@@ -2431,16 +2460,16 @@ void Xamp::initialPlaylist() {
 
     (void)QObject::connect(this,
         &Xamp::searchLyrics,
-        background_worker_.get(),
-        &BackgroundWorker::onSearchLyrics);
+        background_service_.get(),
+        &BackgroundService::onSearchLyrics);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::fetchLyricsCompleted,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::fetchLyricsCompleted,
         this,
         &Xamp::onSearchLyricsCompleted);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::fetchArtistCompleted,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::fetchArtistCompleted,
         this,
         &Xamp::onSearchArtistCompleted);
 
@@ -2454,13 +2483,13 @@ void Xamp::initialPlaylist() {
         lrc_page_.get(),
         &LrcPage::onThemeColorChanged);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::blurImage,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::blurImage,
         lrc_page_.get(),
         &LrcPage::setBackground);
 
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::dominantColor,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::dominantColor,
         lrc_page_->lyrics(),
         &LyricsShowWidget::onSetLrcColor);
 
@@ -2493,7 +2522,7 @@ void Xamp::initialCloudPlaylist() {
     process_dialog->show();
     cloud_playlist_process_count_ = 0;
 
-    QCoro::connect(ytmusic_worker_->fetchLibraryPlaylistAsync(), this, [process_dialog, this](const auto& playlists) {
+    QCoro::connect(ytmusic_service_->fetchLibraryPlaylistAsync(), this, [process_dialog, this](const auto& playlists) {
         static const std::string kEpisodesForLaterName("Episodes for Later");
 		dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
         int32_t index = 1;
@@ -2509,7 +2538,7 @@ void Xamp::initialCloudPlaylist() {
             playlist_page->playlist()->setCloudPlaylistId(QString::fromStdString(playlist.playlistId));
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
-            QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
+            QCoro::connect(ytmusic_service_->fetchPlaylistAsync(QString::fromStdString(playlist.playlistId)),
                 this, [this, playlists, playlist_page, process_dialog](const auto& playlist) {
                     process_dialog->setValue(cloud_playlist_process_count_++ * 100 / playlists.size() + 1);
                     onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
@@ -2657,7 +2686,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                     playlist_page->spinner()->stopAnimation();
                     return;
                 }
-                QCoro::connect(ytmusic_worker_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
+                QCoro::connect(ytmusic_service_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
             });
 
         (void)QObject::connect(playlist_page,
@@ -2668,7 +2697,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                     return;
                 }
                 if (match == Match::MATCH_SUGGEST) {
-                    QCoro::connect(ytmusic_worker_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
+                    QCoro::connect(ytmusic_service_->searchSuggestionsAsync(text), this, &Xamp::onSearchSuggestionsCompleted);
                     return;
                 }
                 if (playlist_page->spinner()->isAnimated()) {
@@ -2692,7 +2721,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                     auto [parsed_video_id, set_video_id] = parseYtMusicPath(QString::fromStdString(video_id));
                     parsed_video_ids.push_back(parsed_video_id.toStdString());
                 }
-                QCoro::connect(ytmusic_worker_->addPlaylistItemsAsync(playlist_id,
+                QCoro::connect(ytmusic_service_->addPlaylistItemsAsync(playlist_id,
                     parsed_video_ids,
                     source_playlist_id.toStdString()), this, [this](auto) {
                         initialCloudPlaylist();
@@ -2706,7 +2735,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 dao::AlbumDao(qGuiDb.getDatabase()).removeAlbumMusic(entity.album_id, entity.music_id);
                 dao::MusicDao(qGuiDb.getDatabase()).removeMusic(entity.music_id);
                 auto [video_id, set_video_id] = parseYtMusicPath(entity.file_path);
-                QCoro::connect(ytmusic_worker_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE),
+                QCoro::connect(ytmusic_service_->rateSongAsync(video_id, like ? SongRating::DISLIKE : SongRating::LIKE),
                     this, [this, playlist_page](auto) {
                     initialCloudPlaylist();
                     });
@@ -2733,9 +2762,9 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 }
                 playlist_page->spinner()->startAnimation();
                 centerParent(playlist_page->spinner());
-                QCoro::connect(ytmusic_worker_->removePlaylistItemsAsync(playlist_id, result_data), this, [this, playlist_page, playlist_id](auto) {
+                QCoro::connect(ytmusic_service_->removePlaylistItemsAsync(playlist_id, result_data), this, [this, playlist_page, playlist_id](auto) {
                     playlist_page->playlist()->removeAll();
-                    QCoro::connect(ytmusic_worker_->fetchPlaylistAsync(playlist_id),
+                    QCoro::connect(ytmusic_service_->fetchPlaylistAsync(playlist_id),
                         this, [this, playlist_page](const auto& playlist) {
                             XAMP_LOG_DEBUG("Reload playlist!");
                             onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
@@ -2782,8 +2811,8 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::readReplayGain,
-        background_worker_.get(),
-        &BackgroundWorker::onReadReplayGain);
+        background_service_.get(),
+        &BackgroundService::onReadReplayGain);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::editTags,
@@ -2792,11 +2821,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::extractFile,
-        extract_file_worker_.get(),
-        &FileSystemWorker::onExtractFile);
+        file_system_service_.get(),
+        &FileSystemService::onExtractFile);
     
-    (void)QObject::connect(background_worker_.get(),
-        &BackgroundWorker::readReplayGain,
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readReplayGain,
         playlist_page->playlist(),
         &PlayListTableView::onUpdateReplayGain,
         Qt::QueuedConnection);    
@@ -2921,8 +2950,8 @@ void Xamp::onFoundFileCount(size_t file_count) {
 
         (void)QObject::connect(read_progress_dialog_.get(),
             &XProgressDialog::cancelRequested, [this]() {
-                extract_file_worker_->cancelRequested();
-                find_album_cover_worker_->cancelRequested();
+                file_system_service_->cancelRequested();
+                album_cover_service_->cancelRequested();
             });
 
         read_progress_dialog_->exec();
