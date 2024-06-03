@@ -246,6 +246,12 @@ CpuAffinity::operator bool() const noexcept {
     return false;
 }
 
+size_t CpuAffinity::GetCoreCount() {
+    SYSTEM_INFO sysinfo{};
+    ::GetSystemInfo(&sysinfo);
+    return sysinfo.dwNumberOfProcessors;
+}
+
 void CpuAffinity::SetAffinity(JThread& thread) {
 #ifdef XAMP_OS_WIN
     const DWORD group_count = ::GetActiveProcessorGroupCount();

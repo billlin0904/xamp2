@@ -50,6 +50,8 @@ public:
 
     explicit CpuAffinity(int32_t only_use_cpu = -1, bool all_cpu_set = true);
 
+    static size_t GetCoreCount();
+
     operator bool() const noexcept;
 
     void SetCpu(int32_t cpu);

@@ -4,6 +4,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/platform.h>
+#include <base/rng.h>
 #include <base/stopwatch.h>
 #include <base/latch.h>
 #include <base/crashhandler.h>
@@ -33,7 +34,8 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy))
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
-	, start_clean_up_(1) {
+	, start_clean_up_(1)
+	, cpu_affinity_(affinity) {
 	logger_ = XampLoggerFactory.GetLogger(pool_name);
 
 	try {
@@ -55,11 +57,11 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 
 	// 因為macOS 不支援thread running狀態設置affinity,
 	// 所以都改由此方式初始化affinity.
-	JThread([this, priority, affinity]() mutable {
+	JThread([this, priority]() mutable {
 		for (size_t i = 0; i < max_thread_; ++i) {
-			if (affinity) {
-				affinity.SetAffinity(threads_.at(i));
-				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, affinity);
+			if (cpu_affinity_) {
+				cpu_affinity_.SetAffinity(threads_.at(i));
+				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, cpu_affinity_);
 			}
 		}
         XAMP_LOG_D(logger_, "Set ({}) Thread affinity, priority is success.", max_thread_);
@@ -68,7 +70,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 
 	XAMP_LOG_D(logger_,
 		"TaskScheduler initial max thread:{} affinity:{} priority:{}",
-		max_thread, affinity, priority);
+		max_thread, cpu_affinity_, priority);
 }
 
 TaskScheduler::~TaskScheduler() {
@@ -201,6 +203,16 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
+void TaskScheduler::RandomSelectCore(size_t i) {
+	if (cpu_affinity_ != CpuAffinity::kAll) {
+		return;
+	}
+	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
+	auto victim_processor = prng() % CpuAffinity::GetCoreCount();
+	CpuAffinity affinity(victim_processor, false);
+	affinity.SetAffinity(threads_[i]);
+}
+
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
@@ -252,6 +264,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 			// Try to get a task from the shared queue
 			if (!task) {
+				RandomSelectCore(i);
 				if (spinning_watch.Elapsed() >= kSpinningTimeout) {
 					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);					
 				}

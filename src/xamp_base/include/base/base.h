@@ -132,6 +132,12 @@
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
 #endif
 
+#ifdef XAMP_OS_WIN
+#define XAMP_NO_TLS_GUARDS [[msvc::no_tls_guard]]
+#else
+#define XAMP_NO_TLS_GUARDS
+#endif
+
 #define XAMP_HTTP_USER_AGENT "xamp2/1.0.0"
 
 #define XAMP_BASE_NAMESPACE_BEGIN namespace xamp { namespace base {

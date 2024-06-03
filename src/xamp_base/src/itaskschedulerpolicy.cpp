@@ -3,12 +3,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-#ifdef XAMP_OS_WIN
-#define XAMP_NO_TLS_GUARDS [[msvc::no_tls_guard]]
-#else
-#define XAMP_NO_TLS_GUARDS
-#endif
-
 AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy) {
 	switch (policy) {
 	case TaskSchedulerPolicy::ROUND_ROBIN_POLICY:

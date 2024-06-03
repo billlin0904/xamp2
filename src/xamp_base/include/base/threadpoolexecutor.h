@@ -99,6 +99,8 @@ private:
     */
     void AddThread(size_t i, ThreadPriority priority);
 
+    void RandomSelectCore(size_t i);
+
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     size_t max_thread_;
@@ -109,9 +111,10 @@ private:
     SharedTaskQueuePtr task_pool_;
     AlignPtr<ITaskStealPolicy> task_steal_policy_;
     AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;
-    Vector<WorkStealingTaskQueuePtr> task_work_queues_;
+    Vector<WorkStealingTaskQueuePtr> task_work_queues_;    
     Latch work_done_;
     Latch start_clean_up_;
+    CpuAffinity cpu_affinity_;
     LoggerPtr logger_;
 };
 
