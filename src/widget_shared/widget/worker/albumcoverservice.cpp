@@ -17,6 +17,7 @@ AlbumCoverService::AlbumCoverService()
     , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize))
     , timer_(this) {
     (void)QObject::connect(&timer_, &QTimer::timeout, this, &AlbumCoverService::onLookupAlbumCoverTimeout);
+    //(void)QObject::connect(&timer_, &QTimer::timeout, this, &AlbumCoverService::mergeUnknownAlbumCover);
     timer_.start(1000);
 }
 
@@ -112,9 +113,9 @@ void AlbumCoverService::mergeUnknownAlbumCover() {
 
     dao::MusicDao music_dao(db->getDatabase());
     TransactionScope scope([&]() {
-        for (auto music_id : music_ids) {
-            music_dao.setMusicCover(music_id, cover_id);
-        }
+        album_dao.forEachAlbumMusic(album_id, [&](const auto& entity) {
+            music_dao.setMusicCover(entity.music_id, cover_id);
+            });
         });
 }
 

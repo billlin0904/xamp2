@@ -159,6 +159,8 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                          )").arg(colorToString(qTheme.hoverColor())));
 
     ui.menuButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MORE));
+
+    ui.naviBarButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MENU));
 }
 
 void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {

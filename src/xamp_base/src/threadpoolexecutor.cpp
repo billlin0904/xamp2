@@ -207,8 +207,9 @@ void TaskScheduler::RandomSelectCore(size_t i) {
 	if (cpu_affinity_ != CpuAffinity::kAll) {
 		return;
 	}
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
-	auto victim_processor = prng() % CpuAffinity::GetCoreCount();
+	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
+	// Skip CPU 0 core
+	auto victim_processor = prng(size_t(1), CpuAffinity::GetCoreCount() - 1);
 	CpuAffinity affinity(victim_processor, false);
 	affinity.SetAffinity(threads_[i]);
 }

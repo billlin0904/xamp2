@@ -10,12 +10,13 @@ namespace {
 	constexpr auto kMaxBackgroundThreadPoolSize{8};
 
 	CpuAffinity GetBackgroundCpuAffinity() {
-		CpuAffinity affinity(-1, false);
+		/*CpuAffinity affinity(-1, false);
 		affinity.SetCpu(1);
 		affinity.SetCpu(2);
 		affinity.SetCpu(3);
 		affinity.SetCpu(4);
-		return affinity;
+		return affinity;*/
+		return CpuAffinity::kAll;
 	}
 }
 

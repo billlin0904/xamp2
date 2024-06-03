@@ -142,7 +142,7 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     affinity.SetCpu(2);
     affinity.SetCpu(3);*/
 
-    CpuAffinity affinity(-1, true);
+    CpuAffinity affinity = CpuAffinity::kAll;
 
     const auto thread_pool = MakeThreadPoolExecutor(
         kBM_RandomPolicyThreadPoolLoggerName,

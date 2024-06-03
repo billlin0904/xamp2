@@ -84,6 +84,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
         database_ = database;
     }
     initialUnknownTranslateString();
+    ensureAddUnknownId();
 }
 
 void DatabaseFacade::initialUnknownTranslateString() {

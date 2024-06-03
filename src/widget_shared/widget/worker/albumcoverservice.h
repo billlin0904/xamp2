@@ -22,6 +22,8 @@ public:
 
 	AlbumCoverService();
 
+	void mergeUnknownAlbumCover();
+
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
@@ -39,11 +41,9 @@ public slots:
 	void onLookupAlbumCover(const DatabaseCoverId& id, const Path& path);
 
 private slots:
-	void onLookupAlbumCoverTimeout();
+	void onLookupAlbumCoverTimeout();	
 
 private:
-	void mergeUnknownAlbumCover();
-
 	void lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path);
 
 	bool is_stop_{ false };	

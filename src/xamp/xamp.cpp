@@ -312,6 +312,8 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     album_cover_service_->moveToThread(&album_cover_service_thread_);
     album_cover_service_thread_.start(QThread::NormalPriority);
 
+    album_cover_service_->mergeUnknownAlbumCover();
+
     file_system_service_.reset(new FileSystemService());
     file_system_service_->moveToThread(&file_system_service_thread_);
     file_system_service_thread_.start(QThread::LowestPriority);
@@ -408,8 +410,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onTranslationCompleted);
 
-    // FindAlbumCoverWorker
-
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAlbumCover,
         this, 
@@ -474,8 +474,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &ThemeManager::themeChangedFinished,
         music_library_page_.get(),
         &AlbumArtistPage::onThemeChangedFinished);    
-
-    // ExtractFileWorker
 
     (void)QObject::connect(this,
         &Xamp::setWatchDirectory,
@@ -548,8 +546,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onRemainingTimeEstimation,
         Qt::QueuedConnection);
-
-    // BackgroundWorker
 
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::foundFileCount,
@@ -1379,13 +1375,11 @@ void Xamp::initialController() {
     ui_.endPosLabel->setText(formatDuration(0));
 
     if (qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
-		ui_.sliderFrame2->setMaximumWidth(180);
+		ui_.sliderFrame2->setMaximumWidth(50);
     }
     else {
-        ui_.sliderFrame2->setMaximumWidth(50);
+        ui_.sliderFrame2->setMaximumWidth(180);
     }
-
-    showNaviBarButton();
 
     (void)QObject::connect(ui_.naviBarButton, &QToolButton::clicked, [this]() {
         showNaviBarButton();

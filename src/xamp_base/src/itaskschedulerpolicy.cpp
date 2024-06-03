@@ -25,13 +25,13 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
                                         const Vector<WorkStealingTaskQueuePtr>& task_work_queues,
                                         Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	static constexpr size_t K = 4;
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
+	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
 
 	for (size_t n = 0; n < max_thread * K; ++n) {
-		const auto current = prng() % max_thread;
+		const auto current = prng(size_t(0), max_thread - 1);
 		if (thread_execute_flags[current] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			auto& queue = task_work_queues.at(current);
-			if (queue->TryEnqueue(std::forward<MoveOnlyFunction>(task))) {
+			if (queue->TryEnqueue(std::move(task))) {
 				thread_execute_flags[current] = flags;
 				return;
 			}
@@ -64,12 +64,12 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
                                            [[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
                                            const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	// use Sfc64 random engine
-	XAMP_NO_TLS_GUARDS static thread_local auto prng = MakeRandomEngine();
+	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
 	constexpr size_t kMaxAttempts = 100;
 	uint32_t random_index = 0;
 
 	for (size_t attempt = 0; attempt < kMaxAttempts; ++attempt) {
-		random_index = prng() % static_cast<uint32_t>(max_thread_);
+		random_index = prng(size_t(0), max_thread_ - 1);
 		if (random_index != index
 			&& thread_execute_flags[random_index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			return random_index;

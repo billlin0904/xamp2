@@ -178,8 +178,7 @@ public:
 			qGuiDb.commit();
 		}
 		catch (...) {
-			qGuiDb.rollback();
-			logAndShowMessage(std::current_exception());
+			qGuiDb.rollback();			
 		}
 	}
 
