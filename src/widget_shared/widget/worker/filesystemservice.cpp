@@ -257,7 +257,7 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 }
 
 void FileSystemService::updateProgress() {
-	if (update_ui_elapsed_.ElapsedSeconds() < 0.5) {
+	if (update_ui_elapsed_.ElapsedSeconds() < 1.0) {
 		return;
 	}
 

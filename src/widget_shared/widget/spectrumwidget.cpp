@@ -138,7 +138,8 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		path.closeSubpath();
 
 		QLinearGradient newGradient(0, highest_point, 0, rect_height);
-		newGradient.setColorAt(0.0, Qt::red);
+		newGradient.setColorAt(0.0, Qt::yellow);
+		newGradient.setColorAt(0.2, Qt::red);
 		newGradient.setColorAt(0.6, bar_color_);
 		newGradient.setColorAt(1.0, bar_color_);
 

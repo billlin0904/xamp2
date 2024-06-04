@@ -313,13 +313,13 @@ void PlaylistTabWidget::restoreTabOrder() {
     QList<QString> texts;
     QList<int> new_order;
 
-    for (int i = 0; i < count(); ++i) {
+    for (int i = 0; i < tabBar()->count(); ++i) {
         auto itr = playlist_index.find(i);
         if (itr == playlist_index.end()) {
             continue;
         }
         const auto playlist_id = itr->second;
-        for (int j = 0; j < count(); ++j) {
+        for (int j = 0; j < tabBar()->count(); ++j) {
             auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
             Q_ASSERT(playlist_page != nullptr);
             const auto* playlist = playlist_page->playlist();
@@ -374,7 +374,7 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
 }
 
 void PlaylistTabWidget::setPlaylistCover(const QPixmap& cover) {
-    for (int i = 0; i < count(); ++i) {
+    for (int i = 0; i < tabBar()->count(); ++i) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         Q_ASSERT(playlist_page != nullptr);
         playlist_page->setCover(&cover);

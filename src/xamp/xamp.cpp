@@ -2926,8 +2926,7 @@ void Xamp::onPlaybackError(const QString& message) {
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    
-    if (!read_progress_dialog_
-        /*&& progress_timer_.elapsed() > kShowProgressDialogMsSecs*/) {
+    if (!read_progress_dialog_) {
         read_progress_dialog_ = makeProgressDialog(kApplicationTitle,
             tr("Read track information"),
             tr("Cancel"));
