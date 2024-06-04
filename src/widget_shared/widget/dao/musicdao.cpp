@@ -3,7 +3,11 @@
 #include <widget/dao/musicdao.h>
 
 namespace dao {
-	dao::MusicDao::MusicDao(QSqlDatabase& db)
+    MusicDao::MusicDao()
+        : MusicDao(qGuiDb.getDatabase()) {
+    }
+
+	MusicDao::MusicDao(QSqlDatabase& db)
 		: db_(db) {
 	}
 

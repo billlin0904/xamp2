@@ -20,6 +20,11 @@
 #include <widget/youtubedl/ytmusicservice.h>
 #include <widget/databasecoverid.h>
 
+#include <widget/dao/musicdao.h>
+#include <widget/dao/albumdao.h>
+#include <widget/dao/artistdao.h>
+#include <widget/dao/playlistdao.h>
+
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
@@ -320,5 +325,9 @@ private:
 	QVector<QFrame*> device_type_frame_;
 	QSharedPointer<XProgressDialog> read_progress_dialog_;
 	QElapsedTimer progress_timer_;
+	dao::AlbumDao album_dao_;
+	dao::ArtistDao artist_dao_;
+	dao::MusicDao music_dao_;
+	dao::PlaylistDao playlist_dao_;
     Ui::XampWindow ui_;	
 };

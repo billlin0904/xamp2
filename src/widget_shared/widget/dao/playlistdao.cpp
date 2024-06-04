@@ -3,6 +3,10 @@
 #include <widget/dao/playlistdao.h>
 
 namespace dao {
+    PlaylistDao::PlaylistDao()
+        : PlaylistDao(qGuiDb.getDatabase()) {
+    }
+
 	PlaylistDao::PlaylistDao(QSqlDatabase& db)
 		: db_(db) {
 	}

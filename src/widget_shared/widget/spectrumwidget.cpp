@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QPainterPath>
 
+#include <algorithm>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 
@@ -104,8 +105,20 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		for (int i = 0; i < kMaxBands; i++) {
 			painter.fillRect(rects[i], colors[i]);
 		}
-	} else {
+	} else {		
+		float max_db_value = average_spectrum[0];
+		int max_index = 0;
+
+		for (int i = 1; i < kMaxBands; ++i) {
+			if (average_spectrum[i] > max_db_value) {
+				max_db_value = average_spectrum[i];
+				max_index = i;
+			}
+		}
+
 		QPainterPath path;
+		float highest_point = rect_height;
+
 		path.moveTo(0, height());
 		for (int i = 0; i < kMaxBands; i++) {
 			const float db_value = average_spectrum[i];
@@ -115,12 +128,24 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 			if (rect_y < kMinRectHeight) {
 				rect_y = kMinRectHeight;
 			}
+			if (rect_y < highest_point) {
+				highest_point = rect_y;
+			}
 			path.lineTo(rect_x, rect_y);
 		}
+		
 		path.lineTo(width(), height());
 		path.closeSubpath();
-		const QBrush brush(bar_color_);
-		painter.fillPath(path, brush);
+
+		QLinearGradient newGradient(0, highest_point, 0, rect_height);
+		newGradient.setColorAt(0.0, Qt::red);
+		newGradient.setColorAt(0.6, bar_color_);
+		newGradient.setColorAt(1.0, bar_color_);
+
+		//const QBrush brush(bar_color_);
+		//painter.fillPath(path, brush);
+
+		painter.fillPath(path, newGradient);
 	}
 }
 

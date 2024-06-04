@@ -13,6 +13,8 @@ namespace dao {
 
 class XAMP_WIDGET_SHARED_EXPORT ArtistDao final {
 public:
+    ArtistDao();
+
     explicit ArtistDao(QSqlDatabase& db);
 
     void updateArtistCoverId(int32_t artist_id, const QString& cover_id);

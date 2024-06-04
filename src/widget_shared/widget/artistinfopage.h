@@ -7,6 +7,7 @@
 
 #include <QFrame>
 #include <widget/widget_shared_global.h>
+#include <widget/dao/artistdao.h>
 
 class AlbumView;
 class QLabel;
@@ -43,4 +44,5 @@ private:
 	QLabel* durations_;
 	AlbumView* album_view_;
 	QString cover_id_;
+	dao::ArtistDao artist_dao_;
 };

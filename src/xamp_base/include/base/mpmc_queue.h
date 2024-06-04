@@ -165,12 +165,14 @@ public:
 
 	template <typename T>
 	void Enqueue(T&& element) noexcept {
-		const auto head = head_.fetch_add(1, std::memory_order_seq_cst);
+		//const auto head = head_.fetch_add(1, std::memory_order_seq_cst);
+		const auto head = head_.fetch_add(1, std::memory_order_relaxed);
 		DoEnqueue(element, head);
 	}
 
 	Type Dequeue() noexcept {
-		const auto tail = tail_.fetch_add(1, std::memory_order_seq_cst);
+		//const auto tail = tail_.fetch_add(1, std::memory_order_seq_cst);
+		const auto tail = tail_.fetch_add(1, std::memory_order_relaxed);
 		return DoDequeue(tail);
 	}
 
@@ -197,7 +199,10 @@ private:
 	Type DoDequeue(size_t tail) noexcept {
 		const auto index = tail % capacity_;
 		auto temp = LockFree::DequeueWait(states_[index], queue_[index]);
-		queue_[index].~Type();
+
+		if constexpr (!std::is_trivially_destructible_v<Type>) {
+			queue_[index].~Type();
+		}		
 		return temp;
 	}
 

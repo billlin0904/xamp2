@@ -14,6 +14,8 @@ namespace dao {
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumDao final {
 public:
+    AlbumDao();
+
     explicit AlbumDao(QSqlDatabase& db);
 
     void setAlbumCover(int32_t album_id, const QString& cover_id);

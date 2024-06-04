@@ -1,5 +1,6 @@
 #include <QDir>
 
+#include <widget/database.h>
 #include <widget/dao/playlistdao.h>
 #include <widget/dao/musicdao.h>
 #include <widget/dao/albumdao.h>
@@ -44,6 +45,10 @@ namespace dao {
 
             return entity;
         }
+    }
+
+    AlbumDao::AlbumDao()
+        : AlbumDao(qGuiDb.getDatabase()) {
     }
 
 	AlbumDao::AlbumDao(QSqlDatabase& db)

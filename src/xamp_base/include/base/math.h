@@ -87,6 +87,7 @@ XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
 * @return int32_t
 */
 XAMP_ALWAYS_INLINE size_t NextPowerOfTwo(size_t v) noexcept {
+	if (v == 0) return 1;
 	v--;
 	v |= v >> 1;
 	v |= v >> 2;

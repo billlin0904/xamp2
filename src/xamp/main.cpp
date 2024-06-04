@@ -259,6 +259,8 @@ int main() {
         .Startup();
 
     qputenv("QT_ICC_PROFILE", QByteArray());
+    QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
+
     qAppSettings.loadIniFile(qTEXT("xamp.ini"));
     qJsonSettings.loadJsonFile(qTEXT("config.json"));
 

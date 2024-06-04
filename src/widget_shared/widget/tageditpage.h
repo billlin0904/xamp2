@@ -10,6 +10,7 @@
 #include <widget/util/str_util.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playlistentity.h>
+#include <widget/dao/artistdao.h>
 
 namespace Ui {
 	class TagEditPage;
@@ -40,5 +41,6 @@ private:
 	QString temp_file_path_;
 	QPixmap temp_image_;
 	QList<PlayListEntity> entities_;
+	dao::ArtistDao artist_dao_;
 	Ui::TagEditPage *ui_;
 };

@@ -13,6 +13,8 @@ namespace dao {
 
 class XAMP_WIDGET_SHARED_EXPORT PlaylistDao final {
 public:
+    PlaylistDao();
+
     explicit PlaylistDao(QSqlDatabase& db);
 
     int32_t addPlaylist(const QString& name, int32_t play_index, StoreType store_type, const QString& cloud_playlist_id = kEmptyString);

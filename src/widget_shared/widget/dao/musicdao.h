@@ -13,6 +13,8 @@ namespace dao {
 
 class XAMP_WIDGET_SHARED_EXPORT MusicDao final {
 public:
+    MusicDao();
+
     explicit MusicDao(QSqlDatabase& db);
 
     int32_t addOrUpdateMusic(const TrackInfo& track_info);

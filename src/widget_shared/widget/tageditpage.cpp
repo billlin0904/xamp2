@@ -143,7 +143,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			entity.year = ui_->yearLineEdit->text().toUInt();
 
 			dao::AlbumDao(qGuiDb.getDatabase()).updateAlbum(entity.album_id, entity.album);
-			dao::ArtistDao(qGuiDb.getDatabase()).updateArtist(entity.artist_id, entity.artist);
+			artist_dao_.updateArtist(entity.artist_id, entity.artist);
 		} catch (...) {
 			XMessageBox::showError(tr("Write tag failure!"));
 			return;

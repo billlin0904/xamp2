@@ -38,14 +38,7 @@ public slots:
 
 	void cancelRequested();
 
-	void onLookupAlbumCover(const DatabaseCoverId& id, const Path& path);
-
-private slots:
-	void onLookupAlbumCoverTimeout();	
-
 private:
-	void lookupAlbumCover(const DatabaseCoverId& id, const Path& file_path);
-
 	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;

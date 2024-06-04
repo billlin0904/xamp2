@@ -1,6 +1,10 @@
 #include <widget/dao/artistdao.h>
 
 namespace dao {
+    ArtistDao::ArtistDao()
+        : ArtistDao(qGuiDb.getDatabase()) {
+    }
+
 	ArtistDao::ArtistDao(QSqlDatabase& db)
 		: db_(db) {
 	}
