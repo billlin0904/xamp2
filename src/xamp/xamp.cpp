@@ -37,6 +37,7 @@
 #include <widget/appsettings.h>
 #include <widget/cdpage.h>
 #include <widget/createplaylistview.h>
+#include <widget/xtooltip.h>
 
 #include <widget/equalizerview.h>
 #include <widget/filesystemviewpage.h>
@@ -1044,6 +1045,8 @@ void Xamp::initialUi() {
     ui_.artistLabel->setFont(f);    
 
     QToolTip::hideText();
+    f.setPointSize(qTheme.fontSize(12));
+    QToolTip::setFont(f);
 
     f.setWeight(QFont::DemiBold);
     f.setPointSize(10);
@@ -2059,7 +2062,6 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     if (open_done) {
         setCover(entity.validCoverId());
     }
-
     update();
 }
 

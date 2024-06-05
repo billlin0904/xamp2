@@ -9,6 +9,7 @@
 #include <QListView>
 #include <QStandardItemModel>
 
+#include <widget/xtooltip.h>
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
@@ -43,8 +44,10 @@ signals:
 
 public slots:
     void onThemeChangedFinished(ThemeColor theme_color);
-
+    
 private:
+    void mouseMoveEvent(QMouseEvent* event) override;
+
     QStandardItemModel model_;
     QMap<int, QString> names_;
     QMap<QString, int> ids_;

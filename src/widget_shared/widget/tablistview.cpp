@@ -47,6 +47,18 @@ int32_t TabListView::currentTabId() const {
     return table_id;
 }
 
+void TabListView::mouseMoveEvent(QMouseEvent* event) {
+    auto index = indexAt(event->pos());
+    if (index.isValid()) {
+        auto tooltip_text = model()->data(index, Qt::ToolTipRole).toString();
+        if (!tooltip_text.isEmpty()) {
+            auto global_pos = viewport()->mapToGlobal(event->pos());
+            XTooltip::popup(global_pos + QPoint(10, 10), tooltip_text);
+        }
+    }
+    QListView::mouseMoveEvent(event);
+}
+
 void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
     for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);

@@ -94,10 +94,6 @@ void AlbumViewPage::onThemeChangedFinished(ThemeColor theme_color) {
     close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 }
 
-void AlbumViewPage::paintEvent(QPaintEvent* event) {
-    QPainter painter(this);
-}
-
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
     if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         setStyleSheet(qSTR(
@@ -172,8 +168,7 @@ AlbumView::AlbumView(QWidget* parent)
     setFlow(QListView::LeftToRight);
     setViewMode(QListView::IconMode);
     setResizeMode(QListView::Adjust);
-    setFrameStyle(QFrame::StyledPanel);
-    setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setFrameStyle(QFrame::StyledPanel);    
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(styled_delegate_);
     setAutoScroll(false);

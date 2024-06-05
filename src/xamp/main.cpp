@@ -101,7 +101,10 @@ namespace {
         const auto disable_stacktrace =
             qAppSettings.valueAsBool(kAppSettingEnableDebugStackTrace);
 
-        auto get_file_name = [&context]() {
+        auto get_file_name = [&context]() -> std::string {
+            if (!context.file) {
+                return "";
+            }
             const std::string str(context.file);
             const auto pos = str.rfind("\\");
             if (pos != std::string::npos) {

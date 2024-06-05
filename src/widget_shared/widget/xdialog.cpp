@@ -155,6 +155,9 @@ void XDialog::setIcon(const QIcon& icon) const {
 }
 
 void XDialog::closeEvent(QCloseEvent* event) {
+    if (!content_) {
+        return;
+    }
     if (!content_->close()) {
         event->ignore();
         return;

@@ -54,8 +54,6 @@ public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
-	void paintEvent(QPaintEvent* event) override;
-
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
 };
