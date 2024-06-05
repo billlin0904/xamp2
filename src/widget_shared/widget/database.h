@@ -78,9 +78,10 @@ enum PlayingState {
 };
 
 enum class StoreType {
-	LOCAL_STORE = -1,
-	CLOUD_STORE = -2,
-	CLOUD_SEARCH_STORE = -3,
+	LOCAL_STORE,
+	PLAYLIST_LOCAL_STORE,
+	CLOUD_STORE,
+	CLOUD_SEARCH_STORE,
 };
 
 inline bool isCloudStore(const StoreType store_type) {

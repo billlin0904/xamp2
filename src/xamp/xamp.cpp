@@ -1962,7 +1962,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity) {
 
 void Xamp::ensureLocalOnePlaylistPage() {
 	if (playlist_tab_page_->count() == 0) {
-		const auto playlist_id = playlist_dao_.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+		const auto playlist_id = playlist_dao_.addPlaylist(tr("Playlist"), 0, StoreType::PLAYLIST_LOCAL_STORE);
 		newPlaylistPage(playlist_tab_page_.get(), playlist_id, kEmptyString, tr("Playlist"));
 	}
 }
@@ -2210,7 +2210,7 @@ void Xamp::onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids) {
 
     if (playlist_id == kInvalidDatabaseId) {
         const auto tab_index = playlist_tab_page_->count();
-        const auto playlist_id = playlist_dao_.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
+        const auto playlist_id = playlist_dao_.addPlaylist(tr("Playlist"), tab_index, StoreType::PLAYLIST_LOCAL_STORE);
         newPlaylistPage(playlist_tab_page_.get(), playlist_id, kEmptyString, tr("Playlist"));
         playlist_dao_.addMusicToPlaylist(music_ids, playlist_id);
 	}
@@ -2286,7 +2286,7 @@ void Xamp::initialPlaylist() {
         if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
             return;
         }
-        if (store_type == StoreType::LOCAL_STORE) {
+        if (store_type == StoreType::LOCAL_STORE || store_type == StoreType::PLAYLIST_LOCAL_STORE) {
             auto* playlist_page = newPlaylistPage(playlist_tab_page_.get(), playlist_id, kEmptyString, name);
             playlist_page->playlist()->enableCloudMode(false);
             playlist_page->pageTitle()->hide();
@@ -2309,13 +2309,13 @@ void Xamp::initialPlaylist() {
     ensureLocalOnePlaylistPage();
 
     if (!playlist_dao_.isPlaylistExist(kAlbumPlaylistId)) {
-        playlist_dao_.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+        playlist_dao_.addPlaylist(tr("Album Playlist"), 0, StoreType::LOCAL_STORE);
     }
     if (!playlist_dao_.isPlaylistExist(kCdPlaylistId)) {
-        playlist_dao_.addPlaylist(tr("Playlist"), 1, StoreType::LOCAL_STORE);
+        playlist_dao_.addPlaylist(tr("CD Playlist"), 0, StoreType::LOCAL_STORE);
     }
     if (!playlist_dao_.isPlaylistExist(kYtMusicSearchPlaylistId)) {
-        playlist_dao_.addPlaylist(tr("Playlist"), 1, StoreType::CLOUD_STORE);
+        playlist_dao_.addPlaylist(tr("Yt Music Search Playlist"), 0, StoreType::CLOUD_STORE);
     }
 
     playlist_tab_page_->restoreTabOrder();
@@ -2375,7 +2375,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(playlist_tab_page_.get(), &PlaylistTabWidget::createNewPlaylist,
         [this]() {
             const auto tab_index = playlist_tab_page_->count();
-            const auto playlist_id = playlist_dao_.addPlaylist(tr("Playlist"), tab_index, StoreType::LOCAL_STORE);
+            const auto playlist_id = playlist_dao_.addPlaylist(tr("Playlist"), tab_index, StoreType::PLAYLIST_LOCAL_STORE);
             newPlaylistPage(playlist_tab_page_.get(), playlist_id, kEmptyString, tr("Playlist"));
         });
 
@@ -2850,7 +2850,7 @@ PlaylistPage* Xamp::localPlaylistPage() const {
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
-    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE, [this](auto music_id, auto album_id) {
+    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::PLAYLIST_LOCAL_STORE, [this](auto music_id, auto album_id) {
         emit findAlbumCover(DatabaseCoverId(music_id, album_id));
     });
     ensureLocalOnePlaylistPage();

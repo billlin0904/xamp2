@@ -81,7 +81,7 @@ private:
 
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
-	StoreType store_type_{ StoreType::LOCAL_STORE };
+	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* plus_button_{ nullptr };
 };
 

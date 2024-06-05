@@ -295,41 +295,40 @@ int32_t PlaylistTabWidget::currentPlaylistId() const {
 }
 
 void PlaylistTabWidget::saveTabOrder() const {
-	dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+    dao::PlaylistDao playlist_dao;
 
     for (int i = 0; i < tabBar()->count(); ++i) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         Q_ASSERT(playlist_page != nullptr);
         const auto* playlist = playlist_page->playlist();
         playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+        XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+    dao::PlaylistDao playlist_dao;
 	const auto playlist_index = playlist_dao.getPlaylistIndex(store_type_);
 
-    QList<QWidget*> widgets;
     QList<QString> texts;
     QList<int> new_order;
 
-    for (int i = 0; i < tabBar()->count(); ++i) {
-        auto itr = playlist_index.find(i);
-        if (itr == playlist_index.end()) {
-            continue;
-        }
-        const auto playlist_id = itr->second;
+    for (auto& [index, playlist_id] : playlist_index) {
+        auto found = false;
         for (int j = 0; j < tabBar()->count(); ++j) {
-            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(j));
             Q_ASSERT(playlist_page != nullptr);
-            const auto* playlist = playlist_page->playlist();
-            if (playlist->playlistId() == playlist_id) {
-                widgets.append(playlist_page);
-                texts.append(tabText(i));
-                new_order.append(i);
+            const auto widget_playlist_id = playlist_page->playlist()->playlistId();
+            if (widget_playlist_id == playlist_id) {
+                XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", widget_playlist_id, j);
+                texts.append(tabText(j));
+                new_order.append(j);
+                found = true;
                 break;
             }
         }
+
+        Q_ASSERT(found);
     }
 
     // 移動 tab 的順序
@@ -345,6 +344,10 @@ void PlaylistTabWidget::restoreTabOrder() {
     // 重新設置 tab 的 icon
     for (int i = 0; i < new_order.size(); ++i) {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+    }
+
+    for (int i = 0; i < tabBar()->count(); ++i) {
+        XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", tabText(i).toStdString(), i);
     }
 }
 
