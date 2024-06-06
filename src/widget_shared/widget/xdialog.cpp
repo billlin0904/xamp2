@@ -17,7 +17,7 @@ XDialog::XDialog(QWidget* parent, bool modal)
     setModal(modal);
 }
 
-void XDialog::setContent(QWidget* content) {
+void XDialog::setContent(QWidget* content, bool no_title_frame) {
     content_ = content;
 
     auto* default_layout = new QVBoxLayout(this);
@@ -54,12 +54,12 @@ void XDialog::setContent(QWidget* content) {
         break;
     }
     title_frame_label_->setStyleSheet(qSTR(R"(
-    QLabel#titleFrameLabel {
-    border: none;
-    background: transparent;
-	color: %1;
-    }
-    )").arg(color));
+        QLabel#titleFrameLabel {
+        border: none;
+        background: transparent;
+	    color: %1;
+        }
+        )").arg(color));
 
     close_button_ = new QToolButton(title_frame_);
     close_button_->setObjectName(QString::fromUtf8("closeButton"));
@@ -103,7 +103,10 @@ void XDialog::setContent(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    default_layout->addWidget(title_frame_, 0);
+    if (!no_title_frame) {        
+        default_layout->addWidget(title_frame_, 0);
+    }
+
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
@@ -124,10 +127,19 @@ void XDialog::setContent(QWidget* content) {
         this,
         &XDialog::onThemeChangedFinished);
 
-    FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame_);
+    if (!no_title_frame) {
+        FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame_);
+    }
+    else {
+        title_frame_->hide();
+        close_button_->hide();
+    }
+
     FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
-    FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
+    if (no_title_frame) {
+        FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
+    }    
     
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
     adjustSize();
@@ -141,8 +153,8 @@ void XDialog::setTitle(const QString& title) const {
     title_frame_label_->setText(title);
 }
 
-void XDialog::setContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {
-    setContent(content);
+void XDialog::setContentWidget(QWidget* content, bool no_moveable, bool disable_resize, bool no_title_frame) {
+    setContent(content, no_title_frame);
     FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
     if (no_moveable) {
         FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame_);

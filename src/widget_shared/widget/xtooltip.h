@@ -19,7 +19,7 @@
 #include <widget/xdialog.h>
 #include <widget/util/str_util.h>
 
-class XAMP_WIDGET_SHARED_EXPORT XTooltip : public QDialog {
+class XAMP_WIDGET_SHARED_EXPORT XTooltip : public XDialog {
     Q_OBJECT
 
 public:
