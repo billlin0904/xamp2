@@ -59,10 +59,11 @@ void TabListView::mouseMoveEvent(QMouseEvent* event) {
         auto tooltip_text = item->text();
         if (!tooltip_text.isEmpty()) {            
             if (tooltip_.text() != tooltip_text && qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
-                auto global_pos = viewport()->mapToGlobal(event->pos());
+                const auto item_rect = visualRect(index);
+                const auto global_pos = viewport()->mapToGlobal(item_rect.topRight());
                 tooltip_.setText(tooltip_text);
                 tooltip_.move(global_pos + QPoint(5, 0));
-                tooltip_.show();
+                tooltip_.showAndStart();
             }
         }
     }
@@ -96,6 +97,7 @@ void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
             break;
         }
     }
+	tooltip_.onThemeChangedFinished(theme_color);
 }
 
 void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {

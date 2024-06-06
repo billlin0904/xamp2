@@ -98,6 +98,8 @@ public:
 
 	QModelIndex shuffleIndex();
 
+	QModelIndex shuffleAlbumIndex();
+
 	QModelIndex nextIndex(int forward) const;
 
 	std::optional<QModelIndex> selectFirstItem() const;

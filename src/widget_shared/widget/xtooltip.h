@@ -39,9 +39,13 @@ public:
 
     QString text() const;
 
+    void showAndStart();
+
+    void onThemeChangedFinished(ThemeColor theme_color);
 protected:
     bool eventFilter(QObject* obj, QEvent* e);
 
 private:
     QLabel* text_;
+	QTimer timer_;
 };

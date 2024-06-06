@@ -935,8 +935,44 @@ QModelIndex PlayListTableView::shuffleIndex() {
     if (current_playlist_music_id != 0) {
         rng_.SetSeed(current_playlist_music_id);
     }    
-    const auto selected = rng_.NextInt32(0) % count;
+    const auto selected = rng_.NextInt32(0, count - 1);
     return model()->index(selected, PLAYLIST_IS_PLAYING);
+}
+
+QModelIndex PlayListTableView::shuffleAlbumIndex() {
+    auto current_playlist_album_id = 0;
+    if (play_index_.isValid()) {
+        current_playlist_album_id = indexValue(play_index_, PLAYLIST_ALBUM_ID).toInt();
+    }
+    const auto count = proxy_model_->rowCount();
+    if (count == 0) {
+        return QModelIndex();
+    }
+
+    QHash<int32_t, QList<int32_t>> album_map;
+    for (auto row = 0; row < count; ++row) {
+        auto album_id = proxy_model_->index(row, PLAYLIST_ALBUM_ID).data().toInt();
+        if (album_id != 0) {
+            album_map[album_id].append(row);
+        }        
+    }
+
+    auto album_ids = album_map.keys();
+    auto selected_album_id = current_playlist_album_id;
+
+    if (album_ids.size() > 1) {
+        do {
+            const auto selected_album_index = rng_.NextInt32(0, album_ids.size() - 1);
+            selected_album_id = album_ids[selected_album_index];
+        } while (selected_album_id == current_playlist_album_id);
+        Q_ASSERT(selected_album_id != current_playlist_album_id);
+    }    
+
+    const auto& selected_album_songs = album_map[selected_album_id];
+    const auto selected_song_index = rng_.NextInt32(0, selected_album_songs.size() - 1);
+    const auto selected_row = selected_album_songs[selected_song_index];
+
+    return model()->index(selected_row, PLAYLIST_IS_PLAYING);
 }
 
 void PlayListTableView::setNowPlaying(const QModelIndex& index) {
@@ -1009,7 +1045,10 @@ QModelIndex PlayListTableView::playOrderIndex(PlayerOrder order) {
         index = play_index_;
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        index = shuffleIndex();
+        index = shuffleIndex();        
+        break;
+    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALBUM:
+        index = shuffleAlbumIndex();
         break;
     }
     if (!index.isValid()) {

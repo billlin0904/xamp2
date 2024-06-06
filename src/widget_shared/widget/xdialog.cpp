@@ -25,6 +25,13 @@ void XDialog::setContent(QWidget* content, bool no_title_frame) {
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
     setLayout(default_layout);
 
+    if (no_title_frame) {
+        default_layout->addWidget(content_, 1);
+        default_layout->setContentsMargins(0, 0, 0, 0);
+        adjustSize();
+        return;
+    }
+
     title_frame_ = new QFrame();
     title_frame_->setObjectName(QString::fromUtf8("titleFrame"));
     title_frame_->setMinimumSize(QSize(0, kMaxTitleHeight));
@@ -137,9 +144,7 @@ void XDialog::setContent(QWidget* content, bool no_title_frame) {
 
     FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
-    if (no_title_frame) {
-        FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
-    }    
+    FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
     
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
     adjustSize();
