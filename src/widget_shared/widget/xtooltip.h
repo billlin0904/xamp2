@@ -23,7 +23,7 @@ class XAMP_WIDGET_SHARED_EXPORT XTooltip : public XDialog {
     Q_OBJECT
 
 public:
-    explicit XTooltip(const QString& text, QWidget* parent = nullptr);
+    explicit XTooltip(const QString& text = QString(), QWidget* parent = nullptr);
 
     static void popup(QPoint pos, const QString& text) {
         auto* t = new XTooltip(text);
@@ -35,9 +35,13 @@ public:
         XTooltip::popup(QCursor::pos(), text);
     }
 
+    void setText(const QString& text);
+
+    QString text() const;
+
 protected:
     bool eventFilter(QObject* obj, QEvent* e);
 
 private:
-    QTimer timer_;
+    QLabel* text_;
 };

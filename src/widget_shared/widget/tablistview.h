@@ -8,9 +8,11 @@
 #include <QMap>
 #include <QListView>
 #include <QStandardItemModel>
+#include <QElapsedTimer>
 
 #include <widget/xtooltip.h>
 #include <widget/themecolor.h>
+#include <widget/xtooltip.h>
 #include <widget/widget_shared_global.h>
 
 enum TabIndex {
@@ -28,7 +30,7 @@ class XAMP_WIDGET_SHARED_EXPORT TabListView final : public QListView {
 public:
     explicit TabListView(QWidget *parent = nullptr);
 
-    void addTab(const QString& name, int table_id, const QIcon &icon);
+    void addTab(const QString& name, int table_id, const QIcon& icon);
 
     void addSeparator();
 
@@ -51,5 +53,6 @@ private:
     QStandardItemModel model_;
     QMap<int, QString> names_;
     QMap<QString, int> ids_;
+    XTooltip tooltip_;
 };
 

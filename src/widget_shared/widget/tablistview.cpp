@@ -1,5 +1,8 @@
 #include <widget/tablistview.h>
 #include <widget/util/str_util.h>
+
+#include <widget/appsettings.h>
+#include <widget/appsettingnames.h>
 #include <thememanager.h>
 
 TabListView::TabListView(QWidget *parent)
@@ -22,6 +25,8 @@ TabListView::TabListView(QWidget *parent)
         auto table_name = item->data(Qt::DisplayRole).toString();
         emit tableNameChanged(table_id, table_name);
     });
+
+    tooltip_.hide();
 }
 
 QString TabListView::tabName(int table_id) const {
@@ -50,10 +55,15 @@ int32_t TabListView::currentTabId() const {
 void TabListView::mouseMoveEvent(QMouseEvent* event) {
     auto index = indexAt(event->pos());
     if (index.isValid()) {
-        auto tooltip_text = model()->data(index, Qt::ToolTipRole).toString();
-        if (!tooltip_text.isEmpty()) {
-            auto global_pos = viewport()->mapToGlobal(event->pos());
-            XTooltip::popup(global_pos + QPoint(10, 10), tooltip_text);
+        auto* item = model_.item(index.row(), index.column());
+        auto tooltip_text = item->text();
+        if (!tooltip_text.isEmpty()) {            
+            if (tooltip_.text() != tooltip_text && qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
+                auto global_pos = viewport()->mapToGlobal(event->pos());
+                tooltip_.setText(tooltip_text);
+                tooltip_.move(global_pos + QPoint(5, 0));
+                tooltip_.show();
+            }
         }
     }
     QListView::mouseMoveEvent(event);
@@ -93,7 +103,6 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     item->setData(table_id);
     item->setIcon(icon);
     item->setSizeHint(QSize(36, 36));        
-    item->setToolTip(name);
     auto f = item->font();
     f.setPointSize(qTheme.fontSize(9));
     item->setFont(f);
