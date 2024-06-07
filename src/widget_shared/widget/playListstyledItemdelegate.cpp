@@ -33,7 +33,7 @@ void PlayListStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
 
     opt.state &= ~QStyle::State_HasFocus;
 
-    const auto* view = qobject_cast<const PlayListTableView*>(opt.styleObject);
+    const auto* view = qobject_cast<const PlaylistTableView*>(opt.styleObject);
     const auto behavior = view->selectionBehavior();
     const auto hover_index = view->hoverIndex();
 

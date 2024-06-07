@@ -735,7 +735,7 @@ AlbumViewPage* AlbumView::albumViewPage() {
             this,
             &AlbumView::clickedArtist);
         (void)QObject::connect(page_->playlistPage()->playlist(),
-            &PlayListTableView::updatePlayingState,
+            &PlaylistTableView::updatePlayingState,
             this,
             [this](auto entity, auto playing_state) {
                 styled_delegate_->setPlayingAlbumId(playing_state == PlayingState::PLAY_CLEAR ? -1 : entity.album_id);

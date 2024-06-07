@@ -72,6 +72,52 @@ PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
 	return nullptr;
 }
 
+void PlaylistTabWidget::setCurrentNowPlaying() {
+    setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0));
+}
+
+void PlaylistTabWidget::setNowPlaying(int32_t playlist_id) {
+    auto icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        if (playlist_page->playlist()->playlistId() == playlist_id) {
+            setTabIcon(i, icon);
+        }
+        else {
+            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+        }
+    }
+}
+
+void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState state) {
+    QIcon icon;
+
+    switch (state) {
+    case PlayerState::PLAYER_STATE_RUNNING:
+        icon = qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+        break;
+    case PlayerState::PLAYER_STATE_PAUSED:
+        icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+        break;
+    case PlayerState::PLAYER_STATE_STOPPED:
+    case PlayerState::PLAYER_STATE_USER_STOPPED:
+    default:
+        icon = qTheme.fontIcon(Glyphs::ICON_DRAFT);
+        break;
+    }
+
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        if (playlist_page->playlist()->playlistId() == playlist_id) {
+            setTabIcon(i, icon);
+        }
+        else {
+            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+        }
+    }
+}
+
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");

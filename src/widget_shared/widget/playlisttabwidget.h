@@ -56,6 +56,12 @@ public:
 	}
 
 	PlaylistPage* findPlaylistPage(int32_t playlist_id);
+
+	void setCurrentNowPlaying();
+
+	void setNowPlaying(int32_t playlist_id);
+
+	void setPlayerStateIcon(int32_t playlist_id, PlayerState state);
 signals:
 	void createNewPlaylist();
 

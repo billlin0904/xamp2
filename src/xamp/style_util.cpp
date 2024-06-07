@@ -174,6 +174,9 @@ void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         setShufflePlayOrder(ui);
         break;
+    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALBUM:
+        setShufflePlayOrder(ui);
+        break;
     default:
         break;
     }

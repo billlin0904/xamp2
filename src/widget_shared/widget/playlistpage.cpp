@@ -153,7 +153,7 @@ void PlaylistPage::initial() {
 
 	horizontalLayout_8->addItem(horizontal_spacer_4_);
 
-	playlist_ = new PlayListTableView(this);
+	playlist_ = new PlaylistTableView(this);
 	playlist_->setObjectName(QString::fromUtf8("tableView"));
 
 	horizontalLayout_8->addWidget(playlist_);
@@ -171,7 +171,7 @@ void PlaylistPage::initial() {
 	default_layout->setStretch(4, 1);
 
 	(void)QObject::connect(playlist_,
-		&PlayListTableView::updateAlbumCover,
+		&PlaylistTableView::updateAlbumCover,
 		this,
 		&PlaylistPage::onSetCoverById);
 
@@ -296,6 +296,6 @@ void PlaylistPage::onSetCoverById(const QString& cover_id) {
 	setCover(&cover);
 }
 
-PlayListTableView* PlaylistPage::playlist() {
+PlaylistTableView* PlaylistPage::playlist() {
     return playlist_;
 }

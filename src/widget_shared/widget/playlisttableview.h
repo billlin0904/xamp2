@@ -27,7 +27,7 @@ enum PlayListGroup {
 	PLAYLIST_GROUP_NONE,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlayListTableView final : public QTableView {
+class XAMP_WIDGET_SHARED_EXPORT PlaylistTableView final : public QTableView {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxPendingPlayListSize = 100;
@@ -43,9 +43,9 @@ public:
 	static constexpr auto kColumnWidth            = 48;
 	static constexpr auto kColumnHeight           = 46;
 
-	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
+	explicit PlaylistTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
-	virtual ~PlayListTableView() override;
+	virtual ~PlaylistTableView() override;
 
 	void disableDelete(bool enable = false) {
 		enable_delete_ = enable;
@@ -133,7 +133,7 @@ public:
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
-	void playMusic(const PlayListEntity& item, bool is_plays);
+	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_plays, bool is_doubleclicked);
 
     void encodeFlacFile(const PlayListEntity& item);
 
@@ -162,7 +162,7 @@ signals:
 	void addPlaylist(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 public slots:
-	void onPlayIndex(const QModelIndex& index, bool is_play = false);
+	void onPlayIndex(const QModelIndex& index, bool is_play = false, bool is_doubleclicked = false);
 
 	void onProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
@@ -179,7 +179,7 @@ public slots:
 private:
 	PlayListEntity item(const QModelIndex& index) const;
 
-	void playItem(const QModelIndex& index);
+	void playItem(const QModelIndex& index, bool is_doubleclicked);
 
 	void pauseItem(const QModelIndex& index);
 

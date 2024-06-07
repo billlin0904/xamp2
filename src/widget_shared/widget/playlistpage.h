@@ -20,7 +20,7 @@ class QSpacerItem;
 class QLabel;
 class QToolButton;
 class ScrollLabel;
-class PlayListTableView;
+class PlaylistTableView;
 
 enum Match {
 	MATCH_NONE,
@@ -37,7 +37,7 @@ public:
 
 	ProcessIndicator* spinner();
 
-	PlayListTableView* playlist();
+	PlaylistTableView* playlist();
 
 	QLabel* cover();
 
@@ -62,7 +62,7 @@ public:
 	void showCompleter();
 
 signals:
-	void playMusic(const PlayListEntity& item, bool is_play);
+	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_play, bool is_doubleclicked);
 
 	void search(const QString& text, Match match);
 
@@ -82,7 +82,7 @@ private:
 	int32_t album_heart_{ 0 };
 	QLabel* page_title_label_{ nullptr };
 	QToolButton *heart_button_{ nullptr };
-	PlayListTableView* playlist_{ nullptr };
+	PlaylistTableView* playlist_{ nullptr };
 	QLabel* cover_{ nullptr };
     ScrollLabel* title_{ nullptr };
 	QLabel* format_{ nullptr };

@@ -138,7 +138,7 @@ ORDER BY
     }
 }
 
-void PlayListTableView::search(const QString& keyword) const {
+void PlaylistTableView::search(const QString& keyword) const {
 	const QRegularExpression reg_exp(keyword, QRegularExpression::CaseInsensitiveOption);
     proxy_model_->addFilterByColumn(PLAYLIST_TITLE);
     proxy_model_->addFilterByColumn(PLAYLIST_ARTIST);
@@ -146,7 +146,7 @@ void PlayListTableView::search(const QString& keyword) const {
     proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
-void PlayListTableView::reload(bool is_scroll_to) {
+void PlaylistTableView::reload(bool is_scroll_to) {
     std::optional<PlayListEntity> entity;
     if (play_index_.isValid()) {
         entity.emplace(item(play_index_));
@@ -185,7 +185,7 @@ void PlayListTableView::reload(bool is_scroll_to) {
     update();
 }
 
-PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
+PlaylistTableView::PlaylistTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
     , playlist_id_(playlist_id)
     , model_(new PlayListSqlQueryTableModel(this))
@@ -193,9 +193,9 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     initial();
 }
 
-PlayListTableView::~PlayListTableView() = default;
+PlaylistTableView::~PlaylistTableView() = default;
 
-void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &column_setting_name) {
+void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &column_setting_name) {
     dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
 
     playlist_id_ = playlist_id;
@@ -304,7 +304,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id, const QString &
     }
 }
 
-void PlayListTableView::setHeaderViewHidden(bool enable) {
+void PlaylistTableView::setHeaderViewHidden(bool enable) {
 	if (enable) {
         horizontalHeader()->hide();
         horizontalHeader()->setContextMenuPolicy(Qt::NoContextMenu);
@@ -314,7 +314,7 @@ void PlayListTableView::setHeaderViewHidden(bool enable) {
     horizontalHeader()->show();
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
-        ActionMap<PlayListTableView> action_map(this);
+        ActionMap<PlaylistTableView> action_map(this);
 
     auto* header_view = horizontalHeader();
 
@@ -326,7 +326,7 @@ void PlayListTableView::setHeaderViewHidden(bool enable) {
     hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
     auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
-        ActionMap<PlayListTableView> action_map(this);
+        ActionMap<PlaylistTableView> action_map(this);
         for (auto column = 0; column < header_view->count(); ++column) {
             if (always_hidden_columns_.contains(column)) {
                 continue;
@@ -345,7 +345,7 @@ void PlayListTableView::setHeaderViewHidden(bool enable) {
     });
 }
 
-void PlayListTableView::initial() {
+void PlaylistTableView::initial() {
     proxy_model_->addFilterByColumn(PLAYLIST_TITLE);
     proxy_model_->addFilterByColumn(PLAYLIST_ALBUM);
     proxy_model_->setSourceModel(model_);
@@ -404,7 +404,7 @@ void PlayListTableView::initial() {
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         if (model_->rowCount() > 0) {
-            playItem(index);
+            playItem(index, true);
         }        
     });
 
@@ -412,7 +412,7 @@ void PlayListTableView::initial() {
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 		
-        ActionMap<PlayListTableView> action_map(this);
+        ActionMap<PlaylistTableView> action_map(this);
 
         PlayListEntity entity;
         if (model_->rowCount() > 0 && index.isValid()) {
@@ -726,7 +726,7 @@ void PlayListTableView::initial() {
     setFocusPolicy(Qt::StrongFocus);
 }
 
-void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
+void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
     dao::MusicDao music_dao(qGuiDb.getDatabase());
 
     XAMP_TRY_LOG(
@@ -736,7 +736,7 @@ void PlayListTableView::onReloadEntity(const PlayListEntity& item) {
         );
 }
 
-void PlayListTableView::pauseItem(const QModelIndex& index) {
+void PlaylistTableView::pauseItem(const QModelIndex& index) {
     dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
 
     const auto entity = item(index);
@@ -744,25 +744,25 @@ void PlayListTableView::pauseItem(const QModelIndex& index) {
     update();
 }
 
-PlayListEntity PlayListTableView::item(const QModelIndex& index) const {
+PlayListEntity PlaylistTableView::item(const QModelIndex& index) const {
     return getEntity(index);
 }
 
-void PlayListTableView::playItem(const QModelIndex& index) {
+void PlaylistTableView::playItem(const QModelIndex& index, bool is_doubleclicked) {
     setNowPlaying(index);
     if (!play_index_.isValid()) {
         return;
     }
     const auto play_item = item(play_index_);
-    emit playMusic(play_item, true);
+    emit playMusic(playlistId(), play_item, true, is_doubleclicked);
 }
 
-void PlayListTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
+void PlaylistTableView::onThemeColorChanged(QColor /*backgroundColor*/, QColor /*color*/) {
     setStyleSheet(qTEXT("border: none"));
     horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
 }
 
-void PlayListTableView::onUpdateReplayGain(int32_t playlistId,
+void PlaylistTableView::onUpdateReplayGain(int32_t playlistId,
     const PlayListEntity& entity,
     const ReplayGain& replay_gain) {
     if (playlistId != playlist_id_) {
@@ -800,11 +800,11 @@ void PlayListTableView::onUpdateReplayGain(int32_t playlistId,
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
-void PlayListTableView::keyPressEvent(QKeyEvent *event) {
+void PlaylistTableView::keyPressEvent(QKeyEvent *event) {
     QAbstractItemView::keyPressEvent(event);
 }
 
-bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
+bool PlaylistTableView::eventFilter(QObject* obj, QEvent* ev) {
     const auto type = ev->type();
     if (this == obj && type == QEvent::KeyPress) {
 	    const auto* event = dynamic_cast<QKeyEvent*>(ev);
@@ -816,11 +816,11 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     return QAbstractItemView::eventFilter(obj, ev);
 }
 
-void PlayListTableView::append(const QString& file_name) {
+void PlaylistTableView::append(const QString& file_name) {
     emit extractFile(file_name, playlistId());
 }
 
-void PlayListTableView::onProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {
+void PlaylistTableView::onProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities) {
     if (playlistId() != playlist_id) {
         return;
     }
@@ -832,17 +832,17 @@ void PlayListTableView::onProcessDatabase(int32_t playlist_id, const QList<PlayL
     emit addPlaylistItemFinished();
 }
 
-void PlayListTableView::onProcessTrackInfo(int32_t total_album, int32_t total_tracks) {
+void PlaylistTableView::onProcessTrackInfo(int32_t total_album, int32_t total_tracks) {
     reload();
     emit addPlaylistItemFinished();
 }
 
-void PlayListTableView::resizeEvent(QResizeEvent* event) {
+void PlaylistTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     resizeColumn();
 }
 
-void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
+void PlaylistTableView::mouseMoveEvent(QMouseEvent* event) {
     QTableView::mouseMoveEvent(event);
 
     const auto index = indexAt(event->pos());
@@ -864,7 +864,7 @@ void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
     }
 }
 
-void PlayListTableView::resizeColumn() {
+void PlaylistTableView::resizeColumn() {
     auto* header = horizontalHeader();
 	
     auto not_hide_column = 0;
@@ -907,26 +907,26 @@ void PlayListTableView::resizeColumn() {
     }
 }
 
-int32_t PlayListTableView::playlistId() const {
+int32_t PlaylistTableView::playlistId() const {
     return playlist_id_;
 }
 
-QModelIndex PlayListTableView::firstIndex() const {
+QModelIndex PlaylistTableView::firstIndex() const {
     return model()->index(0, 0);
 }
 
-void PlayListTableView::setOtherPlaylist(int32_t playlist_id) {
+void PlaylistTableView::setOtherPlaylist(int32_t playlist_id) {
     other_playlist_id_ = playlist_id;
 }
 
-QModelIndex PlayListTableView::nextIndex(int forward) const {
+QModelIndex PlaylistTableView::nextIndex(int forward) const {
     const auto count = proxy_model_->rowCount();
     const auto play_index = currentIndex();
     const auto next_index = (play_index.row() + forward) % count;
     return model()->index(next_index, PLAYLIST_IS_PLAYING);
 }
 
-QModelIndex PlayListTableView::shuffleIndex() {
+QModelIndex PlaylistTableView::shuffleIndex() {
     auto current_playlist_music_id = 0;
     if (play_index_.isValid()) {
         current_playlist_music_id = indexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
@@ -939,7 +939,7 @@ QModelIndex PlayListTableView::shuffleIndex() {
     return model()->index(selected, PLAYLIST_IS_PLAYING);
 }
 
-QModelIndex PlayListTableView::shuffleAlbumIndex() {
+QModelIndex PlaylistTableView::shuffleAlbumIndex() {
     auto current_playlist_album_id = 0;
     if (play_index_.isValid()) {
         current_playlist_album_id = indexValue(play_index_, PLAYLIST_ALBUM_ID).toInt();
@@ -975,7 +975,7 @@ QModelIndex PlayListTableView::shuffleAlbumIndex() {
     return model()->index(selected_row, PLAYLIST_IS_PLAYING);
 }
 
-void PlayListTableView::setNowPlaying(const QModelIndex& index) {
+void PlaylistTableView::setNowPlaying(const QModelIndex& index) {
     play_index_ = index;
     setCurrentIndex(play_index_);    
     const auto entity = item(play_index_);
@@ -985,7 +985,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index) {
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
-void PlayListTableView::setNowPlayState(PlayingState playing_state) {
+void PlaylistTableView::setNowPlayState(PlayingState playing_state) {
     if (proxy_model_->rowCount() == 0) {
         return;
     }
@@ -1000,11 +1000,11 @@ void PlayListTableView::setNowPlayState(PlayingState playing_state) {
     emit updatePlayingState(entity, playing_state);
 }
 
-void PlayListTableView::scrollToIndex(const QModelIndex& index) {
+void PlaylistTableView::scrollToIndex(const QModelIndex& index) {
     QTableView::scrollTo(index, PositionAtCenter);
 }
 
-std::optional<QModelIndex> PlayListTableView::selectFirstItem() const {
+std::optional<QModelIndex> PlaylistTableView::selectFirstItem() const {
     auto select_row = selectionModel()->selectedRows();
     if (select_row.isEmpty()) {
         return std::nullopt;
@@ -1012,7 +1012,7 @@ std::optional<QModelIndex> PlayListTableView::selectFirstItem() const {
     return std::optional<QModelIndex> { std::in_place_t{}, select_row[0] };
 }
 
-QList<PlayListEntity> PlayListTableView::items() const {
+QList<PlayListEntity> PlaylistTableView::items() const {
     QList<PlayListEntity> items;
     items.reserve(proxy_model_->rowCount());
     for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
@@ -1021,7 +1021,7 @@ QList<PlayListEntity> PlayListTableView::items() const {
     return items;
 }
 
-OrderedMap<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
+OrderedMap<int32_t, QModelIndex> PlaylistTableView::selectItemIndex() const {
     OrderedMap<int32_t, QModelIndex> select_items;
 
     Q_FOREACH(auto index, selectionModel()->selectedRows()) {
@@ -1034,7 +1034,7 @@ OrderedMap<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
     return select_items;
 }
 
-QModelIndex PlayListTableView::playOrderIndex(PlayerOrder order) {
+QModelIndex PlaylistTableView::playOrderIndex(PlayerOrder order) {
     QModelIndex index;
 
     switch (order) {
@@ -1057,40 +1057,40 @@ QModelIndex PlayListTableView::playOrderIndex(PlayerOrder order) {
     return index;
 }
 
-void PlayListTableView::play(PlayerOrder order, bool is_plays) {
+void PlaylistTableView::play(PlayerOrder order, bool is_plays) {
     if (!proxy_model_->rowCount()) {
         return;
     }
     onPlayIndex(playOrderIndex(order), is_plays);
 }
 
-void PlayListTableView::onPlayIndex(const QModelIndex& index, bool is_play) {
+void PlaylistTableView::onPlayIndex(const QModelIndex& index, bool is_play, bool is_doubleclicked) {
     if (!index.isValid()) {
         return;
     }
     play_index_ = index;
     setNowPlaying(play_index_);
     const auto entity = item(play_index_);
-    emit playMusic(entity, is_play);
+    emit playMusic(playlistId(), entity, is_play, is_doubleclicked);
 }
 
-void PlayListTableView::removePlaying() {
+void PlaylistTableView::removePlaying() {
     dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
     playlist_dao.clearNowPlaying(playlist_id_);
     reload();
 }
 
-void PlayListTableView::removeAll() {
+void PlaylistTableView::removeAll() {
     dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
     playlist_dao.removePlaylistAllMusic(playlistId());
     reload();
 }
 
-void PlayListTableView::removeItem(const QModelIndex& index) {
+void PlaylistTableView::removeItem(const QModelIndex& index) {
     proxy_model_->removeRows(index.row(), 1, index);
 }
 
-void PlayListTableView::removeSelectItems() {
+void PlaylistTableView::removeSelectItems() {
     const auto rows = selectItemIndex();
 
     dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());

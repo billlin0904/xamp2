@@ -55,7 +55,7 @@ class XProgressDialog;
 class AlbumCoverService;
 class FileSystemService;
 class PlaylistTabWidget;
-class PlayListTableView;
+class PlaylistTableView;
 class GenreViewPage;
 class YtMusicOAuth;
 class QScrollArea;
@@ -114,11 +114,11 @@ signals:
 public slots:
 	void onDelayedDownloadThumbnail();
 
-    void onPlayEntity(const PlayListEntity& entity);
+    void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked);
 
 	void ensureLocalOnePlaylistPage();
 
-	void onPlayMusic(const PlayListEntity& entity);
+	void onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_play, bool is_doubleclicked);
 
     void onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids);
 
@@ -250,7 +250,7 @@ private:
 
 	void cacheYtMusicFile(const PlayListEntity& entity);
 
-    void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done);
+    void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done, bool is_doubleclicked);
 
     void setupDsp(const PlayListEntity& item) const;
 
@@ -278,7 +278,7 @@ private:
 		const std::wstring& command,
 		AlignPtr<IFileEncoder> encoder);
 
-	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id);
+	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id, bool is_doubleclicked);
 
 	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 
@@ -295,8 +295,9 @@ private:
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	IXMainWindow* main_window_;
-	PlayListTableView* last_play_list_{ nullptr };
-	PlaylistPage* last_play_page_{ nullptr };
+	PlaylistTabWidget* last_playlist_tab_{ nullptr };
+	PlaylistTableView* last_playlist_{ nullptr };
+	PlaylistPage* last_playlist_page_{ nullptr };	
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;	
 	QScopedPointer<LrcPage> lrc_page_;	
