@@ -12,6 +12,7 @@
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playlistpage.h>
+#include <widget/dao/playlistdao.h>
 
 class QMouseEvent;
 class QPushButton;
@@ -89,5 +90,6 @@ private:
 
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* plus_button_{ nullptr };
+	dao::PlaylistDao playlist_dao_;
 };
 

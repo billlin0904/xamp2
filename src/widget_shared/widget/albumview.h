@@ -23,6 +23,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/albumviewstyleddelegate.h>
 #include <widget/playlisttableproxymodel.h>
+#include <widget/dao/playlistdao.h>
 
 class XProgressDialog;
 class DatabaseFacade;
@@ -56,6 +57,7 @@ public slots:
 private:
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
+	dao::PlaylistDao playlist_dao_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {
@@ -137,5 +139,6 @@ private:
 	//LazyLoadingModel model_;
 	QSqlQueryModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
+	dao::PlaylistDao playlist_dao_;
 };
 

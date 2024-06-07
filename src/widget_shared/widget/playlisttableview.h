@@ -16,6 +16,10 @@
 #include <widget/widget_shared_global.h>
 #include <widget/playListstyledItemdelegate.h>
 
+#include <widget/dao/playlistdao.h>
+#include <widget/dao/musicdao.h>
+#include <widget/dao/albumdao.h>
+
 #include <base/rng.h>
 #include <base/encodingprofile.h>
 
@@ -210,6 +214,7 @@ protected:
 	PRNG rng_;
 	QString column_setting_name_;
 	QList<int32_t> always_hidden_columns_;
+	dao::PlaylistDao playlist_dao_;
 };
 
 

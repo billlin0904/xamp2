@@ -1967,8 +1967,11 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 	// Switch playlist other page
     if (is_doubleclicked) {
         playlist_page = sender_playlist_page;
-        playlist_tab_widget = qobject_cast<PlaylistTabWidget*>(playlist_page->parent()->parent());        
-        playlist_tab_widget->setCurrentNowPlaying();
+        playlist_tab_widget = qobject_cast<PlaylistTabWidget*>(playlist_page->parent()->parent());  
+		// It's an signal from album page.
+        if (playlist_tab_widget != nullptr) {
+            playlist_tab_widget->setCurrentNowPlaying();
+        }        
     }
     else {
         if (!last_playlist_tab_) {

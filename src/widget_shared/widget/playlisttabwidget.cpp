@@ -27,7 +27,7 @@ void PlaylistTabWidget::closeAllTab() {
         page->deleteLater();
     }
 
-    dao::PlaylistDao(qGuiDb.getDatabase()).forEachPlaylist([this](auto playlist_id,
+    playlist_dao_.forEachPlaylist([this](auto playlist_id,
         auto,
         auto store_type,
         auto,
@@ -215,7 +215,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         });
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
-        dao::PlaylistDao(qGuiDb.getDatabase()).setPlaylistName(currentPlaylistId(), name);
+        playlist_dao_.setPlaylistName(currentPlaylistId(), name);
         });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,

@@ -127,7 +127,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
             add_playlist_music_ids.push_back(entity.music_id);
         });
 
-    dao::PlaylistDao(qGuiDb.getDatabase()).addMusicToPlaylist(add_playlist_music_ids,
+    playlist_dao_.addMusicToPlaylist(add_playlist_music_ids,
         page_->playlist()->playlistId());
 
     page_->setAlbumId(album_id, album_heart);
@@ -300,7 +300,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
         
-        dao::PlaylistDao(qGuiDb.getDatabase()).forEachPlaylist([sub_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        playlist_dao_.forEachPlaylist([sub_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
                 return;
             }
