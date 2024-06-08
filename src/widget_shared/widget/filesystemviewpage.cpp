@@ -130,7 +130,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
-            const auto dir_name = getExistingDirectory(this);
+            const auto dir_name = getExistingDirectory(this, tr("Select a directory"));
             if (dir_name.isEmpty()) {
                 return;
             }

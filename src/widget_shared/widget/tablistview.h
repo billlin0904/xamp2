@@ -54,5 +54,6 @@ private:
     QMap<int, QString> names_;
     QMap<QString, int> ids_;
     XTooltip tooltip_;
+	QElapsedTimer elapsed_timer_;
 };
 

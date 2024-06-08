@@ -525,14 +525,14 @@ void PlaylistTableView::initial() {
         }
 
         auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-            getOpenMusicFileName(this, [this](const auto& file_name) {
+            getOpenMusicFileName(this, tr("Open file"), tr("Music Files "), [this](const auto& file_name) {
                 append(file_name);
                 });
             });
         load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
         auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
-            const auto dir_name = getExistingDirectory(this);
+            const auto dir_name = getExistingDirectory(this, tr("Select a directory"));
             if (dir_name.isEmpty()) {
                 return;
             }

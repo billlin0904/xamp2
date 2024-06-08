@@ -48,4 +48,5 @@ protected:
 private:
     QLabel* text_;
 	QTimer timer_;
+	int32_t max_width_ = 0;
 };

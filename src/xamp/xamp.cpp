@@ -1489,6 +1489,8 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     else {
         setAuthButton(ui_, false);
     }
+
+    setCover(qImageCache.unknownCoverId());
 }
 
 void Xamp::setThemeColor(QColor background_color, QColor color) {

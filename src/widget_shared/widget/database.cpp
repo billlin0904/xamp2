@@ -134,7 +134,7 @@ const char* SqlException::what() const noexcept {
 XAMP_DECLARE_LOG_NAME(Database);
 
 Database::Database(const QString& name) {
-    logger_ = XampLoggerFactory.GetLogger(kDatabaseLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(Database));
     if (QSqlDatabase::contains(name)) {
         db_ = QSqlDatabase::database(name);
     }

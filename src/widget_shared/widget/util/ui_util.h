@@ -63,9 +63,12 @@ XAMP_WIDGET_SHARED_EXPORT PlaybackFormat getPlaybackFormat(IAudioPlayer* player)
 
 XAMP_WIDGET_SHARED_EXPORT QString getFileDialogFileExtensions();
 
-XAMP_WIDGET_SHARED_EXPORT QString getExistingDirectory(QWidget* parent);
+XAMP_WIDGET_SHARED_EXPORT QString getExistingDirectory(QWidget* parent, const QString& title);
 
-XAMP_WIDGET_SHARED_EXPORT void getOpenMusicFileName(QWidget* parent, std::function<void(const QString&)>&& action);
+XAMP_WIDGET_SHARED_EXPORT void getOpenMusicFileName(QWidget* parent,
+    const QString& title,
+    const QString& files,
+    std::function<void(const QString&)>&& action);
 
 XAMP_WIDGET_SHARED_EXPORT void getOpenFileName(QWidget* parent,
     std::function<void(const QString&)>&& action,

@@ -95,8 +95,8 @@ void DatabaseFacade::initialUnknownTranslateString() {
 }
 
 void DatabaseFacade::ensureAddUnknownId() {
-    dao::ArtistDao artist(qGuiDb.getDatabase());
-    dao::AlbumDao album(qGuiDb.getDatabase());
+    dao::ArtistDao artist(database_->getDatabase());
+    dao::AlbumDao album(database_->getDatabase());
 
     kVariousArtistsId = artist.addOrUpdateArtist(various_artists_);
     kUnknownArtistId  = artist.addOrUpdateArtist(unknown_artist_);
@@ -123,10 +123,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     const std::function<void(int32_t, int32_t)>& fetch_cover) {
     const Stopwatch sw;
 
-    dao::MusicDao music_dao(qGuiDb.getDatabase());
-    dao::ArtistDao artist_dao(qGuiDb.getDatabase());
-    dao::AlbumDao album_dao(qGuiDb.getDatabase());
-    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+    dao::MusicDao music_dao(database_->getDatabase());
+    dao::ArtistDao artist_dao(database_->getDatabase());
+    dao::AlbumDao album_dao(database_->getDatabase());
+    dao::PlaylistDao playlist_dao(database_->getDatabase());
 
     ensureAddUnknownId();
 

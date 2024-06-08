@@ -22,15 +22,18 @@ XTooltip::XTooltip(const QString& text, QWidget* parent)
 
 void XTooltip::setText(const QString& text) {
     text_->setText(text);
+    QFontMetrics metrics(text_->font());
+    max_width_ = (std::max)(max_width_, metrics.horizontalAdvance(text));
+    text_->setMinimumWidth(max_width_ + 10);
 }
 
 QString XTooltip::text() const {
     return text_->text();
 }
 
-void XTooltip::showAndStart() {
+void XTooltip::showAndStart() {    
 	show();
-	timer_.start(2000);
+	timer_.start(2000);    
 }
 
 void XTooltip::onThemeChangedFinished(ThemeColor theme_color) {

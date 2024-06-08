@@ -57,13 +57,14 @@ void TabListView::mouseMoveEvent(QMouseEvent* event) {
     if (index.isValid()) {
         auto* item = model_.item(index.row(), index.column());
         auto tooltip_text = item->text();
-        if (!tooltip_text.isEmpty()) {            
-            if (tooltip_.text() != tooltip_text && qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
+        if (!tooltip_text.isEmpty() && qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
+            if (tooltip_text != tooltip_.text() || elapsed_timer_.elapsed() > 1000) {
                 const auto item_rect = visualRect(index);
                 const auto global_pos = viewport()->mapToGlobal(item_rect.topRight());
                 tooltip_.setText(tooltip_text);
                 tooltip_.move(global_pos + QPoint(5, 0));
                 tooltip_.showAndStart();
+                elapsed_timer_.restart();
             }
         }
     }
@@ -111,6 +112,8 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     model_.appendRow(item);
     names_[table_id] = name;
     ids_[name] = table_id;
+	// Prepare tooltip text width
+    tooltip_.setText(name);
 }
 
 void TabListView::addSeparator() {
