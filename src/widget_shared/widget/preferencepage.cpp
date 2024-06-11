@@ -135,6 +135,7 @@ void PreferencePage::setLanguage(int index) {
 	qAppSettings.loadLanguage(lang.isoCode());
 	qAppSettings.setValue(kAppSettingLang, lang.isoCode());
 	ui_->retranslateUi(this);
+	emit retranslateUi();
 }
 
 void PreferencePage::initialLanguage() {

@@ -54,6 +54,7 @@ public:
 
     void showWindow();
 
+    IXFrame* contentWidget() const override;
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 

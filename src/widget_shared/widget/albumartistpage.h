@@ -40,6 +40,8 @@ public:
 	void addTab(const QString& name, int tab_id);
 
 	void setCurrentTab(int tab_id);
+
+	void setTabText(const QString& name, int tab_id);
 signals:
 	void clickedTable(int table_id);
 
@@ -81,7 +83,10 @@ public slots:
 
 	void onThemeColorChanged(QColor background_color, QColor color);
 
+	void onRetranslateUi();
+
 private:
+	QLabel* page_title_label_;
 	QVBoxLayout* genre_frame_layout_;
 	QStandardItemModel* album_model_;
 	QStandardItemModel* artist_model_;

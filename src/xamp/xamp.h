@@ -84,6 +84,8 @@ public:
 
 	void waitForReady();
 
+	QString translateText(const std::string_view& text) override;
+
 signals:
 	void payNextMusic();
 
@@ -177,6 +179,8 @@ public slots:
 	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 
 	void onPlaybackError(const QString& message);
+
+	void onRetranslateUi();
 private:
 	void initialUi();
 
@@ -284,7 +288,7 @@ private:
 
 	QString translateDeviceDescription(const IDeviceType* device_type);
 
-	QString translateError(Errors error);
+	QString translateError(Errors error);	
 
 	void setCover(const QString& cover_id);
 

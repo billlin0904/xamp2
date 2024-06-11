@@ -81,6 +81,8 @@ signals:
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
+	void onRetranslateUi();
+
 private:
 	void closeTab(int32_t tab_index);
 

@@ -166,10 +166,10 @@ namespace {
         QApplication::setOrganizationDomain(kApplicationName);
 
         const SingleInstanceApplication app(argc, argv);
-        if (!app.isAttach()) {
+        /*if (!app.isAttach()) {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
-        }
+        }*/
 
         if (!QSslSocket::supportsSsl()) {
             XMessageBox::showError(qTEXT("SSL initialization failed."));
@@ -203,6 +203,7 @@ namespace {
         }
         XAMP_LOG_DEBUG("Load component shared library success.");
 
+        XAMP_LOG_DEBUG("Database start init.");
         try {
             qGuiDb.open();
         }

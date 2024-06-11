@@ -13,7 +13,8 @@
 #include <QSharedPointer>
 #include <QWidget>
 
-class XMainWindow;
+class IXMainWindow;
+
 class XProgressDialog;
 class ProcessIndicator;
 class QFileDialog;
@@ -38,7 +39,7 @@ void moveToTopWidget(QWidget* source_widget, const QWidget* target_widget);
 
 XAMP_WIDGET_SHARED_EXPORT void centerParent(QWidget* widget);
 
-XAMP_WIDGET_SHARED_EXPORT XMainWindow* getMainWindow();
+XAMP_WIDGET_SHARED_EXPORT IXMainWindow* getMainWindow();
 
 XAMP_WIDGET_SHARED_EXPORT QString formatSampleRate(const AudioFormat& format);
 

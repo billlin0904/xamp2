@@ -23,6 +23,8 @@
 #include <widget/dao/albumdao.h>
 #include <widget/taglistview.h>
 #include <widget/genre_view_page.h>
+
+#include <xampplayer.h>
 #include <thememanager.h>
 
 enum {
@@ -71,6 +73,13 @@ void AlbumTabListView::setCurrentTab(int tab_id) {
 	setCurrentIndex(model_.index(tab_id, 0));
 }
 
+void AlbumTabListView::setTabText(const QString& name, int tab_id) {
+	auto* item = model_.item(tab_id);
+	if (item) {
+		item->setText(name);
+	}
+}
+
 AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	: QFrame(parent)
 	, album_tab_list_view_(new AlbumTabListView(this))
@@ -87,11 +96,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	vertical_layout_2->setContentsMargins(11, 0, 11, 0);
 
 	auto f = font();
-	auto* page_title_label = new QLabel(tr("Library"), this);
+	page_title_label_ = new QLabel(tr("Library"), this);
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(40));
-	page_title_label->setFont(f);
-	vertical_layout_2->addWidget(page_title_label);
+	page_title_label_->setFont(f);
+	vertical_layout_2->addWidget(page_title_label_);
 
 	auto* line = new QFrame();
 	line->setFrameShape(QFrame::HLine);
@@ -456,6 +465,14 @@ void AlbumArtistPage::onThemeColorChanged(QColor background_color, QColor color)
 	year_view_->onThemeColorChanged(background_color, color);
 	album_tag_list_widget_->onThemeColorChanged(background_color, color);
 	artist_tag_list_widget_->onThemeColorChanged(background_color, color);
+}
+
+void AlbumArtistPage::onRetranslateUi() {	
+	page_title_label_->setText(tr("Library"));
+
+	album_tab_list_view_->setTabText(tr("ALBUMS"), TAB_ALBUMS);
+	album_tab_list_view_->setTabText(tr("ARTISTS"), TAB_ARTISTS);
+	album_tab_list_view_->setTabText(tr("YEAR"), TAB_YEAR);
 }
 
 void AlbumArtistPage::reload() {

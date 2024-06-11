@@ -54,6 +54,8 @@ signals:
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
+	void onRetranslateUi();
+
 private:
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
@@ -106,6 +108,8 @@ signals:
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
 public slots:
+	void onRetranslateUi();
+
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void reload();

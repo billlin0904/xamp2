@@ -252,6 +252,10 @@ void PlaylistTabWidget::hidePlusButton() {
     plus_button_->hide();
 }
 
+void PlaylistTabWidget::onRetranslateUi() {
+
+}
+
 void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     switch (theme_color) {
     case ThemeColor::DARK_THEME:

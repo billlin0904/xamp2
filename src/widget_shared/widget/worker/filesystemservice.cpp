@@ -65,12 +65,6 @@ FileSystemService::FileSystemService()
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
 	GetBackgroundThreadPool();
-	(void)QObject::connect(&watcher_,
-	                       &FileSystemWatcher::directoryChanged,
-	                       this,
-	                       [this](const auto& dir) {
-		                       onExtractFile(dir, -1);
-	                       });
 }
 
 FileSystemService::~FileSystemService() {

@@ -20,6 +20,7 @@
 #include <widget/xmainwindow.h>
 #include <widget/util/str_util.h>
 
+#include <xampplayer.h>
 #include <version.h>
 
 #include <widget/playlistentity.h>
@@ -223,10 +224,10 @@ PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
     return format;
 }
 
-XMainWindow* getMainWindow() {
-    XMainWindow* main_window = nullptr;
+IXMainWindow* getMainWindow() {
+    IXMainWindow* main_window = nullptr;
     Q_FOREACH(auto* w, QApplication::topLevelWidgets()) {
-        main_window = dynamic_cast<XMainWindow*>(w);
+        main_window = dynamic_cast<IXMainWindow*>(w);
         if (main_window != nullptr) {
             break;
         }

@@ -180,6 +180,8 @@ public slots:
 		const PlayListEntity& entity,
 		const ReplayGain& replay_gain);
 
+	void onRetranslateUi();
+
 private:
 	PlayListEntity item(const QModelIndex& index) const;
 

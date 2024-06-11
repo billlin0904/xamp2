@@ -39,6 +39,8 @@ public:
     int32_t tabId(const QString &name) const;
 
 	int32_t currentTabId() const;
+
+    void setTabText(const QString& name, int table_id);
 signals:
     void clickedTable(int table_id);
 
@@ -47,6 +49,8 @@ signals:
 public slots:
     void onThemeChangedFinished(ThemeColor theme_color);
     
+    void onRetranslateUi();
+
 private:
     void mouseMoveEvent(QMouseEvent* event) override;
 

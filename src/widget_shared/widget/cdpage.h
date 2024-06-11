@@ -28,6 +28,8 @@ public:
 public slots:
     void onThemeChangedFinished(ThemeColor theme_color);
 
+    void onRetranslateUi();
+
 private:
     Ui::CDPage* ui_;
 };

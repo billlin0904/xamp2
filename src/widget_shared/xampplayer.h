@@ -17,6 +17,8 @@ inline constexpr auto kRestartExistCode = -2;
 FRAMELESSHELPER_USE_NAMESPACE
 using namespace wangwenx190::FramelessHelper::Global;
 
+class IXFrame;
+
 class IXMainWindow : public FramelessWidget {
 public:
 	virtual ~IXMainWindow() override = default;
@@ -45,6 +47,7 @@ public:
 
     virtual void setIconicThumbnail(const QPixmap& image) = 0;
 
+    virtual IXFrame* contentWidget() const = 0;
 protected:
     IXMainWindow() = default;
 };
@@ -71,6 +74,7 @@ public:
 
     virtual void shortcutsPressed(const QKeySequence& shortcut) = 0;
 
+    virtual QString translateText(const std::string_view& text) = 0;
 protected:
     explicit IXFrame(QWidget* parent = nullptr)
 	    : QFrame(parent) {

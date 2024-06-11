@@ -382,3 +382,7 @@ void XMainWindow::showWindow() {
     raise(); // for MacOS
     activateWindow(); // for Windows
 }
+
+IXFrame* XMainWindow::contentWidget() const {
+    return content_widget_;
+}

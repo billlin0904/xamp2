@@ -21,7 +21,9 @@
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
 
+#include <xampplayer.h>
 #include <thememanager.h>
+
 #include <widget/playlisttablemodel.h>
 #include <widget/playlisttableproxymodel.h>
 #include <widget/appsettings.h>
@@ -238,8 +240,8 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
         PLAYLIST_PLAYLIST_MUSIC_ID,
         PLAYLIST_CHECKED,
         PLAYLIST_ALBUM_ID,
-        PLAYLIST_ALBUM_COVER_ID,
-        PLAYLIST_MUSIC_COVER_ID
+        PLAYLIST_MUSIC_COVER_ID,
+        PLAYLIST_OFFSET
     };
 
     always_hidden_columns_ = always_hidden_columns;
@@ -268,13 +270,13 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_GENRE,
             PLAYLIST_ALBUM_ID,
             PLAYLIST_ARTIST_ID,
-            PLAYLIST_ALBUM_COVER_ID,
             PLAYLIST_FILE_EXT,
             PLAYLIST_FILE_PARENT_PATH,
             PLAYLIST_PLAYLIST_MUSIC_ID,
             PLAYLIST_COMMENT,
             PLAYLIST_LIKE,
-            PLAYLIST_YEAR
+            PLAYLIST_YEAR,
+            PLAYLIST_OFFSET
         };
 
         for (const auto column : qAsConst(hidden_columns)) {
@@ -311,15 +313,16 @@ void PlaylistTableView::setHeaderViewHidden(bool enable) {
         ActionMap<PlaylistTableView> action_map(this);
 
     auto* header_view = horizontalHeader();
+    auto* xamp = getMainWindow()->contentWidget();
 
     auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
+    auto hide_this_column_act = action_map.addAction(xamp->translateText("Hide this column"), [last_referred_logical_column, this]() {
         setColumnHidden(last_referred_logical_column, true);
 		qAppSettings.removeList(column_setting_name_, QString::number(last_referred_logical_column));
         });
     hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
-    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
+    auto select_column_show_act = action_map.addAction(xamp->translateText("Select columns to show..."), [pt, header_view, this]() {
         ActionMap<PlaylistTableView> action_map(this);
         for (auto column = 0; column < header_view->count(); ++column) {
             if (always_hidden_columns_.contains(column)) {
@@ -340,6 +343,7 @@ void PlaylistTableView::setHeaderViewHidden(bool enable) {
 }
 
 void PlaylistTableView::initial() {
+    proxy_model_->addFilterByColumn(PLAYLIST_ARTIST);
     proxy_model_->addFilterByColumn(PLAYLIST_TITLE);
     proxy_model_->addFilterByColumn(PLAYLIST_ALBUM);
     proxy_model_->setSourceModel(model_);
@@ -790,6 +794,9 @@ void PlaylistTableView::onUpdateReplayGain(int32_t playlistId,
     reload();
 
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+}
+
+void PlaylistTableView::onRetranslateUi() {
 }
 
 void PlaylistTableView::keyPressEvent(QKeyEvent *event) {

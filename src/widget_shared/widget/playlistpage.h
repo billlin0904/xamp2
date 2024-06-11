@@ -75,6 +75,8 @@ public slots:
 
 	void onSetCoverById(const QString& cover_id);
 
+	void onRetranslateUi();
+
 private:
 	void initial();
 	

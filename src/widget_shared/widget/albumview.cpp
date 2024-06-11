@@ -94,6 +94,10 @@ void AlbumViewPage::onThemeChangedFinished(ThemeColor theme_color) {
     close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 }
 
+void AlbumViewPage::onRetranslateUi() {
+    page_->onRetranslateUi();
+}
+
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
     if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         setStyleSheet(qSTR(
@@ -767,6 +771,10 @@ void AlbumView::onThemeChangedFinished(ThemeColor theme_color) {
     if (page_ != nullptr) {
         page_->onThemeChangedFinished(theme_color);
     }    
+}
+
+void AlbumView::onRetranslateUi() {
+	page_->onRetranslateUi();
 }
 
 void AlbumView::append(const QString& file_name) {

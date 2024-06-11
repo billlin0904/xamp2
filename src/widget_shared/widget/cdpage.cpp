@@ -57,6 +57,10 @@ PlaylistPage* CdPage::playlistPage() const {
     return ui_->playlistPage;
 }
 
+void CdPage::onRetranslateUi() {
+	ui_->retranslateUi(this);
+}
+
 void CdPage::showPlaylistPage(bool show) {
     if (show) {
         ui_->tipFrame->hide();

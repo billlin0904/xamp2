@@ -188,7 +188,7 @@ private:
 	WinHandle thread_exit_;
 	WinHandle close_request_;
 	IXAudio2MasteringVoice* mastering_voice_;
-	IXAudio2SourceVoice* source_voice_;
+	mutable IXAudio2SourceVoice* source_voice_;
 	AlignPtr<XAudio2EngineContext> engine_context_;
 	AlignPtr<XAudio2VoiceContext> voice_context_;
 	CComPtr<IXAudio2> xaudio2_;

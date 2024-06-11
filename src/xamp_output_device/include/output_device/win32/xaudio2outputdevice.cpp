@@ -208,6 +208,18 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 	output_format_ = output_format;
 	buffer_frames_ = get_buffer_size(output_format.GetSampleRate()) / output_format.GetChannels() / output_format.GetBytesPerSample();
 	buffer_.resize(get_buffer_size(output_format.GetSampleRate()) / output_format.GetChannels());
+
+	if (!source_voice_) {
+		WAVEFORMATEX waveformat{};
+		SetWaveformatEx(waveformat, output_format_.GetSampleRate());
+
+		HrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
+			&waveformat,
+			XAUDIO2_VOICE_NOSRC |
+			XAUDIO2_VOICE_NOPITCH,
+			1,
+			voice_context_.get()));
+	}
 }
 
 bool XAudio2OutputDevice::IsMuted() const {

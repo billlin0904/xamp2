@@ -52,6 +52,10 @@ int32_t TabListView::currentTabId() const {
     return table_id;
 }
 
+void TabListView::onRetranslateUi() {
+    tooltip_.setText(kEmptyString);
+}
+
 void TabListView::mouseMoveEvent(QMouseEvent* event) {
     auto index = indexAt(event->pos());
     if (index.isValid()) {
@@ -101,17 +105,32 @@ void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
 	tooltip_.onThemeChangedFinished(theme_color);
 }
 
+void TabListView::setTabText(const QString& name, int table_id) {
+    for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
+        auto* item = model_.item(column_index);
+        if (column_index == table_id) {
+			item->setText(name);
+            break;
+        }
+    }
+
+    names_[table_id] = name;
+    ids_[name] = table_id;
+    tooltip_.setText(name);
+}
+
 void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
-    item->setSizeHint(QSize(36, 36));        
+    item->setSizeHint(QSize(36, 36));      
+    item->setData(name, Qt::UserRole);
     auto f = item->font();
     f.setPointSize(qTheme.fontSize(9));
     item->setFont(f);
     model_.appendRow(item);
     names_[table_id] = name;
-    ids_[name] = table_id;
+    ids_[name] = table_id;	
 	// Prepare tooltip text width
     tooltip_.setText(name);
 }

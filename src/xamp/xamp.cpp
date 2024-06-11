@@ -211,6 +211,24 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
     return tr(str.data());
 }
 
+QString Xamp::translateText(const std::string_view& text) {
+    /*static const QMap<std::string_view, ConstexprQString> lut{
+        { "Playlists",        QT_TRANSLATE_NOOP("Xamp", "Playlists")},
+        { "File explorer",    QT_TRANSLATE_NOOP("Xamp", "File explorer") },
+        { "Lyrics",           QT_TRANSLATE_NOOP("Xamp", "Lyrics") },
+        { "Library",          QT_TRANSLATE_NOOP("Xamp", "Library") },
+        { "CD",               QT_TRANSLATE_NOOP("Xamp", "CD") },
+        { "YouTube search",   QT_TRANSLATE_NOOP("Xamp", "YouTube search") },
+        { "YouTube playlist", QT_TRANSLATE_NOOP("Xamp", "YouTube playlist") },
+
+        { "Hide this column", QT_TRANSLATE_NOOP("Xamp", "Hide this column") },
+        { "Select columns to show...", QT_TRANSLATE_NOOP("Xamp", "Select columns to show...") },
+    };
+    const auto str = lut.value(text, kEmptyString);
+    return tr(str.data());*/
+    return tr(text.data());
+}
+
 QString Xamp::translateError(Errors error) {
     using xamp::base::Errors;
     static const QMap<xamp::base::Errors, ConstexprQString> lut{
@@ -606,6 +624,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
+        (void)QObject::connect(preference_page.get(), &PreferencePage::retranslateUi, this, &Xamp::onRetranslateUi);
         preference_page->loadSettings();
         dialog->setContentWidget(preference_page.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
@@ -2257,13 +2276,13 @@ void Xamp::initialPlaylist() {
 
     yt_music_search_page_->pageTitle()->hide();
 
-    ui_.naviBar->addTab(tr("Playlists"),        TAB_PLAYLIST,          qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.naviBar->addTab(tr("File explorer"),    TAB_FILE_EXPLORER,     qTheme.fontIcon(Glyphs::ICON_DESKTOP));
-    ui_.naviBar->addTab(tr("Lyrics"),           TAB_LYRICS,            qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
-    ui_.naviBar->addTab(tr("Library"),          TAB_MUSIC_LIBRARY,     qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
-    ui_.naviBar->addTab(tr("CD"),               TAB_CD,                qTheme.fontIcon(Glyphs::ICON_CD));
-    ui_.naviBar->addTab(tr("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-    ui_.naviBar->addTab(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));    
+    ui_.naviBar->addTab(translateText("Playlists"),        TAB_PLAYLIST,          qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+    ui_.naviBar->addTab(translateText("File explorer"),    TAB_FILE_EXPLORER,     qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+    ui_.naviBar->addTab(translateText("Lyrics"),           TAB_LYRICS,            qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+    ui_.naviBar->addTab(translateText("Library"),          TAB_MUSIC_LIBRARY,     qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
+    ui_.naviBar->addTab(translateText("CD"),               TAB_CD,                qTheme.fontIcon(Glyphs::ICON_CD));
+    ui_.naviBar->addTab(translateText("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+    ui_.naviBar->addTab(translateText("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));    
         
     playlist_dao_.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -2911,6 +2930,19 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
 void Xamp::onPlaybackError(const QString& message) {
     player_->Stop();
     XMessageBox::showError(message, kApplicationTitle, true);
+}
+
+void Xamp::onRetranslateUi() {
+    ui_.naviBar->setTabText(tr("Playlists"), TAB_PLAYLIST);
+    ui_.naviBar->setTabText(tr("File explorer"), TAB_FILE_EXPLORER);
+    ui_.naviBar->setTabText(tr("Lyrics"), TAB_LYRICS);
+    ui_.naviBar->setTabText(tr("Library"), TAB_MUSIC_LIBRARY);
+    ui_.naviBar->setTabText(tr("CD"), TAB_CD);
+    ui_.naviBar->setTabText(tr("YouTube search"), TAB_YT_MUSIC_SEARCH);
+    ui_.naviBar->setTabText(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST);
+
+    music_library_page_->onRetranslateUi();
+    initialDeviceList();
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    

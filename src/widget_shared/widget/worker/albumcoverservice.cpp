@@ -97,9 +97,7 @@ void AlbumCoverService::mergeUnknownAlbumCover() {
 }
 
 void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
-    if (is_stop_) {
-        return;
-    }
+    is_stop_ = false;
 
     auto db = database_ptr_->Acquire();
 

@@ -26,6 +26,9 @@ public:
 
     void saveAll();
 
+signals:
+    void retranslateUi();
+
 private:
     void updateSoxrConfigUi(const QVariantMap& soxr_settings);
 
