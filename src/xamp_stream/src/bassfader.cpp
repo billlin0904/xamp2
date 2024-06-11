@@ -12,7 +12,7 @@ XAMP_DECLARE_LOG_NAME(BassFader);
 class BassFader::BassFaderImpl {
 public:
     BassFaderImpl() {
-        logger_ = XampLoggerFactory.GetLogger(kBassFaderLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BassFader));
     }
 
     void Start(uint32_t output_sample_rate) {
@@ -23,11 +23,11 @@ public:
                                              nullptr));
     }
 
-    void SetTime(float current, float target, float fdade_time) {
+    void SetTime(float current, float target, float fade_time) {
         ::BASS_FX_VOLUME_PARAM volume_param{0};
         volume_param.fCurrent = current;
         volume_param.fTarget = target;
-        volume_param.fTime = fdade_time;
+        volume_param.fTime = fade_time;
         volume_param.lCurve = 0;
         const auto fade_fx = BASS_LIB.BASS_ChannelSetFX(
             stream_.get(),
@@ -38,7 +38,7 @@ public:
         XAMP_LOG_D(logger_, "Fade current:{:.2f} target:{:.2f} time:{:.2f}",
             current,
             target,
-            fdade_time);
+            fade_time);
     }
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {

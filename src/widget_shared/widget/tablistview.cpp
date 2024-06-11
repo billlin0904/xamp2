@@ -62,7 +62,7 @@ void TabListView::mouseMoveEvent(QMouseEvent* event) {
                 const auto item_rect = visualRect(index);
                 const auto global_pos = viewport()->mapToGlobal(item_rect.topRight());
                 tooltip_.setText(tooltip_text);
-                tooltip_.move(global_pos + QPoint(5, 0));
+                tooltip_.move(global_pos + QPoint(5, -5));
                 tooltip_.showAndStart();
                 elapsed_timer_.restart();
             }

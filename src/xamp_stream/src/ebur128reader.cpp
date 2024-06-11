@@ -22,17 +22,14 @@ XAMP_STREAM_NAMESPACE_BEGIN
 		} \
 	} while (false)
 
-namespace {
-
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()
 
-	XAMP_DECLARE_LOG_NAME(Ebur128Reader);
-}
+XAMP_DECLARE_LOG_NAME(Ebur128Reader);
 
 class Ebur128Reader::Ebur128ReaderImpl {
 public:
 	Ebur128ReaderImpl() {
-		logger_ = XampLoggerFactory.GetLogger(kEbur128ReaderLoggerName);
+		logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(Ebur128Reader));
 	}
 
 	void SetSampleRate(uint32_t sample_rate) {

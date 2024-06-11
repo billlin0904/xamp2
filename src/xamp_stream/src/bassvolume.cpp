@@ -16,7 +16,7 @@ class BassVolume::BassVolumeImpl {
 public:
     BassVolumeImpl()
         : volume_handle_(0) {
-        logger_ = XampLoggerFactory.GetLogger(kBassVolumeLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BassVolume));
     }
 
     void Start(uint32_t output_sample_rate) {

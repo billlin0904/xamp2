@@ -21,7 +21,7 @@ public:
     AvFileStreamImpl()
         : audio_stream_id_(-1)
         , duration_(0.0) {
-        logger_ = XampLoggerFactory.GetLogger(kAvFileStreamLoggerName);
+        logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AvFileStream));
     }
 
     /*

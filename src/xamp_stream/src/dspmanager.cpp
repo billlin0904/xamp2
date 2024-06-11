@@ -19,7 +19,7 @@ XAMP_DECLARE_LOG_NAME(DspManager);
 static constexpr int32_t kDefaultBufSize = 1024 * 1024;
 
 DSPManager::DSPManager() {
-    logger_ = XampLoggerFactory.GetLogger(kDspManagerLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DspManager));
     pre_dsp_buffer_.resize(kDefaultBufSize);
     post_dsp_buffer_.resize(kDefaultBufSize);
 }

@@ -76,3 +76,4 @@ DECLARE_APP_SETTING_NAME(AppSettingEnterFullScreen);
 DECLARE_APP_SETTING_NAME(AppSettingEnableSandboxMode);
 DECLARE_APP_SETTING_NAME(AppSettingEnableDebugStackTrace);
 DECLARE_APP_SETTING_NAME(AppSettingHideNaviBar);
+DECLARE_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex);

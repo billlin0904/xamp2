@@ -28,6 +28,8 @@ public:
 
 	int32_t currentPlaylistId() const;
 
+	void setCurrentTabIndex(int32_t playlist_id);
+
 	void saveTabOrder() const;
 
 	void restoreTabOrder();

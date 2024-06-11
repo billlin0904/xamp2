@@ -2264,7 +2264,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(tr("CD"),               TAB_CD,                qTheme.fontIcon(Glyphs::ICON_CD));
     ui_.naviBar->addTab(tr("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->addTab(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));    
-
+        
     playlist_dao_.forEachPlaylist([this](auto playlist_id,
         auto index,
         auto store_type,
@@ -2306,6 +2306,7 @@ void Xamp::initialPlaylist() {
     }
 
     playlist_tab_page_->restoreTabOrder();
+    playlist_tab_page_->setCurrentTabIndex(qAppSettings.valueAsInt(kAppSettingLastPlaylistTabIndex));
 
     (void)QObject::connect(yt_music_tab_page_.get(), &PlaylistTabWidget::reloadAllPlaylist,[this]() {
         initialCloudPlaylist();

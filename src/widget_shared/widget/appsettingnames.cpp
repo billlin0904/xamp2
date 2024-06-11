@@ -85,3 +85,5 @@ IMPL_APP_SETTING_NAME(AppSettingEnableShortcut, "AppSettings/enableShortcut");
 IMPL_APP_SETTING_NAME(AppSettingEnableSandboxMode, "AppSettings/enableSandboxMode");
 IMPL_APP_SETTING_NAME(AppSettingEnableDebugStackTrace, "AppSettings/enableDebugStackTrace");
 IMPL_APP_SETTING_NAME(AppSettingHideNaviBar, "AppSettings/hideNaviBar");
+
+IMPL_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex, "AppSettings/playlist/lastPlaylistTabIndex");

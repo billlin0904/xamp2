@@ -32,6 +32,8 @@ public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
+	bool eventFilter(QObject* obj, QEvent* e) override;
+
 	void enterEvent(QEnterEvent* event) override;
 	
 	void leaveEvent(QEvent* event) override;

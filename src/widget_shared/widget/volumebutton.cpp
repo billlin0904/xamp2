@@ -55,6 +55,16 @@ void VolumeButton::onVolumeChanged(uint32_t volume) {
 	qTheme.setMuted(this, volume == 0);
 }
 
+bool VolumeButton::eventFilter(QObject* obj, QEvent* e) {
+	if (obj == this) {
+		if (QEvent::WindowDeactivate == e->type()) {
+			hide();
+			return true;
+		}
+	}
+	return QWidget::eventFilter(obj, e);
+}
+
 void VolumeButton::enterEvent(QEnterEvent* event) {
 	if (is_show_) {
 		return;

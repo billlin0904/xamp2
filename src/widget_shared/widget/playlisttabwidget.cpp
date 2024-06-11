@@ -3,6 +3,8 @@
 #include <QMouseEvent>
 #include <QPushButton>
 
+#include <widget/appsettings.h>
+#include <widget/appsettingnames.h>
 #include <widget/xmessagebox.h>
 #include <widget/dao/playlistdao.h>
 #include <widget/dao/musicdao.h>
@@ -216,6 +218,13 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
         playlist_dao_.setPlaylistName(currentPlaylistId(), name);
+		qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, currentPlaylistId());
+        });
+
+    (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
+        Q_ASSERT(playlist_page != nullptr);
+        qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, playlist_page->playlist()->playlistId());
         });
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
@@ -338,6 +347,16 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
 
 int32_t PlaylistTabWidget::currentPlaylistId() const {
     return dynamic_cast<PlaylistPage*>(currentWidget())->playlist()->playlistId();
+}
+
+void PlaylistTabWidget::setCurrentTabIndex(int32_t playlist_id) {
+	for (auto i = 0; i < tabBar()->count(); ++i) {
+		auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+		if (playlist_page->playlist()->playlistId() == playlist_id) {
+			setCurrentIndex(i);
+			break;
+		}
+	}
 }
 
 void PlaylistTabWidget::saveTabOrder() const {
