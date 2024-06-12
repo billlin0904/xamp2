@@ -8,7 +8,7 @@
 #include <widget/util/str_util.h>
 #include <widget/widget_shared_global.h>
 
-XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationVersionValue;
+XAMP_WIDGET_SHARED_EXPORT extern const QVersionNumber kApplicationVersionValue;
 XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationName;
 XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationTitle;
 XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationVersion;
