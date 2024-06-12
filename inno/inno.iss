@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "XAMP2"
-#define MyAppVersion "1.0"
+#define MyAppVersion "0.0.1-alpha"
 #define MyAppPublisher "XAMP2 Project"
 #define MyAppURL "https://github.com/billlin0904/xamp2"
 #define MyAppExeName "xamp.exe"

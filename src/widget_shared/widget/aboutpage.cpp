@@ -48,8 +48,7 @@ AboutPage::AboutPage(QWidget* parent)
         credits_ = QLatin1String(credits_file.readAll());
     }
 
-    ui_->lblAppBuild->setText(tr("Version ")
-        + formatVersion(kApplicationVersionValue));
+    ui_->lblAppBuild->setText(tr("Ver. ") + kApplicationVersionValue);
 
     (void)QObject::connect(ui_->btnCredits,
         &QPushButton::clicked,
@@ -67,10 +66,8 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui_->restartAppButton->hide();
 
-    ui_->lblAppBuild->setText(tr("Version ")
-        + formatVersion(kApplicationVersionValue));
-    ui_->waitForUpdateProcessIndicator->startAnimation();
-    ui_->waitForUpdateProcessIndicator->setStoppedIcon(qTheme.fontIcon(Glyphs::ICON_CIRCLE_CHECK));
+    //ui_->waitForUpdateProcessIndicator->startAnimation();
+    //ui_->waitForUpdateProcessIndicator->setStoppedIcon(qTheme.fontIcon(Glyphs::ICON_CIRCLE_CHECK));
 
     ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
     ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
@@ -101,8 +98,8 @@ void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
 }
 
 void AboutPage::OnUpdateNewVersion(const QVersionNumber& version) {
-    ui_->lblAppBuild->setText(tr("Version ")
-        + formatVersion(version));
-    ui_->waitForUpdateProcessIndicator->stopAnimation();
+    //ui_->lblAppBuild->setText(tr("Ver. ")
+    //    + formatVersion(version));
+    //ui_->waitForUpdateProcessIndicator->stopAnimation();
     //ui_->restartAppButton->show();
 }

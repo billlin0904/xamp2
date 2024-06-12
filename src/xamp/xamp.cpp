@@ -612,7 +612,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
                 //XMessageBox::ShowInformation(changelog, qTEXT("New version!"), false);
             }
 
-            if (latest_version_value > kApplicationVersionValue) {
+            if (latest_version_value > QVersionNumber::fromString(kApplicationVersionValue)) {
                 trigger_upgrade_action_ = true;
             }
 
