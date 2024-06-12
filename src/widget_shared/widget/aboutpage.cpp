@@ -104,5 +104,5 @@ void AboutPage::OnUpdateNewVersion(const QVersionNumber& version) {
     ui_->lblAppBuild->setText(tr("Version ")
         + formatVersion(version));
     ui_->waitForUpdateProcessIndicator->stopAnimation();
-    ui_->restartAppButton->show();
+    //ui_->restartAppButton->show();
 }

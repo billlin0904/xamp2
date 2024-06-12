@@ -62,7 +62,7 @@ XMessageBox::XMessageBox(const QString& title,
 	grid_layout_->setSizeConstraint(QLayout::SetNoConstraint);
 	grid_layout_->setHorizontalSpacing(0);
 	grid_layout_->setVerticalSpacing(10);
-	grid_layout_->setContentsMargins(10, 10, 10, 10);	
+	grid_layout_->setContentsMargins(10, 15, 10, 10);	
 
 	(void)QObject::connect(button_box_, &QDialogButtonBox::clicked, [this](auto* button) {
 		onButtonClicked(button);
@@ -70,7 +70,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	default_button_text_ = defaultButton()->text();
 
-	setContentWidget(client_widget);
+	setContentWidget(client_widget, false, true, true);
 	setTitle(title);
 	XDialog::setIcon(qTheme.applicationIcon());
 

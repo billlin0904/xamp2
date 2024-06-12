@@ -39,6 +39,10 @@ OutputBaseFilename=mysetup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+DisableWelcomePage=no
+SetupIconFile=xamp.ico
+UninstallDisplayIcon={app}\xamp.exe
+WizardImageFile=WizardImage.bmp
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

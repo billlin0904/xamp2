@@ -26,6 +26,9 @@ void XDialog::setContent(QWidget* content, bool no_title_frame) {
     setLayout(default_layout);
 
     if (no_title_frame) {
+        title_frame_ = new QFrame();
+        title_frame_label_ = new QLabel(title_frame_);
+        icon_ = new QToolButton(title_frame_);
         default_layout->addWidget(content_, 1);
         default_layout->setContentsMargins(0, 0, 0, 0);
         adjustSize();

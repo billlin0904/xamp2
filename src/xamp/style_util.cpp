@@ -154,7 +154,7 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                          QToolButton#menuButton::menu-indicator { image: none; }
 										 QToolButton#menuButton:hover {												
 											background-color: %1;
-											border-radius: 10px;								 
+											border-radius: 0px;								 
 									     }
                                          )").arg(colorToString(qTheme.hoverColor())));
 

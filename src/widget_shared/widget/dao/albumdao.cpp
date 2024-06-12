@@ -542,11 +542,11 @@ LIMIT
         SqlQuery query(db_);
         
         if (album_id != kInvalidDatabaseId) {
-            query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId) AND storeType == -1"));
+            query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId) AND storeType == 1"));
             query.bindValue(qTEXT(":albumId"), album_id);
         }
         else {
-            query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE storeType == -1"));
+            query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE storeType == 1"));
         }
         
         query.bindValue(qTEXT(":isSelected"), state ? 1: 0);

@@ -126,7 +126,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->playlist()->setAlternatingRowColors(false);
     page_->playlist()->removeAll();
 
-    dao::AlbumDao(qGuiDb.getDatabase()).forEachAlbumMusic(album_id,
+    album_dao_.forEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
             add_playlist_music_ids.push_back(entity.music_id);
         });
@@ -140,7 +140,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->title()->setText(album);
     page_->onSetCoverById(cover_id);
 
-    if (const auto album_stats = dao::AlbumDao(qGuiDb.getDatabase()).getAlbumStats(album_id)) {
+    if (const auto album_stats = album_dao_.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
@@ -178,7 +178,7 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
-    dao::AlbumDao(qGuiDb.getDatabase()).updateAlbumSelectState(kInvalidDatabaseId, false);
+    album_dao_.updateAlbumSelectState(kInvalidDatabaseId, false);
 
     (void)QObject::connect(&model_, &QAbstractTableModel::modelReset,
         [this] {
@@ -194,7 +194,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
         auto album = indexValue(index, ALBUM_INDEX_ALBUM).toString();
         auto album_id = indexValue(index, ALBUM_INDEX_ALBUM_ID).toInt();
-        dao::AlbumDao(qGuiDb.getDatabase()).updateAlbumSelectState(album_id, !state);
+        album_dao_.updateAlbumSelectState(album_id, !state);
         reload();
         });
 
@@ -254,7 +254,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         // Check all album state
         for (auto index = 0; index < proxy_model_->rowCount(); ++index) {            
             auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-			dao::AlbumDao(qGuiDb.getDatabase()).updateAlbumSelectState(album_id, !styled_delegate_->isSelectedMode());
+            album_dao_.updateAlbumSelectState(album_id, !styled_delegate_->isSelectedMode());
         }
         styled_delegate_->setSelectedMode(!styled_delegate_->isSelectedMode());
         // Update selected album state
@@ -284,16 +284,15 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         action_map.addAction(action_name, [this]() {
             TransactionScope scope([&]() {
-                dao::AlbumDao album_dao(qGuiDb.getDatabase());
                 if (!styled_delegate_->isSelectedAll()) {
-                    Q_FOREACH(auto album_id, dao::AlbumDao(qGuiDb.getDatabase()).getSelectedAlbums()) {
-                        album_dao.updateAlbumSelectState(album_id, false);
+                    Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
+                        album_dao_.updateAlbumSelectState(album_id, false);
                     }
                 }
                 else {
                     for (auto index = 0; index < proxy_model_->rowCount(); ++index) {
                         auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-                        album_dao.updateAlbumSelectState(album_id, true);
+                        album_dao_.updateAlbumSelectState(album_id, true);
                     }
                 }
                 reload();
@@ -313,8 +312,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             }
             sub_menu->addAction(name, [playlist_id, this]() {
                 QList<int32_t> add_playlist_music_ids;
-                Q_FOREACH(auto album_id, dao::AlbumDao(qGuiDb.getDatabase()).getSelectedAlbums()) {
-                    dao::AlbumDao(qGuiDb.getDatabase()).forEachAlbumMusic(album_id,
+                Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
+                    album_dao_.forEachAlbumMusic(album_id,
                         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                             add_playlist_music_ids.push_back(entity.music_id);
                         });                    
@@ -324,8 +323,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             });
         action_map.addAction(tr("Add albums to new playlist"), [this]() {
             QList<int32_t> add_playlist_music_ids;
-            Q_FOREACH(auto album_id, dao::AlbumDao(qGuiDb.getDatabase()).getSelectedAlbums()) {
-                dao::AlbumDao(qGuiDb.getDatabase()).forEachAlbumMusic(album_id,
+            Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
+                album_dao_.forEachAlbumMusic(album_id,
                     [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         add_playlist_music_ids.push_back(entity.music_id);
                     });
@@ -350,11 +349,10 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             int32_t count = 0;
 
             TransactionScope scope([&]() {
-                dao::AlbumDao album_dao(qGuiDb.getDatabase());
-                QList<int32_t> selected_albums = album_dao.getSelectedAlbums();
+                QList<int32_t> selected_albums = album_dao_.getSelectedAlbums();
                 Q_FOREACH(auto album_id, selected_albums) {
-                    album_dao.removeAlbumArtist(album_id);
-                    album_dao.removeAlbum(album_id);
+                    album_dao_.removeAlbumArtist(album_id);
+                    album_dao_.removeAlbum(album_id);
                     process_dialog->setValue(count++ * 100 / selected_albums.size() + 1);
                 }
                 process_dialog->setValue(100);
@@ -397,23 +395,21 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         TransactionScope scope([&]() {
             QList<int32_t> albums;
-            dao::AlbumDao album_dao(qGuiDb.getDatabase());
-            dao::ArtistDao artist_dao(qGuiDb.getDatabase());
 
-            album_dao.forEachAlbum([&albums](auto album_id) {
+            album_dao_.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
                 });
             process_dialog->setRange(0, albums.size() + 1);
             int32_t count = 0;
             Q_FOREACH(const auto album_id, albums) {
-                album_dao.removeAlbumArtist(album_id);
+                album_dao_.removeAlbumArtist(album_id);
             }
             Q_FOREACH(const auto album_id, albums) {
-                album_dao.removeAlbum(album_id);
+                album_dao_.removeAlbum(album_id);
                 process_dialog->setValue(count++ * 100 / albums.size() + 1);
                 qApp->processEvents();
             }
-            artist_dao.removeAllArtist();
+            artist_dao_.removeAllArtist();
             process_dialog->setValue(100);
             emit removeAll();
             qImageCache.clear();
@@ -469,9 +465,7 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
 
-	dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
-    
-    playlist_dao.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+    playlist_dao_.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
         if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
             return;
         }
@@ -479,9 +473,8 @@ void AlbumView::showMenu(const QPoint &pt) {
             return;
         }
         sub_menu->addAction(name, [playlist_id, album_id, this]() {
-            dao::AlbumDao album_dao(qGuiDb.getDatabase());
             QList<int32_t> add_playlist_music_ids;
-            album_dao.forEachAlbumMusic(album_id,
+            album_dao_.forEachAlbumMusic(album_id,
                 [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                     add_playlist_music_ids.push_back(entity.music_id);
                 });
@@ -501,10 +494,9 @@ void AlbumView::showMenu(const QPoint &pt) {
     action_map.addSeparator();
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
-        dao::AlbumDao album_dao(qGuiDb.getDatabase());
 		TransactionScope scope([&]() {
-            album_dao.removeAlbumArtist(album_id);
-            album_dao.removeAlbum(album_id);
+            album_dao_.removeAlbumArtist(album_id);
+            album_dao_.removeAlbum(album_id);
             reload();
 			});
     });

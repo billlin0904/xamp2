@@ -53,7 +53,7 @@ IF
 		heart integer,
 		storeType integer,		
 		isHiRes integer,
-		isSelected integer,
+		isSelected integer DEFAULT 0,
 		plays integer DEFAULT 0,
 		FOREIGN KEY ( artistId ) REFERENCES artists ( artistId ),
 		UNIQUE ( albumId, artistId ) 

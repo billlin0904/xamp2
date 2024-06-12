@@ -23,7 +23,10 @@
 #include <widget/widget_shared_global.h>
 #include <widget/albumviewstyleddelegate.h>
 #include <widget/playlisttableproxymodel.h>
+
 #include <widget/dao/playlistdao.h>
+#include <widget/dao/artistdao.h>
+#include <widget/dao/albumdao.h>
 
 class XProgressDialog;
 class DatabaseFacade;
@@ -60,6 +63,7 @@ private:
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
 	dao::PlaylistDao playlist_dao_;
+	dao::AlbumDao album_dao_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {
@@ -144,5 +148,7 @@ private:
 	QSqlQueryModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
 	dao::PlaylistDao playlist_dao_;
+	dao::AlbumDao album_dao_;
+	dao::ArtistDao artist_dao_;
 };
 

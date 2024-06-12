@@ -198,7 +198,7 @@ private:
 
 	void destroy();
 
-	void initialYtMusicWorker();
+	void initialYtMusicService();
 
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 

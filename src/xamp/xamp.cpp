@@ -273,7 +273,7 @@ void Xamp::destroy() {
     XAMP_LOG_DEBUG("Xamp destroy!");
 }
 
-void Xamp::initialYtMusicWorker() {
+void Xamp::initialYtMusicService() {
     if (ytmusic_service_) {
         return;
     }
@@ -282,7 +282,7 @@ void Xamp::initialYtMusicWorker() {
     ytmusic_service_->moveToThread(&ytmusic_service_thread_);
 	ytmusic_service_thread_.start();
 
-    XAMP_LOG_DEBUG("Initial ytmusic worker...");
+    XAMP_LOG_DEBUG("Initial ytmusic service...");
 
     QCoro::connect(ytmusic_service_->initialAsync(), this, []() {
 #ifdef Q_OS_WIN
@@ -379,7 +379,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
         auto token = YtMusicOAuth::parseOAuthJson();
         if (token) {
-            initialYtMusicWorker();
+            initialYtMusicService();
             initialCloudPlaylist();
             setAuthButton(ui_, true);
         }
@@ -733,20 +733,19 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 }
 
 void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
+    auto [video_id, setVideoId] = parseYtMusicPath(entity.file_path);
+    const auto ytmusic_url = makeYtMusicUrl(video_id);    
+    auto vid = video_id;    
+
     const auto dialog = makeProgressDialog(
         tr("Cache file progress"),
         tr("Cache file"),
         tr("Cancel"));
     dialog->show();
-
-    auto [video_id, setVideoId] = parseYtMusicPath(entity.file_path);
-    const auto ytmusic_url = makeYtMusicUrl(video_id);
-
     dialog->setLabelText(tr("Fetching video information ..."));
-    auto vid = video_id;    
 
     QCoro::connect(ytmusic_service_->extractVideoInfoAsync(ytmusic_url), this,
-        [this, dialog, vid, entity](const auto& video_info) {
+        [this, dialog, vid, entity](const auto& video_info) {            
             dialog->setLabelText(tr("Fetching song information ..."));
 
             QCoro::connect(ytmusic_service_->fetchSongAsync(vid), this, [this, dialog, video_info, entity](const auto& song) {
@@ -1437,18 +1436,22 @@ void Xamp::setCurrentTab(int32_t table_id) {
         //ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_SEARCH:
-        initialYtMusicWorker();
+        if (YtMusicOAuth::parseOAuthJson()) {
+            initialYtMusicService();            
+            yt_music_search_page_->playlist()->reload();
+        }        
         //ui_.currentView->setCurrentWidget(cloud_search_page_.get());
-        yt_music_search_page_->playlist()->reload();
         break;
     case TAB_YT_MUSIC_PLAYLIST:
-        initialYtMusicWorker();
-        if (!yt_music_tab_page_->count()) {
-            initialCloudPlaylist();
-        }
-        else {
-            yt_music_tab_page_->setCurrentIndex(0);
-        }
+        if (YtMusicOAuth::parseOAuthJson()) {
+            initialYtMusicService();
+            if (!yt_music_tab_page_->count()) {
+                initialCloudPlaylist();
+            }
+            else {
+                yt_music_tab_page_->setCurrentIndex(0);
+            }
+        }        
         //ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         yt_music_tab_page_->reloadAll();
         break;
@@ -2172,7 +2175,7 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 }
 
 void Xamp::onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_play, bool is_doubleclicked) {
-    initialYtMusicWorker();
+    initialYtMusicService();
 
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
@@ -2942,6 +2945,7 @@ void Xamp::onRetranslateUi() {
     ui_.naviBar->setTabText(tr("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST);
 
     music_library_page_->onRetranslateUi();
+    cd_page_->onRetranslateUi();
     initialDeviceList();
 }
 
