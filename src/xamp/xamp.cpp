@@ -223,6 +223,7 @@ QString Xamp::translateText(const std::string_view& text) {
 
         { "Hide this column", QT_TRANSLATE_NOOP("Xamp", "Hide this column") },
         { "Select columns to show...", QT_TRANSLATE_NOOP("Xamp", "Select columns to show...") },
+        { "Remove all", QT_TRANSLATE_NOOP("PlaylistTableView", "Remove all") },
     };
     const auto str = lut.value(text, kEmptyString);
     return tr(str.data());*/
@@ -1540,7 +1541,7 @@ void Xamp::setFullScreen() {
 void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
     XAMP_LOG_DEBUG("shortcutsPressed: {}", shortcut.toString().toStdString());
 
-	const QMap<QKeySequence, std::function<void()>> shortcut_map {
+	static const QMap<QKeySequence, std::function<void()>> shortcut_map {
         { QKeySequence(Qt::Key_MediaPlay), [this]() {
             playOrPause();
             }},
@@ -1651,6 +1652,9 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
+	if (!current_entity_) {
+		return;
+	}
     const auto full_text = isMoreThan1Hours(current_entity_.value().duration);
     if (current_entity_.value().duration - stream_time >= 0.0) {
         ui_.endPosLabel->setText(formatDuration(current_entity_.value().duration - stream_time, full_text));
@@ -1735,37 +1739,6 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
     else {
         player_->GetDspManager()->RemoveEqualizer();
     }
-
-#if 0
-    // ReplayGain
-    if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
-        const auto mode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
-        if (mode == ReplayGainMode::RG_ALBUM_MODE && item.album_replay_gain) {
-            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.album_replay_gain.value());
-            player_->GetDspManager()->AddVolumeControl();
-        } else if (mode == ReplayGainMode::RG_TRACK_MODE && item.track_replay_gain) {
-            player_->GetDspConfig().AddOrReplace(DspConfig::kVolume, item.track_replay_gain.value());
-            player_->GetDspManager()->AddVolumeControl();
-        } else {
-            player_->GetDspManager()->RemoveVolumeControl();
-        }
-    } else {
-        player_->GetDspManager()->RemoveVolumeControl();
-    }
-
-    // Limiter
-    if (player_->GetDsdModes() == DsdModes::DSD_MODE_PCM) {
-        CompressorConfig config;
-        if (qAppSettings.valueAsBool(kAppSettingEnableReplayGain)) {
-            if (item.track_loudness) {
-                config.gain = Ebur128Reader::GetEbur128Gain(item.track_loudness.value(), -1.0) * -1;
-                XAMP_LOG_DEBUG("Set limiter gain:{} db", config.gain);
-            }
-        }
-        player_->GetDspConfig().AddOrReplace(DspConfig::kCompressorConfig, config);
-        player_->GetDspManager()->AddCompressor();
-    }
-#endif
 }
 
 void Xamp::setupSampleWriter(ByteFormat byte_format,
@@ -1886,13 +1859,13 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         if (sample_rate != default_format.GetSampleRate()) {
             if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
                 const auto message =
-                    qSTR("Playing blue-tooth device need set %1 to %2.")
+                    tr("Playing blue-tooth device need set %1 to %2.")
                     .arg(formatSampleRate(sample_rate))
                     .arg(formatSampleRate(default_format.GetSampleRate()));
                 showMeMessage(message);
             } else {
                 const auto message =
-                    qSTR("Playing Shared WASAPI device need set %1 to %2.")
+                    tr("Playing Shared WASAPI device need set %1 to %2.")
                     .arg(formatSampleRate(sample_rate))
                     .arg(formatSampleRate(default_format.GetSampleRate()));
                 showMeMessage(message);

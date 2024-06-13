@@ -7,20 +7,31 @@
 
 #include <QApplication>
 #include <QScopedPointer>
+#include <base/logger_impl.h>
+
+#include <widget/widget_shared_global.h>
 
 class XMainWindow;
 class QLocalServer;
 
-class SingleInstanceApplication : public QApplication {
+class XApplication : public QApplication {
 public:
-    SingleInstanceApplication(int& argc, char* argv[]);
+    XApplication(int& argc, char* argv[]);
 
-	virtual ~SingleInstanceApplication() override;
+	virtual ~XApplication() override;
 
     [[nodiscard]] bool isAttach() const;
 
+    void initial();
+
+    void loadLang();
+
+    void applyTheme();
+
+    void loadSampleRateConverterConfig();
 private:
     bool is_running_{ false };
     XMainWindow* window_{ nullptr };
     QScopedPointer<QLocalServer> server_;
+    LoggerPtr logger_;
 };

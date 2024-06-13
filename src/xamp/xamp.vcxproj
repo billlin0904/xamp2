@@ -180,7 +180,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="singleinstanceapplication.cpp" />
+    <ClCompile Include="xapplication.cpp" />
     <ClCompile Include="style_util.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
@@ -197,7 +197,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="singleinstanceapplication.h" />
+    <ClInclude Include="xapplication.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="style_util.h" />
     <QtMoc Include="xamp.h">

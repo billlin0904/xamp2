@@ -1,95 +1,19 @@
-﻿#include <iostream>
-#include <QDir>
-#include <qlibraryinfo.h>
-#include <QOperatingSystemVersion>
-
-#include <base/logger.h>
-#include <base/scopeguard.h>
-#include <base/dll.h>
-#include <base/logger_impl.h>
-#include <base/crashhandler.h>
-#include <base/stacktrace.h>
-#include <base/simd.h>
-
-#include <player/api.h>
-#include <stream/soxresampler.h>
-#include <metadata/cueloader.h>
-
-#include <widget/qdebugsink.h>
-#include <widget/appsettings.h>
-#include <widget/database.h>
-#include <widget/imagecache.h>
-#include <widget/youtubedl/ytmusic_disckcache.h>
-#include <widget/util/str_util.h>
-#include <widget/jsonsettings.h>
-#include <widget/util/ui_util.h>
-#include <widget/xmainwindow.h>
-#include <widget/http.h>
-#include <widget/xmessagebox.h>
-
-#include <FramelessHelper/Widgets/framelessmainwindow.h>
-#include <FramelessHelper/Core/private/framelessconfig_p.h>
-
-#include <thememanager.h>
-#include <singleinstanceapplication.h>
+﻿#include <thememanager.h>
+#include <xapplication.h>
 #include <version.h>
 #include <xamp.h>
 
+#include <base/scopeguard.h>
+
+#include <widget/appsettingnames.h>
+#include <widget/appsettings.h>
+#include <widget/xmessagebox.h>
+#include <widget/xmainwindow.h>
+#include <widget/jsonsettings.h>
+
+#include <QSslSocket>
+
 namespace {
-    void loadSampleRateConverterConfig() {
-        XAMP_LOG_DEBUG("LoadSampleRateConverterConfig.");
-        qAppSettings.loadSoxrSetting();
-        qAppSettings.LoadR8BrainSetting();
-        qJsonSettings.save();
-        XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
-    }
-
-    void loadLang() {
-        XAMP_LOG_DEBUG("Load language file.");
-
-        if (qAppSettings.valueAsString(kAppSettingLang).isEmpty()) {
-            const LocaleLanguage lang;
-            XAMP_LOG_DEBUG("Load locale language file: {}.", lang.isoCode().toStdString());
-            qAppSettings.loadLanguage(lang.isoCode());
-            qAppSettings.loadLanguage(qSTR("qt_%1").arg(lang.isoCode()));
-            qAppSettings.setValue(kAppSettingLang, lang.isoCode());
-        }
-        else {
-            qAppSettings.loadLanguage(qAppSettings.valueAsString(kAppSettingLang));
-            XAMP_LOG_DEBUG("Load locale language file: {}.",
-                qAppSettings.valueAsString(kAppSettingLang).toStdString());
-        }
-    }
-
-#ifdef Q_OS_WIN
-    Vector<SharedLibraryHandle> prefetchDll() {
-        // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
-        const Vector<std::string_view> dll_file_names{
-            R"(WS2_32.dll)",
-            R"(Python3.dll)",
-            R"(mimalloc-override.dll)",
-            R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
-            R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
-            R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
-            R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
-        };
-        Vector<SharedLibraryHandle> preload_module;
-        for (const auto& file_name : dll_file_names) {
-            try {
-                auto module = LoadSharedLibrary(file_name);
-                if (PrefetchSharedLibrary(module)) {
-                    preload_module.push_back(std::move(module));
-                    XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
-                }
-            }
-            catch (const Exception& e) {
-                XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
-            }
-        }
-        return preload_module;
-    }
-#endif 
-
 #ifdef _DEBUG
     XAMP_DECLARE_LOG_NAME(Qt);
 
@@ -98,7 +22,7 @@ namespace {
         QTextStream stream(&str);
         stream.setEncoding(QStringConverter::Utf8);
 
-        const auto disable_stacktrace =
+        const auto disable_stack_trace =
             qAppSettings.valueAsBool(kAppSettingEnableDebugStackTrace);
 
         auto get_file_name = [&context]() -> std::string {
@@ -115,7 +39,7 @@ namespace {
 
         stream << QString::fromStdString(get_file_name()) << ":" << context.line << " (" << QString::fromStdString(GetLastErrorMessage()) << ") \r\n"
             << context.function << ": " << msg;
-        if (!disable_stacktrace) {
+        if (!disable_stack_trace) {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
@@ -147,17 +71,9 @@ namespace {
             break;
         }
     }
-#endif
-
-    void applyTheme() {
-        const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
-        qTheme.setThemeColor(theme);
-        qTheme.loadAndApplyTheme();
-    }
+#endif    
 
     int execute(int argc, char* argv[], QStringList &args) {
-        qAppSettings;
-
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
         QApplication::setApplicationName(kApplicationName);
@@ -165,23 +81,17 @@ namespace {
         QApplication::setOrganizationName(kApplicationName);
         QApplication::setOrganizationDomain(kApplicationName);
 
-        const SingleInstanceApplication app(argc, argv);
+        XApplication app(argc, argv);
         /*if (!app.isAttach()) {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
-        }*/
+        }*/        
 
-        if (!QSslSocket::supportsSsl()) {
-            XMessageBox::showError(qTEXT("SSL initialization failed."));
-            return -1;
-        }
-
-        qDiskCache.load();
-
-        loadLang();
-
-        args = app.arguments();
-
+		app.initial();
+        app.loadLang();
+        app.loadSampleRateConverterConfig();
+        app.applyTheme();
+        
 #ifdef _DEBUG    
 #ifdef Q_OS_WIN
         qInstallMessageHandler(logMessageHandler);
@@ -189,12 +99,13 @@ namespace {
 #endif
 #endif
 
-    	applyTheme();
-
-        XMainWindow main_window;
+        if (!QSslSocket::supportsSsl()) {
+            XMessageBox::showError(qTEXT("SSL initialization failed."));
+            return -1;
+        }
 
         //*** 系統載入DLL必須在此函數中, 如果之後再載入DLL會出錯 ***//
-        try {
+        try {            
             LoadComponentSharedLibrary();
         }
         catch (const Exception& e) {
@@ -203,8 +114,9 @@ namespace {
         }
         XAMP_LOG_DEBUG("Load component shared library success.");
 
-        XAMP_LOG_DEBUG("Database start init.");
-        try {
+        XAMP_LOG_DEBUG("Database start initial...");
+
+        try {			
             qGuiDb.open();
         }
         catch (const Exception& e) {
@@ -213,8 +125,9 @@ namespace {
         }
         XAMP_LOG_DEBUG("Database init success.");
 
-        XAMP_LOG_DEBUG("Start XAMP ...");
+        XAMP_LOG_DEBUG("Start XAMP window...");
 
+        XMainWindow main_window;
         Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
         win.setThemeColor(qTheme.backgroundColor(),
@@ -238,19 +151,6 @@ namespace {
         }
         return app.exec();
     }
-
-    struct FramelessHelperRAII {
-        FramelessHelperRAII() {
-            FramelessHelper::Widgets::initialize();
-            FramelessHelper::Core::setApplicationOSThemeAware();
-            FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
-            FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
-        }
-
-        ~FramelessHelperRAII() {
-            FramelessHelper::Widgets::uninitialize();
-        }
-    };
 }
 
 int main() {    
@@ -262,46 +162,6 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
-    qputenv("QT_ICC_PROFILE", QByteArray());
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
-
-    qAppSettings.loadIniFile(qTEXT("xamp.ini"));
-    qJsonSettings.loadJsonFile(qTEXT("config.json"));
-
-#ifdef Q_OS_WIN32
-    const auto os_ver = QOperatingSystemVersion::current();
-    XAMP_LOG_DEBUG("Running {} {}.{}.{}",
-        os_ver.name().toStdString(),
-        os_ver.majorVersion(),
-        os_ver.minorVersion(),
-        os_ver.microVersion());
-#endif
-
-	//SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
-
-    FramelessHelperRAII frameless_helper_raii;
-
-    qAppSettings.loadOrSaveLogConfig();
-    qAppSettings.loadAppSettings();
-    loadSampleRateConverterConfig();
-
-#ifdef Q_OS_WIN32
-    const auto components_path = GetComponentsFilePath();
-    if (!AddSharedLibrarySearchDirectory(components_path)) {
-        XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
-        return -1;
-    }
-
-    auto prefetch_dll = prefetchDll();
-    XAMP_LOG_DEBUG("Prefetch dll success.");
-#endif
-
-    XampCrashHandler.SetProcessExceptionHandlers();
-    XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
-
-    XampCrashHandler.SetThreadExceptionHandlers();
-    XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
-
     XAMP_ON_SCOPE_EXIT(
         qJsonSettings.save();
         qAppSettings.save();
@@ -309,6 +169,9 @@ int main() {
         qGuiDb.close();
         XampLoggerFactory.Shutdown();
     );
+
+    qputenv("QT_ICC_PROFILE", QByteArray());
+    QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
 
     static char app_name[] = "xamp2";
     static constexpr int argc = 1;
