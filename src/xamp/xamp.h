@@ -59,6 +59,7 @@ class PlaylistTableView;
 class GenreViewPage;
 class YtMusicOAuth;
 class QScrollArea;
+class QSystemTrayIcon;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -181,6 +182,7 @@ public slots:
 	void onPlaybackError(const QString& message);
 
 	void onRetranslateUi();
+
 private:
 	void initialUi();
 
@@ -317,6 +319,7 @@ private:
 	QScopedPointer<FileSystemService> file_system_service_;
 	QScopedPointer<YtMusicService> ytmusic_service_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
+	QScopedPointer<QSystemTrayIcon> tray_icon_;
 	//QList<QScrollArea*> widgets_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;
