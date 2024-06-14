@@ -7,12 +7,13 @@
 
 #include <xampplayer.h>
 #include <thememanager.h>
-
+#include <QSystemTrayIcon>
 #include <widget/driveinfo.h>
 
 #if defined(Q_OS_WIN)
 class WinTaskbar;
 #endif
+
 
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
 public:
@@ -52,7 +53,7 @@ public:
 
     void shortcutsPressed(uint16_t native_key, uint16_t native_mods);
 
-    void showWindow();
+    void showWindow() override;
 
     IXFrame* contentWidget() const override;
 protected:
@@ -71,6 +72,8 @@ protected:
     void saveAppGeometry() override;
 
 private:
+    void onActivated(QSystemTrayIcon::ActivationReason reason);
+
     bool nativeEvent(const QByteArray& event_type, void* message, qintptr* result) override;
 
     void showEvent(QShowEvent* event) override;
@@ -83,6 +86,7 @@ private:
     QScopedPointer<WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
 #endif
+    QScopedPointer<QSystemTrayIcon> tray_icon_;
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
 	IXFrame *content_widget_;
 };

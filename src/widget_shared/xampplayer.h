@@ -48,6 +48,8 @@ public:
     virtual void setIconicThumbnail(const QPixmap& image) = 0;
 
     virtual IXFrame* contentWidget() const = 0;
+
+    virtual void showWindow() = 0;
 protected:
     IXMainWindow() = default;
 };
