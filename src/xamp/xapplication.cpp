@@ -14,46 +14,12 @@
 #include <widget/appsettings.h>
 #include <widget/jsonsettings.h>
 
-#include <FramelessHelper/Widgets/framelessmainwindow.h>
-#include <FramelessHelper/Core/private/framelessconfig_p.h>
-
 #include <xapplication.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
 constexpr auto kIpcTimeout = 1000;
 
 XAMP_DECLARE_LOG_NAME(XApplication);
-
-namespace {
-	Vector<SharedLibraryHandle> prefetchDll() {
-		// 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
-		const Vector<std::string_view> dll_file_names{
-			R"(WS2_32.dll)",
-			R"(Python3.dll)",
-			R"(mimalloc-override.dll)",
-			R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
-			R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
-			R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
-			R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
-		};
-		Vector<SharedLibraryHandle> preload_module;
-#ifdef Q_OS_WIN
-		for (const auto& file_name : dll_file_names) {
-			try {
-				auto module = LoadSharedLibrary(file_name);
-				if (PrefetchSharedLibrary(module)) {
-					preload_module.push_back(std::move(module));
-					XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
-				}
-			}
-			catch (const Exception& e) {
-				XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
-			}
-		}		
-#endif
-		return preload_module;
-	}
-}
 
 XApplication::XApplication(int& argc, char* argv[])
 	: QApplication(argc, argv) {
@@ -86,18 +52,10 @@ XApplication::XApplication(int& argc, char* argv[])
 			server_->listen(applicationName());
 		}
 	}
-
-	FramelessHelper::Widgets::initialize();
-	FramelessHelper::Core::setApplicationOSThemeAware();
-	FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
-	FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
-
 	//SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
 }
 
-XApplication::~XApplication() {
-	FramelessHelper::Widgets::uninitialize();
-}
+XApplication::~XApplication() = default;
 
 bool XApplication::isAttach() const {
     return !is_running_;
@@ -116,17 +74,7 @@ void XApplication::initial() {
 	XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
 
 	XampCrashHandler.SetThreadExceptionHandlers();
-	XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
-
-#ifdef Q_OS_WIN32
-	const auto components_path = GetComponentsFilePath();
-	if (!AddSharedLibrarySearchDirectory(components_path)) {
-		throw Exception(String::Format("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage()));		
-	}
-
-	auto prefetch_dll = prefetchDll();
-	XAMP_LOG_DEBUG("Prefetch dll success.");
-#endif    
+	XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");    
 }
 
 void XApplication::loadSampleRateConverterConfig() {

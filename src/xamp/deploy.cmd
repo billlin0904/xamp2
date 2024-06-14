@@ -52,13 +52,8 @@ xcopy /Y /S /I /E x64\Release\langs deploy\langs
 xcopy /Y /S /I /E x64\Release\fonts deploy\fonts
 
 lrelease en_US.ts -qm en_US.qm
-lrelease ja_JP.ts -qm ja_JP.qm
-lrelease zh_TW.ts -qm zh_TW.qm
+
 copy en_US.qm x64\Debug\langs\
-copy ja_JP.qm x64\Debug\langs\
-copy zh_TW.qm x64\Debug\langs\
 copy en_US.qm x64\Release\langs\
-copy ja_JP.qm x64\Release\langs\
-copy zh_TW.qm x64\Release\langs\
 
 C:\Qt\6.5.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release

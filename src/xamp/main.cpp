@@ -4,6 +4,7 @@
 #include <xamp.h>
 
 #include <base/scopeguard.h>
+#include <base/dll.h>
 
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
@@ -11,9 +12,41 @@
 #include <widget/xmainwindow.h>
 #include <widget/jsonsettings.h>
 
+#include <FramelessHelper/Widgets/framelessmainwindow.h>
+#include <FramelessHelper/Core/private/framelessconfig_p.h>
+
 #include <QSslSocket>
 
 namespace {
+    Vector<SharedLibraryHandle> prefetchDll() {
+        // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
+        const Vector<std::string_view> dll_file_names{
+            R"(WS2_32.dll)",
+            R"(Python3.dll)",
+            R"(mimalloc-override.dll)",
+            R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
+            R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
+            R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
+            R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
+        };
+        Vector<SharedLibraryHandle> preload_module;
+#ifdef Q_OS_WIN
+        for (const auto& file_name : dll_file_names) {
+            try {
+                auto module = LoadSharedLibrary(file_name);
+                if (PrefetchSharedLibrary(module)) {
+                    preload_module.push_back(std::move(module));
+                    XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
+                }
+            }
+            catch (const Exception& e) {
+                XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
+            }
+        }
+#endif
+        return preload_module;
+    }
+
 #ifdef _DEBUG
     XAMP_DECLARE_LOG_NAME(Qt);
 
@@ -73,7 +106,33 @@ namespace {
     }
 #endif    
 
+    struct FramelessHelperScoped {
+        FramelessHelperScoped() {
+            FramelessHelper::Widgets::initialize();
+            FramelessHelper::Core::setApplicationOSThemeAware();
+            FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
+            FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
+        }
+
+		~FramelessHelperScoped() {
+            FramelessHelper::Widgets::uninitialize();
+		}
+    };
+
     int execute(int argc, char* argv[], QStringList &args) {
+#ifdef Q_OS_WIN32
+        const auto components_path = GetComponentsFilePath();
+        if (!AddSharedLibrarySearchDirectory(components_path)) {
+            XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
+            return -1;
+        }
+
+        auto prefetch_dll = prefetchDll();
+        XAMP_LOG_DEBUG("Prefetch dll success.");
+#endif
+
+		FramelessHelperScoped scoped;
+
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
         QApplication::setApplicationName(kApplicationName);

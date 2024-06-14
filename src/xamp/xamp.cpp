@@ -1237,6 +1237,8 @@ void Xamp::initialDeviceList(const std::string& device_id) {
         device_info_ = init_device_info;
         qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.value().connect_type);
         device_id_action[device_info_.value().device_id]->setChecked(true);
+        ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
+        ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
         qAppSettings.setValue(kAppSettingDeviceType, device_info_.value().device_type_id);
         qAppSettings.setValue(kAppSettingDeviceId, device_info_.value().device_id);
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.value().device_id);
@@ -1343,7 +1345,7 @@ void Xamp::initialController() {
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
-        constexpr bool use_supereq = false;
+        constexpr bool use_supereq = true;
         QScopedPointer<XDialog> dialog(new XDialog(this));
         if (use_supereq) {
             QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
@@ -1404,12 +1406,16 @@ void Xamp::initialController() {
 }
 
 void Xamp::showNaviBarButton() {
+	constexpr auto kAnimationDuration = 100;
+	constexpr auto kMaxWidth = 180;
+    constexpr auto kMinWidth = 50;
+
     auto start_width = ui_.sliderFrame2->maximumWidth();
-    auto end_width = (start_width == 50) ? 180 : 50;
-    qAppSettings.setValue(kAppSettingHideNaviBar, end_width == 50);
+    auto end_width = (start_width == kMinWidth) ? kMaxWidth : kMinWidth;
+    qAppSettings.setValue(kAppSettingHideNaviBar, end_width == kMinWidth);
 
     auto* animation = new QPropertyAnimation(ui_.sliderFrame2, "maximumWidth");
-    animation->setDuration(100);
+    animation->setDuration(kAnimationDuration);
     animation->setStartValue(start_width);
     animation->setEndValue(end_width);
     animation->setEasingCurve(QEasingCurve::OutCubic);
@@ -1710,7 +1716,9 @@ void Xamp::playOrPause() {
             play_index_ = page->playlist()->model()->index(
                 play_index_.row(), PLAYLIST_IS_PLAYING);
             if (play_index_.row() == -1) {
-                XMessageBox::showInformation(tr("Not found any playing item."));
+                // Don't not show message box. when the application will receive other signal.
+                // message box will be show again.
+                //XMessageBox::showInformation(tr("Not found any playing item."));
                 return;
             }
             page->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
@@ -2173,7 +2181,9 @@ void Xamp::playNextItem(int32_t forward, bool is_play) {
     const auto count = last_playlist_->model()->rowCount();
     if (count == 0) {
         stopPlay();
-        XMessageBox::showInformation(tr("Not found any playing item."));
+		// Don't not show message box. when the application will receive other signal.
+		// message box will be show again.
+        //XMessageBox::showInformation(tr("Not found any playing item."));
         return;
     }
 
