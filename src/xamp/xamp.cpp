@@ -1011,24 +1011,6 @@ void Xamp::onCheckForUpdate() {
     updater->checkForUpdates(kSoftwareUpdateUrl);
 }
 
-void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
-    switch (reason) {
-    case QSystemTrayIcon::Trigger:
-    {
-        main_window_->showNormal();
-        main_window_->raise();
-        main_window_->activateWindow();
-        break;
-    }
-    case QSystemTrayIcon::DoubleClick:
-    {
-        break;
-    }
-    default:
-        break;
-    }
-}
-
 void Xamp::initialSpectrum() {
     if (!qAppSettings.valueAsBool(kAppSettingEnableSpectrum)) {
         return;
@@ -1099,28 +1081,7 @@ void Xamp::initialUi() {
         setAuthButton(ui_, false);
     }
 
-    setNaviBarMenuButton(ui_);
-
-    tray_icon_.reset(new QSystemTrayIcon(this));
-    tray_icon_->setIcon(qTheme.applicationIcon());
-    tray_icon_->setToolTip(kApplicationTitle);
-    
-    auto* tray_icon_menu = new QMenu(this);
-    auto* min_action = new QAction(tr("Minimize"));
-    (void)QObject::connect(min_action, &QAction::triggered, main_window_, &IXMainWindow::hide);
-    tray_icon_menu->addAction(min_action);
-
-    auto* max_action = new QAction(tr("Maximize"));
-    (void)QObject::connect(max_action, &QAction::triggered, main_window_, &IXMainWindow::showMaximized);
-    tray_icon_menu->addAction(max_action);
-
-    auto* quit_action = new QAction(tr("Quit"));
-    (void)QObject::connect(quit_action, &QAction::triggered, qApp, &QApplication::quit);
-    tray_icon_menu->addAction(quit_action);
-
-    tray_icon_->setContextMenu(tray_icon_menu);
-    (void) QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &Xamp::onActivated);
-    tray_icon_->show();
+    setNaviBarMenuButton(ui_);    
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state, const QString &device_id) {

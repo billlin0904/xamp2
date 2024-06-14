@@ -125,9 +125,7 @@ public slots:
 
     void onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids);
 
-	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
-
-	void onActivated(QSystemTrayIcon::ActivationReason reason);
+	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);	
 
 	void onSetCover(const QString& cover_id, PlaylistPage* page);
 
@@ -318,8 +316,7 @@ private:
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
 	QScopedPointer<YtMusicService> ytmusic_service_;
-	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
-	QScopedPointer<QSystemTrayIcon> tray_icon_;
+	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;	
 	//QList<QScrollArea*> widgets_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;
