@@ -197,7 +197,9 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     ui_.setupUi(this);
 }
 
-Xamp::~Xamp() = default;
+Xamp::~Xamp() {
+	destroy();
+}
 
 QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
     static const QMap<std::string_view, ConstexprQString> lut{
@@ -296,6 +298,37 @@ void Xamp::initialYtMusicService() {
         });
 }
 
+void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
+    switch (reason) {
+    case QSystemTrayIcon::Trigger:
+    {
+        main_window_->showNormal();
+        main_window_->raise();
+        main_window_->activateWindow();
+        break;
+    }
+    case QSystemTrayIcon::DoubleClick:
+    {
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void Xamp::showAbout() {
+	const QScopedPointer<XDialog> dialog(new XDialog(this));
+	const QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
+	(void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::onCheckForUpdate);
+	(void)QObject::connect(about_page.get(), &AboutPage::RestartApp, this, &Xamp::onRestartApp);
+	(void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
+	dialog->setContentWidget(about_page.get());
+	dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
+	dialog->setTitle(tr("About"));
+	emit about_page->CheckForUpdate();
+	dialog->exec();
+}
+
 void Xamp::setMainWindow(IXMainWindow* main_window) {
     FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
     FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
@@ -307,6 +340,35 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     main_window_ = main_window;
     order_ = qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder);
 
+    tray_icon_.reset(new QSystemTrayIcon(this));
+    tray_icon_->setIcon(qTheme.applicationIcon());
+    tray_icon_->setToolTip(kApplicationTitle);
+
+    auto* tray_icon_menu = new QMenu(this);
+    /*auto* min_action = new QAction(tr("Minimize"));
+    (void)QObject::connect(min_action, &QAction::triggered, main_window_, &IXMainWindow::hide);
+    tray_icon_menu->addAction(min_action);
+
+    auto* max_action = new QAction(tr("Maximize"));
+    (void)QObject::connect(max_action, &QAction::triggered, main_window_, &IXMainWindow::showMaximized);
+    tray_icon_menu->addAction(max_action);*/
+
+    auto* about_action = new QAction(tr("About"));
+	(void)QObject::connect(about_action, &QAction::triggered, this, &Xamp::showAbout);
+    tray_icon_menu->addAction(about_action);
+    tray_icon_menu->addSeparator();
+
+    auto* quit_action = new QAction(tr("Quit"));
+    (void)QObject::connect(quit_action, &QAction::triggered, [this]() {
+        tray_icon_->hide();
+        qApp->quit();
+        });
+    tray_icon_menu->addAction(quit_action);
+
+    tray_icon_->setContextMenu(tray_icon_menu);
+    (void)QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &Xamp::onActivated);
+    tray_icon_->show();
+
     (void)QObject::connect(ui_.minWinButton, &QToolButton::clicked, [this]() {
         main_window_->showMinimized();
         });
@@ -316,7 +378,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         });
 
     (void)QObject::connect(ui_.closeButton, &QToolButton::clicked, [this]() {
-        QWidget::close();
+        main_window_->hide();
         });
 
     background_service_.reset(new BackgroundService());
@@ -399,6 +461,8 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialPlaylist();
     initialShortcut();
     initialSpectrum();
+
+    last_playlist_tab_ = playlist_tab_page_.get();
 
     setPlaylistPageCover(nullptr, cd_page_->playlistPage());
 
@@ -633,23 +697,10 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         dialog->exec();
         preference_page->saveAll();
         });
-
-    const auto* mini_to_tray_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Minimize To Tray"));
-    (void)QObject::connect(mini_to_tray_action, &QAction::triggered, [this]() {
-        });
    
-    const auto* about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
+    about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action, &QAction::triggered, [this]() {
-        const QScopedPointer<XDialog> dialog(new XDialog(this));
-        const QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
-        (void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::onCheckForUpdate);
-        (void)QObject::connect(about_page.get(), &AboutPage::RestartApp, this, &Xamp::onRestartApp);
-        (void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
-        dialog->setContentWidget(about_page.get());
-        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
-        dialog->setTitle(tr("About"));
-        emit about_page->CheckForUpdate();
-        dialog->exec();
+        showAbout();
         });
     ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
     ui_.menuButton->setMenu(menu);
@@ -711,7 +762,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             is_unknown_album = true;
         }
 
-        if (!track.video_id /*|| !track.set_video_id*/) {
+        if (!track.video_id) {
             continue;
         }
 
@@ -1331,7 +1382,7 @@ void Xamp::initialController() {
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
-        constexpr bool use_supereq = true;
+        constexpr bool use_supereq = false;
         QScopedPointer<XDialog> dialog(new XDialog(this));
         if (use_supereq) {
             QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
@@ -1575,6 +1626,7 @@ void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
 void Xamp::setVolume(uint32_t volume) {
     ui_.mutedButton->onVolumeChanged(volume);
     ui_.mutedButton->showDialog();
+    ui_.mutedButton->updateState();
 }
 
 void Xamp::initialShortcut() {
@@ -1978,7 +2030,9 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 
     onSetCover(entity.validCoverId(), playlist_page);
 
-    last_playlist_tab_ = playlist_tab_widget;
+    if (playlist_tab_widget != nullptr) {
+        last_playlist_tab_ = playlist_tab_widget;
+    }    
     last_playlist_page_ = playlist_page;
     last_playlist_ = playlist_page->playlist();
     playlist_page->format()->setText(format2String(playback_format, entity.file_extension));

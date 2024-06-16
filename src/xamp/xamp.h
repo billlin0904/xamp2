@@ -292,6 +292,10 @@ private:
 
 	void setCover(const QString& cover_id);
 
+	void onActivated(QSystemTrayIcon::ActivationReason reason);
+
+	void showAbout();
+
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;
@@ -316,7 +320,8 @@ private:
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
 	QScopedPointer<YtMusicService> ytmusic_service_;
-	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;	
+	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
+	QScopedPointer<QSystemTrayIcon> tray_icon_;
 	//QList<QScrollArea*> widgets_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;

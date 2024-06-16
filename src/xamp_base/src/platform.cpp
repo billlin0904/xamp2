@@ -108,8 +108,7 @@ namespace {
         }
 
         constexpr auto enable_eco_qos = true;
-        PROCESS_POWER_THROTTLING_STATE power_throttling;
-        RtlZeroMemory(&power_throttling, sizeof(power_throttling));
+        PROCESS_POWER_THROTTLING_STATE power_throttling{};
         power_throttling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
         power_throttling.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
         power_throttling.StateMask =

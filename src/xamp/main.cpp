@@ -221,6 +221,9 @@ int main() {
         .AddLogFile("xamp.log")
         .Startup();
 
+    // Disable ECO-QOS mode.
+	SetCurrentProcessPriority(ProcessPriority::PRIORITY_FOREGROUND);
+
     XAMP_ON_SCOPE_EXIT(
         qJsonSettings.save();
         qAppSettings.save();

@@ -44,6 +44,9 @@ SetupIconFile=xamp.ico
 UninstallDisplayIcon={app}\xamp.exe
 WizardImageFile=WizardImage.bmp
 
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\logs"
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
