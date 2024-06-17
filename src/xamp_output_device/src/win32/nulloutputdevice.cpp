@@ -38,12 +38,12 @@ void NullOutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 }
 
 void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
+	XAMP_LOG_DEBUG("NullOutputDevice stop stream.");
+
 	if (!is_running_) {
 		return;
 	}
-
-	XAMP_LOG_DEBUG("NullOutputDevice stop stream start.");
-
+	
 	is_stopped_ = true;
 	if (render_task_.valid()) {
 		render_task_.get();
@@ -54,10 +54,13 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 }
 
 void NullOutputDevice::CloseStream() {
+	XAMP_LOG_DEBUG("NullOutputDevice close stream.");
 	render_task_ = Task<void>();
 }
 
 void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
+	XAMP_LOG_DEBUG("NullOutputDevice open stream.");
+
 	static constexpr auto kDefaultBufferFrame = 432; // 10ms
 
 	buffer_frames_ = kDefaultBufferFrame;
