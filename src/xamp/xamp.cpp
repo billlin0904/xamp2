@@ -324,8 +324,7 @@ void Xamp::showAbout() {
 	(void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
 	dialog->setContentWidget(about_page.get());
 	dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
-	dialog->setTitle(tr("About"));
-	emit about_page->CheckForUpdate();
+	dialog->setTitle(tr("About"));	
 	dialog->exec();
 }
 
@@ -352,6 +351,10 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     auto* max_action = new QAction(tr("Maximize"));
     (void)QObject::connect(max_action, &QAction::triggered, main_window_, &IXMainWindow::showMaximized);
     tray_icon_menu->addAction(max_action);*/
+
+    auto* check_for_update_action = new QAction(tr("Check for update"));
+    (void)QObject::connect(check_for_update_action, &QAction::triggered, this, &Xamp::onCheckForUpdate);
+    tray_icon_menu->addAction(check_for_update_action);
 
     auto* about_action = new QAction(tr("About"));
 	(void)QObject::connect(about_action, &QAction::triggered, this, &Xamp::showAbout);
@@ -672,14 +675,14 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
                 return;
             }
 
-            if (trigger_upgrade_action_) {
-                //const auto download_url = platform.value(qTEXT("download-url")).toString();
-                //XMessageBox::ShowInformation(changelog, qTEXT("New version!"), false);
-            }
+            //if (trigger_upgrade_action_) {
+                const auto download_url = platform.value(qTEXT("download-url")).toString();
+                XMessageBox::showInformation(changelog, tr("New version!"), true);
+            //}
 
-            if (latest_version_value > kApplicationVersionValue) {
-                trigger_upgrade_action_ = true;
-            }
+            //if (latest_version_value > kApplicationVersionValue) {
+            //    trigger_upgrade_action_ = true;
+            //}
 
             emit updateNewVersion(latest_version_value);
         });
