@@ -6,6 +6,7 @@
 
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
+#include <base/port.h>
 
 #include <stream/soxresampler.h>
 
@@ -129,15 +130,15 @@ void AppSettings::parseFixedBandEq(const QFileInfo file_info, QFile& file) {
 		auto result = line.split(qTEXT(":"));
 		auto str = result[1].toStdWString();
 		if (result[0] == qTEXT("Preamp")) {
-			swscanf(str.c_str(), L"%f dB",
+			port_swscanf(str.c_str(), L"%f dB",
 			        &settings.preamp);
 		}
 		else if (result[0].indexOf(qTEXT("Filter")) != -1) {
 			settings.bands.emplace_back();
 			auto pos = str.find(L"Fc");
-			swscanf(&str[pos], L"Fc %f Hz",
+			port_swscanf(&str[pos], L"Fc %f Hz",
 			        &settings.bands[i].frequency);
-			for (auto filter_type : filter_types) {
+			for (auto& filter_type : filter_types) {
 				pos = str.find(filter_type.first);
 				if (pos != std::wstring::npos) {
 					settings.bands[i].type = filter_type.second;
@@ -148,7 +149,7 @@ void AppSettings::parseFixedBandEq(const QFileInfo file_info, QFile& file) {
 			if (pos == std::wstring::npos) {
 				continue;
 			}
-			swscanf(&str[pos], L"Gain %f dB Q %f",
+			port_swscanf(&str[pos], L"Gain %f dB Q %f",
 			        &settings.bands[i].gain, &settings.bands[i].Q);
 			++i;
 			XAMP_LOG_TRACE("Parse {}", line.toStdString());
@@ -191,7 +192,7 @@ QLocale AppSettings::locale() const {
 	return manager_.locale();
 }
 
-QString AppSettings::cachePath() {
+QString AppSettings::getOrCreateCachePath() {
 	QString cache_path;
 
 	if (!qAppSettings.contains(kAppSettingCachePath)) {

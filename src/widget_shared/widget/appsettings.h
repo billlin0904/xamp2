@@ -168,7 +168,7 @@ public:
 
 	QString myMusicFolderPath();
 
-	QString cachePath();
+	QString getOrCreateCachePath();
 
 	void save();
 

@@ -109,6 +109,8 @@ double NullOutputDevice::GetStreamTime() const noexcept {
 }
 
 void NullOutputDevice::StartStream() {
+	std::unique_lock guard{ mutex_ };
+
 	XAMP_LOG_DEBUG("NullOutputDevice start render.");
 
 	is_stopped_ = false;
@@ -118,6 +120,8 @@ void NullOutputDevice::StartStream() {
 		double sample_time = 0;
 
 		mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
+
+		wait_for_start_stream_cond_.notify_one();
 
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			const auto stream_time = stream_time_ + buffer_frames_;
@@ -135,6 +139,9 @@ void NullOutputDevice::StartStream() {
 		XAMP_LOG_DEBUG("NullOutputDevice stop render.");
 
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
+	
+	constexpr auto kWaitThreadStartSecond = 60 * 1000;
+	wait_for_start_stream_cond_.wait_for(guard, std::chrono::milliseconds(kWaitThreadStartSecond));
 }
 
 bool NullOutputDevice::IsStreamRunning() const noexcept {

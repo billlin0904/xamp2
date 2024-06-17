@@ -71,9 +71,7 @@ protected:
 
     void saveAppGeometry() override;
 
-private:
-    void onActivated(QSystemTrayIcon::ActivationReason reason);
-
+private:    
     bool nativeEvent(const QByteArray& event_type, void* message, qintptr* result) override;
 
     void showEvent(QShowEvent* event) override;

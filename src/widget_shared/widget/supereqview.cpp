@@ -124,6 +124,7 @@ SuperEqView::SuperEqView(QWidget* parent)
 
     for (auto& s : sliders_) {
         s->setRange(-20, 20);
+        qTheme.setSliderTheme(s);
     }
 
     ui_->enableEqCheckBox->setCheckState(qAppSettings.valueAsBool(kAppSettingEnableEQ)

@@ -55,6 +55,9 @@ public:
     void forEachAlbum(std::function<void(int32_t)>&& fun);
     void removeAlbumCategory(int32_t album_id);
     void removeAlbumMusicAlbum(int32_t album_id);
+
+    int32_t getRandomMusicId(int32_t album_id, PRNG& rng);
+    int32_t getRandomAlbumId(int32_t album_id, PRNG& rng);
 private:
     QSqlDatabase& db_;
 };

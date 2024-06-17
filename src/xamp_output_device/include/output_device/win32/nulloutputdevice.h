@@ -8,6 +8,7 @@
 #include <base/base.h>
 #include <base/buffer.h>
 #include <base/task.h>
+#include <base/fastconditionvariable.h>
 
 #ifdef XAMP_OS_WIN
 
@@ -181,6 +182,8 @@ private:
 	LoggerPtr logger_;
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
+	FastMutex mutex_;
+	FastConditionVariable wait_for_start_stream_cond_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

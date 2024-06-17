@@ -40,5 +40,6 @@ private:
 
 	bool is_show_{ false };
 	QTimer show_timer_;
+	QTimer hide_timer_;
 	QScopedPointer<VolumeControlDialog> dialog_;
 };

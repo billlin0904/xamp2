@@ -22,19 +22,9 @@
 #include <QDirIterator>
 #include <QImageReader>
 
-inline constexpr size_t kDefaultCacheSize = 24;
-inline constexpr qint64 kMaxCacheImageSize = 32 * 1024 * 1024;
-inline auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
-
-namespace {
-	QString makeImageCachePath(const QString& tag_id) {
-		QDir dir(qAppSettings.cachePath() + qTEXT("ImageCache/"));
-		if (!dir.exists()) {
-			dir.mkpath(qAppSettings.cachePath() + qTEXT("ImageCache/"));
-		}
-		return qAppSettings.cachePath() + qTEXT("ImageCache/") + tag_id + kCacheFileExtension;
-	}
-}
+constexpr size_t kDefaultCacheSize = 24;
+constexpr qint64 kMaxCacheImageSize = 32 * 1024 * 1024;
+auto kCacheFileExtension = qTEXT(".") + qSTR(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
@@ -145,12 +135,22 @@ void ImageCache::clearCache() const {
 	cache_.Clear();
 }
 
+QString ImageCache::makeCacheFilePath() const {
+	return qAppSettings.getOrCreateCachePath() + qTEXT("ImageCache/");
+}
+
+QString ImageCache::makeImageCachePath(const QString& tag_id) const {
+	return makeCacheFilePath() + tag_id + kCacheFileExtension;
+}
+
 void ImageCache::clear() const {
-	for (QDirIterator itr(qAppSettings.cachePath(), QDir::Files);
+	for (QDirIterator itr(makeCacheFilePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto path = itr.next();
 		QFile file(path);
-		file.remove();
+		if (!file.remove()) {
+			XAMP_LOG_D(logger_, "Failure to remove cache file: {}", path.toStdString());
+		}
 	}
 	cache_.Clear();
 }
@@ -160,8 +160,11 @@ QPixmap ImageCache::findImageFromDir(const PlayListEntity& item) {
 }
 
 void ImageCache::removeImage(const QString& tag_id) const {
-	QFile file(makeImageCachePath(tag_id));
-	file.remove();
+	auto path = makeImageCachePath(tag_id);
+	QFile file(path);
+	if (!file.remove()) {
+		XAMP_LOG_D(logger_, "Failure to remove cache file: {}", path.toStdString());
+	}
 	cache_.Erase(tag_id);
 }
 
@@ -268,7 +271,7 @@ void ImageCache::loadCache() const {
 	Stopwatch sw;
 
 	size_t i = 0;
-	for (QDirIterator itr(qAppSettings.cachePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
+	for (QDirIterator itr(makeCacheFilePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
 		const auto path = itr.next();
 		QImage image(qTheme.cacheCoverSize(), kImageFormat);

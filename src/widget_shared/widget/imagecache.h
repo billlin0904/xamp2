@@ -88,6 +88,10 @@ private:
 
 	void loadCache() const;
 
+	QString makeCacheFilePath() const;
+
+	QString makeImageCachePath(const QString& tag_id) const;
+
 	QFileInfo getImageFileInfo(const QString& tag_id) const;
 
 	QStringList cover_ext_;

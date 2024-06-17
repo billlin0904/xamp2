@@ -217,6 +217,8 @@ protected:
 	QString column_setting_name_;
 	QList<int32_t> always_hidden_columns_;
 	dao::PlaylistDao playlist_dao_;
+	dao::AlbumDao album_dao_;
+	QHash<int32_t, QList<int32_t>> album_songs_id_cache_;
 };
 
 

@@ -36,7 +36,6 @@ IMPL_APP_SETTING_NAME(AppSettingMinimizeToTrayAsk, "AppSettings/minimizeToTrayAs
 IMPL_APP_SETTING_NAME(AppSettingMinimizeToTray, "AppSettings/minimizeToTray");
 IMPL_APP_SETTING_NAME(AppSettingBackgroundColor, "AppSettings/theme/backgroundColor");
 
-IMPL_APP_SETTING_NAME(AppSettingPodcastCachePath, "AppSettings/podcastCachePath");
 IMPL_APP_SETTING_NAME(AppSettingCachePath, "AppSettings/cachePath");
 IMPL_APP_SETTING_NAME(AppSettingEnableReplayGain, "AppSettings/enableReplayGain");
 IMPL_APP_SETTING_NAME(AppSettingEnableReplayGainWriteTag, "AppSettings/enableReplayGainWriteTag");
@@ -87,3 +86,4 @@ IMPL_APP_SETTING_NAME(AppSettingEnableDebugStackTrace, "AppSettings/enableDebugS
 IMPL_APP_SETTING_NAME(AppSettingHideNaviBar, "AppSettings/hideNaviBar");
 
 IMPL_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex, "AppSettings/playlist/lastPlaylistTabIndex");
+IMPL_APP_SETTING_NAME(AppSettingEnableTray, "AppSettings/enableTray");

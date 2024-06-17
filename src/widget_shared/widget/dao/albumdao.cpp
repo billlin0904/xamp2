@@ -5,6 +5,8 @@
 #include <widget/dao/musicdao.h>
 #include <widget/dao/albumdao.h>
 
+#include <base/rng.h>
+
 namespace dao {
     namespace {
         PlayListEntity fromSqlQuery(const SqlQuery& query) {
@@ -241,6 +243,46 @@ namespace dao {
         query.prepare(qTEXT("DELETE FROM albumMusic WHERE albumId=:albumId"));
         query.bindValue(qTEXT(":albumId"), album_id);
         DbIfFailedThrow1(query);
+    }
+
+    int32_t AlbumDao::getRandomMusicId(int32_t album_id, PRNG& rng) {
+        SqlQuery query(db_);
+        query.prepare(qTEXT("SELECT musicId FROM albumMusic WHERE albumId = :album_id"));
+        query.bindValue(qTEXT(":album_id"), album_id);
+
+        DbIfFailedThrow1(query);
+
+        QVector<int32_t> song_ids;
+        while (query.next()) {
+            song_ids.append(query.value(0).toInt());
+        }
+
+        if (song_ids.isEmpty()) {
+            return kInvalidDatabaseId;
+        }
+
+        int32_t random_index = rng.NextInt32(0, song_ids.size() - 1);
+        return song_ids[random_index];
+    }
+
+    int32_t AlbumDao::getRandomAlbumId(int32_t album_id, PRNG& rng) {
+        SqlQuery query(db_);
+        query.prepare(qTEXT("SELECT albumId FROM albums WHERE albumId != :album_id"));
+        query.bindValue(qTEXT(":album_id"), album_id);
+
+        DbIfFailedThrow1(query);
+
+        QVector<int32_t> album_ids;
+        while (query.next()) {
+            album_ids.append(query.value(0).toInt());
+        }
+
+        if (album_ids.isEmpty()) {
+            return kInvalidDatabaseId;
+        }
+
+        int32_t random_index = rng.NextInt32(0, album_ids.size() - 1);
+        return album_ids[random_index];
     }
 
     void AlbumDao::removeAlbum(int32_t album_id) {

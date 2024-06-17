@@ -212,10 +212,10 @@ void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
 	if (!uniform_item_sizes) {
 		const QFontMetrics metrics(f);
 		const auto width = metrics.horizontalAdvance(tag) * 1.5;
-		item->setSizeHint(QSize(width, 30));
+		item->setSizeHint(QSize(width, 35));
 	}
 	else {
-		item->setSizeHint(QSize(80, 30));
+		item->setSizeHint(QSize(80, 35));
 	}
 
 	layout->addWidget(tag_label);

@@ -55,6 +55,8 @@ public:
 
     void showEvent(QShowEvent* event) override;
 
+	void hideMaskWidget();
+
     static void showBug(const Exception& exception,
         const QString& title = kApplicationTitle,
         QWidget* parent = nullptr);

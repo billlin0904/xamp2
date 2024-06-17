@@ -13,6 +13,7 @@
 #include <QPainter>
 #include <QSqlError>
 #include <QStyledItemDelegate>
+#include <QElapsedTimer>
 
 #include <base/logger_impl.h>
 #include <base/assert.h>
@@ -179,7 +180,9 @@ void PlaylistTableView::reload(bool is_scroll_to) {
             }
         }
     }
+
     play_index_ = QModelIndex();
+    album_songs_id_cache_.clear();
     update();
 }
 
@@ -313,16 +316,15 @@ void PlaylistTableView::setHeaderViewHidden(bool enable) {
         ActionMap<PlaylistTableView> action_map(this);
 
     auto* header_view = horizontalHeader();
-    auto* xamp = getMainWindow()->contentWidget();
 
     auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-    auto hide_this_column_act = action_map.addAction(xamp->translateText("Hide this column"), [last_referred_logical_column, this]() {
+    auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
         setColumnHidden(last_referred_logical_column, true);
 		qAppSettings.removeList(column_setting_name_, QString::number(last_referred_logical_column));
         });
     hide_this_column_act->setIcon(qTheme.fontIcon(Glyphs::ICON_HIDE));
 
-    auto select_column_show_act = action_map.addAction(xamp->translateText("Select columns to show..."), [pt, header_view, this]() {
+    auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
         ActionMap<PlaylistTableView> action_map(this);
         for (auto column = 0; column < header_view->count(); ++column) {
             if (always_hidden_columns_.contains(column)) {
@@ -506,7 +508,7 @@ void PlaylistTableView::initial() {
                     emit downloadFile(play_list_entity);
                 }
                 });
-
+            
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
@@ -544,7 +546,7 @@ void PlaylistTableView::initial() {
             });
         load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
 
-        if (enable_delete_ && model()->rowCount() > 0) {
+        if (enable_delete_ && model()->rowCount() > 0) {            
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
 
@@ -929,34 +931,42 @@ QModelIndex PlaylistTableView::shuffleIndex() {
     auto current_playlist_music_id = 0;
     if (play_index_.isValid()) {
         current_playlist_music_id = indexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    }
-    const auto count = proxy_model_->rowCount();
+    }    
     if (current_playlist_music_id != 0) {
         rng_.SetSeed(current_playlist_music_id);
-    }    
+    }
+    const auto count = proxy_model_->rowCount();
     const auto selected = rng_.NextInt32(0, count - 1);
     return model()->index(selected, PLAYLIST_IS_PLAYING);
 }
 
 QModelIndex PlaylistTableView::shuffleAlbumIndex() {
     auto current_playlist_album_id = 0;
+    auto current_playlist_music_id = 0;
+
     if (play_index_.isValid()) {
         current_playlist_album_id = indexValue(play_index_, PLAYLIST_ALBUM_ID).toInt();
+        current_playlist_music_id = indexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     }
+
     const auto count = proxy_model_->rowCount();
     if (count == 0 || current_playlist_album_id == 0) {
         return QModelIndex();
     }
 
-    QHash<int32_t, QList<int32_t>> album_map;
-    for (auto row = 0; row < count; ++row) {
-        auto album_id = proxy_model_->index(row, PLAYLIST_ALBUM_ID).data().toInt();
-        if (album_id != 0) {
-            album_map[album_id].append(row);
-        }        
-    }
+	// Avoid reappearing the same album.
+    rng_.SetSeed(current_playlist_album_id);
 
-    auto album_ids = album_map.keys();
+    if (album_songs_id_cache_.isEmpty()) {
+        for (auto index = 0; index < count; ++index) {
+            auto album_id = proxy_model_->index(index, PLAYLIST_ALBUM_ID).data().toInt();
+            if (album_id != 0) {
+                album_songs_id_cache_[album_id].append(index);
+            }
+        }
+    }    
+
+    auto album_ids = album_songs_id_cache_.keys();
     auto selected_album_id = current_playlist_album_id;
 
     if (album_ids.size() > 1) {
@@ -965,9 +975,14 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
             selected_album_id = album_ids[selected_album_index];
         } while (selected_album_id == current_playlist_album_id);
         Q_ASSERT(selected_album_id != current_playlist_album_id);
+    }
+
+	// Avoid reappearing the same music.
+    if (current_playlist_music_id != 0) {
+        rng_.SetSeed(current_playlist_music_id);
     }    
 
-    const auto& selected_album_songs = album_map[selected_album_id];
+    const auto& selected_album_songs = album_songs_id_cache_[selected_album_id];
     const auto selected_song_index = rng_.NextInt32(0, selected_album_songs.size() - 1);
     const auto selected_row = selected_album_songs[selected_song_index];
 
@@ -1035,6 +1050,8 @@ OrderedMap<int32_t, QModelIndex> PlaylistTableView::selectItemIndex() const {
 QModelIndex PlaylistTableView::playOrderIndex(PlayerOrder order) {
     QModelIndex index;
 
+    QElapsedTimer timer;
+
     switch (order) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         index = nextIndex(1);
@@ -1042,11 +1059,10 @@ QModelIndex PlaylistTableView::playOrderIndex(PlayerOrder order) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         index = play_index_;
         break;
-    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        index = shuffleIndex();        
-        break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALBUM:
-        index = shuffleAlbumIndex();
+        timer.start();
+        index = shuffleAlbumIndex();        
+        XAMP_LOG_DEBUG("shuffleAlbumIndex: {} ms", timer.nsecsElapsed());
         break;
     }
     if (!index.isValid()) {

@@ -36,46 +36,7 @@ XMainWindow::XMainWindow()
 	, screen_number_(1)
 #endif
 	, content_widget_(nullptr) {    
-    setObjectName(qTEXT("XMainWindow"));
-
-    tray_icon_.reset(new QSystemTrayIcon(this));
-    tray_icon_->setIcon(qTheme.applicationIcon());
-    tray_icon_->setToolTip(kApplicationTitle);
-
-    auto* tray_icon_menu = new QMenu(this);
-    auto* min_action = new QAction(tr("Minimize"));
-    (void)QObject::connect(min_action, &QAction::triggered, this, &IXMainWindow::hide);
-    tray_icon_menu->addAction(min_action);
-
-    auto* max_action = new QAction(tr("Maximize"));
-    (void)QObject::connect(max_action, &QAction::triggered, this, &IXMainWindow::showMaximized);
-    tray_icon_menu->addAction(max_action);
-
-    auto* quit_action = new QAction(tr("Quit"));
-    (void)QObject::connect(quit_action, &QAction::triggered, qApp, &QApplication::quit);
-    tray_icon_menu->addAction(quit_action);
-
-    tray_icon_->setContextMenu(tray_icon_menu);
-    (void)QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &XMainWindow::onActivated);
-    tray_icon_->show();
-}
-
-void XMainWindow::onActivated(QSystemTrayIcon::ActivationReason reason) {
-    switch (reason) {
-    case QSystemTrayIcon::Trigger:
-    {
-        showNormal();
-        raise();
-        activateWindow();
-        break;
-    }
-    case QSystemTrayIcon::DoubleClick:
-    {
-        break;
-    }
-    default:
-        break;
-    }
+    setObjectName(qTEXT("XMainWindow"));   
 }
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {

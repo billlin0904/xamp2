@@ -9,11 +9,12 @@
 #include <widget/util/str_util.h>
 #include <widget/volumecontroldialog.h>
 
-static constexpr auto kShowDelayMs = 100;
+constexpr auto kShowDelayMs = 100;
+constexpr auto kAutoHideDelayMs = 2000;
 
 VolumeButton::VolumeButton(QWidget *parent)
 	: QToolButton(parent) {
-	setStyleSheet(qTEXT("background: transparent;"));
+	setStyleSheet(qTEXT("background: transparent;"));	
 }
 
 VolumeButton::~VolumeButton() = default;
@@ -34,6 +35,12 @@ void VolumeButton::setAudioPlayer(const std::shared_ptr<IAudioPlayer>& player) {
 		dialog_->updateVolume();
 		moveToTopWidget(dialog_.get(), this);
 		dialog_->show();
+		hide_timer_.start(kAutoHideDelayMs);
+		});
+	(void)QObject::connect(&hide_timer_,
+		&QTimer::timeout,
+		[this]() {
+		dialog_->hide();
 		});
 	setMouseTracking(true);
 }
@@ -53,12 +60,15 @@ void VolumeButton::onThemeChangedFinished(ThemeColor theme_color) {
 void VolumeButton::onVolumeChanged(uint32_t volume) {
 	dialog_->setVolume(volume, false);
 	qTheme.setMuted(this, volume == 0);
+	hide_timer_.stop();
+	hide_timer_.start(kAutoHideDelayMs);
 }
 
 bool VolumeButton::eventFilter(QObject* obj, QEvent* e) {
 	if (obj == this) {
 		if (QEvent::WindowDeactivate == e->type()) {
 			hide();
+			hide_timer_.stop();
 			return true;
 		}
 	}

@@ -13,7 +13,7 @@ YtMusicDiskCache::YtMusicDiskCache()
 }
 
 QString YtMusicDiskCache::makeFileCachePath(const QString& video_id) {
-	auto cache_path = qAppSettings.cachePath() + qTEXT("DiskCache/");
+	auto cache_path = qAppSettings.getOrCreateCachePath() + qTEXT("DiskCache/");
 	auto file_path = cache_path + video_id + qTEXT(".mp4");
 	const QDir dir(cache_path);
 	if (!dir.exists()) {
@@ -26,7 +26,7 @@ QString YtMusicDiskCache::makeFileCachePath(const QString& video_id) {
 void YtMusicDiskCache::load() {
 	auto cache_ext = QStringList() << (qTEXT("*") + qTEXT(".mp4"));
 
-	for (QDirIterator itr(qAppSettings.cachePath() + qTEXT("DiskCache/"), cache_ext, QDir::Files | QDir::NoDotAndDotDot);
+	for (QDirIterator itr(qAppSettings.getOrCreateCachePath() + qTEXT("DiskCache/"), cache_ext, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto path = itr.next();
 		QFileInfo file_info(path);

@@ -40,9 +40,16 @@ XMessageBox::XMessageBox(const QString& title,
 	message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
 	message_text_label_->setOpenExternalLinks(true);
-	//message_text_label_->setFixedHeight(80);
-	//message_text_label_->setFixedWidth(80);
-	message_text_label_->setText(text);
+
+	QFontMetrics metrics(message_text_label_->font());
+	if (!text.isEmpty()) {
+		auto newline = text.split(qTEXT("\n"));
+		auto max_len_text = *std::max_element(newline.begin(), newline.end(), [](const auto& a, const auto& b) {
+			return a.size() < b.size();
+			});		
+		auto width = metrics.horizontalAdvance(max_len_text);
+		message_text_label_->setText(text);
+	}	
 
 	QFont f;
 	f.setPointSize(qTheme.fontSize(10));
@@ -78,7 +85,7 @@ XMessageBox::XMessageBox(const QString& title,
 	timer_.setInterval(1000);
 	centerParent(this);
 
-	const auto metrics = defaultButton()->fontMetrics();
+	metrics = defaultButton()->fontMetrics();
 	setMinimumSize(QSize(metrics.horizontalAdvance(default_button_text_) * 1.5, 100));
 	adjustSize();
 }
@@ -173,6 +180,10 @@ void XMessageBox::showEvent(QShowEvent* event) {
 	timer_.start();
 }
 
+void XMessageBox::hideMaskWidget() {
+	mask_widget_->hide();
+}
+
 void XMessageBox::onUpdate() {
 	if (--timeout_ >= 1) {
 		defaultButton()->setText(default_button_text_ + qSTR(" (%1)").arg(timeout_));
@@ -190,6 +201,7 @@ void XMessageBox::showBug(const Exception& exception,
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,
 		false);
+	box.hideMaskWidget();
 	box.setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
 	box.setTextFont(QFont(qTEXT("DebugFont")));
 	box.exec();
