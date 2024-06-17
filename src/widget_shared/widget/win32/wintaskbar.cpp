@@ -242,9 +242,17 @@ namespace {
 		const QSize max_size(rect.right - rect.left, rect.bottom - rect.top);
 		POINT offset = { 0, 0 };
 
-		XAMP_LOG_DEBUG("{} {} => {} {}", max_size.width(), max_size.height(), thumbnail.width(), thumbnail.height());
+		QPixmap resize_image;
+		if (max_size != thumbnail.size()) {
+			resize_image = image_util::resizeImage(thumbnail, max_size, true);
+			XAMP_LOG_DEBUG("resize_image => {} {} => {} {}", thumbnail.width(), thumbnail.height(), resize_image.width(), resize_image.height());
+			Q_ASSERT(resize_image.size() == max_size);
+		}
+		else {
+			resize_image = thumbnail;
+		}
 
-		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(image_util::resizeImage(thumbnail, max_size, true)));
+		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_image));
 		if (!bitmap) {
 			return;
 		}
@@ -264,9 +272,16 @@ namespace {
 		height_ratio = width_ratio;
 
 		const QSize resize_size(width_ratio * src_width, height_ratio * src_height);
-		const auto resize_thumbnail = image_util::resizeImage(thumbnail, resize_size);
 
-		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_thumbnail));
+		QPixmap resize_image;
+		if (resize_size != thumbnail.size()) {
+			resize_image = image_util::resizeImage(thumbnail, resize_size, true);
+		}
+		else {
+			resize_image = thumbnail;
+		}
+
+		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_image));
 		if (!bitmap) {
 			return;
 		}

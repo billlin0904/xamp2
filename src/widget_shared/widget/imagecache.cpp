@@ -77,6 +77,16 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 			return std::nullopt;
 		}
 
+		std::sort(image_file_list.begin(), image_file_list.end(), [](const auto& a, const auto& b) {
+			auto file_index_a = QFileInfo(a).baseName().toStdWString();
+			auto file_index_b = QFileInfo(b).baseName().toStdWString();
+			auto index_a = 0;
+			port_swscanf(file_index_a.c_str(), L"%d", &index_a);
+			auto index_b = 0;
+			port_swscanf(file_index_b.c_str(), L"%d", &index_b);
+			return index_a < index_b;
+			});
+
 		auto find_cover_path = image_file_list[0];
 
 		for (const auto& image_file_path : image_file_list) {
