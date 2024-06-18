@@ -1,23 +1,23 @@
+#include <QStyleOption>
+#include <QPainter>
+
 #include <widget/xtooltip.h>
 
 XTooltip::XTooltip(const QString& text, QWidget* parent)
-    : XDialog(parent, false) {
+    : QWidget(parent) {
+    setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setAttribute(Qt::WA_TranslucentBackground);
     setObjectName(qTEXT("XTooltip"));
-
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XTooltip::hide);
-
-    auto* client_widget = new QWidget(this);
-    text_ = new QLabel(text, client_widget);
-
-	onThemeChangedFinished(qTheme.themeColor());    
-
-    auto* layout = new QVBoxLayout(client_widget);
+    text_ = new QLabel(this);
+	text_->setObjectName(qTEXT("textLabel"));
+    auto* layout = new QVBoxLayout(this);
     layout->addWidget(text_);
-    client_widget->setLayout(layout);    
-    setFixedHeight(45);
-
-    setContentWidget(client_widget, false, true, true);
+    setLayout(layout);
+    setFixedHeight(45);    
     installEventFilter(this);
+	setText(text);
+    onThemeChangedFinished(qTheme.themeColor());
 }
 
 void XTooltip::setText(const QString& text) {
@@ -25,6 +25,7 @@ void XTooltip::setText(const QString& text) {
     QFontMetrics metrics(text_->font());
     max_width_ = (std::max)(max_width_, metrics.horizontalAdvance(text));
     text_->setMinimumWidth(max_width_ + 10);
+	adjustSize();
 }
 
 QString XTooltip::text() const {
@@ -33,18 +34,20 @@ QString XTooltip::text() const {
 
 void XTooltip::showAndStart() {    
 	show();
-	timer_.start(2000);    
+	timer_.stop();
+	timer_.start(1000);    
 }
 
 void XTooltip::onThemeChangedFinished(ThemeColor theme_color) {
+    // FIXME: border-radius not work.
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
-        text_->setStyleSheet(qTEXT("QLabel { color: #FFFFFF; font-size: 14px; background: transparent; }"));
-        setStyleSheet(qTEXT("XTooltip { background-color: #333333; border: 1px solid gray; border-radius: 8px; }"));
+        text_->setStyleSheet(qTEXT("QLabel#textLabel { color: #FFFFFF; font-size: 14px; background: transparent; }"));
+        setStyleSheet(qTEXT("XTooltip { background-color: #424548; border: 1px solid #4d4d4d; border-radius: 8px; }"));
         break;
     case ThemeColor::LIGHT_THEME:
-        text_->setStyleSheet(qTEXT("QLabel { color: #333333; font-size: 14px; background: transparent; }"));
-        setStyleSheet(qTEXT("XTooltip { background-color: #FFFFFF; border: 1px solid gray; border-radius: 8px; }"));
+        text_->setStyleSheet(qTEXT("QLabel#textLabel { color: #2e2f31; font-size: 14px; background: transparent; }"));
+        setStyleSheet(qTEXT("XTooltip { background-color: #e6e6e6; border: 1px solid transparent; border-radius: 8px; }"));
         break;
     }
 }
@@ -57,4 +60,12 @@ bool XTooltip::eventFilter(QObject* obj, QEvent* e) {
         }
     }
     return QWidget::eventFilter(obj, e);
+}
+
+void XTooltip::paintEvent(QPaintEvent* event) {
+    Q_UNUSED(event);
+    QStyleOption opt;
+    opt.initFrom(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }

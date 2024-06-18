@@ -195,6 +195,6 @@ std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help) {
     return com_to_system_error(e.Error());
 }
 
-void __stdcall throw_translated_com_error(HRESULT hr, IErrorInfo* help) {
+void WINAPI throw_translated_com_error(HRESULT hr, IErrorInfo* help) {
     throw com_to_system_error(hr, help);
 }

@@ -5,7 +5,9 @@
 #include <widget/xmainwindow.h>
 #include <widget/util/image_util.h>
 #include <widget/widget_shared.h>
+
 #include <base/dll.h>
+#include <base/com_error_category.h>
 
 #include <xampplayer.h>
 
@@ -245,7 +247,7 @@ namespace {
 		QPixmap resize_image;
 		if (max_size != thumbnail.size()) {
 			resize_image = image_util::resizeImage(thumbnail, max_size, true);
-			XAMP_LOG_DEBUG("resize_image => {} {} => {} {}", thumbnail.width(), thumbnail.height(), resize_image.width(), resize_image.height());
+			XAMP_LOG_DEBUG("resize_image => thumbnail:({}x{}) to resize_image:({}x{})", thumbnail.width(), thumbnail.height(), resize_image.width(), resize_image.height());
 			Q_ASSERT(resize_image.size() == max_size);
 		}
 		else {
@@ -254,12 +256,13 @@ namespace {
 
 		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_image));
 		if (!bitmap) {
+			XAMP_LOG_ERROR("Failure to convert QPixmap to HBITMAP! ({})", GetLastErrorMessage());
 			return;
 		}
 
 		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(hwnd, bitmap.get(), &offset, 0);
 		if (FAILED(hr)) {
-			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! {}", GetPlatformErrorMessage(hr));
+			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! ({})", com_to_system_error(hr).code().message());
 		}		
 	}
 

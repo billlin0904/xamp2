@@ -5,6 +5,7 @@
 
 #include <base/platfrom_handle.h>
 
+#ifdef XAMP_OS_WIN
 
 // https://kb.firedaemon.com/support/solutions/articles/4000121648-fitting-com-into-c-system-error-handling
 
@@ -73,5 +74,6 @@ XAMP_BASE_API std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help
 // Translate COM error and throw std::system_error.
 // Suitable as alternative COM error handler, settable with _set_com_error_handler
 // @note The error description gets converted to an ANSI string using the CP_ACP codepage.
-[[noreturn]]
-XAMP_BASE_API void __stdcall throw_translated_com_error(HRESULT hr, IErrorInfo* help = nullptr);
+XAMP_BASE_API void WINAPI throw_translated_com_error(HRESULT hr, IErrorInfo* help = nullptr);
+
+#endif

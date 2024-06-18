@@ -41,6 +41,11 @@ public:
 	int32_t currentTabId() const;
 
     void setTabText(const QString& name, int table_id);
+
+    void mouseMoveEvent(QMouseEvent* event) override;
+
+    void toolTipMove(const QPoint &pos);
+
 signals:
     void clickedTable(int table_id);
 
@@ -52,8 +57,6 @@ public slots:
     void onRetranslateUi();
 
 private:
-    void mouseMoveEvent(QMouseEvent* event) override;
-
     QStandardItemModel model_;
     QMap<int, QString> names_;
     QMap<QString, int> ids_;

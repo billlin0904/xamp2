@@ -9,6 +9,7 @@
 #include <QWidgetAction>
 #include <QScrollBar>
 #include <QScrollArea>
+#include <QMoveEvent>
 
 #include <set>
 #include <thememanager.h>
@@ -688,11 +689,10 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         });
 
     auto* menu = new XMenu(ui_.menuButton);
-    const auto * preference_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
-    (void)QObject::connect(preference_action, &QAction::triggered, [this]() {
+    preference_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
+    (void)QObject::connect(preference_action_, &QAction::triggered, [this]() {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
-        (void)QObject::connect(preference_page.get(), &PreferencePage::retranslateUi, this, &Xamp::onRetranslateUi);
         preference_page->loadSettings();
         dialog->setContentWidget(preference_page.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
@@ -701,8 +701,8 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         preference_page->saveAll();
         });
    
-    about_action = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
-    (void)QObject::connect(about_action, &QAction::triggered, [this]() {
+    about_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
+    (void)QObject::connect(about_action_, &QAction::triggered, [this]() {
         showAbout();
         });
     ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
@@ -1560,6 +1560,10 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     }
 
     setCover(qImageCache.unknownCoverId());
+	setNaviBarMenuButton(ui_);
+
+    about_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
+    preference_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
 }
 
 void Xamp::setThemeColor(QColor background_color, QColor color) {

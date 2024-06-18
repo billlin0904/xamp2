@@ -18,8 +18,9 @@
 #include <widget/widget_shared_global.h>
 #include <widget/xdialog.h>
 #include <widget/util/str_util.h>
+#include <FramelessHelper/Widgets/framelesswidget.h>
 
-class XAMP_WIDGET_SHARED_EXPORT XTooltip : public XDialog {
+class XAMP_WIDGET_SHARED_EXPORT XTooltip : public QWidget {
     Q_OBJECT
 
 public:
@@ -44,6 +45,8 @@ public:
     void onThemeChangedFinished(ThemeColor theme_color);
 protected:
     bool eventFilter(QObject* obj, QEvent* e);
+
+    void paintEvent(QPaintEvent* event) override;
 
 private:
     QLabel* text_;

@@ -56,8 +56,8 @@ void TabListView::onRetranslateUi() {
     tooltip_.setText(kEmptyString);
 }
 
-void TabListView::mouseMoveEvent(QMouseEvent* event) {
-    auto index = indexAt(event->pos());
+void TabListView::toolTipMove(const QPoint& pos) {
+    auto index = indexAt(pos);
     if (index.isValid()) {
         auto* item = model_.item(index.row(), index.column());
         auto tooltip_text = item->text();
@@ -72,6 +72,10 @@ void TabListView::mouseMoveEvent(QMouseEvent* event) {
             }
         }
     }
+}
+
+void TabListView::mouseMoveEvent(QMouseEvent* event) {
+	toolTipMove(event->pos());
     QListView::mouseMoveEvent(event);
 }
 
