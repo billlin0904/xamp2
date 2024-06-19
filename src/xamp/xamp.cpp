@@ -1078,11 +1078,17 @@ void Xamp::initialSpectrum() {
     }
 
     lrc_page_->spectrum()->setBarColor(qTheme.highlightColor());
+
     (void)QObject::connect(state_adapter_.get(),
         &UIPlayerStateAdapter::fftResultChanged,
         lrc_page_->spectrum(),
         &SpectrumWidget::onFftResultChanged,
         Qt::QueuedConnection);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
+        lrc_page_->spectrum(),
+        &SpectrumWidget::onThemeChangedFinished);
 }
 
 void Xamp::updateMaximumState(bool is_maximum) {
@@ -1513,7 +1519,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
     ui_.currentView->setCurrentWidget(widgets_[table_id]);
 }
 
-void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
+void Xamp::onThemeChangedFinished(ThemeColor theme_color) {   
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
         qTheme.setThemeColor(ThemeColor::DARK_THEME);		
@@ -1522,6 +1528,10 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
         qTheme.setThemeColor(ThemeColor::LIGHT_THEME);
         break;
 	}
+
+    qImageCache.remove(kAlbumCacheTag + qImageCache.unknownCoverId());
+    qImageCache.remove(qImageCache.unknownCoverId());
+    qImageCache.loadUnknownCover();
 
     Q_FOREACH(QFrame *frame, device_type_frame_) {
         qTheme.setTextSeparator(frame);
@@ -1553,11 +1563,9 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     if (current_entity_) {
         if (current_entity_.value().cover_id == qImageCache.unknownCoverId()) {
             lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
+            setCover(qImageCache.unknownCoverId());
         }
-    }
-    else {
-        lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
-    }
+    }   
 
     if (YtMusicOAuth::parseOAuthJson()) {
         setAuthButton(ui_, true);
@@ -1565,8 +1573,7 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     else {
         setAuthButton(ui_, false);
     }
-
-    setCover(qImageCache.unknownCoverId());
+   
 	setNaviBarMenuButton(ui_);
 
     about_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));

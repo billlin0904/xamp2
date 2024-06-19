@@ -35,7 +35,7 @@ public:
 
     void setIcon(const QIcon& icon) const;
 
-private slots:
+public slots:
     void onThemeChangedFinished(ThemeColor theme_color);
 
 private:

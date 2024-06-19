@@ -34,6 +34,10 @@ void SpectrumWidget::onFftResultChanged(ComplexValarray const& fft_data) {
 	fft_data_ = fft_data;
 }
 
+void SpectrumWidget::onThemeChangedFinished(ThemeColor theme_color) {
+	setBarColor(qTheme.highlightColor());
+}
+
 void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	QPainter painter(this);
 

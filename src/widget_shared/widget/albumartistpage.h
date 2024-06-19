@@ -86,23 +86,25 @@ public slots:
 	void onRetranslateUi();
 
 private:
-	QLabel* page_title_label_;
-	QVBoxLayout* genre_frame_layout_;
-	QStandardItemModel* album_model_;
-	QStandardItemModel* artist_model_;
-	QFrame* album_frame_;
-	QFrame* artist_frame_;
-	QFrame* year_frame_;
-	QLineEdit* album_search_line_edit_;
-	QLineEdit* artist_search_line_edit_;
-	AlbumTabListView* album_tab_list_view_;
-	AlbumView* album_view_;
-	AlbumView* recent_plays_album_view_;
-	ArtistView* artist_view_;
-	AlbumView* year_view_;
-	ArtistInfoPage* artist_info_view_;
-	TagListView* album_tag_list_widget_;
-	TagListView* artist_tag_list_widget_;
-	TagListView* year_tag_list_widget_;
+	QLabel* page_title_label_{ nullptr };
+	QVBoxLayout* genre_frame_layout_{ nullptr };
+	QStandardItemModel* album_model_{ nullptr };
+	QStandardItemModel* artist_model_{ nullptr };
+	QFrame* album_frame_{ nullptr };
+	QFrame* artist_frame_{ nullptr };
+	QFrame* year_frame_{ nullptr };
+	QLineEdit* album_search_line_edit_{ nullptr };
+	QAction* album_search_action_{ nullptr };
+	QLineEdit* artist_search_line_edit_{ nullptr };
+	QAction* artist_search_action_{ nullptr };
+	AlbumTabListView* album_tab_list_view_{ nullptr };
+	AlbumView* album_view_{ nullptr };
+	AlbumView* recent_plays_album_view_{ nullptr };
+	ArtistView* artist_view_{ nullptr };
+	AlbumView* year_view_{ nullptr };
+	ArtistInfoPage* artist_info_view_{ nullptr };
+	TagListView* album_tag_list_widget_{ nullptr };
+	TagListView* artist_tag_list_widget_{ nullptr };
+	TagListView* year_tag_list_widget_{ nullptr };
 };
 

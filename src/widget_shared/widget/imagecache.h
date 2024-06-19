@@ -46,6 +46,8 @@ public:
 
     friend class SharedSingleton<ImageCache>;
 
+	void loadUnknownCover();
+
 	QPixmap scanCoverFromDir(const QString& file_path);
 
 	QPixmap findImageFromDir(const PlayListEntity& item);
@@ -74,6 +76,8 @@ public:
 
 	QPixmap getOrDefault(const QString& tag, const QString& cover_id);
 
+	void remove(const QString& cover_id);
+
 	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const;
 
 	QIcon getOrAddIcon(const QString& id) const;
@@ -91,9 +95,7 @@ protected:
 private:
 	void timerEvent(QTimerEvent*) override;
 
-	void loadCache() const;
-
-	void loadUnknownCover();
+	void loadCache() const;	
 
 	QString makeCacheFilePath() const;
 

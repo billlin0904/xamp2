@@ -194,7 +194,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_search_line_edit_->setMinimumSize(QSize(180, 30));
 	album_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	album_search_line_edit_->setClearButtonEnabled(true);
-	album_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	album_search_action_ = album_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	album_search_line_edit_->setPlaceholderText(tr("Search Album/Artist"));
 	
 	album_model_ = new QStandardItemModel(0, 1 , this);
@@ -282,7 +282,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_search_line_edit_->setMinimumSize(QSize(180, 30));
 	artist_search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	artist_search_line_edit_->setClearButtonEnabled(true);
-	artist_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	artist_search_action_ = artist_search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	artist_search_line_edit_->setPlaceholderText(tr("Search Artist"));
 
 	action_list = artist_search_line_edit_->findChildren<QAction*>();
@@ -456,6 +456,9 @@ void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
 
 	qTheme.setLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
 	qTheme.setLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
+
+	album_search_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
+	artist_search_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
 }
 
 void AlbumArtistPage::onThemeColorChanged(QColor background_color, QColor color) {

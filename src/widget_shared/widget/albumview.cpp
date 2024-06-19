@@ -92,14 +92,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
 void AlbumViewPage::onThemeChangedFinished(ThemeColor theme_color) {
     close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
-}
 
-void AlbumViewPage::onRetranslateUi() {
-    page_->onRetranslateUi();
-}
-
-void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
-    if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
+    if (theme_color == ThemeColor::LIGHT_THEME) {
         setStyleSheet(qSTR(
             R"(
            QFrame#albumViewPage {
@@ -109,7 +103,8 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
            }
         )"
         ).arg(qTheme.linearGradientStyle()));
-    } else {
+    }
+    else {
         setStyleSheet(qSTR(
             R"(
            QFrame#albumViewPage {
@@ -119,6 +114,14 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
         )"
         ).arg(qTheme.linearGradientStyle()));
     }
+}
+
+void AlbumViewPage::onRetranslateUi() {
+    page_->onRetranslateUi();
+}
+
+void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id, int32_t album_heart) {
+    onThemeChangedFinished(qTheme.themeColor());
 
     QList<int32_t> add_playlist_music_ids;
 
@@ -751,12 +754,13 @@ AlbumViewPage* AlbumView::albumViewPage() {
 
 void AlbumView::reload() {
     if (last_query_.isEmpty()) {
-        showAll();
+        showAll();        
     }
     model_.setQuery(last_query_, qGuiDb.database());
     if (model_.lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_.lastError().text().toStdString());
     }
+    update();
 }
 
 void AlbumView::onThemeChangedFinished(ThemeColor theme_color) {

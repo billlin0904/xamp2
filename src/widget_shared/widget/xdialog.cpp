@@ -45,23 +45,6 @@ void XDialog::setContent(QWidget* content) {
     title_frame_label_->setSizePolicy(size_policy3);
     title_frame_label_->setAlignment(Qt::AlignCenter);
 
-    QString color;
-    switch (qTheme.themeColor()) {
-    case ThemeColor::DARK_THEME:
-        color = qTEXT("white");
-        break;
-    case ThemeColor::LIGHT_THEME:
-        color = qTEXT("gray");
-        break;
-    }
-    title_frame_label_->setStyleSheet(qSTR(R"(
-        QLabel#titleFrameLabel {
-        border: none;
-        background: transparent;
-	    color: %1;
-        }
-        )").arg(color));
-
     close_button_ = new QToolButton(title_frame_);
     close_button_->setObjectName(QString::fromUtf8("closeButton"));
     close_button_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
@@ -109,8 +92,6 @@ void XDialog::setContent(QWidget* content) {
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
-
     max_win_button_->setDisabled(true);
     min_win_button_->setDisabled(true);
     
@@ -131,12 +112,32 @@ void XDialog::setContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
     
+    onThemeChangedFinished(qTheme.themeColor());
+
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
     adjustSize();
 }
 
 void XDialog::onThemeChangedFinished(ThemeColor theme_color) {
     qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
+
+    QString color;
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
+        color = qTEXT("white");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        color = qTEXT("gray");
+        break;
+    }
+
+    title_frame_label_->setStyleSheet(qSTR(R"(
+        QLabel#titleFrameLabel {
+        border: none;
+        background: transparent;
+	    color: %1;
+        }
+        )").arg(color));
 }
 
 void XDialog::setTitle(const QString& title) const {

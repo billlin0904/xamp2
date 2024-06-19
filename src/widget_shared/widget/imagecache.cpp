@@ -44,7 +44,6 @@ ImageCache::ImageCache()
 }
 
 void ImageCache::onThemeChangedFinished(ThemeColor theme_color) {
-	loadUnknownCover();
 }
 
 void ImageCache::loadUnknownCover() {
@@ -220,6 +219,10 @@ QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 			image_util::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), is_aspect_ratio),
 			image_util::kSmallImageRadius);
 		});
+}
+
+void ImageCache::remove(const QString& cover_id) {	
+	removeImage(cover_id);
 }
 
 void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const {

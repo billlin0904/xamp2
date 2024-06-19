@@ -115,7 +115,7 @@ void PlaylistPage::initial() {
 	search_line_edit_->setMinimumSize(QSize(250, 30));
 	search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	search_line_edit_->setClearButtonEnabled(true);
-	search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+	search_line_action_ = search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	search_line_edit_->setPlaceholderText(tr("Search Album/Artist/Title"));
 
 	format_ = new QLabel(this);
@@ -289,6 +289,7 @@ void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
 	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
+	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
 }
 
 void PlaylistPage::onSetCoverById(const QString& cover_id) {

@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QFrame>
 
+#include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 
 using xamp::stream::ComplexValarray;
@@ -37,7 +38,9 @@ public:
 	void reset();
 
 public slots:
-	void onFftResultChanged(ComplexValarray const& result);
+	void onFftResultChanged(const ComplexValarray& result);
+
+	void onThemeChangedFinished(ThemeColor theme_color);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;

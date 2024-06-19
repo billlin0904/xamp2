@@ -48,7 +48,10 @@ AboutPage::AboutPage(QWidget* parent)
         credits_ = QLatin1String(credits_file.readAll());
     }
 
-    ui_->lblAppBuild->setText(tr("Ver. ") + kApplicationVersion);
+    //ui_->lblAppBuild->setText(tr("Ver. ") + kApplicationVersion);
+#ifdef Q_OS_WIN
+    ui_->lblAppBuild->setText(qTEXT("Build MSVC: ") + qTEXT(__DATE__) + qTEXT(" ") + qTEXT(__TIME__));
+#endif
 
     (void)QObject::connect(ui_->btnCredits,
         &QPushButton::clicked,

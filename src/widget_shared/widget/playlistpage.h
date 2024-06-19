@@ -89,6 +89,7 @@ private:
     ScrollLabel* title_{ nullptr };
 	QLabel* format_{ nullptr };
 	QLineEdit* search_line_edit_{ nullptr };
+	QAction* search_line_action_{ nullptr };
 	QSpacerItem* vertical_spacer_{ nullptr };
 	QSpacerItem* horizontal_spacer_{ nullptr };
 	QSpacerItem* horizontal_spacer_4_{ nullptr };
