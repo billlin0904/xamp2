@@ -77,7 +77,7 @@ XMessageBox::XMessageBox(const QString& title,
 
 	default_button_text_ = defaultButton()->text();
 
-	setContentWidget(client_widget, false, true, title.isEmpty());
+	setContentWidget(client_widget, false, true);
 	setTitle(title);
 	XDialog::setIcon(qTheme.applicationIcon());
 

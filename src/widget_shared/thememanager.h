@@ -37,9 +37,9 @@ public:
         return ui_font_;
     }
 
-    const QPixmap& unknownCover() const noexcept;
+    const QPixmap& unknownCover() noexcept;
 
-	const QPixmap& defaultSizeUnknownCover() const noexcept;
+	const QPixmap& defaultSizeUnknownCover() noexcept;
 
     QString countryFlagFilePath(const QString& country_iso_code);
     

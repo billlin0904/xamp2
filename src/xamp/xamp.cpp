@@ -35,6 +35,8 @@
 #include <widget/actionmap.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
+#include <widget/artistview.h>
+
 #include <widget/appsettings.h>
 #include <widget/cdpage.h>
 #include <widget/createplaylistview.h>
@@ -513,9 +515,14 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onFetchThumbnailUrlError);
 
-    (void)QObject::connect(&qTheme, 
+    (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished, 
-        this, 
+        &qImageCache,
+        &ImageCache::onThemeChangedFinished);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
+        this,
         &Xamp::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
@@ -1564,6 +1571,9 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 
     about_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
     preference_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+
+    music_library_page_->album()->reload();
+    music_library_page_->artist()->reload();
 }
 
 void Xamp::setThemeColor(QColor background_color, QColor color) {

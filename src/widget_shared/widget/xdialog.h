@@ -25,7 +25,7 @@ public:
 
     explicit XDialog(QWidget* parent = nullptr, bool modal = true);
 
-    void setContentWidget(QWidget* content, bool no_moveable = false, bool disable_resize = true, bool no_title_frame = false);
+    void setContentWidget(QWidget* content, bool no_moveable = false, bool disable_resize = true);
 
     QWidget* contentWidget() const {
         return content_;
@@ -41,7 +41,7 @@ private slots:
 private:
     void closeEvent(QCloseEvent* event) override;
 
-    void setContent(QWidget* content, bool no_title_frame);
+    void setContent(QWidget* content);
 
     QLabel* title_frame_label_{ nullptr };
     QWidget* content_{ nullptr };

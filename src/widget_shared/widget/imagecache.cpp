@@ -38,10 +38,21 @@ ImageCache::ImageCache()
 		QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 	buffer_pool_ = std::make_shared<ObjectPool<QBuffer>>(kDefaultCacheSize);
-	cache_.Add(unknown_cover_id_, { 1, qTheme.unknownCover() });
-	addOrUpdateCover(kAlbumCacheTag, unknown_cover_id_, qTheme.unknownCover());
+	loadUnknownCover();
 	loadCache();
 	startTimer(kTrimImageSizeSeconds);	
+}
+
+void ImageCache::onThemeChangedFinished(ThemeColor theme_color) {
+	loadUnknownCover();
+}
+
+void ImageCache::loadUnknownCover() {
+	auto unknown_cover = qTheme.unknownCover();
+	cache_.Add(unknown_cover_id_, { 1, unknown_cover });
+	const auto file_path = makeImageCachePath(kAlbumCacheTag + unknown_cover_id_);
+	unknown_cover.save(file_path);
+	addOrUpdateCover(kAlbumCacheTag, unknown_cover_id_, unknown_cover);
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
@@ -195,22 +206,30 @@ QFileInfo ImageCache::getImageFileInfo(const QString& tag_id) const {
 	return QFileInfo(makeImageCachePath(tag_id));
 }
 
-QPixmap ImageCache::getCoverOrDefault(const QString& tag, const QString& cover_id) {	
+QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {	
 	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cover cache: {}, cache: {}", 
 		tag.toStdString(),
 		String::FormatBytes(cache_.GetSize()), cover_cache_, cache_);
 
-	return getOrAdd(tag + cover_id, [cover_id, this]() {
+	return getOrAdd(tag + cover_id, [cover_id, this]() {	
+		auto is_aspect_ratio = true;
+		if (cover_id == unknownCoverId()) {
+			is_aspect_ratio = false;
+		}
 		return image_util::roundImage(
-			image_util::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), true),
+			image_util::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), is_aspect_ratio),
 			image_util::kSmallImageRadius);
 		});
 }
 
 void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const {
-	getOrAdd(tag + cover_id, [&cover]() {
+	getOrAdd(tag + cover_id, [&cover, cover_id, this]() {
+		auto is_aspect_ratio = true;
+		if (cover_id == unknownCoverId()) {
+			is_aspect_ratio = false;
+		}
 		return image_util::roundImage(
-			image_util::resizeImage(cover, qTheme.defaultCoverSize(), true),
+			image_util::resizeImage(cover, qTheme.defaultCoverSize(), is_aspect_ratio),
 			image_util::kSmallImageRadius);
 		});
 }

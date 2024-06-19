@@ -422,11 +422,11 @@ QPixmap ThemeManager::githubIcon() const {
 	}
 }
 
-const QPixmap& ThemeManager::unknownCover() const noexcept {
+const QPixmap& ThemeManager::unknownCover() noexcept {
     return unknown_cover_;
 }
 
-const QPixmap& ThemeManager::defaultSizeUnknownCover() const noexcept {
+const QPixmap& ThemeManager::defaultSizeUnknownCover() noexcept {
     return default_size_unknown_cover_;
 }
 

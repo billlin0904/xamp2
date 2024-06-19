@@ -12,6 +12,7 @@
 #include <base/logger.h>
 #include <base/object_pool.h>
 
+#include <widget/themecolor.h>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/util/image_util.h>
@@ -71,7 +72,7 @@ public:
 
 	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
 
-	QPixmap getCoverOrDefault(const QString& tag, const QString& cover_id);
+	QPixmap getOrDefault(const QString& tag, const QString& cover_id);
 
 	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const;
 
@@ -80,6 +81,10 @@ public:
 	void addOrUpdateIcon(const QString& id, const QIcon &value) const;
 
 	QIcon uniformIcon(const QIcon &icon, QSize size) const;
+
+public slots:
+	void onThemeChangedFinished(ThemeColor theme_color);
+
 protected:
 	ImageCache();
 
@@ -87,6 +92,8 @@ private:
 	void timerEvent(QTimerEvent*) override;
 
 	void loadCache() const;
+
+	void loadUnknownCover();
 
 	QString makeCacheFilePath() const;
 

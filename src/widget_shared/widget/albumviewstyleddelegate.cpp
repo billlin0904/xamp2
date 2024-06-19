@@ -272,7 +272,10 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         painter->drawPixmap(coverRect(option, cover_size_), qTheme.unknownCover());
     }
     else {
-        painter->drawPixmap(coverRect(option, cover_size_), qImageCache.getCoverOrDefault(kAlbumCacheTag, cover_id));
+        auto cover_rect = coverRect(option, cover_size_);
+        auto cover = qImageCache.getOrDefault(kAlbumCacheTag, cover_id);
+        Q_ASSERT(!cover.isNull());
+        painter->drawPixmap(cover_rect, cover);
     }
 
     // Draw hit play button
