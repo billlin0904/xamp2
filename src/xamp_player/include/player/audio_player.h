@@ -255,7 +255,7 @@ public:
     * 
     * @param[in] stream_time The stream time.
     */
-    void BufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt) override;
+    void BufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt, const std::optional<double>& duration = std::nullopt) override;
 
     /*
     * Enable fade out.

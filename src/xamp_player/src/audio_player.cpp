@@ -654,15 +654,19 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);
 }
 
-void AudioPlayer::BufferStream(double stream_time, const std::optional<double>& offset) {
+void AudioPlayer::BufferStream(double stream_time, const std::optional<double>& offset, const std::optional<double>& duration) {
     XAMP_LOG_D(logger_, "Buffing samples : {:.2f}ms", stream_time);
 
-	if (dsp_manager_->Contains(R8brainSampleRateConverter::uuidof())) {
+	if (dsp_manager_->Contains(XAMP_UUID_OF(R8brainSampleRateConverter))) {
         SetReadSampleSize(kR8brainBufferSize);
 	}
 
     if (offset.has_value()) {
 		stream_offset_time_ = offset.value();
+    }
+
+    if (duration.has_value()) {
+		stream_duration_ = duration.value();
     }
 
     fifo_.Clear();
@@ -908,6 +912,11 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     if (is_fade_out_) {
         FadeOut();
         is_fade_out_ = false;
+    }
+
+    if (stream_time >= stream_duration_) {
+        UpdatePlayerStreamTime(-1);
+        return DataCallbackResult::STOP;
     }
 
     size_t num_filled_bytes = 0;

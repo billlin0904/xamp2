@@ -239,7 +239,6 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
     const QList<int> always_hidden_columns{
         PLAYLIST_MUSIC_ID,
         PLAYLIST_IS_PLAYING,
-        PLAYLIST_LIKE,
         PLAYLIST_PLAYLIST_MUSIC_ID,
         PLAYLIST_CHECKED,
         PLAYLIST_ALBUM_ID,

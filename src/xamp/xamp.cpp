@@ -1565,7 +1565,11 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
             lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
             setCover(qImageCache.unknownCoverId());
         }
-    }   
+    }
+    else {
+		lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
+		setCover(qImageCache.unknownCoverId());
+    }
 
     if (YtMusicOAuth::parseOAuthJson()) {
         setAuthButton(ui_, true);
@@ -1985,8 +1989,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
             player_->SetVolume(100);
         }
 
-        auto offset = !entity.offset ? 0.0 : entity.offset.value();
-        player_->BufferStream(offset);
+        player_->BufferStream(0, entity.offset, entity.duration);
 
         ui_.mutedButton->updateState();
         open_done = true;
@@ -2378,6 +2381,9 @@ void Xamp::initialPlaylist() {
     playlist_tab_page_->setCurrentTabIndex(qAppSettings.valueAsInt(kAppSettingLastPlaylistTabIndex));
 
     (void)QObject::connect(yt_music_tab_page_.get(), &PlaylistTabWidget::reloadAllPlaylist,[this]() {
+        if (!YtMusicOAuth::parseOAuthJson()) {
+            return;
+        }
         initialCloudPlaylist();
     });
 

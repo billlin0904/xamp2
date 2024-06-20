@@ -35,7 +35,7 @@ QString XTooltip::text() const {
 void XTooltip::showAndStart() {    
 	show();
 	timer_.stop();
-	timer_.start(1000);    
+	timer_.start(500);    
 }
 
 void XTooltip::onThemeChangedFinished(ThemeColor theme_color) {

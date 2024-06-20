@@ -62,7 +62,7 @@ void TabListView::toolTipMove(const QPoint& pos) {
         auto* item = model_.item(index.row(), index.column());
         auto tooltip_text = item->text();
         if (!tooltip_text.isEmpty() && qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
-            if (tooltip_text != tooltip_.text() || elapsed_timer_.elapsed() > 1000) {
+            if (tooltip_text != tooltip_.text() || elapsed_timer_.elapsed() > 500) {
                 const auto item_rect = visualRect(index);
                 const auto global_pos = viewport()->mapToGlobal(item_rect.topRight());
                 tooltip_.setText(tooltip_text);
