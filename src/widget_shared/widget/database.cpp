@@ -121,6 +121,11 @@ PooledDatabasePtr getPooledDatabase(int32_t pool_size) {
     return std::make_shared<ObjectPool<Database, DatabaseFactory>>(pool_size);
 }
 
+SqlException::SqlException(const SqlQuery& query) 
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, query.lastQuery().toStdString()) {
+    XAMP_LOG_DEBUG("SqlException: {}\r\n{}\r\n{}", query.lastError().text().toStdString(), query.lastQuery().toStdString(), GetStackTrace());
+}
+
 SqlException::SqlException(QSqlError error)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
         error.text().toStdString()) {

@@ -17,7 +17,7 @@ namespace dao {
         query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
     (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path AND offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart)
     )")
         );
 

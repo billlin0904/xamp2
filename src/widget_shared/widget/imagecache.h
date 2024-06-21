@@ -70,15 +70,15 @@ public:
 
 	void clearCache() const;
 
-	QString addImage(const QPixmap& cover, bool save_only = false) const;
+	QString addImage(const QPixmap& cover, bool save_only = false);
 
-	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const;
+	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory);
 
 	QPixmap getOrDefault(const QString& tag, const QString& cover_id);
 
 	void remove(const QString& cover_id);
 
-	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const;
+	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover);
 
 	QIcon getOrAddIcon(const QString& id) const;
 

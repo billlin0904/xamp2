@@ -27,12 +27,12 @@ IF
 		lyrc TEXT,
 		trLyrc TEXT,
 		coverId TEXT DEFAULT NULL,
-		UNIQUE ( path, offset ) 
+		UNIQUE ( path, offset, durationStr ) 
 	);
 	
 CREATE UNIQUE INDEX
 IF
-	NOT EXISTS path_index ON musics ( path, offset );
+	NOT EXISTS path_index ON musics ( path, offset, durationStr );
 	
 CREATE TABLE
 IF

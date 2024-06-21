@@ -47,9 +47,13 @@ void ImageCache::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void ImageCache::loadUnknownCover() {
-	auto unknown_cover = qTheme.unknownCover();
-	cache_.Add(unknown_cover_id_, { 1, unknown_cover });
+	auto unknown_cover = qTheme.unknownCover();	
 	const auto file_path = makeImageCachePath(kAlbumCacheTag + unknown_cover_id_);
+	QFileInfo file_info(file_path);
+	if (file_info.exists()) {
+		return;
+	}
+	cache_.Add(unknown_cover_id_, { 1, unknown_cover });
 	unknown_cover.save(file_path);
 	addOrUpdateCover(kAlbumCacheTag, unknown_cover_id_, unknown_cover);
 }
@@ -213,6 +217,7 @@ QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 	return getOrAdd(tag + cover_id, [cover_id, this]() {	
 		auto is_aspect_ratio = true;
 		if (cover_id == unknownCoverId()) {
+			loadUnknownCover();
 			is_aspect_ratio = false;
 		}
 		return image_util::roundImage(
@@ -225,11 +230,12 @@ void ImageCache::remove(const QString& cover_id) {
 	removeImage(cover_id);
 }
 
-void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) const {
+void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) {
 	getOrAdd(tag + cover_id, [&cover, cover_id, this]() {
 		auto is_aspect_ratio = true;
 		if (cover_id == unknownCoverId()) {
 			is_aspect_ratio = false;
+			loadUnknownCover();
 		}
 		return image_util::roundImage(
 			image_util::resizeImage(cover, qTheme.defaultCoverSize(), is_aspect_ratio),
@@ -237,7 +243,7 @@ void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, c
 		});
 }
 
-QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) const {
+QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) {
 	auto image = getOrAddDefault(tag_id, false);
 	if (!image.isNull()) {
 		return image;
@@ -264,7 +270,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	return getOrAddDefault(tag_id);
 }
 
-QString ImageCache::addImage(const QPixmap& cover, bool save_only) const {
+QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();

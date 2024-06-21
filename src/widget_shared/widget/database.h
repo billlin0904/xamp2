@@ -20,8 +20,26 @@
 #include <widget/util/str_util.h>
 #include <widget/playlistentity.h>
 
+class SqlQuery final : public QSqlQuery {
+public:
+	explicit SqlQuery(const QString& query = QString(), const QSqlDatabase& db = QSqlDatabase())
+		: QSqlQuery(query, db) {
+	}
+
+	explicit SqlQuery(const QSqlDatabase& db)
+		: QSqlQuery(db) {
+	}
+
+	~SqlQuery() {
+		QSqlQuery::finish();
+		QSqlQuery::clear();
+	}
+};
+
 class SqlException final : public Exception {
 public:
+	explicit SqlException(const SqlQuery &query);
+
 	explicit SqlException(QSqlError error);
 
 	const char* what() const noexcept override;
@@ -30,14 +48,14 @@ public:
 #define DbIfFailedThrow(query, sql) \
     do {\
     if (!query.exec(sql)) {\
-    throw SqlException(query.lastError());\
+    throw SqlException(query);\
     }\
     } while (false)
 
 #define DbIfFailedThrow1(query) \
     do {\
     if (!query.exec()) {\
-    throw SqlException(query.lastError());\
+    throw SqlException(query);\
     }\
     } while (false)
 
@@ -88,22 +106,6 @@ inline bool isCloudStore(const StoreType store_type) {
 	return store_type == StoreType::CLOUD_STORE
 		|| store_type == StoreType::CLOUD_SEARCH_STORE;
 }
-
-class SqlQuery final : public QSqlQuery {
-public:
-	explicit SqlQuery(const QString& query = QString(), const QSqlDatabase& db = QSqlDatabase())
-		: QSqlQuery(query, db) {
-	}
-
-	explicit SqlQuery(const QSqlDatabase& db)
-		: QSqlQuery(db) {
-	}
-
-	~SqlQuery() {
-		QSqlQuery::finish();
-		QSqlQuery::clear();
-	}
-};
 
 class XAMP_WIDGET_SHARED_EXPORT Database final {
 public:
