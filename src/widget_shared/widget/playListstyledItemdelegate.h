@@ -6,10 +6,12 @@
 #pragma once
 
 #include <widget/widget_shared.h>
+#include <widget/databasecoverid.h>
 
 #include <QStyledItemDelegate>
 
-class PlayListStyledItemDelegate final : public QStyledItemDelegate {
+class XAMP_WIDGET_SHARED_EXPORT PlaylistStyledItemDelegate final : public QStyledItemDelegate {
+	Q_OBJECT
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
@@ -17,9 +19,10 @@ public:
     static constexpr QSize kIconSize = QSize(kPlayingStateIconSize, kPlayingStateIconSize);
     static constexpr auto kImageCacheSize = 24;
 
-    explicit PlayListStyledItemDelegate(QObject* parent = nullptr);
-
-    QIcon visibleCovers(const QString& cover_id) const;
+    explicit PlaylistStyledItemDelegate(QObject* parent = nullptr);
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+
+signals:
+    void findAlbumCover(const DatabaseCoverId& id) const;
 };

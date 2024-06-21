@@ -65,11 +65,15 @@
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
 #include <widget/xprogressdialog.h>
+
+#include <widget/playliststyleditemdelegate.h>
+
 #include <widget/util/image_util.h>
 #include <widget/util/mbdiscid_util.h>
 #include <widget/util/read_until.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
+
 #include <widget/worker/backgroundservice.h>
 #include <widget/worker/filesystemservice.h>
 #include <widget/worker/albumcoverservice.h>
@@ -587,7 +591,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
        &AlbumViewStyledDelegate::findAlbumCover,
        album_cover_service_.get(),
        &AlbumCoverService::onFindAlbumCover,
-       Qt::QueuedConnection);
+       Qt::QueuedConnection);   
 
    (void)QObject::connect(this,
        &Xamp::findAlbumCover,
@@ -2871,6 +2875,12 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistTableView::extractFile,
         file_system_service_.get(),
         &FileSystemService::onExtractFile);
+
+    (void)QObject::connect(playlist_page->playlist()->styledDelegate(),
+        &PlaylistStyledItemDelegate::findAlbumCover,
+        album_cover_service_.get(),
+        &AlbumCoverService::onFindAlbumCover,
+        Qt::QueuedConnection);
     
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::readReplayGain,
@@ -2913,9 +2923,8 @@ PlaylistPage* Xamp::localPlaylistPage() const {
 }
 
 void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id) {
-    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::PLAYLIST_LOCAL_STORE, [this](auto music_id, auto album_id) {
-        emit findAlbumCover(DatabaseCoverId(music_id, album_id));
-    });
+	// NOTE: Disable find album cover speed up insert database.
+    qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::PLAYLIST_LOCAL_STORE, nullptr);
     ensureLocalOnePlaylistPage();
     localPlaylistPage()->playlist()->reload();
 }

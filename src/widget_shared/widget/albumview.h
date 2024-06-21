@@ -93,9 +93,7 @@ public:
 
 	void setShowMode(ShowModes mode);
 
-	AlbumViewStyledDelegate* styledDelegate() {
-		return styled_delegate_;
-	}
+	AlbumViewStyledDelegate* styledDelegate();
 
 	void resizeEvent(QResizeEvent* event) override;
 
@@ -142,7 +140,6 @@ protected:
 private:
 	QTimer refresh_cover_timer_;
 	AlbumViewPage* page_;
-	AlbumViewStyledDelegate* styled_delegate_;
 	QPropertyAnimation* animation_;
 	//LazyLoadingModel model_;
 	QSqlQueryModel model_;

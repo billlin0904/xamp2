@@ -145,6 +145,10 @@ void PlaylistTableView::search(const QString& keyword) const {
     proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
+PlaylistStyledItemDelegate* PlaylistTableView::styledDelegate() {
+    return dynamic_cast<PlaylistStyledItemDelegate*>(itemDelegate());
+}
+
 void PlaylistTableView::reload(bool is_scroll_to) {
     std::optional<PlayListEntity> entity;
     if (play_index_.isValid()) {
@@ -382,7 +386,7 @@ void PlaylistTableView::initial() {
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(false);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    setItemDelegate(new PlayListStyledItemDelegate(this));
+    setItemDelegate(new PlaylistStyledItemDelegate(this));
  
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -466,7 +470,7 @@ void PlaylistTableView::initial() {
             PlayListEntity play_list_entity;
             if (!play_list_entities.empty()) {
                 play_list_entity = play_list_entities.front();
-                if (play_list_entity.heart > 0) {
+                if (play_list_entity.heart) {
                     menu_name = tr("DisLike the music");
                     like_icon = qTheme.fontIcon(Glyphs::ICON_DISLIKE);
                 }

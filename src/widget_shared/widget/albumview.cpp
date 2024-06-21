@@ -159,7 +159,6 @@ AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
     , refresh_cover_timer_(this)
     , page_(nullptr)
-	, styled_delegate_(new AlbumViewStyledDelegate(this))
     , animation_(nullptr)
 	, model_(this)
     , proxy_model_(new PlayListTableFilterProxyModel(this)) {
@@ -177,7 +176,7 @@ AlbumView::AlbumView(QWidget* parent)
     setResizeMode(QListView::Adjust);
     setFrameStyle(QFrame::StyledPanel);    
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    setItemDelegate(styled_delegate_);
+    setItemDelegate(new AlbumViewStyledDelegate(this));
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
@@ -190,18 +189,18 @@ AlbumView::AlbumView(QWidget* parent)
             }
         });
 
-    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
+    (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
         showMenu(pt);
         });
 
-    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
+    (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
         auto album = indexValue(index, ALBUM_INDEX_ALBUM).toString();
         auto album_id = indexValue(index, ALBUM_INDEX_ALBUM_ID).toInt();
         album_dao_.updateAlbumSelectState(album_id, !state);
         reload();
         });
 
-    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
+    (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
         albumViewPage();
 
         auto album           = indexValue(index, ALBUM_INDEX_ALBUM).toString();
@@ -224,7 +223,7 @@ AlbumView::AlbumView(QWidget* parent)
         emit clickedAlbum(album, album_id, cover_id);
         }); 
 
-    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::stopRefreshCover, [this]() {
+    (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::stopRefreshCover, [this]() {
         refresh_cover_timer_.stop();
         });
 
@@ -241,7 +240,7 @@ AlbumView::AlbumView(QWidget* parent)
 }
 
 void AlbumView::setPlayingAlbumId(int32_t album_id) {
-    styled_delegate_->setPlayingAlbumId(album_id);
+    styledDelegate()->setPlayingAlbumId(album_id);
 }
 
 void AlbumView::showAlbumViewMenu(const QPoint& pt) {
@@ -250,16 +249,16 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     ActionMap<AlbumView> action_map(this);
 
     QString action_name = tr("Enter select mode");
-    if (styled_delegate_->isSelectedMode()) {
+    if (styledDelegate()->isSelectedMode()) {
         action_name = tr("Leave select move");
     }
     auto* selected_album_mode_act = action_map.addAction(action_name, [this]() {
         // Check all album state
         for (auto index = 0; index < proxy_model_->rowCount(); ++index) {            
             auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-            album_dao_.updateAlbumSelectState(album_id, !styled_delegate_->isSelectedMode());
+            album_dao_.updateAlbumSelectState(album_id, !styledDelegate()->isSelectedMode());
         }
-        styled_delegate_->setSelectedMode(!styled_delegate_->isSelectedMode());
+        styledDelegate()->setSelectedMode(!styledDelegate()->isSelectedMode());
         // Update selected album state
         reload();
         });
@@ -275,19 +274,19 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         return;
     }
 
-    if (styled_delegate_->isSelectedMode()) {
+    if (styledDelegate()->isSelectedMode()) {
         QString action_name;
-        if (!styled_delegate_->isSelectedAll()) {
+        if (!styledDelegate()->isSelectedAll()) {
 			action_name = tr("Selected all");
-            styled_delegate_->setSelectedAll(true);
+            styledDelegate()->setSelectedAll(true);
         }
         else {
             action_name = tr("Unselected all");
-            styled_delegate_->setSelectedAll(false);
+            styledDelegate()->setSelectedAll(false);
         }
         action_map.addAction(action_name, [this]() {
             TransactionScope scope([&]() {
-                if (!styled_delegate_->isSelectedAll()) {
+                if (!styledDelegate()->isSelectedAll()) {
                     Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
                         album_dao_.updateAlbumSelectState(album_id, false);
                     }
@@ -447,7 +446,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             return;
         }
         const auto album_id = indexValue(index, ALBUM_INDEX_ALBUM_ID).toInt();
-        emit styled_delegate_->findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+        emit styledDelegate()->findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
         });
 }
 
@@ -510,15 +509,19 @@ void AlbumView::showMenu(const QPoint &pt) {
 
 void AlbumView::enablePage(bool enable) {
     enable_page_ = enable;
-    styled_delegate_->enableAlbumView(enable);
+    styledDelegate()->enableAlbumView(enable);
 }
 
 void AlbumView::onThemeColorChanged(QColor backgroundColor, QColor color) {
-    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setAlbumTextColor(color);
+    styledDelegate()->setAlbumTextColor(color);
 }
 
 void AlbumView::setShowMode(ShowModes mode) {
-    dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setShowMode(mode);
+    styledDelegate()->setShowMode(mode);
+}
+
+AlbumViewStyledDelegate* AlbumView::styledDelegate() {
+    return dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate());
 }
 
 void AlbumView::filterByArtistId(int32_t artist_id) {
@@ -737,7 +740,7 @@ AlbumViewPage* AlbumView::albumViewPage() {
             &PlaylistTableView::updatePlayingState,
             this,
             [this](auto entity, auto playing_state) {
-                styled_delegate_->setPlayingAlbumId(playing_state == PlayingState::PLAY_CLEAR ? -1 : entity.album_id);
+                styledDelegate()->setPlayingAlbumId(playing_state == PlayingState::PLAY_CLEAR ? -1 : entity.album_id);
             });
         (void)QObject::connect(page_, &AlbumViewPage::leaveAlbumView, [this]() {
             verticalScrollBar()->show();

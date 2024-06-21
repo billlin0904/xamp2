@@ -5,20 +5,13 @@
 #include <widget/imagecache.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlisttablemodel.h>
-#include <widget/playListstyledItemdelegate.h>
+#include <widget/playListstyleditemdelegate.h>
 
-PlayListStyledItemDelegate::PlayListStyledItemDelegate(QObject* parent)
+PlaylistStyledItemDelegate::PlaylistStyledItemDelegate(QObject* parent)
     : QStyledItemDelegate(parent) {
 }
 
-QIcon PlayListStyledItemDelegate::visibleCovers(const QString& cover_id) const {
-    static LruCache<QString, QIcon> cache(kImageCacheSize);
-    return cache.GetOrAdd(cover_id, [cover_id]() {
-        return qImageCache.getOrAddIcon(cover_id);
-        });
-}
-
-void PlayListStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
     }
@@ -149,7 +142,10 @@ void PlayListStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
         if (!music_cover_id.isEmpty()) {
             id = music_cover_id;
         }
-
+        if (isNullOfEmpty(id)) {
+            auto album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
+            emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+        }
         opt.icon = qImageCache.getOrAddIcon(id);
         opt.features = QStyleOptionViewItem::HasDecoration;
         opt.decorationAlignment = Qt::AlignCenter;

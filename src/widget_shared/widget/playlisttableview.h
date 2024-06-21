@@ -14,7 +14,7 @@
 #include <widget/databasefacade.h>
 #include <widget/playerorder.h>
 #include <widget/widget_shared_global.h>
-#include <widget/playListstyledItemdelegate.h>
+#include <widget/playListstyleditemdelegate.h>
 
 #include <widget/dao/playlistdao.h>
 #include <widget/dao/musicdao.h>
@@ -133,7 +133,8 @@ public:
 	void setOtherPlaylist(int32_t playlist_id);
 
 	void search(const QString& keyword) const;
-
+	
+	PlaylistStyledItemDelegate* styledDelegate();
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
