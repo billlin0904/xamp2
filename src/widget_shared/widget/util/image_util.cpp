@@ -394,7 +394,9 @@ bool moveFile(const QString& src_file_path, const QString& dest_file_path) {
 }
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
-	Q_ASSERT(!source.isNull());
+	if (source.isNull()) {
+		return QPixmap();
+	}
 
 	QPixmap result(size);
 	result.fill(Qt::transparent);

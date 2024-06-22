@@ -149,11 +149,9 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			return;
 		}
 
-		const auto next_index = (index + 1) % entities_.size();
-		if (next_index == entities_.size() - 1) {
-			return;
-		}
+		ui_->titleComboBox->setItemData(index, QBrush(Qt::green), Qt::ForegroundRole);
 
+		const auto next_index = (index + 1) % entities_.size();
 		ui_->titleComboBox->setCurrentIndex(next_index);
 		ui_->trackComboBox->setCurrentIndex(next_index);
 		setCurrentInfo(next_index);

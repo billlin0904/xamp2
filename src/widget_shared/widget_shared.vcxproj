@@ -147,10 +147,10 @@
     <ClInclude Include="widget\util\zib_util.h" />
     <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
-    <QtMoc Include="widget\win32\wintaskbar.h" />
     <QtMoc Include="widget\worker\backgroundservice.h" />
     <QtMoc Include="widget\worker\filesystemservice.h" />
     <QtMoc Include="widget\worker\albumcoverservice.h" />
+    <QtMoc Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\youtubedl\ytmusicservice.h" />
     <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
