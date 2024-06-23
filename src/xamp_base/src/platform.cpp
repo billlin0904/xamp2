@@ -236,6 +236,10 @@ void CpuAffinity::SetCpu(int32_t cpu) {
     cpus_[cpu] = true;
 }
 
+bool CpuAffinity::IsCoreUse(int32_t cpu) const {
+    return cpus_[cpu];
+}
+
 CpuAffinity::operator bool() const noexcept {
     for (int i = 0; i < cpus_.size(); ++i) {
         if (cpus_[i]) {

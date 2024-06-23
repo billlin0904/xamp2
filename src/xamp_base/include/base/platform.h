@@ -56,6 +56,8 @@ public:
 
     void SetCpu(int32_t cpu);
 
+    bool IsCoreUse(int32_t cpu) const;
+
     void SetAffinity(JThread& thread);
 private:
     std::array<bool, 256> cpus_;

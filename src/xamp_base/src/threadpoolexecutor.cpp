@@ -207,9 +207,12 @@ void TaskScheduler::RandomSelectCore(size_t i) {
 	if (cpu_affinity_ != CpuAffinity::kAll) {
 		return;
 	}
+	size_t start_index = 0;
+	if (!cpu_affinity_.IsCoreUse(0)) {
+		start_index = 1;
+	}
 	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
-	// Skip CPU 0 core
-	auto victim_processor = prng(size_t(1), CpuAffinity::GetCoreCount() - 1);
+	auto victim_processor = prng(start_index, CpuAffinity::GetCoreCount() - 1);
 	CpuAffinity affinity(victim_processor, false);
 	affinity.SetAffinity(threads_[i]);
 }
@@ -264,8 +267,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			}
 
 			// Try to get a task from the shared queue
-			if (!task) {
-				RandomSelectCore(i);
+			if (!task) {				
 				if (spinning_watch.Elapsed() >= kSpinningTimeout) {
 					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);					
 				}
@@ -283,6 +285,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			}
 
 			auto running_thread = ++running_thread_;
+			RandomSelectCore(i);
 			(*task)(stop_token);
 			--running_thread_;
 

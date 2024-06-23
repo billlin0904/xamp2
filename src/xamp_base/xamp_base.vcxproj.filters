@@ -33,6 +33,7 @@
     <ClCompile Include="src\windows_handle.cpp" />
     <ClCompile Include="src\com_error_category.cpp" />
     <ClCompile Include="src\charset_detector.cpp" />
+    <ClCompile Include="src\text_encoding.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -102,5 +103,6 @@
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\charset_detector.h" />
+    <ClInclude Include="include\base\text_encoding.h" />
   </ItemGroup>
 </Project>
