@@ -229,9 +229,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
-        if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
+        /*if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
             return;
-        }
+        }*/
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
         Q_ASSERT(playlist_page != nullptr);
         QString playlist;
