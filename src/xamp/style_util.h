@@ -8,7 +8,7 @@
 #include <widget/playerorder.h>
 #include <ui_xamp.h>
 
-class TabListView;
+class NavBarListView;
 
 void setShufflePlayOrder(Ui::XampWindow& ui);
 
@@ -22,7 +22,7 @@ void setThemeIcon(Ui::XampWindow& ui);
 
 void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order);
 
-void setNaviBarTheme(TabListView* navi_bar);
+void setNaviBarTheme(NavBarListView* navi_bar);
 
 void setWidgetStyle(Ui::XampWindow& ui);
 

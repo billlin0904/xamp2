@@ -179,7 +179,7 @@ void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
     }
 }
 
-void setNaviBarTheme(TabListView* navi_bar) {
+void setNaviBarTheme(NavBarListView* navi_bar) {
     QString tab_left_color;
 
     switch (qTheme.themeColor()) {

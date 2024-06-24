@@ -503,7 +503,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="TabListView" name="naviBar">
+            <widget class="NavBarListView" name="naviBar">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -1244,9 +1244,9 @@
    <header>widget/clickablelabel.h</header>
   </customwidget>
   <customwidget>
-   <class>TabListView</class>
+   <class>NavBarListView</class>
    <extends>QListView</extends>
-   <header>widget/tablistview.h</header>
+   <header>widget/navbarlistview.h</header>
   </customwidget>
   <customwidget>
    <class>SeekSlider</class>

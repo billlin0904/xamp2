@@ -542,7 +542,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
         ui_.naviBar,
-        &TabListView::onThemeChangedFinished);
+        &NavBarListView::onThemeChangedFinished);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
@@ -1441,7 +1441,7 @@ void Xamp::initialController() {
         ui_.currentView->setCurrentWidget(lrc_page_.get());
     });
 
-    (void)QObject::connect(ui_.naviBar, &TabListView::clickedTable, [this](auto table_id) {
+    (void)QObject::connect(ui_.naviBar, &NavBarListView::clickedTable, [this](auto table_id) {
         setCurrentTab(table_id);
         qAppSettings.setValue(kAppSettingLastTabName, ui_.naviBar->tabName(table_id));
     });
