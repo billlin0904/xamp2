@@ -12,6 +12,10 @@
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabBar final : public QTabBar {
 	Q_OBJECT
 public:
+	static constexpr size_t kSmallTabCount = 6;
+	static constexpr size_t kSmallTabWidth = 230;
+	static constexpr size_t kMaxButtonWidth = 50;
+
 	explicit PlaylistTabBar(QWidget* parent = nullptr);
 	
 signals:
@@ -30,6 +34,8 @@ private:
 	bool eventFilter(QObject* object, QEvent* event) override;
 
 	QSize tabSizeHint(int index) const override;
+
+	void resizeEvent(QResizeEvent* event) override;
 
 	int32_t edited_index_{0};
 	QLineEdit* line_edit_{nullptr};

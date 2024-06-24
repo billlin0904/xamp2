@@ -119,12 +119,16 @@ bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
 QSize PlaylistTabBar::tabSizeHint(int index) const {
 	QSize size(QTabBar::tabSizeHint(index));
 
-	if (count() < 6) {
-		size.setWidth(230);
+	if (count() < kSmallTabCount) {
+		size.setWidth(kSmallTabWidth);
 	}
 	else {		
-		auto width = dynamic_cast<QWidget*>(parent())->width() - 50;
+		auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
 		size.setWidth(width / count());
 	}	
 	return size;
+}
+
+void PlaylistTabBar::resizeEvent(QResizeEvent* event) {
+	QTabBar::resizeEvent(event);
 }

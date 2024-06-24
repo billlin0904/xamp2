@@ -21,7 +21,7 @@ class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget final : public QTabWidget {
 	Q_OBJECT
 public:
 	static constexpr QSize kTabIconSize = QSize(32, 32);
-
+	
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
 	void hidePlusButton();
@@ -90,10 +90,12 @@ private:
 
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 
+	void resizeEvent(QResizeEvent* event) override;
+
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
-	QPushButton* plus_button_{ nullptr };
+	QPushButton* add_tab_button_{ nullptr };
 	dao::PlaylistDao playlist_dao_;
 };
 
