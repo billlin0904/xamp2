@@ -196,7 +196,7 @@
     <ClInclude Include="widget\scrolllabel.h" />
     <QtMoc Include="widget\seekslider.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
-    <QtMoc Include="widget\tablistview.h" />
+    <QtMoc Include="widget\navbarlistview.h" />
     <ClInclude Include="widget\themecolor.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h" />
     <QtMoc Include="widget\volumebutton.h" />
@@ -266,7 +266,7 @@
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\supereqview.cpp" />
-    <ClCompile Include="widget\tablistview.cpp" />
+    <ClCompile Include="widget\navbarlistview.cpp" />
     <ClCompile Include="widget\tageditpage.cpp" />
     <ClCompile Include="widget\tagio.cpp" />
     <ClCompile Include="widget\taglistview.cpp" />

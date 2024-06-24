@@ -1,21 +1,41 @@
 #include <widget/playlisttabbar.h>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QProxyStyle>
+#include <QPainter>
 
 #include <thememanager.h>
 #include <widget/util/str_util.h>
+
+// TextAlignedStyle
+// 
+// QTabWidget not support set text aligned flag.
+// So, I use QProxyStyle to draw text aligned.
+//
+class TextAlignedStyle : public QProxyStyle {
+public:
+	explicit TextAlignedStyle(QStyle* style = nullptr)
+		: QProxyStyle(style) {
+	}	
+
+	void drawItemText(QPainter* painter, const QRect& rect, int flags, const QPalette& pal, bool enabled,
+		const QString& text, QPalette::ColorRole textRole) const override {
+		QCommonStyle::drawItemText(painter, rect, Qt::AlignVCenter | Qt::AlignLeft, pal, enabled, text, textRole);
+	}
+};
 
 PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	: QTabBar(parent) {	
 	setExpanding(true);
 	setTabsClosable(true);
-	setUsesScrollButtons(true);
+	setUsesScrollButtons(false);
 	setElideMode(Qt::TextElideMode::ElideRight);
 	setMovable(true);
 	auto f = font();
 	f.setPointSize(qTheme.fontSize(10));
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
+	setStyle(new TextAlignedStyle());
 }
 
 void PlaylistTabBar::onFinishRename() {
@@ -94,4 +114,17 @@ bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
 		}
 	}
 	return false;
+}
+
+QSize PlaylistTabBar::tabSizeHint(int index) const {
+	QSize size(QTabBar::tabSizeHint(index));
+
+	if (count() < 6) {
+		size.setWidth(230);
+	}
+	else {		
+		auto width = dynamic_cast<QWidget*>(parent())->width() - 50;
+		size.setWidth(width / count());
+	}	
+	return size;
 }

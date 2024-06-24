@@ -1,11 +1,11 @@
-#include <widget/tablistview.h>
+#include <widget/navbarlistview.h>
 #include <widget/util/str_util.h>
 
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
 #include <thememanager.h>
 
-TabListView::TabListView(QWidget *parent)
+NavBarListView::NavBarListView(QWidget *parent)
     : QListView(parent)
     , model_(this) {
     setModel(&model_);
@@ -29,21 +29,21 @@ TabListView::TabListView(QWidget *parent)
     tooltip_.hide();
 }
 
-QString TabListView::tabName(int table_id) const {
+QString NavBarListView::tabName(int table_id) const {
 	if (!names_.contains(table_id)) {
         return kEmptyString;
 	}
     return names_[table_id];
 }
 
-int32_t TabListView::tabId(const QString& name) const {
+int32_t NavBarListView::tabId(const QString& name) const {
     if (!ids_.contains(name)) {
         return -1;
     }
     return ids_[name];
 }
 
-int32_t TabListView::currentTabId() const {
+int32_t NavBarListView::currentTabId() const {
     auto index = currentIndex();
     if (!index.isValid()) {
         return -1;
@@ -52,11 +52,11 @@ int32_t TabListView::currentTabId() const {
     return table_id;
 }
 
-void TabListView::onRetranslateUi() {
+void NavBarListView::onRetranslateUi() {
     tooltip_.setText(kEmptyString);
 }
 
-void TabListView::toolTipMove(const QPoint& pos) {
+void NavBarListView::toolTipMove(const QPoint& pos) {
     auto index = indexAt(pos);
     if (index.isValid()) {
         auto* item = model_.item(index.row(), index.column());
@@ -74,12 +74,12 @@ void TabListView::toolTipMove(const QPoint& pos) {
     }
 }
 
-void TabListView::mouseMoveEvent(QMouseEvent* event) {
+void NavBarListView::mouseMoveEvent(QMouseEvent* event) {
 	toolTipMove(event->pos());
     QListView::mouseMoveEvent(event);
 }
 
-void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
+void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
     for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);
         switch (column_index) {
@@ -109,7 +109,7 @@ void TabListView::onThemeChangedFinished(ThemeColor theme_color) {
 	tooltip_.onThemeChangedFinished(theme_color);
 }
 
-void TabListView::setTabText(const QString& name, int table_id) {
+void NavBarListView::setTabText(const QString& name, int table_id) {
     for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);
         if (column_index == table_id) {
@@ -123,7 +123,7 @@ void TabListView::setTabText(const QString& name, int table_id) {
     tooltip_.setText(name);
 }
 
-void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
+void NavBarListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
@@ -139,7 +139,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     tooltip_.setText(name);
 }
 
-void TabListView::addSeparator() {
+void NavBarListView::addSeparator() {
     auto* item = new QStandardItem();
     item->setFlags(Qt::NoItemFlags);
     auto* hline = new QFrame(this);

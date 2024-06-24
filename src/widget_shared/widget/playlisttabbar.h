@@ -29,6 +29,8 @@ private:
 
 	bool eventFilter(QObject* object, QEvent* event) override;
 
+	QSize tabSizeHint(int index) const override;
+
 	int32_t edited_index_{0};
 	QLineEdit* line_edit_{nullptr};
 };

@@ -269,8 +269,6 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
 
 	QTabWidget QTabBar::tab {
-		max-width: 200px;
-		min-width: 200px;
 		min-height: 30px;
 		background-color: #121212;
 	}
@@ -299,8 +297,6 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
 
 	QTabWidget QTabBar::tab {
-		max-width: 200px;
-		min-width: 200px;
 		min-height: 30px;
 		color: black;
 		background-color: #f9f9f9;
@@ -347,6 +343,12 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
         removeTab(tab_index);
         playlist_page->deleteLater();
     }
+}
+
+void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
+    const auto index = addTab(widget, name);
+    setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+    setCurrentIndex(index);
 }
 
 int32_t PlaylistTabWidget::currentPlaylistId() const {
@@ -437,12 +439,6 @@ void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
             setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
         }
     }
-}
-
-void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
-    const auto index = addTab(widget, name);
-    setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
-    setCurrentIndex(index);
 }
 
 void PlaylistTabWidget::setPlaylistCover(const QPixmap& cover) {

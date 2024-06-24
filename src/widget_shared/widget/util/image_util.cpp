@@ -483,13 +483,14 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	result.fill(Qt::transparent);
 
 	QPainter painter(&result);
-	QPainterPath painter_path;
-	const QRect rect(0, 0, size.width(), size.height());
-
-	painter_path.addRoundedRect(rect, radius, radius);
 	painter.setRenderHints(QPainter::Antialiasing, true);
 	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
 	painter.setRenderHints(QPainter::TextAntialiasing, true);
+
+	QPainterPath painter_path;
+	const QRect rect(0, 0, size.width(), size.height());
+
+	painter_path.addRoundedRect(rect, radius, radius);	
 	painter.setClipPath(painter_path);
 	painter.setBrush(QBrush(QColor(249, 249, 249)));
 	if (src.size() != size) {

@@ -60,14 +60,6 @@
     </message>
 </context>
 <context>
-    <name>AboutPage</name>
-    <message>
-        <location filename="widget/aboutpage.cpp" line="51"/>
-        <source>Ver. </source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>AccountAuthorizationPage</name>
     <message>
         <location filename="accountauthorizationpage.ui" line="20"/>
@@ -95,25 +87,25 @@
     <name>AlbumArtistPage</name>
     <message>
         <location filename="widget/albumartistpage.cpp" line="99"/>
-        <location filename="widget/albumartistpage.cpp" line="471"/>
+        <location filename="widget/albumartistpage.cpp" line="474"/>
         <source>Library</source>
         <translation type="unfinished">音樂庫</translation>
     </message>
     <message>
         <location filename="widget/albumartistpage.cpp" line="117"/>
-        <location filename="widget/albumartistpage.cpp" line="473"/>
+        <location filename="widget/albumartistpage.cpp" line="476"/>
         <source>ALBUMS</source>
         <translation type="unfinished">專輯</translation>
     </message>
     <message>
         <location filename="widget/albumartistpage.cpp" line="118"/>
-        <location filename="widget/albumartistpage.cpp" line="474"/>
+        <location filename="widget/albumartistpage.cpp" line="477"/>
         <source>ARTISTS</source>
         <translation type="unfinished">演出者</translation>
     </message>
     <message>
         <location filename="widget/albumartistpage.cpp" line="119"/>
-        <location filename="widget/albumartistpage.cpp" line="475"/>
+        <location filename="widget/albumartistpage.cpp" line="478"/>
         <source>YEAR</source>
         <translation type="unfinished">年分</translation>
     </message>
@@ -148,106 +140,106 @@
 <context>
     <name>AlbumView</name>
     <message>
-        <location filename="widget/albumview.cpp" line="371"/>
-        <location filename="widget/albumview.cpp" line="485"/>
+        <location filename="widget/albumview.cpp" line="373"/>
+        <location filename="widget/albumview.cpp" line="487"/>
         <source>Copy album</source>
         <translation type="unfinished">拷貝專輯名稱至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="376"/>
-        <location filename="widget/albumview.cpp" line="490"/>
+        <location filename="widget/albumview.cpp" line="378"/>
+        <location filename="widget/albumview.cpp" line="492"/>
         <source>Copy artist</source>
         <translation type="unfinished">拷貝演出者至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="390"/>
-        <location filename="widget/albumview.cpp" line="438"/>
+        <location filename="widget/albumview.cpp" line="392"/>
+        <location filename="widget/albumview.cpp" line="440"/>
         <source>Remove all album</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="345"/>
-        <location filename="widget/albumview.cpp" line="392"/>
+        <location filename="widget/albumview.cpp" line="347"/>
+        <location filename="widget/albumview.cpp" line="394"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="249"/>
+        <location filename="widget/albumview.cpp" line="251"/>
         <source>Enter select mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="251"/>
+        <location filename="widget/albumview.cpp" line="253"/>
         <source>Leave select move</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="278"/>
+        <location filename="widget/albumview.cpp" line="280"/>
         <source>Selected all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="282"/>
+        <location filename="widget/albumview.cpp" line="284"/>
         <source>Unselected all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="304"/>
+        <location filename="widget/albumview.cpp" line="306"/>
         <source>Add albums to playlist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="324"/>
+        <location filename="widget/albumview.cpp" line="326"/>
         <source>Add albums to new playlist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="337"/>
+        <location filename="widget/albumview.cpp" line="339"/>
         <source>Remove selected albums</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="343"/>
+        <location filename="widget/albumview.cpp" line="345"/>
         <source>Remove selected album</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="421"/>
+        <location filename="widget/albumview.cpp" line="423"/>
         <source>Load local file</source>
         <translation type="unfinished">載入本地媒體</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="422"/>
+        <location filename="widget/albumview.cpp" line="424"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="422"/>
+        <location filename="widget/albumview.cpp" line="424"/>
         <source>Music Files </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="428"/>
+        <location filename="widget/albumview.cpp" line="430"/>
         <source>Load file directory</source>
         <translation type="unfinished">載入本地媒體資料夾</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="429"/>
+        <location filename="widget/albumview.cpp" line="431"/>
         <source>Select a directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="442"/>
+        <location filename="widget/albumview.cpp" line="444"/>
         <source>Search album cover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="466"/>
+        <location filename="widget/albumview.cpp" line="468"/>
         <source>Add album to playlist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="496"/>
+        <location filename="widget/albumview.cpp" line="498"/>
         <source>Remove select album</source>
         <translation type="unfinished"></translation>
     </message>
@@ -255,7 +247,7 @@
 <context>
     <name>AlbumViewPage</name>
     <message>
-        <location filename="widget/albumview.cpp" line="144"/>
+        <location filename="widget/albumview.cpp" line="147"/>
         <source>%1 Songs, %2, %3, %4</source>
         <translation type="unfinished"></translation>
     </message>
@@ -649,268 +641,268 @@
 <context>
     <name>PlaylistTableView</name>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="204"/>
+        <location filename="widget/playlisttableview.cpp" line="211"/>
         <source>Id</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="205"/>
+        <location filename="widget/playlisttableview.cpp" line="212"/>
         <source>IsPlaying</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="206"/>
+        <location filename="widget/playlisttableview.cpp" line="213"/>
         <source>   #</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="207"/>
+        <location filename="widget/playlisttableview.cpp" line="214"/>
         <source>FilePath</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="208"/>
+        <location filename="widget/playlisttableview.cpp" line="215"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="209"/>
+        <location filename="widget/playlisttableview.cpp" line="216"/>
         <source>FileName</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="210"/>
+        <location filename="widget/playlisttableview.cpp" line="217"/>
         <source>FileSize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="211"/>
+        <location filename="widget/playlisttableview.cpp" line="218"/>
         <source>Album</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="212"/>
+        <location filename="widget/playlisttableview.cpp" line="219"/>
         <source>Artist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="213"/>
+        <location filename="widget/playlisttableview.cpp" line="220"/>
         <source>Duration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="214"/>
+        <location filename="widget/playlisttableview.cpp" line="221"/>
         <source>BitRate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="215"/>
+        <location filename="widget/playlisttableview.cpp" line="222"/>
         <source>SampleRate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="216"/>
+        <location filename="widget/playlisttableview.cpp" line="223"/>
         <source>AlbumRG</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="217"/>
+        <location filename="widget/playlisttableview.cpp" line="224"/>
         <source>AlbumPK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="218"/>
+        <location filename="widget/playlisttableview.cpp" line="225"/>
         <source>LastUpdateTime</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="219"/>
+        <location filename="widget/playlisttableview.cpp" line="226"/>
         <source>TrackRG</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="220"/>
+        <location filename="widget/playlisttableview.cpp" line="227"/>
         <source>TrackPK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="221"/>
+        <location filename="widget/playlisttableview.cpp" line="228"/>
         <source>Loudness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="222"/>
+        <location filename="widget/playlisttableview.cpp" line="229"/>
         <source>Genre</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="223"/>
+        <location filename="widget/playlisttableview.cpp" line="230"/>
         <source>AlbumId</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="224"/>
+        <location filename="widget/playlisttableview.cpp" line="231"/>
         <source>PlaylistId</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="225"/>
+        <location filename="widget/playlisttableview.cpp" line="232"/>
         <source>FileExt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="226"/>
+        <location filename="widget/playlisttableview.cpp" line="233"/>
         <source>ParentPath</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="228"/>
+        <location filename="widget/playlisttableview.cpp" line="235"/>
         <source>ArtistId</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="229"/>
+        <location filename="widget/playlisttableview.cpp" line="236"/>
         <source>Like</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="230"/>
+        <location filename="widget/playlisttableview.cpp" line="237"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="231"/>
+        <location filename="widget/playlisttableview.cpp" line="238"/>
         <source>Year</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="318"/>
+        <location filename="widget/playlisttableview.cpp" line="324"/>
         <source>Hide this column</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="324"/>
+        <location filename="widget/playlisttableview.cpp" line="330"/>
         <source>Select columns to show...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="420"/>
-        <location filename="widget/playlisttableview.cpp" line="619"/>
+        <location filename="widget/playlisttableview.cpp" line="426"/>
+        <location filename="widget/playlisttableview.cpp" line="625"/>
         <source>Copy album</source>
         <translation type="unfinished">拷貝專輯名稱至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="423"/>
-        <location filename="widget/playlisttableview.cpp" line="622"/>
+        <location filename="widget/playlisttableview.cpp" line="429"/>
+        <location filename="widget/playlisttableview.cpp" line="628"/>
         <source>Copy artist</source>
         <translation type="unfinished">拷貝演出者至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="424"/>
-        <location filename="widget/playlisttableview.cpp" line="623"/>
+        <location filename="widget/playlisttableview.cpp" line="430"/>
+        <location filename="widget/playlisttableview.cpp" line="629"/>
         <source>Copy title</source>
         <translation type="unfinished">拷貝標題至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="438"/>
+        <location filename="widget/playlisttableview.cpp" line="444"/>
         <source>Add to cloud playlist</source>
         <translation type="unfinished">加入雲端媒體檔案</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="457"/>
+        <location filename="widget/playlisttableview.cpp" line="463"/>
         <source>Remove select music</source>
         <translation type="unfinished">移除選擇媒體檔案</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="468"/>
+        <location filename="widget/playlisttableview.cpp" line="474"/>
         <source>DisLike the music</source>
         <translation type="unfinished">不喜歡</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="472"/>
-        <location filename="widget/playlisttableview.cpp" line="476"/>
+        <location filename="widget/playlisttableview.cpp" line="478"/>
+        <location filename="widget/playlisttableview.cpp" line="482"/>
         <source>Like the music</source>
         <translation type="unfinished">喜歡</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="501"/>
+        <location filename="widget/playlisttableview.cpp" line="507"/>
         <source>Cache file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="509"/>
-        <location filename="widget/playlisttableview.cpp" line="547"/>
+        <location filename="widget/playlisttableview.cpp" line="515"/>
+        <location filename="widget/playlisttableview.cpp" line="553"/>
         <source>Remove all</source>
         <translation type="unfinished">移除全部媒體</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="530"/>
+        <location filename="widget/playlisttableview.cpp" line="536"/>
         <source>Load local file</source>
         <translation type="unfinished">載入本地媒體</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="531"/>
+        <location filename="widget/playlisttableview.cpp" line="537"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="531"/>
+        <location filename="widget/playlisttableview.cpp" line="537"/>
         <source>Music Files </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="537"/>
+        <location filename="widget/playlisttableview.cpp" line="543"/>
         <source>Load file directory</source>
         <translation type="unfinished">載入本地媒體資料夾</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="538"/>
+        <location filename="widget/playlisttableview.cpp" line="544"/>
         <source>Select a directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="563"/>
+        <location filename="widget/playlisttableview.cpp" line="569"/>
         <source>Add music to new playlist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="578"/>
+        <location filename="widget/playlisttableview.cpp" line="584"/>
         <source>Scan file ReplayGain</source>
         <translation type="unfinished">掃描媒體Replay Gain</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="582"/>
+        <location filename="widget/playlisttableview.cpp" line="588"/>
         <source>Export FLAC file</source>
         <translation type="unfinished">轉換為FLAC檔案</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="587"/>
-        <location filename="widget/playlisttableview.cpp" line="613"/>
+        <location filename="widget/playlisttableview.cpp" line="593"/>
+        <location filename="widget/playlisttableview.cpp" line="619"/>
         <source>Export AAC file</source>
         <translation type="unfinished">轉換為AAC檔案</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="616"/>
+        <location filename="widget/playlisttableview.cpp" line="622"/>
         <source>Export WAV file</source>
         <translation type="unfinished">轉換為WAV檔案</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="634"/>
+        <location filename="widget/playlisttableview.cpp" line="640"/>
         <source>Add file to playlist</source>
         <translation type="unfinished">加入檔案至播放清單</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="646"/>
+        <location filename="widget/playlisttableview.cpp" line="652"/>
         <source>Edit track information</source>
         <translation type="unfinished">編輯媒體資訊</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="649"/>
+        <location filename="widget/playlisttableview.cpp" line="655"/>
         <source>Reload track information</source>
         <translation type="unfinished">重載媒體資訊</translation>
     </message>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="652"/>
+        <location filename="widget/playlisttableview.cpp" line="658"/>
         <source>Open local file path</source>
         <translation type="unfinished">打開檔案</translation>
     </message>
@@ -1465,27 +1457,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/tageditpage.cpp" line="161"/>
+        <location filename="widget/tageditpage.cpp" line="159"/>
         <source>Write tag successfully!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/tageditpage.cpp" line="185"/>
+        <location filename="widget/tageditpage.cpp" line="183"/>
         <source>Do you want write cover image?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/tageditpage.cpp" line="244"/>
+        <location filename="widget/tageditpage.cpp" line="242"/>
         <source>Open image file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/tageditpage.cpp" line="246"/>
+        <location filename="widget/tageditpage.cpp" line="244"/>
         <source>Image Files </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/tageditpage.cpp" line="281"/>
+        <location filename="widget/tageditpage.cpp" line="279"/>
         <source>Not set</source>
         <translation type="unfinished"></translation>
     </message>

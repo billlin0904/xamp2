@@ -99,8 +99,6 @@ private:
     */
     void AddThread(size_t i, ThreadPriority priority);
 
-    void RandomSelectCore(size_t i);
-
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     size_t max_thread_;

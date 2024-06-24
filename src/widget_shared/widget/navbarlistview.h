@@ -25,10 +25,10 @@ enum TabIndex {
     TAB_YT_MUSIC_PLAYLIST,    
 };
 
-class XAMP_WIDGET_SHARED_EXPORT TabListView final : public QListView {
+class XAMP_WIDGET_SHARED_EXPORT NavBarListView final : public QListView {
     Q_OBJECT
 public:
-    explicit TabListView(QWidget *parent = nullptr);
+    explicit NavBarListView(QWidget *parent = nullptr);
 
     void addTab(const QString& name, int table_id, const QIcon& icon);
 

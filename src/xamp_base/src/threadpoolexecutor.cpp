@@ -59,7 +59,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	// 所以都改由此方式初始化affinity.
 	JThread([this, priority]() mutable {
 		for (size_t i = 0; i < max_thread_; ++i) {
-			if (cpu_affinity_) {
+			if (cpu_affinity_.IsCoreUse(i)) {
 				cpu_affinity_.SetAffinity(threads_.at(i));
 				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, cpu_affinity_);
 			}
@@ -203,20 +203,6 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::RandomSelectCore(size_t i) {
-	if (cpu_affinity_ != CpuAffinity::kAll) {
-		return;
-	}
-	size_t start_index = 0;
-	if (!cpu_affinity_.IsCoreUse(0)) {
-		start_index = 1;
-	}
-	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
-	auto victim_processor = prng(start_index, CpuAffinity::GetCoreCount() - 1);
-	CpuAffinity affinity(victim_processor, false);
-	affinity.SetAffinity(threads_[i]);
-}
-
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
@@ -285,7 +271,6 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			}
 
 			auto running_thread = ++running_thread_;
-			RandomSelectCore(i);
 			(*task)(stop_token);
 			--running_thread_;
 
