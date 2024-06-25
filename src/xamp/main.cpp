@@ -214,7 +214,7 @@ namespace {
 }
 
 int main() { 
-    ::MessageBox(nullptr, L"Remove debugger", L"Remove debugger attach...!", MB_OK);
+    //::MessageBox(nullptr, L"Remove debugger", L"Remove debugger attach...!", MB_OK);
 
     try {
         XampLoggerFactory
