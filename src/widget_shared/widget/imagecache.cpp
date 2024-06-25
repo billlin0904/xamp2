@@ -53,9 +53,7 @@ void ImageCache::loadUnknownCover() {
 	if (file_info.exists()) {
 		return;
 	}
-	cache_.Add(unknown_cover_id_, { 1, unknown_cover });
 	unknown_cover.save(file_path);
-	addOrUpdateCover(kAlbumCacheTag, unknown_cover_id_, unknown_cover);
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {

@@ -5,6 +5,7 @@
 
 #include <base/scopeguard.h>
 #include <base/dll.h>
+#include <base/crashhandler.h>
 
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
@@ -213,6 +214,8 @@ namespace {
 }
 
 int main() { 
+    ::MessageBox(nullptr, L"Remove debugger", L"Remove debugger attach...!", MB_OK);
+
     try {
         XampLoggerFactory
             .AddDebugOutput()
@@ -227,6 +230,12 @@ int main() {
 		::MessageBox(nullptr, message.c_str(), L"Logger startup failure!", MB_OK | MB_ICONERROR);
 		return -1;
 	}
+
+    XampCrashHandler.SetProcessExceptionHandlers();
+    XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
+
+    XampCrashHandler.SetThreadExceptionHandlers();
+    XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     // Disable ECO-QOS mode.
 	SetCurrentProcessPriority(ProcessPriority::PRIORITY_FOREGROUND);

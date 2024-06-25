@@ -68,13 +68,7 @@ void XApplication::initial() {
 	qAppSettings.loadOrSaveLogConfig();
 	qAppSettings.loadAppSettings();
 
-	qDiskCache.load();
-
-	XampCrashHandler.SetProcessExceptionHandlers();
-	XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
-
-	XampCrashHandler.SetThreadExceptionHandlers();
-	XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");    
+	qDiskCache.load();   
 }
 
 void XApplication::loadSampleRateConverterConfig() {
