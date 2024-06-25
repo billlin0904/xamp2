@@ -212,14 +212,21 @@ namespace {
     }
 }
 
-int main() {    
-    XampLoggerFactory
-        .AddDebugOutput()
+int main() { 
+    try {
+        XampLoggerFactory
+            .AddDebugOutput()
 #ifdef Q_OS_MAC
-        .AddSink(std::make_shared<QDebugSink>())
+            .AddSink(std::make_shared<QDebugSink>())
 #endif
-        .AddLogFile("xamp.log")
-        .Startup();
+            .AddLogFile("xamp.log")
+            .Startup();
+    }
+	catch (const std::exception& e) {
+        auto message = String::ToStdWString(e.what());
+		::MessageBox(nullptr, message.c_str(), L"Logger startup failure!", MB_OK | MB_ICONERROR);
+		return -1;
+	}
 
     // Disable ECO-QOS mode.
 	SetCurrentProcessPriority(ProcessPriority::PRIORITY_FOREGROUND);

@@ -44,6 +44,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.comment           = indexValue(index, PLAYLIST_COMMENT).toString();
     entity.year              = indexValue(index, PLAYLIST_YEAR).toUInt();
     entity.music_cover_id    = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
+	entity.is_cue_file       = indexValue(index, PLAYLIST_IS_CUE_FILE).toBool();
 
     setEntityValue(entity.offset, indexValue(index, PLAYLIST_OFFSET));
 

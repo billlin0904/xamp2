@@ -35,7 +35,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 OutputDir=F:\Source\xamp2\inno
-OutputBaseFilename=mysetup
+OutputBaseFilename=xamp2-setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

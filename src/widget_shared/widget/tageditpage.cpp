@@ -125,27 +125,36 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		auto& entity = entities_[index];
 		const Path path = entity.file_path.toStdWString();
 
+		if (!entity.is_cue_file) {
+			try {
+				TagIO tag_io;
+				tag_io.writeArtist(path, ui_->artistLineEdit->text());
+				tag_io.writeTitle(path, ui_->titleComboBox->currentText());
+				tag_io.writeAlbum(path, ui_->albumLineEdit->text());
+				tag_io.writeComment(path, ui_->commentLineEdit->text());
+				tag_io.writeGenre(path, ui_->genreComboBox->currentText());
+				tag_io.writeTrack(path, ui_->trackComboBox->currentText().toUInt());
+				tag_io.writeYear(path, ui_->yearLineEdit->text().toUInt());
+
+				entity.artist = ui_->artistLineEdit->text();
+				entity.title = ui_->titleComboBox->currentText();
+				entity.album = ui_->albumLineEdit->text();
+				entity.comment = ui_->commentLineEdit->text();
+				entity.track = ui_->trackComboBox->currentText().toUInt();
+				entity.year = ui_->yearLineEdit->text().toUInt();
+			}
+			catch (...) {
+				XMessageBox::showError(tr("Failure to write tag!"));
+				return;
+			}
+		}
+
 		try {
-			TagIO tag_io;
-			tag_io.writeArtist(path, ui_->artistLineEdit->text());
-			tag_io.writeTitle(path, ui_->titleComboBox->currentText());
-			tag_io.writeAlbum(path, ui_->albumLineEdit->text());
-			tag_io.writeComment(path, ui_->commentLineEdit->text());
-			tag_io.writeGenre(path, ui_->genreComboBox->currentText());
-			tag_io.writeTrack(path, ui_->trackComboBox->currentText().toUInt());
-			tag_io.writeYear(path, ui_->yearLineEdit->text().toUInt());
-
-			entity.artist = ui_->artistLineEdit->text();
-			entity.title = ui_->titleComboBox->currentText();
-			entity.album = ui_->albumLineEdit->text();
-			entity.comment = ui_->commentLineEdit->text();
-			entity.track = ui_->trackComboBox->currentText().toUInt();
-			entity.year = ui_->yearLineEdit->text().toUInt();
-
 			dao::AlbumDao(qGuiDb.getDatabase()).updateAlbum(entity.album_id, entity.album);
 			artist_dao_.updateArtist(entity.artist_id, entity.artist);
-		} catch (...) {
-			XMessageBox::showError(tr("Write tag failure!"));
+		}
+		catch (...) {
+			XMessageBox::showError(tr("Failure to update database!"));
 			return;
 		}
 

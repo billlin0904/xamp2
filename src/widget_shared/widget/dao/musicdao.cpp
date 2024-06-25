@@ -16,8 +16,8 @@ namespace dao {
 
         query.prepare(qTEXT(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart, isCueFile)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile)
     )")
         );
 
@@ -34,6 +34,7 @@ namespace dao {
         query.bindValue(qTEXT(":offset"), track_info.offset ? track_info.offset.value() : 0);
         query.bindValue(qTEXT(":fileSize"), track_info.file_size);
         query.bindValue(qTEXT(":heart"), track_info.rating ? 1 : 0);
+        query.bindValue(qTEXT(":isCueFile"), track_info.is_cue_file ? 1 : 0);
 
         if (track_info.replay_gain) {
             query.bindValue(qTEXT(":albumReplayGain"), track_info.replay_gain.value().album_gain);

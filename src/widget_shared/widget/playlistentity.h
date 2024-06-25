@@ -16,6 +16,7 @@
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
+    bool is_cue_file{ false };
     int32_t playing{0};
     int32_t music_id{0};
     int32_t playlist_music_id{0};

@@ -72,7 +72,8 @@ namespace {
 	musics.comment,
 	albums.year,
 	musics.coverId as musicCoverId,
-    musics.offset
+    musics.offset,
+    musics.isCueFile
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -120,7 +121,8 @@ ORDER BY
 	musics.comment,
 	albums.year,
 	musics.coverId as musicCoverId,
-    musics.offset
+    musics.offset,
+	musics.isCueFile
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -247,7 +249,8 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
         PLAYLIST_CHECKED,
         PLAYLIST_ALBUM_ID,
         PLAYLIST_MUSIC_COVER_ID,
-        PLAYLIST_OFFSET
+        PLAYLIST_OFFSET,
+        PLAYLIST_IS_CUE_FILE,
     };
 
     always_hidden_columns_ = always_hidden_columns;

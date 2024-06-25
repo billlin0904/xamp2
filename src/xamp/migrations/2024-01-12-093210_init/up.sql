@@ -27,6 +27,7 @@ IF
 		lyrc TEXT,
 		trLyrc TEXT,
 		coverId TEXT DEFAULT NULL,
+		isCueFile integer,
 		UNIQUE ( path, offset, durationStr ) 
 	);
 	
