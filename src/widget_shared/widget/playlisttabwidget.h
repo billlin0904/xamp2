@@ -38,7 +38,7 @@ public:
 
 	void setPlaylistTabIcon(const QIcon &icon);
 
-	void createNewTab(const QString& name, QWidget* widget);
+	void createNewTab(const QString& name, QWidget* widget, bool resiz = false);
 
 	void setPlaylistCover(const QPixmap &cover);
 
@@ -93,6 +93,8 @@ private:
 	void resizeEvent(QResizeEvent* event) override;
 
 	bool eventFilter(QObject* watched, QEvent* event) override;
+
+	void resizeTabWidth();
 
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* add_tab_button_{ nullptr };

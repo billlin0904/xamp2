@@ -47,6 +47,7 @@ void PlaylistTabWidget::closeAllTab() {
 
     clear();
     emit removeAllPlaylist();
+    resizeTabWidth();
 }
 
 void PlaylistTabWidget::setStoreType(StoreType type) {
@@ -130,10 +131,10 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setTabBar(tab_bar);
 
     add_tab_button_ = new QPushButton(this);    
-    add_tab_button_->setMaximumSize(32, 32);
-    add_tab_button_->setMinimumSize(32, 32);
+    add_tab_button_->setMaximumSize(16, 16);
+    add_tab_button_->setMinimumSize(16, 16);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
-    add_tab_button_->setIconSize(QSize(18, 18));
+    add_tab_button_->setIconSize(QSize(14, 14));
     add_tab_button_->setObjectName(qTEXT("plusButton"));
 
     (void)QObject::connect(add_tab_button_, &QPushButton::pressed, [this]() {
@@ -245,7 +246,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         });
 
-    onThemeChangedFinished(qTheme.themeColor());
+    onThemeChangedFinished(qTheme.themeColor());    
 }
 
 void PlaylistTabWidget::hidePlusButton() {
@@ -280,7 +281,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     )"));
 
     add_tab_button_->setStyleSheet(qSTR(R"(   
-	QPushButton#plusButton:hover {
+	QPushButton#plusButton:hover {        
 		background-color: #455364;
 		border-radius: 8px;
 	}
@@ -343,12 +344,16 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
         removeTab(tab_index);
         playlist_page->deleteLater();
     }
+    resizeTabWidth();   
 }
 
-void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget) {
+void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool resize) {
     const auto index = addTab(widget, name);
     setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
+    if (resize) {
+        resizeTabWidth();
+    }    
 }
 
 int32_t PlaylistTabWidget::currentPlaylistId() const {
@@ -453,14 +458,22 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
     emit createNewPlaylist();
 }
 
-void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
-    QTabWidget::resizeEvent(event);    
+void PlaylistTabWidget::resizeTabWidth() {
     if (tabBar()->count() > PlaylistTabBar::kSmallTabCount) {
         tabBar()->setFixedWidth(width() - PlaylistTabBar::kMaxButtonWidth);
     }
-    else {
+    else {     
+        if (tabBar()->count() == 0) {
+			// For the case of no tab, set the minimum width to 1 to avoid has an empty space.
+            tabBar()->setMinimumWidth(1);
+            return;
+        }
         tabBar()->setMinimumWidth(PlaylistTabBar::kSmallTabWidth);
     }
+}
+
+void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
+    QTabWidget::resizeEvent(event);
 }
 
 bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {

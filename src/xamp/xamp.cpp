@@ -2312,13 +2312,13 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
-PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString& name) {
+PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playlist_id, const QString& cloud_playlist_id, const QString& name, bool resize) {
     auto* playlist_page = createPlaylistPage(tab_widget, playlist_id, kAppSettingPlaylistColumnName, cloud_playlist_id);
     playlist_page->playlist()->setHeaderViewHidden(false);
     playlist_page->pageTitle()->hide();
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
-    tab_widget->createNewTab(name, playlist_page);
+    tab_widget->createNewTab(name, playlist_page, resize);
     return playlist_page;
 }
 
@@ -2350,14 +2350,14 @@ void Xamp::initialPlaylist() {
             return;
         }
         if (store_type == StoreType::LOCAL_STORE || store_type == StoreType::PLAYLIST_LOCAL_STORE) {
-            auto* playlist_page = newPlaylistPage(playlist_tab_page_.get(), playlist_id, kEmptyString, name);
+            auto* playlist_page = newPlaylistPage(playlist_tab_page_.get(), playlist_id, kEmptyString, name, false);
             playlist_page->playlist()->enableCloudMode(false);
             playlist_page->pageTitle()->hide();
         }
         else if (store_type == StoreType::CLOUD_STORE || playlist_id == kYtMusicSearchPlaylistId) {
             PlaylistPage* playlist_page;
             if (playlist_id != kYtMusicSearchPlaylistId) {
-                playlist_page = newPlaylistPage(yt_music_tab_page_.get(), playlist_id, cloud_playlist_id, name);
+                playlist_page = newPlaylistPage(yt_music_tab_page_.get(), playlist_id, cloud_playlist_id, name, false);
             } else {
                 playlist_page = yt_music_search_page_.get();
             }

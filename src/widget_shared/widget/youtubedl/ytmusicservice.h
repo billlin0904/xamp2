@@ -517,7 +517,7 @@ private:
 					val = f();
 				}
 				catch (const std::exception& e) {
-					XAMP_LOG_D(logger_, "{} =>\r\n {}", e.what(), StackTrace{}.CaptureStack());
+					XAMP_LOG_E(logger_, "{} =>\r\n {}", e.what(), StackTrace{}.CaptureStack());
 				}
 			}
 			interface->reportResult(val);

@@ -76,7 +76,6 @@ void YtMusicOAuth::requestGrant() {
 		}
 		auto root = code.object();
 		root[qTEXT("expires_at")] = QDateTime::currentSecsSinceEpoch() + code[qTEXT("expires_in")].toInt();
-		root[qTEXT("filepath")] = qTEXT("oauth.json");
 		code.setObject(root);
 		auto json = code.toJson();
 
@@ -113,7 +112,6 @@ Expected<OAuthToken, std::string> YtMusicOAuth::parseOAuthJson() {
 		qTEXT("scope"),
 		qTEXT("token_type"),
 		qTEXT("expires_at"),
-		qTEXT("filepath"),
 	};
 
 	OAuthToken token;
@@ -128,7 +126,6 @@ Expected<OAuthToken, std::string> YtMusicOAuth::parseOAuthJson() {
 	token.refresh_token = root[qTEXT("refresh_token")].toString();
 	token.access_token  = root[qTEXT("access_token")].toString();
 	token.token_type    = root[qTEXT("token_type")].toString();
-	token.filepath      = root[qTEXT("filepath")].toString();
 	token.scope         = root[qTEXT("scope")].toString();
 
 	return token;

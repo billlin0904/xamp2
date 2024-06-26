@@ -666,7 +666,14 @@ playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, i
         playlist["id"].cast<std::string>(),
         playlist["privacy"].cast<std::string>(),
         playlist["title"].cast<std::string>(),
-        extract_py_list<meta::Thumbnail>(playlist["thumbnails"]),
+        [&]() -> std::vector<meta::Thumbnail> {
+        if (playlist.contains("thumbnails")) {
+            return extract_py_list<meta::Thumbnail>(playlist["thumbnails"]);
+        }
+        else {
+            return {};
+        }
+        }(),
         extract_author(),
         optional_key<std::string>(playlist, "year"),
         extract_duration(),

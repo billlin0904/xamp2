@@ -271,7 +271,8 @@ private:
 	PlaylistPage* newPlaylistPage(PlaylistTabWidget* tab_widget,
 		int32_t playlist_id, 
 		const QString& cloud_playlist_id, 
-		const QString &name);
+		const QString &name,
+		bool resize = false);
 
 	[[nodiscard]] PlaylistPage* localPlaylistPage() const;
 
