@@ -329,7 +329,7 @@ void Xamp::showAbout() {
 	(void)QObject::connect(about_page.get(), &AboutPage::CheckForUpdate, this, &Xamp::onCheckForUpdate);
 	(void)QObject::connect(about_page.get(), &AboutPage::RestartApp, this, &Xamp::onRestartApp);
 	(void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
-	dialog->setContentWidget(about_page.get());
+	dialog->setContentWidget(about_page.get(), false, false);
 	dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
 	dialog->setTitle(tr("About"));	
 	dialog->exec();

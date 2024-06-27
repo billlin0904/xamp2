@@ -133,25 +133,19 @@ static void BM_BaseLineThreadPool(benchmark::State& state) {
     }
 }
 
+XAMP_DECLARE_LOG_NAME(BM_RandomPolicyThreadPool);
+
 static void BM_RandomPolicyThreadPool(benchmark::State& state) {
-    constexpr std::string_view kBM_RandomPolicyThreadPoolLoggerName = "BM_RandomPolicyThreadPool";
-
-    /*CpuAffinity affinity(-1, false);
-    affinity.SetCpu(0);
-    affinity.SetCpu(1);
-    affinity.SetCpu(2);
-    affinity.SetCpu(3);*/
-
     CpuAffinity affinity = CpuAffinity::kAll;
 
     const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_RandomPolicyThreadPoolLoggerName,
+        XAMP_LOG_NAME(BM_RandomPolicyThreadPool),
         ThreadPriority::PRIORITY_NORMAL,
         affinity,
         32,
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
 
-    XampLoggerFactory.GetLogger(kBM_RandomPolicyThreadPoolLoggerName)
+    XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_RandomPolicyThreadPool))
         ->SetLevel(LOG_LEVEL_OFF);
 
     const auto length = state.range(0);
@@ -768,10 +762,10 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 //BENCHMARK(BM_ParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_BaseLine_StdParallelSort)->RangeMultiplier(2)->Range(8, 8 << 12);

@@ -15,6 +15,7 @@
 
 #include <FramelessHelper/Widgets/framelessmainwindow.h>
 #include <FramelessHelper/Core/private/framelessconfig_p.h>
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 
 #include <QSslSocket>
 
@@ -109,10 +110,13 @@ namespace {
 
     struct FramelessHelperScoped {
         FramelessHelperScoped() {
-            FramelessHelper::Widgets::initialize();
-            FramelessHelper::Core::setApplicationOSThemeAware();
+            FramelessHelper::Widgets::initialize();            
             FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
-            FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
+            //FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
+        }
+
+        void setApplicationOSThemeAware() {
+            FramelessHelper::Core::setApplicationOSThemeAware();
         }
 
 		~FramelessHelperScoped() {
@@ -145,7 +149,9 @@ namespace {
         /*if (!app.isAttach()) {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
-        }*/        
+        }*/
+
+		scoped.setApplicationOSThemeAware();
 
 		app.initial();
         app.loadLang();
