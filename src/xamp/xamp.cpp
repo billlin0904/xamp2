@@ -1763,6 +1763,10 @@ void Xamp::playOrPause() {
         page = last_playlist_page_;
     }
 
+    if (!page) {
+        return;
+    }
+
     XAMP_TRY_LOG(
         if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
             qTheme.setPlayOrPauseButton(ui_.playButton, false);

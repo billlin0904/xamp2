@@ -110,9 +110,11 @@ namespace {
 
     struct FramelessHelperScoped {
         FramelessHelperScoped() {
-            FramelessHelper::Widgets::initialize();            
+            FramelessHelper::Widgets::initialize();
+            FramelessHelper::Core::initialize();
             FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
             //FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
+            //FramelessConfig::instance()->set(Global::Option::DisableLazyInitializationForMicaMaterial);
         }
 
         void setApplicationOSThemeAware() {
@@ -121,6 +123,7 @@ namespace {
 
 		~FramelessHelperScoped() {
             FramelessHelper::Widgets::uninitialize();
+            FramelessHelper::Core::uninitialize();
 		}
     };
 
