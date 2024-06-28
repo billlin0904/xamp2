@@ -27,6 +27,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
+#include <base/dataconverter.h>
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
@@ -81,6 +82,7 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
     //XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif
+    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
 }
 
 AudioDeviceManager::~AudioDeviceManager() {
