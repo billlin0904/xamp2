@@ -341,8 +341,7 @@ static void BM_ConvertToInt2432Avx(benchmark::State& state) {
     auto ctx = MakeConvert(input_format, output_format, length / 2);
 
     for (auto _ : state) {
-        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
-            ConvertToInt2432(output.data(), input.data(), ctx);
+        AVX2ConvertWrapper<Int24, int32_t>(output.data(), input.data(), kFloat24Scale, ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -364,8 +363,7 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
     auto ctx = MakeConvert(input_format, output_format, length / 2);
 
     for (auto _ : state) {
-        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
-            ConvertToInt2432Bench(output.data(), input.data(), ctx);
+        SSEConvertWrapper<Int24, int32_t>(output.data(), input.data(), kFloat24Scale, ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -387,7 +385,7 @@ static void BM_ConvertToInt(benchmark::State& state) {
 
     for (auto _ : state) {
         DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
-            ConvertInt32Bench(output.data(), input.data(), ctx);
+            Convert(output.data(), input.data(), ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -409,7 +407,7 @@ static void BM_ConvertToShort(benchmark::State& state) {
 
     for (auto _ : state) {
         DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
-            ConvertInt16Bench(output.data(), input.data(), ctx);
+            Convert(output.data(), input.data(), ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -762,8 +760,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
@@ -802,8 +800,8 @@ BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
-//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
@@ -823,6 +821,8 @@ BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_RcuPtrMutex)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
+    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
+
     XampLoggerFactory
         .AddDebugOutput()
         .Startup();

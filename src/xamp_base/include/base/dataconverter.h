@@ -32,30 +32,143 @@ struct XAMP_BASE_API AudioConvertContext {
 
 XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const& out_format, size_t convert_size) noexcept;
 
-template <typename T>
-void XAMP_VECTOR_CALL SimpleConvert(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+template <typename T, typename TStoreType = T>
+void XAMP_VECTOR_CALL SSEConvert(TStoreType* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
 	XAMP_EXPECTS(output != nullptr);
 	XAMP_EXPECTS(input != nullptr);
 
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
-	auto* XAMP_RESTRICT __input = AssumeAligned<kSimdLanes, const float>(input);
-	auto* XAMP_RESTRICT __output = AssumeAligned<kSimdLanes, T>(output);
+	auto* XAMP_RESTRICT __input = AssumeAligned<kSSESimdLanes, const float>(input);
+	auto* XAMP_RESTRICT __output = AssumeAligned<kSSESimdLanes, TStoreType>(output);
+
+	const __m128 scale = _mm_set1_ps(static_cast<float>(float_scale));
+
+	while (__input + 4 <= end_input) {
+		XAMP_ASSERT(end_input - __input > 0);
+
+		__m128 input_values = _mm_load_ps(__input);
+		__m128 scaled_values = _mm_mul_ps(input_values, scale);
+
+		if constexpr (std::is_same_v<T, int32_t>) {
+			__m128i output_values = _mm_cvtps_epi32(scaled_values);
+			_mm_store_si128(reinterpret_cast<__m128i*>(__output), output_values);
+			__output += 4;
+		}
+		else if constexpr (sizeof(T) == 3) {
+			__m128i output_values = _mm_cvtps_epi32(scaled_values);
+			alignas(16) int32_t temp_output[4];
+			_mm_store_si128(reinterpret_cast<__m128i*>(temp_output), output_values);
+			__m128i temp_output_values = _mm_load_si128(reinterpret_cast<const __m128i*>(temp_output));
+			__m128i shifted_values = _mm_slli_si128(temp_output_values, 1);
+			_mm_store_si128(reinterpret_cast<__m128i*>(__output), shifted_values);
+			__output += 4;
+		}
+		else if constexpr (std::is_same_v<T, short>) {
+			__m128i output_values = _mm_cvtps_epi32(scaled_values);
+			__m128i packed_values = _mm_packs_epi32(output_values, output_values);
+			_mm_storel_epi64(reinterpret_cast<__m128i*>(__output), packed_values);
+			__output += 4;
+		}
+		else {
+			__m128 output_values = scaled_values;
+			_mm_store_ps(reinterpret_cast<float*>(__output), output_values);
+			__output += 4;
+		}
+
+		__input += 4;
+	}
 
 	while (__input != end_input) {
 		XAMP_ASSERT(end_input - __input > 0);
-		*__output = static_cast<T>(*__input * float_scale);
+		if constexpr (sizeof(T) == 3) {
+			int32_t temp = static_cast<int32_t>(*__input * float_scale) << 8;
+			*reinterpret_cast<int32_t*>(__output) = temp;
+			__output += 4;
+		}
+		else if constexpr (std::is_same_v<T, short>) {
+			*__output = static_cast<short>(*__input * float_scale);
+			++__output;
+		}
+		else {
+			*__output = static_cast<T>(*__input * float_scale);
+			++__output;
+		}
 		++__input;
-		++__output;
+	}
+}
+
+template <typename T, typename TStoreType = T>
+void XAMP_VECTOR_CALL AVX2Convert(TStoreType* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+	XAMP_EXPECTS(output != nullptr);
+	XAMP_EXPECTS(input != nullptr);
+
+	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
+
+	auto* XAMP_RESTRICT __input = AssumeAligned<kAVX2SimdLanes, const float>(input);
+	auto* XAMP_RESTRICT __output = AssumeAligned<kAVX2SimdLanes, TStoreType>(output);
+
+	const __m256 scale = _mm256_set1_ps(static_cast<float>(float_scale));
+
+	while (__input + 8 <= end_input) {
+		XAMP_ASSERT(end_input - __input > 0);
+
+		__m256 input_values = _mm256_load_ps(__input);
+		__m256 scaled_values = _mm256_mul_ps(input_values, scale);
+
+		if constexpr (std::is_same_v<T, int32_t>) {
+			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
+			_mm256_store_si256(reinterpret_cast<__m256i*>(__output), output_values);
+			__output += 8;
+		}
+		else if constexpr (sizeof(T) == 3) {
+			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
+			alignas(32) int32_t temp_output[8];
+			_mm256_store_si256(reinterpret_cast<__m256i*>(temp_output), output_values);
+			__m256i temp_output_values = _mm256_load_si256(reinterpret_cast<const __m256i*>(temp_output));
+			__m256i shifted_values = _mm256_slli_si256(temp_output_values, 1);
+			_mm256_store_si256(reinterpret_cast<__m256i*>(__output), shifted_values);
+			__output += 8;
+		}
+		else if constexpr (std::is_same_v<T, short>) {
+			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
+			__m256i packed_values = _mm256_packs_epi32(output_values, output_values);
+			packed_values = _mm256_permute4x64_epi64(packed_values, 0xD8);
+			_mm_store_si128(reinterpret_cast<__m128i*>(__output), _mm256_castsi256_si128(packed_values));
+			__output += 8;
+		}
+		else {
+			__m256 output_values = scaled_values;
+			_mm256_store_ps(reinterpret_cast<float*>(__output), output_values);
+			__output += 8;
+		}
+
+		__input += 8;
+	}
+
+	while (__input != end_input) {
+		XAMP_ASSERT(end_input - __input > 0);
+		if constexpr (sizeof(T) == 3) {
+			int32_t temp = static_cast<int32_t>(*__input * float_scale) << 8;
+			*reinterpret_cast<int32_t*>(__output) = temp;
+			__output += 1;
+		}
+		else if constexpr (std::is_same_v<T, short>) {
+			*__output = static_cast<short>(*__input * float_scale);
+			++__output;
+		}
+		else {
+			*__output = static_cast<T>(*__input * float_scale);
+			++__output;
+		}
+		++__input;
 	}
 }
 
 template <PackedFormat InputFormat, PackedFormat OutputFormat>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 	// INFO: Only for DSD file
-    static void Convert(int8_t* XAMP_RESTRICT output,
-		const int8_t* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
+    static void Convert(int8_t* XAMP_RESTRICT output, const int8_t* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -73,9 +186,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 		}
 	}
 
-    static void Convert(int32_t* XAMP_RESTRICT output,
-		const float * XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
+    static void Convert(int32_t* XAMP_RESTRICT output, const float * XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -98,164 +209,57 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 	}
 };
 
-typedef void (XAMP_VECTOR_CALL* Convert16BbitCallback)(int16_t* XAMP_RESTRICT output,
+typedef void (XAMP_VECTOR_CALL* ConvertCallback)(
+	void* XAMP_RESTRICT output, 
 	const float* XAMP_RESTRICT input,
+	int32_t float_scale,
 	const AudioConvertContext& context) noexcept;
 
-typedef void (XAMP_VECTOR_CALL* Convert2432BitCallback)(int32_t* XAMP_RESTRICT output,
-	const float* XAMP_RESTRICT input,
-	const AudioConvertContext& context) noexcept;
+typedef void (XAMP_VECTOR_CALL* InterleaveToPlanarCallback)(
+	const float* XAMP_RESTRICT in,
+	int32_t* XAMP_RESTRICT a,
+	int32_t* XAMP_RESTRICT b,
+	size_t len);
 
-typedef void (XAMP_VECTOR_CALL* Convert32BitCallback)(int32_t* XAMP_RESTRICT output,
-	const float* XAMP_RESTRICT input,
-	const AudioConvertContext& context) noexcept;
+inline ConvertCallback ConvertInt16Cb;
+inline ConvertCallback Convert2432Cb;
+inline ConvertCallback ConvertInt32Cb;
 
-inline Convert16BbitCallback  ConvertInt16Cb;
-inline Convert2432BitCallback Convert2432Cb;
-inline Convert32BitCallback   ConvertInt32Cb;
+template <typename T, typename TStoreType = T>
+void XAMP_VECTOR_CALL AVX2ConvertWrapper(void* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, int32_t float_scale, const AudioConvertContext& context) noexcept {
+	AVX2Convert<T, TStoreType>(reinterpret_cast<TStoreType*>(output), input, float_scale, context);
+}
+
+template <typename T, typename TStoreType = T>
+void XAMP_VECTOR_CALL SSEConvertWrapper(void* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, int32_t float_scale, const AudioConvertContext& context) noexcept {
+	SSEConvert<T, TStoreType>(reinterpret_cast<TStoreType*>(output), input, float_scale, context);
+}
 
 template <>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
 	static void Initial() {
-		/*ConvertInt16Cb = ConvertToInt16Fallback;
-		Convert2432Cb = ConvertToInt2432Fallback;
-		ConvertInt32Cb = ConvertToInt32Fallback;*/
-
 		if (!SIMD::IsCPUSupportAVX2()) {
-			ConvertInt16Cb = ConvertToInt16Fallback;
-			Convert2432Cb = ConvertToInt2432Fallback;
-			ConvertInt32Cb = ConvertToInt32Fallback;
+			ConvertInt16Cb = SSEConvertWrapper<int16_t>;
+			Convert2432Cb = SSEConvertWrapper<Int24, int32_t>;
+			ConvertInt32Cb = SSEConvertWrapper<int32_t>;
 		}
 		else {
-			ConvertInt16Cb = ConvertToInt16;
-			Convert2432Cb = ConvertToInt2432;
-			ConvertInt32Cb = ConvertToInt32;
+			ConvertInt16Cb = AVX2ConvertWrapper<int16_t>;
+			Convert2432Cb = AVX2ConvertWrapper<Int24, int32_t>;
+			ConvertInt32Cb = AVX2ConvertWrapper<int32_t>;
 		}
 	}
 
-	static void XAMP_VECTOR_CALL Convert(int16_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		ConvertInt16Cb(output, input, context);
+	static void XAMP_VECTOR_CALL Convert(int16_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+		ConvertInt16Cb(output, input, kFloat16Scale, context);
 	}
 
-	static void XAMP_VECTOR_CALL Convert(int32_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		ConvertInt32Cb(output, input, context);
+	static void XAMP_VECTOR_CALL Convert(int32_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+		ConvertInt32Cb(output, input, kFloat32Scale, context);
 	}
 
-	static void XAMP_VECTOR_CALL ConvertToInt2432(int32_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		Convert2432Cb(output, input, context);
-	}
-
-private:
-    static void XAMP_VECTOR_CALL ConvertToInt16Fallback(int16_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		SimpleConvert<int16_t>(output, input, kFloat16Scale, context);
-	}
-
-	static void XAMP_VECTOR_CALL ConvertToInt2432Fallback(int32_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
-		while (input != end_input) {
-			XAMP_ASSERT(end_input - input > 0);
-			*output++ = Int24(*input++).To2432Int();
-		}
-	}
-
-    static void XAMP_VECTOR_CALL ConvertToInt32Fallback(int32_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		SimpleConvert<int32_t>(output, input, kFloat32Scale, context);
-    }
-
-	static void XAMP_VECTOR_CALL ConvertToInt16(int16_t* XAMP_RESTRICT output,
-		const float * XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
-		const auto scale = SIMD::Set1Ps(kFloat16Scale);
-
-		XAMP_UNLIKELY(!SIMD::IsAligned(input)) {
-			const auto unaligned_size = (end_input - input) % kSimdAlignedSize;
-			for (auto i = 0; i < unaligned_size; ++i) {
-				*output++ = static_cast<int16_t>(*input++);
-			}
-		}
-
-		auto* XAMP_RESTRICT from_ptr = AssumeAligned<kSimdLanes, const float>(input);
-		auto* XAMP_RESTRICT dest_ptr = AssumeAligned<kSimdLanes, int16_t>(output);
-
-		while (from_ptr != end_input) {
-			XAMP_ASSERT(end_input - from_ptr > 0);
-			const auto in = SIMD::LoadPs(from_ptr);
-			const auto mul = SIMD::MulPs(in, scale);
-			SIMD::F32ToS16(dest_ptr, mul);
-			from_ptr += kSimdAlignedSize;
-			dest_ptr += kSimdAlignedSize;
-		}
-	}
-
-    static void XAMP_VECTOR_CALL ConvertInt2432(int32_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-
-		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
-		const auto scale = SIMD::Set1Ps(kFloat24Scale);
-
-		XAMP_UNLIKELY(!SIMD::IsAligned(input)) {
-			const auto unaligned_size = (end_input - input) % kSimdAlignedSize;
-			for (auto i = 0; i < unaligned_size; ++i) {
-				*output++ = Int24(*input++).To2432Int();
-			}
-		}
-
-		auto* XAMP_RESTRICT from_ptr = AssumeAligned<kSimdLanes, const float>(input);
-		auto* XAMP_RESTRICT dest_ptr = AssumeAligned<kSimdLanes, int32_t>(output);
-
-		while (from_ptr != end_input) {
-			XAMP_ASSERT(end_input - from_ptr > 0);
-            const auto in = SIMD::LoadPs(from_ptr);
-            const auto mul = SIMD::MulPs(in, scale);
-            SIMD::F32ToS32<1>(dest_ptr, mul);
-			from_ptr += kSimdAlignedSize;
-			dest_ptr += kSimdAlignedSize;
-		}
-    }
-
-	static void XAMP_VECTOR_CALL ConvertToInt32(int32_t* XAMP_RESTRICT output,
-		const float* XAMP_RESTRICT input,
-		const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-
-		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
-		const auto scale = SIMD::Set1Ps(kFloat32Scale);
-
-		XAMP_UNLIKELY(!SIMD::IsAligned(input)) {
-			const auto unaligned_size = (end_input - input) % kSimdAlignedSize;
-			for (auto i = 0; i < unaligned_size; ++i) {
-				*output++ = static_cast<int32_t>(*input++);
-			}
-		}
-
-		auto* XAMP_RESTRICT from_ptr = AssumeAligned<kSimdLanes, const float>(input);
-		auto* XAMP_RESTRICT dest_ptr = AssumeAligned<kSimdLanes, int32_t>(output);
-
-		while (from_ptr != end_input) {
-			XAMP_ASSERT(end_input - from_ptr > 0);
-			const auto in = SIMD::LoadPs(from_ptr);
-			const auto mul = SIMD::MulPs(in, scale);
-			SIMD::F32ToS32(dest_ptr, mul);
-			from_ptr += kSimdAlignedSize;
-			dest_ptr += kSimdAlignedSize;
-		}
+	static void XAMP_VECTOR_CALL ConvertToInt2432(int32_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+		Convert2432Cb(output, input, kFloat24Scale, context);
 	}
 };
 

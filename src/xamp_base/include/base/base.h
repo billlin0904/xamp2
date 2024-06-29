@@ -143,6 +143,12 @@
 #define XAMP_BASE_NAMESPACE_BEGIN namespace xamp { namespace base {
 #define XAMP_BASE_NAMESPACE_END } }
 
+#ifdef XAMP_OS_WIN
+#define XAMP_VECTOR_CALL __vectorcall
+#else
+#define XAMP_VECTOR_CALL __attribute__((vectorcall))
+#endif
+
 XAMP_BASE_NAMESPACE_BEGIN
 
 /*

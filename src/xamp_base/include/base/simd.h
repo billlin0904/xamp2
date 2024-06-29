@@ -37,9 +37,10 @@ inline constexpr float kFloat32Scale = 2147483647.f;
 inline constexpr float kMaxFloatSample = 1.0F;
 inline constexpr float kMinFloatSample = -1.0F;
 
-inline constexpr int32_t kSimdLanes = sizeof(m256i);
+inline constexpr int32_t kSSESimdLanes = sizeof(m128i);
+inline constexpr int32_t kAVX2SimdLanes = sizeof(m256i);
 // note: int/float = 4 Byte
-inline constexpr int32_t kSimdAlignedSize = kSimdLanes / sizeof(float);
+inline constexpr int32_t kSimdAlignedSize = kAVX2SimdLanes / sizeof(float);
 inline constexpr size_t kSimdCopyAlignedSize = 128;
 
 class SIMD {
@@ -59,7 +60,7 @@ public:
     }
 
     static XAMP_ALWAYS_INLINE bool IsAligned(const void* XAMP_RESTRICT pointer) noexcept {
-        return reinterpret_cast<uintptr_t>(pointer) % kSimdLanes == 0;
+        return reinterpret_cast<uintptr_t>(pointer) % kAVX2SimdLanes == 0;
     }
 
     static XAMP_ALWAYS_INLINE m256i Truncate(const m256& val) {        

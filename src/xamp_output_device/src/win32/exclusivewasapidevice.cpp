@@ -273,6 +273,9 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			else {
 				HrIfFailThrow(hr);
 			}
+
+			// FIXME: workaground for DSD file.
+			is_2432_format_ = true;
 		} else {
 			InitialDeviceFormat(output_format, 16);
 		}
