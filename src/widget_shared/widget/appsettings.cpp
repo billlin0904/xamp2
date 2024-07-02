@@ -158,6 +158,9 @@ void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
 			XAMP_LOG_TRACE("Parse {}", line.toStdString());
 		}
 	}
+	std::sort(settings.bands.begin(), settings.bands.end(), [](auto a, auto b) {
+		return a.frequency < b.frequency;
+		});
 	eq_settings_[file_info.baseName()] = settings;
 }
 
@@ -435,8 +438,7 @@ void AppSettings::loadOrSaveLogConfig() {
 
 void AppSettings::registerMetaType() {
 	XAMP_LOG_DEBUG("RegisterMetaType.");
-	qRegisterMetaType<int64_t>("int64_t");
-	qRegisterMetaType<AppEQSettings>("AppEQSettings");
+	qRegisterMetaType<int64_t>("int64_t");	
 	qRegisterMetaType<DeviceState>("DeviceState");
 	qRegisterMetaType<PlayerState>("PlayerState");
 	qRegisterMetaType<PlayListEntity>("PlayListEntity");
@@ -453,6 +455,8 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<std::wstring>("std::wstring");
 	qRegisterMetaType<std::vector<search::SearchResultItem>>("std::vector<search::SearchResultItem>");
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+
+	qRegisterMetaType<AppEQSettings>("AppEQSettings");
 }
 
 void AppSettings::loadAppSettings() {

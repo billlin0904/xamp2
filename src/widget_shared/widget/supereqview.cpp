@@ -149,8 +149,8 @@ SuperEqView::SuperEqView(QWidget* parent)
     }
 
     if (qAppSettings.contains(kAppSettingEQName)) {
-        auto [name, settings] = qAppSettings.eqSettings();
-        applySetting(name, settings);
+        auto [name, _] = qAppSettings.eqSettings();
+        applySetting(name, qAppSettings.eqPreset()[name]);
     } else {
         applySetting(settingses_.firstKey(), settingses_.first());
     }

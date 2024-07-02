@@ -1809,13 +1809,13 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::setupDsp(const PlayListEntity& item) const {
-    // EQ
 	if (qAppSettings.valueAsBool(kAppSettingEnableEQ)) {
         if (qAppSettings.contains(kAppSettingEQName)) {
-            const auto [name, settings] =
-                qAppSettings.eqSettings();
-            player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, settings);
-            player_->GetDspManager()->AddEqualizer();
+            auto [name, _] = qAppSettings.eqSettings();
+            auto eq_settings = qAppSettings.eqPreset()[name];
+            player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, eq_settings);
+            //player_->GetDspManager()->AddEqualizer();
+            player_->GetDspManager()->AddParametricEq();
         }
     }
     else {

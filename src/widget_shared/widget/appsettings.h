@@ -23,7 +23,7 @@ struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
 	EqSettings settings;
 
 	friend QDataStream& operator <<(QDataStream& arch, const AppEQSettings& object) {
-		/*arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		arch << object.name;
 		arch << object.settings.preamp;
 		arch << static_cast<quint32>(object.settings.bands.size());
@@ -33,16 +33,16 @@ struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
 				<< band.gain 
 				<< band.Q
 				<< band.shelf_slope;
-		}*/
-		arch << object.name;
+		}
+		//arch << object.name;
 		return arch;
 	}
 
 	friend QDataStream& operator >>(QDataStream& arch, AppEQSettings& object) {
-		/*arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		arch >> object.name;
 		arch >> object.settings.preamp;
-		int total = 0;
+		quint32 total = 0;
 		arch >> total;
 		object.settings.bands.resize(total);
 		for (auto i = 0; i < total; ++i) {
@@ -51,8 +51,8 @@ struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
 				>> object.settings.bands[i].gain
 				>> object.settings.bands[i].Q
 				>> object.settings.bands[i].shelf_slope;
-		}*/
-		arch >> object.name;
+		}
+		//arch >> object.name;
 		return arch;
 	}
 };

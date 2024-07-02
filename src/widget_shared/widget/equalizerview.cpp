@@ -83,7 +83,8 @@ EqualizerView::EqualizerView(QWidget* parent)
     }
 
     (void)QObject::connect(ui_->resetButton, &QPushButton::clicked, [this]() {
-        auto [name, settings] = qAppSettings.eqSettings();
+        auto [name, _] = qAppSettings.eqSettings();
+		auto settings = qAppSettings.eqPreset()[name];
         for (auto &band : settings.bands) {
             band.gain = 0;
         }
@@ -113,25 +114,19 @@ EqualizerView::EqualizerView(QWidget* parent)
     }
 
     (void)QObject::connect(ui_->eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
-        AppEQSettings settings;
-        settings.name = index;
-        settings.settings = qAppSettings.eqPreset()[index];
-        if (settings.settings.bands.empty()) {
-            settings.settings.bands.emplace_back();
-        }
-        qAppSettings.setEqSettings(settings);
+        AppEQSettings eq_settings;
+        eq_settings.name = index;
+        auto settings = qAppSettings.eqPreset()[index];
+		eq_settings.settings = settings;
+        qAppSettings.setEqSettings(eq_settings);
         qAppSettings.save();
-        applySetting(index, settings.settings);
+        applySetting(index, settings);
         });
 
     if (qAppSettings.contains(kAppSettingEQName)) {
-        auto [name, settings] = qAppSettings.eqSettings();
-        //AppEQSettings app_settings;
-        //app_settings.name = name;
-        //app_settings.settings = settings;
-        //qAppSettings.setEqSettings(app_settings);
+        auto [name, _] = qAppSettings.eqSettings();
         ui_->eqPresetComboBox->setCurrentText(name);
-        settings = qAppSettings.eqPreset()[name];
+        auto settings = qAppSettings.eqPreset()[name];
         applySetting(name, settings);
     }
 }

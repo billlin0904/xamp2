@@ -351,7 +351,7 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool 
     const auto index = addTab(widget, name);
     setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
-    if (resize) {
+    if (resize) {        
         resizeTabWidth();
     }    
 }
@@ -459,8 +459,12 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
 }
 
 void PlaylistTabWidget::resizeTabWidth() {
+	if (initial_width_ == 0) {
+		initial_width_ = width();
+	}
+
     if (tabBar()->count() > PlaylistTabBar::kSmallTabCount) {
-        tabBar()->setFixedWidth(width() - PlaylistTabBar::kMaxButtonWidth);
+        tabBar()->setFixedWidth(initial_width_ - PlaylistTabBar::kMaxButtonWidth);
     }
     else {     
         if (tabBar()->count() == 0) {
@@ -474,6 +478,7 @@ void PlaylistTabWidget::resizeTabWidth() {
 
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
     QTabWidget::resizeEvent(event);
+    resizeTabWidth();
 }
 
 bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
