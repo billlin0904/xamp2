@@ -126,11 +126,12 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     if (qAppSettings.contains(kAppSettingEQName)) {
         auto [name, settings] = qAppSettings.eqSettings();
-        AppEQSettings app_settings;
-        app_settings.name = name;
-        app_settings.settings = settings;
-        qAppSettings.setEqSettings(app_settings);
+        //AppEQSettings app_settings;
+        //app_settings.name = name;
+        //app_settings.settings = settings;
+        //qAppSettings.setEqSettings(app_settings);
         ui_->eqPresetComboBox->setCurrentText(name);
+        settings = qAppSettings.eqPreset()[name];
         applySetting(name, settings);
     }
 }

@@ -18,35 +18,51 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API StreamFactory {
 public:
-	StreamFactory() = delete;
+    StreamFactory() = delete;
 
-    static AlignPtr<FileStream> MakeFileStream(const Path &file_path, DsdModes dsd_mode);
+    // Create a file stream object based on the file path and DSD mode
+    static AlignPtr<FileStream> MakeFileStream(const Path &filePath, DsdModes dsdMode);
 
-	static AlignPtr<IFileEncoder> MakeFlacEncoder();
+    // Create a FLAC encoder object
+    static AlignPtr<IFileEncoder> MakeFlacEncoder();
 
-	static AlignPtr<IFileEncoder> MakeAlacEncoder();
+    // Create an ALAC encoder object
+    static AlignPtr<IFileEncoder> MakeAlacEncoder();
 
-	static AlignPtr<IFileEncoder> MakeAACEncoder();
+    // Create an AAC encoder object
+    static AlignPtr<IFileEncoder> MakeAACEncoder();
 
-	static AlignPtr<IFileEncoder> MakeWaveEncoder();
+    // Create a WAVE encoder object
+    static AlignPtr<IFileEncoder> MakeWaveEncoder();
 
-	static AlignPtr<IAudioProcessor> MakeEqualizer();
+    // Create an equalizer audio processor object
+    static AlignPtr<IAudioProcessor> MakeEqualizer();
 
-	static AlignPtr<IAudioProcessor> MakeParametricEq();
+    // Create an super EQ equalizer audio processor object
+    static AlignPtr<IAudioProcessor> MakeSuperEqEqualizer();
 
-	static AlignPtr<IAudioProcessor> MakeCompressor();
+    // Create a parametric equalizer audio processor object
+    static AlignPtr<IAudioProcessor> MakeParametricEq();
 
-	static AlignPtr<IAudioProcessor> MakeVolume();
+    // Create a compressor audio processor object
+    static AlignPtr<IAudioProcessor> MakeCompressor();
 
-	static AlignPtr<IDSPManager> MakeDSPManager();
+    // Create a volume audio processor object
+    static AlignPtr<IAudioProcessor> MakeVolume();
 
-	static AlignPtr<IAudioProcessor> MakeFader();
+    // Create a DSP manager object
+    static AlignPtr<IDSPManager> MakeDSPManager();
 
-#ifdef XAMP_OS_WIN
-	static AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
-#endif
+    // Create a fader audio processor object
+    static AlignPtr<IAudioProcessor> MakeFader();
 
-	static Vector<EncodingProfile> GetAvailableEncodingProfile();
+    // Create a CD device object (specific to Windows OS)
+    #ifdef XAMP_OS_WIN
+    static AlignPtr<ICDDevice> MakeCDDevice(int32_t driverLetter);
+    #endif
+
+    // Get a vector of available encoding profiles
+    static Vector<EncodingProfile> GetAvailableEncodingProfile();
 };
 
 XAMP_STREAM_API bool IsDsdFile(Path const& path);

@@ -33,7 +33,7 @@ struct XAMP_BASE_API AudioConvertContext {
 XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const& out_format, size_t convert_size) noexcept;
 
 template <typename T, typename TStoreType = T>
-void XAMP_VECTOR_CALL SSEConvert(TStoreType* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+void XAMP_VECTOR_CALL SSEConvert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, int32_t float_scale, const AudioConvertContext& context) noexcept {
 	XAMP_EXPECTS(output != nullptr);
 	XAMP_EXPECTS(input != nullptr);
 
@@ -99,7 +99,7 @@ void XAMP_VECTOR_CALL SSEConvert(TStoreType* XAMP_RESTRICT output, float const* 
 }
 
 template <typename T, typename TStoreType = T>
-void XAMP_VECTOR_CALL AVX2Convert(TStoreType* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+void XAMP_VECTOR_CALL AVX2Convert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, int32_t float_scale, const AudioConvertContext& context) noexcept {
 	XAMP_EXPECTS(output != nullptr);
 	XAMP_EXPECTS(input != nullptr);
 
@@ -214,12 +214,6 @@ typedef void (XAMP_VECTOR_CALL* ConvertCallback)(
 	const float* XAMP_RESTRICT input,
 	int32_t float_scale,
 	const AudioConvertContext& context) noexcept;
-
-typedef void (XAMP_VECTOR_CALL* InterleaveToPlanarCallback)(
-	const float* XAMP_RESTRICT in,
-	int32_t* XAMP_RESTRICT a,
-	int32_t* XAMP_RESTRICT b,
-	size_t len);
 
 inline ConvertCallback ConvertInt16Cb;
 inline ConvertCallback Convert2432Cb;

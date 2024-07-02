@@ -17,6 +17,7 @@ inline constexpr auto kEQMaxDb = 15;
 inline constexpr auto kEQMinDb = -15;
 
 XAMP_MAKE_ENUM(EQFilterTypes,
+    FT_UNKNOWN,
     FT_LOW_PASS,
     FT_HIGH_PASS,
     FT_HIGH_BAND_PASS,
@@ -42,7 +43,7 @@ inline constexpr std::array<float, kEQMaxBand> kEqDefaultFrequencies{
     };
 
 struct XAMP_STREAM_API EqBandSetting final {
-    EQFilterTypes type{ EQFilterTypes::FT_ALL_PEAKING_EQ };
+    EQFilterTypes type{ EQFilterTypes::FT_UNKNOWN };
     float frequency{0};
     float gain{0};
     float band_width{0};

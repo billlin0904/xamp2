@@ -24,19 +24,35 @@ public:
 
     XAMP_PIMPL(BassParametricEq)
 
+    /**
+    * A function that starts the audio processing with the given sample rate.
+    *
+    * @param sample_rate the sample rate at which the audio processing should occur
+    *
+    * @throws ErrorType if there is an error during the processing
+    */
     void Initialize(const AnyMap& config) override;
 
-    void SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S);
+    void SetEq(const EqSettings& settings);
 
+    /**
+    * Process function processes the input samples using bass_utiltis and returns the result.
+    *
+    * @param samples pointer to the input samples
+    * @param num_samples number of samples to process
+    * @param out reference to the output BufferRef<float>
+    *
+    * @return boolean indicating the success of the process
+    *
+    * @throws None
+    */
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
 
     Uuid GetTypeId() const override;
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-private:
-    void SetEq(EqSettings const& settings);
-
+private:    
     class BassParametricEqImpl;
     AlignPtr<BassParametricEqImpl> impl_;
 };

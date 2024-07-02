@@ -112,7 +112,7 @@ void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file) {
 	eq_settings_[file_info.baseName()] = settings;
 }
 
-void AppSettings::parseFixedBandEq(const QFileInfo file_info, QFile& file) {
+void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
 	constexpr std::array<std::pair<std::wstring_view, EQFilterTypes>, 3> filter_types{
 		std::make_pair(L"LSC", EQFilterTypes::FT_LOW_SHELF),
 		std::make_pair(L"HSC", EQFilterTypes::FT_LOW_HIGH_SHELF),
@@ -127,6 +127,9 @@ void AppSettings::parseFixedBandEq(const QFileInfo file_info, QFile& file) {
 
 	while (!in.atEnd()) {
 		auto line = in.readLine();
+		if (line.startsWith(qTEXT("#"))) {
+			continue;
+		}
 		auto result = line.split(qTEXT(":"));
 		auto str = result[1].toStdWString();
 		if (result[0] == qTEXT("Preamp")) {
@@ -168,12 +171,7 @@ void AppSettings::loadEqPreset() {
 		const QFileInfo file_info(filepath);
 		QFile file(filepath);
 		if (file.open(QIODevice::ReadOnly)) {
-			if (!file_info.baseName().contains(qTEXT("GraphicEQ"))) {
-				parseFixedBandEq(file_info, file);
-			}
-			else {
-				parseGraphicEq(file_info, file);
-			}
+			parseEQPreset(file_info, file);
 		}
 	}
 	EqSettings default_settings;

@@ -15,7 +15,7 @@ public:
 		: preamp_(0) {
 	    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BassParametricEq));
     }
-
+    
     void Start(uint32_t sample_rate) {
         RemoveFx();
 
@@ -32,7 +32,7 @@ public:
         sample_rate_ = sample_rate;
     }
 
-    void AddBand(EQFilterTypes filter, float freq, float band_width, float gain, float Q, float S) {
+    void AddBand(EQFilterTypes filter, float fCenter, float fBandWidth, float fGain, float fQ, float fS) {
 	    const auto fx_handle = BASS_LIB.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_BQF, 1);
         BassIfFailedThrow(fx_handle);
 
@@ -41,9 +41,13 @@ public:
         switch (filter) {
         case EQFilterTypes::FT_LOW_SHELF:
             bqf.lFilter = BASS_BFX_BQF_LOWSHELF;
+            fS = fQ;
+            fQ = 0;
             break;
         case EQFilterTypes::FT_LOW_HIGH_SHELF:
             bqf.lFilter = BASS_BFX_BQF_HIGHSHELF;
+            fS = fQ;
+            fQ = 0;
             break;
         case EQFilterTypes::FT_LOW_PASS:
             bqf.lFilter = BASS_BFX_BQF_LOWPASS;
@@ -69,15 +73,15 @@ public:
         default:;
         }
 
-        bqf.fBandwidth = 0;
-        bqf.fS = 0;
+        bqf.fBandwidth = fBandWidth;
+        bqf.fS = fS;
 
-        bqf.fCenter = freq;
-        bqf.fGain = gain;
-        bqf.fQ = Q;
+        bqf.fCenter = fCenter;
+        bqf.fGain = fGain;
+        bqf.fQ = fQ;
         bqf.lChannel = BASS_BFX_CHANALL;
 
-        XAMP_LOG_D(logger_, "{} Bandwidth:{}, freq:{}, gain:{}, Q:{} S:{}",
+        XAMP_LOG_D(logger_, "{} fBandwidth:{}, fCenter:{}, fGain:{}, fQ:{} fS:{}",
             filter, bqf.fBandwidth, bqf.fCenter, bqf.fGain, bqf.fQ, bqf.fS);
 
     	BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(fx_handle, &bqf));
@@ -85,10 +89,10 @@ public:
         fx_handles_.push_back(fx_handle);
     }
 
-    void SetEq(EqSettings const& settings) {
+    void SetEq(const EqSettings& settings) {
         uint32_t i = 0;
         for (const auto& band_setting : settings.bands) {
-            AddBand(band_setting.type, band_setting.frequency, band_setting.band_width, band_setting.gain, band_setting.Q, 0);
+            AddBand(band_setting.type, band_setting.frequency, band_setting.band_width, band_setting.gain, band_setting.Q, band_setting.shelf_slope);
         }
         SetPreamp(settings.preamp);
     }
@@ -136,15 +140,12 @@ void BassParametricEq::Initialize(const AnyMap& config) {
     impl_->Start(output_format.GetSampleRate());
 
     const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
-    SetEq(settings);
+    impl_->SetPreamp(settings.preamp);
+    SetEq(settings);    
 }
 
-void BassParametricEq::SetEq(EqSettings const& settings) {
+void BassParametricEq::SetEq(const EqSettings& settings) {
     impl_->SetEq(settings);
-}
-
-void BassParametricEq::SetBand(EQFilterTypes filter, uint32_t band, uint32_t center, uint32_t band_width, float gain, float Q, float S) {
-    
 }
 
 bool BassParametricEq::Process(float const* samples, size_t num_samples, BufferRef<float>& out)  {

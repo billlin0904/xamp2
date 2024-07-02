@@ -23,27 +23,36 @@ struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
 	EqSettings settings;
 
 	friend QDataStream& operator <<(QDataStream& arch, const AppEQSettings& object) {
-		arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		/*arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		arch << object.name;
 		arch << object.settings.preamp;
 		arch << static_cast<quint32>(object.settings.bands.size());
 		for (const auto& band : object.settings.bands) {
-			arch << band.type << band.frequency << band.gain << band.Q;
-		}
+			arch << band.type
+				<< band.frequency
+				<< band.gain 
+				<< band.Q
+				<< band.shelf_slope;
+		}*/
+		arch << object.name;
 		return arch;
 	}
 
 	friend QDataStream& operator >>(QDataStream& arch, AppEQSettings& object) {
-		arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		/*arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		arch >> object.name;
 		arch >> object.settings.preamp;
 		int total = 0;
 		arch >> total;
 		object.settings.bands.resize(total);
 		for (auto i = 0; i < total; ++i) {
-			arch >> object.settings.bands[i].type >> object.settings.bands[i].frequency >> object.settings.bands[i].gain
-				>> object.settings.bands[i].Q;
-		}
+			arch >> object.settings.bands[i].type				
+				>> object.settings.bands[i].frequency
+				>> object.settings.bands[i].gain
+				>> object.settings.bands[i].Q
+				>> object.settings.bands[i].shelf_slope;
+		}*/
+		arch >> object.name;
 		return arch;
 	}
 };
@@ -182,7 +191,7 @@ public:
 
 	void addDontShowMeAgain(const QString& text);
 
-	void parseFixedBandEq(QFileInfo file_info, QFile& file);
+	void parseEQPreset(QFileInfo file_info, QFile& file);
 
 	void parseGraphicEq(QFileInfo file_info, QFile& file);
 

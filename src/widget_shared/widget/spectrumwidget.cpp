@@ -7,6 +7,62 @@
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 
+namespace {
+	std::vector<float> calculateFrequencyResponse(const Vector<EqBandSetting> &settings, int32_t num_points, float sample_rate) {
+		std::vector<float> response(num_points);
+		float freq_step = sample_rate / num_points;
+
+		for (auto i = 0; i < num_points; ++i) {
+			float freq = i * freq_step;
+			float omega = 2.0f * M_PI * freq / sample_rate;
+			float sin_omega = std::sin(omega);
+			float cos_omega = std::cos(omega);
+
+			float H_total = 1.0f;
+
+			for (const auto& filter : settings) {
+				float alpha = sin_omega / (2.0f * filter.Q);
+				float A = std::pow(10.0f, filter.gain / 40.0f);
+
+				float b0, b1, b2, a0, a1, a2;
+				if (filter.type == EQFilterTypes::FT_LOW_SHELF) {
+					b0 = A * ((A + 1) - (A - 1) * cos_omega + 2 * std::sqrt(A) * alpha);
+					b1 = 2 * A * ((A - 1) - (A + 1) * cos_omega);
+					b2 = A * ((A + 1) - (A - 1) * cos_omega - 2 * std::sqrt(A) * alpha);
+					a0 = (A + 1) + (A - 1) * cos_omega + 2 * std::sqrt(A) * alpha;
+					a1 = -2 * ((A - 1) + (A + 1) * cos_omega);
+					a2 = (A + 1) + (A - 1) * cos_omega - 2 * std::sqrt(A) * alpha;
+				}
+				else if (filter.type == EQFilterTypes::FT_ALL_PEAKING_EQ) {
+					b0 = 1 + alpha * A;
+					b1 = -2 * cos_omega;
+					b2 = 1 - alpha * A;
+					a0 = 1 + alpha / A;
+					a1 = -2 * cos_omega;
+					a2 = 1 - alpha / A;
+				}
+				else if (filter.type == EQFilterTypes::FT_LOW_HIGH_SHELF) {
+					b0 = A * ((A + 1) + (A - 1) * cos_omega + 2 * std::sqrt(A) * alpha);
+					b1 = -2 * A * ((A - 1) + (A + 1) * cos_omega);
+					b2 = A * ((A + 1) + (A - 1) * cos_omega - 2 * std::sqrt(A) * alpha);
+					a0 = (A + 1) - (A - 1) * cos_omega + 2 * std::sqrt(A) * alpha;
+					a1 = 2 * ((A - 1) - (A + 1) * cos_omega);
+					a2 = (A + 1) - (A - 1) * cos_omega - 2 * std::sqrt(A) * alpha;
+				}
+				else {
+					continue;
+				}
+
+				float H = (b0 + b1 * cos_omega + b2 * std::cos(2 * omega)) / (a0 + a1 * cos_omega + a2 * std::cos(2 * omega));
+				H_total *= std::abs(H);
+			}
+
+			response[i] = 20.0f * std::log10(H_total);
+		}
+		return response;
+	}
+}
+
 SpectrumWidget::SpectrumWidget(QWidget* parent)
 	: QFrame(parent)
 	, buffer_(kBufferSize, std::valarray<float>(kMaxBands)) {
@@ -142,14 +198,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 		path.closeSubpath();
 
 		QLinearGradient newGradient(0, highest_point, 0, rect_height);
-		/*newGradient.setColorAt(0.0, Qt::yellow);
-		newGradient.setColorAt(0.2, Qt::red);
-		newGradient.setColorAt(0.6, bar_color_);*/
 		newGradient.setColorAt(1.0, bar_color_);
-
-		//const QBrush brush(bar_color_);
-		//painter.fillPath(path, brush);
-
 		painter.fillPath(path, newGradient);
 	}
 }
