@@ -32,11 +32,9 @@ public slots:
     void chatGPTResponse(const QString& message);
     void doSendToChatGPT();
 private:
-    QFrame* createMessageFrame(const QString& message,
-        const ChatTextAlignment& alignment, 
-        const QPixmap& avatar);
+    QFrame* createMessageFrame(const QString& message, const QPixmap& avatar);
 
-    QVBoxLayout* mainLayout;
-    QLineEdit* inputLine;
-    QPushButton* sendButton;
+    QVBoxLayout* main_layout_;
+    QLineEdit* input_line_;
+    QPushButton* send_button_;
 };

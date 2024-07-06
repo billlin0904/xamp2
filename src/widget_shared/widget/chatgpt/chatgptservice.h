@@ -25,8 +25,6 @@ public:
     std::string getResponse(const std::string& prompt);
 
     std::vector<std::string> getResponses(const std::vector<std::string>& prompts);
-
-    void setApiKey(const std::string& api_key);
 private:
 	class ChatGptInteropImpl;
     AlignPtr<ChatGptInteropImpl> impl_;

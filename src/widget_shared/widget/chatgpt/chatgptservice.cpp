@@ -22,8 +22,6 @@ public:
     std::string getResponse(const std::string& prompt);
 
     std::vector<std::string> getResponses(const std::vector<std::string>& prompts);
-
-    void setApiKey(const std::string& api_key);
 private:    
     std::string api_key_;
     py::module openai_;
@@ -34,11 +32,6 @@ private:
 ChatGptInterop::ChatGptInteropImpl::ChatGptInteropImpl() {
     chat_completion_ = py::none();    
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ChatGptInterop));
-}
-
-void ChatGptInterop::ChatGptInteropImpl::setApiKey(const std::string& api_key) {
-    api_key_ = api_key;
-	openai_.attr("api_key") = api_key_;
 }
 
 bool ChatGptInterop::ChatGptInteropImpl::initial() {
@@ -101,10 +94,6 @@ XAMP_PIMPL_IMPL(ChatGptInterop)
 
 bool ChatGptInterop::initial() {
 	return impl_->initial();
-}
-
-void ChatGptInterop::setApiKey(const std::string& api_key) {
-    impl_->setApiKey(api_key);
 }
 
 std::string ChatGptInterop::getResponse(const std::string& prompt) {
