@@ -15,11 +15,6 @@
 
 #include <widget/util/str_util.h>
 
-enum ChatTextAlignment {
-    ChatTextAlignmentLeft,
-	ChatTextAlignmentRight,
-};
-
 class XAMP_WIDGET_SHARED_EXPORT ChatGPTWindow : public QWidget {
     Q_OBJECT
 public:
@@ -31,8 +26,10 @@ signals:
 public slots:
     void chatGPTResponse(const QString& message);
     void doSendToChatGPT();
+
 private:
-    QFrame* createMessageFrame(const QString& message, const QPixmap& avatar);
+    QFrame* createMessageFrame(const QString& message, const QPixmap& avatar, bool is_user = false);
+	void showSendMessage(const QString& user_message);
 
     QVBoxLayout* main_layout_;
     QLineEdit* input_line_;
