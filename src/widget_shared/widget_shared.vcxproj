@@ -121,6 +121,9 @@
     <QtMoc Include="widget\createplaylistview.h" />
     <ClInclude Include="widget\accountauthorizationpage.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
+    <ClInclude Include="widget\chatgpt\chatgptservice.h" />
+    <QtMoc Include="widget\baseservice.h" />
+    <QtMoc Include="widget\chatgpt\chatgptwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
@@ -152,7 +155,7 @@
     <QtMoc Include="widget\worker\albumcoverservice.h" />
     <QtMoc Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="widget\xmessagebox.h" />
-    <QtMoc Include="widget\youtubedl\ytmusicservice.h" />
+    <ClInclude Include="widget\youtubedl\ytmusicservice.h" />
     <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
     <QtMoc Include="widget\xtooltip.h" />
     <ClInclude Include="widget\youtubedl\ytmusic_disckcache.h" />
@@ -225,6 +228,8 @@
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
+    <ClCompile Include="widget\chatgpt\chatgptservice.cpp" />
+    <ClCompile Include="widget\chatgpt\chatgptwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />
     <ClCompile Include="widget\dao\albumdao.cpp" />

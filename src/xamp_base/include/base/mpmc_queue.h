@@ -176,11 +176,11 @@ public:
 		return DoDequeue(tail);
 	}
 
-	[[nodiscard]] bool empty() const noexcept {
+	XAMP_NO_DISCARD bool empty() const noexcept {
 		return size() == 0;
 	}
 
-	[[nodiscard]] size_t size() const noexcept {
+	XAMP_NO_DISCARD size_t size() const noexcept {
 		ptrdiff_t diff = head_.load(std::memory_order_acquire) -
 			tail_.load(std::memory_order_acquire);
 		if (diff < 0) {

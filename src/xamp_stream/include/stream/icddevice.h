@@ -54,21 +54,21 @@ public:
 
 	virtual void SetMaxSpeed() = 0;
 
-	[[nodiscard]] virtual uint32_t GetSpeed() const = 0;
+	XAMP_NO_DISCARD virtual uint32_t GetSpeed() const = 0;
 
-	[[nodiscard]] virtual bool DoorIsOpen() const = 0;
+	XAMP_NO_DISCARD virtual bool DoorIsOpen() const = 0;
 
-	[[nodiscard]] virtual CDDeviceInfo GetCDDeviceInfo() const = 0;
+	XAMP_NO_DISCARD virtual CDDeviceInfo GetCDDeviceInfo() const = 0;
 
-	[[nodiscard]] virtual CDText GetCDText() const = 0;
+	XAMP_NO_DISCARD virtual CDText GetCDText() const = 0;
 
-	[[nodiscard]] virtual Vector<std::wstring> GetTotalTracks() const = 0;
+	XAMP_NO_DISCARD virtual Vector<std::wstring> GetTotalTracks() const = 0;
 
 	virtual void Release() = 0;
 
-	[[nodiscard]] virtual double GetDuration(uint32_t track) const = 0;
+	XAMP_NO_DISCARD virtual double GetDuration(uint32_t track) const = 0;
 
-	[[nodiscard]] virtual std::string GetISRC(uint32_t track) const = 0;
+	XAMP_NO_DISCARD virtual std::string GetISRC(uint32_t track) const = 0;
 protected:
 	ICDDevice() = default;
 };

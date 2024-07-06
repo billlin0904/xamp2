@@ -42,7 +42,7 @@ public:
 
     void writeEmbeddedCover(const Path& file_path, const QPixmap& image);
 
-    [[nodiscard]] bool canWriteEmbeddedCover(const Path& path) const;
+    XAMP_NO_DISCARD bool canWriteEmbeddedCover(const Path& path) const;
 
 private:
     AlignPtr<IMetadataReader> reader_;

@@ -21,7 +21,7 @@ public:
 	
 	void unlock() noexcept;
 
-	[[nodiscard]] bool try_lock() noexcept;
+	XAMP_NO_DISCARD bool try_lock() noexcept;
 private:
 	class SRWMutexImpl;
 	AlignPtr<SRWMutexImpl> impl_;

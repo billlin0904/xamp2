@@ -40,14 +40,14 @@ public:
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsStreamOpen() const noexcept = 0;
+	XAMP_NO_DISCARD virtual bool IsStreamOpen() const noexcept = 0;
 
 	/*
 	* Is stream running.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsStreamRunning() const noexcept = 0;
+	XAMP_NO_DISCARD virtual bool IsStreamRunning() const noexcept = 0;
 
 	/*
 	* Stop stream.
@@ -78,14 +78,14 @@ public:
 	* 
 	* @return double
 	*/
-	[[nodiscard]] virtual double GetStreamTime() const noexcept = 0;
+	XAMP_NO_DISCARD virtual double GetStreamTime() const noexcept = 0;
 
 	/*
 	* Get volume.
 	* 
 	* @return uint32_t
 	*/
-    [[nodiscard]] virtual uint32_t GetVolume() const = 0;
+    XAMP_NO_DISCARD virtual uint32_t GetVolume() const = 0;
 
 	/*
 	* Set volume.
@@ -113,28 +113,28 @@ public:
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsMuted() const = 0;
+	XAMP_NO_DISCARD virtual bool IsMuted() const = 0;
 
 	/*
 	* Is hardware control volume.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
+	XAMP_NO_DISCARD virtual bool IsHardwareControlVolume() const = 0;
 
 	/*
 	* Get packed format.
 	* 
 	* @return PackedFormat
 	*/
-	[[nodiscard]] virtual PackedFormat GetPackedFormat() const noexcept = 0;
+	XAMP_NO_DISCARD virtual PackedFormat GetPackedFormat() const noexcept = 0;
 
 	/*
 	* Get device buffer size.
 	* 
 	* @return uint32_t
 	*/
-	[[nodiscard]] virtual uint32_t GetBufferSize() const noexcept = 0;
+	XAMP_NO_DISCARD virtual uint32_t GetBufferSize() const noexcept = 0;
 
 	/*
 	* Abort stream.

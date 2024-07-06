@@ -42,13 +42,13 @@ public:
 		}
 	}
 
-	[[nodiscard]] T release() noexcept {
+	XAMP_NO_DISCARD T release() noexcept {
 		auto value = value_;
 		value_ = Traits::invalid();
 		return value;
 	}
 
-	[[nodiscard]] bool is_valid() const noexcept {
+	XAMP_NO_DISCARD bool is_valid() const noexcept {
 		return value_ != Traits::invalid();
 	}
 

@@ -48,7 +48,7 @@ public:
 
     explicit Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept;
 
-	[[nodiscard]] bool IsValid() const noexcept;
+	XAMP_NO_DISCARD bool IsValid() const noexcept;
 
     Uuid(Uuid const &other) noexcept;
     
@@ -58,7 +58,7 @@ public:
     
     Uuid& operator=(Uuid &&other) noexcept;
 
-	[[nodiscard]] size_t GetHash() const noexcept;
+	XAMP_NO_DISCARD size_t GetHash() const noexcept;
 
 	operator std::string() const;
 

@@ -111,39 +111,39 @@ public:
 
     void SetPackedFormat(PackedFormat format) noexcept;
 
-    [[nodiscard]] DataFormat GetFormat() const noexcept;
+    XAMP_NO_DISCARD DataFormat GetFormat() const noexcept;
 
-    [[nodiscard]] PackedFormat GetPackedFormat() const noexcept;
+    XAMP_NO_DISCARD PackedFormat GetPackedFormat() const noexcept;
 
-    [[nodiscard]] uint32_t GetSampleRate() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetSampleRate() const noexcept;
 
-    [[nodiscard]] uint32_t GetAvgBytesPerSec() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetAvgBytesPerSec() const noexcept;
 
-    [[nodiscard]] uint32_t GetAvgFramesPerSec() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetAvgFramesPerSec() const noexcept;
 
-    [[nodiscard]] uint16_t GetChannels() const noexcept;
+    XAMP_NO_DISCARD uint16_t GetChannels() const noexcept;
 
-    [[nodiscard]] uint32_t GetBitsPerSample() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetBitsPerSample() const noexcept;
 
-    [[nodiscard]] uint32_t GetBytesPerSample() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetBytesPerSample() const noexcept;
 
-    [[nodiscard]] uint32_t GetSampleSize() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetSampleSize() const noexcept;
 
-    [[nodiscard]] uint32_t GetBlockAlign() const noexcept;
+    XAMP_NO_DISCARD uint32_t GetBlockAlign() const noexcept;
 
-    [[nodiscard]] ByteFormat GetByteFormat() const noexcept;
+    XAMP_NO_DISCARD ByteFormat GetByteFormat() const noexcept;
 
-    [[nodiscard]] uint64_t GetSecondsSize(double sec) const noexcept;
+    XAMP_NO_DISCARD uint64_t GetSecondsSize(double sec) const noexcept;
 
     void Reset() noexcept;
 
     static AudioFormat ToFloatFormat(AudioFormat const& source_format) noexcept;
 
-    [[nodiscard]] std::string ToString() const;
+    XAMP_NO_DISCARD std::string ToString() const;
 
-    [[nodiscard]] std::string ToShortString() const;
+    XAMP_NO_DISCARD std::string ToShortString() const;
 
-    [[nodiscard]] size_t GetHash() const;
+    XAMP_NO_DISCARD size_t GetHash() const;
 
 private:
     XAMP_BASE_API friend bool operator>(const AudioFormat& format, const AudioFormat& other) noexcept;

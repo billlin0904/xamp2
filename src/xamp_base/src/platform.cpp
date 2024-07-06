@@ -93,6 +93,7 @@ namespace {
     }
 
     void SetProcessPriority(const WinHandle& handle, ProcessPriority priority) {
+#ifdef XAMP_OS_WIN
         if (handle) {
             DWORD priority_class = NORMAL_PRIORITY_CLASS;
             if (priority == ProcessPriority::PRIORITY_BACKGROUND) {
@@ -119,6 +120,7 @@ namespace {
         if (!::SetProcessInformation(handle.get(), ProcessPowerThrottling, &power_throttling, sizeof(power_throttling))) {
             XAMP_LOG_DEBUG("Failed to set SetProcessInformation! error: {}.", GetLastErrorMessage());
         }
+#endif
     }
 }
 
@@ -299,20 +301,6 @@ void CpuAffinity::SetAffinity(JThread& thread) {
 #endif
 }
 
-void SetCurrentProcessPriority(ProcessPriority priority) {
-#ifdef XAMP_OS_WIN
-    const WinHandle handle(::GetCurrentProcess());
-    SetProcessPriority(handle, priority);
-#endif
-}
-
-void SetProcessPriority(int32_t pid, ProcessPriority priority) {
-#ifdef XAMP_OS_WIN
-    const WinHandle handle(::OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid));
-	SetProcessPriority(handle, priority);
-#endif
-}
-
 void SetThreadPriority(JThread& thread, ThreadPriority priority) {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
@@ -398,6 +386,17 @@ bool IsDebuging() {
 }
 
 #ifdef XAMP_OS_WIN
+
+void SetCurrentProcessPriority(ProcessPriority priority) {
+    const WinHandle handle(::GetCurrentProcess());
+    SetProcessPriority(handle, priority);
+}
+
+void SetProcessPriority(int32_t pid, ProcessPriority priority) {
+    const WinHandle handle(::OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid));
+    SetProcessPriority(handle, priority);
+}
+
 bool ExtendProcessWorkingSetSize(size_t size) {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;

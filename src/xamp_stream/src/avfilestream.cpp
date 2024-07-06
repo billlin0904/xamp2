@@ -355,7 +355,7 @@ private:
     * 
     * @return True if the stream has audio.
     */
-    [[nodiscard]] bool HasAudio() const noexcept {
+    XAMP_NO_DISCARD bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
     }
 

@@ -27,7 +27,7 @@ public:
 
     static HashSet<std::string> const & GetSupportFileExtensions();
 
-    [[nodiscard]] bool IsSupported(Path const & path) const override;
+    XAMP_NO_DISCARD bool IsSupported(Path const & path) const override;
 private:
     class TaglibMetadataReaderImpl;
     AlignPtr<TaglibMetadataReaderImpl> reader_;

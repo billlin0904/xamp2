@@ -112,7 +112,7 @@ public:
     * 
     * @param[in] path file path.
     */
-    [[nodiscard]] virtual bool CanWriteEmbeddedCover(const Path& path) const = 0;
+    XAMP_NO_DISCARD virtual bool CanWriteEmbeddedCover(const Path& path) const = 0;
 protected:
     IMetadataWriter() = default;
 };

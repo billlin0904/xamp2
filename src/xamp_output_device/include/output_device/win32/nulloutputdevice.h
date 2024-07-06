@@ -164,7 +164,7 @@ public:
 	*
 	* @return DsdIoFormat
 	*/
-	[[nodiscard]] virtual DsdIoFormat GetIoFormat() const override;
+	XAMP_NO_DISCARD virtual DsdIoFormat GetIoFormat() const override;
 
 	void SetVolumeLevelScalar(float level) override;
 

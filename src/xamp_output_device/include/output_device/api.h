@@ -21,14 +21,14 @@ XAMP_OUTPUT_DEVICE_API AlignPtr<IAudioDeviceManager> MakeAudioDeviceManager();
 * 
 * @param[in] info: device info.
 */
-XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsExclusiveDevice(const DeviceInfo& info) noexcept;
+XAMP_OUTPUT_DEVICE_API XAMP_NO_DISCARD bool IsExclusiveDevice(const DeviceInfo& info) noexcept;
 
 /*
 * Is asio device.
 * 
 * @param[in] id: device id.
 */
-XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsAsioDevice(const Uuid& id) noexcept;
+XAMP_OUTPUT_DEVICE_API XAMP_NO_DISCARD bool IsAsioDevice(const Uuid& id) noexcept;
 
 /*
 * Reset asio driver.

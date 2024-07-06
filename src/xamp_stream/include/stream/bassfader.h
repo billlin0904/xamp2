@@ -30,9 +30,9 @@ public:
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) override;
 
-    [[nodiscard]] Uuid GetTypeId() const override;
+    XAMP_NO_DISCARD Uuid GetTypeId() const override;
 
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
+    XAMP_NO_DISCARD std::string_view GetDescription() const noexcept override;
 
 private:
     class BassFaderImpl;

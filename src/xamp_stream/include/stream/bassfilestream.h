@@ -29,45 +29,45 @@ public:
 
 	void Close() noexcept override;
 
-	[[nodiscard]] double GetDurationAsSeconds() const override;
+	XAMP_NO_DISCARD double GetDurationAsSeconds() const override;
 
-	[[nodiscard]] AudioFormat GetFormat() const override;
+	XAMP_NO_DISCARD AudioFormat GetFormat() const override;
 
-	[[nodiscard]] uint32_t GetSamples(void* buffer, uint32_t length) const override;
+	XAMP_NO_DISCARD uint32_t GetSamples(void* buffer, uint32_t length) const override;
 
 	void SeekAsSeconds(double stream_time) const override;
 
-	[[nodiscard]] std::string_view GetDescription() const noexcept override;
+	XAMP_NO_DISCARD std::string_view GetDescription() const noexcept override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
+	XAMP_NO_DISCARD uint32_t GetSampleSize() const noexcept override;
 
-	[[nodiscard]] bool IsDsdFile() const noexcept override;
+	XAMP_NO_DISCARD bool IsDsdFile() const noexcept override;
 
 	void SetDSDMode(DsdModes mode) noexcept override;
 
-	[[nodiscard]] DsdModes GetDsdMode() const noexcept override;
+	XAMP_NO_DISCARD DsdModes GetDsdMode() const noexcept override;
 
-	[[nodiscard]] uint32_t GetDsdSampleRate() const override;
+	XAMP_NO_DISCARD uint32_t GetDsdSampleRate() const override;
 
-	[[nodiscard]] DsdFormat GetDsdFormat() const noexcept override;
+	XAMP_NO_DISCARD DsdFormat GetDsdFormat() const noexcept override;
 
     void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
 
-	[[nodiscard]] uint32_t GetDsdSpeed() const override;
+	XAMP_NO_DISCARD uint32_t GetDsdSpeed() const override;
 
-	[[nodiscard]] uint32_t GetBitDepth() const override;
+	XAMP_NO_DISCARD uint32_t GetBitDepth() const override;
 
-	[[nodiscard]] uint32_t GetHStream() const noexcept;
+	XAMP_NO_DISCARD uint32_t GetHStream() const noexcept;
 
-	[[nodiscard]] bool IsActive() const noexcept override;
+	XAMP_NO_DISCARD bool IsActive() const noexcept override;
 
-	[[nodiscard]] bool SupportDOP() const noexcept override;
+	XAMP_NO_DISCARD bool SupportDOP() const noexcept override;
 
-	[[nodiscard]] bool SupportDOP_AA() const noexcept override;
+	XAMP_NO_DISCARD bool SupportDOP_AA() const noexcept override;
 
-	[[nodiscard]] bool SupportNativeSD() const noexcept override;
+	XAMP_NO_DISCARD bool SupportNativeSD() const noexcept override;
 
-	[[nodiscard]] Uuid GetTypeId() const override;
+	XAMP_NO_DISCARD Uuid GetTypeId() const override;
 private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

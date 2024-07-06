@@ -22,7 +22,8 @@ enum TabIndex {
     TAB_MUSIC_LIBRARY,
     TAB_CD,
     TAB_YT_MUSIC_SEARCH,
-    TAB_YT_MUSIC_PLAYLIST,    
+    TAB_YT_MUSIC_PLAYLIST,
+    TAB_AI,
 };
 
 class XAMP_WIDGET_SHARED_EXPORT NavBarListView final : public QListView {

@@ -192,7 +192,7 @@ public:
         }
     }
 
-    [[nodiscard]] uint32_t GetBitDepth() const {
+    XAMP_NO_DISCARD uint32_t GetBitDepth() const {
         if (mode_ == DsdModes::DSD_MODE_DOP) {
             return 8;
         }
@@ -205,13 +205,13 @@ public:
         return info_.origres;
     }
 
-    [[nodiscard]] double GetReadProgress() const {
+    XAMP_NO_DISCARD double GetReadProgress() const {
         auto file_len = BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
         auto buffer = BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
         return 100.0 * static_cast<double>(buffer) / static_cast<double>(file_len);
     }
 
-    [[nodiscard]] int32_t GetBufferingProgress() const {
+    XAMP_NO_DISCARD int32_t GetBufferingProgress() const {
         return 100 - BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFERING);
     }
 
@@ -241,7 +241,7 @@ public:
         download_size_ = 0;
     }
 
-    [[nodiscard]] bool IsDsdFile() const noexcept {
+    XAMP_NO_DISCARD bool IsDsdFile() const noexcept {
         return info_.ctype == BASS_CTYPE_STREAM_DSD;
     }
 
@@ -249,12 +249,12 @@ public:
         return InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize();
     }
 
-    [[nodiscard]] double GetDuration() const {
+    XAMP_NO_DISCARD double GetDuration() const {
         const auto len = BASS_LIB.BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
         return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(), len);
     }
 
-    [[nodiscard]] AudioFormat GetFormat() const {
+    XAMP_NO_DISCARD AudioFormat GetFormat() const {
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
                 static_cast<uint16_t>(info_.chans),
@@ -281,21 +281,21 @@ public:
         return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(), BASS_LIB.BASS_ChannelGetPosition(GetHStream(), BASS_POS_BYTE));
     }
 
-    [[nodiscard]] uint32_t GetDsdSampleRate() const {
+    XAMP_NO_DISCARD uint32_t GetDsdSampleRate() const {
         float rate = 0;
         BassIfFailedThrow(BASS_LIB.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
-    [[nodiscard]] bool SupportDOP() const noexcept {
+    XAMP_NO_DISCARD bool SupportDOP() const noexcept {
         return true;
     }
 
-    [[nodiscard]] bool SupportDOP_AA() const noexcept {
+    XAMP_NO_DISCARD bool SupportDOP_AA() const noexcept {
         return false;
     }
 
-    [[nodiscard]] bool SupportNativeSD() const noexcept {
+    XAMP_NO_DISCARD bool SupportNativeSD() const noexcept {
         return true;
     }
 
@@ -303,15 +303,15 @@ public:
         mode_ = mode;
     }
 
-    [[nodiscard]] DsdModes GetDSDMode() const noexcept {
+    XAMP_NO_DISCARD DsdModes GetDSDMode() const noexcept {
         return mode_;       
     }
 
-    [[nodiscard]] uint32_t GetSampleSize() const noexcept {
+    XAMP_NO_DISCARD uint32_t GetSampleSize() const noexcept {
         return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
     }
 
-    [[nodiscard]] DsdFormat GetDsdFormat() const noexcept {
+    XAMP_NO_DISCARD DsdFormat GetDsdFormat() const noexcept {
         return DsdFormat::DSD_INT8MSB;
     }
 
@@ -319,18 +319,18 @@ public:
         BASS_LIB.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
     }
 
-    [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
+    XAMP_NO_DISCARD uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 
-    [[nodiscard]] HSTREAM GetHStream() const noexcept {
+    XAMP_NO_DISCARD HSTREAM GetHStream() const noexcept {
         if (mix_stream_.is_valid()) {
             return mix_stream_.get();
         }
         return stream_.get();
     }
 
-    [[nodiscard]] bool IsActive() const noexcept {
+    XAMP_NO_DISCARD bool IsActive() const noexcept {
         return BASS_LIB.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
 

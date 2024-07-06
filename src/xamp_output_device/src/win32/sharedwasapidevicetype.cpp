@@ -20,20 +20,20 @@ public:
 
 	void ScanNewDevice();
 
-	[[nodiscard]] size_t GetDeviceCount() const;
+	XAMP_NO_DISCARD size_t GetDeviceCount() const;
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const;
+	XAMP_NO_DISCARD DeviceInfo GetDeviceInfo(uint32_t device) const;
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfo() const;
+	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
 	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 	
 private:
-	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
+	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfoList() const;
 
-	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
+	XAMP_NO_DISCARD CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
 	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;

@@ -70,8 +70,8 @@ public:
 		return std::thread::hardware_concurrency();
 	}
 
-	[[nodiscard]] StopSource get_stop_source() noexcept;
-	[[nodiscard]] StopToken get_stop_token() const noexcept;
+	XAMP_NO_DISCARD StopSource get_stop_source() noexcept;
+	XAMP_NO_DISCARD StopToken get_stop_token() const noexcept;
 
 	bool request_stop() noexcept {
 		return get_stop_source().request_stop();

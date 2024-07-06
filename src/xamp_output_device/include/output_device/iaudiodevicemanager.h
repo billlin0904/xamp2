@@ -44,21 +44,21 @@ public:
 	* 
 	* @return default device type.
 	*/
-	[[nodiscard]] virtual AlignPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
+	XAMP_NO_DISCARD virtual AlignPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
 
 	/*
 	* Create device type.
 	* 
 	* @param id: device type id.
 	*/
-	[[nodiscard]] virtual AlignPtr<IDeviceType> Create(const Uuid& id) const = 0;
+	XAMP_NO_DISCARD virtual AlignPtr<IDeviceType> Create(const Uuid& id) const = 0;
 
 	/*
 	* Get available device type.
 	* 
 	* @return available device type.
 	*/
-	[[nodiscard]] virtual Vector<Uuid> GetAvailableDeviceType() const = 0;
+	XAMP_NO_DISCARD virtual Vector<Uuid> GetAvailableDeviceType() const = 0;
 
 	/*
 	* Clear all device type.
@@ -90,7 +90,7 @@ public:
 	*
 	* @param type: device type
 	*/
-	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
+	XAMP_NO_DISCARD virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
 protected:
 	/*
 	* Constructor.

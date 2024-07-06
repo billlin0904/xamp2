@@ -20,9 +20,9 @@ class XAMP_STREAM_API DsdModeSampleWriter final : public ISampleWriter {
 public:
     explicit DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size);
 
-    [[nodiscard]] bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
+    XAMP_NO_DISCARD bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
-    [[nodiscard]] bool Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) override;
+    XAMP_NO_DISCARD bool Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) override;
 
 private:
     bool ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);

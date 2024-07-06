@@ -22,9 +22,9 @@ public:
 
 	Int24& operator=(float f) noexcept;
 
-	[[nodiscard]] int32_t To2432Int() const noexcept;
+	XAMP_NO_DISCARD int32_t To2432Int() const noexcept;
 
-	[[nodiscard]] int32_t To32Int() const noexcept;
+	XAMP_NO_DISCARD int32_t To32Int() const noexcept;
 
 	std::array<uint8_t, 3> data;
 };

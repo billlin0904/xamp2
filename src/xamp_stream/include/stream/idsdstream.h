@@ -18,23 +18,23 @@ public:
 
     virtual void SetDSDMode(DsdModes mode) noexcept = 0;
 
-    [[nodiscard]] virtual DsdModes GetDsdMode() const noexcept = 0;
+    XAMP_NO_DISCARD virtual DsdModes GetDsdMode() const noexcept = 0;
 
-    [[nodiscard]] virtual uint32_t GetDsdSampleRate() const = 0;
+    XAMP_NO_DISCARD virtual uint32_t GetDsdSampleRate() const = 0;
 
-    [[nodiscard]] virtual DsdFormat GetDsdFormat() const noexcept = 0;
+    XAMP_NO_DISCARD virtual DsdFormat GetDsdFormat() const noexcept = 0;
 
     virtual void SetDsdToPcmSampleRate(uint32_t sample_rate) = 0;
 
-    [[nodiscard]] virtual uint32_t GetDsdSpeed() const = 0;
+    XAMP_NO_DISCARD virtual uint32_t GetDsdSpeed() const = 0;
 
-    [[nodiscard]] virtual bool IsDsdFile() const noexcept = 0;
+    XAMP_NO_DISCARD virtual bool IsDsdFile() const noexcept = 0;
 
-    [[nodiscard]] virtual bool SupportDOP() const noexcept = 0;
+    XAMP_NO_DISCARD virtual bool SupportDOP() const noexcept = 0;
 
-    [[nodiscard]] virtual bool SupportDOP_AA() const noexcept = 0;
+    XAMP_NO_DISCARD virtual bool SupportDOP_AA() const noexcept = 0;
 
-    [[nodiscard]] virtual bool SupportNativeSD() const noexcept = 0;
+    XAMP_NO_DISCARD virtual bool SupportNativeSD() const noexcept = 0;
 protected:
     IDsdStream() = default;
 };

@@ -44,11 +44,11 @@ public:
         file_.reset();
     }
 
-    [[nodiscard]] void const * GetData() const noexcept {
+    XAMP_NO_DISCARD void const * GetData() const noexcept {
         return address_.get();
     }
 
-    [[nodiscard]] size_t GetLength() const {
+    XAMP_NO_DISCARD size_t GetLength() const {
         LARGE_INTEGER li{};
 		::GetFileSizeEx(file_.get(), &li);
         return li.QuadPart;

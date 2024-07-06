@@ -51,7 +51,7 @@ public:
     * @param[in] path file path.
     * @return bool
     */
-    [[nodiscard]] virtual bool IsSupported(const Path & path) const = 0;
+    XAMP_NO_DISCARD virtual bool IsSupported(const Path & path) const = 0;
 protected:
     IMetadataReader() = default;
 };

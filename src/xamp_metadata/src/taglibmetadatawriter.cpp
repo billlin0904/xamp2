@@ -290,7 +290,7 @@ public:
 		}
 	}
 
-	[[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const {
+	XAMP_NO_DISCARD bool CanWriteEmbeddedCover(const Path& path) const {
 		const auto ext = String::ToLower(path.extension().string());
 		static const HashSet<std::string> support_ext{
 			".m4a",

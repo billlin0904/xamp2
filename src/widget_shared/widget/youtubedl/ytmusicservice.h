@@ -15,6 +15,7 @@
 #include <base/enum.h>
 #include <base/stl.h>
 #include <widget/widget_shared_global.h>
+#include <widget/baseservice.h>
 
 namespace meta {
 	struct Thumbnail {
@@ -246,11 +247,6 @@ namespace playlist {
 	};
 }
 
-enum InvokeType {
-	INVOKE_NONE,
-	INVOKE_IMMEDIATELY,
-};
-
 XAMP_MAKE_ENUM(PrivateStatus,
 	PUBLIC,
 	PRIVATE,
@@ -363,7 +359,7 @@ struct Lyrics {
 
 class YtMusicInterop;
 
-class XAMP_WIDGET_SHARED_EXPORT YtMusicInterop {
+class YtMusicInterop {
 public:
 	explicit YtMusicInterop(const std::optional<std::string>& auth = "oauth.json",
 		const std::optional<std::string>& user = std::nullopt,
@@ -376,43 +372,43 @@ public:
 
 	void initial();
 
-	[[nodiscard]] std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
+	XAMP_NO_DISCARD std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
 
-	[[nodiscard]] std::vector<search::SearchResultItem> search(const std::string& query,
+	XAMP_NO_DISCARD std::vector<search::SearchResultItem> search(const std::string& query,
 		const std::optional<std::string>& filter = std::nullopt,
 		const std::optional<std::string>& scope = std::nullopt,
 		int limit = 10,
 		bool ignore_spelling = false) const;
 
-	[[nodiscard]] artist::Artist getArtist(const std::string& channel_id) const;
+	XAMP_NO_DISCARD artist::Artist getArtist(const std::string& channel_id) const;
 
-	[[nodiscard]] album::Album getAlbum(const std::string& browse_id) const;
+	XAMP_NO_DISCARD album::Album getAlbum(const std::string& browse_id) const;
 
-	[[nodiscard]] std::optional<song::Song> getSong(const std::string& video_id) const;
+	XAMP_NO_DISCARD std::optional<song::Song> getSong(const std::string& video_id) const;
 
-	[[nodiscard]] std::vector<library::Playlist> getLibraryPlaylists(int limit = 25) const;
+	XAMP_NO_DISCARD std::vector<library::Playlist> getLibraryPlaylists(int limit = 25) const;
 
-	[[nodiscard]] playlist::Playlist getPlaylist(const std::string& playlist_id, int limit = 1024) const;
+	XAMP_NO_DISCARD playlist::Playlist getPlaylist(const std::string& playlist_id, int limit = 1024) const;
 
-	[[nodiscard]] std::vector<artist::Artist::Album> getArtistAlbums(const std::string& channel_id, const std::string& params) const;
+	XAMP_NO_DISCARD std::vector<artist::Artist::Album> getArtistAlbums(const std::string& channel_id, const std::string& params) const;
 
-	[[nodiscard]] watch::Playlist getWatchPlaylist(const std::optional<std::string>& video_id = std::nullopt,
+	XAMP_NO_DISCARD watch::Playlist getWatchPlaylist(const std::optional<std::string>& video_id = std::nullopt,
 		const std::optional<std::string>& playlist_id = std::nullopt,
 		int limit = 25) const;
 
-	[[nodiscard]] Lyrics getLyrics(const std::string& browse_id) const;
+	XAMP_NO_DISCARD Lyrics getLyrics(const std::string& browse_id) const;
 
-	[[nodiscard]] video_info::VideoInfo extractInfo(const std::string& video_id) const;
+	XAMP_NO_DISCARD video_info::VideoInfo extractInfo(const std::string& video_id) const;
 
-	[[nodiscard]] bool rateSong(const std::string& video_id, SongRating rating) const;
+	XAMP_NO_DISCARD bool rateSong(const std::string& video_id, SongRating rating) const;
 
-	[[nodiscard]] std::string createPlaylistAsync(const std::string& title,
+	XAMP_NO_DISCARD std::string createPlaylistAsync(const std::string& title,
 		const std::string& description,
 		PrivateStatus status,
 		const std::vector<std::string>& video_ids,
 		const std::optional<std::string>& source_playlist = std::nullopt) const;
 
-	[[nodiscard]] bool editPlaylist(const std::string& playlist_id,
+	XAMP_NO_DISCARD bool editPlaylist(const std::string& playlist_id,
 		const std::string& title,
 		const std::string& description,
 		PrivateStatus status,
@@ -420,24 +416,23 @@ public:
 		const std::optional<std::string>& add_playlist_id = std::nullopt,
 		const std::optional<std::string>& add_to_top = std::nullopt) const;
 
-	[[nodiscard]] edit::PlaylistEditResults addPlaylistItems(const std::string& playlist_id,
+	XAMP_NO_DISCARD edit::PlaylistEditResults addPlaylistItems(const std::string& playlist_id,
 		const std::vector<std::string>& video_ids,
 		const std::optional<std::string>& source_playlist,
 		bool duplicates) const;
 
-	[[nodiscard]] bool removePlaylistItems(const std::string& playlist_id, 
+	XAMP_NO_DISCARD bool removePlaylistItems(const std::string& playlist_id, 
 		const std::vector<edit::PlaylistEditResultData>& videos) const;
 
-	[[nodiscard]] bool deletePlaylist(const std::string& playlist_id) const;
+	XAMP_NO_DISCARD bool deletePlaylist(const std::string& playlist_id) const;
 
-	[[nodiscard]] int32_t download(const std::string& url) const;
+	XAMP_NO_DISCARD int32_t download(const std::string& url) const;
 private:
 	class YtMusicInteropImpl;
 	AlignPtr<YtMusicInteropImpl> impl_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT YtMusicService : public QObject {
-	Q_OBJECT
+class XAMP_WIDGET_SHARED_EXPORT YtMusicService : public BaseService {	
 public:
 	explicit YtMusicService(QObject* parent = nullptr);
 
@@ -500,34 +495,7 @@ public slots:
 	void cancelRequested();
 
 private:
-	YtMusicInterop* interop();
-
-	template <typename Func>
-	QFuture<std::invoke_result_t<Func>> invokeAsync(Func &&fun, InvokeType invoke_type = InvokeType::INVOKE_NONE) {
-		using ReturnType = std::invoke_result_t<Func>;
-		auto interface = std::make_shared<QFutureInterface<ReturnType>>();
-		QMetaObject::invokeMethod(this, [interface, invoke_type, f = std::forward<Func>(fun), this]() {
-			ReturnType val{};
-			auto is_stop = is_stop_.load();
-			if (invoke_type == InvokeType::INVOKE_IMMEDIATELY) {
-				is_stop = false;
-			}
-			if (!is_stop) {
-				try {
-					val = f();
-				}
-				catch (const std::exception& e) {
-					XAMP_LOG_E(logger_, "{} =>\r\n {}", e.what(), StackTrace{}.CaptureStack());
-				}
-			}
-			interface->reportResult(val);
-			interface->reportFinished();
-			});
-		return interface->future();
-	}
-
-	std::atomic<bool> is_stop_{ false };
-	LoggerPtr logger_;
+	YtMusicInterop* interop();	
 	LocalStorage<YtMusicInterop> interop_;
 };
 

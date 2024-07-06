@@ -40,7 +40,7 @@ public:
 
     void RemoveEmbeddedCover(const Path& path) override;
 
-    [[nodiscard]] bool CanWriteEmbeddedCover(const Path& path) const override;
+    XAMP_NO_DISCARD bool CanWriteEmbeddedCover(const Path& path) const override;
 private:
     class TaglibMetadataWriterImpl;
     AlignPtr<TaglibMetadataWriterImpl> writer_;

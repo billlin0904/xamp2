@@ -22,13 +22,13 @@ public:
 
 	void Process(float const * samples, size_t num_sample) const;
 
-	[[nodiscard]] double GetIntegratedLoudness() const;
+	XAMP_NO_DISCARD double GetIntegratedLoudness() const;
 
-	[[nodiscard]] double GetTruePeek() const;
+	XAMP_NO_DISCARD double GetTruePeek() const;
 
-    [[nodiscard]] double GetSamplePeak() const;
+    XAMP_NO_DISCARD double GetSamplePeak() const;
 
-	[[nodiscard]] void* GetNativeHandle() const;
+	XAMP_NO_DISCARD void* GetNativeHandle() const;
 
 	static double GetEbur128Gain(double lufs, double targetdb);
 

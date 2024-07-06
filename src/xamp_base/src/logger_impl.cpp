@@ -27,7 +27,7 @@ namespace {
 			dest.append(upper_logger_level.data(), upper_logger_level.data() + upper_logger_level.size());
 		}
 
-		[[nodiscard]] std::unique_ptr<custom_flag_formatter> clone() const override {
+		XAMP_NO_DISCARD std::unique_ptr<custom_flag_formatter> clone() const override {
 			return spdlog::details::make_unique<LogFlagFormatter>();
 		}
 	};

@@ -153,7 +153,7 @@ public:
     * 
     * @return true if the buffer is empty, false otherwise.     
     */
-    [[nodiscard]] bool empty() const noexcept {
+    XAMP_NO_DISCARD bool empty() const noexcept {
         return size_ == 0;
     }
 
@@ -162,7 +162,7 @@ public:
     * 
     * @return true if the buffer is full, false otherwise.
     */
-    [[nodiscard]] bool full() const noexcept {
+    XAMP_NO_DISCARD bool full() const noexcept {
         return size_ == data_.size();
     }
 
@@ -171,7 +171,7 @@ public:
     * 
     * @return The capacity of the buffer.     
     */
-    [[nodiscard]] size_t capacity() const noexcept { 
+    XAMP_NO_DISCARD size_t capacity() const noexcept { 
         return data_.size();
     }
 
@@ -180,7 +180,7 @@ public:
     * 
     * @return The size of the buffer.
     */
-    [[nodiscard]] size_t size() const noexcept { 
+    XAMP_NO_DISCARD size_t size() const noexcept { 
         return size_;
     }
 
@@ -217,7 +217,7 @@ public:
     * 
     * @return The first item in the buffer.
     */
-	[[nodiscard]] T& top() {
+	XAMP_NO_DISCARD T& top() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -232,7 +232,7 @@ public:
     * 
     * @return The begin iterator.
     */
-    [[nodiscard]] const_iterator begin() const {
+    XAMP_NO_DISCARD const_iterator begin() const {
         return const_iterator(*this, first_pos(), empty());
     }
 
@@ -241,7 +241,7 @@ public:
     * 
     * @return The end iterator.
     */
-    [[nodiscard]] const_iterator end() const {
+    XAMP_NO_DISCARD const_iterator end() const {
         return const_iterator(*this, next_pos(), true);
     }
 
@@ -255,7 +255,7 @@ private:
     * 
     * @return The next position.
     */
-    [[nodiscard]] size_t next_pos() const noexcept {
+    XAMP_NO_DISCARD size_t next_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + 1) % data_.size(); 
     }
 
@@ -264,7 +264,7 @@ private:
     * 
     * @return The first position.
     */
-    [[nodiscard]] size_t first_pos() const noexcept {
+    XAMP_NO_DISCARD size_t first_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + data_.size() - size_ + 1) % data_.size(); 
     }
 

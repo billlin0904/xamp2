@@ -70,7 +70,7 @@ namespace {
             }
         }
 
-        [[nodiscard]] bool IsInit() const noexcept {
+        XAMP_NO_DISCARD bool IsInit() const noexcept {
             return init_state_;
         }
 

@@ -50,7 +50,7 @@ public:
 
     Uuid GetTypeId() const override;
 
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
+    XAMP_NO_DISCARD std::string_view GetDescription() const noexcept override;
 
 private:    
     class BassParametricEqImpl;

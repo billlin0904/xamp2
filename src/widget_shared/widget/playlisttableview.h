@@ -67,7 +67,7 @@ public:
 		cloud_mode_ = mode;
 	}
 
-	[[nodiscard]] bool isEnableCloudMode() const {
+	XAMP_NO_DISCARD bool isEnableCloudMode() const {
 		return cloud_mode_;
 	}
 
@@ -84,7 +84,7 @@ public:
 
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
-	[[nodiscard]] int32_t playlistId() const;
+	XAMP_NO_DISCARD int32_t playlistId() const;
 
 	void reload(bool is_scroll_to = false);
 

@@ -160,7 +160,7 @@ public:
 		return valueAs(key).toString();
 	}
 
-	[[nodiscard]] bool contains(const QString& key) const {
+	XAMP_NO_DISCARD bool contains(const QString& key) const {
 		XAMP_EXPECTS(settings_ != nullptr);
 		return settings_->contains(key);
 	}

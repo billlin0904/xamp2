@@ -55,18 +55,18 @@ public:
 		return *this;
 	}
 
-	[[nodiscard]] bool stop_requested() const noexcept {
+	XAMP_NO_DISCARD bool stop_requested() const noexcept {
 		return (shared_state_ != nullptr)
 			&& shared_state_->load(std::memory_order_relaxed);
 	}
 
-	[[nodiscard]] bool stop_possible() const noexcept {
+	XAMP_NO_DISCARD bool stop_possible() const noexcept {
 		return (shared_state_ != nullptr)
 			&& (shared_state_->load(std::memory_order_relaxed)
 				|| (shared_state_.use_count() > 1));
 	}
 
-	[[nodiscard]] friend bool operator==(const StopToken& a, const StopToken& b) noexcept {
+	XAMP_NO_DISCARD friend bool operator==(const StopToken& a, const StopToken& b) noexcept {
 		return a.shared_state_ == b.shared_state_;
 	}
 
@@ -74,7 +74,7 @@ public:
 		std::swap(shared_state_, other.shared_state_);
 	}
 
-	[[nodiscard]] friend bool operator!=(const StopToken& a, const StopToken& b) noexcept {
+	XAMP_NO_DISCARD friend bool operator!=(const StopToken& a, const StopToken& b) noexcept {
 		return a.shared_state_ != b.shared_state_;
 	}
 private:
@@ -129,24 +129,24 @@ public:
 		return false;
 	}
 
-	[[nodiscard]] bool stop_requested() const noexcept {
+	XAMP_NO_DISCARD bool stop_requested() const noexcept {
 		return (shared_state_ != nullptr)
 			&& shared_state_->load(std::memory_order_relaxed);
 	}
 
-	[[nodiscard]] bool stop_possible() const noexcept {
+	XAMP_NO_DISCARD bool stop_possible() const noexcept {
 		return shared_state_ != nullptr;
 	}
 
-	[[nodiscard]] StopToken get_token() const noexcept {
+	XAMP_NO_DISCARD StopToken get_token() const noexcept {
 		return StopToken{ shared_state_ };
 	}
 
-	[[nodiscard]] friend bool operator==(const StopSource& a, const StopSource& b) noexcept {
+	XAMP_NO_DISCARD friend bool operator==(const StopSource& a, const StopSource& b) noexcept {
 		return a.shared_state_ == b.shared_state_;
 	}
 
-	[[nodiscard]] friend bool operator!=(const StopSource& a, const StopSource& b) noexcept {
+	XAMP_NO_DISCARD friend bool operator!=(const StopSource& a, const StopSource& b) noexcept {
 		return a.shared_state_ != b.shared_state_;
 	}
 

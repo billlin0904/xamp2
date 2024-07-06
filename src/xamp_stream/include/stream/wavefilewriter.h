@@ -24,7 +24,7 @@ public:
 
 	void Close();
 
-	[[nodiscard]] bool TryWrite(const float* sample, size_t num_samples);
+	XAMP_NO_DISCARD bool TryWrite(const float* sample, size_t num_samples);
 
 	void Write(const float* sample, size_t num_samples);
 	

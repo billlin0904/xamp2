@@ -94,27 +94,27 @@ class XAMP_BASE_API Exception : public std::exception {
      /*
      * what function.
      */
-     [[nodiscard]] char const* what() const noexcept override;
+     XAMP_NO_DISCARD char const* what() const noexcept override;
 
      /*
      * Get error code.
      */
-     [[nodiscard]] virtual Errors GetError() const noexcept;
+     XAMP_NO_DISCARD virtual Errors GetError() const noexcept;
 
      /*
      * Get error message.
      */
-     [[nodiscard]] char const* GetErrorMessage() const noexcept;
+     XAMP_NO_DISCARD char const* GetErrorMessage() const noexcept;
 
      /*
      * Get expression.
      */
-     [[nodiscard]] virtual const char* GetExpression() const noexcept;
+     XAMP_NO_DISCARD virtual const char* GetExpression() const noexcept;
 
      /*
      * Get stack trace.
      */
-     [[nodiscard]] char const* GetStackTrace() const noexcept;
+     XAMP_NO_DISCARD char const* GetStackTrace() const noexcept;
 
      /*
      * Get error code string.

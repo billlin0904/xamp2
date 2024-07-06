@@ -36,9 +36,9 @@ public:
 
     ~AvException() override;
 
-	[[nodiscard]] char const* what() const noexcept override;
+	XAMP_NO_DISCARD char const* what() const noexcept override;
 
-	[[nodiscard]] int32_t GetErrorCode() const noexcept;
+	XAMP_NO_DISCARD int32_t GetErrorCode() const noexcept;
 
 private:
 	int32_t error_code_;

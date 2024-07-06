@@ -56,16 +56,16 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     std::optional<double> track_peak;
     std::optional<double> track_loudness;
 
-    [[nodiscard]] bool isHttpUrl() const {
+    XAMP_NO_DISCARD bool isHttpUrl() const {
         const auto scheme = QUrl(file_path).scheme();
         return scheme == qTEXT("https") || scheme == qTEXT("http");
     }
 
-    [[nodiscard]] bool isFilePath() const {
+    XAMP_NO_DISCARD bool isFilePath() const {
         return !QFileInfo(file_path).suffix().isEmpty();
     }
 
-    [[nodiscard]] QString validCoverId() const {
+    XAMP_NO_DISCARD QString validCoverId() const {
         auto id = music_cover_id ? music_cover_id.value() : kEmptyString;
         if (id.isEmpty() || id.isNull()) {
             id = cover_id;

@@ -82,6 +82,7 @@ XAMP_MAKE_ENUM(Glyphs,
     ICON_HD_AUDIO,
     ICON_REPORT_BUG,
     ICON_MENU,
+    ICON_AI,
     ICON_END);
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {

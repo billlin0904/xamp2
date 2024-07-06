@@ -59,14 +59,14 @@ public:
     * 
     * @return the type id of the audio processor.
     */
-    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
+    XAMP_NO_DISCARD virtual Uuid GetTypeId() const = 0;
 
     /*
     * Get the description of the audio processor.
     * 
     * @return the description of the audio processor.
     */
-    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
+    XAMP_NO_DISCARD virtual std::string_view GetDescription() const noexcept = 0;
 
 protected:
 	IAudioProcessor() = default;

@@ -26,21 +26,21 @@ public:
 
 	void SetMaxSpeed() override;
 
-	[[nodiscard]] uint32_t GetSpeed() const override;
+	XAMP_NO_DISCARD uint32_t GetSpeed() const override;
 
-	[[nodiscard]] bool DoorIsOpen() const override;
+	XAMP_NO_DISCARD bool DoorIsOpen() const override;
 
-	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const override;
+	XAMP_NO_DISCARD CDDeviceInfo GetCDDeviceInfo() const override;
 
 	void Release() override;
 
-	[[nodiscard]] CDText GetCDText() const override;
+	XAMP_NO_DISCARD CDText GetCDText() const override;
 
-	[[nodiscard]] double GetDuration(uint32_t track) const override;
+	XAMP_NO_DISCARD double GetDuration(uint32_t track) const override;
 
-	[[nodiscard]] Vector<std::wstring> GetTotalTracks() const override;
+	XAMP_NO_DISCARD Vector<std::wstring> GetTotalTracks() const override;
 
-	[[nodiscard]] std::string GetISRC(uint32_t track) const override;
+	XAMP_NO_DISCARD std::string GetISRC(uint32_t track) const override;
 private:
 	class BassCDDeviceImpl;
 	AlignPtr<BassCDDeviceImpl> impl_;

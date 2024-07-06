@@ -34,7 +34,7 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::skip_permission_denied
 };
 
-XAMP_BASE_API inline [[nodiscard]] bool IsFileReadOnly(const Path& path) {
+XAMP_BASE_API inline XAMP_NO_DISCARD bool IsFileReadOnly(const Path& path) {
     return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;
 }
 

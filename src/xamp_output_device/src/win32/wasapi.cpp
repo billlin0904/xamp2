@@ -59,7 +59,7 @@ namespace {
 		*
 		* @return std::wstring
 		*/
-		[[nodiscard]] std::wstring ToString() const noexcept {
+		XAMP_NO_DISCARD std::wstring ToString() const noexcept {
 			std::wstring result;
 			PWSTR psz = nullptr;
 			if (SUCCEEDED(::PropVariantToStringAlloc(*this, &psz))) {

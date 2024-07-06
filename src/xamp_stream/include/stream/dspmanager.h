@@ -49,11 +49,11 @@ public:
 
     void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
 
-    [[nodiscard]] bool IsEnableSampleRateConverter() const override;
+    XAMP_NO_DISCARD bool IsEnableSampleRateConverter() const override;
 
-    [[nodiscard]] bool CanProcess() const noexcept override;
+    XAMP_NO_DISCARD bool CanProcess() const noexcept override;
 
-    [[nodiscard]] bool Contains(const Uuid& type) const noexcept;
+    XAMP_NO_DISCARD bool Contains(const Uuid& type) const noexcept;
 private:
     void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 
@@ -74,7 +74,7 @@ private:
     }
 
     template <typename Func>
-    [[nodiscard]] bool Contains(Func &&func) const {
+    XAMP_NO_DISCARD bool Contains(Func &&func) const {
         if (FindIf(pre_dsp_.begin(), pre_dsp_.end(), func) == pre_dsp_.end()) {
             return FindIf(post_dsp_.begin(), post_dsp_.end(), func) != post_dsp_.end();
         }
@@ -82,7 +82,7 @@ private:
     }
 
     template <typename Func>
-    [[nodiscard]] ConstDspIterator FindIf(ConstDspIterator begin, ConstDspIterator end, Func &&func) const {
+    XAMP_NO_DISCARD ConstDspIterator FindIf(ConstDspIterator begin, ConstDspIterator end, Func &&func) const {
         auto itr = std::find_if(begin, end, [&](auto const& processor) {
             return func(processor->GetTypeId());
             });

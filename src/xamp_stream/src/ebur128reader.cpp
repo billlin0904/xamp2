@@ -51,7 +51,7 @@ public:
 			samples, num_sample / AudioFormat::kMaxChannel));
 	}
 
-	[[nodiscard]] double GetTruePeek() const {
+	XAMP_NO_DISCARD double GetTruePeek() const {
 		double left_true_peek = 0;
         double right_true_peek = 0;		
 		Ebur128IfFailThrow(EBUR128_LIB.ebur128_true_peak(state_.get(), 0, &left_true_peek));
@@ -60,7 +60,7 @@ public:
 		return Round(true_peak, 6);
 	}
 
-    [[nodiscard]] double GetSamplePeak() const {
+    XAMP_NO_DISCARD double GetSamplePeak() const {
 		double left_sample_peek = 0;
 		double right_sample_peek = 0;
 		Ebur128IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
@@ -68,13 +68,13 @@ public:
         return Round((std::max)(left_sample_peek, right_sample_peek), 2);
 	}
 
-	[[nodiscard]] double GetIntegratedLoudness() const {
+	XAMP_NO_DISCARD double GetIntegratedLoudness() const {
         double loudness = 0;
 		Ebur128IfFailThrow(EBUR128_LIB.ebur128_loudness_global(state_.get(), &loudness));
         return Round(loudness, 2);
 	}
 
-	[[nodiscard]] void* GetNativeHandle() const {
+	XAMP_NO_DISCARD void* GetNativeHandle() const {
         return state_.get();
     }
 

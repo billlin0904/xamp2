@@ -58,14 +58,14 @@ public:
     *
     * @return default device type
     */
-    [[nodiscard]] AlignPtr<IDeviceType> CreateDefaultDeviceType() const override;
+    XAMP_NO_DISCARD AlignPtr<IDeviceType> CreateDefaultDeviceType() const override;
 
     /*
     * Create device type
     *
     * @param id: device type id
     */
-    [[nodiscard]] AlignPtr<IDeviceType> Create(Uuid const& id) const override;
+    XAMP_NO_DISCARD AlignPtr<IDeviceType> Create(Uuid const& id) const override;
 
     /*
     * Begin iterator
@@ -86,14 +86,14 @@ public:
     *
     * @return available device type
     */
-    [[nodiscard]] Vector<Uuid> GetAvailableDeviceType() const override;
+    XAMP_NO_DISCARD Vector<Uuid> GetAvailableDeviceType() const override;
 
     /*
     * Is support asio
     * 
     * @return true if support asio
     */
-    [[nodiscard]] bool IsSupportAsio() const noexcept;
+    XAMP_NO_DISCARD bool IsSupportAsio() const noexcept;
 
     /*
     * Is device type exist
@@ -101,14 +101,14 @@ public:
     * @param id: device type id
     * @return true if device type exist
     */
-    [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
+    XAMP_NO_DISCARD bool IsDeviceTypeExist(const Uuid& id) const noexcept;
 
     /*
     * Is shared device
     * 
     * @param type: device type
     */
-    [[nodiscard]] bool IsSharedDevice(const Uuid& type) const noexcept override;
+    XAMP_NO_DISCARD bool IsSharedDevice(const Uuid& type) const noexcept override;
 
     /*
     * Shutdown global device resource.

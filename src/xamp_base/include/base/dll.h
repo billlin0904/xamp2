@@ -128,24 +128,24 @@ public:
     }
 #endif
     
-    [[nodiscard]] XAMP_ALWAYS_INLINE operator T* () const noexcept {
+    XAMP_NO_DISCARD XAMP_ALWAYS_INLINE operator T* () const noexcept {
         XAMP_EXPECTS(func_ != nullptr);
         return func_;
     }
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE bool IsValid() const noexcept {
+    XAMP_NO_DISCARD XAMP_ALWAYS_INLINE bool IsValid() const noexcept {
         return func_ != nullptr;
     }
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T* Get() const noexcept {
+    XAMP_NO_DISCARD XAMP_ALWAYS_INLINE T* Get() const noexcept {
 		return func_;
 	}
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T* operator->() const noexcept {
+    XAMP_NO_DISCARD XAMP_ALWAYS_INLINE T* operator->() const noexcept {
 		return func_;
 	}
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T& operator*() const noexcept {
+    XAMP_NO_DISCARD XAMP_ALWAYS_INLINE T& operator*() const noexcept {
 		return *func_;
 	}
 

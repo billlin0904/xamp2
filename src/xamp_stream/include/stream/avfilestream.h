@@ -29,25 +29,25 @@ public:
 
 	void Close() noexcept override;
 
-	[[nodiscard]] double GetDurationAsSeconds() const override;
+	XAMP_NO_DISCARD double GetDurationAsSeconds() const override;
 
-	[[nodiscard]] AudioFormat GetFormat() const noexcept override;
+	XAMP_NO_DISCARD AudioFormat GetFormat() const noexcept override;
 
 	uint32_t GetSamples(void* buffer, uint32_t length) const override;
 
 	void SeekAsSeconds(double stream_time) const override;
 
-	[[nodiscard]] std::string_view GetDescription() const noexcept override;
+	XAMP_NO_DISCARD std::string_view GetDescription() const noexcept override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
+	XAMP_NO_DISCARD uint32_t GetSampleSize() const noexcept override;
 
-	[[nodiscard]] bool IsActive() const noexcept override;
+	XAMP_NO_DISCARD bool IsActive() const noexcept override;
 
-	[[nodiscard]] uint32_t GetBitDepth() const override;
+	XAMP_NO_DISCARD uint32_t GetBitDepth() const override;
 
-	[[nodiscard]] int64_t GetBitRate() const;
+	XAMP_NO_DISCARD int64_t GetBitRate() const;
 
-	[[nodiscard]] Uuid GetTypeId() const override;
+	XAMP_NO_DISCARD Uuid GetTypeId() const override;
 private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;

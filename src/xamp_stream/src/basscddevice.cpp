@@ -43,11 +43,11 @@ public:
 		BassIfFailedThrow(BASS_LIB.CDLib->BASS_CD_SetSpeed(driver_, speed));
 	}
 
-	[[nodiscard]] uint32_t GetSpeed() const {
+	XAMP_NO_DISCARD uint32_t GetSpeed() const {
 		return static_cast<uint32_t>((BASS_LIB.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
 	}
 
-	[[nodiscard]] bool DoorIsOpen() const {
+	XAMP_NO_DISCARD bool DoorIsOpen() const {
 		return BASS_LIB.CDLib->BASS_CD_DoorIsOpen(driver_);
 	}
 
@@ -59,7 +59,7 @@ public:
 		return text;
 	}
 
-	[[nodiscard]] CDText GetCDText() const {
+	XAMP_NO_DISCARD CDText GetCDText() const {
 		CDText cd_text;
 		auto const * text = BASS_LIB.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
 		if (!text) {
@@ -75,7 +75,7 @@ public:
 		return cd_text;
 	}
 
-	[[nodiscard]] Vector<std::wstring> GetTotalTracks() const {
+	XAMP_NO_DISCARD Vector<std::wstring> GetTotalTracks() const {
 		Vector<std::wstring> tracks;
 		const auto num_track = BASS_LIB.CDLib->BASS_CD_GetTracks(driver_);
 		if (num_track == kBassError) {
@@ -90,7 +90,7 @@ public:
 		return tracks;
 	}
 
-	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const {
+	XAMP_NO_DISCARD CDDeviceInfo GetCDDeviceInfo() const {
 		BASS_CD_INFO info{};
 		BassIfFailedThrow(BASS_LIB.CDLib->BASS_CD_GetInfo(driver_, &info));
 		CDDeviceInfo device_info;

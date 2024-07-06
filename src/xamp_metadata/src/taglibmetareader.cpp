@@ -370,11 +370,11 @@ class TaglibHelper {
 public:
     friend class Singleton<TaglibHelper>;
 
-	[[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
+	XAMP_NO_DISCARD HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 
-	[[nodiscard]] bool IsSupported(const Path & path) const noexcept {
+	XAMP_NO_DISCARD bool IsSupported(const Path & path) const noexcept {
 		const auto file_ext = String::ToLower(path.extension().string());
 		return support_file_extensions_.contains(file_ext);
 	}
@@ -403,7 +403,7 @@ public:
 #endif
     }
 
-    [[nodiscard]] TrackInfo Extract(const Path& path) const {
+    XAMP_NO_DISCARD TrackInfo Extract(const Path& path) const {
         TrackInfo track_info;
 
 	    const auto fileref = GetFileRef(path);
