@@ -22,12 +22,12 @@ ChatGPTWindow::ChatGPTWindow(QWidget* parent)
 
     //(void) QObject::connect(send_button_, &QPushButton::clicked, this, &ChatGPTWindow::doSendToChatGPT);
 
-    chatGPTResponse(qTEXT("Test"));
+    /*chatGPTResponse(qTEXT("Test"));
     showSendMessage(qTEXT("Test"));
     chatGPTResponse(qTEXT("Test"));
     showSendMessage(qTEXT("Test"));
     chatGPTResponse(qTEXT("Test"));
-    showSendMessage(qTEXT("Test"));
+    showSendMessage(qTEXT("Test"));*/
 }
 
 void ChatGPTWindow::doSendToChatGPT() {

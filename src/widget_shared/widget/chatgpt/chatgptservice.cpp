@@ -46,17 +46,15 @@ bool ChatGptInterop::ChatGptInteropImpl::initial() {
 std::string ChatGptInterop::ChatGptInteropImpl::getResponse(const std::string& prompt) {
     py::dict params;
     //params["model"] = "gpt-3.5-turbo-0125";
-    params["model"] = "gpt-4-turbo";
+    params["model"] = "gpt-4o-2024-05-13";
 
     py::dict system_dict;
     system_dict["role"] = "system";
-    system_dict["content"] = "You are a music expert.";
+    system_dict["content"] = "You are a music analysis assistant.";
 
     py::dict user_dict;
     user_dict["role"] = "user";
-    user_dict["content"] = "Please analyze the genre and style of the following song:" 
-        + prompt
-        + " Please respond in Traditional Chinese.";
+    user_dict["content"] = prompt;
 
     params["messages"] = py::list(py::make_tuple(system_dict, user_dict));
 
