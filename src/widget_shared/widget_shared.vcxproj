@@ -227,6 +227,7 @@
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
+    <ClCompile Include="widget\baseservice.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptservice.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptwidget.cpp" />

@@ -35,6 +35,8 @@ public:
 
 	void setBarColor(const QColor& color);
 
+	void start();
+
 	void reset();
 
 public slots:
@@ -46,6 +48,7 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
+	bool is_stop_{ false };
 	int32_t buffer_ptr_{0};
 	uint32_t sample_rate_{44100};
 	size_t fft_size_{4096};

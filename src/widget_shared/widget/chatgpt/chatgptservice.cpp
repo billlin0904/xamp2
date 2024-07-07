@@ -139,12 +139,3 @@ QFuture<bool> ChatGptService::cleanupAsync() {
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
-
-void initialInterop() {
-    static py::scoped_interpreter guard{};
-    static py::gil_scoped_release release;
-}
-
-void finalizeInterop() {
-    
-}

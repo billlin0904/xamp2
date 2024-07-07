@@ -86,7 +86,14 @@ void SpectrumWidget::setBarColor(const QColor& color) {
 	bar_color_ = color;
 }
 
-void SpectrumWidget::onFftResultChanged(ComplexValarray const& fft_data) {
+void SpectrumWidget::start() {
+	is_stop_ = false;
+}
+
+void SpectrumWidget::onFftResultChanged(const ComplexValarray& fft_data) {
+	if (is_stop_) {
+		return;
+	}
 	fft_data_ = fft_data;
 }
 
@@ -208,5 +215,6 @@ void SpectrumWidget::reset() {
 	for (auto &buffer : buffer_) {
 		buffer = 0;
 	}
+	is_stop_ = true;
 	update();
 }
