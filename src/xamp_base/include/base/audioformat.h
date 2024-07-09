@@ -287,6 +287,7 @@ XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) noexcept {
         byte_format_ = format;
         break;
     case ByteFormat::INVALID_FORMAT:
+    default:
         bits_per_sample_ = 0;
         byte_format_ = format;
         break;

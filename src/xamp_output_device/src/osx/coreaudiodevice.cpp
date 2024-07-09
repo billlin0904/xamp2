@@ -31,7 +31,7 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     , stream_time_(0) {
     audio_property_.mScope = kAudioDevicePropertyScopeOutput;
     audio_property_.mElement = kAudioObjectPropertyElementMaster;
-    logger_ = LoggerManager::GetInstance().GetLogger(kCoreAudioLoggerName);
+    logger_ = XampLoggerFactory.GetLogger(kCoreAudioLoggerName);
 }
 
 CoreAudioDevice::~CoreAudioDevice() {
@@ -51,11 +51,11 @@ void CoreAudioDevice::SetBlance() {
     try {
         const auto blance = main_volume.GetBlance();
         if (blance != 0.5f) {
-            XAMP_LOG_D(logger_, "Device volume not blance: {}!", blance);
+            //XAMP_LOG_D(logger_, "Device volume not blance: {}!", blance);
             main_volume.SetBlance(0.5);
         }
     } catch (Exception const &e) {
-        XAMP_LOG_D(logger_, "Failure to set volume blance, {}!", e.GetErrorMessage());
+        //XAMP_LOG_D(logger_, "Failure to set volume blance, {}!", e.GetErrorMessage());
     }
 }
 
@@ -101,7 +101,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
             throw DeviceUnSupportedFormatException(output_format);
         }
         CoreAudioThrowIfError(error);
-        XAMP_LOG_D(logger_, "Update audio format {}.", output_format);
+        //XAMP_LOG_D(logger_, "Update audio format {}.", output_format);
     }
 
     UInt32 buffer_size = 0;
@@ -113,7 +113,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                        nullptr,
                                                        &dataSize,
                                                        &buffer_size));
-    XAMP_LOG_D(logger_, "Allocate buffer size:{}.", buffer_size);
+    //XAMP_LOG_D(logger_, "Allocate buffer size:{}.", buffer_size);
 
     UInt32 size = buffer_size;
     dataSize = sizeof(UInt32);
@@ -124,7 +124,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                        nullptr,
                                                        dataSize,
                                                        &size));
-    XAMP_LOG_D(logger_, "Set buffer size:{}.", size);
+    //XAMP_LOG_D(logger_, "Set buffer size:{}.", size);
 
     buffer_size_ = output_format.GetChannels() * buffer_size;
 
@@ -221,7 +221,7 @@ void CoreAudioDevice::SetVolume(uint32_t volume) const {
     SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, device_id_)
         .SetGain(float(volume) / float(100.0));
 
-    XAMP_LOG_D(logger_, "Current volume: {}%", GetVolume());
+    //XAMP_LOG_D(logger_, "Current volume: {}%", GetVolume());
 }
 
 void CoreAudioDevice::SetMute(bool mute) const {
@@ -304,6 +304,10 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
 void CoreAudioDevice::AbortStream() noexcept {
 }
 
+void CoreAudioDevice::SetVolumeLevelScalar(float level) {
+
+}
+
 uint32_t CoreAudioDevice::GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
     AudioObjectPropertyAddress property_address = {
         kAudioDevicePropertyLatency,
@@ -360,9 +364,9 @@ uint32_t CoreAudioDevice::GetHardwareLantency(AudioDeviceID device_id, AudioObje
                                           &stream_latency);
     CoreAudioThrowIfError(result);
 
-    XAMP_LOG_D(logger_, "Device latency: {} us", latency);
-    XAMP_LOG_D(logger_, "Device offset: {} us", safe_offet);
-    XAMP_LOG_D(logger_, "Device stream latency: {} us", stream_latency);
+    //XAMP_LOG_D(logger_, "Device latency: {} us", latency);
+    //XAMP_LOG_D(logger_, "Device offset: {} us", safe_offet);
+    //XAMP_LOG_D(logger_, "Device stream latency: {} us", stream_latency);
 
     return latency + safe_offet + stream_latency;
 }

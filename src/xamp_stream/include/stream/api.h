@@ -38,8 +38,10 @@ public:
     // Create an equalizer audio processor object
     static AlignPtr<IAudioProcessor> MakeEqualizer();
 
+    #ifdef XAMP_OS_WIN
     // Create an super EQ equalizer audio processor object
     static AlignPtr<IAudioProcessor> MakeSuperEqEqualizer();
+    #endif
 
     // Create a parametric equalizer audio processor object
     static AlignPtr<IAudioProcessor> MakeParametricEq();

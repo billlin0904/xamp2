@@ -17,7 +17,7 @@
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
 #include <base/audioformat.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <base/dataconverter.h>
 #include <output_device/ioutputdevice.h>
 
@@ -62,6 +62,9 @@ public:
     bool IsHardwareControlVolume() const override;
 
     void AbortStream() noexcept override;
+
+    void SetVolumeLevelScalar(float level) override;
+
     void SetBlance();
     
 private:

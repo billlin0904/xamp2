@@ -78,7 +78,7 @@ public:
 
     bool Contains(Key const& key) const noexcept {
         std::shared_lock<SharedMutex> read_lock{ mutex_ };
-        return cache_.contains(key);
+        return cache_.find(key) != cache_.end();
 	}
 private:
     friend std::ostream& operator<< (std::ostream& ostr, const LruCache& cache) {

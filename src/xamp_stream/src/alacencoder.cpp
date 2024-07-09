@@ -4,6 +4,7 @@
 #include <base/buffer.h>
 #include <base/simd.h>
 #include <base/dataconverter.h>
+#include <base/port.h>
 
 #include <string.h>
 
@@ -94,7 +95,7 @@ public:
         }
 
         format_context_->pb = output_io_context;
-        strcpy_s(format_context_->filename, file_name);
+        port_strcpy(format_context_->filename, file_name);
 
         auto * av_codec = LIBAV_LIB.Codec->avcodec_find_encoder(AV_CODEC_ID_ALAC);
         if (!av_codec) {

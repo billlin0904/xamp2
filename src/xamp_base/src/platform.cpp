@@ -92,8 +92,8 @@ namespace {
 #endif
     }
 
+    #ifdef XAMP_OS_WIN
     void SetProcessPriority(const WinHandle& handle, ProcessPriority priority) {
-#ifdef XAMP_OS_WIN
         if (handle) {
             DWORD priority_class = NORMAL_PRIORITY_CLASS;
             if (priority == ProcessPriority::PRIORITY_BACKGROUND) {
@@ -120,8 +120,8 @@ namespace {
         if (!::SetProcessInformation(handle.get(), ProcessPowerThrottling, &power_throttling, sizeof(power_throttling))) {
             XAMP_LOG_DEBUG("Failed to set SetProcessInformation! error: {}.", GetLastErrorMessage());
         }
-#endif
     }
+    #endif
 }
 
 void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept {
@@ -252,9 +252,13 @@ CpuAffinity::operator bool() const noexcept {
 }
 
 size_t CpuAffinity::GetCoreCount() {
+#ifdef XAMP_OS_WIN
     SYSTEM_INFO sysinfo{};
     ::GetSystemInfo(&sysinfo);
     return sysinfo.dwNumberOfProcessors;
+#else
+    return 0;
+#endif
 }
 
 void CpuAffinity::SetAffinity(JThread& thread) {
@@ -351,13 +355,14 @@ void SetThreadPriority(JThread& thread, ThreadPriority priority) {
 
     auto thread_priority = PTHREAD_MIN_PRIORITY;
     switch (priority) {
-    case ThreadPriority::BACKGROUND:
+    case ThreadPriority::PRIORITY_BACKGROUND:
         thread_priority = PTHREAD_MIN_PRIORITY;
         break;
-    case ThreadPriority::NORMAL:
+    case ThreadPriority::PRIORITY_NORMAL:
+    default:
         thread_priority = PTHREAD_MAX_PRIORITY / 2;
         break;
-    case ThreadPriority::HIGHEST:
+    case ThreadPriority::PRIORITY_HIGHEST:
         thread_priority = PTHREAD_MAX_PRIORITY;
         break;
     }

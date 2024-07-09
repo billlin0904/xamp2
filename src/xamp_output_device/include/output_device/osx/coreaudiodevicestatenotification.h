@@ -13,7 +13,7 @@
 
 #include <CoreAudio/AudioHardware.h>
 
-#include <base/align_ptr.h>
+#include <base/memory.h>
 #include <output_device/idevicestatelistener.h>
 #include <output_device/idevicestatenotification.h>
 

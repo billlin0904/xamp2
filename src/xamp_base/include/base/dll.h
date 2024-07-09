@@ -112,7 +112,7 @@ public:
     * @param name Function name.    
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
-        func_ = static_cast<T*>(LoadSharedLibrarySymbol(dll, name));
+        func_ = (T*)LoadSharedLibrarySymbol(dll, name);
     }
 
 #ifdef XAMP_OS_WIN

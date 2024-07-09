@@ -46,7 +46,7 @@ Path GetTempFileNamePath() {
 }
 
 std::string MakeTempFileName() {
-	char buffer[MAX_PATH]{};
+    char buffer[255]{};
 #ifdef XAMP_OS_WIN
 	::GetTempFileNameA(buffer, "xamp", 0, buffer);
 #else

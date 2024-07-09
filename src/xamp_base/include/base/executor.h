@@ -155,36 +155,6 @@ void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&&
         }
     }
 }
-
-template <typename C, typename Compare>
-void ParallelSort(IThreadPoolExecutor& executor, C& items, Compare&& comp) {
-    auto first = items.begin();
-    auto last = items.end();
-
-    if (last - first < 2)
-        return;
-
-    std::stack<std::pair<typename C::iterator, typename C::iterator>> ranges;
-    ranges.push({ first, last });
-
-    while (!ranges.empty()) {
-        auto [begin, end] = ranges.top();
-        ranges.pop();
-        if (end - begin < 2)
-            continue;
-
-        auto middle = begin + (end - begin) / 2;
-        auto fut1 = Executor::Spawn(executor, [=](const StopToken&) -> void { std::sort(begin, middle, comp); });
-        auto fut2 = Executor::Spawn(executor, [=](const StopToken&) -> void { std::sort(middle, end, comp); });
-
-        fut1.wait();
-        fut2.wait();
-
-        std::inplace_merge(begin, middle, end, comp);
-        ranges.push({ begin, middle });
-        ranges.push({ middle, end });
-    }
-}
 	
 }
 

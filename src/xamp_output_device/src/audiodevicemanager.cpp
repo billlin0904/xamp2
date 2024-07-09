@@ -60,7 +60,6 @@ private:
 };
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
-	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
     RegisterDevice(XAMP_UUID_OF(DeviceTypeClass), []() {\
 		return MakeAlign<IDeviceType, DeviceTypeClass>();\
 	})
@@ -135,7 +134,7 @@ Vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
 }
 
 bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
-    return factory_.contains(id);
+    return factory_.find(id) != factory_.end();
 }
 
 bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {

@@ -8,9 +8,11 @@
 #include <base/base.h>
 #include <base/shared_singleton.h>
 
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+
 #include <memory>
 #include <string_view>
-#include <string>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -54,18 +56,18 @@ using SourceLocation = std::source_location;
 #else
 
 struct XAMP_BASE_API SourceLocation {
-    uint32_t line = 0;
-    uint32_t column = 0;
-    const char* file_name = "";
-    const char* function_name = "";
+    uint32_t line_ = 0;
+    uint32_t column_ = 0;
+    const char* file_name_ = "";
+    const char* function_name_ = "";
 
     constexpr SourceLocation() = default;
 
     constexpr SourceLocation(uint32_t line, uint32_t column, const char* file_name, const char* function_name)
-        : line(line)
-        , column(column)
-        , file_name(file_name)
-        , function_name(function_name) {
+        : line_(line)
+        , column_(column)
+        , file_name_(file_name)
+        , function_name_(function_name) {
     }
 
     static SourceLocation current() {
@@ -73,19 +75,19 @@ struct XAMP_BASE_API SourceLocation {
     }
 
     uint32_t line() const {
-        return this->line;
+        return this->line_;
     }
 
     uint32_t column() const {
-        return this->column;
+        return this->column_;
     }
 
     const char* file_name() const {
-        return this->file_name;
+        return this->file_name_;
     }
 
     const char* function_name() const {
-        return this->function_name;
+        return this->function_name_;
     }
 };
 
@@ -93,6 +95,11 @@ struct XAMP_BASE_API SourceLocation {
 #endif
 
 #define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
+
+template<typename... Args>
+std::string make_contexpr_string(const std::string& format, Args... args) {
+    return fmt::format(format, args...);
+}
 
 #define XAMP_LOG(Level, ...) xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, __VA_ARGS__)
 #define XAMP_LOG_DEBUG(...)    XAMP_LOG(LOG_LEVEL_DEBUG, __VA_ARGS__)

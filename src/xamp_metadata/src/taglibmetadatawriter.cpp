@@ -298,7 +298,7 @@ public:
 			".mp3",
 			".flac",
 		};
-		return support_ext.contains(ext);
+        return support_ext.find(ext) != support_ext.end();
 	}
 private:
     template <typename Function>

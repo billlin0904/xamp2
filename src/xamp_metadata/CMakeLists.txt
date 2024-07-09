@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project(xamp_metadata)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
@@ -34,6 +34,8 @@ include_directories("../thirdparty/taglib2/taglib/mpeg/id3v2/")
 include_directories("../thirdparty/taglib2/taglib/toolkit/")
 include_directories("../xamp_base/include")
 include_directories("../thirdparty/robin_hood/")
+include_directories("../thirdparty/libcue/include/")
+include_directories("../thirdparty/chromaprint/src/include/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

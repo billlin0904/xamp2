@@ -37,6 +37,7 @@ include_directories("../thirdparty/intel_mkl/include/")
 include_directories("../thirdparty/ffmpeg/include")
 include_directories("../thirdparty/fftw/")
 include_directories("../thirdparty/supereq/")
+include_directories("../thirdparty/libebur128/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

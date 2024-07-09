@@ -25,6 +25,8 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/utfcpp/source/")
 include_directories("../thirdparty/robin_hood/")
+include_directories("../thirdparty/libiconv/include/")
+include_directories("../thirdparty/uchardet/src/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

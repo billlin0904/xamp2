@@ -327,7 +327,7 @@ namespace {
             }
         }
         catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
+            //XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
         }
 
         SetFileInfo(path, track_info);
@@ -376,7 +376,7 @@ public:
 
 	XAMP_NO_DISCARD bool IsSupported(const Path & path) const noexcept {
 		const auto file_ext = String::ToLower(path.extension().string());
-		return support_file_extensions_.contains(file_ext);
+        return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
 	}
 
 protected:

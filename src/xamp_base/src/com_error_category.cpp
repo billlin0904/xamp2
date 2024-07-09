@@ -1,10 +1,11 @@
-#include <Audioclient.h>
-#include <comdef.h>
-#include <comutil.h>
-
 #include <base/exception.h>
 #include <base/com_error_category.h>
 #include <base/dll.h>
+
+#ifdef XAMP_OS_WIN
+#include <Audioclient.h>
+#include <comdef.h>
+#include <comutil.h>
 
 using namespace xamp::base;
 
@@ -198,3 +199,5 @@ std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help) {
 void WINAPI throw_translated_com_error(HRESULT hr, IErrorInfo* help) {
     throw com_to_system_error(hr, help);
 }
+
+#endif

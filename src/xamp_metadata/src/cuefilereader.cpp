@@ -1,4 +1,3 @@
-#include <fstream>
 #include <metadata/api.h>
 #include <metadata/cueloader.h>
 #include <metadata/libcuelib.h>

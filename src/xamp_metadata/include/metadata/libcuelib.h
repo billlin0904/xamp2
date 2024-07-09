@@ -60,7 +60,7 @@ inline LibCueLib::LibCueLib() try
 	, XAMP_LOAD_DLL_API(track_get_rem) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    //XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
 XAMP_METADATA_NAMESPACE_END

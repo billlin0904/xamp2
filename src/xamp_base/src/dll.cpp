@@ -4,7 +4,6 @@
 #include <base/memory_mapped_file.h>
 #include <base/dll.h>
 
-#include <stdlib.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

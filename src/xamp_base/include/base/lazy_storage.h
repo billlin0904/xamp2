@@ -48,7 +48,8 @@ public:
 	*/
 	void reset() {
 		if (has_data_.load()) {
-			std::destroy_at(reinterpret_cast<T*>(std::addressof(data_)));
+            //std::destroy_at(reinterpret_cast<T*>(std::addressof(data_)));
+            data_.reset();
 			has_data_ = false;
 		}
 	}
@@ -57,12 +58,14 @@ public:
 
 	constexpr T* get() {
 		wait_for_init_done();
-		return std::launder(reinterpret_cast<T*>(&data_));
+        //return std::launder(reinterpret_cast<T*>(&data_));
+        return data_.get();
 	}
 
 	constexpr const T* get() const {
 		wait_for_init_done();
-		return std::launder(reinterpret_cast<T*>(&data_));
+        //return std::launder(reinterpret_cast<T*>(&data_));
+        return data_.get();
 	}
 
 	const T * operator->() const {
@@ -82,7 +85,8 @@ private:
 		const auto do_need_init = need_init_.exchange(false);		
 		if (do_need_init) {
 			// Initialize the data.
-			std::construct_at(reinterpret_cast<T*>(std::addressof(data_)));
+            //std::construct_at(reinterpret_cast<T*>(std::addressof(data_)));
+            data_ = std::make_unique<T>();
 			has_data_ = true;
 		}
 		else {
@@ -93,7 +97,8 @@ private:
 
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<bool> need_init_{ true };
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<bool> has_data_{ false };
-	alignas(T) std::byte data_[sizeof(T)]{};
+    //alignas(T) std::byte data_[sizeof(T)]{};
+    std::unique_ptr<T> data_;
 };
 
 XAMP_BASE_NAMESPACE_END

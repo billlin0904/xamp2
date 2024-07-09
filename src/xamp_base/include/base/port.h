@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <sstream>
 #include <base/base.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -12,10 +13,19 @@ XAMP_BASE_NAMESPACE_BEGIN
 #ifdef XAMP_OS_WIN
 #define port_swscanf swscanf_s
 #define port_sscanf  sscanf_s
+#define port_strcpy  strcpy_s
 #else
 #define port_swscanf swscanf
 #define port_sscanf  sscanf
+#define port_strcpy  strcpy
 #endif
+
+inline int port_wtoi(const wchar_t *str) {
+    int val = 0;
+    std::wistringstream is(str);
+    is >> val;
+    return val;
+}
 
 XAMP_BASE_NAMESPACE_END
 

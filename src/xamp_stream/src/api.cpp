@@ -108,9 +108,11 @@ AlignPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {
     return MakeAlign<IAudioProcessor, BassEqualizer>();    
 }
 
+#ifdef XAMP_OS_WIN
 AlignPtr<IAudioProcessor> StreamFactory::MakeSuperEqEqualizer() {
     return MakeAlign<IAudioProcessor, SuperEqEqualizer>();
 }
+#endif
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeCompressor() {
     return MakeAlign<IAudioProcessor, BassCompressor>();

@@ -190,11 +190,11 @@ std::vector<std::string> GetSystemUsbPath() {
                 err = (*usb_interface)->GetDeviceVendor(usb_interface, &VID);
                 err = (*usb_interface)->GetDeviceProduct(usb_interface, &PID);
                 err = (*usb_interface)->GetLocationID(usb_interface, &LocationID);
-                XAMP_LOG_DEBUG("VID = {:x} PID = {:x} LocationID = {:x}", VID, PID, LocationID);
+                //XAMP_LOG_DEBUG("VID = {:x} PID = {:x} LocationID = {:x}", VID, PID, LocationID);
                 io_string_t path;
                 err = ::IORegistryEntryGetPath(device, kIOServicePlane, path);
                 (*usb_interface)->Release(usb_interface);
-                XAMP_LOG_DEBUG("Path: {}", path);
+                //XAMP_LOG_DEBUG("Path: {}", path);
                 usb_device.emplace_back(path);
             }
             (*plugin)->Release(plugin);
@@ -437,7 +437,7 @@ void ReleaseHogMode(AudioDeviceID id) {
     if (result != noErr) {
         CoreAudioFailedLog(result);
     }
-    XAMP_LOG_TRACE("Release hog mode device id:{}", id);
+    //XAMP_LOG_TRACE("Release hog mode device id:{}", id);
 }
 
 DeviceConnectType GetDeviceConnectType(AudioDeviceID id) {
@@ -457,14 +457,14 @@ DeviceConnectType GetDeviceConnectType(AudioDeviceID id) {
                                                &val);
     if (result != noErr) {
         CoreAudioFailedLog(result);
-        return DeviceConnectType::CONNECT_TYPE_UNKNOWN;
+        return DeviceConnectType::UNKNOWN;
     }
     if (val == kAudioDeviceTransportTypeBuiltIn) {
-        return DeviceConnectType::CONNECT_TYPE_BUILT_IN;
+        return DeviceConnectType::BUILT_IN_SPEAKER;
     } else if (val == kAudioDeviceTransportTypeUSB) {
-        return DeviceConnectType::CONNECT_TYPE_USB;
+        return DeviceConnectType::USB;
     }
-    return DeviceConnectType::CONNECT_TYPE_UNKNOWN;
+    return DeviceConnectType::UNKNOWN;
 }
 
 void SetHogMode(AudioDeviceID id) {
@@ -486,7 +486,7 @@ void SetHogMode(AudioDeviceID id) {
         CoreAudioFailedLog(result);
     }
 
-    XAMP_LOG_TRACE("Set hog mode id:{}", id);
+    //XAMP_LOG_TRACE("Set hog mode id:{}", id);
 }
 
 }
