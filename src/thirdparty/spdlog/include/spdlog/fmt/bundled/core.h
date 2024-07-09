@@ -285,6 +285,7 @@
 #  define FMT_UNICODE !FMT_MSC_VER
 #endif
 
+#if 0
 #ifndef FMT_CONSTEVAL
 #  if ((FMT_GCC_VERSION >= 1000 || FMT_CLANG_VERSION >= 1101) && \
        __cplusplus > 201703L) ||                                 \
@@ -295,6 +296,9 @@
 #  else
 #    define FMT_CONSTEVAL
 #  endif
+#endif
+#else
+#    define FMT_CONSTEVAL
 #endif
 
 #ifndef FMT_USE_NONTYPE_TEMPLATE_PARAMETERS

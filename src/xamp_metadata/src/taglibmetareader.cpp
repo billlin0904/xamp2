@@ -327,7 +327,7 @@ namespace {
             }
         }
         catch (const std::exception& e) {
-            //XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
+            XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
         }
 
         SetFileInfo(path, track_info);

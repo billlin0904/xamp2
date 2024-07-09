@@ -53,7 +53,7 @@ inline ChromaprintLib::ChromaprintLib() try
 	, XAMP_LOAD_DLL_API(chromaprint_dealloc) {
 }
 catch (Exception const& e) {
-    //XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
 XAMP_METADATA_NAMESPACE_END

@@ -197,7 +197,7 @@ public:
     }
 
     void SetProcessExceptionHandlers() {
-        //XAMP_LOG_DEBUG("Install process exception handler.");
+        XAMP_LOG_DEBUG("Install process exception handler.");
 
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
         ::AddVectoredExceptionHandler(0, VectoredHandler);
@@ -224,7 +224,7 @@ public:
     }
 
     void SetThreadExceptionHandlers() {
-        //XAMP_LOG_DEBUG("Install thread exception handler.");
+        XAMP_LOG_DEBUG("Install thread exception handler.");
 #if 1
         // Catch terminate() calls. 
         // In a multithreaded environment, terminate functions are maintained 

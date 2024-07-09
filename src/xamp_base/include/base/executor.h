@@ -69,7 +69,6 @@ void ParallelFor(IThreadPoolExecutor& executor,
 
     IteratorType begin = items.begin();
     IteratorType end = items.end();
-    size_t size = std::distance(begin, end);
 
     std::vector<std::pair<IteratorType, SharedTask<void>>> futures;
     futures.reserve(batches);

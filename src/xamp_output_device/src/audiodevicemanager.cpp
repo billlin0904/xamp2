@@ -79,7 +79,7 @@ AudioDeviceManager::AudioDeviceManager()
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
-    //XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif
     DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
 }

@@ -150,7 +150,7 @@
 #endif
 
 #ifdef XAMP_OS_WIN
-#define XAMP_NO_DISCARD [[no_discard]]
+#define XAMP_NO_DISCARD [[nodiscard]]
 #else
 #define XAMP_NO_DISCARD
 #endif
