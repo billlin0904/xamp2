@@ -82,6 +82,7 @@ void setAuthButton(Ui::XampWindow& ui, bool auth) {
 }
 
 void setThemeIcon(Ui::XampWindow& ui) {
+#if 0
     qTheme.setTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
 
     const QColor hover_color = qTheme.hoverColor();
@@ -94,6 +95,20 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                          }
 										)"));
 
+    ui.menuButton->setStyleSheet(qSTR(R"(
+                                         QToolButton#menuButton {                                                
+                                                border: none;
+                                                background-color: transparent;                                                
+                                         }
+                                         QToolButton#menuButton::menu-indicator { image: none; }
+										 QToolButton#menuButton:hover {												
+											background-color: %1;
+											border-radius: 0px;								 
+									     }
+                                         )").arg(colorToString(qTheme.hoverColor())));
+
+    ui.menuButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MORE));
+#else
     ui.nextButton->setStyleSheet(qTEXT(R"(
                                         QToolButton#nextButton {
                                         border: none;
@@ -145,21 +160,7 @@ void setThemeIcon(Ui::XampWindow& ui) {
     }
     )"
     ));
-
-    ui.menuButton->setStyleSheet(qSTR(R"(
-                                         QToolButton#menuButton {                                                
-                                                border: none;
-                                                background-color: transparent;                                                
-                                         }
-                                         QToolButton#menuButton::menu-indicator { image: none; }
-										 QToolButton#menuButton:hover {												
-											background-color: %1;
-											border-radius: 0px;								 
-									     }
-                                         )").arg(colorToString(qTheme.hoverColor())));
-
-    ui.menuButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MORE));
-
+#endif
     ui.naviBarButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MENU));
 }
 
@@ -241,12 +242,12 @@ void setWidgetStyle(Ui::XampWindow& ui) {
     ui.startPosLabel->setFont(duration_font);
     ui.endPosLabel->setFont(duration_font);
 
-    ui.titleFrameLabel->setStyleSheet(qSTR(R"(
+    /*ui.titleFrameLabel->setStyleSheet(qSTR(R"(
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;
     }
-    )"));
+    )"));*/
 
     if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
         ui.titleLabel->setStyleSheet(qTEXT(R"(

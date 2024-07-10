@@ -459,21 +459,6 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
 }
 
 void PlaylistTabWidget::resizeTabWidth() {
-	if (initial_width_ == 0) {
-		initial_width_ = width();
-	}
-
-    if (tabBar()->count() > PlaylistTabBar::kSmallTabCount) {
-        tabBar()->setFixedWidth(initial_width_ - PlaylistTabBar::kMaxButtonWidth);
-    }
-    else {     
-        if (tabBar()->count() == 0) {
-			// For the case of no tab, set the minimum width to 1 to avoid has an empty space.
-            tabBar()->setMinimumWidth(1);
-            return;
-        }
-        tabBar()->setMinimumWidth(PlaylistTabBar::kSmallTabWidth);
-    }
 }
 
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {

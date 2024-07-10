@@ -14,9 +14,14 @@
 class WinTaskbar;
 #endif
 
+#include <FramelessHelper/Widgets/standardtitlebar.h>
 
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
 public:
+    static constexpr auto kMaxTitleHeight = 30;
+    static constexpr auto kMaxTitleIcon = 20;
+    static constexpr auto kTitleFontSize = 10;
+
     XMainWindow();
 
 	virtual ~XMainWindow() override;
@@ -71,6 +76,9 @@ protected:
 
     void saveAppGeometry() override;
 
+public slots:
+    void onThemeChangedFinished(ThemeColor theme_color);
+
 private:    
     bool nativeEvent(const QByteArray& event_type, void* message, qintptr* result) override;
 
@@ -83,6 +91,14 @@ private:
 #if defined(Q_OS_WIN)
     QScopedPointer<WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
+    QLabel* title_frame_label_{ nullptr };
+    QToolButton* icon_{ nullptr };
+    QToolButton* close_button_{ nullptr };
+    QToolButton* max_win_button_{ nullptr };
+    QToolButton* min_win_button_{ nullptr };
+    QFrame* title_frame_{ nullptr };
+#else
+    StandardTitleBar* title_bar_;
 #endif
     QScopedPointer<QSystemTrayIcon> tray_icon_;
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;

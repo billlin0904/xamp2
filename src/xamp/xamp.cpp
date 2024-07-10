@@ -81,6 +81,8 @@
 #include <widget/youtubedl/ytmusicoauth.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
+#include <widget/chatgpt/chatgptwidget.h>
+
 namespace {
     constexpr auto kYtMusicSampleRate = 48000;
 
@@ -270,10 +272,15 @@ void Xamp::destroy() {
         ytmusic_service_->cleanupAsync().waitForFinished();
     }
 
+    if (chatgpt_service_ != nullptr) {
+        chatgpt_service_->cleanupAsync().waitForFinished();
+    }
+
     quit_and_wait_thread(background_service_thread_);
     quit_and_wait_thread(album_cover_service_thread_);
     quit_and_wait_thread(file_system_service_thread_);
     quit_and_wait_thread(ytmusic_service_thread_);
+    quit_and_wait_thread(chatgpt_service_thread_);
 
     if (main_window_ != nullptr) {
         (void)main_window_->saveGeometry();
@@ -281,6 +288,22 @@ void Xamp::destroy() {
 
     playlist_tab_page_->saveTabOrder();
     XAMP_LOG_DEBUG("Xamp destroy!");
+}
+
+void Xamp::initialChatGPTService() {
+    if (chatgpt_service_) {
+        return;
+    }
+
+    chatgpt_service_.reset(new ChatGptService());
+    chatgpt_service_->moveToThread(&chatgpt_service_thread_);
+    chatgpt_service_thread_.start();
+
+    XAMP_LOG_DEBUG("Initial chatgpt service...");
+
+    QCoro::connect(chatgpt_service_->initialAsync(), this, []() {
+        XAMP_LOG_DEBUG("Initial chatgpt service done.");
+        });    
 }
 
 void Xamp::initialYtMusicService() {
@@ -295,13 +318,7 @@ void Xamp::initialYtMusicService() {
     XAMP_LOG_DEBUG("Initial ytmusic service...");
 
     QCoro::connect(ytmusic_service_->initialAsync(), this, []() {
-#ifdef Q_OS_WIN
-        if (qAppSettings.valueAsBool(kAppSettingEnableSandboxMode)) {
-            XAMP_LOG_DEBUG("Set process mitigation.");
-            SetProcessMitigation();
-        }
-#endif
-        XAMP_LOG_DEBUG("Initial ytmusic worker done.");
+        XAMP_LOG_DEBUG("Initial ytmusic service done.");
         });
 }
 
@@ -336,12 +353,7 @@ void Xamp::showAbout() {
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
-    FramelessWidgetsHelper::get(this)->setTitleBarWidget(ui_.titleFrame);
-    FramelessWidgetsHelper::get(this)->setSystemButton(ui_.minWinButton, SystemButtonType::Minimize);
-    FramelessWidgetsHelper::get(this)->setSystemButton(ui_.maxWinButton, SystemButtonType::Maximize);
-    FramelessWidgetsHelper::get(this)->setSystemButton(ui_.closeButton, SystemButtonType::Close);
-    FramelessWidgetsHelper::get(this)->setHitTestVisible(ui_.menuButton);
-    FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar();
+    initialInterop();
 
     main_window_ = main_window;
     order_ = qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder);
@@ -379,17 +391,17 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &Xamp::onActivated);
     tray_icon_->show();
 
-    (void)QObject::connect(ui_.minWinButton, &QToolButton::clicked, [this]() {
+    /*(void)QObject::connect(ui_.minWinButton, &QToolButton::clicked, [this]() {
         main_window_->showMinimized();
-        });
+        });*/
 
-    (void)QObject::connect(ui_.maxWinButton, &QToolButton::clicked, [this]() {
+    /*(void)QObject::connect(ui_.maxWinButton, &QToolButton::clicked, [this]() {
         main_window_->updateMaximumState();
-        });
+        });*/
 
-    (void)QObject::connect(ui_.closeButton, &QToolButton::clicked, [this]() {
+    /*(void)QObject::connect(ui_.closeButton, &QToolButton::clicked, [this]() {
         main_window_->hide();
-        });
+        });*/
 
     background_service_.reset(new BackgroundService());
     background_service_->moveToThread(&background_service_thread_);
@@ -699,9 +711,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             emit updateNewVersion(latest_version_value);
         });
 
-    auto* menu = new XMenu(ui_.menuButton);
-    preference_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
-    (void)QObject::connect(preference_action_, &QAction::triggered, [this]() {
+    //auto* menu = new XMenu(ui_.menuButton);
+    //preference_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
+    /*(void)QObject::connect(preference_action_, &QAction::triggered, [this]() {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
         preference_page->loadSettings();
@@ -715,9 +727,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     about_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
     (void)QObject::connect(about_action_, &QAction::triggered, [this]() {
         showAbout();
-        });
-    ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
-    ui_.menuButton->setMenu(menu);
+        });*/
+    //ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
+    //ui_.menuButton->setMenu(menu);
 
     setPlayerOrder();
     initialDeviceList();
@@ -1097,7 +1109,6 @@ void Xamp::initialSpectrum() {
 
 void Xamp::updateMaximumState(bool is_maximum) {
     lrc_page_->setFullScreen(is_maximum);
-    qTheme.updateMaximumIcon(ui_.maxWinButton, is_maximum);
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
@@ -1126,9 +1137,6 @@ void Xamp::initialUi() {
 
     f.setWeight(QFont::DemiBold);
     f.setPointSize(10);
-    ui_.titleFrameLabel->setFont(f);
-    ui_.titleFrameLabel->setText(kApplicationTitle);
-    ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     QFont mono_font(qTEXT("MonoFont"));
     mono_font.setPointSize(qTheme.defaultFontSize());
@@ -1146,7 +1154,6 @@ void Xamp::initialUi() {
 
     if (YtMusicOAuth::parseOAuthJson()) {
         setAuthButton(ui_, true);
-        XAMP_LOG_DEBUG("YouTube worker initial done!");
     }
     else {
         setAuthButton(ui_, false);
@@ -1302,7 +1309,9 @@ void Xamp::initialDeviceList(const std::string& device_id) {
     }
 }
 
-void Xamp::initialController() {    
+void Xamp::initialController() {   
+    initialChatGPTService();
+
     (void)QObject::connect(ui_.mutedButton, &QToolButton::clicked, [this]() {
         if (!player_->IsMute()) {
             setVolume(0);
@@ -1500,7 +1509,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
         //ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_SEARCH:
-        if (YtMusicOAuth::parseOAuthJson()) {
+        if (YtMusicOAuth::parseOAuthJson()) {            
             initialYtMusicService();            
             yt_music_search_page_->playlist()->reload();
         }        
@@ -1518,6 +1527,8 @@ void Xamp::setCurrentTab(int32_t table_id) {
         }        
         //ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
         yt_music_tab_page_->reloadAll();
+        break;
+    case TAB_AI:
         break;
     }
     ui_.currentView->setCurrentWidget(widgets_[table_id]);
@@ -1689,6 +1700,7 @@ void Xamp::stopPlay() {
     qTheme.setPlayOrPauseButton(ui_.playButton, true); // note: Stop play must set true.
     current_entity_ = std::nullopt;
     main_window_->setTaskbarPlayerStop();
+    lrc_page_->spectrum()->reset();
 }
 
 void Xamp::playNext() {
@@ -1892,6 +1904,16 @@ void Xamp::onDelayedDownloadThumbnail() {
     }
 }
 
+QString generateMusicAnalysisPrompt(const QString& title, const QString& artist, const QString& album) {
+    return qSTR(
+        "Generate a music production analysis of the song, Below are the specific requirements for the analysis:"
+        " Song Title: %1"
+        " Artist: %2"
+        " Album: %3"
+        " Please respond in Traditional Chinese."
+    ).arg(title).arg(artist).arg(album);
+}
+
 void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     if (!device_info_) {
         showMeMessage(tr("Not found any audio device, please check your audio device."));
@@ -2002,6 +2024,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         ui_.mutedButton->updateState();
         open_done = true;
         updateUi(entity, playback_format, open_done, is_doubleclicked);
+
+		//auto prompt = generateMusicAnalysisPrompt(entity.title, entity.artist, entity.album);
+        //QCoro::connect(chatgpt_service_->getResponseAsync(prompt.toStdString()), this, &Xamp::onChatGptResponseCompleted);
         return;
     }
     catch (...) {
@@ -2119,6 +2144,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     music_dao_.updateMusicPlays(entity.music_id);
     album_dao_.updateAlbumPlays(entity.album_id);
 
+    lrc_page_->spectrum()->start();
     player_->Play();
 
     if (open_done) {
@@ -2332,6 +2358,12 @@ void Xamp::initialPlaylist() {
     playlist_tab_page_.reset(new PlaylistTabWidget(this));    
     yt_music_search_page_.reset(new PlaylistPage(this));
     yt_music_tab_page_.reset(new PlaylistTabWidget(this));
+    chatgpt_page_.reset(new ChatGPTWindow(this));
+
+    (void) QObject::connect(chatgpt_page_.get(), &ChatGPTWindow::sendToChatGPT, [this](const auto & message) {
+        QCoro::connect(chatgpt_service_->getResponseAsync(message.toStdString()), this, &Xamp::onChatGptResponseCompleted);
+        });
+
     yt_music_tab_page_->setStoreType(StoreType::CLOUD_STORE);
     yt_music_tab_page_->hidePlusButton();
 
@@ -2344,6 +2376,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(translateText("CD"),               TAB_CD,                qTheme.fontIcon(Glyphs::ICON_CD));
     ui_.naviBar->addTab(translateText("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->addTab(translateText("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));    
+    ui_.naviBar->addTab(translateText("AI"),               TAB_AI,                qTheme.fontIcon(Glyphs::ICON_AI));
         
     playlist_dao_.forEachPlaylist([this](auto playlist_id,
         auto index,
@@ -2562,6 +2595,7 @@ void Xamp::initialPlaylist() {
     pushWidget(cd_page_.get());
     pushWidget(yt_music_search_page_.get());
     pushWidget(yt_music_tab_page_.get());
+	pushWidget(chatgpt_page_.get());
 
     connectPlaylistPageSignal(music_library_page_->album()->albumViewPage()->playlistPage());
     connectPlaylistPageSignal(music_library_page_->year()->albumViewPage()->playlistPage());
@@ -2741,7 +2775,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 if (text.isEmpty()) {
                     playlist_page->spinner()->stopAnimation();
                     return;
-                }
+                }                
                 QCoro::connect(ytmusic_service_->searchAsync(text, "albums"), this, &Xamp::onSearchCompleted);
             });
 
@@ -2999,6 +3033,10 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
 void Xamp::onPlaybackError(const QString& message) {
     player_->Stop();
     XMessageBox::showError(message, kApplicationTitle, true);
+}
+
+void Xamp::onChatGptResponseCompleted(const std::string& response) {
+    chatgpt_page_->chatGPTResponse(QString::fromStdString(response));
 }
 
 void Xamp::onRetranslateUi() {

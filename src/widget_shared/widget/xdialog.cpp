@@ -5,7 +5,11 @@
 #include <thememanager.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
+
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 #include <FramelessHelper/Widgets/framelesswidgetshelper.h>
+#include <FramelessHelper/Widgets/standardsystembutton.h>
+#include <FramelessHelper/Widgets/private/framelesswidgetshelper_p.h>
 
 #include <QLabel>
 #include <QGridLayout>
@@ -25,6 +29,7 @@ void XDialog::setContent(QWidget* content) {
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
     setLayout(default_layout);
 
+#ifdef Q_OS_WIN
     title_frame_ = new QFrame();
     title_frame_->setObjectName(QString::fromUtf8("titleFrame"));
     title_frame_->setMinimumSize(QSize(0, kMaxTitleHeight));
@@ -113,12 +118,26 @@ void XDialog::setContent(QWidget* content) {
     FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
     
     onThemeChangedFinished(qTheme.themeColor());
+#else
+    title_bar_ = new StandardTitleBar(this);
+    title_bar_->setWindowIconVisible(true);
+    default_layout->addWidget(title_bar_);
+    default_layout->addWidget(content_, 1);
+    default_layout->setContentsMargins(0, 0, 0, 0);
+
+    auto* helper = FramelessWidgetsHelper::get(this);
+    helper->setTitleBarWidget(title_bar_);
+    helper->setSystemButton(title_bar_->minimizeButton(), SystemButtonType::Minimize);
+    helper->setSystemButton(title_bar_->maximizeButton(), SystemButtonType::Maximize);
+    helper->setSystemButton(title_bar_->closeButton(), SystemButtonType::Close);
+#endif
 
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
     adjustSize();
 }
 
 void XDialog::onThemeChangedFinished(ThemeColor theme_color) {
+#ifdef Q_OS_WIN
     qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
 
     QString color;
@@ -138,23 +157,34 @@ void XDialog::onThemeChangedFinished(ThemeColor theme_color) {
 	    color: %1;
         }
         )").arg(color));
+#endif
 }
 
 void XDialog::setTitle(const QString& title) const {
+#ifdef Q_OS_WIN
     title_frame_label_->setText(title);
+#else
+    title_bar_->setWindowTitle(title);
+#endif
 }
 
 void XDialog::setContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {
     setContent(content);
     FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
+#ifdef Q_OS_WIN
     if (no_moveable) {
         FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame_);
     }
+#endif
 }
 
 void XDialog::setIcon(const QIcon& icon) const {
+#ifdef Q_OS_WIN
     icon_->setIcon(icon);
     icon_->setHidden(false);
+#else
+	title_bar_->setWindowIcon(icon);
+#endif
 }
 
 void XDialog::closeEvent(QCloseEvent* event) {

@@ -20,7 +20,7 @@ public:
 
 	virtual ~XApplication() override;
 
-    [[nodiscard]] bool isAttach() const;
+    XAMP_NO_DISCARD bool isAttach() const;
 
     void initial();
 

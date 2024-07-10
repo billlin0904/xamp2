@@ -8,10 +8,9 @@
 #include <QDialog>
 #include <QToolButton>
 #include <FramelessHelper/Widgets/framelessdialog.h>
+#include <FramelessHelper/Widgets/standardtitlebar.h>
 
 #include <thememanager.h>
-
-class QGraphicsDropShadowEffect;
 
 FRAMELESSHELPER_USE_NAMESPACE
 using namespace wangwenx190::FramelessHelper::Global;
@@ -43,13 +42,16 @@ private:
 
     void setContent(QWidget* content);
 
-    QLabel* title_frame_label_{ nullptr };
-    QWidget* content_{ nullptr };
+#ifdef Q_OS_WIN
+    QLabel* title_frame_label_{ nullptr };    
     QToolButton* icon_{ nullptr };
     QToolButton* close_button_{ nullptr };
     QToolButton* max_win_button_{ nullptr };
     QToolButton* min_win_button_{ nullptr };
     QFrame* title_frame_{ nullptr };
-    QGraphicsDropShadowEffect* shadow_{ nullptr };
+#else
+    StandardTitleBar* title_bar_;
+#endif
+    QWidget* content_{ nullptr };
 };
 

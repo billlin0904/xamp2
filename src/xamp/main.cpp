@@ -246,9 +246,6 @@ int main() {
     XampCrashHandler.SetThreadExceptionHandlers();
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
-    // Disable ECO-QOS mode.
-	SetCurrentProcessPriority(ProcessPriority::PRIORITY_FOREGROUND);
-
     XAMP_ON_SCOPE_EXIT(
         qJsonSettings.save();
         qAppSettings.save();

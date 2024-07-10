@@ -11,7 +11,9 @@
 #include <widget/util/str_util.h>
 #include <widget/actionmap.h>
 #include <widget/globalshortcut.h>
+#include <thememanager.h>
 
+#include <QLabel>
 #include <QSystemTrayIcon>
 #include <QStorageInfo>
 #include <QApplication>
@@ -58,14 +60,125 @@ void XMainWindow::setShortcut(const QKeySequence& shortcut) {
 }
 
 void XMainWindow::setContentWidget(IXFrame *content_widget) {
+#if defined(Q_OS_WIN)
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
         auto* default_layout = new QVBoxLayout(this);
+
+        title_frame_ = new QFrame();
+        title_frame_->setObjectName(QString::fromUtf8("titleFrame"));
+        title_frame_->setMinimumSize(QSize(0, kMaxTitleHeight));
+        title_frame_->setFrameShape(QFrame::NoFrame);
+        title_frame_->setFrameShadow(QFrame::Plain);
+        title_frame_->setStyleSheet(qTEXT("border-radius: 0px;"));
+
+        auto f = font();
+        f.setBold(true);
+        f.setPointSize(qTheme.fontSize(kTitleFontSize));
+        title_frame_label_ = new QLabel(title_frame_);
+        title_frame_label_->setObjectName(QString::fromUtf8("titleFrameLabel"));
+        QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        size_policy3.setHorizontalStretch(1);
+        size_policy3.setVerticalStretch(0);
+        size_policy3.setHeightForWidth(title_frame_label_->sizePolicy().hasHeightForWidth());
+        title_frame_label_->setFont(f);
+        title_frame_label_->setSizePolicy(size_policy3);
+        title_frame_label_->setAlignment(Qt::AlignCenter);
+
+        close_button_ = new QToolButton(title_frame_);
+        close_button_->setObjectName(QString::fromUtf8("closeButton"));
+        close_button_->setMinimumSize(QSize(kMaxTitleHeight + 20, kMaxTitleHeight));
+        close_button_->setMaximumSize(QSize(kMaxTitleHeight + 20, kMaxTitleHeight));
+        close_button_->setFocusPolicy(Qt::NoFocus);
+
+        max_win_button_ = new QToolButton(title_frame_);
+        max_win_button_->setObjectName(QString::fromUtf8("maxWinButton"));
+        max_win_button_->setMinimumSize(QSize(kMaxTitleHeight + 20, kMaxTitleHeight));
+        max_win_button_->setMaximumSize(QSize(kMaxTitleHeight + 20, kMaxTitleHeight));
+        max_win_button_->setFocusPolicy(Qt::NoFocus);
+
+        min_win_button_ = new QToolButton(title_frame_);
+        min_win_button_->setObjectName(QString::fromUtf8("minWinButton"));
+        min_win_button_->setMinimumSize(QSize(kMaxTitleHeight + 20, kMaxTitleHeight));
+        min_win_button_->setMaximumSize(QSize(kMaxTitleHeight + 20, kMaxTitleHeight));
+        min_win_button_->setFocusPolicy(Qt::NoFocus);
+        min_win_button_->setPopupMode(QToolButton::InstantPopup);
+
+        icon_ = new QToolButton(title_frame_);
+        icon_->setObjectName(QString::fromUtf8("minWinButton"));
+        icon_->setMinimumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+        icon_->setMaximumSize(QSize(kMaxTitleHeight, kMaxTitleHeight));
+        icon_->setIconSize(QSize(kMaxTitleIcon, kMaxTitleIcon));
+        icon_->setFocusPolicy(Qt::NoFocus);
+        icon_->setStyleSheet(qTEXT("background: transparent; border: none;"));
+
+        auto* horizontal_spacer = new QSpacerItem(kMaxTitleHeight, kMaxTitleIcon, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        auto* horizontal_layout = new QHBoxLayout(title_frame_);
+        horizontal_layout->addWidget(icon_);
+        horizontal_layout->addItem(horizontal_spacer);
+        horizontal_layout->addWidget(title_frame_label_);
+        horizontal_layout->addWidget(min_win_button_);
+        horizontal_layout->addWidget(max_win_button_);
+        horizontal_layout->addWidget(close_button_);
+
+        horizontal_layout->setSpacing(0);
+        horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
+        horizontal_layout->setContentsMargins(0, 0, 0, 0);
+
+        default_layout->addWidget(title_frame_, 0);
+        
+        (void)QObject::connect(min_win_button_, &QToolButton::clicked, [this]() {
+            showMinimized();
+        });
+
+        (void)QObject::connect(max_win_button_, &QToolButton::clicked, [this]() {
+            updateMaximumState();
+        });
+        (void)QObject::connect(close_button_, &QToolButton::clicked, [this]() {
+            hide();
+        });
+
+        (void)QObject::connect(&qTheme,
+            &ThemeManager::themeChangedFinished,
+            this,
+            &XMainWindow::onThemeChangedFinished);
+
+        FramelessWidgetsHelper::get(this)->setTitleBarWidget(title_frame_);
+        FramelessWidgetsHelper::get(this)->setSystemButton(min_win_button_, Global::SystemButtonType::Minimize);
+        FramelessWidgetsHelper::get(this)->setSystemButton(max_win_button_, Global::SystemButtonType::Maximize);
+        FramelessWidgetsHelper::get(this)->setSystemButton(close_button_, Global::SystemButtonType::Close);
+        FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar();
+        title_frame_label_->setText(kApplicationTitle);
+
+        onThemeChangedFinished(qTheme.themeColor());
+
         default_layout->addWidget(content_widget_);
         default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
     }
+#else
+    if (content_widget_ != nullptr) {
+        auto* default_layout = new QVBoxLayout(this);
 
+        title_bar_ = new StandardTitleBar(this);
+        title_bar_->setWindowIconVisible(true);
+        default_layout->addWidget(title_bar_);
+        default_layout->addWidget(content_, 1);
+        default_layout->setContentsMargins(0, 0, 0, 0);
+
+        auto* helper = FramelessWidgetsHelper::get(this);
+        helper->setTitleBarWidget(title_bar_);
+        helper->setSystemButton(title_bar_->minimizeButton(), SystemButtonType::Minimize);
+        helper->setSystemButton(title_bar_->maximizeButton(), SystemButtonType::Maximize);
+        helper->setSystemButton(title_bar_->closeButton(), SystemButtonType::Close);
+
+        default_layout->addWidget(title_bar_);
+        default_layout->addWidget(content_widget_);
+        default_layout->setContentsMargins(0, 0, 0, 0);
+        setLayout(default_layout);
+    }    
+#endif
     setAcceptDrops(true);
     readDriveInfo();
     installEventFilter(this);
@@ -75,6 +188,30 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
 // QScopedPointer require default destructor.
 XMainWindow::~XMainWindow() {
     XAMP_LOG_DEBUG("XMainWindow destory!");
+}
+
+void XMainWindow::onThemeChangedFinished(ThemeColor theme_color) {
+#ifdef Q_OS_WIN
+    qTheme.setTitleBarButtonStyle(close_button_, min_win_button_, max_win_button_);
+
+    QString color;
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
+        color = qTEXT("white");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        color = qTEXT("gray");
+        break;
+    }
+
+    title_frame_label_->setStyleSheet(qSTR(R"(
+        QLabel#titleFrameLabel {
+        border: none;
+        background: transparent;
+	    color: %1;
+        }
+        )").arg(color));
+#endif
 }
 
 void XMainWindow::ensureInitTaskbar() {
@@ -337,6 +474,7 @@ void XMainWindow::initMaximumState() {
     if (!content_widget_) {
         return;
     }
+    qTheme.updateMaximumIcon(max_win_button_, isMaximized());
     content_widget_->updateMaximumState(isMaximized());
 }
 
@@ -349,10 +487,12 @@ void XMainWindow::updateMaximumState() {
         setWindowState(windowState() & ~Qt::WindowMinimized);
         showNormal();
         content_widget_->updateMaximumState(false);
+        qTheme.updateMaximumIcon(max_win_button_, false);
     }
     else {
         showMaximized();
         content_widget_->updateMaximumState(true);
+        qTheme.updateMaximumIcon(max_win_button_, true);
     }
 }
 
