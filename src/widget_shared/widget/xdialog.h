@@ -15,7 +15,13 @@
 FRAMELESSHELPER_USE_NAMESPACE
 using namespace wangwenx190::FramelessHelper::Global;
 
-class XAMP_WIDGET_SHARED_EXPORT XDialog : public QDialog {
+#ifdef Q_OS_WIN
+using XDialogBase = FramelessDialog;
+#else
+using XDialogBase = QDialog;
+#endif
+
+class XAMP_WIDGET_SHARED_EXPORT XDialog : public XDialogBase {
     Q_OBJECT
 public:
     static constexpr auto kMaxTitleHeight = 30;

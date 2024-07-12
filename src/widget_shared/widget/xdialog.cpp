@@ -17,7 +17,7 @@
 #include <QPropertyAnimation>
 
 XDialog::XDialog(QWidget* parent, bool modal)
-    : QDialog(parent) {
+    : XDialogBase(parent) {
     setModal(modal);
 }
 
@@ -119,17 +119,8 @@ void XDialog::setContent(QWidget* content) {
     
     onThemeChangedFinished(qTheme.themeColor());
 #else
-    //title_bar_ = new StandardTitleBar(this);
-    //title_bar_->setWindowIconVisible(true);
-    //default_layout->addWidget(title_bar_);
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
-
-    //auto* helper = FramelessWidgetsHelper::get(this);
-    //helper->setTitleBarWidget(title_bar_);
-    //helper->setSystemButton(title_bar_->minimizeButton(), SystemButtonType::Minimize);
-    //helper->setSystemButton(title_bar_->maximizeButton(), SystemButtonType::Maximize);
-    //helper->setSystemButton(title_bar_->closeButton(), SystemButtonType::Close);
 #endif
 
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
