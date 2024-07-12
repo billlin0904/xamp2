@@ -1,7 +1,11 @@
+#include <widget/baseservice.h>
+
+#if 1
+
+#undef slots
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
-
-#include <widget/baseservice.h>
+#define slots Q_SLOTS
 
 namespace py = pybind11;
 
@@ -13,3 +17,4 @@ void initialInterop() {
 void finalizeInterop() {
 
 }
+#endif

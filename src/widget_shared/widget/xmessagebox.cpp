@@ -196,7 +196,8 @@ void XMessageBox::onUpdate() {
 void XMessageBox::showBug(const Exception& exception,
 	const QString& title,
 	QWidget* parent) {
-	XMessageBox box(title, QString::fromStdString(exception.GetStackTrace()), 
+    XMessageBox box(QString::fromStdString(exception.GetErrorMessage()),
+                    QString::fromStdString(exception.GetStackTrace()),
 		parent, 
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,
@@ -235,8 +236,8 @@ QDialogButtonBox::StandardButton XMessageBox::showButton(const QString& text,
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
 	// Note: Don't call centerParent(), centerDesktop()
 	box.setIcon(icon);
-	if (box.exec() == -1)
-		return QDialogButtonBox::Cancel;
+    //if (box.exec() == -1)
+    //	return QDialogButtonBox::Cancel;
 	return box.standardButton(box.clickedButton());
 }
 

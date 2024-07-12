@@ -359,6 +359,7 @@ struct Lyrics {
 
 class YtMusicInterop;
 
+#if 1
 class YtMusicInterop {
 public:
 	explicit YtMusicInterop(const std::optional<std::string>& auth = "oauth.json",
@@ -498,4 +499,4 @@ private:
 	YtMusicInterop* interop();	
 	LocalStorage<YtMusicInterop> interop_;
 };
-
+#endif

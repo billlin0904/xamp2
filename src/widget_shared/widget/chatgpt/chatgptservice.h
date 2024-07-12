@@ -5,6 +5,7 @@
 
 #pragma once
 
+#if 1
 #include <QtConcurrent/QtConcurrent>
 #include <QObject>
 #include <QFuture>
@@ -46,3 +47,5 @@ private:
 
     LocalStorage<ChatGptInterop> interop_;
 };
+
+#endif

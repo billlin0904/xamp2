@@ -17,7 +17,7 @@
 #include <QPropertyAnimation>
 
 XDialog::XDialog(QWidget* parent, bool modal)
-    : FramelessDialog(parent) {
+    : QDialog(parent) {
     setModal(modal);
 }
 
@@ -119,17 +119,17 @@ void XDialog::setContent(QWidget* content) {
     
     onThemeChangedFinished(qTheme.themeColor());
 #else
-    title_bar_ = new StandardTitleBar(this);
-    title_bar_->setWindowIconVisible(true);
-    default_layout->addWidget(title_bar_);
+    //title_bar_ = new StandardTitleBar(this);
+    //title_bar_->setWindowIconVisible(true);
+    //default_layout->addWidget(title_bar_);
     default_layout->addWidget(content_, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    auto* helper = FramelessWidgetsHelper::get(this);
-    helper->setTitleBarWidget(title_bar_);
-    helper->setSystemButton(title_bar_->minimizeButton(), SystemButtonType::Minimize);
-    helper->setSystemButton(title_bar_->maximizeButton(), SystemButtonType::Maximize);
-    helper->setSystemButton(title_bar_->closeButton(), SystemButtonType::Close);
+    //auto* helper = FramelessWidgetsHelper::get(this);
+    //helper->setTitleBarWidget(title_bar_);
+    //helper->setSystemButton(title_bar_->minimizeButton(), SystemButtonType::Minimize);
+    //helper->setSystemButton(title_bar_->maximizeButton(), SystemButtonType::Maximize);
+    //helper->setSystemButton(title_bar_->closeButton(), SystemButtonType::Close);
 #endif
 
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
@@ -160,30 +160,30 @@ void XDialog::onThemeChangedFinished(ThemeColor theme_color) {
 #endif
 }
 
-void XDialog::setTitle(const QString& title) const {
+void XDialog::setTitle(const QString& title) {
 #ifdef Q_OS_WIN
     title_frame_label_->setText(title);
 #else
-    title_bar_->setWindowTitle(title);
+    setWindowTitle(title);
+#endif
+}
+
+void XDialog::setIcon(const QIcon& icon) {
+#ifdef Q_OS_WIN
+    icon_->setIcon(icon);
+    icon_->setHidden(false);
+#else
+    setWindowIcon(icon);
 #endif
 }
 
 void XDialog::setContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {
     setContent(content);
-    FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
 #ifdef Q_OS_WIN
+    FramelessWidgetsHelper::get(this)->setWindowFixedSize(disable_resize);
     if (no_moveable) {
         FramelessWidgetsHelper::get(this)->setHitTestVisible(title_frame_);
     }
-#endif
-}
-
-void XDialog::setIcon(const QIcon& icon) const {
-#ifdef Q_OS_WIN
-    icon_->setIcon(icon);
-    icon_->setHidden(false);
-#else
-	title_bar_->setWindowIcon(icon);
 #endif
 }
 
@@ -195,5 +195,5 @@ void XDialog::closeEvent(QCloseEvent* event) {
         event->ignore();
         return;
     }
-	FramelessDialog::closeEvent(event);
+    //FramelessDialog::closeEvent(event);
 }

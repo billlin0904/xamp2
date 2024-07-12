@@ -49,12 +49,14 @@ namespace {
 			return std::make_pair(total_file_count.load(), path_infos);
 		}
 
+        #if 0
 		std::sort(std::execution::par_unseq, path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
 			if (p1.file_count != p2.file_count) {
 				return p1.file_count > p2.file_count;
 			}
 			return p1.depth < p2.depth;
 		});
+        #endif
 		return std::make_pair(total_file_count.load(), path_infos);
 	}
 }
@@ -215,8 +217,8 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 		paths.clear();
 		paths.shrink_to_fit();
 
-		file_count_paths.clear();
-		file_count_paths.shrink_to_fit();
+        //file_count_paths.clear();
+        //file_count_paths.shrink_to_fit();
 
 		emit readFileProgress(100);
 		emit readCompleted();

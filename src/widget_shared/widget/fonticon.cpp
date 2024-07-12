@@ -225,7 +225,7 @@ QIcon FontIcon::getIcon(const int32_t& code, QVariantMap options, const QString&
 
     auto* engine = new FontIconEngine(std::move(options));
     engine->setFontFamily(use_family);
-    if (!glyphs_.contains(code)) {
+    if (glyphs_.find(code) == glyphs_.end()) {
         engine->setLetter(code);
     }
     else {

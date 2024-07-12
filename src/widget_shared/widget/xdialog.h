@@ -15,7 +15,7 @@
 FRAMELESSHELPER_USE_NAMESPACE
 using namespace wangwenx190::FramelessHelper::Global;
 
-class XAMP_WIDGET_SHARED_EXPORT XDialog : public FramelessDialog {
+class XAMP_WIDGET_SHARED_EXPORT XDialog : public QDialog {
     Q_OBJECT
 public:
     static constexpr auto kMaxTitleHeight = 30;
@@ -30,9 +30,9 @@ public:
         return content_;
     }
 
-    void setTitle(const QString& title) const;
+    void setTitle(const QString& title);
 
-    void setIcon(const QIcon& icon) const;
+    void setIcon(const QIcon& icon);
 
 public slots:
     void onThemeChangedFinished(ThemeColor theme_color);

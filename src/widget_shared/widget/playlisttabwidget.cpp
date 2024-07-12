@@ -130,6 +130,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     auto* tab_bar = new PlaylistTabBar(this);
     setTabBar(tab_bar);
 
+#if 1
     add_tab_button_ = new QPushButton(this);    
     add_tab_button_->setMaximumSize(16, 16);
     add_tab_button_->setMinimumSize(16, 16);
@@ -140,10 +141,12 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(add_tab_button_, &QPushButton::pressed, [this]() {
         emit createNewPlaylist();
         });
+#endif
+
     tabBar()->installEventFilter(this);
 
     setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(this, &PlaylistTabBar::customContextMenuRequested, [this](auto pt) {
+    (void)QObject::connect(this, &PlaylistTabWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlaylistTabWidget> action_map(this);
 
         if (store_type_ == StoreType::CLOUD_STORE) {
@@ -210,24 +213,25 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             action_map.exec(pt);
         );
         });
-
+#if 1
     (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
         Q_ASSERT(playlist_page != nullptr);
         playlist_page->playlist()->reload();
         });
 
+
     (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
         playlist_dao_.setPlaylistName(currentPlaylistId(), name);
 		qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, currentPlaylistId());
         });
 
-    (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
+    (void)QObject::connect(tabBar(), &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
         Q_ASSERT(playlist_page != nullptr);
         qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, playlist_page->playlist()->playlistId());
         });
-
+#endif
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
         /*if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
@@ -258,12 +262,17 @@ void PlaylistTabWidget::onRetranslateUi() {
 }
 
 void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
+#if 1
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qSTR(R"(
 	QTabWidget {
 		qproperty-iconSize: 16px 16px;	
 	}
+
+    QTabWidget::tab-bar {
+        left: 0;
+    }
 
     QTabWidget::pane { 
 		border: 0; 
@@ -280,11 +289,11 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
     )"));
 
-    add_tab_button_->setStyleSheet(qSTR(R"(   
-	QPushButton#plusButton:hover {        
-		background-color: #455364;
-		border-radius: 8px;
-	}
+    add_tab_button_->setStyleSheet(qSTR(R"(
+    QPushButton#plusButton:hover {
+        background-color: #455364;
+        border-radius: 8px;
+    }
     )"));
         break;
     case ThemeColor::LIGHT_THEME:
@@ -292,6 +301,10 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	QTabWidget {
 		qproperty-iconSize: 16px 16px;	
 	}
+
+    QTabWidget::tab-bar {
+        left: 0;
+    }
 
     QTabWidget::pane { 
 		border: 0; 
@@ -309,18 +322,18 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
     )"));
 
-        add_tab_button_->setStyleSheet(qSTR(R"(   
-	QPushButton#plusButton:hover {
-		background-color: #e1e3e5;
-		border-radius: 8px;
-	}
+    add_tab_button_->setStyleSheet(qSTR(R"(
+    QPushButton#plusButton:hover {
+        background-color: #e1e3e5;
+        border-radius: 8px;
+    }
     )"));
         break;
     default:
         break;
     }
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
-
+#endif
     for (int i = 0; i < tabBar()->count(); ++i) {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     }
@@ -454,7 +467,7 @@ void PlaylistTabWidget::setPlaylistCover(const QPixmap& cover) {
     }
 }
 
-void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent* e) {
+void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent*) {
     emit createNewPlaylist();
 }
 
@@ -467,6 +480,7 @@ void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
 }
 
 bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
+#if 1
     if (tabBar() == watched) {
         if (event->type() == QEvent::Resize) {
             if (!add_tab_button_->isHidden()) {
@@ -476,7 +490,9 @@ bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
                     add_tab_button_->setFixedSize((h - 1) * QSize(1, 1));
                     auto right = r.right() + 3;
                     add_tab_button_->move(right, 0);
+
                 }
+                return true;
             }
         }
         else {
@@ -486,8 +502,10 @@ bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
                 add_tab_button_->setFixedSize((32 - 1) * QSize(1, 1));
                 auto right = r.right() + 3;
                 add_tab_button_->move(right, 0);
+                return true;
             }            
         }        
     }
+#endif
     return QTabWidget::eventFilter(watched, event);
 }

@@ -12,9 +12,12 @@ XTooltip::XTooltip(const QString& text, QWidget* parent)
     text_ = new QLabel(this);
 	text_->setObjectName(qTEXT("textLabel"));
     auto* layout = new QVBoxLayout(this);
-    layout->addWidget(text_);
+    layout->addWidget(text_, 1, Qt::AlignCenter);
+    layout->setSpacing(0);
+    layout->setContentsMargins(0, 0, 0, 0);
+    text_->setFixedHeight(18);
     setLayout(layout);
-    setFixedHeight(45);    
+    setFixedHeight(45);
     installEventFilter(this);
 	setText(text);
     onThemeChangedFinished(qTheme.themeColor());

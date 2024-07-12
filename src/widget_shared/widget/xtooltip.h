@@ -44,7 +44,7 @@ public:
 
     void onThemeChangedFinished(ThemeColor theme_color);
 protected:
-    bool eventFilter(QObject* obj, QEvent* e);
+    bool eventFilter(QObject* obj, QEvent* e) override;
 
     void paintEvent(QPaintEvent* event) override;
 

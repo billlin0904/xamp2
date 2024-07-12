@@ -37,6 +37,7 @@ class AlbumPlayListTableView;
 class PlaylistPage;
 class XMessage;
 class ProgressView;
+class QEnterEvent;
 
 class AlbumViewPage final : public QFrame {
 	Q_OBJECT
@@ -130,7 +131,7 @@ public slots:
 
 	void showAlbumViewMenu(const QPoint& pt);
 
-	void enterEvent(QEnterEvent* event) override;
+    void enterEvent(QEnterEvent* event) override;
 private:
 	bool enable_page_{ true };
 

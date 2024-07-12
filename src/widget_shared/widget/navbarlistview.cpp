@@ -130,7 +130,7 @@ void NavBarListView::addTab(const QString& name, int table_id, const QIcon& icon
     item->setSizeHint(QSize(36, 36));      
     item->setData(name, Qt::UserRole);
     auto f = item->font();
-    f.setPointSize(qTheme.fontSize(9));
+    f.setPointSize(qTheme.fontSize(12));
     item->setFont(f);
     model_.appendRow(item);
     names_[table_id] = name;

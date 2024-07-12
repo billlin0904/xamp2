@@ -102,5 +102,5 @@ private:
 #endif
     QScopedPointer<QSystemTrayIcon> tray_icon_;
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
-	IXFrame *content_widget_;
+    IXFrame *content_widget_;
 };

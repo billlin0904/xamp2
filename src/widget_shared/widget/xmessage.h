@@ -9,7 +9,7 @@
 #include <QWidget>
 #include <QTimer>
 
-#include <widget/util/str_utilts.h>
+#include <widget/util/str_util.h>
 
 class XMessageItem;
 class QPaintEvent;

@@ -60,8 +60,9 @@ void XMainWindow::setShortcut(const QKeySequence& shortcut) {
 }
 
 void XMainWindow::setContentWidget(IXFrame *content_widget) {
-#if defined(Q_OS_WIN)
     content_widget_ = content_widget;
+
+#if defined(Q_OS_WIN)
     if (content_widget_ != nullptr) {
         auto* default_layout = new QVBoxLayout(this);
 
@@ -158,26 +159,19 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
         setLayout(default_layout);
     }
 #else
-    if (content_widget_ != nullptr) {
-        auto* default_layout = new QVBoxLayout(this);
+    auto* default_layout = new QVBoxLayout(this);
 
-        title_bar_ = new StandardTitleBar(this);
-        title_bar_->setWindowIconVisible(true);
-        default_layout->addWidget(title_bar_);
-        default_layout->addWidget(content_, 1);
-        default_layout->setContentsMargins(0, 0, 0, 0);
+    //title_bar_ = new StandardTitleBar(this);
+    //title_bar_->setWindowIconVisible(true);
+    //default_layout->addWidget(title_bar_);
+    default_layout->addWidget(content_widget, 1);
+    default_layout->setContentsMargins(0, 0, 0, 0);
 
-        auto* helper = FramelessWidgetsHelper::get(this);
-        helper->setTitleBarWidget(title_bar_);
-        helper->setSystemButton(title_bar_->minimizeButton(), SystemButtonType::Minimize);
-        helper->setSystemButton(title_bar_->maximizeButton(), SystemButtonType::Maximize);
-        helper->setSystemButton(title_bar_->closeButton(), SystemButtonType::Close);
+    //auto* helper = FramelessWidgetsHelper::get(this);
+    //helper->setTitleBarWidget(title_bar_);
+    //helper->setHitTestVisible(title_bar_);
 
-        default_layout->addWidget(title_bar_);
-        default_layout->addWidget(content_widget_);
-        default_layout->setContentsMargins(0, 0, 0, 0);
-        setLayout(default_layout);
-    }    
+    setLayout(default_layout);
 #endif
     setAcceptDrops(true);
     readDriveInfo();
@@ -314,7 +308,9 @@ void XMainWindow::restoreAppGeometry() {
     }
     else {
         centerDesktop(this);
-    }    
+    }
+#else
+    centerDesktop(this);
 #endif
 }
 
@@ -474,7 +470,9 @@ void XMainWindow::initMaximumState() {
     if (!content_widget_) {
         return;
     }
+#ifdef Q_OS_WIN
     qTheme.updateMaximumIcon(max_win_button_, isMaximized());
+#endif
     content_widget_->updateMaximumState(isMaximized());
 }
 
@@ -487,12 +485,16 @@ void XMainWindow::updateMaximumState() {
         setWindowState(windowState() & ~Qt::WindowMinimized);
         showNormal();
         content_widget_->updateMaximumState(false);
+#ifdef Q_OS_WIN
         qTheme.updateMaximumIcon(max_win_button_, false);
+#endif
     }
     else {
         showMaximized();
         content_widget_->updateMaximumState(true);
+#ifdef Q_OS_WIN
         qTheme.updateMaximumIcon(max_win_button_, true);
+#endif
     }
 }
 

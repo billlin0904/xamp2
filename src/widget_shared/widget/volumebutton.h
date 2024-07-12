@@ -12,6 +12,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 
+class QEnterEvent;
 class VolumeControlDialog;
 
 class XAMP_WIDGET_SHARED_EXPORT VolumeButton : public QToolButton {
@@ -34,7 +35,7 @@ public slots:
 private:
 	bool eventFilter(QObject* obj, QEvent* e) override;
 
-	void enterEvent(QEnterEvent* event) override;
+    void enterEvent(QEnterEvent* event) override;
 	
 	void leaveEvent(QEvent* event) override;
 

@@ -1,5 +1,10 @@
+#include <widget/youtubedl/ytmusicservice.h>
+
+#if 1
+#undef slots
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
+#define slots Q_SLOTS
 
 #include <QBuffer>
 #include <QImageReader>
@@ -7,7 +12,6 @@
 
 #include <algorithm>
 #include <widget/http.h>
-#include <widget/youtubedl/ytmusicservice.h>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -910,3 +914,4 @@ std::vector<search::SearchResultItem> YtMusicInterop::search(
     
     return output;
 }
+#endif

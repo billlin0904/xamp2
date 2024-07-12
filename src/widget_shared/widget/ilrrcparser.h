@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <string>
+#include <vector>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT LyricEntry {

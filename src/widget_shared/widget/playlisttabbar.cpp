@@ -16,9 +16,9 @@ class TextAlignedStyle : public QProxyStyle {
 public:
 	explicit TextAlignedStyle(QStyle* style = nullptr)
 		: QProxyStyle(style) {
-	}	
+	}
 
-	void drawItemText(QPainter* painter, const QRect& rect, int flags, const QPalette& pal, bool enabled,
+    void drawItemText(QPainter* painter, const QRect& rect, int /*flags*/, const QPalette& pal, bool enabled,
 		const QString& text, QPalette::ColorRole textRole) const override {
 		QCommonStyle::drawItemText(painter, rect, Qt::AlignVCenter | Qt::AlignLeft, pal, enabled, text, textRole);
 	}
@@ -29,13 +29,13 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setExpanding(true);
 	setTabsClosable(true);
 	setUsesScrollButtons(false);
-	setElideMode(Qt::TextElideMode::ElideRight);
+    //setElideMode(Qt::TextElideMode::ElideRight);
 	setMovable(true);
 	auto f = font();
 	f.setPointSize(qTheme.fontSize(10));
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
-	setStyle(new TextAlignedStyle());
+    setStyle(new TextAlignedStyle());
 }
 
 void PlaylistTabBar::onFinishRename() {
@@ -118,14 +118,15 @@ bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
 
 QSize PlaylistTabBar::tabSizeHint(int index) const {
 	QSize size(QTabBar::tabSizeHint(index));
-
+#if 1
 	if (count() < kSmallTabCount) {
 		size.setWidth(kSmallTabWidth);
 	}
 	else {		
 		auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
 		size.setWidth(width / count());
-	}	
+    }
+#endif
 	return size;
 }
 

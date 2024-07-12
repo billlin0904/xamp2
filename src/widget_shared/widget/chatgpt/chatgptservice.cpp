@@ -1,8 +1,12 @@
+#include <widget/chatgpt/chatgptservice.h>
+
+#if 1
+#undef slots
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
-#include <cstdlib>
+#define slots Q_SLOTS
 
-#include <widget/chatgpt/chatgptservice.h>
+#include <cstdlib>
 
 namespace py = pybind11;
 
@@ -134,8 +138,11 @@ QFuture<std::vector<std::string>> ChatGptService::getResponsesAsync(const std::v
 
 QFuture<bool> ChatGptService::cleanupAsync() {
     return invokeAsync([this]() {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         py::gil_scoped_acquire guard{};
         interop_.reset();
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
+#endif
+

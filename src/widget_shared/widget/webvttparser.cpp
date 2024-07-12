@@ -33,6 +33,13 @@ bool WebVTTParser::parse(std::wistream& file) {
     std::wstring line;
     ParseState next_state{ PARSE_INDEX };
 
+    auto wtoi = [](const auto str) {
+        std::wstringstream istr(str);
+        int val = 0;
+        istr >> val;
+        return val;
+    };
+
     LyricEntry entry;
     while (std::getline(file, line)) {
         if (line.empty()) continue;
@@ -40,7 +47,7 @@ bool WebVTTParser::parse(std::wistream& file) {
 
         switch (next_state) {
         case ParseState::PARSE_INDEX:
-            entry.index = _wtoi(line.c_str()) - 1;
+            entry.index = wtoi(line.c_str()) - 1;
             next_state = ParseState::PARSE_TIMESTAMP;
             break;
         case ParseState::PARSE_TIMESTAMP:
