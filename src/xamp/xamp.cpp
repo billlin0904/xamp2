@@ -1,5 +1,5 @@
-﻿#include <QCoroFuture>
-#include <QCoroProcess>
+﻿#include <qcorofuture.h>
+#include <qcoroprocess.h>
 #include <QImageReader>
 #include <QInputDialog>
 #include <QJsonObject>
@@ -270,10 +270,12 @@ void Xamp::destroy() {
 
     if (ytmusic_service_ != nullptr) {
         ytmusic_service_->cleanupAsync().waitForFinished();
+        ytmusic_service_.reset();
     }
 
     if (chatgpt_service_ != nullptr) {
         chatgpt_service_->cleanupAsync().waitForFinished();
+        chatgpt_service_.reset();
     }
 
     quit_and_wait_thread(background_service_thread_);
@@ -348,8 +350,8 @@ void Xamp::showAbout() {
 	(void)QObject::connect(this, &Xamp::updateNewVersion, about_page.get(), &AboutPage::OnUpdateNewVersion);
 	dialog->setContentWidget(about_page.get());
 	dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
-	dialog->setTitle(tr("About"));	
-	dialog->exec();
+    dialog->setTitle(tr("About"));
+    dialog->exec();
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
@@ -1209,7 +1211,7 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
 }
 
 void Xamp::waitForReady() {
-    FramelessWidgetsHelper::get(this)->waitForReady();
+    //FramelessWidgetsHelper::get(this)->waitForReady();
 }
 
 void Xamp::initialDeviceList(const std::string& device_id) {
@@ -1411,22 +1413,13 @@ void Xamp::initialController() {
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
-        constexpr bool use_supereq = false;
         QScopedPointer<XDialog> dialog(new XDialog(this));
-        if (use_supereq) {
-            QScopedPointer<SuperEqView> eq(new SuperEqView(dialog.get()));
-            dialog->setContentWidget(eq.get(), false);
-            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
-            dialog->setTitle(tr("SuperEQ"));
-            dialog->exec();
-        }
-        else {
-            QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
-            dialog->setContentWidget(eq.get(), false);
-            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
-            dialog->setTitle(tr("EQ"));
-            dialog->exec();
-        }        
+        QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        dialog->setContentWidget(eq.get(), false);
+        auto icon = qTheme.fontIcon(Glyphs::ICON_EQUALIZER);
+        dialog->setIcon(icon);
+        dialog->setTitle(tr("EQ"));
+        dialog->exec();
     });
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::clicked, [this]() {
@@ -3065,7 +3058,7 @@ void Xamp::onFoundFileCount(size_t file_count) {
                 album_cover_service_->cancelRequested();
             });
 
-        read_progress_dialog_->exec();
+        //read_progress_dialog_->exec();
     }
 
     if (!read_progress_dialog_) {

@@ -10,7 +10,7 @@
 
 #include <filesystem>
 
-#ifdef XAMP_OS_MAC
+#if 0
 namespace std {
 template <>
 struct hash<filesystem::path> {

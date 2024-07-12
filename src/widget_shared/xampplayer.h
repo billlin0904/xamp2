@@ -11,6 +11,7 @@
 #include <thememanager.h>
 #include <widget/driveinfo.h>
 #include <FramelessHelper/Widgets/framelesswidget.h>
+#include <FramelessHelper/Widgets/framelessmainwindow.h>
 
 inline constexpr auto kRestartExistCode = -2;
 
@@ -19,7 +20,7 @@ using namespace wangwenx190::FramelessHelper::Global;
 
 class IXFrame;
 
-class IXMainWindow : public FramelessWidget {
+class IXMainWindow : public QWidget {
 public:
 	virtual ~IXMainWindow() override = default;
 

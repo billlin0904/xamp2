@@ -3,9 +3,15 @@
 #include <version.h>
 #include <xamp.h>
 
+#include <iostream>
+
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/crashhandler.h>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/sinks/base_sink.h>
 
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
@@ -21,6 +27,8 @@
 
 namespace {
     Vector<SharedLibraryHandle> prefetchDll() {
+        Vector<SharedLibraryHandle> preload_module;
+        #ifdef Q_OS_WIN
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         const Vector<std::string_view> dll_file_names{
             R"(WS2_32.dll)",
@@ -31,8 +39,6 @@ namespace {
             R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
             R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
         };
-        Vector<SharedLibraryHandle> preload_module;
-#ifdef Q_OS_WIN
         for (const auto& file_name : dll_file_names) {
             try {
                 auto module = LoadSharedLibrary(file_name);
@@ -45,9 +51,22 @@ namespace {
                 XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
             }
         }
-#endif
+        #endif
         return preload_module;
     }
+
+    class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
+    public:
+        void sink_it_(const spdlog::details::log_msg& msg) override {
+            spdlog::memory_buf_t formatted;
+            formatter_->format(msg, formatted);
+
+            std::cout << fmt::to_string(formatted);
+        }
+
+        void flush_() override {
+        }
+    };
 
 #ifdef _DEBUG
     XAMP_DECLARE_LOG_NAME(Qt);
@@ -106,8 +125,9 @@ namespace {
             break;
         }
     }
-#endif    
+#endif
 
+#ifdef Q_OS_WIN
     struct FramelessHelperScoped {
         FramelessHelperScoped() {
             FramelessHelper::Widgets::initialize();
@@ -126,6 +146,7 @@ namespace {
             FramelessHelper::Core::uninitialize();
 		}
     };
+#endif
 
     int execute(int argc, char* argv[], QStringList &args) {
 #ifdef Q_OS_WIN32
@@ -137,9 +158,8 @@ namespace {
 
         auto prefetch_dll = prefetchDll();
         XAMP_LOG_DEBUG("Prefetch dll success.");
+        FramelessHelperScoped scoped;
 #endif
-
-		FramelessHelperScoped scoped;
 
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
@@ -154,18 +174,16 @@ namespace {
             return -1;
         }*/
 
-		scoped.setApplicationOSThemeAware();
+        //scoped.setApplicationOSThemeAware();
 
 		app.initial();
         app.loadLang();
         app.loadSampleRateConverterConfig();
         app.applyTheme();
         
-#ifdef _DEBUG    
-#ifdef Q_OS_WIN
+#ifdef _DEBUG
         qInstallMessageHandler(logMessageHandler);
         QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
-#endif
 #endif
 
         if (!QSslSocket::supportsSsl()) {
@@ -173,7 +191,6 @@ namespace {
             return -1;
         }
 
-        //*** 系統載入DLL必須在此函數中, 如果之後再載入DLL會出錯 ***//
         try {            
             LoadComponentSharedLibrary();
         }
@@ -181,6 +198,7 @@ namespace {
             XMessageBox::showBug(e);
             return -1;
         }
+
         XAMP_LOG_DEBUG("Load component shared library success.");
 
         XAMP_LOG_DEBUG("Database start initial...");
@@ -199,10 +217,10 @@ namespace {
         XMainWindow main_window;
         Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
-        win.setThemeColor(qTheme.backgroundColor(),
-            qTheme.themeTextColor());
+        win.setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
 
         main_window.setContentWidget(&win);
+        //main_window.setContentWidget(nullptr);
         win.adjustSize();
         win.waitForReady();
         main_window.restoreAppGeometry();
@@ -223,8 +241,6 @@ namespace {
 }
 
 int main() { 
-    //::MessageBox(nullptr, L"Remove debugger", L"Remove debugger attach...!", MB_OK);
-
     try {
         XampLoggerFactory
             .AddDebugOutput()
@@ -235,8 +251,6 @@ int main() {
             .Startup();
     }
 	catch (const std::exception& e) {
-        auto message = String::ToStdWString(e.what());
-		::MessageBox(nullptr, message.c_str(), L"Logger startup failure!", MB_OK | MB_ICONERROR);
 		return -1;
 	}
 
@@ -246,11 +260,15 @@ int main() {
     XampCrashHandler.SetThreadExceptionHandlers();
     XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
+    bool init_done = false;
+
     XAMP_ON_SCOPE_EXIT(
-        qJsonSettings.save();
-        qAppSettings.save();
-        qAppSettings.saveLogConfig();
-        qGuiDb.close();
+        if (init_done) {
+            qJsonSettings.save();
+            qAppSettings.save();
+            qAppSettings.saveLogConfig();
+            qGuiDb.close();
+        }
         XampLoggerFactory.Shutdown();
     );
 
@@ -264,7 +282,8 @@ int main() {
     QStringList args;
     auto exist_code = 0;
     try {
-        exist_code = execute(argc, argv, args);        
+        exist_code = execute(argc, argv, args);
+        init_done = exist_code != -1;
     }
     catch (const Exception& e) {
         exist_code = -1;

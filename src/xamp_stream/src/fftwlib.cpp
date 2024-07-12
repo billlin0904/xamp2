@@ -469,7 +469,7 @@ fftw_plan FFTWLib::fftw_plan_dft_r2c(int rank, const int* n, double* in, fftw_co
 }
 #else
 FFTWLib::FFTWLib() try
-	: module_(OpenSharedLibrary("libfftw3-3"))
+    : module_(OpenSharedLibrary("fftw3-3"))
 	, XAMP_LOAD_DLL_API(fftw_destroy_plan)
 	, XAMP_LOAD_DLL_API(fftw_malloc)
 	, XAMP_LOAD_DLL_API(fftw_free)
@@ -483,7 +483,7 @@ catch (const Exception& e) {
 #endif
 
 FFTWFLib::FFTWFLib() try
-	: module_(OpenSharedLibrary("libfftw3f-3"))
+    : module_(OpenSharedLibrary("fftw3f-3"))
 	, XAMP_LOAD_DLL_API(fftwf_destroy_plan)
 	, XAMP_LOAD_DLL_API(fftwf_malloc)
 	, XAMP_LOAD_DLL_API(fftwf_free)

@@ -7,7 +7,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++20
 # DEFINES += QT_NO_CAST_FROM_ASCII
 
-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 13.00
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -20,179 +20,197 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-
+TARGET = widget_shared
+TEMPLATE = lib
+CONFIG += plugin
 
 SOURCES += \
-    thememanager.cpp \
-    version.cpp \
-    widget/aboutpage.cpp \
-    widget/accountauthorizationpage.cpp \
-    widget/acrylic/acrylic.cpp \
-    widget/albumartistpage.cpp \
-    widget/albumview.cpp \
-    widget/appsettingnames.cpp \
-    widget/appsettings.cpp \
-    widget/artistinfopage.cpp \
-    widget/artistview.cpp \
-    widget/cdpage.cpp \
-    widget/clickablelabel.cpp \
-    widget/createplaylistview.cpp \
-    widget/database.cpp \
-    widget/databasefacade.cpp \
-    widget/doubleslider.cpp \
-    widget/equalizerview.cpp \
-    widget/file_system_watcher.cpp \
-    widget/filesystemmodel.cpp \
-    widget/filesystemviewpage.cpp \
-    widget/flowlayout.cpp \
-    widget/fonticon.cpp \
-    widget/genre_view.cpp \
-    widget/genre_view_page.cpp \
-    widget/globalshortcut.cpp \
-    widget/http.cpp \
-    widget/imagecache.cpp \
-    widget/jsonsettings.cpp \
-    widget/localelanguage.cpp \
-    widget/lrcpage.cpp \
-    widget/lrcparser.cpp \
-    widget/lyricsshowwidget.cpp \
-    widget/maskwidget.cpp \
-    widget/networkdiskcache.cpp \
-    widget/playlistentity.cpp \
-    widget/playlistpage.cpp \
-    widget/playlistsqlquerytablemodel.cpp \
-    widget/playlisttabbar.cpp \
-    widget/playlisttableproxymodel.cpp \
-    widget/playlisttableview.cpp \
-    widget/playlisttabwidget.cpp \
-    widget/preferencepage.cpp \
-    widget/processindicator.cpp \
-    widget/qetag.cpp \
-    widget/scrolllabel.cpp \
-    widget/seekslider.cpp \
-    widget/spectrumwidget.cpp \
-    widget/supereqview.cpp \
-    widget/tablistview.cpp \
-    widget/tageditpage.cpp \
-    widget/tagio.cpp \
-    widget/taglistview.cpp \
-    widget/uiplayerstateadapter.cpp \
-    widget/util/image_utiltis.cpp \
-    widget/util/log_util.cpp \
-    widget/util/mbdiscid_uiltis.cpp \
-    widget/util/read_until.cpp \
-    widget/util/str_utilts.cpp \
-    widget/util/ui_utilts.cpp \
-    widget/util/zib_utiltis.cpp \
-    widget/volumebutton.cpp \
-    widget/volumecontroldialog.cpp \
-    widget/wheelablewidget.cpp \
-    widget/widget_shared_global.cpp \
-    widget/worker/backgroundworker.cpp \
-    widget/worker/filesystemworker.cpp \
-    widget/worker/findalbumcoverworker.cpp \
-    widget/xdialog.cpp \
-    widget/xmainwindow.cpp \
-    widget/xmessage.cpp \
-    widget/xmessagebox.cpp \
-    widget/xprogressdialog.cpp \
-    widget/youtubedl/ytmusic.cpp \
-    widget/youtubedl/ytmusicoauth.cpp
-
+./widget/genre_view_page.cpp \
+./widget/albumartistpage.cpp \
+./widget/playlisttabbar.cpp \
+./widget/baseservice.cpp \
+./widget/scrolllabel.cpp \
+./widget/preferencepage.cpp \
+./widget/tagio.cpp \
+./widget/playlistentity.cpp \
+./widget/xmessage.cpp \
+./widget/processindicator.cpp \
+./widget/localelanguage.cpp \
+./widget/lrcparser.cpp \
+./widget/qetag.cpp \
+./widget/cdpage.cpp \
+./widget/util/zib_util.cpp \
+./widget/util/image_util.cpp \
+./widget/util/read_until.cpp \
+./widget/util/str_util.cpp \
+./widget/util/mbdiscid_util.cpp \
+./widget/util/log_util.cpp \
+./widget/util/ui_util.cpp \
+./widget/playlisttabwidget.cpp \
+./widget/volumecontroldialog.cpp \
+./widget/albumviewstyleddelegate.cpp \
+./widget/supereqview.cpp \
+./widget/spectrumwidget.cpp \
+./widget/playlisttableproxymodel.cpp \
+./widget/xmainwindow.cpp \
+./widget/fonticon.cpp \
+./widget/globalshortcut.cpp \
+./widget/clickablelabel.cpp \
+./widget/dao/artistdao.cpp \
+./widget/dao/playlistdao.cpp \
+./widget/dao/musicdao.cpp \
+./widget/dao/albumdao.cpp \
+./widget/appsettings.cpp \
+./widget/artistview.cpp \
+./widget/doubleslider.cpp \
+./widget/imagecache.cpp \
+./widget/wheelablewidget.cpp \
+./widget/accountauthorizationpage.cpp \
+./widget/volumebutton.cpp \
+./widget/widget_shared_global.cpp \
+./widget/appsettingnames.cpp \
+./widget/playlisttableview.cpp \
+./widget/database.cpp \
+./widget/artistinfopage.cpp \
+./widget/createplaylistview.cpp \
+./widget/xtooltip.cpp \
+./widget/taglistview.cpp \
+./widget/lyricsshowwidget.cpp \
+./widget/xmessagebox.cpp \
+./widget/navbarlistview.cpp \
+./widget/aboutpage.cpp \
+./widget/genre_view.cpp \
+./widget/uiplayerstateadapter.cpp \
+./widget/filesystemwatcher.cpp \
+./widget/tageditpage.cpp \
+./widget/xprogressdialog.cpp \
+./widget/http.cpp \
+./widget/lrcpage.cpp \
+./widget/playListstyledItemdelegate.cpp \
+./widget/maskwidget.cpp \
+./widget/databasefacade.cpp \
+./widget/jsonsettings.cpp \
+./widget/chatgpt/chatgptservice.cpp \
+./widget/chatgpt/chatgptwidget.cpp \
+./widget/albumview.cpp \
+./widget/filesystemviewpage.cpp \
+./widget/worker/albumcoverservice.cpp \
+./widget/worker/backgroundservice.cpp \
+./widget/worker/filesystemservice.cpp \
+./widget/playlistpage.cpp \
+./widget/win32/wintaskbar.cpp \
+./widget/networkdiskcache.cpp \
+./widget/xdialog.cpp \
+./widget/equalizerview.cpp \
+./widget/webvttparser.cpp \
+./widget/playlistsqlquerytablemodel.cpp \
+./widget/filesystemmodel.cpp \
+./widget/youtubedl/ytmusicservice.cpp \
+./widget/youtubedl/ytmusic_disckcache.cpp \
+./widget/youtubedl/ytmusicoauth.cpp \
+./widget/seekslider.cpp \
+./version.cpp \
+./thememanager.cpp \
 
 HEADERS += \
-    thememanager.h \
-    version.h \
-    widget/aboutpage.h \
-    widget/accountauthorizationpage.h \
-    widget/acrylic/acrylic.h \
-    widget/actionmap.h \
-    widget/albumartistpage.h \
-    widget/albumview.h \
-    widget/appsettingnames.h \
-    widget/appsettings.h \
-    widget/artistinfopage.h \
-    widget/artistview.h \
-    widget/cdpage.h \
-    widget/clickablelabel.h \
-    widget/createplaylistview.h \
-    widget/database.h \
-    widget/databasecoverid.h \
-    widget/databasefacade.h \
-    widget/doubleslider.h \
-    widget/driveinfo.h \
-    widget/equalizerview.h \
-    widget/file_system_watcher.h \
-    widget/filesystemmodel.h \
-    widget/filesystemviewpage.h \
-    widget/flowlayout.h \
-    widget/fluentthemecolor.h \
-    widget/fonticon.h \
-    widget/genre_view.h \
-    widget/genre_view_page.h \
-    widget/globalshortcut.h \
-    widget/http.h \
-    widget/iconsizestyle.h \
-    widget/imagecache.h \
-    widget/jsonsettings.h \
-    widget/lazyloadingmodel.h \
-    widget/localelanguage.h \
-    widget/lrcpage.h \
-    widget/lrcparser.h \
-    widget/lyricsshowwidget.h \
-    widget/maskwidget.h \
-    widget/networkdiskcache.h \
-    widget/playerorder.h \
-    widget/playlistentity.h \
-    widget/playlistpage.h \
-    widget/playlistsqlquerytablemodel.h \
-    widget/playlisttabbar.h \
-    widget/playlisttablemodel.h \
-    widget/playlisttableproxymodel.h \
-    widget/playlisttableview.h \
-    widget/playlisttabwidget.h \
-    widget/preferencepage.h \
-    widget/processindicator.h \
-    widget/qdebugsink.h \
-    widget/qetag.h \
-    widget/scrolllabel.h \
-    widget/seekslider.h \
-    widget/spectrumwidget.h \
-    widget/supereqview.h \
-    widget/tablistview.h \
-    widget/tageditpage.h \
-    widget/tagio.h \
-    widget/taglistview.h \
-    widget/themecolor.h \
-    widget/uiplayerstateadapter.h \
-    widget/util/image_utiltis.h \
-    widget/util/log_util.h \
-    widget/util/mbdiscid_uiltis.h \
-    widget/util/read_until.h \
-    widget/util/str_utilts.h \
-    widget/util/ui_utilts.h \
-    widget/util/zib_utiltis.h \
-    widget/volumebutton.h \
-    widget/volumecontroldialog.h \
-    widget/wheelablewidget.h \
-    widget/widget_shared.h \
-    widget/widget_shared_global.h \
-    widget/worker/backgroundworker.h \
-    widget/worker/filesystemworker.h \
-    widget/worker/findalbumcoverworker.h \
-    widget/xdialog.h \
-    widget/xmainwindow.h \
-    widget/xmessage.h \
-    widget/xmessagebox.h \
-    widget/xprogressdialog.h \
-    widget/youtubedl/ytmusic.h \
-    widget/youtubedl/ytmusicoauth.h \
-    xampplayer.h
-
-TRANSLATIONS += \
-    zh_TW.ts \
-    ja_JP.ts \
-    en_US.ts \
+./version.h \
+./widget/albumviewstyleddelegate.h \
+./widget/iconsizestyle.h \
+./widget/xmessagebox.h \
+./widget/databasecoverid.h \
+./widget/xtooltip.h \
+./widget/scrolllabel.h \
+./widget/xprogressdialog.h \
+./widget/taglistview.h \
+./widget/appsettings.h \
+./widget/lyricsshowwidget.h \
+./widget/aboutpage.h \
+./widget/driveinfo.h \
+./widget/http.h \
+./widget/xdialog.h \
+./widget/tageditpage.h \
+./widget/xmainwindow.h \
+./widget/util/ui_util.h \
+./widget/util/read_until.h \
+./widget/util/str_util.h \
+./widget/util/json_util.h \
+./widget/util/log_util.h \
+./widget/util/zib_util.h \
+./widget/util/mbdiscid_util.h \
+./widget/util/image_util.h \
+./widget/localelanguage.h \
+./widget/databasefacade.h \
+./widget/cdpage.h \
+./widget/filesystemmodel.h \
+./widget/albumview.h \
+./widget/createplaylistview.h \
+./widget/playerorder.h \
+./widget/ilrrcparser.h \
+./widget/uiplayerstateadapter.h \
+./widget/playlisttableproxymodel.h \
+./widget/filesystemviewpage.h \
+./widget/dao/artistdao.h \
+./widget/dao/playlistdao.h \
+./widget/dao/musicdao.h \
+./widget/dao/albumdao.h \
+./widget/volumecontroldialog.h \
+./widget/networkdiskcache.h \
+./widget/artistview.h \
+./widget/volumebutton.h \
+./widget/playlistentity.h \
+./widget/widget_shared.h \
+./widget/webvttparser.h \
+./widget/navbarlistview.h \
+./widget/playlisttabbar.h \
+./widget/playlisttablemodel.h \
+./widget/themecolor.h \
+./widget/maskwidget.h \
+./widget/supereqview.h \
+./widget/qetag.h \
+./widget/playlisttabwidget.h \
+./widget/accountauthorizationpage.h \
+./widget/albumartistpage.h \
+./widget/genre_view_page.h \
+./widget/lrcpage.h \
+./widget/globalshortcut.h \
+./widget/widget_shared_global.h \
+./widget/clickablelabel.h \
+./widget/preferencepage.h \
+./widget/spectrumwidget.h \
+./widget/database.h \
+./widget/artistinfopage.h \
+./widget/qdebugsink.h \
+./widget/tagio.h \
+./widget/baseservice.h \
+./widget/xmessage.h \
+./widget/playlistsqlquerytablemodel.h \
+./widget/jsonsettings.h \
+./widget/wheelablewidget.h \
+./widget/doubleslider.h \
+./widget/filesystemwatcher.h \
+./widget/chatgpt/chatgptwidget.h \
+./widget/chatgpt/chatgptservice.h \
+./widget/worker/backgroundservice.h \
+./widget/worker/filesystemservice.h \
+./widget/worker/albumcoverservice.h \
+./widget/win32/wintaskbar.h \
+./widget/playListstyledItemdelegate.h \
+./widget/imagecache.h \
+./widget/seekslider.h \
+./widget/playlistpage.h \
+./widget/playlisttableview.h \
+./widget/lrcparser.h \
+./widget/processindicator.h \
+./widget/equalizerview.h \
+./widget/genre_view.h \
+./widget/actionmap.h \
+./widget/youtubedl/ytmusic_disckcache.h \
+./widget/youtubedl/ytmusicservice.h \
+./widget/youtubedl/ytmusicoauth.h \
+./widget/fonticon.h \
+./widget/appsettingnames.h \
+./xampplayer.h \
+./thememanager.h \
 
 # Additionally include Cocoa for OS X code
 
@@ -207,26 +225,31 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/rapidxml/ \
     ../thirdparty/zlib/ \
     ../thirdparty/pybind11/include \
+    ../thirdparty/expected/include \
     /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/ \
     ../thirdparty/framelesshelper/include \
 
 CONFIG(debug, debug|release) {
+CONFIG += debug
 QMAKE_CXXFLAGS += -mavx2 -D_DEBUG
-LIBS += -L"../xamp_base/debug/" -lxamp_base \
-    -L"../xamp_metadata/debug/" -lxamp_metadata \
-    -L"../xamp_output_device/debug/" -lxamp_output_device \
-    -L"../xamp_stream/debug/" -lxamp_stream \
-    -L"../xamp_player/debug/" -lxamp_player \
-    -L"../thirdparty/framelesshelper/lib/debug/" -lFramelessHelperCore_debug.2.3.6 \
-    -L"../thirdparty/framelesshelper/lib/debug/" -lFramelessHelperWidgets_debug.2.3.6 \
-    -L"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/" -lpython3.7 \
+LIBS += -L$$PWD/../xamp_base/debug/ -lxamp_base \
+    -L$$PWD/../xamp_metadata/debug/ -lxamp_metadata \
+    -L$$PWD/../xamp_output_device/debug/ -lxamp_output_device \
+    -L$$PWD/../xamp_stream/debug/ -lxamp_stream \
+    -L$$PWD/../xamp_player/debug/ -lxamp_player \
+    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_5_3_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
+    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_5_3_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
+    -L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/ -lpython3.7 \
 } else {
 QMAKE_CXXFLAGS += -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
-LIBS += -L"../xamp_base/release/" -lxamp_base \
-    -L"../xamp_metadata/release/" -lxamp_metadata \
-    -L"../xamp_output_device/release/" -lxamp_output_device \
-    -L"../xamp_stream/release/" -lxamp_stream \
-    -L"../xamp_player/release/" -lxamp_player \
+LIBS += -L$$PWD/../xamp_base/release/ -lxamp_base \
+    -L$$PWD/../xamp_metadata/release/ -lxamp_metadata \
+    -L$$PWD/../xamp_output_device/release/ -lxamp_output_device \
+    -L$$PWD/../xamp_stream/release/ -lxamp_stream \
+    -L$$PWD/../xamp_player/release/ -lxamp_player \
+    -L$$PWD/../thirdparty/framelesshelper/lib/release/ -lFramelessHelperCore_debug.2.3.6 \
+    -L$$PWD/../thirdparty/framelesshelper/lib/release/ -lFramelessHelperWidgets_debug.2.3.6 \
+    -L"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/" -lpython3.7 \
 }
 
 # Default rules for deployment.

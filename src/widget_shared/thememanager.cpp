@@ -163,6 +163,7 @@ QFont ThemeManager::loadFonts() {
 
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
+#ifdef Q_OS_WIN
     ui_fonts.append(qTEXT("Segoe UI WPC"));
     ui_fonts.append(qTEXT("Segoe UI"));
 	ui_fonts.append(qTEXT("Microsoft JhengHei UI"));
@@ -170,7 +171,9 @@ QFont ThemeManager::loadFonts() {
     ui_fonts.append(qTEXT("Yu Gothic UI"));
     ui_fonts.append(qTEXT("Meiryo UI"));
     ui_fonts.append(qTEXT("MS PGothic"));
-
+#else
+    ui_fonts.append(qTEXT("SF Pro"));
+#endif
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
     if (display_fonts.isEmpty()) {
@@ -211,7 +214,11 @@ ThemeManager::ThemeManager() {
     album_cover_size_ = QSize(206, 206);
     save_cover_art_size_ = QSize(350, 350);
     ui_font_ = loadFonts();
+#ifdef Q_OS_WIN
     font_ratio_ = 1.0;
+#else
+    font_ratio_ = 1.2;
+#endif
     ui_font_.setPointSize(defaultFontSize());
     setGoogleMaterialFontIcons();
 }
