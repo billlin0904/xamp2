@@ -26,17 +26,31 @@
 #include <QSslSocket>
 
 namespace {
+#ifdef Q_OS_MAC
+    class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
+    public:
+        void sink_it_(const spdlog::details::log_msg& msg) override {
+            spdlog::memory_buf_t formatted;
+            formatter_->format(msg, formatted);
+
+            std::cout << fmt::to_string(formatted);
+        }
+
+        void flush_() override {
+        }
+    };
+#else
     Vector<SharedLibraryHandle> prefetchDll() {
         Vector<SharedLibraryHandle> preload_module;
-        #ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
         // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         const Vector<std::string_view> dll_file_names{
-            R"(WS2_32.dll)",
-            R"(Python3.dll)",
-            R"(mimalloc-override.dll)",
-            R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
-            R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
-            R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
+            //R"(WS2_32.dll)",
+            //R"(Python3.dll)",
+            //R"(mimalloc-override.dll)",
+            //R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
+            //R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
+            //R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
             R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
         };
         for (const auto& file_name : dll_file_names) {
@@ -51,22 +65,10 @@ namespace {
                 XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
             }
         }
-        #endif
+#endif
         return preload_module;
     }
-
-    class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
-    public:
-        void sink_it_(const spdlog::details::log_msg& msg) override {
-            spdlog::memory_buf_t formatted;
-            formatter_->format(msg, formatted);
-
-            std::cout << fmt::to_string(formatted);
-        }
-
-        void flush_() override {
-        }
-    };
+#endif
 
 #ifdef _DEBUG
     XAMP_DECLARE_LOG_NAME(Qt);
@@ -127,29 +129,24 @@ namespace {
     }
 #endif
 
-#ifdef Q_OS_WIN
-    struct FramelessHelperScoped {
-        FramelessHelperScoped() {
-            FramelessHelper::Widgets::initialize();
-            FramelessHelper::Core::initialize();
-            FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
-            //FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
-            //FramelessConfig::instance()->set(Global::Option::DisableLazyInitializationForMicaMaterial);
-        }
-
-        void setApplicationOSThemeAware() {
-            FramelessHelper::Core::setApplicationOSThemeAware();
-        }
-
-		~FramelessHelperScoped() {
-            FramelessHelper::Widgets::uninitialize();
-            FramelessHelper::Core::uninitialize();
-		}
-    };
-#endif
-
     int execute(int argc, char* argv[], QStringList &args) {
 #ifdef Q_OS_WIN32
+        struct FramelessHelperScoped {
+            FramelessHelperScoped() {
+                FramelessHelper::Widgets::initialize();
+                FramelessHelper::Core::initialize();
+                FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
+                //FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
+                //FramelessConfig::instance()->set(Global::Option::DisableLazyInitializationForMicaMaterial);
+                //FramelessHelper::Core::setApplicationOSThemeAware();
+            }
+
+            ~FramelessHelperScoped() {
+                FramelessHelper::Widgets::uninitialize();
+                FramelessHelper::Core::uninitialize();
+            }
+        };
+
         const auto components_path = GetComponentsFilePath();
         if (!AddSharedLibrarySearchDirectory(components_path)) {
             XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
@@ -173,8 +170,6 @@ namespace {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
         }*/
-
-        //scoped.setApplicationOSThemeAware();
 
 		app.initial();
         app.loadLang();
@@ -222,7 +217,6 @@ namespace {
         main_window.setContentWidget(&win);
         //main_window.setContentWidget(nullptr);
         win.adjustSize();
-        win.waitForReady();
         main_window.restoreAppGeometry();
         main_window.showWindow();
 

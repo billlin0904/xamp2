@@ -86,8 +86,6 @@ public:
 
 	void initialDeviceList(const std::string& device_id = "");
 
-	void waitForReady();
-
 	QString translateText(const std::string_view& text) override;
 
 signals:
@@ -181,8 +179,6 @@ public slots:
 	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 
 	void onPlaybackError(const QString& message);
-
-	void onChatGptResponseCompleted(const std::string &response);
 
 	void onRetranslateUi();
 
