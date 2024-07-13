@@ -29,13 +29,17 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setExpanding(true);
 	setTabsClosable(true);
 	setUsesScrollButtons(false);
-    //setElideMode(Qt::TextElideMode::ElideRight);
+    setElideMode(Qt::TextElideMode::ElideRight);
 	setMovable(true);
 	auto f = font();
 	f.setPointSize(qTheme.fontSize(10));
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
     setStyle(new TextAlignedStyle());
+}
+
+void PlaylistTabBar::setTabCount(int32_t count) {
+	tab_count_ = count;
 }
 
 void PlaylistTabBar::onFinishRename() {
@@ -119,14 +123,14 @@ bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
 QSize PlaylistTabBar::tabSizeHint(int index) const {
 	QSize size(QTabBar::tabSizeHint(index));
 #if 1
-	if (count() < kSmallTabCount) {
+	if (tab_count_ < kSmallTabCount) {
 		size.setWidth(kSmallTabWidth);
 	}
 	else {		
 		auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
-		size.setWidth(width / count());
+		size.setWidth(width / tab_count_);
     }
-#endif
+#endif	
 	return size;
 }
 

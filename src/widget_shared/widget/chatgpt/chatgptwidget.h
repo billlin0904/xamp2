@@ -21,17 +21,9 @@ public:
     explicit ChatGPTWindow(QWidget* parent = nullptr);    
     
 signals:
-    void sendToChatGPT(const QString& message);
 
 public slots:
-    void chatGPTResponse(const QString& message);
-    void doSendToChatGPT();
+
 
 private:
-    QFrame* createMessageFrame(const QString& message, const QPixmap& avatar, bool is_user = false);
-	void showSendMessage(const QString& user_message);
-
-    QVBoxLayout* main_layout_;
-    QLineEdit* input_line_;
-    QPushButton* send_button_;
 };

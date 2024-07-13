@@ -16,6 +16,7 @@
 
 class QMouseEvent;
 class QPushButton;
+class PlaylistTabBar;
 
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget final : public QTabWidget {
 	Q_OBJECT
@@ -96,9 +97,10 @@ private:
 
 	void resizeTabWidth();
 
-	int32_t initial_width_{ 0 };
+	int32_t tab_count_{ 0 };
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* add_tab_button_{ nullptr };
+	PlaylistTabBar* tab_bar_{ nullptr };
 	dao::PlaylistDao playlist_dao_;
 };
 

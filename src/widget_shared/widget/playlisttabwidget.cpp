@@ -98,10 +98,10 @@ void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState stat
 
     switch (state) {
     case PlayerState::PLAYER_STATE_RUNNING:
-        icon = qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+        icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0);        
         break;
     case PlayerState::PLAYER_STATE_PAUSED:
-        icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+        icon = qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0);
         break;
     case PlayerState::PLAYER_STATE_STOPPED:
     case PlayerState::PLAYER_STATE_USER_STOPPED:
@@ -127,21 +127,26 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setMouseTracking(true);
     setAttribute(Qt::WA_StyledBackground);
 
-    auto* tab_bar = new PlaylistTabBar(this);
-    setTabBar(tab_bar);
+    tab_bar_ = new PlaylistTabBar(this);
+    setTabBar(tab_bar_);
 
-#if 1
     add_tab_button_ = new QPushButton(this);    
-    add_tab_button_->setMaximumSize(16, 16);
-    add_tab_button_->setMinimumSize(16, 16);
+    add_tab_button_->setMaximumSize(24, 24);
+    add_tab_button_->setMinimumSize(24, 24);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
-    add_tab_button_->setIconSize(QSize(14, 14));
+    add_tab_button_->setIconSize(QSize(24, 14));
     add_tab_button_->setObjectName(qTEXT("plusButton"));
+
+    auto* button_widget = new QWidget(this);
+    auto* layout = new QHBoxLayout(button_widget);
+	layout->setSpacing(0);
+    layout->addWidget(add_tab_button_, 1);
+
+    setCornerWidget(button_widget);
 
     (void)QObject::connect(add_tab_button_, &QPushButton::pressed, [this]() {
         emit createNewPlaylist();
         });
-#endif
 
     tabBar()->installEventFilter(this);
 
@@ -214,19 +219,19 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         );
         });
 #if 1
-    (void)QObject::connect(tab_bar, &PlaylistTabBar::tabBarClicked, [this](auto index) {
+    (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
         Q_ASSERT(playlist_page != nullptr);
         playlist_page->playlist()->reload();
         });
 
 
-    (void)QObject::connect(tab_bar, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
+    (void)QObject::connect(tab_bar_, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
         playlist_dao_.setPlaylistName(currentPlaylistId(), name);
 		qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, currentPlaylistId());
         });
 
-    (void)QObject::connect(tabBar(), &PlaylistTabBar::tabBarClicked, [this](auto index) {
+    (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
         Q_ASSERT(playlist_page != nullptr);
         qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, playlist_page->playlist()->playlistId());
@@ -353,15 +358,18 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
     auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
     Q_ASSERT(playlist_page != nullptr);
     const auto* playlist = playlist_page->playlist();
+    --tab_count_;
     if (removePlaylist(playlist->playlistId())) {
         removeTab(tab_index);
         playlist_page->deleteLater();
     }
-    resizeTabWidth();   
+    resizeTabWidth();
 }
 
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool resize) {
     const auto index = addTab(widget, name);
+    ++tab_count_;
+	tab_bar_->setTabCount(tab_count_);
     setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
     if (resize) {        
@@ -480,32 +488,5 @@ void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
 }
 
 bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
-#if 1
-    if (tabBar() == watched) {
-        if (event->type() == QEvent::Resize) {
-            if (!add_tab_button_->isHidden()) {
-                auto r = tabBar()->geometry();
-                auto h = r.height();
-                if (h > 0) {
-                    add_tab_button_->setFixedSize((h - 1) * QSize(1, 1));
-                    auto right = r.right() + 3;
-                    add_tab_button_->move(right, 0);
-
-                }
-                return true;
-            }
-        }
-        else {
-            if (!add_tab_button_->isHidden() && tabBar()->count() == 0) {
-                auto r = tabBar()->geometry();
-                
-                add_tab_button_->setFixedSize((32 - 1) * QSize(1, 1));
-                auto right = r.right() + 3;
-                add_tab_button_->move(right, 0);
-                return true;
-            }            
-        }        
-    }
-#endif
     return QTabWidget::eventFilter(watched, event);
 }
