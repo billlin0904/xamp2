@@ -20,7 +20,13 @@ using namespace wangwenx190::FramelessHelper::Global;
 
 class IXFrame;
 
-class IXMainWindow : public FramelessWidget {
+#ifdef Q_OS_WIN
+using IXMainWindowBase = FramelessWidget;
+#else
+using IXMainWindowBase = QWidget;
+#endif
+
+class IXMainWindow : public IXMainWindowBase {
 public:
 	virtual ~IXMainWindow() override = default;
 
