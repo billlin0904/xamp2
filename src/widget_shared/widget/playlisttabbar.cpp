@@ -130,7 +130,13 @@ QSize PlaylistTabBar::tabSizeHint(int index) const {
 		auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
 		size.setWidth(width / tab_count_);
     }
-#endif	
+#else
+	if (!tab_count_) {
+		return size;
+	}
+	auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
+	size.setWidth(width / tab_count_);
+#endif
 	return size;
 }
 

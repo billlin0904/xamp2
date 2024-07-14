@@ -14,7 +14,7 @@ class XAMP_WIDGET_SHARED_EXPORT PlaylistTabBar final : public QTabBar {
 public:
 	static constexpr size_t kSmallTabCount = 3;
 	static constexpr size_t kSmallTabWidth = 230;
-	static constexpr size_t kMaxButtonWidth = 50;
+	static constexpr size_t kMaxButtonWidth = 60;
 
 	explicit PlaylistTabBar(QWidget* parent = nullptr);
 	

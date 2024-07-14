@@ -1557,7 +1557,6 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
    
 	setNaviBarMenuButton(ui_);
 
-    about_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
     preference_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
 
     music_library_page_->album()->reload();

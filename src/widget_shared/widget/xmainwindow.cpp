@@ -167,7 +167,7 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     setAcceptDrops(true);
     readDriveInfo();
     installEventFilter(this);
-    ensureInitTaskbar();
+    ensureInitTaskbar();    
 }
 
 // QScopedPointer require default destructor.

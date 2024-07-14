@@ -131,14 +131,15 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     setTabBar(tab_bar_);
 
     add_tab_button_ = new QPushButton(this);    
-    add_tab_button_->setMaximumSize(24, 24);
-    add_tab_button_->setMinimumSize(24, 24);
+    add_tab_button_->setMaximumSize(32, 32);
+    add_tab_button_->setMinimumSize(32, 32);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
-    add_tab_button_->setIconSize(QSize(24, 14));
+    add_tab_button_->setIconSize(QSize(18, 18));
     add_tab_button_->setObjectName(qTEXT("plusButton"));
 
     auto* button_widget = new QWidget(this);
     auto* layout = new QHBoxLayout(button_widget);
+	layout->setContentsMargins(0, 0, 4, 4);
 	layout->setSpacing(0);
     layout->addWidget(add_tab_button_, 1);
 
