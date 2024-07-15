@@ -17,10 +17,12 @@
 namespace xamp::output_device::osx {
 
 class XAMP_OUTPUT_DEVICE_API CoreAudioDeviceType : public IDeviceType {
-    XAMP_DECLARE_MAKE_CLASS_UUID(CoreAudioDeviceType, "E6BB3BF2-F16A-489B-83EE-4A29755F42E4")
+    XAMP_DECLARE_MAKE_CLASS_UUID(CoreAudioDeviceType, "85C5C191-9103-4B94-AEAF-3D87DB54E864")
 
 public:
     constexpr static auto Description = std::string_view("CoreAudio");
+
+    XAMP_PIMPL(CoreAudioDeviceType)
 
     CoreAudioDeviceType();
 
@@ -42,7 +44,7 @@ public:
 
 protected:
     class CoreAudioDeviceTypeImpl;
-    PimplPtr<CoreAudioDeviceTypeImpl> impl_;
+    AlignPtr<CoreAudioDeviceTypeImpl> impl_;
 };
 
 }

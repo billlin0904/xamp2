@@ -165,8 +165,10 @@ std::optional<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDefau
 }
 
 CoreAudioDeviceType::CoreAudioDeviceType()
-    : impl_(MakePimpl<CoreAudioDeviceTypeImpl>()) {
+    : impl_(MakeAlign<CoreAudioDeviceTypeImpl>()) {
 }
+
+XAMP_PIMPL_IMPL(CoreAudioDeviceType)
 
 std::string_view CoreAudioDeviceType::GetDescription() const {
     return Description;

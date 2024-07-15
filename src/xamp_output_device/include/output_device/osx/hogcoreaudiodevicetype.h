@@ -12,12 +12,10 @@
 #include <output_device/idevicetype.h>
 #include <output_device/osx/coreaudiodevicetype.h>
 
-#if 0
-
 namespace xamp::output_device::osx {
 
 class XAMP_OUTPUT_DEVICE_API HogCoreAudioDeviceType : public CoreAudioDeviceType {
-    XAMP_DECLARE_MAKE_CLASS_UUID(HogCoreAudioDeviceType, "44ED0EC0-069E-431F-8BF2-AB1369E3421F")
+    XAMP_DECLARE_MAKE_CLASS_UUID(HogCoreAudioDeviceType, "C9E867E1-0B9A-4507-8823-746B24D5FB3E")
 
 public:
     constexpr static auto Description = std::string_view("CoreAudio (Hog Mode)");
@@ -32,8 +30,6 @@ public:
 };
 
 }
-
-#endif
 
 #endif
 

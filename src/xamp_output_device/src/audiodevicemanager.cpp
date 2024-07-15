@@ -79,9 +79,9 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
 #else
     using namespace osx;
-    XAMP_REGISTER_DEVICE_TYPE(win32::NullOutputDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
-    //XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(win32::NullOutputDeviceType);
 #endif
     DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
 }

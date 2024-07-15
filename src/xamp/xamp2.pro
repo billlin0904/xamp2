@@ -36,7 +36,9 @@ FORMS += \
     xamp.ui
 
 RESOURCES += \
-    xamp.qrc
+    xamp.qrc \
+    ./Resource/Theme/dark/darkstyle.qrc \
+    ./Resource/Theme/light/lightstyle.qrc
 
 TRANSLATIONS += \
     zh_TW.ts \
