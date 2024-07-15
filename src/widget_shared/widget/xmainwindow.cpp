@@ -160,23 +160,14 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     }
 #else
     auto* default_layout = new QVBoxLayout(this);
-
-    //title_bar_ = new StandardTitleBar(this);
-    //title_bar_->setWindowIconVisible(true);
-    //default_layout->addWidget(title_bar_);
     default_layout->addWidget(content_widget, 1);
     default_layout->setContentsMargins(0, 0, 0, 0);
-
-    //auto* helper = FramelessWidgetsHelper::get(this);
-    //helper->setTitleBarWidget(title_bar_);
-    //helper->setHitTestVisible(title_bar_);
-
     setLayout(default_layout);
 #endif
     setAcceptDrops(true);
     readDriveInfo();
     installEventFilter(this);
-    ensureInitTaskbar();
+    ensureInitTaskbar();    
 }
 
 // QScopedPointer require default destructor.

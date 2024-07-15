@@ -365,13 +365,18 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     tray_icon_->setToolTip(kApplicationTitle);
 
     auto* tray_icon_menu = new QMenu(this);
-    /*auto* min_action = new QAction(tr("Minimize"));
-    (void)QObject::connect(min_action, &QAction::triggered, main_window_, &IXMainWindow::hide);
-    tray_icon_menu->addAction(min_action);
 
-    auto* max_action = new QAction(tr("Maximize"));
-    (void)QObject::connect(max_action, &QAction::triggered, main_window_, &IXMainWindow::showMaximized);
-    tray_icon_menu->addAction(max_action);*/
+    preference_action_ = tray_icon_menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
+    (void)QObject::connect(preference_action_, &QAction::triggered, [this]() {
+        const QScopedPointer<XDialog> dialog(new XDialog(this));
+        const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
+        preference_page->loadSettings();
+        dialog->setContentWidget(preference_page.get());
+        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+        dialog->setTitle(tr("Preference"));
+        dialog->exec();
+        preference_page->saveAll();
+        });
 
     auto* check_for_update_action = new QAction(tr("Check for update"));
     (void)QObject::connect(check_for_update_action, &QAction::triggered, this, &Xamp::onCheckForUpdate);
@@ -392,18 +397,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     tray_icon_->setContextMenu(tray_icon_menu);
     (void)QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &Xamp::onActivated);
     tray_icon_->show();
-
-    /*(void)QObject::connect(ui_.minWinButton, &QToolButton::clicked, [this]() {
-        main_window_->showMinimized();
-        });*/
-
-    /*(void)QObject::connect(ui_.maxWinButton, &QToolButton::clicked, [this]() {
-        main_window_->updateMaximumState();
-        });*/
-
-    /*(void)QObject::connect(ui_.closeButton, &QToolButton::clicked, [this]() {
-        main_window_->hide();
-        });*/
 
     background_service_.reset(new BackgroundService());
     background_service_->moveToThread(&background_service_thread_);
@@ -712,26 +705,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
             emit updateNewVersion(latest_version_value);
         });
-
-    //auto* menu = new XMenu(ui_.menuButton);
-    //preference_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
-    /*(void)QObject::connect(preference_action_, &QAction::triggered, [this]() {
-        const QScopedPointer<XDialog> dialog(new XDialog(this));
-        const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
-        preference_page->loadSettings();
-        dialog->setContentWidget(preference_page.get());
-        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
-        dialog->setTitle(tr("Preference"));
-        dialog->exec();
-        preference_page->saveAll();
-        });
-   
-    about_action_ = menu->addAction(qTheme.fontIcon(Glyphs::ICON_ABOUT),tr("About"));
-    (void)QObject::connect(about_action_, &QAction::triggered, [this]() {
-        showAbout();
-        });*/
-    //ui_.menuButton->setPopupMode(QToolButton::InstantPopup);
-    //ui_.menuButton->setMenu(menu);
 
     setPlayerOrder();
     initialDeviceList();
@@ -1210,10 +1183,6 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
     return separator;
 }
 
-void Xamp::waitForReady() {
-    //FramelessWidgetsHelper::get(this)->waitForReady();
-}
-
 void Xamp::initialDeviceList(const std::string& device_id) {
     XAMP_LOG_DEBUG("Initial device list");
 
@@ -1588,7 +1557,6 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
    
 	setNaviBarMenuButton(ui_);
 
-    about_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
     preference_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
 
     music_library_page_->album()->reload();
@@ -2353,10 +2321,6 @@ void Xamp::initialPlaylist() {
     yt_music_tab_page_.reset(new PlaylistTabWidget(this));
     chatgpt_page_.reset(new ChatGPTWindow(this));
 
-    (void) QObject::connect(chatgpt_page_.get(), &ChatGPTWindow::sendToChatGPT, [this](const auto & message) {
-        QCoro::connect(chatgpt_service_->getResponseAsync(message.toStdString()), this, &Xamp::onChatGptResponseCompleted);
-        });
-
     yt_music_tab_page_->setStoreType(StoreType::CLOUD_STORE);
     yt_music_tab_page_->hidePlusButton();
 
@@ -3028,10 +2992,6 @@ void Xamp::onPlaybackError(const QString& message) {
     XMessageBox::showError(message, kApplicationTitle, true);
 }
 
-void Xamp::onChatGptResponseCompleted(const std::string& response) {
-    chatgpt_page_->chatGPTResponse(QString::fromStdString(response));
-}
-
 void Xamp::onRetranslateUi() {
     ui_.naviBar->setTabText(tr("Playlists"), TAB_PLAYLIST);
     ui_.naviBar->setTabText(tr("File explorer"), TAB_FILE_EXPLORER);
@@ -3058,7 +3018,7 @@ void Xamp::onFoundFileCount(size_t file_count) {
                 album_cover_service_->cancelRequested();
             });
 
-        //read_progress_dialog_->exec();
+        read_progress_dialog_->exec();
     }
 
     if (!read_progress_dialog_) {
