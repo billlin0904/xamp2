@@ -120,6 +120,7 @@ Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo()
         info.is_hardware_control_volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
                                                        device_id).CanSetVolume();
 
+        info.is_hardware_control_volume = false;
         // 用SampleRate判斷是否支援DOP有缺陷,
         // 由使用者判斷是否支援DOP.
         info.is_support_dsd = IsSupportDopMode(device_id);

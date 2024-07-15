@@ -10,8 +10,6 @@
 #include <base/task.h>
 #include <base/fastconditionvariable.h>
 
-#ifdef XAMP_OS_WIN
-
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
 #include <base/logger.h>
@@ -187,7 +185,3 @@ private:
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
-
-#endif // XAMP_OS_WIN
-
-

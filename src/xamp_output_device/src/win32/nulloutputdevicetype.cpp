@@ -1,6 +1,6 @@
 #include <base/base.h>
 
-#ifdef XAMP_OS_WIN
+#if 1
 
 #include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/win32/nulloutputdevice.h>

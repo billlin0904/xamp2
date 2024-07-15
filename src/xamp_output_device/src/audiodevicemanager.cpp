@@ -18,6 +18,7 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <output_device/osx/osx_utitl.h>
 #include <output_device/osx/coreaudiodevicetype.h>
+#include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/osx/hogcoreaudiodevicetype.h>
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
@@ -78,6 +79,7 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
 #else
     using namespace osx;
+    XAMP_REGISTER_DEVICE_TYPE(win32::NullOutputDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
     //XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif

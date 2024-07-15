@@ -17,21 +17,24 @@
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
-void LoadComponentSharedLibrary() {   
+void LoadComponentSharedLibrary() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS lib success.");
-
-    LoadSoxrLib();
-    XAMP_LOG_DEBUG("Load Soxr lib success.");
 
     LoadSrcLib();
     XAMP_LOG_DEBUG("Load Src lib success.");
 
+#ifdef XAMP_OS_WIN
     LoadFFTLib();
     XAMP_LOG_DEBUG("Load FFT lib success.");
+#endif
 
     LoadAvLib();
     XAMP_LOG_DEBUG("Load avlib success.");
+
+#ifdef XAMP_OS_WIN
+    LoadSoxrLib();
+    XAMP_LOG_DEBUG("Load Soxr lib success.");
 
     LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
@@ -47,6 +50,7 @@ void LoadComponentSharedLibrary() {
 
     LoadChromaprintLib();
     XAMP_LOG_DEBUG("Load chromaprint lib success.");
+#endif
 
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();
@@ -54,13 +58,12 @@ void LoadComponentSharedLibrary() {
 
     LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
-
+#endif
     GetPlaybackThreadPool();
     XAMP_LOG_DEBUG("Start Playback thread pool success.");
 
     GetOutputDeviceThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
-#endif
 }
 
 #ifdef XAMP_OS_WIN

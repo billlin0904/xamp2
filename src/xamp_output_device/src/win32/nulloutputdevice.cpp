@@ -7,13 +7,10 @@
 #include <output_device/iaudiocallback.h>
 
 #ifdef XAMP_OS_WIN
-
-#include <output_device/win32/wasapi.h>
 #include <output_device/win32/mmcss.h>
+#endif
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
-
-using namespace helper;
 
 NullOutputDevice::NullOutputDevice()
 	: is_running_(false)
@@ -70,9 +67,11 @@ void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
 	}
 	output_format_ = output_format;
 
+    constexpr auto kMicrosecondsPerSecond =  1000000;
 	wait_time_ = std::chrono::milliseconds((buffer_frames_ *
 		kMicrosecondsPerSecond /
 		output_format.GetSampleRate()) / 1000);
+    XAMP_LOG_DEBUG("Wait time:{} ms", wait_time_.count());
 }
 
 bool NullOutputDevice::IsMuted() const {
@@ -115,11 +114,13 @@ void NullOutputDevice::StartStream() {
 
 	is_stopped_ = false;
 	render_task_ = Executor::Spawn(GetOutputDeviceThreadPool(), [this](const StopToken& stop_token) {
-		Mmcss mmcss;
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 
+#ifdef XAMP_OS_WIN
+        Mmcss mmcss;
 		mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
+#endif
 
 		wait_for_start_stream_cond_.notify_one();
 
@@ -129,13 +130,14 @@ void NullOutputDevice::StartStream() {
 			const auto stream_time_float = static_cast<double>(stream_time) / output_format_.GetSampleRate();
 
 			is_running_ = true;
-			XAMP_UNLIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+            XAMP_UNLIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) != DataCallbackResult::CONTINUE) {
 				break;
 			}
 			std::this_thread::sleep_for(wait_time_);
 		}
-
+#ifdef XAMP_OS_WIN
 		mmcss.RevertPriority();
+#endif
 		XAMP_LOG_DEBUG("NullOutputDevice stop render.");
 
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
@@ -174,4 +176,3 @@ bool NullOutputDevice::IsHardwareControlVolume() const {
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#endif
