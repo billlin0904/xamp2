@@ -7,8 +7,6 @@
 
 #include <base/base.h>
 
-#if 1
-
 #include <output_device/idevicetype.h>
 
 #include <base/uuidof.h>
@@ -102,7 +100,4 @@ private:
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
-
-#endif
-
 

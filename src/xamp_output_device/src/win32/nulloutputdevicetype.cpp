@@ -1,7 +1,5 @@
 #include <base/base.h>
 
-#if 1
-
 #include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/win32/nulloutputdevice.h>
 
@@ -104,6 +102,3 @@ AlignPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::string& devi
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
-
-#endif
-
