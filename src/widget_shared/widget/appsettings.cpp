@@ -194,7 +194,7 @@ QLocale AppSettings::locale() const {
 }
 
 QString AppSettings::getOrCreateCachePath() {
-	QString cache_path;
+    QString cache_path;
 
 	if (!qAppSettings.contains(kAppSettingCachePath)) {
 		auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
@@ -223,6 +223,7 @@ QString AppSettings::getOrCreateCachePath() {
 	else {
 		cache_path = qAppSettings.valueAsString(kAppSettingCachePath);
 	}
+
 	return cache_path;
 }
 

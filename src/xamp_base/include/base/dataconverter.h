@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <cassert>
 #include <array>
 
 #include <base/base.h>
@@ -32,6 +31,7 @@ struct XAMP_BASE_API AudioConvertContext {
 
 XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const& out_format, size_t convert_size) noexcept;
 
+#ifdef XAMP_OS_WIN
 template <typename T, typename TStoreType = T>
 void XAMP_VECTOR_CALL SSEConvert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, int32_t float_scale, const AudioConvertContext& context) noexcept {
 	XAMP_EXPECTS(output != nullptr);
@@ -256,5 +256,6 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		Convert2432Cb(output, input, kFloat24Scale, context);
 	}
 };
+#endif
 
 XAMP_BASE_NAMESPACE_END

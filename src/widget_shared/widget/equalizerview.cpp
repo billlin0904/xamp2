@@ -57,6 +57,8 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     ui_->preampLabel->setFont(f);
 
+    ui_->presetLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+
     for (auto& l : bands_label_) {
         l->setStyleSheet(qTEXT("background-color: transparent;"));
         l->setFont(f);

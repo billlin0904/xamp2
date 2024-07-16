@@ -7,7 +7,6 @@
 
 #include <base/base.h>
 #include <base/assert.h>
-#include <iostream>
 
 #ifdef XAMP_OS_WIN
 #include <intrin.h>
@@ -16,6 +15,10 @@
 #include <cpuid.h>
 #include <immintrin.h>
 #endif
+
+XAMP_BASE_NAMESPACE_BEGIN
+
+#ifdef XAMP_OS_WIN
 
 #define m256  __m256
 #define m256i __m256i
@@ -27,15 +30,6 @@
 #else
 #define XAMP_VECTOR_CALL __attribute__((vectorcall))
 #endif
-
-XAMP_BASE_NAMESPACE_BEGIN
-
-inline constexpr int32_t kFloat16Scale = 32767;
-inline constexpr int32_t kFloat24Scale = 8388607;
-// note: 必須要加上.f否則是round to 2147483648.
-inline constexpr float kFloat32Scale = 2147483647.f;
-inline constexpr float kMaxFloatSample = 1.0F;
-inline constexpr float kMinFloatSample = -1.0F;
 
 inline constexpr int32_t kSSESimdLanes = sizeof(m128i);
 inline constexpr int32_t kAVX2SimdLanes = sizeof(m256i);
@@ -266,5 +260,7 @@ struct InterleaveToPlanar<float, int32_t> {
         }
     }
 };
+
+#endif
 
 XAMP_BASE_NAMESPACE_END

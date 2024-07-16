@@ -165,13 +165,20 @@ inline constexpr size_t kCacheAlignSize{ 64 };
 /*
 * Avoid 64k Alias conflicts.
 */
-static constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
-static constexpr size_t kMaxL1CacheLineSize{ 256 * 1024 };
+inline constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
+inline constexpr size_t kMaxL1CacheLineSize{ 256 * 1024 };
 
 /*
 * Memory allocate aligned size
 * Assume we need 32-byte alignment for AVX2 instructions.
 */
 inline constexpr size_t kMallocAlignSize{ 32 };
+
+inline constexpr int32_t kFloat16Scale { 32767 };
+inline constexpr int32_t kFloat24Scale { 8388607 };
+// note: 必須要加上.f否則是round to 2147483648.
+inline constexpr float kFloat32Scale { 2147483647.f };
+inline constexpr float kMaxFloatSample { 1.0F };
+inline constexpr float kMinFloatSample { -1.0F };
 
 XAMP_BASE_NAMESPACE_END

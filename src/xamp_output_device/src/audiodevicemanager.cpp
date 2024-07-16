@@ -77,13 +77,13 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
+    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(win32::NullOutputDeviceType);
 #endif
-    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
 }
 
 AudioDeviceManager::~AudioDeviceManager() {
@@ -143,7 +143,8 @@ bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {
 #ifdef XAMP_OS_WIN
     return type == XAMP_UUID_OF(win32::SharedWasapiDeviceType);
 #else
-    return false;
+    return type == XAMP_UUID_OF(win32::NullOutputDeviceType)
+           || type == XAMP_UUID_OF(osx::CoreAudioDeviceType);
 #endif
 }
 

@@ -619,7 +619,7 @@ int32_t ThemeManager::fontSize(int32_t base_size) const {
 }
 
 int32_t ThemeManager::defaultFontSize() const {
-    return fontSize(10);
+    return fontSize(12);
 }
 
 QSize ThemeManager::titleButtonIconSize() {

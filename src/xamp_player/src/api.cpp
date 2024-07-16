@@ -36,8 +36,12 @@ void LoadComponentSharedLibrary() {
     LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr lib success.");
 
+    LoadChromaprintLib();
+    XAMP_LOG_DEBUG("Load chromaprint lib success.");
+
     LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
+#endif
 
     LoadCueLib();
     XAMP_LOG_DEBUG("Load libcue lib success.");
@@ -47,10 +51,6 @@ void LoadComponentSharedLibrary() {
 
     LoadLibIconvLib();
     XAMP_LOG_DEBUG("Load iconv lib success.");
-
-    LoadChromaprintLib();
-    XAMP_LOG_DEBUG("Load chromaprint lib success.");
-#endif
 
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();

@@ -303,9 +303,9 @@ void Xamp::initialChatGPTService() {
 
     XAMP_LOG_DEBUG("Initial chatgpt service...");
 
-    QCoro::connect(chatgpt_service_->initialAsync(), this, []() {
-        XAMP_LOG_DEBUG("Initial chatgpt service done.");
-        });    
+    //QCoro::connect(chatgpt_service_->initialAsync(), this, []() {
+    //    XAMP_LOG_DEBUG("Initial chatgpt service done.");
+    //    });
 }
 
 void Xamp::initialYtMusicService() {
@@ -427,7 +427,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
 
-    (void)QObject::connect(ui_.authButton, &QToolButton::clicked, [this](auto checked) { 
+    (void)QObject::connect(ui_.authButton, &QToolButton::clicked, [this](auto) {
         auto token = YtMusicOAuth::parseOAuthJson();
         if (token) {            
             const QScopedPointer<XDialog> dialog(new XDialog(this));
@@ -846,7 +846,7 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
                 const auto thumbnail_url = song.value().thumbnail.thumbnails.back().url;
 
                 http::HttpClient(QString::fromStdString(thumbnail_url))
-                    .download([file_name, song, this](const auto& content) {
+                    .download([file_name, song](const auto& content) {
                     QPixmap image;
                     if (!image.loadFromData(content)) {
                         return;
@@ -1107,14 +1107,12 @@ void Xamp::initialUi() {
     ui_.artistLabel->setFont(f);    
 
     QToolTip::hideText();
-    f.setPointSize(qTheme.fontSize(12));
-    QToolTip::setFont(f);
 
     f.setWeight(QFont::DemiBold);
     f.setPointSize(10);
 
     QFont mono_font(qTEXT("MonoFont"));
-    mono_font.setPointSize(qTheme.defaultFontSize());
+    mono_font.setPointSize(qTheme.fontSize(6));
     ui_.startPosLabel->setFont(mono_font);
     ui_.endPosLabel->setFont(mono_font);
     ui_.seekSlider->setDisabled(true);
@@ -1906,6 +1904,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
+#if 0
     setupSampleRateConverter(sample_rate_converter_factory,
         target_sample_rate,
         sample_rate_converter_type);
@@ -1942,13 +1941,38 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         }
         byte_format = ByteFormat::SINT16;
     }
+#else
+    if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
+        AudioFormat default_format;
+        if (device_info_.value().default_format) {
+            default_format = device_info_.value().default_format.value();
+        }
+        else {
+#ifdef Q_OS_WIN
+            default_format = AudioFormat::k16BitPCM441Khz;
+#else
+            default_format = AudioFormat::k16BitPCM48Khz;
+#endif
+        }
+
+        auto sample_rate = entity.isFilePath() ? entity.sample_rate : AudioFormat::k16BitPCM48Khz.GetSampleRate();
+
+        if (sample_rate != default_format.GetSampleRate()) {
+            target_sample_rate = default_format.GetSampleRate();
+        }
+        byte_format = ByteFormat::SINT16;
+        player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
+    }
+
+    setupSampleRateConverter(sample_rate_converter_factory,
+                             target_sample_rate,
+                             sample_rate_converter_type);
+#endif
     
     const auto open_dsd_mode = getDsdModes(device_info_.value(),
         entity.file_path.toStdWString(),
         entity.sample_rate,
         target_sample_rate);
-
-    auto* page = dynamic_cast<PlaylistPage*>(sender());
 
     try {
         player_->Open(entity.file_path.toStdWString(),
@@ -1985,9 +2009,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         ui_.mutedButton->updateState();
         open_done = true;
         updateUi(entity, playback_format, open_done, is_doubleclicked);
-
-		//auto prompt = generateMusicAnalysisPrompt(entity.title, entity.artist, entity.album);
-        //QCoro::connect(chatgpt_service_->getResponseAsync(prompt.toStdString()), this, &Xamp::onChatGptResponseCompleted);
         return;
     }
     catch (...) {
@@ -2722,7 +2743,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     if (playlist_page != yt_music_search_page_.get()) {
         (void)QObject::connect(playlist_page,
             &PlaylistPage::search,
-            [this, playlist_page](const auto& text, Match match) {
+            [playlist_page](const auto& text, Match match) {
                 playlist_page->playlist()->search(text);
             });
     } else {

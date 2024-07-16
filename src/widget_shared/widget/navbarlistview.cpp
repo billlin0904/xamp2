@@ -104,6 +104,9 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
         case TAB_YT_MUSIC_PLAYLIST:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));
             break;
+        case TAB_AI:
+            item->setIcon(qTheme.fontIcon(Glyphs::ICON_AI));
+            break;
         }
     }
 	tooltip_.onThemeChangedFinished(theme_color);

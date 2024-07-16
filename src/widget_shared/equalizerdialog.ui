@@ -35,10 +35,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0">
      <item>
-      <widget class="QLabel" name="label_23">
+      <widget class="QLabel" name="presetLabel">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>

@@ -72,7 +72,7 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
 
 CONFIG(debug, debug|release) {
 CONFIG += debug
-QMAKE_CXXFLAGS += -mavx2 -D_DEBUG
+QMAKE_CXXFLAGS += -D_DEBUG
 LIBS += \
     -L$$PWD/../xamp_base/debug/ -lxamp_base \
     -L$$PWD/../xamp_metadata/debug/ -lxamp_metadata \
@@ -86,12 +86,7 @@ LIBS += \
     -L$$PWD/../thirdparty/qcoro/build/Qt_6_7_2_for_macOS-Debug/qcoro/core/ -lQCoro6Core_debug \
     -L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/ -lpython3.7 \
 } else {
-QMAKE_CXXFLAGS += -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fcoroutines-ts
-LIBS += -L"../xamp_base/release/" -lxamp_base \
-    -L"../xamp_metadata/release/" -lxamp_metadata \
-    -L"../xamp_output_device/release/" -lxamp_output_device \
-    -L"../xamp_stream/release/" -lxamp_stream \
-    -L"../xamp_player/release/" -lxamp_player \
+
 }
 
 # Default rules for deployment.

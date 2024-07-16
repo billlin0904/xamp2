@@ -231,7 +231,7 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
 
 CONFIG(debug, debug|release) {
 CONFIG += debug
-QMAKE_CXXFLAGS += -mavx2 -D_DEBUG
+QMAKE_CXXFLAGS += -D_DEBUG
 LIBS += -L$$PWD/../xamp_base/debug/ -lxamp_base \
     -L$$PWD/../xamp_metadata/debug/ -lxamp_metadata \
     -L$$PWD/../xamp_output_device/debug/ -lxamp_output_device \
@@ -241,15 +241,7 @@ LIBS += -L$$PWD/../xamp_base/debug/ -lxamp_base \
     -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_5_3_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
     -L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/ -lpython3.7 \
 } else {
-QMAKE_CXXFLAGS += -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
-LIBS += -L$$PWD/../xamp_base/release/ -lxamp_base \
-    -L$$PWD/../xamp_metadata/release/ -lxamp_metadata \
-    -L$$PWD/../xamp_output_device/release/ -lxamp_output_device \
-    -L$$PWD/../xamp_stream/release/ -lxamp_stream \
-    -L$$PWD/../xamp_player/release/ -lxamp_player \
-    -L$$PWD/../thirdparty/framelesshelper/lib/release/ -lFramelessHelperCore_debug.2.3.6 \
-    -L$$PWD/../thirdparty/framelesshelper/lib/release/ -lFramelessHelperWidgets_debug.2.3.6 \
-    -L"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/" -lpython3.7 \
+
 }
 
 # Default rules for deployment.

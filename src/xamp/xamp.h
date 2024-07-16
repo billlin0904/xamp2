@@ -309,8 +309,7 @@ private:
 	IXMainWindow* main_window_;
 	PlaylistTabWidget* last_playlist_tab_{ nullptr };
 	PlaylistTableView* last_playlist_{ nullptr };
-	PlaylistPage* last_playlist_page_{ nullptr };	
-	QAction* about_action_{ nullptr };
+    PlaylistPage* last_playlist_page_{ nullptr };
 	QAction* preference_action_{ nullptr };
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;	
