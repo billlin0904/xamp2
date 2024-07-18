@@ -79,6 +79,8 @@ signals:
 
 	void deletePlaylist(const QString& playlist_id);
 
+	void saveToM3UFile(int32_t playlist_id, const QString& playlist_name);
+
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 

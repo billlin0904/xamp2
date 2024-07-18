@@ -16,111 +16,6 @@
 #include <widget/actionmap.h>
 #include <widget/playlisttabwidget.h>
 
-void PlaylistTabWidget::closeAllTab() {
-    QList<PlaylistPage*> playlist_pages;
-    for (auto i = 0; i < tabBar()->count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
-        playlist_pages.append(playlist_page);
-    }
-
-    Q_FOREACH(auto * page, playlist_pages) {
-        removePlaylist(page->playlist()->playlistId());
-        page->deleteLater();
-    }
-
-    playlist_dao_.forEachPlaylist([this](auto playlist_id,
-        auto,
-        auto store_type,
-        auto,
-        auto) {
-            if (playlist_id == kAlbumPlaylistId
-                || playlist_id == kCdPlaylistId
-                || playlist_id == kYtMusicSearchPlaylistId) {
-                return;
-            }
-            if (store_type != store_type_) {
-                return;
-            }
-            removePlaylist(playlist_id);
-        });
-
-    clear();
-    emit removeAllPlaylist();
-    resizeTabWidth();
-}
-
-void PlaylistTabWidget::setStoreType(StoreType type) {
-    store_type_ = type;
-    setTabsClosable(true);
-    setMovable(store_type_ == StoreType::CLOUD_SEARCH_STORE ? true : false);
-}
-
-void PlaylistTabWidget::reloadAll() {
-    for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
-        playlist_page->playlist()->reload();
-    }
-}
-
-PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
-	for (auto i = 0; i < count(); ++i) {
-		auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-		Q_ASSERT(playlist_page != nullptr);
-		if (playlist_page->playlist()->playlistId() == playlist_id) {
-			return playlist_page;
-		}
-	}
-	return nullptr;
-}
-
-void PlaylistTabWidget::setCurrentNowPlaying() {
-    setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.4));
-}
-
-void PlaylistTabWidget::setNowPlaying(int32_t playlist_id) {
-    auto icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.4);
-
-    for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        if (playlist_page->playlist()->playlistId() == playlist_id) {
-            setTabIcon(i, icon);
-        }
-        else {
-            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
-        }
-    }
-}
-
-void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState state) {
-    QIcon icon;
-
-    switch (state) {
-    case PlayerState::PLAYER_STATE_RUNNING:
-        icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0);        
-        break;
-    case PlayerState::PLAYER_STATE_PAUSED:
-        icon = qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0);
-        break;
-    case PlayerState::PLAYER_STATE_STOPPED:
-    case PlayerState::PLAYER_STATE_USER_STOPPED:
-    default:
-        icon = qTheme.fontIcon(Glyphs::ICON_DRAFT);
-        break;
-    }
-
-    for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        if (playlist_page->playlist()->playlistId() == playlist_id) {
-            setTabIcon(i, icon);
-        }
-        else {
-            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
-        }
-    }
-}
-
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
@@ -214,6 +109,18 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 emit removeAllPlaylist();
                 });
         }
+
+        action_map.addSeparator();
+
+		action_map.addAction(tr("Save to M3U playlist"), [pt, this]() {
+            auto tab_index = tabBar()->tabAt(pt);
+            if (tab_index == -1) {
+                return;
+            }
+
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+            emit saveToM3UFile(playlist_page->playlist()->playlistId(), tabBar()->tabText(tab_index));
+			});
 
         XAMP_TRY_LOG(
             action_map.exec(pt);
@@ -490,4 +397,111 @@ void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
 
 bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
     return QTabWidget::eventFilter(watched, event);
+}
+
+void PlaylistTabWidget::closeAllTab() {
+    QList<PlaylistPage*> playlist_pages;
+    for (auto i = 0; i < tabBar()->count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        Q_ASSERT(playlist_page != nullptr);
+        playlist_pages.append(playlist_page);
+    }
+
+    Q_FOREACH(auto * page, playlist_pages) {
+        removePlaylist(page->playlist()->playlistId());
+        page->deleteLater();
+    }
+
+    playlist_dao_.forEachPlaylist([this](auto playlist_id,
+        auto,
+        auto store_type,
+        auto,
+        auto) {
+            if (playlist_id == kAlbumPlaylistId
+                || playlist_id == kCdPlaylistId
+                || playlist_id == kYtMusicSearchPlaylistId) {
+                return;
+            }
+            if (store_type != store_type_) {
+                return;
+            }
+            removePlaylist(playlist_id);
+        });
+
+    tab_count_ = 0;
+    tab_bar_->setTabCount(tab_count_);
+    clear();
+    emit removeAllPlaylist();
+    resizeTabWidth();
+}
+
+void PlaylistTabWidget::setStoreType(StoreType type) {
+    store_type_ = type;
+    setTabsClosable(true);
+    setMovable(store_type_ == StoreType::CLOUD_SEARCH_STORE ? true : false);
+}
+
+void PlaylistTabWidget::reloadAll() {
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        Q_ASSERT(playlist_page != nullptr);
+        playlist_page->playlist()->reload();
+    }
+}
+
+PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        Q_ASSERT(playlist_page != nullptr);
+        if (playlist_page->playlist()->playlistId() == playlist_id) {
+            return playlist_page;
+        }
+    }
+    return nullptr;
+}
+
+void PlaylistTabWidget::setCurrentNowPlaying() {
+    setPlaylistTabIcon(qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.4));
+}
+
+void PlaylistTabWidget::setNowPlaying(int32_t playlist_id) {
+    auto icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.4);
+
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        if (playlist_page->playlist()->playlistId() == playlist_id) {
+            setTabIcon(i, icon);
+        }
+        else {
+            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+        }
+    }
+}
+
+void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState state) {
+    QIcon icon;
+
+    switch (state) {
+    case PlayerState::PLAYER_STATE_RUNNING:
+        icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+        break;
+    case PlayerState::PLAYER_STATE_PAUSED:
+        icon = qTheme.playlistPauseIcon(PlaylistTabWidget::kTabIconSize, 1.0);
+        break;
+    case PlayerState::PLAYER_STATE_STOPPED:
+    case PlayerState::PLAYER_STATE_USER_STOPPED:
+    default:
+        icon = qTheme.fontIcon(Glyphs::ICON_DRAFT);
+        break;
+    }
+
+    for (auto i = 0; i < count(); ++i) {
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        if (playlist_page->playlist()->playlistId() == playlist_id) {
+            setTabIcon(i, icon);
+        }
+        else {
+            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+        }
+    }
 }

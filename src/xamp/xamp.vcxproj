@@ -63,7 +63,7 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtInstall>6.7.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;network;widgets;sql</QtModules>
+    <QtModules>core;gui;network;widgets;core5compat;sql</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />

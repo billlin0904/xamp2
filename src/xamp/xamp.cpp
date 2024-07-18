@@ -82,6 +82,7 @@
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
 #include <widget/chatgpt/chatgptwidget.h>
+#include <widget/m3uparser.h>
 
 namespace {
     constexpr auto kYtMusicSampleRate = 48000;
@@ -2465,6 +2466,26 @@ void Xamp::initialPlaylist() {
         [this]() {
             last_playlist_ = nullptr;
         });    
+
+    (void)QObject::connect(playlist_tab_page_.get(), &PlaylistTabWidget::saveToM3UFile,
+        [this](auto playlist_id, const auto& playlist_name) {
+            const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+            const auto save_file_name = last_dir + qTEXT("/") + playlist_name + qTEXT(".m3u");
+			getSaveFileName(this, [this, playlist_id, playlist_name](const auto& file_name) {
+				if (file_name.isEmpty()) {
+					return;
+				}
+
+                QStringList tracks;
+                Q_FOREACH(const auto& item, playlist_tab_page_->findPlaylistPage(playlist_id)->playlist()->items()) {
+                    tracks << item.file_path;
+                }                
+                M3uParser::writeM3UFile(file_name, tracks, playlist_name);
+				},
+                tr("Save m3u file"),
+                save_file_name,
+                tr("M3U Files (*.m3u)"));
+        });
 
     file_explorer_page_.reset(new FileSystemViewPage(this));
 

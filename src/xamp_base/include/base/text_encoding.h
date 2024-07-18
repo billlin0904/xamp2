@@ -26,6 +26,8 @@ public:
 	std::string ToUtf8String(const std::string& input,
 		size_t buf_size = kBufferSize,
 		bool ignore_error = false);
+
+	bool IsUtf8(const std::string& input);
 private:
 	class TextEncodingImpl;
 	AlignPtr<TextEncodingImpl> impl_;

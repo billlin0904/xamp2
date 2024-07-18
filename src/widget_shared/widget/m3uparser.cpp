@@ -1,0 +1,110 @@
+#include <widget/m3uparser.h>
+#include <widget/widget_shared.h>
+#include <base/text_encoding.h>
+
+#include <QString>
+#include <QTextCodec>
+#include <QList>
+#include <QFile>
+#include <QDir>
+#include <QFileInfo>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QUrl>
+#include <QStringConverter>
+#include <QIODevice>
+#include <QRegularExpression>
+#include <QFile>
+#include <QDir>
+
+namespace {
+    const char kStandardM3uTextEncoding[] = "Windows-1250";
+	constexpr auto kM3uHeader = qTEXT("#EXTM3U");
+	constexpr auto kM3uCommentPrefix = qTEXT("#");
+	const auto kUniveralEndOfLineRegEx = QRegularExpression(QStringLiteral("\r\n|\r|\n"));
+}
+
+bool M3uParser::isPlaylistFilenameSupported(const QString& fileName) {
+	return fileName.endsWith(qTEXT(".m3u"), Qt::CaseInsensitive) ||
+		fileName.endsWith(qTEXT(".m3u8"), Qt::CaseInsensitive);
+}
+
+bool M3uParser::writeM3UFile(const QString& file_name,
+    const QList<QString>& items,
+    const QString& playlist,
+    bool useRelativePath,
+    bool utf8_encoding) {    
+    QDir base_directory(QFileInfo(file_name).canonicalPath());    
+
+    QString file_contents(qTEXT("#EXTM3U\n"));
+    if (!playlist.isEmpty()) {
+        file_contents += qTEXT("#PLAYLIST:") + playlist + qTEXT("\n");
+    }
+
+    for (const QString& item : items) {
+        file_contents += qTEXT("#EXTINF\n");
+        if (useRelativePath) {
+            file_contents += base_directory.relativeFilePath(item) + qTEXT("\n");
+        }
+        else {
+            file_contents += item + qTEXT("\n");
+        }
+    }
+
+    QByteArray output;
+    if (!utf8_encoding) {
+        auto* codec = QTextCodec::codecForName(kStandardM3uTextEncoding);
+        if (!codec) {
+            return false;
+        }
+        output = QTextCodec::codecForName(kStandardM3uTextEncoding)->fromUnicode(file_contents);
+    }
+    else {
+        output = file_contents.toUtf8();
+    }
+
+    QFile file(file_name);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+    file.write(output);
+    file.close();
+    return true;
+}
+
+QList<QString> M3uParser::parseM3UFile(const QString& file_name) {
+    QList<QString> paths;
+
+    QFile file(file_name);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return paths;
+    }
+
+    auto byte_array = file.readAll();
+	if (byte_array.isEmpty()) {
+		return paths;	
+    }
+
+    QString file_contents;
+
+    if (!TextEncoding().IsUtf8(byte_array.constData())) {
+        file_contents = QTextCodec::codecForName(kStandardM3uTextEncoding)
+            ->toUnicode(byte_array);
+    }
+    else {
+        file_contents = QString::fromUtf8(byte_array);
+    }
+
+    if (!file_contents.startsWith(kM3uHeader)) {
+        return paths;
+    }
+
+    const auto file_lines = file_contents.split(kUniveralEndOfLineRegEx);
+    for (const QString& line : file_lines) {
+        if (line.startsWith(kM3uCommentPrefix)) {
+            continue;
+        }
+        paths.append(line);
+    }
+    return paths;
+}

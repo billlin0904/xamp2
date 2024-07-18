@@ -125,6 +125,15 @@ std::string TextEncoding::ToUtf8String(const std::string& input_encoding,
 	return impl_->ConvertToUtf8String(input_encoding, input, buf_size, ignore_error);
 }
 
+bool TextEncoding::IsUtf8(const std::string& input) {
+	CharsetDetector detector;
+	const auto encoding_name = detector.Detect(input);
+	if (encoding_name.empty()) {
+		return false;
+	}
+	return encoding_name == "UTF-8";
+}
+
 std::string TextEncoding::ToUtf8String(const std::string& input, size_t buf_size, bool ignore_error) {
 	CharsetDetector detector;
 	const auto encoding_name = detector.Detect(input);
