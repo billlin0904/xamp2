@@ -53,7 +53,7 @@ public:
 
     XAMP_NO_DISCARD bool CanProcess() const noexcept override;
 
-    XAMP_NO_DISCARD bool Contains(const Uuid& type) const noexcept;
+    XAMP_NO_DISCARD bool Contains(const Uuid& type) const noexcept override;
 private:
     void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 

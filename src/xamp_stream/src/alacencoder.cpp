@@ -95,7 +95,7 @@ public:
         }
 
         format_context_->pb = output_io_context;
-        port_strcpy(format_context_->filename, file_name);
+        //port_strcpy(format_context_->filename, file_name);
 
         auto * av_codec = LIBAV_LIB.Codec->avcodec_find_encoder(AV_CODEC_ID_ALAC);
         if (!av_codec) {

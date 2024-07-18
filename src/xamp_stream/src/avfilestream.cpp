@@ -43,7 +43,7 @@ public:
         swr_context_.reset();
         audio_frame_.reset();
         if (codec_context_ != nullptr) {
-            LIBAV_LIB.Codec->avcodec_close(codec_context_);
+            LIBAV_LIB.Codec->avcodec_close(codec_context_.get());
             codec_context_ = nullptr;
         }
         format_context_.reset();
@@ -121,6 +121,7 @@ public:
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
             if ((audio_stream_id_ < 0) && (format_context_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)) {
                 audio_stream_id_ = i;
+                codecpar_ = format_context_->streams[i]->codecpar;
             }
         }
 
@@ -146,31 +147,23 @@ public:
     * @throw NotSupportFormatException
     */
     void OpenAudioStream() {
-        codec_context_ = format_context_->streams[audio_stream_id_]->codec;
+        const AVCodec* codec = nullptr;
 
-        // Find libfdk_aac codec.
-        AVCodec* codec = nullptr;
-        /*if (codec_context_->codec_id == AV_CODEC_ID_AAC) {
-            codec = LIBAV_LIB.Codec->avcodec_find_decoder_by_name("libfdk_aac");
-            if (!codec) {
-                XAMP_LOG_D(logger_, "Not found codec 'libfdk_aac'.");
-            } else {
-                XAMP_LOG_D(logger_, "Use codec 'libfdk_aac'.");
-            }
-        }*/
-        
-        // Fallback find other codec.
         if (!codec) {
-            codec = LIBAV_LIB.Codec->avcodec_find_decoder(codec_context_->codec_id);
+            codec = LIBAV_LIB.Codec->avcodec_find_decoder(codecpar_->codec_id);
             if (!codec) {
                 throw NotSupportFormatException();
             }
         }
 
-        // note: Don't use multi threading for audio decode.
-        codec_context_->thread_count = 1;
+        auto codec_context = LIBAV_LIB.Codec->avcodec_alloc_context3(codec);
+        if (!codec_context) {
+            throw NotSupportFormatException();
+        }
+        codec_context_.reset(codec_context);
 
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_, codec, nullptr));
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_to_context(codec_context_.get(), codecpar_));
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), codec, nullptr));
         
         audio_frame_.reset(LIBAV_LIB.Util->av_frame_alloc());
 
@@ -264,7 +257,7 @@ public:
                     continue;
                 }
 
-                auto ret = LIBAV_LIB.Codec->avcodec_send_packet(codec_context_, packet_.get());
+                auto ret = LIBAV_LIB.Codec->avcodec_send_packet(codec_context_.get(), packet_.get());
                 if (ret == AVERROR(EAGAIN)) {
                     break;
                 }
@@ -280,7 +273,7 @@ public:
                 while (ret >= 0) {
                     XAMP_ON_SCOPE_EXIT(LIBAV_LIB.Util->av_frame_unref(audio_frame_.get()));
 
-                    ret = LIBAV_LIB.Codec->avcodec_receive_frame(codec_context_, audio_frame_.get());
+                    ret = LIBAV_LIB.Codec->avcodec_receive_frame(codec_context_.get(), audio_frame_.get());
                     if (ret == AVERROR(EAGAIN)) {
                         break;
                     }
@@ -337,7 +330,7 @@ public:
         }
 
         AvIfFailedThrow(LIBAV_LIB.Format->av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
-        LIBAV_LIB.Codec->avcodec_flush_buffers(codec_context_);
+        LIBAV_LIB.Codec->avcodec_flush_buffers(codec_context_.get());
         is_eof_ = false;
     }
 
@@ -393,7 +386,8 @@ private:
     AudioFormat audio_format_;
     AvPtr<SwrContext> swr_context_;
     AvPtr<AVFrame> audio_frame_;
-    AVCodecContext* codec_context_{nullptr};
+    AvPtr<AVCodecContext> codec_context_{nullptr};
+    AVCodecParameters *codecpar_{nullptr};
     AvPtr<AVFormatContext> format_context_;
     AvPtr<AVPacket> packet_;
     LoggerPtr logger_;

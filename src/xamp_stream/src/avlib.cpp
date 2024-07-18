@@ -28,7 +28,7 @@ int32_t AvException::GetErrorCode() const noexcept {
 XAMP_DECLARE_LOG_NAME(LibAv);
 
 AvFormatLib::AvFormatLib() try
-    : module_(OpenSharedLibrary("avformat-58"))
+    : module_(OpenSharedLibrary("avformat-59"))
 	, XAMP_LOAD_DLL_API(avformat_open_input)
 	, XAMP_LOAD_DLL_API(avformat_close_input)
 	, XAMP_LOAD_DLL_API(avformat_find_stream_info)
@@ -41,7 +41,7 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avformat_alloc_context)
 	, XAMP_LOAD_DLL_API(avformat_new_stream)
 	, XAMP_LOAD_DLL_API(avformat_query_codec)
-	, XAMP_LOAD_DLL_API(av_oformat_next)
+    , XAMP_LOAD_DLL_API(av_demuxer_iterate)
 	, XAMP_LOAD_DLL_API(avformat_alloc_output_context2)
 	, XAMP_LOAD_DLL_API(avio_open)
 	, XAMP_LOAD_DLL_API(av_interleaved_write_frame)
@@ -53,7 +53,7 @@ catch (const Exception& e) {
 }
 
 AvCodecLib::AvCodecLib() try
-    : module_(OpenSharedLibrary("avcodec-58"))
+    : module_(OpenSharedLibrary("avcodec-59"))
 	, XAMP_LOAD_DLL_API(avcodec_close)
 	, XAMP_LOAD_DLL_API(avcodec_open2)
 	, XAMP_LOAD_DLL_API(avcodec_alloc_context3)
@@ -74,14 +74,15 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(av_codec_iterate)
 	, XAMP_LOAD_DLL_API(av_packet_rescale_ts)
 	, XAMP_LOAD_DLL_API(av_packet_free)
-	, XAMP_LOAD_DLL_API(avcodec_free_context) {
+    , XAMP_LOAD_DLL_API(avcodec_free_context)
+    , XAMP_LOAD_DLL_API(avcodec_parameters_to_context) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
 AvUtilLib::AvUtilLib() try
-    : module_(OpenSharedLibrary("avutil-56"))
+    : module_(OpenSharedLibrary("avutil-57"))
 	, XAMP_LOAD_DLL_API(av_free)
 	, XAMP_LOAD_DLL_API(av_frame_unref)
 	, XAMP_LOAD_DLL_API(av_frame_get_buffer)
@@ -111,7 +112,7 @@ catch (const Exception& e) {
 }
 
 AvSwLib::AvSwLib() try
-    : module_(OpenSharedLibrary("swresample-3"))
+    : module_(OpenSharedLibrary("swresample-4"))
 	, XAMP_LOAD_DLL_API(swr_free)
 	, XAMP_LOAD_DLL_API(swr_alloc_set_opts)
 	, XAMP_LOAD_DLL_API(swr_convert)
@@ -205,9 +206,12 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	HashSet<std::string> result;
 	HashSet<const AVCodec*> audio_codecs;
 
+    std::set<std::string> ordered_extension;
+
 	const auto level = logger->GetLevel();
 	logger->SetLevel(LOG_LEVEL_DEBUG);
 
+#if 0
 	void* i = nullptr;
 	const AVCodec* codec;
 	while ((codec = Codec->av_codec_iterate(&i))) {
@@ -219,7 +223,6 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	}
 
 	auto output_format = Format->av_oformat_next(nullptr);
-	std::set<std::string> ordered_extension;
 
 #define IF_NULL_STR(value) value ? value : ""
 
@@ -245,7 +248,27 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 			IF_NULL_STR(output_format->extensions));
 		output_format = output_format->next;
 	}
-
+#else
+    const AVInputFormat *output_format;
+    void *opaque = nullptr;
+    while ((output_format = Format->av_demuxer_iterate(&opaque)) != nullptr){
+        if (output_format->extensions) {
+            auto result = String::Split(output_format->extensions, ",");
+            if (!result.empty()) {
+                for (const auto& extension : result) {
+                    auto ext = String::AsStdString(extension);
+                    String::LTrim(ext);
+                    String::RTrim(ext);
+                    if (ordered_extension.find(ext) == ordered_extension.end()) {
+                        ordered_extension.insert(ext);
+                    }
+                }
+            } else {
+                ordered_extension.insert(String::Format(".{}", output_format->extensions));
+            }
+        }
+    }
+#endif
 	// Workaround!
 	ordered_extension.insert("wav");
 	ordered_extension.insert("mp3");

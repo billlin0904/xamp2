@@ -75,7 +75,7 @@ public:
    XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
    XAMP_DECLARE_DLL_NAME(avformat_new_stream);
    XAMP_DECLARE_DLL_NAME(avformat_query_codec);
-   XAMP_DECLARE_DLL_NAME(av_oformat_next);
+   XAMP_DECLARE_DLL_NAME(av_demuxer_iterate);
    XAMP_DECLARE_DLL_NAME(avformat_alloc_output_context2);
    XAMP_DECLARE_DLL_NAME(avio_open);
    XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
@@ -114,6 +114,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_packet_rescale_ts);
     XAMP_DECLARE_DLL_NAME(av_packet_free);
     XAMP_DECLARE_DLL_NAME(avcodec_free_context);
+    XAMP_DECLARE_DLL_NAME(avcodec_parameters_to_context);
 };
 
 class AvUtilLib final {
