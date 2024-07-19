@@ -4,3 +4,7 @@
 ChatGPTWindow::ChatGPTWindow(QWidget* parent) 
 	: QWidget(parent) {
 }
+
+void ChatGPTWindow::initial() {
+
+}

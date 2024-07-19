@@ -5,29 +5,28 @@
 
 #pragma once
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QFrame>
-#include <QPixmap>
-#include <QPushButton>
-#include <QDateTimeEdit>
-#include <QLineEdit>
-#include <QAudioDevice>
+#include <QObject>
+#include <whisper.h>
+#include <vector>
 
-#include <widget/util/str_util.h>
-
-class XAMP_WIDGET_SHARED_EXPORT ChatGPTWindow : public QWidget {
+class WhisperService : public QObject {
     Q_OBJECT
 public:
-    explicit ChatGPTWindow(QWidget* parent = nullptr);
-    
-    void initial();
+    explicit WhisperService(QObject *parent = nullptr);
+
+    ~WhisperService() override;
+
+    void loadModel(const QString &file_path);
+
+    void unloadModel();
 
 signals:
+    void resultReady(const QString& result);
 
 public slots:
-
+    void readSamples(const std::vector<float> &samples);
 
 private:
-
+    class Whisper;
+    QScopedPointer<Whisper> whisper_;
 };

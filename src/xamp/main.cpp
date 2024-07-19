@@ -220,6 +220,7 @@ namespace {
         main_window.restoreAppGeometry();
         main_window.showWindow();
 
+#ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
             main_window.setShortcut(QKeySequence(Qt::Key_MediaStop));
@@ -230,6 +231,8 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
             main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
+#endif
+
         return app.exec();
     }
 }

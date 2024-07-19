@@ -2482,10 +2482,25 @@ void Xamp::initialPlaylist() {
                 }                
                 M3uParser::writeM3UFile(file_name, tracks, playlist_name);
 				},
-                tr("Save m3u file"),
+                tr("Save playlist file"),
                 save_file_name,
                 tr("M3U Files (*.m3u)"));
         });
+
+    (void)QObject::connect(playlist_tab_page_.get(), &PlaylistTabWidget::loadPlaylistFile,
+                            [this](auto playlist_id) {
+        const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+        getOpenFileName(this, [this,playlist_id](auto file_name) {
+            if (file_name.isEmpty()) {
+                return;
+            }
+            auto playlist_page = playlist_tab_page_->findPlaylistPage(playlist_id);
+            auto entities = M3uParser::parseM3UFile(file_name);
+            Q_FOREACH(const auto & file_path, entities) {
+                playlist_page->playlist()->append(file_path);
+            }
+            }, tr("Load playlist file"), last_dir, tr("*.m3u"));
+    });
 
     file_explorer_page_.reset(new FileSystemViewPage(this));
 

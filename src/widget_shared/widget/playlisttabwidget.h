@@ -81,6 +81,8 @@ signals:
 
 	void saveToM3UFile(int32_t playlist_id, const QString& playlist_name);
 
+    void loadPlaylistFile(int32_t playlist_id);
+
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 

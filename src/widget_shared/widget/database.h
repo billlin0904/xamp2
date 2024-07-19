@@ -166,7 +166,7 @@ XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size 
 template <typename Func>
 class TransactionScope final {
 public:
-	TransactionScope(Func&& action)
+    explicit TransactionScope(Func&& action)
 		: action_(std::forward<Func>(action)) {
 		result_ = qGuiDb.transaction();
 	}

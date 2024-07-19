@@ -1,11 +1,11 @@
 TEMPLATE = lib
 
-QT       += core gui sql network concurrent
+QT       += core gui sql network concurrent core5compat multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++20
-# DEFINES += QT_NO_CAST_FROM_ASCII
+DEFINES += QT_NO_CAST_FROM_ASCII
 
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 13.00
 
@@ -109,8 +109,12 @@ SOURCES += \
 ./widget/youtubedl/ytmusic_disckcache.cpp \
 ./widget/youtubedl/ytmusicoauth.cpp \
 ./widget/seekslider.cpp \
+./widget/m3uparser.cpp \
 ./version.cpp \
 ./thememanager.cpp \
+    widget/chatgpt/speechdetected.cpp \
+    widget/chatgpt/speechtotext.cpp \
+    widget/chatgpt/whisperservice.cpp
 
 HEADERS += \
 ./version.h \
@@ -209,8 +213,12 @@ HEADERS += \
 ./widget/youtubedl/ytmusicoauth.h \
 ./widget/fonticon.h \
 ./widget/appsettingnames.h \
+./widget/m3uparser.h \
 ./xampplayer.h \
 ./thememanager.h \
+    widget/chatgpt/speechdetected.h \
+    widget/chatgpt/speechtotext.h \
+    widget/chatgpt/whisperservice.h
 
 # Additionally include Cocoa for OS X code
 
@@ -227,6 +235,7 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/pybind11/include \
     ../thirdparty/expected/include \
     /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/ \
+    ../thirdparty/whispercpp/ \
     ../thirdparty/framelesshelper/include \
 
 CONFIG(debug, debug|release) {

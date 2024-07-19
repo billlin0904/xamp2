@@ -280,19 +280,15 @@ void getSaveFileName(QWidget* parent,
     const QString& caption,
     const QString& dir,
     const QString& filter) {
-    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     const auto file_name = QFileDialog::getSaveFileName(parent,
         caption,
         dir,
         filter,
         nullptr);
-
     if (file_name.isNull()) {
         return;
     }
-
     saveLastOpenFolderPath(file_name);
-
     action(file_name);
 }
 
@@ -301,19 +297,15 @@ void getOpenFileName(QWidget* parent,
     const QString& caption,
     const QString& dir, 
     const QString& filter) {
-    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     const auto file_name = QFileDialog::getOpenFileName(parent,
         caption,
         dir,
         filter,
         nullptr);
-
     if (file_name.isNull()) {
         return;
     }
-
     saveLastOpenFolderPath(file_name);
-    
     action(file_name);    
 }
 

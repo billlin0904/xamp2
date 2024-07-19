@@ -112,7 +112,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
         action_map.addSeparator();
 
-		action_map.addAction(tr("Save to M3U playlist"), [pt, this]() {
+        action_map.addAction(tr("Save playlist file"), [pt, this]() {
             auto tab_index = tabBar()->tabAt(pt);
             if (tab_index == -1) {
                 return;
@@ -121,6 +121,16 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
             emit saveToM3UFile(playlist_page->playlist()->playlistId(), tabBar()->tabText(tab_index));
 			});
+
+        action_map.addAction(tr("Load playlist file"), [pt, this]() {
+            auto tab_index = tabBar()->tabAt(pt);
+            if (tab_index == -1) {
+                return;
+            }
+
+            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+            emit loadPlaylistFile(playlist_page->playlist()->playlistId());
+        });
 
         XAMP_TRY_LOG(
             action_map.exec(pt);
