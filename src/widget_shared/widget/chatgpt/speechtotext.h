@@ -34,10 +34,13 @@ signals:
     void resultReady(const QString& result);
 
 private:
+    int32_t silence_counter_{ 0 };
     QIODevice *device_;
     QThread whisper_thread_;
     QScopedPointer<QAudioSource> source_;
     QScopedPointer<SpeechDetected> speech_detected_;
     QScopedPointer<WhisperService> whisper_;
+    std::vector<float> buffer_;
+    std::vector<float> input_;
 };
 

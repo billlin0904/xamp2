@@ -12,8 +12,8 @@
 #include <QPushButton>
 #include <QDateTimeEdit>
 #include <QLineEdit>
-#include <QAudioDevice>
 
+#include <widget/chatgpt/speechtotext.h>
 #include <widget/util/str_util.h>
 
 class XAMP_WIDGET_SHARED_EXPORT ChatGPTWindow : public QWidget {
@@ -29,5 +29,5 @@ public slots:
 
 
 private:
-
+    SpeechToText speech_to_text_;
 };

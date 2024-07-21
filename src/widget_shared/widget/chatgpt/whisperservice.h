@@ -6,7 +6,6 @@
 #pragma once
 
 #include <QObject>
-#include <whisper.h>
 #include <vector>
 
 class WhisperService : public QObject {

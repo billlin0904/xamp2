@@ -3,6 +3,7 @@
 #include <QAudioDevice>
 #include <QAudioSource>
 #include <QMetaObject>
+#include <QTimer>
 
 #include <widget/chatgpt/whisperservice.h>
 #include <widget/chatgpt/speechdetected.h>
@@ -39,27 +40,49 @@ void SpeechToText::start() {
     fmt.setSampleRate(kSampleRate);
     fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
     fmt.setChannelCount(1);
+
+    auto description = device.description();
+
     if (!device.isFormatSupported(fmt)) {
         return;
     }
 
     source_.reset(new QAudioSource{ device, fmt });
     device_ = source_->start();
-
+    
     (void) QObject::connect(device_, &QIODevice::readyRead, this, [this](){
-        auto bytes = device_->readAll();
-        float samples_count = bytes.size() / source_->format().bytesPerSample();
-        auto time_count     = samples_count / source_->format().sampleRate();
-        std::vector<float> frame{ reinterpret_cast<const float *>(bytes.cbegin()),
-                                 reinterpret_cast<const float *>(bytes.cend()) };
-        speech_detected_->feedSamples(std::move(frame));
-    });
+        static constexpr auto kSilenceThreshold = 8;
+        static constexpr auto kMinDetectedSamples = 320;
+        static constexpr auto kMaxSamples = 16000 * 5;
 
-    (void) QObject::connect(speech_detected_.get(), &SpeechDetected::speechDetected, this, [this](const auto &samples){
-        QMetaObject::invokeMethod(whisper_.get(),
-            "readSamples",
-            Qt::QueuedConnection,
-            Q_ARG(std::vector<float>, samples));
+        auto bytes = device_->readAll();
+
+        const auto* samples = reinterpret_cast<const float*>(bytes.data());
+        auto sample_count = bytes.size() / sizeof(float);        
+
+        for (int i = 0; i < sample_count; ++i) {
+            buffer_.push_back(samples[i]);
+
+            if (buffer_.size() == kMinDetectedSamples) {
+                if (speech_detected_->isSpeech(buffer_)) {
+                    input_.insert(input_.end(), buffer_.begin(), buffer_.end());
+                    silence_counter_ = 0;
+                }
+                else {
+                    if (silence_counter_ > kSilenceThreshold) {
+                        if (input_.size() >= kMaxSamples) {
+                            QMetaObject::invokeMethod(whisper_.get(),
+                                "readSamples",
+                                Qt::QueuedConnection,
+                                Q_ARG(std::vector<float>, input_));
+                            input_.clear();
+                        }						
+					}
+                    silence_counter_++;
+                }
+                buffer_.clear();
+            }
+        }
     });
 
     (void) QObject::connect(whisper_.get(), &WhisperService::resultReady, this, [this](auto s){

@@ -32,7 +32,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.7.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;network;widgets;core5compat;sql</QtModules>
+    <QtModules>core;gui;network;widgets;core5compat;multimedia;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -60,7 +60,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;../thirdparty/expected/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;../thirdparty/expected/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/whispercpp/;../thirdparty/vad/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
@@ -124,6 +124,9 @@
     <ClInclude Include="widget\chatgpt\chatgptservice.h" />
     <QtMoc Include="widget\baseservice.h" />
     <QtMoc Include="widget\chatgpt\chatgptwidget.h" />
+    <QtMoc Include="widget\chatgpt\speechtotext.h" />
+    <QtMoc Include="widget\chatgpt\whisperservice.h" />
+    <QtMoc Include="widget\chatgpt\speechdetected.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
@@ -232,6 +235,9 @@
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptservice.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptwidget.cpp" />
+    <ClCompile Include="widget\chatgpt\speechdetected.cpp" />
+    <ClCompile Include="widget\chatgpt\speechtotext.cpp" />
+    <ClCompile Include="widget\chatgpt\whisperservice.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />
     <ClCompile Include="widget\dao\albumdao.cpp" />
