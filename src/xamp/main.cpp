@@ -23,6 +23,7 @@
 #include <FramelessHelper/Core/private/framelessconfig_p.h>
 #include <FramelessHelper/Core/framelesshelpercore_global.h>
 
+#include <QPermissions>
 #include <QSslSocket>
 
 namespace {
@@ -156,6 +157,8 @@ namespace {
         auto prefetch_dll = prefetchDll();
         XAMP_LOG_DEBUG("Prefetch dll success.");
         FramelessHelperScoped scoped;
+#else
+
 #endif
 
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);

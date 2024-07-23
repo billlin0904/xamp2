@@ -1,4 +1,4 @@
-QT       += core gui sql network concurrent core5compat
+QT       += core gui sql network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -7,6 +7,12 @@ CONFIG += c++20
 DEFINES += QT_NO_CAST_FROM_ASCII
 
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 13.0
+
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
+VERSION_PATCH = 0
+
+VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -69,6 +75,11 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/QSimpleUpdater/include/ \
     ../thirdparty/expected/include \
     /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/
+
+mac {
+    QMAKE_INFO_PLIST += $$PWD/Info.plist
+    QMAKE_LFLAGS_SONAME  = -Wl,-install_name,@executable_path/../Frameworks/
+}
 
 CONFIG(debug, debug|release) {
 CONFIG += debug

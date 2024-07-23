@@ -2,8 +2,12 @@
 #include <QMediaDevices>
 #include <QAudioDevice>
 #include <QAudioSource>
+#include <QApplication>
+#include <QPermissions>
 #include <QMetaObject>
 #include <QTimer>
+
+#include <widget/chatgpt/permission.h>
 
 #include <widget/chatgpt/whisperservice.h>
 #include <widget/chatgpt/speechdetected.h>
@@ -25,11 +29,30 @@ void SpeechToText::stopService() {
 }
 
 void SpeechToText::loadModel(const QString &file_path) {
-    speech_detected_.reset(new SpeechDetected());
-    whisper_.reset(new WhisperService());
-    whisper_->loadModel(file_path);
-    whisper_->moveToThread(&whisper_thread_);
-    whisper_thread_.start();
+    QMicrophonePermission microphonePermission;
+
+    switch (qApp->checkPermission(microphonePermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(microphonePermission, this, [=](const auto &permission) {
+            qDebug() << "Asking permission within the Denied case";
+        });
+        //requestMicrophonePermission();
+        break;
+    case Qt::PermissionStatus::Denied:
+        qApp->requestPermission(microphonePermission, this, [=](const auto &permission) {
+            qDebug() << "Asking permission within the Denied case";
+        });
+        //requestMicrophonePermission();
+        break;
+    case Qt::PermissionStatus::Granted:
+        speech_detected_.reset(new SpeechDetected());
+        whisper_.reset(new WhisperService());
+        whisper_->loadModel(file_path);
+        whisper_->moveToThread(&whisper_thread_);
+        whisper_thread_.start();
+        start();
+        break;
+    }
 }
 
 void SpeechToText::start() {
@@ -38,8 +61,8 @@ void SpeechToText::start() {
 
     fmt.setSampleFormat(QAudioFormat::Float);
     fmt.setSampleRate(kSampleRate);
-    fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
     fmt.setChannelCount(1);
+    fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
 
     auto description = device.description();
 
@@ -64,7 +87,16 @@ void SpeechToText::start() {
             buffer_.push_back(samples[i]);
 
             if (buffer_.size() == kMinDetectedSamples) {
-                if (speech_detected_->isSpeech(buffer_)) {
+                std::vector<int16_t> temp;
+                temp.resize(buffer_.size());
+
+                for (int i = 0; i < buffer_.size(); i++) {
+                    temp[i] = static_cast<int16_t>(buffer_[i] * 32768.0f);
+                }
+
+                emit sampleReady(temp);
+
+                if (speech_detected_->isSpeech(temp)) {
                     input_.insert(input_.end(), buffer_.begin(), buffer_.end());
                     silence_counter_ = 0;
                 }

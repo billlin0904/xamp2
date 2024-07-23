@@ -24,6 +24,9 @@ TARGET = widget_shared
 TEMPLATE = lib
 CONFIG += plugin
 
+OBJECTIVE_SOURCES += \
+    widget/chatgpt/permission.mm
+
 SOURCES += \
 ./widget/genre_view_page.cpp \
 ./widget/albumartistpage.cpp \
@@ -114,6 +117,7 @@ SOURCES += \
 ./thememanager.cpp \
     widget/chatgpt/speechdetected.cpp \
     widget/chatgpt/speechtotext.cpp \
+    widget/chatgpt/waveformwidget.cpp \
     widget/chatgpt/whisperservice.cpp
 
 HEADERS += \
@@ -216,13 +220,15 @@ HEADERS += \
 ./widget/m3uparser.h \
 ./xampplayer.h \
 ./thememanager.h \
+    widget/chatgpt/permission.h \
     widget/chatgpt/speechdetected.h \
     widget/chatgpt/speechtotext.h \
+    widget/chatgpt/waveformwidget.h \
     widget/chatgpt/whisperservice.h
 
 # Additionally include Cocoa for OS X code
 
-LIBS += -framework Foundation -framework Cocoa -framework Carbon
+LIBS += -framework Foundation -framework Cocoa -framework Carbon -framework AVFoundation
 INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers \
     ../xamp_base/include \
     ../xamp_metadata/include \
@@ -236,6 +242,7 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/expected/include \
     /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/ \
     ../thirdparty/whispercpp/ \
+    ../thirdparty/libfvad/include/ \
     ../thirdparty/framelesshelper/include \
 
 CONFIG(debug, debug|release) {
@@ -246,8 +253,9 @@ LIBS += -L$$PWD/../xamp_base/debug/ -lxamp_base \
     -L$$PWD/../xamp_output_device/debug/ -lxamp_output_device \
     -L$$PWD/../xamp_stream/debug/ -lxamp_stream \
     -L$$PWD/../xamp_player/debug/ -lxamp_player \
-    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_5_3_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
-    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_5_3_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
+    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
+    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
+    -L$$PWD/../thirdparty/libfvad/build/Qt_6_7_2_for_macOS-Debug/src/ -lfvad \
     -L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/ -lpython3.7 \
 } else {
 

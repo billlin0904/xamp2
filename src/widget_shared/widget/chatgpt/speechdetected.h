@@ -17,7 +17,7 @@ public:
 
     void reset();
 
-    bool isSpeech(const std::vector<float>& data);
+    bool isSpeech(const std::vector<int16_t>& data);
 public slots:
 
 signals:    

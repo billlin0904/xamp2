@@ -33,6 +33,7 @@ public:
 signals:
     void resultReady(const QString& result);
 
+    void sampleReady(const std::vector<int16_t> &samples);
 private:
     int32_t silence_counter_{ 0 };
     QIODevice *device_;
