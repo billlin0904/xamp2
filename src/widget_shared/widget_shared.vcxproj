@@ -60,15 +60,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;../thirdparty/expected/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/whispercpp/;../thirdparty/vad/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;../thirdparty/expected/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/whispercpp/;../thirdparty/libfvad/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
       </WarningVersion>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/libfvad/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;fvad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,6 +127,7 @@
     <QtMoc Include="widget\chatgpt\speechtotext.h" />
     <QtMoc Include="widget\chatgpt\whisperservice.h" />
     <QtMoc Include="widget\chatgpt\speechdetected.h" />
+    <QtMoc Include="widget\chatgpt\waveformwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="widget\chatgpt\chatgptwidget.cpp" />
     <ClCompile Include="widget\chatgpt\speechdetected.cpp" />
     <ClCompile Include="widget\chatgpt\speechtotext.cpp" />
+    <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
     <ClCompile Include="widget\chatgpt\whisperservice.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />

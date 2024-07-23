@@ -157,27 +157,6 @@ static void BM_RandomPolicyThreadPool(benchmark::State& state) {
     }
 }
 
-static void BM_ParallelSort(benchmark::State& state) {
-    constexpr std::string_view kBM_ParallelSortLoggerName = "BM_ParallelSort";
-
-    const auto thread_pool = MakeThreadPoolExecutor(
-        kBM_ParallelSortLoggerName,
-        ThreadPriority::PRIORITY_NORMAL);
-
-    XampLoggerFactory.GetLogger(kBM_ParallelSortLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    const auto length = state.range(0);
-    std::vector<int> n(length);
-    for (auto i = 0; i < length; ++i) {
-		n[i] = SharedSingleton<PRNG>::GetInstance().NextInt32();
-    }
-
-    for (auto _ : state) {
-        Executor::ParallelSort(*thread_pool, n, [](auto a, auto b) { return a < b; });
-    }
-}
-
 static void BM_BaseLine_StdParallelSort(benchmark::State& state) {
     const auto length = state.range(0);
 	std::vector<int> n(length);
@@ -760,8 +739,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
@@ -800,8 +779,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToIntAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);

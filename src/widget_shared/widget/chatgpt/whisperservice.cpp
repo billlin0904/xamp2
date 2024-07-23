@@ -100,7 +100,7 @@ public:
         auto params = WHISPER_LIB.whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
 
         params.language = "chinese";
-        params.duration_ms = 5000;
+        params.duration_ms = 10000;
         params.translate = false;
         params.progress_callback = [](whisper_context* ctx, whisper_state* state, int progress, void* user_data) {
             XAMP_LOG_DEBUG("Process {}", progress);

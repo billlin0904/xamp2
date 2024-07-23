@@ -9,7 +9,7 @@ ChatGPTWindow::ChatGPTWindow(QWidget* parent)
 }
 
 void ChatGPTWindow::initial() {
-    speech_to_text_.loadModel(QDir::currentPath() + qTEXT("/model/") + qTEXT("ggml-tiny.bin"));
+    speech_to_text_.loadModel(QDir::currentPath() + qTEXT("/model/") + qTEXT("ggml-large-v2-q5_0.bin"));
 
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
