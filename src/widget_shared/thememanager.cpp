@@ -646,6 +646,19 @@ QFont ThemeManager::debugFont() const {
     return QFont(qTEXT("DebugFont"));
 }
 
+void ThemeManager::setRecordIcon(QToolButton* record_button, bool is_recording) {
+    if (!is_recording) {
+        record_button->setIcon(fontIcon(Glyphs::ICON_MIC));
+    }
+    else {
+        record_button->setIcon(fontIcon(Glyphs::ICON_SEND));
+    }
+}
+
+void ThemeManager::setCancelRecordIcon(QToolButton* cancel_button) {
+    cancel_button->setIcon(fontIcon(Glyphs::ICON_CLOSE_WINDOW));
+}
+
 void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_name) {
     QString border_color;
     QString selection_background_color;

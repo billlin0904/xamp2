@@ -17,6 +17,9 @@ class SpeechToText : public QObject {
     Q_OBJECT
 public:
     static constexpr auto kSampleRate = 16000;
+    static constexpr auto kSilenceThreshold = 16;
+    static constexpr auto kMinDetectedSamples = 480;
+    static constexpr auto kMaxSamples = 16000 * 10;
 
     SpeechToText();
 
@@ -34,6 +37,8 @@ signals:
     void resultReady(const QString& result);
 
     void sampleReady(const std::vector<int16_t> &samples);
+
+	void silenceDetected();
 private:
     int32_t silence_counter_{ 0 };
     QIODevice *device_;

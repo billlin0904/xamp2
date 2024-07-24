@@ -316,6 +316,7 @@
     <QtUic Include="aboutdialog.ui" />
     <QtUic Include="accountauthorizationpage.ui" />
     <QtUic Include="cdpage.ui" />
+    <QtUic Include="chatgptwindow.ui" />
     <QtUic Include="createplaylistdialog.ui" />
     <QtUic Include="equalizerdialog.ui" />
     <QtUic Include="filesystemviewpage.ui" />

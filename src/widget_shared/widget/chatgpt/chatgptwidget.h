@@ -16,10 +16,16 @@
 #include <widget/chatgpt/speechtotext.h>
 #include <widget/util/str_util.h>
 
-class XAMP_WIDGET_SHARED_EXPORT ChatGPTWindow : public QWidget {
+namespace Ui {
+    class ChatGPTWindow;
+}
+
+class XAMP_WIDGET_SHARED_EXPORT ChatGPTWindow : public QFrame {
     Q_OBJECT
 public:
     explicit ChatGPTWindow(QWidget* parent = nullptr);
+
+    ~ChatGPTWindow() override;
     
     void initial();
 
@@ -30,5 +36,7 @@ public slots:
 
 
 private:
+    bool is_recording = false;
     SpeechToText speech_to_text_;
+    Ui::ChatGPTWindow* ui_;
 };

@@ -149,6 +149,9 @@ public:
 
     void setComboBoxStyle(QComboBox *combo_box, const QString &object_name);
 
+    void setRecordIcon(QToolButton *record_button, bool is_recording);
+
+    void setCancelRecordIcon(QToolButton *cancel_button);
 signals:
     void themeChangedFinished(ThemeColor theme_color);
 

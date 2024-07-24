@@ -10,6 +10,8 @@
 #include <QByteArray>
 #include <vector>
 
+class QTimer;
+
 class WaveformWidget : public QWidget {
     Q_OBJECT
 
@@ -21,9 +23,11 @@ public:
 public slots:
     void readAudioData(const std::vector<int16_t> &buffer);
 
+    void silence();
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    QTimer* timer_;
     std::vector<int16_t> buffer_;
 };
