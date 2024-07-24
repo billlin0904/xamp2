@@ -90,14 +90,14 @@
           <widget class="WaveformWidget" name="wave_widget" native="true">
            <property name="minimumSize">
             <size>
-             <width>500</width>
-             <height>100</height>
+             <width>600</width>
+             <height>200</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>500</width>
-             <height>100</height>
+             <width>16777215</width>
+             <height>200</height>
             </size>
            </property>
           </widget>

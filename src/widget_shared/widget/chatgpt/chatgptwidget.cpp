@@ -36,6 +36,10 @@ void ChatGPTWindow::initial() {
 
     speech_to_text_.stop();
 
+    (void)QObject::connect(&speech_to_text_, &SpeechToText::resultReady, [this](const auto &text) {
+        ui_->plainTextEdit->setPlainText(text);
+        });
+
     (void)QObject::connect(ui_->recordOrSendButton, &QToolButton::clicked, [this]() {        
         if (!is_recording) {
             speech_to_text_.loadModel(QDir::currentPath() + qTEXT("/model/") + qTEXT("ggml-tiny.bin"));

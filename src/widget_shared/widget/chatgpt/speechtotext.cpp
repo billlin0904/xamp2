@@ -36,13 +36,11 @@ void SpeechToText::loadModel(const QString &file_path) {
         qApp->requestPermission(microphonePermission, this, [=](const auto &permission) {
             qDebug() << "Asking permission within the Denied case";
         });
-        //requestMicrophonePermission();
         break;
     case Qt::PermissionStatus::Denied:
         qApp->requestPermission(microphonePermission, this, [=](const auto &permission) {
             qDebug() << "Asking permission within the Denied case";
         });
-        //requestMicrophonePermission();
         break;
     case Qt::PermissionStatus::Granted:
         stopService();
@@ -101,24 +99,24 @@ void SpeechToText::start() {
                     input_.insert(input_.end(), buffer_.begin(), buffer_.end());
                     render->write((const char*)buffer_.data(), buffer_.size() * sizeof(float));
                     silence_counter_ = 0;
-                    continue;
                 }
+                else {
+                    emit sampleReady(std::vector<int16_t>(kMinDetectedSamples, 100));
 
-                emit sampleReady(std::vector<int16_t>(kMinDetectedSamples, 100));
-
-                if (input_.size() >= kMaxSamples) {
-                    QMetaObject::invokeMethod(whisper_.get(),
-                        "readSamples",
-                        Qt::QueuedConnection,
-                        Q_ARG(std::vector<float>, input_));
-                    silence_counter_ = 0;
-                    input_.clear();
+                    if (input_.size() >= kMaxSamples) {
+                        QMetaObject::invokeMethod(whisper_.get(),
+                            "readSamples",
+                            Qt::QueuedConnection,
+                            Q_ARG(std::vector<float>, input_));
+                        silence_counter_ = 0;
+                        input_.clear();
+                    }
+                    if (silence_counter_ > kSilenceThreshold) {
+                        silence_counter_ = 0;
+                        input_.clear();
+                    }
+                    silence_counter_++;
                 }
-                if (silence_counter_ > kSilenceThreshold) {
-                    silence_counter_ = 0;
-                    input_.clear();
-                }
-                silence_counter_++;
                 buffer_.clear();
             }
         }
@@ -137,6 +135,8 @@ void SpeechToText::stop() {
     emit sampleReady(std::vector<int16_t>(kMinDetectedSamples, 100));
     stopService();
     whisper_.reset();
-    QObject::disconnect(speech_detected_.get(), nullptr, this, nullptr);
+    if (speech_detected_ != nullptr) {
+        QObject::disconnect(speech_detected_.get(), nullptr, this, nullptr);
+    }    
     speech_detected_.reset();    
 }
