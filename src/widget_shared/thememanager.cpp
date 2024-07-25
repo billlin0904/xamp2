@@ -619,7 +619,11 @@ int32_t ThemeManager::fontSize(int32_t base_size) const {
 }
 
 int32_t ThemeManager::defaultFontSize() const {
+#ifdef Q_OS_WIN
+    return fontSize(10);
+#else
     return fontSize(12);
+#endif
 }
 
 QSize ThemeManager::titleButtonIconSize() {

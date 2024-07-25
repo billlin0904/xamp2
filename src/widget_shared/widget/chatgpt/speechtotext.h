@@ -12,6 +12,8 @@ class QIODevice;
 class QAudioSource;
 class SpeechDetected;
 class WhisperService;
+class QAudioDevice;
+class QAudioSink;
 
 class SpeechToText : public QObject {
     Q_OBJECT
@@ -31,6 +33,8 @@ public:
 
     void stop();
 
+	void setRealtimeMonitorDevice(const QAudioDevice &output);
+
     void stopService();
 
 signals:
@@ -41,11 +45,13 @@ signals:
 	void silenceDetected();
 private:
     int32_t silence_counter_{ 0 };
-    QIODevice *device_;
+    QIODevice* device_{ nullptr };
+    QIODevice* render_{ nullptr };
     QThread whisper_thread_;
     QScopedPointer<QAudioSource> source_;
     QScopedPointer<SpeechDetected> speech_detected_;
     QScopedPointer<WhisperService> whisper_;
+	QScopedPointer<QAudioSink> sink_;
     std::vector<float> buffer_;
     std::vector<float> input_;
 };

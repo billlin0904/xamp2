@@ -7,6 +7,7 @@
 #include <QPermissions>
 #include <QMetaObject>
 #include <QTimer>
+#include <QAudioDevice>
 
 #include <widget/util/str_util.h>
 #include <widget/chatgpt/whisperservice.h>
@@ -54,10 +55,19 @@ void SpeechToText::loadModel(const QString &file_path) {
     }
 }
 
-void SpeechToText::start() {
-    auto output = QMediaDevices::audioOutputs()[3];
-    auto desc = output.description();
+void SpeechToText::setRealtimeMonitorDevice(const QAudioDevice& output) {
+    QAudioFormat fmt;
 
+    fmt.setSampleFormat(QAudioFormat::Float);
+    fmt.setSampleRate(kSampleRate);
+    fmt.setChannelCount(1);
+    fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
+
+    sink_.reset(new QAudioSink(output, fmt));
+    render_ = sink_->start();
+}
+
+void SpeechToText::start() {
     auto input_device = QMediaDevices::defaultAudioInput();
     QAudioFormat fmt;
 
@@ -65,10 +75,6 @@ void SpeechToText::start() {
     fmt.setSampleRate(kSampleRate);
     fmt.setChannelCount(1);
     fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
-    
-    auto* sink = new QAudioSink(output, fmt);
-    auto* render = sink->start();
-    auto description = input_device.description();
 
     if (!input_device.isFormatSupported(fmt)) {
         return;
@@ -77,7 +83,7 @@ void SpeechToText::start() {
     source_.reset(new QAudioSource{ input_device, fmt });
     device_ = source_->start();
     
-    (void) QObject::connect(device_, &QIODevice::readyRead, this, [render, sink, this](){        
+    (void) QObject::connect(device_, &QIODevice::readyRead, this, [this](){        
         auto bytes = device_->readAll();
 
         const auto* samples = reinterpret_cast<const float*>(bytes.data());
@@ -97,11 +103,14 @@ void SpeechToText::start() {
                 if (speech_detected_->isSpeech(temp)) {
                     emit sampleReady(temp);
                     input_.insert(input_.end(), buffer_.begin(), buffer_.end());
-                    render->write((const char*)buffer_.data(), buffer_.size() * sizeof(float));
+                    if (render_ != nullptr) {
+                        render_->write((const char*)buffer_.data(), buffer_.size() * sizeof(float));
+                    }                    
                     silence_counter_ = 0;
                 }
                 else {
-                    emit sampleReady(std::vector<int16_t>(kMinDetectedSamples, 100));
+					// TODO: Calacaute the silence sample and emit it
+                    emit sampleReady(std::vector<int16_t>(kMinDetectedSamples, 200));
 
                     if (input_.size() >= kMaxSamples) {
                         QMetaObject::invokeMethod(whisper_.get(),
@@ -132,9 +141,10 @@ void SpeechToText::stop() {
         source_->stop();
         source_.reset();
     }
-    emit sampleReady(std::vector<int16_t>(kMinDetectedSamples, 100));
+    emit silenceDetected();
     stopService();
     whisper_.reset();
+    sink_.reset();
     if (speech_detected_ != nullptr) {
         QObject::disconnect(speech_detected_.get(), nullptr, this, nullptr);
     }    
