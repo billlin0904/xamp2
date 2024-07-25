@@ -599,7 +599,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
        &AlbumViewStyledDelegate::findAlbumCover,
        album_cover_service_.get(),
        &AlbumCoverService::onFindAlbumCover,
-       Qt::QueuedConnection);   
+       Qt::QueuedConnection);
 
    (void)QObject::connect(this,
        &Xamp::findAlbumCover,
@@ -2611,8 +2611,8 @@ void Xamp::initialPlaylist() {
     pushWidget(yt_music_tab_page_.get());
 	pushWidget(chatgpt_page_.get());
 
-    connectPlaylistPageSignal(music_library_page_->album()->albumViewPage()->playlistPage());
-    connectPlaylistPageSignal(music_library_page_->year()->albumViewPage()->playlistPage());
+    //connectPlaylistPageSignal(music_library_page_->album()->albumViewPage()->playlistPage());
+    //connectPlaylistPageSignal(music_library_page_->year()->albumViewPage()->playlistPage());
 
     ui_.currentView->setCurrentIndex(0);
 }

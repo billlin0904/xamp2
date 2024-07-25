@@ -81,14 +81,14 @@ void AlbumTabListView::setTabText(const QString& name, int tab_id) {
 }
 
 AlbumArtistPage::AlbumArtistPage(QWidget* parent)
-	: QFrame(parent)
-	, album_tab_list_view_(new AlbumTabListView(this))
-	, album_view_(new AlbumView(this))
+	: QFrame(parent) {
+	//, album_tab_list_view_(new AlbumTabListView(this))
+	//, album_view_(new AlbumView(this))
 	//, recent_plays_album_view_(new AlbumView(this))
-	, artist_view_(new ArtistView(this))
-	, artist_info_view_(new ArtistInfoPage(this)) {
-	album_view_->reload();
-	artist_view_->reload();
+	//, artist_view_(new ArtistView(this))
+	//, artist_info_view_(new ArtistInfoPage(this)) {
+	//album_view_->reload();
+	//artist_view_->reload();
 
 	auto* vertical_layout_2 = new QVBoxLayout(this);
 	vertical_layout_2->setSpacing(0);
@@ -110,9 +110,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	horizontal_layout_5->setSpacing(6);
 	horizontal_layout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
 
-	//auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
-	//horizontal_layout_5->addItem(horizontal_spacer_6);
+	auto* horizontal_spacer_6 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	horizontal_layout_5->addItem(horizontal_spacer_6);
 
+	album_tab_list_view_ = new AlbumTabListView(this);
 	album_tab_list_view_->setObjectName(QString::fromUtf8("albumTab"));
 	album_tab_list_view_->addTab(tr("ALBUMS"), TAB_ALBUMS);
 	album_tab_list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
@@ -129,12 +130,12 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto* horizontal_spacer_7 = new QSpacerItem(50, 50, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	horizontal_layout_5->addItem(horizontal_spacer_7);
 
-	auto* current_view = new QStackedWidget();
+	auto* current_view = new QStackedWidget(this);
 	current_view->setObjectName(QString::fromUtf8("currentView"));
 	current_view->setFrameShadow(QFrame::Plain);
 	current_view->setLineWidth(0);
 
-	album_frame_ = new QFrame();
+	album_frame_ = new QFrame(this);
 	album_frame_->setObjectName(QString::fromUtf8("currentAlbumViewFrame"));
 	album_frame_->setFrameShape(QFrame::StyledPanel);
 
@@ -260,8 +261,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	tags_label->setFont(f);
 
 	album_frame_layout->addWidget(tags_label);
-
-	album_frame_layout->addWidget(album_tag_list_widget_);
+	album_frame_layout->addWidget(album_tag_list_widget_);	 
+	album_view_ = new AlbumView(this);
 	album_frame_layout->addWidget(album_view_, 1);
 	
 	artist_frame_ = new QFrame();
@@ -342,6 +343,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_frame_layout->addLayout(artist_combox_layout_1);
 
 	artist_frame_layout->addWidget(artist_tag_list_widget_);
+
+	artist_view_ = new ArtistView(this);
 	artist_frame_layout->addWidget(artist_view_, 1);
 
 	current_view->addWidget(album_frame_);
@@ -444,6 +447,11 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		});
 
 	onThemeChangedFinished(qTheme.themeColor());
+
+	album_view_->reload();
+	artist_view_->reload();
+
+	setStyleSheet(qTEXT("background-color: transparent; border: none;"));
 }
 
 void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {

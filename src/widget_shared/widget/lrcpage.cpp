@@ -382,5 +382,5 @@ void LrcPage::initial() {
 	album_->hide();
 	artist_->hide();
 
-	setStyleSheet(qTEXT("background-color: transparent"));
+	setStyleSheet(qTEXT("background-color: transparent; border: none;"));
 }

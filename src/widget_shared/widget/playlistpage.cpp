@@ -214,6 +214,8 @@ void PlaylistPage::initial() {
 		});
 
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
+
+	setStyleSheet(qTEXT("QFrame#playlistPage { background: transparent; border: none; }"));
 }
 
 void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {	

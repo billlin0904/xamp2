@@ -730,6 +730,9 @@ void PlaylistTableView::initial() {
 
     // note: Fix QTableView select color issue.
     setFocusPolicy(Qt::StrongFocus);
+
+    setStyleSheet(qTEXT("background-color: transparent; border: none;"));
+    horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
 }
 
 void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
@@ -762,8 +765,7 @@ void PlaylistTableView::playItem(const QModelIndex& index, bool is_doubleclicked
 }
 
 void PlaylistTableView::onThemeColorChanged(QColor /*background_color*/, QColor /*color*/) {
-    setStyleSheet(qTEXT("border: none"));
-    horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
+    
 }
 
 void PlaylistTableView::onUpdateReplayGain(int32_t playlistId,

@@ -173,7 +173,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         });
 
-    onThemeChangedFinished(qTheme.themeColor());    
+    onThemeChangedFinished(qTheme.themeColor()); 
 }
 
 void PlaylistTabWidget::hidePlusButton() {
@@ -189,20 +189,21 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qSTR(R"(
+    QTabWidget::pane {
+        background: transparent;
+        border: 0;
+    }
+
 	QTabWidget {
-		qproperty-iconSize: 16px 16px;	
+		qproperty-iconSize: 16px 16px;
 	}
 
     QTabWidget::tab-bar {
         left: 0;
     }
 
-    QTabWidget::pane { 
-		border: 0; 
-	}
-
 	QTabWidget QTabBar::tab {
-		min-height: 30px;
+		min-height: 32px;
 		background-color: #121212;
 	}
 
@@ -215,26 +216,26 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     add_tab_button_->setStyleSheet(qSTR(R"(
     QPushButton#plusButton:hover {
         background-color: #455364;
-        border-radius: 8px;
     }
     )"));
         break;
     case ThemeColor::LIGHT_THEME:
         setStyleSheet(qSTR(R"(
+	QTabWidget::pane {
+        background: transparent;
+        border: 0;
+    }
+
 	QTabWidget {
-		qproperty-iconSize: 16px 16px;	
+		qproperty-iconSize: 16px 16px;
 	}
 
     QTabWidget::tab-bar {
         left: 0;
     }
 
-    QTabWidget::pane { 
-		border: 0; 
-	}
-
 	QTabWidget QTabBar::tab {
-		min-height: 30px;
+		min-height: 32px;
 		color: black;
 		background-color: #f9f9f9;
 	}
@@ -248,7 +249,6 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     add_tab_button_->setStyleSheet(qSTR(R"(
     QPushButton#plusButton:hover {
         background-color: #e1e3e5;
-        border-radius: 8px;
     }
     )"));
         break;

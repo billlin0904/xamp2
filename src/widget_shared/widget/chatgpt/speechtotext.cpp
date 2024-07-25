@@ -145,6 +145,7 @@ void SpeechToText::stop() {
     stopService();
     whisper_.reset();
     sink_.reset();
+    render_ = nullptr;
     if (speech_detected_ != nullptr) {
         QObject::disconnect(speech_detected_.get(), nullptr, this, nullptr);
     }    

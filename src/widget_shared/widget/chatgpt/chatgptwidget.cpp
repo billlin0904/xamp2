@@ -11,6 +11,7 @@ ChatGPTWindow::ChatGPTWindow(QWidget* parent)
 	: QFrame(parent) {
     ui_ = new Ui::ChatGPTWindow();
 	ui_->setupUi(this);
+    setObjectName(qTEXT("chatgptWindow"));
 	initial();
 }
 
@@ -59,7 +60,7 @@ void ChatGPTWindow::initial() {
     (void)QObject::connect(ui_->outputDeviceComboBox,
         &QComboBox::activated,
         [this, output](const auto& index) {
-			speech_to_text_.setRealtimeMonitorDevice(output[index]);
+			
         });
 
     (void)QObject::connect(&speech_to_text_,
@@ -85,7 +86,12 @@ void ChatGPTWindow::initial() {
         ui_->plainTextEdit->setPlainText(text);
         });
 
-    (void)QObject::connect(ui_->recordOrSendButton, &QToolButton::clicked, [this]() {        
+    (void)QObject::connect(ui_->recordOrSendButton, &QToolButton::clicked, [output, this]() {
+		if (ui_->readlTimeMonitoringCheckBox->isChecked()) {
+            auto index = ui_->outputDeviceComboBox->currentIndex();
+            speech_to_text_.setRealtimeMonitorDevice(output[index]);
+		}
+
         if (!is_recording) {
             speech_to_text_.loadModel(QDir::currentPath() + qTEXT("/model/") + qTEXT("ggml-tiny.bin"));
             qTheme.setRecordIcon(ui_->recordOrSendButton, true);
@@ -103,4 +109,8 @@ void ChatGPTWindow::initial() {
     qTheme.setRecordIcon(ui_->recordOrSendButton, false);
 	qTheme.setCancelRecordIcon(ui_->cancelButton);
 	ui_->cancelButton->hide();
+
+    setStyleSheet(qTEXT("QFrame#chatgptWindow { background-color: transparent; border: none; }"));
+    ui_->frame->setStyleSheet(qTEXT("QFrame#frame { background-color: transparent; border: none; }"));
+    ui_->plainTextEdit->setStyleSheet(qTEXT("QPlainTextEdit#plainTextEdit { background-color: transparent; border: none; }"));
 }

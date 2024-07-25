@@ -141,8 +141,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
         action_map.exec(pt, pt);
         });
-
-    setStyleSheet(qTEXT("background-color: transparent"));
+    setStyleSheet(qTEXT("background-color: transparent; border: none;"));
 }
 
 FileSystemViewPage::~FileSystemViewPage() {

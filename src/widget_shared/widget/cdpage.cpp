@@ -40,6 +40,7 @@ CdPage::CdPage(QWidget* parent)
     ui_->playlistPage->hide();
 
     ui_->tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));
+    setStyleSheet(qTEXT("background-color: transparent; border: none;"));
 }
 
 CdPage::~CdPage() {
