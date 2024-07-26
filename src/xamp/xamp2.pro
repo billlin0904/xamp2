@@ -73,12 +73,11 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/pybind11/include \
     ../thirdparty/framelesshelper/include/ \
     ../thirdparty/QSimpleUpdater/include/ \
-    ../thirdparty/expected/include \
-    /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/
+    /opt/anaconda3/include/python3.12/ \
 
 mac {
-    QMAKE_INFO_PLIST += $$PWD/Info.plist
-    QMAKE_LFLAGS_SONAME  = -Wl,-install_name,@executable_path/../Frameworks/
+    #QMAKE_INFO_PLIST += $$PWD/Info.plist
+    #QMAKE_LFLAGS_SONAME  = -Wl,-install_name,@executable_path/../Frameworks/
 }
 
 CONFIG(debug, debug|release) {
@@ -95,7 +94,7 @@ LIBS += \
     -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
     -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
     -L$$PWD/../thirdparty/qcoro/build/Qt_6_7_2_for_macOS-Debug/qcoro/core/ -lQCoro6Core_debug \
-    -L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/ -lpython3.7 \
+    -L/opt/anaconda3/lib/ -lpython3.12 \
 } else {
 
 }

@@ -24,8 +24,7 @@ TARGET = widget_shared
 TEMPLATE = lib
 CONFIG += plugin
 
-OBJECTIVE_SOURCES += \
-    widget/chatgpt/permission.mm
+OBJECTIVE_SOURCES +=
 
 SOURCES += \
 ./widget/genre_view_page.cpp \
@@ -115,6 +114,7 @@ SOURCES += \
 ./widget/m3uparser.cpp \
 ./version.cpp \
 ./thememanager.cpp \
+    widget/chatgpt/librosa.cpp \
     widget/chatgpt/speechdetected.cpp \
     widget/chatgpt/speechtotext.cpp \
     widget/chatgpt/waveformwidget.cpp \
@@ -220,7 +220,7 @@ HEADERS += \
 ./widget/m3uparser.h \
 ./xampplayer.h \
 ./thememanager.h \
-    widget/chatgpt/permission.h \
+    widget/chatgpt/librosa.h \
     widget/chatgpt/speechdetected.h \
     widget/chatgpt/speechtotext.h \
     widget/chatgpt/waveformwidget.h \
@@ -239,11 +239,10 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/rapidxml/ \
     ../thirdparty/zlib/ \
     ../thirdparty/pybind11/include \
-    ../thirdparty/expected/include \
-    /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/ \
     ../thirdparty/whispercpp/ \
     ../thirdparty/libfvad/include/ \
     ../thirdparty/framelesshelper/include \
+    /opt/anaconda3/include/python3.12/ \
 
 CONFIG(debug, debug|release) {
 CONFIG += debug
@@ -256,7 +255,7 @@ LIBS += -L$$PWD/../xamp_base/debug/ -lxamp_base \
     -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
     -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
     -L$$PWD/../thirdparty/libfvad/build/Qt_6_7_2_for_macOS-Debug/src/ -lfvad \
-    -L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/ -lpython3.7 \
+    -L/opt/anaconda3/lib/ -lpython3.12 \
 } else {
 
 }
@@ -276,4 +275,5 @@ FORMS += \
     preferencedialog.ui \
     supereqdialog.ui \
     tageditpage.ui \
+    chatgptwindow.ui \
     volumecontroldialog.ui

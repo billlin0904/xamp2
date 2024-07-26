@@ -10,8 +10,6 @@
 #include <widget/widget_shared_global.h>
 #include <widget/util/str_util.h>
 
-#include <base/expected.h>
-
 struct XAMP_WIDGET_SHARED_EXPORT OAuthToken {
 	int64_t expires_in{ 0 };
 	int64_t expires_at{ 0 };
@@ -31,7 +29,7 @@ public:
 
 	void requestGrant();
 
-	static Expected<OAuthToken, std::string> parseOAuthJson();
+    static std::optional<OAuthToken> parseOAuthJson();
 signals:
 	void requestGrantCompleted();
 

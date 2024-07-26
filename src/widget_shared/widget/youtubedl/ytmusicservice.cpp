@@ -1,6 +1,5 @@
 #include <widget/youtubedl/ytmusicservice.h>
 
-#if 1
 #undef slots
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
@@ -914,4 +913,3 @@ std::vector<search::SearchResultItem> YtMusicInterop::search(
     
     return output;
 }
-#endif

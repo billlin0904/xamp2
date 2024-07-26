@@ -91,17 +91,17 @@ void YtMusicOAuth::requestGrant() {
 	.post();
 }
 
-Expected<OAuthToken, std::string> YtMusicOAuth::parseOAuthJson() {
+std::optional<OAuthToken> YtMusicOAuth::parseOAuthJson() {
 	QFile file(qTEXT("oauth.json"));
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		return MakeUnexpected("Failed to open file.");
+        return std::nullopt;
 	}
 
 	const auto content = file.readAll();
 	QJsonParseError error;
 	const auto code = QJsonDocument::fromJson(content, &error);
 	if (error.error != QJsonParseError::NoError) {
-		return MakeUnexpected("Failed to parse json ({}).", error.errorString().toStdString());
+        return std::nullopt;
 	}
 
 	const auto root = code.object();
@@ -117,7 +117,7 @@ Expected<OAuthToken, std::string> YtMusicOAuth::parseOAuthJson() {
 	OAuthToken token;
 	Q_FOREACH(auto key, keys) {
 		if (!root.contains(key)) {
-			return MakeUnexpected("Not found json key: {}", key.toStdString());
+            return std::nullopt;
 		}
 	}
 
@@ -128,5 +128,5 @@ Expected<OAuthToken, std::string> YtMusicOAuth::parseOAuthJson() {
 	token.token_type    = root[qTEXT("token_type")].toString();
 	token.scope         = root[qTEXT("scope")].toString();
 
-	return token;
+    return token;
 }

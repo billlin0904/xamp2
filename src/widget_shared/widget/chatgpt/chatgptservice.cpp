@@ -1,6 +1,5 @@
 #include <widget/chatgpt/chatgptservice.h>
 
-#if 1
 #undef slots
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
@@ -144,5 +143,3 @@ QFuture<bool> ChatGptService::cleanupAsync() {
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
 }
-#endif
-

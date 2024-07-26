@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1010</width>
+    <width>1073</width>
     <height>719</height>
    </rect>
   </property>
@@ -189,7 +189,7 @@
   <customwidget>
    <class>WaveformWidget</class>
    <extends>QWidget</extends>
-   <header>../widget/chatgpt/waveformwidget.h</header>
+   <header>./widget/chatgpt/waveformwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

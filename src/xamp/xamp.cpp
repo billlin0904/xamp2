@@ -439,9 +439,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             authorization_page->setOAuthToken(token.value());
             dialog->exec();
         } else {
-            XAMP_LOG_ERROR("{}", token.error());
-            if (XMessageBox::showYesOrNo(tr(" Would you like to proceed with authorization at the moment?"),
-                QString::fromStdString(token.error())) != QDialogButtonBox::Yes) {
+            if (XMessageBox::showYesOrNo(tr(" Would you like to proceed with authorization at the moment?")) != QDialogButtonBox::Yes) {
                 return;
             }
             ytmusic_oauth_->setup();
@@ -463,9 +461,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             initialYtMusicService();
             initialCloudPlaylist();
             setAuthButton(ui_, true);
-        }
-        else {
-            XAMP_LOG_ERROR("{}", token.error());
         }
     });
 
