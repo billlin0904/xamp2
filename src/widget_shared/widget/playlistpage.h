@@ -81,7 +81,7 @@ private:
 	void initial();
 	
 	std::optional<int32_t> album_id_;
-	int32_t album_heart_{ 0 };
+	bool album_heart_ = false;
 	QLabel* page_title_label_{ nullptr };
 	QToolButton *heart_button_{ nullptr };
 	PlaylistTableView* playlist_{ nullptr };

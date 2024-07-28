@@ -584,9 +584,6 @@ void PlaylistTableView::initial() {
 
         action_map.addSeparator();
 
-        auto* scan_select_item_replaygain_act = action_map.addAction(tr("Scan file ReplayGain"));
-        scan_select_item_replaygain_act->setIcon(qTheme.fontIcon(Glyphs::ICON_SCAN_REPLAY_GAIN));
-
         action_map.addSeparator();
         auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
         export_flac_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EXPORT_FILE));
@@ -694,15 +691,6 @@ void PlaylistTableView::initial() {
             }
         });
 
-        action_map.setCallback(scan_select_item_replaygain_act, [this]() {
-            const auto rows = selectItemIndex();
-            QList<PlayListEntity> entities;
-            for (const auto& row : rows) {
-                entities.push_front(this->item(row.second));
-            }
-            emit readReplayGain(playlistId(), entities);
-        });
-
         action_map.setCallback(export_flac_file_act, [this]() {
             const auto rows = selectItemIndex();
             for (const auto& row : rows) {
@@ -731,7 +719,7 @@ void PlaylistTableView::initial() {
     // note: Fix QTableView select color issue.
     setFocusPolicy(Qt::StrongFocus);
 
-    setStyleSheet(qTEXT("background-color: transparent; border: none;"));
+    setStyleSheet(qTEXT("background-color: transparent; border: 0px;"));
     horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
 }
 
@@ -766,44 +754,6 @@ void PlaylistTableView::playItem(const QModelIndex& index, bool is_doubleclicked
 
 void PlaylistTableView::onThemeColorChanged(QColor /*background_color*/, QColor /*color*/) {
     
-}
-
-void PlaylistTableView::onUpdateReplayGain(int32_t playlistId,
-    const PlayListEntity& entity,
-    const ReplayGain& replay_gain) {
-    if (playlistId != playlist_id_) {
-        return;
-    }
-
-    dao::AlbumDao album_dao(qGuiDb.getDatabase());
-
-    album_dao.updateReplayGain(
-        entity.music_id,
-        replay_gain.album_gain,
-        replay_gain.album_peak,
-        replay_gain.track_gain,
-        replay_gain.track_peak);
-
-    album_dao.addOrUpdateTrackLoudness(entity.album_id,
-        entity.artist_id,
-        entity.music_id,
-        replay_gain.track_loudness);
-
-    XAMP_LOG_DEBUG(
-        "Update DB music id: {} artist id: {} album id id: {},"
-        "track_loudness: {:.2f} LUFS album_gain: {:.2f} dB album_peak: {:.2f} track_gain: {:.2f} dB track_peak: {:.2f}",
-        entity.music_id,
-        entity.artist_id,
-        entity.album_id,
-        replay_gain.track_loudness,
-        replay_gain.album_gain,
-        replay_gain.album_peak,
-        replay_gain.track_gain,
-        replay_gain.track_peak);
-
-    reload();
-
-    play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
 void PlaylistTableView::onRetranslateUi() {

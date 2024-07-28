@@ -10,7 +10,6 @@
 
 namespace py = pybind11;
 
-
 XAMP_DECLARE_LOG_NAME(LibrosaService);
 XAMP_DECLARE_LOG_NAME(LibrosaInterop);
 
@@ -25,24 +24,39 @@ public:
         if (!feature_.is_none()) {
             return false;
         }
-        module_ = py::module_::import("librosa");
-        numpy_ = py::module_::import("librosa");
-        feature_ = module_.attr("feature");
+        py::module_::import("sys").attr("stderr") = py::module_::import("io").attr("StringIO")();
+        librosa_ = py::module_::import("librosa");
+        numpy_ = py::module_::import("numpy");
+        feature_ = librosa_.attr("feature");
         return true;
     }
 
     std::pair<std::vector<float>, double> load(const std::string& path,
-                                               double sr=22050,
                                                bool mono=true,
                                                int offset=0,
                                                int duration=0) {
-        py::object result = module_.attr("load")(path,
-                                                 sr,
-                                                 mono,
-                                                 offset,
-                                                 duration,
-                                                 py::arg("dtype") = numpy_.attr("float32"),
-                                                 py::arg("res_type") = "soxr_hq");
+        py::object result;
+        /*if (duration == 0.0) {
+            result = librosa_.attr("load")(path,
+                44100,
+                mono,
+                offset,
+                py::none(),
+                py::arg("dtype") = numpy_.attr("float32"),
+                py::arg("res_type") = "soxr_hq");
+        }
+        else {
+            result = librosa_.attr("load")(path,
+                44100,
+                mono,
+                offset,
+                duration,
+                py::arg("dtype") = numpy_.attr("float32"),
+                py::arg("res_type") = "soxr_hq");
+        }*/
+
+        result = librosa_.attr("load")(path);
+
         auto audio_data = result.cast<std::pair<py::array_t<float>, double>>();
         std::vector<float> audio_vector(audio_data.first.size());
         std::memcpy(audio_vector.data(), audio_data.first.data(), audio_data.first.size() * sizeof(float));
@@ -68,8 +82,8 @@ public:
                                                             fmax);
         auto spectrogram = result.cast<py::array_t<float>>();
         std::vector<std::vector<float>> spec_vector(spectrogram.shape(0), std::vector<float>(spectrogram.shape(1)));
-        for (ssize_t i = 0; i < spectrogram.shape(0); ++i) {
-            for (ssize_t j = 0; j < spectrogram.shape(1); ++j) {
+        for (py::ssize_t i = 0; i < spectrogram.shape(0); ++i) {
+            for (py::ssize_t j = 0; j < spectrogram.shape(1); ++j) {
                 spec_vector[i][j] = *spectrogram.data(i, j);
             }
         }
@@ -86,18 +100,18 @@ public:
                 *S_array.mutable_data(i, j) = S[i][j];
             }
         }
-        py::object result = module_.attr("power_to_db")(S_array, ref, amin, top_db);
+        py::object result = librosa_.attr("power_to_db")(S_array, ref, amin, top_db);
         auto db_spectrogram = result.cast<py::array_t<float>>();
         std::vector<std::vector<float>> db_vector(db_spectrogram.shape(0), std::vector<float>(db_spectrogram.shape(1)));
-        for (ssize_t i = 0; i < db_spectrogram.shape(0); ++i) {
-            for (ssize_t j = 0; j < db_spectrogram.shape(1); ++j) {
+        for (py::ssize_t i = 0; i < db_spectrogram.shape(0); ++i) {
+            for (py::ssize_t j = 0; j < db_spectrogram.shape(1); ++j) {
                 db_vector[i][j] = *db_spectrogram.data(i, j);
             }
         }
         return db_vector;
     }
 
-    py::module module_;
+    py::module librosa_;
     py::module numpy_;
     py::object feature_;
     LoggerPtr logger_;
@@ -116,11 +130,10 @@ bool LibrosaInterop::initial() {
 }
 
 std::pair<std::vector<float>, double> LibrosaInterop::load(const std::string& path,
-                                           double s,
                                            bool mono,
                                            int offset,
                                            int duration) {
-    return impl_->load(path, s, mono, offset, duration);
+    return impl_->load(path, mono, offset, duration);
 }
 
 std::vector<std::vector<float>> LibrosaInterop::melspectrogram(const std::vector<float>& y,
@@ -160,7 +173,7 @@ QFuture<bool> LibrosaService::initialAsync() {
 QFuture<bool> LibrosaService::loadAsync(const QString &path) {
     return invokeAsync([this, path]() {
         py::gil_scoped_acquire guard{};
-        auto [y, sample_rate] = interop()->load(path.toStdString(), 88200, false);
+        auto [y, sample_rate] = interop()->load(path.toStdString());
         if (sample_rate != 44100) {
 
         }

@@ -128,6 +128,7 @@
     <QtMoc Include="widget\chatgpt\whisperservice.h" />
     <QtMoc Include="widget\chatgpt\speechdetected.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
+    <ClInclude Include="widget\chatgpt\librosa.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
@@ -236,6 +237,7 @@
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptservice.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptwidget.cpp" />
+    <ClCompile Include="widget\chatgpt\librosa.cpp" />
     <ClCompile Include="widget\chatgpt\speechdetected.cpp" />
     <ClCompile Include="widget\chatgpt\speechtotext.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />

@@ -222,7 +222,6 @@ namespace {
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();
-
 #ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));

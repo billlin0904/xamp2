@@ -37,10 +37,6 @@ signals:
 
 	void foundFileCount(size_t file_count);
 
-	void readReplayGain(int32_t playlistId,
-	                    const PlayListEntity& entity,
-	                    const ReplayGain &replay_gain);
-
 	void blurImage(const QImage& image);
 
 	void dominantColor(const QColor& color);
@@ -59,8 +55,6 @@ signals:
 
 public Q_SLOT:
 	void cancelRequested();
-
-	void onReadReplayGain(int32_t playlistId, const QList<PlayListEntity>& entities);
 
 	void onBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 

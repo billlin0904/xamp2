@@ -262,6 +262,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 				padding: 0px;
 				background-color: #121212;				
 				border-top-left-radius: 0px;
+                border: none;
             }			
             )"));
 
@@ -286,8 +287,10 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 
         ui.currentView->setStyleSheet(qTEXT(R"(
 			QStackedWidget#currentView {
+                padding: 0px;
 				background-color: #f9f9f9;
-				border-top-left-radius: 0px;			
+				border-top-left-radius: 0px;	
+                border: none;		
             }			
             )"));
 
@@ -319,7 +322,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
     ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
     ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
 	// NOTE: Setting background color to transparent has effect on child widget's background color.
-    ui.currentViewFrame->setStyleSheet(qTEXT("QFrame#currentViewFrame { background: transparent; border: none; }"));   
+    //ui.currentViewFrame->setStyleSheet(qTEXT("QFrame#currentViewFrame { background: transparent; border: none; }"));   
     //ui.currentViewFrame->setStyleSheet(qTEXT("border: none;"));
 }
 

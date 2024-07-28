@@ -18,6 +18,8 @@
 
 PlaylistPage::PlaylistPage(QWidget* parent)
 	: QFrame(parent) {
+	setObjectName("playlistPage");
+	setFrameShape(QFrame::StyledPanel);
 	initial();
 }
 
@@ -26,22 +28,23 @@ ProcessIndicator* PlaylistPage::spinner() {
 }
 
 void PlaylistPage::initial() {
-	setFrameStyle(QFrame::StyledPanel);
+	//setFrameStyle(QFrame::StyledPanel);
 
 	spinner_ = new ProcessIndicator(this);
 	spinner_->hide();
 
-	auto* default_layout = new QVBoxLayout(this);
-	default_layout->setSpacing(0);
-	default_layout->setObjectName(QString::fromUtf8("default_layout"));
-	default_layout->setContentsMargins(11, 0, 11, 0);
+	auto* main_layout = new QVBoxLayout(this);
+	main_layout->setSpacing(0);
+	main_layout->setObjectName(QString::fromUtf8("default_layout"));
+	main_layout->setContentsMargins(0, 0, 0, 0);
 
 	auto f = font();
 	page_title_label_ = new QLabel(tr("Playlist"), this);
+	page_title_label_->setStyleSheet(qTEXT("background-color: transparent;"));
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(36));
 	page_title_label_->setFont(f);
-	default_layout->addWidget(page_title_label_);
+	main_layout->addWidget(page_title_label_);
 
 	auto* child_layout = new QHBoxLayout();
 	child_layout->setSpacing(0);
@@ -51,8 +54,8 @@ void PlaylistPage::initial() {
 	auto* left_space_layout = new QVBoxLayout();
 	left_space_layout->setSpacing(0);
 	left_space_layout->setObjectName(QString::fromUtf8("verticalLayout_3"));
-	//vertical_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-	//left_space_layout->addItem(vertical_spacer_);
+	vertical_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	left_space_layout->addItem(vertical_spacer_);
 
 	cover_ = new QLabel();
 	cover_->setObjectName(QString::fromUtf8("label"));
@@ -89,6 +92,7 @@ void PlaylistPage::initial() {
 	title_->setMaximumSize(QSize(16777215, font_height));
 	title_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	title_->setText(qTEXT("\0")); // 預先配置空字串保留行高
+	title_->setStyleSheet(qTEXT("background-color: transparent;"));
 
 	heart_button_ = new QToolButton(this);
 	heart_button_->setObjectName(QString::fromUtf8("heartButton"));
@@ -122,6 +126,7 @@ void PlaylistPage::initial() {
 	const QFont format_font(qTEXT("FormatFont"));
 	format_->setFont(format_font);
 	format_->setText(qTEXT("\0"));
+	format_->setStyleSheet(qTEXT("background-color: transparent;"));
 
 	vertical_spacer_ = new QSpacerItem(20, 24, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	album_title_layout->addItem(vertical_spacer_);
@@ -140,23 +145,24 @@ void PlaylistPage::initial() {
 	child_layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
 	album_title_layout->setContentsMargins(0, 10, 0, 0);
 
-	default_layout->addLayout(child_layout);
+	main_layout->addLayout(child_layout);
 
 	default_spacer_ = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-	default_layout->addItem(default_spacer_);
+	main_layout->addItem(default_spacer_);
 
 	auto* horizontalLayout_8 = new QHBoxLayout();
 	horizontalLayout_8->setSpacing(0);
 	horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
+	horizontalLayout_8->setContentsMargins(0, 0, 0, 0);
 	horizontal_spacer_4_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
 	horizontalLayout_8->addItem(horizontal_spacer_4_);
 
 	playlist_ = new PlaylistTableView(this);
 	playlist_->setObjectName(QString::fromUtf8("tableView"));
+	playlist_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	horizontalLayout_8->addWidget(playlist_, 1);
 
-	horizontalLayout_8->addWidget(playlist_);
 	horizontal_spacer_5_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 	horizontalLayout_8->addItem(horizontal_spacer_5_);
 	horizontalLayout_8->setStretch(1, 1);
@@ -165,10 +171,11 @@ void PlaylistPage::initial() {
 	horizontal_layout_9->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 	horizontal_layout_9->addWidget(search_line_edit_, 1);
 	horizontal_layout_9->setContentsMargins(0, 0, 8, 10);
-	default_layout->addLayout(horizontal_layout_9);
+	main_layout->addLayout(horizontal_layout_9);
 
-	default_layout->addLayout(horizontalLayout_8);
-	default_layout->setStretch(4, 1);
+	main_layout->addLayout(horizontalLayout_8);
+	main_layout->setStretch(4, 1);
+	//main_layout->addWidget(playlist_);
 
 	(void)QObject::connect(playlist_,
 		&PlaylistTableView::updateAlbumCover,
@@ -213,12 +220,11 @@ void PlaylistPage::initial() {
 		emit search(text, MATCH_NONE);
 		});
 
-	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
-
-	setStyleSheet(qTEXT("QFrame#playlistPage { background: transparent; border: none; }"));
+	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));	
 }
 
-void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {	
+void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {		
+	
 }
 
 void PlaylistPage::setHeart(bool heart) {
@@ -281,8 +287,11 @@ void PlaylistPage::showCompleter() {
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {
+	auto cover_size = cover_->size();
+	cover_size = QSize(cover_size.width() - image_util::kPlaylistImageRadius,
+		cover_size.height() - image_util::kPlaylistImageRadius);
 	const auto playlist_cover = image_util::roundImage(
-		image_util::resizeImage(*cover, QSize(165, 165), false),
+		image_util::resizeImage(*cover, cover_size, false),
 		image_util::kPlaylistImageRadius);
 	cover_->setPixmap(playlist_cover);
 }
@@ -291,7 +300,7 @@ void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
 	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
-	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
+	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));	
 }
 
 void PlaylistPage::onSetCoverById(const QString& cover_id) {

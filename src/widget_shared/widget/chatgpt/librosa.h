@@ -20,7 +20,6 @@ public:
     bool initial();
 
     std::pair<std::vector<float>, double> load(const std::string& path,
-                                               double sr=22050,
                                                bool mono=true,
                                                int offset=0,
                                                int duration=0);

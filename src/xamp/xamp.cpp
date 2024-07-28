@@ -534,6 +534,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
+        chatgpt_page_.get(),
+        &ChatGPTWindow::onThemeChangedFinished);
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
         playlist_tab_page_.get(),
         &PlaylistTabWidget::onThemeChangedFinished);
 
@@ -570,7 +575,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
         music_library_page_.get(),
-        &AlbumArtistPage::onThemeChangedFinished);    
+        &AlbumArtistPage::onThemeChangedFinished); 
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
+        chatgpt_page_.get(),
+        &ChatGPTWindow::onThemeChangedFinished);
 
     (void)QObject::connect(this,
         &Xamp::setWatchDirectory,
@@ -2580,7 +2590,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(this,
         &Xamp::themeColorChanged,
         lrc_page_.get(),
-        &LrcPage::onThemeColorChanged);
+        &LrcPage::onThemeColorChanged);    
 
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::blurImage,
@@ -2606,8 +2616,11 @@ void Xamp::initialPlaylist() {
     pushWidget(yt_music_tab_page_.get());
 	pushWidget(chatgpt_page_.get());
 
-    //connectPlaylistPageSignal(music_library_page_->album()->albumViewPage()->playlistPage());
-    //connectPlaylistPageSignal(music_library_page_->year()->albumViewPage()->playlistPage());
+    playlist_tab_page_->onThemeChangedFinished(qTheme.themeColor());
+    yt_music_tab_page_->onThemeChangedFinished(qTheme.themeColor());
+
+    connectPlaylistPageSignal(music_library_page_->album()->albumViewPage()->playlistPage());
+    connectPlaylistPageSignal(music_library_page_->year()->albumViewPage()->playlistPage());
 
     ui_.currentView->setCurrentIndex(0);
 }
@@ -2909,11 +2922,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &Xamp::cacheYtMusicFile);
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlaylistTableView::readReplayGain,
-        background_service_.get(),
-        &BackgroundService::onReadReplayGain);
-
-    (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::editTags,
         this,
         &Xamp::onEditTags);
@@ -2927,23 +2935,12 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistStyledItemDelegate::findAlbumCover,
         album_cover_service_.get(),
         &AlbumCoverService::onFindAlbumCover,
-        Qt::QueuedConnection);
-    
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::readReplayGain,
-        playlist_page->playlist(),
-        &PlaylistTableView::onUpdateReplayGain,
-        Qt::QueuedConnection);    
+        Qt::QueuedConnection); 
 
     (void)QObject::connect(this,
         &Xamp::themeColorChanged,
         playlist_page->playlist(),
-        &PlaylistTableView::onThemeColorChanged);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        playlist_page,
-        &PlaylistPage::onThemeChangedFinished);
+        &PlaylistTableView::onThemeColorChanged);    
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::addPlaylist,

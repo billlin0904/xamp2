@@ -13,6 +13,7 @@
 #include <QDateTimeEdit>
 #include <QLineEdit>
 
+#include <widget/themecolor.h>
 #include <widget/chatgpt/speechtotext.h>
 #include <widget/util/str_util.h>
 
@@ -33,7 +34,7 @@ signals:
 
 
 public slots:
-
+    void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
     bool is_recording = false;

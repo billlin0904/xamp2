@@ -20,7 +20,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
     setMouseTracking(true);
-    setAttribute(Qt::WA_StyledBackground);
+    //setAttribute(Qt::WA_StyledBackground);
 
     tab_bar_ = new PlaylistTabBar(this);
     setTabBar(tab_bar_);
@@ -173,7 +173,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         });
 
-    onThemeChangedFinished(qTheme.themeColor()); 
+    //setStyleSheet(qTEXT("background-color: transparent; border: none;"));
+    onThemeChangedFinished(qTheme.themeColor());     
 }
 
 void PlaylistTabWidget::hidePlusButton() {
@@ -185,26 +186,30 @@ void PlaylistTabWidget::onRetranslateUi() {
 }
 
 void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
-#if 1
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qSTR(R"(
-    QTabWidget::pane {
-        background: transparent;
-        border: 0;
+    QTabBar { 
+        background: transparent; 
     }
 
-	QTabWidget {
+	QTabWidget#playlistTab {
 		qproperty-iconSize: 16px 16px;
 	}
 
+    QTabWidget::pane {
+        background-color: #121212;  
+        border: 0px;      
+    }
+
     QTabWidget::tab-bar {
-        left: 0;
+        left: 0;    
+        background-color: #121212;    
     }
 
 	QTabWidget QTabBar::tab {
 		min-height: 32px;
-		background-color: #121212;
+		background-color: #121212;        
 	}
 
 	QTabWidget QTabBar::tab:selected {		
@@ -220,15 +225,16 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     )"));
         break;
     case ThemeColor::LIGHT_THEME:
-        setStyleSheet(qSTR(R"(
-	QTabWidget::pane {
-        background: transparent;
-        border: 0;
-    }
-
-	QTabWidget {
+        setStyleSheet(qSTR(R"(	
+	QTabWidget#playlistTab {
 		qproperty-iconSize: 16px 16px;
+        background-color: #f9f9f9;
 	}
+
+    QTabWidget::pane {        
+        border: 0;
+        background-color: #f9f9f9;
+    }
 
     QTabWidget::tab-bar {
         left: 0;
@@ -256,9 +262,18 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
         break;
     }
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
-#endif
+
     for (int i = 0; i < tabBar()->count(); ++i) {
-        setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+        setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));  
+        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        switch (qTheme.themeColor()) {
+        case ThemeColor::DARK_THEME:
+            playlist_page->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #121212; }"));
+            break;
+        case ThemeColor::LIGHT_THEME:
+            playlist_page->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"));
+            break;
+        }
     }
 }
 
@@ -292,7 +307,7 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool 
     setCurrentIndex(index);
     if (resize) {        
         resizeTabWidth();
-    }    
+    }
 }
 
 int32_t PlaylistTabWidget::currentPlaylistId() const {

@@ -148,8 +148,6 @@ signals:
 
 	void downloadFile(const PlayListEntity& entity);
 
-    void readReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
-
 	void editTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 	void updateAlbumCover(const QString &cover_id);
@@ -176,10 +174,6 @@ public slots:
 	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
 	void onReloadEntity(const PlayListEntity& item);
-
-	void onUpdateReplayGain(int32_t playlistId, 
-		const PlayListEntity& entity,
-		const ReplayGain& replay_gain);
 
 	void onRetranslateUi();
 

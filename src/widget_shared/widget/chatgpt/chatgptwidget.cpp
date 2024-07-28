@@ -19,6 +19,11 @@ ChatGPTWindow::~ChatGPTWindow() {
 	delete ui_;
 }
 
+void ChatGPTWindow::onThemeChangedFinished(ThemeColor theme_color) {
+    qTheme.setRecordIcon(ui_->recordOrSendButton, false);
+    qTheme.setCancelRecordIcon(ui_->cancelButton);
+}
+
 void ChatGPTWindow::initial() {   
     auto output = QMediaDevices::audioOutputs();
 	for (const auto& device : output) {
