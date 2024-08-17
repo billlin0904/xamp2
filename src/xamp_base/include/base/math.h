@@ -104,7 +104,7 @@ XAMP_ALWAYS_INLINE size_t NextPowerOfTwo(size_t v) noexcept {
 * @param[in] v
 * @return int32_t
 */
-XAMP_ALWAYS_INLINE int32_t IsPowerOfTwo(int32_t v) noexcept {
+XAMP_ALWAYS_INLINE size_t IsPowerOfTwo(size_t v) noexcept {
 	return v > 0 && !(v & (v - 1));
 }
 

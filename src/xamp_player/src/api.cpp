@@ -32,16 +32,8 @@ void LoadComponentSharedLibrary() {
     LoadAvLib();
     XAMP_LOG_DEBUG("Load avlib success.");
 
-#ifdef XAMP_OS_WIN
     LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr lib success.");
-
-    LoadChromaprintLib();
-    XAMP_LOG_DEBUG("Load chromaprint lib success.");
-
-    LoadEbur128Lib();
-    XAMP_LOG_DEBUG("Load ebur128 lib success.");
-#endif
 
     LoadCueLib();
     XAMP_LOG_DEBUG("Load libcue lib success.");

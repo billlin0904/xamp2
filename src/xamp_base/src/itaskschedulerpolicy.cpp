@@ -66,7 +66,7 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
 	// use Sfc64 random engine
 	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
 	constexpr size_t kMaxAttempts = 100;
-	uint32_t random_index = 0;
+	size_t random_index = 0;
 
 	for (size_t attempt = 0; attempt < kMaxAttempts; ++attempt) {
 		random_index = prng(size_t(0), max_thread_ - 1);

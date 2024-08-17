@@ -9,7 +9,6 @@
 #include <QFrame>
 
 #include <QThread>
-#include <widget/chatgpt/librosa.h>
 
 class PlaylistPage;
 class FileSystemModel;
@@ -35,6 +34,4 @@ private:
 	Ui::FileSystemViewPage* ui_;
 	FileSystemModel* dir_model_;
 	DirFirstSortFilterProxyModel* dir_first_sort_filter_;
-    QThread thread_;
-    LibrosaService service_;
 };

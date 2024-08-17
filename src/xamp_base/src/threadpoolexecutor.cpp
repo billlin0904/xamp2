@@ -42,8 +42,9 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_scheduler_policy_->SetMaxThread(max_thread_);
 
-		task_work_queues_.resize(max_thread_);
-
+		for (size_t i = 0; i < max_thread_; ++i) {
+			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
+		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
 		}
@@ -216,21 +217,19 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
 
-		task_work_queues_[i] = MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
 		auto* local_queue = task_work_queues_[i].get();
-
 		auto* policy = task_scheduler_policy_.get();
 		const auto thread_id = GetCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
 		work_done_.count_down();
 
-		start_clean_up_.wait();
-
 #ifdef XAMP_OS_WIN
 		SetThreadPriority(threads_.at(i), priority);
 		SetThreadMitigation();
 #endif
+
+		start_clean_up_.wait();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);

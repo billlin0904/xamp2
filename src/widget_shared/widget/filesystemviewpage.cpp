@@ -8,7 +8,6 @@
 #include <widget/playlisttableview.h>
 #include <widget/filesystemmodel.h>
 #include <widget/util/ui_util.h>
-#include <widget/chatgpt/librosa.h>
 
 #include <QHelpEvent>
 #include <QDateTime>
@@ -105,10 +104,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->hideColumn(2);
     ui_->dirTree->hideColumn(3);
 
-    //service_.moveToThread(&thread_);
-    //thread_.start();
-    //service_.initialAsync().waitForFinished();
-
     ui_->dirTree->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(ui_->dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui_->dirTree);
@@ -131,9 +126,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             }
             auto src_index = dir_first_sort_filter_->mapToSource(index);
             auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
-
-            //service_.loadAsync(path).waitForFinished();
-            //emit addPathToPlaylist(path, true);
+            emit addPathToPlaylist(path, true);
         });
         add_file_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 

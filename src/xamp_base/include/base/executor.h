@@ -90,7 +90,6 @@ void ParallelFor(IThreadPoolExecutor& executor,
     for (IteratorType itr = begin; itr != end;) {
         size_t batch_size = (std::min)(batches, static_cast<size_t>(std::distance(itr, end)));
 
-        size_t spawn_size = 0;
         for (size_t j = 0; j < batch_size; ++j) {
             if (!IsFutureDuplicate(futures, itr)) {
                 auto task = Executor::Spawn(executor, [f, itr](const StopToken& token) -> void {
@@ -100,7 +99,6 @@ void ParallelFor(IThreadPoolExecutor& executor,
                     });
 
                 futures.emplace_back(itr, task.share());
-                ++spawn_size;
             }
             ++itr;
         }

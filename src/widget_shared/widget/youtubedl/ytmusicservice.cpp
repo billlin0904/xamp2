@@ -676,17 +676,20 @@ playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, i
 
     dumpObject(impl_->logger, playlist);
 
-    auto extract_duration = [&]() -> std::string {
-        if (playlist["duration"].is_none()) {
+    auto to_string = [&](const auto& name) ->std::string {
+        if (!playlist.contains(name)) {
             return "";
         }
-        return playlist["duration"].cast<std::string>();
+        if (playlist[name].is_none()) {
+            return "";
+        }
+        return playlist[name].cast<std::string>();
     };
 
     return {
-        playlist["id"].cast<std::string>(),
-        playlist["privacy"].cast<std::string>(),
-        playlist["title"].cast<std::string>(),
+        to_string("id"),
+        to_string("privacy"),
+        to_string("title"),
         [&]() -> std::vector<meta::Thumbnail> {
         if (playlist.contains("thumbnails")) {
             return extract_py_list<meta::Thumbnail>(playlist["thumbnails"]);
@@ -697,7 +700,7 @@ playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, i
         }(),
         extract_author(),
         optional_key<std::string>(playlist, "year"),
-        extract_duration(),
+        to_string("duration"),
         playlist["trackCount"].cast<int>(),
         extract_py_list<playlist::Track>(playlist["tracks"]),
     };

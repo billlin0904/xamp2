@@ -217,8 +217,8 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 		paths.clear();
 		paths.shrink_to_fit();
 
-        //file_count_paths.clear();
-        //file_count_paths.shrink_to_fit();
+        file_count_paths.clear();
+        file_count_paths.shrink_to_fit();
 
 		emit readFileProgress(100);
 		emit readCompleted();

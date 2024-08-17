@@ -529,8 +529,10 @@ bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_fille
 	const auto stream_time = static_cast<double>(output_bytes_) / avg_byte_per_sec;
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-		DataConverter<PackedFormat::PLANAR,
-			PackedFormat::INTERLEAVED>::Convert(
+		DataConverter<
+			PackedFormat::PLANAR,
+			PackedFormat::INTERLEAVED
+		>::Convert(
 				device_buffer_.Get(),
 				buffer_.Get(),
 				theDriverContext.data_context);
