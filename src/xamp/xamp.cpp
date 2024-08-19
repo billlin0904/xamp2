@@ -1529,7 +1529,7 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 
     setThemeIcon(ui_);
     setRepeatButtonIcon(ui_, order_);
-    setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
+    setThemeColor(qTheme.backgroundColor(), qTheme.textColor());
 
     for (auto i = 0; i < playlist_tab_page_->tabBar()->count(); ++i) {
         auto* page = dynamic_cast<PlaylistPage*>(playlist_tab_page_->widget(i));
@@ -1867,16 +1867,6 @@ void Xamp::onDelayedDownloadThumbnail() {
         emit fetchThumbnailUrl(id, thumbnail_url);
         download_thumbnail_pending_.remove(id);
     }
-}
-
-QString generateMusicAnalysisPrompt(const QString& title, const QString& artist, const QString& album) {
-    return qSTR(
-        "Generate a music production analysis of the song, Below are the specific requirements for the analysis:"
-        " Song Title: %1"
-        " Artist: %2"
-        " Album: %3"
-        " Please respond in Traditional Chinese."
-    ).arg(title).arg(artist).arg(album);
 }
 
 void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
@@ -2556,11 +2546,6 @@ void Xamp::initialPlaylist() {
         this,
         &Xamp::appendToPlaylist);    
 
-    (void)QObject::connect(this,
-        &Xamp::themeColorChanged,
-        music_library_page_.get(),
-        &AlbumArtistPage::onThemeColorChanged);
-
     (void)QObject::connect(music_library_page_->album(),
         &AlbumView::removeAll,        
         [this]() {
@@ -2585,12 +2570,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(music_library_page_->album(),
         &AlbumView::clickedArtist,
         this,
-        &Xamp::onArtistIdChanged);
-
-    (void)QObject::connect(this,
-        &Xamp::themeColorChanged,
-        lrc_page_.get(),
-        &LrcPage::onThemeColorChanged);    
+        &Xamp::onArtistIdChanged);    
 
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::blurImage,
@@ -2929,12 +2909,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistStyledItemDelegate::findAlbumCover,
         album_cover_service_.get(),
         &AlbumCoverService::onFindAlbumCover,
-        Qt::QueuedConnection); 
-
-    (void)QObject::connect(this,
-        &Xamp::themeColorChanged,
-        playlist_page->playlist(),
-        &PlaylistTableView::onThemeColorChanged);    
+        Qt::QueuedConnection);   
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::addPlaylist,

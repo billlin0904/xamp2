@@ -99,13 +99,6 @@ void GenreViewPage::onThemeChangedFinished(ThemeColor theme_color) {
 	}
 }
 
-void GenreViewPage::onThemeColorChanged(QColor backgroundColor, QColor color) {
-	Q_FOREACH(auto page, genre_view_) {
-		page.first->view()->onThemeColorChanged(backgroundColor, color);
-		page.second->onThemeColorChanged(backgroundColor, color);
-	}
-}
-
 void GenreViewPage::reload() {
 	Q_FOREACH(auto page, genre_view_) {
 		page.first->view()->reload();

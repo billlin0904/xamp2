@@ -215,7 +215,7 @@ namespace {
         XMainWindow main_window;
         Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
-        win.setThemeColor(qTheme.backgroundColor(), qTheme.themeTextColor());
+        win.setThemeColor(qTheme.backgroundColor(), qTheme.textColor());
 
         main_window.setContentWidget(&win);
         //main_window.setContentWidget(nullptr);

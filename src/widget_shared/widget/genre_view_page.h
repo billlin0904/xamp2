@@ -43,8 +43,6 @@ public:
 
 	void onThemeChangedFinished(ThemeColor theme_color);
 
-	void onThemeColorChanged(QColor backgroundColor, QColor color);
-
 	void reload();
 
 	void clear();

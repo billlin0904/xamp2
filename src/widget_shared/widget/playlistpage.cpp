@@ -21,6 +21,7 @@ PlaylistPage::PlaylistPage(QWidget* parent)
 	setObjectName("playlistPage");
 	setFrameShape(QFrame::StyledPanel);
 	initial();
+	setStyleSheet(qTEXT("background-color: transparent;"));
 }
 
 ProcessIndicator* PlaylistPage::spinner() {
@@ -28,8 +29,6 @@ ProcessIndicator* PlaylistPage::spinner() {
 }
 
 void PlaylistPage::initial() {
-	//setFrameStyle(QFrame::StyledPanel);
-
 	spinner_ = new ProcessIndicator(this);
 	spinner_->hide();
 
@@ -223,10 +222,6 @@ void PlaylistPage::initial() {
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));	
 }
 
-void PlaylistPage::onThemeColorChanged(QColor theme_color, QColor color) {		
-	
-}
-
 void PlaylistPage::setHeart(bool heart) {
 	if (!heart_button_->isHidden()) {
 		heart_button_->show();
@@ -297,8 +292,8 @@ void PlaylistPage::setCover(const QPixmap * cover) {
 }
 
 void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
-	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
-	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(qTheme.themeTextColor()) + qTEXT("; background-color: transparent; }"));
+	title_->setStyleSheet(qTEXT("QLabel { color: ") + colorToString(qTheme.textColor()) + qTEXT("; background-color: transparent; }"));
+	format_->setStyleSheet(qTEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(qTheme.textColor()) + qTEXT("; background-color: transparent; }"));
 	qTheme.setLineEditStyle(search_line_edit_, qTEXT("playlistSearchLineEdit"));
 	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));	
 }

@@ -171,8 +171,6 @@ public slots:
 
 	void onProcessTrackInfo(int32_t total_album, int32_t total_tracks);
 
-	void onThemeColorChanged(QColor backgroundColor, QColor color);
-
 	void onReloadEntity(const PlayListEntity& item);
 
 	void onRetranslateUi();

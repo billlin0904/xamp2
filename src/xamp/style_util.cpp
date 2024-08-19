@@ -320,10 +320,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 
     setThemeIcon(ui);
     ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
-	// NOTE: Setting background color to transparent has effect on child widget's background color.
-    //ui.currentViewFrame->setStyleSheet(qTEXT("QFrame#currentViewFrame { background: transparent; border: none; }"));   
-    //ui.currentViewFrame->setStyleSheet(qTEXT("border: none;"));
+    ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));	
 }
 
 void updateButtonState(QToolButton* playButton, PlayerState state) {

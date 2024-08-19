@@ -83,7 +83,7 @@ public:
 
     void setMenuStyle(QWidget* menu);
 
-    QColor themeTextColor() const;
+    QColor textColor() const;
 
     QString backgroundColorString() const;
 

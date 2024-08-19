@@ -81,8 +81,6 @@ public slots:
 
 	void onThemeChangedFinished(ThemeColor theme_color);
 
-	void onThemeColorChanged(QColor background_color, QColor color);
-
 	void onRetranslateUi();
 
 private:

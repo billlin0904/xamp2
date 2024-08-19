@@ -512,10 +512,6 @@ void AlbumView::enablePage(bool enable) {
     styledDelegate()->enableAlbumView(enable);
 }
 
-void AlbumView::onThemeColorChanged(QColor backgroundColor, QColor color) {
-    styledDelegate()->setAlbumTextColor(color);
-}
-
 void AlbumView::setShowMode(ShowModes mode) {
     styledDelegate()->setShowMode(mode);
 }
@@ -769,7 +765,8 @@ void AlbumView::reload() {
 void AlbumView::onThemeChangedFinished(ThemeColor theme_color) {
     if (page_ != nullptr) {
         page_->onThemeChangedFinished(theme_color);
-    }    
+    }  
+	styledDelegate()->setAlbumTextColor(qTheme.textColor());
 }
 
 void AlbumView::onRetranslateUi() {

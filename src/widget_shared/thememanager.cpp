@@ -258,7 +258,7 @@ QLatin1String ThemeManager::themeColorPath(ThemeColor theme_color) const {
 	return qTEXT("White");
 }
 
-QColor ThemeManager::themeTextColor() const {
+QColor ThemeManager::textColor() const {
     auto color = Qt::black;
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:

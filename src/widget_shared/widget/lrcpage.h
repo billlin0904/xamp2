@@ -56,8 +56,6 @@ public:
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
-	void onThemeColorChanged(QColor background_color, QColor color);
-
 	void setBackground(const QImage& cover);
 
 	void clearBackground();

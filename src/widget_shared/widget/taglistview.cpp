@@ -162,10 +162,6 @@ void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 	}
 }
 
-void TagListView::onThemeColorChanged(QColor background_color, QColor color) {
-
-}
-
 void TagListView::sort() {
 	list_->sortItems(Qt::DescendingOrder);
 }

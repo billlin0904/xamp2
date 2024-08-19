@@ -23,8 +23,6 @@ public:
 	}
 
 public slots:
-	void onThemeColorChanged(QColor background_color, QColor color);
-
 	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 	void setAlbumCount(int32_t album_count);

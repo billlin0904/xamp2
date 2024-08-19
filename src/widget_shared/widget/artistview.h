@@ -69,8 +69,6 @@ public:
 
 	explicit ArtistView(QWidget* parent = nullptr);
 
-	void onThemeChanged(QColor backgroundColor, QColor color);
-
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void showAll();

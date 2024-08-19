@@ -328,11 +328,6 @@ void ArtistView::hidePageAnimation() {
 	hide_page_ = true;
 }
 
-void ArtistView::onThemeChanged(QColor backgroundColor, QColor color) {
-	dynamic_cast<ArtistStyledItemDelegate*>(itemDelegate())->setTextColor(color);
-	page_->album()->onThemeColorChanged(backgroundColor, color);
-}
-
 void ArtistView::onThemeChangedFinished(ThemeColor theme_color) {
 	page_->onThemeChangedFinished(theme_color);
 }

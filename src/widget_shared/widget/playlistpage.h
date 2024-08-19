@@ -69,8 +69,6 @@ signals:
 	void editFinished(const QString& text);
 
 public slots:
-    void onThemeColorChanged(QColor theme_color, QColor color);
-
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void onSetCoverById(const QString& cover_id);

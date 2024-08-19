@@ -20,8 +20,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
     setMouseTracking(true);
-    //setAttribute(Qt::WA_StyledBackground);
-
+    
     tab_bar_ = new PlaylistTabBar(this);
     setTabBar(tab_bar_);
 
@@ -173,7 +172,6 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         });
 
-    //setStyleSheet(qTEXT("background-color: transparent; border: none;"));
     onThemeChangedFinished(qTheme.themeColor());     
 }
 
@@ -300,6 +298,15 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
 }
 
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool resize) {
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
+        widget->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #121212; }"));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        widget->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"));
+        break;
+    }
+
     const auto index = addTab(widget, name);
     ++tab_count_;
 	tab_bar_->setTabCount(tab_count_);

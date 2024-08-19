@@ -123,8 +123,6 @@ public slots:
 
 	void search(const QString& keyword);
 
-    void onThemeColorChanged(QColor backgroundColor, QColor color);
-
     void append(const QString& file_name);
 
 	void showMenu(const QPoint& pt);

@@ -469,15 +469,6 @@ void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	artist_search_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
 }
 
-void AlbumArtistPage::onThemeColorChanged(QColor background_color, QColor color) {
-	album_view_->onThemeColorChanged(background_color, color);
-	//recent_plays_album_view_->onThemeColorChanged(background_color, color);
-	artist_view_->onThemeChanged(background_color, color);
-	year_view_->onThemeColorChanged(background_color, color);
-	album_tag_list_widget_->onThemeColorChanged(background_color, color);
-	artist_tag_list_widget_->onThemeColorChanged(background_color, color);
-}
-
 void AlbumArtistPage::onRetranslateUi() {	
 	page_title_label_->setText(tr("Library"));
 

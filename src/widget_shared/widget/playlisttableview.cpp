@@ -752,10 +752,6 @@ void PlaylistTableView::playItem(const QModelIndex& index, bool is_doubleclicked
     emit playMusic(playlistId(), play_item, true, is_doubleclicked);
 }
 
-void PlaylistTableView::onThemeColorChanged(QColor /*background_color*/, QColor /*color*/) {
-    
-}
-
 void PlaylistTableView::onRetranslateUi() {
 }
 
