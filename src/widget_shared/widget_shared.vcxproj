@@ -123,10 +123,6 @@
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <ClInclude Include="widget\chatgpt\chatgptservice.h" />
     <QtMoc Include="widget\baseservice.h" />
-    <QtMoc Include="widget\chatgpt\chatgptwidget.h" />
-    <QtMoc Include="widget\chatgpt\speechtotext.h" />
-    <QtMoc Include="widget\chatgpt\whisperservice.h" />
-    <QtMoc Include="widget\chatgpt\speechdetected.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
@@ -235,11 +231,7 @@
     <ClCompile Include="widget\baseservice.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\chatgptservice.cpp" />
-    <ClCompile Include="widget\chatgpt\chatgptwidget.cpp" />
-    <ClCompile Include="widget\chatgpt\speechdetected.cpp" />
-    <ClCompile Include="widget\chatgpt\speechtotext.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
-    <ClCompile Include="widget\chatgpt\whisperservice.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />
     <ClCompile Include="widget\dao\albumdao.cpp" />

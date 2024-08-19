@@ -62,7 +62,6 @@ class GenreViewPage;
 class YtMusicOAuth;
 class QScrollArea;
 class QSystemTrayIcon;
-class ChatGPTWindow;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -201,8 +200,6 @@ private:
 
 	void initialYtMusicService();
 
-	void initialChatGPTService();
-
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 
 	void drivesRemoved(const DriveInfo& drive_info) override;
@@ -319,14 +316,12 @@ private:
 	QScopedPointer<AlbumArtistPage> music_library_page_;
 	QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<PlaylistPage> yt_music_search_page_;
-	QScopedPointer<ChatGPTWindow> chatgpt_page_;
 	QScopedPointer<PlaylistTabWidget> playlist_tab_page_;
 	QScopedPointer<PlaylistTabWidget> yt_music_tab_page_;
 	QScopedPointer<BackgroundService> background_service_;
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
     QScopedPointer<YtMusicService> ytmusic_service_;
-    QScopedPointer<ChatGptService> chatgpt_service_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
 	//QList<QScrollArea*> widgets_;
@@ -335,7 +330,6 @@ private:
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
 	QThread ytmusic_service_thread_;
-	QThread chatgpt_service_thread_;
 	QTimer ui_update_timer_timer_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

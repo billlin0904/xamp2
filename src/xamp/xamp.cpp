@@ -81,7 +81,6 @@
 #include <widget/youtubedl/ytmusicoauth.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
 
-#include <widget/chatgpt/chatgptwidget.h>
 #include <widget/m3uparser.h>
 
 namespace {
@@ -274,16 +273,10 @@ void Xamp::destroy() {
         ytmusic_service_.reset();
     }
 
-    if (chatgpt_service_ != nullptr) {
-        chatgpt_service_->cleanupAsync().waitForFinished();
-        chatgpt_service_.reset();
-    }
-
     quit_and_wait_thread(background_service_thread_);
     quit_and_wait_thread(album_cover_service_thread_);
     quit_and_wait_thread(file_system_service_thread_);
     quit_and_wait_thread(ytmusic_service_thread_);
-    quit_and_wait_thread(chatgpt_service_thread_);
 
     if (main_window_ != nullptr) {
         (void)main_window_->saveGeometry();
@@ -291,22 +284,6 @@ void Xamp::destroy() {
 
     playlist_tab_page_->saveTabOrder();
     XAMP_LOG_DEBUG("Xamp destroy!");
-}
-
-void Xamp::initialChatGPTService() {
-    if (chatgpt_service_) {
-        return;
-    }
-
-    chatgpt_service_.reset(new ChatGptService());
-    chatgpt_service_->moveToThread(&chatgpt_service_thread_);
-    chatgpt_service_thread_.start();
-
-    XAMP_LOG_DEBUG("Initial chatgpt service...");
-
-    //QCoro::connect(chatgpt_service_->initialAsync(), this, []() {
-    //    XAMP_LOG_DEBUG("Initial chatgpt service done.");
-    //    });
 }
 
 void Xamp::initialYtMusicService() {
@@ -534,11 +511,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
-        chatgpt_page_.get(),
-        &ChatGPTWindow::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
         playlist_tab_page_.get(),
         &PlaylistTabWidget::onThemeChangedFinished);
 
@@ -575,12 +547,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
         music_library_page_.get(),
-        &AlbumArtistPage::onThemeChangedFinished); 
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        chatgpt_page_.get(),
-        &ChatGPTWindow::onThemeChangedFinished);
+        &AlbumArtistPage::onThemeChangedFinished);
 
     (void)QObject::connect(this,
         &Xamp::setWatchDirectory,
@@ -1284,9 +1251,7 @@ void Xamp::initialDeviceList(const std::string& device_id) {
     }
 }
 
-void Xamp::initialController() {   
-    initialChatGPTService();
-
+void Xamp::initialController() {
     (void)QObject::connect(ui_.mutedButton, &QToolButton::clicked, [this]() {
         if (!player_->IsMute()) {
             setVolume(0);
@@ -1497,7 +1462,12 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_AI:
         break;
     }
-    ui_.currentView->setCurrentWidget(widgets_[table_id]);
+    if (widgets_.size() > table_id) {
+        ui_.currentView->setCurrentWidget(widgets_[table_id]);
+    }
+    else {
+		ui_.currentView->setCurrentWidget(playlist_tab_page_.get());
+    }
 }
 
 void Xamp::onThemeChangedFinished(ThemeColor theme_color) {   
@@ -2336,7 +2306,6 @@ void Xamp::initialPlaylist() {
     playlist_tab_page_.reset(new PlaylistTabWidget(this));    
     yt_music_search_page_.reset(new PlaylistPage(this));
     yt_music_tab_page_.reset(new PlaylistTabWidget(this));
-    chatgpt_page_.reset(new ChatGPTWindow(this));
 
     yt_music_tab_page_->setStoreType(StoreType::CLOUD_STORE);
     yt_music_tab_page_->hidePlusButton();
@@ -2350,8 +2319,7 @@ void Xamp::initialPlaylist() {
     ui_.naviBar->addTab(translateText("CD"),               TAB_CD,                qTheme.fontIcon(Glyphs::ICON_CD));
     ui_.naviBar->addTab(translateText("YouTube search"),   TAB_YT_MUSIC_SEARCH,   qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
     ui_.naviBar->addTab(translateText("YouTube playlist"), TAB_YT_MUSIC_PLAYLIST, qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));    
-    ui_.naviBar->addTab(translateText("AI"),               TAB_AI,                qTheme.fontIcon(Glyphs::ICON_AI));
-        
+      
     playlist_dao_.forEachPlaylist([this](auto playlist_id,
         auto index,
         auto store_type,
@@ -2594,7 +2562,6 @@ void Xamp::initialPlaylist() {
     pushWidget(cd_page_.get());
     pushWidget(yt_music_search_page_.get());
     pushWidget(yt_music_tab_page_.get());
-	pushWidget(chatgpt_page_.get());
 
     playlist_tab_page_->onThemeChangedFinished(qTheme.themeColor());
     yt_music_tab_page_->onThemeChangedFinished(qTheme.themeColor());
