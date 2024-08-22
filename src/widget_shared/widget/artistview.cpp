@@ -206,7 +206,7 @@ void ArtistViewPage::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
-	setStyleSheet(qSTR(
+	setStyleSheet(qFormat(
 		R"(
            QFrame#artistViewPage {
 		        background-color: %1;
@@ -335,10 +335,10 @@ void ArtistView::onThemeChangedFinished(ThemeColor theme_color) {
 void ArtistView::filterArtistName(const QSet<QString>& name) {
 	QStringList names;
 	Q_FOREACH(auto & c, name) {
-		names.append(qSTR("'%1'").arg(c));
+		names.append(qFormat("'%1'").arg(c));
 	}
 
-	last_query_ = qSTR(R"(
+	last_query_ = qFormat(R"(
 SELECT
     artists.artist,
     artists.artistId,

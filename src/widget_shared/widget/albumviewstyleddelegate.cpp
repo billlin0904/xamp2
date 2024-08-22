@@ -124,7 +124,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     play_button_->setStyleSheet(qTEXT("background-color: transparent"));
 
     edit_mode_checkbox_->setObjectName(qTEXT("editModeCheckbox"));
-    edit_mode_checkbox_->setStyleSheet(qSTR(R"(
+    edit_mode_checkbox_->setStyleSheet(qFormat(R"(
                                          QCheckBox#editModeCheckbox {
         			                        background-color: transparent;
     							            color: white;

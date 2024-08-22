@@ -333,7 +333,7 @@ const QStringList& getTrackInfoFileNameFilter() {
     struct StaticGetFileNameFilter {
         StaticGetFileNameFilter() {
             for (auto& file_ext : GetSupportFileExtensions()) {
-                name_filter << qSTR("*%1").arg(QString::fromStdString(file_ext));
+                name_filter << qFormat("*%1").arg(QString::fromStdString(file_ext));
             }
             name_filter << qTEXT("*.cue");
         }

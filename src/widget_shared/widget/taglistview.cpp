@@ -31,16 +31,16 @@ void TagWidgetItem::setEnable(bool enable) {
 		switch (qTheme.themeColor()) {
 		case ThemeColor::DARK_THEME:
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 6px; border: 1px solid %1; background-color: #171818;").arg(color_.name())
+				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #171818;").arg(color_.name())
 			);
 			break;
 		case ThemeColor::LIGHT_THEME:
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 6px; border: 1px solid %1; background-color: #e6e6e6;").arg(color_.name())
+				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #e6e6e6;").arg(color_.name())
 			);
 		}		
 		label_->setStyleSheet(
-			qSTR("color: %1;").arg(color_.name())
+			qFormat("color: %1;").arg(color_.name())
 		);
 	}
 	else {
@@ -49,19 +49,19 @@ void TagWidgetItem::setEnable(bool enable) {
 		case ThemeColor::DARK_THEME:
 			color = QColor(qTEXT("#4d4d4d"));
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 6px; border: 1px solid %1; background-color: #424548;").arg(color.name())
+				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #424548;").arg(color.name())
 			);
 			label_->setStyleSheet(
-				qSTR("color: white;")
+				qFormat("color: white;")
 			);
 			break;
 		case ThemeColor::LIGHT_THEME:
 			color = Qt::lightGray;
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qSTR("border-radius: 6px; border: 1px solid transparent; background-color: #e6e6e6;")
+				qFormat("border-radius: 6px; border: 1px solid transparent; background-color: #e6e6e6;")
 			);
 			label_->setStyleSheet(
-				qSTR("color: #2e2f31;")
+				qFormat("color: #2e2f31;")
 			);
 			break;
 		}				
@@ -221,7 +221,7 @@ void TagListView::addTag(const QString& tag, bool uniform_item_sizes) {
 	auto* widget = new QWidget();
 	widget->setLayout(layout);
 	widget->setStyleSheet(
-		qSTR("border-radius: 6px; border: 1px solid transparent;")
+		qFormat("border-radius: 6px; border: 1px solid transparent;")
 	);
 	list_->setItemWidget(item, widget);
 	item->enable();	

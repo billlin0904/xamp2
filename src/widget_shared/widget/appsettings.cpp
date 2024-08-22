@@ -195,7 +195,7 @@ QLocale AppSettings::locale() const {
 
 QString AppSettings::getOrCreateCachePath() {
     QString cache_path;
-
+#ifdef Q_OS_WIN
 	if (!qAppSettings.contains(kAppSettingCachePath)) {
 		auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
 
@@ -223,6 +223,18 @@ QString AppSettings::getOrCreateCachePath() {
 	else {
 		cache_path = qAppSettings.valueAsString(kAppSettingCachePath);
 	}
+#else
+    cache_path = QDir::currentPath() + qTEXT("/Cache/");
+    const QDir dir(cache_path);
+    if (!dir.exists()) {
+        if (!dir.mkdir(cache_path)) {
+            XAMP_LOG_ERROR("Create cache dir failure!");
+        }
+    }
+#endif
+    if (cache_path.back() != QChar((ushort)'/')) {
+        cache_path += qTEXT("/");
+    }
 
 	return cache_path;
 }

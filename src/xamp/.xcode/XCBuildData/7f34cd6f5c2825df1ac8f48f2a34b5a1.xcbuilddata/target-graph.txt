@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'xamp2' in project 'xamp2'
+➜ Explicit dependency on target 'Qt Preprocess' in project 'xamp2'
+Target 'Qt Preprocess' in project 'xamp2' (no dependencies)

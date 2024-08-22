@@ -121,7 +121,7 @@ QString formatVersion(const QVersionNumber& version) {
 }
 
 QString formatDb(double value, int prec) {
-    return qSTR("%1 dB").arg(formatDouble(value, prec));
+    return qFormat("%1 dB").arg(formatDouble(value, prec));
 }
 
 QString formatDouble(double value, int prec) {

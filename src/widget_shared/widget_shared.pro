@@ -88,12 +88,10 @@ SOURCES += \
 ./widget/xprogressdialog.cpp \
 ./widget/http.cpp \
 ./widget/lrcpage.cpp \
-./widget/playListstyledItemdelegate.cpp \
+./widget/playliststyleditemdelegate.cpp \
 ./widget/maskwidget.cpp \
 ./widget/databasefacade.cpp \
 ./widget/jsonsettings.cpp \
-./widget/chatgpt/chatgptservice.cpp \
-./widget/chatgpt/chatgptwidget.cpp \
 ./widget/albumview.cpp \
 ./widget/filesystemviewpage.cpp \
 ./widget/worker/albumcoverservice.cpp \
@@ -113,12 +111,7 @@ SOURCES += \
 ./widget/seekslider.cpp \
 ./widget/m3uparser.cpp \
 ./version.cpp \
-./thememanager.cpp \
-    widget/chatgpt/librosa.cpp \
-    widget/chatgpt/speechdetected.cpp \
-    widget/chatgpt/speechtotext.cpp \
-    widget/chatgpt/waveformwidget.cpp \
-    widget/chatgpt/whisperservice.cpp
+./thememanager.cpp
 
 HEADERS += \
 ./version.h \
@@ -196,13 +189,11 @@ HEADERS += \
 ./widget/wheelablewidget.h \
 ./widget/doubleslider.h \
 ./widget/filesystemwatcher.h \
-./widget/chatgpt/chatgptwidget.h \
-./widget/chatgpt/chatgptservice.h \
 ./widget/worker/backgroundservice.h \
 ./widget/worker/filesystemservice.h \
 ./widget/worker/albumcoverservice.h \
 ./widget/win32/wintaskbar.h \
-./widget/playListstyledItemdelegate.h \
+./widget/playliststyleditemdelegate.h \
 ./widget/imagecache.h \
 ./widget/seekslider.h \
 ./widget/playlistpage.h \
@@ -219,12 +210,7 @@ HEADERS += \
 ./widget/appsettingnames.h \
 ./widget/m3uparser.h \
 ./xampplayer.h \
-./thememanager.h \
-    widget/chatgpt/librosa.h \
-    widget/chatgpt/speechdetected.h \
-    widget/chatgpt/speechtotext.h \
-    widget/chatgpt/waveformwidget.h \
-    widget/chatgpt/whisperservice.h
+./thememanager.h
 
 # Additionally include Cocoa for OS X code
 

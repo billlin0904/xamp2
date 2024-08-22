@@ -5,7 +5,7 @@
 #include <widget/imagecache.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlisttablemodel.h>
-#include <widget/playListstyleditemdelegate.h>
+#include <widget/playliststyleditem_delegate.h>
 
 PlaylistStyledItemDelegate::PlaylistStyledItemDelegate(QObject* parent)
     : QStyledItemDelegate(parent) {
@@ -44,7 +44,7 @@ void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
     opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
     opt.font.setFamily(qTEXT("MonoFont"));
-    opt.font.setPointSize(10);
+    opt.font.setPointSize(qTheme.fontSize(11));
 
     switch (index.column()) {
     case PLAYLIST_TITLE:

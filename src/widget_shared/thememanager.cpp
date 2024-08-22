@@ -81,20 +81,20 @@ namespace {
 
 QString ThemeManager::countryFlagFilePath(const QString& country_iso_code) {
     return
-        qSTR("%1/flags/%2.png")
+        qFormat("%1/flags/%2.png")
         .arg(QCoreApplication::applicationDirPath())
         .arg(country_iso_code);
 }
 
 QString ThemeManager::fontNamePath(const QString& file_name) {
 	return
-		qSTR("%1/fonts/%2")
+		qFormat("%1/fonts/%2")
 		.arg(QCoreApplication::applicationDirPath())
 		.arg(file_name);
 }
 
 void ThemeManager::installFileFonts(const QString& font_name_prefix, QList<QString>& ui_fallback_fonts) {
-	const auto font_path = qSTR("%1/fonts/").arg(QCoreApplication::applicationDirPath());
+	const auto font_path = qFormat("%1/fonts/").arg(QCoreApplication::applicationDirPath());
 
     QMap<int32_t, QString> font_weight_map;
     QList<QString> file_paths;
@@ -172,7 +172,7 @@ QFont ThemeManager::loadFonts() {
     ui_fonts.append(qTEXT("Meiryo UI"));
     ui_fonts.append(qTEXT("MS PGothic"));
 #else
-    ui_fonts.append(qTEXT("SF Pro"));
+    installFileFont(qTEXT("Inter.ttc"), ui_fonts);
 #endif
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
@@ -217,7 +217,7 @@ ThemeManager::ThemeManager() {
 #ifdef Q_OS_WIN
     font_ratio_ = 1.0;
 #else
-    font_ratio_ = 1.2;
+    font_ratio_ = 1.4;
 #endif
     ui_font_.setPointSize(defaultFontSize());
     setGoogleMaterialFontIcons();
@@ -328,11 +328,11 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
         return qFontIcon.getIcon(static_cast<int32_t>(code), temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/maximize-active.ico").arg(themeColorPath(color)));
+        return QIcon(qFormat(":/xamp/Resource/%1/maximize-active.ico").arg(themeColorPath(color)));
     case Glyphs::ICON_CLOSE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/close-active.ico").arg(themeColorPath(color)));
+        return QIcon(qFormat(":/xamp/Resource/%1/close-active.ico").arg(themeColorPath(color)));
     case Glyphs::ICON_RESTORE_WINDOW:
-        return QIcon(qSTR(":/xamp/Resource/%1/restore-active.ico").arg(themeColorPath(color)));
+        return QIcon(qFormat(":/xamp/Resource/%1/restore-active.ico").arg(themeColorPath(color)));
     case Glyphs::ICON_MESSAGE_BOX_WARNING:
 	    {
 			auto temp = font_icon_opts_;
@@ -559,7 +559,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
     const QColor hover_color = hoverColor();
     const QColor color_hover_color(qTEXT("#dc3545"));
 
-    close_button->setStyleSheet(qSTR(R"(
+    close_button->setStyleSheet(qFormat(R"(
                                          QToolButton#closeButton {
                                          border: none;
                                          background-color: transparent;
@@ -574,7 +574,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
     close_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
     close_button->setIcon(fontIcon(Glyphs::ICON_CLOSE_WINDOW));
 
-    min_win_button->setStyleSheet(qSTR(R"(
+    min_win_button->setStyleSheet(qFormat(R"(
                                           QToolButton#minWinButton {
                                           border: none;
                                           background-color: transparent;
@@ -588,7 +588,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
     min_win_button->setIconSize(QSize(titleBarIconHeight(), titleBarIconHeight()));
     min_win_button->setIcon(fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
     
-    max_win_button->setStyleSheet(qSTR(R"(
+    max_win_button->setStyleSheet(qFormat(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
                                           background-color: transparent;
@@ -681,7 +681,7 @@ void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_
         break;
     }
 
-    combo_box->setStyleSheet(qSTR(R"(
+    combo_box->setStyleSheet(qFormat(R"(
     QComboBox#%4 {
 		background-color: %2;
 		border: 1px solid %1;
@@ -702,7 +702,7 @@ void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_
 void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_name) {
     switch (themeColor()) {
         case ThemeColor::DARK_THEME:
-            line_edit->setStyleSheet(qSTR(R"(
+            line_edit->setStyleSheet(qFormat(R"(
                                             QLineEdit#%1 {
                                             background-color: %2;
                                             border: 1px solid #4d4d4d;
@@ -712,7 +712,7 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
                                             )").arg(object_name).arg(qTEXT("#3a3a3c")));
 			break;
         case ThemeColor::LIGHT_THEME:
-            line_edit->setStyleSheet(qSTR(R"(
+            line_edit->setStyleSheet(qFormat(R"(
                                             QLineEdit#%1 {
                                             background-color: %2;
                                             border: 1px solid gray;
@@ -890,7 +890,7 @@ void ThemeManager::setAlbumNaviBarTheme(QListView *tab) const {
         break;
     }
 
-    tab->setStyleSheet(qSTR(R"(
+    tab->setStyleSheet(qFormat(R"(
 	QListView#albumTab {
 		border: none; 
 	}

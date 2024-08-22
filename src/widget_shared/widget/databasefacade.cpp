@@ -43,7 +43,7 @@ namespace {
 
         QSet<QString> categories;
         for (const QString& category : categoriesList) {
-            QRegularExpression regex(qSTR("\\b%1\\b").arg(QRegularExpression::escape(category)), QRegularExpression::CaseInsensitiveOption);
+            QRegularExpression regex(qFormat("\\b%1\\b").arg(QRegularExpression::escape(category)), QRegularExpression::CaseInsensitiveOption);
             if (regex.match(album).hasMatch()) {
                 categories.insert(category.toLower().trimmed());
             }

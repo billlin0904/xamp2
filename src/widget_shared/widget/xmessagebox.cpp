@@ -137,7 +137,7 @@ void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 		break;
 	}
 
-	default_button->setStyleSheet(qSTR(
+	default_button->setStyleSheet(qFormat(
 	R"(
       QPushButton#XMessageBoxDefaultButton {
 		 background-color: %1;
@@ -186,7 +186,7 @@ void XMessageBox::hideMaskWidget() {
 
 void XMessageBox::onUpdate() {
 	if (--timeout_ >= 1) {
-		defaultButton()->setText(default_button_text_ + qSTR(" (%1)").arg(timeout_));
+		defaultButton()->setText(default_button_text_ + qFormat(" (%1)").arg(timeout_));
 	} else {
 		timer_.stop();
 		defaultButton()->animateClick();

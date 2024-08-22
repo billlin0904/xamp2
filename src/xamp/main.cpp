@@ -290,7 +290,7 @@ int main() {
     }
 
     if (exist_code == kRestartExistCode) {
-        QProcess::startDetached(qSTR(argv[0]), args);
+        QProcess::startDetached(qFormat(argv[0]), args);
     }
     return exist_code;
 }

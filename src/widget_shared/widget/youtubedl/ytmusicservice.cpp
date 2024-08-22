@@ -683,7 +683,7 @@ playlist::Playlist YtMusicInterop::getPlaylist(const std::string& playlist_id, i
         if (playlist[name].is_none()) {
             return "";
         }
-        return playlist[name].cast<std::string>();
+        return playlist[name].template cast<std::string>();
     };
 
     return {

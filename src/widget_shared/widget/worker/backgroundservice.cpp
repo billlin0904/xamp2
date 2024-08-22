@@ -127,7 +127,7 @@ void BackgroundService::onBlurImage(const QString& cover_id, const QPixmap& imag
 
 void BackgroundService::onTranslation(const QString& keyword, const QString& from, const QString& to) {
     const auto url =
-        qSTR("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
+        qFormat("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
         .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))
         .arg(to)
         .arg(from);

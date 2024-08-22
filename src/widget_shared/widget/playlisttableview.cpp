@@ -40,7 +40,7 @@
 
 namespace {
     QString groupAlbum(int32_t playlist_id) {
-        return qSTR(R"(
+        return qFormat(R"(
     SELECT	
 	albums.coverId,
 	musics.musicId,
@@ -89,7 +89,7 @@ ORDER BY
     }
 
     QString groupNone(int32_t playlist_id) {
-        return qSTR(R"(
+        return qFormat(R"(
     SELECT
 	albums.coverId,
 	musics.musicId,
@@ -498,7 +498,7 @@ void PlaylistTableView::initial() {
 
             for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
-                add_to_playlist->addAction(qSTR("Add to playlist (%1)").arg(itr.value()), [playlist_id, video_ids, this]() {
+                add_to_playlist->addAction(qFormat("Add to playlist (%1)").arg(itr.value()), [playlist_id, video_ids, this]() {
                     QString source_playlist_id;
                     if (cloudPlaylistId()) {
                         source_playlist_id = cloudPlaylistId().value();
@@ -598,7 +598,7 @@ void PlaylistTableView::initial() {
                     continue;
                 }
 
-                auto profile_desc = qSTR("%0 bit, %1, %2").arg(
+                auto profile_desc = qFormat("%0 bit, %1, %2").arg(
                     QString::number(profile.bit_per_sample),
                     formatSampleRate(profile.sample_rate),
                     formatBitRate(profile.bitrate));

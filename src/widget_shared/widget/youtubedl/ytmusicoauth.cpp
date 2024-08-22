@@ -49,7 +49,7 @@ void YtMusicOAuth::setup() {
 		verification_url_ = code[qTEXT("verification_url")].toString();
 		device_code_ = code[qTEXT("device_code")].toString();
 
-		const auto open_url = qSTR("%1?user_code=%2").arg(verification_url_).arg(user_code_);
+		const auto open_url = qFormat("%1?user_code=%2").arg(verification_url_).arg(user_code_);
 		emit acceptAuthorization(open_url);
 		})
 		.post();

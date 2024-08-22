@@ -9,7 +9,7 @@ void GenreView::setGenre(const QString& genre) {
 }
 
 void GenreView::showAllAlbum(int32_t limit) {
-    last_query_ = qSTR(R"(
+    last_query_ = qFormat(R"(
 SELECT
     albums.album,
     albums.coverId,

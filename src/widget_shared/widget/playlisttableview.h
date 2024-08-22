@@ -14,7 +14,7 @@
 #include <widget/databasefacade.h>
 #include <widget/playerorder.h>
 #include <widget/widget_shared_global.h>
-#include <widget/playListstyleditemdelegate.h>
+#include <widget/playliststyleditemdelegate.h>
 
 #include <widget/dao/playlistdao.h>
 #include <widget/dao/musicdao.h>

@@ -134,7 +134,7 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                                 )"));
     ui.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_SPEAKER));
 
-    ui.mutedButton->setStyleSheet(qSTR(R"(
+    ui.mutedButton->setStyleSheet(qFormat(R"(
                                          QToolButton#mutedButton {
                                          image: url(:/xamp/Resource/%1/volume_up.png);
                                          border: none;
@@ -192,7 +192,7 @@ void setNaviBarTheme(NavBarListView* navi_bar) {
         break;
     }
 
-    navi_bar->setStyleSheet(qSTR(R"(
+    navi_bar->setStyleSheet(qFormat(R"(
 	QListView#naviBar {
 		border: none; 
 	}
@@ -223,7 +223,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                             )"));
 
     QFont duration_font(qTEXT("MonoFont"));
-    duration_font.setPointSize(8);
+    duration_font.setPointSize(qTheme.fontSize(8));
     duration_font.setWeight(QFont::Bold);
 
     ui.startPosLabel->setStyleSheet(qTEXT(R"(
@@ -257,7 +257,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-        ui.currentView->setStyleSheet(qSTR(R"(
+        ui.currentView->setStyleSheet(qFormat(R"(
 			QStackedWidget#currentView {
 				padding: 0px;
 				background-color: #121212;				

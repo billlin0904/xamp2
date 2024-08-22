@@ -155,17 +155,17 @@ void EqualizerView::applySetting(const QString& name, const EqSettings& settings
 	    for (; i < band_size; ++i) {
             auto *vertical_layout = new QVBoxLayout();
             vertical_layout->setSpacing(0);
-            vertical_layout->setObjectName(qSTR("verticalLayout_%1").arg(i));
+            vertical_layout->setObjectName(qFormat("verticalLayout_%1").arg(i));
             vertical_layout->setContentsMargins(1, -1, -1, -1);
 
             auto *band_db_label = new QLabel(this);
-            band_db_label->setObjectName(qSTR("band%1DbLabel").arg(i));
+            band_db_label->setObjectName(qFormat("band%1DbLabel").arg(i));
             band_db_label->setAlignment(Qt::AlignCenter);
 
             vertical_layout->addWidget(band_db_label);
 
             auto* band_slider = new DoubleSlider(this);
-            band_slider->setObjectName(qSTR("band%1Slider").arg(i));
+            band_slider->setObjectName(qFormat("band%1Slider").arg(i));
             band_slider->setMinimum(-150);
             band_slider->setMaximum(150);
             band_slider->setOrientation(Qt::Vertical);

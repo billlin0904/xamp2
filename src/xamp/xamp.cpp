@@ -162,7 +162,7 @@ namespace {
     }
 
     QString makeYtMusicUrl(const QString& video_id) {
-        const auto ytmusic_url = qSTR("https://music.youtube.com/watch?v=%1").arg(video_id);
+        const auto ytmusic_url = qFormat("https://music.youtube.com/watch?v=%1").arg(video_id);
         return ytmusic_url;
     }
 
@@ -1242,11 +1242,13 @@ void Xamp::initialDeviceList(const std::string& device_id) {
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
         qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.value().connect_type);
-        device_id_action[device_info_.value().device_id]->setChecked(true);
-        ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
-        ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
-        qAppSettings.setValue(kAppSettingDeviceType, device_info_.value().device_type_id);
-        qAppSettings.setValue(kAppSettingDeviceId, device_info_.value().device_id);
+        if (device_id_action.find(device_info_.value().device_id) != device_id_action.end()) {
+            device_id_action[device_info_.value().device_id]->setChecked(true);
+            ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
+            ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
+            qAppSettings.setValue(kAppSettingDeviceType, device_info_.value().device_type_id);
+            qAppSettings.setValue(kAppSettingDeviceId, device_info_.value().device_id);
+        }
         XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.value().device_id);
     }
 }
@@ -2714,7 +2716,7 @@ void Xamp::encodeWavFile(const PlayListEntity& entity) {
 
 void Xamp::encodeFlacFile(const PlayListEntity& entity) {
     const auto command
-        = qSTR("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
+        = qFormat("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
 
     encodeFile(entity,
         EncodingProfile(),
@@ -2968,7 +2970,7 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
         return;
     }
 
-    read_progress_dialog_->setTitle(qSTR("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
+    read_progress_dialog_->setTitle(qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
         .arg(formatDuration(secs)).arg(total_work).arg(completed_work));
 }
 
@@ -3010,7 +3012,7 @@ void Xamp::onFoundFileCount(size_t file_count) {
         return;
     }
 
-    read_progress_dialog_->setTitle(qSTR("Total number of files %1").arg(file_count));
+    read_progress_dialog_->setTitle(qFormat("Total number of files %1").arg(file_count));
 }
 
 void Xamp::onReadFileStart() {

@@ -87,7 +87,7 @@ void XProgressDialog::setRange(int minimum, int maximum) {
 }
 
 void XProgressDialog::setSubValue(int total, int current) {
-	sub_text_label_->setText(qSTR("%1 / %2").arg(current).arg(total));
+	sub_text_label_->setText(qFormat("%1 / %2").arg(current).arg(total));
 }
 
 int XProgressDialog::value() const {

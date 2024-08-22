@@ -94,7 +94,7 @@ void AlbumViewPage::onThemeChangedFinished(ThemeColor theme_color) {
     close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, theme_color));
 
     if (theme_color == ThemeColor::LIGHT_THEME) {
-        setStyleSheet(qSTR(
+        setStyleSheet(qFormat(
             R"(
            QFrame#albumViewPage {
 		        background-color: %1;
@@ -105,7 +105,7 @@ void AlbumViewPage::onThemeChangedFinished(ThemeColor theme_color) {
         ).arg(qTheme.linearGradientStyle()));
     }
     else {
-        setStyleSheet(qSTR(
+        setStyleSheet(qFormat(
             R"(
            QFrame#albumViewPage {
 		        background-color: %1;
@@ -521,7 +521,7 @@ AlbumViewStyledDelegate* AlbumView::styledDelegate() {
 }
 
 void AlbumView::filterByArtistId(int32_t artist_id) {
-    last_query_ = qSTR(R"(
+    last_query_ = qFormat(R"(
     SELECT
         album,
         albums.coverId,
@@ -550,7 +550,7 @@ void AlbumView::filterByArtistId(int32_t artist_id) {
 }
 
 void AlbumView::filterCategories(const QString & category) {
-    last_query_ = qSTR(R"(
+    last_query_ = qFormat(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -577,7 +577,7 @@ ORDER BY
 }
 
 void AlbumView::sortYears() {
-    last_query_ = qSTR(R"(
+    last_query_ = qFormat(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -604,9 +604,9 @@ ORDER BY
 void AlbumView::filterYears(const QSet<QString>& years) {
     QStringList year_list;
     Q_FOREACH(auto & c, years) {
-        year_list.append(qSTR("'%1'").arg(c));
+        year_list.append(qFormat("'%1'").arg(c));
     }
-    last_query_ = qSTR(R"(
+    last_query_ = qFormat(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -659,9 +659,9 @@ LIMIT 5
 void AlbumView::filterCategories(const QSet<QString>& category) {
     QStringList categories;
     Q_FOREACH(auto & c, category) {
-        categories.append(qSTR("'%1'").arg(c));
+        categories.append(qFormat("'%1'").arg(c));
 	}
-    last_query_ = qSTR(R"(
+    last_query_ = qFormat(R"(
 SELECT
     albums.album,
     albums.coverId,

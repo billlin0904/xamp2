@@ -80,7 +80,7 @@ XMessageItem::XMessageItem(QWidget* parent,
     setObjectName(QStringLiteral("messageItem"));
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
-    setStyleSheet(qSTR(
+    setStyleSheet(qFormat(
         R"(
 			QWidget#messageItem {
 				border: none;

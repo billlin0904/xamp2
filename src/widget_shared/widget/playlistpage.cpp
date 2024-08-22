@@ -21,7 +21,7 @@ PlaylistPage::PlaylistPage(QWidget* parent)
 	setObjectName("playlistPage");
 	setFrameShape(QFrame::StyledPanel);
 	initial();
-	setStyleSheet(qTEXT("background-color: transparent;"));
+    setStyleSheet(qTEXT("background-color: transparent;"));
 }
 
 ProcessIndicator* PlaylistPage::spinner() {

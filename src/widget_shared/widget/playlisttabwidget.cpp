@@ -186,13 +186,14 @@ void PlaylistTabWidget::onRetranslateUi() {
 void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
-        setStyleSheet(qSTR(R"(
+        setStyleSheet(qFormat(R"(
     QTabBar { 
         background: transparent; 
     }
 
 	QTabWidget#playlistTab {
 		qproperty-iconSize: 16px 16px;
+        border: none;
 	}
 
     QTabWidget::pane {
@@ -216,14 +217,14 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
     )"));
 
-    add_tab_button_->setStyleSheet(qSTR(R"(
+    add_tab_button_->setStyleSheet(qFormat(R"(
     QPushButton#plusButton:hover {
         background-color: #455364;
     }
     )"));
         break;
     case ThemeColor::LIGHT_THEME:
-        setStyleSheet(qSTR(R"(	
+        setStyleSheet(qFormat(R"(	
 	QTabWidget#playlistTab {
 		qproperty-iconSize: 16px 16px;
         background-color: #f9f9f9;
@@ -250,7 +251,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 	}
     )"));
 
-    add_tab_button_->setStyleSheet(qSTR(R"(
+    add_tab_button_->setStyleSheet(qFormat(R"(
     QPushButton#plusButton:hover {
         background-color: #e1e3e5;
     }

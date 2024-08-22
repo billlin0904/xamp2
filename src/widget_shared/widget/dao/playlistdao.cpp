@@ -118,7 +118,7 @@ namespace dao {
     void PlaylistDao::addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const {
         SqlQuery query(db_);
 
-        const auto querystr = qSTR("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
+        const auto querystr = qFormat("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
             .arg(playlist_id)
             .arg(music_id)
             .arg(album_id);
