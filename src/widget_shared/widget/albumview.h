@@ -140,7 +140,6 @@ private:
 	QTimer refresh_cover_timer_;
 	AlbumViewPage* page_;
 	QPropertyAnimation* animation_;
-	//LazyLoadingModel model_;
 	QSqlQueryModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
 	dao::PlaylistDao playlist_dao_;

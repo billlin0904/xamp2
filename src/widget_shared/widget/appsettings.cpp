@@ -232,8 +232,8 @@ QString AppSettings::getOrCreateCachePath() {
         }
     }
 #endif
-    if (cache_path.back() != QChar((ushort)'/')) {
-        cache_path += qTEXT("/");
+    if (cache_path.back() != QDir::separator()) {
+        cache_path += QDir::separator();
     }
 
 	return cache_path;

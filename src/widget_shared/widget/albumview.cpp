@@ -182,12 +182,12 @@ AlbumView::AlbumView(QWidget* parent)
     setMouseTracking(true);    
     album_dao_.updateAlbumSelectState(kInvalidDatabaseId, false);
 
-    (void)QObject::connect(&model_, &QAbstractTableModel::modelReset,
+    /*(void)QObject::connect(&model_, &QAbstractTableModel::modelReset,
         [this] {
             while (model_.canFetchMore()) {
                 model_.fetchMore();
             }
-        });
+        });*/
 
     (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::showAlbumMenu, [this](auto index, auto pt) {
         showMenu(pt);

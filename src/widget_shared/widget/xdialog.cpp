@@ -141,7 +141,7 @@ void XDialog::onThemeChangedFinished(ThemeColor theme_color) {
         break;
     }
 
-    title_frame_label_->setStyleSheet(qSTR(R"(
+    title_frame_label_->setStyleSheet(qFormat(R"(
         QLabel#titleFrameLabel {
         border: none;
         background: transparent;

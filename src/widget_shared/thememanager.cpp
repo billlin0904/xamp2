@@ -164,16 +164,14 @@ QFont ThemeManager::loadFonts() {
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
 
 #ifdef Q_OS_WIN
-    ui_fonts.append(qTEXT("Segoe UI WPC"));
-    ui_fonts.append(qTEXT("Segoe UI"));
 	ui_fonts.append(qTEXT("Microsoft JhengHei UI"));
     ui_fonts.append(qTEXT("Microsoft YaHei UI"));
     ui_fonts.append(qTEXT("Yu Gothic UI"));
     ui_fonts.append(qTEXT("Meiryo UI"));
     ui_fonts.append(qTEXT("MS PGothic"));
-#else
-    installFileFont(qTEXT("Inter.ttc"), ui_fonts);
 #endif
+    installFileFont(qTEXT("Inter.ttc"), ui_fonts);
+
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
     if (display_fonts.isEmpty()) {

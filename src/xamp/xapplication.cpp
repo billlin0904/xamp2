@@ -92,7 +92,7 @@ void XApplication::loadLang() {
 		const LocaleLanguage lang;
 		XAMP_LOG_DEBUG("Load locale language file: {}.", lang.isoCode().toStdString());
 		qAppSettings.loadLanguage(lang.isoCode());
-		qAppSettings.loadLanguage(qSTR("qt_%1").arg(lang.isoCode()));
+		qAppSettings.loadLanguage(qFormat("qt_%1").arg(lang.isoCode()));
 		qAppSettings.setValue(kAppSettingLang, lang.isoCode());
 	}
 	else {

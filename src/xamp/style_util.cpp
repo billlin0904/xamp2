@@ -87,7 +87,7 @@ void setThemeIcon(Ui::XampWindow& ui) {
 
     const QColor hover_color = qTheme.hoverColor();
 
-    ui.logoButton->setStyleSheet(qSTR(R"(
+    ui.logoButton->setStyleSheet(qFormat(R"(
                                          QToolButton#logoButton {
                                          border: none;
                                          image: url(":/xamp/xamp.ico");
@@ -95,7 +95,7 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                          }
 										)"));
 
-    ui.menuButton->setStyleSheet(qSTR(R"(
+    ui.menuButton->setStyleSheet(qFormat(R"(
                                          QToolButton#menuButton {                                                
                                                 border: none;
                                                 background-color: transparent;                                                
@@ -242,7 +242,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
     ui.startPosLabel->setFont(duration_font);
     ui.endPosLabel->setFont(duration_font);
 
-    /*ui.titleFrameLabel->setStyleSheet(qSTR(R"(
+    /*ui.titleFrameLabel->setStyleSheet(qFormat(R"(
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;

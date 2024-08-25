@@ -126,10 +126,14 @@
 #define XAMP_NO_DEFAULT ((void)0)
 #endif
 
+#if _MSVC_LANG >= XAMP_CPP20_LANG_VER
+#define XAMP_CACHE_ALIGNED(CacheLineSize) alignas(CacheLineSize)
+#else
 #ifdef XAMP_OS_WIN
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __declspec(align(CacheLineSize))
 #else
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
+#endif
 #endif
 
 #ifdef XAMP_OS_WIN
