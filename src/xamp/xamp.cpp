@@ -500,6 +500,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &Xamp::onFetchThumbnailUrlError);
 
     (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
+        lrc_page_.get(),
+        &LrcPage::onThemeChangedFinished);
+
+    (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished, 
         &qImageCache,
         &ImageCache::onThemeChangedFinished);
@@ -1473,14 +1478,14 @@ void Xamp::setCurrentTab(int32_t table_id) {
 }
 
 void Xamp::onThemeChangedFinished(ThemeColor theme_color) {   
-	switch (theme_color) {
+	/*switch (theme_color) {
 	case ThemeColor::DARK_THEME:
         qTheme.setThemeColor(ThemeColor::DARK_THEME);		
         break;
     case ThemeColor::LIGHT_THEME:
         qTheme.setThemeColor(ThemeColor::LIGHT_THEME);
         break;
-	}
+	}*/
 
     qImageCache.remove(kAlbumCacheTag + qImageCache.unknownCoverId());
     qImageCache.remove(qImageCache.unknownCoverId());

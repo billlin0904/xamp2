@@ -12,19 +12,31 @@
 
 namespace {
     std::chrono::milliseconds parseTime(const std::wstring& str) {
+        auto hours = 0;
         auto minutes = 0;
         auto seconds = 0;
         auto milliseconds = 0;
-        const auto res = port_swscanf(str.c_str(), L"%u:%u.%u",
+        
+        auto res = port_swscanf(str.c_str(), L"%u:%u.%u",
             &minutes,
             &seconds,
             &milliseconds);
-        if (res != 3) {
-            throw std::exception();
+        if (res == 3) {
+            return std::chrono::minutes(minutes)
+                + std::chrono::seconds(seconds)
+                + std::chrono::milliseconds(milliseconds);
         }
-        return std::chrono::minutes(minutes)
-            + std::chrono::seconds(seconds)
-            + std::chrono::milliseconds(milliseconds);
+
+        res = port_swscanf(str.c_str(), L"%u:%u:%u",
+            &hours,
+            &minutes,
+            &milliseconds);
+        if (res == 3) {
+            return std::chrono::hours(hours)
+                + std::chrono::minutes(minutes)
+                + std::chrono::seconds(seconds);
+        }
+		throw std::invalid_argument("Invalid time format");
     }
 
     template <typename ReturnType = std::wstring>
@@ -56,7 +68,7 @@ namespace {
 
 LrcParser::LrcParser()
     : offset_(0)
-	, pattern_(L"\\[\\d*:\\d{2}\\.\\d{1,3}\\][^\\[]*") {
+	, pattern_(LR"(\[\d{2}:\d{2}(?::\d{2})?\] ?[^\[]*)") {
 }
 
 bool LrcParser::parse(std::wistream &istr) {

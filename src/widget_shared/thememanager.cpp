@@ -243,6 +243,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
         break;
     }
     default_size_unknown_cover_ = image_util::resizeImage(unknown_cover_, album_cover_size_, true);
+    emit themeChangedFinished(theme_color);
 }
 
 QLatin1String ThemeManager::themeColorPath() const {

@@ -393,30 +393,65 @@ static void BM_ConvertToShort(benchmark::State& state) {
 }
 #endif
 
+//static void InterleavedToPlanarConvertToInt32_Test() {
+//    auto length = 4096;
+//
+//    auto input = Vector<int32_t>(length);
+//    for (auto i = 0; i < length; ++i) {
+//        input[i] = (i % 2) ? 1 : 0;
+//    }
+//
+//    auto output = Vector<int32_t>(length);
+//
+//    AudioFormat input_format;
+//    AudioFormat output_format;
+//
+//    input_format.SetChannel(2);
+//    input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
+//    output_format.SetChannel(2);
+//    output_format.SetPackedFormat(PackedFormat::PLANAR);
+//
+//    const auto ctx = MakeConvert(input_format, output_format, length / 2);
+//
+//    // Add test Convert code in here.
+//    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(output.data(), input.data(), ctx);
+//
+//    for (size_t i = 0; i < length / 2; ++i) {
+//        assert(output[i] == 0);
+//        assert(output[i + length / 2] == 1);
+//    }
+//}
+//
+//static void InterleavedToPlanarConvertToInt8_Test() {
+//   auto length = 4096;
+//
+//   auto input = Vector<int8_t>(length);
+//	 for (auto i = 0; i < length; ++i) {
+//		input[i] = (i % 2) ? 1 : 0;
+//	 }
+//
+//    auto output = Vector<int8_t>(length);
+//
+//    AudioFormat input_format;
+//    AudioFormat output_format;
+//
+//    input_format.SetChannel(2);
+//	  input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
+//    output_format.SetChannel(2);
+//    output_format.SetPackedFormat(PackedFormat::PLANAR);
+//
+//    const auto ctx = MakeConvert(input_format, output_format, length / 2);
+//
+//    // Add test Convert code in here.
+//    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(output.data(), input.data(), ctx);
+//
+//    for (size_t i = 0; i < length / 2; ++i) {
+//        assert(output[i] == 0);
+//        assert(output[i + length / 2] == 1);
+//    }
+//}
+
 static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
-    auto length = state.range(0);
-
-    const auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
-    auto left_ch = Vector<int8_t>(length);
-    auto right_ch = Vector<int8_t>(length);
-
-    AudioFormat input_format;
-    AudioFormat output_format;
-
-    input_format.SetChannel(2);
-    output_format.SetChannel(2);
-
-    for (auto _ : state) {
-        InterleaveToPlanar<int8_t, int8_t>::Convert(input.data(),
-            left_ch.data(),
-            right_ch.data(),
-            length);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
-}
-
-static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     auto length = state.range(0);
 
     const auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
@@ -426,7 +461,10 @@ static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     AudioFormat output_format;
 
     input_format.SetChannel(2);
+    output_format.SetPackedFormat(PackedFormat::INTERLEAVED);
+
     output_format.SetChannel(2);
+    output_format.SetPackedFormat(PackedFormat::PLANAR);
 
     const auto ctx = MakeConvert(input_format, output_format, length / 2);
 
@@ -441,20 +479,23 @@ static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
 
-static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
+static void BM_InterleavedToPlanarConvertToInt8_API(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
-    auto output = Vector<int>(length);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes(length, 0, 1);
+    auto output = Vector<int8_t>(length);
 
     AudioFormat input_format;
     AudioFormat output_format;
 
     input_format.SetChannel(2);
+    output_format.SetPackedFormat(PackedFormat::INTERLEAVED);
+
     output_format.SetChannel(2);
+    output_format.SetPackedFormat(PackedFormat::PLANAR);
 
     for (auto _ : state) {
-        InterleaveToPlanar<float, int32_t>::Convert(input.data(),
+        InterleaveToPlanar<int8_t, int8_t>::Convert(input.data(),
             output.data(),
             output.data() + (length / 2),
             length);
@@ -463,31 +504,31 @@ static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
 
-static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
-    auto output = Vector<int>(length);
-
-    AudioFormat input_format;
-    AudioFormat output_format;
-
-    input_format.SetChannel(2);
-    output_format.SetChannel(2);
-    output_format.SetPackedFormat(PackedFormat::PLANAR);
-
-    const auto ctx = MakeConvert(input_format, output_format, length / 2);
-
-    for (auto _ : state) {
-        DataConverter<PackedFormat::PLANAR,
-            PackedFormat::INTERLEAVED>::Convert(
-                output.data(),
-                input.data(),
-                ctx);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
-}
+//static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
+//    auto length = state.range(0);
+//
+//    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
+//    auto output = Vector<int>(length);
+//
+//    AudioFormat input_format;
+//    AudioFormat output_format;
+//
+//    input_format.SetChannel(2);
+//    output_format.SetChannel(2);
+//    output_format.SetPackedFormat(PackedFormat::PLANAR);
+//
+//    const auto ctx = MakeConvert(input_format, output_format, length / 2);
+//
+//    for (auto _ : state) {
+//        DataConverter<PackedFormat::PLANAR,
+//            PackedFormat::INTERLEAVED>::Convert(
+//                output.data(),
+//                input.data(),
+//                ctx);
+//    }
+//
+//    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
+//}
 
 static void BM_Find_RobinHoodHashSet(benchmark::State& state) {
     HashSet<int64_t> map;
@@ -739,8 +780,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
+//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
@@ -785,7 +826,8 @@ BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8_API)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);
@@ -801,6 +843,9 @@ BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
 
 int main(int argc, char** argv) {
     DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
+    
+    //InterleavedToPlanarConvertToInt32_Test();
+    //InterleavedToPlanarConvertToInt8_Test();
 
     XampLoggerFactory
         .AddDebugOutput()

@@ -177,7 +177,6 @@ namespace {
 		app.initial();
         app.loadLang();
         app.loadSampleRateConverterConfig();
-        app.applyTheme();
         
 #ifdef _DEBUG
         qInstallMessageHandler(logMessageHandler);
@@ -235,6 +234,7 @@ namespace {
         }
 #endif
 
+        app.applyTheme();
         return app.exec();
     }
 }
