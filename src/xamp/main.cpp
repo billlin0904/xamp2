@@ -174,6 +174,7 @@ namespace {
             return -1;
         }*/
 
+        app.setTheme();
 		app.initial();
         app.loadLang();
         app.loadSampleRateConverterConfig();
@@ -214,10 +215,10 @@ namespace {
         XMainWindow main_window;
         Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
-        win.setThemeColor(qTheme.backgroundColor(), qTheme.textColor());
-
         main_window.setContentWidget(&win);
         //main_window.setContentWidget(nullptr);
+        const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+        qTheme.setThemeColor(theme);
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();
@@ -233,8 +234,6 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
 #endif
-
-        app.applyTheme();
         return app.exec();
     }
 }

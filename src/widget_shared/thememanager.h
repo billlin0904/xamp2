@@ -73,7 +73,7 @@ public:
 
     void setThemeColor(ThemeColor theme_color);    
 
-    void loadAndApplyTheme();
+    void loadAndSetThemeQss();
 
     void setBackgroundColor(QWidget* widget);
 
@@ -113,7 +113,7 @@ public:
 
     QIcon fontRawIcon(const Glyphs code);
 
-    void setTextSeparator(QFrame* frame);    
+    void setFrameBackgroundColor(QFrame* frame);
 
     void setMuted(QAbstractButton* button, bool is_muted);
 

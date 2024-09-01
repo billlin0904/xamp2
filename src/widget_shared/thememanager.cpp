@@ -475,7 +475,7 @@ void ThemeManager::setBackgroundColor(QWidget* widget) {
     widget->setStyleSheet(backgroundColorToString(color));
 }
 
-void ThemeManager::loadAndApplyTheme() {
+void ThemeManager::loadAndSetThemeQss() {
     qApp->setFont(defaultFont());
 
     QString filename;
@@ -491,6 +491,7 @@ void ThemeManager::loadAndApplyTheme() {
     QTextStream ts(&f);
     ts.setEncoding(QStringConverter::Utf8);
     qApp->setStyleSheet(ts.readAll());
+
     f.close();
 }
 
@@ -602,13 +603,13 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
     max_win_button->setIcon(fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
 }
 
-void ThemeManager::setTextSeparator(QFrame *frame) {
+void ThemeManager::setFrameBackgroundColor(QFrame* frame) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        frame->setStyleSheet(qTEXT("background-color: #1c1c1e;"));
+        frame->setStyleSheet(qTEXT("QFrame#%1 { background-color: #1c1c1e; }").arg(frame->objectName()));
         break;
     case ThemeColor::LIGHT_THEME:
-        frame->setStyleSheet(qTEXT("background-color: #CED1D4;"));
+        frame->setStyleSheet(qTEXT("QFrame#%1 { background-color: #CED1D4; }").arg(frame->objectName()));
         break;
     }
 }

@@ -79,10 +79,8 @@ void XApplication::loadSampleRateConverterConfig() {
 	XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }
 
-void XApplication::applyTheme() {
-	const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
-	qTheme.setThemeColor(theme);
-	qTheme.loadAndApplyTheme();
+void XApplication::setTheme() {
+	qTheme.loadAndSetThemeQss();
 }
 
 void XApplication::loadLang() {

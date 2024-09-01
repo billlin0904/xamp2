@@ -1142,7 +1142,7 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
     desc_label->setAlignment(Qt::AlignCenter);
 
     auto* device_type_frame = new QFrame();
-    qTheme.setTextSeparator(device_type_frame);
+    qTheme.setFrameBackgroundColor(device_type_frame);
 
     auto* default_layout = new QHBoxLayout(device_type_frame);    
    
@@ -1164,7 +1164,7 @@ void Xamp::initialDeviceList(const std::string& device_id) {
 
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
-        menu = new XMenu();        
+        menu = new XMenu();
         ui_.selectDeviceButton->setMenu(menu);
     }
 
@@ -1477,22 +1477,13 @@ void Xamp::setCurrentTab(int32_t table_id) {
     }
 }
 
-void Xamp::onThemeChangedFinished(ThemeColor theme_color) {   
-	/*switch (theme_color) {
-	case ThemeColor::DARK_THEME:
-        qTheme.setThemeColor(ThemeColor::DARK_THEME);		
-        break;
-    case ThemeColor::LIGHT_THEME:
-        qTheme.setThemeColor(ThemeColor::LIGHT_THEME);
-        break;
-	}*/
-
+void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     qImageCache.remove(kAlbumCacheTag + qImageCache.unknownCoverId());
     qImageCache.remove(qImageCache.unknownCoverId());
     qImageCache.loadUnknownCover();
 
     Q_FOREACH(QFrame *frame, device_type_frame_) {
-        qTheme.setTextSeparator(frame);
+        qTheme.setFrameBackgroundColor(frame);
 	}
 
     if (qAppSettings.valueAsBool(kAppSettingIsMuted)) {
@@ -1502,11 +1493,13 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
         qTheme.setMuted(ui_.mutedButton, false);
     }
 
-    qTheme.loadAndApplyTheme();
+    qTheme.loadAndSetThemeQss();
 
     setThemeIcon(ui_);
     setRepeatButtonIcon(ui_, order_);
-    setThemeColor(qTheme.backgroundColor(), qTheme.textColor());
+    setWidgetStyle(ui_);
+    setWidgetStyle(ui_);
+    updateButtonState(ui_.playButton, player_->GetState());
 
     for (auto i = 0; i < playlist_tab_page_->tabBar()->count(); ++i) {
         auto* page = dynamic_cast<PlaylistPage*>(playlist_tab_page_->widget(i));
@@ -1542,13 +1535,6 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 
     music_library_page_->album()->reload();
     music_library_page_->artist()->reload();
-}
-
-void Xamp::setThemeColor(QColor background_color, QColor color) {
-    qTheme.setBackgroundColor(background_color);
-    setWidgetStyle(ui_);
-    updateButtonState(ui_.playButton, player_->GetState());
-    emit themeColorChanged(background_color, color);
 }
 
 void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& image) {
@@ -2896,6 +2882,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
                 playlist_page->playlist()->reload();
             }            
         });
+
+    (void)QObject::connect(&qTheme,
+        &ThemeManager::themeChangedFinished,
+        playlist_page,
+        &PlaylistPage::onThemeChangedFinished);
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {

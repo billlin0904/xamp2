@@ -459,8 +459,8 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     ActionMap<AlbumView> action_map(this);
 
-    auto album           = indexValue(index, ALBUM_INDEX_ALBUM).toString();
-    auto artist          = indexValue(index, ALBUM_INDEX_ARTIST).toString();
+    auto album        = indexValue(index, ALBUM_INDEX_ALBUM).toString();
+    auto artist       = indexValue(index, ALBUM_INDEX_ARTIST).toString();
     auto album_id        = indexValue(index, ALBUM_INDEX_ALBUM_ID).toInt();
     auto artist_id       = indexValue(index, ALBUM_INDEX_ARTIST_ID).toInt();
     auto artist_cover_id = indexValue(index, ALBUM_INDEX_ARTIST_COVER_ID).toString();

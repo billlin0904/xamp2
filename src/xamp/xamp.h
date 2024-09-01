@@ -77,8 +77,6 @@ public:
 
     void setMainWindow(IXMainWindow* main_window);
 
-    void setThemeColor(QColor background_color, QColor color);
-
 	void shortcutsPressed(const QKeySequence& shortcut) override;
 
 	void setFullScreen();

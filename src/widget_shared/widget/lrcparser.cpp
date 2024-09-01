@@ -30,7 +30,7 @@ namespace {
         res = port_swscanf(str.c_str(), L"%u:%u:%u",
             &hours,
             &minutes,
-            &milliseconds);
+            &seconds);
         if (res == 3) {
             return std::chrono::hours(hours)
                 + std::chrono::minutes(minutes)

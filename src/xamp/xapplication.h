@@ -26,7 +26,7 @@ public:
 
     void loadLang();
 
-    void applyTheme();
+    void setTheme();
 
     void loadSampleRateConverterConfig();
 private:
