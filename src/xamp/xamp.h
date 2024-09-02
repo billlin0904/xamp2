@@ -67,9 +67,9 @@ class Xamp final : public IXFrame {
 	Q_OBJECT
 
 public:
-	static constexpr auto kShowProgressDialogMsSecs = 100;
-	static constexpr ConstexprQString kSoftwareUpdateUrl =
-		qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+    static constexpr auto kShowProgressDialogMsSecs = 100;
+    static constexpr ConstexprQString kSoftwareUpdateUrl =
+        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
 
     Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer> &player);
 
@@ -86,6 +86,8 @@ public:
 	QString translateText(const std::string_view& text) override;
 
 signals:
+    void readMFCC(const Path& file_path);
+
 	void payNextMusic();
 
     void themeColorChanged(QColor background_color, QColor color);

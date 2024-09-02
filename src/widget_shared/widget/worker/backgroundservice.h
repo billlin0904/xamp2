@@ -27,34 +27,20 @@ public:
 	~BackgroundService() override;
 
 signals:
-	void readFileStart();
-
-	void readCompleted();
-
-	void readFilePath(const QString& file_path);
-
-	void readFileProgress(int32_t progress);
-
-	void foundFileCount(size_t file_count);
-
 	void blurImage(const QImage& image);
-
-	void dominantColor(const QColor& color);
 
 	void readCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
 
-	void fetchMbDiscInfoCompleted(const MbDiscIdInfo& mb_disc_id_info);
-
-	void fetchDiscCoverCompleted(const QString& disc_id, const QString& cover_id);
+    void fetchDiscCoverCompleted(const QString& disc_id, const QString& cover_id);
 
 	void fetchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
-
-	void fetchArtistCompleted(const QString& artist, const QByteArray& image);
 
 	void translationCompleted(const QString& keyword, const QString& result);
 
 public Q_SLOT:
 	void cancelRequested();
+
+    void onReadMFCC(const Path& file_path);
 
 	void onBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 

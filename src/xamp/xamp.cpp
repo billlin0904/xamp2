@@ -479,6 +479,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onTranslationCompleted);
 
+    (void)QObject::connect(this,
+                            &Xamp::readMFCC,
+                            background_service_.get(),
+                            &BackgroundService::onReadMFCC);
+
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAlbumCover,
         this, 
@@ -624,36 +629,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &FileSystemService::remainingTimeEstimation,
         this,
         &Xamp::onRemainingTimeEstimation,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::foundFileCount,
-        this,
-        &Xamp::onFoundFileCount,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::readFilePath,
-        this,
-        &Xamp::onReadFilePath,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::readFileStart,
-        this,
-        &Xamp::onReadFileStart,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::readCompleted,
-        this,
-        &Xamp::onReadCompleted,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::readFileProgress,
-        this,
-        &Xamp::onReadFileProgress,
         Qt::QueuedConnection);
 
     auto* updater = QSimpleUpdater::getInstance();    
@@ -1933,6 +1908,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         entity.sample_rate,
         target_sample_rate);
 
+    emit readMFCC(Path(entity.file_path.toStdString()));
+
     try {
         player_->Open(entity.file_path.toStdWString(),
             device_info_.value(),
@@ -2491,13 +2468,7 @@ void Xamp::initialPlaylist() {
         Qt::QueuedConnection);
 
     (void)QObject::connect(background_service_.get(),
-        &BackgroundService::fetchMbDiscInfoCompleted,
-        this,
-        &Xamp::onUpdateMbDiscInfo,
-        Qt::QueuedConnection);
-
-    (void)QObject::connect(background_service_.get(),
-		&BackgroundService::fetchDiscCoverCompleted,
+        &BackgroundService::fetchDiscCoverCompleted,
         this,
         &Xamp::onUpdateDiscCover,
         Qt::QueuedConnection);
@@ -2523,11 +2494,6 @@ void Xamp::initialPlaylist() {
         this,
         &Xamp::onSearchLyricsCompleted);
 
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::fetchArtistCompleted,
-        this,
-        &Xamp::onSearchArtistCompleted);
-
     (void)QObject::connect(music_library_page_->album(),
         &AlbumView::clickedArtist,
         this,
@@ -2537,11 +2503,6 @@ void Xamp::initialPlaylist() {
         &BackgroundService::blurImage,
         lrc_page_.get(),
         &LrcPage::setBackground);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::dominantColor,
-        lrc_page_->lyrics(),
-        &LyricsShowWidget::onSetLrcColor);
 
     (void)QObject::connect(music_library_page_->album(),
         &AlbumView::addPlaylist,

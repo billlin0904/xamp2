@@ -12,6 +12,7 @@
 #include <stream/api.h>
 #include <stream/filestream.h>
 #include <stream/ifileencoder.h>
+#include <stream/bassfilestream.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
@@ -26,18 +27,16 @@
 
 namespace read_util {
 
-inline constexpr uint32_t kReadSampleSize = 8192 * 4;
-
 double readAll(Path const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
     uint64_t max_duration) {
 	const auto is_dsd_file = IsDsdFile(file_path.wstring());
+
     const auto file_stream = StreamFactory::MakeFileStream(file_path,
 		is_dsd_file
 		? DsdModes::DSD_MODE_NATIVE : DsdModes::DSD_MODE_PCM);
-
 	if (auto* stream = AsDsdStream(file_stream)) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);

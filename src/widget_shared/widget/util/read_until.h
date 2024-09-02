@@ -20,6 +20,8 @@
 
 namespace read_util {
 
+inline constexpr uint32_t kReadSampleSize = 8192 * 4;
+
 double readAll(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     std::function<void(AudioFormat const&)> const& prepare,

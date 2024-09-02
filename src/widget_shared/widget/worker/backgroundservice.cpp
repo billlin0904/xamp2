@@ -13,9 +13,12 @@
 #include <widget/imagecache.h>
 #include <widget/albumview.h>
 #include <widget/tagio.h>
+#include <widget/util/read_until.h>
 
 #include <stream/ebur128reader.h>
+#include <stream/musica.h>
 #include <base/logger_impl.h>
+
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
 #endif
@@ -114,6 +117,10 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
             }).get();
 }
 #endif
+
+void BackgroundService::onReadMFCC(const Path& file_path) {
+
+}
 
 void BackgroundService::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (image.isNull()) {
