@@ -1908,8 +1908,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         entity.sample_rate,
         target_sample_rate);
 
-    emit readMFCC(Path(entity.file_path.toStdString()));
-
     try {
         player_->Open(entity.file_path.toStdWString(),
             device_info_.value(),

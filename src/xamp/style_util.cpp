@@ -269,7 +269,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
         ui.bottomFrame->setStyleSheet(
             qTEXT(R"(
             QFrame#bottomFrame{
-                border-top: 1px solid black;
+                border-top: none;
                 border-radius: 0px;
 				border-bottom: none;
 				border-left: none;
@@ -297,7 +297,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
         ui.bottomFrame->setStyleSheet(
             qTEXT(R"(
             QFrame#bottomFrame {
-                border-top: 1px solid #eaeaea;
+                border-top: none;
                 border-radius: 0px;
 				border-bottom: none;
 				border-left: none;

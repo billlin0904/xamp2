@@ -37,6 +37,8 @@ signals:
 
 	void translationCompleted(const QString& keyword, const QString& result);
 
+	void fetchMbDiscInfoCompleted(const MbDiscIdInfo &info);
+
 public Q_SLOT:
 	void cancelRequested();
 

@@ -207,6 +207,7 @@
     <Image Include="xamp.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\.gitignore" />
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
     <None Include="migrations\2024-01-12-093210_init\up.sql" />

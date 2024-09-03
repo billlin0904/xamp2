@@ -36,6 +36,8 @@ public:
 
     virtual ~WinTaskbar() override;
 
+    void setTheme();
+
     void setTaskbarProgress(const int32_t process);
 
     void setIconicThumbnail(const QPixmap& image);

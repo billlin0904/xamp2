@@ -60,15 +60,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;../thirdparty/expected/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/whispercpp/;../thirdparty/libfvad/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/pybind11/include/;../thirdparty/rapidxml/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
       </WarningVersion>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/framelesshelper/msvc/lib/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/libfvad/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;FramelessHelperCored.lib;FramelessHelperWidgetsd.lib;fvad.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -77,7 +77,7 @@
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;C:\Users\User\AppData\Local\Programs\Python\Python310\libs;C:\Python310\libs;../thirdparty/qcoro/msvc/qcoro/core/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/framelesshelper/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;../thirdparty/pybind11/include/;./xamp/;../thirdparty/expected/include/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/rapidxml/;../thirdparty/pybind11/include/;./xamp/;C:\Users\User\AppData\Local\Programs\Python\Python310\include;C:\Python310\include;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -119,6 +119,10 @@
     <QtMoc Include="widget\artistview.h" />
     <QtMoc Include="widget\genre_view_page.h" />
     <QtMoc Include="widget\createplaylistview.h" />
+    <QtMoc Include="widgetframe\windowbar.h" />
+    <ClInclude Include="widgetframe\windowbar_p.h" />
+    <QtMoc Include="widgetframe\windowbutton.h" />
+    <ClInclude Include="widgetframe\windowbutton_p.h" />
     <ClInclude Include="widget\accountauthorizationpage.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <ClInclude Include="widget\chatgpt\chatgptservice.h" />
@@ -214,6 +218,8 @@
   <ItemGroup>
     <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="version.cpp" />
+    <ClCompile Include="widgetframe\windowbar.cpp" />
+    <ClCompile Include="widgetframe\windowbutton.cpp" />
     <ClCompile Include="widget\aboutpage.cpp" />
     <ClCompile Include="widget\accountauthorizationpage.cpp" />
     <ClCompile Include="widget\albumartistpage.cpp">
@@ -303,6 +309,7 @@
     <ClCompile Include="widget\youtubedl\ytmusicservice.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusicoauth.cpp" />
     <ClCompile Include="widget\youtubedl\ytmusic_disckcache.cpp" />
+    <ClCompile Include="xampplayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />

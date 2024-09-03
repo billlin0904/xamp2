@@ -42,10 +42,6 @@ public:
 
     void restoreAppGeometry() override;
 
-    void initMaximumState() override;
-
-    void updateMaximumState() override;
-
     void setIconicThumbnail(const QPixmap& image) override;
 
     void readDriveInfo();
@@ -62,8 +58,6 @@ public:
 
     void setTheme() override;
 protected:
-    bool eventFilter(QObject* object, QEvent* event) override;
-
     void dragEnterEvent(QDragEnterEvent *event) override;
 
     void dragMoveEvent(QDragMoveEvent *event) override;
@@ -91,11 +85,6 @@ private:
 #if defined(Q_OS_WIN)
     QScopedPointer<WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
-    QLabel* title_frame_label_{ nullptr };
-    QToolButton* icon_{ nullptr };
-    QToolButton* close_button_{ nullptr };
-    QToolButton* max_win_button_{ nullptr };
-    QToolButton* min_win_button_{ nullptr };
     QFrame* title_frame_{ nullptr };
 #endif
     QScopedPointer<QSystemTrayIcon> tray_icon_;

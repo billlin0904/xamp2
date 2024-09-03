@@ -41,10 +41,6 @@ public:
 
     virtual void setTaskbarPlayerStop() = 0;
 
-    virtual void initMaximumState() = 0;
-
-    virtual void updateMaximumState() = 0;
-
     virtual void saveAppGeometry() = 0;
 
     virtual void restoreAppGeometry() = 0;
@@ -61,7 +57,7 @@ protected:
     IXMainWindow();
 
     void installWindowAgent();
-    QWK::WidgetWindowAgent *windowAgent;
+    QWK::WidgetWindowAgent *window_agent_;
 };
 
 class IXFrame : public QFrame {

@@ -49,7 +49,7 @@ public:
 
     void setHeartButton(QToolButton* heartButton, bool press = false);
 
-    void updateMaximumIcon(QToolButton* maxWinButton, bool is_maximum) const;
+    void updateMaximumIcon(QToolButton* maxWinButton, bool is_maximum);
 
     void setBackgroundColor(QColor color);
 
@@ -105,9 +105,9 @@ public:
 
     QSize tabIconSize() const;
 
-    void setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
+    void setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button);
 
-    QIcon fontIcon(const Glyphs code, std::optional<ThemeColor> theme_color = std::nullopt) const;
+    QIcon fontIcon(const Glyphs code, std::optional<ThemeColor> theme_color = std::nullopt);
 
     QIcon fontRawIconOption(const Glyphs code, const QVariantMap& options = QVariantMap());
 
@@ -123,7 +123,7 @@ public:
 
     void setAlbumNaviBarTheme(QListView* tab) const;
 
-    QIcon connectTypeIcon(DeviceConnectType type) const;
+    QIcon connectTypeIcon(DeviceConnectType type);
 
     Glyphs connectTypeGlyphs(DeviceConnectType type) const;
 

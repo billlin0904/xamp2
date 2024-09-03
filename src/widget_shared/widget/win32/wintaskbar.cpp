@@ -298,12 +298,6 @@ namespace {
 
 
 WinTaskbar::WinTaskbar(XMainWindow* window) {
-	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY);
-	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE);
-	stop_play_icon = qTheme.fontIcon(Glyphs::ICON_STOP_PLAY);
-	seek_forward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD);
-	seek_backward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD);
-
 	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
@@ -322,10 +316,20 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 	if (MSG_TaskbarButtonCreated == WM_NULL) {
 		MSG_TaskbarButtonCreated = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 	}
+
+	setTheme();
 	setWindow(window);
 }
 
 WinTaskbar::~WinTaskbar() = default;
+
+void WinTaskbar::setTheme() {
+	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY, ThemeColor::LIGHT_THEME);
+	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE, ThemeColor::LIGHT_THEME);
+	stop_play_icon = qTheme.fontIcon(Glyphs::ICON_STOP_PLAY, ThemeColor::LIGHT_THEME);
+	seek_forward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD, ThemeColor::LIGHT_THEME);
+	seek_backward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD, ThemeColor::LIGHT_THEME);
+}
 
 void WinTaskbar::setWindow(QWidget* window) {
 	window_ = window;
@@ -437,7 +441,10 @@ void WinTaskbar::setIconicThumbnail(const QPixmap& image) {
 	}
 	thumbnail_ = image;
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
-	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
+	auto hr = DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
+	if (FAILED(hr)) {
+		XAMP_LOG_ERROR("DwmInvalidateIconicBitmaps return failure! {}", GetPlatformErrorMessage(hr));
+	}
 }
 
 void WinTaskbar::updateOverlay() {

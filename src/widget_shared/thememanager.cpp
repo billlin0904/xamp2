@@ -303,7 +303,7 @@ QIcon ThemeManager::fontRawIconOption(const Glyphs code, const QVariantMap& opti
     return qFontIcon.getIcon(static_cast<int32_t>(code), options);
 }
 
-QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_color) const {
+QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_color) {
     auto color = theme_color ? *theme_color : themeColor();
 
     switch (code) {
@@ -323,7 +323,7 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
 	    {
         auto temp = font_icon_opts_;
         temp.insert(FontIconOption::kColorAttr, QVariant(color != ThemeColor::DARK_THEME ? QColor(Qt::black) : QColor(Qt::gray)));
-        temp.insert(FontIconOption::kScaleFactorAttr, 1.3);
+        temp.insert(FontIconOption::kScaleFactorAttr,1.2);
         return qFontIcon.getIcon(static_cast<int32_t>(code), temp);
 	    }
     case Glyphs::ICON_MAXIMUM_WINDOW:
@@ -336,6 +336,7 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
 	    {
 			auto temp = font_icon_opts_;
             temp.insert(FontIconOption::kColorAttr, QVariant(QColor(255, 164, 6)));
+            temp.insert(FontIconOption::kScaleFactorAttr, 0.8);
             return qFontIcon.getIcon(static_cast<int32_t>(code), temp);
 	    }
     case Glyphs::ICON_MESSAGE_BOX_ERROR:
@@ -436,7 +437,7 @@ const QPixmap& ThemeManager::defaultSizeUnknownCover() noexcept {
     return default_size_unknown_cover_;
 }
 
-void ThemeManager::updateMaximumIcon(QToolButton *maxWinButton, bool is_maximum) const {
+void ThemeManager::updateMaximumIcon(QToolButton *maxWinButton, bool is_maximum) {
     if (is_maximum) {
         maxWinButton->setIcon(fontIcon(Glyphs::ICON_RESTORE_WINDOW));        
     } else {
@@ -555,7 +556,7 @@ int32_t ThemeManager::titleBarIconHeight() {
     return 8;
 }
 
-void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
+void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) {
     const QColor hover_color = hoverColor();
     const QColor color_hover_color(qTEXT("#dc3545"));
 
@@ -761,7 +762,7 @@ Glyphs ThemeManager::connectTypeGlyphs(DeviceConnectType type) const {
     return Glyphs::ICON_BUILD_IN_SPEAKER;
 }
 
-QIcon ThemeManager::connectTypeIcon(DeviceConnectType type) const {
+QIcon ThemeManager::connectTypeIcon(DeviceConnectType type) {
     switch (type) {
     case DeviceConnectType::UNKNOWN:
     case DeviceConnectType::BUILT_IN_SPEAKER:

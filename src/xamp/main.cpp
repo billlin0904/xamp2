@@ -19,10 +19,6 @@
 #include <widget/xmainwindow.h>
 #include <widget/jsonsettings.h>
 
-#include <FramelessHelper/Widgets/framelessmainwindow.h>
-#include <FramelessHelper/Core/private/framelessconfig_p.h>
-#include <FramelessHelper/Core/framelesshelpercore_global.h>
-
 #include <QPermissions>
 #include <QSslSocket>
 
@@ -131,23 +127,6 @@ namespace {
 #endif
 
     int execute(int argc, char* argv[], QStringList &args) {
-#ifdef Q_OS_WIN32
-        struct FramelessHelperScoped {
-            FramelessHelperScoped() {
-                FramelessHelper::Widgets::initialize();
-                FramelessHelper::Core::initialize();
-                FramelessConfig::instance()->set(Global::Option::DisableWindowsSnapLayout);
-                //FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
-                //FramelessConfig::instance()->set(Global::Option::DisableLazyInitializationForMicaMaterial);
-                //FramelessHelper::Core::setApplicationOSThemeAware();
-            }
-
-            ~FramelessHelperScoped() {
-                FramelessHelper::Widgets::uninitialize();
-                FramelessHelper::Core::uninitialize();
-            }
-        };
-
         const auto components_path = GetComponentsFilePath();
         if (!AddSharedLibrarySearchDirectory(components_path)) {
             XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
@@ -156,10 +135,6 @@ namespace {
 
         auto prefetch_dll = prefetchDll();
         XAMP_LOG_DEBUG("Prefetch dll success.");
-        FramelessHelperScoped scoped;
-#else
-
-#endif
 
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 

@@ -10,13 +10,7 @@
 
 #include <thememanager.h>
 
-#ifdef Q_OS_WIN
-using XDialogBase = FramelessDialog;
-#else
-using XDialogBase = QDialog;
-#endif
-
-class XAMP_WIDGET_SHARED_EXPORT XDialog : public XDialogBase {
+class XAMP_WIDGET_SHARED_EXPORT XDialog : public QDialog {
     Q_OBJECT
 public:
     static constexpr auto kMaxTitleHeight = 30;
