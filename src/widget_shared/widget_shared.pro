@@ -110,8 +110,11 @@ SOURCES += \
 ./widget/youtubedl/ytmusicoauth.cpp \
 ./widget/seekslider.cpp \
 ./widget/m3uparser.cpp \
+./widgetframe/windowbar.cpp \
+./widgetframe/windowbutton.cpp \
 ./version.cpp \
-./thememanager.cpp
+./thememanager.cpp \
+xampplayer.cpp
 
 HEADERS += \
 ./version.h \
@@ -209,6 +212,8 @@ HEADERS += \
 ./widget/fonticon.h \
 ./widget/appsettingnames.h \
 ./widget/m3uparser.h \
+./widgetframe/windowbar.h \
+./widgetframe/windowbutton.h \
 ./xampplayer.h \
 ./thememanager.h
 
@@ -225,9 +230,7 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/rapidxml/ \
     ../thirdparty/zlib/ \
     ../thirdparty/pybind11/include \
-    ../thirdparty/whispercpp/ \
-    ../thirdparty/libfvad/include/ \
-    ../thirdparty/framelesshelper/include \
+    ../thirdparty/qwindowkit/build/Qt_6_7_2_for_macOS-Debug/include/ \
     /opt/anaconda3/include/python3.12/ \
 
 CONFIG(debug, debug|release) {
@@ -238,9 +241,8 @@ LIBS += -L$$PWD/../xamp_base/debug/ -lxamp_base \
     -L$$PWD/../xamp_output_device/debug/ -lxamp_output_device \
     -L$$PWD/../xamp_stream/debug/ -lxamp_stream \
     -L$$PWD/../xamp_player/debug/ -lxamp_player \
-    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
-    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
-    -L$$PWD/../thirdparty/libfvad/build/Qt_6_7_2_for_macOS-Debug/src/ -lfvad \
+    -L$$PWD/../thirdparty/qwindowkit/build/Qt_6_7_2_for_macOS-Debug/out-x86_64-Debug/lib/ -lQWKCore \
+    -L$$PWD/../thirdparty/qwindowkit/build/Qt_6_7_2_for_macOS-Debug/out-x86_64-Debug/lib/ -lQWKWidgets \
     -L/opt/anaconda3/lib/ -lpython3.12 \
 } else {
 

@@ -7,13 +7,8 @@
 
 #include <QDialog>
 #include <QToolButton>
-#include <FramelessHelper/Widgets/framelessdialog.h>
-#include <FramelessHelper/Widgets/standardtitlebar.h>
 
 #include <thememanager.h>
-
-FRAMELESSHELPER_USE_NAMESPACE
-using namespace wangwenx190::FramelessHelper::Global;
 
 #ifdef Q_OS_WIN
 using XDialogBase = FramelessDialog;
@@ -55,8 +50,6 @@ private:
     QToolButton* max_win_button_{ nullptr };
     QToolButton* min_win_button_{ nullptr };
     QFrame* title_frame_{ nullptr };
-#else
-    StandardTitleBar* title_bar_;
 #endif
     QWidget* content_{ nullptr };
 };

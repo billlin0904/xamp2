@@ -606,10 +606,10 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
 void ThemeManager::setFrameBackgroundColor(QFrame* frame) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        frame->setStyleSheet(qTEXT("QFrame#%1 { background-color: #1c1c1e; }").arg(frame->objectName()));
+        frame->setStyleSheet(qFormat("QFrame#%1 { background-color: #1c1c1e; }").arg(frame->objectName()));
         break;
     case ThemeColor::LIGHT_THEME:
-        frame->setStyleSheet(qTEXT("QFrame#%1 { background-color: #CED1D4; }").arg(frame->objectName()));
+        frame->setStyleSheet(qFormat("QFrame#%1 { background-color: #CED1D4; }").arg(frame->objectName()));
         break;
     }
 }

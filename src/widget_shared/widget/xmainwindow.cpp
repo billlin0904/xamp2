@@ -2,7 +2,6 @@
 
 #include <thememanager.h>
 
-#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 #include <base/logger_impl.h>
 
 #include <widget/util/ui_util.h>
@@ -234,6 +233,11 @@ void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
         return;
     }
     emit qTheme.themeChangedFinished(theme_color);
+}
+
+void XMainWindow::setTheme() {
+    const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+    qTheme.setThemeColor(theme);
 }
 
 void XMainWindow::setTaskbarProgress(const int32_t percent) {

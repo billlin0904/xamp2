@@ -20,7 +20,6 @@
 #include <base/dsd_utils.h>
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
-#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
 
 #include <output_device/api.h>
 #include <output_device/iaudiodevicemanager.h>
@@ -1117,6 +1116,7 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
     desc_label->setAlignment(Qt::AlignCenter);
 
     auto* device_type_frame = new QFrame();
+    device_type_frame->setObjectName(qTEXT("deviceTypeFrame"));
     qTheme.setFrameBackgroundColor(device_type_frame);
 
     auto* default_layout = new QHBoxLayout(device_type_frame);    

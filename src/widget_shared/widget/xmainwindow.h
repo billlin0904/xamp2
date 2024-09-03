@@ -14,8 +14,6 @@
 class WinTaskbar;
 #endif
 
-#include <FramelessHelper/Widgets/standardtitlebar.h>
-
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
 public:
     static constexpr auto kMaxTitleHeight = 30;
@@ -61,6 +59,8 @@ public:
     void showWindow() override;
 
     IXFrame* contentWidget() const override;
+
+    void setTheme() override;
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -97,8 +97,6 @@ private:
     QToolButton* max_win_button_{ nullptr };
     QToolButton* min_win_button_{ nullptr };
     QFrame* title_frame_{ nullptr };
-#else
-    StandardTitleBar* title_bar_;
 #endif
     QScopedPointer<QSystemTrayIcon> tray_icon_;
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;

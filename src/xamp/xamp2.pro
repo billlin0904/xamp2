@@ -71,7 +71,6 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../thirdparty/rapidxml/ \
     ../thirdparty/zlib/ \
     ../thirdparty/pybind11/include \
-    ../thirdparty/framelesshelper/include/ \
     ../thirdparty/QSimpleUpdater/include/ \
     /opt/anaconda3/include/python3.12/ \
 
@@ -91,8 +90,8 @@ LIBS += \
     -L$$PWD/../xamp_player/debug/ -lxamp_player \
     -L$$PWD/../widget_shared/build/Qt_6_7_2_for_macOS-Debug/ -lwidget_shared \
     -L$$PWD/../thirdparty/QSimpleUpdater/build/Qt_6_7_2_for_macOS-Debug/ -lQSimpleUpdater \
-    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperCore64_debug \
-    -L$$PWD/../thirdparty/framelesshelper/build/Qt_6_7_2_for_macOS-Debug/lib/ -lFramelessHelperWidgets64_debug \
+    -L$$PWD/../thirdparty/qwindowkit/build/Qt_6_7_2_for_macOS-Debug/out-x86_64-Debug/lib/ -lQWKCore \
+    -L$$PWD/../thirdparty/qwindowkit/build/Qt_6_7_2_for_macOS-Debug/out-x86_64-Debug/lib/ -lQWKWidgets \
     -L$$PWD/../thirdparty/qcoro/build/Qt_6_7_2_for_macOS-Debug/qcoro/core/ -lQCoro6Core_debug \
     -L/opt/anaconda3/lib/ -lpython3.12 \
 } else {

@@ -66,7 +66,7 @@ bool XTooltip::eventFilter(QObject* obj, QEvent* e) {
 }
 
 void XTooltip::paintEvent(QPaintEvent* event) {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
     QStyleOption opt;
     opt.initFrom(this);
     QPainter p(this);

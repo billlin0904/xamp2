@@ -6,11 +6,6 @@
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 
-#include <FramelessHelper/Core/framelesshelpercore_global.h>
-#include <FramelessHelper/Widgets/framelesswidgetshelper.h>
-#include <FramelessHelper/Widgets/standardsystembutton.h>
-#include <FramelessHelper/Widgets/private/framelesswidgetshelper_p.h>
-
 #include <QLabel>
 #include <QGridLayout>
 #include <QGraphicsDropShadowEffect>

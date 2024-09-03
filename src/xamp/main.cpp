@@ -217,8 +217,7 @@ namespace {
         win.setMainWindow(&main_window);
         main_window.setContentWidget(&win);
         //main_window.setContentWidget(nullptr);
-        const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
-        qTheme.setThemeColor(theme);
+        main_window.setTheme();
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();

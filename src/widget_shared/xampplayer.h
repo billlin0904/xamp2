@@ -10,25 +10,22 @@
 
 #include <thememanager.h>
 #include <widget/driveinfo.h>
-#include <FramelessHelper/Widgets/framelesswidget.h>
-#include <FramelessHelper/Widgets/framelessmainwindow.h>
 
 inline constexpr auto kRestartExistCode = -2;
 
-FRAMELESSHELPER_USE_NAMESPACE
-using namespace wangwenx190::FramelessHelper::Global;
+#include <QtWidgets/QMainWindow>
+
+namespace QWK {
+    class WidgetWindowAgent;
+    class StyleAgent;
+}
+
 
 class IXFrame;
 
-#ifdef Q_OS_WIN
-using IXMainWindowBase = FramelessWidget;
-#else
-using IXMainWindowBase = QWidget;
-#endif
-
-class IXMainWindow : public IXMainWindowBase {
+class IXMainWindow : public QMainWindow {
 public:
-	virtual ~IXMainWindow() override = default;
+    virtual ~IXMainWindow() override = default;
 
     virtual void setShortcut(const QKeySequence& shortcut) = 0;
 
@@ -57,8 +54,14 @@ public:
     virtual IXFrame* contentWidget() const = 0;
 
     virtual void showWindow() = 0;
+
+    virtual void setTheme() = 0;
+
 protected:
-    IXMainWindow() = default;
+    IXMainWindow();
+
+    void installWindowAgent();
+    QWK::WidgetWindowAgent *windowAgent;
 };
 
 class IXFrame : public QFrame {

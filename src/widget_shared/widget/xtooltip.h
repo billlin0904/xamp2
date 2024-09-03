@@ -18,7 +18,6 @@
 #include <widget/widget_shared_global.h>
 #include <widget/xdialog.h>
 #include <widget/util/str_util.h>
-#include <FramelessHelper/Widgets/framelesswidget.h>
 
 class XAMP_WIDGET_SHARED_EXPORT XTooltip : public QWidget {
     Q_OBJECT
