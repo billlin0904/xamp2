@@ -215,7 +215,8 @@ HEADERS += \
 ./widgetframe/windowbar.h \
 ./widgetframe/windowbutton.h \
 ./xampplayer.h \
-./thememanager.h
+./thememanager.h \
+    widget/audio_embedding/audio_embedding.h
 
 # Additionally include Cocoa for OS X code
 

@@ -63,7 +63,11 @@ void AlbumTabListView::addTab(const QString& name, int tab_id) {
     item->setSizeHint(QSize(130, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
+#if Q_OS_WIN
     f.setPointSize(qTheme.fontSize(20));
+#else
+    f.setPointSize(qTheme.fontSize(14));
+#endif
 	f.setBold(true);
 	item->setFont(f);
 	model_.appendRow(item);
@@ -185,7 +189,10 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		album_view_->reload();
 		});
 
+    f.setPointSize(qTheme.fontSize(9));
+
 	album_search_line_edit_ = new QLineEdit();
+    album_search_line_edit_->setFont(f);
 	album_search_line_edit_->setObjectName(QString::fromUtf8("albumSearchLineEdit"));
 	QSizePolicy size_policy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	size_policy3.setHorizontalStretch(0);
@@ -274,6 +281,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_frame_layout->setContentsMargins(0, 0, 0, 0);
 
 	artist_search_line_edit_ = new QLineEdit();
+    artist_search_line_edit_->setFont(f);
 	artist_search_line_edit_->setObjectName(QString::fromUtf8("artistSearchLineEdit"));
 	QSizePolicy size_policy4(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	size_policy3.setHorizontalStretch(0);

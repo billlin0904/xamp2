@@ -127,6 +127,7 @@ namespace {
 #endif
 
     int execute(int argc, char* argv[], QStringList &args) {
+#ifdef Q_OS_WIN
         const auto components_path = GetComponentsFilePath();
         if (!AddSharedLibrarySearchDirectory(components_path)) {
             XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
@@ -135,7 +136,7 @@ namespace {
 
         auto prefetch_dll = prefetchDll();
         XAMP_LOG_DEBUG("Prefetch dll success.");
-
+#endif
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
         QApplication::setApplicationName(kApplicationName);

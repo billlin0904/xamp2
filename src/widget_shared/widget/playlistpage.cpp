@@ -108,6 +108,7 @@ void PlaylistPage::initial() {
 		}
 		});
 
+    f.setPointSize(qTheme.fontSize(9));
 	search_line_edit_ = new QLineEdit();
 	search_line_edit_->setObjectName(QString::fromUtf8("playlistSearchLineEdit"));
 	QSizePolicy size_policy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -118,6 +119,7 @@ void PlaylistPage::initial() {
 	search_line_edit_->setMinimumSize(QSize(250, 30));
 	search_line_edit_->setFocusPolicy(Qt::ClickFocus);
 	search_line_edit_->setClearButtonEnabled(true);
+    search_line_edit_->setFont(f);
 	search_line_action_ = search_line_edit_->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
 	search_line_edit_->setPlaceholderText(tr("Search Album/Artist/Title"));
 

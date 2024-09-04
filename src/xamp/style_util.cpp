@@ -242,13 +242,6 @@ void setWidgetStyle(Ui::XampWindow& ui) {
     ui.startPosLabel->setFont(duration_font);
     ui.endPosLabel->setFont(duration_font);
 
-    /*ui.titleFrameLabel->setStyleSheet(qFormat(R"(
-    QLabel#titleFrameLabel {
-    border: none;
-    background: transparent;
-    }
-    )"));*/
-
     if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
         ui.titleLabel->setStyleSheet(qTEXT(R"(
                                          QLabel#titleLabel {
@@ -257,14 +250,23 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-        ui.currentView->setStyleSheet(qFormat(R"(
-			QStackedWidget#currentView {
-				padding: 0px;
-				background-color: #121212;				
-				border-top-left-radius: 0px;
-                border: none;
-            }			
-            )"));
+        //      ui.currentView->setStyleSheet(qFormat(R"(
+        // QStackedWidget#currentView {
+        // 	padding: 0px;
+        // 	background-color: #121212;
+        // 	border-top-left-radius: 0px;
+        //              border: none;
+        //          }
+        //          )"));
+
+             ui.currentView->setStyleSheet(qFormat(R"(
+            QStackedWidget#currentView {
+                     padding: 0px;
+                     background: transparent;
+                     border-top-left-radius: 0px;
+                     border: none;
+                 }
+                 )"));
 
         ui.bottomFrame->setStyleSheet(
             qTEXT(R"(
@@ -285,14 +287,14 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-        ui.currentView->setStyleSheet(qTEXT(R"(
-			QStackedWidget#currentView {
-                padding: 0px;
-				background-color: #f9f9f9;
-				border-top-left-radius: 0px;	
-                border: none;		
-            }			
-            )"));
+   //      ui.currentView->setStyleSheet(qTEXT(R"(
+            // QStackedWidget#currentView {
+   //              padding: 0px;
+            // 	background-color: #f9f9f9;
+            // 	border-top-left-radius: 0px;
+   //              border: none;
+   //          }
+   //          )"));
 
         ui.bottomFrame->setStyleSheet(
             qTEXT(R"(
@@ -320,7 +322,9 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 
     setThemeIcon(ui);
     ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));	
+    ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
+
+    //ui.currentView->hide();
 }
 
 void updateButtonState(QToolButton* playButton, PlayerState state) {

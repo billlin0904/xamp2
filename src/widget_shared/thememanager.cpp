@@ -293,6 +293,9 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
     menu->setStyle(new IconSizeStyle(14));
+    auto f = defaultFont();
+    f.setPointSize(10);
+    menu->setFont(f);
 }
 
 QIcon ThemeManager::fontRawIcon(const Glyphs code) {

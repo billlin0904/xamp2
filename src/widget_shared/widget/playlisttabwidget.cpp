@@ -310,10 +310,10 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool 
 
     const auto index = addTab(widget, name);
     ++tab_count_;
-	tab_bar_->setTabCount(tab_count_);
+    tab_bar_->setTabCount(tab_count_);
     setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
-    if (resize) {        
+    if (resize) {
         resizeTabWidth();
     }
 }
@@ -346,7 +346,7 @@ void PlaylistTabWidget::saveTabOrder() const {
 
 void PlaylistTabWidget::restoreTabOrder() {
     dao::PlaylistDao playlist_dao;
-	const auto playlist_index = playlist_dao.getPlaylistIndex(store_type_);
+    const auto playlist_index = playlist_dao.getPlaylistIndex(store_type_);
 
     QList<QString> texts;
     QList<int> new_order;
@@ -384,9 +384,9 @@ void PlaylistTabWidget::restoreTabOrder() {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     }
 
-    for (int i = 0; i < tabBar()->count(); ++i) {
-        XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", tabText(i).toStdString(), i);
-    }
+    // for (int i = 0; i < tabBar()->count(); ++i) {
+    //     XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", tabText(i).toStdString(), i);
+    // }
 }
 
 void PlaylistTabWidget::resetAllTabIcon() {

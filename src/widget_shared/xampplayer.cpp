@@ -98,7 +98,7 @@ void IXMainWindow::installWindowAgent() {
     //window_agent_->setHitTestVisible(menuBar, true);
 
 #ifdef Q_OS_MAC
-    windowAgent->setSystemButtonAreaCallback([](const QSize& size) {
+    window_agent_->setSystemButtonAreaCallback([](const QSize& size) {
         static constexpr const int width = 75;
         return QRect(QPoint(size.width() - width, 0), QSize(width, size.height())); //
         });
@@ -124,4 +124,6 @@ void IXMainWindow::installWindowAgent() {
         });
     QObject::connect(window_bar, &QWK::WindowBar::closeRequested, this, &QWidget::close);
 #endif
+
+    window_agent_->setWindowAttribute(qTEXT("blur-effect"), qTEXT("dark"));
 }

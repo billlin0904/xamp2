@@ -86,8 +86,6 @@ public:
 	QString translateText(const std::string_view& text) override;
 
 signals:
-    void readMFCC(const Path& file_path);
-
 	void payNextMusic();
 
     void themeColorChanged(QColor background_color, QColor color);

@@ -478,11 +478,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onTranslationCompleted);
 
-    (void)QObject::connect(this,
-                            &Xamp::readMFCC,
-                            background_service_.get(),
-                            &BackgroundService::onReadMFCC);
-
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAlbumCover,
         this, 
@@ -1110,7 +1105,7 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
     desc_label->setObjectName(qTEXT("textSeparator"));
 
     QFont f = font();
-    f.setPointSize(qTheme.fontSize(10));
+    f.setPointSize(qTheme.fontSize(9));
     f.setBold(true);
     desc_label->setFont(f);
     desc_label->setAlignment(Qt::AlignCenter);
@@ -1136,6 +1131,10 @@ QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc, const QIcon &ic
 
 void Xamp::initialDeviceList(const std::string& device_id) {
     XAMP_LOG_DEBUG("Initial device list");
+
+    auto f = qTheme.defaultFont();
+    f.setPointSize(10);
+    ui_.deviceDescLabel->setFont(f);
 
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
