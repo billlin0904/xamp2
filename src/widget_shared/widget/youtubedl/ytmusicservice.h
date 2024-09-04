@@ -357,8 +357,6 @@ struct Lyrics {
 	std::optional<std::string> lyrics;
 };
 
-class YtMusicInterop;
-
 class YtMusicInterop {
 public:
 	explicit YtMusicInterop(const std::optional<std::string>& auth = "oauth.json",

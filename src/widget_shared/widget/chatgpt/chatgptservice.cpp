@@ -9,8 +9,10 @@
 
 namespace py = pybind11;
 
-void dumpObject(LoggerPtr logger, const py::object& obj) {
-    XAMP_LOG_D(logger, "{}", py::str(obj).cast<std::string>());
+namespace {
+    void dumpObject(LoggerPtr logger, const py::object& obj) {
+        XAMP_LOG_D(logger, "{}", py::str(obj).cast<std::string>());
+    }
 }
 
 XAMP_DECLARE_LOG_NAME(ChatGptService);

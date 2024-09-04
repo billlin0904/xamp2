@@ -179,7 +179,9 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="applink.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="uplink.c" />
     <ClCompile Include="xapplication.cpp" />
     <ClCompile Include="style_util.cpp" />
     <ClCompile Include="xamp.cpp" />
@@ -197,6 +199,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="uplink.h" />
     <ClInclude Include="xapplication.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="style_util.h" />

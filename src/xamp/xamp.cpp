@@ -79,7 +79,7 @@
 #include <widget/youtubedl/ytmusicservice.h>
 #include <widget/youtubedl/ytmusicoauth.h>
 #include <widget/youtubedl/ytmusic_disckcache.h>
-
+#include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/m3uparser.h>
 
 namespace {
@@ -285,6 +285,21 @@ void Xamp::destroy() {
     XAMP_LOG_DEBUG("Xamp destroy!");
 }
 
+void Xamp::initialAudioEmbeddingService() {
+    if (audio_embedding_service_) {
+        return;
+    }
+
+    audio_embedding_service_.reset(new AudioEmbeddingService());
+    audio_embedding_service_->moveToThread(&audio_embedding_service_thread_);
+    audio_embedding_service_thread_.start();
+    XAMP_LOG_DEBUG("Initial audio embedding service...");
+
+    QCoro::connect(audio_embedding_service_->initialAsync(), this, []() {
+        XAMP_LOG_DEBUG("Initial audio embedding service done.");
+        });
+}
+
 void Xamp::initialYtMusicService() {
     if (ytmusic_service_) {
         return;
@@ -400,6 +415,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     }
     if (ytmusic_service_ != nullptr) {
         (void)QObject::connect(this, &Xamp::cancelRequested, ytmusic_service_.get(), &YtMusicService::cancelRequested);
+    }
+    if (audio_embedding_service_ != nullptr) {
+        (void)QObject::connect(this, &Xamp::cancelRequested, audio_embedding_service_.get(), &AudioEmbeddingService::cancelRequested);
     }
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
@@ -1403,6 +1421,7 @@ void Xamp::showNaviBarButton() {
 void Xamp::setCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
+        initialAudioEmbeddingService();
         music_library_page_->reload();
         //ui_.currentView->setCurrentWidget(album_page_.get());        
         break;
@@ -1837,44 +1856,10 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-#if 0
-    setupSampleRateConverter(sample_rate_converter_factory,
-        target_sample_rate,
-        sample_rate_converter_type);
+    QCoro::connect(audio_embedding_service_->embedAndSave(entity.file_path.toStdString()),
+        this, []() {
+        });
 
-    if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
-        AudioFormat default_format;
-        if (device_info_.value().default_format) {
-            default_format = device_info_.value().default_format.value();
-        }
-        else {
-            default_format = AudioFormat::k16BitPCM441Khz;
-        }
-
-        auto sample_rate = entity.isFilePath() ? entity.sample_rate : AudioFormat::k16BitPCM48Khz.GetSampleRate();
-
-        if (sample_rate != default_format.GetSampleRate()) {
-            if (device_info_.value().connect_type == DeviceConnectType::BLUE_TOOTH) {
-                const auto message =
-                    tr("Playing blue-tooth device need set %1 to %2.")
-                    .arg(formatSampleRate(sample_rate))
-                    .arg(formatSampleRate(default_format.GetSampleRate()));
-                showMeMessage(message);
-            } else {
-                const auto message =
-                    tr("Playing Shared WASAPI device need set %1 to %2.")
-                    .arg(formatSampleRate(sample_rate))
-                    .arg(formatSampleRate(default_format.GetSampleRate()));
-                showMeMessage(message);
-            }
-            player_->GetDspManager()->RemoveSampleRateConverter();
-            sample_rate_converter_type = kSoxr;
-            target_sample_rate = default_format.GetSampleRate();
-            player_->GetDspManager()->AddPreDSP(makeSampleRateConverter(target_sample_rate));
-        }
-        byte_format = ByteFormat::SINT16;
-    }
-#else
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
         if (device_info_.value().default_format) {
@@ -1900,7 +1885,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     setupSampleRateConverter(sample_rate_converter_factory,
                              target_sample_rate,
                              sample_rate_converter_type);
-#endif
     
     const auto open_dsd_mode = getDsdModes(device_info_.value(),
         entity.file_path.toStdWString(),

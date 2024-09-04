@@ -5,12 +5,10 @@
 
 #pragma once
 
-#include <QtConcurrent/QtConcurrent>
 #include <QObject>
 #include <QFuture>
 
 #include <string>
-#include <vector>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 

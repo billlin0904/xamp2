@@ -63,7 +63,7 @@ void AlbumTabListView::addTab(const QString& name, int tab_id) {
     item->setSizeHint(QSize(130, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
-#if Q_OS_WIN
+#ifdef Q_OS_WIN
     f.setPointSize(qTheme.fontSize(20));
 #else
     f.setPointSize(qTheme.fontSize(14));

@@ -11,7 +11,7 @@ namespace py = pybind11;
 
 void initialInterop() {
     static py::scoped_interpreter guard{};
-    static py::gil_scoped_release release;
+	static py::gil_scoped_release release;
 }
 
 void finalizeInterop() {
