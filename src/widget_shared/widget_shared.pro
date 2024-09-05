@@ -112,6 +112,7 @@ SOURCES += \
 ./widget/m3uparser.cpp \
 ./widgetframe/windowbar.cpp \
 ./widgetframe/windowbutton.cpp \
+./widget/audio_embedding/audio_embedding_service.cpp \
 ./version.cpp \
 ./thememanager.cpp \
 xampplayer.cpp
@@ -212,11 +213,11 @@ HEADERS += \
 ./widget/fonticon.h \
 ./widget/appsettingnames.h \
 ./widget/m3uparser.h \
+./widget/audio_embedding/audio_embedding_service.h \
 ./widgetframe/windowbar.h \
 ./widgetframe/windowbutton.h \
 ./xampplayer.h \
-./thememanager.h \
-    widget/audio_embedding/audio_embedding.h
+./thememanager.h
 
 # Additionally include Cocoa for OS X code
 

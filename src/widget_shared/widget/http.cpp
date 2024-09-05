@@ -470,7 +470,7 @@ HttpClient& HttpClient::param(const QString &name, const QVariant &value) {
     return *this;
 }
 
-HttpClient& HttpClient::params(const QMap<QString, QVariant> &ps) {
+HttpClient& HttpClient::params(const QMultiMap<QString, QVariant> &ps) {
     for (auto itr = ps.cbegin(); itr != ps.cend(); ++itr) {
         impl_->params_.addQueryItem(itr.key(), itr.value().toString());
     }

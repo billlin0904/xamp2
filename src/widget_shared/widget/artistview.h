@@ -96,5 +96,6 @@ private:
 	ArtistViewPage* page_;
 	QPropertyAnimation* animation_;
 	QSqlQueryModel model_;
+    ArtistStyledItemDelegate* styled_delegate_;
 	PlayListTableFilterProxyModel* proxy_model_;
 };

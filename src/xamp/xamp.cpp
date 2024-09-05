@@ -291,13 +291,13 @@ void Xamp::initialAudioEmbeddingService() {
     }
 
     audio_embedding_service_.reset(new AudioEmbeddingService());
-    audio_embedding_service_->moveToThread(&audio_embedding_service_thread_);
-    audio_embedding_service_thread_.start();
-    XAMP_LOG_DEBUG("Initial audio embedding service...");
+    // audio_embedding_service_->moveToThread(&audio_embedding_service_thread_);
+    // audio_embedding_service_thread_.start();
+    // XAMP_LOG_DEBUG("Initial audio embedding service...");
 
-    QCoro::connect(audio_embedding_service_->initialAsync(), this, []() {
-        XAMP_LOG_DEBUG("Initial audio embedding service done.");
-        });
+    // QCoro::connect(audio_embedding_service_->initialAsync(), this, []() {
+    //     XAMP_LOG_DEBUG("Initial audio embedding service done.");
+    //     });
 }
 
 void Xamp::initialYtMusicService() {
@@ -416,9 +416,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     if (ytmusic_service_ != nullptr) {
         (void)QObject::connect(this, &Xamp::cancelRequested, ytmusic_service_.get(), &YtMusicService::cancelRequested);
     }
-    if (audio_embedding_service_ != nullptr) {
-        (void)QObject::connect(this, &Xamp::cancelRequested, audio_embedding_service_.get(), &AudioEmbeddingService::cancelRequested);
-    }
+    // if (audio_embedding_service_ != nullptr) {
+    //     (void)QObject::connect(this, &Xamp::cancelRequested, audio_embedding_service_.get(), &AudioEmbeddingService::cancelRequested);
+    // }
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
 
@@ -468,6 +468,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialPlaylist();
     initialShortcut();
     initialSpectrum();
+    initialAudioEmbeddingService();
 
     last_playlist_tab_ = playlist_tab_page_.get();
 
@@ -1421,7 +1422,6 @@ void Xamp::showNaviBarButton() {
 void Xamp::setCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
-        initialAudioEmbeddingService();
         music_library_page_->reload();
         //ui_.currentView->setCurrentWidget(album_page_.get());        
         break;
@@ -1856,9 +1856,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-    QCoro::connect(audio_embedding_service_->embedAndSave(entity.file_path.toStdString()),
-        this, []() {
-        });
+    audio_embedding_service_->embedAndSave(entity.file_path, entity.music_id);
 
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;

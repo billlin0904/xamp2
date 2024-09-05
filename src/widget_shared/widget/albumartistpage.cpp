@@ -281,6 +281,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	artist_frame_layout->setContentsMargins(0, 0, 0, 0);
 
 	artist_search_line_edit_ = new QLineEdit();
+    f.setPointSize(qTheme.fontSize(9));
     artist_search_line_edit_->setFont(f);
 	artist_search_line_edit_->setObjectName(QString::fromUtf8("artistSearchLineEdit"));
 	QSizePolicy size_policy4(QSizePolicy::Fixed, QSizePolicy::Fixed);

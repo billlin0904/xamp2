@@ -1,5 +1,6 @@
 #include <widget/audio_embedding/audio_embedding_service.h>
 
+#if 0
 #undef slots
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
@@ -130,4 +131,35 @@ QFuture<bool> AudioEmbeddingService::cleanupAsync() {
         interop_.reset();
         return true;
         }, InvokeType::INVOKE_IMMEDIATELY);
+}
+
+#endif
+
+#include <widget/util/json_util.h>
+
+AudioEmbeddingService::AudioEmbeddingService(QObject* parent)
+    : QObject(parent) {
+}
+
+AudioEmbeddingService::~AudioEmbeddingService() {
+}
+
+void AudioEmbeddingService::embedAndSave(const QString& path, int32_t audio_id) {
+    QVariantMap content;
+    content[qTEXT("file_path")] = path;
+    content[qTEXT("audio_id")] = qFormat("%1").arg(audio_id);
+    const auto json = json_util::serialize(content);
+    http::HttpClient(qTEXT("http://127.0.0.1:8000/embed_and_save"))
+        .json(json)
+        .post();
+}
+
+void AudioEmbeddingService::queryEmbeddings(const QList<QString> &paths) {
+    QMultiMap<QString, QVariant> params;
+    Q_FOREACH(auto path, paths) {
+        params.insert(qTEXT("paths"), path);
+    }
+    http::HttpClient(qTEXT("http://127.0.0.1:8000/query_embeddings"))
+        .params(params)
+        .get();
 }

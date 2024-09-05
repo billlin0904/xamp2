@@ -250,15 +250,15 @@ ArtistView::ArtistView(QWidget* parent)
 	setAutoScroll(false);
 	viewport()->setAttribute(Qt::WA_StaticContents);
 	setMouseTracking(true);
-	auto* styled_delegate = new ArtistStyledItemDelegate(this);
-	setItemDelegate(styled_delegate);
+    styled_delegate_ = new ArtistStyledItemDelegate(this);
+    setItemDelegate(styled_delegate_);
 	verticalScrollBar()->setStyleSheet(qTEXT(
 		"QScrollBar:vertical { width: 6px; }"
 	));
 	reload();
 	page_->hide();
 
-	(void)QObject::connect(styled_delegate, &ArtistStyledItemDelegate::enterAlbumView, [this](auto index) {
+    (void)QObject::connect(styled_delegate_, &ArtistStyledItemDelegate::enterAlbumView, [this](auto index) {
 		const auto list_view_rect = this->rect();
 		auto artist = indexValue(index,          ARTIST_INDEX_ARTIST).toString();
 		auto artist_id = indexValue(index,       ARTIST_INDEX_ARTIST_ID).toInt();
@@ -330,6 +330,11 @@ void ArtistView::hidePageAnimation() {
 
 void ArtistView::onThemeChangedFinished(ThemeColor theme_color) {
 	page_->onThemeChangedFinished(theme_color);
+    switch (theme_color) {
+    case ThemeColor::DARK_THEME:
+        styled_delegate_->setTextColor(Qt::white);
+        break;
+    }
 }
 
 void ArtistView::filterArtistName(const QSet<QString>& name) {

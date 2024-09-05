@@ -46,7 +46,7 @@ public:
 
     HttpClient& param(const QString &name, const QVariant &value);
 
-    HttpClient& params(const QMap<QString, QVariant> &ps);
+    HttpClient& params(const QMultiMap<QString, QVariant> &ps);
 
     HttpClient& json(const QString &json);
 

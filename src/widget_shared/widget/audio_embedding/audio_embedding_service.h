@@ -8,6 +8,10 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QObject>
 #include <QFuture>
+#include <QScopedPointer>
+#include <widget/util/str_util.h>
+#include <widget/http.h>
+#if 0
 
 #include <base/lazy_storage.h>
 #include <widget/widget_shared.h>
@@ -56,4 +60,33 @@ private:
 	AudioEmbeddingDataBaseInterop* interop();
 
 	LocalStorage<AudioEmbeddingDataBaseInterop> interop_;
+};
+
+#endif
+
+namespace http {
+class HttpClient;
+}
+
+struct XAMP_WIDGET_SHARED_EXPORT EmbeddingQueryResult {
+    QString file_path;
+    QList<float> distances;
+    QString audio_id;
+};
+
+class XAMP_WIDGET_SHARED_EXPORT AudioEmbeddingService : public QObject {
+    Q_OBJECT
+public:
+    explicit AudioEmbeddingService(QObject* parent = nullptr);
+
+    ~AudioEmbeddingService() override;
+
+    void embedAndSave(const QString& path, int32_t audio_id);
+
+    void queryEmbeddings(const QList<QString> &paths);
+
+signals:
+    void queryEmbeddingsReady(const QList<EmbeddingQueryResult> &results);
+
+private:
 };

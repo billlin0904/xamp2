@@ -324,7 +324,7 @@ private:
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
     QScopedPointer<YtMusicService> ytmusic_service_;
-	QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
+    QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
 	QList<QWidget*> widgets_;
@@ -332,7 +332,7 @@ private:
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
 	QThread ytmusic_service_thread_;
-	QThread audio_embedding_service_thread_;
+    //QThread audio_embedding_service_thread_;
 	QTimer ui_update_timer_timer_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

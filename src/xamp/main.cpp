@@ -214,9 +214,11 @@ namespace {
 }
 
 int main() {
-	qputenv("TORCH_USE_RTLD_GLOBAL", "YES");
+#ifdef Q_OS_WIN
+    qputenv("TORCH_USE_RTLD_GLOBAL", "YES");
     qputenv("PYTHONHOME", qTEXT("C:\\Users\\User\\anaconda3\\envs\\audio_embedding_env"));
     qputenv("PYTHONPATH", qTEXT("C:\\Users\\User\\anaconda3\\envs\\audio_embedding_env"));
+#endif
 
     try {
         XampLoggerFactory
