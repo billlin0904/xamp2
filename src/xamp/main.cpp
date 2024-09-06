@@ -214,7 +214,7 @@ namespace {
 }
 
 int main() {
-#ifdef Q_OS_WIN
+#if 0
     qputenv("TORCH_USE_RTLD_GLOBAL", "YES");
     qputenv("PYTHONHOME", qTEXT("C:\\Users\\User\\anaconda3\\envs\\audio_embedding_env"));
     qputenv("PYTHONPATH", qTEXT("C:\\Users\\User\\anaconda3\\envs\\audio_embedding_env"));

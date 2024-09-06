@@ -452,7 +452,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		
 		artist_view_->reload();
 		year_view_->reload();
-		reload();		
+		reload();
+		emit removeAll();
 		});
 
 	onThemeChangedFinished(qTheme.themeColor());

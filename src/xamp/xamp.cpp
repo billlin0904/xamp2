@@ -287,7 +287,7 @@ void Xamp::destroy() {
 
 void Xamp::initialAudioEmbeddingService() {
     if (audio_embedding_service_) {
-        return;
+         return;
     }
 
     audio_embedding_service_.reset(new AudioEmbeddingService());
@@ -306,14 +306,14 @@ void Xamp::initialYtMusicService() {
     }
 	
     ytmusic_service_.reset(new YtMusicService());
-    ytmusic_service_->moveToThread(&ytmusic_service_thread_);
+    /*ytmusic_service_->moveToThread(&ytmusic_service_thread_);
 	ytmusic_service_thread_.start();
 
     XAMP_LOG_DEBUG("Initial ytmusic service...");
 
     QCoro::connect(ytmusic_service_->initialAsync(), this, []() {
         XAMP_LOG_DEBUG("Initial ytmusic service done.");
-        });
+        });*/
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -347,7 +347,7 @@ void Xamp::showAbout() {
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
-    initialInterop();
+    //initialInterop();
 
     main_window_ = main_window;
     order_ = qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder);
@@ -1542,9 +1542,6 @@ void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, cons
     music_dao_.addOrUpdateLyrics(music_id, lyrics, trlyrics);
 }
 
-void Xamp::setFullScreen() {
-}
-
 void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
     XAMP_LOG_DEBUG("shortcutsPressed: {}", shortcut.toString().toStdString());
 
@@ -1576,7 +1573,7 @@ void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
         {
             QKeySequence(Qt::Key_F11),
             [this]() {
-                setFullScreen();
+                
             },
         }
     };
@@ -1856,7 +1853,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-    audio_embedding_service_->embedAndSave(entity.file_path, entity.music_id);
+    audio_embedding_service_->queryEmbeddings(QList<QString> { entity.file_path });
 
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
@@ -2461,6 +2458,12 @@ void Xamp::initialPlaylist() {
         &AlbumView::removeAll,        
         [this]() {
             yt_music_tab_page_->closeAllTab();
+        });
+
+    (void)QObject::connect(music_library_page_.get(),
+        &AlbumArtistPage::removeAll,
+        [this]() {
+            audio_embedding_service_->flush();
         });
 
     (void)QObject::connect(this,

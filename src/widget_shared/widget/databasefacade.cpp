@@ -20,6 +20,8 @@
 #include <widget/playlisttableview.h>
 #include <widget/imagecache.h>
 
+#include "audio_embedding/audio_embedding_service.h"
+
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
@@ -87,6 +89,8 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     ensureAddUnknownId();
 }
 
+DatabaseFacade::~DatabaseFacade() = default;
+
 void DatabaseFacade::initialUnknownTranslateString() {
     unknown_         = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown"));
     unknown_artist_  = tr(QT_TRANSLATE_NOOP("DatabaseFacade", "Unknown artist"));
@@ -146,6 +150,8 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
         const auto music_id = music_dao.addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
+
+        audio_embedding_service_->embedAndSave(file_path, music_id);
 
         auto artist_id = artist_dao.addOrUpdateArtist(artist);
         XAMP_EXPECTS(artist_id != 0);

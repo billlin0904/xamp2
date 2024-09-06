@@ -14,6 +14,8 @@
 #include <widget/database.h>
 #include <widget/filesystemwatcher.h>
 
+class AudioEmbeddingService;
+
 class XAMP_WIDGET_SHARED_EXPORT FileSystemService final : public QObject {
     Q_OBJECT
 public:

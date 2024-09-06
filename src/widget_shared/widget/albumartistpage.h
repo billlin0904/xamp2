@@ -75,6 +75,7 @@ public:
 	}
 
 signals:
+	void removeAll();
 
 public slots:
 	void reload();

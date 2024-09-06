@@ -81,8 +81,6 @@ public:
 
 	void shortcutsPressed(const QKeySequence& shortcut) override;
 
-	void setFullScreen();
-
 	void initialDeviceList(const std::string& device_id = "");
 
 	QString translateText(const std::string_view& text) override;

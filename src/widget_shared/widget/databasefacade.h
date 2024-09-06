@@ -11,12 +11,16 @@
 #include <widget/widget_shared_global.h>
 #include <widget/database.h>
 
+class AudioEmbeddingService;
+
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 	Q_OBJECT
 public:
     static constexpr size_t kReserveSize = 1024;
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
+
+    ~DatabaseFacade();
 
     void initialUnknownTranslateString();
 
@@ -61,6 +65,7 @@ private:
     QString unknown_;
     LoggerPtr logger_;
     Database* database_;
+    QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
 };
 
 #define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()

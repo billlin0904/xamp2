@@ -8,6 +8,7 @@
 #include <metadata/cueloader.h>
 
 #include <widget/albumview.h>
+#include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/util/ui_util.h>
 
 XAMP_DECLARE_LOG_NAME(FileSystemService);

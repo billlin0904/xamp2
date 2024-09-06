@@ -60,3 +60,5 @@ ui_*.h
 /src/widget_shared/widget_shared.vcxproj.filters
 /src/widget_shared/widget_shared.vcxproj.user
 /src/widget_shared/x64
+/src/xamp/Resource.aps
+/src/xamp/oauth.json
