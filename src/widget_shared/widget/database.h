@@ -108,6 +108,12 @@ inline bool isCloudStore(const StoreType store_type) {
 		|| store_type == StoreType::CLOUD_SEARCH_STORE;
 }
 
+inline bool notAddablePlaylist(const int32_t playlist_id) {
+	return playlist_id == kAlbumPlaylistId
+		|| playlist_id == kCdPlaylistId
+		|| playlist_id == kSimilarSongPlaylistId;
+}
+
 class XAMP_WIDGET_SHARED_EXPORT Database final {
 public:
 	explicit Database(const QString& name);

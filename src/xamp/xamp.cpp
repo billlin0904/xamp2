@@ -2244,7 +2244,7 @@ void Xamp::initialPlaylist() {
         auto store_type,
         const auto& cloud_playlist_id,
         const auto& name) {
-        if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId || playlist_id == kSimilarSongPlaylistId) {
+        if (notAddablePlaylist(playlist_id)) {
             return;
         }
         if (store_type == StoreType::LOCAL_STORE || store_type == StoreType::PLAYLIST_LOCAL_STORE) {

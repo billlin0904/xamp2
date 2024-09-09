@@ -309,7 +309,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
                 return;
             }
-            if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
+            if (notAddablePlaylist(playlist_id)) {
                 return;
             }
             sub_menu->addAction(name, [playlist_id, this]() {
@@ -471,7 +471,7 @@ void AlbumView::showMenu(const QPoint &pt) {
         if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
             return;
         }
-        if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
+        if (notAddablePlaylist(playlist_id)) {
             return;
         }
         sub_menu->addAction(name, [playlist_id, album_id, this]() {
