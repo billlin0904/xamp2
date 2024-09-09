@@ -13,6 +13,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/themecolor.h>
 
+class SimilarSongViewPage;
 class AlbumView;
 class ArtistView;
 class GenreView;
@@ -74,6 +75,10 @@ public:
 		return year_view_;
 	}
 
+	SimilarSongViewPage* similarSong() const {
+		return similar_song_frame_;
+	}
+
 signals:
 	void removeAll();
 
@@ -92,6 +97,7 @@ private:
 	QFrame* album_frame_{ nullptr };
 	QFrame* artist_frame_{ nullptr };
 	QFrame* year_frame_{ nullptr };
+	SimilarSongViewPage* similar_song_frame_{ nullptr };
 	QLineEdit* album_search_line_edit_{ nullptr };
 	QAction* album_search_action_{ nullptr };
 	QLineEdit* artist_search_line_edit_{ nullptr };

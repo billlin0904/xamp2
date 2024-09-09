@@ -40,14 +40,7 @@ namespace {
     Vector<SharedLibraryHandle> prefetchDll() {
         Vector<SharedLibraryHandle> preload_module;
 #ifdef Q_OS_WIN
-        // 某些DLL無法在ProcessMitigation 再次載入但是這些DLL都是必須要的.               
         const Vector<std::string_view> dll_file_names{
-            //R"(WS2_32.dll)",
-            //R"(Python3.dll)",
-            //R"(mimalloc-override.dll)",
-            //R"(C:\Program Files\Topping\USB Audio Device Driver\x64\ToppingUsbAudioasio_x64.dll)",
-            //R"(C:\Program Files\iFi\USB_HD_Audio_Driver\iFiHDUSBAudioasio_x64.dll)",
-            //R"(C:\Program Files\FiiO\FiiO_Driver\W10_x64\fiio_usbaudioasio_x64.dll)",
             R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
         };
         for (const auto& file_name : dll_file_names) {
@@ -127,6 +120,8 @@ namespace {
 #endif
 
     int execute(int argc, char* argv[], QStringList &args) {
+        XampCrashHandler.SetThreadExceptionHandlers();
+
 #ifdef Q_OS_WIN
         const auto components_path = GetComponentsFilePath();
         if (!AddSharedLibrarySearchDirectory(components_path)) {
@@ -197,6 +192,7 @@ namespace {
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();
+
 #ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
@@ -209,17 +205,12 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
 #endif
+
         return app.exec();
     }
 }
 
 int main() {
-#if 0
-    qputenv("TORCH_USE_RTLD_GLOBAL", "YES");
-    qputenv("PYTHONHOME", qTEXT("C:\\Users\\User\\anaconda3\\envs\\audio_embedding_env"));
-    qputenv("PYTHONPATH", qTEXT("C:\\Users\\User\\anaconda3\\envs\\audio_embedding_env"));
-#endif
-
     try {
         XampLoggerFactory
             .AddDebugOutput()
@@ -229,29 +220,19 @@ int main() {
             .AddLogFile("xamp.log")
             .Startup();
     }
-	catch (const std::exception& e) {
-		return -1;
-	}
-
-    XampCrashHandler.SetProcessExceptionHandlers();
-    XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
-
-    XampCrashHandler.SetThreadExceptionHandlers();
-    XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
-
-    bool init_done = false;
-
-    XAMP_ON_SCOPE_EXIT(
-        if (init_done) {
-            qJsonSettings.save();
-            qAppSettings.save();
-            qAppSettings.saveLogConfig();
-            qGuiDb.close();
-        }
-        XampLoggerFactory.Shutdown();
-    );
+    catch (const std::exception& e) {
+        return -1;
+    }
 
     qputenv("QT_ICC_PROFILE", QByteArray());
+    //qputenv("PYTHONHOME", QByteArray("C:\\Users\\User\\anaconda3\\envs\\ytservice\\"));
+    //qputenv("PYTHONPATH", QByteArray("C:\\Users\\User\\anaconda3\\envs\\ytservice\\Lib\\site-packages"));
+    //PythonInterop python_initor;
+
+    std::atexit([]() {
+        XampLoggerFactory.Shutdown();
+        });
+
     QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
 
     static char app_name[] = "xamp2";
@@ -262,12 +243,15 @@ int main() {
     auto exist_code = 0;
     try {
         exist_code = execute(argc, argv, args);
-        init_done = exist_code != -1;
     }
     catch (const Exception& e) {
         exist_code = -1;
         XAMP_LOG_ERROR("message:{} {}", e.what(), e.GetStackTrace());
     }
+	catch (const std::exception& e) {
+		exist_code = -1;
+		XAMP_LOG_ERROR("message:{} {}", e.what(), StackTrace{}.CaptureStack());
+	}
 
     if (exist_code == kRestartExistCode) {
         QProcess::startDetached(qFormat(argv[0]), args);

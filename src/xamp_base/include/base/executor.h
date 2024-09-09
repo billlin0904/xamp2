@@ -45,7 +45,7 @@ decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args, Execu
 */
 template <typename C, typename Func>
 void ParallelFor(C& items, Func&& f, size_t batches = kBatchSize) {
-    auto executor = MakeThreadPoolExecutor(kDefaultThreadPoollExecutorLoggerName);
+    auto executor = ThreadPoolBuilder::MakeThreadPool(kDefaultThreadPoollExecutorLoggerName);
     ParallelFor(*executor, items, f, batches);
 }
 

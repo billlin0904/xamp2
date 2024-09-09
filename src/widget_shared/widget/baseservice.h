@@ -53,6 +53,12 @@ protected:
 	LoggerPtr logger_;
 };
 
-XAMP_WIDGET_SHARED_EXPORT void initialInterop();
+class XAMP_WIDGET_SHARED_EXPORT PythonInterop {
+public:
+	PythonInterop();
 
-XAMP_WIDGET_SHARED_EXPORT void finalizeInterop();
+	XAMP_PIMPL(PythonInterop)
+private:
+	class PythonInteropImpl;
+	AlignPtr<PythonInteropImpl> impl_;
+};

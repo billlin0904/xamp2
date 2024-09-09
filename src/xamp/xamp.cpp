@@ -7,8 +7,6 @@
 #include <QSimpleUpdater.h>
 #include <QToolTip>
 #include <QWidgetAction>
-#include <QScrollBar>
-#include <QScrollArea>
 #include <QMoveEvent>
 
 #include <set>
@@ -20,6 +18,7 @@
 #include <base/dsd_utils.h>
 #include <base/logger_impl.h>
 #include <base/scopeguard.h>
+#include <base/crashhandler.h>
 
 #include <output_device/api.h>
 #include <output_device/iaudiodevicemanager.h>
@@ -81,6 +80,8 @@
 #include <widget/youtubedl/ytmusic_disckcache.h>
 #include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/m3uparser.h>
+
+#include "widget/similarsongsviewpage.h"
 
 namespace {
     constexpr auto kYtMusicSampleRate = 48000;
@@ -222,21 +223,6 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
 }
 
 QString Xamp::translateText(const std::string_view& text) {
-    /*static const QMap<std::string_view, ConstexprQString> lut{
-        { "Playlists",        QT_TRANSLATE_NOOP("Xamp", "Playlists")},
-        { "File explorer",    QT_TRANSLATE_NOOP("Xamp", "File explorer") },
-        { "Lyrics",           QT_TRANSLATE_NOOP("Xamp", "Lyrics") },
-        { "Library",          QT_TRANSLATE_NOOP("Xamp", "Library") },
-        { "CD",               QT_TRANSLATE_NOOP("Xamp", "CD") },
-        { "YouTube search",   QT_TRANSLATE_NOOP("Xamp", "YouTube search") },
-        { "YouTube playlist", QT_TRANSLATE_NOOP("Xamp", "YouTube playlist") },
-
-        { "Hide this column", QT_TRANSLATE_NOOP("Xamp", "Hide this column") },
-        { "Select columns to show...", QT_TRANSLATE_NOOP("Xamp", "Select columns to show...") },
-        { "Remove all", QT_TRANSLATE_NOOP("PlaylistTableView", "Remove all") },
-    };
-    const auto str = lut.value(text, kEmptyString);
-    return tr(str.data());*/
     return tr(text.data());
 }
 
@@ -255,6 +241,8 @@ void Xamp::destroy() {
         player_->Destroy();
         player_.reset();
         XAMP_LOG_DEBUG("Player destroy!");
+    } else {
+        return;
     }
 
     auto quit_and_wait_thread = [](auto& thread) {
@@ -281,8 +269,17 @@ void Xamp::destroy() {
         (void)main_window_->saveGeometry();
     }
 
+    qJsonSettings.save();
+    qAppSettings.save();
+    qAppSettings.saveLogConfig();
+
     playlist_tab_page_->saveTabOrder();
+    album_cover_service_->cleaup();
+    qGuiDb.close();
+
     XAMP_LOG_DEBUG("Xamp destroy!");
+
+    XampCrashHandler.Cleanup();
 }
 
 void Xamp::initialAudioEmbeddingService() {
@@ -291,22 +288,24 @@ void Xamp::initialAudioEmbeddingService() {
     }
 
     audio_embedding_service_.reset(new AudioEmbeddingService());
-    // audio_embedding_service_->moveToThread(&audio_embedding_service_thread_);
-    // audio_embedding_service_thread_.start();
-    // XAMP_LOG_DEBUG("Initial audio embedding service...");
+    (void) QObject::connect(audio_embedding_service_.get(),
+        &AudioEmbeddingService::queryEmbeddingsReady,
+        music_library_page_->similarSong(),
+        &SimilarSongViewPage::onQueryEmbeddingsReady);
 
-    // QCoro::connect(audio_embedding_service_->initialAsync(), this, []() {
-    //     XAMP_LOG_DEBUG("Initial audio embedding service done.");
-    //     });
+    (void)QObject::connect(music_library_page_->similarSong()->playlist(),
+        &PlaylistTableView::playMusic,
+        this,
+        &Xamp::onPlayMusic);
 }
 
 void Xamp::initialYtMusicService() {
-    if (ytmusic_service_) {
+    /*if (ytmusic_service_) {
         return;
     }
 	
     ytmusic_service_.reset(new YtMusicService());
-    /*ytmusic_service_->moveToThread(&ytmusic_service_thread_);
+    ytmusic_service_->moveToThread(&ytmusic_service_thread_);
 	ytmusic_service_thread_.start();
 
     XAMP_LOG_DEBUG("Initial ytmusic service...");
@@ -347,8 +346,6 @@ void Xamp::showAbout() {
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
-    //initialInterop();
-
     main_window_ = main_window;
     order_ = qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder);
 
@@ -416,29 +413,8 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     if (ytmusic_service_ != nullptr) {
         (void)QObject::connect(this, &Xamp::cancelRequested, ytmusic_service_.get(), &YtMusicService::cancelRequested);
     }
-    // if (audio_embedding_service_ != nullptr) {
-    //     (void)QObject::connect(this, &Xamp::cancelRequested, audio_embedding_service_.get(), &AudioEmbeddingService::cancelRequested);
-    // }
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
-
-    (void)QObject::connect(ui_.authButton, &QToolButton::clicked, [this](auto) {
-        auto token = YtMusicOAuth::parseOAuthJson();
-        if (token) {            
-            const QScopedPointer<XDialog> dialog(new XDialog(this));
-            const QScopedPointer<AccountAuthorizationPage> authorization_page(new AccountAuthorizationPage(dialog.get()));
-            dialog->setContentWidget(authorization_page.get());
-            dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
-            dialog->setTitle(tr("Account Authorization"));
-            authorization_page->setOAuthToken(token.value());
-            dialog->exec();
-        } else {
-            if (XMessageBox::showYesOrNo(tr(" Would you like to proceed with authorization at the moment?")) != QDialogButtonBox::Yes) {
-                return;
-            }
-            ytmusic_oauth_->setup();
-        }
-    });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::acceptAuthorization, [this](const auto &url) {
         startWebViewProcessAsync(url)
@@ -1415,7 +1391,7 @@ void Xamp::showNaviBarButton() {
     animation->setDuration(kAnimationDuration);
     animation->setStartValue(start_width);
     animation->setEndValue(end_width);
-    animation->setEasingCurve(QEasingCurve::OutCubic);
+    animation->setEasingCurve(QEasingCurve::OutQuad);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
@@ -1423,28 +1399,24 @@ void Xamp::setCurrentTab(int32_t table_id) {
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
         music_library_page_->reload();
-        //ui_.currentView->setCurrentWidget(album_page_.get());        
         break;
     case TAB_FILE_EXPLORER:
-        //ui_.currentView->setCurrentWidget(file_system_view_page_.get());
         break;
     case TAB_PLAYLIST:        
-        //ui_.currentView->setCurrentWidget(local_tab_widget_.get());
         ensureLocalOnePlaylistPage();
         playlist_tab_page_->reloadAll();
         break;
     case TAB_LYRICS:
-        //ui_.currentView->setCurrentWidget(lrc_page_.get());
+        ui_.currentView->setCurrentWidget(lrc_page_.get());
         break;
     case TAB_CD:
-        //ui_.currentView->setCurrentWidget(cd_page_.get());
+        ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_SEARCH:
         if (YtMusicOAuth::parseOAuthJson()) {            
             initialYtMusicService();            
             yt_music_search_page_->playlist()->reload();
         }        
-        //ui_.currentView->setCurrentWidget(cloud_search_page_.get());
         break;
     case TAB_YT_MUSIC_PLAYLIST:
         if (YtMusicOAuth::parseOAuthJson()) {
@@ -1455,8 +1427,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
             else {
                 yt_music_tab_page_->setCurrentIndex(0);
             }
-        }        
-        //ui_.currentView->setCurrentWidget(cloud_tab_widget_.get());
+        }
         yt_music_tab_page_->reloadAll();
         break;
     case TAB_AI:
@@ -1822,7 +1793,7 @@ void Xamp::onDelayedDownloadThumbnail() {
     }
 }
 
-void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
+void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings) {
     if (!device_info_) {
         showMeMessage(tr("Not found any audio device, please check your audio device."));
         return;
@@ -1830,7 +1801,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
 
     lrc_page_->spectrum()->reset();
 
-    PlaybackFormat playback_format;
     auto open_done = false;
 
     ui_.seekSlider->setEnabled(true);
@@ -1853,7 +1823,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-    audio_embedding_service_->queryEmbeddings(QList<QString> { entity.file_path });
+    if (is_query_embeddings) {
+        audio_embedding_service_->queryEmbeddings(QList<QString> { entity.file_path });
+    }
 
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
@@ -1887,10 +1859,11 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked) {
         target_sample_rate);
 
     try {
-        player_->Open(entity.file_path.toStdWString(),
-            device_info_.value(),
-            target_sample_rate,
-            open_dsd_mode);
+	    PlaybackFormat playback_format;
+	    player_->Open(entity.file_path.toStdWString(),
+	                  device_info_.value(),
+	                  target_sample_rate,
+	                  open_dsd_mode);
 
         player_->SeFileCacheMode(entity.isHttpUrl());
 
@@ -2151,18 +2124,18 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 }
 
 void Xamp::onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_play, bool is_doubleclicked) {
-    initialYtMusicService();
-
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
+    auto is_query_embeddings = playlist_id != kSimilarSongPlaylistId;
+
     if (entity.isHttpUrl()) {
-        onPlayEntity(entity, is_doubleclicked);
+        onPlayEntity(entity, is_doubleclicked, is_query_embeddings);
         return;
     }
 
     if (entity.isFilePath()) {
-        onPlayEntity(entity, is_doubleclicked);
+        onPlayEntity(entity, is_doubleclicked, is_query_embeddings);
     }
     else {
         playCloudVideoId(entity, entity.file_path, is_doubleclicked);
@@ -2271,7 +2244,7 @@ void Xamp::initialPlaylist() {
         auto store_type,
         const auto& cloud_playlist_id,
         const auto& name) {
-        if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
+        if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId || playlist_id == kSimilarSongPlaylistId) {
             return;
         }
         if (store_type == StoreType::LOCAL_STORE || store_type == StoreType::PLAYLIST_LOCAL_STORE) {
@@ -2304,6 +2277,9 @@ void Xamp::initialPlaylist() {
     }
     if (!playlist_dao_.isPlaylistExist(kYtMusicSearchPlaylistId)) {
         playlist_dao_.addPlaylist(tr("Yt Music Search Playlist"), 0, StoreType::CLOUD_STORE);
+    }
+    if (!playlist_dao_.isPlaylistExist(kSimilarSongPlaylistId)) {
+        playlist_dao_.addPlaylist(tr("Similar Song PlaylistId"), 0, StoreType::LOCAL_STORE);
     }
 
     playlist_tab_page_->restoreTabOrder();
@@ -2909,8 +2885,11 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
         return;
     }
 
-    read_progress_dialog_->setTitle(qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
-        .arg(formatDuration(secs)).arg(total_work).arg(completed_work));
+    read_progress_dialog_->setTitle(
+        qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
+        .arg(formatDuration(secs))
+        .arg(total_work)
+        .arg(completed_work));
 }
 
 void Xamp::onPlaybackError(const QString& message) {

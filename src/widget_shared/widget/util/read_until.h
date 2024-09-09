@@ -27,12 +27,6 @@ double readAll(Path const& file_path,
     std::function<void(AudioFormat const&)> const& prepare,
     std::function<void(float const*, uint32_t)> const& dsp_process = nullptr,
     uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
-	
-std::tuple<double, double> readFileLufs(Path const& file_path,
-    std::function<bool(uint32_t)> const& progress,
-    uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
-
-std::tuple<double, std::vector<uint8_t>> readFingerprint(Path const& file_path);
 
 XAMP_WIDGET_SHARED_EXPORT void encodeFile(AnyMap const &config,
     AlignPtr<IFileEncoder>& encoder,

@@ -12,6 +12,7 @@
 
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
+#include <base/threadpoolexecutor.h>
 #include <base/logger.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
@@ -182,6 +183,7 @@ private:
 	Buffer<float> buffer_;
 	FastMutex mutex_;
 	FastConditionVariable wait_for_start_stream_cond_;
+	AlignPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

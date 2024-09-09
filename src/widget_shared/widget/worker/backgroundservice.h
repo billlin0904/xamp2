@@ -13,6 +13,7 @@
 #include <widget/driveinfo.h>
 #include <widget/widget_shared_global.h>
 #include <widget/util/mbdiscid_util.h>
+#include <base/threadpoolexecutor.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 

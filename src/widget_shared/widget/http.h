@@ -50,6 +50,8 @@ public:
 
     HttpClient& json(const QString &json);
 
+    HttpClient& addAccpetJsonHeader();
+
     HttpClient& header(const QString &name, const QString &value);
 
     HttpClient& headers(const QMap<QString, QString>& name_values);

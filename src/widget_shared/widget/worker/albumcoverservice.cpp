@@ -14,8 +14,13 @@
 AlbumCoverService::AlbumCoverService()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
-    , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize))
-    , timer_(this) {
+    , timer_(this)
+    , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize)) {
+}
+
+void AlbumCoverService::cleaup() {
+    database_ptr_.reset();
+	buffer_pool_.reset();
 }
 
 void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {

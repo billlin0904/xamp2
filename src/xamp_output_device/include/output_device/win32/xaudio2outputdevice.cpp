@@ -5,6 +5,7 @@
 #include <base/logger_impl.h>
 #include <base/timer.h>
 #include <base/scopeguard.h>
+#include <base/ithreadpoolexecutor.h>
 
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/comexception.h>
@@ -99,7 +100,8 @@ XAudio2OutputDevice::XAudio2OutputDevice(const std::wstring& device_id)
 	, device_id_(device_id)
 	, mastering_voice_(nullptr)
 	, source_voice_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName))
+	, thread_pool_(ThreadPoolBuilder::MakeOutputTheadPool()) {
 #ifdef _DEBUG
 	UINT32 flags = 0;
 	HrIfFailThrow(::XAudio2Create(&xaudio2_, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
@@ -287,7 +289,7 @@ void XAudio2OutputDevice::StartStream() {
 			voice_context_.get()));
 	}
 
-	render_task_ = Executor::Spawn(GetOutputDeviceThreadPool(), [this](const auto& stop_token) {
+	render_task_ = Executor::Spawn(*thread_pool_, [this](const auto& stop_token) {
 		is_running_ = true;
 
 		const std::array<HANDLE, 2> objects{

@@ -21,7 +21,7 @@
 #include <tchar.h>
 #include <stdio.h>
 #include "uplink.h"
-extern void OPENSSL_showfatal(const char *, ...);
+void OPENSSL_showfatal(const char *, ...);
 
 static TCHAR msg[128];
 

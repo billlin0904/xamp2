@@ -18,6 +18,7 @@
 #include <base/buffer.h>
 #include <base/task.h>
 #include <base/platfrom_handle.h>
+#include <base/threadpoolexecutor.h>
 
 #include <xaudio2.h>
 #include <atomic>
@@ -193,6 +194,7 @@ private:
 	AlignPtr<XAudio2VoiceContext> voice_context_;
 	CComPtr<IXAudio2> xaudio2_;
 	LoggerPtr logger_;
+	AlignPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

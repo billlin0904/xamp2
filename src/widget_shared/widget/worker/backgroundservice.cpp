@@ -15,7 +15,6 @@
 #include <widget/tagio.h>
 #include <widget/util/read_until.h>
 
-#include <stream/ebur128reader.h>
 #include <base/logger_impl.h>
 
 #if defined(Q_OS_WIN)
@@ -34,9 +33,7 @@ BackgroundService::BackgroundService()
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundService));
 }
 
-BackgroundService::~BackgroundService() {
-    XAMP_LOG_DEBUG("BackgroundWorker destroy!");
-}
+BackgroundService::~BackgroundService() = default;
 
 void BackgroundService::cancelRequested() {
     is_stop_ = true;

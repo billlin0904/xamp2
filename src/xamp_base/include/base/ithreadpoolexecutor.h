@@ -79,34 +79,35 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     return future;
 }
 
-XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
-                                                                   ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL,
-                                                                   CpuAffinity affinity = CpuAffinity::kAll,
-                                                                   uint32_t max_thread =
-	                                                               std::thread::hardware_concurrency(),
-                                                                   TaskSchedulerPolicy policy =
-	                                                               TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY,
-                                                                   TaskStealPolicy steal_policy =
-	                                                               TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+struct XAMP_BASE_API ThreadPoolBuilder {
+    static AlignPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
+        ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL,
+        CpuAffinity affinity = CpuAffinity::kAll,
+        uint32_t max_thread =
+        std::thread::hardware_concurrency(),
+        TaskSchedulerPolicy policy =
+        TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY,
+        TaskStealPolicy steal_policy =
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
-XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
-                                                                   TaskSchedulerPolicy policy,
-                                                                   TaskStealPolicy steal_policy =
-	                                                               TaskStealPolicy::CONTINUATION_STEALING_POLICY);
-
-
-XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
-                                                                   ThreadPriority priority,
-                                                                   TaskSchedulerPolicy policy,
-                                                                   TaskStealPolicy steal_policy =
-	                                                               TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+    static AlignPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
+        TaskSchedulerPolicy policy,
+        TaskStealPolicy steal_policy =
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
 
-XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();
+    static AlignPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
+        ThreadPriority priority,
+        TaskSchedulerPolicy policy,
+        TaskStealPolicy steal_policy =
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
-XAMP_BASE_API IThreadPoolExecutor& GetOutputDeviceThreadPool();
+    static AlignPtr<IThreadPoolExecutor> MakeOutputTheadPool();
 
-XAMP_BASE_API IThreadPoolExecutor& GetBackgroundThreadPool();
+    static AlignPtr<IThreadPoolExecutor> MakeBackgroundThreadPool();
+
+    static AlignPtr<IThreadPoolExecutor> MakePlaybackThreadPool();
+};
 
 XAMP_BASE_NAMESPACE_END
 

@@ -18,8 +18,6 @@
 #include <metadata/imetadatawriter.h>
 #include <metadata/chromaprint.h>
 
-#include <stream/ebur128reader.h>
-
 #include <functional>
 #include <optional>
 #include <utility>
@@ -75,47 +73,6 @@ double readAll(Path const& file_path,
 	}
 
 	return file_stream->GetDurationAsSeconds();
-}
-
-std::tuple<double, std::vector<uint8_t>> readFingerprint(Path const& file_path) {
-	Chromaprint reader;
-	std::vector<int16_t> output;
-	auto duration = readAll(file_path, nullptr,
-		[&reader](auto const& input_format)
-		{
-			reader.SetSampleRate(input_format.GetSampleRate());
-		}, [&reader, &output](auto const* samples, auto sample_size)
-		{
-			if (output.size() != sample_size) {
-				output.resize(sample_size);
-			}
-
-			// note: use AVX2 to speed up the conversion.
-			for (auto i = 0; i < sample_size; ++i) {
-				output[i] = static_cast<int16_t>(kFloat16Scale * samples[i]);
-			}				
-			
-			reader.Process(output.data(), output.size());
-		});
-	return std::make_tuple(duration, reader.GetFingerprint());
-}
-
-std::tuple<double, double> readFileLufs(Path const& file_path,
-    std::function<bool(uint32_t)> const& progress,
-    uint64_t max_duration) {
-	Ebur128Reader reader;
-
-    readAll(file_path, progress,
-		[&reader](auto const& input_format)
-		{
-			reader.SetSampleRate(input_format.GetSampleRate());
-		}, [&reader](auto const* samples, auto sample_size)
-		{
-			reader.Process(samples, sample_size);
-        }, max_duration);
-
-    return std::make_tuple(reader.GetIntegratedLoudness(),
-                           reader.GetTruePeek());
 }
 
 void encodeFile(AnyMap const& config,

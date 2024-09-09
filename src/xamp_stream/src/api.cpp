@@ -5,7 +5,6 @@
 #include <base/logger_impl.h>
 
 #include <stream/basslib.h>
-#include <stream/ebur128reader.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
@@ -30,7 +29,6 @@
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
-#include <stream/ebur128lib.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 	namespace {
@@ -226,37 +224,33 @@ OrderedMap<std::string, std::string> GetBassDLLVersion() {
 }
 
 void LoadFFTLib() {
-    Singleton<FFTWLib>::GetInstance();
-    Singleton<FFTWFLib>::GetInstance();
+    SharedSingleton<FFTWLib>::GetInstance();
+    SharedSingleton<FFTWFLib>::GetInstance();
 }
 
 #ifdef XAMP_OS_WIN
 void LoadR8brainLib() {
-    Singleton<R8brainLib>::GetInstance();
+    SharedSingleton<R8brainLib>::GetInstance();
 }
 void LoadMBDiscIdLib() {
-    Singleton<DiscIdLib>::GetInstance();
+    SharedSingleton<DiscIdLib>::GetInstance();
 }
 #endif
 
 void LoadAvLib() {
-    Singleton<AvLib>::GetInstance();
+    SharedSingleton<AvLib>::GetInstance();
 }
 
 void FreeAvLib() {
-    Singleton<AvLib>::GetInstance().Free();
+    SharedSingleton<AvLib>::GetInstance().Free();
 }
 
 void LoadSoxrLib() {
-    Singleton<SoxrLib>::GetInstance();
+    SharedSingleton<SoxrLib>::GetInstance();
 }
 
 void LoadSrcLib() {
-    Singleton<SrcLib>::GetInstance();
-}
-
-void LoadEbur128Lib() {
-    Singleton<Ebur128Lib>::GetInstance();
+    SharedSingleton<SrcLib>::GetInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END

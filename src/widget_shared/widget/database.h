@@ -81,6 +81,7 @@ enum {
 	kAlbumPlaylistId,
 	kCdPlaylistId,
 	kYtMusicSearchPlaylistId,
+	kSimilarSongPlaylistId,
 	kMaxExistPlaylist
 };
 

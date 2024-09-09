@@ -24,6 +24,8 @@ public:
 
 	void mergeUnknownAlbumCover();
 
+	void cleaup();
+
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 

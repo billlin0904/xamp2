@@ -64,9 +64,7 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
 }
 
 // QScopedPointer require default destructor.
-XMainWindow::~XMainWindow() {
-    XAMP_LOG_DEBUG("XMainWindow destory!");
-}
+XMainWindow::~XMainWindow() = default;
 
 void XMainWindow::onThemeChangedFinished(ThemeColor theme_color) {
 }

@@ -26,6 +26,8 @@ public:
 	void SetThreadExceptionHandlers();
 
 	static void DumpStackInfo(void* info);
+
+	void Cleanup();
 private:
 	class CrashHandlerImpl;
 	AlignPtr<CrashHandlerImpl> impl_;

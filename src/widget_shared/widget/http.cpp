@@ -28,7 +28,7 @@ namespace http {
 XAMP_DECLARE_LOG_NAME(Http);
 
 namespace {
-    constexpr int32_t kHttpDefaultTimeout = 3000;
+    constexpr int32_t kHttpDefaultTimeout = 120000;
     constexpr size_t kHttpBufferSize = 1024;
 
     bool isZipEncoding(QNetworkReply const* reply) {
@@ -480,6 +480,11 @@ HttpClient& HttpClient::params(const QMultiMap<QString, QVariant> &ps) {
 HttpClient& HttpClient::json(const QString &json) {
     impl_->json_    = json;
     impl_->use_json_ = true;
+    return *this;
+}
+
+HttpClient& HttpClient::addAccpetJsonHeader() {
+    header(qTEXT("accept"), qTEXT("application/json"));
     return *this;
 }
 

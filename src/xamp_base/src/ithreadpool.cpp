@@ -5,9 +5,13 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
-	constexpr auto kMaxPlaybackThreadPoolSize{4};
-	constexpr auto kMaxOutputDeviceThreadPoolSize{2};
-	constexpr auto kMaxBackgroundThreadPoolSize{8};
+	constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
+	constexpr auto kMaxOutputDeviceThreadPoolSize{ 2 };
+	constexpr auto kMaxBackgroundThreadPoolSize{ 8 };
+
+	XAMP_DECLARE_LOG_NAME(OutputDeviceThreadPool);
+	XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
+	XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 
 	CpuAffinity GetBackgroundCpuAffinity() {
 		/*CpuAffinity affinity(-1, false);
@@ -20,71 +24,64 @@ namespace {
 	}
 }
 
-AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
-                                                     ThreadPriority priority,
-                                                     CpuAffinity affinity,
-                                                     uint32_t max_thread,
-                                                     TaskSchedulerPolicy policy,
-                                                     TaskStealPolicy steal_policy) {
+AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
+	ThreadPriority priority,
+	CpuAffinity affinity,
+	uint32_t max_thread,
+	TaskSchedulerPolicy policy,
+	TaskStealPolicy steal_policy) {
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(pool_name,
-	                                                          policy,
-	                                                          steal_policy,
-	                                                          max_thread,
-	                                                          affinity,
-	                                                          priority);
+		policy,
+		steal_policy,
+		max_thread,
+		affinity,
+		priority);
 }
 
-AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
-                                                     TaskSchedulerPolicy policy,
-                                                     TaskStealPolicy steal_policy) {
-	return MakeThreadPoolExecutor(pool_name,
-	                              ThreadPriority::PRIORITY_NORMAL,
-	                              CpuAffinity::kAll,
-	                              std::thread::hardware_concurrency(),
-	                              policy,
-	                              steal_policy);
+AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
+	TaskSchedulerPolicy policy,
+	TaskStealPolicy steal_policy) {
+	return MakeThreadPool(pool_name,
+		ThreadPriority::PRIORITY_NORMAL,
+		CpuAffinity::kAll,
+		std::thread::hardware_concurrency(),
+		policy,
+		steal_policy);
 }
 
-AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
+AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(
 	const std::string_view& pool_name,
 	ThreadPriority priority,
 	TaskSchedulerPolicy policy,
 	TaskStealPolicy steal_policy) {
-	return MakeThreadPoolExecutor(pool_name,
-	                              priority,
-	                              CpuAffinity::kAll,
-	                              std::thread::hardware_concurrency(),
-	                              policy,
-	                              steal_policy);
+	return MakeThreadPool(pool_name,
+		priority,
+		CpuAffinity::kAll,
+		std::thread::hardware_concurrency(),
+		policy,
+		steal_policy);
 }
 
-XAMP_DECLARE_LOG_NAME(OutputDeviceThreadPool);
-XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
-XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
-
-IThreadPoolExecutor& GetOutputDeviceThreadPool() {
+AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeOutputTheadPool() {
 	static const CpuAffinity cpu_aff(0, false);
-	static ThreadPoolExecutor executor(kOutputDeviceThreadPoolLoggerName,
-	                                   kMaxOutputDeviceThreadPoolSize,
-	                                   cpu_aff,
-	                                   ThreadPriority::PRIORITY_HIGHEST);
-	return executor;
+	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kOutputDeviceThreadPoolLoggerName,
+		kMaxOutputDeviceThreadPoolSize,
+		cpu_aff,
+		ThreadPriority::PRIORITY_HIGHEST);
 }
 
-IThreadPoolExecutor& GetBackgroundThreadPool() {
-	static ThreadPoolExecutor executor(kBackgroundThreadPoolLoggerName,
-	                                   kMaxBackgroundThreadPoolSize,
-	                                   GetBackgroundCpuAffinity(),
-	                                   ThreadPriority::PRIORITY_BACKGROUND);
-	return executor;
+AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeBackgroundThreadPool() {
+	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kBackgroundThreadPoolLoggerName,
+		kMaxBackgroundThreadPoolSize,
+		GetBackgroundCpuAffinity(),
+		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
-IThreadPoolExecutor& GetPlaybackThreadPool() {
-	static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
-	                                   kMaxPlaybackThreadPoolSize,
-	                                   GetBackgroundCpuAffinity(),
-	                                   ThreadPriority::PRIORITY_BACKGROUND);
-	return executor;
+AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
+	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kPlaybackThreadPoolLoggerName,
+		kMaxPlaybackThreadPoolSize,
+		GetBackgroundCpuAffinity(),
+		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 XAMP_BASE_NAMESPACE_END

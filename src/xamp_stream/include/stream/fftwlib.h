@@ -123,8 +123,8 @@ public:
 	XAMP_DECLARE_DLL_NAME(fftwf_cleanup_threads);
 };
 
-#define FFTW_LIB Singleton<FFTWLib>::GetInstance()
-#define FFTWF_LIB Singleton<FFTWFLib>::GetInstance()
+#define FFTW_LIB SharedSingleton<FFTWLib>::GetInstance()
+#define FFTWF_LIB SharedSingleton<FFTWFLib>::GetInstance()
 
 template <typename T>
 struct FFTWPtrTraits;

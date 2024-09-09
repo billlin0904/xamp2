@@ -46,7 +46,7 @@ void setNaviBarMenuButton(Ui::XampWindow& ui) {
 }
 
 void setAuthButton(Ui::XampWindow& ui, bool auth) {
-    if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
+    /*if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
         ui.authButton->setStyleSheet(qTEXT(R"(
         QToolButton#authButton {
 			border: none;
@@ -78,7 +78,7 @@ void setAuthButton(Ui::XampWindow& ui, bool auth) {
     }
     else {
         ui.authButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON));
-    }
+    }*/
 }
 
 void setThemeIcon(Ui::XampWindow& ui) {
@@ -149,7 +149,7 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-    ui.authButton->setIconSize(QSize(24, 24));
+    //ui.authButton->setIconSize(QSize(24, 24));
 
     ui.eqButton->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
 

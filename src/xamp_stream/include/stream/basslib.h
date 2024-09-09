@@ -196,7 +196,9 @@ public:
 
 class BassLib final {
 public:
-    friend class Singleton<BassLib>;
+    BassLib();
+
+    ~BassLib();
 
     void Load();
 
@@ -231,10 +233,6 @@ public:
     OrderedMap<std::string, std::string> GetPluginVersion() const;
     OrderedMap<std::string, std::string> GetVersions() const;
 private:
-    BassLib();
-
-    ~BassLib();
-    
     HashMap<std::string, BassPluginHandle> plugins_;
     OrderedMap<std::string, std::string> dll_versions_;
     SharedLibraryHandle module_;
@@ -278,7 +276,7 @@ private:
     void LoadPlugin(const  std::string & file_name);
 };
 
-#define BASS_LIB Singleton<BassLib>::GetInstance()
+#define BASS_LIB SharedSingleton<BassLib>::GetInstance()
 
 XAMP_STREAM_NAMESPACE_END
 

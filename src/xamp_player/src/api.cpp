@@ -11,8 +11,6 @@
 #include <player/audio_player.h>
 
 #include <metadata/api.h>
-
-#include <stream/ebur128reader.h>
 #include <stream/mbdiscid.h>
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
@@ -51,11 +49,6 @@ void LoadComponentSharedLibrary() {
     LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 #endif
-    GetPlaybackThreadPool();
-    XAMP_LOG_DEBUG("Start Playback thread pool success.");
-
-    GetOutputDeviceThreadPool();
-    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 }
 
 #ifdef XAMP_OS_WIN

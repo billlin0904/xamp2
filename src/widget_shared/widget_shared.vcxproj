@@ -60,14 +60,14 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;C:\Users\User\anaconda3\envs\audio_embedding_env\include;../thirdparty/pybind11/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;C:\Users\User\anaconda3\envs\ytservice\include;../thirdparty/pybind11/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
       </WarningVersion>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;C:\Users\User\anaconda3\envs\audio_embedding_env\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;C:\Users\User\anaconda3\envs\ytservice\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -145,6 +145,7 @@
     <QtMoc Include="widget\supereqview.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
+    <QtMoc Include="widget\similarsongsviewpage.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
@@ -280,6 +281,7 @@
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
+    <ClCompile Include="widget\similarsongsviewpage.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\supereqview.cpp" />
     <ClCompile Include="widget\navbarlistview.cpp" />

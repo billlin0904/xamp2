@@ -127,7 +127,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device)
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(kExclusiveWasapiDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(kExclusiveWasapiDeviceLoggerName))
+	, thread_pool_(ThreadPoolBuilder::MakeOutputTheadPool()) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
@@ -481,7 +482,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Must be active device and prefill buffer.
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(GetOutputDeviceThreadPool(), [this, glitch_time](const auto& stop_token) {
+	render_task_ = Executor::Spawn(*thread_pool_, [this, glitch_time](const auto& stop_token) {
 		XAMP_LOG_D(logger_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;
@@ -632,10 +633,10 @@ uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 }
 
 bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
-	//const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
-	//	&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
-	//return hw_support;
-	return false;
+	const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
+		&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
+	return hw_support;
+	//return false;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

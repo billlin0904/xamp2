@@ -311,6 +311,8 @@ namespace {
 		XAMP_EXPECTS(radius > 0 && radius < 254);
 		XAMP_EXPECTS(cores > 0);
 
+		auto thread_pool = ThreadPoolBuilder::MakeBackgroundThreadPool();
+
 		auto div = (radius * 2) + 1;
 		auto stack = Vector<uint8_t>(div * 4 * cores);
 
@@ -330,7 +332,7 @@ namespace {
 
 			for (auto i = 0; i < cores; i++) {
 				auto buffer = stack.data() + div * 4 * i;
-				tasks.push_back(Executor::Spawn(GetBackgroundThreadPool(),
+				tasks.push_back(Executor::Spawn(*thread_pool,
 					[=](const StopToken& stop_token) {
 						stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));

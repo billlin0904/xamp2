@@ -11,7 +11,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-#define LIBSRC_LIB Singleton<SrcLib>::GetInstance()
+#define LIBSRC_LIB SharedSingleton<SrcLib>::GetInstance()
 
 XAMP_DECLARE_LOG_NAME(SrcSampleRateConverter);
 

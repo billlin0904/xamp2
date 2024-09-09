@@ -160,17 +160,9 @@ QFont ThemeManager::loadFonts() {
 
     installFileFonts(qTEXT("NotoSans"), mono_fonts);
     installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
-
     installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-
-#ifdef Q_OS_WIN
-	ui_fonts.append(qTEXT("Microsoft JhengHei UI"));
-    ui_fonts.append(qTEXT("Microsoft YaHei UI"));
-    ui_fonts.append(qTEXT("Yu Gothic UI"));
-    ui_fonts.append(qTEXT("Meiryo UI"));
-    ui_fonts.append(qTEXT("MS PGothic"));
-#endif
-    installFileFont(qTEXT("Inter.ttc"), ui_fonts);
+    installFileFonts(qTEXT("HarmonyOS_Sans_TC"), ui_fonts);
+    installFileFonts(qTEXT("HarmonyOS_Sans_SC"), ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 

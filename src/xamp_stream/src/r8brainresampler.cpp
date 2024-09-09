@@ -8,7 +8,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-#define LIBR8_DLL Singleton<R8brainLib>::GetInstance()
+#define LIBR8_DLL SharedSingleton<R8brainLib>::GetInstance()
 
 const std::string_view VERSION = "R8brain " R8B_VERSION;
 

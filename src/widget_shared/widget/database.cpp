@@ -139,7 +139,7 @@ const char* SqlException::what() const noexcept {
 XAMP_DECLARE_LOG_NAME(Database);
 
 Database::Database(const QString& name) {
-    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(Database));
+    logger_ = XampLoggerFactory.GetLogger(name.toStdString());
     if (QSqlDatabase::contains(name)) {
         db_ = QSqlDatabase::database(name);
     }
@@ -163,8 +163,9 @@ Database::~Database() {
 
 void Database::close() {
     if (db_.isOpen()) {
-        XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());
         db_.close();
+        XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());
+        logger_.reset();
     }
 }
 

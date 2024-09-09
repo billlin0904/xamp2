@@ -7,11 +7,18 @@
 
 namespace py = pybind11;
 
-void initialInterop() {
-    static py::scoped_interpreter guard{};
-    static py::gil_scoped_release release;
+class PythonInterop::PythonInteropImpl {
+public:
+	PythonInteropImpl() = default;
+	~PythonInteropImpl() = default;
+
+private:
+	py::scoped_interpreter guard_;
+	py::gil_scoped_release release_;
+};
+
+PythonInterop::PythonInterop()
+	: impl_(MakeAlign<PythonInteropImpl>()) {
 }
 
-void finalizeInterop() {
-
-}
+XAMP_PIMPL_IMPL(PythonInterop)

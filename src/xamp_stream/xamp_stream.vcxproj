@@ -173,8 +173,6 @@
     <ClInclude Include="include\stream\discIdlib.h" />
     <ClInclude Include="include\stream\dsd_times.h" />
     <ClInclude Include="include\stream\dspmanager.h" />
-    <ClInclude Include="include\stream\ebur128lib.h" />
-    <ClInclude Include="include\stream\ebur128reader.h" />
     <ClInclude Include="include\stream\eqsettings.h" />
     <ClInclude Include="include\stream\fft.h" />
     <ClInclude Include="include\stream\fftwlib.h" />
@@ -222,7 +220,6 @@
     <ClCompile Include="src\basslib.cpp" />
     <ClCompile Include="src\bass_utiltis.cpp" />
     <ClCompile Include="src\dspmanager.cpp" />
-    <ClCompile Include="src\ebur128reader.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />
     <ClCompile Include="src\mbdiscid.cpp" />

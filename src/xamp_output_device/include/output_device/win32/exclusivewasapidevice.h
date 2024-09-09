@@ -18,6 +18,7 @@
 #include <base/buffer.h>
 #include <base/task.h>
 #include <base/platfrom_handle.h>
+#include <base/threadpoolexecutor.h>
 
 #include <atomic>
 
@@ -236,6 +237,7 @@ private:
 	IAudioCallback* callback_;
 	LoggerPtr logger_;
 	Task<void> render_task_;
+	AlignPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

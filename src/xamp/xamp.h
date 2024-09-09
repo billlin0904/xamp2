@@ -115,7 +115,7 @@ signals:
 public slots:
 	void onDelayedDownloadThumbnail();
 
-    void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked);
+    void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings = false);
 
 	void ensureLocalOnePlaylistPage();
 
@@ -330,7 +330,6 @@ private:
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
 	QThread ytmusic_service_thread_;
-    //QThread audio_embedding_service_thread_;
 	QTimer ui_update_timer_timer_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

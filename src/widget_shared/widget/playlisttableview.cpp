@@ -489,9 +489,8 @@ void PlaylistTableView::initial() {
             like_song_act->setIcon(like_icon);
             if (!play_list_entities.empty()) {
                 action_map.setCallback(like_song_act, [this, &play_list_entity, play_list_entities]() {
-                    bool like_or_dislike = play_list_entity.heart > 0;
                     for (auto entity : play_list_entities) {
-                        emit likeSong(like_or_dislike, entity);
+                        emit likeSong(play_list_entity.heart, entity);
                     }                    
                     });
             }

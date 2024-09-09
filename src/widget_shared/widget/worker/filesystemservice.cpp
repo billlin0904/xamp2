@@ -36,7 +36,9 @@ namespace {
 			path_infos.push_back({0, 0, path});
 		}
 
-		Executor::ParallelFor(GetBackgroundThreadPool(), path_infos, [&](auto& path_info) {
+		auto thread_pool = ThreadPoolBuilder::MakeBackgroundThreadPool();
+
+		Executor::ParallelFor(*thread_pool, path_infos, [&](auto& path_info) {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
 			path_info.depth = path_info.path.count(qTEXT("/"));
 			total_file_count += path_info.file_count;
@@ -67,11 +69,9 @@ FileSystemService::FileSystemService()
 	, timer_(this) {
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
-	GetBackgroundThreadPool();
 }
 
 FileSystemService::~FileSystemService() {
-	GetBackgroundThreadPool().Stop();
 }
 
 void FileSystemService::onSetWatchDirectory(const QString& dir) {
@@ -181,7 +181,7 @@ void FileSystemService::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool
 void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	is_stop_ = false;
 
-	auto extract_file_thread_pool = MakeThreadPoolExecutor(
+	auto extract_file_thread_pool = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(ExtractFileThreadPool),
 		ThreadPriority::PRIORITY_BACKGROUND);
 

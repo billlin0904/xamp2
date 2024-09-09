@@ -13,7 +13,7 @@ NavBarListView::NavBarListView(QWidget *parent)
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSpacing(2);
-    setIconSize(QSize(22, 22));
+    setIconSize(QSize(18, 18));
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
@@ -26,6 +26,7 @@ NavBarListView::NavBarListView(QWidget *parent)
         emit tableNameChanged(table_id, table_name);
     });
 
+    setStyleSheet(qTEXT("border: none"));
     tooltip_.hide();
 }
 

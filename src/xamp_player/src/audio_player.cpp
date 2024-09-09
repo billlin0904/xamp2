@@ -28,7 +28,6 @@
 #include <stream/avfilestream.h>
 #include <stream/bassfilestream.h>
 #include <stream/r8brainresampler.h>
-#include <stream/ebur128reader.h>
 #include <stream/compressorconfig.h>
 #include <stream/basscompressor.h>
 
@@ -92,9 +91,10 @@ AudioPlayer::AudioPlayer()
     , stream_duration_(0)
     , dsp_manager_(StreamFactory::MakeDSPManager())
     , device_manager_(MakeAudioDeviceManager())
+    , logger_(XampLoggerFactory.GetLogger(kAudioPlayerLoggerName))
     , action_queue_(kActionQueueSize)
-    , fifo_(AlignUp(kPreallocateBufferSize, GetPageSize())) {
-    logger_ = XampLoggerFactory.GetLogger(kAudioPlayerLoggerName);
+	, fifo_(AlignUp(kPreallocateBufferSize, GetPageSize()))
+    , thread_pool_(ThreadPoolBuilder::MakePlaybackThreadPool()) {
     PreventSleep(true);
 }
 
@@ -116,10 +116,6 @@ void AudioPlayer::Destroy() {
     ResetAsioDriver();
 #endif
 
-    GetPlaybackThreadPool().Stop();
-#ifdef XAMP_OS_WIN
-    GetOutputDeviceThreadPool().Stop();
-#endif
     PreventSleep(false);
     FreeAvLib();
 
@@ -828,7 +824,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()](const StopToken& stop_token) {
+    stream_task_ = Executor::Spawn(*thread_pool_, [player = shared_from_this()](const StopToken& stop_token) {
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };

@@ -77,9 +77,8 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
 
 class CrashHandler::CrashHandlerImpl {
 public:
-    CrashHandlerImpl() {
-        logger_ = XampLoggerFactory.GetLogger(kCrashHandlerLoggerName);
-    }
+    CrashHandlerImpl() = default;
+    ~CrashHandlerImpl() = default;
 
 #ifdef XAMP_OS_WIN    
     static void DumpStackInfo(void* info) {
@@ -90,7 +89,7 @@ public:
 
         const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            XAMP_LOG_T(logger_, "Ignore exception code: {}({:#010X}) {}",
+            XAMP_LOG_TRACE("Ignore exception code: {}({:#010X}) {}",
                        itr->second, itr->first, stack_trace.CaptureStack());
             return;
         }
@@ -102,11 +101,11 @@ public:
 
         const auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_D(logger_, "Uncaught exception: {} {}\r\n",
+            XAMP_LOG_DEBUG("Uncaught exception: {} {}\r\n",
                 (*itr2).second, stack_trace.CaptureStack());
         }
         else {
-            XAMP_LOG_D(logger_, "Uncaught exception: {:#010X} ({}) {}\r\n", 
+            XAMP_LOG_DEBUG("Uncaught exception: {:#010X} ({}) {}\r\n",
                 code, GetPlatformErrorMessage(code), stack_trace.CaptureStack());
         }
     }
@@ -202,7 +201,6 @@ public:
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
         ::AddVectoredExceptionHandler(0, VectoredHandler);
 
-#if 1
         // Catch new operator memory allocation exceptions
         ::_set_new_handler(NewHandler);
 
@@ -220,12 +218,11 @@ public:
 
         // Catch a termination request
         (void)::signal(SIGTERM, SigtermHandler);
-#endif
     }
 
     void SetThreadExceptionHandlers() {
         XAMP_LOG_DEBUG("Install thread exception handler.");
-#if 1
+
         // Catch terminate() calls. 
         // In a multithreaded environment, terminate functions are maintained 
         // separately for each thread. Each new thread needs to install its own 
@@ -247,7 +244,6 @@ public:
 
         // Catch illegal storage access errors
         (void)::signal(SIGSEGV, SigsegvHandler);
-#endif
     }
 
 #else
@@ -349,11 +345,9 @@ public:
     }
 #endif
     static std::recursive_mutex mutex_;
-    static LoggerPtr logger_;
 };
 
 std::recursive_mutex CrashHandler::CrashHandlerImpl::mutex_;
-LoggerPtr CrashHandler::CrashHandlerImpl::logger_;
 
 CrashHandler::CrashHandler()
 	: impl_(MakeAlign<CrashHandlerImpl>()) {
@@ -362,15 +356,25 @@ CrashHandler::CrashHandler()
 XAMP_PIMPL_IMPL(CrashHandler)
 
 void CrashHandler::SetProcessExceptionHandlers() {
+    if (!impl_) {
+        return;
+    }
     impl_->SetProcessExceptionHandlers();
 }
 
 void CrashHandler::SetThreadExceptionHandlers() {
+    if (!impl_) {
+        return;
+    }
     impl_->SetThreadExceptionHandlers();
 }
 
 void CrashHandler::DumpStackInfo(void* info) {
     CrashHandlerImpl::DumpStackInfo(info);
+}
+
+void CrashHandler::Cleanup() {
+	impl_.reset();
 }
 
 XAMP_BASE_NAMESPACE_END

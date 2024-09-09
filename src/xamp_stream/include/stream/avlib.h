@@ -187,7 +187,7 @@ public:
     LoggerPtr logger;
 };
 
-#define LIBAV_LIB Singleton<AvLib>::GetInstance()
+#define LIBAV_LIB SharedSingleton<AvLib>::GetInstance()
 
 template <typename T>
 struct AvResourceDeleter;

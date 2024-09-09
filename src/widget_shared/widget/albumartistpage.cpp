@@ -16,6 +16,7 @@
 #include <widget/util/ui_util.h>
 #include <widget/artistview.h>
 #include <widget/genre_view.h>
+#include <widget/similarsongsviewpage.h>
 #include <widget/clickablelabel.h>
 #include <widget/util/str_util.h>
 #include <widget/albumview.h>
@@ -27,10 +28,11 @@
 #include <xampplayer.h>
 #include <thememanager.h>
 
-enum {
+enum TAB_INDEX : std::uint8_t {
 	TAB_ALBUMS,
 	TAB_ARTISTS,
 	TAB_YEAR,
+	TAB_SIMILAR_SONG
 };
 
 AlbumTabListView::AlbumTabListView(QWidget* parent)
@@ -60,7 +62,7 @@ AlbumTabListView::AlbumTabListView(QWidget* parent)
 void AlbumTabListView::addTab(const QString& name, int tab_id) {
 	auto* item = new QStandardItem(name);
 	item->setData(tab_id);
-    item->setSizeHint(QSize(130, 30));
+    item->setSizeHint(QSize(200, 30));
 	item->setTextAlignment(Qt::AlignCenter);
 	auto f = item->font();
 #ifdef Q_OS_WIN
@@ -122,12 +124,13 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_tab_list_view_->addTab(tr("ALBUMS"), TAB_ALBUMS);
 	album_tab_list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
 	album_tab_list_view_->addTab(tr("YEAR"), TAB_YEAR);
+	album_tab_list_view_->addTab(tr("SIMILAR"), TAB_SIMILAR_SONG);
 
 	qTheme.setAlbumNaviBarTheme(album_tab_list_view_);
 
 	constexpr QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	album_tab_list_view_->setSizePolicy(size_policy);
-	album_tab_list_view_->setMinimumSize(500, 40);
+	album_tab_list_view_->setMinimumSize(830, 40);
 	album_tab_list_view_->setMaximumHeight(40);
 	horizontal_layout_5->addWidget(album_tab_list_view_);
 
@@ -427,6 +430,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->addWidget(year_frame_);
 
+	similar_song_frame_ = new SimilarSongViewPage();
+	current_view->addWidget(similar_song_frame_);
+
 	(void)QObject::connect(album_tab_list_view_, &AlbumTabListView::clickedTable, [this, current_view](auto table_id) {
 		switch (table_id) {
 			case TAB_ALBUMS:
@@ -437,6 +443,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 				break;
 			case TAB_YEAR:
 				current_view->setCurrentWidget(year_frame_);
+				break;
+			case TAB_SIMILAR_SONG:
+				current_view->setCurrentWidget(similar_song_frame_);
 				break;
 			default: 
 				break;

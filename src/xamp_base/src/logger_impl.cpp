@@ -82,7 +82,9 @@ namespace {
 
 LoggerManager::LoggerManager() noexcept = default;
 
-LoggerManager::~LoggerManager() = default;
+LoggerManager::~LoggerManager() {
+	Shutdown();
+}
 
 void LoggerManager::SetLevel(LogLevel level) {
 	default_logger_->SetLevel(level);
@@ -95,8 +97,6 @@ LoggerManager& LoggerManager::Startup() {
 }
 
 void LoggerManager::Shutdown() {
-	GetLogger(kXampLoggerName);
-	default_logger_->LogDebug("<LoggerManager shutdown>");
     spdlog::shutdown();
 }
 

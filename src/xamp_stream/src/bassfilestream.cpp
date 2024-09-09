@@ -2,7 +2,6 @@
 
 #include <stream/bassexception.h>
 #include <stream/basslib.h>
-#include <stream/ebur128reader.h>
 
 #include <base/dsd_utils.h>
 #include <base/str_utilts.h>

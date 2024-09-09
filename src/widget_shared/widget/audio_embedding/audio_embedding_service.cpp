@@ -29,6 +29,7 @@ void AudioEmbeddingService::queryEmbeddings(const QList<QString> &paths) {
 
     http::HttpClient(qFormat("%1/query_embeddings").arg(BASE_URL))
         .params(params)
+		.addAccpetJsonHeader()
 		.success([this](auto url, auto content) {
         QJsonDocument doc;
 		if (!json_util::deserialize(content, doc)) {
@@ -43,7 +44,8 @@ void AudioEmbeddingService::queryEmbeddings(const QList<QString> &paths) {
                 auto file_path = obj[qTEXT("file_path")].toString();
                 auto distance = obj[qTEXT("distances")].toDouble();
                 auto audio_id = obj[qTEXT("audio_id")].toString();
-                results.append(EmbeddingQueryResult{file_path, distance, audio_id });
+                results.append(EmbeddingQueryResult{ file_path, distance, audio_id });
+				XAMP_LOG_DEBUG("{} {}", file_path.toStdString(), distance);
             }
         }
         emit queryEmbeddingsReady(results);

@@ -382,6 +382,7 @@ private:
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     MpmcQueue<PlayerAction> action_queue_;
     AudioBuffer<int8_t> fifo_;
+    AlignPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END
