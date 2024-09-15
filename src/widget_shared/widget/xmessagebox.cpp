@@ -35,15 +35,15 @@ XMessageBox::XMessageBox(const QString& title,
 
 	icon_label_->setFixedSize(40, 40);
 	icon_label_->setScaledContents(true);
-	icon_label_->setStyleSheet(qTEXT("background: transparent;"));
+	icon_label_->setStyleSheet("background: transparent;"_str);
 
 	message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
+	message_text_label_->setObjectName("messageTextLabel"_str);
 	message_text_label_->setOpenExternalLinks(true);
 
 	QFontMetrics metrics(message_text_label_->font());
 	if (!text.isEmpty()) {
-		auto newline = text.split(qTEXT("\n"));
+		auto newline = text.split("\n"_str);
 		auto max_len_text = *std::max_element(newline.begin(), newline.end(), [](const auto& a, const auto& b) {
 			return a.size() < b.size();
 			});		
@@ -54,7 +54,7 @@ XMessageBox::XMessageBox(const QString& title,
 	QFont f;
 	f.setPointSize(qTheme.fontSize(10));
 	message_text_label_->setFont(f);
-	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
+	message_text_label_->setStyleSheet("background: transparent;"_str);
 
 	auto* line = new QFrame(this);
 	line->setFixedHeight(1);
@@ -124,7 +124,7 @@ void XMessageBox::setDefaultButton(QPushButton* button) {
 
 void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 	auto* default_button = button_box_->button(button);
-	default_button->setObjectName(qTEXT("XMessageBoxDefaultButton"));
+	default_button->setObjectName("XMessageBoxDefaultButton"_str);
 
 	QColor text_color;
 
@@ -204,7 +204,7 @@ void XMessageBox::showBug(const Exception& exception,
 		false);
 	box.hideMaskWidget();
 	box.setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
-	box.setTextFont(QFont(qTEXT("DebugFont")));
+	box.setTextFont(QFont("DebugFont"_str));
 	box.exec();
 }
 
@@ -337,7 +337,7 @@ std::tuple<QDialogButtonBox::StandardButton, bool> XMessageBox::showCheckBox(con
 	XMessageBox box(title, text, parent, buttons, default_button, enable_countdown);
 	box.setIcon(icon);
 	auto* check_box = new QCheckBox(&box);
-	check_box->setStyleSheet(qTEXT("background: transparent;"));
+	check_box->setStyleSheet("background: transparent;"_str);
 	check_box->setText(check_box_text);
 	box.addWidget(check_box);
 	if (box.exec() == -1) {

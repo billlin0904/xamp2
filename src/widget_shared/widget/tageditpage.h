@@ -19,7 +19,7 @@ namespace Ui {
 class XAMP_WIDGET_SHARED_EXPORT TagEditPage final : public QFrame {
 	Q_OBJECT
 public:
-	static constexpr ConstexprQString kCoverImageFileExt = qTEXT("(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)");
+	static constexpr ConstexprQString kCoverImageFileExt = "(*.jpg *.png *.bmp *.jpe *.jpeg *.tif *.tiff)"_str;
 	static constexpr QSize kCoverSize{ 600, 600 };
 
 	TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities);

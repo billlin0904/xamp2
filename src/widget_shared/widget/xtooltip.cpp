@@ -7,10 +7,10 @@ XTooltip::XTooltip(const QString& text, QWidget* parent)
     : QWidget(parent) {
     setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
-    setObjectName(qTEXT("XTooltip"));
+    setObjectName("XTooltip"_str);
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &XTooltip::hide);
     text_ = new QLabel(this);
-	text_->setObjectName(qTEXT("textLabel"));
+	text_->setObjectName("textLabel"_str);
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(text_, 1, Qt::AlignCenter);
     layout->setSpacing(0);
@@ -45,12 +45,12 @@ void XTooltip::onThemeChangedFinished(ThemeColor theme_color) {
     // FIXME: border-radius not work.
     switch (theme_color) {
     case ThemeColor::DARK_THEME:
-        text_->setStyleSheet(qTEXT("QLabel#textLabel { color: #FFFFFF; font-size: 14px; background: transparent; }"));
-        setStyleSheet(qTEXT("XTooltip { background-color: #424548; border: 1px solid #4d4d4d; border-radius: 8px; }"));
+        text_->setStyleSheet("QLabel#textLabel { color: #FFFFFF; font-size: 14px; background: transparent; }"_str);
+        setStyleSheet("XTooltip { background-color: #424548; border: 1px solid #4d4d4d; border-radius: 8px; }"_str);
         break;
     case ThemeColor::LIGHT_THEME:
-        text_->setStyleSheet(qTEXT("QLabel#textLabel { color: #2e2f31; font-size: 14px; background: transparent; }"));
-        setStyleSheet(qTEXT("XTooltip { background-color: #e6e6e6; border: 1px solid transparent; border-radius: 8px; }"));
+        text_->setStyleSheet("QLabel#textLabel { color: #2e2f31; font-size: 14px; background: transparent; }"_str);
+        setStyleSheet("XTooltip { background-color: #e6e6e6; border: 1px solid transparent; border-radius: 8px; }"_str);
         break;
     }
 }

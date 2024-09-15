@@ -34,7 +34,7 @@ XMainWindow::XMainWindow()
 	, screen_number_(1)
 #endif
 	, content_widget_(nullptr) {    
-    setObjectName(qTEXT("XMainWindow"));   
+    setObjectName("XMainWindow"_str);
 }
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {
@@ -73,7 +73,6 @@ void XMainWindow::ensureInitTaskbar() {
 #if defined(Q_OS_WIN)
     if (!task_bar_) {
         task_bar_.reset(new WinTaskbar(this));
-
         (void)QObject::connect(task_bar_.get(), &WinTaskbar::playClicked, [this]() {
             content_widget_->playOrPause();
             });
@@ -289,7 +288,7 @@ void XMainWindow::readDriveInfo() {
             return;
         }
 
-        auto display_name = storage.displayName() + qTEXT("(") + storage.rootPath() + qTEXT(")");
+        auto display_name = storage.displayName() + "("_str + storage.rootPath() + ")"_str;
         const auto driver_letter = storage.rootPath().left(1).toStdString()[0];
         const auto file_system_type = storage.fileSystemType();
         if (kCDFileSystemType.contains(file_system_type.toUpper())) {
@@ -302,7 +301,7 @@ void XMainWindow::readDriveInfo() {
                 DriveInfo info{
                    driver_letter ,
                    display_name,
-                    QString(qTEXT("%1:\\")).arg(driver_letter)
+                    QString("%1:\\"_str).arg(driver_letter)
                 };
                 exist_drives_[display_name] = info;
                 drives.push_back(info);

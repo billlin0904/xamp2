@@ -63,42 +63,42 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	ui_->fileSizeLineEdit->setFont(font);
 
 	for (auto& l : labels) {
-		l->setStyleSheet(qTEXT("background-color: transparent;"));
+		l->setStyleSheet("background-color: transparent;"_str);
 	}
 
 	const TagIO tag_io;
 
 	const QStringList genre_list{
-		qTEXT(""),
-		qTEXT("Blues"),
-		qTEXT("Classic Rock"),
-		qTEXT("Country"),
-		qTEXT("Dance"),
-		qTEXT("Disco"),
-		qTEXT("Funk"),
-		qTEXT("Grunge"),
-		qTEXT("Hip-Hop"),
-		qTEXT("Jazz"),
-		qTEXT("Metal"),
-		qTEXT("New Age"),
-		qTEXT("Oldies"),
-		qTEXT("Other"),
-		qTEXT("Pop"),
-		qTEXT("R&B"),
-		qTEXT("Rap"),
-		qTEXT("Reggae"),
-		qTEXT("Rock"),
-		qTEXT("Techno"),
-		qTEXT("Industrial"),
-		qTEXT("Alternative"),
-		qTEXT("Ska"),
-		qTEXT("Death Metal"),
-		qTEXT("Pranks"),
-		qTEXT("Soundtrack"),
-		qTEXT("Euro-Techno"),
-		qTEXT("Ambient"),
-		qTEXT("Trip-Hop"),
-		qTEXT("Vocal"),
+		""_str,
+		"Blues"_str,
+		"Classic Rock"_str,
+		"Country"_str,
+		"Dance"_str,
+		"Disco"_str,
+		"Funk"_str,
+		"Grunge"_str,
+		"Hip-Hop"_str,
+		"Jazz"_str,
+		"Metal"_str,
+		"New Age"_str,
+		"Oldies"_str,
+		"Other"_str,
+		"Pop"_str,
+		"R&B"_str,
+		"Rap"_str,
+		"Reggae"_str,
+		"Rock"_str,
+		"Techno"_str,
+		"Industrial"_str,
+		"Alternative"_str,
+		"Ska"_str,
+		"Death Metal"_str,
+		"Pranks"_str,
+		"Soundtrack"_str,
+		"Euro-Techno"_str,
+		"Ambient"_str,
+		"Trip-Hop"_str,
+		"Vocal"_str,
 	};
 
 	ui_->genreComboBox->addItems(genre_list);

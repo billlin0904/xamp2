@@ -292,6 +292,10 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
             hideColumn(column);
         }
 
+        if (column_setting_name_.isEmpty()) {
+            return;
+        }
+
         for (auto column = 0; column < horizontalHeader()->count(); ++column) {
             if (!isColumnHidden(column)) {
                 qAppSettings.addList(column_setting_name_, QString::number(column));
@@ -393,9 +397,8 @@ void PlaylistTableView::initial() {
  
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    verticalScrollBar()->setStyleSheet(qTEXT(
-        "QScrollBar:vertical { width: 6px; }"
-    ));
+    verticalScrollBar()->setStyleSheet(
+        "QScrollBar:vertical { width: 6px; }"_str);
 
     (void)QObject::connect(model_, &QAbstractTableModel::modelReset,
     [this] {
@@ -718,8 +721,8 @@ void PlaylistTableView::initial() {
     // note: Fix QTableView select color issue.
     setFocusPolicy(Qt::StrongFocus);
 
-    setStyleSheet(qTEXT("background-color: transparent; border: 0px;"));
-    horizontalHeader()->setStyleSheet(qTEXT("QHeaderView { background-color: transparent; }"));
+    setStyleSheet("background-color: transparent; border: 0px;"_str);
+    horizontalHeader()->setStyleSheet("QHeaderView { background-color: transparent; }"_str);
 }
 
 void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {

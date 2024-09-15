@@ -47,7 +47,7 @@ void TagWidgetItem::setEnable(bool enable) {
 		QColor color;
 		switch (qTheme.themeColor()) {
 		case ThemeColor::DARK_THEME:
-			color = QColor(qTEXT("#4d4d4d"));
+			color = QColor("#4d4d4d"_str);
 			listWidget()->itemWidget(this)->setStyleSheet(
 				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #424548;").arg(color.name())
 			);
@@ -122,7 +122,7 @@ void TagListView::setListViewFixedHeight(int32_t height) {
 void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		list_->setStyleSheet(qTEXT(
+		list_->setStyleSheet(
 		"QListWidget {"
 		"  border: none;"
 		"}"
@@ -133,11 +133,10 @@ void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 		"}"
 		"QListWidget::item:selected {"
 		"  background-color: transparent;"
-		"}"
-		));	
+		"}"_str);
 		break;
 	case ThemeColor::LIGHT_THEME:
-		list_->setStyleSheet(qTEXT(
+		list_->setStyleSheet(
 			"QListWidget {"
 			"  border: none;"
 			"}"
@@ -148,8 +147,7 @@ void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 			"}"
 			"QListWidget::item:selected {"
 			"  background-color: transparent;"
-			"}"
-		));
+			"}"_str);
 		break;
 	}
 

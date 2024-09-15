@@ -13,8 +13,8 @@
 
 namespace {
 	QMap<QString, EqSettings> getEqPresets() {
-		const auto path = QDir::currentPath() + qTEXT("/Equalizer Presets/");
-		const auto file_ext = QStringList() << qTEXT("*.feq");
+		const auto path = QDir::currentPath() + "/Equalizer Presets/"_str;
+		const auto file_ext = QStringList() << "*.feq"_str;
         QMap<QString, EqSettings> result;
 
         for (QDirIterator itr(path, file_ext, QDir::Files | QDir::NoDotAndDotDot);
@@ -113,12 +113,12 @@ SuperEqView::SuperEqView(QWidget* parent)
     f.setPointSize(qTheme.fontSize(8));
 
     for (auto& l : freq_label_) {
-        l->setStyleSheet(qTEXT("background-color: transparent;"));
+        l->setStyleSheet("background-color: transparent;"_str);
         l->setFont(f);
     }
 
     for (auto& l : bands_label_) {
-        l->setStyleSheet(qTEXT("background-color: transparent;"));
+        l->setStyleSheet("background-color: transparent;"_str);
         l->setFont(f);
     }
 

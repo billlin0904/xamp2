@@ -267,12 +267,12 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 
 	const OrderedMap<QString, std::function<AlignPtr<ILrcParser>()>> lrc_parser_map{
 		{
-			qTEXT(".lrc"), []() {
+			".lrc"_str, []() {
 			return MakeAlign<ILrcParser, LrcParser>();
 			}
 		},
 		{
-			qTEXT(".vtt"), []() {
+			".vtt"_str, []() {
 			return MakeAlign<ILrcParser, WebVTTParser>();
 			}
 		},
@@ -285,8 +285,8 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 			make_parser_func = parser_pair.second;
 			break;
 			// Path like "C:/filename.mp3.lrc"
-		} else if (QFileInfo::exists(lrc_path + qTEXT(".") + suffix + parser_pair.first)) {
-			lrc_path = lrc_path + qTEXT(".") + suffix + parser_pair.first;
+		} else if (QFileInfo::exists(lrc_path + "."_str + suffix + parser_pair.first)) {
+			lrc_path = lrc_path + "."_str + suffix + parser_pair.first;
 			make_parser_func = parser_pair.second;
 			break;
 		}
@@ -315,7 +315,7 @@ void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
 	stop();
 
     auto i = 0;
-	const auto lyrics = lrc.split(qTEXT("\n"));
+	const auto lyrics = lrc.split("\n"_str);
 
 	for (const auto &ly : lyrics) {
 		LyricEntry l;
@@ -324,7 +324,8 @@ void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
 		lyric_->addLrc(l);
 	}
 
-	stop_scroll_time_ = true;
+	//stop_scroll_time_ = true;
+	update();
 }
 
 void LyricsShowWidget::loadLrc(const QString& lrc) {

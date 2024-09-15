@@ -11,34 +11,34 @@ namespace dao {
     namespace {
         PlayListEntity fromSqlQuery(const SqlQuery& query) {
             PlayListEntity entity;
-            entity.album_id = query.value(qTEXT("albumId")).toInt();
-            entity.artist_id = query.value(qTEXT("artistId")).toInt();
-            entity.music_id = query.value(qTEXT("musicId")).toInt();
-            entity.file_path = query.value(qTEXT("path")).toString();
-            entity.track = query.value(qTEXT("track")).toUInt();
-            entity.title = query.value(qTEXT("title")).toString();
-            entity.file_name = query.value(qTEXT("fileName")).toString();
-            entity.album = query.value(qTEXT("album")).toString();
-            entity.artist = query.value(qTEXT("artist")).toString();
-            entity.file_extension = query.value(qTEXT("fileExt")).toString();
-            entity.parent_path = query.value(qTEXT("parentPath")).toString();
-            entity.duration = query.value(qTEXT("duration")).toDouble();
-            entity.bit_rate = query.value(qTEXT("bitRate")).toUInt();
-            entity.sample_rate = query.value(qTEXT("sampleRate")).toUInt();
-            entity.cover_id = query.value(qTEXT("coverId")).toString();
-            entity.rating = query.value(qTEXT("rating")).toUInt();
-            entity.album_replay_gain = query.value(qTEXT("albumReplayGain")).toDouble();
-            entity.album_peak = query.value(qTEXT("albumPeak")).toDouble();
-            entity.track_replay_gain = query.value(qTEXT("trackReplayGain")).toDouble();
-            entity.track_peak = query.value(qTEXT("trackPeak")).toDouble();
-            entity.track_loudness = query.value(qTEXT("trackLoudness")).toDouble();
+            entity.album_id = query.value("albumId"_str).toInt();
+            entity.artist_id = query.value("artistId"_str).toInt();
+            entity.music_id = query.value("musicId"_str).toInt();
+            entity.file_path = query.value("path"_str).toString();
+            entity.track = query.value("track"_str).toUInt();
+            entity.title = query.value("title"_str).toString();
+            entity.file_name = query.value("fileName"_str).toString();
+            entity.album = query.value("album"_str).toString();
+            entity.artist = query.value("artist"_str).toString();
+            entity.file_extension = query.value("fileExt"_str).toString();
+            entity.parent_path = query.value("parentPath"_str).toString();
+            entity.duration = query.value("duration"_str).toDouble();
+            entity.bit_rate = query.value("bitRate"_str).toUInt();
+            entity.sample_rate = query.value("sampleRate"_str).toUInt();
+            entity.cover_id = query.value("coverId"_str).toString();
+            entity.rating = query.value("rating"_str).toUInt();
+            entity.album_replay_gain = query.value("albumReplayGain"_str).toDouble();
+            entity.album_peak = query.value("albumPeak"_str).toDouble();
+            entity.track_replay_gain = query.value("trackReplayGain"_str).toDouble();
+            entity.track_peak = query.value("trackPeak"_str).toDouble();
+            entity.track_loudness = query.value("trackLoudness"_str).toDouble();
 
-            entity.genre = query.value(qTEXT("genre")).toString();
-            entity.comment = query.value(qTEXT("comment")).toString();
-            entity.file_size = query.value(qTEXT("fileSize")).toULongLong();
+            entity.genre = query.value("genre"_str).toString();
+            entity.comment = query.value("comment"_str).toString();
+            entity.file_size = query.value("fileSize"_str).toULongLong();
 
-            entity.lyrc = query.value(qTEXT("lyrc")).toString();
-            entity.trlyrc = query.value(qTEXT("trLyrc")).toString();
+            entity.lyrc = query.value("lyrc"_str).toString();
+            entity.trlyrc = query.value("trLyrc"_str).toString();
 
             QFileInfo file_info(entity.file_path);
             entity.file_extension = file_info.suffix();
@@ -62,10 +62,10 @@ namespace dao {
 
 		SqlQuery query(db_);
 
-		query.prepare(qTEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId)"));
+		query.prepare("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId)"_str);
 
-		query.bindValue(qTEXT(":albumId"), album_id);
-		query.bindValue(qTEXT(":coverId"), cover_id);
+		query.bindValue(":albumId"_str, album_id);
+		query.bindValue(":coverId"_str, cover_id);
 
 		DbIfFailedThrow1(query);
 	}
@@ -73,7 +73,7 @@ namespace dao {
 	std::optional<AlbumStats> AlbumDao::getAlbumStats(int32_t album_id) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
     SELECT
         SUM(musics.duration) AS durations,
         MAX(year) AS year,
@@ -84,18 +84,18 @@ namespace dao {
     JOIN albums ON albums.albumId = albumMusic.albumId
     JOIN musics ON musics.musicId = albumMusic.musicId
     WHERE
-        albums.albumId = :albumId;)"));
+        albums.albumId = :albumId;)"_str);
 
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.bindValue(":albumId"_str, album_id);
 
         DbIfFailedThrow1(query);
 
         while (query.next()) {
             AlbumStats stats;
-            stats.songs = query.value(qTEXT("tracks")).toInt();
-            stats.year = query.value(qTEXT("year")).toInt();
-            stats.durations = query.value(qTEXT("durations")).toDouble();
-            stats.file_size = query.value(qTEXT("fileSize")).toULongLong();
+            stats.songs = query.value("tracks"_str).toInt();
+            stats.year = query.value("year"_str).toInt();
+            stats.durations = query.value("durations"_str).toDouble();
+            stats.file_size = query.value("fileSize"_str).toULongLong();
             return std::optional<AlbumStats>{ std::in_place_t{}, stats };
         }
 
@@ -108,7 +108,7 @@ namespace dao {
 
         SqlQuery query(db_);
 
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
     INSERT OR REPLACE INTO albums (
       albumId, 
       album,
@@ -139,16 +139,16 @@ namespace dao {
         :year, 
         :isHiRes
       )
-    )"));
+    )"_str);
 
-        query.bindValue(qTEXT(":album"), album);
-        query.bindValue(qTEXT(":artistId"), artist_id);
-        query.bindValue(qTEXT(":coverId"), getAlbumCoverId(album));
-        query.bindValue(qTEXT(":storeType"), static_cast<int32_t>(store_type));
-        query.bindValue(qTEXT(":dateTime"), album_time);
-        query.bindValue(qTEXT(":discId"), disc_id);
-        query.bindValue(qTEXT(":year"), year);
-        query.bindValue(qTEXT(":isHiRes"), is_hires);
+        query.bindValue(":album"_str, album);
+        query.bindValue(":artistId"_str, artist_id);
+        query.bindValue(":coverId"_str, getAlbumCoverId(album));
+        query.bindValue(":storeType"_str, static_cast<int32_t>(store_type));
+        query.bindValue(":dateTime"_str, album_time);
+        query.bindValue(":discId"_str, disc_id);
+        query.bindValue(":year"_str, year);
+        query.bindValue(":isHiRes"_str, is_hires);
 
         DbIfFailedThrow1(query);
 
@@ -159,10 +159,10 @@ namespace dao {
     void AlbumDao::updateAlbum(int32_t album_id, const QString& album) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE albums SET album = :album WHERE (albumId = :albumId)"));
+        query.prepare("UPDATE albums SET album = :album WHERE (albumId = :albumId)"_str);
 
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":album"), album);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":album"_str, album);
 
         DbIfFailedThrow1(query);
     }
@@ -170,10 +170,10 @@ namespace dao {
     void AlbumDao::updateAlbumHeart(int32_t album_id, uint32_t heart) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE albums SET heart = :heart WHERE (albumId = :albumId)"));
+        query.prepare("UPDATE albums SET heart = :heart WHERE (albumId = :albumId)"_str);
 
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":heart"), heart);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":heart"_str, heart);
 
         DbIfFailedThrow1(query);
     }
@@ -181,20 +181,20 @@ namespace dao {
     void AlbumDao::updateAlbumPlays(int32_t album_id) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE albums SET plays = plays + 1 WHERE (albumId = :albumId)"));
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.prepare("UPDATE albums SET plays = plays + 1 WHERE (albumId = :albumId)"_str);
+        query.bindValue(":albumId"_str, album_id);
         DbIfFailedThrow1(query);
     }
 
     QString AlbumDao::getAlbumCoverId(int32_t album_id) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("SELECT coverId FROM albums WHERE albumId = (:albumId)"));
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.prepare("SELECT coverId FROM albums WHERE albumId = (:albumId)"_str);
+        query.bindValue(":albumId"_str, album_id);
 
         DbIfFailedThrow1(query);
 
-        const auto index = query.record().indexOf(qTEXT("coverId"));
+        const auto index = query.record().indexOf("coverId"_str);
         if (query.next()) {
             return query.value(index).toString();
         }
@@ -204,12 +204,12 @@ namespace dao {
     int32_t AlbumDao::getAlbumId(const QString& album) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("SELECT albumId FROM albums WHERE album = (:album)"));
-        query.bindValue(qTEXT(":album"), album);
+        query.prepare("SELECT albumId FROM albums WHERE album = (:album)"_str);
+        query.bindValue(":album"_str, album);
 
         DbIfFailedThrow1(query);
 
-        const auto index = query.record().indexOf(qTEXT("albumId"));
+        const auto index = query.record().indexOf("albumId"_str);
         if (query.next()) {
             return query.value(index).toInt();
         }
@@ -219,12 +219,12 @@ namespace dao {
     QString AlbumDao::getAlbumCoverId(const QString& album) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("SELECT coverId FROM albums WHERE album = (:album)"));
-        query.bindValue(qTEXT(":album"), album);
+        query.prepare("SELECT coverId FROM albums WHERE album = (:album)"_str);
+        query.bindValue(":album"_str, album);
 
         DbIfFailedThrow1(query);
 
-        const auto index = query.record().indexOf(qTEXT("coverId"));
+        const auto index = query.record().indexOf("coverId"_str);
         if (query.next()) {
             return query.value(index).toString();
         }
@@ -233,22 +233,22 @@ namespace dao {
 
     void AlbumDao::removeAlbumCategory(int32_t album_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM albumCategories WHERE albumId=:albumId"));
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.prepare("DELETE FROM albumCategories WHERE albumId=:albumId"_str);
+        query.bindValue(":albumId"_str, album_id);
         DbIfFailedThrow1(query);
     }
 
     void AlbumDao::removeAlbumMusicAlbum(int32_t album_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM albumMusic WHERE albumId=:albumId"));
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.prepare("DELETE FROM albumMusic WHERE albumId=:albumId"_str);
+        query.bindValue(":albumId"_str, album_id);
         DbIfFailedThrow1(query);
     }
 
     int32_t AlbumDao::getRandomMusicId(int32_t album_id, PRNG& rng) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("SELECT musicId FROM albumMusic WHERE albumId = :album_id"));
-        query.bindValue(qTEXT(":album_id"), album_id);
+        query.prepare("SELECT musicId FROM albumMusic WHERE albumId = :album_id"_str);
+        query.bindValue(":album_id"_str, album_id);
 
         DbIfFailedThrow1(query);
 
@@ -267,8 +267,8 @@ namespace dao {
 
     int32_t AlbumDao::getRandomAlbumId(int32_t album_id, PRNG& rng) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("SELECT albumId FROM albums WHERE albumId != :album_id"));
-        query.bindValue(qTEXT(":album_id"), album_id);
+        query.prepare("SELECT albumId FROM albums WHERE albumId != :album_id"_str);
+        query.bindValue(":album_id"_str, album_id);
 
         DbIfFailedThrow1(query);
 
@@ -314,21 +314,21 @@ namespace dao {
         }
 
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM albums WHERE albumId=:albumId"));
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.prepare("DELETE FROM albums WHERE albumId=:albumId"_str);
+        query.bindValue(":albumId"_str, album_id);
         DbIfFailedThrow1(query);
     }
 
     void AlbumDao::addAlbumCategory(int32_t album_id, const QString& category) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
     INSERT INTO albumCategories (albumCategoryId, albumId, category)
     VALUES (NULL, :albumId, :category)
-    )"));
+    )"_str);
 
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":category"), category);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":category"_str, category);
 
         DbIfFailedThrow1(query);
     }
@@ -336,13 +336,13 @@ namespace dao {
     void AlbumDao::addOrUpdateAlbumCategory(int32_t album_id, const QString& category) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
     INSERT OR REPLACE INTO albumCategories (albumCategoryId, albumId, category)
     VALUES ((SELECT albumCategoryId FROM albumCategories WHERE albumId = :albumId), :albumId, :category)
-    )"));
+    )"_str);
 
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":category"), category);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":category"_str, category);
 
         DbIfFailedThrow1(query);
     }
@@ -350,24 +350,24 @@ namespace dao {
     void AlbumDao::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
     INSERT INTO albumArtist (albumArtistId, albumId, artistId)
     VALUES (NULL, :albumId, :artistId)
-    )"));
+    )"_str);
 
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":artistId"), artist_id);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":artistId"_str, artist_id);
 
         DbIfFailedThrow1(query);
     }
 
     int32_t AlbumDao::getAlbumIdByDiscId(const QString& disc_id) const {
         SqlQuery query(db_);
-        query.prepare(qTEXT("SELECT albumId FROM albums WHERE discId = (:discId)"));
-        query.bindValue(qTEXT(":discId"), disc_id);
+        query.prepare("SELECT albumId FROM albums WHERE discId = (:discId)"_str);
+        query.bindValue(":discId"_str, disc_id);
         DbIfFailedThrow1(query);
 
-        const auto index = query.record().indexOf(qTEXT("albumId"));
+        const auto index = query.record().indexOf("albumId"_str);
         if (query.next()) {
             return query.value(index).toInt();
         }
@@ -377,23 +377,23 @@ namespace dao {
     void AlbumDao::updateAlbumByDiscId(const QString& disc_id, const QString& album) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE albums SET album = :album WHERE (discId = :discId)"));
+        query.prepare("UPDATE albums SET album = :album WHERE (discId = :discId)"_str);
 
-        query.bindValue(qTEXT(":album"), album);
-        query.bindValue(qTEXT(":discId"), disc_id);
+        query.bindValue(":album"_str, album);
+        query.bindValue(":discId"_str, disc_id);
 
         DbIfFailedThrow1(query);
     }
 
     void AlbumDao::removeAlbumArtist(int32_t album_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM albumArtist WHERE albumId=:albumId"));
-        query.bindValue(qTEXT(":albumId"), album_id);
+        query.prepare("DELETE FROM albumArtist WHERE albumId=:albumId"_str);
+        query.bindValue(":albumId"_str, album_id);
         DbIfFailedThrow1(query);
     }
 
     std::optional<QString> AlbumDao::getAlbumFirstMusicFilePath(int32_t album_id) const {
-        SqlQuery query(qTEXT(R"(
+        SqlQuery query(R"(
 SELECT
     musics.path
 FROM
@@ -404,32 +404,32 @@ WHERE
     albums.albumId = ?
 LIMIT
     1;
-)"), db_);
+)"_str, db_);
         query.addBindValue(album_id);
         query.exec();
         while (query.next()) {
-            return  std::optional<QString> { std::in_place_t{}, query.value(qTEXT("path")).toString() };
+            return  std::optional<QString> { std::in_place_t{}, query.value("path"_str).toString() };
         }
         return std::nullopt;
     }
 
     void AlbumDao::removeAlbumMusic(int32_t album_id, int32_t music_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM albumMusic WHERE albumId=:albumId AND musicId=:musicId"));
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":musicId"), music_id);
+        query.prepare("DELETE FROM albumMusic WHERE albumId=:albumId AND musicId=:musicId"_str);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":musicId"_str, music_id);
         DbIfFailedThrow1(query);
     }
 
     int32_t AlbumDao::getAlbumIdFromAlbumMusic(int32_t music_id) {
         SqlQuery query(db_);
         
-        query.prepare(qTEXT("SELECT albumId FROM albumMusic WHERE musicId = (:musicId)"));
-        query.bindValue(qTEXT(":musicId"), music_id);
+        query.prepare("SELECT albumId FROM albumMusic WHERE musicId = (:musicId)"_str);
+        query.bindValue(":musicId"_str, music_id);
         query.exec();
         
         if (query.next()) {
-            return query.value(qTEXT("albumId")).toInt();
+            return query.value("albumId"_str).toInt();
         }
         return kInvalidDatabaseId;
     }
@@ -441,14 +441,14 @@ LIMIT
       
       SqlQuery query(db_);
       
-      query.prepare(qTEXT(R"(
+      query.prepare(R"(
       INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
       VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
-      )"));
+      )"_str);
       
-      query.bindValue(qTEXT(":albumId"), album_id);
-      query.bindValue(qTEXT(":artistId"), artist_id);
-      query.bindValue(qTEXT(":musicId"), music_id);
+      query.bindValue(":albumId"_str, album_id);
+      query.bindValue(":artistId"_str, artist_id);
+      query.bindValue(":musicId"_str, music_id);
       
       DbIfFailedThrow1(query);    
     }
@@ -456,13 +456,13 @@ LIMIT
     void AlbumDao::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) {
       SqlQuery query(db_);
 
-      query.prepare(qTEXT(R"(
+      query.prepare(R"(
       INSERT INTO albumArtist (albumArtistId, albumId, artistId)
       VALUES (NULL, :albumId, :artistId)
-      )"));
+      )"_str);
       
-      query.bindValue(qTEXT(":albumId"), album_id);
-      query.bindValue(qTEXT(":artistId"), artist_id);
+      query.bindValue(":albumId"_str, album_id);
+      query.bindValue(":artistId"_str, artist_id);
       
       DbIfFailedThrow1(query);
     }
@@ -474,13 +474,13 @@ LIMIT
         double track_peak) {
         SqlQuery query(db_);
     
-        query.prepare(qTEXT("UPDATE musics SET albumReplayGain = :albumReplayGain, albumPeak = :albumPeak, trackReplayGain = :trackReplayGain, trackPeak = :trackPeak WHERE (musicId = :musicId)"));
+        query.prepare("UPDATE musics SET albumReplayGain = :albumReplayGain, albumPeak = :albumPeak, trackReplayGain = :trackReplayGain, trackPeak = :trackPeak WHERE (musicId = :musicId)"_str);
     
-        query.bindValue(qTEXT(":musicId"), music_id);
-        query.bindValue(qTEXT(":albumReplayGain"), album_rg_gain);
-        query.bindValue(qTEXT(":albumPeak"), album_peak);
-        query.bindValue(qTEXT(":trackReplayGain"), track_rg_gain);
-        query.bindValue(qTEXT(":trackPeak"), track_peak);
+        query.bindValue(":musicId"_str, music_id);
+        query.bindValue(":albumReplayGain"_str, album_rg_gain);
+        query.bindValue(":albumPeak"_str, album_peak);
+        query.bindValue(":trackReplayGain"_str, track_rg_gain);
+        query.bindValue(":trackPeak"_str, track_peak);
     
         DbIfFailedThrow1(query);
     }
@@ -488,7 +488,7 @@ LIMIT
     void AlbumDao::addOrUpdateTrackLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness) {
         SqlQuery query(db_);
     
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
         INSERT OR REPLACE INTO musicLoudness (musicLoudnessId, albumId, artistId, musicId, trackLoudness)
         VALUES
         (
@@ -498,12 +498,12 @@ LIMIT
         :musicId,
         :trackLoudness
         )
-        )"));
+        )"_str);
     
-        query.bindValue(qTEXT(":albumId"), album_id);
-        query.bindValue(qTEXT(":artistId"), artist_id);
-        query.bindValue(qTEXT(":musicId"), music_id);
-        query.bindValue(qTEXT(":trackLoudness"), track_loudness);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":artistId"_str, artist_id);
+        query.bindValue(":musicId"_str, music_id);
+        query.bindValue(":trackLoudness"_str, track_loudness);
     
         DbIfFailedThrow1(query);
     }
@@ -512,12 +512,12 @@ LIMIT
       QStringList categories;
       SqlQuery query(db_);
       
-      query.prepare(qTEXT("SELECT category FROM albumCategories GROUP BY category"));
+      query.prepare("SELECT category FROM albumCategories GROUP BY category"_str);
       
       DbIfFailedThrow1(query);
       
       while (query.next()) {
-          categories.append(query.value(qTEXT("category")).toString());
+          categories.append(query.value("category"_str).toString());
       }
       return categories;
     }
@@ -526,7 +526,7 @@ LIMIT
         QStringList years;
     
         SqlQuery query(db_);
-        query.prepare(qTEXT(R"(
+        query.prepare(R"(
     SELECT
         year AS group_year,
         COUNT(*) AS count
@@ -534,13 +534,13 @@ LIMIT
     WHERE group_year != 0
     GROUP BY group_year
     ORDER BY group_year DESC;
-        )")
+        )"_str
         );
     
         DbIfFailedThrow1(query);
     
         while (query.next()) {
-            auto genre = query.value(qTEXT("group_year")).toString();
+            auto genre = query.value("group_year"_str).toString();
             if (genre.isEmpty()) {
                 continue;
             }
@@ -550,7 +550,7 @@ LIMIT
     }
 
     void AlbumDao::forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const&)>&& fun) {
-        SqlQuery query(qTEXT(R"(
+        SqlQuery query(R"(
     SELECT
         albumMusic.albumId,
         albumMusic.artistId,
@@ -568,7 +568,7 @@ LIMIT
         LEFT JOIN musicLoudness ON musicLoudness.musicId = albumMusic.musicId
     WHERE
         albums.albumId = ?
-    )"), db_);
+    )"_str, db_);
         query.addBindValue(album_id);
     
         if (!query.exec()) {
@@ -584,14 +584,14 @@ LIMIT
         SqlQuery query(db_);
         
         if (album_id != kInvalidDatabaseId) {
-            query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId) AND storeType == 1"));
-            query.bindValue(qTEXT(":albumId"), album_id);
+            query.prepare("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId) AND storeType == 1"_str);
+            query.bindValue(":albumId"_str, album_id);
         }
         else {
-            query.prepare(qTEXT("UPDATE albums SET isSelected = :isSelected WHERE storeType == 1"));
+            query.prepare("UPDATE albums SET isSelected = :isSelected WHERE storeType == 1"_str);
         }
         
-        query.bindValue(qTEXT(":isSelected"), state ? 1: 0);
+        query.bindValue(":isSelected"_str, state ? 1: 0);
         
         DbIfFailedThrow1(query);
     }
@@ -600,11 +600,11 @@ LIMIT
         QList<int32_t> selected_albums;
         SqlQuery query(db_);
         
-        query.prepare(qTEXT("SELECT albumId FROM albums WHERE isSelected = 1"));
+        query.prepare("SELECT albumId FROM albums WHERE isSelected = 1"_str);
         
         DbIfFailedThrow1(query);
         
-        const auto index = query.record().indexOf(qTEXT("albumId"));
+        const auto index = query.record().indexOf("albumId"_str);
         while (query.next()) {
             selected_albums.append(query.value(index).toInt());
         }
@@ -614,10 +614,10 @@ LIMIT
     void AlbumDao::forEachAlbum(std::function<void(int32_t)>&& fun) {
         SqlQuery query(db_);
         
-        query.prepare(qTEXT("SELECT albumId FROM albums"));
+        query.prepare("SELECT albumId FROM albums"_str);
         DbIfFailedThrow1(query);
         while (query.next()) {
-            fun(query.value(qTEXT("albumId")).toInt());
+            fun(query.value("albumId"_str).toInt());
         }
     }
 }

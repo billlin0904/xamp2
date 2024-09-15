@@ -11,8 +11,9 @@ NetworkDiskCache::NetworkDiskCache(QObject* parent)
 	: QAbstractNetworkCache(parent) {
 	QMutexLocker l(&mutex_);
 	if (!cache_) {
-		cache_ = new QNetworkDiskCache();
+		cache_ = new QNetworkDiskCache(parent);
 		cache_->setCacheDirectory(qAppSettings.getOrCreateCachePath());
+		cache_->setMaximumCacheSize(5 * 1024 * 1024);
 	}	
 }
 

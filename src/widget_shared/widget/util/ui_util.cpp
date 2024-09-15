@@ -46,7 +46,7 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     auto format = playback_format.file_format;
 
     auto ext = file_ext;
-    ext = ext.remove(qTEXT(".")).toUpper();
+    ext = ext.remove("."_str).toUpper();
 
     auto precision = 1;
     auto is_mhz_sample_rate = false;
@@ -62,8 +62,8 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     QString dsd_speed_format;
     if (playback_format.is_dsd_file
         && (playback_format.dsd_mode == DsdModes::DSD_MODE_NATIVE || playback_format.dsd_mode == DsdModes::DSD_MODE_DOP)) {
-        dsd_speed_format = qTEXT("DSD") + QString::number(playback_format.dsd_speed);
-        dsd_speed_format = qTEXT("(") + dsd_speed_format + qTEXT(") | ");
+        dsd_speed_format = "DSD"_str + QString::number(playback_format.dsd_speed);
+        dsd_speed_format = "("_str + dsd_speed_format + ") | "_str;
         bits = 1;
     }
 
@@ -75,36 +75,36 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     case DsdModes::DSD_MODE_DSD2PCM:
         output_format_str = formatSampleRate(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += qTEXT("/") + formatSampleRate(playback_format.output_format);
+            output_format_str += "/"_str + formatSampleRate(playback_format.output_format);
         }
         break;
     case DsdModes::DSD_MODE_NATIVE:
-        dsd_mode = qTEXT("Native DSD");
+        dsd_mode = "Native DSD"_str;
         output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
         break;
     case DsdModes::DSD_MODE_DOP:
-        dsd_mode = qTEXT("DOP");
+        dsd_mode = "DOP"_str;
         output_format_str = formatDsdSampleRate(playback_format.dsd_speed);
         break;
     default: 
         break;
     }
 
-    const auto bit_format = QString::number(bits) + qTEXT("bit");
+    const auto bit_format = QString::number(bits) + "bit"_str;
 
     auto result = ext
-        + qTEXT(" | ")
+        + " | "_str
         + dsd_speed_format
         + output_format_str
-        + qTEXT(" | ")
+        + " | "_str
         + bit_format;
 
     if (!dsd_mode.isEmpty()) {
-        result += qTEXT(" | ") + dsd_mode;
+        result += " | "_str + dsd_mode;
     }
 #if 0
     if (playback_format.bit_rate > 0) {
-        result += qTEXT(" | ") + FormatBitRate(playback_format.bit_rate);
+        result += " | ") + FormatBitRate(playback_format.bit_rate);
     }
 #endif
     return result;
@@ -239,13 +239,13 @@ IXMainWindow* getMainWindow() {
 QString getFileDialogFileExtensions() {
     static QString file_extension;
     if (file_extension.isEmpty()) {
-        QString exts(qTEXT("("));
+        QString exts("("_str);
         const auto file_exts = GetSupportFileExtensions();
         for (const auto& file_ext : file_exts) {
-            exts += qTEXT("*") + QString::fromStdString(file_ext);
-            exts += qTEXT(" ");
+            exts += "*"_str + QString::fromStdString(file_ext);
+            exts += " "_str;
         }
-        exts += qTEXT(")");
+        exts += ")"_str;
         file_extension = exts;
     }
     return file_extension;
@@ -335,7 +335,7 @@ const QStringList& getTrackInfoFileNameFilter() {
             for (auto& file_ext : GetSupportFileExtensions()) {
                 name_filter << qFormat("*%1").arg(QString::fromStdString(file_ext));
             }
-            name_filter << qTEXT("*.cue");
+            name_filter << "*.cue"_str;
         }
         QStringList name_filter;
     };

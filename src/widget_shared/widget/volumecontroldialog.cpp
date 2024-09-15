@@ -38,10 +38,10 @@ VolumeControlDialog::VolumeControlDialog(const std::shared_ptr<IAudioPlayer> &pl
     setVolume(qAppSettings.valueAsInt(kAppSettingVolume));
 
     auto f = font();
-    f.setFamily(qTEXT("MonoFont"));
+    f.setFamily("MonoFont"_str);
     ui_->volumeLabel->setFont(f);
-    ui_->volumeLabel->setStyleSheet(qTEXT("background-color: transparent; color: gray;"));
-    ui_->volumeSlider->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_->volumeLabel->setStyleSheet("background-color: transparent; color: gray;"_str);
+    ui_->volumeSlider->setStyleSheet("background-color: transparent;"_str);
 
     qTheme.setSliderTheme(ui_->volumeSlider, true);
 }

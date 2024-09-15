@@ -470,7 +470,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_view_->reload();
 	artist_view_->reload();
 
-	setStyleSheet(qTEXT("background-color: transparent; border: none;"));
+	setStyleSheet("background-color: transparent; border: none;"_str);
 }
 
 void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
@@ -481,8 +481,8 @@ void AlbumArtistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	album_tag_list_widget_->onThemeChangedFinished(theme_color);
 	artist_tag_list_widget_->onThemeChangedFinished(theme_color);
 
-	qTheme.setLineEditStyle(album_search_line_edit_, qTEXT("albumSearchLineEdit"));
-	qTheme.setLineEditStyle(artist_search_line_edit_, qTEXT("artistSearchLineEdit"));
+	qTheme.setLineEditStyle(album_search_line_edit_, "albumSearchLineEdit"_str);
+	qTheme.setLineEditStyle(artist_search_line_edit_, "artistSearchLineEdit"_str);
 
 	album_search_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
 	artist_search_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));

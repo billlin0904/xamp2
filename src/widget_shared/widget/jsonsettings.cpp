@@ -24,7 +24,7 @@ namespace {
 
 void JsonSettings::loadJsonFile(const QString& file_name) {
 	const auto json_format =
-		QSettings::registerFormat(qTEXT("json"), readJsonFile, writeJsonFile);
+		QSettings::registerFormat("json"_str, readJsonFile, writeJsonFile);
 	settings_.reset(new QSettings(file_name, json_format));
 }
 

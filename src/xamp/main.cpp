@@ -90,11 +90,11 @@ namespace {
         }
 
         // Skip PNG image error
-        if (str.contains(qTEXT("qpnghandler.cpp"))) {
+        if (str.contains("qpnghandler.cpp"_str)) {
             return;
         }
 
-        if (str.contains(qTEXT("qwindowswindow.cpp"))) {
+        if (str.contains("qwindowswindow.cpp"_str)) {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
@@ -145,18 +145,18 @@ namespace {
             return -1;
         }*/
 
-        app.setTheme();
 		app.initial();
         app.loadLang();
         app.loadSampleRateConverterConfig();
+        app.setTheme();
         
 #ifdef _DEBUG
         qInstallMessageHandler(logMessageHandler);
-        QLoggingCategory::setFilterRules(qTEXT("*.info=false"));
+        QLoggingCategory::setFilterRules("*.info=false"_str);
 #endif
 
         if (!QSslSocket::supportsSsl()) {
-            XMessageBox::showError(qTEXT("SSL initialization failed."));
+            XMessageBox::showError("SSL initialization failed."_str);
             return -1;
         }
 

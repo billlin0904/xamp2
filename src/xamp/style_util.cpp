@@ -16,7 +16,7 @@ void setRepeatOncePlayOrder(Ui::XampWindow& ui) {
 
 void setNaviBarMenuButton(Ui::XampWindow& ui) {
     if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
-        ui.naviBarButton->setStyleSheet(qTEXT(R"(
+        ui.naviBarButton->setStyleSheet(R"(
         QToolButton#naviBarButton {
 			border: none;
 			background-color: transparent;
@@ -26,10 +26,10 @@ void setNaviBarMenuButton(Ui::XampWindow& ui) {
 			background-color: #e1e3e5;
 			border-radius: 4px;
 		}
-		)"));
+		)"_str);
     }
     else {
-        ui.naviBarButton->setStyleSheet(qTEXT(R"(
+        ui.naviBarButton->setStyleSheet(R"(
         QToolButton#naviBarButton {
 			border: none;
 			background-color: transparent;
@@ -39,7 +39,7 @@ void setNaviBarMenuButton(Ui::XampWindow& ui) {
 			background-color: #43474e;
 			border-radius: 4px;
 		}
-		)"));
+		)"_str);
     }
     ui.naviBarButton->setIconSize(QSize(22, 22));
     ui.naviBarButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MENU));
@@ -47,7 +47,7 @@ void setNaviBarMenuButton(Ui::XampWindow& ui) {
 
 void setAuthButton(Ui::XampWindow& ui, bool auth) {
     /*if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
-        ui.authButton->setStyleSheet(qTEXT(R"(
+        ui.authButton->setStyleSheet(R"(
         QToolButton#authButton {
 			border: none;
 			background-color: transparent;
@@ -60,7 +60,7 @@ void setAuthButton(Ui::XampWindow& ui, bool auth) {
 		)"));
     }
     else {
-        ui.authButton->setStyleSheet(qTEXT(R"(
+        ui.authButton->setStyleSheet(R"(
         QToolButton#authButton {
 			border: none;
 			background-color: transparent;
@@ -109,29 +109,29 @@ void setThemeIcon(Ui::XampWindow& ui) {
 
     ui.menuButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MORE));
 #else
-    ui.nextButton->setStyleSheet(qTEXT(R"(
+    ui.nextButton->setStyleSheet(R"(
                                         QToolButton#nextButton {
                                         border: none;
                                         background-color: transparent;
                                         }
-                                        )"));
+                                        )"_str);
     ui.nextButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD));
 
-    ui.prevButton->setStyleSheet(qTEXT(R"(
+    ui.prevButton->setStyleSheet(R"(
                                         QToolButton#prevButton {
                                         border: none;
                                         background-color: transparent;
                                         }
-                                        )"));
+                                        )"_str);
     ui.prevButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD));
 
-    ui.selectDeviceButton->setStyleSheet(qTEXT(R"(
+    ui.selectDeviceButton->setStyleSheet(R"(
                                                 QToolButton#selectDeviceButton {                                                
                                                 border: none;
                                                 background-color: transparent;                                                
                                                 }
                                                 QToolButton#selectDeviceButton::menu-indicator { image: none; }
-                                                )"));
+                                                )"_str);
     ui.selectDeviceButton->setIcon(qTheme.fontIcon(Glyphs::ICON_SPEAKER));
 
     ui.mutedButton->setStyleSheet(qFormat(R"(
@@ -142,24 +142,23 @@ void setThemeIcon(Ui::XampWindow& ui) {
                                          }
                                          )").arg(qTheme.themeColorPath()));
 
-    ui.eqButton->setStyleSheet(qTEXT(R"(
+    ui.eqButton->setStyleSheet(R"(
                                          QToolButton#eqButton {
                                          border: none;
                                          background-color: transparent;
                                          }
-                                         )"));
+                                         )"_str);
 
     //ui.authButton->setIconSize(QSize(24, 24));
 
     ui.eqButton->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
 
-    ui.repeatButton->setStyleSheet(qTEXT(R"(
+    ui.repeatButton->setStyleSheet(R"(
     QToolButton#repeatButton {
     border: none;
     background: transparent;
     }
-    )"
-    ));
+    )"_str);
 #endif
     ui.naviBarButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MENU));
 }
@@ -185,10 +184,10 @@ void setNaviBarTheme(NavBarListView* navi_bar) {
 
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
-        tab_left_color = qTEXT("42, 130, 218");
+        tab_left_color = "42, 130, 218"_str;
         break;
     case ThemeColor::LIGHT_THEME:
-        tab_left_color = qTEXT("42, 130, 218");
+        tab_left_color = "42, 130, 218"_str;
         break;
     }
 
@@ -215,40 +214,40 @@ void setNaviBarTheme(NavBarListView* navi_bar) {
 void setWidgetStyle(Ui::XampWindow& ui) {
     ui.selectDeviceButton->setIconSize(QSize(32, 32));
 
-    ui.playButton->setStyleSheet(qTEXT(R"(
+    ui.playButton->setStyleSheet(R"(
                                             QToolButton#playButton {
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )"));
+                                            )"_str);
 
-    QFont duration_font(qTEXT("MonoFont"));
+    QFont duration_font("MonoFont"_str);
     duration_font.setPointSize(qTheme.fontSize(8));
     duration_font.setWeight(QFont::Bold);
 
-    ui.startPosLabel->setStyleSheet(qTEXT(R"(
+    ui.startPosLabel->setStyleSheet(R"(
                                            QLabel#startPosLabel {
                                            color: gray;
                                            background-color: transparent;
                                            }
-                                           )"));
+                                           )"_str);
 
-    ui.endPosLabel->setStyleSheet(qTEXT(R"(
+    ui.endPosLabel->setStyleSheet(R"(
                                          QLabel#endPosLabel {
                                          color: gray;
                                          background-color: transparent;
                                          }
-                                         )"));
+                                         )"_str);
     ui.startPosLabel->setFont(duration_font);
     ui.endPosLabel->setFont(duration_font);
 
     if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
-        ui.titleLabel->setStyleSheet(qTEXT(R"(
+        ui.titleLabel->setStyleSheet(R"(
                                          QLabel#titleLabel {
                                          color: white;
                                          background-color: transparent;
                                          }
-                                         )"));
+                                         )"_str);
 
         //      ui.currentView->setStyleSheet(qFormat(R"(
         // QStackedWidget#currentView {
@@ -269,7 +268,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                  )"));
 
         ui.bottomFrame->setStyleSheet(
-            qTEXT(R"(
+            R"(
             QFrame#bottomFrame{
                 border-top: none;
                 border-radius: 0px;
@@ -277,17 +276,17 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 				border-left: none;
 				border-right: none;
             }
-            )"));
+            )"_str);
     }
     else {
-        ui.titleLabel->setStyleSheet(qTEXT(R"(
+        ui.titleLabel->setStyleSheet(R"(
                                          QLabel#titleLabel {
                                          color: black;
                                          background-color: transparent;
                                          }
-                                         )"));
+                                         )"_str);
 
-   //      ui.currentView->setStyleSheet(qTEXT(R"(
+   //      ui.currentView->setStyleSheet(R"(
             // QStackedWidget#currentView {
    //              padding: 0px;
             // 	background-color: #f9f9f9;
@@ -297,7 +296,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
    //          )"));
 
         ui.bottomFrame->setStyleSheet(
-            qTEXT(R"(
+            R"(
             QFrame#bottomFrame {
                 border-top: none;
                 border-radius: 0px;
@@ -305,24 +304,24 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 				border-left: none;
 				border-right: none;
             }
-            )"));
+            )"_str);
     }
 
-    ui.artistLabel->setStyleSheet(qTEXT(R"(
+    ui.artistLabel->setStyleSheet(R"(
                                          QLabel#artistLabel {
                                          color: rgb(250, 88, 106);
                                          background-color: transparent;
                                          }
-                                         )"));
+                                         )"_str);
 
     setNaviBarTheme(ui.naviBar);
     qTheme.setSliderTheme(ui.seekSlider);
 
-    ui.deviceDescLabel->setStyleSheet(qTEXT("background: transparent;"));
+    ui.deviceDescLabel->setStyleSheet("background: transparent;"_str);
 
     setThemeIcon(ui);
-    ui.sliderFrame->setStyleSheet(qTEXT("background: transparent; border: none;"));
-    ui.sliderFrame2->setStyleSheet(qTEXT("background: transparent; border: none;"));
+    ui.sliderFrame->setStyleSheet("background: transparent; border: none;"_str);
+    ui.sliderFrame2->setStyleSheet("background: transparent; border: none;"_str);
 
     //ui.currentView->hide();
 }

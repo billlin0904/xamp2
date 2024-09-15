@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="xapplication.cpp" />
+    <ClCompile Include="style_util.cpp" />
+    <ClCompile Include="xamp.cpp" />
+    <ClCompile Include="models\musicplayermodel.cpp">
+      <Filter>models</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\msiccntroller.cpp">
+      <Filter>models</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="zh_TW.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="xapplication.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="style_util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
+    <ResourceCompile Include="xamp.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="xamp.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="xamp.h" />
+    <QtMoc Include="controllers\msiccntroller.h">
+      <Filter>models</Filter>
+    </QtMoc>
+    <QtMoc Include="models\musicplayermodel.h">
+      <Filter>models</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resource\Theme\dark\darkstyle.qrc" />
+    <QtRcc Include="Resource\Theme\light\lightstyle.qrc" />
+    <QtRcc Include="xamp.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="xamp.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.gitignore" />
+    <None Include="..\versions\updates.json" />
+    <None Include="config.json" />
+    <None Include="migrations\2024-01-12-093210_init\up.sql" />
+    <None Include="Resource\Theme\dark\style.qss" />
+    <None Include="Resource\Theme\light\style.qss" />
+    <None Include="xamp.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="credits.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="controllers">
+      <UniqueIdentifier>{74f0ef72-7e21-4b25-b823-945e8b5ba295}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="models">
+      <UniqueIdentifier>{51f1220b-08bc-4425-a0ec-d049133371cb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

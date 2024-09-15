@@ -13,7 +13,7 @@ namespace {
 		qApp->removeTranslator(&translator);
 
 		auto path = qApp->applicationDirPath();
-		path.append(qTEXT("/langs/"));
+		path.append("/langs/"_str);
 
 		if (translator.load(path + filename)) {
 			qApp->installTranslator(&translator);
@@ -57,15 +57,15 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	QList<LocaleLanguage> languages_list;
 
 	auto path = QApplication::applicationDirPath();
-	path.append(qTEXT("/langs"));
+	path.append("/langs"_str);
 	QDir dir(path);
 
-	auto file_names = dir.entryList(QStringList(qTEXT("*.qm")));
+	auto file_names = dir.entryList(QStringList("*.qm"_str));
 	for (auto locale : file_names) {
-        if (locale.contains(qTEXT("qt")) || locale.contains(qTEXT("widget_shared"))) {
+        if (locale.contains("qt"_str) || locale.contains("widget_shared"_str)) {
 			continue;
 		}
-		locale.truncate(locale.lastIndexOf(qTEXT(".")));
+		locale.truncate(locale.lastIndexOf("."_str));
 		languages_list.append(LocaleLanguage(locale));
 	}
 
@@ -73,7 +73,7 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 }
 
 void LocaleLanguageManager::loadPrefixTranslator(QTranslator& translator, const QString& prefix, const QString& lang) {
-	const auto qt_lang_file_name = QString(qTEXT("%1_%2.qm")).arg(prefix).arg(lang);
+	const auto qt_lang_file_name = QString("%1_%2.qm"_str).arg(prefix).arg(lang);
 	switchTranslator(translator, qt_lang_file_name);
 }
 
@@ -82,9 +82,9 @@ void LocaleLanguageManager::loadLanguage(const QString& lang) {
 		current_lang_ = lang;
 		locale_ = QLocale(lang);
 		QLocale::setDefault(locale_);
-		loadPrefixTranslator(qt_translator_, qTEXT("qt"), lang);
-		loadPrefixTranslator(widget_shared_translator_, qTEXT("widget_shared"), lang);
-		switchTranslator(translator_, QString(qTEXT("%1.qm")).arg(lang));
+		loadPrefixTranslator(qt_translator_, "qt"_str, lang);
+		loadPrefixTranslator(widget_shared_translator_, "widget_shared"_str, lang);
+		switchTranslator(translator_, QString("%1.qm"_str).arg(lang));
 	}
 }
 

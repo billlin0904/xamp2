@@ -11,6 +11,7 @@
 
 #include <stream/stream.h>
 #include <base/singleton.h>
+#include <base/shared_singleton.h>
 #include <base/dll.h>
 
 #ifdef XAMP_OS_MAC

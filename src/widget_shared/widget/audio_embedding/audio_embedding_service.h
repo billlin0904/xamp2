@@ -6,11 +6,12 @@
 #pragma once
 
 #include <QtConcurrent/QtConcurrent>
+#include <QCoroTask>
 #include <QObject>
 #include <QFuture>
 #include <QScopedPointer>
 #include <widget/util/str_util.h>
-#include <widget/http.h>
+#include <widget/httpx.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT EmbeddingQueryResult {
     QString file_path;
@@ -25,11 +26,11 @@ public:
 
     ~AudioEmbeddingService() override;
 
-    void embedAndSave(const QString& path, int32_t audio_id);
+    QCoro::Task<QString> embedAndSave(const QString& path, int32_t audio_id);
 
-    void queryEmbeddings(const QList<QString> &paths);
+    QCoro::Task<QList<EmbeddingQueryResult>> queryEmbeddings(const QList<QString> &paths);
 
-    void flush();
-signals:
-    void queryEmbeddingsReady(const QList<EmbeddingQueryResult> &results);
+    QCoro::Task<QString> flush();
+private:
+	http::HttpClient http_client_;
 };

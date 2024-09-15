@@ -52,10 +52,10 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	f.setBold(true);
 	artist_ = new QLabel(this);
 	artist_->setFont(f);
-	artist_->setStyleSheet(qTEXT("background-color: transparent"));
+	artist_->setStyleSheet("background-color: transparent"_str);
 
 	auto* title = new QLabel();
-	title->setStyleSheet(qTEXT("background-color: transparent"));
+	title->setStyleSheet("background-color: transparent"_str);
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Artists"));
 	f.setPointSize(qTheme.fontSize(35));
@@ -69,20 +69,20 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	albums_->setFixedSize(QSize(16777215, 64));
 	albums_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	albums_->setFont(f);
-	albums_->setStyleSheet(qTEXT("background-color: transparent;"));
+	albums_->setStyleSheet("background-color: transparent;"_str);
 
 	tracks_ = new QLabel(this);
 	tracks_->setFixedSize(QSize(16777215, 64));
 	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	tracks_->setFont(f);
-	tracks_->setStyleSheet(qTEXT("background-color: transparent;"));
+	tracks_->setStyleSheet("background-color: transparent;"_str);
 
 	durations_ = new QLabel(this);
 	durations_->setFixedSize(QSize(16777215, 64));
 	durations_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-	f.setFamily(qTEXT("MonoFont"));
+	f.setFamily("MonoFont"_str);
 	durations_->setFont(f);
-	durations_->setStyleSheet(qTEXT("background-color: transparent;"));
+	durations_->setStyleSheet("background-color: transparent;"_str);
 
 	auto* artist_layout = new QHBoxLayout();
 	artist_layout->setSpacing(0);
@@ -111,7 +111,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	album_view_->hideWidget();
 	setArtistId(kEmptyString, kEmptyString, -1);
 
-	setStyleSheet(qTEXT("background-color: transparent"));
+	setStyleSheet("background-color: transparent"_str);
 
 	setAlbumCount(0);
 	setTracks(0);

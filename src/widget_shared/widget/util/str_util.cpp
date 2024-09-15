@@ -7,7 +7,7 @@
 #include <QUuid>
 
 QString colorToString(QColor color) {
-    return QString(qTEXT("rgba(%1,%2,%3,%4)"))
+    return QString("rgba(%1,%2,%3,%4)"_str)
         .arg(color.red())
         .arg(color.green())
         .arg(color.blue())
@@ -15,14 +15,14 @@ QString colorToString(QColor color) {
 }
 
 QString backgroundColorToString(QColor color) {
-    return qTEXT("background-color: ") + colorToString(color) + qTEXT(";");
+    return "background-color: "_str + colorToString(color) + ";"_str;
 }
 
 QString formatBitRate(uint32_t bit_rate) {
     if (bit_rate > 10000) {
-        return QString::number(bit_rate / 1000.0, 'f', 2) + qTEXT(" Mbps");
+        return QString::number(bit_rate / 1000.0, 'f', 2) + " Mbps"_str;
     }
-    return QString::number(bit_rate) + qTEXT(" kbps");
+    return QString::number(bit_rate) + " kbps"_str;
 }
 
 QString formatSampleRate(const uint32_t sample_rate) {
@@ -33,21 +33,21 @@ QString formatSampleRate(const uint32_t sample_rate) {
         is_mhz_sample_rate = true;
     }
     if (is_mhz_sample_rate) {
-        return QString::number(sample_rate / 1000000.0, 'f', 2) + qTEXT(" MHz");
+        return QString::number(sample_rate / 1000000.0, 'f', 2) + " MHz"_str;
     } else if (sample_rate > 1000.0) {
-        return QString::number(sample_rate / 1000.0, 'f', precision) + qTEXT(" kHz");
+        return QString::number(sample_rate / 1000.0, 'f', precision) + " kHz"_str;
     } else {
-        return QString::number(sample_rate) + qTEXT(" Hz");
+        return QString::number(sample_rate) + " Hz"_str;
     }
 }
 
 QString formatDsdSampleRate(uint32_t dsd_speed) {
     const auto sample_rate = (dsd_speed / 64) * 2.82;
-    return QString::number(sample_rate, 'f', 2) + qTEXT("kHz");
+    return QString::number(sample_rate, 'f', 2) + "kHz"_str;
 }
 
 bool parseVersion(const QString& s, QVersionNumber& version) {
-    const auto ver = s.split(qTEXT("."));
+    const auto ver = s.split("."_str);
     if (ver.length() != 3) {
         return false;
     }
@@ -86,9 +86,9 @@ QString formatDuration(const double stream_time, bool full_text) {
     const auto s = (secs % 3600) % 60;
     const QTime t(h, m, s, ms);
     if (h > 0 || full_text) {
-        return t.toString(qTEXT("HH:mm:ss"));
+        return t.toString("HH:mm:ss"_str);
     }
-    return t.toString(qTEXT("mm:ss"));
+    return t.toString("mm:ss"_str);
 }
 
 bool isMoreThan1Hours(const double stream_time) {
@@ -113,7 +113,7 @@ QString formatBytes(quint64 bytes) {
 QString formatTime(quint64 time) {
     QDateTime date_time;
     date_time.setSecsSinceEpoch(time);
-    return date_time.toString(qTEXT("yyyy-MM-dd"));
+    return date_time.toString("yyyy-MM-dd"_str);
 }
 
 QString formatVersion(const QVersionNumber& version) {
@@ -128,12 +128,23 @@ QString formatDouble(double value, int prec) {
     return QString::number(value, 'f', prec);
 }
 
+int32_t countColon(const std::string& str) {
+    int32_t count = 0;
+    size_t pos = str.find(':');
+    while (pos != std::string::npos) {
+        count++;
+        pos = str.find(':', pos + 1);
+    }
+    return count;
+}
+
 double parseDuration(const std::string & str) {
     auto hours = 0;
     auto minutes = 0;
     auto seconds = 0;
 
-    if (str.length() <= 4) {
+    
+    if (countColon(str) == 1) {
         port_sscanf(str.c_str(), "%u:%u",
             &minutes,
             &seconds);

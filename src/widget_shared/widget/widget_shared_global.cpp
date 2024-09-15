@@ -8,7 +8,7 @@ void logAndShowMessage(const std::exception_ptr& ptr) {
     }
     catch (const PlatformException& e) {
         XAMP_LOG_DEBUG("{} {}", e.GetErrorMessage(), StackTrace{}.CaptureStack());
-        XMessageBox::showError(qTEXT(e.GetErrorMessage()));
+        XMessageBox::showError(qFormat(e.GetErrorMessage()));
     }
     catch (const Exception& e) {
         XAMP_LOG_DEBUG("{} {}", e.GetErrorMessage(), StackTrace{}.CaptureStack());

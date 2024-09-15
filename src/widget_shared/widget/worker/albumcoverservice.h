@@ -9,11 +9,12 @@
 #include <QObject>
 #include <QTimer>
 
-#include <deque>
+#include <set>
 
 #include <widget/database.h>
 #include <widget/widget_shared_global.h>
 #include <widget/databasecoverid.h>
+#include <widget/httpx.h>
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumCoverService : public QObject {
 	Q_OBJECT
@@ -44,8 +45,7 @@ private:
 	bool is_stop_{ false };	
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;
-	QTimer timer_;
-	std::deque<std::pair<DatabaseCoverId, Path>> fetch_album_cover_queue_;
-	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
+	http::HttpClient http_client_;
+	std::set<QString> pending_requests_;
 };
 

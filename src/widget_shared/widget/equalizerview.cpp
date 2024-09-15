@@ -57,20 +57,20 @@ EqualizerView::EqualizerView(QWidget* parent)
 
     ui_->preampLabel->setFont(f);
 
-    ui_->presetLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_->presetLabel->setStyleSheet("background-color: transparent;"_str);
 
     for (auto& l : bands_label_) {
-        l->setStyleSheet(qTEXT("background-color: transparent;"));
+        l->setStyleSheet("background-color: transparent;"_str);
         l->setFont(f);
     }
 
     for (auto& l : freq_label_) {
-        l->setStyleSheet(qTEXT("background-color: transparent;"));
+        l->setStyleSheet("background-color: transparent;"_str);
         l->setFont(f);
     }
 
-    ui_->preampDbLabel->setStyleSheet(qTEXT("background-color: transparent;"));
-    ui_->preampLabel->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_->preampDbLabel->setStyleSheet("background-color: transparent;"_str);
+    ui_->preampLabel->setStyleSheet("background-color: transparent;"_str);
 
     qTheme.setSliderTheme(ui_->preampSlider);
 
@@ -99,7 +99,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         ui_->preampDbLabel->setText(formatDb(value));
         });
 
-    ui_->enableEqCheckBox->setStyleSheet(qTEXT("background-color: transparent;"));
+    ui_->enableEqCheckBox->setStyleSheet("background-color: transparent;"_str);
     (void)QObject::connect(ui_->enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
         qAppSettings.setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
         });

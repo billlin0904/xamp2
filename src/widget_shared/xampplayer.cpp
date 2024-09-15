@@ -19,11 +19,11 @@ void IXMainWindow::installWindowAgent() {
 
     auto* title_label = new QLabel();
     title_label->setAlignment(Qt::AlignCenter);
-    title_label->setObjectName(qTEXT("win-title-label"));
+    title_label->setObjectName("win-title-label"_str);
 
 #ifndef Q_OS_MAC
     auto set_button_style = [](auto* button) {
-        const QColor color_hover_color(qTEXT("#dc3545"));
+        const QColor color_hover_color("#dc3545"_str);
 
         auto name = button->objectName();
         button->setStyleSheet(qFormat(R"(
@@ -49,7 +49,7 @@ void IXMainWindow::installWindowAgent() {
     set_button_style(icon_button);
 
     auto* min_button = new QWK::WindowButton();
-    min_button->setObjectName(qTEXT("min-button"));
+    min_button->setObjectName("min-button"_str);
     min_button->setProperty("system-button", true);
     min_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     min_button->setIconNormal(qTheme.fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
@@ -59,7 +59,7 @@ void IXMainWindow::installWindowAgent() {
 
     auto* max_button = new QWK::WindowButton();
     max_button->setCheckable(true);
-    max_button->setObjectName(qTEXT("max-button"));
+    max_button->setObjectName("max-button"_str);
     max_button->setProperty("system-button", true);
     max_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     max_button->setIconNormal(qTheme.fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
@@ -68,7 +68,7 @@ void IXMainWindow::installWindowAgent() {
     set_button_style(max_button);
 
     auto* close_button = new QWK::WindowButton();
-    close_button->setObjectName(qTEXT("close-button"));
+    close_button->setObjectName("close-button"_str);
     close_button->setProperty("system-button", true);
     close_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     close_button->setIconNormal(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW));
@@ -95,7 +95,6 @@ void IXMainWindow::installWindowAgent() {
     window_agent_->setSystemButton(QWK::WindowAgentBase::Maximize, max_button);
     window_agent_->setSystemButton(QWK::WindowAgentBase::Close, close_button);
 #endif
-    //window_agent_->setHitTestVisible(menuBar, true);
 
 #ifdef Q_OS_MAC
     window_agent_->setSystemButtonAreaCallback([](const QSize& size) {
@@ -125,5 +124,5 @@ void IXMainWindow::installWindowAgent() {
     QObject::connect(window_bar, &QWK::WindowBar::closeRequested, this, &QWidget::close);
 #endif
 
-    window_agent_->setWindowAttribute(qTEXT("blur-effect"), qTEXT("dark"));
+    window_agent_->setWindowAttribute("blur-effect"_str, "dark"_str);
 }

@@ -35,7 +35,7 @@ struct ImageCacheSizeOfPolicy {
 
 class QTimerEvent;
 
-inline constexpr ConstexprQString kAlbumCacheTag(qTEXT("album_thumbnail_"));
+inline constexpr ConstexprQString kAlbumCacheTag("album_thumbnail_"_str);
 
 class XAMP_WIDGET_SHARED_EXPORT ImageCache final : public QObject {
 public:

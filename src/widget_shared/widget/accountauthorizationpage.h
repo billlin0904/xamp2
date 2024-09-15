@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QFrame>
+#include <QDateTime>
 #include <widget/widget_shared_global.h>
 #include <widget/youtubedl/ytmusicoauth.h>
 

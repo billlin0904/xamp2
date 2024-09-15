@@ -29,7 +29,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     add_tab_button_->setMinimumSize(32, 32);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
     add_tab_button_->setIconSize(QSize(18, 18));
-    add_tab_button_->setObjectName(qTEXT("plusButton"));
+    add_tab_button_->setObjectName("plusButton"_str);
 
     auto* button_widget = new QWidget(this);
     auto* layout = new QHBoxLayout(button_widget);
@@ -267,10 +267,10 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
         switch (qTheme.themeColor()) {
         case ThemeColor::DARK_THEME:
-            playlist_page->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #121212; }"));
+            playlist_page->setStyleSheet("QFrame#playlistPage { border: none; background-color: #121212; }"_str);
             break;
         case ThemeColor::LIGHT_THEME:
-            playlist_page->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"));
+            playlist_page->setStyleSheet("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"_str);
             break;
         }
     }
@@ -301,10 +301,10 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool resize) {
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
-        widget->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #121212; }"));
+        widget->setStyleSheet("QFrame#playlistPage { border: none; background-color: #121212; }"_str);
         break;
     case ThemeColor::LIGHT_THEME:
-        widget->setStyleSheet(qTEXT("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"));
+        widget->setStyleSheet("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"_str);
         break;
     }
 

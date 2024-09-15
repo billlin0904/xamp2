@@ -21,9 +21,9 @@ namespace {
     }
 
     void createInternalTable(QSqlDatabase& database) {
-        QSqlQuery query(qTEXT("create table if not exists " SCHAMA_MIGRATIONS_TABLE " ("
+        QSqlQuery query("create table if not exists " SCHAMA_MIGRATIONS_TABLE " ("
             "version Text primary key not null, "
-            "run_on timestamp not null default current_timestamp)"), database);
+            "run_on timestamp not null default current_timestamp)"_str, database);
         if (!query.exec()) {
             printSqlError(query);
         }
@@ -33,10 +33,10 @@ namespace {
         XAMP_LOG_DEBUG("Marking migration {} as done.", name.toStdString());
 
         QSqlQuery query(database);
-        if (!query.prepare(qTEXT("insert into " SCHAMA_MIGRATIONS_TABLE " (version) values (:name)"))) {
+        if (!query.prepare("insert into " SCHAMA_MIGRATIONS_TABLE " (version) values (:name)"_str)) {
             printSqlError(query);
         }
-        query.bindValue(qTEXT(":name"), name);
+        query.bindValue(":name"_str, name);
         if (!query.exec()) {
             printSqlError(query);
         }
@@ -44,7 +44,7 @@ namespace {
 
     QString currentDatabaseVersion(QSqlDatabase& database) {
         QSqlQuery query(database);
-        query.prepare(qTEXT("select version from " SCHAMA_MIGRATIONS_TABLE " order by version desc limit 1"));
+        query.prepare("select version from " SCHAMA_MIGRATIONS_TABLE " order by version desc limit 1"_str);
         query.exec();
 
         if (query.next()) {
@@ -65,7 +65,7 @@ namespace {
         for (const auto& entry : entries) {
             QDir subdir(entry);
             if (subdir.dirName() > currentVersion) {
-                QFile file(migration_directory + QDir::separator() + entry + QDir::separator() + qTEXT("up.sql"));
+                QFile file(migration_directory + QDir::separator() + entry + QDir::separator() + "up.sql"_str);
                 if (!file.open(QFile::ReadOnly)) {
                     XAMP_LOG_DEBUG("Failed to open migration file {}", file.fileName().toStdString());
                 }
@@ -114,7 +114,7 @@ namespace {
 }
 
 QString DatabaseFactory::getDatabaseId() {
-    return qTEXT("xamp_db_") + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
+    return "xamp_db_"_str + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
 }
 
 PooledDatabasePtr getPooledDatabase(int32_t pool_size) {
@@ -144,13 +144,13 @@ Database::Database(const QString& name) {
         db_ = QSqlDatabase::database(name);
     }
     else {
-        db_ = QSqlDatabase::addDatabase(qTEXT("QSQLITE"), name);
+        db_ = QSqlDatabase::addDatabase("QSQLITE"_str, name);
     }
     connection_name_ = name;
 }
 
 Database::Database()
-	: Database(qTEXT("UI")) {
+	: Database("UI"_str) {
 }
 
 QSqlDatabase& Database::database() {
@@ -170,7 +170,7 @@ void Database::close() {
 }
 
 void Database::open() {    
-    db_.setDatabaseName(qTEXT("xamp.db"));
+    db_.setDatabaseName("xamp.db"_str);
 
     if (!db_.open()) {
         throw SqlException(db_.lastError());
@@ -179,22 +179,22 @@ void Database::open() {
     XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
         connection_name_.toStdString(), getVersion().toStdString());
 
-    if (connection_name_ != qTEXT("UI")) {
+    if (connection_name_ != "UI"_str) {
         return;
     }
 
-    (void)db_.exec(qTEXT("PRAGMA auto_vacuum = FULL"));
-    (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
-    (void)db_.exec(qTEXT("PRAGMA journal_mode = DELETE"));
+    (void)db_.exec("PRAGMA auto_vacuum = FULL"_str);
+    (void)db_.exec("PRAGMA foreign_keys = ON"_str);
+    (void)db_.exec("PRAGMA journal_mode = DELETE"_str);
 
-    /*(void)db_.exec(qTEXT("PRAGMA synchronous = OFF"));    
-    (void)db_.exec(qTEXT("PRAGMA auto_vacuum = FULL"));
-    (void)db_.exec(qTEXT("PRAGMA foreign_keys = ON"));
-    (void)db_.exec(qTEXT("PRAGMA journal_mode = DELETE"));
-    (void)db_.exec(qTEXT("PRAGMA cache_size = 40960"));
-    (void)db_.exec(qTEXT("PRAGMA temp_store = MEMORY"));
-    (void)db_.exec(qTEXT("PRAGMA mmap_size = 40960"));
-    (void)db_.exec(qTEXT("PRAGMA busy_timeout = 1000"));*/    
+    /*(void)db_.exec("PRAGMA synchronous = OFF"));    
+    (void)db_.exec("PRAGMA auto_vacuum = FULL"));
+    (void)db_.exec("PRAGMA foreign_keys = ON"));
+    (void)db_.exec("PRAGMA journal_mode = DELETE"));
+    (void)db_.exec("PRAGMA cache_size = 40960"));
+    (void)db_.exec("PRAGMA temp_store = MEMORY"));
+    (void)db_.exec("PRAGMA mmap_size = 40960"));
+    (void)db_.exec("PRAGMA busy_timeout = 1000"));*/    
 
     createTableIfNotExist();
 }
@@ -213,24 +213,24 @@ void Database::rollback() {
 
 QString Database::getVersion() const {
     SqlQuery query(db_);
-    query.exec(qTEXT("SELECT sqlite_version() AS version;"));
+    query.exec("SELECT sqlite_version() AS version;"_str);
     if (query.next()) {
-        return query.value(qTEXT("version")).toString();
+        return query.value("version"_str).toString();
     }
     throw SqlException(query.lastError());
 }
 
 void Database::createTableIfNotExist() {
-    runDatabaseMigrations(db_, qTEXT(":/xamp/migrations/"));
+    runDatabaseMigrations(db_, ":/xamp/migrations/"_str);
 }
 
 bool Database::dropAllTable() {
     SqlQuery drop_query(db_);
 
-    const QString drop_query_string = qTEXT("DROP TABLE IF EXISTS %1");
+    const QString drop_query_string = "DROP TABLE IF EXISTS %1"_str;
     auto tableNames = db_.tables();
 
-    tableNames.removeAll(qTEXT("sqlite_sequence"));
+    tableNames.removeAll("sqlite_sequence"_str);
     for (const auto& table_name : qAsConst(tableNames)) {
         DbIfFailedThrow(drop_query, drop_query_string.arg(table_name));
     }

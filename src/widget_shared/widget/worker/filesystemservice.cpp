@@ -40,7 +40,7 @@ namespace {
 
 		Executor::ParallelFor(*thread_pool, path_infos, [&](auto& path_info) {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
-			path_info.depth = path_info.path.count(qTEXT("/"));
+			path_info.depth = path_info.path.count("/"_str);
 			total_file_count += path_info.file_count;
 			action(total_file_count);
 		});

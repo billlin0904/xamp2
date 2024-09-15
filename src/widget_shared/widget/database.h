@@ -85,10 +85,10 @@ enum {
 	kMaxExistPlaylist
 };
 
-constexpr auto kYouTubeCategory = qTEXT("YouTube");
-constexpr auto kLocalCategory = qTEXT("Local");
-constexpr auto kHiResCategory = qTEXT("HiRes");
-constexpr auto kDsdCategory = qTEXT("DSD");
+constexpr auto kYouTubeCategory = "YouTube"_str;
+constexpr auto kLocalCategory = "Local"_str;
+constexpr auto kHiResCategory = "HiRes"_str;
+constexpr auto kDsdCategory = "DSD"_str;
 
 enum PlayingState {
 	PLAY_CLEAR = 0,

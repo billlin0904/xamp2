@@ -85,16 +85,16 @@ void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file) {
 	}
 
 	const auto line = in.readLine();
-    const QStringList parameter_list(line.split(qTEXT(":")));
+    const QStringList parameter_list(line.split(":"_str));
 	if (parameter_list.count() < 2) {
 		return;
 	}
 
-    auto node_list = parameter_list.at(1).split(qTEXT(";"));
+    auto node_list = parameter_list.at(1).split(";"_str);
 	EqSettings settings;
 
 	for (auto& node_str : node_list) {
-        auto values = node_str.trimmed().split(qTEXT(" "), Qt::SkipEmptyParts);
+        auto values = node_str.trimmed().split(" "_str, Qt::SkipEmptyParts);
 		if (values.count() != 2) {
 			continue;
 		}
@@ -127,16 +127,16 @@ void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
 
 	while (!in.atEnd()) {
 		auto line = in.readLine();
-		if (line.startsWith(qTEXT("#"))) {
+		if (line.startsWith("#"_str)) {
 			continue;
 		}
-		auto result = line.split(qTEXT(":"));
+		auto result = line.split(":"_str);
 		auto str = result[1].toStdWString();
-		if (result[0] == qTEXT("Preamp")) {
+		if (result[0] == "Preamp"_str) {
 			port_swscanf(str.c_str(), L"%f dB",
 			        &settings.preamp);
 		}
-		else if (result[0].indexOf(qTEXT("Filter")) != -1) {
+		else if (result[0].indexOf("Filter"_str) != -1) {
 			settings.bands.emplace_back();
 			auto pos = str.find(L"Fc");
 			port_swscanf(&str[pos], L"Fc %f Hz",
@@ -165,8 +165,8 @@ void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
 }
 
 void AppSettings::loadEqPreset() {
-	const auto path = QDir::currentPath() + qTEXT("/eqpresets/");
-	const auto file_ext = QStringList() << qTEXT("*.*");
+	const auto path = QDir::currentPath() + "/eqpresets/"_str;
+	const auto file_ext = QStringList() << "*.*"_str;
 
 	for (QDirIterator itr(path, file_ext, QDir::Files | QDir::NoDotAndDotDot);
 	     itr.hasNext();) {
@@ -179,7 +179,7 @@ void AppSettings::loadEqPreset() {
 	}
 	EqSettings default_settings;
 	default_settings.SetDefault();
-	eq_settings_[qTEXT("Manual")] = default_settings;
+	eq_settings_["Manual"_str] = default_settings;
 }
 
 void AppSettings::save() {
@@ -200,7 +200,7 @@ QString AppSettings::getOrCreateCachePath() {
 		auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
 
 		const List<QString> paths{
-			QDir::currentPath() + qTEXT("/Cache/"),
+			QDir::currentPath() + QString("/Cache/"_str),
 			folder_path[0],
 		};
 
@@ -224,7 +224,7 @@ QString AppSettings::getOrCreateCachePath() {
 		cache_path = qAppSettings.valueAsString(kAppSettingCachePath);
 	}
 #else
-    cache_path = QDir::currentPath() + qTEXT("/Cache/");
+    cache_path = QDir::currentPath() + "/Cache/");
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {
@@ -266,7 +266,7 @@ QList<QString> AppSettings::valueAsStringList(const QString& key) {
 	if (setting_str.isEmpty()) {
 		return {};
 	}
-	return setting_str.split(qTEXT(","), Qt::SkipEmptyParts);
+	return setting_str.split(","_str, Qt::SkipEmptyParts);
 }
 
 void AppSettings::removeList(const QString& key, const QString& value) {
@@ -281,7 +281,7 @@ void AppSettings::removeList(const QString& key, const QString& value) {
 	Q_FOREACH(auto id, values) {
 		all << id;
 	}
-	setValue(key, all.join(qTEXT(",")));
+	setValue(key, all.join(","_str));
 }
 
 void AppSettings::addList(const QString& key, const QString& value) {
@@ -297,7 +297,7 @@ void AppSettings::addList(const QString& key, const QString& value) {
 	Q_FOREACH(auto id, values) {
 		all << id;
 	}
-	setValue(key, all.join(qTEXT(",")));
+	setValue(key, all.join(","_str));
 }
 
 QSize AppSettings::valueAsSize(const QString& width_key,
@@ -368,7 +368,7 @@ void AppSettings::saveLogConfig() {
 		}
 	}
 
-	min_level[kLogDefault] = qTEXT("debug");
+	min_level[kLogDefault] = "debug"_str;
 
 	XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
@@ -396,12 +396,12 @@ void AppSettings::loadOrSaveLogConfig() {
 
 	for (const auto& logger : XampLoggerFactory.GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[toQString(logger->GetName())] = qTEXT("info");
+			well_known_log_name[toQString(logger->GetName())] = "info"_str;
 		}
 	}
 
 	if (qJsonSettings.valueAsMap(kLog).isEmpty()) {
-		min_level[kLogDefault] = qTEXT("info");
+		min_level[kLogDefault] = "info"_str;
 
 		XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
@@ -501,8 +501,8 @@ void AppSettings::loadAppSettings() {
 	setDefaultValue(kAppSettingEnableSandboxMode, true);
 	setDefaultValue(kAppSettingEnableDebugStackTrace, true);
 
-	setDefaultValue(kAppSettingAlbumPlaylistColumnName, qTEXT("3, 6, 26"));
-	setDefaultValue(kAppSettingFileSystemPlaylistColumnName, qTEXT("3, 6, 26"));
-	setDefaultValue(kAppSettingCdPlaylistColumnName, qTEXT("3, 6, 26"));
+	setDefaultValue(kAppSettingAlbumPlaylistColumnName, "3, 6, 26"_str);
+	setDefaultValue(kAppSettingFileSystemPlaylistColumnName, "3, 6, 26"_str);
+	setDefaultValue(kAppSettingCdPlaylistColumnName, "3, 6, 26"_str);
 	XAMP_LOG_DEBUG("loadAppSettings success.");
 }

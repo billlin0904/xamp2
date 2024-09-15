@@ -31,7 +31,7 @@
 #include <ui_xamp.h>
 
 class ProcessIndicator;
-class YtMusicService;
+//class YtMusicService;
 class AudioEmbeddingService;
 
 struct MbDiscIdInfo;
@@ -71,7 +71,7 @@ class Xamp final : public IXFrame {
 public:
     static constexpr auto kShowProgressDialogMsSecs = 100;
     static constexpr ConstexprQString kSoftwareUpdateUrl =
-        qTEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+        "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
 
     Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer> &player);
 
@@ -161,13 +161,13 @@ public slots:
 
 	void onRestartApp();
 
-	void onSearchCompleted(const std::vector<search::SearchResultItem>& result);
+	void onSearchCompleted(const QList<search::Album>& result);
 
 	void onFetchAlbumCompleted(const album::Album& album);
 
 	void onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks);
 
-	void onSearchSuggestionsCompleted(const std::vector<std::string>& result);
+	void onSearchSuggestionsCompleted(const QList<QString>& result);
 
 	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
 
@@ -321,15 +321,14 @@ private:
 	QScopedPointer<BackgroundService> background_service_;
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
-    QScopedPointer<YtMusicService> ytmusic_service_;
     QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
+	QScopedPointer<YtMusicHttpService> ytmusic_http_service_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
-	QThread ytmusic_service_thread_;
 	QTimer ui_update_timer_timer_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
@@ -341,5 +340,6 @@ private:
 	dao::ArtistDao artist_dao_;
 	dao::MusicDao music_dao_;
 	dao::PlaylistDao playlist_dao_;
+	http::HttpClient http_client_;
     Ui::XampWindow ui_;	
 };

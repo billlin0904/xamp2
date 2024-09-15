@@ -7,7 +7,7 @@ MaskWidget::MaskWidget(QWidget* parent)
 	setWindowFlag(Qt::FramelessWindowHint);
 	setAttribute(Qt::WA_StyledBackground);
 	// 255 * 0.7 = 178.5
-	setStyleSheet(qTEXT("background-color: rgba(0, 0, 0, 179);"));
+	setStyleSheet("background-color: rgba(0, 0, 0, 179);"_str);
 	auto* animation = new QPropertyAnimation(this, "windowOpacity");
 	animation->setDuration(2000);
 	animation->setEasingCurve(QEasingCurve::OutBack);

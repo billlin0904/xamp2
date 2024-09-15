@@ -12,7 +12,6 @@
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <widget/tagio.h>
-#include <widget/http.h>
 #include <widget/dao/artistdao.h>
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
@@ -32,15 +31,15 @@ namespace {
 
     QSet<QString> getAlbumCategories(const QString& album) {
         static const QStringList categoriesList = {
-        qTEXT("piano"), 
-        qTEXT("vocal"), 
-        qTEXT("soundtrack"), 
-        qTEXT("best"),
-        qTEXT("complete"),
-        qTEXT("collection"), 
-        qTEXT("collections"),
-        qTEXT("edition"),
-        qTEXT("version")
+        "piano"_str,
+        "vocal"_str,
+        "soundtrack"_str,
+        "best"_str,
+        "complete"_str,
+        "collection"_str,
+        "collections"_str,
+        "edition"_str,
+        "version"_str
         };
 
         QSet<QString> categories;
@@ -59,14 +58,14 @@ namespace {
         artist = artist.trimmed();
 
         // If the artist name contains spaces and is not fully capitalized, remove spaces
-        if (artist.contains(qTEXT(" "))) {
+        if (artist.contains(" "_str)) {
             if (!artist[0].isUpper() || !artist.toUpper().contains(artist)) {
-                artist = artist.remove(qTEXT(" "));
+                artist = artist.remove(" "_str);
             }
         }
 
         // Split artist names by common delimiters
-        artists = artist.split(QRegularExpression(qTEXT("([,/&])")), Qt::SkipEmptyParts);
+        artists = artist.split(QRegularExpression("([,/&])"_str), Qt::SkipEmptyParts);
 
         // Standardize the first artist name and update the list
         if (!artists.isEmpty()) {
@@ -87,6 +86,7 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     }
     initialUnknownTranslateString();
     ensureAddUnknownId();
+    audio_embedding_service_.reset(new AudioEmbeddingService());
 }
 
 DatabaseFacade::~DatabaseFacade() = default;
@@ -151,8 +151,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         const auto music_id = music_dao.addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
 
-        audio_embedding_service_->embedAndSave(file_path, music_id);
-
         auto artist_id = artist_dao.addOrUpdateArtist(artist);
         XAMP_EXPECTS(artist_id != 0);
 
@@ -163,6 +161,9 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         else {
             // Avoid cue file album name create new album id.
             album_id = album_dao.getAlbumIdFromAlbumMusic(music_id);
+            audio_embedding_service_->embedAndSave(file_path, music_id)
+        	.then([](auto) {
+                });
         }
 
         if (album_id == kInvalidDatabaseId) {

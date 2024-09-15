@@ -122,12 +122,12 @@ QString parseCoverUrl(QString const& json) {
     if (error.error != QJsonParseError::NoError) {
         return kEmptyString;
     }
-    auto result = doc[qTEXT("images")].toArray();
+    auto result = doc["images"_str].toArray();
     for (const auto entry : result) {
         auto object = entry.toVariant().toMap();
-        const auto front = object.value(qTEXT("front")).toBool();
+        const auto front = object.value("front"_str).toBool();
         if (front) {
-            return object.value(qTEXT("image")).toString();
+            return object.value("image"_str).toString();
         }
     }
     return kEmptyString;

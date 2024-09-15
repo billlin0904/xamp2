@@ -49,9 +49,6 @@ public:
     // Create a compressor audio processor object
     static AlignPtr<IAudioProcessor> MakeCompressor();
 
-    // Create a volume audio processor object
-    static AlignPtr<IAudioProcessor> MakeVolume();
-
     // Create a DSP manager object
     static AlignPtr<IDSPManager> MakeDSPManager();
 

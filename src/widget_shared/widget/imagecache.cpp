@@ -24,18 +24,18 @@
 
 constexpr size_t kDefaultCacheSize = 24;
 constexpr qint64 kMaxCacheImageSize = 32 * 1024 * 1024;
-auto kCacheFileExtension = qTEXT(".") + qFormat(ImageCache::kImageFileFormat).toLower();
+auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
 ImageCache::ImageCache()
 	: logger_(XampLoggerFactory.GetLogger(kImageCacheLoggerName))
 	, cache_(kMaxCacheImageSize) {
-	unknown_cover_id_ = qTEXT("unknown_album");
+	unknown_cover_id_ = "unknown_album"_str;
 	cache_ext_ =
-		QStringList() << (qTEXT("*") + kCacheFileExtension);
+		QStringList() << "*"_str + kCacheFileExtension;
 	cover_ext_ =
-		QStringList() << qTEXT("*.jpeg") << qTEXT("*.jpg") << qTEXT("*.png");
+		QStringList() << "*.jpeg"_str << "*.jpg"_str << "*.png"_str;
 	trim_target_size_ = kMaxCacheImageSize * 3 / 4;
 	buffer_pool_ = std::make_shared<ObjectPool<QBuffer>>(kDefaultCacheSize);
 	loadUnknownCover();
@@ -57,7 +57,7 @@ void ImageCache::loadUnknownCover() {
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
-    const QList<QString> kTargetFolders = { qTEXT("scans"), qTEXT("artwork"), qTEXT("booklet") };    
+    const QList<QString> kTargetFolders = { "scans"_str, "artwork"_str, "booklet"_str };
 	constexpr auto kMaxDirCdUp = 4;
 
 	// 1...
@@ -76,7 +76,7 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 	QDir scan_dir(dir);
 
 	auto find_dir_image = [this](const QDir &scan_dir, QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
-		const QString kFrontCoverName = qTEXT("Front");
+		const QString kFrontCoverName = "Front"_str;
 
 		QStringList image_file_list;
 		for (QDirIterator itr(scan_dir.path(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
@@ -158,7 +158,7 @@ void ImageCache::clearCache() const {
 }
 
 QString ImageCache::makeCacheFilePath() const {
-    auto cache_path = qAppSettings.getOrCreateCachePath() + qTEXT("ImageCache/");
+    auto cache_path = qAppSettings.getOrCreateCachePath() + "ImageCache/"_str;
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {
@@ -264,7 +264,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
         return getOrAddDefault(tag_id);
     }
 
-    const auto file_path = makeImageCachePath(qTEXT("test"));
+    const auto file_path = makeImageCachePath("test"_str);
 	if (!cache_cover.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
 	}

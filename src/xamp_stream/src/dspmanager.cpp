@@ -4,7 +4,6 @@
 #include <stream/bassequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
-#include <stream/bassvolume.h>
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/basscompressor.h>
 #include <stream/bassparametriceq.h>
@@ -54,11 +53,6 @@ IDSPManager& DSPManager::AddCompressor() {
     return *this;
 }
 
-IDSPManager& DSPManager::AddVolumeControl() {
-    AddPostDSP(StreamFactory::MakeVolume());
-    return *this;
-}
-
 void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
     if (!writer) {
         sample_writer_.reset();
@@ -74,11 +68,6 @@ IDSPManager& DSPManager::RemoveEqualizer() {
 
 IDSPManager& DSPManager::RemoveParametricEq() {
     RemovePostDSP<BassParametricEq>();
-    return *this;
-}
-
-IDSPManager& DSPManager::RemoveVolumeControl() {
-    RemovePreDSP<BassVolume>();
     return *this;
 }
 

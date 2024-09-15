@@ -62,8 +62,8 @@ bool XApplication::isAttach() const {
 }
 
 void XApplication::initial() {
-	qAppSettings.loadIniFile(qTEXT("xamp.ini"));
-	qJsonSettings.loadJsonFile(qTEXT("config.json"));
+	qAppSettings.loadIniFile("xamp.ini"_str);
+	qJsonSettings.loadJsonFile("config.json"_str);
 
 	qAppSettings.loadOrSaveLogConfig();
 	qAppSettings.loadAppSettings();
@@ -81,6 +81,8 @@ void XApplication::loadSampleRateConverterConfig() {
 
 void XApplication::setTheme() {
 	qTheme.loadAndSetThemeQss();
+	const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+	qTheme.setThemeColor(theme);
 }
 
 void XApplication::loadLang() {

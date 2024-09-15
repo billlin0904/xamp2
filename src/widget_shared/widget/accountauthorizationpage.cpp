@@ -7,12 +7,12 @@ AccountAuthorizationPage::AccountAuthorizationPage(QWidget* parent)
 	: QFrame(parent) {
 	ui_ = new Ui::AccountAuthorizationPage();
 	ui_->setupUi(this);
-	ui_->expiresInLabel->setStyleSheet(qTEXT("background-color: transparent"));
-	ui_->expiresInTimeLabel->setStyleSheet(qTEXT("background-color: transparent"));
-	ui_->expiresAtLabel->setStyleSheet(qTEXT("background-color: transparent"));
-	ui_->expiresAtTimeLabel->setStyleSheet(qTEXT("background-color: transparent"));
+	ui_->expiresInLabel->setStyleSheet("background-color: transparent"_str);
+	ui_->expiresInTimeLabel->setStyleSheet("background-color: transparent"_str);
+	ui_->expiresAtLabel->setStyleSheet("background-color: transparent"_str);
+	ui_->expiresAtTimeLabel->setStyleSheet("background-color: transparent"_str);
 	ui_->accountLabel->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON_UNAUTHORIZATIONED));
-	ui_->accountLabel->setStyleSheet(qTEXT("background-color: transparent"));
+	ui_->accountLabel->setStyleSheet("background-color: transparent"_str);
 }
 
 AccountAuthorizationPage::~AccountAuthorizationPage() {

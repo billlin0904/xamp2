@@ -14,7 +14,7 @@ constexpr auto kAutoHideDelayMs = 2000;
 
 VolumeButton::VolumeButton(QWidget *parent)
 	: QToolButton(parent) {
-	setStyleSheet(qTEXT("background: transparent;"));	
+	setStyleSheet("background: transparent;"_str);	
 }
 
 VolumeButton::~VolumeButton() = default;

@@ -25,19 +25,19 @@ XProgressDialog::XProgressDialog(const QString& title,
 	line->setFixedHeight(1);
 	line->setFrameShape(QFrame::HLine);
 
-	progress_bar_->setFont(QFont(qTEXT("FormatFont")));
+	progress_bar_->setFont(QFont("FormatFont"_str));
 	progress_bar_->setFixedHeight(15);
 	progress_bar_->setRange(minimum, maximum);
 
 	message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	message_text_label_->setObjectName(qTEXT("messageTextLabel"));
+	message_text_label_->setObjectName("messageTextLabel"_str);
 	message_text_label_->setOpenExternalLinks(false);
 	message_text_label_->setFixedHeight(20);
-	message_text_label_->setStyleSheet(qTEXT("background: transparent;"));
+	message_text_label_->setStyleSheet("background: transparent;"_str);
 
 	sub_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	sub_text_label_->setFixedHeight(20);
-	sub_text_label_->setStyleSheet(qTEXT("background: transparent;"));
+	sub_text_label_->setStyleSheet("background: transparent;"_str);
 
 	default_button_->setText(cancel_text);
 

@@ -24,18 +24,9 @@ struct XAMP_WIDGET_SHARED_EXPORT ConstexprQString final : public QLatin1String {
 	}
 };
 
-class XAMP_WIDGET_SHARED_EXPORT StringView final : public std::string_view {
-public:
-	using std::string_view::string_view;
-
-	QString utf16() const {
-		return QString::fromUtf8(data(), size());
-	}
-
-	QByteArray utf8() const {
-		return QByteArray::fromRawData(data(), size());
-	}
-};
+inline constexpr ConstexprQString operator"" _str(const char* s, std::size_t length) noexcept {
+	return ConstexprQString(s, static_cast<int>(length));
+}
 
 namespace std {
 	template <>
@@ -51,10 +42,6 @@ namespace std {
 
 inline constexpr ConstexprQString kEmptyString{ "" };
 inline constexpr ConstexprQString kPlatformKey{ "windows" };
-
-inline constexpr ConstexprQString qTEXT(const char str[]) noexcept {
-    return { str };
-}
 
 inline constexpr ConstexprQString fromStdStringView(const std::string_view& s) noexcept {
 	return { s.data(), static_cast<int>(s.length()) };

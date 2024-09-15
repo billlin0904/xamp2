@@ -41,7 +41,7 @@
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
     : QFrame(parent) {
-    setObjectName(qTEXT("albumViewPage"));
+    setObjectName("albumViewPage"_str);
     setFrameStyle(QFrame::StyledPanel);
 
     auto* default_layout = new QVBoxLayout(this);
@@ -49,7 +49,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setContentsMargins(0, 5, 0, 0);
 
     close_button_ = new QPushButton(this);
-    close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
+    close_button_->setObjectName("albumViewPageCloseButton"_str);
     close_button_->setCursor(Qt::PointingHandCursor);
     close_button_->setAttribute(Qt::WA_TranslucentBackground);
     close_button_->setFixedSize(qTheme.titleButtonIconSize() * 1.5);
@@ -232,9 +232,8 @@ AlbumView::AlbumView(QWidget* parent)
         showAlbumViewMenu(pt);
     });
 
-   verticalScrollBar()->setStyleSheet(qTEXT(
-        "QScrollBar:vertical { width: 6px; }"
-    ));
+   verticalScrollBar()->setStyleSheet(
+        "QScrollBar:vertical { width: 6px; }"_str);
 
     (void)QObject::connect(&refresh_cover_timer_, &QTimer::timeout, this, &AlbumView::reload);
 }
@@ -626,12 +625,12 @@ WHERE
 	albums.year IN (%1) AND albums.storeType != -3
 ORDER BY
     albums.album DESC
-    )").arg(year_list.join(qTEXT(",")));
+    )").arg(year_list.join(","_str));
     setShowMode(SHOW_ARTIST);
 }
 
 void AlbumView::filterRecentPlays() {
-    last_query_ = qTEXT(R"(
+    last_query_ = R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -652,7 +651,7 @@ WHERE
 ORDER BY
     albums.plays DESC
 LIMIT 5
-    )");
+    )"_str;
     setShowMode(SHOW_ARTIST);
 }
 
@@ -683,14 +682,14 @@ WHERE
 	albumCategories.category IN (%1) AND albums.storeType != -3
 GROUP BY
     albums.album
-    )").arg(categories.join(qTEXT(",")));
+    )").arg(categories.join(","_str));
     setShowMode(SHOW_ARTIST);
 }
 
 void AlbumView::showAll() {
     // Note: If the sql use order by, refresh cover will be slow.
     // Because the view will be refresh many times.
-    last_query_ = qTEXT(R"(
+    last_query_ = R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -708,7 +707,7 @@ LEFT JOIN
 	artists ON artists.artistId = albums.artistId
 WHERE
     albums.storeType != -3
-    )");   
+    )"_str;
     setShowMode(SHOW_ARTIST);
 }
 

@@ -20,15 +20,15 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui_->lblProjectTitle->setFont(dp_font);
     ui_->lblProjectTitle->setText(kApplicationName);
-    ui_->lblProjectTitle->setStyleSheet(qTEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
+    ui_->lblProjectTitle->setStyleSheet("QLabel#lblProjectTitle { border: none; background: transparent; }"_str);
 
 	dp_font.setBold(false);
     dp_font.setPointSizeF(qTheme.fontSize(8));
     ui_->lblDescription->setFont(dp_font);
     ui_->lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player."));
 
-    QString domain_txt(qTEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
-    ui_->lblDomain->setText(domain_txt.arg(qTEXT("github.com/billlin0904/xamp2")));
+    QString domain_txt("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"_str);
+    ui_->lblDomain->setText(domain_txt.arg("github.com/billlin0904/xamp2"_str));
     ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
     ui_->lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2024 XAMP2 Project."));
 
@@ -38,18 +38,18 @@ AboutPage::AboutPage(QWidget* parent)
     ui_->txtBws->setFont(font);
     ui_->txtBws->setVisible(false);
 
-    QFile lincense_file(qTEXT("lincense.txt"));
+    QFile lincense_file("lincense.txt"_str);
     if (lincense_file.open(QIODevice::ReadOnly)) {
         license_ = QLatin1String(lincense_file.readAll());
     }
 
-    QFile credits_file(qTEXT("credits.txt"));
+    QFile credits_file("credits.txt"_str);
     if (credits_file.open(QIODevice::ReadOnly)) {
         credits_ = QLatin1String(credits_file.readAll());
     }
 
 #ifdef Q_OS_WIN
-    ui_->lblAppBuild->setText(qTEXT("Build MSVC: ") + qTEXT(__DATE__) + qTEXT(" ") + qTEXT(__TIME__));
+    ui_->lblAppBuild->setText("Build MSVC: "_str + qFormat(__DATE__) + " "_str + qFormat(__TIME__));
 #endif
 
     (void)QObject::connect(ui_->btnCredits,
@@ -71,10 +71,10 @@ AboutPage::AboutPage(QWidget* parent)
     //ui_->waitForUpdateProcessIndicator->startAnimation();
     //ui_->waitForUpdateProcessIndicator->setStoppedIcon(qTheme.fontIcon(Glyphs::ICON_CIRCLE_CHECK));
 
-    ui_->lblLogo->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblProjectTitle->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblCopying->setStyleSheet(qTEXT("background-color: transparent"));
-    ui_->lblAppBuild->setStyleSheet(qTEXT("background-color: transparent; color: gray;"));
+    ui_->lblLogo->setStyleSheet("background-color: transparent"_str);
+    ui_->lblProjectTitle->setStyleSheet("background-color: transparent"_str);
+    ui_->lblCopying->setStyleSheet("background-color: transparent"_str);
+    ui_->lblAppBuild->setStyleSheet("background-color: transparent; color: gray;"_str);
 }
 
 AboutPage::~AboutPage() {
@@ -87,11 +87,11 @@ void AboutPage::onThemeChangedFinished(ThemeColor theme_color) {
 
 void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
 	const auto* sender_ptr = sender();
-    if (sender_ptr->objectName() == qTEXT("btnLicense")) {
+    if (sender_ptr->objectName() == "btnLicense"_str) {
         ui_->txtBws->setText(license_);
         ui_->btnCredits->setChecked(false);
     }
-    else if (sender_ptr->objectName() == qTEXT("btnCredits")) {
+    else if (sender_ptr->objectName() == "btnCredits"_str) {
         ui_->txtBws->setText(credits_);
         ui_->btnLicense->setChecked(false);
     }

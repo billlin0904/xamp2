@@ -19,7 +19,6 @@
 #include <stream/basscddevice.h>
 #include <stream/basscompressor.h>
 #include <stream/bassequalizer.h>
-#include <stream/bassvolume.h>
 #include <stream/dspmanager.h>
 #include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
@@ -118,10 +117,6 @@ AlignPtr<IAudioProcessor> StreamFactory::MakeCompressor() {
 
 AlignPtr<IAudioProcessor> StreamFactory::MakeFader() {
     return MakeAlign<IAudioProcessor, BassFader>();
-}
-
-AlignPtr<IAudioProcessor> StreamFactory::MakeVolume() {
-    return MakeAlign<IAudioProcessor, BassVolume>();
 }
 
 AlignPtr<IDSPManager> StreamFactory::MakeDSPManager() {

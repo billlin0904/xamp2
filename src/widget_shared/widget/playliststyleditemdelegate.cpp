@@ -43,18 +43,18 @@ void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
 
     opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
-    opt.font.setFamily(qTEXT("MonoFont"));
-    opt.font.setPointSize(qTheme.fontSize(9));
+    opt.font.setFamily("MonoFont"_str);
+    opt.font.setPointSize(qTheme.fontSize(10));
 
     switch (index.column()) {
     case PLAYLIST_TITLE:
     case PLAYLIST_ALBUM:
-        opt.font.setFamily(qTEXT("UIFont"));
+        opt.font.setFamily("UIFont"_str);
         opt.text = value.toString();
         opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
         break;
     case PLAYLIST_ARTIST:
-        opt.font.setFamily(qTEXT("UIFont"));
+        opt.font.setFamily("UIFont"_str);
         opt.displayAlignment = Qt::AlignVCenter | Qt::AlignLeft;
         opt.text = value.toString();
         break;

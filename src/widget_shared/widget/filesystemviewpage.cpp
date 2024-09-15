@@ -56,9 +56,9 @@ bool FileSystemViewPage::DirFirstSortFilterProxyModel::lessThan(const QModelInde
         const auto right_file_info = fsm->fileInfo(right);
 
         // If DotAndDot move in the beginning
-        if (sourceModel()->data(left).toString() == qTEXT(".."))
+        if (sourceModel()->data(left).toString() == ".."_str)
             return asc;
-        if (sourceModel()->data(right).toString() == qTEXT(".."))
+        if (sourceModel()->data(right).toString() == ".."_str)
             return !asc;
 
         // Move dirs upper
@@ -96,7 +96,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->setModel(dir_first_sort_filter_);
     ui_->dirTree->setItemDelegate(new DisableToolTipStyledItemDelegate(this));
     ui_->dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(qAppSettings.myMusicFolderPath())));
-    ui_->dirTree->setStyleSheet(qTEXT("background-color: transparent"));
+    ui_->dirTree->setStyleSheet("background-color: transparent"_str);
     ui_->dirTree->setSortingEnabled(true);
 
     ui_->dirTree->header()->hide();
@@ -142,7 +142,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
         action_map.exec(pt, pt);
         });
-    setStyleSheet(qTEXT("background-color: transparent; border: none;"));
+    setStyleSheet("background-color: transparent; border: none;"_str);
 }
 
 FileSystemViewPage::~FileSystemViewPage() {

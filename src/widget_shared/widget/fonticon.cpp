@@ -31,20 +31,20 @@ private:
     QVariantMap options_;
 };
 
-const QString FontIconOption::kRectAttr(qTEXT("rect"));
-const QString FontIconOption::kScaleFactorAttr(qTEXT("scaleFactor"));
-const QString FontIconOption::kFontStyleAttr(qTEXT("fontStyle"));
-const QString FontIconOption::kColorAttr(qTEXT("color"));
-const QString FontIconOption::kOnColorAttr(qTEXT("onColor"));
-const QString FontIconOption::kActiveColorAttr(qTEXT("activeColor"));
-const QString FontIconOption::kActiveOnColorAttr(qTEXT("activeOnColor"));
-const QString FontIconOption::kDisabledColorAttr(qTEXT("disabledColor"));
-const QString FontIconOption::kSelectedColorAttr(qTEXT("selectedColor"));
-const QString FontIconOption::kFlipLeftRightAttr(qTEXT("flipLeftRight"));
-const QString FontIconOption::kRotateAngleAttr(qTEXT("rotateAngle"));
-const QString FontIconOption::kFlipTopBottomAttr(qTEXT("flipTopBottom"));
-const QString FontIconOption::kOpacityAttr(qTEXT("opacity"));
-const QString FontIconOption::kAnimation(qTEXT("animation"));
+const QString FontIconOption::kRectAttr("rect"_str);
+const QString FontIconOption::kScaleFactorAttr("scaleFactor"_str);
+const QString FontIconOption::kFontStyleAttr("fontStyle"_str);
+const QString FontIconOption::kColorAttr("color"_str);
+const QString FontIconOption::kOnColorAttr("onColor"_str);
+const QString FontIconOption::kActiveColorAttr("activeColor"_str);
+const QString FontIconOption::kActiveOnColorAttr("activeOnColor"_str);
+const QString FontIconOption::kDisabledColorAttr("disabledColor"_str);
+const QString FontIconOption::kSelectedColorAttr("selectedColor"_str);
+const QString FontIconOption::kFlipLeftRightAttr("flipLeftRight"_str);
+const QString FontIconOption::kRotateAngleAttr("rotateAngle"_str);
+const QString FontIconOption::kFlipTopBottomAttr("flipTopBottom"_str);
+const QString FontIconOption::kOpacityAttr("opacity"_str);
+const QString FontIconOption::kAnimation("animation"_str);
 
 QColor FontIconOption::color = QApplication::palette().color(QPalette::Normal, QPalette::ButtonText);
 QColor FontIconOption::disabledColor = QApplication::palette().color(QPalette::Disabled, QPalette::ButtonText);

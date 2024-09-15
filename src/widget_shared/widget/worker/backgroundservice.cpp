@@ -5,7 +5,6 @@
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 #include <widget/util/mbdiscid_util.h>
-#include <widget/http.h>
 #include <widget/appsettingnames.h>
 #include <widget/util/read_until.h>
 #include <widget/appsettings.h>
@@ -85,7 +84,7 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
 
     XAMP_LOG_D(logger_, "Start fetch cd information form music brainz.");
 
-    http::HttpClient(&nam_, buffer_pool_, QString::fromStdString(url))
+    /*http::HttpClient(&nam_, buffer_pool_, QString::fromStdString(url))
         .success([this, disc_id](const auto& url, const auto& content) {
         auto [image_url, mb_disc_id_info] = parseMbDiscIdXml(content);
 
@@ -110,7 +109,7 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
                     }
                     });
                 }).get();
-            }).get();
+            }).get();*/
 }
 #endif
 
@@ -134,14 +133,14 @@ void BackgroundService::onTranslation(const QString& keyword, const QString& fro
         .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))
         .arg(to)
         .arg(from);
-    http::HttpClient(&nam_, buffer_pool_, url)
+    /*http::HttpClient(&nam_, buffer_pool_, url)
         .success([keyword, this](const auto& url, const auto& content) {
         if (content.isEmpty()) {
             return;
         }
         auto result = content;
-        result = result.replace(qTEXT("[[[\""), qTEXT(""));
-        result = result.mid(0, result.indexOf(qTEXT(",\"")) - 1);
+        result = result.replace("[[[\""_str, ""_str);
+        result = result.mid(0, result.indexOf(",\""_str) - 1);
         emit translationCompleted(keyword, result);
-            }).get();
+            }).get();*/
 }

@@ -19,14 +19,14 @@
 
 namespace {
     const char kStandardM3uTextEncoding[] = "Windows-1250";
-	constexpr auto kM3uHeader = qTEXT("#EXTM3U");
-	constexpr auto kM3uCommentPrefix = qTEXT("#");
+	constexpr auto kM3uHeader = "#EXTM3U"_str;
+	constexpr auto kM3uCommentPrefix = "#"_str;
 	const auto kUniveralEndOfLineRegEx = QRegularExpression(QStringLiteral("\r\n|\r|\n"));
 }
 
 bool M3uParser::isPlaylistFilenameSupported(const QString& fileName) {
-	return fileName.endsWith(qTEXT(".m3u"), Qt::CaseInsensitive) ||
-		fileName.endsWith(qTEXT(".m3u8"), Qt::CaseInsensitive);
+	return fileName.endsWith(".m3u"_str, Qt::CaseInsensitive) ||
+		fileName.endsWith(".m3u8"_str, Qt::CaseInsensitive);
 }
 
 bool M3uParser::writeM3UFile(const QString& file_name,
@@ -36,18 +36,18 @@ bool M3uParser::writeM3UFile(const QString& file_name,
     bool utf8_encoding) {    
     QDir base_directory(QFileInfo(file_name).canonicalPath());    
 
-    QString file_contents(qTEXT("#EXTM3U\n"));
+    QString file_contents("#EXTM3U\n"_str);
     if (!playlist.isEmpty()) {
-        file_contents += qTEXT("#PLAYLIST:") + playlist + qTEXT("\n");
+        file_contents += "#PLAYLIST:"_str + playlist + "\n"_str;
     }
 
     for (const QString& item : items) {
-        file_contents += qTEXT("#EXTINF\n");
+        file_contents += "#EXTINF\n"_str;
         if (useRelativePath) {
-            file_contents += base_directory.relativeFilePath(item) + qTEXT("\n");
+            file_contents += base_directory.relativeFilePath(item) + "\n"_str;
         }
         else {
-            file_contents += item + qTEXT("\n");
+            file_contents += item + "\n"_str;
         }
     }
 

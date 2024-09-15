@@ -104,7 +104,7 @@ bool ArtistStyledItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* mo
 	return true;
 }
 
-const ConstexprQString ArtistStyledItemDelegate::kArtistCacheTag(qTEXT("artist_thumbnail_"));
+const ConstexprQString ArtistStyledItemDelegate::kArtistCacheTag("artist_thumbnail_"_str);
 
 ArtistViewPage::ArtistViewPage(QWidget* parent)
 	: QFrame(parent) {
@@ -112,7 +112,7 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	setFrameStyle(QFrame::StyledPanel);
 
 	close_button_ = new QPushButton(this);
-	close_button_->setObjectName(qTEXT("albumViewPageCloseButton"));
+	close_button_->setObjectName("albumViewPageCloseButton"_str);
 	close_button_->setCursor(Qt::PointingHandCursor);
 	close_button_->setAttribute(Qt::WA_TranslucentBackground);
 	close_button_->setFixedSize(qTheme.titleButtonIconSize() * 1.5);
@@ -252,9 +252,9 @@ ArtistView::ArtistView(QWidget* parent)
 	setMouseTracking(true);
     styled_delegate_ = new ArtistStyledItemDelegate(this);
     setItemDelegate(styled_delegate_);
-	verticalScrollBar()->setStyleSheet(qTEXT(
-		"QScrollBar:vertical { width: 6px; }"
-	));
+	verticalScrollBar()->setStyleSheet(
+		"QScrollBar:vertical { width: 6px; }"_str
+	);
 	reload();
 	page_->hide();
 
@@ -354,11 +354,11 @@ FROM
     artists
 WHERE
 	firstCharEn IN (%1)
-    )").arg(names.join(qTEXT(",")));
+    )").arg(names.join(","_str));
 }
 
 void ArtistView::showAll() {
-	last_query_ = qTEXT(R"(
+	last_query_ = R"(
 SELECT
     artists.artist,
     artists.artistId,
@@ -366,5 +366,5 @@ SELECT
 	artists.firstChar
 FROM
     artists
-    )");
+    )"_str;
 }

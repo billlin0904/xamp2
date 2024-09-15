@@ -9,18 +9,15 @@
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
 #include <widget/imagecache.h>
-#include <widget/http.h>
 
 AlbumCoverService::AlbumCoverService()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
-    , timer_(this)
-    , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize)) {
+	, http_client_(&nam_, QString(), this) {
 }
 
 void AlbumCoverService::cleaup() {
     database_ptr_.reset();
-	buffer_pool_.reset();
 }
 
 void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
@@ -28,27 +25,24 @@ void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QSt
         return;
     }
 
-    auto download_handler = [id, this](const auto& content) {
+    if (pending_requests_.contains(thumbnail_url)) {
+        return;
+    }
+
+	http_client_.setUrl(thumbnail_url);
+    http_client_.download().then([thumbnail_url, id, this](const auto& content) {
         QPixmap image;
         if (!image.loadFromData(content)) {
             return;
         }
         emit setThumbnail(id, qImageCache.addImage(image));
-        };
-
-    auto error_handler = [id, thumbnail_url, this](const auto& url, const auto& error) {
-        XAMP_LOG_DEBUG("Download thumbnail error: {}", error.toStdString());
-        emit fetchThumbnailUrlError(id, thumbnail_url);
-        };
-
-    // Reduce memory use age by using ObjectPool and share QNetworkAccessManager.
-    http::HttpClient(&nam_, buffer_pool_, thumbnail_url)
-        .download(download_handler, error_handler);
+        pending_requests_.erase(thumbnail_url);
+        });
+    pending_requests_.insert(thumbnail_url);
 }
 
 void AlbumCoverService::cancelRequested() {
     is_stop_ = true;
-    timer_.stop();
 }
 
 void AlbumCoverService::mergeUnknownAlbumCover() {
@@ -105,20 +99,21 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
     is_stop_ = false;
 
     auto db = database_ptr_->Acquire();
+    dao::AlbumDao album_dao(db->getDatabase());
+    dao::MusicDao music_dao(db->getDatabase());
 
     try {
-        auto cover_id = dao::AlbumDao(db->getDatabase()).getAlbumCoverId(id.second.value());
-
+	    const auto cover_id = album_dao.getAlbumCoverId(id.second.value());
         if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {
             return;
         }
 
         // 1. Read embedded cover in music file.
-        auto music_file_path = dao::MusicDao(db->getDatabase()).getMusicFilePath(id.first).toStdWString();
+        auto music_file_path = music_dao.getMusicFilePath(id.first).toStdWString();
         
         if (music_file_path.empty()) {
             // 2. Read embedded cover in album first music file.
-            if (auto file_path = dao::AlbumDao(db->getDatabase()).getAlbumFirstMusicFilePath(id.second.value())) {
+            if (auto file_path = album_dao.getAlbumFirstMusicFilePath(id.second.value())) {
                 music_file_path = file_path->toStdWString();
             }            
         }

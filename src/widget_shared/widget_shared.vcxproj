@@ -60,15 +60,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;C:\Users\User\anaconda3\envs\ytservice\include;../thirdparty/pybind11/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;C:\Users\User\anaconda3\envs\ytservice\include;../thirdparty/pybind11/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
       </WarningVersion>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;C:\Users\User\anaconda3\envs\ytservice\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;C:\Users\User\anaconda3\envs\ytservice\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,6 +137,7 @@
     <QtMoc Include="widget\filesystemwatcher.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
+    <ClInclude Include="widget\httpx.h" />
     <ClInclude Include="widget\m3uparser.h" />
     <ClInclude Include="widget\maskwidget.h" />
     <QtMoc Include="widget\tageditpage.h" />
@@ -258,7 +259,7 @@
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\genre_view_page.cpp" />
     <ClCompile Include="widget\globalshortcut.cpp" />
-    <ClCompile Include="widget\http.cpp" />
+    <ClCompile Include="widget\httpx.cpp" />
     <ClCompile Include="widget\imagecache.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
     <ClCompile Include="widget\localelanguage.cpp" />

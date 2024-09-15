@@ -58,7 +58,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
 
     XAMP_NO_DISCARD bool isHttpUrl() const {
         const auto scheme = QUrl(file_path).scheme();
-        return scheme == qTEXT("https") || scheme == qTEXT("http");
+        return scheme == "https"_str || scheme == "http"_str;
     }
 
     XAMP_NO_DISCARD bool isFilePath() const {

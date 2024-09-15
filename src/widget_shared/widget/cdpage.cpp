@@ -11,36 +11,36 @@ CdPage::CdPage(QWidget* parent)
     ui_ = new Ui::CDPage();
     ui_->setupUi(this);
 
-    ui_->pcButton->setStyleSheet(qTEXT(R"(
+    ui_->pcButton->setStyleSheet(R"(
                                         QToolButton#pcButton {
                                         border: none;
                                         background-color: transparent;
                                         }
-                                        )"));
+                                        )"_str);
     ui_->pcButton->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
     ui_->pcButton->setIconSize(QSize(64, 64));
 
-    ui_->cdButton->setStyleSheet(qTEXT(R"(
+    ui_->cdButton->setStyleSheet(R"(
                                         QToolButton#cdButton {
                                         border: none;                                        
                                         background-color: transparent;
                                         }
-                                        )"));
+                                        )"_str);
     ui_->cdButton->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
     ui_->cdButton->setIconSize(QSize(64, 64));
 
-    ui_->arrowButton->setStyleSheet(qTEXT(R"(
+    ui_->arrowButton->setStyleSheet(R"(
                                         QToolButton#arrowButton {
                                         border: none;
                                         background-color: transparent;
                                         }
-                                        )"));
+                                        )"_str);
     ui_->arrowButton->setIcon(qTheme.fontIcon(Glyphs::ICON_LEFT_ARROW));
     ui_->arrowButton->setIconSize(QSize(64, 64));
     ui_->playlistPage->hide();
 
-    ui_->tipFrame->setStyleSheet(qTEXT("background-color: transparent;"));
-    setStyleSheet(qTEXT("background-color: transparent; border: none;"));
+    ui_->tipFrame->setStyleSheet("background-color: transparent;"_str);
+    setStyleSheet("background-color: transparent; border: none;"_str);
 }
 
 CdPage::~CdPage() {

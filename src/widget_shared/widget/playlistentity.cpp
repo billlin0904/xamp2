@@ -60,7 +60,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.parent_path    = toNativeSeparators(file_info.dir().path());
 
     if (entity.file_extension.isEmpty()) {
-        entity.file_extension = qTEXT(".m4a");
+        entity.file_extension = ".m4a"_str;
     }
 
     return entity;

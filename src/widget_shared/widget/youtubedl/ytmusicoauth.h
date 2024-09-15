@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <widget/http.h>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <widget/util/str_util.h>

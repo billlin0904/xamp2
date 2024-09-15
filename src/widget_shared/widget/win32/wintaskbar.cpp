@@ -1,6 +1,9 @@
 #include <QTimer>
 #include <widget/win32/wintaskbar.h>
 
+#include <widget/appsettingnames.h>
+#include <widget/appsettings.h>
+
 #if defined(Q_OS_WIN)
 #include <widget/xmainwindow.h>
 #include <widget/util/image_util.h>
@@ -317,18 +320,19 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 		MSG_TaskbarButtonCreated = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 	}
 
-	setTheme();
+	const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+	setTheme(theme);
 	setWindow(window);
 }
 
 WinTaskbar::~WinTaskbar() = default;
 
-void WinTaskbar::setTheme() {
-	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY, ThemeColor::LIGHT_THEME);
-	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE, ThemeColor::LIGHT_THEME);
-	stop_play_icon = qTheme.fontIcon(Glyphs::ICON_STOP_PLAY, ThemeColor::LIGHT_THEME);
-	seek_forward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD, ThemeColor::LIGHT_THEME);
-	seek_backward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD, ThemeColor::LIGHT_THEME);
+void WinTaskbar::setTheme(ThemeColor theme_color) {
+	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PLAY, theme_color);
+	pause_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_LIST_PAUSE, theme_color);
+	stop_play_icon = qTheme.fontIcon(Glyphs::ICON_STOP_PLAY, theme_color);
+	seek_forward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_FORWARD, theme_color);
+	seek_backward_icon = qTheme.fontIcon(Glyphs::ICON_PLAY_BACKWARD, theme_color);
 }
 
 void WinTaskbar::setWindow(QWidget* window) {

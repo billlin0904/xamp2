@@ -120,10 +120,10 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     , more_album_opt_button_(new QPushButton())
     , play_button_(new QPushButton())
     , edit_mode_checkbox_(new QCheckBox()) {
-    more_album_opt_button_->setStyleSheet(qTEXT("background-color: transparent"));
-    play_button_->setStyleSheet(qTEXT("background-color: transparent"));
+    more_album_opt_button_->setStyleSheet("background-color: transparent"_str);
+    play_button_->setStyleSheet("background-color: transparent"_str);
 
-    edit_mode_checkbox_->setObjectName(qTEXT("editModeCheckbox"));
+    edit_mode_checkbox_->setObjectName("editModeCheckbox"_str);
     edit_mode_checkbox_->setStyleSheet(qFormat(R"(
                                          QCheckBox#editModeCheckbox {
         			                        background-color: transparent;

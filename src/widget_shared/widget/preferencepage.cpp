@@ -18,7 +18,7 @@ void PreferencePage::updateSoxrConfigUi(const QVariantMap& soxr_settings) {
 	ui_->soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kResampleSampleRate].toInt()));
 	ui_->soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
 	ui_->soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
-	ui_->soxrPassbandValue->setText(QString(qTEXT("%0%")).arg(ui_->soxrPassbandSlider->value()));
+	ui_->soxrPassbandValue->setText(qFormat("%0%").arg(ui_->soxrPassbandSlider->value()));
     ui_->soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
 	setPhasePercentText(ui_->soxrPhaseSlider->value());
     ui_->rollOffLevelComboBox->setCurrentIndex(soxr_settings[kSoxrRollOffLevel].toInt());
@@ -162,7 +162,7 @@ void PreferencePage::initialLanguage() {
 }
 
 void PreferencePage::setPhasePercentText(int32_t value) {
-	auto str = QString(qTEXT("%0%")).arg(value);
+	auto str = qFormat("%0%").arg(value);
 	if (value == 0) {
 		str += tr(" (minimum)");
 	}
@@ -272,7 +272,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
     (void)QObject::connect(ui_->soxrPassbandSlider, &QSlider::valueChanged, [this](auto) {
-        ui_->soxrPassbandValue->setText(QString(qTEXT("%0%")).arg(ui_->soxrPassbandSlider->value()));
+        ui_->soxrPassbandValue->setText(qFormat("%0%").arg(ui_->soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_->soxrSettingCombo->currentText());
         saveAll();
     });
@@ -340,15 +340,15 @@ PreferencePage::PreferencePage(QWidget *parent)
 		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
 			w->setFont(f);
 		}
-		w->setStyleSheet(qTEXT("background: transparent;"));
+		w->setStyleSheet("background: transparent;"_str);
 	}
 
 	Q_FOREACH(auto* w, soxr_page_widgets) {
-		w->setStyleSheet(qTEXT("background: transparent;"));
+		w->setStyleSheet("background: transparent;"_str);
 	}
 
 	Q_FOREACH(auto* w, r8brain_page_widgets) {
-		w->setStyleSheet(qTEXT("background: transparent;"));
+		w->setStyleSheet("background: transparent;"_str);
 	}
 
 	ui_->soxrPhaseSlider->setRange(1, 100);

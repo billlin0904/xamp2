@@ -15,7 +15,7 @@ namespace dao {
         QSqlTableModel model(nullptr, db_);
 
         model.setEditStrategy(QSqlTableModel::OnManualSubmit);
-        model.setTable(qTEXT("playlist"));
+        model.setTable("playlist"_str);
         model.select();
 
         if (!model.insertRows(0, 1)) {
@@ -39,34 +39,34 @@ namespace dao {
     void PlaylistDao::setPlaylistName(int32_t playlist_id, const QString& name) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE playlist SET name = :name WHERE (playlistId = :playlistId)"));
+        query.prepare("UPDATE playlist SET name = :name WHERE (playlistId = :playlistId)"_str);
 
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
-        query.bindValue(qTEXT(":name"), name);
+        query.bindValue(":playlistId"_str, playlist_id);
+        query.bindValue(":name"_str, name);
         DbIfFailedThrow1(query);
     }
 
     void PlaylistDao::removePlaylist(int32_t playlist_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM playlist WHERE playlistId=:playlistId"));
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
+        query.prepare("DELETE FROM playlist WHERE playlistId=:playlistId"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
         DbIfFailedThrow1(query);
     }
 
     void PlaylistDao::removePlaylistAllMusic(int32_t playlist_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
+        query.prepare("DELETE FROM playlistMusics WHERE playlistId=:playlistId"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
         DbIfFailedThrow1(query);
     }
 
     void PlaylistDao::updatePlaylistMusicChecked(int32_t playlist_music_id, bool is_checked) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE playlistMusics SET isChecked = :isChecked WHERE (playlistMusicsId = :playlistMusicsId)"));
+        query.prepare("UPDATE playlistMusics SET isChecked = :isChecked WHERE (playlistMusicsId = :playlistMusicsId)"_str);
 
-        query.bindValue(qTEXT(":playlistMusicsId"), playlist_music_id);
-        query.bindValue(qTEXT(":isChecked"), is_checked);
+        query.bindValue(":playlistMusicsId"_str, playlist_music_id);
+        query.bindValue(":isChecked"_str, is_checked);
 
         DbIfFailedThrow1(query);
     }
@@ -74,17 +74,17 @@ namespace dao {
     int32_t PlaylistDao::removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids) {
         SqlQuery query(db_);
 
-        QString str = qTEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)");
+        QString str = "DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)"_str;
 
         QStringList list;
         for (auto id : select_music_ids) {
             list << QString::number(id);
         }
 
-        auto q = str.arg(list.join(qTEXT(",")));
+        auto q = str.arg(list.join(","_str));
         query.prepare(q);
 
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
+        query.bindValue(":playlistId"_str, playlist_id);
         DbIfFailedThrow1(query);
 
         auto affected_rows = 0;
@@ -97,8 +97,8 @@ namespace dao {
     bool PlaylistDao::isPlaylistExist(int32_t playlist_id) const {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("SELECT playlistId FROM playlist WHERE playlistId = (:playlistId)"));
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
+        query.prepare("SELECT playlistId FROM playlist WHERE playlistId = (:playlistId)"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
 
         DbIfFailedThrow1(query);
         return query.next();
@@ -107,11 +107,11 @@ namespace dao {
     void PlaylistDao::setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type) {
         SqlQuery query(db_);
 
-        query.prepare(qTEXT("UPDATE playlist SET playlistIndex = :playlistIndex WHERE (playlistId = :playlistId)"));
+        query.prepare("UPDATE playlist SET playlistIndex = :playlistIndex WHERE (playlistId = :playlistId)"_str);
 
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
-        query.bindValue(qTEXT(":playlistIndex"), play_index);
-        query.bindValue(qTEXT(":storeType"), static_cast<int32_t>(store_type));
+        query.bindValue(":playlistId"_str, playlist_id);
+        query.bindValue(":playlistIndex"_str, play_index);
+        query.bindValue(":storeType"_str, static_cast<int32_t>(store_type));
         DbIfFailedThrow1(query);
     }
 
@@ -137,11 +137,11 @@ namespace dao {
         QStringList strings;
 
         for (const auto id : music_id) {
-            strings << qTEXT("(") + qTEXT("NULL, ") + QString::number(playlist_id) + qTEXT(", ") + QString::number(id) + qTEXT(")");
+            strings << "("_str + "NULL, "_str + QString::number(playlist_id) + ", "_str + QString::number(id) + ")"_str;
         }
 
-        const auto querystr = qTEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ")
-            + strings.join(qTEXT(","));
+        const auto querystr = "INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES "_str
+            + strings.join(","_str);
         query.prepare(querystr);
         DbIfFailedThrow1(query);
     }
@@ -152,9 +152,9 @@ namespace dao {
     
     void PlaylistDao::clearNowPlaying(int32_t playlist_id) {
       SqlQuery query(db_);
-      query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing"));
-      query.bindValue(qTEXT(":playing"), PlayingState::PLAY_CLEAR);
-      query.bindValue(qTEXT(":playlistId"), playlist_id);
+      query.prepare("UPDATE playlistMusics SET playing = :playing"_str);
+      query.bindValue(":playing"_str, PlayingState::PLAY_CLEAR);
+      query.bindValue(":playlistId"_str, playlist_id);
       DbIfFailedThrow1(query);
     }
     
@@ -164,19 +164,19 @@ namespace dao {
 
     void PlaylistDao::clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"));
-        query.bindValue(qTEXT(":playing"), PlayingState::PLAY_CLEAR);
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
-        query.bindValue(qTEXT(":skipPlaylistMusicsId"), skip_playlist_music_id);
+        query.prepare("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"_str);
+        query.bindValue(":playing"_str, PlayingState::PLAY_CLEAR);
+        query.bindValue(":playlistId"_str, playlist_id);
+        query.bindValue(":skipPlaylistMusicsId"_str, skip_playlist_music_id);
         DbIfFailedThrow1(query);
     }
 
     void PlaylistDao::setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing) {
         SqlQuery query(db_);
-        query.prepare(qTEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
-        query.bindValue(qTEXT(":playing"), playing);
-        query.bindValue(qTEXT(":playlistId"), playlist_id);
-        query.bindValue(qTEXT(":playlistMusicsId"), playlist_music_id);
+        query.prepare("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"_str);
+        query.bindValue(":playing"_str, playing);
+        query.bindValue(":playlistId"_str, playlist_id);
+        query.bindValue(":playlistMusicsId"_str, playlist_music_id);
         DbIfFailedThrow1(query);
     }
 
@@ -194,17 +194,17 @@ namespace dao {
     void PlaylistDao::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun) {
         QSqlTableModel model(nullptr, db_);
 
-        model.setTable(qTEXT("playlist"));
+        model.setTable("playlist"_str);
         model.setSort(1, Qt::AscendingOrder);
         model.select();
 
         for (auto i = 0; i < model.rowCount(); ++i) {
             auto record = model.record(i);
-            fun(record.value(qTEXT("playlistId")).toInt(),
-                record.value(qTEXT("playlistIndex")).toInt(),
-                static_cast<StoreType>(record.value(qTEXT("storeType")).toInt()),
-                record.value(qTEXT("cloudPlaylistId")).toString(),
-                record.value(qTEXT("name")).toString());
+            fun(record.value("playlistId"_str).toInt(),
+                record.value("playlistIndex"_str).toInt(),
+                static_cast<StoreType>(record.value("storeType"_str).toInt()),
+                record.value("cloudPlaylistId"_str).toString(),
+                record.value("name"_str).toString());
         }
     }
 }

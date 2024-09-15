@@ -26,7 +26,7 @@ NavBarListView::NavBarListView(QWidget *parent)
         emit tableNameChanged(table_id, table_name);
     });
 
-    setStyleSheet(qTEXT("border: none"));
+    setStyleSheet("border: none"_str);
     tooltip_.hide();
 }
 

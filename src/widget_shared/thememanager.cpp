@@ -30,46 +30,46 @@ namespace {
         std::sort(begin, end,
             [](const auto& left_font_name, const auto& right_font_name) {
                 auto getFontWeight = [](auto name) {
-                    if (name.contains(qTEXT("Thin"), Qt::CaseInsensitive)) {
+                    if (name.contains("Thin"_str, Qt::CaseInsensitive)) {
                         return 100 * 10;
                     }
-                    if (name.contains(qTEXT("Hairline"), Qt::CaseInsensitive)) {
+                    if (name.contains("Hairline"_str, Qt::CaseInsensitive)) {
                         return 100 * 10;
                     }
-                    if (name.contains(qTEXT("ExtraLight"), Qt::CaseInsensitive)) {
+                    if (name.contains("ExtraLight"_str, Qt::CaseInsensitive)) {
                         return 200 * 10;
                     }
-                    if (name.contains(qTEXT("Light"), Qt::CaseInsensitive)) {
+                    if (name.contains("Light"_str, Qt::CaseInsensitive)) {
                         return 300 * 10;
                     }
-                    if (name.contains(qTEXT("Normal"), Qt::CaseInsensitive)) {
+                    if (name.contains("Normal"_str, Qt::CaseInsensitive)) {
                         return 400;
                     }
-                    if (name.contains(qTEXT("Regular"), Qt::CaseInsensitive)) {
+                    if (name.contains("Regular"_str, Qt::CaseInsensitive)) {
                         return 400;
                     }
-                    if (name.contains(qTEXT("Medium"), Qt::CaseInsensitive)) {
+                    if (name.contains("Medium"_str, Qt::CaseInsensitive)) {
                         return 500;
                     }
-                    if (name.contains(qTEXT("SemiBold"), Qt::CaseInsensitive)) {
+                    if (name.contains("SemiBold"_str, Qt::CaseInsensitive)) {
                         return 600;
                     }
-                    if (name.contains(qTEXT("DemiBold"), Qt::CaseInsensitive)) {
+                    if (name.contains("DemiBold"_str, Qt::CaseInsensitive)) {
                         return 600;
                     }
-                    if (name.contains(qTEXT("Bold"), Qt::CaseInsensitive)) {
+                    if (name.contains("Bold"_str, Qt::CaseInsensitive)) {
                         return 700;
                     }
-                    if (name.contains(qTEXT("ExtraBold"), Qt::CaseInsensitive)) {
+                    if (name.contains("ExtraBold"_str, Qt::CaseInsensitive)) {
                         return 800;
                     }
-                    if (name.contains(qTEXT("UltraBold"), Qt::CaseInsensitive)) {
+                    if (name.contains("UltraBold"_str, Qt::CaseInsensitive)) {
                         return 800;
                     }
-                    if (name.contains(qTEXT("Black"), Qt::CaseInsensitive)) {
+                    if (name.contains("Black"_str, Qt::CaseInsensitive)) {
                         return 900;
                     }
-                    if (name.contains(qTEXT("Heavy"), Qt::CaseInsensitive)) {
+                    if (name.contains("Heavy"_str, Qt::CaseInsensitive)) {
                         return 900;
                     }
                     return 100;
@@ -134,7 +134,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     HashMap<int32_t, uint32_t> glyphs_lut;
 
     QJsonDocument doc;
-    if (json_util::deserializeFile(qTEXT("fonticon.json"), doc)) {
+    if (json_util::deserializeFile("fonticon.json"_str, doc)) {
         auto jsonObject = doc.object();
         for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
             auto key = it.key().toStdString();
@@ -146,7 +146,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
         }
     }
 
-    qFontIcon.addFont(fontNamePath(qTEXT("MaterialIcons-Regular.ttf")));
+    qFontIcon.addFont(fontNamePath("MaterialIcons-Regular.ttf"_str));
     qFontIcon.setGlyphs(glyphs_lut);
 }
 
@@ -158,11 +158,14 @@ QFont ThemeManager::loadFonts() {
     QList<QString> en_fonts;
     QList<QString> debug_fonts;
 
-    installFileFonts(qTEXT("NotoSans"), mono_fonts);
-    installFileFonts(qTEXT("FiraCode-Regular"), debug_fonts);
-    installFileFont(qTEXT("Karla-Regular.ttf"), format_font);
-    installFileFonts(qTEXT("HarmonyOS_Sans_TC"), ui_fonts);
-    installFileFonts(qTEXT("HarmonyOS_Sans_SC"), ui_fonts);
+    installFileFonts("NotoSans"_str, mono_fonts);
+    installFileFonts("FiraCode-Regular"_str, debug_fonts);
+    installFileFont("Karla-Regular.ttf"_str, format_font);
+    //installFileFonts("MiSansTC"), ui_fonts);
+    //installFileFonts("MiSans"), ui_fonts);
+    installFileFonts("HarmonyOS_Sans_TC"_str, ui_fonts);
+    installFileFonts("HarmonyOS_Sans_SC"_str, ui_fonts);
+    installFileFonts("ZenKakuGothicNew"_str, ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
@@ -173,11 +176,11 @@ QFont ThemeManager::loadFonts() {
         mono_fonts = ui_fonts;
     }
 
-    QFont::insertSubstitutions(qTEXT("DebugFont"), debug_fonts);
-    QFont::insertSubstitutions(qTEXT("DisplayFont"), display_fonts);
-    QFont::insertSubstitutions(qTEXT("FormatFont"), format_font);
-    QFont::insertSubstitutions(qTEXT("MonoFont"), mono_fonts);
-    QFont::insertSubstitutions(qTEXT("UIFont"), ui_fonts);
+    QFont::insertSubstitutions("DebugFont"_str, debug_fonts);
+    QFont::insertSubstitutions("DisplayFont"_str, display_fonts);
+    QFont::insertSubstitutions("FormatFont"_str, format_font);
+    QFont::insertSubstitutions("MonoFont"_str, mono_fonts);
+    QFont::insertSubstitutions("UIFont"_str, ui_fonts);
 
     auto ui_font = uiFont();
     ui_font.setStyleStrategy(QFont::PreferAntialias);
@@ -226,12 +229,12 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
     case ThemeColor::DARK_THEME:
         font_icon_opts_.insert(FontIconOption::kColorAttr, QVariant(QColor(240, 241, 243)));
         font_icon_opts_.insert(FontIconOption::kSelectedColorAttr, QVariant(QColor(240, 241, 243)));
-        unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/Black/unknown_album.png"));
+        unknown_cover_ = QPixmap(":/xamp/Resource/Black/unknown_album.png"_str);
         break;
     case ThemeColor::LIGHT_THEME:
         font_icon_opts_.insert(FontIconOption::kColorAttr, QVariant(QColor(97, 97, 101)));
         font_icon_opts_.insert(FontIconOption::kSelectedColorAttr, QVariant(QColor(97, 97, 101)));
-        unknown_cover_ = QPixmap(qTEXT(":/xamp/Resource/White/unknown_album.png"));
+        unknown_cover_ = QPixmap(":/xamp/Resource/White/unknown_album.png"_str);
         break;
     }
     default_size_unknown_cover_ = image_util::resizeImage(unknown_cover_, album_cover_size_, true);
@@ -244,9 +247,9 @@ QLatin1String ThemeManager::themeColorPath() const {
 
 QLatin1String ThemeManager::themeColorPath(ThemeColor theme_color) const {
     if (theme_color == ThemeColor::DARK_THEME) {
-		return qTEXT("Black");
+		return "Black"_str;
 	}
-	return qTEXT("White");
+	return "White"_str;
 }
 
 QColor ThemeManager::textColor() const {
@@ -271,10 +274,10 @@ QString ThemeManager::backgroundColorString() const {
 
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        color = qTEXT("#19232D");
+        color = "#19232D"_str;
         break;
     case ThemeColor::LIGHT_THEME:
-        color = qTEXT("#FAFAFA");
+        color = "#FAFAFA"_str;
         break;
     }
     return color;
@@ -369,11 +372,11 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
 }
 
 QIcon ThemeManager::applicationIcon() const {
-    return QIcon(qTEXT(":/xamp/xamp.ico"));
+    return QIcon(":/xamp/xamp.ico"_str);
 }
 
 QIcon ThemeManager::playCircleIcon() const {
-    return QIcon(qTEXT(":/xamp/Resource/Black/play_circle.png"));
+    return QIcon(":/xamp/Resource/Black/play_circle.png"_str);
 }
 
 QIcon ThemeManager::playlistPauseIcon(QSize icon_size, double scale_factor) const {
@@ -418,9 +421,9 @@ QIcon ThemeManager::hdIcon() const {
 
 QPixmap ThemeManager::githubIcon() const {
     if (themeColor() == ThemeColor::DARK_THEME) {
-        return QPixmap(qTEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
+        return QPixmap(":/xamp/Resource/Black/GitHub-Mark.png"_str);
 	} else {
-        return QPixmap(qTEXT(":/xamp/Resource/White/GitHub-Mark.png"));
+        return QPixmap(":/xamp/Resource/White/GitHub-Mark.png"_str);
 	}
 }
 
@@ -442,7 +445,7 @@ void ThemeManager::updateMaximumIcon(QToolButton *maxWinButton, bool is_maximum)
 
 void ThemeManager::setHeartButton(QToolButton* heartButton, bool press) {
     heartButton->setIcon(fontIcon(press ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART));
-    heartButton->setStyleSheet(qTEXT("background: transparent;"));
+    heartButton->setStyleSheet("background: transparent;"_str);
 }
 
 void ThemeManager::setPlayOrPauseButton(QToolButton *playButton, bool is_playing) {
@@ -477,9 +480,9 @@ void ThemeManager::loadAndSetThemeQss() {
     QString filename;
 
     if (themeColor() == ThemeColor::LIGHT_THEME) {
-        filename = qTEXT(":/xamp/Resource/Theme/light/style.qss");
+        filename = ":/xamp/Resource/Theme/light/style.qss"_str;
     } else {
-        filename = qTEXT(":/xamp/Resource/Theme/dark/style.qss");
+        filename = ":/xamp/Resource/Theme/dark/style.qss"_str;
     }
 
     QFile f(filename);
@@ -505,7 +508,7 @@ QColor ThemeManager::coverShadowColor() const {
     case ThemeColor::DARK_THEME:
     case ThemeColor::LIGHT_THEME:
     default:
-        return {qTEXT("#DCDCDC")};
+        return {"#DCDCDC"_str};
     }
 }
 
@@ -513,9 +516,9 @@ QString ThemeManager::linearGradientStyle() const {
     switch (themeColor()) {
     default:
     case ThemeColor::DARK_THEME:
-        return qTEXT("#2e2f31");
+        return "#2e2f31"_str;
     case ThemeColor::LIGHT_THEME:
-        return qTEXT("#ffffff");
+        return "#ffffff"_str;
     }
 }
 
@@ -530,20 +533,20 @@ QSize ThemeManager::tabIconSize() const {
 QColor ThemeManager::hoverColor() const {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        return {qTEXT("#43474e")};
+        return {"#43474e"_str };
     case ThemeColor::LIGHT_THEME:
     default:
-        return {qTEXT("#C9CDD0")};
+        return {"#C9CDD0"_str };
     }
 }
 
 QColor ThemeManager::highlightColor() const {
     switch (themeColor()) {
     case ThemeColor::LIGHT_THEME:
-        return {qTEXT("#9FCBFF")};
+        return {"#9FCBFF"_str};
     case ThemeColor::DARK_THEME:
     default:
-        return {qTEXT("#1A72BB")};
+        return {"#1A72BB"_str };
     }
 }
 
@@ -553,7 +556,7 @@ int32_t ThemeManager::titleBarIconHeight() {
 
 void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) {
     const QColor hover_color = hoverColor();
-    const QColor color_hover_color(qTEXT("#dc3545"));
+    const QColor color_hover_color("#dc3545"_str);
 
     close_button->setStyleSheet(qFormat(R"(
                                          QToolButton#closeButton {
@@ -627,23 +630,23 @@ QSize ThemeManager::titleButtonIconSize() {
 }
 
 QFont ThemeManager::formatFont() const {
-    return QFont(qTEXT("FormatFont"));
+    return QFont("FormatFont"_str);
 }
 
 QFont ThemeManager::uiFont() const {
-    return QFont(qTEXT("UIFont"));
+    return QFont("UIFont"_str);
 }
 
 QFont ThemeManager::displayFont() const {
-    return QFont(qTEXT("DisplayFont"));
+    return QFont("DisplayFont"_str);
 }
 
 QFont ThemeManager::monoFont() const {
-    return QFont(qTEXT("MonoFont"));
+    return QFont("MonoFont"_str);
 }
 
 QFont ThemeManager::debugFont() const {
-    return QFont(qTEXT("DebugFont"));
+    return QFont("DebugFont"_str);
 }
 
 void ThemeManager::setRecordIcon(QToolButton* record_button, bool is_recording) {
@@ -666,14 +669,14 @@ void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_
 
     switch (themeColor()) {
     case ThemeColor::LIGHT_THEME:
-        border_color = qTEXT("#C9CDD0");
-        selection_background_color = qTEXT("#FAFAFA");
-        on_selection_background_color = qTEXT("#1e1d23");
+        border_color = "#C9CDD0"_str;
+        selection_background_color = "#FAFAFA"_str;
+        on_selection_background_color = "#1e1d23"_str;
         break;
     case ThemeColor::DARK_THEME:
-        border_color = qTEXT("#455364");
-        selection_background_color = qTEXT("#1e1d23");
-        on_selection_background_color = qTEXT("#9FCBFF");
+        border_color = "#455364"_str;
+        selection_background_color = "#1e1d23"_str;
+        on_selection_background_color = "#9FCBFF"_str;
         break;
     }
 
@@ -705,7 +708,7 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
                                             color: white;
                                             border-radius: 8px;
                                             }
-                                            )").arg(object_name).arg(qTEXT("#3a3a3c")));
+                                            )").arg(object_name).arg("#3a3a3c"_str));
 			break;
         case ThemeColor::LIGHT_THEME:
             line_edit->setStyleSheet(qFormat(R"(
@@ -781,23 +784,23 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
 
 	switch (themeColor()) {
 	case ThemeColor::LIGHT_THEME:
-       slider_background_color = qTEXT("#9FCBFF");
-       slider_border_color = qTEXT("#C9CDD0");
+       slider_background_color = "#9FCBFF"_str;
+       slider_border_color = "#C9CDD0"_str;
        break;
 	case ThemeColor::DARK_THEME:
-       slider_background_color = qTEXT("#1A72BB");
-       slider_border_color = qTEXT("#43474e");
+       slider_background_color = "#1A72BB"_str;
+       slider_border_color = "#43474e"_str;
        break;
    }
 
     auto handle_border_color = slider_background_color;
     auto margin = 10;
     if (!enter) {
-        handle_border_color = qTEXT("transparent");
+        handle_border_color = "transparent"_str;
         margin = 1;
     }
 
-    slider->setStyleSheet(qTEXT(R"(
+    slider->setStyleSheet(qFormat(R"(
     QSlider {
 		background-color: transparent;
     }
@@ -879,10 +882,10 @@ void ThemeManager::setAlbumNaviBarTheme(QListView *tab) const {
 
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        tab_left_color = qTEXT("42, 130, 218");
+        tab_left_color = "42, 130, 218"_str;
         break;
     case ThemeColor::LIGHT_THEME:
-        tab_left_color = qTEXT("42, 130, 218");
+        tab_left_color = "42, 130, 218"_str;
         break;
     }
 
