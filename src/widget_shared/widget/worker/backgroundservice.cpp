@@ -113,10 +113,6 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
 }
 #endif
 
-void BackgroundService::onReadMFCC(const Path& file_path) {
-
-}
-
 void BackgroundService::onBlurImage(const QString& cover_id, const QPixmap& image, QSize size) {
     if (image.isNull()) {
         emit blurImage(QImage());

@@ -18,7 +18,6 @@
 #include <widget/widget_shared.h>
 #include <widget/util/str_util.h>
 #include <widget/widget_shared_global.h>
-#include <widget/baseservice.h>
 
 namespace meta {
 	struct Thumbnail {

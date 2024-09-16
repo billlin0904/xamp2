@@ -126,8 +126,6 @@
     <ClInclude Include="widget\accountauthorizationpage.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <QtMoc Include="widget\audio_embedding\audio_embedding_service.h" />
-    <ClInclude Include="widget\chatgpt\chatgptservice.h" />
-    <QtMoc Include="widget\baseservice.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
@@ -238,9 +236,7 @@
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\audio_embedding\audio_embedding_service.cpp" />
-    <ClCompile Include="widget\baseservice.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
-    <ClCompile Include="widget\chatgpt\chatgptservice.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\createplaylistview.cpp" />

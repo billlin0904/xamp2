@@ -384,7 +384,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         if (token) {
             initialYtMusicService();
             initialCloudPlaylist();
-            setAuthButton(ui_, true);
         }
     });
 
@@ -949,13 +948,6 @@ void Xamp::initialUi() {
     //ui_.stopButton->hide();    
     //ui_.formatLabel->hide();
 
-    if (YtMusicOAuth::parseOAuthJson()) {
-        setAuthButton(ui_, true);
-    }
-    else {
-        setAuthButton(ui_, false);
-    }
-
     setNaviBarMenuButton(ui_);    
 }
 
@@ -1366,13 +1358,6 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     else {
 		lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
 		setCover(qImageCache.unknownCoverId());
-    }
-
-    if (YtMusicOAuth::parseOAuthJson()) {
-        setAuthButton(ui_, true);
-    }
-    else {
-        setAuthButton(ui_, false);
     }
    
 	setNaviBarMenuButton(ui_);
@@ -2318,6 +2303,20 @@ void Xamp::initialPlaylist() {
         &AlbumView::removeAll,        
         [this]() {
             yt_music_tab_page_->closeAllTab();
+        });
+
+    (void)QObject::connect(music_library_page_->album(),
+        &AlbumView::removeSelectedAlbum,
+        [this](auto album_id) {
+            QList<QString> music_ids;
+            album_dao_.forEachAlbumMusic(album_id, [&music_ids](auto entity) {
+                music_ids.append(QString::number(entity.music_id));
+                });
+			if (music_ids.isEmpty()) {
+				return;
+			}
+            audio_embedding_service_->deleteEmbeddings(music_ids).then([](auto) {
+                });
         });
 
     (void)QObject::connect(music_library_page_.get(),

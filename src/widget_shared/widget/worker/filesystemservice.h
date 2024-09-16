@@ -48,7 +48,7 @@ public slots:
     void cancelRequested();
 
 private:
-    void scanPathFiles(AlignPtr<IThreadPoolExecutor> &thread_pool, int32_t playlist_id, const QString& dir);
+    void scanPathFiles(int32_t playlist_id, const QString& dir);
 
     void updateProgress();
 
@@ -59,6 +59,7 @@ private:
     Stopwatch total_time_elapsed_;
     Stopwatch update_ui_elapsed_;
     QTimer timer_;
+	AlignPtr<IThreadPoolExecutor> thread_pool_;
     LoggerPtr logger_;
 };
 

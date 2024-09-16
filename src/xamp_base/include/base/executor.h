@@ -75,13 +75,13 @@ void ParallelFor(IThreadPoolExecutor& executor,
 
     std::vector<std::pair<IteratorType, SharedTask<void>>> timed_out_tasks;
 
-    auto IsFutureDuplicate = [](const auto& futures, auto itr) -> bool {
+    auto is_future_duplicate = [](const auto& futures, auto itr) -> bool {
         return std::find_if(futures.begin(), futures.end(), [itr](const auto& future) {
             return future.first == itr;
             }) != futures.end();
         };
 
-    auto IsTimedOutTasksDuplicate = [](const auto& timed_out_tasks, auto itr) -> bool {
+    auto is_timed_out_tasks_duplicate = [](const auto& timed_out_tasks, auto itr) -> bool {
         return std::find_if(timed_out_tasks.begin(), timed_out_tasks.end(), [itr](const auto& task) {
             return task.first == itr;
             }) != timed_out_tasks.end();
@@ -91,10 +91,10 @@ void ParallelFor(IThreadPoolExecutor& executor,
         size_t batch_size = (std::min)(batches, static_cast<size_t>(std::distance(itr, end)));
 
         for (size_t j = 0; j < batch_size; ++j) {
-            if (!IsFutureDuplicate(futures, itr)) {
-                auto task = Executor::Spawn(executor, [f, itr](const StopToken& token) -> void {
+            if (!is_future_duplicate(futures, itr)) {
+                auto task = Executor::Spawn(executor, [fun = std::forward<Func>(f), itr](const StopToken& token) -> void {
                     if (!token.stop_requested()) {
-                        f(*itr);
+                        fun(*itr);
                     }                    
                     });
 
@@ -110,7 +110,7 @@ void ParallelFor(IThreadPoolExecutor& executor,
                 futures_itr = futures.erase(futures_itr);
             }
             else {
-                if (!IsTimedOutTasksDuplicate(timed_out_tasks, futures_itr->first)) {
+                if (!is_timed_out_tasks_duplicate(timed_out_tasks, futures_itr->first)) {
                     timed_out_tasks.push_back(*futures_itr);
                 }
                 ++futures_itr;
@@ -121,6 +121,10 @@ void ParallelFor(IThreadPoolExecutor& executor,
     // Wait for all timed-out tasks to complete
     for (const auto& task : timed_out_tasks) {
         task.second.wait();
+    }
+
+    for (const auto& future : futures) {
+        future.second.wait();
     }
 }
 

@@ -34,7 +34,7 @@ void SimilarSongViewPage::onQueryEmbeddingsReady(const QList<EmbeddingQueryResul
         }
         playlist_dao.addMusicToPlaylist(music_ids, kSimilarSongPlaylistId);
 	}
-    catch (const std::exception& e) {
+    catch (...) {
     }
-    playlist_table_view_->reload();
+    playlist_table_view_->reload(false, false);
 }

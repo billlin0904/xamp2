@@ -86,7 +86,7 @@ public:
 
 	XAMP_NO_DISCARD int32_t playlistId() const;
 
-	void reload(bool is_scroll_to = false);
+	void reload(bool is_scroll_to = false, bool order_by = true);
 
 	void removePlaying();
 

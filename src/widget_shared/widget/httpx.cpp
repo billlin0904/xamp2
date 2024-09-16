@@ -173,16 +173,18 @@ namespace http {
         QNetworkRequest request(fullUrl);
         setHeaders(request);
         auto logger = logger_;
-        auto* reply = co_await manager_->post(request,
-            use_json_
-            ? json_.toUtf8()
-            : params_.toString(QUrl::FullyEncoded).toUtf8());
+		const auto data = use_json_ ? json_.toUtf8() : params_.toString(QUrl::FullyEncoded).toUtf8();
+        auto* reply = co_await manager_->post(request, data);
         logHttpRequest(logger, requestVerb(QNetworkAccessManager::PostOperation, request), request, reply);
         co_return processReply(reply);
     }
 
     QCoro::Task<QString> HttpClient::put(const QByteArray& data) {
         QUrl fullUrl(url_);
+        if (!params_.isEmpty()) {
+            fullUrl.setQuery(params_);
+            params_.clear();
+        }
         QNetworkRequest request(fullUrl);
         setHeaders(request);
         auto logger = logger_;
@@ -193,6 +195,10 @@ namespace http {
 
     QCoro::Task<QString> HttpClient::del() {
         QUrl fullUrl(url_);
+        if (!params_.isEmpty()) {
+            fullUrl.setQuery(params_);
+            params_.clear();
+        }
         QNetworkRequest request(fullUrl);
         setHeaders(request);
         auto logger = logger_;

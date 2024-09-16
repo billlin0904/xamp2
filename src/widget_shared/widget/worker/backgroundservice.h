@@ -43,8 +43,6 @@ signals:
 public Q_SLOT:
 	void cancelRequested();
 
-    void onReadMFCC(const Path& file_path);
-
 	void onBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
 
 #if defined(Q_OS_WIN)

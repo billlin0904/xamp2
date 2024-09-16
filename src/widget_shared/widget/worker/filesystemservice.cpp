@@ -69,6 +69,9 @@ FileSystemService::FileSystemService()
 	, timer_(this) {
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
+	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
+		XAMP_LOG_NAME(ExtractFileThreadPool),
+		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 FileSystemService::~FileSystemService() {
@@ -78,7 +81,7 @@ void FileSystemService::onSetWatchDirectory(const QString& dir) {
 	watcher_.addPath(dir);
 }
 
-void FileSystemService::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool, int32_t playlist_id, const QString& dir) {
+void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	QDirIterator itr(dir,
 		getTrackInfoFileNameFilter(), 
 		QDir::NoDotAndDotDot | QDir::Files,
@@ -94,8 +97,8 @@ void FileSystemService::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool
 	);
 
 	auto process_cue_file = [this](const auto &path, auto playlist_id) {
-		ForwardList<TrackInfo> tracks;
 		try {
+			ForwardList<TrackInfo> tracks;
 			CueLoader loader;
 			for (auto& track : loader.Load(path)) {
 				tracks.push_front(track);
@@ -147,7 +150,7 @@ void FileSystemService::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool
 		}		
 	}
 
-	Executor::ParallelFor(*thread_pool, directory_files, [&](const auto& path_info) {
+	Executor::ParallelFor(*thread_pool_, directory_files, [&](const auto& path_info) {
 		if (is_stop_) {
 			return;
 		}
@@ -180,10 +183,6 @@ void FileSystemService::scanPathFiles(AlignPtr<IThreadPoolExecutor>& thread_pool
 
 void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	is_stop_ = false;
-
-	auto extract_file_thread_pool = ThreadPoolBuilder::MakeThreadPool(
-		XAMP_LOG_NAME(ExtractFileThreadPool),
-		ThreadPriority::PRIORITY_BACKGROUND);
 
 	QDirIterator itr(file_path,
 		getTrackInfoFileNameFilter(), 
@@ -243,7 +242,7 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 			return;
 		}
 		try {
-			scanPathFiles(extract_file_thread_pool, playlist_id, path_info.path);
+			scanPathFiles(playlist_id, path_info.path);
 		}
 		catch (const std::exception &e) {
 			XAMP_LOG_DEBUG("Failed to extract file:{} ({})", 

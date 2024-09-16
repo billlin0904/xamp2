@@ -31,6 +31,8 @@ public:
     QCoro::Task<QList<EmbeddingQueryResult>> queryEmbeddings(const QList<QString> &paths);
 
     QCoro::Task<QString> flush();
+
+    QCoro::Task<QString> deleteEmbeddings(const QList<QString>& audio_ids);
 private:
 	http::HttpClient http_client_;
 };

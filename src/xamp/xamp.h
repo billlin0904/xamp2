@@ -20,7 +20,6 @@
 #include <widget/databasecoverid.h>
 
 #include <widget/youtubedl/ytmusicservice.h>
-#include <widget/chatgpt/chatgptservice.h>
 
 #include <widget/dao/musicdao.h>
 #include <widget/dao/albumdao.h>
@@ -31,7 +30,6 @@
 #include <ui_xamp.h>
 
 class ProcessIndicator;
-//class YtMusicService;
 class AudioEmbeddingService;
 
 struct MbDiscIdInfo;

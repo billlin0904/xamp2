@@ -60,3 +60,17 @@ QCoro::Task<QString> AudioEmbeddingService::flush() {
     http_client_.setUrl(qFormat("%1/flushdb").arg(BASE_URL));
     return http_client_.del();
 }
+
+QCoro::Task<QString> AudioEmbeddingService::deleteEmbeddings(const QList<QString>& audio_ids) {
+    QMultiMap<QString, QVariant> params;
+    Q_FOREACH(auto path, audio_ids) {
+        params.insert("audio_ids"_str, path);
+    }
+
+    http_client_.setUrl(qFormat("%1/delete_embedding").arg(BASE_URL));
+    auto content = co_await http_client_
+        .params(params)
+        .addAccpetJsonHeader()
+        .del();
+    co_return content;
+}

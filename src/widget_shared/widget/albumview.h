@@ -108,6 +108,8 @@ signals:
 
 	void removeAll();
 
+	void removeSelectedAlbum(int32_t album_id);
+
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
 public slots:

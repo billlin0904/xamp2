@@ -45,42 +45,6 @@ void setNaviBarMenuButton(Ui::XampWindow& ui) {
     ui.naviBarButton->setIcon(qTheme.fontIcon(Glyphs::ICON_MENU));
 }
 
-void setAuthButton(Ui::XampWindow& ui, bool auth) {
-    /*if (qTheme.themeColor() == ThemeColor::LIGHT_THEME) {
-        ui.authButton->setStyleSheet(R"(
-        QToolButton#authButton {
-			border: none;
-			background-color: transparent;
-		}
-
-		QToolButton#authButton:hover {
-			background-color: #e1e3e5;
-			border-radius: 24px;
-		}
-		)"));
-    }
-    else {
-        ui.authButton->setStyleSheet(R"(
-        QToolButton#authButton {
-			border: none;
-			background-color: transparent;
-		}
-
-		QToolButton#authButton:hover {
-			background-color: #43474e;
-			border-radius: 24px;
-		}
-		)"));
-    }
-
-    if (!auth) {
-        ui.authButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON_UNAUTHORIZATIONED));
-    }
-    else {
-        ui.authButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON));
-    }*/
-}
-
 void setThemeIcon(Ui::XampWindow& ui) {
 #if 0
     qTheme.setTitleBarButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);

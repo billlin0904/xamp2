@@ -352,6 +352,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             TransactionScope scope([&]() {
                 QList<int32_t> selected_albums = album_dao_.getSelectedAlbums();
                 Q_FOREACH(auto album_id, selected_albums) {
+                    emit removeSelectedAlbum(album_id);
                     album_dao_.removeAlbumArtist(album_id);
                     album_dao_.removeAlbum(album_id);
                     process_dialog->setValue(count++ * 100 / selected_albums.size() + 1);
@@ -496,8 +497,10 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
 		TransactionScope scope([&]() {
+            emit removeSelectedAlbum(album_id);
             album_dao_.removeAlbumArtist(album_id);
             album_dao_.removeAlbum(album_id);
+            emit removeSelectedAlbum(album_id);
             reload();
 			});
     });

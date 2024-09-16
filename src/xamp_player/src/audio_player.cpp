@@ -231,11 +231,11 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream
 }
 
 void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
-    static const std::string kApeFileExtention = ".ape";
+    static const std::string kApeFileExtension = ".ape";
 
     stream_ = MakeFileStream(file_path, dsd_mode);
 
-    if (file_path.extension() != kApeFileExtention) {
+    if (file_path.extension() != kApeFileExtension) {
         for (auto i = 0; i < 1; ++i) {
             try
             {
@@ -518,37 +518,46 @@ void AudioPlayer::CreateBuffer() {
     uint32_t allocate_size = 0;
     uint32_t fifo_size = 0;
 
-    auto get_buffer_sample = [](auto *device, auto ratio) {
-        return static_cast<uint32_t>(AlignUp(device->GetBufferSize() * ratio, GetPageSize()));
-    };
+	auto align_page_size = [](uint32_t size) {
+		return AlignUp(size, GetPageSize());
+		};
 
+    auto get_buffer_sample = [](auto* device, auto ratio) {
+        return static_cast<uint32_t>(AlignUp(device->GetBufferSize() * ratio, GetPageSize()));
+        };
+
+    // 計算 num_read_buffer_size_ 和 num_write_buffer_size_
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-        // DSD native mode output buffer size is 8 times of the sample rate.
-        num_read_buffer_size_ = static_cast<uint32_t>(AlignUp(output_format_.GetSampleRate() / 8), GetPageSize());
-        // FIFO buffer size is 5 seconds of the output format.
-        fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs * output_format_.GetSampleSize();
-        allocate_size = num_read_buffer_size_;
+        // DSD 原生模式
+        num_read_buffer_size_ = align_page_size(output_format_.GetSampleRate() / 8);
         num_write_buffer_size_ = device_->GetBufferSize() * kMaxBufferSecs;
     }
     else {
-        // Note: 如果比讀取的緩衝區還要小的話就沒辦法正確撥放.
-        // Calculate the buffer size from the output format.
-        auto max_ratio = (std::max)(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
-        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));        
-        num_read_buffer_size_ = (std::max)(get_buffer_sample(device_.get(), kMaxReadRatio), kMinReadBufferSize);   
-        // Calculate the buffer size from the stream.
-        allocate_size = std::min(kMaxPreAllocateBufferSize,
-            num_write_buffer_size_
-            * stream_->GetSampleSize() 
-            * kTotalBufferStreamCount);
-        // Align up the buffer size.
-        allocate_size = AlignUp(allocate_size, GetPageSize());
+        // 其他模式
+        auto max_ratio = std::max(output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
+        num_write_buffer_size_ = get_buffer_sample(device_.get(), max_ratio * sizeof(float));
+        num_read_buffer_size_ = std::max(get_buffer_sample(device_.get(), kMaxReadRatio), kMinReadBufferSize);
+    }
+
+    // 統一計算 allocate_size 和 fifo_size
+    if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+        // DSD 原生模式下，allocate_size 等於 num_read_buffer_size_
+        allocate_size = num_read_buffer_size_;
+        // FIFO 緩衝區大小為輸出格式下 kMaxBufferSecs 秒的數據量
+        fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs;
+    }
+    else {
         if (!enable_file_cache_) {
             fifo_size = kMaxBufferSecs * output_format_.GetAvgBytesPerSec() * GetBufferCount(output_format_.GetSampleRate());
-        } else {
+        }
+        else {
             fifo_size = kMaxPreAllocateBufferSize;
         }
-        allocate_size = AlignUp(fifo_size, GetPageSize());
+        fifo_size = align_page_size(fifo_size);
+
+        allocate_size = std::min(kMaxPreAllocateBufferSize,
+            num_write_buffer_size_ * stream_->GetSampleSize() * kTotalBufferStreamCount);
+        allocate_size = align_page_size(allocate_size);
     }
 
     ResizeReadBuffer(allocate_size);

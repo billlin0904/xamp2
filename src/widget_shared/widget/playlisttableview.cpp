@@ -39,6 +39,54 @@
 #include <widget/tagio.h>
 
 namespace {
+    QString noOrderAlbum(int32_t playlist_id) {
+    	return qFormat(R"(
+    SELECT	
+	albums.coverId,
+	musics.musicId,
+	playlistMusics.playing,
+	musics.track,
+	musics.path,
+	musics.fileSize,
+	musics.title,
+	musics.fileName,
+	artists.artist,
+	albums.album,
+	musics.bitRate,
+	musics.sampleRate,
+	albumMusic.albumId,
+	albumMusic.artistId,
+	musics.fileExt,
+	musics.parentPath,
+	musics.dateTime,
+	playlistMusics.playlistMusicsId,
+	musics.albumReplayGain,
+	musics.albumPeak,
+	musics.trackReplayGain,
+	musics.trackPeak,
+	musicLoudness.trackLoudness,
+	musics.genre,	
+	playlistMusics.isChecked,
+	musics.heart,
+	musics.duration,
+	musics.comment,
+	albums.year,
+	musics.coverId as musicCoverId,
+    musics.offset,
+    musics.isCueFile
+FROM
+	playlistMusics
+	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
+	JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+	JOIN musics ON playlistMusics.musicId = musics.musicId
+	JOIN albums ON albumMusic.albumId = albums.albumId
+	JOIN artists ON albumMusic.artistId = artists.artistId 
+WHERE
+	playlistMusics.playlistId = %1)").arg(playlist_id);
+        };
+    }
+
     QString groupAlbum(int32_t playlist_id) {
         return qFormat(R"(
     SELECT	
@@ -136,7 +184,6 @@ WHERE
 ORDER BY
 	musics.parentPath ASC,
 	musics.track ASC)").arg(playlist_id);
-    }
 }
 
 void PlaylistTableView::search(const QString& keyword) const {
@@ -151,7 +198,7 @@ PlaylistStyledItemDelegate* PlaylistTableView::styledDelegate() {
     return dynamic_cast<PlaylistStyledItemDelegate*>(itemDelegate());
 }
 
-void PlaylistTableView::reload(bool is_scroll_to) {
+void PlaylistTableView::reload(bool is_scroll_to, bool order_by) {
     std::optional<PlayListEntity> entity;
     if (play_index_.isValid()) {
         entity.emplace(item(play_index_));
@@ -159,10 +206,16 @@ void PlaylistTableView::reload(bool is_scroll_to) {
 
     QString query_string;
 
-    if (group_ != PLAYLIST_GROUP_ALBUM) {
-        query_string = groupNone(playlist_id_);
-    } else {
-        query_string = groupAlbum(playlist_id_);
+    if (order_by) {
+        if (group_ != PLAYLIST_GROUP_ALBUM) {
+            query_string = groupNone(playlist_id_);
+        }
+        else {
+            query_string = groupAlbum(playlist_id_);
+        }
+    }
+    else {
+        query_string = noOrderAlbum(playlist_id_);
     }
 
     const QSqlQuery query(query_string, qGuiDb.database());

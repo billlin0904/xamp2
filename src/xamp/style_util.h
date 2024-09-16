@@ -16,8 +16,6 @@ void setRepeatOnePlayOrder(Ui::XampWindow& ui);
 
 void setRepeatOncePlayOrder(Ui::XampWindow& ui);
 
-void setAuthButton(Ui::XampWindow& ui, bool auth);
-
 void setThemeIcon(Ui::XampWindow& ui);
 
 void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order);
