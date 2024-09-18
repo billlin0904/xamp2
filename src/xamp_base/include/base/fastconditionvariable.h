@@ -110,8 +110,8 @@ private:
 			? std::cv_status::timeout : std::cv_status::no_timeout;
 	}
 
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<bool> condition_met_{ false };
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> state_{ kUnlocked };
-	uint8_t padding_[kCacheAlignSize - sizeof(state_)]{ 0 };
 };
 
 #else

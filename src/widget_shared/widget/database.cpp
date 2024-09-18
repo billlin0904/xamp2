@@ -139,7 +139,7 @@ const char* SqlException::what() const noexcept {
 XAMP_DECLARE_LOG_NAME(Database);
 
 Database::Database(const QString& name) {
-    logger_ = XampLoggerFactory.GetLogger(name.toStdString());
+    logger_ = XampLoggerFactory.GetLogger(kDatabaseLoggerName);
     if (QSqlDatabase::contains(name)) {
         db_ = QSqlDatabase::database(name);
     }
@@ -187,14 +187,13 @@ void Database::open() {
     (void)db_.exec("PRAGMA foreign_keys = ON"_str);
     (void)db_.exec("PRAGMA journal_mode = DELETE"_str);
 
-    /*(void)db_.exec("PRAGMA synchronous = OFF"));    
-    (void)db_.exec("PRAGMA auto_vacuum = FULL"));
-    (void)db_.exec("PRAGMA foreign_keys = ON"));
-    (void)db_.exec("PRAGMA journal_mode = DELETE"));
-    (void)db_.exec("PRAGMA cache_size = 40960"));
-    (void)db_.exec("PRAGMA temp_store = MEMORY"));
-    (void)db_.exec("PRAGMA mmap_size = 40960"));
-    (void)db_.exec("PRAGMA busy_timeout = 1000"));*/    
+    (void)db_.exec("PRAGMA synchronous = OFF"_str);    
+    (void)db_.exec("PRAGMA auto_vacuum = FULL"_str);
+    (void)db_.exec("PRAGMA foreign_keys = ON"_str);
+    (void)db_.exec("PRAGMA cache_size = 40960"_str);
+    (void)db_.exec("PRAGMA temp_store = MEMORY"_str);
+    (void)db_.exec("PRAGMA mmap_size = 40960"_str);
+    (void)db_.exec("PRAGMA busy_timeout = 1000"_str);
 
     createTableIfNotExist();
 }

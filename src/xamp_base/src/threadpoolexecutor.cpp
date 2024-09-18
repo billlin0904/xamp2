@@ -14,12 +14,25 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-constexpr std::chrono::milliseconds kSpinningTimeout = std::chrono::milliseconds(10);
-constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
-constexpr auto kSharedTaskQueueSize = 4096;
-constexpr auto kWorkStealingTaskQueueSize = 4096;
-constexpr auto kMaxWorkQueueSize = 65536;
-constexpr size_t kMaxThreadPoolSize = 8;
+namespace {
+	constexpr std::chrono::milliseconds kSpinningTimeout = std::chrono::milliseconds(10);
+	constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
+	constexpr auto kSharedTaskQueueSize = 4096;
+	constexpr auto kWorkStealingTaskQueueSize = 4096;
+	constexpr auto kMaxWorkQueueSize = 65536;
+	constexpr size_t kMaxThreadPoolSize = 8;
+
+	bool IsCPUSupportHT() {
+		int32_t reg[4]{ 0 };
+#ifdef XAMP_OS_WIN
+		::__cpuid(reg, 1); // CPUID function 1 gives processor features
+#elif defined(XAMP_OS_MAC)
+		__cpuid(1, reg[0], reg[1], reg[2], reg[3]);
+#endif
+		// Bit 28 of reg[3] (EDX) indicates support for Hyper-Threading
+		return (reg[3] & (1 << 28)) != 0;
+	}
+}
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, const CpuAffinity& affinity, ThreadPriority priority)
 	: TaskScheduler(TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
@@ -206,10 +219,14 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
-		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
-		const auto L1_padding_buffer =
-			MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
-				kMaxL1CacheLineSize));
+		StackBufferPtr<std::byte> L1_padding_buffer;
+
+		if (IsCPUSupportHT()) {
+			// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
+			L1_padding_buffer =
+				MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
+					kMaxL1CacheLineSize));
+		}
 
 		XampCrashHandler.SetThreadExceptionHandlers();
 

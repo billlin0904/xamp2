@@ -12,6 +12,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <widget/database.h>
+#include <widget/databasefacade.h>
 #include <widget/filesystemwatcher.h>
 
 class AudioEmbeddingService;

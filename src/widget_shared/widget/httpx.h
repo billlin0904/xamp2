@@ -57,7 +57,7 @@ namespace http {
         QUrlQuery params_;
         QString json_;
         bool use_json_{ false };
-        int timeout_{ 120000 };  // Àq»{¶W®É 120 ¬í
+        int timeout_{ 120000 };  // é»˜èªè¶…æ™‚ 120 ç§’
         QString user_agent_;
         QHash<QString, QString> headers_;
         LoggerPtr logger_;

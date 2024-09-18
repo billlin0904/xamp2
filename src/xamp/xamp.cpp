@@ -1,6 +1,4 @@
-﻿#include <qcorofuture.h>
-#include <qcoroprocess.h>
-#include <QImageReader>
+﻿#include <QImageReader>
 #include <QInputDialog>
 #include <QJsonObject>
 #include <QShortcut>
@@ -143,26 +141,6 @@ namespace {
         }
         return playlist_page;
     }
-
-    QCoro::Task<bool> startWebViewProcessAsync(const QString& url) {
-        auto program = qApp->applicationDirPath();
-        program.append("/YtMusicOAuthView/YtMusicOAuthView.exe"_str);
-
-        QStringList args;
-        args << "-"_str << url;
-
-        QProcess p;
-        auto process = qCoro(p);
-
-        if (!co_await process.start(program, args)) {
-            co_return false;
-        }
-
-        if (!co_await process.waitForFinished(-1)) {
-            co_return false;
-        }
-        co_return true;
-    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -269,6 +247,9 @@ void Xamp::initialAudioEmbeddingService() {
 }
 
 void Xamp::initialYtMusicService() {
+    if (ytmusic_http_service_) {
+        return;
+    }
     ytmusic_http_service_.reset(new YtMusicHttpService());
 }
 
@@ -371,12 +352,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ytmusic_oauth_.reset(new YtMusicOAuth());
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::acceptAuthorization, [this](const auto &url) {
-        startWebViewProcessAsync(url)
-            .then([this](auto ret) {
-            if (ret) {
-                ytmusic_oauth_->requestGrant();
-            }            
-        });
     });
 
     (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
@@ -756,7 +731,12 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
         auto temp = entity;
         temp.file_path = file_entity.file_name;
         auto track_info = TagIO::getTrackInfo(temp.file_path.toStdWString());
-        music_dao_.updateMusic(temp.music_id, track_info);
+        try {
+            music_dao_.updateMusic(temp.music_id, track_info);
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_ERROR("Failed to update music: {}", e.what());
+		}
         temp.sample_rate = track_info.sample_rate;
         onPlayMusic(kInvalidDatabaseId, temp, false, is_doubleclicked);
         return;
@@ -1993,6 +1973,8 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 }
 
 void Xamp::onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_play, bool is_doubleclicked) {
+    initialYtMusicService();
+
     main_window_->setTaskbarPlayerPlaying();
     current_entity_ = entity;
 
@@ -2704,10 +2686,10 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
 }
 
 void Xamp::onReadFilePath(const QString& file_path) {
-    if (!read_progress_dialog_) {
+    /*if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->setLabelText(file_path);
+    read_progress_dialog_->setLabelText(file_path);*/
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
@@ -2738,10 +2720,10 @@ void Xamp::onEditTags(int32_t /*playlist_id*/, const QList<PlayListEntity>& enti
 }
 
 void Xamp::onReadFileProgress(int32_t progress) {
-    if (!read_progress_dialog_) {
+    /*if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->setValue(progress);    
+    read_progress_dialog_->setValue(progress);*/    
 }
 
 void Xamp::onReadCompleted() {
@@ -2750,15 +2732,15 @@ void Xamp::onReadCompleted() {
         localPlaylistPage()->playlist()->reload();
     }
     music_library_page_->reload();
-    if (!read_progress_dialog_) {
+    /*if (!read_progress_dialog_) {
         return;
     }
     read_progress_dialog_->close();
-    read_progress_dialog_.reset();    
+    read_progress_dialog_.reset();*/    
 }
 
 void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs) {
-    if (!read_progress_dialog_) {
+    /*if (!read_progress_dialog_) {
         return;
     }
 
@@ -2766,7 +2748,11 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
         qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
         .arg(formatDuration(secs))
         .arg(total_work)
-        .arg(completed_work));
+        .arg(completed_work));*/
+    XAMP_LOG_DEBUG("{}", qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
+        .arg(formatDuration(secs))
+        .arg(total_work)
+        .arg(completed_work).toStdString());
 }
 
 void Xamp::onPlaybackError(const QString& message) {
@@ -2789,7 +2775,7 @@ void Xamp::onRetranslateUi() {
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    
-    if (!read_progress_dialog_) {
+    /*if (!read_progress_dialog_) {
         read_progress_dialog_ = makeProgressDialog(kApplicationTitle,
             tr("Read track information"),
             tr("Cancel"));
@@ -2807,7 +2793,7 @@ void Xamp::onFoundFileCount(size_t file_count) {
         return;
     }
 
-    read_progress_dialog_->setTitle(qFormat("Total number of files %1").arg(file_count));
+    read_progress_dialog_->setTitle(qFormat("Total number of files %1").arg(file_count));*/
 }
 
 void Xamp::onReadFileStart() {

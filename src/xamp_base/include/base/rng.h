@@ -30,6 +30,10 @@ public:
         return std::uniform_int_distribution<T>(min, max)(engine_);
     }
 
+    uint64_t operator()() noexcept {
+        return engine_();
+    }
+
     size_t Next(size_t max = (std::numeric_limits<size_t>::max)()) noexcept {
         return (*this)(size_t{0}, max);
     }

@@ -1,3 +1,4 @@
+#include <numeric>
 #include <base/platform.h>
 #include <base/itaskschedulerpolicy.h>
 
@@ -28,7 +29,7 @@ void ContinuationStealPolicy::SubmitJob(MoveOnlyFunction&& task,
 	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
 
 	for (size_t n = 0; n < max_thread * K; ++n) {
-		const auto current = prng(size_t(0), max_thread - 1);
+		const auto current = prng(static_cast<size_t>(0), max_thread - 1);
 		if (thread_execute_flags[current] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			auto& queue = task_work_queues.at(current);
 			if (queue->TryEnqueue(std::move(task))) {
@@ -65,13 +66,22 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
                                            const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	// use Sfc64 random engine
 	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
-	constexpr size_t kMaxAttempts = 100;
-	size_t random_index = 0;
 
-	for (size_t attempt = 0; attempt < kMaxAttempts; ++attempt) {
-		random_index = prng(size_t(0), max_thread_ - 1);
-		if (random_index != index
-			&& thread_execute_flags[random_index] != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+	// 生成一個隨機的起始索引
+	size_t random_start = prng() % max_thread_;
+
+	// 遍歷所有線程索引
+	for (size_t i = 0; i < max_thread_; ++i) {
+		size_t random_index = (random_start + i) % max_thread_;
+
+		// 跳過當前線程自身
+		if (random_index == index) {
+			continue;
+		}
+
+		// 檢查線程狀態和工作佇列
+		if (thread_execute_flags[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING
+			&& !work_queues[random_index]->empty()) {
 			return random_index;
 		}
 	}

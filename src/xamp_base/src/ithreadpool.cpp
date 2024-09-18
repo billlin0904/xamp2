@@ -14,13 +14,11 @@ namespace {
 	XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
 
 	CpuAffinity GetBackgroundCpuAffinity() {
-		/*CpuAffinity affinity(-1, false);
-		affinity.SetCpu(1);
-		affinity.SetCpu(2);
-		affinity.SetCpu(3);
-		affinity.SetCpu(4);
-		return affinity;*/
 		return CpuAffinity::kAll;
+	}
+
+	CpuAffinity GetOutputCpuAffinity() {
+		return CpuAffinity(0, false);
 	}
 }
 
@@ -63,10 +61,9 @@ AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(
 }
 
 AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeOutputTheadPool() {
-	static const CpuAffinity cpu_aff(0, false);
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kOutputDeviceThreadPoolLoggerName,
 		kMaxOutputDeviceThreadPoolSize,
-		cpu_aff,
+		GetOutputCpuAffinity(),
 		ThreadPriority::PRIORITY_HIGHEST);
 }
 

@@ -126,7 +126,7 @@ void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
             font_options.insert(FontIconOption::kColorAttr, QColor(Qt::red));
 
             opt.icon = qTheme.fontRawIconOption(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
-            // note: ¸Ñ¨M¹Ï¥Ü¦A¿ï¾Üªº®É­Ô·|»\±¼ÃC¦âªº°İÃD
+            // note: è§£æ±ºåœ–ç¤ºå†é¸æ“‡çš„æ™‚å€™æœƒè“‹æ‰é¡è‰²çš„å•é¡Œ
             opt.icon = qImageCache.uniformIcon(opt.icon, opt.decorationSize);
 
             opt.features = QStyleOptionViewItem::HasDecoration;

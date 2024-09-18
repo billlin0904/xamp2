@@ -90,7 +90,7 @@ void PlaylistPage::initial() {
 	title_->setMinimumSize(QSize(0, font_height));
 	title_->setMaximumSize(QSize(16777215, font_height));
 	title_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	title_->setText(" "_str); // ¹w¥ý°t¸mªÅ¦r¦ê«O¯d¦æ°ª
+	title_->setText(" "_str); // é å…ˆé…ç½®ç©ºå­—ä¸²ä¿ç•™è¡Œé«˜
 	title_->setStyleSheet("background-color: transparent;"_str);
 
 	heart_button_ = new QToolButton(this);

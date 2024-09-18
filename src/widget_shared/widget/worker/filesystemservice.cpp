@@ -11,11 +11,9 @@
 #include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/util/ui_util.h>
 
-XAMP_DECLARE_LOG_NAME(FileSystemService);
-XAMP_DECLARE_LOG_NAME(ExtractFileThreadPool);
-
 namespace {
 	const std::string kCueFileExtension(".cue");
+	XAMP_DECLARE_LOG_NAME(FileSystemService);
 
 	struct PathInfo {
 		size_t file_count;
@@ -24,6 +22,7 @@ namespace {
 	};
 
 	std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
+		const AlignPtr<IThreadPoolExecutor>& thread_pool,
 		const Vector<QString>& paths,
 		const QStringList& file_name_filters,
 		std::function<void(size_t)>&& action) {
@@ -35,8 +34,6 @@ namespace {
 		for (const auto& path : paths) {
 			path_infos.push_back({0, 0, path});
 		}
-
-		auto thread_pool = ThreadPoolBuilder::MakeBackgroundThreadPool();
 
 		Executor::ParallelFor(*thread_pool, path_infos, [&](auto& path_info) {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
@@ -52,11 +49,18 @@ namespace {
 			return std::make_pair(total_file_count.load(), path_infos);
 		}
 
-        #if 0
+        #ifdef Q_OS_WIN
 		std::sort(std::execution::par_unseq, path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
 			if (p1.file_count != p2.file_count) {
 				return p1.file_count > p2.file_count;
 			}
+			return p1.depth < p2.depth;
+		});
+		#else
+		std::sort(path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
+			if (p1.file_count != p2.file_count) {
+				return p1.file_count > p2.file_count;
+	}
 			return p1.depth < p2.depth;
 		});
         #endif
@@ -70,7 +74,7 @@ FileSystemService::FileSystemService()
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
-		XAMP_LOG_NAME(ExtractFileThreadPool),
+		XAMP_LOG_NAME(FileSystemService),
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
@@ -113,7 +117,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 		catch (...) {	
 		}			
-		};
+	};
 
 	while (itr.hasNext()) {
 		if (is_stop_) {
@@ -156,7 +160,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 
 		ForwardList<TrackInfo> tracks;
-		
+
 		for (const auto& path : path_info.second) {			
 			try {
 				TaglibMetadataReader reader;
@@ -204,10 +208,9 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 	}
 
 	emit readFileStart();
-	std::atomic<size_t> completed_work(0);
 
 	auto [total_work, file_count_paths] =
-		getPathSortByFileCount(paths, getTrackInfoFileNameFilter(),
+		getPathSortByFileCount(thread_pool_, paths, getTrackInfoFileNameFilter(),
 		                       [this](auto total_file_count) {
 			                       emit foundFileCount(total_file_count);
 		                       });
@@ -253,7 +256,7 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 }
 
 void FileSystemService::updateProgress() {
-	if (update_ui_elapsed_.ElapsedSeconds() < 1.0) {
+	if (update_ui_elapsed_.ElapsedSeconds() < 3.0) {
 		return;
 	}
 
