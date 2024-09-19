@@ -64,22 +64,13 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
                                            [[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
                                            const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
-	// use Sfc64 random engine
 	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
-
-	// 生成一個隨機的起始索引
 	size_t random_start = prng() % max_thread_;
-
-	// 遍歷所有線程索引
 	for (size_t i = 0; i < max_thread_; ++i) {
 		size_t random_index = (random_start + i) % max_thread_;
-
-		// 跳過當前線程自身
 		if (random_index == index) {
 			continue;
 		}
-
-		// 檢查線程狀態和工作佇列
 		if (thread_execute_flags[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING
 			&& !work_queues[random_index]->empty()) {
 			return random_index;

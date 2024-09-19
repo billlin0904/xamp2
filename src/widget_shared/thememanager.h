@@ -152,6 +152,8 @@ public:
     void setRecordIcon(QToolButton *record_button, bool is_recording);
 
     void setCancelRecordIcon(QToolButton *cancel_button);
+
+    void setSegoeFluentFontIcons();
 signals:
     void themeChangedFinished(ThemeColor theme_color);
 

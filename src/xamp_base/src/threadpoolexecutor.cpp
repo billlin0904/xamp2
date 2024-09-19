@@ -20,7 +20,7 @@ namespace {
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kWorkStealingTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
-	constexpr size_t kMaxThreadPoolSize = 8;
+	constexpr size_t kMinThreadPoolSize = 1;
 
 	bool IsCPUSupportHT() {
 		int32_t reg[4]{ 0 };
@@ -41,7 +41,7 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
-	, max_thread_(std::max(max_thread, kMaxThreadPoolSize))
+	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
 	, pool_name_(pool_name)
 	, task_execute_flags_(max_thread_)
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))

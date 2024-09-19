@@ -130,6 +130,26 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
     }
 }
 
+void ThemeManager::setSegoeFluentFontIcons() {
+    HashMap<int32_t, uint32_t> glyphs_lut;
+
+    QJsonDocument doc;
+    if (json_util::deserializeFile("fonticon.json"_str, doc)) {
+        auto jsonObject = doc.object();
+        for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
+            auto key = it.key().toStdString();
+            auto value = it.value().toString();
+            Glyphs glyph;
+            if (FindGlyphs(key, glyph)) {
+                glyphs_lut.insert(std::make_pair(static_cast<int32_t>(glyph), value.toUInt(nullptr, 16)));
+            }
+        }
+    }
+
+    qFontIcon.addFont(fontNamePath("FluentSystemIcons-Regular.ttf"_str));
+    qFontIcon.setGlyphs(glyphs_lut);
+}
+
 void ThemeManager::setGoogleMaterialFontIcons() {
     HashMap<int32_t, uint32_t> glyphs_lut;
 
@@ -214,6 +234,7 @@ ThemeManager::ThemeManager() {
 #endif
     ui_font_.setPointSize(defaultFontSize());
     setGoogleMaterialFontIcons();
+    //setSegoeFluentFontIcons();
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {

@@ -14,7 +14,6 @@
 class AudioEmbeddingService;
 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
-	Q_OBJECT
 public:
     static constexpr size_t kReserveSize = 1024;
     

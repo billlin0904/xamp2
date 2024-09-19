@@ -28,7 +28,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     add_tab_button_->setMaximumSize(32, 32);
     add_tab_button_->setMinimumSize(32, 32);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
+#ifdef Q_OS_WIN
+    add_tab_button_->setIconSize(QSize(24, 24));
+#else
     add_tab_button_->setIconSize(QSize(18, 18));
+#endif
     add_tab_button_->setObjectName("plusButton"_str);
 
     auto* button_widget = new QWidget(this);

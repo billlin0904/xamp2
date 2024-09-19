@@ -23,7 +23,7 @@
 #include <QImageReader>
 
 constexpr size_t kDefaultCacheSize = 24;
-constexpr qint64 kMaxCacheImageSize = 32 * 1024 * 1024;
+constexpr qint64 kMaxCacheImageSize = 128 * 1024 * 1024;
 auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(ImageCache);
@@ -158,7 +158,7 @@ void ImageCache::clearCache() const {
 }
 
 QString ImageCache::makeCacheFilePath() const {
-    auto cache_path = qAppSettings.getOrCreateCachePath() + "ImageCache/"_str;
+    auto cache_path = qAppSettings.getOrCreateCachePath() + R"(ImageCache\)"_str;
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {
@@ -264,13 +264,15 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
         return getOrAddDefault(tag_id);
     }
 
-    const auto file_path = makeImageCachePath("test"_str);
+    const auto file_path = makeImageCachePath(tag_id);
 	if (!cache_cover.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
 	}
 
 	if (!cache_cover.save(file_path, kImageFileFormat)) {
         XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
+	} else {
+		XAMP_LOG_DEBUG("Success to save image cache. ({})", file_path.toStdString());
 	}
 
 	cache_.AddOrUpdate(tag_id, { buffer->size(), cache_cover });

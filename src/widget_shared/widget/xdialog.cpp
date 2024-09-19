@@ -29,6 +29,7 @@ void XDialog::setContent(QWidget* content) {
 
     // 重要! 避免出現setGeometry Unable to set geometry錯誤
     adjustSize();
+	setFixedSize(size());
 }
 
 void XDialog::onThemeChangedFinished(ThemeColor theme_color) {

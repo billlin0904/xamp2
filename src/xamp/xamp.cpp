@@ -54,7 +54,6 @@
 #include <widget/preferencepage.h>
 #include <widget/processindicator.h>
 #include <widget/spectrumwidget.h>
-#include <widget/supereqview.h>
 #include <widget/tageditpage.h>
 #include <widget/tagio.h>
 #include <widget/widget_shared.h>
@@ -333,7 +332,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     album_cover_service_->moveToThread(&album_cover_service_thread_);
     album_cover_service_thread_.start(QThread::NormalPriority);
 
-    album_cover_service_->mergeUnknownAlbumCover();
+    //album_cover_service_->mergeUnknownAlbumCover();
 
     file_system_service_.reset(new FileSystemService());
     file_system_service_->moveToThread(&file_system_service_thread_);
@@ -1183,6 +1182,7 @@ void Xamp::initialController() {
         }
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        qTheme.setSegoeFluentFontIcons();
         auto icon = qTheme.fontIcon(Glyphs::ICON_EQUALIZER);
         dialog->setIcon(icon);
         dialog->setTitle(tr("EQ"));
@@ -2686,10 +2686,10 @@ void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playli
 }
 
 void Xamp::onReadFilePath(const QString& file_path) {
-    /*if (!read_progress_dialog_) {
+    if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->setLabelText(file_path);*/
+    read_progress_dialog_->setLabelText(file_path);
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
@@ -2720,10 +2720,10 @@ void Xamp::onEditTags(int32_t /*playlist_id*/, const QList<PlayListEntity>& enti
 }
 
 void Xamp::onReadFileProgress(int32_t progress) {
-    /*if (!read_progress_dialog_) {
+    if (!read_progress_dialog_) {
         return;
     }
-    read_progress_dialog_->setValue(progress);*/    
+    read_progress_dialog_->setValue(progress);
 }
 
 void Xamp::onReadCompleted() {
@@ -2732,15 +2732,15 @@ void Xamp::onReadCompleted() {
         localPlaylistPage()->playlist()->reload();
     }
     music_library_page_->reload();
-    /*if (!read_progress_dialog_) {
+    if (!read_progress_dialog_) {
         return;
     }
     read_progress_dialog_->close();
-    read_progress_dialog_.reset();*/    
+    read_progress_dialog_.reset();  
 }
 
 void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs) {
-    /*if (!read_progress_dialog_) {
+    if (!read_progress_dialog_) {
         return;
     }
 
@@ -2748,11 +2748,7 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
         qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
         .arg(formatDuration(secs))
         .arg(total_work)
-        .arg(completed_work));*/
-    XAMP_LOG_DEBUG("{}", qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
-        .arg(formatDuration(secs))
-        .arg(total_work)
-        .arg(completed_work).toStdString());
+        .arg(completed_work));
 }
 
 void Xamp::onPlaybackError(const QString& message) {
@@ -2775,7 +2771,7 @@ void Xamp::onRetranslateUi() {
 }
 
 void Xamp::onFoundFileCount(size_t file_count) {    
-    /*if (!read_progress_dialog_) {
+    if (!read_progress_dialog_) {
         read_progress_dialog_ = makeProgressDialog(kApplicationTitle,
             tr("Read track information"),
             tr("Cancel"));
@@ -2793,7 +2789,7 @@ void Xamp::onFoundFileCount(size_t file_count) {
         return;
     }
 
-    read_progress_dialog_->setTitle(qFormat("Total number of files %1").arg(file_count));*/
+    read_progress_dialog_->setTitle(qFormat("Total number of files %1").arg(file_count));
 }
 
 void Xamp::onReadFileStart() {

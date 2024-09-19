@@ -13,7 +13,12 @@ NavBarListView::NavBarListView(QWidget *parent)
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSpacing(2);
+
+#ifdef Q_OS_WIN
+    setIconSize(QSize(28, 28));
+#else
     setIconSize(QSize(18, 18));
+#endif    
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();

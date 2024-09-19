@@ -177,7 +177,7 @@
     <QtMoc Include="widget\artistinfopage.h" />
     <QtMoc Include="widget\clickablelabel.h" />
     <ClInclude Include="widget\database.h" />
-    <QtMoc Include="widget\databasefacade.h" />
+    <ClInclude Include="widget\databasefacade.h" />
     <QtMoc Include="widget\doubleslider.h" />
     <ClInclude Include="widget\driveinfo.h" />
     <QtMoc Include="widget\equalizerview.h" />

@@ -78,7 +78,7 @@ AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kPlaybackThreadPoolLoggerName,
 		kMaxPlaybackThreadPoolSize,
 		GetBackgroundCpuAffinity(),
-		ThreadPriority::PRIORITY_BACKGROUND);
+		ThreadPriority::PRIORITY_NORMAL);
 }
 
 XAMP_BASE_NAMESPACE_END
