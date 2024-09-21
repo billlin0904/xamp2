@@ -583,6 +583,19 @@ bool VirtualMemoryUnLock(void* address, size_t size) {
 #endif
 }
 
+std::string GetSequentialUUID() {
+    UUID uuid{};
+    std::string result;
+    RPC_STATUS status = ::UuidCreateSequential(&uuid);
+    if (status == RPC_S_OK) {
+        RPC_CSTR uuid_string;
+        ::UuidToStringA(&uuid, &uuid_string);
+        result.assign(reinterpret_cast<const char*>(uuid_string));
+        ::RpcStringFreeA(&uuid_string);
+    }
+    return result;
+}
+
 void MSleep(std::chrono::milliseconds timeout) {
     WaitableTimer timer;
     timer.SetTimeout(timeout);

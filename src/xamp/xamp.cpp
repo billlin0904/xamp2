@@ -741,8 +741,6 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
         return;
     }
 
-    fetchLyrics(entity, video_id);
-
     auto* playlist_page = dynamic_cast<PlaylistPage*>(sender());
     if (playlist_page != nullptr) {
         playlist_page->spinner()->startAnimation();
@@ -765,6 +763,8 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
         album_dao_.setAlbumCover(temp1.album_id, qImageCache.addImage(image));
         lrc_page_->setCover(image_util::resizeImage(image, lrc_page_->coverSizeHint(), true));
         });
+
+    fetchLyrics(entity, video_id);
 }
 
 void Xamp::fetchLyrics(const PlayListEntity& entity, const QString& video_id) {

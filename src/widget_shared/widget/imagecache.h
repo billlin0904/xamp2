@@ -42,7 +42,7 @@ public:
 	static constexpr char kImageFileFormat[] = "PNG";
 	static constexpr int kTrimImageSizeSeconds = 10 * 1000;
 	static constexpr QImage::Format kImageFormat = QImage::Format_RGB888;
-	static constexpr auto kCoverSize = QSize(32, 32);
+	static constexpr auto kCoverSize = QSize(38, 38);
 
     friend class SharedSingleton<ImageCache>;
 

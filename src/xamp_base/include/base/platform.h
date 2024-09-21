@@ -110,6 +110,8 @@ XAMP_BASE_API void CpuRelax() noexcept;
 
 XAMP_BASE_API void Assert(const char* message, const char* file, uint32_t line);
 
+XAMP_BASE_API std::string GetSequentialUUID();
+
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void SetCurrentProcessPriority(ProcessPriority priority);
 

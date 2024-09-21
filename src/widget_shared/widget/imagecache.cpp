@@ -22,6 +22,8 @@
 #include <QDirIterator>
 #include <QImageReader>
 
+#include "dao/albumdao.h"
+
 constexpr size_t kDefaultCacheSize = 24;
 constexpr qint64 kMaxCacheImageSize = 128 * 1024 * 1024;
 auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLower();
@@ -317,30 +319,10 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 }
 
 void ImageCache::loadCache() const {
-	Stopwatch sw;
-
-	size_t i = 0;
-	for (QDirIterator itr(makeCacheFilePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
-		itr.hasNext(); ++i) {
-		const auto path = itr.next();
-		QImage image(qTheme.cacheCoverSize(), kImageFormat);
-		QImageReader reader(path);
-		if (reader.read(&image)) {
-			const QFileInfo file_info(path);
-			const auto tag_name = file_info.baseName();
-			if (cache_.IsFull(file_info.size())) {
-				break;
-			}
-			cache_.AddOrUpdate(tag_name, { file_info.size(), QPixmap::fromImage(image) });
-			XAMP_LOG_D(logger_, "Add tag:{} {} size: {}", tag_name.toStdString(),
-				cache_, String::FormatBytes(file_info.size()));
-		}
-	}
-
-	XAMP_LOG_D(logger_, "Cache count: {} files, elapsed: {}secs, size: {}",
-		i,
-		sw.ElapsedSeconds(), 
-		String::FormatBytes(size()));
+	dao::AlbumDao album_dao(qGuiDb.getDatabase());
+	album_dao.forEachAlbumCover([this](const QString& cover_id) {
+		(void) getOrAddDefault(cover_id);
+		});
 }
 
 QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {

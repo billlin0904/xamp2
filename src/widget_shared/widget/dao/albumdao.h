@@ -53,6 +53,7 @@ public:
     void updateAlbumSelectState(int32_t album_id, bool state);
     QList<int32_t> getSelectedAlbums();
     void forEachAlbum(std::function<void(int32_t)>&& fun);
+    void forEachAlbumCover(std::function<void(const QString &)>&& fun);
     void removeAlbumCategory(int32_t album_id);
     void removeAlbumMusicAlbum(int32_t album_id);
 

@@ -611,6 +611,16 @@ LIMIT
         return selected_albums;
     }
 
+    void AlbumDao::forEachAlbumCover(std::function<void(const QString&)>&& fun) {
+        SqlQuery query(db_);
+
+        query.prepare("SELECT coverId FROM albums LIMIT 255"_str);
+        DbIfFailedThrow1(query);
+        while (query.next()) {
+            fun(query.value("coverId"_str).toString());
+        }
+    }
+
     void AlbumDao::forEachAlbum(std::function<void(int32_t)>&& fun) {
         SqlQuery query(db_);
         

@@ -68,7 +68,7 @@ namespace {
 
 LrcParser::LrcParser()
     : offset_(0)
-	, pattern_(LR"(\[\d{2}:\d{2}(?::\d{2})?\] ?[^\[]*)") {
+	, pattern_(LR"(\[\d{2}:\d{2}(?::\d{2}|\.\d{2})?\] ?[^\[]*)") {
 }
 
 bool LrcParser::parse(std::wistream &istr) {
