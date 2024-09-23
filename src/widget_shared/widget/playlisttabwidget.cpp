@@ -192,7 +192,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qFormat(R"(
     QTabBar { 
-        background: transparent; 
+        background: #121212; 
     }
 
 	QTabWidget#playlistTab {
@@ -425,6 +425,12 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent*) {
 }
 
 void PlaylistTabWidget::resizeTabWidth() {
+    auto w = width();
+    if (tab_bar_->count() <= 3) {
+		tab_bar_->setMinimumWidth(100);
+		return;
+    }
+    tab_bar_->setMinimumWidth(w - 45);
 }
 
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {

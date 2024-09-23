@@ -21,7 +21,6 @@ PlaylistPage::PlaylistPage(QWidget* parent)
 	setObjectName("playlistPage");
 	setFrameShape(QFrame::StyledPanel);
 	initial();
-    setStyleSheet("background-color: transparent;"_str);
 }
 
 ProcessIndicator* PlaylistPage::spinner() {
@@ -297,7 +296,14 @@ void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	title_->setStyleSheet("QLabel { color: "_str + colorToString(qTheme.textColor()) + "; background-color: transparent; }"_str);
 	format_->setStyleSheet("QLabel { font-family: FormatFont; font-size: 16px; color: "_str + colorToString(qTheme.textColor()) + "; background-color: transparent; }"_str);
 	qTheme.setLineEditStyle(search_line_edit_, "playlistSearchLineEdit"_str);
-	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));	
+	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
+
+	/*switch (theme_color) {
+	case ThemeColor::DARK_THEME:
+		setStyleSheet("background-color: #121212;"_str);
+		break;
+	}*/
+	setStyleSheet("background-color: transparent;"_str);
 }
 
 void PlaylistPage::onSetCoverById(const QString& cover_id) {

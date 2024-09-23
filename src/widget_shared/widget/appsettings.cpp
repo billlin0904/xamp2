@@ -19,6 +19,7 @@
 #include <widget/playerorder.h>
 #include <widget/youtubedl/ytmusicservice.h>
 #include <widget/playlistentity.h>
+#include <widget/databasecoverid.h>
 
 namespace {
 	void saveSoxrSetting(const QString& setting_name, int32_t sample_rate) {
@@ -468,7 +469,7 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<std::wstring>("std::wstring");
 	qRegisterMetaType<std::vector<search::SearchResultItem>>("std::vector<search::SearchResultItem>");
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-
+	qRegisterMetaType<DatabaseCoverId>("DatabaseCoverId");
 	qRegisterMetaType<AppEQSettings>("AppEQSettings");
 }
 

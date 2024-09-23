@@ -499,6 +499,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
        &AlbumCoverService::onFindAlbumCover,
        Qt::QueuedConnection);
 
+   (void)QObject::connect(music_library_page_->year()->styledDelegate(),
+       &AlbumViewStyledDelegate::findAlbumCover,
+       album_cover_service_.get(),
+       &AlbumCoverService::onFindAlbumCover,
+       Qt::QueuedConnection);
+
    (void)QObject::connect(this,
        &Xamp::findAlbumCover,
        album_cover_service_.get(),
@@ -750,11 +756,11 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
     ytmusic_http_service_->fetchSongInfo(video_id).then([this, playlist_page, temp = entity, is_doubleclicked](auto song_info) {
         auto temp1 = temp;
         temp1.file_path = song_info.download_url;
-        XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
-		onPlayMusic(kInvalidDatabaseId, temp1, false, is_doubleclicked);
         if (playlist_page != nullptr) {
             playlist_page->spinner()->stopAnimation();
         }
+        XAMP_LOG_DEBUG("Download url: {}", temp1.file_path.toStdString());
+		onPlayMusic(kInvalidDatabaseId, temp1, false, is_doubleclicked);
         const QByteArray byte_array = QByteArray::fromBase64(song_info.thumbnail_base64.toUtf8());
         QPixmap image;
         if (!image.loadFromData(byte_array)) {
@@ -764,7 +770,7 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
         lrc_page_->setCover(image_util::resizeImage(image, lrc_page_->coverSizeHint(), true));
         });
 
-    fetchLyrics(entity, video_id);
+    //fetchLyrics(entity, video_id);
 }
 
 void Xamp::fetchLyrics(const PlayListEntity& entity, const QString& video_id) {
@@ -2695,6 +2701,7 @@ void Xamp::onReadFilePath(const QString& file_path) {
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
     album_dao_.setAlbumCover(album_id, cover_id);
     music_library_page_->album()->refreshCover();
+    music_library_page_->year()->refreshCover();
     if (current_entity_) {
         if (current_entity_.value().album_id == album_id) {
             current_entity_.value().cover_id = cover_id;

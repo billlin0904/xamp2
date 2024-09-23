@@ -155,12 +155,12 @@ namespace http {
     }
 
     QCoro::Task<QString> HttpClient::get() {
-        QUrl fullUrl(url_);
+        QUrl full_url(url_);
         if (!params_.isEmpty()) {
-            fullUrl.setQuery(params_);
+            full_url.setQuery(params_);
             params_.clear();
         }
-        QNetworkRequest request(fullUrl);
+        QNetworkRequest request(full_url);
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->get(request);
@@ -169,8 +169,8 @@ namespace http {
     }
 
     QCoro::Task<QString> HttpClient::post() {
-        QUrl fullUrl(url_);
-        QNetworkRequest request(fullUrl);
+	    QUrl full_url(url_);
+        QNetworkRequest request(full_url);
         setHeaders(request);
         auto logger = logger_;
 		const auto data = use_json_ ? json_.toUtf8() : params_.toString(QUrl::FullyEncoded).toUtf8();
@@ -180,12 +180,12 @@ namespace http {
     }
 
     QCoro::Task<QString> HttpClient::put(const QByteArray& data) {
-        QUrl fullUrl(url_);
+        QUrl full_url(url_);
         if (!params_.isEmpty()) {
-            fullUrl.setQuery(params_);
+            full_url.setQuery(params_);
             params_.clear();
         }
-        QNetworkRequest request(fullUrl);
+        QNetworkRequest request(full_url);
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->put(request, data);
@@ -194,12 +194,12 @@ namespace http {
     }
 
     QCoro::Task<QString> HttpClient::del() {
-        QUrl fullUrl(url_);
+        QUrl full_url(url_);
         if (!params_.isEmpty()) {
-            fullUrl.setQuery(params_);
+            full_url.setQuery(params_);
             params_.clear();
         }
-        QNetworkRequest request(fullUrl);
+        QNetworkRequest request(full_url);
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->deleteResource(request);
@@ -208,12 +208,12 @@ namespace http {
     }
 
     QCoro::Task<QByteArray> HttpClient::download() {
-        QUrl fullUrl(url_);
+        QUrl full_url(url_);
         if (!params_.isEmpty()) {
-            fullUrl.setQuery(params_);
+            full_url.setQuery(params_);
             params_.clear();
         }
-        QNetworkRequest request(fullUrl);
+        QNetworkRequest request(full_url);
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->get(request);
@@ -256,6 +256,7 @@ namespace http {
         }
 
         request.setRawHeader("Accept-Encoding", "gzip");
+        request.setRawHeader("Connection", "keep-alive");
     }
 
     QString HttpClient::processReply(QNetworkReply* reply) {
@@ -265,7 +266,7 @@ namespace http {
             reply->deleteLater();
         }
         else {
-            const auto errorString = reply->errorString();
+            const auto error_string = reply->errorString();
             reply->deleteLater();
         }
         return data;
