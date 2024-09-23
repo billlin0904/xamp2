@@ -50,7 +50,7 @@ namespace dao {
         return std::nullopt;
 	}
 
-    int32_t ArtistDao::addOrUpdateArtist(const QString& artist) {
+    int32_t ArtistDao::addOrUpdateArtist(const QString& artist, const QString& first_char) {
         XAMP_EXPECTS(!artist.isEmpty());
 
         SqlQuery query(db_);
@@ -60,9 +60,13 @@ namespace dao {
     VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist, :firstChar)
     )"_str);
 
-        const auto first_char = artist.left(1);
         query.bindValue(":artist"_str, artist);
-        query.bindValue(":firstChar"_str, first_char.toUpper());
+        if (first_char.isEmpty()) {
+            const auto fc = artist.left(1);
+            query.bindValue(":firstChar"_str, fc.toUpper());
+        } else {
+            query.bindValue(":firstChar"_str, first_char.toUpper());
+        }
 
         DbIfFailedThrow1(query);
 

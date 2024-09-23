@@ -353,7 +353,7 @@ SELECT
 FROM
     artists
 WHERE
-	firstCharEn IN (%1)
+	firstChar IN (%1)
     )").arg(names.join(","_str));
 }
 

@@ -214,7 +214,6 @@ YtMusicHttpService::YtMusicHttpService(QObject* parent)
 
 QCoro::Task<SongInfo> YtMusicHttpService::fetchSongInfo(const QString& video_id) {
     http_client_.setUrl(qFormat("%1/fetch_song_info").arg(BASE_URL));
-    http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["video_id"_str] = video_id;
@@ -263,7 +262,6 @@ QCoro::Task<QList<LibraryPlaylist>> YtMusicHttpService::fetchLibraryPlaylists() 
 
 QCoro::Task<QString> YtMusicHttpService::fetchLyrics(const QString& video_id) {
     http_client_.setUrl(qFormat("%1/fetch_lyrics").arg(BASE_URL));
-    http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["video_id"_str] = video_id;
@@ -283,7 +281,6 @@ QCoro::Task<QString> YtMusicHttpService::fetchLyrics(const QString& video_id) {
 
 QCoro::Task<QList<search::Album>> YtMusicHttpService::searchAlbum(const QString& query) {
 	http_client_.setUrl(qFormat("%1/search_album").arg(BASE_URL));
-	http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["query"_str] = query;
@@ -308,7 +305,6 @@ QCoro::Task<QList<search::Album>> YtMusicHttpService::searchAlbum(const QString&
 
 QCoro::Task<album::Album> YtMusicHttpService::fetchAlbum(const QString& browse_id) {
 	http_client_.setUrl(qFormat("%1/get_album").arg(BASE_URL));
-	http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["browse_id"_str] = browse_id;
@@ -326,7 +322,6 @@ QCoro::Task<album::Album> YtMusicHttpService::fetchAlbum(const QString& browse_i
 
 QCoro::Task<QList<QString>> YtMusicHttpService::searchSuggestions(const QString& query) {
 	http_client_.setUrl(qFormat("%1/search_suggestions").arg(BASE_URL));
-	http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["query"_str] = query;
@@ -345,7 +340,6 @@ QCoro::Task<QList<QString>> YtMusicHttpService::searchSuggestions(const QString&
 
 QCoro::Task<LibraryPlaylist> YtMusicHttpService::fetchPlaylist(const QString& playlist_id) {
     http_client_.setUrl(qFormat("%1/fetch_playlist").arg(BASE_URL));
-    http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["playlist_id"_str] = playlist_id;
@@ -366,7 +360,6 @@ QCoro::Task<LibraryPlaylist> YtMusicHttpService::fetchPlaylist(const QString& pl
 
 QCoro::Task<QString> YtMusicHttpService::editPlaylist(const QString& playlist_id, const QString& title) {
 	http_client_.setUrl(qFormat("%1/edit_playlist").arg(BASE_URL));
-	http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["playlist_id"_str] = playlist_id;
@@ -380,7 +373,6 @@ QCoro::Task<QString> YtMusicHttpService::editPlaylist(const QString& playlist_id
 
 QCoro::Task<QString> YtMusicHttpService::deletePlaylist(const QString& playlist_id) {
 	http_client_.setUrl(qFormat("%1/delete_playlist").arg(BASE_URL));
-	http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["playlist_id"_str] = playlist_id;
@@ -397,7 +389,6 @@ QCoro::Task<QString> YtMusicHttpService::createPlaylist(const QString& title,
 	const QList<QString>& video_ids,
 	const QString& source_playlist) {
 	http_client_.setUrl(qFormat("%1/create_playlist").arg(BASE_URL));
-	http_client_.addAccpetJsonHeader();
 
 	QVariantMap map;
 	map["title"_str] = title;

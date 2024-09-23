@@ -19,7 +19,7 @@ public:
 
     void updateArtistCoverId(int32_t artist_id, const QString& cover_id);
     std::optional<ArtistStats> getArtistStats(int32_t artist_id) const;
-    int32_t addOrUpdateArtist(const QString& artist);
+    int32_t addOrUpdateArtist(const QString& artist, const QString &first_char = QString());
     void updateArtistEnglishName(const QString& artist, const QString& en_name);
     QString getArtistCoverId(int32_t artist_id) const;
     void removeArtistId(int32_t artist_id);

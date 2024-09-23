@@ -228,6 +228,7 @@ namespace http {
     HttpClient& HttpClient::setJson(const QString& json) {
         json_ = json;
         use_json_ = true;
+        addAccpetJsonHeader();
         return *this;
     }
 

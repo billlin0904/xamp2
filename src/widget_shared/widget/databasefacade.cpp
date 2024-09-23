@@ -1,17 +1,15 @@
 ﻿#include <widget/databasefacade.h>
 #include <widget/worker/filesystemservice.h>
 
-#include <qguiapplication.h>
-
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
+#include <base/nameconverter.h>
 
 #include <stream/avfilestream.h>
 
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
-#include <widget/tagio.h>
 #include <widget/dao/artistdao.h>
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
@@ -121,6 +119,21 @@ int32_t DatabaseFacade::unknownAlbumId() const {
     return kUnknownAlbumId;
 }
 
+QString getFirstChar(const QString &str, LanguageType lang) {
+    QString first_char;
+
+    try {
+        NameConverter name_converter;
+        const auto ch = name_converter.GetInitialLetter(str.toStdWString(), lang);
+        const char str[] = { ch, '\0' };
+        first_char = QString::fromStdString(str);
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_ERROR("Failed to get initial letter: {}", e.what());
+    }
+    return first_char;
+}
+
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
     int32_t playlist_id,
     StoreType store_type,
@@ -131,7 +144,7 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     dao::ArtistDao artist_dao(database_->getDatabase());
     dao::AlbumDao album_dao(database_->getDatabase());
     dao::PlaylistDao playlist_dao(database_->getDatabase());
-
+    
     ensureAddUnknownId();
 
 	for (const auto& track_info : result) {        
@@ -151,7 +164,11 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         const auto music_id = music_dao.addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
 
-        auto artist_id = artist_dao.addOrUpdateArtist(artist);
+        QString first_char_en = getFirstChar(artist, LanguageType::LANGUAGE_ENGLISH);
+        QString first_char_jp = getFirstChar(artist, LanguageType::LANGUAGE_JAPANESE);
+        QString first_char_ch = getFirstChar(artist, LanguageType::LANGUAGE_CHINESE);
+
+        auto artist_id = artist_dao.addOrUpdateArtist(artist, first_char_jp);
         XAMP_EXPECTS(artist_id != 0);
 
         auto album_id = kInvalidDatabaseId;
