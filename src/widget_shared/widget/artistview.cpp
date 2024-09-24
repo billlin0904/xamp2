@@ -69,12 +69,12 @@ void ArtistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 		font.setPointSize(qTheme.fontSize(70));
 		font.setBold(true);
 		painter->setFont(font);
-		painter->drawText(rect, Qt::AlignCenter, first_char);
+		painter->drawText(rect, Qt::AlignCenter, artist.left(1));
 	}
 
 	painter->setPen(text_color_);
 	font.setBold(false);
-	font.setPointSize(qTheme.fontSize(8));
+	font.setPointSize(qTheme.fontSize(9));
 	painter->setFont(font);
 	const auto album_artist_text_width = default_cover_size.width();
 	const QRect artist_text_rect(option.rect.left() + 10,
@@ -183,6 +183,7 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 
 	album_view_ = new AlbumView(this);
 	album_view_->setObjectName(QString::fromUtf8("albumView"));
+	album_view_->styledDelegate()->enableAlbumView(false);
 
 	all_album_layout->addWidget(all_album);
 	all_album_layout->addWidget(album_view_);
@@ -195,6 +196,10 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 
 	auto* fade_effect = new QGraphicsOpacityEffect(this);
 	setGraphicsEffect(fade_effect);
+
+	artist_image_->hide();
+	artist_name_->hide();
+	artist->hide();
 }
 
 void ArtistViewPage::paintEvent(QPaintEvent* event) {
@@ -203,6 +208,7 @@ void ArtistViewPage::paintEvent(QPaintEvent* event) {
 
 void ArtistViewPage::onThemeChangedFinished(ThemeColor theme_color) {
 	close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW, ThemeColor::DARK_THEME));
+	album_view_->onThemeChangedFinished(theme_color);
 }
 
 void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const QString& artist_cover_id) {
@@ -355,6 +361,7 @@ FROM
 WHERE
 	firstChar IN (%1)
     )").arg(names.join(","_str));
+	page_->hide();
 }
 
 void ArtistView::showAll() {
@@ -367,4 +374,5 @@ SELECT
 FROM
     artists
     )"_str;
+	page_->hide();
 }

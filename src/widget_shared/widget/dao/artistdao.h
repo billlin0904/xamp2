@@ -26,6 +26,7 @@ public:
     void updateArtist(int32_t artist_id, const QString& artist);
     void removeAllArtist();
     void updateArtistByDiscId(const QString& disc_id, const QString& artist);
+    int32_t getArtistId(const QString& artist) const;
 private:
     QSqlDatabase& db_;
 };

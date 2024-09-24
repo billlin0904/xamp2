@@ -4,7 +4,7 @@
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
-#include <base/nameconverter.h>
+#include <base/transliterator.h>
 
 #include <stream/avfilestream.h>
 
@@ -119,21 +119,6 @@ int32_t DatabaseFacade::unknownAlbumId() const {
     return kUnknownAlbumId;
 }
 
-QString getFirstChar(const QString &str, LanguageType lang) {
-    QString first_char;
-
-    try {
-        NameConverter name_converter;
-        const auto ch = name_converter.GetInitialLetter(str.toStdWString(), lang);
-        const char str[] = { ch, '\0' };
-        first_char = QString::fromStdString(str);
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_ERROR("Failed to get initial letter: {}", e.what());
-    }
-    return first_char;
-}
-
 void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result, 
     int32_t playlist_id,
     StoreType store_type,
@@ -146,6 +131,8 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     dao::PlaylistDao playlist_dao(database_->getDatabase());
     
     ensureAddUnknownId();
+
+    Transliterator transliterator;
 
 	for (const auto& track_info : result) {        
         auto file_path = toQString(track_info.file_path);
@@ -164,12 +151,24 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         const auto music_id = music_dao.addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
 
-        QString first_char_en = getFirstChar(artist, LanguageType::LANGUAGE_ENGLISH);
-        QString first_char_jp = getFirstChar(artist, LanguageType::LANGUAGE_JAPANESE);
-        QString first_char_ch = getFirstChar(artist, LanguageType::LANGUAGE_CHINESE);
+		auto artist_id = artist_dao.getArtistId(artist);
 
-        auto artist_id = artist_dao.addOrUpdateArtist(artist, first_char_jp);
-        XAMP_EXPECTS(artist_id != 0);
+        if (artist_id == kInvalidDatabaseId) {
+            QString first_char;
+            try {
+                const auto ch = transliterator.GetLatinLetter(artist.toStdWString());
+				if (ch == '\0') {
+                    XAMP_LOG_ERROR("Failed to get initial letter.");
+				}
+                const char str[] = { ch, '\0' };
+                first_char = ConstexprQString(str);
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_ERROR("Failed to get initial letter: {}", e.what());
+            }
+            artist_id = artist_dao.addOrUpdateArtist(artist, first_char);
+            XAMP_EXPECTS(artist_id != 0);
+        }
 
         auto album_id = kInvalidDatabaseId;
         if (isCloudStore(store_type)) {

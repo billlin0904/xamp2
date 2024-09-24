@@ -86,6 +86,18 @@ namespace dao {
         DbIfFailedThrow1(query);
     }
 
+	int32_t ArtistDao::getArtistId(const QString& artist) const {
+		SqlQuery query(db_);
+		query.prepare("SELECT artistId FROM artists WHERE artist = :artist"_str);
+		query.bindValue(":artist"_str, artist);
+		DbIfFailedThrow1(query);
+        const auto index = query.record().indexOf("artistId"_str);
+        if (query.next()) {
+            return query.value(index).toInt();
+        }
+        return kInvalidDatabaseId;
+	}
+
     QString ArtistDao::getArtistCoverId(int32_t artist_id) const {
         SqlQuery query(db_);
 

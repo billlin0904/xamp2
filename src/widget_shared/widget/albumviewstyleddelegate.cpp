@@ -236,8 +236,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     f.setBold(true);
     painter->setFont(f);
 
-    // Draw hi res icon
-
+    // Draw hi-res icon
     if (is_hires) {
         album_artist_text_width -= kMoreIconSize;
         painter->drawPixmap(hiResIconRect(option, cover_size_), qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));

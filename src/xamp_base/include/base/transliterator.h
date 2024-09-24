@@ -12,25 +12,18 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-enum class LanguageType {
-    LANGUAGE_ENGLISH,
-    LANGUAGE_CHINESE,
-    LANGUAGE_JAPANESE,
-    LANGUAGE_UNKNOWN
-};
-
-class XAMP_BASE_API NameConverter final {
+class XAMP_BASE_API Transliterator final {
 public:
-    NameConverter();
+    Transliterator();
 
-    XAMP_PIMPL(NameConverter)
+    XAMP_PIMPL(Transliterator)
 
-    std::string ConvertName(const std::wstring& name, LanguageType lang);
+    std::string TransformToLatin(const std::wstring& name);
 
-    char GetInitialLetter(const std::wstring& name, LanguageType lang);
+    char GetLatinLetter(const std::wstring& name);
 private:
-    class NameConverterImpl;
-    AlignPtr<NameConverterImpl> impl_;
+    class TransliteratorImpl;
+    AlignPtr<TransliteratorImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END

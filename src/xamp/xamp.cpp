@@ -1682,13 +1682,14 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, boo
             });
     }
 
+	// Setup bluetooth device or shared output device (ex: Windows WASAPI) sample rate converter.
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
         if (device_info_.value().default_format) {
             default_format = device_info_.value().default_format.value();
         }
         else {
-#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN            
             default_format = AudioFormat::k16BitPCM441Khz;
 #else
             default_format = AudioFormat::k16BitPCM48Khz;
@@ -1699,6 +1700,8 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, boo
 
         if (sample_rate != default_format.GetSampleRate()) {
             target_sample_rate = default_format.GetSampleRate();
+        } else {
+			target_sample_rate = sample_rate;
         }
         byte_format = ByteFormat::SINT16;
         player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
@@ -1904,10 +1907,10 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
         QList<PlayListEntity> entities;
         album_dao_.forEachAlbumMusic(album_id, [&entities](const auto& entity) {
             entities.append(entity);
-            });
+        });
         std::sort(entities.begin(), entities.end(), [](const auto& a, const auto& b) {
             return b.track > a.track;
-            });
+        });
         auto i = 0;
         Q_FOREACH(const auto track, mb_disc_id_info.tracks) {
             music_dao_.updateMusicTitle(entities[i++].music_id, QString::fromStdWString(track.title));

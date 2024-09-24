@@ -1,9 +1,7 @@
-﻿#include <base/nameconverter.h>
+﻿#include <base/transliterator.h>
 #include <base/unique_handle.h>
 #include <base/str_utilts.h>
 #include <base/charset_detector.h>
-
-#include <icucommon.h>
 
 #include <icu.h>
 #include <stdexcept>
@@ -40,19 +38,16 @@ struct UCharsetDetectorDeleter final {
 
 using UCharsetDetectorHandle = UniqueHandle<UCharsetDetector*, UCharsetDetectorDeleter>;
 
-class NameConverter::NameConverterImpl {
+class Transliterator::TransliteratorImpl {
 public:
-    NameConverterImpl() {
+    TransliteratorImpl() {
         UErrorCode status = U_ZERO_ERROR;
-        const UChar chinese_id[] = L"Han-Latin/Names; [:Nonspacing Mark:] Remove; Any-Upper";
-        chinese_trans_.reset(utrans_openU(chinese_id, -1, UTRANS_FORWARD, nullptr, -1, nullptr, &status));
-
-    	status = U_ZERO_ERROR;
-        const UChar japanese_id[] = L"Katakana-Latin; Hiragana-Latin; Han-Latin/Names; [:Nonspacing Mark:] Remove; Any-Upper";
-        japanese_trans_.reset(utrans_openU(japanese_id, -1, UTRANS_FORWARD, nullptr, -1, nullptr, &status));
+        const UChar id[] = u"Katakana-Latin; Hiragana-Latin; Han-Latin/Names; [:Nonspacing Mark:] Remove; Any-Upper";
+        //const UChar id[] = u"Katakana-Latin; Hiragana-Latin; [:Nonspacing Mark:] Remove; Any-Upper";
+        trans_.reset(utrans_openU(id, -1, UTRANS_FORWARD, nullptr, -1, nullptr, &status));
     }
 
-    std::string ConvertName(const std::wstring& name, LanguageType lang) {
+    std::string TransformToLatin(const std::wstring& name) {
         UErrorCode status = U_ZERO_ERROR;
 
         // Convert std::wstring to UChar*
@@ -63,42 +58,16 @@ public:
             throw std::runtime_error("Failed to convert name to UChar*");
         }
 
-        std::wstring unicode_name(buffer.data(), dest_len);
-
-        // Choose the appropriate transliterator
-        UTransliterator* trans = nullptr;
-        if (lang == LanguageType::LANGUAGE_CHINESE) {
-            trans = chinese_trans_.get();
-        }
-        else if (lang == LanguageType::LANGUAGE_JAPANESE) {
-            trans = japanese_trans_.get();
-        }
-        else if (lang == LanguageType::LANGUAGE_ENGLISH) {
-            // For English names, convert directly to uppercase
-            std::string upper_name;
-            for (wchar_t ch : name) {
-                upper_name += std::toupper(static_cast<unsigned char>(ch));
-            }
-            return upper_name;
-        }
-        else {
-            // Unknown language, return the original name
-            std::string original_name(name.begin(), name.end());
-            return original_name;
-        }
-
-        if (!trans) {
-            throw std::runtime_error("Transliterator not initialized");
-        }
+        std::wstring unicode_name(reinterpret_cast<wchar_t*>(buffer.data()), dest_len);
 
         // Perform transliteration
         int32_t capacity = static_cast<int32_t>(unicode_name.size() * 4 + 10);
         std::vector<UChar> result(capacity);
         int32_t result_length = static_cast<int32_t>(unicode_name.size());
-        u_memcpy(result.data(), unicode_name.data(), result_length);
+        u_memcpy(result.data(), reinterpret_cast<const UChar*>(unicode_name.data()), result_length);
 
         int32_t limit = result_length;
-        utrans_transUChars(trans, result.data(), &result_length, capacity, 0, &limit, &status);
+        utrans_transUChars(trans_.get(), result.data(), &result_length, capacity, 0, &limit, &status);
         if (U_FAILURE(status)) {
             throw std::runtime_error("Failed to transliterate name");
         }
@@ -119,8 +88,8 @@ public:
         return utf8_result;
     }
 
-    char GetInitialLetter(const std::wstring& name, LanguageType lang) {
-	    const std::string converted_name = ConvertName(name, lang);
+    char GetLatinLetter(const std::wstring& name) {
+	    const std::string converted_name = TransformToLatin(name);
 
         for (char ch : converted_name) {
             if (std::isalpha(static_cast<unsigned char>(ch))) {
@@ -130,22 +99,21 @@ public:
         return '\0';
     }
 private:
-    UTransliteratorHandle chinese_trans_;
-    UTransliteratorHandle japanese_trans_;
+    UTransliteratorHandle trans_;
 };
 
-NameConverter::NameConverter()
-	: impl_(new NameConverterImpl()) {
+Transliterator::Transliterator()
+	: impl_(new TransliteratorImpl()) {
 }
 
-XAMP_PIMPL_IMPL(NameConverter)
+XAMP_PIMPL_IMPL(Transliterator)
 
-std::string NameConverter::ConvertName(const std::wstring& name, LanguageType lang) {
-	return impl_->ConvertName(name, lang);
+std::string Transliterator::TransformToLatin(const std::wstring& name) {
+	return impl_->TransformToLatin(name);
 }
 
-char NameConverter::GetInitialLetter(const std::wstring& name, LanguageType lang) {
-	return impl_->GetInitialLetter(name, lang);
+char Transliterator::GetLatinLetter(const std::wstring& name) {
+	return impl_->GetLatinLetter(name);
 }
 
 XAMP_BASE_NAMESPACE_END
