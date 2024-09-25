@@ -244,12 +244,6 @@ private:
 
     void onDeviceStateChanged(DeviceState state, const QString& device_id);
 
-    void encodeFlacFile(const PlayListEntity& entity);
-
-	void encodeAacFile(const PlayListEntity& entity, const EncodingProfile & profile);
-
-	void encodeWavFile(const PlayListEntity& entity);
-
 	void cacheYtMusicFile(const PlayListEntity& entity);
 
     void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done, bool is_doubleclicked);
@@ -274,16 +268,9 @@ private:
 
 	XAMP_NO_DISCARD PlaylistPage* localPlaylistPage() const;
 
-	void encodeFile(const PlayListEntity& entity,
-		const EncodingProfile& profile,
-		const QString& file_filter,
-		const QString& file_type,
-		const std::wstring& command,
-		AlignPtr<IFileEncoder> encoder);
-
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id, bool is_doubleclicked);
 
-	void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
+	//void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 
 	QString translateDeviceDescription(const IDeviceType* device_type);
 

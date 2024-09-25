@@ -31,7 +31,7 @@ public:
 
 	XAMP_DISABLE_COPY(UniqueHandle)
 
-	T get() const noexcept {
+	XAMP_NO_DISCARD T get() const noexcept {
 		return value_;
 	}
 

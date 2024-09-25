@@ -350,17 +350,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     ytmusic_oauth_.reset(new YtMusicOAuth());
 
-    (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::acceptAuthorization, [this](const auto &url) {
-    });
-
-    (void)QObject::connect(ytmusic_oauth_.get(), &YtMusicOAuth::requestGrantCompleted, [this]() {
-        auto token = YtMusicOAuth::parseOAuthJson();
-        if (token) {
-            initialYtMusicService();
-            initialCloudPlaylist();
-        }
-    });
-
     player_->SetStateAdapter(state_adapter_);
     player_->SetDelayCallback([this](auto seconds) {
         delay(seconds);
@@ -676,23 +665,8 @@ void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
 
     ytmusic_http_service_->fetchSongInfo(video_id).then([this, video_id, temp = entity, dialog](auto song_info) {
         auto file_name = YtMusicDiskCache::makeFileCachePath(video_id);
-
         dialog->setLabelText(tr("Start download ") + file_name + " ..."_str);
 
-        /*auto process_handler = [dialog](auto ready, auto total) {
-            dialog->setValue(ready * 100 / total);
-            qApp->processEvents();
-            };
-        auto download_file_handler = [dialog](auto) {
-            dialog->close();
-            };
-        auto error_handler = [dialog](auto url, auto message) {
-            dialog->close();
-            };
-
-        http::HttpClient(song_info.download_url)
-            .progress(process_handler)
-            .downloadFile(file_name, download_file_handler, error_handler);*/
         http_client_.setUrl(song_info.download_url);
         http_client_.download().then([file_name, dialog](const auto & buffer) {
             QSharedPointer<QTemporaryFile> tempfile(new QTemporaryFile());
@@ -768,20 +742,8 @@ void Xamp::playCloudVideoId(const PlayListEntity& entity, const QString &id, boo
         }
         album_dao_.setAlbumCover(temp1.album_id, qImageCache.addImage(image));
         lrc_page_->setCover(image_util::resizeImage(image, lrc_page_->coverSizeHint(), true));
+        lrc_page_->lyrics()->onAddFullLrc(song_info.lyrics);
         });
-
-    //fetchLyrics(entity, video_id);
-}
-
-void Xamp::fetchLyrics(const PlayListEntity& entity, const QString& video_id) {
-    XAMP_LOG_DEBUG("Fetching lyrics ...");
-
-	ytmusic_http_service_->fetchLyrics(video_id).then([this](auto lyrics) {
-		if (lyrics.isEmpty()) {
-			return;
-		}
-		lrc_page_->lyrics()->onAddFullLrc(lyrics);
-		});
 }
 
 void Xamp::onFetchAlbumCompleted(const album::Album& album) {
@@ -1982,6 +1944,10 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
 }
 
 void Xamp::onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_play, bool is_doubleclicked) {
+    if (entity.file_path.isEmpty()) {
+        return;
+    }
+
     initialYtMusicService();
 
     main_window_->setTaskbarPlayerPlaying();
@@ -2343,6 +2309,16 @@ void Xamp::initialPlaylist() {
         this,
         &Xamp::onAddPlaylist);
 
+    (void)QObject::connect(music_library_page_->artist()->artistViewPage()->album(),
+        &AlbumView::addPlaylist,
+        this,
+        &Xamp::onAddPlaylist);
+
+    (void)QObject::connect(music_library_page_->year(),
+        &AlbumView::addPlaylist,
+        this,
+        &Xamp::onAddPlaylist);
+
     pushWidget(playlist_tab_page_.get());
     pushWidget(file_explorer_page_.get());
     pushWidget(lrc_page_.get());
@@ -2368,7 +2344,6 @@ void Xamp::initialCloudPlaylist() {
         tr(""),
         tr("Cancel"));
     process_dialog->show();
-    cloud_playlist_process_count_ = 0;
 
     ytmusic_http_service_->fetchLibraryPlaylists().then([this, process_dialog](const auto& playlists) {
         static constexpr auto kEpisodesForLaterName = "Episodes for Later"_str;
@@ -2419,85 +2394,6 @@ void Xamp::pushWidget(QWidget* widget) {
     const auto id = ui_.currentView->addWidget(widget);
     widgets_.push_back(widget);
     ui_.currentView->setCurrentIndex(id);
-}
-
-void Xamp::encodeFile(const PlayListEntity& entity,
-    const EncodingProfile& profile, 
-    const QString& file_filter,
-    const QString& file_type, 
-    const std::wstring &command,
-    AlignPtr<IFileEncoder> encoder) {
-    const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-    const auto save_file_name = last_dir + "/"_str + entity.album + "-"_str + entity.title;
-
-    getSaveFileName(this,
-        [this, entity, profile, command, file_type, &encoder](const auto& file_name) {
-            const auto dialog = makeProgressDialog(
-                tr("Export progress dialog"),
-                tr("Export '") + entity.title + tr("' to ") + file_type + tr(" file"),
-                tr("Cancel"));
-            dialog->show();
-
-            TrackInfo track_info;
-            track_info.album = entity.album.toStdWString();
-            track_info.artist = entity.artist.toStdWString();
-            track_info.title = entity.title.toStdWString();
-            track_info.track = entity.track;
-
-            AnyMap config;
-            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(entity.file_path.toStdWString()));
-            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, Path(toNativeSeparators(file_name).toStdWString()));
-            config.AddOrReplace(FileEncoderConfig::kEncodingProfile, profile);
-            config.AddOrReplace(FileEncoderConfig::kCommand, command);
-
-            try {
-                read_util::encodeFile(config,
-                    encoder,
-                    [&](auto progress) -> bool {
-                        dialog->setValue(progress);
-                        qApp->processEvents();
-                        delay(1);
-                        return dialog->wasCanceled() != true;
-                    }, track_info);
-            }
-            catch (...) {
-                dialog->hide();
-                logAndShowMessage(std::current_exception());
-            }
-        },
-        tr("Save ") + file_type,
-        save_file_name,
-        file_filter);
-}
-
-void Xamp::encodeAacFile(const PlayListEntity& entity, const EncodingProfile& profile) {
-    encodeFile(entity,
-        profile, 
-        tr("AAC Files (*.m4a)"),
-        tr("m4a"),
-        L"",
-        StreamFactory::MakeAACEncoder());
-}
-
-void Xamp::encodeWavFile(const PlayListEntity& entity) {
-    encodeFile(entity,
-        EncodingProfile(),
-        tr("ALAC Files (*.m4a)"),
-        tr("m4a"),
-        L"",
-        StreamFactory::MakeAlacEncoder());
-}
-
-void Xamp::encodeFlacFile(const PlayListEntity& entity) {
-    const auto command
-        = qFormat("-%1 -V").arg(qAppSettings.valueAs(kFlacEncodingLevel).toInt()).toStdWString();
-
-    encodeFile(entity,
-        EncodingProfile(),
-        tr("FLAC Files (*.flac)"),
-        tr("flac"),
-        command,
-        StreamFactory::MakeFlacEncoder());
 }
 
 void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
@@ -2621,21 +2517,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistPage::playMusic,
         this,
         &Xamp::onPlayMusic);
-
-    (void)QObject::connect(playlist_page->playlist(),
-        &PlaylistTableView::encodeFlacFile,
-        this,
-        &Xamp::encodeFlacFile);
-
-    (void)QObject::connect(playlist_page->playlist(),
-        &PlaylistTableView::encodeAacFile,
-        this,
-        &Xamp::encodeAacFile);
-
-    (void)QObject::connect(playlist_page->playlist(),
-        &PlaylistTableView::encodeWavFile,
-        this,
-        &Xamp::encodeWavFile);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::downloadFile,

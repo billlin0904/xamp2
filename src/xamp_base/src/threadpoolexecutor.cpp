@@ -55,9 +55,10 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_scheduler_policy_->SetMaxThread(max_thread_);
 
-		for (size_t i = 0; i < max_thread_; ++i) {
+		/*for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
-		}
+		}*/
+		task_work_queues_.resize(max_thread_);
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
 		}
@@ -71,7 +72,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 
 	// 因為macOS 不支援thread running狀態設置affinity,
 	// 所以都改由此方式初始化affinity.
-	JThread([this, priority]() mutable {
+	JThread([this]() mutable {
 		for (size_t i = 0; i < max_thread_; ++i) {
 			if (cpu_affinity_.IsCoreUse(i)) {
 				cpu_affinity_.SetAffinity(threads_.at(i));
@@ -186,25 +187,27 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(const StopToken& stop
 	return std::nullopt;
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t i) {
+std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, ITaskSchedulerPolicy *policy, size_t current_thread_index) {
 	// Try to steal a task from another thread's queue
 	// Note: The order in which we try the queues is important to prevent
 	//       all threads from trying to steal from the same thread
 	// 	 (which would lead to a deadlock)
 
 	constexpr size_t kMaxAttempts = 100;
-	size_t attempts = 0;
-
-	for (size_t n = 0; attempts < kMaxAttempts && n != max_thread_; ++n, ++attempts) {
+	
+	for (size_t attempts = 0;  attempts < kMaxAttempts; ++attempts) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
 		}
 
-		const auto index = (i + n) % max_thread_;
+		const auto index = policy->ScheduleNext(current_thread_index, task_work_queues_, task_execute_flags_);
+		if (index == kInvalidScheduleIndex) {
+			continue;
+		}
 
 		MoveOnlyFunction func;
 		if (task_work_queues_.at(index)->TryDequeue(func)) {
-			XAMP_LOG_D(logger_, "Steal other thread {} queue (found count: {}).", index, n);
+			//XAMP_LOG_D(logger_, "Steal other thread {} queue (found count: {}).", index, n);
 			return func;
 		}
 	}
@@ -234,7 +237,11 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
 
-		auto* local_queue = task_work_queues_[i].get();
+		//auto* local_queue = task_work_queues_[i].get();
+		thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
+		auto local_queue = &task_local_queue;
+		task_work_queues_[i] = local_queue;
+
 		auto* policy = task_scheduler_policy_.get();
 		const auto thread_id = GetCurrentThreadId();
 
@@ -257,24 +264,16 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			// Try to get a task from the local queue
 			auto task = TryLocalPop(stop_token, local_queue);
-			auto steal_index = 0;
 
 			// Try to get a task from the global queue
 			if (!task) {
-				steal_index = policy->ScheduleNext(i, task_work_queues_, task_execute_flags_);				
-				if (steal_index != kInvalidScheduleIndex) {
-					// Try to steal a task from another thread's queue
-					task = TrySteal(stop_token, steal_index);
-				}
+				task = TrySteal(stop_token, policy, i);
 			}
 
 			// Try to get a task from the shared queue
 			if (!task) {				
 				if (spinning_watch.Elapsed() >= kSpinningTimeout) {
 					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);					
-				}
-				else {
-					task = TrySteal(stop_token, steal_index);
 				}
 			}
 
