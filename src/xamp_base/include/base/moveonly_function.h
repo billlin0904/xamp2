@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <future>
+#include <functional>
 #include <base/base.h>
 #include <base/memory.h>
 

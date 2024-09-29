@@ -118,6 +118,7 @@ EqualizerView::EqualizerView(QWidget* parent)
     (void)QObject::connect(ui_->eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         AppEQSettings eq_settings;
         eq_settings.name = index;
+        qAppSettings.loadEqPreset();
         auto settings = qAppSettings.eqPreset()[index];
 		eq_settings.settings = settings;
         qAppSettings.setEqSettings(eq_settings);

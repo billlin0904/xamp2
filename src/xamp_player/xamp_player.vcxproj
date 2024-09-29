@@ -78,14 +78,14 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_metadata/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/;../thirdparty/libebur128/;../thirdparty/intel_mkl/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_metadata/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/;../thirdparty/libebur128/;../thirdparty/libimobiledevice/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;USE_KISS_FFT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_output_device.lib;xamp_stream.lib;xamp_metadata.lib;xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -162,12 +162,14 @@
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\iaudioplayer.h" />
     <ClInclude Include="include\player\iplaybackstateadapter.h" />
+    <ClInclude Include="include\player\ifilesyncer.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
+    <ClCompile Include="src\ifilesyncer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

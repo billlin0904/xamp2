@@ -67,10 +67,6 @@ class Xamp final : public IXFrame {
 	Q_OBJECT
 
 public:
-    static constexpr auto kShowProgressDialogMsSecs = 100;
-    static constexpr ConstexprQString kSoftwareUpdateUrl =
-        "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
-
     Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer> &player);
 
     virtual ~Xamp() override;
@@ -175,6 +171,8 @@ public slots:
 
 	void onPlaybackError(const QString& message);
 
+	void onSyncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities);
+
 	void onRetranslateUi();
 
 private:
@@ -269,8 +267,6 @@ private:
 	XAMP_NO_DISCARD PlaylistPage* localPlaylistPage() const;
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id, bool is_doubleclicked);
-
-	//void fetchLyrics(const PlayListEntity& entity, const QString& video_id);
 
 	QString translateDeviceDescription(const IDeviceType* device_type);
 

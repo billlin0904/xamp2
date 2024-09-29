@@ -637,44 +637,18 @@ void PlaylistTableView::initial() {
                 });
             });
 
-        action_map.addSeparator();
-
-        action_map.addSeparator();
-        auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
-        export_flac_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EXPORT_FILE));
-
-        const auto select_row = selectionModel()->selectedRows();
-        if (!select_row.isEmpty()) {
-            auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
-            for (const auto& profile : StreamFactory::GetAvailableEncodingProfile()) {
-                if (profile.num_channels != AudioFormat::kMaxChannel
-                    || profile.sample_rate < AudioFormat::k16BitPCM441Khz.GetSampleRate()
-                    || profile.bitrate < kMinimalEncodingBitRate) {
-                    continue;
-                }
-
-                auto profile_desc = qFormat("%0 bit, %1, %2").arg(
-                    QString::number(profile.bit_per_sample),
-                    formatSampleRate(profile.sample_rate),
-                    formatBitRate(profile.bitrate));
-
-                export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
-                    const auto rows = selectItemIndex();
-                    for (const auto& row : rows) {
-                        auto play_list_entity = this->item(row.second);
-                        if (play_list_entity.sample_rate != profile.sample_rate) {
-                            continue;
-                        }
-                        emit encodeAacFile(play_list_entity, profile);
-                    }
-                });
+        auto* add_to_device_act = action_map.addAction(tr("Add file to device"));
+        add_to_device_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
+        action_map.setCallback(add_to_device_act, [this]() {
+            const auto rows = selectItemIndex();
+            QList<PlayListEntity> entities;
+            for (const auto& row : rows) {
+                entities.push_front(this->item(row.second));
             }
-        }
-        else {
-            action_map.addAction(tr("Export AAC file"));
-        }       
+            emit syncToDevice(playlistId(), entities);
+            });
 
-        auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
+        action_map.addSeparator();
 
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
@@ -746,21 +720,6 @@ void PlaylistTableView::initial() {
             }
         });
 
-        action_map.setCallback(export_flac_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            for (const auto& row : rows) {
-                auto play_list_entity = this->item(row.second);
-                emit encodeFlacFile(play_list_entity);
-            }
-            });
-
-        action_map.setCallback(export_wav_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            for (const auto& row : rows) {
-                auto play_list_entity = this->item(row.second);
-                emit encodeWavFile(play_list_entity);
-            }
-        });
         XAMP_TRY_LOG(
             action_map.exec(pt);
         );

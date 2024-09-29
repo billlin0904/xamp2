@@ -20,8 +20,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(ExecuteFlags, EXECUTE_NORMAL, EXECUTE_LONG_RUNNING)
 
-inline constexpr uint32_t kMaxThread = 32;
-
 class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)

@@ -62,7 +62,7 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 }
 
 size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
-                                           [[maybe_unused]] const Vector<WorkStealingTaskQueuePtr>& work_queues,
+                                           const Vector<WorkStealingTaskQueuePtr>& work_queues,
                                            const Vector<std::atomic<ExecuteFlags>>& thread_execute_flags) {
 	XAMP_NO_TLS_GUARDS static thread_local PRNG prng;
 	size_t random_start = prng() % max_thread_;

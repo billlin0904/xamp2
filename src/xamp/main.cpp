@@ -8,6 +8,8 @@
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/crashhandler.h>
+#include <base/platfrom_handle.h>
+#include <player/ifilesyncer.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -21,6 +23,7 @@
 
 #include <QPermissions>
 #include <QSslSocket>
+#include <fcntl.h>
 
 namespace {
 #ifdef Q_OS_MAC
@@ -61,6 +64,10 @@ namespace {
 #endif
 
 #ifdef _DEBUG
+    void RedirectIOToConsole() {
+        std::ios::sync_with_stdio();
+    }
+
     XAMP_DECLARE_LOG_NAME(Qt);
 
     void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
@@ -225,9 +232,6 @@ int main() {
     }
 
     qputenv("QT_ICC_PROFILE", QByteArray());
-    //qputenv("PYTHONHOME", QByteArray("C:\\Users\\User\\anaconda3\\envs\\ytservice\\"));
-    //qputenv("PYTHONPATH", QByteArray("C:\\Users\\User\\anaconda3\\envs\\ytservice\\Lib\\site-packages"));
-    //PythonInterop python_initor;
 
     std::atexit([]() {
         XampLoggerFactory.Shutdown();

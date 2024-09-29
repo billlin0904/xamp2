@@ -29,10 +29,8 @@ public:
 private:
 	DeviceInfo GetDeviceInfo(std::wstring const& name, const  std::string & device_id) const;
 
-	static HashMap<std::string, DeviceInfo> device_info_cache_;
+	HashMap<std::string, DeviceInfo> device_info_cache_;
 };
-
-HashMap<std::string, DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::device_info_cache_;
 
 DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
 	auto itr = device_info_cache_.begin();

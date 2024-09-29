@@ -18,8 +18,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace Executor {
 
-inline constexpr size_t kBatchSize = 8;
-
 XAMP_DECLARE_LOG_NAME(DefaultThreadPoollExecutor);
 
 /*
@@ -44,9 +42,9 @@ decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args, Execu
 * @return void
 */
 template <typename C, typename Func>
-void ParallelFor(C& items, Func&& f, size_t batches = kBatchSize) {
+void ParallelFor(C& items, Func&& f) {
     auto executor = ThreadPoolBuilder::MakeThreadPool(kDefaultThreadPoollExecutorLoggerName);
-    ParallelFor(*executor, items, f, batches);
+    ParallelFor(*executor, items, f);
 }
 
 /*
@@ -63,10 +61,10 @@ template <typename C, typename Func>
 void ParallelFor(IThreadPoolExecutor& executor,
     C& items,
     Func&& f,
-    const std::chrono::milliseconds &wait_timeout = std::chrono::milliseconds(100),
-    size_t batches = kBatchSize) {
+    const std::chrono::milliseconds &wait_timeout = std::chrono::milliseconds(100)) {
     using IteratorType = typename C::iterator;
 
+    size_t batches = (executor.GetThreadSize() / 2) + 1;
     IteratorType begin = items.begin();
     IteratorType end = items.end();
 
@@ -139,14 +137,15 @@ void ParallelFor(IThreadPoolExecutor& executor,
 * @return void
 */
 template <typename Func>
-void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&& f, size_t batches = kBatchSize) {    
+void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&& f) {    
     size_t size = end - begin;
+    size_t batches = (executor.GetThreadSize() / 2) + 1;
     for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [f, begin, i](const StopToken& token) -> void {
+            ff = Executor::Spawn(executor, [func = std::forward<Func>(f), begin, i](const StopToken& token) -> void {
                 if (!token.stop_requested()) {
-                    f(begin + i);
+                    func(begin + i);
                 }                
                 });
             ++i;

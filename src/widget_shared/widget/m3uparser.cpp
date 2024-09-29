@@ -21,7 +21,7 @@ namespace {
     const char kStandardM3uTextEncoding[] = "Windows-1250";
 	constexpr auto kM3uHeader = "#EXTM3U"_str;
 	constexpr auto kM3uCommentPrefix = "#"_str;
-	const auto kUniveralEndOfLineRegEx = QRegularExpression(QStringLiteral("\r\n|\r|\n"));
+	const auto kUniveralEndOfLineRegEx = QRegularExpression("\r\n|\r|\n"_str);
 }
 
 bool M3uParser::isPlaylistFilenameSupported(const QString& fileName) {

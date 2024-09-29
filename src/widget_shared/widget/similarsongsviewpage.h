@@ -5,15 +5,7 @@
 
 #pragma once
 
-#include <QListView>
-#include <QPropertyAnimation>
-#include <QStyledItemDelegate>
-#include <QProgressDialog>
-#include <QPushButton>
-#include <QTimer>
-#include <QCheckBox>
-#include <QSqlQueryModel>
-
+#include <QFrame>
 #include <widget/audio_embedding/audio_embedding_service.h>
 
 class PlaylistTableView;

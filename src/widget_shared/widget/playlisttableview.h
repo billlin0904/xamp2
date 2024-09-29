@@ -140,12 +140,6 @@ signals:
 
 	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_plays, bool is_doubleclicked);
 
-    void encodeFlacFile(const PlayListEntity& item);
-
-	void encodeAacFile(const PlayListEntity& item, const EncodingProfile& profile);
-
-	void encodeWavFile(const PlayListEntity& item);
-
 	void downloadFile(const PlayListEntity& entity);
 
 	void editTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
@@ -164,6 +158,7 @@ signals:
 
 	void addPlaylist(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
+	void syncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities);
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false, bool is_doubleclicked = false);
 

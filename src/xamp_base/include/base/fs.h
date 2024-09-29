@@ -10,17 +10,6 @@
 
 #include <filesystem>
 
-#if 0
-namespace std {
-template <>
-struct hash<filesystem::path> {
-    size_t operator()(const filesystem::path& p) const noexcept {
-        return filesystem::hash_value(p);
-    }
-};
-}
-#endif
-
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace Fs = std::filesystem;

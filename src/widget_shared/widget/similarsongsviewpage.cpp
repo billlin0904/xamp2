@@ -1,13 +1,10 @@
-#include <QSplitter>
 #include <QVBoxLayout>
 #include <QLineEdit>
-#include <QStandardItemModel>
 #include <QCompleter>
 
 #include <widget/database.h>
 #include <widget/similarsongsviewpage.h>
 #include <widget/playlisttableview.h>
-#include <widget/dao/musicdao.h>
 #include <widget/dao/playlistdao.h>
 #include <thememanager.h>
 

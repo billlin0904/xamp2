@@ -143,11 +143,10 @@ void AlbumViewStyledDelegate::enableAlbumView(bool enable) {
     enable_album_view_ = enable;
 }
 
-bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
-    if (!enable_album_view_) {
-        return true;
-    }
-
+bool AlbumViewStyledDelegate::editorEvent(QEvent* event,
+    QAbstractItemModel* model,
+    const QStyleOptionViewItem& option,
+    const QModelIndex& index) {
     const auto* ev = dynamic_cast<QMouseEvent*> (event);
     mouse_point_ = ev->pos();
     const auto current_cursor = QApplication::overrideCursor();
@@ -313,9 +312,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     QStyleOptionButton more_option_style;
     // Draw more button
-    if (enable_album_view_
-        && option.rect.contains(mouse_point_)
-        && show_mode_ != SHOW_NORMAL) {
+    if (option.rect.contains(mouse_point_)) {
         more_option_style.initFrom(more_album_opt_button_.get());
         more_option_style.rect = moreButtonRect(option, cover_size_);
         more_option_style.icon = qTheme.fontIcon(Glyphs::ICON_MORE);

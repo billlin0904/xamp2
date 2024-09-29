@@ -22,8 +22,12 @@
 #include <output_device/api.h>
 #include <output_device/iaudiodevicemanager.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
+
 #include <player/api.h>
 #include <stream/api.h>
+
+#include <player/ifilesyncer.h>
+
 #include <stream/compressorconfig.h>
 #include <stream/idspmanager.h>
 
@@ -81,6 +85,9 @@
 #include <widget/similarsongsviewpage.h>
 
 namespace {
+    constexpr auto kShowProgressDialogMsSecs = 100;
+    constexpr ConstexprQString kSoftwareUpdateUrl =
+        "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
     constexpr auto kYtMusicSampleRate = 48000;
 
     void showMeMessage(const QString& message) {
@@ -2551,6 +2558,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
             }            
         });
 
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlaylistTableView::syncToDevice,
+        this,
+        &Xamp::onSyncToDevice);
+
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
         playlist_page,
@@ -2645,6 +2657,16 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
 void Xamp::onPlaybackError(const QString& message) {
     player_->Stop();
     XMessageBox::showError(message, kApplicationTitle, true);
+}
+
+void Xamp::onSyncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities) {
+    ITunesFileSyncer syncer;
+    syncer.SyncToDevice();
+
+    Q_FOREACH(auto entity, entities) {
+		syncer.AddMusicToLibrary(entity.file_path.toStdWString());
+    }
+    syncer.SyncToDevice();
 }
 
 void Xamp::onRetranslateUi() {

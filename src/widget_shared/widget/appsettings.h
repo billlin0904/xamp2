@@ -209,10 +209,10 @@ public:
 
 	void loadAppSettings();
 
+	void loadEqPreset();
+
 private:
 	void registerMetaType();
-
-	void loadEqPreset();
 
 	QScopedPointer<QSettings> settings_;
 	QMap<QString, QVariant> default_settings_;

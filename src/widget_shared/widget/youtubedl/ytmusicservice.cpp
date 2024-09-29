@@ -230,9 +230,11 @@ QCoro::Task<SongInfo> YtMusicHttpService::fetchSongInfo(const QString& video_id)
 
     const QString download_url = doc["download_url"_str].toString();
     const QString thumbnail_base64 = doc["thumbnail_base64"_str].toString();
+	const QString lyrics = doc["lyrics"_str].toString();
 
     song_info.download_url = download_url;
     song_info.thumbnail_base64 = thumbnail_base64;
+	song_info.lyrics = lyrics;
     co_return song_info;
 }
 

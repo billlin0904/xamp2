@@ -166,6 +166,8 @@ void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
 }
 
 void AppSettings::loadEqPreset() {
+	eq_settings_.clear();
+
 	const auto path = QDir::currentPath() + "/eqpresets/"_str;
 	const auto file_ext = QStringList() << "*.*"_str;
 

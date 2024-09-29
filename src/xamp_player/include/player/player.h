@@ -31,6 +31,7 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 	class IAudioPlayer;	
 	class IPlaybackStateAdapter;
+	class IFileSyncer;
 XAMP_AUDIO_PLAYER_NAMESPACE_END
 
 

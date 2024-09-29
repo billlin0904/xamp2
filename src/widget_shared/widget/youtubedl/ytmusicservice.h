@@ -359,146 +359,6 @@ struct Lyrics {
 	std::optional<std::string> lyrics;
 };
 
-//class YtMusicInterop {
-//public:
-//	explicit YtMusicInterop(const std::optional<std::string>& auth = "oauth.json",
-//		const std::optional<std::string>& user = std::nullopt,
-//		const std::optional<bool> requests_session = true,
-//		const std::optional<std::map<std::string, std::string>>& proxies = std::nullopt,
-//		const std::string& language = "en",
-//		const std::string& location = "");
-//
-//	XAMP_PIMPL(YtMusicInterop)
-//
-//	void initial();
-//
-//	XAMP_NO_DISCARD std::vector<std::string> searchSuggestions(const std::string& query, bool detailed_runs) const;
-//
-//	XAMP_NO_DISCARD std::vector<search::SearchResultItem> search(const std::string& query,
-//		const std::optional<std::string>& filter = std::nullopt,
-//		const std::optional<std::string>& scope = std::nullopt,
-//		int limit = 10,
-//		bool ignore_spelling = false) const;
-//
-//	XAMP_NO_DISCARD artist::Artist getArtist(const std::string& channel_id) const;
-//
-//	XAMP_NO_DISCARD album::Album getAlbum(const std::string& browse_id) const;
-//
-//	XAMP_NO_DISCARD std::optional<song::Song> getSong(const std::string& video_id) const;
-//
-//	XAMP_NO_DISCARD std::vector<library::Playlist> getLibraryPlaylists(int limit = 25) const;
-//
-//	XAMP_NO_DISCARD playlist::Playlist getPlaylist(const std::string& playlist_id, int limit = 1024) const;
-//
-//	XAMP_NO_DISCARD std::vector<artist::Artist::Album> getArtistAlbums(const std::string& channel_id, const std::string& params) const;
-//
-//	XAMP_NO_DISCARD watch::Playlist getWatchPlaylist(const std::optional<std::string>& video_id = std::nullopt,
-//		const std::optional<std::string>& playlist_id = std::nullopt,
-//		int limit = 25) const;
-//
-//	XAMP_NO_DISCARD Lyrics getLyrics(const std::string& browse_id) const;
-//
-//	XAMP_NO_DISCARD video_info::VideoInfo extractInfo(const std::string& video_id) const;
-//
-//	XAMP_NO_DISCARD bool rateSong(const std::string& video_id, SongRating rating) const;
-//
-//	XAMP_NO_DISCARD std::string createPlaylistAsync(const std::string& title,
-//		const std::string& description,
-//		PrivateStatus status,
-//		const std::vector<std::string>& video_ids,
-//		const std::optional<std::string>& source_playlist = std::nullopt) const;
-//
-//	XAMP_NO_DISCARD bool editPlaylist(const std::string& playlist_id,
-//		const std::string& title,
-//		const std::string& description,
-//		PrivateStatus status,
-//		const std::optional<std::tuple<std::string, std::string>>& move_item = std::nullopt,
-//		const std::optional<std::string>& add_playlist_id = std::nullopt,
-//		const std::optional<std::string>& add_to_top = std::nullopt) const;
-//
-//	XAMP_NO_DISCARD edit::PlaylistEditResults addPlaylistItems(const std::string& playlist_id,
-//		const std::vector<std::string>& video_ids,
-//		const std::optional<std::string>& source_playlist,
-//		bool duplicates) const;
-//
-//	XAMP_NO_DISCARD bool removePlaylistItems(const std::string& playlist_id, 
-//		const std::vector<edit::PlaylistEditResultData>& videos) const;
-//
-//	XAMP_NO_DISCARD bool deletePlaylist(const std::string& playlist_id) const;
-//
-//	XAMP_NO_DISCARD int32_t download(const std::string& url) const;
-//private:
-//	class YtMusicInteropImpl;
-//	AlignPtr<YtMusicInteropImpl> impl_;
-//};
-//
-//class XAMP_WIDGET_SHARED_EXPORT YtMusicService : public BaseService {	
-//public:
-//	explicit YtMusicService(QObject* parent = nullptr);
-//
-//	QFuture<bool> initialAsync();
-//
-//	QFuture<bool> cleanupAsync();
-//
-//	QFuture<std::vector<std::string>> searchSuggestionsAsync(const QString& query, bool detailed_runs = false);
-//
-//	QFuture<std::vector<search::SearchResultItem>> searchAsync(const QString& query, const std::optional<std::string>& filter);
-//
-//	QFuture<artist::Artist> fetchArtistAsync(const QString& channel_id);
-//
-//	QFuture<album::Album> fetchAlbumAsync(const QString& browse_id);
-//
-//	QFuture<std::optional<song::Song>> fetchSongAsync(const QString& video_id);
-//
-//	QFuture<playlist::Playlist> fetchPlaylistAsync(const QString& playlist_id);
-//
-//	QFuture<std::vector<library::Playlist>> fetchLibraryPlaylistAsync();
-//
-//	QFuture<std::vector<artist::Artist::Album>> fetchArtistAlbumsAsync(const QString& channel_id, const QString& params);
-//
-//	QFuture<watch::Playlist> fetchWatchPlaylistAsync(const std::optional<QString>& video_id,
-//		const std::optional<QString>& playlist_id = std::nullopt);
-//
-//	QFuture<Lyrics> fetchLyricsAsync(const QString& browse_id);
-//
-//	QFuture<video_info::VideoInfo> extractVideoInfoAsync(const QString& video_id);
-//
-//	QFuture<int32_t> downloadAsync(const QString& url);
-//
-//	QFuture<std::string> createPlaylistAsync(const QString& title,
-//		const QString& description,
-//		PrivateStatus status,
-//		const std::vector<std::string>& video_ids,
-//		const std::optional<std::string>& source_playlist = std::nullopt);
-//
-//	QFuture<bool> editPlaylistAsync(const QString& playlist_id,
-//		const QString& title,
-//		const QString& description,
-//		PrivateStatus status,
-//		const std::optional<std::tuple<std::string, std::string>>& move_item = std::nullopt,
-//		const std::optional<std::string>& add_playlist_id = std::nullopt,
-//		const std::optional<std::string>& add_to_top = std::nullopt);
-//
-//	QFuture<edit::PlaylistEditResults> addPlaylistItemsAsync(const QString& playlist_id,
-//		const std::vector<std::string>& video_ids,
-//		const std::optional<std::string>& source_playlist = std::nullopt,
-//		bool duplicates = false);
-//
-//	QFuture<bool> removePlaylistItemsAsync(const QString& playlist_id,
-//		const std::vector<edit::PlaylistEditResultData>& videos);
-//
-//	QFuture<bool> deletePlaylistAsync(const QString& playlist_id);
-//
-//	QFuture<bool> rateSongAsync(const QString& video_id, SongRating rating);
-//
-//public slots:
-//	void cancelRequested();
-//
-//private:
-//	YtMusicInterop* interop();	
-//	LocalStorage<YtMusicInterop> interop_;
-//};
-
 struct XAMP_WIDGET_SHARED_EXPORT LibraryPlaylist {
 	QString title;
 	QString playlist_id;
@@ -508,6 +368,7 @@ struct XAMP_WIDGET_SHARED_EXPORT LibraryPlaylist {
 struct XAMP_WIDGET_SHARED_EXPORT SongInfo {
 	QString download_url;
 	QString thumbnail_base64;
+	QString lyrics;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT YtMusicHttpService : public QObject {
@@ -515,8 +376,6 @@ public:
 	explicit YtMusicHttpService(QObject* parent = nullptr);
 
 	QCoro::Task<SongInfo> fetchSongInfo(const QString& video_id);
-
-	// Playlist
 
 	QCoro::Task<QList<LibraryPlaylist>> fetchLibraryPlaylists();
 

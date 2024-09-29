@@ -324,7 +324,7 @@ void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
 		lyric_->addLrc(l);
 	}
 
-	//stop_scroll_time_ = true;
+	is_fulled_ = true;
 	update();
 }
 
@@ -357,7 +357,7 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
-	if (is_scrolled_ || !lyric_->getSize()) {
+	if (is_fulled_ || is_scrolled_ || !lyric_->getSize()) {
 		update();
 		return;
 	}

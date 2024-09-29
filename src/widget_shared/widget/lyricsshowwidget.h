@@ -75,6 +75,7 @@ private:
 	void resizeFontSize();
 
 	bool stop_scroll_time_{ false };
+	bool is_fulled_{ false };
 	int32_t pos_;
     int32_t last_lyric_index_;
 	float item_percent_;

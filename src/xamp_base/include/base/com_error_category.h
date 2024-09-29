@@ -76,4 +76,11 @@ XAMP_BASE_API std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help
 // @note The error description gets converted to an ANSI string using the CP_ACP codepage.
 XAMP_BASE_API void WINAPI throw_translated_com_error(HRESULT hr, IErrorInfo* help = nullptr);
 
+#define XAMP_HR_IF_FAIL_THROW(hr) \
+	do { \
+		if (FAILED(hr)) { \
+			throw_translated_com_error(hr); \
+		} \
+	} while (false)
+
 #endif

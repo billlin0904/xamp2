@@ -104,7 +104,7 @@ constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
 * @note aligned_size must be power of 2.
 */
 template <typename T>
-XAMP_BASE_API_ONLY_EXPORT T* AlignedMallocOf(size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT T* AlignedMallocObject(size_t aligned_size) noexcept {
     return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
 }
 
@@ -117,7 +117,7 @@ XAMP_BASE_API_ONLY_EXPORT T* AlignedMallocOf(size_t aligned_size) noexcept {
 * @note aligned_size must be power of 2.
 */
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocCountOf(size_t n, size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocArray(size_t n, size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
@@ -194,7 +194,7 @@ using AlignArrayPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 */
 template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto* ptr = AlignedMallocOf<ImplType>(AlignSize);
+    auto* ptr = AlignedMallocObject<ImplType>(AlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -218,7 +218,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 */
 template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
-    auto* ptr = AlignedMallocOf<Type>(AlignSize);
+    auto* ptr = AlignedMallocObject<Type>(AlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -240,7 +240,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 */
 template <typename Type>
 XAMP_BASE_API_ONLY_EXPORT AlignArrayPtr<Type> MakeAlignedArray(size_t n) {
-    auto ptr = AlignedMallocCountOf<Type>(n, kMallocAlignSize);
+    auto ptr = AlignedMallocArray<Type>(n, kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }

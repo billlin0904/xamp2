@@ -77,6 +77,10 @@ public:
 
 	void reload();
 
+	ArtistViewPage* artistViewPage() const {
+		return page_;
+	}
+
 signals:
 	void getArtist(const QString& artist);
 

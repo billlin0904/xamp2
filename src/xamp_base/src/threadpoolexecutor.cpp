@@ -297,11 +297,11 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 }
 
 ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, max_thread, affinity, priority)) {
 }
 
 ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name,max_thread, affinity, priority)) {
 }
 
 ThreadPoolExecutor::~ThreadPoolExecutor() {

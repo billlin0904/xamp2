@@ -171,7 +171,6 @@
     <ClInclude Include="include\base\dsd_utils.h" />
     <ClInclude Include="include\base\encodingprofile.h" />
     <ClInclude Include="include\base\enum.h" />
-    <ClInclude Include="include\base\expected.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\fs.h" />
