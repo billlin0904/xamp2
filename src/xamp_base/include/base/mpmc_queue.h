@@ -124,7 +124,7 @@ public:
 	}
 
 	void clear() {
-		while (!empty()) {
+		while (!IsEmpty()) {
 			Dequeue();
 		}
 	}
@@ -176,7 +176,7 @@ public:
 		return DoDequeue(tail);
 	}
 
-	XAMP_NO_DISCARD bool empty() const noexcept {
+	XAMP_NO_DISCARD bool IsEmpty() const noexcept {
 		return size() == 0;
 	}
 

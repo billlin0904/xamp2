@@ -72,7 +72,7 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t index,
 			continue;
 		}
 		if (thread_execute_flags[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING
-			&& !work_queues[random_index]->empty()) {
+			&& !work_queues[random_index]->IsEmpty()) {
 			return random_index;
 		}
 	}

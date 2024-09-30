@@ -15,8 +15,8 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
-	constexpr std::chrono::milliseconds kSpinningTimeout = std::chrono::milliseconds(10);
-	constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
+	constexpr std::chrono::milliseconds kSpinningTimeout = std::chrono::milliseconds(100);
+	constexpr auto kDequeueTimeout = std::chrono::milliseconds(10);
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kWorkStealingTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
@@ -153,7 +153,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	MoveOnlyFunction func;
 	// Wait for a task to be available
 	if (task_pool_->Dequeue(func, timeout)) {
-		XAMP_LOG_D(logger_, "Pop shared queue.");
+		//XAMP_LOG_D(logger_, "Pop shared queue.");
 		return func;
 	}
 	return std::nullopt;
@@ -167,7 +167,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	MoveOnlyFunction func;
 	// Wait for a task to be available
     if (task_pool_->TryDequeue(func)) {
-        XAMP_LOG_D(logger_, "Pop shared queue.");
+        //XAMP_LOG_D(logger_, "Pop shared queue.");
 		return func;
 	}
 	return std::nullopt;
@@ -181,7 +181,7 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(const StopToken& stop
 	MoveOnlyFunction func;
 	// Try to get a task from the local queue
 	if (local_queue->TryDequeue(func)) {
-		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
+		//XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
 		return func;
 	}
 	return std::nullopt;
@@ -231,16 +231,16 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 					kMaxL1CacheLineSize));
 		}
 
+		//auto* local_queue = task_work_queues_[i].get();
+		thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
+		auto local_queue = &task_local_queue;
+		task_work_queues_[i] = local_queue;
+
 		XampCrashHandler.SetThreadExceptionHandlers();
 
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
-
-		//auto* local_queue = task_work_queues_[i].get();
-		thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
-		auto local_queue = &task_local_queue;
-		task_work_queues_[i] = local_queue;
 
 		auto* policy = task_scheduler_policy_.get();
 		const auto thread_id = GetCurrentThreadId();
@@ -265,28 +265,28 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			// Try to get a task from the local queue
 			auto task = TryLocalPop(stop_token, local_queue);
 
-			// Try to get a task from the global queue
+			// If no task is available, try to get one from the task queue
 			if (!task) {
 				task = TrySteal(stop_token, policy, i);
-			}
 
-			// Try to get a task from the shared queue
-			if (!task) {				
-				if (spinning_watch.Elapsed() >= kSpinningTimeout) {
-					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);					
+				// If still no task and spinning has exceeded the timeout, try to get one from the shared queue
+				if (!task && spinning_watch.Elapsed() >= kSpinningTimeout) {
+					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
 				}
 			}
 
-			// If no task was found, wait for a notification
+			// If no task is found, relax the CPU and continue the loop
 			if (!task) {
 				CpuRelax();
 				continue;
-			} else {
-				spinning_watch.Reset();
 			}
 
+			// Reset the spinning watch if a task was found
+			spinning_watch.Reset();
+
+			// Execute the task
 			auto running_thread = ++running_thread_;
-			(*task)(stop_token);
+			std::invoke(*task, stop_token);
 			--running_thread_;
 
 			task_execute_flags_[i] = ExecuteFlags::EXECUTE_NORMAL;
