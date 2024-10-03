@@ -213,7 +213,8 @@ void LrcPage::initial() {
 	horizontal_layout_10->setSpacing(0);
 	horizontal_layout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
 	horizontal_layout_10->setContentsMargins(80, 80, 80, 80);
-	horizontal_layout_10->setStretch(1, 1);
+	horizontal_layout_10->setStretch(0, 0);
+	horizontal_layout_10->setStretch(0, 1);
 
 	auto vertical_layout_3 = new QVBoxLayout();
 	vertical_layout_3->setSpacing(0);
@@ -230,8 +231,8 @@ void LrcPage::initial() {
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
-	cover_label_->setMinimumSize(QSize(411, 411));
-    cover_label_->setMaximumSize(QSize(411, 411));
+	cover_label_->setMinimumSize(QSize(250, 250));
+    cover_label_->setMaximumSize(QSize(250, 250));
 	cover_label_->setStyleSheet("background-color: transparent"_str);
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
@@ -241,7 +242,7 @@ void LrcPage::initial() {
 	horizontalLayout_4->setSpacing(0);
 	horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
 	horizontalLayout_4->setContentsMargins(-1, 3, -1, 3);
-	auto* endPosLabel = new QLabel();
+	/*auto* endPosLabel = new QLabel();
 	endPosLabel->setObjectName(QString::fromUtf8("endPosLabel"));
 	endPosLabel->setMinimumSize(QSize(50, 20));
 	endPosLabel->setMaximumSize(QSize(50, 20));
@@ -252,8 +253,8 @@ void LrcPage::initial() {
 
 	auto* seekSlider = new SeekSlider();
 	seekSlider->setObjectName(QString::fromUtf8("seekSlider"));
-	seekSlider->setMinimumSize(QSize(300, 0));
-	seekSlider->setMaximumSize(QSize(300, 16));
+	seekSlider->setMinimumSize(QSize(250, 0));
+	seekSlider->setMaximumSize(QSize(250, 16));
 	seekSlider->setOrientation(Qt::Horizontal);
 
 	horizontalLayout_4->addWidget(seekSlider);
@@ -263,7 +264,7 @@ void LrcPage::initial() {
 	startPosLabel->setMinimumSize(QSize(50, 20));
 	startPosLabel->setMaximumSize(QSize(50, 20));
 
-	horizontalLayout_4->addWidget(startPosLabel);
+	horizontalLayout_4->addWidget(startPosLabel);*/
 
 	vertical_layout_3->addLayout(horizontalLayout_4);
 	vertical_layout_3->addWidget(format_label_);
@@ -275,7 +276,7 @@ void LrcPage::initial() {
 
 	horizontal_layout_10->addLayout(vertical_layout_3);
 
-	auto horizontal_spacer_4 = new QSpacerItem(50, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+	auto horizontal_spacer_4 = new QSpacerItem(10, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
 	horizontal_layout_10->addItem(horizontal_spacer_4);
 
@@ -366,11 +367,11 @@ void LrcPage::initial() {
 	vertical_layout_2->setStretch(2, 1);
 
 	horizontal_layout_10->addLayout(vertical_layout_2);
-	horizontal_layout_10->setStretch(1, 1);
+	horizontal_layout_10->setStretch(2, 1);
 
-	startPosLabel->hide();
-	endPosLabel->hide();
-	seekSlider->hide();
+	//startPosLabel->hide();
+	//endPosLabel->hide();
+	//seekSlider->hide();
 
 	label_3->hide();
 	label_7->hide();

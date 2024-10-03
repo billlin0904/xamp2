@@ -13,8 +13,8 @@ TrackInfo::TrackInfo() noexcept
 	, year(0)
 	, file_size(0)
 	, last_write_time(GetTime_t())
-	, offset(0)
-	, duration(0) {
+	, duration(0)
+	, offset(0) {
 }
 
 XAMP_BASE_NAMESPACE_END

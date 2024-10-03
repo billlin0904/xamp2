@@ -11,12 +11,19 @@
 #include <iterator>
 #include <forward_list>
 #include <functional>
-#include <unordered_map>
-#include <unordered_set>
 #include <map>
 
 #include <base/base.h>
 #include <base/memory.h>
+
+//#define XAMP_USE_STD_MAP
+
+#ifdef XAMP_USE_STD_MAP
+#include <unordered_map>
+#include <unordered_set>
+#else
+#include <ankerl/unordered_dense.h>
+#endif
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -117,11 +124,9 @@ template <typename Type>
 using List = std::list<Type, AlignedAllocator<Type>>;
 
 template <typename T, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<T> MakeAlignedShared(Args&&... args) {
+XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<T> MakeSharedPointer(Args&&... args) {
 	return std::allocate_shared<T>(AlignedAllocator<std::remove_const_t<T>>(), std::forward<Args>(args)...);
 }
-
-#define XAMP_USE_STD_MAP
 
 #ifdef XAMP_USE_STD_MAP
 template <typename T1, typename T2>
@@ -136,17 +141,15 @@ using FloatMap = std::unordered_map<K, V, H, E, Alloc>;
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>, typename Alloc = AlignedAllocator<T>>
 using HashSet = std::unordered_set<T, H, E, Alloc>;
 #else
-template <typename T1, typename T2>
-using Pair = robin_hood::pair<T1, T2>;
 
-template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
-using FloatMap = robin_hood::unordered_flat_map<K, V, H, E>;
+template <typename K, typename V>
+using FloatMap = ankerl::unordered_dense::map<K, V>;
 
-template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
-using HashMap = robin_hood::unordered_map<K, V, H, E>;
+template <typename K, typename V>
+using HashMap = ankerl::unordered_dense::map<K, V>;
 
-template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>, typename Alloc = AlignedAllocator<T>>
-using HashSet = robin_hood::unordered_set<T, H, E>;
+template <typename K>
+using HashSet = ankerl::unordered_dense::set<K>;
 #endif
 
 template <typename K, typename V, typename P = std::less<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>

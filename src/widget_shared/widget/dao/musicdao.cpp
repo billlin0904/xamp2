@@ -24,14 +24,14 @@ namespace dao {
         query.bindValue(":title"_str, toQString(track_info.title));
         query.bindValue(":track"_str, track_info.track);
         query.bindValue(":path"_str, toQString(track_info.file_path));
-        query.bindValue(":fileExt"_str, toQString(track_info.file_ext()));
-        query.bindValue(":fileName"_str, toQString(track_info.file_name()));
-        query.bindValue(":parentPath"_str, toQString(track_info.parent_path()));
+        query.bindValue(":fileExt"_str, optStrToQString(track_info.file_ext()));
+        query.bindValue(":fileName"_str, optStrToQString(track_info.file_name()));
+        query.bindValue(":parentPath"_str, optStrToQString(track_info.parent_path()));
         query.bindValue(":duration"_str, track_info.duration);
         query.bindValue(":durationStr"_str, formatDuration(track_info.duration));
         query.bindValue(":bitRate"_str, track_info.bit_rate);
         query.bindValue(":sampleRate"_str, track_info.sample_rate);
-        query.bindValue(":offset"_str, track_info.offset ? track_info.offset.value() : 0);
+        query.bindValue(":offset"_str, track_info.offset);
         query.bindValue(":fileSize"_str, track_info.file_size);
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
         query.bindValue(":isCueFile"_str, track_info.is_cue_file ? 1 : 0);
@@ -92,14 +92,14 @@ namespace dao {
         query.bindValue(":title"_str, toQString(track_info.title));
         query.bindValue(":track"_str, track_info.track);
         query.bindValue(":path"_str, toQString(track_info.file_path));
-        query.bindValue(":fileExt"_str, toQString(track_info.file_ext()));
-        query.bindValue(":fileName"_str, toQString(track_info.file_name()));
-        query.bindValue(":parentPath"_str, toQString(track_info.parent_path()));
+        query.bindValue(":fileExt"_str, optStrToQString(track_info.file_ext()));
+        query.bindValue(":fileName"_str, optStrToQString(track_info.file_name()));
+        query.bindValue(":parentPath"_str, optStrToQString(track_info.parent_path()));
         query.bindValue(":duration"_str, track_info.duration);
         query.bindValue(":durationStr"_str, formatDuration(track_info.duration));
         query.bindValue(":bitRate"_str, track_info.bit_rate);
         query.bindValue(":sampleRate"_str, track_info.sample_rate);
-        query.bindValue(":offset"_str, track_info.offset ? track_info.offset.value() : 0);
+        query.bindValue(":offset"_str, track_info.offset);
         query.bindValue(":fileSize"_str, track_info.file_size);
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
 

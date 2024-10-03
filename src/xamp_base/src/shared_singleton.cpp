@@ -34,9 +34,9 @@ namespace {
 	* @return The singleton instance.
 	*
 	*/
-	ObjectInstance* GetSingletonByType(const std::type_index& type_index) {
-		static HashMap<std::type_index, ObjectInstance> object_type_lut;
+	HashMap<std::type_index, ObjectInstance> object_type_lut;
 
+	ObjectInstance* GetSingletonByType(const std::type_index& type_index) {
 		auto itr = object_type_lut.find(type_index);
 		if (itr != object_type_lut.end()) {
 			return &itr->second;

@@ -10,6 +10,10 @@
 
 #include <thememanager.h>
 
+namespace QWK {
+	class WidgetWindowAgent;
+}
+
 class XAMP_WIDGET_SHARED_EXPORT XDialog : public QDialog {
     Q_OBJECT
 public:
@@ -37,14 +41,9 @@ private:
 
     void setContent(QWidget* content);
 
-#ifdef Q_OS_WIN
-    QLabel* title_frame_label_{ nullptr };    
-    QToolButton* icon_{ nullptr };
-    QToolButton* close_button_{ nullptr };
-    QToolButton* max_win_button_{ nullptr };
-    QToolButton* min_win_button_{ nullptr };
-    QFrame* title_frame_{ nullptr };
-#endif
+    void installWindowAgent();
+
+    QWK::WidgetWindowAgent* window_agent_;
     QWidget* content_{ nullptr };
 };
 

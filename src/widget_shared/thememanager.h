@@ -27,8 +27,6 @@ class QComboBox;
 class XAMP_WIDGET_SHARED_EXPORT ThemeManager final : public QObject {
     Q_OBJECT
 public:
-    friend class SharedSingleton<ThemeManager>;
-
     const QPalette& palette() const {
         return palette_;
     }
@@ -154,6 +152,9 @@ public:
     void setCancelRecordIcon(QToolButton *cancel_button);
 
     void setSegoeFluentFontIcons();
+
+    static ThemeManager& GetInstance();
+
 signals:
     void themeChangedFinished(ThemeColor theme_color);
 
@@ -188,5 +189,5 @@ private:
     QPixmap default_size_unknown_cover_;
 };
 
-#define qTheme SharedSingleton<ThemeManager>::GetInstance()
+#define qTheme ThemeManager::GetInstance()
 #define qIconCache SharedSingleton<LruCache<QString, QIcon>>::GetInstance()

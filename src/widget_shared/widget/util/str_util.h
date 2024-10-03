@@ -47,18 +47,26 @@ inline constexpr ConstexprQString fromStdStringView(const std::string_view& s) n
 	return { s.data(), static_cast<int>(s.length()) };
 }
 
-inline QString toQString(const std::optional<std::wstring>& s) {
+inline QString optStrToQString(const std::optional<std::wstring>& s) {
 	if (s) {
 		return QString::fromStdWString(s.value());
 	}
 	return kEmptyString;
 }
 
-inline QString toQString(const std::optional<std::string>& s) {
+inline QString optStrToQString(const std::optional<std::string>& s) {
 	if (s) {
 		return QString::fromStdString(s.value());
 	}
 	return kEmptyString;
+}
+
+inline QString toQString(const std::wstring& s) {
+	return QString::fromStdWString(s);
+}
+
+inline QString toQString(const std::string& s) {
+	return QString::fromStdString(s);
 }
 
 XAMP_WIDGET_SHARED_EXPORT inline bool isNullOfEmpty(const QString& s) {

@@ -34,15 +34,6 @@ XAMP_MAKE_ENUM(
     PRIORITY_PARENT_PROCESS
 )
 
-XAMP_MAKE_ENUM(
-    TaskSchedulerPolicy,
-    ROUND_ROBIN_POLICY,
-    THREAD_LOCAL_RANDOM_POLICY)
-
-XAMP_MAKE_ENUM(
-    TaskStealPolicy,
-    CONTINUATION_STEALING_POLICY)
-
 struct XAMP_BASE_API CpuAffinity {
 public:
     static const CpuAffinity kAll;

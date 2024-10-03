@@ -17,7 +17,7 @@
 #include <base/logger.h>
 #include <base/memory.h>
 #include <base/latch.h>
-#include <base/itaskschedulerpolicy.h>
+#include <base/workstealingtaskqueue.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/platform.h>
 
@@ -35,16 +35,6 @@ public:
 	TaskScheduler(const std::string_view& pool_name,
 	              size_t max_thread,
 	              const CpuAffinity& affinity,
-	              ThreadPriority priority);
-
-	/*
-	* Constructor.
-	*/
-	TaskScheduler(TaskSchedulerPolicy policy,
-	              TaskStealPolicy steal_policy,
-	              const std::string_view& pool_name,
-	              size_t max_thread,
-	              CpuAffinity affinity,
 	              ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
@@ -82,7 +72,7 @@ private:
     /*
     * Try steal task from other thread.
     */
-    std::optional<MoveOnlyFunction> TrySteal(const StopToken& stop_token, ITaskSchedulerPolicy* policy, size_t current_thread_index);
+    std::optional<MoveOnlyFunction> TrySteal(const StopToken& stop_token, size_t current_thread_index);
 
     /*
     * Try dequeue task from local queue.
@@ -107,8 +97,6 @@ private:
     Vector<JThread> threads_;
     Vector<std::atomic<ExecuteFlags>> task_execute_flags_;
     SharedTaskQueuePtr task_pool_;
-    AlignPtr<ITaskStealPolicy> task_steal_policy_;
-    AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;
     Vector<WorkStealingTaskQueuePtr> task_work_queues_;    
     Latch work_done_;
     Latch start_clean_up_;
@@ -118,16 +106,9 @@ private:
 
 class ThreadPoolExecutor final : public IThreadPoolExecutor {
 public:
-	ThreadPoolExecutor(const std::string_view& pool_name,
-	                   TaskSchedulerPolicy policy,
-	                   TaskStealPolicy steal_policy,
-	                   uint32_t max_thread = std::thread::hardware_concurrency(),
-	                   CpuAffinity affinity = CpuAffinity::kAll,
-	                   ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
-
 	explicit ThreadPoolExecutor(const std::string_view& pool_name,
 	                            uint32_t max_thread = std::thread::hardware_concurrency(),
-	                            CpuAffinity affinity = CpuAffinity::kAll,
+	                            const CpuAffinity &affinity = CpuAffinity::kAll,
 	                            ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
 
 	~ThreadPoolExecutor() override;

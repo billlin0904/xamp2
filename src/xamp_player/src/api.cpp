@@ -58,7 +58,7 @@ AlignPtr<ICDDevice> OpenCD(int32_t driver_letter) {
 #endif
 
 std::shared_ptr<IAudioPlayer> MakeAudioPlayer() {
-    return MakeAlignedShared<AudioPlayer>();
+    return MakeSharedPointer<AudioPlayer>();
 }
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

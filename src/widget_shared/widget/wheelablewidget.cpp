@@ -38,7 +38,7 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 	const auto w = width();
 	const auto h = height();
 
-	const auto iH = itemHeight();
+	const auto iH = itemHeight() + 10;
 	const auto iC = itemCount();
 
 	if (iC > 0) {

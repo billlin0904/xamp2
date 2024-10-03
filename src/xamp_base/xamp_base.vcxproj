@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/expected/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -128,7 +128,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/robin_hood/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -164,6 +164,8 @@
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\charset_detector.h" />
+    <ClInclude Include="include\base\encoding_detector_tables.h" />
+    <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\transliterator.h" />
     <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\com_error_category.h" />
@@ -183,7 +185,6 @@
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
-    <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpoolexecutor.h" />
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
@@ -241,7 +242,7 @@
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
     <ClCompile Include="src\fs.cpp" />
-    <ClCompile Include="src\itaskschedulerpolicy.cpp" />
+    <ClCompile Include="src\furigana.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\transliterator.cpp" />

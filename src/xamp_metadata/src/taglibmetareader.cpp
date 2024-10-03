@@ -287,7 +287,7 @@ namespace {
                 track_info.title = matches[2].str();
             }
             else {
-                track_info.title = file_name_no_ext;
+                track_info.title = file_name_no_ext.value();
             }
         }
     }
@@ -422,7 +422,7 @@ public:
 
         // Tag not empty but title maybe empty!
         if (tag) {
-            if (!track_info.title) {
+            if (track_info.title.empty()) {
                 ExtractTitleFromFileName(track_info);
             }
         }

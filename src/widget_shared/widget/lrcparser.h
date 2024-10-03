@@ -12,6 +12,8 @@
 #include <vector>
 
 #include <base/base.h>
+#include <base/furigana.h>
+#include <widget/widget_shared.h>
 #include <widget/ilrrcparser.h>
 
 class LrcParser : public ILrcParser {

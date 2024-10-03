@@ -15,10 +15,10 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
-	constexpr std::chrono::milliseconds kSpinningTimeout = std::chrono::milliseconds(100);
+	constexpr size_t kMaxAttempts = 100;
+	constexpr auto kSpinningTimeout = std::chrono::milliseconds(100);
 	constexpr auto kDequeueTimeout = std::chrono::milliseconds(10);
 	constexpr auto kSharedTaskQueueSize = 4096;
-	constexpr auto kWorkStealingTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
 
@@ -34,18 +34,12 @@ namespace {
 	}
 }
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, const CpuAffinity& affinity, ThreadPriority priority)
-	: TaskScheduler(TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
-}
-
-TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, size_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
 	, pool_name_(pool_name)
 	, task_execute_flags_(max_thread_)
-	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
-	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy))
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1)
 	, cpu_affinity_(affinity) {
@@ -53,7 +47,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
-		task_scheduler_policy_->SetMaxThread(max_thread_);
 
 		/*for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
@@ -70,8 +63,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 
 	work_done_.wait();
 
-	// 因為macOS 不支援thread running狀態設置affinity,
-	// 所以都改由此方式初始化affinity.
 	JThread([this]() mutable {
 		for (size_t i = 0; i < max_thread_; ++i) {
 			if (cpu_affinity_.IsCoreUse(i)) {
@@ -94,17 +85,6 @@ TaskScheduler::~TaskScheduler() {
 
 size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
-}
-
-void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
-	auto* policy = task_scheduler_policy_.get();
-	task_steal_policy_->SubmitJob(std::move(task),
-		flags,
-		max_thread_,
-		task_pool_.get(),
-		policy, 
-		task_work_queues_,
-		task_execute_flags_);
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -139,9 +119,6 @@ void TaskScheduler::Destroy() noexcept {
 	task_work_queues_.clear();
 	task_execute_flags_.clear();
 
-	task_scheduler_policy_.reset();
-    task_steal_policy_.reset();	
-
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
@@ -153,7 +130,6 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	MoveOnlyFunction func;
 	// Wait for a task to be available
 	if (task_pool_->Dequeue(func, timeout)) {
-		//XAMP_LOG_D(logger_, "Pop shared queue.");
 		return func;
 	}
 	return std::nullopt;
@@ -167,7 +143,6 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	MoveOnlyFunction func;
 	// Wait for a task to be available
     if (task_pool_->TryDequeue(func)) {
-        //XAMP_LOG_D(logger_, "Pop shared queue.");
 		return func;
 	}
 	return std::nullopt;
@@ -181,34 +156,47 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(const StopToken& stop
 	MoveOnlyFunction func;
 	// Try to get a task from the local queue
 	if (local_queue->TryDequeue(func)) {
-		//XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
 		return func;
 	}
 	return std::nullopt;
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, ITaskSchedulerPolicy *policy, size_t current_thread_index) {
-	// Try to steal a task from another thread's queue
-	// Note: The order in which we try the queues is important to prevent
-	//       all threads from trying to steal from the same thread
-	// 	 (which would lead to a deadlock)
+void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
+	thread_local PRNG prng;
+	size_t random_start = prng() % max_thread_;
 
-	constexpr size_t kMaxAttempts = 100;
+	for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
+		size_t random_index = (random_start + attempts) % max_thread_;
+
+		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+			if (task_work_queues_.at(random_index)->TryEnqueue(std::move(task))) {
+				task_execute_flags_[random_index] = flags;
+				return;
+			}
+		}
+	}
+	task_pool_->Enqueue(task);
+}
+
+std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t current_thread_index) {
+	thread_local PRNG prng;
+	size_t random_start = prng() % max_thread_;
 	
 	for (size_t attempts = 0;  attempts < kMaxAttempts; ++attempts) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
 		}
 
-		const auto index = policy->ScheduleNext(current_thread_index, task_work_queues_, task_execute_flags_);
-		if (index == kInvalidScheduleIndex) {
+		size_t random_index = (random_start + attempts) % max_thread_;
+		if (random_index == current_thread_index) {
 			continue;
 		}
 
-		MoveOnlyFunction func;
-		if (task_work_queues_.at(index)->TryDequeue(func)) {
-			//XAMP_LOG_D(logger_, "Steal other thread {} queue (found count: {}).", index, n);
-			return func;
+		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+			MoveOnlyFunction task;
+			if (task_work_queues_.at(random_index)->TryDequeue(task)) {
+				return task;
+			}
 		}
 	}
 	return std::nullopt;
@@ -222,7 +210,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
-		StackBufferPtr<std::byte> L1_padding_buffer;
+		StackBuffer<std::byte> L1_padding_buffer;
 
 		if (IsCPUSupportHT()) {
 			// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
@@ -235,6 +223,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
 		auto local_queue = &task_local_queue;
 		task_work_queues_[i] = local_queue;
+		Stopwatch spinning_watch;
 
 		XampCrashHandler.SetThreadExceptionHandlers();
 
@@ -242,7 +231,6 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
 
-		auto* policy = task_scheduler_policy_.get();
 		const auto thread_id = GetCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
@@ -257,34 +245,42 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
-		
-		Stopwatch spinning_watch;		
 
 		// Main loop
 		while (!is_stopped_ && !stop_token.stop_requested()) {
-			// Try to get a task from the local queue
 			auto task = TryLocalPop(stop_token, local_queue);
 
-			// If no task is available, try to get one from the task queue
 			if (!task) {
-				task = TrySteal(stop_token, policy, i);
+				task = TrySteal(stop_token, i);
 
-				// If still no task and spinning has exceeded the timeout, try to get one from the shared queue
 				if (!task && spinning_watch.Elapsed() >= kSpinningTimeout) {
-					task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
+					// Implement backoff by adjusting how frequently we check the shared queue
+					static int backoff_attempts = 1;
+					for (int attempt = 0; attempt < backoff_attempts; ++attempt) {
+						task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
+						if (task) {
+							break; // Exit early if a task is found
+						}
+						CpuRelax(); // Small CPU relaxation between attempts
+					}
+
+					// Gradually increase the number of attempts if no task was found
+					if (!task) {
+						backoff_attempts = std::min(backoff_attempts * 2, 32); // Max backoff attempts
+					}
+					else {
+						backoff_attempts = 1; // Reset backoff when a task is found
+					}
 				}
 			}
 
-			// If no task is found, relax the CPU and continue the loop
 			if (!task) {
 				CpuRelax();
 				continue;
 			}
 
-			// Reset the spinning watch if a task was found
 			spinning_watch.Reset();
 
-			// Execute the task
 			auto running_thread = ++running_thread_;
 			std::invoke(*task, stop_token);
 			--running_thread_;
@@ -296,11 +292,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
         });
 }
 
-ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, max_thread, affinity, priority)) {
-}
-
-ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, uint32_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
 	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name,max_thread, affinity, priority)) {
 }
 

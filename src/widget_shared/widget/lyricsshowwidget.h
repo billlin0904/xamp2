@@ -9,7 +9,10 @@
 #include <widget/wheelablewidget.h>
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
+
 #include <base/memory.h>
+#include <base/furigana.h>
+
 #include <widget/util/str_util.h>
 
 class QDropEvent;
@@ -89,4 +92,6 @@ private:
 	QString orilyrc_;
 	QString trlyrc_;
 	AlignPtr<ILrcParser> lyric_;
+	Furigana furigana_;
+	std::vector<std::vector<FuriganaEntity>> furiganas_;
 };

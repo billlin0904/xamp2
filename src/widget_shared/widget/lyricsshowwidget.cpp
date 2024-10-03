@@ -162,6 +162,8 @@ void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& 
 			painter->setFont(font);            
 			current_roll_rect_ = rect;
 			current_mask_font_ = painter->font();
+			painter->setFont(current_mask_font_);
+			painter->setPen(lrc_highlight_color_);
 		} else {
 			auto font = lrc_font_;
             font.setBold(true);
@@ -180,11 +182,51 @@ void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& 
 	const QFontMetrics metrics(painter->font());
 	const auto text = QString::fromStdWString(lyric_->lineAt(index).lrc);
 
-	painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
-		rect.y() + (rect.height() - metrics.height()) / 2,
-		metrics.horizontalAdvance(text),
-		rect.height(),
-		Qt::AlignLeft, text);
+	//const auto furigana_result = furigana_.Convert(text.toStdWString());
+	if (furiganas_.empty()) {
+		painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
+			rect.y() + (rect.height() - metrics.height()) / 2,
+			text);
+		return;
+	}
+
+	const auto furigana_result = furiganas_[index];
+	if (furigana_result.empty()) {
+		painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
+			rect.y() + (rect.height() - metrics.height()) / 2,
+			text);
+		return;
+	}
+
+	auto x = (rect.width() - metrics.horizontalAdvance(text)) / 2;
+
+	QFont kanji_font = painter->font();
+	QFont furigana_font = kanji_font;
+	furigana_font.setPointSize(kanji_font.pointSize() * 0.5);
+
+	QFontMetrics furigana_metrics(furigana_font);
+
+	for (const auto& entity : furigana_result) {
+		auto kanji_width = metrics.horizontalAdvance(QString::fromStdWString(entity.text));
+		auto furigana_length = entity.furigana.size();
+
+		if (furigana_length > 0) {
+			auto furigana_char_width = kanji_width / furigana_length;
+			auto furigana_y = rect.y() + (rect.height() - metrics.height()) / 2 - furigana_metrics.height();
+
+			for (auto i = 0; i < furigana_length; ++i) {
+				auto furigana_char = QString::fromStdWString(entity.furigana).mid(i, 1);
+				auto furigana_x = x + i * furigana_char_width;
+
+				painter->setFont(furigana_font);
+				painter->drawText(furigana_x, furigana_y, furigana_char);
+			}
+		}
+
+		painter->setFont(kanji_font);
+		painter->drawText(x, rect.y() + (rect.height() - metrics.height() + 20) / 2, QString::fromStdWString(entity.text));
+		x += kanji_width;
+	}
 }
 
 void LyricsShowWidget::paintBackground(QPainter* painter) {
@@ -192,18 +234,6 @@ void LyricsShowWidget::paintBackground(QPainter* painter) {
 }
 
 void LyricsShowWidget::paintItemMask(QPainter* painter) {
-	if (item_offset_ == 0) {
-		painter->setFont(current_mask_font_);
-		painter->setPen(lrc_highlight_color_);
-
-		const QFontMetrics metrics(current_mask_font_);
-		painter->drawText((current_roll_rect_.width() - metrics.horizontalAdvance(real_current_text_)) / 2,
-			current_roll_rect_.y() + (current_roll_rect_.height() - metrics.height()) / 2,
-			mask_length_,
-			current_roll_rect_.height(),
-			Qt::AlignLeft,
-			real_current_text_);
-	}
 }
 
 int32_t LyricsShowWidget::itemHeight() const {
@@ -219,6 +249,7 @@ int32_t LyricsShowWidget::itemCount() const {
 }
 
 void LyricsShowWidget::stop() {
+	furiganas_.clear();
 	mask_length_ = -1000;
 	last_lyric_index_ = -1;
 	current_roll_rect_ = QRect(0, 0, 0, 0);
@@ -306,6 +337,10 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 		return false;
 	}
 
+	for (const auto& lrc : *lyric_) {
+		furiganas_.push_back(furigana_.Convert(lrc.lrc));
+	}
+
 	resizeFontSize();
 	update();
 	return true;
@@ -329,12 +364,16 @@ void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
 }
 
 void LyricsShowWidget::loadLrc(const QString& lrc) {
+	furiganas_.clear();
 	std::wistringstream stream{ lrc.toStdWString() };
 	if (!lyric_->parse(stream)) {
 		setDefaultLrc();
 	}
 	else {
 		stop_scroll_time_ = false;
+		for (const auto& lrc : *lyric_) {
+			furiganas_.push_back(furigana_.Convert(lrc.lrc));
+		}
 	}
 	resizeFontSize();
 	onSetLrcTime(0);

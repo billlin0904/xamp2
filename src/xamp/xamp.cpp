@@ -606,8 +606,8 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
             track_info.album = String::ToString(track.album.value().name);
         }
 
-        if (prev_album != track_info.album.value()) {
-            prev_album = track_info.album.value();
+        if (prev_album != track_info.album) {
+            prev_album = track_info.album;
             track_no = 1;
         }
         track_info.track = track_no++;

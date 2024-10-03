@@ -62,7 +62,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     using PackagedTaskType = std::packaged_task<ReturnType(const StopToken&)>;
 
     // std::shared_ptr
-    auto task = MakeAlignedShared<PackagedTaskType>(bind_front(
+    auto task = MakeSharedPointer<PackagedTaskType>(bind_front(
         std::forward<F>(f),
         std::forward<Args>(args)...)
         );
@@ -82,23 +82,7 @@ struct XAMP_BASE_API ThreadPoolBuilder {
         ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL,
         CpuAffinity affinity = CpuAffinity::kAll,
         uint32_t max_thread =
-        std::thread::hardware_concurrency(),
-        TaskSchedulerPolicy policy =
-        TaskSchedulerPolicy::THREAD_LOCAL_RANDOM_POLICY,
-        TaskStealPolicy steal_policy =
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
-
-    static AlignPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
-        TaskSchedulerPolicy policy,
-        TaskStealPolicy steal_policy =
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
-
-
-    static AlignPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
-        ThreadPriority priority,
-        TaskSchedulerPolicy policy,
-        TaskStealPolicy steal_policy =
-        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+        std::thread::hardware_concurrency());
 
     static AlignPtr<IThreadPoolExecutor> MakeOutputTheadPool();
 

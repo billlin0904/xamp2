@@ -106,7 +106,7 @@ public:
 
 private:
     size_t size_ = 0;
-    AlignArrayPtr<T> ptr_;
+    AlignArray<T> ptr_;
     VmMemLock lock_;
 };
 

@@ -275,7 +275,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
 }
 
 void AudioPlayer::ReadPlayerAction() {
-    while (!action_queue_.empty()) {
+    while (!action_queue_.IsEmpty()) {
         PlayerAction msg;
         if (action_queue_.TryDequeue(msg)) {
             try {

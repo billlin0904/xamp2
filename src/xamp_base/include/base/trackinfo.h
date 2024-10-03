@@ -37,17 +37,16 @@ struct XAMP_BASE_API TrackInfo final {
     uint64_t file_size;
     int64_t last_write_time;    
     double duration;
+    double offset;
     Path file_path;
-
-    std::optional<double>       offset;
-    std::optional<std::string>  cover_id;
-    std::optional<std::string>  disc_id;
-    std::optional<std::wstring> title;
-    std::optional<std::wstring> artist;
-    std::optional<std::wstring> album;
-    std::optional<std::wstring> genre;
-    std::optional<std::wstring> comment;
-    std::optional<ReplayGain>   replay_gain;
+    std::string  cover_id;
+    std::string  disc_id;
+    std::wstring title;
+    std::wstring artist;
+    std::wstring album;
+    std::wstring genre;
+    std::wstring comment;
+    std::optional<ReplayGain> replay_gain;
 
     std::optional<std::wstring> file_name() const {
         if (!file_path.has_filename()) {

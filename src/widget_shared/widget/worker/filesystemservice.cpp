@@ -14,6 +14,7 @@
 namespace {
 	const std::string kCueFileExtension(".cue");
 	XAMP_DECLARE_LOG_NAME(FileSystemService);
+	XAMP_DECLARE_LOG_NAME(FileProcess);
 
 	struct PathInfo {
 		size_t file_count;
@@ -50,7 +51,8 @@ namespace {
 		}
 
         #ifdef Q_OS_WIN
-		std::sort(std::execution::par_unseq, path_infos.begin(), path_infos.end(), [](const auto& p1, const auto& p2) {
+		std::sort(std::execution::par_unseq, path_infos.begin(), path_infos.end(),
+			[](const auto& p1, const auto& p2) {
 			if (p1.file_count != p2.file_count) {
 				return p1.file_count > p2.file_count;
 			}
@@ -73,9 +75,12 @@ FileSystemService::FileSystemService()
 	, timer_(this) {
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
+	constexpr auto kThreadPoolSize = 4;
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(FileSystemService),
-		ThreadPriority::PRIORITY_BACKGROUND);
+		ThreadPriority::PRIORITY_BACKGROUND,
+		CpuAffinity::kAll,
+		kThreadPoolSize);
 }
 
 FileSystemService::~FileSystemService() {
@@ -212,8 +217,8 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 	auto [total_work, file_count_paths] =
 		getPathSortByFileCount(thread_pool_, paths, getTrackInfoFileNameFilter(),
 		                       [this](auto total_file_count) {
-			                       emit foundFileCount(total_file_count);
-		                       });
+				emit foundFileCount(total_file_count);
+	});
 
 	XAMP_ON_SCOPE_EXIT(
 		timer_.stop();

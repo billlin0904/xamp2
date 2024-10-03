@@ -77,7 +77,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/libcue/include/;../thirdparty/chromaprint/src/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/libcue/include/;../thirdparty/chromaprint/src/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/robin_hood/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/libcue/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/unordered_dense/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/libcue/include/</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>

@@ -25,39 +25,11 @@ namespace {
 AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
 	ThreadPriority priority,
 	CpuAffinity affinity,
-	uint32_t max_thread,
-	TaskSchedulerPolicy policy,
-	TaskStealPolicy steal_policy) {
+	uint32_t max_thread) {
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(pool_name,
-		policy,
-		steal_policy,
 		max_thread,
 		affinity,
 		priority);
-}
-
-AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
-	TaskSchedulerPolicy policy,
-	TaskStealPolicy steal_policy) {
-	return MakeThreadPool(pool_name,
-		ThreadPriority::PRIORITY_NORMAL,
-		CpuAffinity::kAll,
-		std::thread::hardware_concurrency(),
-		policy,
-		steal_policy);
-}
-
-AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(
-	const std::string_view& pool_name,
-	ThreadPriority priority,
-	TaskSchedulerPolicy policy,
-	TaskStealPolicy steal_policy) {
-	return MakeThreadPool(pool_name,
-		priority,
-		CpuAffinity::kAll,
-		std::thread::hardware_concurrency(),
-		policy,
-		steal_policy);
 }
 
 AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeOutputTheadPool() {

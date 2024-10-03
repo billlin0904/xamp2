@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <vector>
 
-
 XAMP_BASE_NAMESPACE_BEGIN
 
 struct UTransliteratorDeleter final {
@@ -41,10 +40,12 @@ using UCharsetDetectorHandle = UniqueHandle<UCharsetDetector*, UCharsetDetectorD
 class Transliterator::TransliteratorImpl {
 public:
     TransliteratorImpl() {
-        UErrorCode status = U_ZERO_ERROR;
         const UChar id[] = u"Katakana-Latin; Hiragana-Latin; Han-Latin/Names; [:Nonspacing Mark:] Remove; Any-Upper";
-        //const UChar id[] = u"Katakana-Latin; Hiragana-Latin; [:Nonspacing Mark:] Remove; Any-Upper";
+        UErrorCode status = U_ZERO_ERROR;
         trans_.reset(utrans_openU(id, -1, UTRANS_FORWARD, nullptr, -1, nullptr, &status));
+        if (U_FAILURE(status)) {
+            throw std::runtime_error("Failed to create UTransliterator");
+        }
     }
 
     std::string TransformToLatin(const std::wstring& name) {

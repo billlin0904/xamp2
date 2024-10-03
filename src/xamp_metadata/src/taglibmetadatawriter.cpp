@@ -74,29 +74,10 @@ public:
         Write(path, [&ti = std::as_const(track_info)](auto, auto tag) {
 			tag->setTrack(ti.track);
 
-			if (ti.album) {
-				tag->setAlbum(ti.album.value());
-			} else {
-				tag->setAlbum("");
-			}
-
-			if (ti.artist) {
-				tag->setArtist(ti.artist.value());
-			} else {
-				tag->setArtist("");
-			}
-
-			if (ti.title) {
-				tag->setTitle(ti.title.value());
-			} else {
-				tag->setTitle("");
-			}
-
-			if (ti.comment) {
-				tag->setComment(ti.comment.value());
-			} else {
-				tag->setComment("");
-			}
+			tag->setAlbum(ti.album);
+			tag->setArtist(ti.artist);
+			tag->setTitle(ti.title);
+			tag->setComment(ti.comment);
 		});
     }
 

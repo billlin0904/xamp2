@@ -174,16 +174,16 @@ struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
     }
 };
 
-using CharPtr = std::unique_ptr<char, FreeDeleter<char>>;
-
 template <typename Type>
-using StackBufferPtr = std::unique_ptr<Type[], StackBufferDeleter<Type>>;
+using StackBuffer = std::unique_ptr<Type[], StackBufferDeleter<Type>>;
 
 template <typename Type>
 using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 
+using CharPtr = std::unique_ptr<char, FreeDeleter<char>>;
+
 template <typename Type>
-using AlignArrayPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
+using AlignArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 /*
 * Make aligned pointer.
@@ -236,31 +236,31 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 * Make aligned array.
 *
 * @param[in] n
-* @return AlignArrayPtr<Type>
+* @return AlignArray<Type>
 */
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT AlignArrayPtr<Type> MakeAlignedArray(size_t n) {
+XAMP_BASE_API_ONLY_EXPORT AlignArray<Type> MakeAlignedArray(size_t n) {
     auto ptr = AlignedMallocArray<Type>(n, kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
-    return AlignArrayPtr<Type>(static_cast<Type*>(ptr));
+    return AlignArray<Type>(static_cast<Type*>(ptr));
 }
 
 /*
 * Make stack buffer.
 *
 * @param[in] n
-* @return StackBufferPtr<Type>
+* @return StackBuffer<Type>
 * @note StackAlloc is not thread safe.
 */
 template <typename Type = std::byte>
-XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
+XAMP_BASE_API_ONLY_EXPORT StackBuffer<Type> MakeStackBuffer(size_t n) {
     auto* ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {
         throw std::bad_alloc();
     }
-    return StackBufferPtr<Type>(static_cast<Type*>(ptr));
+    return StackBuffer<Type>(static_cast<Type*>(ptr));
 }
 
 XAMP_BASE_NAMESPACE_END

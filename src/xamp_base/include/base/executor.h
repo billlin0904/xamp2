@@ -62,11 +62,11 @@ void ParallelFor(IThreadPoolExecutor& executor,
     C& items,
     Func&& f,
     const std::chrono::milliseconds &wait_timeout = std::chrono::milliseconds(100)) {
-    using IteratorType = typename C::iterator;
 
     size_t batches = (executor.GetThreadSize() / 2) + 1;
-    IteratorType begin = items.begin();
-    IteratorType end = items.end();
+    auto begin = items.begin();
+    auto end = items.end();
+    using IteratorType = decltype(begin);
 
     std::vector<std::pair<IteratorType, SharedTask<void>>> futures;
     futures.reserve(batches);

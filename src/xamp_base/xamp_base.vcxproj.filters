@@ -11,7 +11,6 @@
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
     <ClCompile Include="src\fs.cpp" />
-    <ClCompile Include="src\itaskschedulerpolicy.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
@@ -34,6 +33,8 @@
     <ClCompile Include="src\com_error_category.cpp" />
     <ClCompile Include="src\charset_detector.cpp" />
     <ClCompile Include="src\text_encoding.cpp" />
+    <ClCompile Include="src\transliterator.cpp" />
+    <ClCompile Include="src\furigana.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -53,7 +54,6 @@
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
-    <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpoolexecutor.h" />
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
@@ -99,10 +99,12 @@
     <ClInclude Include="include\base\algorithm.h" />
     <ClInclude Include="include\base\mpmc_queue.h" />
     <ClInclude Include="include\base\lazy_storage.h" />
-    <ClInclude Include="include\base\expected.h" />
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\charset_detector.h" />
     <ClInclude Include="include\base\text_encoding.h" />
+    <ClInclude Include="include\base\transliterator.h" />
+    <ClInclude Include="include\base\furigana.h" />
+    <ClInclude Include="include\base\encoding_detector_tables.h" />
   </ItemGroup>
 </Project>

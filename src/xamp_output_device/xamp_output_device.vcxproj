@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/unordered_dense/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/unordered_dense/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>

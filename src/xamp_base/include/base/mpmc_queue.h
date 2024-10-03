@@ -209,10 +209,10 @@ private:
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) size_t capacity_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-	QueueAllocator queue_allocator_;
-	StateAllocator state_allocator_;
-	std::atomic<uint8_t>* states_;
-	Type* queue_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint8_t>* states_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) Type* queue_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) QueueAllocator queue_allocator_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) StateAllocator state_allocator_;
 };
 
 

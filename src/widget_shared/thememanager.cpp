@@ -170,6 +170,11 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     qFontIcon.setGlyphs(glyphs_lut);
 }
 
+ThemeManager& ThemeManager::GetInstance() {
+	static ThemeManager instance;
+	return instance;
+}
+
 QFont ThemeManager::loadFonts() {
     QList<QString> format_font;
     QList<QString> mono_fonts;

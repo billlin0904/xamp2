@@ -29,7 +29,7 @@ enum TaskbarProgressState {
 
 constexpr auto kWinThumbbarButtonSize = 3;
 
-class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
+class XAMP_WIDGET_SHARED_EXPORT WinTaskbar : public QObject, public QAbstractNativeEventFilter {
     Q_OBJECT
 public:
     explicit WinTaskbar(XMainWindow* window);
