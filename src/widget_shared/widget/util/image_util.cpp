@@ -307,11 +307,9 @@ namespace {
 
 	}
 
-	void stackblurJob(QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
+	void stackblurJob(AlignPtr<IThreadPoolExecutor>& thread_pool, QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
 		XAMP_EXPECTS(radius > 0 && radius < 254);
 		XAMP_EXPECTS(cores > 0);
-
-		auto thread_pool = ThreadPoolBuilder::MakeBackgroundThreadPool();
 
 		auto div = (radius * 2) + 1;
 		auto stack = Vector<uint8_t>(div * 4 * cores);
@@ -507,17 +505,11 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	return result;
 }
 
-QPixmap gaussianBlur(const QPixmap& source, uint32_t radius) {
-	auto image = source.toImage();
-	stackblurJob(image, radius);
-	return QPixmap::fromImage(image);
-}
-
-QImage blurImage(const QPixmap& source, QSize size) {
+QImage blurImage(AlignPtr<IThreadPoolExecutor>& thread_pool, const QPixmap& source, QSize size) {
 	const QSize scaled_size(size.width() + kImageBlurRadius, size.height() + kImageBlurRadius);
 	auto resize_pixmap = resizeImage(source, scaled_size);
 	auto img = resize_pixmap.toImage();
-	stackblurJob(img, kImageBlurRadius);
+	stackblurJob(thread_pool, img, kImageBlurRadius);
 	return img;
 }
 

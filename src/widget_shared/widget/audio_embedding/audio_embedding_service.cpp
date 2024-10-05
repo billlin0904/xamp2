@@ -33,7 +33,7 @@ QCoro::Task<QList<EmbeddingQueryResult>> AudioEmbeddingService::queryEmbeddings(
     http_client_.setUrl(qFormat("%1/query_embeddings").arg(BASE_URL));
     auto content = co_await http_client_
         .params(params)
-        .addAccpetJsonHeader()
+        .addAcceptJsonHeader()
         .get();
 
     QList<EmbeddingQueryResult> results;
@@ -70,7 +70,7 @@ QCoro::Task<QString> AudioEmbeddingService::deleteEmbeddings(const QList<QString
     http_client_.setUrl(qFormat("%1/delete_embedding").arg(BASE_URL));
     auto content = co_await http_client_
         .params(params)
-        .addAccpetJsonHeader()
+        .addAcceptJsonHeader()
         .del();
     co_return content;
 }

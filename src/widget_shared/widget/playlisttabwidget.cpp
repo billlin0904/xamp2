@@ -360,6 +360,7 @@ void PlaylistTabWidget::restoreTabOrder() {
         for (int j = 0; j < tabBar()->count(); ++j) {
             auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(j));
             Q_ASSERT(playlist_page != nullptr);
+			playlist_page->playlist()->reload();
             const auto widget_playlist_id = playlist_page->playlist()->playlistId();
             if (widget_playlist_id == playlist_id) {
                 XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", widget_playlist_id, j);

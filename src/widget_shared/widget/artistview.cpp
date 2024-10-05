@@ -228,9 +228,9 @@ void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const Q
 	album_view_->filterByArtistId(artist_id);
 	album_view_->reload();
 	cover_ = qImageCache.getOrAddDefault(artist_cover_id, false);
-	if (!cover_.isNull()) {
+	/*if (!cover_.isNull()) {
 		cover_ = QPixmap::fromImage(image_util::blurImage(cover_, size()));
-	}
+	}*/
 }
 
 ArtistView::ArtistView(QWidget* parent)

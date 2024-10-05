@@ -35,9 +35,7 @@ XAMP_WIDGET_SHARED_EXPORT QByteArray image2ByteArray(const QPixmap& source);
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap convertToImageFormat(const QPixmap& source, int32_t quality = 100);
 
-XAMP_WIDGET_SHARED_EXPORT QImage blurImage(const QPixmap& source, QSize size);
-
-XAMP_WIDGET_SHARED_EXPORT QPixmap gaussianBlur(const QPixmap& source, uint32_t radius = kImageBlurRadius);
+XAMP_WIDGET_SHARED_EXPORT QImage blurImage(AlignPtr<IThreadPoolExecutor> &thread_pool, const QPixmap& source, QSize size);
 
 XAMP_WIDGET_SHARED_EXPORT int sampleImageBlur(const QImage &image, int blur_alpha);
 

@@ -137,7 +137,7 @@ namespace http {
         timeout_ = timeout;
     }
 
-    HttpClient& HttpClient::addAccpetJsonHeader() {
+    HttpClient& HttpClient::addAcceptJsonHeader() {
 		headers_["Accept"_str] = "application/json"_str;
 		return *this;
     }
@@ -228,12 +228,12 @@ namespace http {
     HttpClient& HttpClient::setJson(const QString& json) {
         json_ = json;
         use_json_ = true;
-        addAccpetJsonHeader();
+        addAcceptJsonHeader();
         return *this;
     }
 
-    void HttpClient::setUserAgent(const QString& userAgent) {
-        user_agent_ = userAgent;
+    void HttpClient::setUserAgent(const QString& user_agent) {
+        user_agent_ = user_agent;
     }
 
     void HttpClient::setHeader(const QString& name, const QString& value) {
@@ -258,6 +258,19 @@ namespace http {
 
         request.setRawHeader("Accept-Encoding", "gzip");
         request.setRawHeader("Connection", "keep-alive");
+
+        if (!cookies_.isEmpty()) {
+            QString cookie_header;
+            for (const auto& cookie : cookies_) {
+                if (!cookie_header.isEmpty()) {
+                    cookie_header += "; "_str;
+                }
+                cookie_header += QString::fromUtf8(cookie.name())
+            	+ "="_str
+            	+ QString::fromUtf8(cookie.value());
+            }
+            request.setRawHeader("Cookie", cookie_header.toUtf8());
+        }
     }
 
     QString HttpClient::processReply(QNetworkReply* reply) {

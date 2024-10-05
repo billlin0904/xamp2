@@ -13,6 +13,7 @@
 #include <widget/driveinfo.h>
 #include <widget/widget_shared_global.h>
 #include <widget/util/mbdiscid_util.h>
+#include <widget/httpx.h>
 #include <base/threadpoolexecutor.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
@@ -58,5 +59,7 @@ private:
 	LruCache<QString, QImage> blur_image_cache_;
 	LoggerPtr logger_;
 	QNetworkAccessManager nam_;
+	http::HttpClient http_client_;
 	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
+	AlignPtr<IThreadPoolExecutor> thread_pool_;
 };

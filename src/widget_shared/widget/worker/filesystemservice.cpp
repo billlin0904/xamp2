@@ -14,7 +14,6 @@
 namespace {
 	const std::string kCueFileExtension(".cue");
 	XAMP_DECLARE_LOG_NAME(FileSystemService);
-	XAMP_DECLARE_LOG_NAME(FileProcess);
 
 	struct PathInfo {
 		size_t file_count;

@@ -73,6 +73,8 @@
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 
+#include <widget/musixmatch/musixmatch.h>
+
 #include <widget/worker/backgroundservice.h>
 #include <widget/worker/filesystemservice.h>
 #include <widget/worker/albumcoverservice.h>
@@ -344,6 +346,8 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     file_system_service_.reset(new FileSystemService());
     file_system_service_->moveToThread(&file_system_service_thread_);
     file_system_service_thread_.start(QThread::LowestPriority);
+
+    musixmatch_service_.reset(new MusixmatchHttpService());
 
     if (background_service_ != nullptr) {
         (void)QObject::connect(this, &Xamp::cancelRequested, background_service_.get(), &BackgroundService::cancelRequested);
@@ -1807,7 +1811,20 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
  
     if (local_music) {
-        lrc_page_->lyrics()->loadLrcFile(entity.file_path);
+        if (!lrc_page_->lyrics()->loadLrcFile(entity.file_path)) {
+            musixmatch_service_->search(entity.album, entity.artist, entity.title).then([this, entity](const auto& lrc) {
+				if (lrc.isEmpty()) {
+					return;
+				}
+                lrc_page_->lyrics()->onSetLrc(lrc);
+                const auto save_file_path = entity.parent_path + QDir::separator() + entity.file_name + ".lrc"_str;
+                QFile file(save_file_path);
+                if (file.open(QIODevice::WriteOnly)) {
+                    file.write(lrc.toUtf8());
+                    file.close();
+                }
+                });
+        }
     } else {
         lrc_page_->lyrics()->loadLrcFile(kEmptyString);
     }
@@ -2096,7 +2113,7 @@ void Xamp::initialPlaylist() {
             playlist_page->hidePlaybackInformation(true);
             playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
             playlist_page->playlist()->enableCloudMode(true);
-            playlist_page->playlist()->reload();
+            //playlist_page->playlist()->reload();
         }
     });    
 

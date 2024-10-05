@@ -371,9 +371,9 @@ struct XAMP_WIDGET_SHARED_EXPORT SongInfo {
 	QString lyrics;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT YtMusicHttpService : public QObject {
+class XAMP_WIDGET_SHARED_EXPORT YtMusicHttpService {
 public:
-	explicit YtMusicHttpService(QObject* parent = nullptr);
+	YtMusicHttpService();
 
 	QCoro::Task<SongInfo> fetchSongInfo(const QString& video_id);
 

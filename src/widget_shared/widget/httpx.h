@@ -9,7 +9,7 @@
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QUrlQuery>
-#include <QStringConverter>
+#include <QNetworkCookie>
 #include <memory>
 
 #include <base/object_pool.h>
@@ -34,7 +34,7 @@ namespace http {
         HttpClient& setJson(const QString& json);
         HttpClient& param(const QString& name, const QVariant& value);
         HttpClient& params(const QMultiMap<QString, QVariant>& ps);
-        HttpClient& addAccpetJsonHeader();
+        HttpClient& addAcceptJsonHeader();
 
         QCoro::Task<QString> get();
         QCoro::Task<QString> post();
@@ -44,24 +44,34 @@ namespace http {
 		QCoro::Task<QByteArray> download();
 
         void setParams(const QUrlQuery& params);
-        void setUserAgent(const QString& userAgent);
+        void setUserAgent(const QString& user_agent);
         void setHeader(const QString& name, const QString& value);
 
+        HttpClient& addCookie(const QNetworkCookie& cookie) {
+            cookies_.append(cookie);
+            return *this;
+        }
+
+        HttpClient& addCookies(const QList<QNetworkCookie>& cookies) {
+            cookies_.append(cookies);
+            return *this;
+        }
     private:
         void setHeaders(QNetworkRequest& request);
         QString processReply(QNetworkReply* reply);
         QString processEncoding(QNetworkReply* reply, const QByteArray &content);
 
+        bool use_json_{ false };
+        int timeout_{ 120000 };
         QNetworkAccessManager* manager_;
         QString url_;
         QUrlQuery params_;
         QString json_;
-        bool use_json_{ false };
-        int timeout_{ 120000 };  // 默認超時 120 秒
         QString user_agent_;
         QHash<QString, QString> headers_;
         LoggerPtr logger_;
         QStringConverter::Encoding charset_ = QStringConverter::Encoding::Utf8;
         std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
+        QList<QNetworkCookie> cookies_;
     };
 }

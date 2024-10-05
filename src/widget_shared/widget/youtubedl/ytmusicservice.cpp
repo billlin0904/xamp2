@@ -207,9 +207,8 @@ namespace {
 
 
 
-YtMusicHttpService::YtMusicHttpService(QObject* parent)
-	: QObject(parent)
-	, http_client_(BASE_URL) {
+YtMusicHttpService::YtMusicHttpService()
+	: http_client_(BASE_URL) {
 }
 
 QCoro::Task<SongInfo> YtMusicHttpService::fetchSongInfo(const QString& video_id) {
@@ -240,7 +239,7 @@ QCoro::Task<SongInfo> YtMusicHttpService::fetchSongInfo(const QString& video_id)
 
 QCoro::Task<QList<LibraryPlaylist>> YtMusicHttpService::fetchLibraryPlaylists() {
     http_client_.setUrl(qFormat("%1/fetch_library_playlists").arg(BASE_URL));
-    http_client_.addAccpetJsonHeader();
+    http_client_.addAcceptJsonHeader();
     auto content = co_await http_client_.get();
 
     QList<LibraryPlaylist> results;

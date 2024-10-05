@@ -143,6 +143,7 @@
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
+    <ClInclude Include="widget\musixmatch\musixmatch.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\similarsongsviewpage.h" />
@@ -265,6 +266,7 @@
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\m3uparser.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
+    <ClCompile Include="widget\musixmatch\musixmatch.cpp" />
     <ClCompile Include="widget\networkdiskcache.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />

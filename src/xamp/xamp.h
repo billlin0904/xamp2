@@ -11,6 +11,7 @@
 
 #include <widget/widget_shared.h>
 #include <base/encodingprofile.h>
+#include <widget/youtubedl/ytmusicservice.h>
 
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
@@ -18,8 +19,6 @@
 #include <widget/driveinfo.h>
 #include <widget/util/str_util.h>
 #include <widget/databasecoverid.h>
-
-#include <widget/youtubedl/ytmusicservice.h>
 
 #include <widget/dao/musicdao.h>
 #include <widget/dao/albumdao.h>
@@ -31,7 +30,8 @@
 
 class ProcessIndicator;
 class AudioEmbeddingService;
-
+class YtMusicHttpService;
+class MusixmatchHttpService;
 struct MbDiscIdInfo;
 struct PlaybackFormat;
 
@@ -303,6 +303,7 @@ private:
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
     QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
+	QScopedPointer<MusixmatchHttpService> musixmatch_service_;
 	QScopedPointer<YtMusicHttpService> ytmusic_http_service_;
 	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
