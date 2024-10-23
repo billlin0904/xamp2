@@ -67,22 +67,22 @@ private:
     /*
     * Try dequeue task from shared queue.
     */
-    std::optional<MoveOnlyFunction> TryDequeueSharedQueue(const StopToken& stop_token);
+    MoveOnlyFunction TryDequeueSharedQueue(const StopToken& stop_token);
 
     /*
     * Try steal task from other thread.
     */
-    std::optional<MoveOnlyFunction> TrySteal(const StopToken& stop_token, size_t current_thread_index);
+    MoveOnlyFunction TrySteal(const StopToken& stop_token, size_t random_start, size_t current_thread_index);
 
     /*
     * Try dequeue task from local queue.
     */
-    std::optional<MoveOnlyFunction> TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const;
+    MoveOnlyFunction TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const;
 
     /*
     * Try dequeue task from shared queue.
     */
-    std::optional<MoveOnlyFunction> TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout);
+    MoveOnlyFunction TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout);
 
     /*
     * Add thread to thread pool.

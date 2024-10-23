@@ -16,11 +16,17 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 	constexpr size_t kMaxAttempts = 100;
-	constexpr auto kSpinningTimeout = std::chrono::milliseconds(100);
+	constexpr auto kSpinningTimeout = std::chrono::milliseconds(500);
 	constexpr auto kDequeueTimeout = std::chrono::milliseconds(10);
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
+
+	/*
+	 * Avoid 64k Alias conflicts.
+	*/
+	constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
+	constexpr size_t kMaxL1CacheLineSize{ 1 * 1024 * 1024 };
 
 	bool IsCPUSupportHT() {
 		int32_t reg[4]{ 0 };
@@ -47,10 +53,6 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
-
-		/*for (size_t i = 0; i < max_thread_; ++i) {
-			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
-		}*/
 		task_work_queues_.resize(max_thread_);
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
@@ -122,9 +124,9 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout) {
+MoveOnlyFunction TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout) {
 	if (stop_token.stop_requested()) {
-		return std::nullopt;
+		return {};
 	}
 
 	MoveOnlyFunction func;
@@ -132,12 +134,12 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
 	if (task_pool_->Dequeue(func, timeout)) {
 		return func;
 	}
-	return std::nullopt;
+	return {};
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token) {
+MoveOnlyFunction TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token) {
 	if (stop_token.stop_requested()) {
-		return std::nullopt;
+		return {};
 	}
 
 	MoveOnlyFunction func;
@@ -145,48 +147,47 @@ std::optional<MoveOnlyFunction> TaskScheduler::TryDequeueSharedQueue(const StopT
     if (task_pool_->TryDequeue(func)) {
 		return func;
 	}
-	return std::nullopt;
+	return {};
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const {
+MoveOnlyFunction TaskScheduler::TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const {
 	if (stop_token.stop_requested()) {
-		return std::nullopt;
+		return {};
 	}
 
 	MoveOnlyFunction func;
-	// Try to get a task from the local queue
-	if (local_queue->TryDequeue(func)) {
+	//if (local_queue->TryDequeue(func)) {
+	if (local_queue->try_dequeue(func)) {
 		return func;
 	}
-	return std::nullopt;
+	return {};
 }
 
 void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
-	thread_local PRNG prng;
+	XAMP_NO_TLS_GUARDS thread_local PRNG prng;
 	size_t random_start = prng() % max_thread_;
 
 	for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
 		size_t random_index = (random_start + attempts) % max_thread_;
 
 		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-			if (task_work_queues_.at(random_index)->TryEnqueue(std::move(task))) {
+			//if (task_work_queues_.at(random_index)->TryEnqueue(std::move(task))) {
+			if (task_work_queues_.at(random_index)->try_enqueue(std::move(task))) {
 				task_execute_flags_[random_index] = flags;
 				return;
 			}
 		}
 	}
+
 	task_pool_->Enqueue(task);
 }
 
-std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t current_thread_index) {
-	thread_local PRNG prng;
-	size_t random_start = prng() % max_thread_;
+MoveOnlyFunction TaskScheduler::TrySteal(const StopToken& stop_token, size_t random_start, size_t current_thread_index) {
+	if (stop_token.stop_requested()) {
+		return {};
+	}
 	
 	for (size_t attempts = 0;  attempts < kMaxAttempts; ++attempts) {
-		if (stop_token.stop_requested()) {
-			return std::nullopt;
-		}
-
 		size_t random_index = (random_start + attempts) % max_thread_;
 		if (random_index == current_thread_index) {
 			continue;
@@ -194,12 +195,13 @@ std::optional<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_to
 
 		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			MoveOnlyFunction task;
-			if (task_work_queues_.at(random_index)->TryDequeue(task)) {
+			//if (task_work_queues_.at(random_index)->TryDequeue(task)) {
+			if (task_work_queues_.at(random_index)->try_dequeue(task)) {
 				return task;
 			}
 		}
 	}
-	return std::nullopt;
+	return {};
 }
 
 void TaskScheduler::SetWorkerThreadName(size_t i) {
@@ -219,8 +221,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 					kMaxL1CacheLineSize));
 		}
 
-		//auto* local_queue = task_work_queues_[i].get();
-		thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
+		XAMP_NO_TLS_GUARDS thread_local PRNG prng;
+		XAMP_NO_TLS_GUARDS thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
 		auto local_queue = &task_local_queue;
 		task_work_queues_[i] = local_queue;
 		Stopwatch spinning_watch;
@@ -251,7 +253,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			auto task = TryLocalPop(stop_token, local_queue);
 
 			if (!task) {
-				task = TrySteal(stop_token, i);
+				size_t random_start = prng() % max_thread_;
+				task = TrySteal(stop_token, random_start, i);
 
 				if (!task && spinning_watch.Elapsed() >= kSpinningTimeout) {
 					// Implement backoff by adjusting how frequently we check the shared queue
@@ -282,7 +285,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			spinning_watch.Reset();
 
 			auto running_thread = ++running_thread_;
-			std::invoke(*task, stop_token);
+			std::invoke(task, stop_token);
 			--running_thread_;
 
 			task_execute_flags_[i] = ExecuteFlags::EXECUTE_NORMAL;
