@@ -33,7 +33,6 @@ protected:
     ITaskScheduler() = default;
 };
 
-// note: 輕量化與並且快速反應的Playback thread.
 class XAMP_BASE_API XAMP_NO_VTABLE IThreadPoolExecutor {
 public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExecutor)
@@ -46,11 +45,11 @@ public:
     decltype(auto) Spawn(F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL);
 
 protected:
-    explicit IThreadPoolExecutor(AlignPtr<ITaskScheduler> scheduler)
+    explicit IThreadPoolExecutor(ScopedPtr<ITaskScheduler> scheduler)
 	    : scheduler_(std::move(scheduler)) {
     }
 
-    AlignPtr<ITaskScheduler> scheduler_;
+    ScopedPtr<ITaskScheduler> scheduler_;
 };
 
 template <typename F, typename ... Args>
@@ -61,7 +60,6 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(const StopToken&)>;
 
-    // std::shared_ptr
     auto task = MakeSharedPointer<PackagedTaskType>(bind_front(
         std::forward<F>(f),
         std::forward<Args>(args)...)
@@ -78,17 +76,16 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
 }
 
 struct XAMP_BASE_API ThreadPoolBuilder {
-    static AlignPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
+    static ScopedPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
         ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL,
         CpuAffinity affinity = CpuAffinity::kAll,
-        uint32_t max_thread =
-        std::thread::hardware_concurrency());
+        uint32_t max_thread = std::thread::hardware_concurrency());
 
-    static AlignPtr<IThreadPoolExecutor> MakeOutputTheadPool();
+    static ScopedPtr<IThreadPoolExecutor> MakeOutputTheadPool();
 
-    static AlignPtr<IThreadPoolExecutor> MakeBackgroundThreadPool();
+    static ScopedPtr<IThreadPoolExecutor> MakeBackgroundThreadPool();
 
-    static AlignPtr<IThreadPoolExecutor> MakePlaybackThreadPool();
+    static ScopedPtr<IThreadPoolExecutor> MakePlaybackThreadPool();
 };
 
 XAMP_BASE_NAMESPACE_END
