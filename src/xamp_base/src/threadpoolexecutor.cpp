@@ -22,8 +22,8 @@ namespace {
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
 	constexpr size_t kMaxBulkSize = 64;
-	constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
-	constexpr size_t kMaxL1CacheLineSize{ 1 * 1024 * 1024 };
+	constexpr size_t kInitL1CacheLineSize{ 4 * 1024 };
+	constexpr size_t kMaxL1CacheLineSize{ 32 * 1024 };
 
 	bool IsCPUSupportHT() {
 		int32_t reg[4]{ 0 };

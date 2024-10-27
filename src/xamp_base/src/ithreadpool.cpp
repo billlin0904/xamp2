@@ -22,7 +22,7 @@ namespace {
 	}
 }
 
-AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
+ScopedPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
 	ThreadPriority priority,
 	CpuAffinity affinity,
 	uint32_t max_thread) {
@@ -32,21 +32,21 @@ AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::strin
 		priority);
 }
 
-AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeOutputTheadPool() {
+ScopedPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeOutputTheadPool() {
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kOutputDeviceThreadPoolLoggerName,
 		kMaxOutputDeviceThreadPoolSize,
 		GetOutputCpuAffinity(),
 		ThreadPriority::PRIORITY_HIGHEST);
 }
 
-AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeBackgroundThreadPool() {
+ScopedPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakeBackgroundThreadPool() {
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kBackgroundThreadPoolLoggerName,
 		kMaxBackgroundThreadPoolSize,
 		GetBackgroundCpuAffinity(),
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
-AlignPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
+ScopedPtr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
 	return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(kPlaybackThreadPoolLoggerName,
 		kMaxPlaybackThreadPoolSize,
 		GetBackgroundCpuAffinity(),
